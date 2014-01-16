@@ -9,5 +9,7 @@ extensions = [Extension("cyphi/*", ["cyphi/*.pyx"],
 
 setup(
     name="cyphi",
+    version="0.0.0",
+    description="A Cython library for computing integrated information",
     ext_modules=cythonize(extensions)
 )
