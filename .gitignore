@@ -2,3 +2,5 @@ __pycache__
 .ropeproject
 build
 docs/_build
+node_modules
+Gruntfile.coffee
