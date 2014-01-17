@@ -3,15 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CyPhi's documentation!
-=================================
+CyPhi
+=====
 
-Contents:
+Release v\ |version| (:ref:`Installation <install>`)
 
-.. toctree::
-   :maxdepth: 2
+CyPhi is a Python module for computing integrated information.
 
+.. automodule:: cyphi.models
+    :members:
 
+.. automodule:: cyphi.utils
+    :members:
 
 Indices and tables
 ==================
