@@ -30,11 +30,10 @@ cdef class Network(object):
     Represents the network we're analyzing and holds auxilary data about it.
 
     :param connectivity_matrix: the network's connectivity matrix
-    :type connectivity_matrix: numpy ndarray
+    :type connectivity_matrix: ``np.ndarray``
     :param tpm: the network's transition probability matrix
-    :type tpm: numpy ndarray
-
-    :returns: a network object
+    :type tpm: ``np.ndarray``
+    :returns: a Network object
 
     """
 
