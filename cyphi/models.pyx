@@ -33,7 +33,8 @@ cdef class Network(object):
     :type connectivity_matrix: ``np.ndarray``
     :param tpm: the network's transition probability matrix
     :type tpm: ``np.ndarray``
-    :returns: a Network object
+    :returns: a Network described by the given ``connectivity_matrix`` and
+        ``tpm``
 
     """
 
@@ -42,6 +43,6 @@ cdef class Network(object):
     # unlike regular Python
     cdef public np.ndarray connectivity_matrix, tpm
 
-    def __cinit__(self, connectivity_matrix, tpm):
+    def __init__(self, connectivity_matrix, tpm):
         self.connectivity_matrix = connectivity_matrix
         self.tpm = tpm

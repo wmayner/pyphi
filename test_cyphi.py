@@ -13,6 +13,19 @@ import cyphi
 # NOTE: ``py.test`` and ``nose`` only display ``print`` statements in a test if
 # it failed.
 
+class TestUtils(unittest.TestCase):
+
+    def test_comb_indices(self):
+        n, k = 3, 2
+        data = np.arange(6).reshape(2, 3)
+        print(data[:, cyphi.comb_indices(n, k)])
+        assert 0
+
+    def test_powerset(self):
+        n = 3
+        k = 2
+        print(cyphi.powerset())
+        assert 0
 
 class TestModels(unittest.TestCase):
 

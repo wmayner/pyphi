@@ -5,7 +5,9 @@
 CyPhi
 =====
 
+
 CyPhi is a Cython library for computing integrated information.
+
 
 """
 
@@ -16,9 +18,11 @@ __copyright__ = 'Copyright 2014 Will Mayner'
 
 
 # Import Cython modules like normal Python modules (automatically compile them)
-# NOTE: this requires the environment to have Cython
+# NOTE: this requires the environment to have Cython; compile and bundle
+# everything explicitly before distributing
 import numpy as np
 import pyximport
 pyximport.install(setup_args={"include_dirs": np.get_include()})
 
 from .models import *
+from .utils import *
