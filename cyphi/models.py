@@ -13,7 +13,7 @@ import numpy as np
 import itertools.chain
 import utils
 
-def class Network(object):
+class Network(object):
     """A network of elements.
 
     Represents the network we're analyzing and holds auxilary data about it.
