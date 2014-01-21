@@ -16,6 +16,9 @@ This module contains the primary objects that power CyPhi.
 import numpy as np
 cimport numpy as np
 
+import itertools.chain
+import utils
+
 # Fix a datatype for numpy arrays.
 DTYPE = np.int
 # ``ctypedef`` assigns a corresponding compile-time type to DTYPE_t. For every
@@ -29,10 +32,11 @@ cdef class Network(object):
 
     Represents the network we're analyzing and holds auxilary data about it.
 
-    :param connectivity_matrix: the network's connectivity matrix
+    :param connectivity_matrix: The network's connectivity matrix (must be square)
     :type connectivity_matrix: ``np.ndarray``
-    :param tpm: the network's transition probability matrix
+    :param tpm: The network's transition probability matrix
     :type tpm: ``np.ndarray``
+
     :returns: a Network described by the given ``connectivity_matrix`` and
         ``tpm``
 
@@ -42,7 +46,13 @@ cdef class Network(object):
     # are defined outside of the constructor (the ``__cinit__`` function),
     # unlike regular Python
     cdef public np.ndarray connectivity_matrix, tpm
+    cdef public itertools.chain powerset
 
-    def __init__(self, connectivity_matrix, tpm):
+    def __cinit__(self, connectivity_matrix, tpm):
+        if len(connectivity_matrix.shape) is not 2 or \
+            connectivity_matrix.shape[0] is not connectivity_matrix.shape[1]:
+            raise utils.ValidationException("Connectivity matrix must be square.")
         self.connectivity_matrix = connectivity_matrix
         self.tpm = tpm
+        # Generate powerset
+        self.powerset = utils.powerset(np.arange(connectivity_matrix.shape[0]))
