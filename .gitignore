@@ -3,4 +3,3 @@ __pycache__
 build
 docs/_build
 node_modules
-Gruntfile.coffee
