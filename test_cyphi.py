@@ -3,11 +3,14 @@
 
 """Tests for CyPhi"""
 
-import unittest
+from itertools import zip_longest, tee
 
 import numpy as np
 import cyphi.models as models
 import cyphi.utils as utils
+import cyphi.exceptions as exceptions
+
+import unittest
 
 # TODO: look at using pytest fixtures vs. setUp/tearDown
 
@@ -59,11 +62,23 @@ class TestModels(unittest.TestCase):
 
         assert np.array_equal(network.connectivity_matrix, connectivity_matrix)
         assert np.array_equal(network.tpm, tpm)
-        assert network.powerset == powerset
+
+        print("NETWORK:")
+        print(list(network.powerset))
+        print("POWERSET:")
+        print(list(powerset))
+
+        assert generator_equal(network.powerset, powerset)
 
     def test_network_connectivity_matrix_validation(self):
         connectivity_matrix = np.zeros((2, 3))
         tpm = np.zeros((1, 1))
 
-        with self.assertRaises(utils.ValidationException):
+        with self.assertRaises(exceptions.ValidationException):
             models.Network(connectivity_matrix, tpm)
+
+def generator_equal(generator_1, generator_2):
+    sentinel = object()
+    return all(a == b for a, b in zip_longest(generator_1,
+                                              generator_2,
+                                              fillvalue=sentinel))

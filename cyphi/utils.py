@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+
+"""
+cyphi.utils
+~~~~~~~~~~~
+
+This module provides utility functions that are used within CyPhi that are also
+useful for external consumption.
+
+"""
+
 import numpy as np
 from itertools import chain, combinations
 from scipy.misc import comb
@@ -5,8 +16,7 @@ from scipy.misc import comb
 
 # see http://stackoverflow.com/questions/16003217/n-d-version-of-itertools-combinations-in-numpy
 def combs(a, r):
-    """
-    Numpy implementation of itertools.combinations.
+    """NumPy implementation of itertools.combinations.
 
     Return successive :math:`r`-length combinations of elements in the array `a`.
 
@@ -17,7 +27,6 @@ def combs(a, r):
 
     :returns: an array of combinations
     :rtype: ``np.array``
-
     """
     # Special-case for 0-length combinations
     if r is 0:
@@ -31,8 +40,7 @@ def combs(a, r):
 
 # see http://stackoverflow.com/questions/16003217/n-d-version-of-itertools-combinations-in-numpy
 def comb_indices(n, k):
-    """
-    N-d version of itertools.combinations.
+    """N-d version of itertools.combinations.
 
     Return indices that yeild the :math:`r`-combinations of :math:`n` elements
 
@@ -56,7 +64,6 @@ def comb_indices(n, k):
 
     :returns: indices of the :math:`r`-combinations of :math:`n` elements
     :rtype: ``np.array``
-
     """
     # Count the number of combinations for preallocation
     count = comb(n, k, exact=True)
@@ -71,8 +78,7 @@ def comb_indices(n, k):
 
 # TODO: implement this with numpy?
 def powerset(iterable):
-    """
-    Return the power set of an iterable (see `itertools recipes
+    """Return the power set of an iterable (see `itertools recipes
     <http://docs.python.org/2/library/itertools.html#recipes>`_).
 
         >>> ps = powerset(np.arange[2])
@@ -83,14 +89,6 @@ def powerset(iterable):
 
     :returns: an iterator over the power set
     :rtype: iterator
-
     """
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
-
-
-class ValidationException(Exception):
-    """
-    To be thrown when a user-provided value is incorrect.
-    """
-    pass
