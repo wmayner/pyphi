@@ -250,7 +250,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'CyPhi', 'CyPhi Documentation',
-   'Will Mayner', 'CyPhi', 'One line description of project.',
+   'Will Mayner', 'CyPhi',
+   'A Python module for computing integrated information',
    'Miscellaneous'),
 ]
 
@@ -265,3 +266,6 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# -- Options for autodoc output ------------------------------------------
+autoclass_content = 'both'
