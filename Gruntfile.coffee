@@ -9,7 +9,7 @@ module.exports = (grunt) ->
         command: "py.test"
         options:
           stdout: true
-      docs:
+      buildDocs:
         command: [
           "cd docs"
           "make html"
@@ -17,6 +17,8 @@ module.exports = (grunt) ->
         options:
           stdout: true
           failOnError: true
+      openDocs:
+        command: "open docs/_build/html/index.html"
 
     watch:
       docs:
@@ -25,7 +27,7 @@ module.exports = (grunt) ->
           "<%= cfg.srcDir %>/*"
           "Gruntfile.coffee"
         ]
-        tasks: ["shell:docs"]
+        tasks: ["shell:buildDocs"]
       test:
         files: ["<%= cfg.srcDir %>/*", "Gruntfile.coffee"]
         tasks: ["shell:test"]
@@ -39,6 +41,7 @@ module.exports = (grunt) ->
     "watch:test"
   ]
   grunt.registerTask "docs", [
+    "shell:openDocs"
     "watch:docs"
   ]
   grunt.registerTask "test", [
