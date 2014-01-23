@@ -13,6 +13,7 @@ from itertools import chain
 from . import utils
 from .exceptions import ValidationException
 
+
 class Network(object):
     """A network of elements.
 
@@ -41,3 +42,37 @@ class Network(object):
 
         # Generate powerset
         self.powerset = utils.powerset(np.arange(connectivity_matrix.shape[0]))
+
+
+# TODO implement
+class Mechanism(object):
+
+    def __init__(self, network, nodes, state, MIP=None):
+        # The network this mechanism is a part of
+        self.network = network
+        # The nodes in the mechanism
+        self.nodes = nodes
+        # The initial state of the mechanism
+        self.state = state
+        # The minimum information partition
+        self.MIP = MIP
+
+    # TODO calculate unconstrained repertoires here, or in cyphi.compute?
+
+    pass
+
+
+# TODO implement
+class Distribution(object):
+    """Probability distribution.
+    """
+
+    def __init__(self, data):
+        """
+        Data is a numpy array that should sum to one.
+        """
+        # Ensure ``data`` represents a probability distribution
+        if np.sum(data) is not 1.0:
+            raise ValidationException("Probabilities in a distribution must sum to 1.")
+        self.data = data
+

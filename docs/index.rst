@@ -13,6 +13,9 @@ CyPhi is a Python module for computing integrated information.
 .. automodule:: cyphi.models
     :members:
 
+.. automodule:: cyphi.compute
+    :members:
+
 .. automodule:: cyphi.utils
     :members:
 
