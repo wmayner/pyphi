@@ -4,8 +4,8 @@
 cyphi.utils
 ~~~~~~~~~~~
 
-This module provides utility functions that are used within CyPhi that are also
-useful for external consumption.
+This module provides utility functions used within CyPhi that are also useful
+for external consumption.
 
 """
 
@@ -92,3 +92,19 @@ def powerset(iterable):
     """
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+
+
+# TODO extend to nonbinary nodes
+def uniform_distribution(number_of_nodes):
+    """Return the uniform distribution for a set of binary nodes.
+
+    :param nodes: a set of indices of binary nodes
+    :type nodes: ``np.ndarray``
+
+    :returns: the uniform distribution over the set of nodes
+    :rtype: ``np.ndarray``
+    """
+    # The size of the state space for binary nodes is 2^(number of nodes).
+    number_of_states = 2 ** number_of_nodes
+    # Generate the maximum entropy distribution
+    return np.divide(np.ones(number_of_states), number_of_states)

@@ -55,9 +55,7 @@ class Network(object):
                       for node_index in range(self.size)]
         # TODO handle nonbinary nodes
         self.num_states = 2 ** self.size
-        self.uniform_distribution = np.divide(
-            np.ones(self.num_states),
-            self.num_states)
+        self.uniform_distribution = utils.uniform_distribution(self.size)
 
     def __repr__(self):
         return "Network(" + repr(self.tpm) + ")"
