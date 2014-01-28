@@ -3,16 +3,16 @@
 
 """Tests for CyPhi"""
 
-from itertools import zip_longest, tee
+from itertools import zip_longest
 
 import numpy as np
 import cyphi.models as models
 import cyphi.utils as utils
-import cyphi.exceptions as exceptions
+from cyphi.exceptions import ValidationException
 
 import unittest
 
-# TODO: look at using pytest fixtures vs. setUp/tearDown
+# TODO look at using pytest fixtures vs. setUp/tearDown
 
 # NOTE: ``py.test`` and ``nose`` only display ``print`` statements in a test if
 # it failed.
@@ -52,32 +52,46 @@ class TestUtils(unittest.TestCase):
 
 class TestModels(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.size = 3
+        cls.tpm = np.zeros((2 ** cls.size, cls.size))
+        cls.powerset = utils.powerset(np.arange(3))
+        cls.network = models.Network(cls.tpm)
+        cls.nodes = [models.Node(cls.network, node_index)
+                     for node_index in range(cls.network.size)]
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_network_tpm_validation(self):
+        with self.assertRaises(ValidationException):
+            # Network TPMs must be 2-dimensional
+            tpm = np.arange(3)
+            models.Network(tpm)
+        with self.assertRaises(ValidationException):
+            tpm = np.array([[1,2,3]])
+            models.Network(tpm)
+
     def test_network_init(self):
-        connectivity_matrix = np.zeros((3, 3))
-        tpm = np.zeros((8, 8))
-        powerset = utils.powerset(np.arange(3))
-        print(powerset)
+        assert np.array_equal(self.tpm, self.network.tpm)
+        assert self.size == self.network.size
+        assert _generator_equal(self.powerset, self.network.powerset)
+        assert self.nodes == self.network.nodes
 
-        network = models.Network(connectivity_matrix, tpm)
+    def test_purview_max_entropy_distribution(self):
+        purview = models.Purview(self.network.nodes[0:2])
+        max_ent = purview.max_entropy_distribution()
+        assert max_ent.shape == (2,2,1)
+        assert np.array_equal(
+            max_ent,
+            np.divide(np.ones(4), 4).reshape((2,2,1)))
+        assert max_ent[0][1][0] == 0.25
 
-        assert np.array_equal(network.connectivity_matrix, connectivity_matrix)
-        assert np.array_equal(network.tpm, tpm)
 
-        print("NETWORK:")
-        print(list(network.powerset))
-        print("POWERSET:")
-        print(list(powerset))
-
-        assert generator_equal(network.powerset, powerset)
-
-    def test_network_connectivity_matrix_validation(self):
-        connectivity_matrix = np.zeros((2, 3))
-        tpm = np.zeros((1, 1))
-
-        with self.assertRaises(exceptions.ValidationException):
-            models.Network(connectivity_matrix, tpm)
-
-def generator_equal(generator_1, generator_2):
+def _generator_equal(generator_1, generator_2):
+    """Quickly compare two generators for equality"""
     sentinel = object()
     return all(a == b for a, b in zip_longest(generator_1,
                                               generator_2,
