@@ -8,8 +8,10 @@ This module contains the primary objects that power CyPhi.
 
 """
 
+# TODO use structured arrays to represent sets of nodes, so labels
+# are explicit rather than implicit (indices)?
+
 import numpy as np
-from itertools import chain
 from . import utils
 from .exceptions import ValidationException
 
@@ -18,30 +20,60 @@ class Network(object):
     """A network of elements.
 
     Represents the network we're analyzing and holds auxilary data about it.
+
     """
-
-    def __init__(self, connectivity_matrix, tpm):
+    # TODO implement network definition via connectivity_matrix
+    def __init__(self, tpm):
         """
-        :param connectivity_matrix: The network's connectivity matrix (must be
-            square)
-        :type connectivity_matrix: ``np.ndarray``
-        :param tpm: The network's transition probability matrix
+        Generates and initializes a set of nodes based on a connectivity matrix
+        and a transition probability matrix.
+
+        :param tpm: The network's transition probability matrix **in
+            state-by-node form**
         :type tpm: ``np.ndarray``
-
-        :returns: a Network described by the given ``connectivity_matrix`` and
-            ``tpm``
         """
 
-        # Ensure connectivity matrix is square
-        if len(connectivity_matrix.shape) is not 2 or \
-            connectivity_matrix.shape[0] is not connectivity_matrix.shape[1]:
-            raise ValidationException("Connectivity matrix must be square.")
+        # Validate the TPM
+        if (tpm.ndim is not 2):
+            raise ValidationException(
+                "Invalid TPM: A Network's TPM must be 2-dimensional; " +
+                "this TPM is " + str(tpm.ndim) + "-dimensional.")
+        # TODO extend this hard-coded value to handle more than binary nodes
+        if (tpm.size is not (2 ** tpm.shape[1]) * tpm.shape[1]):
+            raise ValidationException(
+                "Invalid TPM: There must be [ 2^(number of nodes) * " +
+                "(number of nodes) ] elements in the TPM.")
 
-        self.connectivity_matrix = connectivity_matrix
         self.tpm = tpm
+        # The number of nodes in the Network (TPM is in state-by-node form, so
+        # number of nodes is given by second dimension)
+        self.size = tpm.shape[1]
+        # Generate the the powerset of the node indices
+        self.powerset = utils.powerset(np.arange(self.size))
+        # Generate the nodes
+        self.nodes = [Node(self, node_index)
+                      for node_index in range(self.size)]
+        # TODO handle nonbinary nodes
+        self.num_states = 2 ** self.size
+        self.uniform_distribution = np.divide(
+            np.ones(self.num_states),
+            self.num_states)
 
-        # Generate powerset
-        self.powerset = utils.powerset(np.arange(connectivity_matrix.shape[0]))
+    def __repr__(self):
+        return "Network(" + repr(self.tpm) + ")"
+
+    def __str__(self):
+        return "Network with TPM:\n" + str(self.tpm)
+
+    def __eq__(self, other):
+        """
+        Two Networks are equal if they have the same TPM.
+        """
+        return np.array_equal(self.tpm, other.tpm)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 
 # TODO implement
