@@ -8,8 +8,10 @@ This module contains the primary objects that power CyPhi.
 
 """
 
-# TODO use structured arrays to represent sets of nodes, so labels
-# are explicit rather than implicit (indices)?
+# TODO Optimizations:
+# - Preallocation
+# - Vectorization
+# - Memoization
 
 import numpy as np
 from . import utils
@@ -23,7 +25,7 @@ class Network(object):
 
     """
     # TODO implement network definition via connectivity_matrix
-    def __init__(self, tpm):
+    def __init__(self, tpm, state):
         """
         Generates and initializes a set of nodes based on a connectivity matrix
         and a transition probability matrix.
@@ -31,6 +33,9 @@ class Network(object):
         :param tpm: The network's transition probability matrix **in
             state-by-node form**
         :type tpm: ``np.ndarray``
+        :param state: An array describing the network's initial state;
+            ``state[i]`` gives the state of ``self.nodes[i]``
+        :type state: ``np.ndarray``
         """
 
         # Validate the TPM
@@ -45,6 +50,7 @@ class Network(object):
                 "(number of nodes) ] elements in the TPM.")
 
         self.tpm = tpm
+        self.state = state
         # The number of nodes in the Network (TPM is in state-by-node form, so
         # number of nodes is given by second dimension)
         self.size = tpm.shape[1]
@@ -100,13 +106,12 @@ class Node:
         self.index = index
         # Label for display
         self.label = label
-
-        # TODO number of node states is hardcoded for 2 here; at some point we
-        # want to allow for an arbitrary number of states
-
         # The TPM for just this node
         # (Grab this node's column in the network TPM and reshape it to be
-        # indexed by state)
+        # indexed by state; i.e., there is a dimension for each node, the size
+        # of which is the number of that node's states)
+        # TODO number of node states is hardcoded for 2 here; at some point we
+        # want to extend to nonbinary nodes
         self.tpm = network.tpm[..., index].reshape([2] * network.size)
 
     def __repr__(self):
@@ -140,22 +145,20 @@ class Mechanism:
     """A set of nodes, considered as a single mechanism."""
     def __init__(self, nodes, state, tpm=None, MIP=None):
         """
-        :param nodes: The indices of the nodes in the mechanism
-        :type nodes: ``np.ndarray``
-        :param state: A dictionary mapping node indices to node states
+        :param nodes: The nodes in the mechanism
+        :type nodes: ``[Node]``
+        :param state: The state of the nodes in the mechanism. A dictionary
+            where the keys are node indices and the values are node states.
         :type state: ``dict``
-        :param tpm: The TPM for this mechanism
+        :param tpm: The transition probability matrix for this mechanism
         :type tpm: ``np.ndarray``
-        :param MIP:
+        :param MIP: The minimum information partition for this mechanism
         :type MIP:
         """
         self.nodes = nodes
         # The Mechanism belongs to the same network as its nodes
         self.network = nodes[0].network
-        self.state = state
-        # The transition probability matrix for this mechanism
         self.tpm = tpm
-        # The minimum information partition
         self.MIP = MIP
 
     def __eq__(self, other):
@@ -173,12 +176,10 @@ class Mechanism:
         return int(str(set(self.nodes).__hash__()) +
                    str(self.state.__hash__()))
 
-
     def uc_past_repertoire(self):
         """
         Return the unconstrained past repertoire for this mechanism.
         """
-
 
     # TODO calculate unconstrained repertoires here, or in cyphi.compute?
     def cause_repertoire(self, purview):
@@ -190,6 +191,7 @@ class Mechanism:
         * *Cause repertoire* is "backward repertoire" or "perspective"
         * *Mechanism* is "numerator"
         * *Purview* is "denominator"
+        * ``conditioned_tpm`` is ``next_num_node_distribution``
 
         :param purview: The purview over which to calculate the cause
             repertoire
@@ -197,11 +199,12 @@ class Mechanism:
 
         :returns: The cause repertoire of the mechanism over
             the given purview
-        :rtype: ``Distribution``
+        :rtype: ``np.ndarray``
 
         """
         # Return immediately if purview is empty
         if (purview.nodes.size is 0):
+            # TODO should this really be None?
             return None
 
         # If the mechanism is empty, just return the maximum entropy
@@ -209,7 +212,86 @@ class Mechanism:
         if (self.nodes.size is 0):
             return purview.max_entropy_distribution()
 
-        pass
+        # Preallocate the mechanism's conditional joint distribution
+        # TODO extend to nonbinary nodes
+        accumulated_cjd = np.ones(tuple(2 if node in self.purview.nodes else 1
+                                        for node in self.network.nodes))
+        # Loop over all nodes in this mechanism, successively taking the
+        # product product (with expansion/broadcasting of singleton dimensions)
+        # of each individual node's CPT (conditioned on that node's state) in
+        # order to get the conditional joint distribution for the whole
+        # mechanism (conditioned on the whole mechanism's state). This is the
+        # cause repertoire. Normalization of the distribution happens once,
+        # after this loop.
+        for node in self.nodes:
+            # Collapse the dimensions of nodes with fixed states, i.e., the
+            # current node and all external nodes (which are treated as fixed
+            # boundary conditions)
+            conditioned_tpm = node.tpm[self._conditioning_indicies(node)]
+
+            # Marginalize-out the nodes with inputs to this mechanism that
+            # aren't in the given purview
+            # TODO explicit inputs to nodes (right now each node is implicitly
+            # connected to all other nodes, since initializing a Network with a
+            # connectivity matrix isn't implemented yet)
+            for non_marginal_node in (node for node in self.network.nodes if
+                                      node not in self.purview.nodes):
+                                      # and node in self.input_nodes):
+                conditioned_tpm = self._marginalize_out(non_marginal_node,
+                                                        conditioned_tpm)
+
+            # TODO [***] (3-stars means low priority): refactor states to not
+            # be indices?
+
+            # Incorporate this node's CPT into the mechanism's conditional
+            # joint distribution by taking the product with singleton
+            # broadcasting
+            accumulated_cjd = np.multiply(accumulated_cjd,
+                                          conditioned_tpm)
+
+        # Finally, normalize the distribution to get the true cause repertoire
+        return np.divide(accumulated_cjd, np.sum(accumulated_cjd))
+
+        def _marginalize_out(non_marginal_node, conditioned_tpm):
+            """Marginalize out a non-marginal node from a conditioned TPM."""
+            return np.divide(
+                np.sum(conditioned_tpm, non_marginal_node.index),
+                conditioned_tpm.shape[non_marginal_node.index])
+
+        def _conditioning_indicies(current_node):
+            """
+            Return the indices that collapse the dimensions of the current
+            node's TPM so that only entries corresponding to fixed states---the
+            state of the current node and the states of external nodes---are
+            left. When sliced with the returned indices, the current node's TPM
+            becomes an intermediate result used in getting the cause
+            repertoire; it still needs to be modified by marginalizing out the
+            nodes internal to this mechanism but not in the purview, and
+            finally by normalizing the whole table.
+            """
+            # To generate the indices for the CPT for this node we begin by
+            # taking all the entries in its TPM (all states of all nodes)...
+            conditioning_indicies = [slice(None)] * self.network.size
+            # ...except those that don't correspond to the current state of the
+            # node in question. States are indices, so we just set the CPT
+            # index for that node to its state.
+            conditioning_indicies[current_node.index] = \
+                self.state[current_node.index]
+
+            # Then we do the same thing for nodes outside this mechanism, which
+            # are treated as fixed boundary conditions (so we take only TPM
+            # entries corresponding to their past state)
+            # TODO vectorize this?
+            # TODO unidircut stuff
+            for external_node in (node for node in self.network.nodes if
+                                  node not in purview.nodes and
+                                  node not in self.nodes):
+                # TODO [*] (high priority) do we need a different past state?
+                past_state = self.network.state
+                conditioning_indicies[external_node.index] = \
+                    past_state[external_node.index]
+
+            return conditioning_indicies
 
 
 class Purview:
