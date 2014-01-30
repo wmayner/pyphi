@@ -41,19 +41,29 @@ class Network(object):
         # Validate the TPM
         if (tpm.ndim is not 2):
             raise ValidationException(
-                "Invalid TPM: A Network's TPM must be 2-dimensional; " +
-                "this TPM is " + str(tpm.ndim) + "-dimensional.")
+                "Invalid TPM: A Network's TPM must be in state-by-node form " +
+                "and thus 2-dimensional; this TPM is " + str(tpm.ndim) +
+                "-dimensional.")
         # TODO extend this hard-coded value to handle more than binary nodes
         if (tpm.size is not (2 ** tpm.shape[1]) * tpm.shape[1]):
             raise ValidationException(
-                "Invalid TPM: There must be [ 2^(number of nodes) * " +
-                "(number of nodes) ] elements in the TPM.")
+                "Invalid TPM: There must be " + str(2 ** tpm.shape[1]) +
+                "[ 2^(number of nodes) * (number of nodes) ] elements in the " +
+                " TPM;" + str(tpm.size) + "were given.")
 
         self.tpm = tpm
         self.state = state
         # The number of nodes in the Network (TPM is in state-by-node form, so
         # number of nodes is given by second dimension)
         self.size = tpm.shape[1]
+
+        # Validate the state
+        if (state.size is not self.size):
+            raise ValidationException(
+                "Invalid state: there must be one entry per node in the " +
+                "network; this state has " + str(state.size) + " entries, " +
+                "but there are " + self.size + " nodes.")
+
         # Generate the the powerset of the node indices
         self.powerset = utils.powerset(np.arange(self.size))
         # Generate the nodes
