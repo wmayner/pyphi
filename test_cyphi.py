@@ -50,35 +50,62 @@ class TestUtils(unittest.TestCase):
         assert list(utils.powerset(a)) == [(), (0,), (1,), (0, 1)]
 
 
-class TestModels(unittest.TestCase):
+class TestNetwork(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.size = 3
-        cls.tpm = np.zeros((2 ** cls.size, cls.size))
-        cls.powerset = utils.powerset(np.arange(3))
-        cls.network = models.Network(cls.tpm)
-        cls.nodes = [models.Node(cls.network, node_index)
-                     for node_index in range(cls.network.size)]
+    def setUp(self):
+        self.size = 3
+        self.state = np.array([0,1,0])
+        self.tpm = np.zeros((2 ** self.size, self.size))
+        self.powerset = utils.powerset(np.arange(3))
+        self.network = models.Network(self.tpm, self.state)
+        self.nodes = [models.Node(self.network, node_index)
+                     for node_index in range(self.network.size)]
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(cls):
         pass
 
     def test_network_tpm_validation(self):
         with self.assertRaises(ValidationException):
             # Network TPMs must be 2-dimensional
             tpm = np.arange(3)
-            models.Network(tpm)
+            state = np.array([0,1,0])
+            models.Network(tpm, state)
         with self.assertRaises(ValidationException):
             tpm = np.array([[1,2,3]])
-            models.Network(tpm)
+            state = np.array([0,1,0])
+            models.Network(tpm, state)
+        # TODO test state validation
 
     def test_network_init(self):
         assert np.array_equal(self.tpm, self.network.tpm)
         assert self.size == self.network.size
         assert _generator_equal(self.powerset, self.network.powerset)
         assert self.nodes == self.network.nodes
+
+
+class TestMechanism(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(cls):
+        pass
+
+
+
+class TestPurview(unittest.TestCase):
+
+    def setUp(self):
+        self.size = 3
+        self.state = np.array([0,1,0])
+        self.tpm = np.zeros((2 ** self.size, self.size))
+        self.powerset = utils.powerset(np.arange(3))
+        self.network = models.Network(self.tpm, self.state)
+        self.nodes = [models.Node(self.network, node_index)
+                     for node_index in range(self.network.size)]
+
+    def tearDown(cls):
+        pass
 
     def test_purview_max_entropy_distribution(self):
         purview = models.Purview(self.network.nodes[0:2])
