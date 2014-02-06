@@ -10,4 +10,8 @@ This module contains the set of CyPhi's exceptions.
 
 
 class ValidationException(Exception):
-    """Faulty user input."""
+    """Faulty user input"""
+
+
+class UnreachableStateException(Exception):
+    """Fire the programmer"""

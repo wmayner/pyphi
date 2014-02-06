@@ -16,17 +16,18 @@ from scipy.misc import comb
 
 # see http://stackoverflow.com/questions/16003217/n-d-version-of-itertools-combinations-in-numpy
 def combs(a, r):
-    """NumPy implementation of itertools.combinations.
+    """
+    NumPy implementation of itertools.combinations.
 
     Return successive :math:`r`-length combinations of elements in the array `a`.
 
     :param a: the array from which to get combinations
-    :type a: ``np.array``
+    :type a: ``np.ndarray``
     :param r:  the length of the combinations
     :type r: ``int``
 
     :returns: an array of combinations
-    :rtype: ``np.array``
+    :rtype: ``np.ndarray``
     """
     # Special-case for 0-length combinations
     if r is 0:
@@ -40,7 +41,8 @@ def combs(a, r):
 
 # see http://stackoverflow.com/questions/16003217/n-d-version-of-itertools-combinations-in-numpy
 def comb_indices(n, k):
-    """N-d version of itertools.combinations.
+    """
+    N-D version of itertools.combinations.
 
     Return indices that yeild the :math:`r`-combinations of :math:`n` elements
 
@@ -63,7 +65,7 @@ def comb_indices(n, k):
     :type k: ``int``
 
     :returns: indices of the :math:`r`-combinations of :math:`n` elements
-    :rtype: ``np.array``
+    :rtype: ``np.ndarray``
     """
     # Count the number of combinations for preallocation
     count = comb(n, k, exact=True)
@@ -78,25 +80,29 @@ def comb_indices(n, k):
 
 # TODO: implement this with numpy?
 def powerset(iterable):
-    """Return the power set of an iterable (see `itertools recipes
+    """
+    Return the power set of an iterable (see `itertools recipes
     <http://docs.python.org/2/library/itertools.html#recipes>`_).
 
         >>> ps = powerset(np.arange[2])
         >>> print(list(ps))
         [(), (0,), (1,), (0, 1)]
 
-    :param iterable: an iterable from which to generate the power set
+    :param iterable: The iterable from which to generate the power set
+    :type iterable: iterable
 
-    :returns: an iterator over the power set
+    :returns: An iterator over the power set
     :rtype: iterator
     """
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
-# TODO extend to nonbinary nodes
 def uniform_distribution(number_of_nodes):
-    """Return the uniform distribution for a set of binary nodes.
+    """
+    Return the uniform distribution for a set of binary nodes, indexed by state
+    (so there are is one dimension per node, the size of which is the number of
+    states for that node).
 
     :param nodes: a set of indices of binary nodes
     :type nodes: ``np.ndarray``
@@ -107,4 +113,6 @@ def uniform_distribution(number_of_nodes):
     # The size of the state space for binary nodes is 2^(number of nodes).
     number_of_states = 2 ** number_of_nodes
     # Generate the maximum entropy distribution
-    return np.divide(np.ones(number_of_states), number_of_states)
+    # TODO extend to nonbinary nodes
+    return np.divide(np.ones(number_of_states),
+                     number_of_states).reshape([2] * number_of_nodes)
