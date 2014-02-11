@@ -21,8 +21,8 @@ from . import utils
 from .exceptions import ValidationException
 
 
-DEBUG = False
-# DEBUG = True
+# DEBUG = False
+DEBUG = True
 
 
 def pprint(debug_statement):
@@ -183,9 +183,11 @@ class Mechanism:
         """
         :param nodes: The nodes in the mechanism
         :type nodes: ``[Node]``
-        :param state: An array describing the state of the nodes in the mechanism
+        :param state: An array describing the state of the nodes in the
+            mechanism
         :type state: ``np.ndarray``
-        :param past_state: An array describing the past state of the nodes in the mechanism
+        :param past_state: An array describing the past state of the nodes in
+            the mechanism
         :type past_state: ``np.ndarray``
         :param network: The network the mechanism belongs to
         :type network: ``Network``
@@ -323,7 +325,8 @@ class Mechanism:
             # connectivity matrix isn't implemented yet)
             for non_purview_input in (node for node in self.network.nodes if
                                       node not in purview.nodes):
-                                      # TODO add this when inputs are implemented:
+                                      # TODO add this when inputs are
+                                      # implemented:
                                       # and node in self.input_nodes):
                 # If the non-purview input node is part of this mechanism, we
                 # marginalize it out of the current node's CPT.
@@ -407,6 +410,13 @@ class Mechanism:
         pprint(cause_repertoire)
         pprint(cause_repertoire.shape)
         return cause_repertoire
+
+    def effect_repertoire(self, purview):
+        # Switch roles of mechanism and purview
+        mechanism = Mechanism(purview.nodes, self.state, self.past_state,
+                              self.network)
+        cr = mechanism.cause_repertoire(Subsystem(self.nodes, self.network))
+        return cr
 
 
 class Subsystem:

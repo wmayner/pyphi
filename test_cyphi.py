@@ -164,6 +164,13 @@ class TestMechanism(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_empty_init(self):
+        mechanism = models.Mechanism([],
+                                     self.network.state,
+                                     self.network.past_state,
+                                     self.network)
+        assert mechanism.nodes == []
+
     def test_marginalize_out(self):
         marginalized_distribution = models.Mechanism._marginalize_out(
             self.network.nodes[0], self.network.tpm)
@@ -231,6 +238,25 @@ class TestMechanism(unittest.TestCase):
         answer[0][1][1] = 0
         answer = answer / 7
         assert np.array_equal(mechanism.cause_repertoire(purview), answer)
+
+    def test_effect_repertoire(self):
+
+        # Test against Matlab default network
+        # ===================================
+
+        # Mechanism(['n0'])
+        mechanism = models.Mechanism([self.network.nodes[0]],
+                                     self.network.state,
+                                     self.network.past_state,
+                                     self.network)
+        # Subsystem(['n0'])
+        purview = models.Subsystem([self.network.nodes[0]], self.network)
+
+        effect_repertoire = mechanism.effect_repertoire(purview)
+        print(effect_repertoire)
+        print(effect_repertoire.shape)
+        answer = np.array([0.25, 0.75].reshape(2, 1, 1))
+        assert np.array_equal(effect_repertoire, answer)
 
 
 class TestSubsystem(unittest.TestCase):
