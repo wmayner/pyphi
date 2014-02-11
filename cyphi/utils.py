@@ -12,6 +12,7 @@ for external consumption.
 import numpy as np
 from itertools import chain, combinations
 from scipy.misc import comb
+from .exceptions import ValidationException
 
 
 # see http://stackoverflow.com/questions/16003217/n-d-version-of-itertools-combinations-in-numpy
@@ -116,3 +117,19 @@ def uniform_distribution(number_of_nodes):
     # TODO extend to nonbinary nodes
     return np.divide(np.ones(number_of_states),
                      number_of_states).reshape([2] * number_of_nodes)
+
+
+def connectivity_matrix_to_tpm(connectivity_matrix):
+    """
+    :param connectivity_matrix: The network's connectivity matrix (must be
+        square)
+    :type connectivity_matrix: ``np.ndarray``
+    :param tpm: The network's transition probability matrix (state-by-node
+        form)
+    :type tpm: ``np.ndarray``
+    """
+    # Ensure connectivity matrix is square
+    if ((len(connectivity_matrix.shape) is not 2) or
+            (connectivity_matrix.shape[0] is not
+                connectivity_matrix.shape[1])):
+        raise ValidationException("Connectivity matrix must be square.")
