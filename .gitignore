@@ -1,8 +1,10 @@
 __pycache__
 .ropeproject
-build
-docs/_build
 node_modules
-**/*.pyc
 .env
 .pythonrc.py
+
+build
+docs/_build
+**/*.pyc
+cyphi/compute.py
