@@ -31,6 +31,11 @@ def pprint(debug_statement):
         print(debug_statement)
 
 
+def nprint(a_list):
+    """Prints the ``__str__`` output for objects in a list"""
+    print(list(map(str, a_list)))
+
+
 class Network(object):
     """A network of elements.
 
@@ -145,8 +150,19 @@ class Node:
         self.index = index
         # Label for display
         self.label = label
+
+        # TODO !!! document
+        # TODO extend to nonbinary nodes
         # The TPM for just this node
+
         self.tpm = network.tpm[..., index]
+
+        # tpm_off = 1 - network.tpm[..., index]
+        # tpm_on = network.tpm[..., index]
+        # self.tpm = np.zeros(list(tpm_on.shape) + [2])
+        # self.tpm[..., 0] = tpm_off
+        # self.tpm[..., 1] = tpm_on
+
         # Make the TPM immutable (for hashing)
         self.tpm.flags.writeable = False
 
@@ -201,6 +217,16 @@ class Mechanism:
         # The Mechanism belongs to the same network as its nodes
         self.network = network
 
+    def __repr__(self):
+        return "Mechanism(" + ", ".join([repr(self.nodes),
+                                         repr(self.past_state),
+                                         repr(self.state)]) + ")"
+
+    def __str__(self):
+        return "Mechanism(" + str(list(map(str, self.nodes))) + \
+            ",\n\tCurrent state: " + str(self.state) + \
+            ",\n\tPast state: " + str(self.past_state) + ")"
+
     def __eq__(self, other):
         """
         Two mechanisms are equal if they consist of the same set of nodes in
@@ -217,37 +243,119 @@ class Mechanism:
         return int(str(hash(frozenset(self.nodes))) + self.state.tostring +
                    self.past_state.tostring)
 
+    # TODO finish this? is it needed?
     def uc_past_repertoire(self):
         """
         Return the unconstrained past repertoire for this mechanism.
         """
 
-    # Cause repertoire helpers
-    #======================================================================
-
-    # TODO move to utils?
-    @staticmethod
-    def _marginalize_out(node, tpm):
+    # TODO pass dicts instead of so many arguments
+    def cjd(self, past_state, past_nodes, future_state, future_nodes):
+        # TODO finish docstring; specifiy indexing rules
         """
-        Marginalize out a node from a TPM.
+        Calculates the conditional joint distribution of a set of nodes at time
+        :math:`t_1` with respect to a set of nodes at time :math:`t_0`.
 
-        The TPM must be indexed by individual node state.
+        The result is a distribution indexed by node state that contains the
+        conditional probabilities of a node being on given any state.
 
-        :param node: The node to be marginalized out
-        :type node: ``Node``
-        :param tpm: The tpm to marginalize the node out of
-        :type tpm: ``np.ndarray``
+        :param past_nodes:
+        :type past_nodes:
 
-        :returns: The TPM after marginalizing out the node
-        :rtype: ``np.ndarray``
+        :returns:
+        :rtype:
         """
-        # Preserve number of dimensions so node indices still index into
-        # the proper axis of the returned distribution
-        prenormalized = np.expand_dims(np.sum(tpm, node.index), node.index)
-        # Normalize the distribution by number of states
-        return np.divide(prenormalized, tpm.shape[node.index])
+        # Preallocate the mechanism's conditional joint distribution
+        # TODO extend to nonbinary nodes
+        # TODO rename future_nodes to be more expressive
+        accumulated_cjd = np.ones(tuple(2 if node in past_nodes else 1
+                                        for node in self.network.nodes))
 
-    #======================================================================
+        # Loop over all future_nodes, successively taking the product (with
+        # expansion/broadcasting of singleton dimensions) of each individual
+        # node's TPM  in order to get the joint distribution for the whole set
+        # of future nodes.
+        for node in future_nodes:
+            # TODO extend to nonbinary nodes
+            # We're conditioning on this node's state, so take the
+            # probabilities that correspond to that state (The TPM subtracted
+            # from 1 gives the probability that the node is off).
+            conditioned_tpm = (node.tpm if self.state[node.index] == 1 else
+                               1 - node.tpm)
+
+            # Marginalize-out the nodes with inputs to the future_nodes that
+            # aren't in the given past_nodes
+            # TODO explicit inputs to nodes (right now each node is implicitly
+            # connected to all other nodes, since initializing a Network with a
+            # connectivity matrix isn't implemented yet)
+            for non_past_input in (node for node in self.network.nodes if node
+                                   not in past_nodes):
+                                   # TODO add this when inputs are
+                                   # implemented:
+                                   # and node in self.input_nodes):
+                pprint("in non_past_input")
+                # If the non-past_nodes input node is part of this mechanism,
+                # we marginalize it out of the current node's CPT.
+                pprint("future_nodes:")
+                nprint(future_nodes)
+                pprint("non_past_input:")
+                pprint(non_past_input)
+                if non_past_input in self.nodes:
+                    pprint('    conditioned_tpm pre-marginalize:')
+                    pprint(str(conditioned_tpm))
+                    pprint('    shape:')
+                    pprint(conditioned_tpm.shape)
+                    pprint('    ##### MARGINALIZING ######')
+                    conditioned_tpm = utils.marginalize_out(non_past_input,
+                                                            conditioned_tpm)
+                    pprint('    conditioned_tpm post-marginalize:')
+                    pprint(str(conditioned_tpm))
+                    pprint('    shape:')
+                    pprint(conditioned_tpm.shape)
+                # Now we condition the CPT on the past states of nodes outside
+                # the set of future_nodes, which we treat as fixed boundary
+                # conditions. We collapse the dimensions corresponding to the
+                # fixed nodes so they contain only the probabilities that
+                # correspond to their past states, which will be broadcast over
+                # all the other probabilities.
+                elif non_past_input not in future_nodes:
+                    past_conditioning_indices = \
+                        [slice(None)] * self.network.size
+                    past_conditioning_indices[non_past_input.index] = \
+                        [past_state[non_past_input.index]]
+                    conditioned_tpm = \
+                        conditioned_tpm[past_conditioning_indices]
+
+            pprint("Conditioned TPM:")
+            pprint(conditioned_tpm)
+
+            pprint("Accumulated CJD:")
+            pprint(accumulated_cjd)
+            # Incorporate this node's CPT into the future_nodes' joint
+            # distribution by taking the product (with singleton broadcasting)
+            accumulated_cjd = np.multiply(accumulated_cjd, conditioned_tpm)
+
+        # Finally, normalize by the marginal probability of the past state to
+        # get the CJD
+        accumulated_cjd_sum = np.sum(accumulated_cjd)
+        # Don't divide by zero
+        # TODO !!! should this happen in effect rep too?
+        if accumulated_cjd_sum != 0:
+            accumulated_cjd = (np.divide(accumulated_cjd, accumulated_cjd_sum))
+
+        pprint("Final Accumulated CJD:")
+        pprint(accumulated_cjd)
+
+        # Now we need to combine the future_nodes' CJD with the maximum entropy
+        # distribution for the non-future_nodes. The resulting product will
+        # gives the actual cause repertoire, a distribution over all nodes in
+        # the network.
+        external_nodes = Subsystem([node for node in self.network.nodes if
+                                    node not in past_nodes and
+                                    node not in self.nodes],
+                                   self.network)
+        return np.multiply(external_nodes.max_entropy_distribution(),
+                           accumulated_cjd)
 
     def cause_repertoire(self, purview):
         """
@@ -277,146 +385,29 @@ class Mechanism:
         if (len(self.nodes) is 0):
             return purview.max_entropy_distribution()
 
-        # Preallocate the mechanism's conditional joint distribution
-        # TODO extend to nonbinary nodes
-        accumulated_cjd = np.ones(tuple(2 if node in purview.nodes else 1
-                                        for node in self.network.nodes))
+        # The purview nodes are in the past, the mechanism nodes are in the
+        # future
+        # TODO change argument order to be nodes first then state (or use
+        # dicts)
+        cause_repertoire = self.cjd(self.past_state,
+                                    purview.nodes,
+                                    self.state,
+                                    self.nodes)
 
-        pprint('accumulated_cjd initial shape:')
-        pprint(accumulated_cjd.shape)
-        pprint('current mechanism:')
-        pprint(list(map(str, self.nodes)))
-        pprint('purview:')
-        pprint(str(purview))
-
-        # Loop over all nodes in this mechanism, successively taking the
-        # product (with expansion/broadcasting of singleton dimensions) of each
-        # individual node's CPT (conditioned on that node's state) in order to
-        # get the conditional joint distribution for the whole mechanism
-        # (conditioned on the whole mechanism's state). After normalization,
-        # this is the cause repertoire. Normalization happens after this loop.
-        for node in self.nodes:
-            pprint('  current node:')
-            pprint(str(node))
-            pprint('  current node tpm:')
-            pprint(node.tpm)
-            pprint('  current node tpm shape')
-            pprint(node.tpm.shape)
-
-            # TODO extend to nonbinary nodes
-            # We're conditioning on this node's state, so take the
-            # probabilities that correspond to that state (The TPM subtracted
-            # from 1 gives the probability that the node is off).
-            conditioned_tpm = (node.tpm if self.state[node.index] == 1 else
-                               1 - node.tpm)
-
-            pprint("  initial conditioned tpm shape:")
-            pprint(conditioned_tpm.shape)
-            pprint("  initial conditioned tpm:")
-            pprint(conditioned_tpm)
-            pprint("  Looping over external nodes…")
-            pprint(str(list(map(str, (node for node in self.network.nodes if
-                                      node not in purview.nodes)))))
-
-            # Marginalize-out the nodes with inputs to this mechanism that
-            # aren't in the given purview
-            # TODO explicit inputs to nodes (right now each node is implicitly
-            # connected to all other nodes, since initializing a Network with a
-            # connectivity matrix isn't implemented yet)
-            for non_purview_input in (node for node in self.network.nodes if
-                                      node not in purview.nodes):
-                                      # TODO add this when inputs are
-                                      # implemented:
-                                      # and node in self.input_nodes):
-                # If the non-purview input node is part of this mechanism, we
-                # marginalize it out of the current node's CPT.
-                if non_purview_input in self.nodes:
-                    pprint("-----------------------------------------------")
-                    pprint('    external_node:')
-                    pprint(str(non_purview_input))
-                    pprint('    conditioned_tpm pre-marginalize:')
-                    pprint(str(conditioned_tpm))
-                    pprint('    shape:')
-                    pprint(conditioned_tpm.shape)
-                    pprint('    ##### MARGINALIZING ######')
-                    conditioned_tpm = self._marginalize_out(non_purview_input,
-                                                            conditioned_tpm)
-                    pprint('    conditioned_tpm post-marginalize:')
-                    pprint(str(conditioned_tpm))
-                    pprint('    shape:')
-                    pprint(conditioned_tpm.shape)
-                # Now we condition the CPT on the past states of nodes outside
-                # this mechanism, which we treat as fixed boundary conditions.
-                # We collapse the dimensions corresponding to the fixed nodes
-                # so they contain only the probabilities that correspond to
-                # their past states.
-                elif non_purview_input not in self.nodes:
-                    past_conditioning_indices = \
-                        [slice(None)] * self.network.size
-                    past_conditioning_indices[non_purview_input.index] = \
-                        [self.past_state[non_purview_input.index]]
-                    conditioned_tpm = \
-                        conditioned_tpm[past_conditioning_indices]
-
-            pprint("=========================================================")
-
-            # Incorporate this node's CPT into the mechanism's conditional
-            # joint distribution by taking the product (with singleton
-            # broadcasting)
-            pprint("    Multiplying distributions with broadcasting…")
-            pprint('    accumulated_cjd:')
-            pprint(str(accumulated_cjd))
-            pprint('    conditioned_tpm:')
-            pprint(str(conditioned_tpm))
-            accumulated_cjd = np.multiply(accumulated_cjd,
-                                          conditioned_tpm)
-
-        # Finally, normalize by the marginal probability of the past state to
-        # get the mechanism's CJD
-        accumulated_cjd_sum = np.sum(accumulated_cjd)
-        # Don't divide by zero
-        if accumulated_cjd_sum != 0:
-            mechanism_cjd = (np.divide(accumulated_cjd,
-                                       np.sum(accumulated_cjd)))
-        else:
-            mechanism_cjd = accumulated_cjd
-
-        pprint("mechanism_cjd:")
-        pprint(mechanism_cjd)
-        pprint(mechanism_cjd.shape)
-
-        # Now we need to combine the mechanism's CJD with the maximum entropy
-        # distribution for the non-mechanism nodes. The resulting product will
-        # gives the actual cause repertoire, a distribution over all nodes in
-        # the network.
-        external_nodes = Subsystem([node for node in self.network.nodes if
-                                    node not in self.nodes and
-                                    node not in purview.nodes],
-                                   self.network)
-
-        pprint(str(external_nodes))
-        pprint(str(self.nodes))
-        pprint(str(list(map(str, purview.nodes))))
-
-        cause_repertoire = np.multiply(
-            external_nodes.max_entropy_distribution(),
-            mechanism_cjd)
-
-        pprint("external nodes maxent dist")
-        pprint(external_nodes.max_entropy_distribution())
-        pprint(external_nodes.max_entropy_distribution().shape)
-
-        pprint("RETURNING:")
-        pprint(cause_repertoire)
-        pprint(cause_repertoire.shape)
         return cause_repertoire
 
     def effect_repertoire(self, purview):
-        # Switch roles of mechanism and purview
-        mechanism = Mechanism(purview.nodes, self.state, self.past_state,
-                              self.network)
-        cr = mechanism.cause_repertoire(Subsystem(self.nodes, self.network))
-        return cr
+        # TODO !!! docstring
+        """
+        """
+        # The mechanism nodes are in the past, the purview nodes are in the
+        # future
+        effect_repertoire = self.cjd(self.state,
+                                     self.nodes,
+                                     self.past_state,
+                                     purview.nodes)
+
+        return effect_repertoire
 
 
 class Subsystem:

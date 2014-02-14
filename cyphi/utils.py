@@ -20,7 +20,8 @@ def combs(a, r):
     """
     NumPy implementation of itertools.combinations.
 
-    Return successive :math:`r`-length combinations of elements in the array `a`.
+    Return successive :math:`r`-length combinations of elements in the array
+    `a`.
 
     :param a: the array from which to get combinations
     :type a: ``np.ndarray``
@@ -118,6 +119,25 @@ def uniform_distribution(number_of_nodes):
     return np.divide(np.ones(number_of_states),
                      number_of_states).reshape([2] * number_of_nodes)
 
+def marginalize_out(node, tpm):
+    """
+    Marginalize out a node from a TPM.
+
+    The TPM must be indexed by individual node state.
+
+    :param node: The node to be marginalized out
+    :type node: ``Node``
+    :param tpm: The tpm to marginalize the node out of
+    :type tpm: ``np.ndarray``
+
+    :returns: The TPM after marginalizing out the node
+    :rtype: ``np.ndarray``
+    """
+    # Preserve number of dimensions so node indices still index into
+    # the proper axis of the returned distribution
+    prenormalized = np.expand_dims(np.sum(tpm, node.index), node.index)
+    # Normalize the distribution by number of states
+    return np.divide(prenormalized, tpm.shape[node.index])
 
 def connectivity_matrix_to_tpm(connectivity_matrix):
     """
