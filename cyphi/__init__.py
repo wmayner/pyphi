@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -23,6 +24,8 @@ import numpy as np
 import pyximport
 pyximport.install(setup_args={"include_dirs": np.get_include()})
 
-from . import models
+from .node import Node
+from .network import Network
+from .subsystem import Subsystem
 from . import utils
 from . import exceptions

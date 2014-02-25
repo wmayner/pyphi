@@ -1,11 +1,12 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
 cyphi.utils
 ~~~~~~~~~~~
 
-This module provides utility functions used within CyPhi that are also useful
-for external consumption.
+This module provides utility functions used within CyPhi that are consumed by
+more than one class.
 
 """
 
