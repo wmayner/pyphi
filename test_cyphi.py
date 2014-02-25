@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Tests for CyPhi"""
+"""Tests for CyPhi."""
 
 from itertools import zip_longest
 
@@ -18,7 +18,141 @@ import unittest
 # it failed.
 
 
-class TestUtils(unittest.TestCase):
+# Class for common setUp and tearDown methods
+class TestWithExampleNetworks(unittest.TestCase):
+
+    def setUp(self):
+
+        ########################
+        # Matlab default network
+        #######################################################################
+
+        # TODO: make these into dictionaries/named tuples?
+
+        self.m_current_state = np.array([1, 0, 0])
+        self.m_past_state = np.array([1, 1, 0])
+        self.m_tpm = np.array([[0, 0, 0],
+                               [0, 0, 1],
+                               [1, 0, 1],
+                               [1, 0, 0],
+                               [1, 1, 0],
+                               [1, 1, 1],
+                               [1, 1, 1],
+                               [1, 1, 0]]).reshape([2] * 3 + [3],
+                                                   order="F").astype(float)
+        self.m_network = models.Network(self.m_tpm,
+                                        self.m_current_state,
+                                        self.m_past_state)
+
+        # Subsystem(['n0'])
+        self.m_subsys_nZero = models.Subsystem([self.m_network.nodes[0]],
+                                               self.m_current_state,
+                                               self.m_past_state,
+                                               self.m_network)
+        # Mechanism {n0}
+        self.m_mechanism_nZero = [self.m_network.nodes[0]]
+        # Purview {n0}
+        self.m_purview_nZero = [self.m_network.nodes[0]]
+        # Subsystem(['n0', 'n1', 'n3'])
+        self.m_subsys_all = models.Subsystem(self.m_network.nodes,
+                                             self.m_current_state,
+                                             self.m_past_state,
+                                             self.m_network)
+        # Mechanism {n0, n1}
+        self.m_mechanism_nZeroOne = self.m_network.nodes[0:2]
+        # Purview {n0, n1}
+        self.m_purview_nZeroTwo = self.m_network.nodes[0:3:2]
+
+        ########################
+        # Simple 'AND' network #
+        #######################################################################
+        # Diagram:
+        #
+        #       +---+
+        #   +-->| A |<--+
+        #   |   +---+   |
+        #   |    AND    |
+        # +-+-+       +-+-+
+        # | B |       | C |
+        # +---+       +---+
+        #
+        # TPM:
+        #
+        #   Past state --> Current state
+        # --------------+---------------
+        #    A, B, C    |    A, B, C
+        # --------------+---------------
+        #   {0, 0, 0}   |   {0, 0, 0}
+        #   {0, 0, 1}   |   {0, 0, 0}
+        #   {0, 1, 0}   |   {0, 0, 0}
+        #   {0, 1, 1}   |   {1, 0, 0}
+        #   {1, 0, 0}   |   {0, 0, 0}
+        #   {1, 0, 1}   |   {0, 0, 0}
+        #   {1, 1, 0}   |   {0, 0, 0}
+        #   {1, 1, 1}   |   {0, 0, 0}
+
+        # Name meaningful states
+        self.a_just_turned_on = np.array([1, 0, 0])
+        self.a_about_to_be_on = np.array([0, 1, 1])
+        self.all_off = np.array([0, 0, 0])
+
+        self.s_state = self.a_just_turned_on
+        self.s_past_state = self.a_about_to_be_on
+        self.s_tpm = np.array([[0, 0, 0],
+                               [0, 0, 0],
+                               [0, 0, 0],
+                               [1, 0, 0],
+                               [0, 0, 0],
+                               [0, 0, 0],
+                               [0, 0, 0],
+                               [0, 0, 0]]).reshape([2] * 3 + [3]).astype(float)
+        self.s_network = models.Network(self.s_tpm,
+                                        self.s_state,
+                                        self.s_past_state)
+
+        # Subsystem(['n0', 'n2', 'n3']), 'A' just turned on
+        self.s_subsys_all_a_just_on = models.Subsystem(self.s_network.nodes,
+                                                       self.s_state,
+                                                       self.s_past_state,
+                                                       self.s_network)
+
+        # Subsystem(['n0', 'n2', 'n3']), All nodes off
+        self.s_subsys_all_off = models.Subsystem(self.s_network.nodes,
+                                                 self.all_off,
+                                                 self.all_off,
+                                                 self.s_network)
+
+    def tearDown(self):
+        pass
+
+
+class TestUtils(TestWithExampleNetworks):
+
+    def test_marginalize_out(self):
+        marginalized_distribution = utils.marginalize_out(
+            self.m_network.nodes[0], self.m_network.tpm)
+        assert np.array_equal(marginalized_distribution,
+                              np.array([[[[0.,  0.,  0.5],
+                                          [1.,  1.,  0.5]],
+
+                                         [[1.,  0.,  0.5],
+                                          [1.,  1.,  0.5]]]]))
+
+    def test_purview_max_entropy_distribution(self):
+        # Individual setUp
+        size = 3
+        state = np.array([0, 1, 0])
+        past_state = np.array([1, 1, 0])
+        tpm = np.zeros([2] * size + [size]).astype(float)
+        network = models.Network(tpm, state, past_state)
+
+        max_ent = utils.max_entropy_distribution(network.nodes[0:2],
+                                                 network)
+        assert max_ent.shape == (2, 2, 1)
+        assert np.array_equal(
+            max_ent,
+            np.divide(np.ones(4), 4).reshape((2, 2, 1)))
+        assert max_ent[0][1][0] == 0.25
 
     def test_combs_for_1D_input(self):
         n, k = 3, 2
@@ -51,11 +185,13 @@ class TestNetwork(unittest.TestCase):
 
     def setUp(self):
         self.size = 3
-        self.state = np.array([0., 1., 0.])
+        self.current_state = np.array([0., 1., 0.])
         self.past_state = np.array([1, 1, 0])
         self.tpm = np.zeros([2] * self.size + [self.size]).astype(float)
         self.powerset = utils.powerset(np.arange(3))
-        self.network = models.Network(self.tpm, self.state, self.past_state)
+        self.network = models.Network(self.tpm,
+                                      self.current_state,
+                                      self.past_state)
         self.nodes = [models.Node(self.network, node_index)
                       for node_index in range(self.network.size)]
 
@@ -85,7 +221,7 @@ class TestNetwork(unittest.TestCase):
 class TestNode(unittest.TestCase):
 
     def setUp(self):
-        self.state = np.array([1, 0, 0])
+        self.current_state = np.array([1, 0, 0])
         self.past_state = np.array([1, 1, 0])
         self.tpm = np.array([[0, 0, 0],
                              [0, 0, 1],
@@ -94,26 +230,19 @@ class TestNode(unittest.TestCase):
                              [1, 1, 0],
                              [1, 1, 1],
                              [1, 1, 1],
-                             [1, 1, 0]]).reshape([2] * 3 + [3]).astype(float)
-        self.network = models.Network(self.tpm, self.state, self.past_state)
+                             [1, 1, 0]]).reshape([2] * 3 + [3],
+                                                 order="F").astype(float)
+        self.network = models.Network(self.tpm,
+                                      self.current_state,
+                                      self.past_state)
 
     def test_node_init(self):
-        tpm_on = self.network.nodes[2].tpm[:, :, :, 1]
+        tpm = self.network.nodes[2].tpm
+        answer = self.network.tpm[:, :, :, 2]
 
-        answer_on = self.network.tpm[:, :, :, 2]
-        answer_off = 1 - self.network.tpm[:, :, :, 2]
+        print("TPM", tpm, "Answer", answer, "", sep="\n\n")
 
-        print("\nTPM for node on:")
-        print(tpm_on)
-        print("\nAnswer for node on:")
-        print(answer_on)
-        print("\nTPM for node off:")
-        print(tpm_off)
-        print("\nAnswer for node off:")
-        print(answer_off)
-
-        assert np.array_equal(tpm_on, answer_on)
-        assert np.array_equal(tpm_off, answer_off)
+        assert np.array_equal(tpm, answer)
 
     def test_node_eq(self):
         assert self.network.nodes[1] == models.Node(self.network, 1)
@@ -130,294 +259,307 @@ class TestNode(unittest.TestCase):
         pass
 
 
-class TestMechanism(unittest.TestCase):
-
-    def setUp(self):
-
-        ########################
-        # Matlab default network
-        #######################################################################
-
-        # TODO: make these into dictionaries?
-
-        self.m_state = np.array([1, 0, 0])
-        self.m_past_state = np.array([1, 1, 0])
-        self.m_tpm = np.array([[0, 0, 0],
-                               [0, 0, 1],
-                               [1, 0, 1],
-                               [1, 0, 0],
-                               [1, 1, 0],
-                               [1, 1, 1],
-                               [1, 1, 1],
-                               [1, 1, 0]]).reshape([2] * 3 + [3]).astype(float)
-        self.m_network = models.Network(self.m_tpm, self.m_state,
-                                        self.m_past_state)
-
-        # Mechanism(['n0'])
-        self.m_mechanism_nZero = models.Mechanism([self.m_network.nodes[0]],
-                                                  self.m_network.state,
-                                                  self.m_network.past_state,
-                                                  self.m_network)
-        # Subsystem(['n0'])
-        self.m_purview_nZero = models.Subsystem([self.m_network.nodes[0]],
-                                                self.m_network)
-
-        # Mechanism(['n0', 'n1'])
-        self.m_mechanism_nZeroOne = models.Mechanism(self.m_network.nodes[0:2],
-                                                     self.m_network.state,
-                                                     self.m_network.past_state,
-                                                     self.m_network)
-        # Subsystem(['n0', 'n2'])
-        self.m_purview_nZeroTwo = models.Subsystem(self.m_network.nodes[0:3:2],
-                                                   self.m_network)
-
-        #######################################################################
-
-        ########################
-        # Simple 'AND' network #
-        #######################################################################
-        #       +---+
-        #   +-->| A |<--+
-        #   |   +---+   |
-        #   |    AND    |
-        # +-+-+       +-+-+
-        # | B |       | C |
-        # +---+       +---+
-
-        self.s_state = np.array([1, 0, 0])
-        self.s_past_state = np.array([0, 1, 1])
-        self.s_tpm = np.array([
-        # Current state | Past state
-        #    A, B, C    |  A, B, C
-        # --------------#-----------
-            [0, 0, 0],  #  0, 0, 0
-            [0, 0, 0],  #  0, 0, 1
-            [0, 0, 0],  #  0, 1, 0
-            [1, 0, 0],  #  0, 1, 1
-            [0, 0, 0],  #  1, 0, 0
-            [0, 0, 0],  #  1, 0, 1
-            [0, 0, 0],  #  1, 1, 0
-            [0, 0, 0]   #  1, 1, 1
-            ]).reshape([2] * 3 + [3]).astype(float)
-        self.s_network = models.Network(self.s_tpm,
-                                        self.s_state,
-                                        self.s_past_state)
-
-        # Name meaningful states
-        self.a_just_turned_on = np.array([1, 0, 0])
-        self.a_about_to_be_on = np.array([0, 1, 1])
-        self.all_off = np.array([0, 0, 0])
-
-        # Subsystem(['n0', 'n2', 'n3'])
-        self.s_purview_all = models.Subsystem(self.s_network.nodes, self.s_network)
-
-
-        #######################################################################
-
-    def tearDown(self):
-        pass
+class TestSubsystem(TestWithExampleNetworks):
 
     def test_empty_init(self):
         # Empty mechanism
-        mechanism = models.Mechanism([],
-                                     self.m_network.state,
-                                     self.m_network.past_state,
-                                     self.m_network)
-        assert mechanism.nodes == []
+        subsys = models.Subsystem([],
+                                  self.m_network.current_state,
+                                  self.m_network.past_state,
+                                  self.m_network)
+        assert subsys.nodes == []
 
-    def test_marginalize_out(self):
-        marginalized_distribution = utils.marginalize_out(
-            self.m_network.nodes[0], self.m_network.tpm)
-        assert np.array_equal(marginalized_distribution,
-                              np.array([[[[0.5,  0.5,  0.0],
-                                          [0.5,  0.5,  1.0]],
+    # Cause/effect repertoire test helper
+    # =========================================================================
 
-                                         [[1.0,  0.5,  1.0],
-                                          [1.0,  0.5,  0.0]]]]))
+    @staticmethod
+    def cause_or_effect_repertoire_is_correct(function, t):
+        """Test `effect_repertoire` or `cause_repertoire`.
 
-    def test_cjd(self):
-        # Test against Matlab default network with Mechanism(['n0'])
-        cjd = self.m_mechanism_nZero.cjd(self.m_mechanism_nZero.past_state,
-                                         self.m_purview_nZero.nodes,
-                                         self.m_mechanism_nZero.state,
-                                         self.m_mechanism_nZero.nodes)
-        answer = utils.uniform_distribution(self.m_network.size)
+        :param function: The function to test (either "cause_repertoire" or
+        "effect_repertoire") :param t: A dictionary containing the parameters
+        for the test: candidate_system, mechanism, purview, and answer :type t:
+            ``dict``
 
-        print("\nCause repertoire:")
-        print(cjd),
-        print("\nAnswer:")
-        print(answer)
-
-        assert np.array_equal(cjd, answer)
-
-    def test_cause_repertoire_matlab_default_mech_and_purview_same(self):
         """
-        Test against Matlab default network with same mechanism and purview
-        """
-        cause_repertoire = \
-            self.m_mechanism_nZero.cause_repertoire(self.m_purview_nZero)
-        answer = utils.uniform_distribution(self.m_network.size)
+        result = getattr(t['candidate_system'],
+                         function)(t['mechanism'], t['purview'])
 
-        print(self.m_mechanism_nZero)
-        print("\nCause repertoire:")
-        print(cause_repertoire)
-        print("\nAnswer:")
-        print(answer)
+        print("Mechanism:", t['mechanism'], "Purview:", t['purview'], "",
+              sep="\n\n")
 
-        assert np.array_equal(cause_repertoire, answer)
+        print("Effect repertoire:", result, "Shape:", result.shape, "Answer:",
+              t['answer'], "Shape:", t['answer'].shape, "", sep="\n\n")
 
-    def test_cause_repertoire_matlab_default_mech_and_purview_different(self):
-        """
-        Test against Matlab default network with different mechanism and
-        purview
-        """
-        cause_repertoire = \
-            self.m_mechanism_nZeroOne.cause_repertoire(self.m_purview_nZeroTwo)
-        answer = np.array([0.5, 0.5, 0.0, 0.0]).reshape(2, 1, 2)
+        return np.array_equal(result, t['answer'])
 
-        print("\nCause repertoire:")
-        print(cause_repertoire)
-        print("\nAnswer:")
-        print(answer)
+    # Cause repertoire tests
+    # =========================================================================
 
-        assert np.array_equal(cause_repertoire, answer)
+    # Matlab default network
+    # ----------------------
 
-    def test_cause_repertoire_simple_AND_mech_and_purview_same(self):
-        """
-        Test against simple 'AND' network with same mechanism and purview
-        """
-        # Mechanism(['n0']), 'A' just turned on
-        mechanism = models.Mechanism([self.s_network.nodes[0]],
-                                     self.a_just_turned_on,
-                                     self.a_about_to_be_on,
-                                     self.s_network)
+    def test_cause_rep_matlab_mech_n0_purview_n0(self):
+        # Mechanism {n0}
+        # Purview {n0}
+        test_params = {
+            'candidate_system': self.m_subsys_all,
+            'mechanism': self.m_mechanism_nZero,
+            'purview': self.m_purview_nZero,
+            'answer': np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
 
-        cause_repertoire = mechanism.cause_repertoire(self.s_purview_all)
-        # Cause repertoire is maximally selective; the past state must have
-        # been {0,1,1}, so `answer[(0,1,1)]` should be 1 and everything else
-        # should be 0
-        answer = np.array([[[0., 0.],
-                            [0., 1.]],
-                           [[0., 0.],
-                            [0., 0.]]])
+    def test_cause_rep_matlab_mech_n0n1_purview_n0n2(self):
+        # Mechanism {n0, n1}
+        # Purview {n0, n2}
+        test_params = {
+            'candidate_system': self.m_subsys_all,
+            'mechanism': self.m_mechanism_nZeroOne,
+            'purview': self.m_purview_nZeroTwo,
+            'answer': np.array([0.5, 0.5, 0.0, 0.0]).reshape(2, 1, 2,
+                                                             order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
 
-        print("\nCause repertoire:")
-        print(cause_repertoire)
-        print("\nAnswer:")
-        print(answer)
+    # Simple 'AND' network
+    # --------------------
 
-        assert np.array_equal(cause_repertoire, answer)
+    # State:
+    # 'A' just turned on
 
-    def test_cause_repertoire_simple_AND_mech_and_purview_different(self):
-        """
-        Test against simple 'AND' network with different mechanism and
-        purview
-        """
-        # Mechanism(['n0']), all nodes off
-        mechanism = models.Mechanism([self.s_network.nodes[0]],
-                                     self.all_off,
-                                     self.all_off,
-                                     self.s_network)
+    def test_cause_rep_simple_AND_a_just_on_mech_n0_purview_n0(self):
+        # Mechanism {n0}
+        # Purview {n0}
+        test_params = {
+            'candidate_system': self.s_subsys_all_a_just_on,
+            'mechanism': [self.s_network.nodes[0]],
+            'purview': [self.s_network.nodes[0]],
+            # Cause repertoire is maximally selective; the past state must have
+            # been {0,1,1}, so `answer[(0,1,1)]` should be 1 and everything
+            # else should be 0
+            'answer': np.array([1.0, 0.0]).reshape(2, 1, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
 
-        cause_repertoire = mechanism.cause_repertoire(self.s_purview_all)
+    def test_cause_rep_simple_AND_a_just_on_mech_empty_purview_n0(self):
+        # Mechanism {}
+        # Purview {n0}
+        test_params = {
+            'candidate_system': self.s_subsys_all_a_just_on,
+            'mechanism': [],
+            'purview': [self.s_network.nodes[0]],
+            # No matter the state of the purview (n0), the probability it will
+            # be on in the next timestep is 1/8
+            'answer': np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
+
+    def test_cause_rep_simple_AND_a_just_on_mech_n1_purview_n0n1n2(self):
+        # Mechanism {n1}
+        # Purview {n0, n1, n2}
+        test_params = {
+            'candidate_system': self.s_subsys_all_a_just_on,
+            'mechanism': [self.s_network.nodes[1]],
+            'purview': self.s_network.nodes,
+            'answer': np.ones((2, 2, 2)) / 8
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
+
+    def test_cause_rep_simple_AND_a_just_on_mech_n0n1_purview_n0n2(self):
+        # Mechanism {n0, n1}
+        # Purview {n0, n2}
+        test_params = {
+            'candidate_system': self.s_subsys_all_a_just_on,
+            'mechanism': self.s_network.nodes[0:2],
+            'purview': self.s_network.nodes[0:3:2],
+            'answer': np.array([0.0, 0.0, 1.0, 0.0]).reshape(2, 1, 2,
+                                                             order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
+
+    # State:
+    # All nodes off
+
+    def test_cause_rep_simple_AND_all_off_mech_n0_purview_n0(self):
+        # Mechanism {n0}
+        # Purview {n0}
+        test_params = {
+            'candidate_system': self.s_subsys_all_off,
+            'mechanism': [self.s_network.nodes[0]],
+            'purview': [self.s_network.nodes[0]],
+            'answer': np.array([(3 / 7), (4 / 7)]).reshape(2, 1, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
+
+    def test_cause_rep_simple_AND_all_off_mech_n0_purview_n0n1n2(self):
+        # Mechanism {n0}
+        # Purview {n0, n1, n2}
+
         # Cause repertoire is minimally selective; only {0,1,1} is ruled out,
         # so probability density should be uniformly distributed among all
-        # states not including {0,1,1}
+        # states not including {0,1,1} when purview is whole network
         answer = np.ones((2, 2, 2))
-        answer[0][1][1] = 0
+        answer[0][1][1] = 0.0
         answer = answer / 7
+        test_params = {
+            'candidate_system': self.s_subsys_all_off,
+            'mechanism': [self.s_network.nodes[0]],
+            'purview': self.s_network.nodes,
+            'answer': answer
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
 
-        print("\nCause repertoire:")
-        print(cause_repertoire)
-        print("\nAnswer:")
-        print(answer)
+    # Effect repertoire tests
+    # =========================================================================
 
-        assert np.array_equal(cause_repertoire, answer)
+    # Matlab default network
+    # ----------------------
 
-    def test_effect_repertoire_matlab_same_mech_and_purview(self):
-        """
-        Test against Matlab default network with same mechanism and purview
-        """
+    def test_effect_rep_matlab_mech_n0_purview_n0(self):
+        # Mechanism {n0}
+        # Purview {n0}
+        test_params = {
+            'candidate_system': self.m_subsys_all,
+            'mechanism': self.m_mechanism_nZero,
+            'purview': self.m_purview_nZero,
+            'answer': np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
 
-        mechanism = self.m_mechanism_nZero
-        print("Mechanism:")
-        print(mechanism)
-        print("Purview:")
-        print(self.m_purview_nZero)
+    def test_effect_rep_matlab_mech_n0n1_purview_n0n2(self):
+        # Mechanism {n0, n1}
+        # Purview {n0, n2}
+        test_params = {
+            'candidate_system': self.m_subsys_all,
+            'mechanism': self.m_mechanism_nZeroOne,
+            'purview': self.m_purview_nZeroTwo,
+            'answer': np.array([0.0, 0.0, 0.5, 0.5]).reshape(2, 1, 2,
+                                                             order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
 
-        effect_repertoire = \
-            self.m_mechanism_nZero.effect_repertoire(self.m_purview_nZero)
-        answer = np.array([0.25, 0.75]).reshape(2, 1, 1)
+    # Simple 'AND' network
+    # --------------------
 
-        print("\nEffect repertoire:")
-        print(effect_repertoire)
-        print("\nAnswer:")
-        print(answer)
+    # State:
+    # 'A' just turned on
 
-        assert np.array_equal(effect_repertoire, answer)
+    def test_effect_rep_simple_AND_a_just_on_mech_n0_purview_n0(self):
+        # Mechanism {n0}
+        # Purview {n0}
+        # 'A' just turned on
+        test_params = {
+            'candidate_system': self.s_subsys_all_a_just_on,
+            'mechanism': [self.s_network.nodes[0]],
+            'purview': [self.s_network.nodes[0]],
+            'answer': np.array([1.0, 0.0]).reshape(2, 1, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
 
-    def test_effect_repertoire_matlab_diff_mech_and_purview(self):
-        """
-        Test against Matlab default network with different mechanism and
-        purview
-        """
+    def test_effect_rep_simple_AND_a_just_on_mech_empty_purview_n0(self):
+        # Mechanism {}
+        # Purview {n0}
+        # 'A' just turned on
+        test_params = {
+            'candidate_system': self.s_subsys_all_a_just_on,
+            'mechanism': [],
+            'purview': [self.s_network.nodes[0]],
+            # No matter the state of the purview (n0), the probability it will
+            # be on in the next timestep is 1/8
+            'answer': np.array([0.875, 0.125]).reshape(2, 1, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
 
-        mechanism = self.m_mechanism_nZeroOne
-        print("Mechanism:")
-        print(mechanism)
-        print("Purview:")
-        print(self.m_purview_nZeroTwo)
+    def test_effect_rep_simple_AND_a_just_on_mech_n1_purview_n0n1n2(self):
+        # Mechanism {n1}
+        # Purview {n0, n1, n2}
+        # 'A' just turned on
+        answer = np.zeros((2, 2, 2))
+        answer[(0, 0, 0)] = 1
+        test_params = {
+            'candidate_system': self.s_subsys_all_a_just_on,
+            'mechanism': [self.s_network.nodes[1]],
+            'purview': self.s_network.nodes,
+            'answer': answer
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
 
-        effect_repertoire = \
-            self.m_mechanism_nZeroOne.effect_repertoire(self.m_purview_nZeroTwo)
-        answer = np.array([0, 0, 0.5, 0.5]).reshape(2, 1, 2)
+    def test_effect_rep_simple_AND_a_just_on_mech_n0n1_purview_n0n2(self):
+        # Mechanism {n0, n1}
+        # Purview {n0, n2}
+        # 'A' just turned on
+        test_params = {
+            'candidate_system': self.s_subsys_all_a_just_on,
+            'mechanism': [self.s_network.nodes[1]],
+            'purview': self.s_network.nodes[0:3:2],
+            'answer': np.array([1.0, 0.0, 0.0, 0.0]).reshape(2, 1, 2,
+                                                             order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
 
-        print("\nEffect repertoire:")
-        print(effect_repertoire)
-        print("\nAnswer:")
-        print(answer)
+    # State:
+    # All nodes off
 
-        assert np.array_equal(effect_repertoire, answer)
+    def test_effect_rep_simple_AND_all_off_mech_n0_purview_n0(self):
+        # Mechanism {n0}
+        # Purview {n0}
+        test_params = {
+            'candidate_system': self.s_subsys_all_off,
+            'mechanism': [self.s_network.nodes[0]],
+            'purview': [self.s_network.nodes[0]],
+            'answer': np.array([0.75, 0.25]).reshape(2, 1, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
 
-
-class TestSubsystem(unittest.TestCase):
-
-    def setUp(self):
-        self.size = 3
-        self.state = np.array([0, 1, 0])
-        self.past_state = np.array([1, 1, 0])
-        print((2 ** self.size) * self.size)
-        self.tpm = np.zeros([2] * self.size + [self.size]).astype(float)
-        self.powerset = utils.powerset(np.arange(3))
-        self.network = models.Network(self.tpm, self.state, self.past_state)
-        self.nodes = [models.Node(self.network, node_index)
-                      for node_index in range(self.network.size)]
-
-    def tearDown(self):
-        pass
-
-    def test_purview_max_entropy_distribution(self):
-        purview = models.Subsystem(self.network.nodes[0:2], self.network)
-        max_ent = purview.max_entropy_distribution()
-        assert max_ent.shape == (2, 2, 1)
-        assert np.array_equal(
-            max_ent,
-            np.divide(np.ones(4), 4).reshape((2, 2, 1)))
-        assert max_ent[0][1][0] == 0.25
-
+    def test_effect_rep_simple_AND_all_off_mech_n0_purview_n0n1n2(self):
+        # Mechanism {n0}
+        # Purview {n0, n1, n2}
+        answer = np.zeros((2, 2, 2))
+        answer[(0, 0, 0)] = 0.75
+        answer[(1, 0, 0)] = 0.25
+        test_params = {
+            'candidate_system': self.s_subsys_all_off,
+            'mechanism': [self.s_network.nodes[0]],
+            'purview': self.s_network.nodes,
+            'answer': answer
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
 
 # Utilities for testing
 #==============================================================================
 
 
 def _generator_equal(generator_1, generator_2):
-    """Quickly compare two generators for equality"""
     sentinel = object()
     return all(a == b for a, b in zip_longest(generator_1,
                                               generator_2,
                                               fillvalue=sentinel))
 
 
-def pprint(a_list):
-    """Prints the ``__str__`` output for objects in a list"""
+def nprint(a_list):
+    """Print the ``__str__`` output for objects in a list."""
     print(list(map(str, a_list)))
+
+
+#==============================================================================
+
+
+suite = unittest.TestLoader().loadTestsFromTestCase(TestSubsystem)
+unittest.TextTestRunner(verbosity=2).run(suite)
