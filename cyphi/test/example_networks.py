@@ -4,14 +4,14 @@
 import unittest
 
 import numpy as np
-from cyphi.node import Node
 from cyphi.network import Network
 from cyphi.subsystem import Subsystem
 
 
 class WithExampleNetworks(unittest.TestCase):
 
-    """This class provides example networks to test against."""
+    """This class provides example objects to test against. Any test case that
+    needs access to these examples should extend this class."""
 
     def setUp(self):
 
@@ -116,5 +116,3 @@ class WithExampleNetworks(unittest.TestCase):
 
     def tearDown(self):
         pass
-
-

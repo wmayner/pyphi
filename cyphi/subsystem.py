@@ -67,33 +67,19 @@ class Subsystem:
         return hash((frozenset(self.nodes), self.current_state.tostring(),
                      self.past_state.tostring(), self.network))
 
-    # TODO finish this? is it needed?
-    def uc_past_repertoire(self):
-        """Return the unconstrained past repertoire for this mechanism."""
+    def uc_cause_repertoire(self, purview):
+        """Return the unconstrained past repertoire for the given purview.
 
-    # TODO move to utils?
-    def combine_cjd_with_external_max_ent(self, mechanism_cjd):
-        """Return a cause or effect repertoire given a mechanism's CJD and a
-        purview.
-
-        Combines a conditional joint distribution for a mechanism (an
-        intermediate result in the calculation of cause and effect repertoires)
-        with the maximum entropy distribution for the nodes outside of that
-        mechanism, resulting in a distribution (the cause or effect repertoire)
-        over the entire network.
-
-        :param mechanism_cjd: The mechanism's conditional joint distribution
-        :type mechanism_cjd: ``np.ndarray``
-        :param purview: The purview over which the cause or effect repertoire
-            is being calculated.
-        :type purview: ``Subsystem``
+        This is just the cause repertoire in the absence of any mechanism.
         """
-        print("===================combine============")
-        print("External nodes:", self.external_nodes)
-        print("===================combine============")
-        return np.multiply(
-            utils.max_entropy_distribution(self.external_nodes, self.network),
-            mechanism_cjd)
+        return self.cause_repertoire([], purview)
+
+    def unconstrained_effect_repertoire(self, purview):
+        """Return the unconstrained effect repertoire for the given purview.
+
+        This is just the effect repertoire in the absence of any mechanism.
+        """
+        return self.effect_repertoire([], purview)
 
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of this mechanism over the given
@@ -115,13 +101,14 @@ class Subsystem:
         :rtype: ``np.ndarray``
 
         """
-        # Return immediately if purview is empty
+        # If the purview is empty, the distribution is empty
         if (len(purview) is 0):
             # TODO should this really be an empty array?
             return np.array([])
 
-        # If the mechanism is empty, just return the maximum entropy
-        # distribution over the purview
+        # If the mechanism is empty, nothing is specified about the past state
+        # of the purview, so just return the purview's maximum entropy
+        # distribution
         if (len(mechanism) is 0):
             return utils.max_entropy_distribution(purview, self.network)
 
@@ -149,25 +136,25 @@ class Subsystem:
             # TODO explicit inputs to nodes (right now each node is implicitly
             # connected to all other nodes, since initializing a Network with a
             # connectivity matrix isn't implemented yet)
-            for non_purview_input in set(self.network.nodes) - set(past_nodes):
+            for non_past_input in set(self.network.nodes) - set(past_nodes):
                                       # TODO add this when inputs are
                                       # implemented:
                                       # and node in self.input_nodes):
                 # If the non-purview input node is part of the candidate
                 # system, we marginalize it out of the current node's CPT.
-                if non_purview_input in self.nodes:
-                    conditioned_tpm = utils.marginalize_out(non_purview_input,
+                if non_past_input in self.nodes:
+                    conditioned_tpm = utils.marginalize_out(non_past_input,
                                                             conditioned_tpm)
                 # Now we condition the CPT on the past states of nodes outside
                 # the candidate system, which we treat as fixed boundary
                 # conditions. We collapse the dimensions corresponding to the
                 # fixed nodes so they contain only the probabilities that
                 # correspond to their past states.
-                elif non_purview_input not in self.nodes:
+                elif non_past_input not in self.nodes:
                     past_conditioning_indices = \
                         [slice(None)] * self.network.size
-                    past_conditioning_indices[non_purview_input.index] = \
-                        [self.past_state[non_purview_input.index]]
+                    past_conditioning_indices[non_past_input.index] = \
+                        [self.past_state[non_past_input.index]]
                     conditioned_tpm = \
                         conditioned_tpm[past_conditioning_indices]
             # Incorporate this node's CPT into the mechanism's conditional
