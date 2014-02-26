@@ -1,11 +1,12 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
 cyphi.utils
 ~~~~~~~~~~~
 
-This module provides utility functions used within CyPhi that are also useful
-for external consumption.
+This module provides utility functions used within CyPhi that are consumed by
+more than one class.
 
 """
 
@@ -20,7 +21,8 @@ def combs(a, r):
     """
     NumPy implementation of itertools.combinations.
 
-    Return successive :math:`r`-length combinations of elements in the array `a`.
+    Return successive :math:`r`-length combinations of elements in the array
+    `a`.
 
     :param a: the array from which to get combinations
     :type a: ``np.ndarray``
@@ -35,7 +37,7 @@ def combs(a, r):
         return np.asarray([])
 
     a = np.asarray(a)
-    data_type = a.dtype if r is 0 else np.dtype([('', a.dtype)]*r)
+    data_type = a.dtype if r is 0 else np.dtype([('', a.dtype)] * r)
     b = np.fromiter(combinations(a, r), data_type)
     return b.view(a.dtype).reshape(-1, r)
 
@@ -74,7 +76,7 @@ def comb_indices(n, k):
     indices = np.fromiter(
         chain.from_iterable(combinations(range(n), k)),
         int,
-        count=count*k)
+        count=(count * k))
     # Reshape output into the array of combination indicies
     return indices.reshape(-1, k)
 
@@ -85,7 +87,7 @@ def powerset(iterable):
     Return the power set of an iterable (see `itertools recipes
     <http://docs.python.org/2/library/itertools.html#recipes>`_).
 
-        >>> ps = powerset(np.arange[2])
+        >>> ps = powerset(np.arange(2))
         >>> print(list(ps))
         [(), (0,), (1,), (0, 1)]
 
@@ -117,6 +119,44 @@ def uniform_distribution(number_of_nodes):
     # TODO extend to nonbinary nodes
     return np.divide(np.ones(number_of_states),
                      number_of_states).reshape([2] * number_of_nodes)
+
+
+def marginalize_out(node, tpm):
+    """
+    Marginalize out a node from a TPM.
+
+    The TPM must be indexed by individual node state.
+
+    :param node: The node to be marginalized out
+    :type node: ``Node``
+    :param tpm: The tpm to marginalize the node out of
+    :type tpm: ``np.ndarray``
+
+    :returns: The TPM after marginalizing out the node
+    :rtype: ``np.ndarray``
+    """
+    # Preserve number of dimensions so node indices still index into the proper
+    # axis of the returned distribution, normalize the distribution by number
+    # of states
+    return np.divide(np.sum(tpm, node.index, keepdims=True),
+                     tpm.shape[node.index])
+
+
+# TODO memoize this
+def max_entropy_distribution(nodes, network):
+    """
+    Return the maximum entropy distribution over a set of nodes.
+
+    This is different from the network's uniform distribution because nodes
+    outside the are fixed and treated as if they have only 1 state.
+
+    :returns: The maximum entropy distribution over this subsystem
+    :rtype: ``np.ndarray``
+    """
+    # TODO extend to nonbinary nodes
+    max_ent_shape = [2 if node in nodes else 1 for node in network.nodes]
+    return np.divide(np.ones(max_ent_shape),
+                     np.ufunc.reduce(np.multiply, max_ent_shape))
 
 
 def connectivity_matrix_to_tpm(connectivity_matrix):
