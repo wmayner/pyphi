@@ -14,6 +14,7 @@ import numpy as np
 from itertools import chain, combinations
 from scipy.misc import comb
 from .exceptions import ValidationException
+from scipy.spatial.distance import cdist
 
 
 # see http://stackoverflow.com/questions/16003217/n-d-version-of-itertools-combinations-in-numpy
@@ -157,6 +158,22 @@ def max_entropy_distribution(nodes, network):
     max_ent_shape = [2 if node in nodes else 1 for node in network.nodes]
     return np.divide(np.ones(max_ent_shape),
                      np.ufunc.reduce(np.multiply, max_ent_shape))
+
+
+# TODO extend to nonbinary nodes
+def hamming_matrix(N):
+    """Return a matrix of Hamming distances for the possible states of
+    :math:`N` binary nodes.
+
+    :param N: The number of nodes under consideration
+    :type N: ``int``
+    :returns: A :math:`2^N \cross 2^N` ``ndarray`` where the
+        `ij^{\\textrm{th}}` element is the Hamming distance between state
+        :math:`i` and state`j`.
+    """
+    possible_states = np.array([list(bin(state)[2:].zfill(N)) for state in
+                                range(2 ** N)])
+    return cdist(possible_states, possible_states, 'hamming') * N
 
 
 def connectivity_matrix_to_tpm(connectivity_matrix):
