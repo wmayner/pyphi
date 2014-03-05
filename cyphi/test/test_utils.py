@@ -72,3 +72,27 @@ class TestUtils(WithExampleNetworks):
                            [2.,  3.,  1.,  2.,  1.,  2.,  0.,  1.],
                            [3.,  2.,  2.,  1.,  2.,  1.,  1.,  0.]])
         assert (H == answer).all()
+
+    def test_bitstring_index(self):
+        array = np.arange(8)
+        bitstring = '11110100'
+        assert np.array_equal(utils.bitstring_index(array, bitstring),
+                              np.array([0, 1, 2, 3, 5]))
+
+    def test_bitstring_index_wrong_shape(self):
+        array = np.arange(8).reshape(2,4)
+        bitstring = bin(6).zfill(8)
+        with self.assertRaises(ValueError):
+            assert utils.bitstring_index(array, bitstring)
+
+    def test_bitstring_index_mismatched_length(self):
+        array = np.arange(8)
+        bitstring = bin(6)[2:]
+        with self.assertRaises(ValueError):
+            assert utils.bitstring_index(array, bitstring)
+
+    def test_bitstring_index_forgot_strip_b(self):
+        array = np.arange(8)
+        bitstring = bin(6).zfill(8)
+        with self.assertRaises(ValueError):
+            assert utils.bitstring_index(array, bitstring)
