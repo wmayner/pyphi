@@ -55,6 +55,7 @@ class Subsystem:
         """
         Two subsystems are equal if their sets of nodes, current and past
         states, and networks are equal.
+
         """
         return (set(self.nodes) == set(other.nodes) and self.past_state ==
                 other.past_state and self.current_state == other.past_state and
@@ -67,40 +68,31 @@ class Subsystem:
         return hash((frozenset(self.nodes), self.current_state.tostring(),
                      self.past_state.tostring(), self.network))
 
-    def uc_cause_repertoire(self, purview):
-        """Return the unconstrained past repertoire for the given purview.
-
-        This is just the cause repertoire in the absence of any mechanism.
-        """
-        return self.cause_repertoire([], purview)
-
-    def unconstrained_effect_repertoire(self, purview):
-        """Return the unconstrained effect repertoire for the given purview.
-
-        This is just the effect repertoire in the absence of any mechanism.
-        """
-        return self.effect_repertoire([], purview)
-
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of this mechanism over the given
         purview.
 
-        In the Matlab version's terminology,
-
-        * *Cause repertoire* is "backward repertoire"
-        * *Mechanism* is "numerator"
-        * *Purview* is "denominator"
-        * ``conditioned_tpm`` is ``next_num_node_distribution``
-        * ``accumulated_cjd`` is ``numerator_conditional_joint``
-
+        :param mechanism: The mechanism for which to calculate the cause
+            repertoire
+        :type mechanism: ``[Node]``
         :param purview: The purview over which to calculate the cause
             repertoire
-        :type purview: ``Subsystem``
+        :type purview: ``[Node]``
 
         :returns: The cause repertoire of the mechanism over the given purview
         :rtype: ``np.ndarray``
 
         """
+        # -------------------------------------------------------
+        # NOTE: In the Matlab version's terminology,
+        #
+        # "Cause repertoire" is "backward repertoire"
+        # "Mechanism" is "numerator"
+        # "Purview" is "denominator"
+        # ``conditioned_tpm`` is ``next_num_node_distribution``
+        # ``accumulated_cjd`` is ``numerator_conditional_joint``
+        # --------------------------------------------------------
+
         # If the purview is empty, the distribution is empty
         if (len(purview) is 0):
             # TODO should this really be an empty array?
@@ -183,22 +175,27 @@ class Subsystem:
         """Return the effect repertoire of this mechanism over the given
         purview.
 
-        In the Matlab version's terminology,
-
-        * *Effect repertoire* is "forward repertoire"
-        * *Mechanism* is "numerator"
-        * *Purview* is "denominator"
-        * ``conditioned_tpm`` is ``next_denom_node_distribution``
-        * ``accumulated_cjd`` is ``denom_conditional_joint``
-
+        :param mechanism: The mechanism for which to calculate the effect
+            repertoire
+        :type mechanism: ``[Node]``
         :param purview: The purview over which to calculate the effect
             repertoire
-        :type purview: ``Subsystem``
+        :type purview: ``[Node]``
 
         :returns: The effect repertoire of the mechanism over the given purview
         :rtype: ``np.ndarray``
 
         """
+        # ---------------------------------------------------------
+        # NOTE: In the Matlab version's terminology,
+        #
+        # "Effect repertoire" is "forward repertoire"
+        # "Mechanism" is "numerator"
+        # "Purview" is "denominator"
+        # ``conditioned_tpm`` is ``next_denom_node_distribution``
+        # ``accumulated_cjd`` is ``denom_conditional_joint``
+        # ---------------------------------------------------------
+
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(tuple([1] * self.network.size +
@@ -286,3 +283,17 @@ class Subsystem:
         # only compare the purview-repertoires with each other, since cut vs.
         # whole comparisons are only ever done over the same purview.
         return accumulated_cjd
+
+    def unconstrained_cause_repertoire(self, purview):
+        """Return the unconstrained cause repertoire for the given purview."""
+        # This is just the cause repertoire in the absence of any mechanism.
+        return self.cause_repertoire([], purview)
+
+    def unconstrained_effect_repertoire(self, purview):
+        """Return the unconstrained effect repertoire for the given purview."""
+        # This is just the effect repertoire in the absence of any mechanism.
+        return self.effect_repertoire([], purview)
+
+    # TODO implement
+    def cause_information(self, mechanism, purview):
+        pass
