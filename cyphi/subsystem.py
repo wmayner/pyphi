@@ -69,8 +69,7 @@ class Subsystem:
                      self.past_state.tostring(), self.network))
 
     def cause_repertoire(self, mechanism, purview):
-        """Return the cause repertoire of this mechanism over the given
-        purview.
+        """Return the cause repertoire of this mechanism over a purview.
 
         :param mechanism: The mechanism for which to calculate the cause
             repertoire
@@ -79,7 +78,7 @@ class Subsystem:
             repertoire
         :type purview: ``[Node]``
 
-        :returns: The cause repertoire of the mechanism over the given purview
+        :returns: The cause repertoire of the mechanism over a purview
         :rtype: ``np.ndarray``
 
         """
@@ -172,8 +171,7 @@ class Subsystem:
         return accumulated_cjd
 
     def effect_repertoire(self, mechanism, purview):
-        """Return the effect repertoire of this mechanism over the given
-        purview.
+        """Return the effect repertoire of this mechanism over a purview.
 
         :param mechanism: The mechanism for which to calculate the effect
             repertoire
@@ -182,7 +180,7 @@ class Subsystem:
             repertoire
         :type purview: ``[Node]``
 
-        :returns: The effect repertoire of the mechanism over the given purview
+        :returns: The effect repertoire of the mechanism over a purview
         :rtype: ``np.ndarray``
 
         """
@@ -285,15 +283,23 @@ class Subsystem:
         return accumulated_cjd
 
     def unconstrained_cause_repertoire(self, purview):
-        """Return the unconstrained cause repertoire for the given purview."""
+        """Return the unconstrained cause repertoire for a purview."""
         # This is just the cause repertoire in the absence of any mechanism.
         return self.cause_repertoire([], purview)
 
     def unconstrained_effect_repertoire(self, purview):
-        """Return the unconstrained effect repertoire for the given purview."""
+        """Return the unconstrained effect repertoire for a purview."""
         # This is just the effect repertoire in the absence of any mechanism.
         return self.effect_repertoire([], purview)
 
-    # TODO implement
     def cause_information(self, mechanism, purview):
-        pass
+        """Return the cause information for a mechanism over a purview."""
+        return utils.emd(self.cause_repertoire(mechanism, purview),
+                         self.unconstrained_cause_repertoire(mechanism,
+                                                             purview))
+
+    def effect_information(self, mechanism, purview):
+        """Return the effect information for a mechanism over a purview."""
+        return utils.emd(self.effect_repertoire(mechanism, purview),
+                         self.unconstrained_effect_repertoire(mechanism,
+                                                              purview))

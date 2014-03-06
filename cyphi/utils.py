@@ -16,6 +16,7 @@ from itertools import chain, combinations
 from scipy.misc import comb
 from .exceptions import ValidationException
 from scipy.spatial.distance import cdist
+from pyemd import emd as _emd
 
 
 # see http://stackoverflow.com/questions/16003217
@@ -165,9 +166,56 @@ def max_entropy_distribution(nodes, network):
     return np.divide(np.ones(max_ent_shape),
                      np.ufunc.reduce(np.multiply, max_ent_shape))
 
+# TODO extend to binary noes
+# TODO parametrize and use other metrics? (KDL, L1)?
+def emd(d1, d2):
+    """Return the Earth Mover's Distance between two distributions (indexed
+    by state, one dimension per node).
+
+    Singleton dimensions are assumed to mean that probabilities do not
+    depend on the corresponding node's state (so they are broadcast to make
+    a full distribution over the whole state space).
+    """
+    # Expand the distributions to the whole state space, if needed
+    if not (2 ** d1.ndim == sum(d1.shape)):
+        full_d1 = np.ones([2] * d1.ndim)
+        d1 = full_d1 * d1
+    if not (2 ** d2.ndim == sum(d2.shape)):
+        full_d2 = np.ones([2] * d2.ndim)
+        d2 = full_d2 * d2
+    # Compute the EMD with Hamming distance between states as the
+    # transportation cost function
+    return _emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
+
+
+# TODO [optimization] optimize this to use indices rather than nodes?
+def bipartitions(array):
+    """Generates all nonempty bipartitions for an array.
+
+        >>> list(bipartitions(np.array([1, 2, 3])))
+        [(array([1]), array([2, 3])),
+         (array([2]), array([1, 3])),
+         (array([1, 2]), array([3]))]
+
+    :param array: The array to partition
+    :type array: ``np.ndarray``
+
+    :returns: A generator that yields a tuple containing each of the two
+        partitions
+    :rtype: ``generator``
+    """
+    for bitstring in [bin(i)[2:].zfill(array.size)[::-1]
+                      for i in range(2 ** (array.size - 1))][1:]:
+        yield (_bitstring_index(array, bitstring),
+               _bitstring_index(array, _flip(bitstring)))
+
+
+# Internal helper methods
+# =======================
+
 
 # TODO extend to nonbinary nodes
-def hamming_matrix(N):
+def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of
     :math:`N` binary nodes.
 
@@ -190,11 +238,7 @@ def hamming_matrix(N):
     return cdist(possible_states, possible_states, 'hamming') * N
 
 
-def bipartitions(array):
-    pass
-
-
-def bitstring_index(a, bitstring):
+def _bitstring_index(a, bitstring):
     """Select elements of an array based on a binary string.
 
     The :math:`i^{\\textrm{th}}` element in the array is selected if there is a 1 at the
@@ -225,6 +269,11 @@ def bitstring_index(a, bitstring):
                          "forget to chop off the first two characters after " +
                          "using `bin`?")
     return np.array([a[i] for i in range(a.size) if bitstring[i] == '1'])
+
+
+def _flip(bitstring):
+    """Flip the bits in a string consisting of 1s and zeros."""
+    return ''.join('1' if x == '0' else '0' for x in bitstring)
 
 
 # TODO implement this?
