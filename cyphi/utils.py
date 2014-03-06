@@ -11,12 +11,15 @@ more than one class.
 """
 
 import numpy as np
+from re import match
 from itertools import chain, combinations
 from scipy.misc import comb
 from .exceptions import ValidationException
+from scipy.spatial.distance import cdist
+from pyemd import emd as _emd
 
 
-# see http://stackoverflow.com/questions/16003217/n-d-version-of-itertools-combinations-in-numpy
+# see http://stackoverflow.com/questions/16003217
 def combs(a, r):
     """
     NumPy implementation of itertools.combinations.
@@ -29,7 +32,7 @@ def combs(a, r):
     :param r:  the length of the combinations
     :type r: ``int``
 
-    :returns: an array of combinations
+    :returns: An array of combinations
     :rtype: ``np.ndarray``
     """
     # Special-case for 0-length combinations
@@ -42,7 +45,7 @@ def combs(a, r):
     return b.view(a.dtype).reshape(-1, r)
 
 
-# see http://stackoverflow.com/questions/16003217/n-d-version-of-itertools-combinations-in-numpy
+# see http://stackoverflow.com/questions/16003217/
 def comb_indices(n, k):
     """
     N-D version of itertools.combinations.
@@ -67,7 +70,7 @@ def comb_indices(n, k):
     :param k: length of combinations
     :type k: ``int``
 
-    :returns: indices of the :math:`r`-combinations of :math:`n` elements
+    :returns: Indices of the :math:`r`-combinations of :math:`n` elements
     :rtype: ``np.ndarray``
     """
     # Count the number of combinations for preallocation
@@ -104,13 +107,13 @@ def powerset(iterable):
 def uniform_distribution(number_of_nodes):
     """
     Return the uniform distribution for a set of binary nodes, indexed by state
-    (so there are is one dimension per node, the size of which is the number of
-    states for that node).
+    (so there is one dimension per node, the size of which is the number of
+    possible states for that node).
 
     :param nodes: a set of indices of binary nodes
     :type nodes: ``np.ndarray``
 
-    :returns: the uniform distribution over the set of nodes
+    :returns: The uniform distribution over the set of nodes
     :rtype: ``np.ndarray``
     """
     # The size of the state space for binary nodes is 2^(number of nodes).
@@ -150,6 +153,11 @@ def max_entropy_distribution(nodes, network):
     This is different from the network's uniform distribution because nodes
     outside the are fixed and treated as if they have only 1 state.
 
+    :param nodes: The set of nodes
+    :type nodes: ``[Node]``
+    :param network: The network the nodes belong to
+    :type network: ``Network``
+
     :returns: The maximum entropy distribution over this subsystem
     :rtype: ``np.ndarray``
     """
@@ -158,7 +166,117 @@ def max_entropy_distribution(nodes, network):
     return np.divide(np.ones(max_ent_shape),
                      np.ufunc.reduce(np.multiply, max_ent_shape))
 
+# TODO extend to binary noes
+# TODO parametrize and use other metrics? (KDL, L1)?
+def emd(d1, d2):
+    """Return the Earth Mover's Distance between two distributions (indexed
+    by state, one dimension per node).
 
+    Singleton dimensions are assumed to mean that probabilities do not
+    depend on the corresponding node's state (so they are broadcast to make
+    a full distribution over the whole state space).
+    """
+    # Expand the distributions to the whole state space, if needed
+    if not (2 ** d1.ndim == sum(d1.shape)):
+        full_d1 = np.ones([2] * d1.ndim)
+        d1 = full_d1 * d1
+    if not (2 ** d2.ndim == sum(d2.shape)):
+        full_d2 = np.ones([2] * d2.ndim)
+        d2 = full_d2 * d2
+    # Compute the EMD with Hamming distance between states as the
+    # transportation cost function
+    return _emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
+
+
+# TODO [optimization] optimize this to use indices rather than nodes?
+def bipartitions(array):
+    """Generates all nonempty bipartitions for an array.
+
+        >>> list(bipartitions(np.array([1, 2, 3])))
+        [(array([1]), array([2, 3])),
+         (array([2]), array([1, 3])),
+         (array([1, 2]), array([3]))]
+
+    :param array: The array to partition
+    :type array: ``np.ndarray``
+
+    :returns: A generator that yields a tuple containing each of the two
+        partitions
+    :rtype: ``generator``
+    """
+    for bitstring in [bin(i)[2:].zfill(array.size)[::-1]
+                      for i in range(2 ** (array.size - 1))][1:]:
+        yield (_bitstring_index(array, bitstring),
+               _bitstring_index(array, _flip(bitstring)))
+
+
+# Internal helper methods
+# =======================
+
+
+# TODO extend to nonbinary nodes
+def _hamming_matrix(N):
+    """Return a matrix of Hamming distances for the possible states of
+    :math:`N` binary nodes.
+
+        >>> utils.hamming_matrix(2)
+        array([[ 0.,  1.,  1.,  2.],
+               [ 1.,  0.,  2.,  1.],
+               [ 1.,  2.,  0.,  1.],
+               [ 2.,  1.,  1.,  0.]])
+
+    :param N: The number of nodes under consideration
+    :type N: ``int``
+
+    :returns: A :math:`2^N \\times 2^N` where the
+        :math:`ij^{\\textrm{th}}` element is the Hamming distance between state
+        :math:`i` and state :math:`j`.
+    :rtype: ``np.ndarray``
+    """
+    possible_states = np.array([list(bin(state)[2:].zfill(N)) for state in
+                                range(2 ** N)])
+    return cdist(possible_states, possible_states, 'hamming') * N
+
+
+def _bitstring_index(a, bitstring):
+    """Select elements of an array based on a binary string.
+
+    The :math:`i^{\\textrm{th}}` element in the array is selected if there is a 1 at the
+    :math:`i^{\\textrm{th}}` position of the bitstring.
+
+        >>> array = np.array([0, 1, 2, 3, 4, 5, 6, 7])
+        >>> bitstring = '10010100'
+        >>> utils.bitstring_index(array, bitstring)
+        array([0, 3, 5])
+
+    :param a: The array to select from.
+    :type a: ``np.ndarray``
+    :param bitstring: The binary string indicating which elements are to be
+        selected.
+    :type bitstring: ``str``
+
+    :returns: An array of elements at positions where there is a 1 in the binary string
+    :rtype: ``np.ndarray``
+
+    """
+    # Validation
+    if a.ndim != 1:
+        raise ValueError("Array must be 1-dimensional.")
+    if a.size != len(bitstring):
+        raise ValueError("The bitstring must be the same length as the array.")
+    if not match('^[01]*$', bitstring):
+        raise ValueError("Bitstring must contain only 1s and 0s. Did you " +
+                         "forget to chop off the first two characters after " +
+                         "using `bin`?")
+    return np.array([a[i] for i in range(a.size) if bitstring[i] == '1'])
+
+
+def _flip(bitstring):
+    """Flip the bits in a string consisting of 1s and zeros."""
+    return ''.join('1' if x == '0' else '0' for x in bitstring)
+
+
+# TODO implement this?
 def connectivity_matrix_to_tpm(connectivity_matrix):
     """
     :param connectivity_matrix: The network's connectivity matrix (must be
