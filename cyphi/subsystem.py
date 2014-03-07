@@ -11,7 +11,6 @@ class Subsystem:
     """A set of nodes in a network.
 
     Acts as a candidate set for cause/effect repertoire calculation.
-
     """
 
     def __init__(self, nodes, current_state, past_state, network):
@@ -25,7 +24,6 @@ class Subsystem:
         :type past_state: ``np.ndarray``
         :param network: The network the subsystem is part of
         :type network: ``Network``
-
         """
         self.nodes = nodes
 
@@ -55,7 +53,6 @@ class Subsystem:
         """
         Two subsystems are equal if their sets of nodes, current and past
         states, and networks are equal.
-
         """
         return (set(self.nodes) == set(other.nodes) and self.past_state ==
                 other.past_state and self.current_state == other.past_state and
@@ -80,7 +77,6 @@ class Subsystem:
 
         :returns: The cause repertoire of the mechanism over a purview
         :rtype: ``np.ndarray``
-
         """
         # --------------------------------------------------------
         # NOTE: In the Matlab version's terminology,
@@ -182,7 +178,6 @@ class Subsystem:
 
         :returns: The effect repertoire of the mechanism over a purview
         :rtype: ``np.ndarray``
-
         """
         # ---------------------------------------------------------
         # NOTE: In the Matlab version's terminology,

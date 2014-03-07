@@ -6,7 +6,6 @@ cyphi.models
 ~~~~~~~~~~~~
 
 This module bundles the primary objects that power CyPhi.
-
 """
 
 # TODO Optimizations:

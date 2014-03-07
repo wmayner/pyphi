@@ -27,7 +27,6 @@ class TestSubsystem(WithExampleNetworks):
         "effect_repertoire") :param t: A dictionary containing the parameters
         for the test: candidate_system, mechanism, purview, and answer :type t:
             ``dict``
-
         """
         result = getattr(t['candidate_system'],
                          function)(t['mechanism'], t['purview'])

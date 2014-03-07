@@ -5,10 +5,7 @@
 CyPhi
 =====
 
-
 CyPhi is a Cython library for computing integrated information.
-
-
 """
 
 __title__ = 'cyphi'
