@@ -101,16 +101,12 @@ class TestUtils(WithExampleNetworks):
         assert (utils._flip('011010001') == '100101110')
 
     def test_bipartition(self):
-        b = list(utils.bipartition(np.arange(4)))
-        answer = [(np.array([0]), np.array([1, 2, 3])),
-                  (np.array([1]), np.array([0, 2, 3])),
-                  (np.array([0, 1]), np.array([2, 3])),
-                  (np.array([2]), np.array([0, 1, 3])),
-                  (np.array([0, 2]), np.array([1, 3])),
-                  (np.array([1, 2]), np.array([0, 3])),
-                  (np.array([0, 1, 2]), np.array([3]))]
-        assert all((b[i][0] == answer[i][0]).all() and
-                   (b[i][1] == answer[i][1]).all() for i in range(len(b)))
+        # Test with np.array input
+        a = list(utils.bipartition(np.arange(3)))
+        # Test with list input
+        b = list(utils.bipartition(list(range(3))))
+        answer = [([], [0, 1, 2]), ([0], [1, 2]), ([1], [0, 2]), ([0, 1], [2])]
+        assert a == b == answer
 
     def test_emd_same_distributions(self):
         a = np.ones((2, 2, 2)) / 8
