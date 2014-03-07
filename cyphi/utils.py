@@ -190,11 +190,11 @@ def emd(d1, d2):
 # TODO [optimization] optimize this to use indices rather than nodes?
 # TODO are native lists really slower?
 def bipartition(a):
-    """Generates all nonempty bipartitions for a list or array.
+    """Generates all bipartitions for a list or array.
 
         >>> from cyphi.utils import bipartition
         >>> list(bipartition([1, 2, 3]))
-        [([1], [2, 3]), ([2], [1, 3]), ([1, 2], [3])]
+        [([], [1, 2, 3]), ([1], [2, 3]), ([2], [1, 3]), ([1, 2], [3])]
 
     :param array: The list to partition
     :type array: ``[] or np.ndarray``
@@ -212,7 +212,7 @@ def bipartition(a):
         raise ValueError("Input must be a list or numpy array.")
 
     for bitstring in [bin(i)[2:].zfill(size)[::-1]
-                      for i in range(2 ** (size - 1))][1:]:
+                      for i in range(2 ** (size - 1))]:
         yield (_bitstring_index(a, bitstring),
                _bitstring_index(a, _flip(bitstring)))
 
