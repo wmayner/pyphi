@@ -18,5 +18,4 @@ This module bundles the primary objects that power CyPhi.
 
 from .node import Node
 from .network import Network
-from .mechanism import Mechanism
 from .subsystem import Subsystem
