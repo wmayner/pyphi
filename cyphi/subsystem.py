@@ -43,8 +43,8 @@ class Subsystem:
 
     def __repr__(self):
         return "Subsystem(" + ", ".join([repr(self.nodes),
-                                         repr(self.past_state),
-                                         repr(self.current_state)]) + ")"
+                                         repr(self.current_state),
+                                         repr(self.past_state)]) + ")"
 
     def __str__(self):
         return "Subsystem([" + str(list(map(str, self.nodes))) + "]" + \
@@ -82,7 +82,7 @@ class Subsystem:
         :rtype: ``np.ndarray``
 
         """
-        # -------------------------------------------------------
+        # --------------------------------------------------------
         # NOTE: In the Matlab version's terminology,
         #
         # "Cause repertoire" is "backward repertoire"
@@ -292,14 +292,19 @@ class Subsystem:
         # This is just the effect repertoire in the absence of any mechanism.
         return self.effect_repertoire([], purview)
 
-    def cause_information(self, mechanism, purview):
+    def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
         return utils.emd(self.cause_repertoire(mechanism, purview),
-                         self.unconstrained_cause_repertoire(mechanism,
-                                                             purview))
+                         self.unconstrained_cause_repertoire(purview))
 
-    def effect_information(self, mechanism, purview):
+    def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
         return utils.emd(self.effect_repertoire(mechanism, purview),
-                         self.unconstrained_effect_repertoire(mechanism,
-                                                              purview))
+                         self.unconstrained_effect_repertoire(purview))
+
+    # TODO test
+    def cause_effect_info(self, mechanism, purview):
+        """Return the cause-effect information for a mechanism over a
+        purview."""
+        return min(self.cause_info(mechanism, purview),
+                   self.effect_info(mechanism, purview))
