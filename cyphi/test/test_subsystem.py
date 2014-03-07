@@ -288,3 +288,73 @@ class TestSubsystem(WithExampleNetworks):
         }
         assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
                                                           test_params)
+
+    # Unconstrained cause repertoire tests
+    # =========================================================================
+
+    # Matlab default network
+    # ----------------------
+
+    def test_unconstrained_cause_repertoire_matlab_purview_n0(self):
+        # Purview {n0}
+        assert np.array_equal(
+            self.m_subsys_all.unconstrained_cause_repertoire(
+                self.m_purview_nZero),
+            np.array([[[0.5]], [[0.5]]]))
+
+    def test_unconstrained_cause_repertoire_matlab_purview_n0n1n2(self):
+        # Purview {n0, n1}
+        assert np.array_equal(
+            self.m_subsys_all.unconstrained_cause_repertoire(
+                self.m_network.nodes[0:2]),
+                np.array([[[0.25],
+                           [0.25]],
+                          [[0.25],
+                           [0.25]]]))
+
+    def test_unconstrained_cause_repertoire_matlab_purview_n0n1n2(self):
+        # Purview {n0, n1, n2}
+        assert np.array_equal(
+            self.m_subsys_all.unconstrained_cause_repertoire(
+                self.m_network.nodes),
+            np.array([[[0.125, 0.125],
+                       [0.125, 0.125]],
+                      [[0.125, 0.125],
+                       [0.125, 0.125]]]))
+
+    # TODO test against other matlab examples
+
+    # Unconstrained effect repertoire tests
+    # =========================================================================
+
+    # Matlab default network
+    # ----------------------
+
+    def test_unconstrained_effect_repertoire_matlab_purview_n0(self):
+        # Purview {n0}
+        assert np.array_equal(
+            self.m_subsys_all.unconstrained_effect_repertoire(
+                self.m_purview_nZero),
+            np.array([[[0.25]], [[0.75]]]))
+
+    def test_unconstrained_effect_repertoire_matlab_purview_n0n1n2(self):
+        # Purview {n0, n1}
+        assert np.array_equal(
+            self.m_subsys_all.unconstrained_effect_repertoire(
+                self.m_network.nodes[0:2]),
+                np.array([[[ 0.125],
+                           [ 0.125]],
+                          [[ 0.375],
+                           [ 0.375]]]))
+
+    def test_unconstrained_effect_repertoire_matlab_purview_n0n1n2(self):
+        # Purview {n0, n1, n2}
+        assert np.array_equal(
+            self.m_subsys_all.unconstrained_effect_repertoire(
+                self.m_network.nodes),
+            np.array([[[0.0625, 0.0625],
+                       [0.0625, 0.0625]],
+                      [[0.1875, 0.1875],
+                       [0.1875, 0.1875]]]))
+
+    # TODO test against other matlab examples
