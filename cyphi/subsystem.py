@@ -90,8 +90,7 @@ class Subsystem:
 
         # If the purview is empty, the distribution is empty
         if (len(purview) is 0):
-            # TODO should this really be an empty array?
-            return np.array([])
+            return 1
 
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
@@ -188,6 +187,10 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_denom_node_distribution``
         # ``accumulated_cjd`` is ``denom_conditional_joint``
         # ---------------------------------------------------------
+
+        # If the purview is empty, the distribution is empty
+        if (len(purview) is 0):
+            return 1
 
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
@@ -287,6 +290,8 @@ class Subsystem:
         # This is just the effect repertoire in the absence of any mechanism.
         return self.effect_repertoire([], purview)
 
+    # TODO test everything below here
+
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
         return utils.emd(self.cause_repertoire(mechanism, purview),
@@ -297,9 +302,120 @@ class Subsystem:
         return utils.emd(self.effect_repertoire(mechanism, purview),
                          self.unconstrained_effect_repertoire(purview))
 
-    # TODO test
     def cause_effect_info(self, mechanism, purview):
         """Return the cause-effect information for a mechanism over a
         purview."""
         return min(self.cause_info(mechanism, purview),
                    self.effect_info(mechanism, purview))
+
+    def find_mip(self, direction):
+        """Return the minimum information partition for the past or
+        future.
+
+        Finds the pair of bipartitions of the subsystem that together yeild a
+        cause/effect repertoire that is minimally distant from the cause/effect
+        repertoire of the unpartitioned subsystem, *i.e.*, the maximally
+        irreducible one.
+
+        The MIP is an object with the following structure::
+
+            {'partition': (
+                {'mechanism': list of nodes in the numerator of the first
+                              partition,
+                 'purview': list of nodes in the denominator of the first
+                            partition},
+                {'mechanism': list of nodes in the numerator of the second
+                              partition,
+                 'purview': list of nodes in the denominator of the second
+                            partition}),
+             'repertoire': the partitioned repertoire,
+             'difference': the distance between the unpartitioned and
+                           partitioned repertoires}
+
+        :param direction: Either ``'past'`` or ``'future'``.
+        :type direction: ``str``
+        :returns: The minimum information partition.
+        """
+        # Choose cause or effect repertoire and validate
+        if direction is 'past':
+            get_repertoire = self.cause_repertoire
+        elif direction is 'future':
+            get_repertoire = self.effect_repertoire
+        else:
+            raise ValueError("Direction must be either 'past' or 'future'.")
+
+        unpartitioned_repertoire = get_repertoire(self.nodes, self.nodes)
+        # TODO implement normalization (remove invalid partition combinations)
+        difference_min = float('inf')
+        # TODO better not to build this whole list in memory?
+        bipartitions = list(utils.bipartition(self.nodes))
+        # When looping over possible denominator bipartitions, order
+        # matters, e.g.
+        #   (AB/B) * (C/AC) != (AB/AC) * (C/B)
+        # since we're really looping over numerator/denominator pairs. So,
+        # we also loop over the list of bipartitions with the order
+        # reversed.
+        for denominators in (bipartitions +
+                             list(map(lambda x: x[::-1], bipartitions))):
+            for numerators in bipartitions:
+                # Skip invalid partitions
+                if numerators[0] == [] and denominators[0] == [] or \
+                   numerators[1] == [] and denominators[1] == []:
+                    break
+                # Find the distance between the unpartitioned repertoire and
+                # the product of the repertoires of the two parts, e.g.
+                #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
+                partitioned_repertoire = \
+                    (get_repertoire(numerators[0], denominators[0]) *
+                     get_repertoire(numerators[1], denominators[1]))
+                difference = utils.emd(unpartitioned_repertoire,
+                                       partitioned_repertoire)
+                # Update MIP
+                if difference < difference_min:
+                    difference_min = difference
+                    mip = {
+                        'partition':
+                           ({'mechanism': numerators[0],
+                             'purview': denominators[0]},
+                            {'mechanism': numerators[1],
+                             'purview': denominators[1]}),
+                        'repertoire': partitioned_repertoire,
+                        'difference': difference
+                    }
+        return mip
+
+    def mip_past(self):
+        """Return the minimum information partition for the past.
+
+        For a description of the MIP object that is returned, see
+        :func:`find_mip`.
+        """
+        return self._find_mip('past')
+
+    def mip_future(self):
+        """Return the minimum information partition for the future.
+
+        For a description of the MIP object that is returned, see
+        :func:`find_mip`.
+        """
+        return self._find_mip('future')
+
+    def phi_mip_past(self):
+        """Return the |phi| of the past minimum information partition.
+
+        This is the distance between the unpartitioned cause repertoire and the
+        MIP cause repertoire.
+        """
+        return self.mip_past()['difference']
+
+    def phi_mip_future(self):
+        """Return the |phi| of the future minimum information partition.
+
+        This is the distance between the unpartitioned effect repertoire and
+        the MIP cause repertoire.
+        """
+        return self.mip_future()['difference']
+
+    def phi(self):
+        """Return the integrated information |phi| of this subsystem."""
+        return min(self.phi_mip_past(), self.phi_mip_future())
