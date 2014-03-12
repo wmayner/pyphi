@@ -12,8 +12,8 @@ class Node:
     the probability that this node is on.
 
     For example, in a 3-node network, ``self.tpm[0][1][0]`` gives the
-    probability that this node is on at :math:`t_0` if the state of the network
-    is :math:`\{0,1,0\}` at :math:`t_{-1}`.
+    probability that this node is on at |t_0| if the state of the network
+    is |0,1,0| at |t_{-1}|.
     """
 
     def __init__(self, network, index, label=None):

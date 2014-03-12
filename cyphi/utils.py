@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-cyphi.utils
-~~~~~~~~~~~
-
-This module provides utility functions used within CyPhi that are consumed by
-more than one class.
+"""This module provides utility functions used within CyPhi that are consumed
+by more than one class.
 
 """
 
@@ -24,8 +20,7 @@ def combs(a, r):
     """
     NumPy implementation of itertools.combinations.
 
-    Return successive :math:`r`-length combinations of elements in the array
-    `a`.
+    Return successive |r|-length combinations of elements in the array ``a``.
 
     :param a: the array from which to get combinations
     :type a: ``np.ndarray``
@@ -50,7 +45,7 @@ def comb_indices(n, k):
     """
     N-D version of itertools.combinations.
 
-    Return indices that yeild the :math:`r`-combinations of :math:`n` elements
+    Return indices that yeild the |r|-combinations of |n| elements.
 
         >>> n, k = 3, 2
         >>> data = np.arange(6).reshape(2, 3)
@@ -68,7 +63,7 @@ def comb_indices(n, k):
     :param k: length of combinations
     :type k: ``int``
 
-    :returns: Indices of the :math:`r`-combinations of :math:`n` elements
+    :returns: Indices of the |r|-combinations of |n| elements
     :rtype: ``np.ndarray``
     """
     # Count the number of combinations for preallocation
@@ -167,6 +162,9 @@ def max_entropy_distribution(nodes, network):
 
 # TODO extend to binary noes
 # TODO parametrize and use other metrics? (KDL, L1)?
+# TODO ensure that we really don't need to keep track of the states for the
+#      correct hamming distance... are we really only comparing the same
+#      purviews?
 def emd(d1, d2):
     """Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node).
@@ -223,8 +221,8 @@ def bipartition(a):
 
 # TODO extend to nonbinary nodes
 def _hamming_matrix(N):
-    """Return a matrix of Hamming distances for the possible states of
-    :math:`N` binary nodes.
+    """Return a matrix of Hamming distances for the possible states of |N|
+    binary nodes.
 
         >>> from cyphi.utils import _hamming_matrix
         >>> _hamming_matrix(2)
@@ -236,9 +234,8 @@ def _hamming_matrix(N):
     :param N: The number of nodes under consideration
     :type N: ``int``
 
-    :returns: A :math:`2^N \\times 2^N` where the
-        :math:`ij^{\\textrm{th}}` element is the Hamming distance between state
-        :math:`i` and state :math:`j`.
+    :returns: A |2^N x 2^N| matrix where the |ith| element is the Hamming
+        distance between state |i| and state |j|.
     :rtype: ``np.ndarray``
     """
     possible_states = np.array([list(bin(state)[2:].zfill(N)) for state in
@@ -249,8 +246,8 @@ def _hamming_matrix(N):
 def _bitstring_index(a, bitstring):
     """Select elements of an list or array based on a binary string.
 
-    The :math:`i^{\\textrm{th}}` element in the array is selected if there is a
-    1 at the :math:`i^{\\textrm{th}}` position of the bitstring.
+    The |ith| element in the array is selected if there is a 1 at the |ith|
+    position of the bitstring.
 
         >>> from cyphi.utils import _bitstring_index
         >>> bitstring = '10010100'

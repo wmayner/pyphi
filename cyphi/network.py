@@ -22,9 +22,9 @@ class Network:
 
         :param tpm: The network's transition probability matrix **in
             state-by-node form**, so that ``tpm[0][1][0]`` gives the
-            probabilities of each node being on if the past state is
-            :math:`\{0,1,0\}`. The shape of this TPM should thus be ``(number
-            of states for each node) + (number of nodes)``.
+            probabilities of each node being on if the past state is |0,1,0|.
+            The shape of this TPM should thus be
+            ``(number of states for each node) + (number of nodes)``.
         :type tpm: ``np.ndarray``
         :param state: An array describing the network's current state;
             ``state[i]`` gives the state of ``self.nodes[i]``

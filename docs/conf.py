@@ -102,6 +102,20 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
+# Substitutions for math elements to make docstrings more readable
+rst_prolog = """
+.. |phi| replace:: :math:`\\varphi`
+.. |t_{-1}| replace:: :math:`t_{-1}`
+.. |t_0| replace:: :math:`t_0`
+.. |0,1,0| replace:: :math:`\{0,1,0\}`
+.. |ith| replace:: :math:`i^{\\textrm{th}}`
+.. |r| replace:: :math:`r`
+.. |n| replace:: :math:`n`
+.. |N| replace:: :math:`N`
+.. |2^n x 2^n| replace:: :math:`2^N \\times 2^N`
+.. |i| replace:: :math:`i`
+.. |j| replace:: :math:`j`
+"""
 
 # -- Options for HTML output ----------------------------------------------
 
