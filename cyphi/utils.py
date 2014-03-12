@@ -307,3 +307,23 @@ def connectivity_matrix_to_tpm(connectivity_matrix):
             (connectivity_matrix.shape[0] is not
                 connectivity_matrix.shape[1])):
         raise ValidationException("Connectivity matrix must be square.")
+
+
+def print_repertoire(r):
+    print('\n', '-' * 80)
+    for i in range(r.size):
+        strindex = bin(i)[2:].zfill(r.ndim)
+        index = tuple(map(int, list(strindex)))
+        print('\n', strindex, '\t', r[index])
+    print('\n', '-' * 80, '\n')
+
+
+def print_repertoire_horiz(r):
+    print('\n', '-' * 80, '\n')
+    index_labels = [bin(i)[2:].zfill(r.ndim) for i in range(r.size)]
+    indices = [tuple(map(int, list(s))) for s in index_labels]
+    print('     p:  ', '   '.join('{0:.3f}'.format(r[index]) for index in
+                                  indices))
+    print('\n')
+    print(' state:  ', '    '.join(label for label in index_labels))
+    print('\n', '-' * 80, '\n')
