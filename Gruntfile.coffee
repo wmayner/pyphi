@@ -6,13 +6,14 @@ module.exports = (grunt) ->
 
     shell:
       test:
-        command: "py.test"
+        command: "py.test cyphi -ql --color yes"
         options:
           stdout: true
       buildDocs:
         command: [
           "cd docs"
           "make html"
+          "cp _static/* _build/html/_static"
         ].join "&&"
         options:
           stdout: true
@@ -23,13 +24,14 @@ module.exports = (grunt) ->
     watch:
       docs:
         files: [
-          "<%= cfg.docDir %>/*"
-          "<%= cfg.srcDir %>/*"
           "Gruntfile.coffee"
+          "<%= cfg.srcDir %>/**/*"
+          "<%= cfg.docDir %>/**/*"
+          "!<%= cfg.docDir %>/_build/**/*"
         ]
         tasks: ["shell:buildDocs"]
       test:
-        files: ["<%= cfg.srcDir %>/*", "Gruntfile.coffee"]
+        files: ["<%= cfg.srcDir %>/**/*", "Gruntfile.coffee"]
         tasks: ["shell:test"]
 
   # Load NPM Tasks
