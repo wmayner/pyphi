@@ -3,12 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+=====
 CyPhi
 =====
+Release |version| (:ref:`Installation <install>`)
 
-Release v\ |version| (:ref:`Installation <install>`)
+  CyPhi is a Python module for computing integrated information.
 
-CyPhi is a Python module for computing integrated information.
 
 .. automodule:: cyphi.models
     :members:
@@ -24,11 +25,3 @@ CyPhi is a Python module for computing integrated information.
 
 .. automodule:: cyphi.utils
     :members:
-
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

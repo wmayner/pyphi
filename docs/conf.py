@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+import sphinx_bootstrap_theme
+
 #
 # CyPhi documentation build configuration file, created by
 # sphinx-quickstart on Fri Jan 17 11:15:55 2014.
@@ -20,7 +23,6 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
-import cyphi
 from cyphi import __version__
 
 # -- General configuration ------------------------------------------------
@@ -60,7 +62,7 @@ copyright = '2014, Will Mayner'
 # built documents.
 #
 # The short X.Y version.
-version = __version__
+version = 'v' + __version__
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -104,6 +106,8 @@ pygments_style = 'sphinx'
 
 # Substitutions for math elements to make docstrings more readable
 rst_prolog = """
+.. |big_phi| replace:: :math:`\\Phi`
+.. |phi_max| replace:: :math:`\\varphi^{\\textrm{max}}`
 .. |phi| replace:: :math:`\\varphi`
 .. |t_{-1}| replace:: :math:`t_{-1}`
 .. |t_0| replace:: :math:`t_0`
@@ -121,7 +125,80 @@ rst_prolog = """
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = 'bootstrap'
+html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+# html_theme = 'kr'
+# html_theme_path = ['_themes']
+
+# (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
+# Path should be relative to the ``_static`` files directory.
+html_logo = "phi.png"
+
+# Theme options are theme-specific and customize the look and feel of a
+# theme further.
+html_theme_options = {
+    # Navigation bar title. (Default: ``project`` value)
+
+    # 'navbar_title': "Demo",
+
+    # Tab name for entire site. (Default: "Site")
+
+    # 'navbar_site_name': "CyPhi Documentation",
+
+    # A list of tuples containing pages or urls to link to.
+    # Valid tuples should be in the following forms:
+    #    (name, page)                 # a link to a page
+    #    (name, "/aa/bb", 1)          # a link to an arbitrary relative url
+    #    (name, "http://example.com", True) # arbitrary absolute url
+    # Note the "1" or "True" value above as the third argument to indicate
+    # an arbitrary url.
+
+    # 'navbar_links': [
+    #     ("Examples", "examples"),
+    #     ("Link", "http://example.com", True),
+    # ],
+
+    # Render the next and previous page links in navbar. (Default: true)
+    'navbar_sidebarrel': True,
+
+    # Render the current pages TOC in the navbar. (Default: true)
+    'navbar_pagenav': True,
+
+    # Global TOC depth for "site" navbar tab. (Default: 1)
+    # Switching to -1 shows all levels.
+    'globaltoc_depth': 1,
+
+    # Include hidden TOCs in Site navbar?
+    #
+    # Note: If this is "false", you cannot have mixed ``:hidden:`` and
+    # non-hidden ``toctree`` directives in the same page, or else the build
+    # will break.
+    #
+    # Values: "true" (default) or "false"
+    'globaltoc_includehidden': "true",
+
+    # HTML navbar class (Default: "navbar") to attach to <div> element.
+    # For black navbar, do "navbar navbar-inverse"
+    'navbar_class': "navbar",
+
+    # Fix navigation bar to top of page?
+    # Values: "true" (default) or "false"
+    'navbar_fixed_top': "true",
+
+    # Location of link to source.
+    # Options are "nav" (default), "footer" or anything else to exclude.
+    'source_link_position': "footer",
+
+    # Bootswatch (http://bootswatch.com/) theme.
+    #
+    # Options are nothing with "" (default) or the name of a valid theme
+    # such as "amelia" or "cosmo".
+    'bootswatch_theme': "lumen",
+
+    # Choose Bootstrap version.
+    # Values: "3" (default) or "2" (in quotes)
+    'bootstrap_version': "3",
+}
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -150,7 +227,7 @@ html_theme = 'default'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = '_static'
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

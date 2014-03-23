@@ -12,14 +12,11 @@ class Network:
     """A network of elements.
 
     Represents the network we're analyzing and holds auxilary data about it.
-
     """
 
     # TODO implement network definition via connectivity_matrix
     def __init__(self, tpm, current_state, past_state):
-        """Generate and initialize a set of nodes based on a transition
-        probability matrix.
-
+        """
         :param tpm: The network's transition probability matrix **in
             state-by-node form**, so that ``tpm[0][1][0]`` gives the
             probabilities of each node being on if the past state is |0,1,0|.
@@ -32,7 +29,6 @@ class Network:
         :param past_state: An array describing the network's past state;
             ``state[i]`` gives the past state of ``self.nodes[i]``
         :type state: ``np.ndarray``
-
         """
         # Validate the TPM
         if (tpm.shape[-1] is not len(tpm.shape) - 1):

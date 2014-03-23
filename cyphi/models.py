@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-cyphi.models
-~~~~~~~~~~~~
+Models
+~~~~~~
 
 This module bundles the primary objects that power CyPhi.
 """
