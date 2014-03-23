@@ -17,8 +17,7 @@ class Node:
     """
 
     def __init__(self, network, index, label=None):
-        """Initialize a Node.
-
+        """
         :param network: The network this node belongs to
         :type network: ``Network``
         :param index: The index of this node in the network's list of nodes
@@ -55,7 +54,7 @@ class Node:
         Labels are for display only, so two equal nodes may have different
         labels.
         """
-        return self.network == other.network and self.index == other.index
+        return self.index == other.index and self.network == other.network
 
     def __ne__(self, other):
         return not self.__eq__(other)
