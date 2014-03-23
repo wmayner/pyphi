@@ -10,12 +10,11 @@ class Subsystem:
 
     """A set of nodes in a network.
 
-    Acts as a candidate set for cause/effect repertoire calculation.
+    Represents a candidate set for |phi| calculation.
     """
 
     def __init__(self, nodes, current_state, past_state, network):
-        """Initialize a Subsystem.
-
+        """
         :param nodes: A list of nodes in this subsystem
         :type nodes: ``[Node]``
         :param current_state: The current state of this subsystem
