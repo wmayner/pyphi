@@ -59,8 +59,9 @@ class Subsystem:
     def __eq__(self, other):
         """Two subsystems are equal if their sets of nodes, current and past
         states, and networks are equal."""
-        return (set(self.nodes) == set(other.nodes) and self.past_state ==
-                other.past_state and self.current_state == other.past_state and
+        return (set(self.nodes) == set(other.nodes) and
+                np.array_equal(self.current_state, other.current_state) and
+                np.array_equal(self.past_state, other.past_state) and
                 self.network == other.network)
 
     def __ne__(self, other):
@@ -307,6 +308,7 @@ class Subsystem:
         # This is just the effect repertoire in the absence of any mechanism.
         return self.effect_repertoire([], purview)
 
+    # TODO test
     def full_cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire as a full distribution over the entire
         network's state space.
@@ -317,6 +319,7 @@ class Subsystem:
         non_purview_cr = self.unconstrained_cause_repertoire(non_purview_nodes)
         return self.cause_repertoire(mechanism, purview) * non_purview_cr
 
+    # TODO test
     def full_effect_repertoire(self, mechanism, purview):
         """Return the effect repertoire as a full distribution over the entire
         network's state space.
