@@ -1,18 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""This module provides utility functions used within CyPhi that are consumed
-by more than one class.
+"""
+Utilities
+~~~~~~~~~
 
+This module provides utility functions used within CyPhi that are consumed
+by more than one class.
 """
 
 import numpy as np
 from re import match
+from collections import namedtuple
 from itertools import chain, combinations
 from scipy.misc import comb
 from .exceptions import ValidationException
 from scipy.spatial.distance import cdist
 from pyemd import emd as _emd
+
+
+# Lightweight containers for MIP and parition information
+a_mip = namedtuple('mip', ['partition', 'repertoire', 'difference'])
+a_part = namedtuple('part', ['mechanism', 'purview'])
+a_mice = namedtuple('mice', ['purview', 'phi'])
 
 
 # see http://stackoverflow.com/questions/16003217
@@ -169,17 +179,11 @@ def emd(d1, d2):
     """Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node).
 
-    Singleton dimensions are assumed to mean that probabilities do not
-    depend on the corresponding node's state (so they are broadcast to make
-    a full distribution over the whole state space).
+    Singleton dimensions are sqeezed out.
     """
-    # Expand the distributions to the whole state space, if needed
-    if not (2 ** d1.ndim == sum(d1.shape)):
-        full_d1 = np.ones([2] * d1.ndim)
-        d1 = full_d1 * d1
-    if not (2 ** d2.ndim == sum(d2.shape)):
-        full_d2 = np.ones([2] * d2.ndim)
-        d2 = full_d2 * d2
+    if d1.shape != d2.shape:
+        raise ValueError("Distributions must be the same shape.")
+    d1, d2 = d1.squeeze(), d2.squeeze()
     # Compute the EMD with Hamming distance between states as the
     # transportation cost function
     return _emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
@@ -188,26 +192,27 @@ def emd(d1, d2):
 # TODO [optimization] optimize this to use indices rather than nodes?
 # TODO are native lists really slower?
 def bipartition(a):
-    """Generates all bipartitions for a list or array.
+    """Generates all bipartitions for a sequence or ``np.array``.
 
         >>> from cyphi.utils import bipartition
         >>> list(bipartition([1, 2, 3]))
-        [([], [1, 2, 3]), ([1], [2, 3]), ([2], [1, 3]), ([1, 2], [3])]
+        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
 
     :param array: The list to partition
-    :type array: ``[] or np.ndarray``
+    :type array: ``[], (), or np.ndarray``
 
     :returns: A generator that yields a tuple containing each of the two
-        partitions as numpy arrays
+        partitions (lists of nodes)
     :rtype: ``generator``
     """
     # Get size of list or array and validate
-    if isinstance(a, type([])):
-        size = len(a)
-    elif isinstance(a, type(np.array([]))):
+    if isinstance(a, type(np.array([]))):
         size = a.size
     else:
-        raise ValueError("Input must be a list or numpy array.")
+        size = len(a)
+    # Return on empty input
+    if size <= 0:
+        return
 
     for bitstring in [bin(i)[2:].zfill(size)[::-1]
                       for i in range(2 ** (size - 1))]:
@@ -244,7 +249,7 @@ def _hamming_matrix(N):
 
 
 def _bitstring_index(a, bitstring):
-    """Select elements of an list or array based on a binary string.
+    """Select elements of a sequence or ``np.array`` based on a binary string.
 
     The |ith| element in the array is selected if there is a 1 at the |ith|
     position of the bitstring.
@@ -252,28 +257,26 @@ def _bitstring_index(a, bitstring):
         >>> from cyphi.utils import _bitstring_index
         >>> bitstring = '10010100'
         >>> _bitstring_index([0, 1, 2, 3, 4, 5, 6, 7], bitstring)
-        [0, 3, 5]
+        (0, 3, 5)
 
-    :param a: The list or array to select from.
-    :type a: ``[] or np.ndarray``
+    :param a: The sequence or ``np.array`` to select from.
+    :type a: ``sequence or np.ndarray``
     :param bitstring: The binary string indicating which elements are to be
         selected.
     :type bitstring: ``str``
 
-    :returns: An list of all the elements at indices where there is a 1 in the
+    :returns: A list of all the elements at indices where there is a 1 in the
         binary string
-    :rtype: ``[]``
-
+    :rtype: ``tuple``
     """
-    # Get size of list or array and validate
-    if isinstance(a, type([])):
-        size = len(a)
-    elif isinstance(a, type(np.array([]))):
-        size = a.size
+    # Get size of iterable and validate
+    if isinstance(a, type(np.array([]))):
         if a.ndim != 1:
             raise ValueError("Array must be 1-dimensional.")
+        size = a.size
     else:
-        raise ValueError("Input must be a list or numpy array.")
+        size = len(a)
+
     if size != len(bitstring):
         raise ValueError("The bitstring must be the same length as the array.")
     if not match('^[01]*$', bitstring):
@@ -281,7 +284,7 @@ def _bitstring_index(a, bitstring):
                          "forget to chop off the first two characters after " +
                          "using `bin`?")
 
-    return [a[i] for i in range(size) if bitstring[i] == '1']
+    return tuple(a[i] for i in range(size) if bitstring[i] == '1')
 
 
 def _flip(bitstring):
@@ -306,6 +309,10 @@ def connectivity_matrix_to_tpm(connectivity_matrix):
         raise ValidationException("Connectivity matrix must be square.")
 
 
+# Custom printing methods
+# =======================
+
+
 def print_repertoire(r):
     print('\n', '-' * 80)
     for i in range(r.size):
@@ -316,11 +323,21 @@ def print_repertoire(r):
 
 
 def print_repertoire_horiz(r):
-    print('\n', '-' * 80, '\n')
+    r = np.squeeze(r)
+    colwidth = 11
+    print('\n' + '-' * 70 + '\n')
     index_labels = [bin(i)[2:].zfill(r.ndim) for i in range(r.size)]
     indices = [tuple(map(int, list(s))) for s in index_labels]
-    print('     p:  ', '   '.join('{0:.3f}'.format(r[index]) for index in
-                                  indices))
-    print('\n')
-    print(' state:  ', '    '.join(label for label in index_labels))
-    print('\n', '-' * 80, '\n')
+    print('     p:  ', '|'.join('{0:.3f}'.format(r[index]).center(colwidth) for
+                                index in indices))
+    print('         ', '|'.join(' ' * colwidth for index in indices))
+    print(' state:  ', '|'.join(label.center(colwidth) for label in
+                                index_labels))
+    print('\n' + '-' * 70 + '\n')
+
+
+def print_partition(p):
+    print('\nPart 1: \n\n', p[0].mechanism, '\n-----------------\n',
+          p[0].purview)
+    print('\nPart 2: \n\n', p[1].mechanism, '\n-----------------\n',
+          p[1].purview, '\n')
