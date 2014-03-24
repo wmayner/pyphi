@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-
-"""
-
 import unittest
-
 import numpy as np
 from cyphi.network import Network
 from cyphi.subsystem import Subsystem
@@ -24,13 +19,13 @@ class WithExampleNetworks(unittest.TestCase):
         #######################################################################
         # Diagram:
         #
-        #          +-----+
-        #     +--->|  A  |<---+
-        #     |    |(OR) +--+ |
-        #     |    +-----+  | |
-        #     |             | |
-        #     |             v |
-        #  +--+---+      +---+-+
+        #        +-----+
+        #    +-->|  A  |<-----+
+        #    |   |(OR) +----+ |
+        #    |   +-----+    | |
+        #    |              | |
+        #    |              v |
+        #  +-+----+      +---+-+
         #  |   B  |<-----+  C  |
         #  |(COPY)+----->|(XOR)|
         #  +------+      +-----+
@@ -66,25 +61,18 @@ class WithExampleNetworks(unittest.TestCase):
         self.m_network = Network(self.m_tpm,
                                  self.m_current_state,
                                  self.m_past_state)
-
+        # Shorthand for the nodes
+        self.m0, self.m1, self.m2 = tuple(self.m_network.nodes)
         # Subsystem(['n0'])
-        self.m_subsys_nZero = Subsystem([self.m_network.nodes[0]],
+        self.m_subsys_nZero = Subsystem([self.m0],
                                         self.m_current_state,
                                         self.m_past_state,
                                         self.m_network)
-        # Mechanism {n0}
-        self.m_mechanism_nZero = [self.m_network.nodes[0]]
-        # Purview {n0}
-        self.m_purview_nZero = [self.m_network.nodes[0]]
-        # Subsystem(['n0', 'n1', 'n3'])
+        # Subsystem(['n0', 'n1', 'n2'])
         self.m_subsys_all = Subsystem(self.m_network.nodes,
                                       self.m_current_state,
                                       self.m_past_state,
                                       self.m_network)
-        # Mechanism {n0, n1}
-        self.m_mechanism_nZeroOne = self.m_network.nodes[0:2]
-        # Purview {n0, n1}
-        self.m_purview_nZeroTwo = self.m_network.nodes[0:3:2]
 
         ########################
         # Simple 'AND' network #
@@ -132,18 +120,15 @@ class WithExampleNetworks(unittest.TestCase):
         self.s_network = Network(self.s_tpm,
                                  self.s_state,
                                  self.s_past_state)
-
+        # Shorthand for the nodes
+        self.s0, self.s1, self.s2 = tuple(self.s_network.nodes)
         # Subsystem(['n0', 'n2', 'n3']), 'A' just turned on
         self.s_subsys_all_a_just_on = Subsystem(self.s_network.nodes,
                                                 self.s_state,
                                                 self.s_past_state,
                                                 self.s_network)
-
         # Subsystem(['n0', 'n2', 'n3']), All nodes are off
         self.s_subsys_all_off = Subsystem(self.s_network.nodes,
                                           self.all_off,
                                           self.all_off,
                                           self.s_network)
-
-    def tearDown(self):
-        pass
