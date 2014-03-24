@@ -8,3 +8,5 @@ build
 docs/_build
 **/*.pyc
 cyphi/compute.py
+.coverage
+htmlcov
