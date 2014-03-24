@@ -102,30 +102,18 @@ class Subsystem:
         # ``accumulated_cjd`` is ``numerator_conditional_joint``
         # --------------------------------------------------------
 
-        # If the purview is empty, the distribution is empty
-        if (len(purview) is 0):
-            return 1
-
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
-        # distribution
+        # distribution.
         if (len(mechanism) is 0):
             return utils.max_entropy_distribution(purview, self.network)
-
-        # Preallocate the mechanism's conditional joint distribution
 
         # If the purview is empty, the distribution is empty, so return the
-        # multiplicative identity
+        # multiplicative identity.
         if (len(purview) is 0):
             return 1
 
-        # If the mechanism is empty, nothing is specified about the past state
-        # of the purview, so just return the purview's maximum entropy
-        # distribution
-        if (len(mechanism) is 0):
-            return utils.max_entropy_distribution(purview, self.network)
-
-        # Preallocate the mechanism's conditional joint distribution
+        # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(tuple(2 if node in purview else 1
                                         for node in self.network.nodes))
