@@ -74,10 +74,16 @@ class TestUtils(WithExampleNetworks):
         assert (H == answer).all()
 
     def test_bitstring_index(self):
-        array = np.arange(8)
         bitstring = '11110100'
-        assert np.array_equal(utils._bitstring_index(array, bitstring),
-                              np.array([0, 1, 2, 3, 5]))
+        # Test with an array
+        a = np.arange(8)
+        assert (0, 1, 2, 3, 5) == utils._bitstring_index(a, bitstring)
+        # Test with a list
+        l = list(range(8))
+        assert (0, 1, 2, 3, 5) == utils._bitstring_index(l, bitstring)
+        # Test with a tuple
+        t = tuple(range(8))
+        assert (0, 1, 2, 3, 5) == utils._bitstring_index(t, bitstring)
 
     def test_bitstring_index_wrong_shape(self):
         array = np.arange(8).reshape(2, 4)
@@ -105,8 +111,14 @@ class TestUtils(WithExampleNetworks):
         a = list(utils.bipartition(np.arange(3)))
         # Test with list input
         b = list(utils.bipartition(list(range(3))))
-        answer = [([], [0, 1, 2]), ([0], [1, 2]), ([1], [0, 2]), ([0, 1], [2])]
-        assert a == b == answer
+        # Test with tuple input
+        c = list(utils.bipartition(tuple(range(3))))
+        print(a, b, c, sep='\n')
+        answer = [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
+        print(answer)
+        assert a == b == c == answer
+        # Test with empty input
+        assert [] == list(utils.bipartition([]))
 
     def test_emd_same_distributions(self):
         a = np.ones((2, 2, 2)) / 8
@@ -116,7 +128,8 @@ class TestUtils(WithExampleNetworks):
     def test_emd_different_shapes(self):
         a = np.ones((2, 1, 2)) / 4
         b = np.ones((2, 2, 2)) / 8
-        assert utils.emd(a, b) == 3.0
+        with self.assertRaises(ValueError):
+            assert utils.emd(a, b)
 
     def test_emd_mismatched_size(self):
         a = np.ones((2, 2, 2, 2)) / 16
