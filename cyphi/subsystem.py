@@ -24,18 +24,22 @@ class Subsystem:
         :param network: The network the subsystem is part of
         :type network: ``Network``
         """
-        self.nodes = nodes
+        # Public attributes
+        # =====================================================================
+        # This nodes in this subsystem.
+        self.nodes = tuple(nodes)
 
         self.current_state = current_state
         self.past_state = past_state
-        # Make the state and past state immutable (for hashing)
+        # Make the state and past state immutable (for hashing).
         self.current_state.flags.writeable = False
         self.past_state.flags.writeable = False
 
+        # The network this subsystem belongs to.
         self.network = network
-
+        # The way this system is cut into two parts for phi calculation.
         # Nodes outside the subsystem will be treated as fixed boundary
-        # conditions in cause/effect repertoire calculations
+        # conditions in cause/effect repertoire calculations.
         self.external_nodes = set(network.nodes) - set(nodes)
 
     def __repr__(self):
@@ -49,10 +53,8 @@ class Subsystem:
             ", " + str(self.network) + ")"
 
     def __eq__(self, other):
-        """
-        Two subsystems are equal if their sets of nodes, current and past
-        states, and networks are equal.
-        """
+        """Two subsystems are equal if their sets of nodes, current and past
+        states, and networks are equal."""
         return (set(self.nodes) == set(other.nodes) and self.past_state ==
                 other.past_state and self.current_state == other.past_state and
                 self.network == other.network)
@@ -88,6 +90,19 @@ class Subsystem:
         # --------------------------------------------------------
 
         # If the purview is empty, the distribution is empty
+        if (len(purview) is 0):
+            return 1
+
+        # If the mechanism is empty, nothing is specified about the past state
+        # of the purview, so just return the purview's maximum entropy
+        # distribution
+        if (len(mechanism) is 0):
+            return utils.max_entropy_distribution(purview, self.network)
+
+        # Preallocate the mechanism's conditional joint distribution
+
+        # If the purview is empty, the distribution is empty, so return the
+        # multiplicative identity
         if (len(purview) is 0):
             return 1
 
@@ -252,6 +267,8 @@ class Subsystem:
 
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
+        # TODO !!! are the external nodes really the ones outside this
+        # subsystem?
         conditioning_indices = [[slice(None)]] * self.network.size
         for node in set(past_nodes) | set(self.external_nodes):
             # Preserve singleton dimensions with `np.newaxis`
@@ -289,7 +306,26 @@ class Subsystem:
         # This is just the effect repertoire in the absence of any mechanism.
         return self.effect_repertoire([], purview)
 
-    # TODO test everything below here
+    def full_cause_repertoire(self, mechanism, purview):
+        """Return the cause repertoire as a full distribution over the entire
+        network's state space.
+
+        This is the product of the cause repertoire over the purview and the
+        unconstrained cause repertoire over the non-purview nodes."""
+        non_purview_nodes = set(self.network.nodes) - set(purview)
+        non_purview_cr = self.unconstrained_cause_repertoire(non_purview_nodes)
+        return self.cause_repertoire(mechanism, purview) * non_purview_cr
+
+    def full_effect_repertoire(self, mechanism, purview):
+        """Return the effect repertoire as a full distribution over the entire
+        network's state space.
+
+        This is the product of the effect repertoire over the purview and the
+        unconstrained effect repertoire over the non-purview nodes."""
+        non_purview_nodes = set(self.network.nodes) - set(purview)
+        non_purview_er = self.unconstrained_effect_repertoire(
+            non_purview_nodes)
+        return self.effect_repertoire(mechanism, purview) * non_purview_er
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
@@ -307,32 +343,54 @@ class Subsystem:
         return min(self.cause_info(mechanism, purview),
                    self.effect_info(mechanism, purview))
 
-    def find_mip(self, direction):
-        """Return the minimum information partition for the past or
-        future.
+    # MIP methods
+    # =========================================================================
+    # TODO test everything below here
 
-        Finds the pair of bipartitions of the subsystem that together yeild a
-        cause/effect repertoire that is minimally distant from the cause/effect
-        repertoire of the unpartitioned subsystem, *i.e.*, the maximally
-        irreducible one.
+    # TODO something clever here so we don't do the full iteration?
+    @staticmethod
+    def mip_bipartition(mechanism, purview):
+        a_part = utils.a_part
+        # TODO better not to build this whole list in memory?
+        purview_bipartitions = list(utils.bipartition(purview))
+        for denominators in (purview_bipartitions +
+                             list(map(lambda x: x[::-1],
+                                      purview_bipartitions))):
+            for numerators in utils.bipartition(mechanism):
+                # For the MIP, we only consider the bipartitions in which each
+                # node appears exactly once, e.g. for AB/ABC, (A/B) * (C/[]) is
+                # valid but (AB/BC) * ([]/A) is not (since B appears in both
+                # numerator and denominator), and exclude partitions whose
+                # numerator and denominator are both empty.
+                valid_partition = (
+                    set(numerators[0]) & set(denominators[0]) == set() and
+                    set(numerators[1]) & set(denominators[1]) == set() and
+                    len(numerators[0]) + len(denominators[0]) > 0 and
+                    len(numerators[1]) + len(denominators[1]) > 0)
+                if valid_partition:
+                    part0 = a_part(mechanism=numerators[0],
+                                   purview=denominators[0])
+                    part1 = a_part(mechanism=numerators[1],
+                                   purview=denominators[1])
+                    yield (part0, part1)
+        return
 
-        The MIP is an object with the following structure::
+    def find_mip(self, direction, mechanism, purview):
+        """Return the minimum information partition for the past or future.
+        Where the ``partition`` attribute is a pair of objects, each with the
+        following attributes:
 
-            {'partition': (
-                {'mechanism': list of nodes in the numerator of the first
-                              partition,
-                 'purview': list of nodes in the denominator of the first
-                            partition},
-                {'mechanism': list of nodes in the numerator of the second
-                              partition,
-                 'purview': list of nodes in the denominator of the second
-                            partition}),
-             'repertoire': the partitioned repertoire,
-             'difference': the distance between the unpartitioned and
-                           partitioned repertoires}
+        * ``mechanism``: list of nodes in the numerator of this part of the
+            bipartition
+        * ``purview``: list of nodes in the denominator of this part of the
+            bipartition
 
         :param direction: Either ``'past'`` or ``'future'``.
         :type direction: ``str``
+        :param mechanism: A list of nodes in the mechanism
+        :type mechanism: ``[Node]``
+        :param purview: A list of nodes in the purview
+        :type mechanism: ``[Node]``
         :returns: The minimum information partition.
         """
         # Choose cause or effect repertoire and validate
@@ -343,78 +401,137 @@ class Subsystem:
         else:
             raise ValueError("Direction must be either 'past' or 'future'.")
 
-        unpartitioned_repertoire = get_repertoire(self.nodes, self.nodes)
-        # TODO implement normalization (remove invalid partition combinations)
+        # The threshold below which we consider phi to be zero
+        EPSILON = 10**-10
+        # TODO change ``difference`` to ``phi``?
+        # Use named tuples to hold the MIP information
+        a_mip = utils.a_mip
+        mip = None
+        # Calculate the unpartitioned repertoire to compare against the
+        # partitioned ones
+        unpartitioned_repertoire = get_repertoire(mechanism, purview)
         difference_min = float('inf')
-        # TODO better not to build this whole list in memory?
-        bipartitions = list(utils.bipartition(self.nodes))
-        # When looping over possible denominator bipartitions, order
-        # matters, e.g.
-        #   (AB/B) * (C/AC) != (AB/AC) * (C/B)
-        # since we're really looping over numerator/denominator pairs. So,
-        # we also loop over the list of bipartitions with the order
-        # reversed.
-        for denominators in (bipartitions +
-                             list(map(lambda x: x[::-1], bipartitions))):
-            for numerators in bipartitions:
-                # Skip invalid partitions
-                if numerators[0] == [] and denominators[0] == [] or \
-                   numerators[1] == [] and denominators[1] == []:
-                    break
-                # Find the distance between the unpartitioned repertoire and
-                # the product of the repertoires of the two parts, e.g.
-                #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
-                partitioned_repertoire = \
-                    (get_repertoire(numerators[0], denominators[0]) *
-                     get_repertoire(numerators[1], denominators[1]))
-                difference = utils.emd(unpartitioned_repertoire,
-                                       partitioned_repertoire)
-                # Update MIP
-                if difference < difference_min:
-                    difference_min = difference
-                    mip = {
-                        'partition':
-                           ({'mechanism': numerators[0],
-                             'purview': denominators[0]},
-                            {'mechanism': numerators[1],
-                             'purview': denominators[1]}),
-                        'repertoire': partitioned_repertoire,
-                        'difference': difference
-                    }
+
+        # Loop over possible MIP bipartitions
+        for part0, part1 in self.mip_bipartition(mechanism, purview):
+            # Find the distance between the unpartitioned repertoire and
+            # the product of the repertoires of the two parts, e.g.
+            #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
+            partitioned_repertoire = (get_repertoire(part0.mechanism,
+                                                     part0.purview) *
+                                      get_repertoire(part1.mechanism,
+                                                     part1.purview))
+            difference = utils.emd(unpartitioned_repertoire,
+                                   partitioned_repertoire)
+
+            print('\n')
+            print('one iteration of mip_bipartition'.center(80,'~'))
+            print('\nUnpartitioned repertoire:', unpartitioned_repertoire)
+            print('\nPartitioned repertoire:', partitioned_repertoire)
+            print('\npart0:', part0.mechanism, '/', part0.purview)
+            print('part1:', part1.mechanism, '/', part1.purview)
+            print('\nphi:',difference)
+            print(''.center(80,'-'))
+
+            # Return immediately if mechanism is reducible
+            if difference < EPSILON:
+                return None
+            # Update MIP if it's more minimal or if mechanism is reducible
+            # (i.e., phi is 0)
+            if (difference < difference_min):
+                difference_min = difference
+                mip = a_mip(partition=(part0, part1),
+                            repertoire=partitioned_repertoire,
+                            difference=difference)
         return mip
 
-    def mip_past(self):
-        """Return the minimum information partition for the past.
+    def mip_past(self, mechanism, purview):
+        """Return the past minimum information partition.
 
         For a description of the MIP object that is returned, see
         :func:`find_mip`.
         """
-        return self._find_mip('past')
+        return self.find_mip('past', mechanism, purview)
 
-    def mip_future(self):
-        """Return the minimum information partition for the future.
+    def mip_future(self, mechanism, purview):
+        """Return the future minimum information partition.
 
         For a description of the MIP object that is returned, see
         :func:`find_mip`.
         """
-        return self._find_mip('future')
+        return self.find_mip('future', mechanism, purview)
 
-    def phi_mip_past(self):
-        """Return the |phi| of the past minimum information partition.
+    def phi_mip_past(self, mechanism, purview):
+        """Return the |phi| value of the past minimum information partition.
 
         This is the distance between the unpartitioned cause repertoire and the
         MIP cause repertoire.
         """
-        return self.mip_past()['difference']
+        return self.mip_past(mechanism, purview).difference
 
-    def phi_mip_future(self):
-        """Return the |phi| of the future minimum information partition.
+    def phi_mip_future(self, mechanism, purview):
+        """Return the |phi| value of the future minimum information partition.
 
         This is the distance between the unpartitioned effect repertoire and
         the MIP cause repertoire.
         """
-        return self.mip_future()['difference']
+        return self.mip_future(mechanism, purview).difference
 
-    def phi(self):
-        """Return the integrated information |phi| of this subsystem."""
-        return min(self.phi_mip_past(), self.phi_mip_future())
+    def phi(self, mechanism, purview):
+        """Return the integrated information, "small |phi|"."""
+        return min(self.phi_mip_past(mechanism, purview),
+                   self.phi_mip_future(mechanism, purview))
+
+    # Phi_max methods
+    # =========================================================================
+
+    def find_mice(self, direction, mechanism):
+        """Return the maximally irreducible cause or effect for a mechanism.
+
+        .. note:: Strictly speaking, the MICE is a pair of repertoires: the
+            core cause repertoire and core effect repertoire of a mechanism,
+            which are maximally different than the unconstrained cause/effect
+            repertoires (*i.e.*, those that maximize |phi|). Here, we return
+            the purview over which the core cause or effect repertoire is
+            taken rather than the repertoire itself.
+
+        :returns: An object with attributes ``purview`` and ``phi``, containing
+            the core cause or effect purview and the |phi| value, respectively.
+        """
+        # Choose past or future MIP and validate
+        if direction is 'past':
+            find_mip = self.mip_past
+        elif direction is 'future':
+            find_mip = self.mip_future
+        else:
+            raise ValueError("Direction must be either 'past' or 'future'.")
+
+        mice = utils.a_mice
+        phi_max = float('-inf')
+        maximal_purview = None
+        # Loop over all possible purviews in this candidate set and find the
+        # purview over which phi is maximal.
+        for purview in utils.powerset(self.nodes):
+            mip = find_mip(mechanism, purview)
+            if mip:
+                phi = mip.difference
+                # Take the purview with higher phi, or if phi is equal, take the
+                # larger one
+                if phi > phi_max or (phi == phi_max and
+                                    len(purview) > len(maximal_purview)):
+                    phi_max = phi
+                    maximal_purview = purview
+        return mice(purview=maximal_purview, phi=phi_max)
+
+    def core_cause(self, mechanism):
+        """Returns the core cause repertoire of a mechanism."""
+        return self.find_mice('past', mechanism)
+
+    def core_effect(self, mechanism):
+        """Returns the core effect repertoire of a mechanism."""
+        return self.find_mice('future', mechanism)
+
+    def phi_max(self, mechanism):
+        """Return the |phi_max| of a mechanism."""
+        return min(self.core_cause(mechanism).phi,
+                   self.core_effect(mechanism).phi)
