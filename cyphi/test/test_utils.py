@@ -44,6 +44,11 @@ class TestUtils(WithExampleNetworks):
                         [0, 2],
                         [1, 2]]))
 
+    def test_combs_r_is_0(self):
+        n, k = 3, 0
+        data = np.arange(n)
+        assert np.array_equal(utils.combs(data, k), np.asarray([]))
+
     def test_comb_indices(self):
         n, k = 3, 2
         data = np.arange(6).reshape(2, 3)

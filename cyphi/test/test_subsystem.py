@@ -20,6 +20,24 @@ class TestSubsystem(WithExampleNetworks):
                            self.m_network)
         assert subsys.nodes == ()
 
+    def test_eq(self):
+        a = Subsystem([self.m0, self.m1],
+                      self.m_network.current_state,
+                      self.m_network.past_state,
+                      self.m_network)
+        b = Subsystem([self.m0, self.m1],
+                      self.m_network.current_state,
+                      self.m_network.past_state,
+                      self.m_network)
+        assert a == b
+
+    def test_hash(self):
+        subsys = Subsystem([self.m0, self.m1],
+                           self.m_network.current_state,
+                           self.m_network.past_state,
+                           self.m_network)
+        h = hash(subsys)
+
     # Cause/effect repertoire test helper
     # =========================================================================
 
@@ -448,6 +466,12 @@ class TestSubsystem(WithExampleNetworks):
     # Phi tests
     # =========================================================================
 
+    def test_find_mip_bad_direction(self):
+        mechanism = [self.m0]
+        purview = [self.m0]
+        with self.assertRaises(ValueError):
+            self.m_subsys_all.find_mip('doge', mechanism, purview)
+
     def test_find_mip_reducible(self):
         mechanism = [self.m0]
         purview = [self.m0]
@@ -623,6 +647,11 @@ class TestSubsystem(WithExampleNetworks):
 
     # Phi_max tests
     # =========================================================================
+
+    def test_find_mice_bad_direction(self):
+        mechanism = [self.m0]
+        with self.assertRaises(ValueError):
+            self.m_subsys_all.find_mice('doge', mechanism)
 
     # TODO finish
     def test_find_mice(self):

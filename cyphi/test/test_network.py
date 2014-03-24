@@ -50,10 +50,3 @@ class TestNetwork(unittest.TestCase):
         assert np.array_equal(self.tpm, self.network.tpm)
         assert self.size == self.network.size
         assert self.nodes == self.network.nodes
-
-
-def _generator_equal(generator_1, generator_2):
-    sentinel = object()
-    return all(a == b for a, b in zip_longest(generator_1,
-                                              generator_2,
-                                              fillvalue=sentinel))
