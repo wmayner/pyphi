@@ -18,7 +18,6 @@ class TestNetwork(unittest.TestCase):
         self.current_state = np.array([0., 1., 0.])
         self.past_state = np.array([1, 1, 0])
         self.tpm = np.zeros([2] * self.size + [self.size]).astype(float)
-        self.powerset = utils.powerset(np.arange(3))
         self.network = Network(self.tpm,
                                self.current_state,
                                self.past_state)
@@ -44,7 +43,6 @@ class TestNetwork(unittest.TestCase):
     def test_network_init(self):
         assert np.array_equal(self.tpm, self.network.tpm)
         assert self.size == self.network.size
-        assert _generator_equal(self.powerset, self.network.powerset)
         assert self.nodes == self.network.nodes
 
 

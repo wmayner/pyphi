@@ -60,8 +60,6 @@ class Network:
                 "network; this state has " + str(current_state.size) +
                 "entries, " + "but there are " + str(self.size) + " nodes.")
 
-        # Generate the the powerset of the node indices
-        self.powerset = utils.powerset(np.arange(self.size))
         # Generate the nodes
         self.nodes = [Node(self, node_index)
                       for node_index in range(self.size)]
