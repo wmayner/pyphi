@@ -42,6 +42,10 @@ class Subsystem:
         # conditions in cause/effect repertoire calculations.
         self.external_nodes = set(network.nodes) - set(nodes)
 
+        # Private attributes
+        # =====================================================================
+        self._cut = None
+
     def __repr__(self):
         return "Subsystem(" + ", ".join([repr(self.nodes),
                                          repr(self.current_state),
@@ -65,6 +69,15 @@ class Subsystem:
     def __hash__(self):
         return hash((frozenset(self.nodes), self.current_state.tostring(),
                      self.past_state.tostring(), self.network))
+
+    def cut(self, partition):
+        """Cuts the subsystem into two parts."""
+        if len(partition) is not 2:
+            raise ValueError("There must be exactly two parts in the partition.")
+        if not (len(self.nodes) == len(partition[0] + partition[1]) and
+                set(self.nodes) == set(partition[0] + partition[1])):
+            raise ValueError("Each node must appear exactly once in the partition.")
+        self._cut = partition
 
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of this mechanism over a purview.
