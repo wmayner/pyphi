@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from . import utils
-from .exceptions import ValidationException
+from .utils import uniform_distribution
 from .node import Node
 
 
@@ -32,13 +31,13 @@ class Network:
         """
         # Validate the TPM
         if (tpm.shape[-1] is not len(tpm.shape) - 1):
-            raise ValidationException(
+            raise ValueError(
                 """Invalid TPM: There must be a dimension for each node, each
                 one being the size of the corresponding node's state space,
                 plus one dimension that is the same size as the network.""")
         # TODO extend to nonbinary nodes
         if (tpm.shape[:-1] != tuple([2] * tpm.shape[-1])):
-            raise ValidationException(
+            raise ValueError(
                 """Invalid TPM: We can only handle binary nodes at the moment.
                 Each dimension except the last must be of size 2.""")
 
@@ -54,10 +53,13 @@ class Network:
         self.size = tpm.shape[-1]
 
         # Validate the state
-        if (current_state.size is not self.size):
-            raise ValidationException(
-                "Invalid state: there must be one entry per node in the " +
-                "network; this state has " + str(current_state.size) +
+        if (
+            current_state.size is not self.size or
+            past_state.size is not self.size
+        ):
+            raise ValueError(
+                "Invalid state: there must be one entry per node in " +
+                "the network; this state has " + str(current_state.size) +
                 "entries, " + "but there are " + str(self.size) + " nodes.")
 
         # Generate the nodes
@@ -65,7 +67,7 @@ class Network:
                       for node_index in range(self.size)]
         # TODO extend to nonbinary nodes
         self.num_states = 2 ** self.size
-        self.uniform_distribution = utils.uniform_distribution(self.size)
+        self.uniform_distribution = uniform_distribution(self.size)
 
     def __repr__(self):
         return "Network(" + repr(self.tpm) + ")"

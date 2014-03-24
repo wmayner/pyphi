@@ -5,10 +5,8 @@ import unittest
 from itertools import zip_longest
 
 import numpy as np
-import cyphi.utils as utils
 from cyphi.network import Network
 from cyphi.node import Node
-from cyphi.exceptions import ValidationException
 
 
 class TestNetwork(unittest.TestCase):
@@ -27,16 +25,24 @@ class TestNetwork(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_network_tpm_validation(self):
-        with self.assertRaises(ValidationException):
+    def test_network_init_validation(self):
+        with self.assertRaises(ValueError):
+            # Totally wrong shape
             tpm = np.arange(3).astype(float)
             state = np.array([0, 1, 0])
             past_state = np.array([1, 1, 0])
             Network(tpm, state, past_state)
-        with self.assertRaises(ValidationException):
-            tpm = np.array([[1, 2, 3]]).astype(float)
+        with self.assertRaises(ValueError):
+            # Non-binary nodes (4 states)
+            tpm = np.ones((4, 4, 4, 3)).astype(float)
             state = np.array([0, 1, 0])
             Network(tpm, state, past_state)
+        with self.assertRaises(ValueError):
+            state = np.array([0, 1])
+            Network(self.tpm, state, self.past_state)
+        with self.assertRaises(ValueError):
+            state = np.array([0, 1])
+            Network(self.tpm, self.current_state, state)
         # TODO test state validation (are current and past states congruent to
         # TPM?)
 

@@ -14,7 +14,6 @@ from re import match
 from collections import namedtuple
 from itertools import chain, combinations
 from scipy.misc import comb
-from .exceptions import ValidationException
 from scipy.spatial.distance import cdist
 from pyemd import emd as _emd
 
@@ -306,7 +305,7 @@ def connectivity_matrix_to_tpm(connectivity_matrix):
     if ((len(connectivity_matrix.shape) is not 2) or
             (connectivity_matrix.shape[0] is not
                 connectivity_matrix.shape[1])):
-        raise ValidationException("Connectivity matrix must be square.")
+        raise ValueError("Connectivity matrix must be square.")
 
 
 # Custom printing methods
