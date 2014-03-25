@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from . import utils
 from itertools import chain
+from collections import namedtuple
+from .utils import (marginalize_out, emd, max_entropy_distribution, powerset,
+                    bipartition, a_part, a_mice, a_mip)
 
 
 class Subsystem:
@@ -107,8 +109,7 @@ class Subsystem:
         # of the purview, so just return the purview's maximum entropy
         # distribution.
         if (len(mechanism) is 0):
-            return utils.max_entropy_distribution(purview, self.network)
-
+            return max_entropy_distribution(purview, self.network)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if (len(purview) is 0):
@@ -257,7 +258,7 @@ class Subsystem:
             for non_past_input in set(self.nodes) - set(past_nodes):
                                    # TODO add this when inputs are implemented:
                                    # and node in self.input_nodes):
-                tpm = utils.marginalize_out(non_past_input, tpm)
+                tpm = marginalize_out(non_past_input, tpm)
 
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution by taking the product (with singleton
@@ -333,13 +334,13 @@ class Subsystem:
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
-        return utils.emd(self.cause_repertoire(mechanism, purview),
-                         self.unconstrained_cause_repertoire(purview))
+        return emd(self.cause_repertoire(mechanism, purview),
+                   self.unconstrained_cause_repertoire(purview))
 
     def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
-        return utils.emd(self.effect_repertoire(mechanism, purview),
-                         self.unconstrained_effect_repertoire(purview))
+        return emd(self.effect_repertoire(mechanism, purview),
+                   self.unconstrained_effect_repertoire(purview))
 
     def cause_effect_info(self, mechanism, purview):
         """Return the cause-effect information for a mechanism over a
@@ -354,13 +355,12 @@ class Subsystem:
     # TODO something clever here so we don't do the full iteration?
     @staticmethod
     def mip_bipartition(mechanism, purview):
-        a_part = utils.a_part
         # TODO better not to build this whole list in memory?
-        purview_bipartitions = list(utils.bipartition(purview))
+        purview_bipartitions = list(bipartition(purview))
         for denominators in (purview_bipartitions +
                              list(map(lambda x: x[::-1],
                                       purview_bipartitions))):
-            for numerators in utils.bipartition(mechanism):
+            for numerators in bipartition(mechanism):
                 # For the MIP, we only consider the bipartitions in which each
                 # node appears exactly once, e.g. for AB/ABC, (A/B) * (C/[]) is
                 # valid but (AB/BC) * ([]/A) is not (since B appears in both
@@ -409,7 +409,6 @@ class Subsystem:
         EPSILON = 10**-10
         # TODO change ``difference`` to ``phi``?
         # Use named tuples to hold the MIP information
-        a_mip = utils.a_mip
         mip = None
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones
@@ -425,8 +424,7 @@ class Subsystem:
                                                      part0.purview) *
                                       get_repertoire(part1.mechanism,
                                                      part1.purview))
-            difference = utils.emd(unpartitioned_repertoire,
-                                   partitioned_repertoire)
+            difference = emd(unpartitioned_repertoire, partitioned_repertoire)
 
             print('\n')
             print('one iteration of mip_bipartition'.center(80,'~'))
@@ -510,12 +508,12 @@ class Subsystem:
         else:
             raise ValueError("Direction must be either 'past' or 'future'.")
 
-        mice = utils.a_mice
+        mice = a_mice
         phi_max = float('-inf')
         maximal_purview = None
         # Loop over all possible purviews in this candidate set and find the
         # purview over which phi is maximal.
-        for purview in utils.powerset(self.nodes):
+        for purview in powerset(self.nodes):
             mip = find_mip(mechanism, purview)
             if mip:
                 phi = mip.difference
