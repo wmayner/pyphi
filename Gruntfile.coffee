@@ -6,7 +6,7 @@ module.exports = (grunt) ->
 
     shell:
       test:
-        command: "py.test cyphi -ql --color yes"
+        command: "py.test -ql --color yes"
         options:
           stdout: true
       buildDocs:
@@ -25,13 +25,21 @@ module.exports = (grunt) ->
       docs:
         files: [
           "Gruntfile.coffee"
+          "**/*.rst"
           "<%= cfg.srcDir %>/**/*"
           "<%= cfg.docDir %>/**/*"
-          "!<%= cfg.docDir %>/_build/**/*"
+          "!<%= cfg.docDir %>/_*/**/*"
         ]
         tasks: ["shell:buildDocs"]
       test:
-        files: ["<%= cfg.srcDir %>/**/*", "Gruntfile.coffee"]
+        files: [
+          "conftest.py"
+          ".coveragerc"
+          "pytest.ini"
+          ".pythonrc.py"
+          "<%= cfg.srcDir %>/**/*"
+          "Gruntfile.coffee"
+        ]
         tasks: ["shell:test"]
 
   # Load NPM Tasks
