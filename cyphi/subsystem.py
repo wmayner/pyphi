@@ -46,7 +46,11 @@ class Subsystem:
 
         # Private attributes
         # =====================================================================
-        self._cut = None
+        # Connections from the 'severed' set to the 'intact' set are severed,
+        # while those from 'intact' to 'severed' are left intact
+        a_cut = namedtuple('cut', ['severed', 'intact'])
+        # Initialize the cut so that no connections are severed
+        self._cut = a_cut((), self.nodes)
 
     def __repr__(self):
         return "Subsystem(" + ", ".join([repr(self.nodes),
@@ -74,7 +78,7 @@ class Subsystem:
                      self.past_state.tostring(), self.network))
 
     def cut(self, partition):
-        """Cuts the subsystem into two parts."""
+        """Cuts connections from the first part to the second part."""
         if len(partition) is not 2:
             raise ValueError("There must be exactly two parts in the partition.")
         if not (len(self.nodes) == len(partition[0] + partition[1]) and
