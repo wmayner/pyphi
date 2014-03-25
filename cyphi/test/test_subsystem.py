@@ -14,29 +14,38 @@ class TestSubsystem(WithExampleNetworks):
 
     def test_empty_init(self):
         # Empty mechanism
-        subsys = Subsystem([],
-                           self.m_network.current_state,
-                           self.m_network.past_state,
-                           self.m_network)
-        assert subsys.nodes == ()
+        s = Subsystem([],
+                      self.m_network.current_state,
+                      self.m_network.past_state,
+                      self.m_network)
+        assert s.nodes == ()
 
     def test_eq(self):
-        a = Subsystem([self.m0, self.m1],
-                      self.m_network.current_state,
-                      self.m_network.past_state,
-                      self.m_network)
-        b = Subsystem([self.m0, self.m1],
-                      self.m_network.current_state,
-                      self.m_network.past_state,
-                      self.m_network)
+        a = self.m_subsys_n0n2
+        b = self.m_subsys_n0n2
         assert a == b
 
     def test_hash(self):
-        subsys = Subsystem([self.m0, self.m1],
-                           self.m_network.current_state,
-                           self.m_network.past_state,
-                           self.m_network)
-        h = hash(subsys)
+        print(hash(self.m_subsys_all))
+
+    def test_cut_bad_input(self):
+        s = self.m_subsys_all
+        with self.assertRaises(ValueError):
+            s.cut((),())
+        with self.assertRaises(ValueError):
+            s.cut(self.m0, self.m1)
+        with self.assertRaises(ValueError):
+            s.cut(self.m0,(self.m1, self.m1))
+
+    def test_cut_single_node(self):
+        s = self.m_subsys_all
+        s.cut(self.m0, (self.m1, self.m2))
+        assert s._cut == a_cut((self.m0,), (self.m1, self.m2))
+
+    def test_cut(self):
+        s = self.m_subsys_all
+        s.cut((self.m0,), (self.m1, self.m2))
+        assert s._cut == a_cut((self.m0,), (self.m1, self.m2))
 
     # Cause/effect repertoire test helper
     # =========================================================================
@@ -56,7 +65,7 @@ class TestSubsystem(WithExampleNetworks):
         print("Mechanism:", t['mechanism'], "Purview:", t['purview'], "",
               sep="\n\n")
 
-        if result is 1:
+        if result is 1 or t['answer'] is 1:
             print("Result:", result, "Answer:", t['answer'], "", sep="\n\n")
         else:
             print("Result:", result, "Shape:", result.shape, "Answer:",
