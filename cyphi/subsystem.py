@@ -88,15 +88,20 @@ class Subsystem:
         return hash((frozenset(self.nodes), self.current_state.tostring(),
                      self.past_state.tostring(), self.network))
 
-    # TODO test
-    def cut(self, partition):
+    def cut(self, severed, intact):
         """Cuts connections from the first part to the second part."""
-        if len(partition) is not 2:
-            raise ValueError("There must be exactly two parts in the partition.")
-        if not (len(self.nodes) == len(partition[0] + partition[1]) and
-                set(self.nodes) == set(partition[0] + partition[1])):
-            raise ValueError("Each node must appear exactly once in the partition.")
-        self._cut = partition
+        # Convert single nodes to singleton tuples
+        if not isinstance(severed, type(())):
+            severed = (severed,)
+        if not isinstance(intact, type(())):
+            intact = (intact,)
+        # Validate
+        if not (len(self.nodes) == len(severed + intact) and
+                set(self.nodes) == set(severed + intact)):
+            raise ValueError("Each node in the subsystem must appear exactly" +
+                             " once in the partition.")
+        # Make the cut
+        self._cut = a_cut(severed, intact)
 
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
