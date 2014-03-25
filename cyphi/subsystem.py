@@ -5,7 +5,7 @@ import numpy as np
 from itertools import chain
 from collections import namedtuple
 from .utils import (marginalize_out, emd, max_entropy_distribution, powerset,
-                    bipartition, a_part, a_mice, a_mip)
+                    bipartition)
 
 # TODO? refactor the computational methods out of the class so they explicitly
 # take a subsystem as a parameter
@@ -170,21 +170,20 @@ class Subsystem:
             # Fixed boundary condition nodes are those that are outside this
             # subsystem, and are not in the purview or have been severed by a
             # cut.
-            boundary_inputs = (non_purview_inputs | severed_inputs) - set(self.nodes)
+            boundary_inputs = ((non_purview_inputs | severed_inputs)
+                               - set(self.nodes))
             # We will marginalize-out nodes that are within the subsystem, but
             # are either not in the purview or severed by a cut.
-            marginal_inputs = (non_purview_inputs | severed_inputs) - boundary_inputs
+            marginal_inputs = ((non_purview_inputs | severed_inputs)
+                               - boundary_inputs)
             # Condition the CPT on the past states of the external input nodes.
             # These nodes are treated as fixed boundary conditions. We collapse
             # the dimensions corresponding to the fixed nodes so they contain
             # only the probabilities that correspond to their past states.
             for node in boundary_inputs:
-                past_conditioning_indices = \
-                    [slice(None)] * self.network.size
-                past_conditioning_indices[non_past_input.index] = \
-                    [self.past_state[non_past_input.index]]
-                conditioned_tpm = \
-                    conditioned_tpm[past_conditioning_indices]
+                conditioning_indices = [slice(None)] * self.network.size
+                conditioning_indices[node.index] = [self.past_state[node.index]]
+                conditioned_tpm = conditioned_tpm[conditioning_indices]
             # Marginalize-out the nodes in this subsystem with inputs to this
             # mechanism that are not in the purview and whose connections to
             # this mechanism have not been severed by a subsystem cut.
