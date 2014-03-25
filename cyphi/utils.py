@@ -86,7 +86,7 @@ def comb_indices(n, k):
     return indices.reshape(-1, k)
 
 
-# TODO: implement this with numpy?
+# TODO? implement this with numpy
 def powerset(iterable):
     """
     Return the power set of an iterable (see `itertools recipes
@@ -169,8 +169,8 @@ def max_entropy_distribution(nodes, network):
                      np.ufunc.reduce(np.multiply, max_ent_shape))
 
 
-# TODO extend to binary noes
-# TODO parametrize and use other metrics? (KDL, L1)?
+# TODO extend to binary nodes
+# TODO? parametrize and use other metrics (KDL, L1)
 # TODO ensure that we really don't need to keep track of the states for the
 #      correct hamming distance... are we really only comparing the same
 #      purviews?
@@ -188,8 +188,8 @@ def emd(d1, d2):
     return _emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
 
 
-# TODO [optimization] optimize this to use indices rather than nodes?
-# TODO are native lists really slower?
+# TODO? [optimization] optimize this to use indices rather than nodes
+# TODO? are native lists really slower
 def bipartition(a):
     """Generates all bipartitions for a sequence or ``np.array``.
 
@@ -291,7 +291,7 @@ def _flip(bitstring):
     return ''.join('1' if x == '0' else '0' for x in bitstring)
 
 
-# TODO implement this?
+# TODO? implement this
 def connectivity_matrix_to_tpm(connectivity_matrix):
     """
     :param connectivity_matrix: The network's connectivity matrix (must be

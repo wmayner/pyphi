@@ -3,7 +3,7 @@
 
 
 # TODO extend to nonbinary nodes
-# TODO refactor to use purely indexes for nodes?
+# TODO? refactor to use purely indexes for nodes
 class Node:
 
     """A node in a network.

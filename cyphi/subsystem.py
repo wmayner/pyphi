@@ -7,6 +7,8 @@ from collections import namedtuple
 from .utils import (marginalize_out, emd, max_entropy_distribution, powerset,
                     bipartition, a_part, a_mice, a_mip)
 
+# TODO? refactor the computational methods out of the class so they explicitly
+# take a subsystem as a parameter
 
 class Subsystem:
 
@@ -362,10 +364,10 @@ class Subsystem:
     # =========================================================================
     # TODO test everything below here
 
-    # TODO something clever here so we don't do the full iteration?
+    # TODO? something clever here so we don't do the full iteration
     @staticmethod
     def mip_bipartition(mechanism, purview):
-        # TODO better not to build this whole list in memory?
+        # TODO? better not to build this whole list in memory
         purview_bipartitions = list(bipartition(purview))
         for denominators in (purview_bipartitions +
                              list(map(lambda x: x[::-1],
@@ -417,7 +419,7 @@ class Subsystem:
 
         # The threshold below which we consider phi to be zero
         EPSILON = 10**-10
-        # TODO change ``difference`` to ``phi``?
+        # TODO? change ``difference`` to ``phi``
         # Use named tuples to hold the MIP information
         mip = None
         # Calculate the unpartitioned repertoire to compare against the

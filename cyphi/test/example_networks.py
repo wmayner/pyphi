@@ -45,7 +45,7 @@ class WithExampleNetworks(unittest.TestCase):
         #   {1, 1, 0}   |   {1, 0, 0}
         #   {1, 1, 1}   |   {1, 1, 0}
 
-        # TODO: make these into dictionaries/named tuples?
+        # TODO? make these into dictionaries/named tuples
 
         self.m_current_state = np.array([1, 0, 0])
         self.m_past_state = np.array([1, 1, 0])
