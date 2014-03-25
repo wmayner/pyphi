@@ -4,9 +4,9 @@
 from pprint import pprint
 import numpy as np
 import cyphi.utils as utils
-from cyphi.utils import print_repertoire, print_repertoire_horiz, a_mip, a_part
+from cyphi.utils import print_repertoire, print_repertoire_horiz
 from .example_networks import WithExampleNetworks
-from cyphi.subsystem import Subsystem
+from cyphi.subsystem import Subsystem, a_cut, a_mip, a_part
 
 
 # TODO test against other matlab examples
