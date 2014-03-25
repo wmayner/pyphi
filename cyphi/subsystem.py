@@ -10,6 +10,16 @@ from .utils import (marginalize_out, emd, max_entropy_distribution, powerset,
 # TODO? refactor the computational methods out of the class so they explicitly
 # take a subsystem as a parameter
 
+
+# Lightweight containers for MIP and partition information
+# =============================================================================
+# Connections from 'severed' to 'intact' are cut
+a_cut = namedtuple('cut', ['severed', 'intact'])
+a_mip = namedtuple('mip', ['partition', 'repertoire', 'difference'])
+a_part = namedtuple('part', ['mechanism', 'purview'])
+a_mice = namedtuple('mice', ['purview', 'phi'])
+
+
 class Subsystem:
 
     """A set of nodes in a network.
@@ -50,7 +60,6 @@ class Subsystem:
         # =====================================================================
         # Connections from the 'severed' set to the 'intact' set are severed,
         # while those from 'intact' to 'severed' are left intact
-        a_cut = namedtuple('cut', ['severed', 'intact'])
         # Initialize the cut so that no connections are severed
         self._cut = a_cut((), self.nodes)
 

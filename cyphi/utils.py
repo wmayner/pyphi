@@ -18,12 +18,6 @@ from scipy.spatial.distance import cdist
 from pyemd import emd as _emd
 
 
-# Lightweight containers for MIP and parition information
-a_mip = namedtuple('mip', ['partition', 'repertoire', 'difference'])
-a_part = namedtuple('part', ['mechanism', 'purview'])
-a_mice = namedtuple('mice', ['purview', 'phi'])
-
-
 # see http://stackoverflow.com/questions/16003217
 def combs(a, r):
     """
