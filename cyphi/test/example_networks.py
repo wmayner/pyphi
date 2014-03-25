@@ -63,8 +63,13 @@ class WithExampleNetworks(unittest.TestCase):
                                  self.m_past_state)
         # Shorthand for the nodes
         self.m0, self.m1, self.m2 = tuple(self.m_network.nodes)
-        # Subsystem(['n0'])
-        self.m_subsys_nZero = Subsystem([self.m0],
+        # Subsystem(['n0, n2'])
+        self.m_subsys_n0n2 = Subsystem([self.m0, self.m2],
+                                        self.m_current_state,
+                                        self.m_past_state,
+                                        self.m_network)
+        # Subsystem(['n1, n2'])
+        self.m_subsys_n1n2 = Subsystem([self.m1, self.m2],
                                         self.m_current_state,
                                         self.m_past_state,
                                         self.m_network)
