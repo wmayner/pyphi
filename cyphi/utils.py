@@ -302,6 +302,28 @@ def connectivity_matrix_to_tpm(connectivity_matrix):
         raise ValueError("Connectivity matrix must be square.")
 
 
+def tuple_eq(a, b):
+    """Return whether two tuples are equal, using ``np.array_equal`` for
+    numpy arrays.
+
+    If values are numpy arrays, ``np.array_equal`` is used for checking
+    equality.
+    """
+    if len(a) != len(b):
+        return False
+    result = True
+    for i in range(len(a)):
+        if isinstance(a[i], type(())) and isinstance(b[i], type(())):
+            if not tuple_eq(a[i], b[i]):
+                return False
+        if isinstance(a[i], np.ndarray) and isinstance(a[i], np.ndarray):
+            if not np.array_equal(a[i], b[i]):
+                return False
+        elif not a[i] == b[i]:
+            return False
+    return result
+
+
 # Custom printing methods
 # =======================
 
