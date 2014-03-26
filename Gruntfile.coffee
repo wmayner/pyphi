@@ -55,5 +55,6 @@ module.exports = (grunt) ->
     "watch:docs"
   ]
   grunt.registerTask "test", [
+    "shell:test"
     "watch:test"
   ]
