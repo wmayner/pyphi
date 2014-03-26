@@ -38,13 +38,10 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
         return np.array_equal(result, t['answer'])
 
     # }}}
-
     # Cause repertoire tests {{{
     # ==========================
-
         # Matlab default network {{{
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
             # Full network, no cut {{{
             # ------------------------
 
@@ -100,7 +97,6 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
                                                           test_params)
 
             # }}}
-
             # Full network, with cut {{{
             # --------------------------
 
@@ -117,7 +113,6 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
                                                           test_params)
 
             # }}}
-
             # Subset, with cut {{{
             # --------------------
 
@@ -160,12 +155,9 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
 
 
             # }}}
-
         # }}}
-
         # Simple 'AND' network {{{
         # ~~~~~~~~~~~~~~~~~~~~~~~~
-
             # State: 'A' just turned on {{{
             # -----------------------------
 
@@ -216,7 +208,6 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
                                                           test_params)
 
             # }}}
-
             # State: all nodes off {{{
             # ------------------------
 
@@ -247,17 +238,12 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
                                                           test_params)
 
             # }}}
-
         # }}}
-
     # }}}
-
     # Effect repertoire tests {{{
     # =========================================================================
-
         # Matlab default network {{{
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
             # Full network, no cut {{{
             # ------------------------
 
@@ -349,7 +335,6 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
                                                           test_params)
 
             # }}}
-
             # Full network, with cut {{{
             # --------------------------
 
@@ -378,7 +363,6 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
                                                           test_params)
 
             # }}}
-
             # Subset, with cut {{{
             # --------------------
             # TODO remove line numbers of matlab output eventually
@@ -431,12 +415,9 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
             # Future: m0 / m1
 
             # }}}
-
         # }}}
-
         # Simple 'AND' network {{{
         # ~~~~~~~~~~~~~~~~~~~~~~~~
-
             # State: 'A' just turned on {{{
             # -----------------------------
 
@@ -490,7 +471,6 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
                                                             test_params)
 
             # }}}
-
             # State: all nodes off {{{
             # ------------------------
 
@@ -518,9 +498,7 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
                                                           test_params)
 
             # }}}
-
         # }}}
-
     # }}}
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :

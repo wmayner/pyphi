@@ -34,5 +34,3 @@ class TestPhiMax(WithExampleNetworks):
         mechanism = [self.m0, self.m1, self.m2]
         assert 1
         # assert 0.5 == round(s.phi_max(mechanism), 4)
-
-# vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :

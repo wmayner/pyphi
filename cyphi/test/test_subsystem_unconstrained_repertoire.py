@@ -9,7 +9,6 @@ class TestUnconstrainedRepertoires(WithExampleNetworks):
 
     # Unconstrained cause repertoire tests {{{{
     # =========================================
-
         # Matlab default network {{{
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -36,12 +35,9 @@ class TestUnconstrainedRepertoires(WithExampleNetworks):
                        [0.125, 0.125]]]))
 
         # }}}
-
     # }}}
-
     # Unconstrained effect repertoire tests {{{
     # =========================================
-
         # Matlab default network {{{
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -67,7 +63,6 @@ class TestUnconstrainedRepertoires(WithExampleNetworks):
                        [0.1875, 0.1875]]]))
 
         # }}}
-
     # }}}
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :

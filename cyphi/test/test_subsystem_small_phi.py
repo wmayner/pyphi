@@ -12,7 +12,6 @@ class TestSmallPhi(WithExampleNetworks):
 
     # MIP tests {{{
     # =============
-
         # Validation {{{
         # ~~~~~~~~~~~~~~
 
@@ -23,7 +22,6 @@ class TestSmallPhi(WithExampleNetworks):
             self.m_subsys_all.find_mip('doge', mechanism, purview)
 
         # }}}
-
         # Past {{{
         # ~~~~~~~~
 
@@ -52,7 +50,6 @@ class TestSmallPhi(WithExampleNetworks):
                                  difference=phi))
 
         # }}}
-
         # Future {{{
         # ~~~~~~~~~~
 
@@ -131,9 +128,7 @@ class TestSmallPhi(WithExampleNetworks):
                                  difference=phi))
 
         # }}}
-
     # }}}
-
     # Wrapper method tests {{{
     # ========================
 
