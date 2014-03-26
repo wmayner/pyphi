@@ -47,7 +47,7 @@ class TestSubsystem(WithExampleNetworks):
         s.cut((self.m0,), (self.m1, self.m2))
         assert s._cut == a_cut((self.m0,), (self.m1, self.m2))
 
-    # Cause/effect repertoire test helper
+    # Cause/effect repertoire test helper {
     # =========================================================================
 
     @staticmethod
@@ -73,11 +73,15 @@ class TestSubsystem(WithExampleNetworks):
 
         return np.array_equal(result, t['answer'])
 
-    # Cause repertoire tests
+    # }
+
+    # Cause repertoire tests {
     # =========================================================================
 
-    # Matlab default network
-    # ----------------------
+    # Matlab default network {
+    # ------------------------
+
+    # Full network, no cut {
 
     def test_cause_rep_matlab_0(self):
         test_params = {
@@ -130,11 +134,66 @@ class TestSubsystem(WithExampleNetworks):
         assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
                                                           test_params)
 
-    # Simple 'AND' network
-    # --------------------
+    # }
+    # Full network, with cut {
 
-    # State:
-    # 'A' just turned on
+    def test_cause_rep_matlab_5(self):
+        subsystem = self.m_subsys_all
+        subsystem.cut(self.m2, (self.m0, self.m1))
+        test_params = {
+            'mechanism': [self.m0],
+            'purview': [self.m1],
+            'candidate_system': subsystem,
+            'answer': np.array([1/3, 2/3]).reshape(1, 2, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
+
+    # }
+    # Subset, with cut {
+
+    def test_cause_rep_matlab_6(self):
+        subsystem = self.m_subsys_n1n2
+        subsystem.cut(self.m1, self.m2)
+        test_params = {
+            'mechanism': [self.m2],
+            'purview': [self.m1, self.m2],
+            'candidate_system': subsystem,
+            'answer': np.array([0.25, 0.25, 0.25, 0.25]).reshape(1, 2, 2,
+                                                                 order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
+
+    def test_cause_rep_matlab_6(self):
+        subsystem = self.m_subsys_n1n2
+        subsystem.cut(self.m1, self.m2)
+        test_params = {
+            'mechanism': [self.m2],
+            'purview': [self.m2],
+            'candidate_system': subsystem,
+            'answer': np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
+
+    def test_cause_rep_matlab_8(self):
+        subsystem = self.m_subsys_n0n2
+        subsystem.cut(self.m0,  self.m2)
+        test_params = {
+            'mechanism': [self.m2],
+            'purview': [self.m0],
+            'candidate_system': subsystem,
+            'answer': np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
+                                                          test_params)
+
+
+    # Simple 'AND' network {
+    # ----------------------
+
+    # State: 'A' just turned on {
 
     def test_cause_rep_simple_0(self):
         test_params = {
@@ -182,8 +241,8 @@ class TestSubsystem(WithExampleNetworks):
         assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
                                                           test_params)
 
-    # State:
-    # All nodes off
+    # }
+    # State: all nodes off {
 
     def test_cause_rep_simple_4(self):
         test_params = {
@@ -211,11 +270,13 @@ class TestSubsystem(WithExampleNetworks):
         assert self.cause_or_effect_repertoire_is_correct('cause_repertoire',
                                                           test_params)
 
-    # Effect repertoire tests
+
+    # }
+    # Effect repertoire tests {
     # =========================================================================
 
-    # Matlab default network
-    # ----------------------
+    # Matlab default network {
+    # ------------------------
 
     def test_effect_rep_matlab_0(self):
         test_params = {
@@ -304,6 +365,79 @@ class TestSubsystem(WithExampleNetworks):
         assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
                                                           test_params)
 
+    # }
+    # Full network, with cut {
+
+    def test_effect_rep_matlab_full_network_with_cut_1(self):
+        subsystem = self.m_subsys_all
+        subsystem.cut((self.m0, self.m2), self.m1)
+        test_params = {
+            'mechanism': [self.m0],
+            'purview': [self.m2],
+            'candidate_system': subsystem,
+            'answer': np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
+
+    def test_effect_rep_matlab_full_network_with_cut_1(self):
+        subsystem = self.m_subsys_all
+        subsystem.cut((self.m0, self.m2), self.m1)
+        test_params = {
+            'mechanism': [self.m0, self.m1, self.m2],
+            'purview': [self.m0, self.m2],
+            'candidate_system': subsystem,
+            'answer': np.array([0.0, 0.0, 1.0, 0.0]).reshape(2, 1, 2, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
+
+    # }
+    # Subset, with cut {
+    # TODO remove line numbers of matlab output eventually
+
+    def test_effect_rep_matlab_subset_with_cut_1(self):
+        # 18788
+        subsystem = self.m_subsys_n1n2
+        subsystem.cut(self.m1, self.m2)
+        test_params = {
+            'mechanism': [self.m1],
+            'purview': [self.m1, self.m2],
+            'candidate_system': subsystem,
+            'answer': np.array([0.25, 0.25, 0.25, 0.25]).reshape(1, 2, 2,
+                                                                 order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
+
+    def test_effect_rep_matlab_2(self):
+        # 18724
+        subsystem = self.m_subsys_n1n2
+        subsystem.cut(self.m1, self.m2)
+        test_params = {
+            'mechanism': [],
+            'purview': [self.m1],
+            'candidate_system': subsystem,
+            'answer': np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
+
+    def test_effect_rep_matlab_3(self):
+        # 18740
+        subsystem = self.m_subsys_n1n2
+        subsystem.cut(self.m1, self.m2)
+        test_params = {
+            'mechanism': [self.m1],
+            'purview': [self.m2],
+            'candidate_system': subsystem,
+            'answer': np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
+        }
+        assert self.cause_or_effect_repertoire_is_correct('effect_repertoire',
+                                                          test_params)
+
+
+        # TODO
         # Future: m1 / m2
         # Future: m0 / m2
         # Future: (m0, m2) / (m0, m1, m2)
@@ -475,6 +609,9 @@ class TestSubsystem(WithExampleNetworks):
     # Phi tests
     # =========================================================================
 
+    # find_mip
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     def test_find_mip_bad_direction(self):
         mechanism = [self.m0]
         purview = [self.m0]
@@ -487,10 +624,15 @@ class TestSubsystem(WithExampleNetworks):
         mip = self.m_subsys_all.find_mip('past', mechanism, purview)
         assert mip is None
 
-    def test_find_mip_irreducible_1(self):
+    # Past
+
+    def test_find_mip_past_irreducible_1(self):
+        s = self.m_subsys_all
+        s.cut(self.m0, (self.m1, self.m2))
+
         mechanism = [self.m1]
         purview = [self.m2]
-        mip = self.m_subsys_all.find_mip('past', mechanism, purview)
+        mip = s.find_mip('past', mechanism, purview)
 
         part0 = a_part(mechanism=(),
                        purview=(self.m2,))
@@ -502,99 +644,82 @@ class TestSubsystem(WithExampleNetworks):
                                  repertoire=partitioned_repertoire,
                                  difference=phi))
 
-    def test_find_mip_irreducible_2(self):
-        mechanism = [self.m1]
-        purview = [self.m2]
-        mip = self.m_subsys_all.find_mip('future', mechanism, purview)
+    # Future
+
+    def test_find_mip_future_irreducible_1(self):
+        s = self.m_subsys_all
+        s.cut((self.m1, self.m2), self.m0)
+
+        mechanism = [self.m2]
+        purview = [self.m1]
+        mip = s.find_mip('future', mechanism, purview)
+
         part0 = a_part(mechanism=(),
                        purview=(self.m1,))
         part1 = a_part(mechanism=(self.m2,),
                        purview=())
-        partitioned_repertoire = np.array([0.5, 0.5]).reshape(1, 1, 2)
+        partitioned_repertoire = np.array([0.5, 0.5]).reshape(1, 2, 1)
         phi = 0.5
         assert mip_eq(mip, a_mip(partition=(part0, part1),
                                  repertoire=partitioned_repertoire,
                                  difference=phi))
 
-    # def test_find_mip_irreducible3(self):
-    #     # Past: m0 / m2
-    #     s = self.m_subsys_all
-    #     nodes = self.m_network.nodes
-    #     mechanism = [nodes[0]]
-    #     purview = [nodes[2]]
-    #     mip = s.find_mip('past', mechanism, purview)
-
-    #     part0 = a_part(mechanism=nodes[0],
-    #                    purview=nodes[0])
-    #     part1 = a_part(mechanism=nodes[1],
-    #                    purview=nodes[1])
-
-    #     answer = a_mip(partition=(part0, part1),
-    #                    repertoire=partitioned_repertoire,
-    #                    difference=difference)
-    #     assert mip == answer
-
-    # def test_find_mip_irreducible4(self):
-    #     # Future: (m0, m1) / (m0, m1, m2)
-    #     s = self.m_subsys_all
-    #     nodes = self.m_network.nodes
-    #     mechanism = nodes[0:2]
-    #     purview = nodes
-    #     mip = s.find_mip('past', mechanism, purview)
-
-    #     part0 = a_part(mechanism=nodes[0],
-    #                    purview=nodes[0])
-    #     part1 = a_part(mechanism=nodes[1],
-    #                    purview=nodes[1])
-
-    #     answer = a_mip(partition=(part0, part1),
-    #                    repertoire=partitioned_repertoire,
-    #                    difference=difference)
-    #     assert mip == answer
-
-    # def test_find_mip_irreducible5(self):
-    #     # Future: m0 / m1
-    #     s = self.m_subsys_all
-    #     nodes = self.m_network.nodes
-    #     mechanism = [nodes[0]]
-    #     purview = [nodes[1]]
-    #     mip = s.find_mip('past', mechanism, purview)
-    #     part0 = a_part(mechanism=nodes[0],
-    #                    purview=nodes[0])
-    #     part1 = a_part(mechanism=nodes[1],
-    #                    purview=nodes[1])
-    #     answer = a_mip(partition=(part0, part1),
-    #                    repertoire=partitioned_repertoire,
-    #                    difference=difference)
-    #     assert mip == answer
-
-    # def test_find_mip(self):
-    #     s = self.m_subsys_all
-    #     mechanism = self.m_network.nodes
-    #     purview = self.m_network.nodes[0:3:2]
-    #     mip = s.find_mip('past', mechanism, purview)
-    #     assert
-
-    #     print(mip.partition)
-    #     utils.print_partition(mip.partition)
-    #     print(mip.difference, '\n')
-    #     print(mip.repertoire)
-    #     print_repertoire_horiz(mip.repertoire)
-
-    #     assert 1
-
-    def test_find_mip_full_mech_and_purview(self):
+    def test_find_mip_future_irreducible_2(self):
         s = self.m_subsys_all
-        mechanism = [self.m0, self.m1, self.m2]
-        purview = [self.m0, self.m1, self.m2]
-        mip = s.find_mip('past', mechanism, purview)
+        s.cut((self.m0, self.m2), self.m1)
+        print(s._cut)
 
-        print(mip.partition)
-        utils.print_partition(mip.partition)
-        print(mip.difference, '\n')
-        print(mip.repertoire)
-        print_repertoire_horiz(mip.repertoire)
-        assert 1
+        mechanism = [self.m2]
+        purview = [self.m0]
+        mip = s.find_mip('future', mechanism, purview)
+
+        part0 = a_part(mechanism=(),
+                       purview=(self.m0,))
+        part1 = a_part(mechanism=(self.m2,),
+                       purview=())
+        partitioned_repertoire = np.array([0.25, 0.75]).reshape(2, 1, 1)
+        phi = 0.25
+        assert mip_eq(mip, a_mip(partition=(part0, part1),
+                                 repertoire=partitioned_repertoire,
+                                 difference=phi))
+
+    def test_find_mip_future_irreducible_3(self):
+        s = self.m_subsys_all
+        s.cut((self.m0, self.m2), self.m1)
+
+        mechanism = [self.m0, self.m1, self.m2]
+        purview = [self.m0, self.m2]
+        mip = s.find_mip('future', mechanism, purview)
+
+        part0 = a_part(mechanism=(self.m0,),
+                       purview=(self.m2,))
+        part1 = a_part(mechanism=(self.m1, self.m2),
+                       purview=(self.m0,))
+        partitioned_repertoire = np.array([0.5, 0.5, 0.0, 0.0]).reshape(2, 1, 2)
+        phi = 0.5
+        assert mip_eq(mip, a_mip(partition=(part0, part1),
+                                 repertoire=partitioned_repertoire,
+                                 difference=phi))
+
+    def test_find_mip_future_irreducible_4(self):
+        s = self.m_subsys_all
+        s.cut((self.m0, self.m1), self.m2)
+
+        mechanism = [self.m1]
+        purview = [self.m0]
+        mip = s.find_mip('future', mechanism, purview)
+
+        part0 = a_part(mechanism=(),
+                       purview=(self.m0,))
+        part1 = a_part(mechanism=(self.m1,),
+                       purview=())
+        partitioned_repertoire = np.array([0.25, 0.75]).reshape(2, 1, 1)
+        phi = 0.25
+        assert mip_eq(mip, a_mip(partition=(part0, part1),
+                                 repertoire=partitioned_repertoire,
+                                 difference=phi))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def test_mip_past(self):
         s = self.m_subsys_all
@@ -714,6 +839,8 @@ def tuple_eq(a, b):
 
 def mip_eq(a, b):
     """Return whether two MIPs are equal."""
+    if not a or not b:
+        return a == b
     return ((a.partition == b.partition or a.partition == (b.partition[1],
                                                            b.partition[0])) and
             (a.difference == b.difference) and
