@@ -51,16 +51,16 @@ class Subsystem:
 
         # The network this subsystem belongs to.
         self.network = network
-        # The way this system is cut into two parts for phi calculation.
         # Nodes outside the subsystem will be treated as fixed boundary
         # conditions in cause/effect repertoire calculations.
         self.external_nodes = set(network.nodes) - set(nodes)
 
         # Private attributes
         # =====================================================================
-        # Connections from the 'severed' set to the 'intact' set are severed,
-        # while those from 'intact' to 'severed' are left intact
-        # Initialize the cut so that no connections are severed
+        # The way this system is cut into two parts for phi calculation.
+        # NOTE: Connections from the 'severed' set to the 'intact' set are
+        #       severed, while those from 'intact' to 'severed' are left intact
+        #       Initialize the cut so that no connections are severed
         self._cut = a_cut((), self.nodes)
 
     def __repr__(self):
@@ -160,13 +160,13 @@ class Subsystem:
             # connectivity matrix isn't implemented yet)
             # TODO add this when inputs are implemented:
             # ... and node in self.input_nodes):
-
             non_purview_inputs = set(self.network.nodes) - set(purview)
             # Collect the nodes in the network who had inputs to this mechanism
             # that were severed by this subsystem's cut.
             severed_inputs = set([n for n in self.network.nodes if
-                              (n in self._cut.severed and
-                               mechanism_node in self._cut.intact)])
+                                  (n in self._cut.severed and
+                                   mechanism_node in self._cut.intact)])
+            print('Severed inputs:', severed_inputs)
             # Fixed boundary condition nodes are those that are outside this
             # subsystem, and are not in the purview or have been severed by a
             # cut.
@@ -229,25 +229,30 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_denom_node_distribution``
         # ``accumulated_cjd`` is ``denom_conditional_joint``
         # ---------------------------------------------------------
-
-        # If the purview is empty, the distribution is empty
+        # If the purview is empty, the distribution is empty, so return the
+        # multiplicative identity.
         if (len(purview) is 0):
             return 1
-
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(tuple([1] * self.network.size +
                                         [2 if node in purview else 1
                                          for node in self.network.nodes]))
+
+        # TODO explicit inputs to nodes (right now each node is implicitly
+        # connected to all other nodes, since initializing a Network with a
+        # connectivity matrix isn't implemented yet)
+        mechanism_inputs = set(mechanism)
+        # Nodes outside this subsystem.
+        external_inputs = set(self.network.nodes) - set(self.nodes)
+
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
         # individual node's TPM in order to get the joint distribution for the
         # whole purview. After conditioning on the mechanism's state and that
         # of external nodes, this will be the effect repertoire as a
         # distribution over the purview.
-        future_nodes = purview
-        past_nodes = mechanism
-        for mechanism_node in future_nodes:
+        for purview_node in purview:
             # Unlike in calculating the cause repertoire, here the TPM is not
             # conditioned yet. `tpm` is an array with twice as many dimensions
             # as the network has nodes. For example, in a network with three
@@ -261,56 +266,72 @@ class Subsystem:
             # later conditioned by indexing.
 
             # TODO extend to nonbinary nodes
-            # Allocate the TPM
+            # Allocate the TPM.
             tpm = np.zeros([2] * self.network.size +
-                           [2 if i is mechanism_node.index else 1 for i in
+                           [2 if i is purview_node.index else 1 for i in
                             range(self.network.size)])
             tpm_off_indices = [slice(None)] * self.network.size + \
                 [0] * self.network.size
-            # Insert the TPM for the node being off
-            tpm[tpm_off_indices] = 1 - mechanism_node.tpm
-            # Insert the TPM for the node being on
+            # Insert the TPM for the node being off.
+            tpm[tpm_off_indices] = 1 - purview_node.tpm
+            # Insert the TPM for the node being on.
             tpm_on_indices = [slice(None)] * self.network.size + \
-                [1 if i == mechanism_node.index else 0 for i in
+                [1 if i == purview_node.index else 0 for i in
                  range(self.network.size)]
-            tpm[tpm_on_indices] = mechanism_node.tpm
+            tpm[tpm_on_indices] = purview_node.tpm
 
-            # Marginalize-out the subsystem nodes with inputs to the purview
-            # that aren't in the mechanism
-            # TODO explicit inputs to nodes (right now each node is implicitly
-            # connected to all other nodes, since initializing a Network with a
-            # connectivity matrix isn't implemented yet)
-            for non_past_input in set(self.nodes) - set(past_nodes):
-                                   # TODO add this when inputs are implemented:
-                                   # and node in self.input_nodes):
-                tpm = marginalize_out(non_past_input, tpm)
+            # Collect the nodes in the network who had inputs to this mechanism
+            # that were severed by this subsystem's cut.
+            severed_inputs = set([n for n in self.network.nodes if
+                                    (n in self._cut.severed and
+                                    purview_node in self._cut.intact)])
+            print('Severed inputs:', severed_inputs)
+            severed_mechanism_inputs = severed_inputs & mechanism_inputs
+            # We will marginalize-out nodes that are within the subsystem, but
+            # are either not in the purview or severed by a cut.
+            marginal_inputs = ((set(self.nodes) - mechanism_inputs) |
+                                severed_inputs)
 
+            # Marginalize-out nodes in this subsystem with inputs to the
+            # purview that aren't in the mechanism, and the nodes whose
+            # connections to the purview have been severed.
+            for node in marginal_inputs:
+                tpm = marginalize_out(node, tpm)
+            # TODO do I need this?
+                # for node in severed_mechanism_inputs:
+                #     # TODO expand dimensions here
+                #     print('todo')
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution by taking the product (with singleton
-            # broadcasting)
+            # broadcasting).
             accumulated_cjd = np.multiply(accumulated_cjd, tpm)
 
-        # Now we condition on the state of the past nodes and the external
-        # nodes (by collapsing the CJD onto those states).
-
+        # Now we condition on the state of the boundary nodes, whose states we
+        # fix (by collapsing the CJD onto those states):
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Fixed boundary condition nodes are those that are outside this
+        # subsystem, and are not in the purview or have been severed by a
+        # cut.
+        boundary_inputs = mechanism_inputs | external_inputs
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
-        # TODO !!! are the external nodes really the ones outside this
+        # TODO! are the external nodes really the ones outside this
         # subsystem?
         conditioning_indices = [[slice(None)]] * self.network.size
-        for node in set(past_nodes) | set(self.external_nodes):
+        for node in boundary_inputs:
             # Preserve singleton dimensions with `np.newaxis`
             conditioning_indices[node.index] = [self.current_state[node.index],
                                                 np.newaxis]
         # Flatten the indices
         conditioning_indices = list(chain.from_iterable(conditioning_indices))
-
         # Obtain the actual conditioned distribution by indexing with the
         # conditioning indices
         accumulated_cjd = accumulated_cjd[tuple(conditioning_indices)]
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
         # The distribution still has twice as many dimensions as the network
         # has nodes, with the first half of the shape now all singleton
-        # dimesnions, so we reshape to eliminate those singleton dimensions
+        # dimensions, so we reshape to eliminate those singleton dimensions
         # (the second half of the shape may also contain singleton dimensions,
         # depending on how many nodes are in the purview).
         accumulated_cjd = accumulated_cjd.reshape(
