@@ -182,4 +182,4 @@ def mip_eq(a, b):
 
 # }}}
 
-# vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker
+# vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :

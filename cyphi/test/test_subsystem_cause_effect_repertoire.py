@@ -523,4 +523,4 @@ class TestCauseEffectRepertoires(WithExampleNetworks):
 
     # }}}
 
-# vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker
+# vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :
