@@ -7,19 +7,35 @@ from collections import namedtuple
 from .utils import (marginalize_out, emd, max_entropy_distribution, powerset,
                     bipartition)
 
-# TODO? refactor the computational methods out of the class so they explicitly
-# take a subsystem as a parameter
+
+DEBUG = False
+
+
+def dprint(*args):
+  if DEBUG:
+    print(*args)
 
 
 # Lightweight containers for MIP and partition information
 # =============================================================================
+
 # Connections from 'severed' to 'intact' are cut
-a_cut = namedtuple('cut', ['severed', 'intact'])
-a_mip = namedtuple('mip', ['partition', 'repertoire', 'difference'])
-a_part = namedtuple('part', ['mechanism', 'purview'])
-a_mice = namedtuple('mice', ['purview', 'phi'])
+Cut = namedtuple('Cut', ['severed', 'intact'])
+
+Mip = namedtuple('Mip', ['direction', 'partition', 'repertoire', 'difference'])
+Part = namedtuple('Part', ['mechanism', 'purview'])
+Mice = namedtuple('Mice', ['direction', 'purview', 'mip', 'phi'])
+
+# =============================================================================
+
+# The number of decimal points to which phi values are considered accurate
+PRECISION = 6
+# The threshold below which we consider differences in phi values to be zero
+EPSILON = 10**-PRECISION
 
 
+# TODO? refactor the computational methods out of the class so they explicitly
+# take a subsystem as a parameter
 class Subsystem:
 
     """A set of nodes in a network.
@@ -61,7 +77,7 @@ class Subsystem:
         # NOTE: Connections from the 'severed' set to the 'intact' set are
         #       severed, while those from 'intact' to 'severed' are left intact
         #       Initialize the cut so that no connections are severed
-        self._cut = a_cut((), self.nodes)
+        self._cut = Cut((), self.nodes)
 
     def __repr__(self):
         return "Subsystem(" + ", ".join([repr(self.nodes),
@@ -101,7 +117,7 @@ class Subsystem:
             raise ValueError("Each node in the subsystem must appear exactly" +
                              " once in the partition.")
         # Make the cut
-        self._cut = a_cut(severed, intact)
+        self._cut = Cut(severed, intact)
 
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
@@ -166,7 +182,6 @@ class Subsystem:
             severed_inputs = set([n for n in self.network.nodes if
                                   (n in self._cut.severed and
                                    mechanism_node in self._cut.intact)])
-            print('Severed inputs:', severed_inputs)
             # Fixed boundary condition nodes are those that are outside this
             # subsystem, and are not in the purview or have been severed by a
             # cut.
@@ -285,7 +300,7 @@ class Subsystem:
             severed_inputs = set([n for n in self.network.nodes if
                                     (n in self._cut.severed and
                                     purview_node in self._cut.intact)])
-            print('Severed inputs:', severed_inputs)
+            dprint('Severed inputs:', severed_inputs)
             severed_mechanism_inputs = severed_inputs & mechanism_inputs
             # We will marginalize-out nodes that are within the subsystem, but
             # are either not in the purview or severed by a cut.
@@ -418,10 +433,10 @@ class Subsystem:
                     len(numerators[0]) + len(denominators[0]) > 0 and
                     len(numerators[1]) + len(denominators[1]) > 0)
                 if valid_partition:
-                    part0 = a_part(mechanism=numerators[0],
-                                   purview=denominators[0])
-                    part1 = a_part(mechanism=numerators[1],
-                                   purview=denominators[1])
+                    part0 = Part(mechanism=numerators[0],
+                                 purview=denominators[0])
+                    part1 = Part(mechanism=numerators[1],
+                                 purview=denominators[1])
                     yield (part0, part1)
         return
 
@@ -451,8 +466,6 @@ class Subsystem:
         else:
             raise ValueError("Direction must be either 'past' or 'future'.")
 
-        # The threshold below which we consider phi to be zero
-        EPSILON = 10**-10
         # TODO? change ``difference`` to ``phi``
         # Use named tuples to hold the MIP information
         mip = None
@@ -472,14 +485,14 @@ class Subsystem:
                                                      part1.purview))
             difference = emd(unpartitioned_repertoire, partitioned_repertoire)
 
-            print('\n')
-            print('one iteration of mip_bipartition'.center(80,'~'))
-            print('\nUnpartitioned repertoire:', unpartitioned_repertoire)
-            print('\nPartitioned repertoire:', partitioned_repertoire)
-            print('\npart0:', part0.mechanism, '/', part0.purview)
-            print('part1:', part1.mechanism, '/', part1.purview)
-            print('\nphi:',difference)
-            print(''.center(80,'-'))
+            dprint('\n')
+            dprint('one iteration of mip_bipartition'.center(80,'~'))
+            dprint('\nUnpartitioned repertoire:', unpartitioned_repertoire)
+            dprint('\nPartitioned repertoire:', partitioned_repertoire)
+            dprint('\npart0:', part0.mechanism, '/', part0.purview)
+            dprint('part1:', part1.mechanism, '/', part1.purview)
+            dprint('\nphi:',difference)
+            dprint(''.center(80,'-'))
 
             # Return immediately if mechanism is reducible
             if difference < EPSILON:
@@ -488,9 +501,10 @@ class Subsystem:
             # (i.e., phi is 0)
             if (difference < difference_min):
                 difference_min = difference
-                mip = a_mip(partition=(part0, part1),
-                            repertoire=partitioned_repertoire,
-                            difference=difference)
+                mip = Mip(direction=direction,
+                          partition=(part0, part1),
+                          repertoire=partitioned_repertoire,
+                          difference=difference)
         return mip
 
     def mip_past(self, mechanism, purview):
@@ -546,30 +560,29 @@ class Subsystem:
         :returns: An object with attributes ``purview`` and ``phi``, containing
             the core cause or effect purview and the |phi| value, respectively.
         """
-        # Choose past or future MIP and validate
-        if direction is 'past':
-            find_mip = self.mip_past
-        elif direction is 'future':
-            find_mip = self.mip_future
-        else:
+        # Validate direction
+        if direction is not 'past' and direction is not 'future':
             raise ValueError("Direction must be either 'past' or 'future'.")
 
-        mice = a_mice
         phi_max = float('-inf')
         maximal_purview = None
         # Loop over all possible purviews in this candidate set and find the
         # purview over which phi is maximal.
         for purview in powerset(self.nodes):
-            mip = find_mip(mechanism, purview)
+            mip = self.find_mip(direction, mechanism, purview)
             if mip:
                 phi = mip.difference
                 # Take the purview with higher phi, or if phi is equal, take the
                 # larger one
-                if phi > phi_max or (phi == phi_max and
-                                    len(purview) > len(maximal_purview)):
+                if phi > phi_max or (abs(phi - phi_max) < EPSILON and
+                                     len(purview) > len(maximal_purview)):
+                    mip_max = mip
                     phi_max = phi
                     maximal_purview = purview
-        return mice(purview=maximal_purview, phi=phi_max)
+        return Mice(direction=direction,
+                    purview=maximal_purview,
+                    mip=mip_max,
+                    phi=phi_max)
 
     def core_cause(self, mechanism):
         """Returns the core cause repertoire of a mechanism."""
