@@ -29,23 +29,34 @@ def cut(subsystem, cut):
 def tuple_eq(a, b):
     """Return whether two tuples are equal, using ``np.array_equal`` for
     numpy arrays.
-
-    If values are numpy arrays, ``np.array_equal`` is used for checking
-    equality.
     """
-    if len(a) != len(b):
-        return False
+    # Use numpy equality if both are numpy arrays
+    if isinstance(a, type(np.array([]))) and isinstance(b, type(np.array([]))):
+        return np.array_equal(a, b)
+
+    try:
+        # Shortcircuit if arguments are difference lengths
+        if len(a) != len(b):
+            return False
+    # Fall back to normal equality if we have a non-iterable argument
+    except TypeError:
+        return a == b
+
+    # Otherwise iterate through and try normal equality, recursing if that
+    # fails
     result = True
     for i in range(len(a)):
-        if isinstance(a[i], type(())) and isinstance(b[i], type(())):
-            if not tuple_eq(a[i], b[i]):
+        try:
+            if not a[i] == b[i]:
                 return False
-        if isinstance(a[i], np.ndarray) and isinstance(a[i], np.ndarray):
-            if not np.array_equal(a[i], b[i]):
-                return False
-        elif not a[i] == b[i]:
-            return False
+        except ValueError as e:
+            if (str(e) == "The truth value of an array with more than one " +
+                          "element is ambiguous. Use a.any() or a.all()"):
+                return tuple_eq(a[i], b[i])
+            else:
+                raise e
     return result
+
 
 # see http://stackoverflow.com/questions/16003217
 def combs(a, r):

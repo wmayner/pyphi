@@ -3,9 +3,24 @@
 
 import pytest
 import numpy as np
+from collections import namedtuple
 import cyphi.utils as utils
 import cyphi
 from cyphi.network import Network
+
+
+def test_tuple_eq():
+    nt = namedtuple('nt', ['this', 'that'])
+    a = nt(this=nt('consciousness', 'is phi'),
+           that=np.arange(3))
+    b = 1
+    assert utils.tuple_eq(a, b) is False
+    b = np.arange(3)
+    assert utils.tuple_eq(a, b) is False
+    b = (np.arange(3), np.arange(3))
+    assert utils.tuple_eq(a, b) is False
+    b = a
+    assert utils.tuple_eq(a, b) is True
 
 
 def test_marginalize_out(m):
@@ -15,6 +30,7 @@ def test_marginalize_out(m):
                                         [1.,  1.,  0.5]],
                                        [[1.,  0.,  0.5],
                                         [1.,  1.,  0.5]]]]))
+
 
 def test_purview_max_entropy_distribution():
     # Individual setUp
@@ -29,6 +45,7 @@ def test_purview_max_entropy_distribution():
     assert np.array_equal(max_ent, np.divide(np.ones(4), 4).reshape((2, 2, 1)))
     assert max_ent[0][1][0] == 0.25
 
+
 def test_combs_for_1D_input():
     n, k = 3, 2
     data = np.arange(n)
@@ -37,10 +54,12 @@ def test_combs_for_1D_input():
                                       [0, 2],
                                       [1, 2]]))
 
+
 def test_combs_r_is_0():
     n, k = 3, 0
     data = np.arange(n)
     assert np.array_equal(utils.combs(data, k), np.asarray([]))
+
 
 def test_comb_indices():
     n, k = 3, 2
@@ -53,9 +72,11 @@ def test_comb_indices():
                                        [3, 5],
                                        [4, 5]]]))
 
+
 def test_powerset():
     a = np.arange(2)
     assert list(utils.powerset(a)) == [(), (0,), (1,), (0, 1)]
+
 
 def test_hamming_matrix():
     H = utils._hamming_matrix(3)
@@ -69,6 +90,7 @@ def test_hamming_matrix():
                        [3.,  2.,  2.,  1.,  2.,  1.,  1.,  0.]])
     assert (H == answer).all()
 
+
 def test_bitstring_index():
     bitstring = '11110100'
     # Test with an array
@@ -81,11 +103,13 @@ def test_bitstring_index():
     t = tuple(range(8))
     assert (0, 1, 2, 3, 5) == utils._bitstring_index(t, bitstring)
 
+
 def test_bitstring_index_wrong_shape():
     array = np.arange(8).reshape(2, 4)
     bitstring = bin(6).zfill(8)
     with pytest.raises(ValueError):
         assert utils._bitstring_index(array, bitstring)
+
 
 def test_bitstring_index_mismatched_length():
     array = np.arange(8)
@@ -93,14 +117,17 @@ def test_bitstring_index_mismatched_length():
     with pytest.raises(ValueError):
         assert utils._bitstring_index(array, bitstring)
 
+
 def test_bitstring_index_forgot_strip_b():
     array = np.arange(8)
     bitstring = bin(6).zfill(8)
     with pytest.raises(ValueError):
         assert utils._bitstring_index(array, bitstring)
 
+
 def test_flip():
     assert (utils._flip('011010001') == '100101110')
+
 
 def test_bipartition():
     # Test with np.array input
@@ -116,16 +143,19 @@ def test_bipartition():
     # Test with empty input
     assert [] == list(utils.bipartition([]))
 
+
 def test_emd_same_distributions():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
     assert utils.emd(a, b) == 0.0
+
 
 def test_emd_different_shapes():
     a = np.ones((2, 1, 2)) / 4
     b = np.ones((2, 2, 2)) / 8
     with pytest.raises(ValueError):
         assert utils.emd(a, b)
+
 
 def test_emd_mismatched_size():
     a = np.ones((2, 2, 2, 2)) / 16
