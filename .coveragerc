@@ -14,7 +14,9 @@ exclude_lines =
     def __str__
     def __ne__
     if self\.DEBUG
-    def print_*
+    if DEBUG
+    def print_
+    def dprint
 
 
     # Don't complain if tests don't hit defensive assertion code:

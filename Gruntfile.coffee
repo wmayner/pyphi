@@ -7,7 +7,11 @@ module.exports = (grunt) ->
 
     shell:
       test:
-        command: "py.test --color yes"
+        command: "coverage run --source <%= cfg.srcDir %> -m py.test"
+        options:
+          stdout: true
+      coverageHTML:
+        command: "coverage html"
         options:
           stdout: true
       buildDocs:
@@ -44,7 +48,7 @@ module.exports = (grunt) ->
           "<%= cfg.testDir %>/**/*"
           "Gruntfile.coffee"
         ]
-        tasks: ["shell:test"]
+        tasks: ["shell:test", "shell:coverageHTML"]
 
   # Load NPM Tasks
   grunt.loadNpmTasks "grunt-contrib-watch"
@@ -56,10 +60,11 @@ module.exports = (grunt) ->
   ]
   grunt.registerTask "docs", [
     "shell:openDocs"
-    "shell:openCoverage"
     "watch:docs"
   ]
   grunt.registerTask "test", [
     "shell:test"
+    "shell:coverageHTML"
+    "shell:openCoverage"
     "watch:test"
   ]
