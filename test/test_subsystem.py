@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from cyphi.subsystem import Subsystem, a_cut
+from cyphi.subsystem import Subsystem, Cut
 
 
 # TODO test against other matlab examples
@@ -34,10 +34,10 @@ def test_cut_bad_input(m):
 def test_cut_single_node(m):
     s = m.subsys_all
     s.cut(m.nodes[0], (m.nodes[1], m.nodes[2]))
-    assert s._cut == a_cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+    assert s._cut == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
 
 
 def test_cut(m):
     s = m.subsys_all
     s.cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
-    assert s._cut == a_cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+    assert s._cut == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))

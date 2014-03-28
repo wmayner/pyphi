@@ -4,7 +4,7 @@
 import pytest
 import numpy as np
 from cyphi.utils import tuple_eq
-from cyphi.subsystem import a_mip, a_part
+from cyphi.subsystem import Mip, Part
 
 
 # Helper for checking MIP equality {{{
@@ -54,8 +54,8 @@ scenarios = [
         'subsys_all', (0, (1, 2)),
         [1],
         [2],
-        {'part0': a_part(mechanism=(), purview=(2,)),
-         'part1': a_part(mechanism=(1,), purview=()),
+        {'part0': Part(mechanism=(), purview=(2,)),
+         'part1': Part(mechanism=(1,), purview=()),
          'partitioned_repertoire': np.array([0.5, 0.5]).reshape(1, 1, 2),
          'phi': 0.5}
     ),
@@ -70,8 +70,8 @@ scenarios = [
         'subsys_all', None,
         [0, 1, 2],
         [0, 1, 2],
-        {'part0': a_part(mechanism=(2,), purview=(0, 1)),
-         'part1': a_part(mechanism=(0, 1), purview=(2,)),
+        {'part0': Part(mechanism=(2,), purview=(0, 1)),
+         'part1': Part(mechanism=(0, 1), purview=(2,)),
          'partitioned_repertoire': np.array([[[0.0, 0.5],
                                               [0.0, 0.0]],
                                              [[0.0, 0.5],
@@ -82,8 +82,8 @@ scenarios = [
         'subsys_all', None,
         [0, 1, 2],
         [0, 1, 2],
-        {'part0': a_part(mechanism=(2,), purview=(0, 1)),
-         'part1': a_part(mechanism=(0, 1), purview=(2,)),
+        {'part0': Part(mechanism=(2,), purview=(0, 1)),
+         'part1': Part(mechanism=(0, 1), purview=(2,)),
          'partitioned_repertoire': np.array([[[0.0, 0.5],
                                               [0.0, 0.0]],
                                              [[0.0, 0.5],
@@ -98,8 +98,8 @@ scenarios = [
         'subsys_all', ((1, 2), 0),
         [2],
         [1],
-        {'part0': a_part(mechanism=(), purview=(1,)),
-         'part1': a_part(mechanism=(2,), purview=()),
+        {'part0': Part(mechanism=(), purview=(1,)),
+         'part1': Part(mechanism=(2,), purview=()),
          'partitioned_repertoire': np.array([0.5, 0.5]).reshape(1, 2, 1),
          'phi': 0.5}
     ), (
@@ -107,8 +107,8 @@ scenarios = [
         'subsys_all', ((0, 2), 1),
         [2],
         [0],
-        {'part0': a_part(mechanism=(), purview=(0,)),
-         'part1': a_part(mechanism=(2,), purview=()),
+        {'part0': Part(mechanism=(), purview=(0,)),
+         'part1': Part(mechanism=(2,), purview=()),
          'partitioned_repertoire': np.array([0.25, 0.75]).reshape(2, 1, 1),
          'phi': 0.25}
     ), (
@@ -116,8 +116,8 @@ scenarios = [
         'subsys_all', ((0, 2), 1),
         [0, 1, 2],
         [0, 2],
-        {'part0': a_part(mechanism=(0,), purview=(2,)),
-         'part1': a_part(mechanism=(1, 2), purview=(0,)),
+        {'part0': Part(mechanism=(0,), purview=(2,)),
+         'part1': Part(mechanism=(1, 2), purview=(0,)),
          'partitioned_repertoire':
             np.array([0.5, 0.5, 0.0, 0.0]).reshape(2, 1, 2),
          'phi': 0.5}
@@ -126,8 +126,8 @@ scenarios = [
         'subsys_all', ((0, 1), 2),
         [1],
         [0],
-        {'part0': a_part(mechanism=(), purview=(0,)),
-         'part1': a_part(mechanism=(1,), purview=()),
+        {'part0': Part(mechanism=(), purview=(0,)),
+         'part1': Part(mechanism=(1,), purview=()),
          'partitioned_repertoire': np.array([0.25, 0.75]).reshape(2, 1, 1),
          'phi': 0.25}
     )
@@ -150,15 +150,16 @@ def test_find_mip(m, direction, subsystem, cut, mechanism, purview, expected):
 
     if expected:
         # Construct expected MIP
-        part0 = a_part(mechanism=tuple(m.nodes[i] for i in
-                                       expected['part0'][0]),
-                       purview=tuple(m.nodes[i] for i in expected['part0'][1]))
-        part1 = a_part(mechanism=tuple(m.nodes[i] for i in
-                                       expected['part1'][0]),
-                       purview=tuple(m.nodes[i] for i in expected['part1'][1]))
-        expected = a_mip(partition=(part0, part1),
-                         repertoire=expected['partitioned_repertoire'],
-                         difference=expected['phi'])
+        part0 = Part(mechanism=tuple(m.nodes[i] for i in
+                                     expected['part0'][0]),
+                     purview=tuple(m.nodes[i] for i in expected['part0'][1]))
+        part1 = Part(mechanism=tuple(m.nodes[i] for i in
+                                     expected['part1'][0]),
+                     purview=tuple(m.nodes[i] for i in expected['part1'][1]))
+        expected = Mip(direction=direction,
+                       partition=(part0, part1),
+                       repertoire=expected['partitioned_repertoire'],
+                       difference=expected['phi'])
 
     assert mip_eq(result, expected)
 
