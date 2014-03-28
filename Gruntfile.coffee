@@ -3,10 +3,11 @@ module.exports = (grunt) ->
     cfg:
       docDir: "docs"
       srcDir: "cyphi"
+      testDir: "test"
 
     shell:
       test:
-        command: "py.test -ql --color yes"
+        command: "py.test --color yes"
         options:
           stdout: true
       buildDocs:
@@ -20,6 +21,8 @@ module.exports = (grunt) ->
           failOnError: true
       openDocs:
         command: "open docs/_build/html/index.html"
+      openCoverage:
+        command: "open htmlcov/index.html"
 
     watch:
       docs:
@@ -38,6 +41,7 @@ module.exports = (grunt) ->
           "pytest.ini"
           ".pythonrc.py"
           "<%= cfg.srcDir %>/**/*"
+          "<%= cfg.testDir %>/**/*"
           "Gruntfile.coffee"
         ]
         tasks: ["shell:test"]
@@ -52,6 +56,7 @@ module.exports = (grunt) ->
   ]
   grunt.registerTask "docs", [
     "shell:openDocs"
+    "shell:openCoverage"
     "watch:docs"
   ]
   grunt.registerTask "test", [

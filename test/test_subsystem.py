@@ -1,44 +1,43 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from .example_networks import WithExampleNetworks
+import pytest
 from cyphi.subsystem import Subsystem, a_cut
 
 
 # TODO test against other matlab examples
-class TestSubsystem(WithExampleNetworks):
+def test_empty_init(m):
+    # Empty mechanism
+    s = Subsystem([], m.current_state, m.past_state, m)
+    assert s.nodes == ()
 
-    def test_empty_init(self):
-        # Empty mechanism
-        s = Subsystem([],
-                      self.m_network.current_state,
-                      self.m_network.past_state,
-                      self.m_network)
-        assert s.nodes == ()
 
-    def test_eq(self):
-        a = self.m_subsys_n0n2
-        b = self.m_subsys_n0n2
-        assert a == b
+def test_eq(m):
+    assert m.subsys_n0n2 == m.subsys_n0n2
+    assert m.subsys_n0n2 != m.subsys_n1n2
 
-    def test_hash(self):
-        print(hash(self.m_subsys_all))
 
-    def test_cut_bad_input(self):
-        s = self.m_subsys_all
-        with self.assertRaises(ValueError):
-            s.cut((), ())
-        with self.assertRaises(ValueError):
-            s.cut(self.m0, self.m1)
-        with self.assertRaises(ValueError):
-            s.cut(self.m0, (self.m1, self.m1))
+def test_hash(m):
+    print(hash(m.subsys_all))
 
-    def test_cut_single_node(self):
-        s = self.m_subsys_all
-        s.cut(self.m0, (self.m1, self.m2))
-        assert s._cut == a_cut((self.m0,), (self.m1, self.m2))
 
-    def test_cut(self):
-        s = self.m_subsys_all
-        s.cut((self.m0,), (self.m1, self.m2))
-        assert s._cut == a_cut((self.m0,), (self.m1, self.m2))
+def test_cut_bad_input(m):
+    s = m.subsys_all
+    with pytest.raises(ValueError):
+        s.cut((), ())
+    with pytest.raises(ValueError):
+        s.cut(m.nodes[0], m.nodes[1])
+    with pytest.raises(ValueError):
+        s.cut(m.nodes[0], (m.nodes[1], m.nodes[1]))
+
+
+def test_cut_single_node(m):
+    s = m.subsys_all
+    s.cut(m.nodes[0], (m.nodes[1], m.nodes[2]))
+    assert s._cut == a_cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+
+
+def test_cut(m):
+    s = m.subsys_all
+    s.cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+    assert s._cut == a_cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
