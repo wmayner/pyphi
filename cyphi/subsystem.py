@@ -3,20 +3,18 @@
 
 import numpy as np
 from itertools import chain
-from collections import namedtuple
+from collections import namedtuple, Iterable
 from .utils import (marginalize_out, emd, max_entropy_distribution, powerset,
-                    bipartition)
+                    bipartition, EPSILON)
 
 
 DEBUG = False
-
-
 def dprint(*args):
   if DEBUG:
     print(*args)
 
 
-# Lightweight containers for MIP and partition information
+# Lightweight containers for MICE, MIP, cut, and partition information
 # =============================================================================
 
 # Connections from 'severed' to 'intact' are cut
@@ -27,11 +25,6 @@ Part = namedtuple('Part', ['mechanism', 'purview'])
 Mice = namedtuple('Mice', ['direction', 'purview', 'mip', 'phi'])
 
 # =============================================================================
-
-# The number of decimal points to which phi values are considered accurate
-PRECISION = 6
-# The threshold below which we consider differences in phi values to be zero
-EPSILON = 10**-PRECISION
 
 
 # TODO? refactor the computational methods out of the class so they explicitly
@@ -106,11 +99,15 @@ class Subsystem:
 
     def cut(self, severed, intact):
         """Cuts connections from the first part to the second part."""
-        # Convert single nodes to singleton tuples
-        if not isinstance(severed, type(())):
+        # Convert single nodes to singleton tuples and iterables to tuples
+        if not isinstance(severed, Iterable):
             severed = (severed,)
-        if not isinstance(intact, type(())):
+        else:
+            severed = tuple(severed)
+        if not isinstance(intact, Iterable):
             intact = (intact,)
+        else:
+            intact = tuple(intact)
         # Validate
         if not (len(self.nodes) == len(severed + intact) and
                 set(self.nodes) == set(severed + intact)):
@@ -132,7 +129,7 @@ class Subsystem:
         :returns: The cause repertoire of the mechanism over a purview
         :rtype: ``np.ndarray``
         """
-        # --------------------------------------------------------
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # NOTE: In the Matlab version's terminology,
         #
         # "Cause repertoire" is "backward repertoire"
@@ -140,16 +137,16 @@ class Subsystem:
         # "Purview" is "denominator"
         # ``conditioned_tpm`` is ``next_num_node_distribution``
         # ``cjd`` is ``numerator_conditional_joint``
-        # --------------------------------------------------------
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
         # distribution.
-        if (len(mechanism) is 0):
+        if (len(mechanism) == 0):
             return max_entropy_distribution(purview, self.network)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
-        if (len(purview) is 0):
+        if (len(purview) == 0):
             return 1
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
@@ -235,7 +232,7 @@ class Subsystem:
         :returns: The effect repertoire of the mechanism over a purview
         :rtype: ``np.ndarray``
         """
-        # ---------------------------------------------------------
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # NOTE: In the Matlab version's terminology,
         #
         # "Effect repertoire" is "forward repertoire"
@@ -243,10 +240,10 @@ class Subsystem:
         # "Purview" is "denominator"
         # ``conditioned_tpm`` is ``next_denom_node_distribution``
         # ``accumulated_cjd`` is ``denom_conditional_joint``
-        # ---------------------------------------------------------
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
-        if (len(purview) is 0):
+        if (len(purview) == 0):
             return 1
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
@@ -283,7 +280,7 @@ class Subsystem:
             # TODO extend to nonbinary nodes
             # Allocate the TPM.
             tpm = np.zeros([2] * self.network.size +
-                           [2 if i is purview_node.index else 1 for i in
+                           [2 if i == purview_node.index else 1 for i in
                             range(self.network.size)])
             tpm_off_indices = [slice(None)] * self.network.size + \
                 [0] * self.network.size
@@ -361,13 +358,17 @@ class Subsystem:
         return accumulated_cjd
 
     def unconstrained_cause_repertoire(self, purview):
-        """Return the unconstrained cause repertoire for a purview."""
-        # This is just the cause repertoire in the absence of any mechanism.
+        """Return the unconstrained cause repertoire for a purview.
+
+        This is just the cause repertoire in the absence of any mechanism.
+        """
         return self.cause_repertoire([], purview)
 
     def unconstrained_effect_repertoire(self, purview):
-        """Return the unconstrained effect repertoire for a purview."""
-        # This is just the effect repertoire in the absence of any mechanism.
+        """Return the unconstrained effect repertoire for a purview.
+
+        This is just the effect repertoire in the absence of any mechanism.
+        """
         return self.effect_repertoire([], purview)
 
     # TODO test
@@ -428,8 +429,6 @@ class Subsystem:
                 # numerator and denominator), and exclude partitions whose
                 # numerator and denominator are both empty.
                 valid_partition = (
-                    set(numerators[0]) & set(denominators[0]) == set() and
-                    set(numerators[1]) & set(denominators[1]) == set() and
                     len(numerators[0]) + len(denominators[0]) > 0 and
                     len(numerators[1]) + len(denominators[1]) > 0)
                 if valid_partition:
@@ -459,9 +458,9 @@ class Subsystem:
         :returns: The minimum information partition.
         """
         # Choose cause or effect repertoire and validate
-        if direction is 'past':
+        if direction == 'past':
             get_repertoire = self.cause_repertoire
-        elif direction is 'future':
+        elif direction == 'future':
             get_repertoire = self.effect_repertoire
         else:
             raise ValueError("Direction must be either 'past' or 'future'.")
@@ -499,7 +498,7 @@ class Subsystem:
                 return None
             # Update MIP if it's more minimal or if mechanism is reducible
             # (i.e., phi is 0)
-            if (difference < difference_min):
+            if (difference_min - difference) > EPSILON:
                 difference_min = difference
                 mip = Mip(direction=direction,
                           partition=(part0, part1),
@@ -529,7 +528,11 @@ class Subsystem:
         This is the distance between the unpartitioned cause repertoire and the
         MIP cause repertoire.
         """
-        return self.mip_past(mechanism, purview).difference
+        mip = self.mip_past(mechanism, purview)
+        if mip:
+            return mip.difference
+        else:
+            return 0
 
     def phi_mip_future(self, mechanism, purview):
         """Return the |phi| value of the future minimum information partition.
@@ -537,7 +540,11 @@ class Subsystem:
         This is the distance between the unpartitioned effect repertoire and
         the MIP cause repertoire.
         """
-        return self.mip_future(mechanism, purview).difference
+        mip = self.mip_future(mechanism, purview)
+        if mip:
+            return mip.difference
+        else:
+            return 0
 
     def phi(self, mechanism, purview):
         """Return the integrated information, "small |phi|"."""
@@ -547,6 +554,7 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
+    # TODO include mechanism field in Mice
     def find_mice(self, direction, mechanism):
         """Return the maximally irreducible cause or effect for a mechanism.
 
@@ -561,7 +569,7 @@ class Subsystem:
             the core cause or effect purview and the |phi| value, respectively.
         """
         # Validate direction
-        if direction is not 'past' and direction is not 'future':
+        if direction != 'past' and direction != 'future':
             raise ValueError("Direction must be either 'past' or 'future'.")
 
         phi_max = float('-inf')
@@ -572,17 +580,22 @@ class Subsystem:
             mip = self.find_mip(direction, mechanism, purview)
             if mip:
                 phi = mip.difference
-                # Take the purview with higher phi, or if phi is equal, take the
-                # larger one
+                # Take the purview with higher phi, or if phi is equal, take
+                # the larger one (exclusion principle)
                 if phi > phi_max or (abs(phi - phi_max) < EPSILON and
                                      len(purview) > len(maximal_purview)):
                     mip_max = mip
                     phi_max = phi
                     maximal_purview = purview
-        return Mice(direction=direction,
-                    purview=maximal_purview,
-                    mip=mip_max,
-                    phi=phi_max)
+        # Don't return anything if this mechanism is not a concept (i.e. it is
+        # reducible)
+        if abs(0 - phi_max) < EPSILON:
+            return None
+        else:
+            return Mice(direction=direction,
+                        purview=maximal_purview,
+                        mip=mip_max,
+                        phi=phi_max)
 
     def core_cause(self, mechanism):
         """Returns the core cause repertoire of a mechanism."""

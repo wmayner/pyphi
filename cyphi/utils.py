@@ -11,12 +11,18 @@ by more than one class.
 
 import numpy as np
 from re import match
-from collections import namedtuple
+from collections import Iterable
 from itertools import chain, combinations
 from copy import copy
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd as _emd
+
+
+# The number of decimal points to which phi values are considered accurate
+PRECISION = 6
+# The threshold below which we consider differences in phi values to be zero
+EPSILON = 10**-PRECISION
 
 
 def cut(subsystem, cut):
@@ -30,31 +36,27 @@ def tuple_eq(a, b):
     """Return whether two tuples are equal, using ``np.array_equal`` for
     numpy arrays.
     """
+    result = True
     # Use numpy equality if both are numpy arrays
     if isinstance(a, type(np.array([]))) and isinstance(b, type(np.array([]))):
         return np.array_equal(a, b)
-
-    try:
-        # Shortcircuit if arguments are difference lengths
-        if len(a) != len(b):
-            return False
-    # Fall back to normal equality if we have a non-iterable argument
-    except TypeError:
-        return a == b
-
     # Otherwise iterate through and try normal equality, recursing if that
     # fails
-    result = True
-    for i in range(len(a)):
-        try:
-            if not a[i] == b[i]:
-                return False
-        except ValueError as e:
-            if (str(e) == "The truth value of an array with more than one " +
-                          "element is ambiguous. Use a.any() or a.all()"):
-                return tuple_eq(a[i], b[i])
-            else:
-                raise e
+    elif isinstance(a, Iterable) and isinstance(b, Iterable):
+        if len(a) != len(b):
+            return False
+        for i in range(len(a)):
+            try:
+                if not a[i] == b[i]:
+                    return False
+            except ValueError as e:
+                if (str(e) == "The truth value of an array with more than " +
+                        "one element is ambiguous. Use a.any() or a.all()"):
+                    return tuple_eq(a[i], b[i])
+                else:
+                    raise e
+    else:
+        return a == b
     return result
 
 
@@ -74,11 +76,11 @@ def combs(a, r):
     :rtype: ``np.ndarray``
     """
     # Special-case for 0-length combinations
-    if r is 0:
+    if r == 0:
         return np.asarray([])
 
     a = np.asarray(a)
-    data_type = a.dtype if r is 0 else np.dtype([('', a.dtype)] * r)
+    data_type = a.dtype if r == 0 else np.dtype([('', a.dtype)] * r)
     b = np.fromiter(combinations(a, r), data_type)
     return b.view(a.dtype).reshape(-1, r)
 
@@ -253,6 +255,19 @@ def bipartition(a):
                _bitstring_index(a, _flip(bitstring)))
 
 
+def mip_eq(a, b):
+    """Return whether two MIPs are equal.
+
+    Phi is compared up to ``PRECISION``.
+    """
+    if not a or not b:
+        return a == b
+    return ((a.partition == b.partition or
+             a.partition == (b.partition[1], b.partition[0]))
+            and (abs(a.difference - b.difference) < EPSILON)
+            and (np.array_equal(a.repertoire, b.repertoire)))
+
+
 # Internal helper methods
 # =============================================================================
 
@@ -336,9 +351,8 @@ def connectivity_matrix_to_tpm(connectivity_matrix):
     :type tpm: ``np.ndarray``
     """
     # Ensure connectivity matrix is square
-    if ((len(connectivity_matrix.shape) is not 2) or
-            (connectivity_matrix.shape[0] is not
-                connectivity_matrix.shape[1])):
+    if (len(connectivity_matrix.shape) != 2 or
+                connectivity_matrix.shape[0] != connectivity_matrix.shape[1]):
         raise ValueError("Connectivity matrix must be square.")
 
 

@@ -30,7 +30,7 @@ class Network:
         :type state: ``np.ndarray``
         """
         # Validate the TPM
-        if (tpm.shape[-1] is not len(tpm.shape) - 1):
+        if (tpm.shape[-1] != len(tpm.shape) - 1):
             raise ValueError(
                 """Invalid TPM: There must be a dimension for each node, each
                 one being the size of the corresponding node's state space,
@@ -53,10 +53,7 @@ class Network:
         self.size = tpm.shape[-1]
 
         # Validate the state
-        if (
-            current_state.size is not self.size or
-            past_state.size is not self.size
-        ):
+        if (current_state.size != self.size or past_state.size != self.size):
             raise ValueError(
                 "Invalid state: there must be one entry per node in " +
                 "the network; this state has " + str(current_state.size) +
