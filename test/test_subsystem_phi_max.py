@@ -74,6 +74,26 @@ def test_find_mice(m, direction, mechanism):
                     expected_mice[direction][mechanism])
 
 
+# Test input validation
+def test_find_mice_validation_bad_direction(m):
+    mechanism = (m.nodes[0])
+    with pytest.raises(ValueError):
+        m.subsys_all.find_mice('doge', mechanism)
+
+def test_find_mice_validation_nonnode(m):
+    with pytest.raises(ValueError):
+        m.subsys_all.find_mice('past', [0,1])
+
+def test_find_mice_validation_noniterable(m):
+    with pytest.raises(ValueError):
+        m.subsys_all.find_mice('past', 0)
+# }}}
+
+
+# `phi_max` tests {{{
+# ===================
+
+
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
 def test_core_cause_or_effect(m, direction, mechanism):
     if direction == 'past':
@@ -84,18 +104,6 @@ def test_core_cause_or_effect(m, direction, mechanism):
         raise ValueError("Direction must be 'past' or 'future'")
     assert tuple_eq(core_ce(mechanism), expected_mice[direction][mechanism])
 
-
-# Test input validation
-def test_find_mice_bad_direction(m):
-    mechanism = (m.nodes[0])
-    with pytest.raises(ValueError):
-        m.subsys_all.find_mice('doge', mechanism)
-
-# }}}
-
-
-# `phi_max` tests {{{
-# ===================
 
 phi_max_scenarios = [(mechanism, min(expected_mice['past'][mechanism].phi,
                                      expected_mice['future'][mechanism].phi))

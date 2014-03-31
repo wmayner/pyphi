@@ -345,4 +345,15 @@ def test_cause_and_effect_repertoire(capsys, m, s, function, network, subsystem,
     assert np.array_equal(result, expected)
 
 
+# Test validation
+def test_cause_and_effect_repertoire_validation(m):
+    s = m.subsys_all
+    with pytest.raises(ValueError):
+        s.cause_repertoire([0], [1])
+    with pytest.raises(ValueError):
+        s.effect_repertoire([0,1], [2])
+    with pytest.raises(ValueError):
+        s.effect_repertoire(0, [2])
+
+
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :

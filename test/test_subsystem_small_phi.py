@@ -232,7 +232,7 @@ def test_find_mip(m, direction, subsystem, cut, mechanism, purview, expected):
         assert mip_eq(result, expected)
 
 
-# Validation {{{
+# Test input validation {{{
 def test_find_mip_bad_direction(m):
     mechanism = [m.nodes[0]]
     purview = [m.nodes[0]]
@@ -271,12 +271,25 @@ def test_phi_mip_past(m):
             s.mip_past(mechanism, purview).difference)
 
 
+def test_phi_mip_past_reducible(m):
+    s = m.subsys_all
+    mechanism = [m.nodes[1]]
+    purview = [m.nodes[0]]
+    assert (0 == s.phi_mip_past(mechanism, purview))
+
+
 def test_phi_mip_future(m):
     s = m.subsys_all
     mechanism = m.nodes
     purview = m.nodes
     assert (s.phi_mip_future(mechanism, purview) ==
             s.mip_future(mechanism, purview).difference)
+
+def test_phi_mip_future_reducible(m):
+    s = m.subsys_all
+    mechanism = m.nodes[0:2]
+    purview = [m.nodes[1]]
+    assert (0 == s.phi_mip_future(mechanism, purview))
 
 
 def test_phi(m):

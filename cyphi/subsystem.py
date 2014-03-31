@@ -4,6 +4,7 @@
 import numpy as np
 from itertools import chain
 from collections import namedtuple, Iterable
+from .validate import Validate
 from .utils import (marginalize_out, emd, max_entropy_distribution, powerset,
                     bipartition, EPSILON)
 
@@ -138,7 +139,8 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_num_node_distribution``
         # ``cjd`` is ``numerator_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+        Validate.nodelist(mechanism, 'Mechanism')
+        Validate.nodelist(purview, 'Purview')
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
         # distribution.
@@ -241,6 +243,8 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_denom_node_distribution``
         # ``accumulated_cjd`` is ``denom_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        Validate.nodelist(mechanism, 'Mechanism')
+        Validate.nodelist(purview, 'Purview')
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if (len(purview) == 0):
@@ -457,13 +461,12 @@ class Subsystem:
         :type mechanism: ``[Node]``
         :returns: The minimum information partition.
         """
+        Validate.direction(direction)
         # Choose cause or effect repertoire and validate
         if direction == 'past':
             get_repertoire = self.cause_repertoire
         elif direction == 'future':
             get_repertoire = self.effect_repertoire
-        else:
-            raise ValueError("Direction must be either 'past' or 'future'.")
 
         # TODO? change ``difference`` to ``phi``
         # Use named tuples to hold the MIP information
@@ -568,10 +571,7 @@ class Subsystem:
         :returns: An object with attributes ``purview`` and ``phi``, containing
             the core cause or effect purview and the |phi| value, respectively.
         """
-        # Validate direction
-        if direction != 'past' and direction != 'future':
-            raise ValueError("Direction must be either 'past' or 'future'.")
-
+        mip_max = None
         phi_max = float('-inf')
         maximal_purview = None
         # Loop over all possible purviews in this candidate set and find the
