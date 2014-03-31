@@ -265,7 +265,10 @@ def mip_eq(a, b):
     return ((a.partition == b.partition or
              a.partition == (b.partition[1], b.partition[0]))
             and (abs(a.difference - b.difference) < EPSILON)
-            and (np.array_equal(a.repertoire, b.repertoire)))
+            and (np.array_equal(a.partitioned_repertoire,
+                                b.partitioned_repertoire))
+            and (np.array_equal(a.unpartitioned_repertoire,
+                                b.unpartitioned_repertoire)))
 
 
 # Internal helper methods

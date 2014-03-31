@@ -21,9 +21,10 @@ def dprint(*args):
 # Connections from 'severed' to 'intact' are cut
 Cut = namedtuple('Cut', ['severed', 'intact'])
 
-Mip = namedtuple('Mip', ['direction', 'partition', 'repertoire', 'difference'])
+Mip = namedtuple('Mip', ['direction', 'partition', 'unpartitioned_repertoire', 'partitioned_repertoire', 'difference'])
 Part = namedtuple('Part', ['mechanism', 'purview'])
-Mice = namedtuple('Mice', ['direction', 'purview', 'mip', 'phi'])
+Mice = namedtuple('Mice', ['direction', 'mechanism', 'purview', 'repertoire',
+                           'mip', 'phi'])
 
 # =============================================================================
 
@@ -76,12 +77,15 @@ class Subsystem:
     def __repr__(self):
         return "Subsystem(" + ", ".join([repr(self.nodes),
                                          repr(self.current_state),
-                                         repr(self.past_state)]) + ")"
+                                         repr(self.past_state),
+                                         repr(self._cut)]) + ")"
 
     def __str__(self):
-        return "Subsystem([" + str(list(map(str, self.nodes))) + "]" + \
-            ", " + str(self.current_state) + ", " + str(self.past_state) + \
-            ", " + str(self.network) + ")"
+        return "Subsystem([" + ", ".join([str(list(map(str, self.nodes))),
+                                          str(self.current_state),
+                                          str(self.past_state),
+                                          str(self.network),
+                                          str(self._cut)]) + ")"
 
     def __eq__(self, other):
         """Two subsystems are equal if their sets of nodes, current and past
@@ -505,7 +509,8 @@ class Subsystem:
                 difference_min = difference
                 mip = Mip(direction=direction,
                           partition=(part0, part1),
-                          repertoire=partitioned_repertoire,
+                          unpartitioned_repertoire=unpartitioned_repertoire,
+                          partitioned_repertoire=partitioned_repertoire,
                           difference=difference)
         return mip
 
@@ -590,7 +595,9 @@ class Subsystem:
         if phi_max == float('-inf'):
             phi_max = 0
         return Mice(direction=direction,
+                    mechanism=mechanism,
                     purview=maximal_purview,
+                    repertoire=mip_max.unpartitioned_repertoire,
                     mip=mip_max,
                     phi=phi_max)
 

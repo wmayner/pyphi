@@ -45,14 +45,15 @@ expected_mips = {
     } for direction in directions
 }
 expected_mice = {
-    direction: {
-        mechanism: Mice(
-            direction=direction,
-            purview=expected_purviews[direction][mechanism],
-            mip=expected_mips[direction][mechanism],
-            phi=expected_mips[direction][mechanism].difference)
+    direction: [
+        Mice(direction=direction,
+             mechanism=mechanism,
+             purview=expected_purviews[direction][mechanism],
+             repertoire=expected_mips[direction][mechanism].unpartitioned_repertoire,
+             mip=expected_mips[direction][mechanism],
+             phi=expected_mips[direction][mechanism].difference)
         for mechanism in expected_mips[direction].keys()
-    } for direction in directions
+    ] for direction in directions
 }
 
 # }}}
@@ -62,16 +63,16 @@ expected_mice = {
 # =====================
 
 mice_scenarios = [
-    [(direction, mechanism) for mechanism in expected_mice[direction].keys()]
+    [(direction, mice) for mice in expected_mice[direction]]
     for direction in directions
 ]
 mice_scenarios = chain(*mice_scenarios)
-mice_parameter_string = "direction,mechanism"
+mice_parameter_string = "direction,expected"
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
-def test_find_mice(m, direction, mechanism):
-    assert tuple_eq(subsystem.find_mice(direction, mechanism),
-                    expected_mice[direction][mechanism])
+def test_find_mice(m, direction, expected):
+    assert tuple_eq(subsystem.find_mice(direction, expected.mechanism),
+                    expected)
 
 
 # Test input validation
@@ -95,24 +96,25 @@ def test_find_mice_validation_noniterable(m):
 
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
-def test_core_cause_or_effect(m, direction, mechanism):
+def test_core_cause_or_effect(m, direction, expected):
     if direction == 'past':
         core_ce = subsystem.core_cause
     elif direction == 'future':
         core_ce = subsystem.core_effect
     else:
         raise ValueError("Direction must be 'past' or 'future'")
-    assert tuple_eq(core_ce(mechanism), expected_mice[direction][mechanism])
+    assert tuple_eq(core_ce(expected.mechanism), expected)
 
 
-phi_max_scenarios = [(mechanism, min(expected_mice['past'][mechanism].phi,
-                                     expected_mice['future'][mechanism].phi))
-                     for mechanism in expected_mice['past'].keys()]
+phi_max_scenarios = [
+    (past.mechanism, min(past.phi, future.phi))
+    for past, future in zip(expected_mice['past'], expected_mice['future'])
+]
 
 
-@pytest.mark.parametrize('mechanism,expected', phi_max_scenarios)
-def test_phi_max(m, expected, mechanism):
-    assert abs(m.subsys_all.phi_max(mechanism) - expected) < EPSILON
+@pytest.mark.parametrize('mechanism, expected_phi_max', phi_max_scenarios)
+def test_phi_max(m, expected_phi_max, mechanism):
+    assert abs(m.subsys_all.phi_max(mechanism) - expected_phi_max) < EPSILON
 
 # }}}
 

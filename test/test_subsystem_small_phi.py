@@ -57,6 +57,8 @@ scenarios = [
              Part(mechanism=(1,), purview=())):
                 np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
          },
+         'unpartitioned_repertoire':
+            np.array([1., 0.]).reshape(1, 1, 2),
          'phi': 0.5}
     ),
     # }}}
@@ -110,6 +112,8 @@ scenarios = [
                 np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(2,2,2,
                                                                      order="F"),
          },
+         'unpartitioned_repertoire':
+            np.array([0., 1., 0., 0., 0., 0., 0., 0.]).reshape(2, 2, 2),
          'phi': 0.5}
     ),
     # }}}
@@ -126,6 +130,8 @@ scenarios = [
              Part(mechanism=(2,), purview=())):
                 np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
          },
+         'unpartitioned_repertoire':
+            np.array([1., 0.]).reshape(1, 2, 1),
          'phi': 0.5}
     ), (
         'future',
@@ -137,6 +143,8 @@ scenarios = [
              Part(mechanism=(2,), purview=())):
                 np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
          },
+         'unpartitioned_repertoire':
+            np.array([0.5, 0.5]).reshape(2, 1, 1),
          'phi': 0.25}
     ), (
         'future',
@@ -162,6 +170,8 @@ scenarios = [
              Part(mechanism=(1, 2), purview=(0,))):
                 np.array([0.5, 0., 0.5, 0.]).reshape(2, 1, 2, order="F")
         },
+         'unpartitioned_repertoire':
+            np.array([0., 1., 0., 0.]).reshape(2, 1, 2),
         'phi': 0.5}
     ), (
         'future',
@@ -173,6 +183,8 @@ scenarios = [
              Part(mechanism=(1,), purview=())):
                 np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
          },
+         'unpartitioned_repertoire':
+            np.array([0.5, 0.5]).reshape(2, 1, 1),
          'phi': 0.25}
     )
     # }}}
@@ -212,9 +224,10 @@ def test_find_mip(m, direction, subsystem, cut, mechanism, purview, expected):
                          purview=tuple(m.nodes[i] for i in
                                        expected_partition[1].purview))
                 ),
-                repertoire=expected_repertoire,
+                unpartitioned_repertoire=expected['unpartitioned_repertoire'],
+                partitioned_repertoire=expected_partitioned_repertoire,
                 difference=expected['phi'])
-            for expected_partition, expected_repertoire
+            for expected_partition, expected_partitioned_repertoire
             in expected['partitions'].items()
         ]
 
