@@ -336,7 +336,7 @@ def test_cause_and_effect_repertoire(capsys, m, s, function, network, subsystem,
 
     print("Mechanism:", mechanism, "Purview:", purview, "", sep="\n\n")
 
-    if result is 1 or expected is 1:
+    if np.array_equal(result, 1) or np.array_equal(expected, 1):
         print("Result:", result, "Expected:", expected, "", sep="\n\n")
     else:
         print("Result:", result, "Shape:", result.shape, "expected:", expected,

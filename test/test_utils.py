@@ -14,13 +14,13 @@ def test_tuple_eq():
     a = nt(this=nt('consciousness', 'is phi'),
            that=np.arange(3))
     b = 1
-    assert utils.tuple_eq(a, b) is False
+    assert not utils.tuple_eq(a, b)
     b = np.arange(3)
-    assert utils.tuple_eq(a, b) is False
+    assert not utils.tuple_eq(a, b)
     b = (np.arange(3), np.arange(3))
-    assert utils.tuple_eq(a, b) is False
+    assert not utils.tuple_eq(a, b)
     b = a
-    assert utils.tuple_eq(a, b) is True
+    assert utils.tuple_eq(a, b)
 
 
 def test_marginalize_out(m):
