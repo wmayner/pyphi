@@ -587,15 +587,12 @@ class Subsystem:
                     mip_max = mip
                     phi_max = phi
                     maximal_purview = purview
-        # Don't return anything if this mechanism is not a concept (i.e. it is
-        # reducible)
-        if abs(0 - phi_max) < EPSILON:
-            return None
-        else:
-            return Mice(direction=direction,
-                        purview=maximal_purview,
-                        mip=mip_max,
-                        phi=phi_max)
+        if phi_max == float('-inf'):
+            phi_max = 0
+        return Mice(direction=direction,
+                    purview=maximal_purview,
+                    mip=mip_max,
+                    phi=phi_max)
 
     def core_cause(self, mechanism):
         """Returns the core cause repertoire of a mechanism."""
