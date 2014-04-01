@@ -4,7 +4,8 @@
 import pytest
 from itertools import chain
 from cyphi.utils import tuple_eq
-from cyphi.subsystem import Mice, EPSILON
+from cyphi.subsystem import Mice
+from cyphi import constants
 from .example_networks import m
 
 
@@ -49,10 +50,10 @@ expected_mice = {
         Mice(direction=direction,
              mechanism=mechanism,
              purview=expected_purviews[direction][mechanism],
-             repertoire=expected_mips[direction][mechanism].unpartitioned_repertoire,
-             mip=expected_mips[direction][mechanism],
-             phi=expected_mips[direction][mechanism].difference)
-        for mechanism in expected_mips[direction].keys()
+             repertoire=mip.unpartitioned_repertoire,
+             mip=mip,
+             phi=mip.difference)
+        for mechanism, mip in expected_mips[direction].items()
     ] for direction in directions
 }
 
@@ -74,6 +75,19 @@ def test_find_mice(m, direction, expected):
     assert tuple_eq(subsystem.find_mice(direction, expected.mechanism),
                     expected)
 
+def test_find_mice_empty(m):
+    expected = [
+        Mice(direction=direction,
+             mechanism=(),
+             purview=None,
+             repertoire=None,
+             mip=None,
+             phi=0)
+    for direction in directions]
+    assert all(
+        tuple_eq(m.subsys_all.find_mice(mice.direction, mice.mechanism),
+                 mice)
+        for mice in expected)
 
 # Test input validation
 def test_find_mice_validation_bad_direction(m):
@@ -114,7 +128,7 @@ phi_max_scenarios = [
 
 @pytest.mark.parametrize('mechanism, expected_phi_max', phi_max_scenarios)
 def test_phi_max(m, expected_phi_max, mechanism):
-    assert abs(m.subsys_all.phi_max(mechanism) - expected_phi_max) < EPSILON
+    assert abs(m.subsys_all.phi_max(mechanism) - expected_phi_max) < constants.EPSILON
 
 # }}}
 
