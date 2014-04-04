@@ -205,7 +205,7 @@ def max_entropy_distribution(nodes, network):
 # TODO ensure that we really don't need to keep track of the states for the
 #      correct hamming distance... are we really only comparing the same
 #      purviews?
-def emd(d1, d2):
+def hamming_emd(d1, d2):
     """Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node).
 
@@ -216,7 +216,7 @@ def emd(d1, d2):
     d1, d2 = d1.squeeze(), d2.squeeze()
     # Compute the EMD with Hamming distance between states as the
     # transportation cost function
-    return _emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
+    return emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
 
 
 # TODO? [optimization] optimize this to use indices rather than nodes
@@ -253,7 +253,7 @@ def bipartition(a):
 def mip_eq(a, b):
     """Return whether two MIPs are equal.
 
-    Phi is compared up to ``PRECISION``.
+    Phi is compared up to ``constants.PRECISION``.
     """
     if not a or not b:
         return a == b

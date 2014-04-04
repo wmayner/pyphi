@@ -395,13 +395,13 @@ class Subsystem:
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
-        return emd(self.cause_repertoire(mechanism, purview),
-                   self.unconstrained_cause_repertoire(purview))
+        return hamming_emd(self.cause_repertoire(mechanism, purview),
+                           self.unconstrained_cause_repertoire(purview))
 
     def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
-        return emd(self.effect_repertoire(mechanism, purview),
-                   self.unconstrained_effect_repertoire(purview))
+        return hamming_emd(self.effect_repertoire(mechanism, purview),
+                           self.unconstrained_effect_repertoire(purview))
 
     def cause_effect_info(self, mechanism, purview):
         """Return the cause-effect information for a mechanism over a
@@ -476,17 +476,8 @@ class Subsystem:
                                                      part0.purview) *
                                       get_repertoire(part1.mechanism,
                                                      part1.purview))
-            difference = emd(unpartitioned_repertoire, partitioned_repertoire)
-
-            dprint('\n')
-            dprint('one iteration of mip_bipartition'.center(80,'~'))
-            dprint('\nUnpartitioned repertoire:', unpartitioned_repertoire)
-            dprint('\nPartitioned repertoire:', partitioned_repertoire)
-            dprint('\npart0:', part0.mechanism, '/', part0.purview)
-            dprint('part1:', part1.mechanism, '/', part1.purview)
-            dprint('\nphi:',difference)
-            dprint(''.center(80,'-'))
-
+            difference = hamming_emd(unpartitioned_repertoire,
+                                     partitioned_repertoire)
             # Return immediately if mechanism is reducible
             if difference < constants.EPSILON:
                 return None
