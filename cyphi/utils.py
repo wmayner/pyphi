@@ -20,13 +20,6 @@ from pyemd import emd
 from .constants import PAST, FUTURE, EPSILON
 
 
-def cut(subsystem, cut):
-    """Returns a copy of the subsystem with given cut applied."""
-    cut_subsystem = copy(subsystem)
-    cut_subsystem.cut(cut)
-    return cut_subsystem
-
-
 def tuple_eq(a, b):
     """Return whether two tuples are equal, using ``np.array_equal`` for
     numpy arrays.

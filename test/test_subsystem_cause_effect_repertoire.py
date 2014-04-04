@@ -3,7 +3,7 @@
 
 import pytest
 import numpy as np
-from cyphi.utils import cut
+from cyphi.models import Cut
 
 
 # Test scenario structure
@@ -327,11 +327,10 @@ def test_cause_and_effect_repertoire(capsys, m, s, function, network, subsystem,
             intact = (intact,)
         severed = tuple(network.nodes[index] for index in severed)
         intact = tuple(network.nodes[index] for index in intact)
-        # Cut the subsystem
-        subsystem.cut((severed, intact))
+        cut = Cut(severed, intact)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    result = compute_repertoire(mechanism, purview)
+    result = compute_repertoire(mechanism, purview, cut)
 
     print("Mechanism:", mechanism, "Purview:", purview, "", sep="\n\n")
 

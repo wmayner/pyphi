@@ -12,7 +12,8 @@ from collections import namedtuple
 from . import utils
 
 
-# Connections from 'severed' to 'intact' are cut
+# Connections from the 'severed' set to the 'intact' set are severed, while
+# those from 'intact' to 'severed' are left intact
 Cut = namedtuple('Cut', ['severed', 'intact'])
 
 
