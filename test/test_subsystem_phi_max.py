@@ -3,9 +3,9 @@
 
 import pytest
 from itertools import chain
-from cyphi.utils import tuple_eq
-from cyphi.subsystem import Mice
 from cyphi import constants
+from cyphi.utils import tuple_eq
+from cyphi.models import Mice
 from .example_networks import m
 
 

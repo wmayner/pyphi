@@ -4,29 +4,20 @@
 import numpy as np
 from itertools import chain
 from collections import namedtuple, Iterable
-from .validate import Validate
-from .utils import (marginalize_out, emd, max_entropy_distribution, powerset,
-                    bipartition, EPSILON)
+from joblib import Parallel, delayed
+from . import constants
+from . import validate
+# TODO use namespaces more (honking great idea, etc.)
+from .utils import (marginalize_out, emd, hamming_emd, max_entropy_distribution, powerset,
+                    bipartition)
+from .models import Cut, Mip, Part, Mice, Concept, BigMip
 
 
+# TODO remove
 DEBUG = False
 def dprint(*args):
   if DEBUG:
     print(*args)
-
-
-# Lightweight containers for MICE, MIP, cut, and partition information
-# =============================================================================
-
-# Connections from 'severed' to 'intact' are cut
-Cut = namedtuple('Cut', ['severed', 'intact'])
-
-Mip = namedtuple('Mip', ['direction', 'partition', 'unpartitioned_repertoire', 'partitioned_repertoire', 'difference'])
-Part = namedtuple('Part', ['mechanism', 'purview'])
-Mice = namedtuple('Mice', ['direction', 'mechanism', 'purview', 'repertoire',
-                           'mip', 'phi'])
-
-# =============================================================================
 
 
 # TODO? refactor the computational methods out of the class so they explicitly

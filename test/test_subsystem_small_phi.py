@@ -5,9 +5,7 @@ import pytest
 from pprint import pprint
 import numpy as np
 from cyphi.utils import tuple_eq, mip_eq
-import cyphi.subsystem as subsystem
-Mip = subsystem.Mip
-Part = subsystem.Part
+from cyphi.models import Mip, Part
 
 
 # `find_mip` tests {{{
