@@ -603,3 +603,164 @@ class Subsystem:
         """Return the |phi_max| of a mechanism."""
         return min(self.core_cause(mechanism).phi,
                    self.core_effect(mechanism).phi)
+
+    # Big Phi methods
+    # =========================================================================
+
+    # TODO add `concept-space` section to the docs:
+        # The first dimension corresponds to the direction, past or future; the
+        # correspond to the subsystem's state space."""
+    def null_concept(self):
+        """Return the null concept of this subsystem, a point in concept space
+        identified with the unconstrained cause and effect repertoire of this
+        subsystem.
+
+        For information on the indices used in the returned array, see
+        :ref:concept-space."""
+        return Concept(
+            mechanism=(),
+            location=np.array([self.unconstrained_cause_repertoire(self.nodes),
+                               self.unconstrained_effect_repertoire(self.nodes)]),
+            size=0,
+            cause=None,
+            effect=None)
+
+    def concept(self, mechanism):
+        """Returns the concept specified by a mechanism"""
+        past_mice = self.core_cause(mechanism)
+        future_mice = self.core_cause(mechanism)
+        phi = min(past_mice.phi, future_mice.phi)
+        if phi <= 0:
+            return None
+        return Concept(
+            mechanism=mechanism,
+            location=np.array([
+                self.expand_cause_repertoire(past_mice.mechanism,
+                                             past_mice.purview,
+                                             past_mice.repertoire),
+                self.expand_effect_repertoire(future_mice.mechanism,
+                                              future_mice.purview,
+                                              future_mice.repertoire)]),
+            size=phi,
+            cause=past_mice,
+            effect=future_mice)
+
+    def constellation(self):
+        """Return the conceptual structure of this subsystem."""
+        return [concept for concept in [self.concept(mechanism) for mechanism
+                                        in powerset(self.nodes)] if concept]
+
+    @staticmethod
+    def concept_distance(c1, c2):
+        """Return the distance between two concepts in concept-space."""
+        return sum([hamming_emd(c1.location[constants.PAST],
+                                c2.location[constants.PAST]),
+                    hamming_emd(c1.location[constants.FUTURE],
+                                c2.location[constants.FUTURE])])
+
+    def _constellation_distance_simple(self, C1, C2, null_concept):
+        """Return the distance between two constellations in concept-space,
+        assuming the only difference between them is that some concepts have
+        disappeared."""
+        # Make C1 refer to the bigger constellation
+        if len(C2) > len(C1):
+            C1, C2 = C2, C1
+        destroyed = [c for c in C1 if c not in C2]
+        return sum(c.size * self.concept_distance(c, null_concept)
+                   for c in destroyed)
+
+    def _constellation_distance_emd(self, C1, C2, unique_C1,
+                                    unique_C2, null_concept):
+        """Return the distance between two constellations in concept-space,
+        using the generalized EMD."""
+        shared_concepts = [c for c in C1 if c in C2]
+        # Construct null concept and list of all unique concepts.
+        all_concepts = shared_concepts + unique_C1 + unique_C2 + [null_concept]
+        # Construct the two phi distributions.
+        d1, d2 = [[c.size if c in constellation else 0 for c in all_concepts]
+                  for constellation in (C1, C2)]
+        # Calculate how much phi disappeared and assign it to the null concept
+        # (the null concept is the last element in the distribution).
+        residual = sum(d1) - sum(d2)
+        if residual > 0:
+            d2[-1] = residual
+        if residual < 0:
+            d1[-1] = residual
+        # Generate the ground distance matrix.
+        distance_matrix = np.array([
+            [self.concept_distance(i, j) for i in all_concepts] for j in
+            all_concepts])
+
+        return emd(np.array(d1), np.array(d2), distance_matrix)
+
+    def constellation_distance(self, C1, C2):
+        """Return the distance between two constellations in concept-space."""
+        null_concept = self.null_concept()
+        concepts_only_in_C1 = [c for c in C1 if c not in C2]
+        concepts_only_in_C2 = [c for c in C2 if c not in C1]
+        # If the only difference in the constellations is that some concepts
+        # disappeared, then we don't need to use the EMD
+        if not concepts_only_in_C1 or not concepts_only_in_C2:
+            return self._constellation_distance_simple(C1, C2, null_concept)
+        else:
+            return self._constellation_distance_emd(C1, C2,
+                                                    concepts_only_in_C1,
+                                                    concepts_only_in_C2,
+                                                    null_concept)
+
+    def conceptual_information(self):
+        return constellation_distance(self.constellation, [])
+
+    def big_mip(self):
+        """Return the MIP for this subsystem."""
+        # Store the current cut
+        initial_partition = self._cut
+        # Repair the system if it was cut (the null cut leaves the system
+        # intact)
+        self.cut([(), self.nodes])
+        # Calculate the unpartitioned constellation
+        unpartitioned_constellation = self.constellation()
+        # The first bipartition is the null cut, so skip it
+        bipartitions = list(bipartition(self.nodes))[1:]
+        # Loop over all partitions
+        mips_candidates = Parallel(n_jobs=8)(
+            delayed(_evaluate_cut)(self, partition) for partition in
+            bipartitions)
+        # Restore initial cut
+        self.cut(initial_partition)
+        # Return minimal MIP candidate
+        return min(mips_candidates)
+
+
+
+# TODO refactor this to somewhere sensible; it can't be a class method because
+# those can't be pickled.
+def _evaluate_cut(subsystem, partition):
+    # Cut connections from part 1 to part 2
+    subsystem.cut(partition)
+    forward_constellation = subsystem.constellation()
+    forward_phi = subsystem.constellation_distance(
+        unpartitioned_constellation, forward_constellation)
+    # Cut connections from part 2 to part 1
+    subsystem.cut(partition[::-1])
+    backward_constellation = subsystem.constellation()
+    backward_phi = subsystem.constellation_distance(
+        unpartitioned_constellation, backward_constellation)
+
+    dprint('partition:', partition, 'forward_phi', forward_phi,
+            'backward_phi:', backward_phi, sep='\n')
+
+    # Choose minimal unidirectional cut
+    if forward_phi <= backward_phi:
+        min_partition = partition
+        min_constellation = forward_constellation
+        phi = forward_phi
+    else:
+        min_partition = partition[::-1]
+        min_constellation = backward_constellation
+        phi = backward_phi
+
+    if phi < constants.EPSILON:
+        return None
+
+    return(partition, forward_constellation, forward_phi)
