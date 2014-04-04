@@ -134,8 +134,8 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_num_node_distribution``
         # ``cjd`` is ``numerator_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        Validate.nodelist(mechanism, 'Mechanism')
-        Validate.nodelist(purview, 'Purview')
+        validate.nodelist(mechanism, 'Mechanism')
+        validate.nodelist(purview, 'Purview')
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
         # distribution.
@@ -238,8 +238,8 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_denom_node_distribution``
         # ``accumulated_cjd`` is ``denom_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        Validate.nodelist(mechanism, 'Mechanism')
-        Validate.nodelist(purview, 'Purview')
+        validate.nodelist(mechanism, 'Mechanism')
+        validate.nodelist(purview, 'Purview')
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if (len(purview) == 0):
@@ -456,12 +456,8 @@ class Subsystem:
         :type mechanism: ``[Node]``
         :returns: The minimum information partition.
         """
-        Validate.direction(direction)
-        # Choose cause or effect repertoire and validate
-        if direction == 'past':
-            get_repertoire = self.cause_repertoire
-        elif direction == 'future':
-            get_repertoire = self.effect_repertoire
+        validate.direction(direction)
+        repertoire = self._get_repertoire(direction)
 
         # TODO? change ``difference`` to ``phi``
         # Use named tuples to hold the MIP information

@@ -2,19 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from cyphi.validate import Validate
+from cyphi import validate
 
 
 def test_validate_nodelist_noniterable():
     with pytest.raises(ValueError):
-        Validate.nodelist(2, "it's a doge")
+        validate.nodelist(2, "it's a doge")
 
 
 def test_validate_nodelist_nonnode():
     with pytest.raises(ValueError):
-        Validate.nodelist([0, 1, 2], 'invest in dogecoin!')
+        validate.nodelist([0, 1, 2], 'invest in dogecoin!')
 
 
 def test_validate_direction():
     with pytest.raises(ValueError):
-        Validate.direction("dogeeeee")
+        validate.direction("dogeeeee")
