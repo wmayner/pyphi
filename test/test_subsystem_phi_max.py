@@ -60,7 +60,7 @@ expected_mice = {
 # }}}
 
 
-# `find_mice` tests {{{
+# `_find_mice` tests {{{
 # =====================
 
 mice_scenarios = [
@@ -72,7 +72,7 @@ mice_parameter_string = "direction,expected"
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
 def test_find_mice(m, direction, expected):
-    assert tuple_eq(subsystem.find_mice(direction, expected.mechanism),
+    assert tuple_eq(subsystem._find_mice(direction, expected.mechanism),
                     expected)
 
 def test_find_mice_empty(m):
@@ -85,7 +85,7 @@ def test_find_mice_empty(m):
              phi=0)
     for direction in directions]
     assert all(
-        tuple_eq(m.subsys_all.find_mice(mice.direction, mice.mechanism),
+        tuple_eq(m.subsys_all._find_mice(mice.direction, mice.mechanism),
                  mice)
         for mice in expected)
 
@@ -93,15 +93,15 @@ def test_find_mice_empty(m):
 def test_find_mice_validation_bad_direction(m):
     mechanism = (m.nodes[0])
     with pytest.raises(ValueError):
-        m.subsys_all.find_mice('doge', mechanism)
+        m.subsys_all._find_mice('doge', mechanism)
 
 def test_find_mice_validation_nonnode(m):
     with pytest.raises(ValueError):
-        m.subsys_all.find_mice('past', [0,1])
+        m.subsys_all._find_mice('past', [0,1])
 
 def test_find_mice_validation_noniterable(m):
     with pytest.raises(ValueError):
-        m.subsys_all.find_mice('past', 0)
+        m.subsys_all._find_mice('past', 0)
 # }}}
 
 

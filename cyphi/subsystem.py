@@ -548,8 +548,8 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    # TODO include mechanism field in Mice
-    def find_mice(self, direction, mechanism):
+    # TODO update docs
+    def _find_mice(self, direction, mechanism):
         """Return the maximally irreducible cause or effect for a mechanism.
 
         .. note:: Strictly speaking, the MICE is a pair of repertoires: the
@@ -589,11 +589,11 @@ class Subsystem:
 
     def core_cause(self, mechanism):
         """Returns the core cause repertoire of a mechanism."""
-        return self.find_mice('past', mechanism)
+        return self._find_mice('past', mechanism)
 
     def core_effect(self, mechanism):
         """Returns the core effect repertoire of a mechanism."""
-        return self.find_mice('future', mechanism)
+        return self._find_mice('future', mechanism)
 
     def phi_max(self, mechanism):
         """Return the |phi_max| of a mechanism."""
