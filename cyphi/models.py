@@ -8,8 +8,15 @@ Models
 Lightweight containers for MICE, MIP, cut, partition, and concept data.
 """
 
-from collections import namedtuple
-from . import utils
+from collections import namedtuple, Iterable
+
+
+# Equality method that uses np.array_equal when needed
+def tuple_eq(a, b):
+    if (not (isinstance(a, str) or isinstance(b, str)) and
+            isinstance(a, Iterable) and isinstance(b, Iterable)):
+        return all(tuple_eq(x, y) for x, y in zip(a,b))
+    return a == b
 
 
 # Connections from the 'severed' set to the 'intact' set are severed, while
@@ -21,7 +28,6 @@ Part = namedtuple('Part', ['mechanism', 'purview'])
 
 
 # TODO refactor to use __eq__ comparison rather than directly using tuple_eq
-# TODO refactor `difference` to `phi`
 Mip = namedtuple('Mip', ['direction', 'partition', 'unpartitioned_repertoire',
                          'partitioned_repertoire', 'difference'])
 
@@ -42,7 +48,7 @@ Concept = namedtuple('Concept', ['mechanism', 'location', 'size', 'cause',
 
 
 # Use tuple_eq to compare namedtuples with numpy arrays in them
-Concept.__eq__, Mip.__eq__, Mice.__eq__ = [utils.tuple_eq] * 3
+Concept.__eq__, Mip.__eq__, Mice.__eq__ = [tuple_eq] * 3
 
 
 BigMip = namedtuple('BigMip', ['phi', 'partition',

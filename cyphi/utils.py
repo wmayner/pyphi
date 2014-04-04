@@ -20,34 +20,6 @@ from pyemd import emd
 from .constants import PAST, FUTURE, EPSILON
 
 
-def tuple_eq(a, b):
-    """Return whether two tuples are equal, using ``np.array_equal`` for
-    numpy arrays.
-    """
-    result = True
-    # Use numpy equality if both are numpy arrays
-    if isinstance(a, type(np.array([]))) and isinstance(b, type(np.array([]))):
-        return np.array_equal(a, b)
-    # Otherwise iterate through and try normal equality, recursing if that
-    # fails
-    elif isinstance(a, Iterable) and isinstance(b, Iterable):
-        if len(a) != len(b):
-            return False
-        for i in range(len(a)):
-            try:
-                if not a[i] == b[i]:
-                    return False
-            except ValueError as e:
-                if (str(e) == "The truth value of an array with more than " +
-                        "one element is ambiguous. Use a.any() or a.all()"):
-                    return tuple_eq(a[i], b[i])
-                else:
-                    raise e
-    else:
-        return a == b
-    return result
-
-
 # see http://stackoverflow.com/questions/16003217
 def combs(a, r):
     """

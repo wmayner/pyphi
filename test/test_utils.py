@@ -3,24 +3,9 @@
 
 import pytest
 import numpy as np
-from collections import namedtuple
 import cyphi.utils as utils
 import cyphi
 from cyphi.network import Network
-
-
-def test_tuple_eq():
-    nt = namedtuple('nt', ['this', 'that'])
-    a = nt(this=nt('consciousness', 'is phi'),
-           that=np.arange(3))
-    b = 1
-    assert not utils.tuple_eq(a, b)
-    b = np.arange(3)
-    assert not utils.tuple_eq(a, b)
-    b = (np.arange(3), np.arange(3))
-    assert not utils.tuple_eq(a, b)
-    b = a
-    assert utils.tuple_eq(a, b)
 
 
 def test_marginalize_out(m):
