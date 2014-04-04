@@ -359,19 +359,33 @@ class Subsystem:
         # whole comparisons are only ever done over the same purview.
         return accumulated_cjd
 
+    def _get_repertoire(self, direction):
+        """Returns the cause or effect repertoire function based on a
+        direction."""
+        if direction == 'past':
+            return self.cause_repertoire
+        elif direction == 'future':
+            return self.effect_repertoire
+
+    def _unconstrained_repertoire(self, direction, purview):
+        """Return the unconstrained cause or effect repertoire over a
+        purview."""
+        return self._get_repertoire(direction)([], purview)
+
+
     def unconstrained_cause_repertoire(self, purview):
         """Return the unconstrained cause repertoire for a purview.
 
         This is just the cause repertoire in the absence of any mechanism.
         """
-        return self.cause_repertoire([], purview)
+        return self._unconstrained_repertoire('past', purview)
 
     def unconstrained_effect_repertoire(self, purview):
         """Return the unconstrained effect repertoire for a purview.
 
         This is just the effect repertoire in the absence of any mechanism.
         """
-        return self.effect_repertoire([], purview)
+        return self._unconstrained_repertoire('future', purview)
 
     # TODO test
     def full_cause_repertoire(self, mechanism, purview):
@@ -463,22 +477,21 @@ class Subsystem:
         repertoire = self._get_repertoire(direction)
 
         # TODO? change ``difference`` to ``phi``
-        # Use named tuples to hold the MIP information
         mip = None
+        difference_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones
-        unpartitioned_repertoire = get_repertoire(mechanism, purview)
-        difference_min = float('inf')
+        unpartitioned_repertoire = repertoire(mechanism, purview)
 
         # Loop over possible MIP bipartitions
         for part0, part1 in self.mip_bipartition(mechanism, purview):
             # Find the distance between the unpartitioned repertoire and
             # the product of the repertoires of the two parts, e.g.
             #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
-            partitioned_repertoire = (get_repertoire(part0.mechanism,
-                                                     part0.purview) *
-                                      get_repertoire(part1.mechanism,
-                                                     part1.purview))
+            partitioned_repertoire = (repertoire(part0.mechanism,
+                                                 part0.purview) *
+                                      repertoire(part1.mechanism,
+                                                 part1.purview))
             difference = hamming_emd(unpartitioned_repertoire,
                                      partitioned_repertoire)
             # Return immediately if mechanism is reducible
@@ -550,8 +563,8 @@ class Subsystem:
             core cause repertoire and core effect repertoire of a mechanism,
             which are maximally different than the unconstrained cause/effect
             repertoires (*i.e.*, those that maximize |phi|). Here, we return
-            the purview over which the core cause or effect repertoire is
-            taken rather than the repertoire itself.
+            only information corresponding to one direction, ``'past'`` or
+            ``'future'``.
 
         :returns: An object with attributes ``purview`` and ``phi``, containing
             the core cause or effect purview and the |phi| value, respectively.
