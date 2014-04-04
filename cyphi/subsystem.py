@@ -572,6 +572,7 @@ class Subsystem:
         mip_max = None
         phi_max = float('-inf')
         maximal_purview = None
+        maximal_repertoire = None
         # Loop over all possible purviews in this candidate set and find the
         # purview over which phi is maximal.
         for purview in powerset(self.nodes):
@@ -585,12 +586,13 @@ class Subsystem:
                     mip_max = mip
                     phi_max = phi
                     maximal_purview = purview
+                    maximal_repertoire = mip.unpartitioned_repertoire
         if phi_max == float('-inf'):
             phi_max = 0
         return Mice(direction=direction,
                     mechanism=mechanism,
                     purview=maximal_purview,
-                    repertoire=mip_max.unpartitioned_repertoire,
+                    repertoire=maximal_repertoire,
                     mip=mip_max,
                     phi=phi_max)
 
