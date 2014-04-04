@@ -26,3 +26,12 @@ from .node import Node
 from .network import Network
 from .subsystem import Subsystem
 from . import utils
+from . import constants
+
+# TODO Optimizations:
+# - Memoization
+# - Preallocation
+# - Vectorization
+# - Cythonize the hotspots
+# - Use generators instead of list comprehensions where possible for memory
+#   efficiency
