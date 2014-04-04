@@ -11,24 +11,25 @@ nt_attributes = ['this', 'that', 'phi']
 nt = namedtuple('nt', nt_attributes)
 a = nt(this=nt('consciousness', 'is phi'), that=np.arange(3), phi=0.5)
 
+
 def test_numpy_aware_eq_noniterable():
     b = 1
-    assert not models.numpy_aware_eq(a, b)
+    assert not models._numpy_aware_eq(a, b)
 
 
 def test_numpy_aware_eq_nparray():
     b = np.arange(3)
-    assert not models.numpy_aware_eq(a, b)
+    assert not models._numpy_aware_eq(a, b)
 
 
 def test_numpy_aware_eq_tuple_nparrays():
     b = (np.arange(3), np.arange(3))
-    assert not models.numpy_aware_eq(a, b)
+    assert not models._numpy_aware_eq(a, b)
 
 
 def test_numpy_aware_eq_identical():
     b = a
-    assert models.numpy_aware_eq(a, b)
+    assert models._numpy_aware_eq(a, b)
 
 
 def test_general_eq_different_attributes():
@@ -36,16 +37,20 @@ def test_general_eq_different_attributes():
     b = similar_nt(this=nt('consciousness', 'is phi'),
                    that=np.arange(3),
                    supbro="nothin' much")
-    assert models.general_eq(a, b, nt_attributes)
+    assert models._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_true():
     b = deepcopy(a)
     b.phi = 0.4999999999999
-    assert models.general_eq(a, b, nt_attributes)
+    assert models._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_false():
     b = deepcopy(a)
     b.phi = 0.4999
-    assert not models.general_eq(a, b, nt_attributes)
+    assert not models._general_eq(a, b, nt_attributes)
+
+
+def test_phi_ordering():
+    pass

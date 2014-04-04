@@ -583,6 +583,7 @@ class Subsystem:
         return min(self.core_cause(mechanism).phi,
                    self.core_effect(mechanism).phi)
 
+    # TODO! factor these out to compute.py
     # Big Phi methods
     # =========================================================================
 
@@ -600,7 +601,7 @@ class Subsystem:
             mechanism=(),
             location=np.array([self.unconstrained_cause_repertoire(self.nodes, cut),
                                self.unconstrained_effect_repertoire(self.nodes, cut)]),
-            size=0,
+            phi=0,
             cause=None,
             effect=None)
 
@@ -622,7 +623,7 @@ class Subsystem:
                                               future_mice.purview,
                                               future_mice.repertoire,
                                               cut)]),
-            size=phi,
+            phi=phi,
             cause=past_mice,
             effect=future_mice)
 
@@ -647,7 +648,7 @@ class Subsystem:
         if len(C2) > len(C1):
             C1, C2 = C2, C1
         destroyed = [c for c in C1 if c not in C2]
-        return sum(c.size * self.concept_distance(c, null_concept)
+        return sum(c.phi * self.concept_distance(c, null_concept)
                    for c in destroyed)
 
     def _constellation_distance_emd(self, C1, C2, unique_C1,
@@ -658,7 +659,7 @@ class Subsystem:
         # Construct null concept and list of all unique concepts.
         all_concepts = shared_concepts + unique_C1 + unique_C2 + [null_concept]
         # Construct the two phi distributions.
-        d1, d2 = [[c.size if c in constellation else 0 for c in all_concepts]
+        d1, d2 = [[c.phi if c in constellation else 0 for c in all_concepts]
                   for constellation in (C1, C2)]
         # Calculate how much phi disappeared and assign it to the null concept
         # (the null concept is the last element in the distribution).
@@ -699,17 +700,18 @@ class Subsystem:
         # The first bipartition is the null cut, so skip it
         bipartitions = list(bipartition(self.nodes))[1:]
         # Loop over all partitions
-        mips_candidates = Parallel(n_jobs=8)(
-            delayed(_evaluate_cut)(self, partition) for partition in
-            bipartitions)
+        mip_candidates = Parallel(n_jobs=8)(
+            delayed(_evaluate_cut)(self, partition,
+                                   unpartitioned_constellation)
+            for partition in bipartitions)
         # Return minimal MIP candidate
-        return min(mips_candidates)
+        return min(mip_candidates) if any(mip_candidates) else None
 
 
 
 # TODO refactor this to somewhere sensible; it can't be a class method because
 # those can't be pickled.
-def _evaluate_cut(subsystem, cut):
+def _evaluate_cut(subsystem, cut, unpartitioned_constellation):
     # Cut connections from part 1 to part 2
     forward_constellation = subsystem.constellation(cut)
     forward_phi = subsystem.constellation_distance(
@@ -719,16 +721,16 @@ def _evaluate_cut(subsystem, cut):
     backward_phi = subsystem.constellation_distance(
         unpartitioned_constellation, backward_constellation)
 
-    dprint('partition:', partition, 'forward_phi', forward_phi,
+    print('cut:', cut, 'forward_phi', forward_phi,
             'backward_phi:', backward_phi, sep='\n')
 
     # Choose minimal unidirectional cut
     if forward_phi <= backward_phi:
-        min_partition = partition
+        min_cut = cut
         min_constellation = forward_constellation
         phi = forward_phi
     else:
-        min_partition = partition[::-1]
+        min_cut = cut[::-1]
         min_constellation = backward_constellation
         phi = backward_phi
 

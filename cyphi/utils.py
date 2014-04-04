@@ -11,13 +11,16 @@ by more than one class.
 
 import numpy as np
 from re import match
-from collections import Iterable
 from itertools import chain, combinations
-from copy import copy
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
-from .constants import PAST, FUTURE, EPSILON
+from . import constants
+
+
+def phi_eq(x, y):
+    """Compare two phi values up to ``constants.PRECISION``."""
+    return abs(x - y) < constants.EPSILON
 
 
 # see http://stackoverflow.com/questions/16003217

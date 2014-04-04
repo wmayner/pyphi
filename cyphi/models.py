@@ -9,12 +9,11 @@ Lightweight containers for MICE, MIP, cut, partition, and concept data.
 """
 
 from collections import namedtuple, Iterable
-import numpy as np
-from . import constants
+from .utils import phi_eq
 
 
 # Cut {{{
-#========
+# =======
 # Connections from the 'severed' set to the 'intact' set are severed, while
 # those from 'intact' to 'severed' are left intact
 Cut = namedtuple('Cut', ['severed', 'intact'])
@@ -28,45 +27,61 @@ Part = namedtuple('Part', ['mechanism', 'purview'])
 # }}}
 
 
-def numpy_aware_eq(a, b):
+def _numpy_aware_eq(a, b):
     """Return whether two objects are equal via recursion, using all(x == y)
     for comparing numpy arays."""
     if (not (isinstance(a, str) or isinstance(b, str)) and
             isinstance(a, Iterable) and isinstance(b, Iterable)):
-        return all(numpy_aware_eq(x, y) for x, y in zip(a, b))
+        return all(_numpy_aware_eq(x, y) for x, y in zip(a, b))
     return a == b
 
 
 # TODO cross reference PRECISION in docs
-def general_eq(a, b, attributes):
+def _general_eq(a, b, attributes):
     """Return whether two objects are equal up to the given attributes.
 
     If an attribute is called ``'phi'``, it is compared up to
     ``constants.PRECISION``. All other given attributes are compared with
-    :func:`numpy_aware_eq`"""
+    :func:`_numpy_aware_eq`"""
     if 'phi' in attributes:
-        if abs(a.phi - b.phi) > constants.EPSILON:
+        if phi_eq(a.phi, b.phi):
             return False
         attributes.remove('phi')
-    return all(numpy_aware_eq(getattr(a, attr), getattr(b, attr)) for attr in
+    return all(_numpy_aware_eq(getattr(a, attr), getattr(b, attr)) for attr in
                attributes)
+
+# Phi-ordering methods
+_phi_lt = lambda self, other: self.phi < other.phi
+_phi_gt = lambda self, other: self.phi > other.phi
+_phi_le = lambda self, other: self < other or phi_eq(self.phi, other.phi)
+_phi_ge = lambda self, other: self > other or phi_eq(self.phi, other.phi)
 
 
 # Minimum Information Partition {{{
 # =================================
-mip_attributes = ['direction', 'partition', 'unpartitioned_repertoire',
-                  'partitioned_repertoire', 'phi']
-Mip = namedtuple('Mip', mip_attributes)
-Mip.__eq__ = lambda self, other: general_eq(self, other, mip_attributes)
+_mip_attributes = ['direction', 'partition', 'unpartitioned_repertoire',
+                   'partitioned_repertoire', 'phi']
+Mip = namedtuple('Mip', _mip_attributes)
+Mip.__eq__ = lambda self, other: _general_eq(self, other, _mip_attributes)
+# Order by phi value
+Mip.__lt__ = _phi_lt
+Mip.__gt__ = _phi_gt
+Mip.__le__ = _phi_le
+Mip.__ge__ = _phi_ge
 # }}}
 
 
 # Maximally Irreducible Cause or Effect {{{
 # =========================================
-mice_attributes = ['direction', 'mechanism', 'purview', 'repertoire', 'mip',
-                   'phi']
-Mice = namedtuple('Mice', mice_attributes)
-Mice.__eq__ = lambda self, other: general_eq(self, other, mice_attributes)
+_mice_attributes = ['direction', 'mechanism', 'purview', 'repertoire', 'mip',
+                    'phi']
+Mice = namedtuple('Mice', _mice_attributes)
+Mice.__eq__ = lambda self, other: _general_eq(self, other, _mice_attributes)
+# Order by phi value
+Mice.__lt__ = _phi_lt
+Mice.__gt__ = _phi_gt
+Mice.__le__ = _phi_le
+Mice.__ge__ = _phi_ge
 # }}}
 
 
@@ -78,23 +93,33 @@ Mice.__eq__ = lambda self, other: general_eq(self, other, mice_attributes)
 # effect repertoires, i.e.
 #     concept.location = array[direction][n_0][n_1]...[n_k]
 # where `direction` is either `PAST` or `FUTURE` and the rest of the dimensions
-# correspond to a node in the network. The size is the phi_max value. `cause`
-# and `effect` are the MICE objects for the past and future, respectively.
-Concept = namedtuple('Concept', ['mechanism', 'location', 'size', 'cause',
-                                 'effect'])
-Concept.__eq__ = numpy_aware_eq
+# correspond to a node in the network. `phi` is the small-phi_max value.
+# `cause` and `effect` are the MICE objects for the past and future,
+# respectively.
+_concept_attributes = ['mechanism', 'location', 'phi', 'cause', 'effect']
+Concept = namedtuple('Concept', _concept_attributes)
+Concept.__eq__ = lambda self, other: _general_eq(self, other,
+                                                 _concept_attributes)
+# Order by phi value
+Concept.__lt__ = _phi_lt
+Concept.__gt__ = _phi_gt
+Concept.__le__ = _phi_le
+Concept.__ge__ = _phi_ge
 # }}}
 
 
 # Big Phi MIP {{{
 # ===============
-bigmip_attributes = ['phi', 'partition', 'unpartitioned_constellation',
-                     'partitioned_constellation']
-BigMip = namedtuple('BigMip', bigmip_attributes)
-BigMip.__eq__ = lambda self, other: general_eq(self, other, bigmip_attributes)
-# Order BigMips by their phi values
-BigMip.__lt__ = lambda self, other: self.phi < other.phi
-BigMip.__gt__ = lambda self, other: self.phi > other.phi
+_bigmip_attributes = ['phi', 'partition', 'unpartitioned_constellation',
+                      'partitioned_constellation']
+BigMip = namedtuple('BigMip', _bigmip_attributes)
+BigMip.__eq__ = lambda self, other: _general_eq(self, other,
+                                                _bigmip_attributes)
+# Order by phi value
+BigMip.__lt__ = _phi_lt
+BigMip.__gt__ = _phi_gt
+BigMip.__le__ = _phi_le
+BigMip.__ge__ = _phi_ge
 # }}}
 
 
