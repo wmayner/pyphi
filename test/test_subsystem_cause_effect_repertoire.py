@@ -12,7 +12,7 @@ from cyphi.utils import cut
 #     subsystem, cut,
 #     mechanism,
 #     purview,
-#     expected result,
+#     expected result
 # )
 scenarios = [
 # Cause repertoire {{{
@@ -328,7 +328,7 @@ def test_cause_and_effect_repertoire(capsys, m, s, function, network, subsystem,
         severed = tuple(network.nodes[index] for index in severed)
         intact = tuple(network.nodes[index] for index in intact)
         # Cut the subsystem
-        subsystem.cut(severed, intact)
+        subsystem.cut((severed, intact))
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     result = compute_repertoire(mechanism, purview)

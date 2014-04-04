@@ -63,6 +63,8 @@ class Subsystem:
         # NOTE: Connections from the 'severed' set to the 'intact' set are
         #       severed, while those from 'intact' to 'severed' are left intact
         #       Initialize the cut so that no connections are severed
+        # TODO use properties
+        # (https://docs.python.org/2/library/functions.html#property)
         self._cut = Cut((), self.nodes)
 
     def __repr__(self):
@@ -93,8 +95,9 @@ class Subsystem:
         return hash((frozenset(self.nodes), self.current_state.tostring(),
                      self.past_state.tostring(), self.network))
 
-    def cut(self, severed, intact):
+    def cut(self, partition):
         """Cuts connections from the first part to the second part."""
+        severed, intact = partition[0], partition[1]
         # Convert single nodes to singleton tuples and iterables to tuples
         if not isinstance(severed, Iterable):
             severed = (severed,)

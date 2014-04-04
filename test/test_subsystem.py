@@ -25,26 +25,26 @@ def test_hash(m):
 def test_cut_bad_input(m):
     s = m.subsys_all
     with pytest.raises(ValueError):
-        s.cut((), ())
+        s.cut(((), ()))
     with pytest.raises(ValueError):
-        s.cut(m.nodes[0], m.nodes[1])
+        s.cut((m.nodes[0], m.nodes[1]))
     with pytest.raises(ValueError):
-        s.cut(m.nodes[0], (m.nodes[1], m.nodes[1]))
+        s.cut((m.nodes[0], (m.nodes[1], m.nodes[1])))
 
 
 def test_cut_single_node(m):
     s = m.subsys_all
-    s.cut(m.nodes[0], (m.nodes[1], m.nodes[2]))
+    s.cut((m.nodes[0], (m.nodes[1], m.nodes[2])))
     assert s._cut == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
 
 
 def test_cut_list_input(m):
     s = m.subsys_all
-    s.cut([m.nodes[0]], [m.nodes[1], m.nodes[2]])
+    s.cut(([m.nodes[0]], [m.nodes[1], m.nodes[2]]))
     assert s._cut == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
 
 
 def test_cut(m):
     s = m.subsys_all
-    s.cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+    s.cut(((m.nodes[0],), (m.nodes[1], m.nodes[2])))
     assert s._cut == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
