@@ -215,22 +215,6 @@ def bipartition(a):
                _bitstring_index(a, _flip(bitstring)))
 
 
-def mip_eq(a, b):
-    """Return whether two MIPs are equal.
-
-    Phi is compared up to ``constants.PRECISION``.
-    """
-    if not a or not b:
-        return a == b
-    return ((a.partition == b.partition or
-             a.partition == (b.partition[1], b.partition[0]))
-            and (abs(a.difference - b.difference) < EPSILON)
-            and (np.array_equal(a.partitioned_repertoire,
-                                b.partitioned_repertoire))
-            and (np.array_equal(a.unpartitioned_repertoire,
-                                b.unpartitioned_repertoire)))
-
-
 # Internal helper methods
 # =============================================================================
 

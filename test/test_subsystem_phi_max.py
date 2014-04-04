@@ -4,7 +4,6 @@
 import pytest
 from itertools import chain
 from cyphi import constants
-from cyphi.utils import tuple_eq
 from cyphi.models import Mice
 from .example_networks import m
 
@@ -52,7 +51,7 @@ expected_mice = {
              purview=expected_purviews[direction][mechanism],
              repertoire=mip.unpartitioned_repertoire,
              mip=mip,
-             phi=mip.difference)
+             phi=mip.phi)
         for mechanism, mip in expected_mips[direction].items()
     ] for direction in directions
 }
@@ -72,8 +71,7 @@ mice_parameter_string = "direction,expected"
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
 def test_find_mice(m, direction, expected):
-    assert tuple_eq(subsystem._find_mice(direction, expected.mechanism),
-                    expected)
+    assert subsystem._find_mice(direction, expected.mechanism) == expected
 
 def test_find_mice_empty(m):
     expected = [
@@ -84,10 +82,8 @@ def test_find_mice_empty(m):
              mip=None,
              phi=0)
     for direction in directions]
-    assert all(
-        tuple_eq(m.subsys_all._find_mice(mice.direction, mice.mechanism),
-                 mice)
-        for mice in expected)
+    assert all(m.subsys_all._find_mice(mice.direction, mice.mechanism) == mice
+               for mice in expected)
 
 # Test input validation
 def test_find_mice_validation_bad_direction(m):
@@ -117,7 +113,7 @@ def test_core_cause_or_effect(m, direction, expected):
         core_ce = subsystem.core_effect
     else:
         raise ValueError("Direction must be 'past' or 'future'")
-    assert tuple_eq(core_ce(expected.mechanism), expected)
+    assert core_ce(expected.mechanism) == expected
 
 
 phi_max_scenarios = [

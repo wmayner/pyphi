@@ -5,7 +5,6 @@ import pytest
 from pprint import pprint
 import numpy as np
 from cyphi import constants
-from cyphi.utils import tuple_eq, mip_eq
 from cyphi.models import Mip, Part
 
 
@@ -225,7 +224,7 @@ def test_find_mip(m, direction, subsystem, cut, mechanism, purview, expected):
                 ),
                 unpartitioned_repertoire=expected['unpartitioned_repertoire'],
                 partitioned_repertoire=expected_partitioned_repertoire,
-                difference=expected['phi'])
+                phi=expected['phi'])
             for expected_partition, expected_partitioned_repertoire
             in expected['partitions'].items()
         ]
@@ -239,9 +238,9 @@ def test_find_mip(m, direction, subsystem, cut, mechanism, purview, expected):
     print('\n')
 
     if expected:
-        assert any(mip_eq(result, mip) for mip in expected)
+        assert any(result == mip for mip in expected)
     else:
-        assert mip_eq(result, expected)
+        assert result == expected
 
 
 # Test input validation {{{
@@ -264,7 +263,7 @@ def test_mip_past(m):
     mechanism = m.nodes
     purview = m.nodes
     mip_past = s.find_mip('past', mechanism, purview)
-    assert tuple_eq(mip_past, s.mip_past(mechanism, purview))
+    assert mip_past == s.mip_past(mechanism, purview)
 
 
 def test_mip_future(m):
@@ -272,7 +271,7 @@ def test_mip_future(m):
     mechanism = m.nodes
     purview = m.nodes
     mip_future = s.find_mip('future', mechanism, purview)
-    assert tuple_eq(mip_future, s.mip_future(mechanism, purview))
+    assert mip_future == s.mip_future(mechanism, purview)
 
 
 def test_phi_mip_past(m):
@@ -280,7 +279,7 @@ def test_phi_mip_past(m):
     mechanism = m.nodes
     purview = m.nodes
     assert (s.phi_mip_past(mechanism, purview) ==
-            s.mip_past(mechanism, purview).difference)
+            s.mip_past(mechanism, purview).phi)
 
 
 def test_phi_mip_past_reducible(m):
@@ -295,7 +294,7 @@ def test_phi_mip_future(m):
     mechanism = m.nodes
     purview = m.nodes
     assert (s.phi_mip_future(mechanism, purview) ==
-            s.mip_future(mechanism, purview).difference)
+            s.mip_future(mechanism, purview).phi)
 
 def test_phi_mip_future_reducible(m):
     s = m.subsys_all

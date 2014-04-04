@@ -453,9 +453,8 @@ class Subsystem:
         validate.direction(direction)
         repertoire = self._get_repertoire(direction)
 
-        # TODO? change ``difference`` to ``phi``
         mip = None
-        difference_min = float('inf')
+        phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones
         unpartitioned_repertoire = repertoire(mechanism, purview)
@@ -469,19 +468,18 @@ class Subsystem:
                                                  part0.purview) *
                                       repertoire(part1.mechanism,
                                                  part1.purview))
-            difference = hamming_emd(unpartitioned_repertoire,
-                                     partitioned_repertoire)
+            phi = hamming_emd(unpartitioned_repertoire, partitioned_repertoire)
             # Return immediately if mechanism is reducible
-            if difference < constants.EPSILON:
+            if phi < constants.EPSILON:
                 return None
             # Update MIP if it's more minimal
-            if (difference_min - difference) > constants.EPSILON:
-                difference_min = difference
+            if (phi_min - phi) > constants.EPSILON:
+                phi_min = phi
                 mip = Mip(direction=direction,
                           partition=(part0, part1),
                           unpartitioned_repertoire=unpartitioned_repertoire,
                           partitioned_repertoire=partitioned_repertoire,
-                          difference=difference)
+                          phi=phi)
         return mip
 
     def mip_past(self, mechanism, purview, cut=None):
@@ -508,7 +506,7 @@ class Subsystem:
         """
         mip = self.mip_past(mechanism, purview, cut)
         if mip:
-            return mip.difference
+            return mip.phi
         else:
             return 0
 
@@ -520,7 +518,7 @@ class Subsystem:
         """
         mip = self.mip_future(mechanism, purview, cut)
         if mip:
-            return mip.difference
+            return mip.phi
         else:
             return 0
 
@@ -555,13 +553,12 @@ class Subsystem:
         for purview in powerset(self.nodes):
             mip = self.find_mip(direction, mechanism, purview)
             if mip:
-                phi = mip.difference
                 # Take the purview with higher phi, or if phi is equal, take
                 # the larger one (exclusion principle)
-                if phi > phi_max or (abs(phi - phi_max) < constants.EPSILON and
+                if mip.phi > phi_max or (abs(mip.phi - phi_max) < constants.EPSILON and
                                      len(purview) > len(maximal_purview)):
                     mip_max = mip
-                    phi_max = phi
+                    phi_max = mip.phi
                     maximal_purview = purview
                     maximal_repertoire = mip.unpartitioned_repertoire
         if phi_max == float('-inf'):
