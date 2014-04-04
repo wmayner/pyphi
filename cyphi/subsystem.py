@@ -387,28 +387,23 @@ class Subsystem:
         """
         return self._unconstrained_repertoire('future', purview)
 
-    # TODO test
-    def full_cause_repertoire(self, mechanism, purview):
-        """Return the cause repertoire as a full distribution over the entire
-        network's state space.
+    def _expand_repertoire(self, direction, mechanism, purview, repertoire):
+        """Return the unconstrained cause or effect repertoire based on a
+        direction."""
+        validate.direction(direction)
+        non_purview_nodes = set(self.nodes) - set(purview)
+        return (repertoire * self._unconstrained_repertoire(direction,
+                                                           non_purview_nodes))
 
-        This is the product of the cause repertoire over the purview and the
-        unconstrained cause repertoire over the non-purview nodes."""
-        non_purview_nodes = set(self.network.nodes) - set(purview)
-        non_purview_cr = self.unconstrained_cause_repertoire(non_purview_nodes)
-        return self.cause_repertoire(mechanism, purview) * non_purview_cr
+    def expand_cause_repertoire(self, mechanism, purview, repertoire):
+        """Expand a partial cause repertoire over a purview to a distribution
+        over the entire subsystem's state space."""
+        return self._expand_repertoire('past', mechanism, purview, repertoire)
 
-    # TODO test
-    def full_effect_repertoire(self, mechanism, purview):
-        """Return the effect repertoire as a full distribution over the entire
-        network's state space.
-
-        This is the product of the effect repertoire over the purview and the
-        unconstrained effect repertoire over the non-purview nodes."""
-        non_purview_nodes = set(self.network.nodes) - set(purview)
-        non_purview_er = self.unconstrained_effect_repertoire(
-            non_purview_nodes)
-        return self.effect_repertoire(mechanism, purview) * non_purview_er
+    def expand_effect_repertoire(self, mechanism, purview, repertoire):
+        """Expand a partial effect repertoire over a purview to a distribution
+        over the entire subsystem's state space."""
+        return self._expand_repertoire('future', mechanism, purview, repertoire)
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
@@ -432,7 +427,7 @@ class Subsystem:
 
     # TODO? something clever here so we don't do the full iteration
     @staticmethod
-    def mip_bipartition(mechanism, purview):
+    def _mip_bipartition(mechanism, purview):
         # TODO? better not to build this whole list in memory
         purview_bipartitions = list(bipartition(purview))
         for denominators in (purview_bipartitions +
@@ -484,7 +479,7 @@ class Subsystem:
         unpartitioned_repertoire = repertoire(mechanism, purview)
 
         # Loop over possible MIP bipartitions
-        for part0, part1 in self.mip_bipartition(mechanism, purview):
+        for part0, part1 in self._mip_bipartition(mechanism, purview):
             # Find the distance between the unpartitioned repertoire and
             # the product of the repertoires of the two parts, e.g.
             #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
