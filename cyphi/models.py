@@ -44,7 +44,7 @@ def _general_eq(a, b, attributes):
     ``constants.PRECISION``. All other given attributes are compared with
     :func:`_numpy_aware_eq`"""
     if 'phi' in attributes:
-        if phi_eq(a.phi, b.phi):
+        if not phi_eq(a.phi, b.phi):
             return False
         attributes.remove('phi')
     return all(_numpy_aware_eq(getattr(a, attr), getattr(b, attr)) for attr in

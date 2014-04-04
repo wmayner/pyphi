@@ -9,7 +9,7 @@ import cyphi.models as models
 
 nt_attributes = ['this', 'that', 'phi']
 nt = namedtuple('nt', nt_attributes)
-a = nt(this=nt('consciousness', 'is phi'), that=np.arange(3), phi=0.5)
+a = nt(('consciousness', 'is phi'), np.arange(3), 0.5)
 
 
 def test_numpy_aware_eq_noniterable():
@@ -34,21 +34,20 @@ def test_numpy_aware_eq_identical():
 
 def test_general_eq_different_attributes():
     similar_nt = namedtuple('nt', nt_attributes + ['supbro'])
-    b = similar_nt(this=nt('consciousness', 'is phi'),
+    b = similar_nt(this=('consciousness', 'is phi'),
                    that=np.arange(3),
+                   phi=0.5,
                    supbro="nothin' much")
     assert models._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_true():
-    b = deepcopy(a)
-    b.phi = 0.4999999999999
+    b = nt(('consciousness', 'is phi'), np.arange(3), 0.4999999999999)
     assert models._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_false():
-    b = deepcopy(a)
-    b.phi = 0.4999
+    b = nt(('consciousness', 'is phi'), np.arange(3), 0.4999)
     assert not models._general_eq(a, b, nt_attributes)
 
 

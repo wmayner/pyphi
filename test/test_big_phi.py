@@ -11,7 +11,7 @@ def test_null_concept(m):
         mechanism=(),
         location=np.array([s.unconstrained_cause_repertoire(s.nodes),
                            s.unconstrained_effect_repertoire(s.nodes)]),
-        size=0, cause=None, effect=None))
+        phi=0, cause=None, effect=None))
 
 def test_concept_nonexistent(m):
      s = m.subsys_all

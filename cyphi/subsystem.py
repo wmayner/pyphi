@@ -9,7 +9,7 @@ from . import constants
 from . import validate
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (marginalize_out, emd, hamming_emd, max_entropy_distribution, powerset,
-                    bipartition)
+                    bipartition, phi_eq)
 from .models import Cut, Mip, Part, Mice, Concept, BigMip
 
 
@@ -555,8 +555,8 @@ class Subsystem:
             if mip:
                 # Take the purview with higher phi, or if phi is equal, take
                 # the larger one (exclusion principle)
-                if mip.phi > phi_max or (abs(mip.phi - phi_max) < constants.EPSILON and
-                                     len(purview) > len(maximal_purview)):
+                if mip.phi > phi_max or (phi_eq(mip.phi, phi_max) and
+                                         len(purview) > len(maximal_purview)):
                     mip_max = mip
                     phi_max = mip.phi
                     maximal_purview = purview
