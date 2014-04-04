@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-import test
+import test.example_networks
 
 
 collect_ignore = ["setup.py", ".pythonrc.py"]
@@ -10,9 +10,9 @@ collect_ignore = ["setup.py", ".pythonrc.py"]
 
 @pytest.fixture()
 def m():
-    return test.m()
+    return test.example_networks.m()
 
 
 @pytest.fixture()
 def s():
-    return test.s()
+    return test.example_networks.s()

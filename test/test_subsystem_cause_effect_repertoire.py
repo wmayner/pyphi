@@ -3,7 +3,6 @@
 
 import pytest
 import numpy as np
-import test
 from cyphi.utils import cut
 
 
