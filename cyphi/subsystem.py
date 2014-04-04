@@ -492,11 +492,10 @@ class Subsystem:
             dprint(''.center(80,'-'))
 
             # Return immediately if mechanism is reducible
-            if difference < EPSILON:
+            if difference < constants.EPSILON:
                 return None
-            # Update MIP if it's more minimal or if mechanism is reducible
-            # (i.e., phi is 0)
-            if (difference_min - difference) > EPSILON:
+            # Update MIP if it's more minimal
+            if (difference_min - difference) > constants.EPSILON:
                 difference_min = difference
                 mip = Mip(direction=direction,
                           partition=(part0, part1),
@@ -578,7 +577,7 @@ class Subsystem:
                 phi = mip.difference
                 # Take the purview with higher phi, or if phi is equal, take
                 # the larger one (exclusion principle)
-                if phi > phi_max or (abs(phi - phi_max) < EPSILON and
+                if phi > phi_max or (abs(phi - phi_max) < constants.EPSILON and
                                      len(purview) > len(maximal_purview)):
                     mip_max = mip
                     phi_max = phi

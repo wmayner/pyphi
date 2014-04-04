@@ -16,13 +16,8 @@ from itertools import chain, combinations
 from copy import copy
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
-from pyemd import emd as _emd
-
-
-# The number of decimal points to which phi values are considered accurate
-PRECISION = 6
-# The threshold below which we consider differences in phi values to be zero
-EPSILON = 10**-PRECISION
+from pyemd import emd
+from .constants import PAST, FUTURE, EPSILON
 
 
 def cut(subsystem, cut):

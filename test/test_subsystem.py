@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from cyphi.subsystem import Subsystem, Cut
+from cyphi.models import Cut
+from cyphi.subsystem import Subsystem
 
 
 # TODO test against other matlab examples

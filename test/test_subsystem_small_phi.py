@@ -4,6 +4,7 @@
 import pytest
 from pprint import pprint
 import numpy as np
+from cyphi import constants
 from cyphi.utils import tuple_eq, mip_eq
 from cyphi.models import Mip, Part
 
@@ -307,7 +308,7 @@ def test_phi(m):
     s = m.subsys_all
     mechanism = m.nodes
     purview = m.nodes
-    assert abs(0.5 - s.phi(mechanism, purview)) < subsystem.EPSILON
+    assert abs(0.5 - s.phi(mechanism, purview)) < constants.EPSILON
 
 # }}}
 
