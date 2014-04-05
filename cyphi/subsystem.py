@@ -52,6 +52,9 @@ class Subsystem:
         # The network this subsystem belongs to.
         self.network = network
 
+        # The null cut (leaves the system intact).
+        self.null_cut = ((), self.nodes)
+
         # TODO use properties?
         # (https://docs.python.org/2/library/functions.html#property)
 
@@ -81,7 +84,7 @@ class Subsystem:
         return hash((frozenset(self.nodes), self.current_state.tostring(),
                      self.past_state.tostring(), self.network))
 
-    def cause_repertoire(self, mechanism, purview, cut=None):
+    def cause_repertoire(self, mechanism, purview, cut):
         """Return the cause repertoire of a mechanism over a purview.
 
         :param mechanism: The mechanism for which to calculate the cause
@@ -191,7 +194,7 @@ class Subsystem:
         # whole comparisons are only ever done over the same purview.
         return cjd
 
-    def effect_repertoire(self, mechanism, purview, cut=None):
+    def effect_repertoire(self, mechanism, purview, cut):
         """Return the effect repertoire of a mechanism over a purview.
 
         :param mechanism: The mechanism for which to calculate the effect
@@ -345,20 +348,20 @@ class Subsystem:
         elif direction == 'future':
             return self.effect_repertoire
 
-    def _unconstrained_repertoire(self, direction, purview, cut=None):
+    def _unconstrained_repertoire(self, direction, purview, cut):
         """Return the unconstrained cause or effect repertoire over a
         purview."""
         return self._get_repertoire(direction)([], purview, cut)
 
 
-    def unconstrained_cause_repertoire(self, purview, cut=None):
+    def unconstrained_cause_repertoire(self, purview, cut):
         """Return the unconstrained cause repertoire for a purview.
 
         This is just the cause repertoire in the absence of any mechanism.
         """
-        return self._unconstrained_repertoire('past', purview)
+        return self._unconstrained_repertoire('past', purview, cut)
 
-    def unconstrained_effect_repertoire(self, purview, cut=None):
+    def unconstrained_effect_repertoire(self, purview, cut):
         """Return the unconstrained effect repertoire for a purview.
 
         This is just the effect repertoire in the absence of any mechanism.
@@ -375,29 +378,29 @@ class Subsystem:
                                                             non_purview_nodes,
                                                             cut))
 
-    def expand_cause_repertoire(self, mechanism, purview, repertoire, cut=None):
+    def expand_cause_repertoire(self, mechanism, purview, repertoire, cut):
         """Expand a partial cause repertoire over a purview to a distribution
         over the entire subsystem's state space."""
         return self._expand_repertoire('past', mechanism, purview, repertoire,
                                        cut)
 
-    def expand_effect_repertoire(self, mechanism, purview, repertoire, cut=None):
+    def expand_effect_repertoire(self, mechanism, purview, repertoire, cut):
         """Expand a partial effect repertoire over a purview to a distribution
         over the entire subsystem's state space."""
         return self._expand_repertoire('future', mechanism, purview,
                                        repertoire, cut)
 
-    def cause_info(self, mechanism, purview, cut=None):
+    def cause_info(self, mechanism, purview, cut):
         """Return the cause information for a mechanism over a purview."""
         return hamming_emd(self.cause_repertoire(mechanism, purview),
                            self.unconstrained_cause_repertoire(purview, cut))
 
-    def effect_info(self, mechanism, purview, cut=None):
+    def effect_info(self, mechanism, purview, cut):
         """Return the effect information for a mechanism over a purview."""
         return hamming_emd(self.effect_repertoire(mechanism, purview),
                            self.unconstrained_effect_repertoire(purview, cut))
 
-    def cause_effect_info(self, mechanism, purview, cut=None):
+    def cause_effect_info(self, mechanism, purview, cut):
         """Return the cause-effect information for a mechanism over a
         purview."""
         return min(self.cause_info(mechanism, purview, cut),
@@ -432,7 +435,7 @@ class Subsystem:
                     yield (part0, part1)
         return
 
-    def find_mip(self, direction, mechanism, purview, cut=None):
+    def find_mip(self, direction, mechanism, purview, cut):
         """Return the minimum information partition for the past or future.
         Where the ``partition`` attribute is a pair of objects, each with the
         following attributes:
@@ -457,7 +460,7 @@ class Subsystem:
         phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones
-        unpartitioned_repertoire = repertoire(mechanism, purview)
+        unpartitioned_repertoire = repertoire(mechanism, purview, cut)
 
         # Loop over possible MIP bipartitions
         for part0, part1 in self._mip_bipartition(mechanism, purview):
@@ -465,9 +468,9 @@ class Subsystem:
             # the product of the repertoires of the two parts, e.g.
             #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
             partitioned_repertoire = (repertoire(part0.mechanism,
-                                                 part0.purview) *
+                                                 part0.purview, cut) *
                                       repertoire(part1.mechanism,
-                                                 part1.purview))
+                                                 part1.purview, cut))
             phi = hamming_emd(unpartitioned_repertoire, partitioned_repertoire)
             # Return immediately if mechanism is reducible
             if phi < constants.EPSILON:
@@ -482,7 +485,7 @@ class Subsystem:
                           phi=phi)
         return mip
 
-    def mip_past(self, mechanism, purview, cut=None):
+    def mip_past(self, mechanism, purview, cut):
         """Return the past minimum information partition.
 
         For a description of the MIP object that is returned, see
@@ -490,7 +493,7 @@ class Subsystem:
         """
         return self.find_mip('past', mechanism, purview, cut)
 
-    def mip_future(self, mechanism, purview, cut=None):
+    def mip_future(self, mechanism, purview, cut):
         """Return the future minimum information partition.
 
         For a description of the MIP object that is returned, see
@@ -498,7 +501,7 @@ class Subsystem:
         """
         return self.find_mip('future', mechanism, purview, cut)
 
-    def phi_mip_past(self, mechanism, purview, cut=None):
+    def phi_mip_past(self, mechanism, purview, cut):
         """Return the |phi| value of the past minimum information partition.
 
         This is the distance between the unpartitioned cause repertoire and the
@@ -510,7 +513,7 @@ class Subsystem:
         else:
             return 0
 
-    def phi_mip_future(self, mechanism, purview, cut=None):
+    def phi_mip_future(self, mechanism, purview, cut):
         """Return the |phi| value of the future minimum information partition.
 
         This is the distance between the unpartitioned effect repertoire and
@@ -522,7 +525,7 @@ class Subsystem:
         else:
             return 0
 
-    def phi(self, mechanism, purview, cut=None):
+    def phi(self, mechanism, purview, cut):
         """Return the integrated information, "small |phi|"."""
         return min(self.phi_mip_past(mechanism, purview, cut),
                    self.phi_mip_future(mechanism, purview, cut))
@@ -531,7 +534,7 @@ class Subsystem:
     # =========================================================================
 
     # TODO update docs
-    def _find_mice(self, direction, mechanism):
+    def _find_mice(self, direction, mechanism, cut):
         """Return the maximally irreducible cause or effect for a mechanism.
 
         .. note:: Strictly speaking, the MICE is a pair of repertoires: the
@@ -551,7 +554,7 @@ class Subsystem:
         # Loop over all possible purviews in this candidate set and find the
         # purview over which phi is maximal.
         for purview in powerset(self.nodes):
-            mip = self.find_mip(direction, mechanism, purview)
+            mip = self.find_mip(direction, mechanism, purview, cut)
             if mip:
                 # Take the purview with higher phi, or if phi is equal, take
                 # the larger one (exclusion principle)
@@ -570,18 +573,18 @@ class Subsystem:
                     mip=mip_max,
                     phi=phi_max)
 
-    def core_cause(self, mechanism):
+    def core_cause(self, mechanism, cut):
         """Returns the core cause repertoire of a mechanism."""
-        return self._find_mice('past', mechanism)
+        return self._find_mice('past', mechanism, cut)
 
-    def core_effect(self, mechanism):
+    def core_effect(self, mechanism, cut):
         """Returns the core effect repertoire of a mechanism."""
-        return self._find_mice('future', mechanism)
+        return self._find_mice('future', mechanism, cut)
 
-    def phi_max(self, mechanism):
+    def phi_max(self, mechanism, cut):
         """Return the |phi_max| of a mechanism."""
-        return min(self.core_cause(mechanism).phi,
-                   self.core_effect(mechanism).phi)
+        return min(self.core_cause(mechanism, cut).phi,
+                   self.core_effect(mechanism, cut).phi)
 
     # TODO! factor these out to compute.py
     # Big Phi methods
@@ -590,7 +593,7 @@ class Subsystem:
     # TODO add `concept-space` section to the docs:
         # The first dimension corresponds to the direction, past or future; the
         # correspond to the subsystem's state space."""
-    def null_concept(self, cut=None):
+    def null_concept(self):
         """Return the null concept of this subsystem, a point in concept space
         identified with the unconstrained cause and effect repertoire of this
         subsystem.
@@ -599,16 +602,18 @@ class Subsystem:
         :ref:concept-space."""
         return Concept(
             mechanism=(),
-            location=np.array([self.unconstrained_cause_repertoire(self.nodes, cut),
-                               self.unconstrained_effect_repertoire(self.nodes, cut)]),
+            location=np.array([self.unconstrained_cause_repertoire(self.nodes,
+                                                                   self.null_cut),
+                               self.unconstrained_effect_repertoire(self.nodes,
+                                                                    self.null_cut)]),
             phi=0,
             cause=None,
             effect=None)
 
-    def concept(self, mechanism, cut=None):
+    def concept(self, mechanism, cut):
         """Returns the concept specified by a mechanism"""
-        past_mice = self.core_cause(mechanism)
-        future_mice = self.core_cause(mechanism)
+        past_mice = self.core_cause(mechanism, cut)
+        future_mice = self.core_cause(mechanism, cut)
         phi = min(past_mice.phi, future_mice.phi)
         if phi <= 0:
             return None
@@ -627,10 +632,11 @@ class Subsystem:
             cause=past_mice,
             effect=future_mice)
 
-    def constellation(self, cut=None):
+    def constellation(self, cut):
         """Return the conceptual structure of this subsystem."""
-        return [concept for concept in [self.concept(mechanism) for mechanism
-                                        in powerset(self.nodes)] if concept]
+        return [concept for concept in [self.concept(mechanism, cut) for
+                                        mechanism in powerset(self.nodes)]
+                if concept]
 
     @staticmethod
     def concept_distance(c1, c2):
@@ -691,12 +697,12 @@ class Subsystem:
                                                     null_concept)
 
     def conceptual_information(self):
-        return constellation_distance(self.constellation, [])
+        return constellation_distance(self.constellation, ())
 
     def big_mip(self):
         """Return the MIP for this subsystem."""
         # Calculate the unpartitioned constellation
-        unpartitioned_constellation = self.constellation()
+        unpartitioned_constellation = self.constellation(self.null_cut)
         # The first bipartition is the null cut, so skip it
         bipartitions = list(bipartition(self.nodes))[1:]
         # Loop over all partitions
