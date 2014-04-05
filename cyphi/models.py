@@ -46,9 +46,8 @@ def _general_eq(a, b, attributes):
     if 'phi' in attributes:
         if not phi_eq(a.phi, b.phi):
             return False
-        attributes.remove('phi')
-    return all(_numpy_aware_eq(getattr(a, attr), getattr(b, attr)) for attr in
-               attributes)
+    return all(_numpy_aware_eq(getattr(a, attr), getattr(b, attr)) if attr !=
+               'phi' else True for attr in attributes)
 
 # Phi-ordering methods
 _phi_lt = lambda self, other: self.phi < other.phi
@@ -59,8 +58,8 @@ _phi_ge = lambda self, other: self > other or phi_eq(self.phi, other.phi)
 
 # Minimum Information Partition {{{
 # =================================
-_mip_attributes = ['direction', 'partition', 'unpartitioned_repertoire',
-                   'partitioned_repertoire', 'phi']
+_mip_attributes = ['phi', 'direction', 'partition', 'unpartitioned_repertoire',
+                   'partitioned_repertoire']
 Mip = namedtuple('Mip', _mip_attributes)
 Mip.__eq__ = lambda self, other: _general_eq(self, other, _mip_attributes)
 # Order by phi value
@@ -73,8 +72,8 @@ Mip.__ge__ = _phi_ge
 
 # Maximally Irreducible Cause or Effect {{{
 # =========================================
-_mice_attributes = ['direction', 'mechanism', 'purview', 'repertoire', 'mip',
-                    'phi']
+_mice_attributes = ['phi', 'direction', 'mechanism', 'purview', 'repertoire',
+                    'mip']
 Mice = namedtuple('Mice', _mice_attributes)
 Mice.__eq__ = lambda self, other: _general_eq(self, other, _mice_attributes)
 # Order by phi value
@@ -96,7 +95,7 @@ Mice.__ge__ = _phi_ge
 # correspond to a node in the network. `phi` is the small-phi_max value.
 # `cause` and `effect` are the MICE objects for the past and future,
 # respectively.
-_concept_attributes = ['mechanism', 'location', 'phi', 'cause', 'effect']
+_concept_attributes = ['phi', 'mechanism', 'location', 'cause', 'effect']
 Concept = namedtuple('Concept', _concept_attributes)
 Concept.__eq__ = lambda self, other: _general_eq(self, other,
                                                  _concept_attributes)
