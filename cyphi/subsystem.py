@@ -705,42 +705,37 @@ class Subsystem:
         unpartitioned_constellation = self.constellation(self.null_cut)
         # The first bipartition is the null cut, so skip it
         bipartitions = list(bipartition(self.nodes))[1:]
-        # Loop over all partitions
-        mip_candidates = Parallel(n_jobs=8)(
+        # Parallel loop over all partitions
+        mip_candidates = Parallel(n_jobs=constants.NUMBER_OF_CORES)(
             delayed(_evaluate_cut)(self, partition,
                                    unpartitioned_constellation)
             for partition in bipartitions)
-        # Return minimal MIP candidate
         return min(mip_candidates) if any(mip_candidates) else None
 
 
 
 # TODO refactor this to somewhere sensible; it can't be a class method because
 # those can't be pickled.
-def _evaluate_cut(subsystem, cut, unpartitioned_constellation):
-    # Cut connections from part 1 to part 2
-    forward_constellation = subsystem.constellation(cut)
-    forward_phi = subsystem.constellation_distance(
-        unpartitioned_constellation, forward_constellation)
-    # Cut connections from part 2 to part 1
-    backward_constellation = subsystem.constellation(cut[::-1])
-    backward_phi = subsystem.constellation_distance(
-        unpartitioned_constellation, backward_constellation)
-
-    print('cut:', cut, 'forward_phi', forward_phi,
-            'backward_phi:', backward_phi, sep='\n')
-
+def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
+    # Compute forward MIP
+    forward_cut = Cut(partition[0], partition[1])
+    forward_constellation = subsystem.constellation(forward_cut)
+    forward_mip = BigMip(
+        phi=subsystem.constellation_distance(unpartitioned_constellation,
+                                             forward_constellation),
+        partition = forward_cut,
+        unpartitioned_constellation=unpartitioned_constellation,
+        partitioned_constellation=forward_constellation)
+    # Compute backward MIP
+    backward_cut = Cut(partition[1], partition[0])
+    backward_constellation = subsystem.constellation(backward_cut)
+    backward_mip = BigMip(
+        phi=subsystem.constellation_distance(unpartitioned_constellation,
+                                             backward_constellation),
+        partition = backward_cut,
+        unpartitioned_constellation=unpartitioned_constellation,
+        partitioned_constellation=backward_constellation)
     # Choose minimal unidirectional cut
-    if forward_phi <= backward_phi:
-        min_cut = cut
-        min_constellation = forward_constellation
-        phi = forward_phi
-    else:
-        min_cut = cut[::-1]
-        min_constellation = backward_constellation
-        phi = backward_phi
-
-    if phi < constants.EPSILON:
-        return None
-
-    return(partition, forward_constellation, forward_phi)
+    mip = min(forward_mip, backward_mip)
+    # Return the MIP if the subsystem with the given partition is not reducible
+    return mip if mip.phi > constants.EPSILON else None
