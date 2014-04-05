@@ -7,18 +7,20 @@ from cyphi.utils import hamming_emd
 def test_cause_info(m):
     mechanism = [m.nodes[0], m.nodes[1]]
     purview = [m.nodes[0], m.nodes[2]]
+    s = m.subsys_all
     answer = hamming_emd(
-        m.subsys_all.cause_repertoire(mechanism, purview),
-        m.subsys_all.unconstrained_cause_repertoire(purview))
+        s.cause_repertoire(mechanism, purview, s.null_cut),
+        s.unconstrained_cause_repertoire(purview, s.null_cut))
     assert m.subsys_all.cause_info(mechanism, purview) == answer
 
 
 def test_effect_info(m):
     mechanism = [m.nodes[0], m.nodes[1]]
     purview = [m.nodes[0], m.nodes[2]]
+    s = m.subsys_all
     answer = hamming_emd(
-        m.subsys_all.effect_repertoire(mechanism, purview),
-        m.subsys_all.unconstrained_effect_repertoire(purview))
+        s.effect_repertoire(mechanism, purview, s.null_cut),
+        s.unconstrained_effect_repertoire(purview, s.null_cut))
     assert m.subsys_all.effect_info(mechanism, purview) == answer
 
 

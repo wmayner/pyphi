@@ -348,11 +348,11 @@ def test_cause_and_effect_repertoire(capsys, m, s, function, network, subsystem,
 def test_cause_and_effect_repertoire_validation(m):
     s = m.subsys_all
     with pytest.raises(ValueError):
-        s.cause_repertoire([0], [1])
+        s.cause_repertoire([0], [1], s.null_cut)
     with pytest.raises(ValueError):
-        s.effect_repertoire([0,1], [2])
+        s.effect_repertoire([0,1], [2], s.null_cut)
     with pytest.raises(ValueError):
-        s.effect_repertoire(0, [2])
+        s.effect_repertoire(0, [2], s.null_cut)
 
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :

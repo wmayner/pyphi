@@ -4,8 +4,8 @@
 import pytest
 from itertools import chain
 
-from cyphi import constants
 from cyphi.models import Mice
+from cyphi.utils import phi_eq
 from .example_networks import m
 
 
@@ -58,8 +58,6 @@ expected_mice = {
 }
 
 # }}}
-
-
 # `_find_mice` tests {{{
 # =====================
 
@@ -70,9 +68,13 @@ mice_scenarios = [
 mice_scenarios = chain(*mice_scenarios)
 mice_parameter_string = "direction,expected"
 
+
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
 def test_find_mice(m, direction, expected):
-    assert subsystem._find_mice(direction, expected.mechanism) == expected
+    assert (subsystem._find_mice(direction, expected.mechanism,
+                                 subsystem.null_cut)
+            == expected)
+
 
 def test_find_mice_empty(m):
     expected = [
@@ -82,29 +84,34 @@ def test_find_mice_empty(m):
              repertoire=None,
              mip=None,
              phi=0)
-    for direction in directions]
-    assert all(m.subsys_all._find_mice(mice.direction, mice.mechanism) == mice
+        for direction in directions]
+    s = m.subsys_all
+    assert all(s._find_mice(mice.direction, mice.mechanism, s.null_cut) == mice
                for mice in expected)
+
 
 # Test input validation
 def test_find_mice_validation_bad_direction(m):
     mechanism = (m.nodes[0])
+    s = m.subsys_all
     with pytest.raises(ValueError):
-        m.subsys_all._find_mice('doge', mechanism)
+        s._find_mice('doge', mechanism, s.null_cut)
+
 
 def test_find_mice_validation_nonnode(m):
+    s = m.subsys_all
     with pytest.raises(ValueError):
-        m.subsys_all._find_mice('past', [0,1])
+        s._find_mice('past', [0, 1], s.null_cut)
+
 
 def test_find_mice_validation_noniterable(m):
+    s = m.subsys_all
     with pytest.raises(ValueError):
-        m.subsys_all._find_mice('past', 0)
+        s._find_mice('past', 0, s.null_cut)
+
 # }}}
-
-
 # `phi_max` tests {{{
 # ===================
-
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
 def test_core_cause_or_effect(m, direction, expected):
@@ -125,7 +132,7 @@ phi_max_scenarios = [
 
 @pytest.mark.parametrize('mechanism, expected_phi_max', phi_max_scenarios)
 def test_phi_max(m, expected_phi_max, mechanism):
-    assert abs(m.subsys_all.phi_max(mechanism) - expected_phi_max) < constants.EPSILON
+    assert phi_eq(m.subsys_all.phi_max(mechanism), expected_phi_max)
 
 # }}}
 
