@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+
 from cyphi.network import Network
 from cyphi.subsystem import Subsystem
 

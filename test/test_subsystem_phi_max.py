@@ -3,6 +3,7 @@
 
 import pytest
 from itertools import chain
+
 from cyphi import constants
 from cyphi.models import Mice
 from .example_networks import m

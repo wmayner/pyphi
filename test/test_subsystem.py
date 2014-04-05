@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+
 from cyphi.models import Cut
 from cyphi.subsystem import Subsystem
 

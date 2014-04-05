@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from cyphi.node import Node
+
 from cyphi.network import Network
+from cyphi.node import Node
 
 
 def test_node_init(m):

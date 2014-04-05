@@ -4,6 +4,7 @@
 import pytest
 from pprint import pprint
 import numpy as np
+
 from cyphi import constants
 from cyphi.models import Mip, Part
 

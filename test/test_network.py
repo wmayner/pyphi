@@ -3,6 +3,7 @@
 
 import pytest
 import numpy as np
+
 from cyphi.network import Network
 from cyphi.node import Node
 

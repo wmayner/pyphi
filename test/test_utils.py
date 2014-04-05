@@ -3,9 +3,18 @@
 
 import pytest
 import numpy as np
-import cyphi.utils as utils
-import cyphi
+
+from cyphi import utils, constants
 from cyphi.network import Network
+
+
+def test_phi_eq():
+    phi = 0.5
+    close_enough = phi - constants.EPSILON/2
+    not_quite = phi - constants.EPSILON*2
+    assert utils.phi_eq(phi, close_enough)
+    assert not utils.phi_eq(phi, not_quite)
+    assert not utils.phi_eq(phi, (phi - phi))
 
 
 def test_marginalize_out(m):
