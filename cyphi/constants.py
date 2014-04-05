@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import psutil
+
+# The number of cores available for parallel computation
+NUMBER_OF_CORES = psutil.NUM_CPUS
 # The number of decimal points to which phi values are considered accurate
 PRECISION = 6
 # The threshold below which we consider differences in phi values to be zero
