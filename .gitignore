@@ -7,6 +7,5 @@ node_modules
 build
 docs/_build
 **/*.pyc
-cyphi/compute.py
 .coverage
 htmlcov
