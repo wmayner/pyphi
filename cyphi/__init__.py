@@ -9,7 +9,7 @@ CyPhi is a Cython library for computing integrated information.
 """
 
 __title__ = 'cyphi'
-__version__ = '0.0.0'
+__version__ = '0.0.1'
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
 __copyright__ = 'Copyright 2014 Will Mayner'
