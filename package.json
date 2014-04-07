@@ -1,0 +1,13 @@
+{
+  "author": "Will Mayner <wmayner@gmail.com> (http://willmayner.com)",
+  "scripts": {
+    "test": "grunt test",
+    "docs": "grunt docs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "^0.4.4",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-shell": "^0.6.4"
+  }
+}
