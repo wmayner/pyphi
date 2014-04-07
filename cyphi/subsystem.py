@@ -642,6 +642,5 @@ class Subsystem:
 
     def constellation(self, cut=None):
         """Return the conceptual structure of this subsystem."""
-        concepts = [concept for concept in [self.concept(mechanism, cut) for
-                                            mechanism in powerset(self.nodes)]
-                    if concept]
+        return tuple(filter(None, [self.concept(mechanism, cut) for mechanism
+                                   in powerset(self.nodes)]))

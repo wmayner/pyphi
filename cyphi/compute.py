@@ -115,11 +115,11 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 
 def big_mip(subsystem):
     """Return the MIP for a subsystem."""
-    # calculate the unpartitioned constellation
+    # Calculate the unpartitioned constellation
     unpartitioned_constellation = subsystem.constellation(subsystem.null_cut)
-    # the first bipartition is the null cut, so skip it
+    # The first bipartition is the null cut, so skip it
     bipartitions = list(utils.bipartition(subsystem.nodes))[1:]
-    # parallel loop over all partitions
+    # Parallel loop over all partitions
     mip_candidates = Parallel(n_jobs=constants.NUMBER_OF_CORES)(
         delayed(_evaluate_cut)(subsystem, partition,
                                unpartitioned_constellation)
