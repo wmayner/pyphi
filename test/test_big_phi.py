@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import pytest
 import numpy as np
 
+from cyphi import constants
+from cyphi import utils
 from cyphi.models import Concept
 from cyphi import compute
 
@@ -26,6 +29,10 @@ def test_concept(m):
     s = m.subsys_all
     pass
 
-def test_big_mip_standard_example(m):
+@pytest.mark.slow
+def test_big_phi_standard_example(m):
+    initial_precision = constants.PRECISION
+    constants.PRECISION = 4
     s = m.subsys_all
-    assert phi_eq(compute.big_mip(s), 2.3125)
+    assert utils.phi_eq(compute.big_phi(s), 2.3125)
+    constants.PRECISION = initial_precision
