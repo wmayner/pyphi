@@ -1,0 +1,6 @@
+cython
+numpy
+nose
+pytest
+scipy
+sphinx

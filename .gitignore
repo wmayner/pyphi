@@ -1,0 +1,11 @@
+__pycache__
+.ropeproject
+node_modules
+.env
+.pythonrc.py
+
+build
+docs/_build
+**/*.pyc
+.coverage
+htmlcov

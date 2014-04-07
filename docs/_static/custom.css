@@ -1,0 +1,41 @@
+@import url(http://fonts.googleapis.com/css?family=Droid+Sans+Mono|Open+Sans:300,400,700);
+body {
+  font-family: 'Open Sans', 'Helvetica Neue', sans-serif
+}
+.navbar-brand > img {
+  margin-right: 10px;
+  height: 22px;
+  width: 22px;
+}
+h1 {
+  font-weight: bold;
+}
+h2 {
+  font-size: 26px;
+  padding-bottom: 9px;
+  margin: 40px 0 20px 0;
+  border-bottom: 1px solid #eee;
+}
+.section > h2 + p, .section > h1 + p + p {
+  font-size: 115%;
+  font-weight: 200;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+tt {
+  font-family: 'Droid Sans Mono', monospace;
+}
+dt {
+  font-weight: normal;
+  font-family: 'Droid Sans Mono', monospace;
+}
+dt > em {
+  font-weight: 700;
+  padding-left: 0.2ex;
+  font-family: 'Droid Sans Mono', monospace;
+  font-style: normal;
+}
+big {
+  padding-left: 2px;
+  padding-right: 2px;
+}
