@@ -5,8 +5,7 @@
 Utilities
 ~~~~~~~~~
 
-This module provides utility functions used within CyPhi that are consumed
-by more than one class.
+Functions used within CyPhi that are consumed by more than one class or module.
 """
 
 import numpy as np

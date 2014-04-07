@@ -6,6 +6,8 @@ import numpy as np
 from cyphi.network import Network
 from cyphi.subsystem import Subsystem
 
+# TODO pass just the subsystem (contains a reference to the network)
+
 
 def m():
     """Matlab default network.

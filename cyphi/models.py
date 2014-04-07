@@ -11,6 +11,7 @@ Lightweight containers for MICE, MIP, cut, partition, and concept data.
 from collections import namedtuple, Iterable
 from .utils import phi_eq
 
+# TODO use properties to avoid data duplication
 
 # Cut {{{
 # =======
@@ -27,6 +28,8 @@ Part = namedtuple('Part', ['mechanism', 'purview'])
 # }}}
 
 
+# Comparison helpers {{{
+# ======================
 def _numpy_aware_eq(a, b):
     """Return whether two objects are equal via recursion, using all(x == y)
     for comparing numpy arays."""
@@ -54,6 +57,7 @@ _phi_lt = lambda self, other: self.phi < other.phi
 _phi_gt = lambda self, other: self.phi > other.phi
 _phi_le = lambda self, other: self < other or phi_eq(self.phi, other.phi)
 _phi_ge = lambda self, other: self > other or phi_eq(self.phi, other.phi)
+# }}}
 
 
 # Minimum Information Partition {{{

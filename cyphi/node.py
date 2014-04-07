@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Node
+~~~~
+
+Represents a node in a network.
+"""
 
 # TODO extend to nonbinary nodes
 # TODO? refactor to use purely indexes for nodes

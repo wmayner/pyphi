@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Subsystem
+~~~~~~~~~
+
+Represents a candidate set for |phi| calculation.
+"""
 import numpy as np
 from itertools import chain
 from collections import namedtuple, Iterable
@@ -24,10 +30,7 @@ def dprint(*args):
 # take a subsystem as a parameter
 class Subsystem:
 
-    """A set of nodes in a network.
-
-    Represents a candidate set for |phi| calculation.
-    """
+    """A set of nodes in a network."""
 
     def __init__(self, nodes, current_state, past_state, network):
         """
@@ -563,7 +566,7 @@ class Subsystem:
             mip = self.find_mip(direction, mechanism, purview, cut)
             if mip:
                 # Take the purview with higher phi, or if phi is equal, take
-                # the larger one (exclusion principle)
+                # the larger one (exclusion principle).
                 if mip.phi > phi_max or (phi_eq(mip.phi, phi_max) and
                                          len(purview) > len(maximal_purview)):
                     mip_max = mip
@@ -592,7 +595,6 @@ class Subsystem:
         return min(self.core_cause(mechanism, cut).phi,
                    self.core_effect(mechanism, cut).phi)
 
-    # TODO! factor these out to compute.py
     # Big Phi methods
     # =========================================================================
 
@@ -640,6 +642,6 @@ class Subsystem:
 
     def constellation(self, cut=None):
         """Return the conceptual structure of this subsystem."""
-        return [concept for concept in [self.concept(mechanism, cut) for
-                                        mechanism in powerset(self.nodes)]
-                if concept]
+        concepts = [concept for concept in [self.concept(mechanism, cut) for
+                                            mechanism in powerset(self.nodes)]
+                    if concept]

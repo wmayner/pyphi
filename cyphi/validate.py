@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Contains methods for validating common types of input."""
+"""
+Validate
+~~~~~~~~
+
+Methods for validating common types of input.
+"""
 
 from collections import Iterable
 from .models import Cut

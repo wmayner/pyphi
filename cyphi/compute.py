@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Compute
+~~~~~~~
+
+Methods for computing concepts, constellations, and integrated information of
+subsystems.
+"""
+
 import numpy as np
 from joblib import Parallel, delayed
 
@@ -70,10 +78,14 @@ def constellation_distance(C1, C2, null_concept):
 
 # TODO Define this for cuts? need to have a cut in the null concept then
 def conceptual_information(subsystem):
+    """Return the conceptual information for a subsystem.
+
+    This is the distance from the subsystem's constellation to the null
+    concept."""
     return constellation_distance(subsystem.constellation(), ())
 
 
-# TODO make null concept an attribute?
+# TODO make null concept an attribute (property)?
 def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     # Compute forward mip
     forward_cut = Cut(partition[0], partition[1])
@@ -102,7 +114,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 
 
 def big_mip(subsystem):
-    """Return the MIP for this subsystem."""
+    """Return the MIP for a subsystem."""
     # calculate the unpartitioned constellation
     unpartitioned_constellation = subsystem.constellation(subsystem.null_cut)
     # the first bipartition is the null cut, so skip it
@@ -116,5 +128,5 @@ def big_mip(subsystem):
 
 
 def big_phi(subsystem):
-    """Return the |Phi| value of a subsystem."""
+    """Return the |big_phi| value of a subsystem."""
     return big_mip(subsystem).phi

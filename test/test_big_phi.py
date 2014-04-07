@@ -4,6 +4,7 @@
 import numpy as np
 
 from cyphi.models import Concept
+from cyphi import compute
 
 
 def test_null_concept(m):
@@ -14,10 +15,17 @@ def test_null_concept(m):
                            s.unconstrained_effect_repertoire(s.nodes)]),
         phi=0, cause=None, effect=None))
 
+
 def test_concept_nonexistent(m):
-     s = m.subsys_all
-     assert not s.concept((m.nodes[0], m.nodes[2]))
+    s = m.subsys_all
+    assert not s.concept((m.nodes[0], m.nodes[2]))
 
 
+# TODO finish
 def test_concept(m):
+    s = m.subsys_all
     pass
+
+def test_big_mip_standard_example(m):
+    s = m.subsys_all
+    assert phi_eq(compute.big_mip(s), 2.3125)

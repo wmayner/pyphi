@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Network
+~~~~~~~
+
+Represents the network of interest. This is the primary object of CyPhi and the
+context of all |phi| and |big_phi| computation.
+"""
+
+
 import numpy as np
 from .utils import uniform_distribution
 from .node import Node
