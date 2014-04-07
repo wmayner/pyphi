@@ -292,10 +292,13 @@ class Subsystem:
             # connections to the purview have been severed.
             for node in marginal_inputs:
                 tpm = marginalize_out(node, tpm)
-            # TODO do I need this?
-                # for node in severed_mechanism_inputs:
-                #     # TODO expand dimensions here
-                #     print('todo')
+            # Expand the TPM along the axes corresponding to mechanism nodes
+            # who's connections to the purview were severed, since those will
+            # have conditioning indices despite having being marginalized out
+            # in the previous step (and collapsed down to one dimension). This
+            # avoids index out-of-bounds errors when conditioning.
+            for node in severed_mechanism_inputs:
+                tpm = np.concatenate((tpm, tpm), node.index)
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution by taking the product (with singleton
             # broadcasting).
@@ -305,7 +308,7 @@ class Subsystem:
         # fix (by collapsing the CJD onto those states):
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Fixed boundary condition nodes are those that are outside this
-        # subsystem, and are not in the purview or have been severed by a
+        # subsystem, and are not in the mechanism or have been severed by a
         # cut.
         boundary_inputs = mechanism_inputs | external_inputs
         # Initialize the conditioning indices, taking the slices as singleton
@@ -614,11 +617,11 @@ class Subsystem:
             effect=None)
 
     def concept(self, mechanism, cut=None):
-        """Returns the concept specified by a mechanism"""
+        """Returns the concept specified by a mechanism."""
         past_mice = self.core_cause(mechanism, cut)
-        future_mice = self.core_cause(mechanism, cut)
+        future_mice = self.core_effect(mechanism, cut)
         phi = min(past_mice.phi, future_mice.phi)
-        if phi <= 0:
+        if phi < constants.EPSILON:
             return None
         return Concept(
             mechanism=mechanism,
