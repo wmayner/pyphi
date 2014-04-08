@@ -65,7 +65,7 @@ mice_scenarios = [
     [(direction, mice) for mice in expected_mice[direction]]
     for direction in directions
 ]
-mice_scenarios = chain(*mice_scenarios)
+mice_scenarios = list(chain(*mice_scenarios))
 mice_parameter_string = "direction,expected"
 
 
