@@ -14,8 +14,6 @@ requires = []
 
 with open('README.rst') as f:
     readme = f.read()
-with open('HISTORY.rst') as f:
-    history = f.read()
 
 setup(
     name="cyphi",
@@ -23,6 +21,7 @@ setup(
     author=cyphi.__author__,
     author_email=cyphi.__author_email__,
     description=cyphi.__description__,
+    long_description=readme,
     include_package_data=True,
     install_requires=requires,
     packages=packages,
