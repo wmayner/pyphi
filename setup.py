@@ -10,7 +10,7 @@ except ImportError:
 
 packages = ['cyphi']
 
-requires = []
+requires = ['numpy==1.8.1', 'scipy==0.13.3']
 
 with open('README.rst') as f:
     readme = f.read()
