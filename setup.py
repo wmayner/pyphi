@@ -1,18 +1,41 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from distutils.core import setup
-from distutils.extension import Extension
-from Cython.Build import cythonize
+import cyphi
 
-import numpy as np
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
-extensions = [Extension("cyphi/*", ["cyphi/*.pyx"],
-                        include_dirs=[np.get_include()])]
+packages = ['cyphi']
+
+requires = []
+
+with open('README.rst') as f:
+    readme = f.read()
 
 setup(
     name="cyphi",
-    version="0.0.0",
-    description="A Cython library for computing integrated information",
-    ext_modules=cythonize(extensions)
+    version=cyphi.__version__,
+    author=cyphi.__author__,
+    author_email=cyphi.__author_email__,
+    description=cyphi.__description__,
+    long_description=readme,
+    include_package_data=True,
+    install_requires=requires,
+    packages=packages,
+    package_data={'': ['LICENSE', 'NOTICE']},
+    license='GNU General Public License v3.0',
+    zip_safe=False,
+    classifiers=(
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'Natural Language :: English',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+    ),
 )
