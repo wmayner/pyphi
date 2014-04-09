@@ -1,7 +1,7 @@
 ## Top-level dependencies required by CyPhi
 numpy==1.8.1
 joblib==0.8.0a3
-git+git://github.com/wmayner/pyemd.git
+git+https://github.com/wmayner/pyemd.git@master#egg=pyemd
 Sphinx==1.2.2
 sphinx-bootstrap-theme==0.4.0
 scipy==0.13.3

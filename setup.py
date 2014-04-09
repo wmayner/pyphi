@@ -12,9 +12,17 @@ with open('README.rst') as f:
     readme = f.read()
 
 
-requires = ['numpy >=1.8.1, <2.0.0',
-            'scipy >=0.13.3, <1.0.0',
-            'git+https://github.com/wmayner/pyemd#egg=pyemd']
+install_requires = [
+    'numpy >=1.8.1, <2.0.0',
+    'scipy >=0.13.3, <1.0.0',
+    'pyemd'
+]
+dependency_links = ['git+https://github.com/wmayner/pyemd.git@master#egg=pyemd']
+
+test_require = [
+    'pytest',
+    'coverage'
+]
 
 
 setup(
@@ -25,7 +33,10 @@ setup(
     author_email='wmayner@gmail.com',
     long_description=readme,
     include_package_data=True,
-    install_requires=requires,
+    install_requires=install_requires,
+    tests_require=test_require,
+    test_suite="py.test",
+    dependency_links=dependency_links,
     packages=['cyphi'],
     package_data={'': ['LICENSE']},
     license='GNU General Public License v3.0',
