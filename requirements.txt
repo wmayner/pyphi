@@ -4,10 +4,12 @@ joblib==0.8.0a3
 git+git://github.com/wmayner/pyemd.git
 Sphinx==1.2.2
 sphinx-bootstrap-theme==0.4.0
-pytest==2.5.2
-coverage==3.7.1
 scipy==0.13.3
 psutil==2.0.0
+
+# Test dependencies
+pytest==2.5.2
+coverage==3.7.1
 
 ## Nested dependencies added by pip
 Jinja2==2.7.2
