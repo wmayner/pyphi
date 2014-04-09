@@ -15,9 +15,8 @@ with open('README.rst') as f:
 install_requires = [
     'numpy >=1.8.1, <2.0.0',
     'scipy >=0.13.3, <1.0.0',
-    'pyemd'
+    'pyemd >=0.0.7'
 ]
-dependency_links = ['git+https://github.com/wmayner/pyemd.git@master#egg=pyemd']
 
 test_require = [
     'pytest',
@@ -36,7 +35,6 @@ setup(
     install_requires=install_requires,
     tests_require=test_require,
     test_suite="py.test",
-    dependency_links=dependency_links,
     packages=['cyphi'],
     package_data={'': ['LICENSE']},
     license='GNU General Public License v3.0',
