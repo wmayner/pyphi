@@ -12,6 +12,7 @@ from collections import namedtuple, Iterable
 from .utils import phi_eq
 
 # TODO use properties to avoid data duplication
+# TODO add proper docstrings with __doc__
 
 # Cut {{{
 # =======
@@ -90,17 +91,19 @@ Mice.__ge__ = _phi_ge
 
 # Concept {{{
 # ===========
-# A star in concept-space.
-#
-# The location is given by the probabilities of each state in its cause and
-# effect repertoires, i.e.
-#     concept.location = array[direction][n_0][n_1]...[n_k]
-# where `direction` is either `PAST` or `FUTURE` and the rest of the dimensions
-# correspond to a node in the network. `phi` is the small-phi_max value.
-# `cause` and `effect` are the MICE objects for the past and future,
-# respectively.
 _concept_attributes = ['phi', 'mechanism', 'location', 'cause', 'effect']
 Concept = namedtuple('Concept', _concept_attributes)
+Concept.__doc__ = """\
+A star in concept-space.
+
+The location is given by the probabilities of each state in its cause and
+effect repertoires, i.e.
+    concept.location = array[direction][n_0][n_1]...[n_k]
+where `direction` is either `PAST` or `FUTURE` and the rest of the dimensions
+correspond to a node in the network. `phi` is the small-phi_max value.
+`cause` and `effect` are the MICE objects for the past and future,
+respectively.
+"""
 Concept.__eq__ = lambda self, other: _general_eq(self, other,
                                                  _concept_attributes)
 # Order by phi value
