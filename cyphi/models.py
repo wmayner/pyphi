@@ -117,7 +117,7 @@ Concept.__ge__ = _phi_ge
 # Big Phi MIP {{{
 # ===============
 _bigmip_attributes = ['phi', 'partition', 'unpartitioned_constellation',
-                      'partitioned_constellation']
+                      'partitioned_constellation', 'subsystem']
 BigMip = namedtuple('BigMip', _bigmip_attributes)
 BigMip.__eq__ = lambda self, other: _general_eq(self, other,
                                                 _bigmip_attributes)

@@ -96,7 +96,8 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
                                    subsystem.null_concept()),
         partition=forward_cut,
         unpartitioned_constellation=unpartitioned_constellation,
-        partitioned_constellation=forward_constellation)
+        partitioned_constellation=forward_constellation,
+        subsystem=subsystem)
     # Compute backward mip
     backward_cut = Cut(partition[1], partition[0])
     backward_constellation = subsystem.constellation(backward_cut)
@@ -106,7 +107,8 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
                                    subsystem.null_concept()),
         partition=backward_cut,
         unpartitioned_constellation=unpartitioned_constellation,
-        partitioned_constellation=backward_constellation)
+        partitioned_constellation=backward_constellation,
+        subsystem=subsystem)
     # Choose minimal unidirectional cut
     mip = min(forward_mip, backward_mip)
     # Return the mip if the subsystem with the given partition is not reducible

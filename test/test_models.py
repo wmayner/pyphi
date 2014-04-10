@@ -162,14 +162,17 @@ def test_concept_equality():
 
 def test_bigmip_ordering():
     phi1 = models.BigMip(partition=None, unpartitioned_constellation=None,
-                         partitioned_constellation=None, phi=1.0)
+                         partitioned_constellation=None, phi=1.0,
+                         subsystem=None)
     different_phi1 = models.BigMip(partition='different',
                                    unpartitioned_constellation=0,
-                                   partitioned_constellation=None, phi=1.0)
+                                   partitioned_constellation=None, phi=1.0,
+                                   subsystem=None)
     phi2 = models.BigMip(partition=0,
                          unpartitioned_constellation='stilldifferent',
-                         partitioned_constellation=None, phi=1.0 +
-                         constants.EPSILON*2)
+                         partitioned_constellation=None,
+                         phi=1.0 + constants.EPSILON*2,
+                         subsystem=None)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -181,14 +184,17 @@ def test_bigmip_ordering():
 def test_bigmip_equality():
     phi = 1.0
     bigmip = models.BigMip(partition=None, unpartitioned_constellation=None,
-                           partitioned_constellation=None, phi=phi)
+                           partitioned_constellation=None, phi=phi,
+                           subsystem=None)
     close_enough = models.BigMip(partition=None,
                                  unpartitioned_constellation=None,
                                  partitioned_constellation=None,
-                                 phi=(phi - constants.EPSILON/2))
+                                 phi=(phi - constants.EPSILON/2),
+                                 subsystem=None)
     not_quite = models.BigMip(partition=None, unpartitioned_constellation=None,
                               partitioned_constellation=None,
-                              phi=(phi - constants.EPSILON*2))
+                              phi=(phi - constants.EPSILON*2),
+                              subsystem=None)
     assert bigmip == close_enough
     assert bigmip != not_quite
 
