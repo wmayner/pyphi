@@ -15,7 +15,9 @@ with open('README.rst') as f:
 install_requires = [
     'numpy >=1.8.1, <2.0.0',
     'scipy >=0.13.3, <1.0.0',
-    'pyemd >=0.0.7'
+    'pyemd >=0.0.7',
+    'joblib >=0.8.0a3, <1.0.0',
+    'psutil >=2.0.0, <3.0.0',
 ]
 
 test_require = [
