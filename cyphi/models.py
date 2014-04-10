@@ -144,10 +144,10 @@ def _bigmip_gt(self, other):
         return True
 
 def _bigmip_le(self, other):
-    return self < other or _phi_eq(self, other) if other else False
+    return self < other or _phi_eq(self.phi, other.phi) if other else False
 
 def _bigmip_ge(self, other):
-    return self > other or _phi_eq(self, other) if other else True
+    return self > other or _phi_eq(self.phi, other.phi) if other else True
 
 BigMip.__lt__ = _bigmip_lt
 BigMip.__gt__ = _bigmip_gt
