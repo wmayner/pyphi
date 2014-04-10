@@ -16,7 +16,7 @@ from . import validate
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (marginalize_out, emd, hamming_emd, max_entropy_distribution, powerset,
                     bipartition, phi_eq)
-from .models import Cut, Mip, Part, Mice, Concept, BigMip
+from .models import Cut, Mip, Part, Mice, Concept
 
 
 # TODO remove
@@ -82,6 +82,19 @@ class Subsystem:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    # TODO write tests for cmp methods
+    def __ge__(self, other):
+        return len(self.nodes) >= len(other.nodes)
+
+    def __le__(self, other):
+        return len(self.nodes) <= len(other.nodes)
+
+    def __gt__(self, other):
+        return len(self.nodes) > len(other.nodes)
+
+    def __lt__(self, other):
+        return len(self.nodes) < len(other.nodes)
 
     def __hash__(self):
         return hash((frozenset(self.nodes), self.current_state.tostring(),

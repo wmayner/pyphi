@@ -9,7 +9,7 @@ Lightweight containers for MICE, MIP, cut, partition, and concept data.
 """
 
 from collections import namedtuple, Iterable
-from .utils import phi_eq
+from .utils import phi_eq as _phi_eq
 
 # TODO use properties to avoid data duplication
 # TODO add proper docstrings with __doc__
@@ -48,21 +48,26 @@ def _general_eq(a, b, attributes):
     ``constants.PRECISION``. All other given attributes are compared with
     :func:`_numpy_aware_eq`"""
     if 'phi' in attributes:
-        if not phi_eq(a.phi, b.phi):
+        if not _phi_eq(a.phi, b.phi):
             return False
     return all(_numpy_aware_eq(getattr(a, attr), getattr(b, attr)) if attr !=
                'phi' else True for attr in attributes)
 
 # Phi-ordering methods
-_phi_lt = lambda self, other: self.phi < other.phi
-_phi_gt = lambda self, other: self.phi > other.phi
-_phi_le = lambda self, other: self < other or phi_eq(self.phi, other.phi)
-_phi_ge = lambda self, other: self > other or phi_eq(self.phi, other.phi)
+_phi_lt = lambda self, other: (self.phi < other.phi) if other else False
+_phi_gt = lambda self, other: (self.phi > other.phi) if other else True
+_phi_le = lambda self, other: ((_phi_lt(self, other) or _phi_eq(self.phi,
+                                                                other.phi))
+                               if other else False)
+_phi_ge = lambda self, other: ((_phi_gt(self, other) or _phi_eq(self.phi,
+                                                                other.phi))
+                               if other else False)
 # }}}
 
 
-# Minimum Information Partition {{{
-# =================================
+# Minimum Information Partition (small phi MIP) {{{
+# =================================================
+# TODO! include references to mechanism and purview
 _mip_attributes = ['phi', 'direction', 'partition', 'unpartitioned_repertoire',
                    'partitioned_repertoire']
 Mip = namedtuple('Mip', _mip_attributes)
@@ -121,11 +126,33 @@ _bigmip_attributes = ['phi', 'partition', 'unpartitioned_constellation',
 BigMip = namedtuple('BigMip', _bigmip_attributes)
 BigMip.__eq__ = lambda self, other: _general_eq(self, other,
                                                 _bigmip_attributes)
-# Order by phi value
-BigMip.__lt__ = _phi_lt
-BigMip.__gt__ = _phi_gt
-BigMip.__le__ = _phi_le
-BigMip.__ge__ = _phi_ge
+# TODO! document comparison methods
+# TODO! implement exclusion principle in comparison methods
+# Order by phi value, then by subsystem size
+def _bigmip_lt(self, other):
+    if other:
+        return (self.subsystem < other.subsystem if _phi_eq(self.phi, other.phi)
+                else _phi_le(self, other))
+    else:
+        return False
+
+def _bigmip_gt(self, other):
+    if other:
+        return (self.subsystem > other.subsystem if _phi_eq(self.phi, other.phi)
+                else _phi_gt(self, other))
+    else:
+        return True
+
+def _bigmip_le(self, other):
+    return self < other or _phi_eq(self, other) if other else False
+
+def _bigmip_ge(self, other):
+    return self > other or _phi_eq(self, other) if other else True
+
+BigMip.__lt__ = _bigmip_lt
+BigMip.__gt__ = _bigmip_gt
+BigMip.__le__ = _bigmip_le
+BigMip.__ge__ = _bigmip_ge
 # }}}
 
 
