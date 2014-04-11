@@ -163,16 +163,16 @@ def test_concept_equality():
 def test_bigmip_ordering():
     phi1 = models.BigMip(partition=None, unpartitioned_constellation=None,
                          partitioned_constellation=None, phi=1.0,
-                         subsystem=None)
+                         subsystem=())
     different_phi1 = models.BigMip(partition='different',
                                    unpartitioned_constellation=0,
                                    partitioned_constellation=None, phi=1.0,
-                                   subsystem=None)
+                                   subsystem=())
     phi2 = models.BigMip(partition=0,
                          unpartitioned_constellation='stilldifferent',
                          partitioned_constellation=None,
                          phi=1.0 + constants.EPSILON*2,
-                         subsystem=None)
+                         subsystem=())
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -181,20 +181,21 @@ def test_bigmip_ordering():
     assert phi1 >= different_phi1
 
 
-def test_bigmip_equality():
+def test_bigmip_equality(m):
+    s = m.subsys_all
     phi = 1.0
     bigmip = models.BigMip(partition=None, unpartitioned_constellation=None,
                            partitioned_constellation=None, phi=phi,
-                           subsystem=None)
+                           subsystem=s)
     close_enough = models.BigMip(partition=None,
                                  unpartitioned_constellation=None,
                                  partitioned_constellation=None,
                                  phi=(phi - constants.EPSILON/2),
-                                 subsystem=None)
+                                 subsystem=s)
     not_quite = models.BigMip(partition=None, unpartitioned_constellation=None,
                               partitioned_constellation=None,
                               phi=(phi - constants.EPSILON*2),
-                              subsystem=None)
+                              subsystem=s)
     assert bigmip == close_enough
     assert bigmip != not_quite
 
