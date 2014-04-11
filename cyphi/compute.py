@@ -164,6 +164,7 @@ def big_phi(subsystem):
     """Return the |big_phi| value of a subsystem."""
     return big_mip(subsystem).phi
 
+
 def complexes(network):
     """Return a generator for all complexes of the network.
 
@@ -174,6 +175,7 @@ def complexes(network):
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
     return (big_mip(subsystem) for subsystem in network.subsystems())
+
 
 def main_complex(network):
     """Return the main complex of the network."""
