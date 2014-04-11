@@ -11,6 +11,7 @@ subsystems.
 
 import numpy as np
 from joblib import Parallel, delayed
+from scipy.sparse.csgraph import connected_components
 
 from .models import Cut, BigMip
 from . import constants
@@ -117,6 +118,18 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 
 def big_mip(subsystem):
     """Return the MIP for a subsystem."""
+    # If the subsystem is not strongly connected, phi is necessarily zero, so
+    # we immediately return a null MIP
+    cm = subsystem.network.connectivity_matrix
+    num_components, _ = connected_components(cm) if cm != None else (1, None)
+    if num_components > 1:
+        return BigMip(subsystem=subsystem,
+                      phi=0.0,
+                      # TODO should this be null cut?
+                      partition=subsystem.null_cut,
+                      unpartitioned_constellation=[],
+                      partitioned_constellation=[])
+
     # Calculate the unpartitioned constellation
     unpartitioned_constellation = subsystem.constellation(subsystem.null_cut)
     # The first bipartition is the null cut, so skip it

@@ -11,8 +11,8 @@ context of all |phi| and |big_phi| computation.
 
 
 import numpy as np
-from .utils import uniform_distribution
 from .node import Node
+from . import validate
 
 
 class Network:
@@ -23,7 +23,8 @@ class Network:
     """
 
     # TODO implement network definition via connectivity_matrix
-    def __init__(self, tpm, current_state, past_state):
+    def __init__(self, tpm, current_state, past_state,
+                 connectivity_matrix=None):
         """
         :param tpm: The network's transition probability matrix **in
             state-by-node form**, so that ``tpm[0][1][0]`` gives the
@@ -38,19 +39,9 @@ class Network:
             ``state[i]`` gives the past state of ``self.nodes[i]``
         :type state: ``np.ndarray``
         """
-        # Validate the TPM
-        if (tpm.shape[-1] != len(tpm.shape) - 1):
-            raise ValueError(
-                """Invalid TPM: There must be a dimension for each node, each
-                one being the size of the corresponding node's state space,
-                plus one dimension that is the same size as the network.""")
-        # TODO extend to nonbinary nodes
-        if (tpm.shape[:-1] != tuple([2] * tpm.shape[-1])):
-            raise ValueError(
-                """Invalid TPM: We can only handle binary nodes at the moment.
-                Each dimension except the last must be of size 2.""")
-
         self.tpm = tpm
+        # TODO! test connectivity matrix
+        self.connectivity_matrix = connectivity_matrix
         self.current_state = current_state
         self.past_state = past_state
         # Make these properties immutable (for hashing)
@@ -61,19 +52,14 @@ class Network:
         # number of nodes is given by the size of the last dimension)
         self.size = tpm.shape[-1]
 
-        # Validate the state
-        if (current_state.size != self.size or past_state.size != self.size):
-            raise ValueError(
-                "Invalid state: there must be one entry per node in " +
-                "the network; this state has " + str(current_state.size) +
-                "entries, " + "but there are " + str(self.size) + " nodes.")
+        # Validate this network
+        validate.network(self)
 
         # Generate the nodes
         self.nodes = [Node(self, node_index)
                       for node_index in range(self.size)]
         # TODO extend to nonbinary nodes
         self.num_states = 2 ** self.size
-        self.uniform_distribution = uniform_distribution(self.size)
 
     def __repr__(self):
         return "Network(" + repr(self.tpm) + ")"
