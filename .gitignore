@@ -9,3 +9,4 @@ docs/_build
 **/*.pyc
 .coverage
 htmlcov
+.agignore
