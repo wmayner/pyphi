@@ -170,6 +170,15 @@ def big():
     # All on
     past_state = np.array([1] * 5)
     big = Network(tpm, current_state, past_state)
-    big.subsys_all = Subsystem(big.nodes, big.current_state, big.past_state,
-                               big)
+    big.subsys_all = Subsystem(big.nodes, current_state, past_state, big)
     return big
+
+def reducible():
+    tpm = np.zeros([2] * 2 + [2])
+    current_state = np.zeros(2)
+    past_state = np.zeros(2)
+    cm = np.array([[1, 0],
+                   [0, 1]])
+    r = Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    # Return the full subsystem
+    return Subsystem(r.nodes, current_state, past_state, r)
