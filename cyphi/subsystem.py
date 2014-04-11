@@ -80,6 +80,10 @@ class Subsystem:
                 np.array_equal(self.past_state, other.past_state) and
                 self.network == other.network)
 
+    def __bool__(self):
+        """Return false if the subsystem has no nodes, true otherwise."""
+        return bool(self.nodes)
+
     def __ne__(self, other):
         return not self.__eq__(other)
 

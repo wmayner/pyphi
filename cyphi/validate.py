@@ -80,6 +80,7 @@ def state(network):
             this state has " + str(network.current_state.size) + " entries, \
             but there \ are " + str(network.size) + " nodes.")
 
+
 def network(network):
     """Validate TPM, connectivity_matrix, and current and past state."""
     tpm(network.tpm)

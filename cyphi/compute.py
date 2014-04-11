@@ -14,6 +14,8 @@ from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
 
 from .models import Cut, BigMip
+from .network import Network
+from . import validate
 from . import constants
 from . import utils
 
@@ -132,22 +134,29 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 # TODO document
 def big_mip(subsystem):
     """Return the MIP for a subsystem."""
-    # If the subsystem is not strongly connected, phi is necessarily zero, so
-    # we immediately return a null MIP
     cm = subsystem.network.connectivity_matrix
+    # The first bipartition is the null cut (trivial bipartition), so skip it
+    bipartitions = list(utils.bipartition(subsystem.nodes))[1:]
+    # Get the number of strongly connected components
     num_components, _ = connected_components(cm) if cm != None else (1, None)
-    if num_components > 1:
+
+    # Phi is necessarily zero if the subsystem is:
+    #   - not strongly connected;
+    #   - empty; or
+    #   - an elementary mechanism (i.e. no nontrivial bipartitions).
+    # So in those cases we immediately return a null MIP.
+    if num_components > 1 or not subsystem or not bipartitions:
         return _null_mip(subsystem)
 
     # Calculate the unpartitioned constellation
     unpartitioned_constellation = subsystem.constellation(subsystem.null_cut)
-    # The first bipartition is the null cut, so skip it
-    bipartitions = list(utils.bipartition(subsystem.nodes))[1:]
+
     # Parallel loop over all partitions
     mip_candidates = Parallel(n_jobs=constants.NUMBER_OF_CORES)(
         delayed(_evaluate_cut)(subsystem, partition,
                                unpartitioned_constellation)
         for partition in bipartitions)
+
     return min(mip_candidates)
 
 
@@ -156,9 +165,20 @@ def big_phi(subsystem):
     return big_mip(subsystem).phi
 
 def complexes(network):
-    """Return all the complexes of the network."""
-    # TODO!
+    """Return a generator for all complexes of the network.
+
+    This includes reducible, zero-phi complexes (which are not, strictly
+    speaking, complexes at all)."""
+    if not isinstance(network, Network):
+        raise ValueError(
+            """Input must be a Network (perhaps you passed a Subsystem
+            instead?)""")
+    return (big_mip(subsystem) for subsystem in network.subsystems())
 
 def main_complex(network):
     """Return the main complex of the network."""
-    # TODO!
+    if not isinstance(network, Network):
+        raise ValueError(
+            """Input must be a Network (perhaps you passed a Subsystem
+            instead?)""")
+    return max(complexes(network))

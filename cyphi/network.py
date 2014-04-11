@@ -12,7 +12,9 @@ context of all |phi| and |big_phi| computation.
 
 import numpy as np
 from .node import Node
+from .subsystem import Subsystem
 from . import validate
+from . import utils
 
 
 class Network:
@@ -80,3 +82,8 @@ class Network:
     def __hash__(self):
         return hash((self.tpm.tostring(), self.current_state.tostring(),
                     self.past_state.tostring()))
+
+    def subsystems(self):
+        """Return a generator of all possible subsystems of this network."""
+        for subset in utils.powerset(self.nodes):
+            yield Subsystem(subset, self.current_state, self.past_state, self)
