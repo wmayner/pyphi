@@ -86,7 +86,20 @@ def conceptual_information(subsystem):
     return constellation_distance(subsystem.constellation(), ())
 
 
+# TODO document
+def _null_mip(subsystem):
+    """Returns a BigMip with zero phi and empty constellations.
+
+    This is the MIP associated with a reducible subsystem."""
+    return BigMip(subsystem=subsystem,
+                  phi=0.0,
+                  # TODO should this be null cut?
+                  partition=subsystem.null_cut,
+                  unpartitioned_constellation=[], partitioned_constellation=[])
+
+
 # TODO make null concept an attribute (property)?
+# TODO document
 def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     # Compute forward mip
     forward_cut = Cut(partition[0], partition[1])
@@ -113,9 +126,10 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     # Choose minimal unidirectional cut
     mip = min(forward_mip, backward_mip)
     # Return the mip if the subsystem with the given partition is not reducible
-    return mip if mip.phi > constants.EPSILON else None
+    return mip if mip.phi > constants.EPSILON else _null_mip(subsystem)
 
 
+# TODO document
 def big_mip(subsystem):
     """Return the MIP for a subsystem."""
     # If the subsystem is not strongly connected, phi is necessarily zero, so
@@ -123,12 +137,7 @@ def big_mip(subsystem):
     cm = subsystem.network.connectivity_matrix
     num_components, _ = connected_components(cm) if cm != None else (1, None)
     if num_components > 1:
-        return BigMip(subsystem=subsystem,
-                      phi=0.0,
-                      # TODO should this be null cut?
-                      partition=subsystem.null_cut,
-                      unpartitioned_constellation=[],
-                      partitioned_constellation=[])
+        return _null_mip(subsystem)
 
     # Calculate the unpartitioned constellation
     unpartitioned_constellation = subsystem.constellation(subsystem.null_cut)
@@ -139,9 +148,17 @@ def big_mip(subsystem):
         delayed(_evaluate_cut)(subsystem, partition,
                                unpartitioned_constellation)
         for partition in bipartitions)
-    return min(mip_candidates) if any(mip_candidates) else None
+    return min(mip_candidates)
 
 
 def big_phi(subsystem):
     """Return the |big_phi| value of a subsystem."""
     return big_mip(subsystem).phi
+
+def complexes(network):
+    """Return all the complexes of the network."""
+    # TODO!
+
+def main_complex(network):
+    """Return the main complex of the network."""
+    # TODO!

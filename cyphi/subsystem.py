@@ -457,6 +457,20 @@ class Subsystem:
                     yield (part0, part1)
         return
 
+
+    @staticmethod
+    def _null_mip(direction, mechanism, purview):
+        # TODO Use properties here to infer mechanism and purview from
+        # partition yet access them with .mechanism and .partition
+        return Mip(direction=direction,
+                   mechanism=mechanism,
+                   purview=purview,
+                   partition=None,
+                   unpartitioned_repertoire=None,
+                   partitioned_repertoire=None,
+                   phi=0.0)
+
+
     def find_mip(self, direction, mechanism, purview, cut=None):
         """Return the minimum information partition for the past or future.
         Where the ``partition`` attribute is a pair of objects, each with the
@@ -478,7 +492,9 @@ class Subsystem:
         validate.direction(direction)
         repertoire = self._get_repertoire(direction)
 
-        mip = None
+        # We default to the null MIP (the MIP of a reducible mechanism)
+        mip = self._null_mip(direction, mechanism, purview)
+
         phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones
@@ -500,7 +516,11 @@ class Subsystem:
             # Update MIP if it's more minimal
             if (phi_min - phi) > constants.EPSILON:
                 phi_min = phi
+                # TODO Use properties here to infer mechanism and purview from
+                # partition yet access them with .mechanism and .partition
                 mip = Mip(direction=direction,
+                          mechanism=mechanism,
+                          purview=purview,
                           partition=(part0, part1),
                           unpartitioned_repertoire=unpartitioned_repertoire,
                           partitioned_repertoire=partitioned_repertoire,

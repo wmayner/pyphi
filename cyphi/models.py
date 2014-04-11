@@ -68,8 +68,8 @@ _phi_ge = lambda self, other: ((_phi_gt(self, other) or _phi_eq(self.phi,
 # Minimum Information Partition (small phi MIP) {{{
 # =================================================
 # TODO! include references to mechanism and purview
-_mip_attributes = ['phi', 'direction', 'partition', 'unpartitioned_repertoire',
-                   'partitioned_repertoire']
+_mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
+                   'unpartitioned_repertoire', 'partitioned_repertoire']
 Mip = namedtuple('Mip', _mip_attributes)
 Mip.__eq__ = lambda self, other: _general_eq(self, other, _mip_attributes)
 # Order by phi value
