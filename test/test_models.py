@@ -59,16 +59,20 @@ def test_general_eq_phi_precision_comparison_false():
 # ============
 
 def test_mip_ordering():
-    phi1 = models.Mip(direction=None, partition=None,
-                      unpartitioned_repertoire=None,
-                      partitioned_repertoire=None, phi=1.0)
-    different_phi1 = models.Mip(direction='different', partition=0,
+    phi1 = models.Mip(direction=None, mechanism=None, purview=None,
+                      partition=None, unpartitioned_repertoire=None,
+                      partitioned_repertoire=None,
+                      phi=1.0)
+    different_phi1 = models.Mip(direction='different', mechanism=None,
+                                purview=None, partition=0,
                                 unpartitioned_repertoire=None,
-                                partitioned_repertoire=None, phi=1.0)
-    phi2 = models.Mip(direction=0, partition='stilldifferent',
+                                partitioned_repertoire=None,
+                                phi=1.0)
+    phi2 = models.Mip(direction=0, mechanism=None, purview=None,
+                      partition='stilldifferent',
                       unpartitioned_repertoire=None,
-                      partitioned_repertoire=None, phi=1.0 +
-                      constants.EPSILON*2)
+                      partitioned_repertoire=None,
+                      phi=1.0 + constants.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -79,15 +83,15 @@ def test_mip_ordering():
 
 def test_mip_equality():
     phi = 1.0
-    mip = models.Mip(direction=None, partition=None,
+    mip = models.Mip(direction=None, mechanism=(), purview=(), partition=None,
                      unpartitioned_repertoire=None,
                      partitioned_repertoire=None, phi=phi)
-    close_enough = models.Mip(direction=None, partition=None,
-                              unpartitioned_repertoire=None,
+    close_enough = models.Mip(direction=None, mechanism=(), purview=(),
+                              partition=None, unpartitioned_repertoire=None,
                               partitioned_repertoire=None,
                               phi=(phi - constants.EPSILON/2))
-    not_quite = models.Mip(direction=None, partition=None,
-                           unpartitioned_repertoire=None,
+    not_quite = models.Mip(direction=None, mechanism=(), purview=(),
+                           partition=None, unpartitioned_repertoire=None,
                            partitioned_repertoire=None,
                            phi=(phi - constants.EPSILON*2))
     assert mip == close_enough

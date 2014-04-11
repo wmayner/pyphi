@@ -77,15 +77,15 @@ def test_find_mice(m, direction, expected):
 
 
 def test_find_mice_empty(m):
+    s = m.subsys_all
     expected = [
         Mice(direction=direction,
              mechanism=(),
-             purview=None,
+             purview=s.nodes,
              repertoire=None,
-             mip=None,
+             mip=s._null_mip(direction, (), s.nodes),
              phi=0)
         for direction in directions]
-    s = m.subsys_all
     assert all(s._find_mice(mice.direction, mice.mechanism, s.null_cut) == mice
                for mice in expected)
 

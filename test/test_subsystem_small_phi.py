@@ -223,6 +223,8 @@ def test_find_mip(m, direction, subsystem, cut, mechanism, purview, expected):
                          purview=tuple(m.nodes[i] for i in
                                        expected_partition[1].purview))
                 ),
+                mechanism=mechanism,
+                purview=purview,
                 unpartitioned_repertoire=expected['unpartitioned_repertoire'],
                 partitioned_repertoire=expected_partitioned_repertoire,
                 phi=expected['phi'])
