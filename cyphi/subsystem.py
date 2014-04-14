@@ -597,6 +597,19 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
+    def _all_connect_to_any(self, nodes1, nodes2):
+        """Returns whether all nodes in a tuple have a connection to at least
+        one node in the other tuple.
+        """
+        # Get the connectivity matrix for just the mechanism and
+        # purview nodes
+        i = np.array([node.index for node in nodes1])
+        j = np.array([node.index for node in nodes2])
+        cm = self.network.connectivity_matrix[i, j]
+        # Check that all nodes have at least one connection by summing over
+        # columns of connectivity submatrix
+        return all(sum(cm, axis=0))
+
     # TODO update docs
     def _find_mice(self, direction, mechanism, cut):
         """Return the maximally irreducible cause or effect for a mechanism.
@@ -616,24 +629,15 @@ class Subsystem:
         maximal_purview = None
         maximal_repertoire = None
 
-        def not_trivially_reducible(purview):
-            # Get the connectivity matrix for just the mechanism and
-            # purview nodes
-            i = np.array([node.index for node in mechanism])
-            j = np.array([node.index for node in purview])
-            cm = self.network.connectivity_matrix[i, j]
-            # Sum over rows (if purview is in the past) or columns (if purview
-            # is in the future) of connectivity submatrix to check that all
-            # denominator nodes are connected to at least one numerator node
-            axis = PAST if direction == DIRECTIONS[PAST] else FUTURE
-            return all(sum(cm, axis=axis))
-
         purviews = powerset(self.nodes)
+        # Filter out trivially reducible purviews if a connectivity matrix was
+        # provided
         if self.network.connectivity_matrix:
-            # Filter out trivially reducible purviews
+            def not_trivially_reducible(purview):
+                return _all_connect_to_any(purview, mechanism)
             purviews = filter(not_trivially_reducible, purviews)
 
-        # Loop over fitered purviews in this candidate set and find the purview
+        # Loop over filtered purviews in this candidate set and find the purview
         # over which phi is maximal.
         for purview in purviews:
             mip = self.find_mip(direction, mechanism, purview, cut)
@@ -693,9 +697,19 @@ class Subsystem:
 
     def concept(self, mechanism, cut=None):
         """Returns the concept specified by a mechanism."""
+        # If any node in the mechanism either has no inputs from the subsystem
+        # or has no outputs to the subsystem, then the mechanism is necessarily
+        # reducible and cannot be a concept (since removing that node would
+        # make no difference to at least one of the MICEs)
+        if (self.network.connectivity_matrix and not
+            (self._all_connect_to_any(mechanism, self.nodes) and
+             self._all_connect_to_any(self.nodes, mechanism))):
+            return None
+
         past_mice = self.core_cause(mechanism, cut)
         future_mice = self.core_effect(mechanism, cut)
         phi = min(past_mice.phi, future_mice.phi)
+
         if phi < EPSILON:
             return None
         return Concept(
