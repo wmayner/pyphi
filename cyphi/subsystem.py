@@ -104,6 +104,16 @@ class Subsystem:
         return hash((frozenset(self.nodes), self.current_state.tostring(),
                      self.past_state.tostring(), self.network))
 
+    def _get_inputs(self, node):
+        """Return the set of nodes with connections to the given node."""
+        if self.network.connectivity_matrix:
+            inputs = set(node for node in self.network.nodes if
+                self.network.connectivity_matrix[node.index][mechanism_node.index])
+        else:
+            inputs = set(self.network.nodes)
+        return inputs
+
+
     def cause_repertoire(self, mechanism, purview, cut):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -154,8 +164,10 @@ class Subsystem:
         # (conditioned on the whole mechanism's state). After normalization,
         # this is the cause repertoire. Normalization happens after this loop.
         for mechanism_node in mechanism:
-            # TODO extend to nonbinary nodes
+            # Grab the set of nodes that are inputs to the current node
+            inputs = self._get_inputs(mechanism_node)
 
+            # TODO extend to nonbinary nodes
             # We're conditioning on this node's state, so take the
             # probabilities that correspond to that state (The TPM subtracted
             # from 1 gives the probability that the node is off).
@@ -168,12 +180,12 @@ class Subsystem:
             # connectivity matrix isn't implemented yet)
             # TODO add this when inputs are implemented:
             # ... and node in self.input_nodes):
-            non_purview_inputs = set(self.network.nodes) - set(purview)
+            non_purview_inputs = (set(self.network.nodes) - set(purview)) & inputs
             # Collect the nodes in the network who had inputs to this mechanism
             # that were severed by this subsystem's cut.
             severed_inputs = set([n for n in self.network.nodes if
                                   (n in cut.severed and
-                                   mechanism_node in cut.intact)])
+                                   mechanism_node in cut.intact)]) & inputs
             # Fixed boundary condition nodes are those that are outside this
             # subsystem, and are not in the purview or have been severed by a
             # cut.
@@ -254,12 +266,16 @@ class Subsystem:
                                         [2 if node in purview else 1
                                          for node in self.network.nodes]))
 
-        # TODO explicit inputs to nodes (right now each node is implicitly
-        # connected to all other nodes, since initializing a Network with a
-        # connectivity matrix isn't implemented yet)
-        mechanism_inputs = set(mechanism)
-        # Nodes outside this subsystem.
-        external_inputs = set(self.network.nodes) - set(self.nodes)
+        # Collect all nodes with inputs to any purview node.
+        inputs_to_purview = set([])
+        for node in purview:
+            inputs_to_purview = inputs_to_purview | self._get_inputs(node)
+
+        # Collect nodes in the mechanism with inputs to the purview.
+        mechanism_inputs = set(mechanism) & inputs_to_purview
+        # Collect nodes outside this subsystem.
+        external_inputs = ((set(self.network.nodes) - set(self.nodes)) &
+                           inputs_to_purview)
 
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
@@ -280,6 +296,9 @@ class Subsystem:
             # overall CPT can be broadcast over the `accumulated_cjd` and then
             # later conditioned by indexing.
 
+            # Grab the set of nodes that are inputs to the current node
+            inputs = self._get_inputs(purview_node)
+
             # TODO extend to nonbinary nodes
             # Allocate the TPM.
             tpm = np.zeros([2] * self.network.size +
@@ -299,13 +318,12 @@ class Subsystem:
             # that were severed by this subsystem's cut.
             severed_inputs = set([n for n in self.network.nodes if
                                     (n in cut.severed and
-                                    purview_node in cut.intact)])
-            dprint('Severed inputs:', severed_inputs)
+                                    purview_node in cut.intact)]) & inputs
             severed_mechanism_inputs = severed_inputs & mechanism_inputs
             # We will marginalize-out nodes that are within the subsystem, but
             # are either not in the purview or severed by a cut.
             marginal_inputs = ((set(self.nodes) - mechanism_inputs) |
-                                severed_inputs)
+                                severed_inputs) & inputs
 
             # Marginalize-out nodes in this subsystem with inputs to the
             # purview that aren't in the mechanism, and the nodes whose
