@@ -11,7 +11,7 @@ import numpy as np
 from itertools import chain
 from collections import namedtuple, Iterable
 from joblib import Parallel, delayed
-from . import constants
+from .constants import DIRECTIONS, PAST, FUTURE, EPSILON
 from . import validate
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (marginalize_out, emd, hamming_emd, max_entropy_distribution, powerset,
@@ -384,9 +384,9 @@ class Subsystem:
     def _get_repertoire(self, direction):
         """Returns the cause or effect repertoire function based on a
         direction."""
-        if direction == 'past':
+        if direction == DIRECTIONS[PAST]:
             return self.cause_repertoire
-        elif direction == 'future':
+        elif direction == DIRECTIONS[FUTURE]:
             return self.effect_repertoire
 
     def _unconstrained_repertoire(self, direction, purview, cut):
@@ -533,10 +533,10 @@ class Subsystem:
                                                  part1.purview, cut))
             phi = hamming_emd(unpartitioned_repertoire, partitioned_repertoire)
             # Return immediately if mechanism is reducible
-            if phi < constants.EPSILON:
+            if phi < EPSILON:
                 return None
             # Update MIP if it's more minimal
-            if (phi_min - phi) > constants.EPSILON:
+            if (phi_min - phi) > EPSILON:
                 phi_min = phi
                 # TODO Use properties here to infer mechanism and purview from
                 # partition yet access them with .mechanism and .partition
@@ -615,9 +615,27 @@ class Subsystem:
         phi_max = float('-inf')
         maximal_purview = None
         maximal_repertoire = None
-        # Loop over all possible purviews in this candidate set and find the
-        # purview over which phi is maximal.
-        for purview in powerset(self.nodes):
+
+        def not_trivially_reducible(purview):
+            # Get the connectivity matrix for just the mechanism and
+            # purview nodes
+            i = np.array([node.index for node in mechanism])
+            j = np.array([node.index for node in purview])
+            cm = self.network.connectivity_matrix[i, j]
+            # Sum over rows (if purview is in the past) or columns (if purview
+            # is in the future) of connectivity submatrix to check that all
+            # denominator nodes are connected to at least one numerator node
+            axis = PAST if direction == DIRECTIONS[PAST] else FUTURE
+            return all(sum(cm, axis=axis))
+
+        purviews = powerset(self.nodes)
+        if self.network.connectivity_matrix:
+            # Filter out trivially reducible purviews
+            purviews = filter(not_trivially_reducible, purviews)
+
+        # Loop over fitered purviews in this candidate set and find the purview
+        # over which phi is maximal.
+        for purview in purviews:
             mip = self.find_mip(direction, mechanism, purview, cut)
             if mip:
                 # Take the purview with higher phi, or if phi is equal, take
@@ -678,7 +696,7 @@ class Subsystem:
         past_mice = self.core_cause(mechanism, cut)
         future_mice = self.core_effect(mechanism, cut)
         phi = min(past_mice.phi, future_mice.phi)
-        if phi < constants.EPSILON:
+        if phi < EPSILON:
             return None
         return Concept(
             mechanism=mechanism,
