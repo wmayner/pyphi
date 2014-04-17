@@ -125,19 +125,19 @@ class Subsystem:
         validate.nodelist(purview, 'Purview')
         # Default cut is the null cut that leaves the system intact
         if not cut:
-            cut = Cut((), self.nodes)
+            cut = self.null_cut
         # If a cut was provided, validate it
         else:
             cut = validate.cut(self, cut)
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
         # distribution.
-        if (len(mechanism) == 0):
+        if not mechanism:
             return max_entropy_distribution(purview, self.network)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
-        if (len(purview) == 0):
-            return 1
+        if not purview:
+            return np.array([1])
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
         cjd = np.ones(tuple(2 if node in purview else
@@ -149,9 +149,6 @@ class Subsystem:
         # (conditioned on the whole mechanism's state). After normalization,
         # this is the cause repertoire. Normalization happens after this loop.
         for mechanism_node in mechanism:
-            # Grab the set of nodes that are inputs to the current node
-            inputs = self._get_inputs(mechanism_node)
-
             # TODO extend to nonbinary nodes
             # We're conditioning on this node's state, so take the
             # probabilities that correspond to that state (The TPM subtracted
@@ -196,13 +193,13 @@ class Subsystem:
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
             # broadcasting)
-            cjd = np.multiply(cjd, conditioned_tpm)
+            cjd *= conditioned_tpm
         # Finally, normalize by the marginal probability of the past state to
         # get the mechanism's CJD
         cjd_sum = np.sum(cjd)
         # Don't divide by zero
         if cjd_sum != 0:
-            cjd = np.divide(cjd, cjd_sum)
+            cjd /= cjd_sum
         # Note that we're not returning a distribution over all the nodes in
         # the network, only a distribution over the nodes in the purview. This
         # is because we never actually need to compare proper cause/effect
@@ -237,14 +234,14 @@ class Subsystem:
         validate.nodelist(purview, 'Purview')
         # Default cut is the null cut that leaves the system intact
         if not cut:
-            cut = Cut((), self.nodes)
+            cut = self.null_cut
         # If a cut was provided, validate it
         else:
             cut = validate.cut(self, cut)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
-        if (len(purview) == 0):
-            return 1
+        if not purview:
+            return np.array([1])
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(tuple([1] * self.network.size +
@@ -325,7 +322,7 @@ class Subsystem:
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution by taking the product (with singleton
             # broadcasting).
-            accumulated_cjd = np.multiply(accumulated_cjd, tpm)
+            accumulated_cjd = accumulated_cjd * tpm
 
         # Now we condition on the state of the boundary nodes, whose states we
         # fix (by collapsing the CJD onto those states):
@@ -347,7 +344,7 @@ class Subsystem:
         conditioning_indices = list(chain.from_iterable(conditioning_indices))
         # Obtain the actual conditioned distribution by indexing with the
         # conditioning indices
-        accumulated_cjd = accumulated_cjd[tuple(conditioning_indices)]
+        accumulated_cjd = accumulated_cjd[conditioning_indices]
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # The distribution still has twice as many dimensions as the network
@@ -356,7 +353,7 @@ class Subsystem:
         # (the second half of the shape may also contain singleton dimensions,
         # depending on how many nodes are in the purview).
         accumulated_cjd = accumulated_cjd.reshape(
-            accumulated_cjd.shape[self.network.size:2 * self.network.size])
+            accumulated_cjd.shape[self.network.size : 2 * self.network.size])
 
         # Note that we're not returning a distribution over all the nodes in
         # the network, only a distribution over the nodes in the purview. This
@@ -512,11 +509,12 @@ class Subsystem:
             # Find the distance between the unpartitioned repertoire and
             # the product of the repertoires of the two parts, e.g.
             #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
-            partitioned_repertoire = (repertoire(part0.mechanism,
-                                                 part0.purview, cut) *
-                                      repertoire(part1.mechanism,
-                                                 part1.purview, cut))
+            part1rep = repertoire(part0.mechanism, part0.purview, cut)
+            part2rep = repertoire(part1.mechanism, part1.purview, cut)
+            partitioned_repertoire = part1rep * part2rep
+
             phi = hamming_emd(unpartitioned_repertoire, partitioned_repertoire)
+
             # Return immediately if mechanism is reducible
             if phi < EPSILON:
                 return None
@@ -532,6 +530,7 @@ class Subsystem:
                           unpartitioned_repertoire=unpartitioned_repertoire,
                           partitioned_repertoire=partitioned_repertoire,
                           phi=phi)
+
         return mip
 
     def mip_past(self, mechanism, purview, cut=None):
@@ -609,6 +608,7 @@ class Subsystem:
         :returns: An object with attributes ``purview`` and ``phi``, containing
             the core cause or effect purview and the |phi| value, respectively.
         """
+        validate.direction(direction)
         mip_max = None
         phi_max = float('-inf')
         maximal_purview = None
