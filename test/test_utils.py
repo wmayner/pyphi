@@ -36,7 +36,8 @@ def test_purview_max_entropy_distribution():
 
     max_ent = utils.max_entropy_distribution(network.nodes[0:2], network)
     assert max_ent.shape == (2, 2, 1)
-    assert np.array_equal(max_ent, np.divide(np.ones(4), 4).reshape((2, 2, 1)))
+    assert np.array_equal(max_ent,
+                          (np.ones(4) / 4).reshape((2, 2, 1)))
     assert max_ent[0][1][0] == 0.25
 
 
