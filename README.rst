@@ -73,6 +73,13 @@ will rebuild the HTML documentation on every change.
 At some point I'll try to use a Makefile instead, since many more people have
 access to ``make``.
 
+Developing on Linux
+```````````````````
+
+Make sure you install the Python 3 C headers, which are needed to build CyPhi's dependencies:
+
+    sudo apt-get install python3-dev
+
 
 Credits
 ~~~~~~~
