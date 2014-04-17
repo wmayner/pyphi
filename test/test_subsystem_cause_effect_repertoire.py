@@ -57,7 +57,7 @@ scenarios = [
         'subsys_all', None,
         [1],
         [],
-        1
+        np.array([1])
     ),
         # }}}
         # Full network, with cut {{{
@@ -185,7 +185,7 @@ scenarios = [
         'subsys_all', None,
         [2],
         [],
-        1
+        np.array([1])
     ), (
         'effect_repertoire', 'm',
         'subsys_all', None,
@@ -209,7 +209,7 @@ scenarios = [
         'subsys_all', None,
         [1],
         [],
-        1
+        np.array([1])
     ),
         # }}}
         # Full network, with cut {{{
@@ -311,8 +311,11 @@ def test_cause_and_effect_repertoire(capsys, m, s, function, network, subsystem,
                                      mechanism, purview, expected):
     """Test `effect_repertoire` or `cause_repertoire`."""
 
+    print("\nTesting " + function + " with network \n"+network)
+
     # Set up testing parameters from scenario
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Network is a string; grab the object from local scope
     network = locals()[network]
     mechanism = [network.nodes[index] for index in mechanism]
     purview = [network.nodes[index] for index in purview]
@@ -333,13 +336,12 @@ def test_cause_and_effect_repertoire(capsys, m, s, function, network, subsystem,
 
     result = compute_repertoire(mechanism, purview, cut)
 
-    print("Mechanism:", mechanism, "Purview:", purview, "", sep="\n\n")
+    print("\nMechanism:".rjust(12), mechanism, "\nPurview:".rjust(12), purview,
+          "\nCut:".rjust(12), cut, "\n")
 
-    if np.array_equal(result, 1) or np.array_equal(expected, 1):
-        print("Result:", result, "Expected:", expected, "", sep="\n\n")
-    else:
-        print("Result:", result, "Shape:", result.shape, "expected:", expected,
-              "Shape:", expected.shape, "", sep="\n\n")
+    print('-'*40, "Result:", result, "\nResult Shape:", result.shape,
+            '-'*40, "Expected:", expected, "\nExpected Shape:",
+            expected.shape, '-'*40, sep="\n")
 
     assert np.array_equal(result, expected)
 
