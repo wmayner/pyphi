@@ -19,13 +19,8 @@ from .utils import (marginalize_out, emd, hamming_emd, max_entropy_distribution,
 from .models import Cut, Mip, Part, Mice, Concept
 
 
-# TODO remove
-DEBUG = False
-def dprint(*args):
-  if DEBUG:
-    print(*args)
-
-
+# TODO! make a NodeList object; factor out all_connect_to_any and any other
+# methods that are really properties of lists of nodes
 # TODO? refactor the computational methods out of the class so they explicitly
 # take a subsystem as a parameter
 class Subsystem:
@@ -56,7 +51,7 @@ class Subsystem:
         self.network = network
 
         # The null cut (leaves the system intact).
-        self.null_cut = ((), self.nodes)
+        self.null_cut = Cut(severed=(), intact=self.nodes)
 
         # TODO use properties?
         # (https://docs.python.org/2/library/functions.html#property)
