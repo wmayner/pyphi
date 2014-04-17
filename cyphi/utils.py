@@ -120,8 +120,8 @@ def uniform_distribution(number_of_nodes):
     number_of_states = 2 ** number_of_nodes
     # Generate the maximum entropy distribution
     # TODO extend to nonbinary nodes
-    return np.divide(np.ones(number_of_states),
-                     number_of_states).reshape([2] * number_of_nodes)
+    return (np.ones(number_of_states) /
+            number_of_states).reshape([2] * number_of_nodes)
 
 
 def marginalize_out(node, tpm):
@@ -141,8 +141,7 @@ def marginalize_out(node, tpm):
     # Preserve number of dimensions so node indices still index into the proper
     # axis of the returned distribution, normalize the distribution by number
     # of states
-    return np.divide(np.sum(tpm, node.index, keepdims=True),
-                     tpm.shape[node.index])
+    return (tpm.sum(node.index, keepdims=True) / tpm.shape[node.index])
 
 
 # TODO memoize this
@@ -162,9 +161,9 @@ def max_entropy_distribution(nodes, network):
     :rtype: ``np.ndarray``
     """
     # TODO extend to nonbinary nodes
-    max_ent_shape = [2 if node in nodes else 1 for node in network.nodes]
-    return np.divide(np.ones(max_ent_shape),
-                     np.ufunc.reduce(np.multiply, max_ent_shape))
+    distribution = np.ones([2 if node in nodes else 1 for node in
+                            network.nodes])
+    return distribution / distribution.size
 
 
 # TODO extend to binary nodes
