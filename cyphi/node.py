@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Node
-~~~~
+import numpy as np
 
-Represents a node in a network.
-"""
 
 # TODO extend to nonbinary nodes
 # TODO? refactor to use purely indexes for nodes
@@ -38,12 +34,35 @@ class Node:
         self.index = index
         # Label for display
         self.label = label
-        # The node's transition probability matrix (give probability that node
-        # is on)
+
+        # TODO test
+        if self.network.connectivity_matrix != None:
+            # If a connectivity matrix was provided, store the indices of nodes
+            # that connect to this node
+            self._input_indices = np.array(
+                [index for index in range(self.network.size) if
+                 self.network.connectivity_matrix[index][self.index]])
+        else:
+            # If no connectivity matrix was provided, assume all nodes connect
+            # to all nodes
+            self._input_indices = tuple(range(self.network.size))
+
+        # The node's conditional transition probability matrix (gives
+        # probability that node is on)
         # TODO extend to nonbinary nodes
         self.tpm = network.tpm[..., index]
+
         # Make the TPM immutable (for hashing)
         self.tpm.flags.writeable = False
+
+    # ``inputs`` must be a property because at the time of node creation, the
+    # network doesn't have a list of nodes yet (so we can only store the input
+    # indices during initialization, rather than a set of actual nodes, which
+    # is more convenient)
+    def getinputs(self):
+        return set([node for node in self.network.nodes if node.index in
+                    self._input_indices])
+    inputs = property(getinputs, "The set of nodes with connections to this node.")
 
     def __repr__(self):
         return self.__str__()
