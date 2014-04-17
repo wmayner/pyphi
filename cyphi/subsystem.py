@@ -278,9 +278,6 @@ class Subsystem:
             # overall CPT can be broadcast over the `accumulated_cjd` and then
             # later conditioned by indexing.
 
-            # Grab the set of nodes that are inputs to the current node
-            inputs = self._get_inputs(purview_node)
-
             # TODO extend to nonbinary nodes
             # Allocate the TPM.
             tpm = np.zeros([2] * self.network.size +
