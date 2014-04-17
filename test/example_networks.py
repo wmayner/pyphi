@@ -8,6 +8,7 @@ from cyphi.subsystem import Subsystem
 
 # TODO pass just the subsystem (contains a reference to the network)
 
+no_connectivity = 0
 
 def m():
     """Matlab default network.
@@ -43,6 +44,18 @@ def m():
     |  {1, 1, 0}   |   {1, 0, 0}   |
     |  {1, 1, 1}   |   {1, 1, 0}   |
     +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+
+    Connectivity matrix:
+
+    (CM_ij = 1 means that node i is connected to node j)
+
+    |       A  B  C
+    |     +~~~~~~~~~+
+    |   A | 0, 0, 1 |
+    |   B | 1, 0, 1 |
+    |   C | 1, 1, 0 |
+    |     +~~~~~~~~~+
+
     """
     # TODO? make these into dictionaries/named tuples
     current_state = np.array([1, 0, 0])
@@ -55,7 +68,12 @@ def m():
                     [1, 1, 1],
                     [1, 1, 1],
                     [1, 1, 0]]).reshape([2] * 3 + [3], order="F").astype(float)
-    m = Network(tpm, current_state, past_state)
+
+    cm = np.array([[0, 0, 1],
+                   [1, 0, 1],
+                   [1, 1, 0]])
+    cm = None if no_connectivity else cm
+    m = Network(tpm, current_state, past_state, connectivity_matrix=cm)
     m.subsys_n0n2 = Subsystem([m.nodes[0], m.nodes[2]],
                               m.current_state,
                               m.past_state,
@@ -109,7 +127,12 @@ def s():
                     [0, 0, 0],
                     [0, 0, 0]]).reshape([2] * 3 + [3]).astype(float)
 
-    s = Network(tpm, a_just_turned_on, a_about_to_be_on)
+    cm = np.array([[0, 0, 0],
+                   [1, 0, 0],
+                   [1, 0, 0]])
+    cm = None if no_connectivity else cm
+    s = Network(tpm, a_just_turned_on, a_about_to_be_on,
+                connectivity_matrix=cm)
     # Subsystem([n0, n1, n2]) of the simple 'AND' network.
     # Node n0 (A in the diagram) has just turned on.
     s.subsys_all_a_just_on = Subsystem(s.nodes,
@@ -179,6 +202,7 @@ def reducible():
     past_state = np.zeros(2)
     cm = np.array([[1, 0],
                    [0, 1]])
+    cm = None if no_connectivity else cm
     r = Network(tpm, current_state, past_state, connectivity_matrix=cm)
     # Return the full subsystem
     return Subsystem(r.nodes, current_state, past_state, r)
