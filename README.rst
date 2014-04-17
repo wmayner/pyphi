@@ -55,8 +55,8 @@ Development workflow
 with `Grunt.js <http:gruntjs.com>`_.
 
 To get ``grunt``, first install `Node.js <http://nodejs.org/>`_. Then, within
-the ``cyphi`` directory, run ``npm install`` to install the local `npm`
-dependencies, then run `sudo npm install -g grunt-cli` to install the `grunt`
+the ``cyphi`` directory, run ``npm install`` to install the local ``npm``
+dependencies, then run ``sudo npm install -g grunt-cli`` to install the ``grunt``
 command to your system. Now you should be able to run tasks with ``grunt``,
 *e.g.*
 
@@ -80,6 +80,8 @@ Developing on Linux
 
 Make sure you install the Python 3 C headers before installing the
 requirements:
+
+.. code:: bash
 
     sudo apt-get install python3-dev python3-scipy python3-numpy
 
