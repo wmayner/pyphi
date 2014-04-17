@@ -99,17 +99,7 @@ class Subsystem:
         return hash((frozenset(self.nodes), self.current_state.tostring(),
                      self.past_state.tostring(), self.network))
 
-    def _get_inputs(self, node):
-        """Return the set of nodes with connections to the given node."""
-        if self.network.connectivity_matrix:
-            inputs = set(node for node in self.network.nodes if
-                self.network.connectivity_matrix[node.index][mechanism_node.index])
-        else:
-            inputs = set(self.network.nodes)
-        return inputs
-
-
-    def cause_repertoire(self, mechanism, purview, cut):
+    def cause_repertoire(self, mechanism, purview, cut=None):
         """Return the cause repertoire of a mechanism over a purview.
 
         :param mechanism: The mechanism for which to calculate the cause
