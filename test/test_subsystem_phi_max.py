@@ -71,6 +71,12 @@ mice_parameter_string = "direction,expected"
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
 def test_find_mice(m, direction, expected):
+    result = subsystem._find_mice(direction, expected.mechanism,
+                                  subsystem.null_cut)
+
+    print("Expected:\n", expected)
+    print("Result:\n", result)
+
     assert (subsystem._find_mice(direction, expected.mechanism,
                                  subsystem.null_cut)
             == expected)
