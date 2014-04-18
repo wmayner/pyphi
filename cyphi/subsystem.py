@@ -9,13 +9,11 @@ Represents a candidate set for |phi| calculation.
 """
 import numpy as np
 from itertools import chain
-from collections import namedtuple, Iterable
-from joblib import Parallel, delayed
 from .constants import DIRECTIONS, PAST, FUTURE, EPSILON
 from . import validate
 # TODO use namespaces more (honking great idea, etc.)
-from .utils import (marginalize_out, emd, hamming_emd, max_entropy_distribution, powerset,
-                    bipartition, phi_eq)
+from .utils import (marginalize_out, hamming_emd, max_entropy_distribution,
+                    powerset, bipartition, phi_eq)
 from .models import Cut, Mip, Part, Mice, Concept
 
 
@@ -102,15 +100,15 @@ class Subsystem:
     def cause_repertoire(self, mechanism, purview, cut=None):
         """Return the cause repertoire of a mechanism over a purview.
 
-        :param mechanism: The mechanism for which to calculate the cause
-            repertoire
-        :type mechanism: ``[Node]``
-        :param purview: The purview over which to calculate the cause
-            repertoire
-        :type purview: ``[Node]``
+        Args:
+            mechanism (list(Node)): The mechanism for which to calculate the
+                cause repertoire
+            purview (list(Node)): The purview over which to calculate the cause
+                repertoire
 
-        :returns: The cause repertoire of the mechanism over a purview
-        :rtype: ``np.ndarray``
+        Returns:
+            An np.array representing the cause repertoire of the mechanism over
+            a purview.
         """
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # NOTE: In the Matlab version's terminology,
@@ -123,10 +121,10 @@ class Subsystem:
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         validate.nodelist(mechanism, 'Mechanism')
         validate.nodelist(purview, 'Purview')
-        # Default cut is the null cut that leaves the system intact
+        # Default cut is the null cut that leaves the system intact.
         if not cut:
             cut = self.null_cut
-        # If a cut was provided, validate it
+        # If a cut was provided, validate it.
         else:
             cut = validate.cut(self, cut)
         # If the mechanism is empty, nothing is specified about the past state
@@ -144,65 +142,70 @@ class Subsystem:
                             1 for node in self.network.nodes))
         # Loop over all nodes in this mechanism, successively taking the
         # product (with expansion/broadcasting of singleton dimensions) of each
-        # individual node's CPT (conditioned on that node's state) in order to
+        # individual node's TPM (conditioned on that node's state) in order to
         # get the conditional joint distribution for the whole mechanism
         # (conditioned on the whole mechanism's state). After normalization,
         # this is the cause repertoire. Normalization happens after this loop.
         for mechanism_node in mechanism:
             # TODO extend to nonbinary nodes
+            conditioned_tpm = mechanism_node.tpm
             # We're conditioning on this node's state, so take the
             # probabilities that correspond to that state (The TPM subtracted
-            # from 1 gives the probability that the node is off).
-            conditioned_tpm = (mechanism_node.tpm if
-                               self.current_state[mechanism_node.index] == 1
-                               else 1 - mechanism_node.tpm)
-
-            # TODO explicit inputs to nodes (right now each node is implicitly
-            # connected to all other nodes, since initializing a Network with a
-            # connectivity matrix isn't implemented yet)
-            # TODO add this when inputs are implemented:
-            # ... and node in self.input_nodes):
-            non_purview_inputs = (set(self.network.nodes) - set(purview)) & inputs
+            # from 1 gives the probabilities that the node is off).
+            if self.current_state[mechanism_node.index] == 0:
+                conditioned_tpm = 1 - conditioned_tpm
+            # Marginalize-out non-input nodes.
+            for node in set(self.network.nodes) - mechanism_node.inputs:
+                conditioned_tpm = conditioned_tpm.sum(node.index,
+                                                      keepdims=True) / 2
+            # Collect the nodes that are not in the purview and have
+            # connections to this node.
+            non_purview_inputs = (mechanism_node.inputs &
+                                  (set(self.network.nodes) - set(purview)))
             # Collect the nodes in the network who had inputs to this mechanism
             # that were severed by this subsystem's cut.
-            severed_inputs = set([n for n in self.network.nodes if
-                                  (n in cut.severed and
-                                   mechanism_node in cut.intact)]) & inputs
-            # Fixed boundary condition nodes are those that are outside this
-            # subsystem, and are not in the purview or have been severed by a
-            # cut.
+            severed_inputs = (mechanism_node.inputs &
+                              set([n for n in self.network.nodes if
+                                   (n in cut.severed and mechanism_node in
+                                    cut.intact)]))
+            # Fixed boundary-condition nodes are those that are outside this
+            # subsystem, and are either not in the purview or have been severed
+            # by a cut.
             boundary_inputs = ((non_purview_inputs | severed_inputs)
                                - set(self.nodes))
             # We will marginalize-out nodes that are within the subsystem, but
             # are either not in the purview or severed by a cut.
-            marginal_inputs = ((non_purview_inputs | severed_inputs)
-                               - boundary_inputs)
-            # Condition the CPT on the past states of the external input nodes.
-            # These nodes are treated as fixed boundary conditions. We collapse
-            # the dimensions corresponding to the fixed nodes so they contain
-            # only the probabilities that correspond to their past states.
+            marginal_inputs = ((non_purview_inputs | severed_inputs) -
+                               boundary_inputs)
+            # Condition the CPT on the past states of the nodes that are
+            # treated as fixed boundary conditions by collapsing the dimensions
+            # corresponding to the fixed nodes' indices so they contain only
+            # the probabilities that correspond to their past states.
             for node in boundary_inputs:
                 conditioning_indices = [slice(None)] * self.network.size
-                conditioning_indices[node.index] = [self.past_state[node.index]]
+                conditioning_indices[node.index] = \
+                    [self.past_state[node.index]]
                 conditioned_tpm = conditioned_tpm[conditioning_indices]
             # Marginalize-out the nodes in this subsystem with inputs to this
-            # mechanism that are not in the purview and whose connections to
-            # this mechanism have not been severed by a subsystem cut.
+            # mechanism that are either not in the purview or whose connections
+            # to this mechanism have not been severed by a subsystem cut.
             for node in marginal_inputs:
                 conditioned_tpm = marginalize_out(node, conditioned_tpm)
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
-            # broadcasting)
+            # broadcasting, which spreads the singleton probabilities in the
+            # collapsed dimensions out along the whole distribution in the
+            # appropriate way.
             cjd *= conditioned_tpm
-        # Finally, normalize by the marginal probability of the past state to
-        # get the mechanism's CJD
+        # Finally, normalize to get the mechanism's actual conditional joint
+        # ditribution.
         cjd_sum = np.sum(cjd)
         # Don't divide by zero
         if cjd_sum != 0:
             cjd /= cjd_sum
-        # Note that we're not returning a distribution over all the nodes in
-        # the network, only a distribution over the nodes in the purview. This
-        # is because we never actually need to compare proper cause/effect
+        # NOTE: we're not returning a distribution over all the nodes in the
+        # network, only a distribution over the nodes in the purview. This is
+        # because we never actually need to compare proper cause/effect
         # repertoires, which are distributions over the whole network; we need
         # only compare the purview-repertoires with each other, since cut vs.
         # whole comparisons are only ever done over the same purview.
@@ -211,15 +214,14 @@ class Subsystem:
     def effect_repertoire(self, mechanism, purview, cut):
         """Return the effect repertoire of a mechanism over a purview.
 
-        :param mechanism: The mechanism for which to calculate the effect
+        mechanism (list(Node)): The mechanism for which to calculate the effect
             repertoire
-        :type mechanism: ``[Node]``
-        :param purview: The purview over which to calculate the effect
+        purview (list(Node)): The purview over which to calculate the effect
             repertoire
-        :type purview: ``[Node]``
 
-        :returns: The effect repertoire of the mechanism over a purview
-        :rtype: ``np.ndarray``
+        Returns:
+            An np.array representing the effect repertoire of the mechanism
+            over a purview.
         """
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # NOTE: In the Matlab version's terminology,
@@ -244,21 +246,9 @@ class Subsystem:
             return np.array([1])
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
-        accumulated_cjd = np.ones(tuple([1] * self.network.size +
-                                        [2 if node in purview else 1
-                                         for node in self.network.nodes]))
-
-        # Collect all nodes with inputs to any purview node.
-        inputs_to_purview = set([])
-        for node in purview:
-            inputs_to_purview = inputs_to_purview | self._get_inputs(node)
-
-        # Collect nodes in the mechanism with inputs to the purview.
-        mechanism_inputs = set(mechanism) & inputs_to_purview
-        # Collect nodes outside this subsystem.
-        external_inputs = ((set(self.network.nodes) - set(self.nodes)) &
-                           inputs_to_purview)
-
+        accumulated_cjd = np.ones(
+            [1] * self.network.size + [2 if node in purview else 1 for node in
+                                       self.network.nodes])
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
         # individual node's TPM in order to get the joint distribution for the
@@ -293,29 +283,33 @@ class Subsystem:
                  range(self.network.size)]
             tpm[tpm_on_indices] = purview_node.tpm
 
-            # Collect the nodes in the network who had inputs to this mechanism
-            # that were severed by this subsystem's cut.
-            severed_inputs = set([n for n in self.network.nodes if
-                                    (n in cut.severed and
-                                    purview_node in cut.intact)]) & inputs
-            severed_mechanism_inputs = severed_inputs & mechanism_inputs
-            # We will marginalize-out nodes that are within the subsystem, but
-            # are either not in the purview or severed by a cut.
-            marginal_inputs = ((set(self.nodes) - mechanism_inputs) |
-                                severed_inputs) & inputs
+            # Marginalize out the non-input nodes.
+            for node in (set(self.network.nodes) - purview_node.inputs):
+                # TODO extend to nonbinary nodes
+                tpm = tpm.sum(node.index, keepdims=True) / 2
 
-            # Marginalize-out nodes in this subsystem with inputs to the
-            # purview that aren't in the mechanism, and the nodes whose
-            # connections to the purview have been severed.
+            # Collect nodes whose connections to this purview were severed by
+            # the cut.
+            severed_nodes = set([n for n in self.network.nodes if (
+                n in cut.severed and purview_node in cut.intact)])
+            # Collect the nodes in the network who had connections to this
+            # purview node that were severed by this subsystem's cut.
+            severed_mechanism_nodes = severed_nodes & set(mechanism)
+            # We marginalize-out inputs to the current purview node that are
+            # within the subsystem but not in the mechanism, or those that were
+            # severed by a cut.
+            marginal_inputs = purview_node.inputs & (
+                (set(self.nodes) - set(mechanism)) | severed_nodes)
             for node in marginal_inputs:
                 tpm = marginalize_out(node, tpm)
-            # Expand the TPM along the axes corresponding to mechanism nodes
-            # who's connections to the purview were severed, since those will
-            # have conditioning indices despite having being marginalized out
-            # in the previous step (and collapsed down to one dimension). This
-            # avoids index out-of-bounds errors when conditioning.
-            for node in severed_mechanism_inputs:
-                tpm = np.concatenate((tpm, tpm), node.index)
+                # Expand the TPM along the axes corresponding to mechanism
+                # nodes who's connections to the purview were severed, since
+                # those will have conditioning indices despite having being
+                # marginalized out in the previous step (and collapsed down to
+                # one dimension). This avoids index out-of-bounds errors when
+                # conditioning.
+                if node in severed_mechanism_nodes:
+                    tpm = np.concatenate((tpm, tpm), node.index)
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution by taking the product (with singleton
             # broadcasting).
@@ -324,10 +318,14 @@ class Subsystem:
         # Now we condition on the state of the boundary nodes, whose states we
         # fix (by collapsing the CJD onto those states):
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Collect all nodes with inputs to any purview node.
+        inputs_to_purview = set.union(*[node.inputs for node in purview])
+        # Collect nodes outside this subsystem.
+        external_nodes = set(self.network.nodes) - set(self.nodes)
         # Fixed boundary condition nodes are those that are outside this
-        # subsystem, and are not in the mechanism or have been severed by a
+        # subsystem or in the mechanism, and have been severed by a
         # cut.
-        boundary_inputs = mechanism_inputs | external_inputs
+        boundary_inputs = inputs_to_purview & (set(mechanism) | external_nodes)
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
         # TODO! are the external nodes really the ones outside this
@@ -350,7 +348,7 @@ class Subsystem:
         # (the second half of the shape may also contain singleton dimensions,
         # depending on how many nodes are in the purview).
         accumulated_cjd = accumulated_cjd.reshape(
-            accumulated_cjd.shape[self.network.size : 2 * self.network.size])
+            accumulated_cjd.shape[self.network.size:2 * self.network.size])
 
         # Note that we're not returning a distribution over all the nodes in
         # the network, only a distribution over the nodes in the purview. This
@@ -372,7 +370,6 @@ class Subsystem:
         """Return the unconstrained cause or effect repertoire over a
         purview."""
         return self._get_repertoire(direction)([], purview, cut)
-
 
     def unconstrained_cause_repertoire(self, purview, cut=None):
         """Return the unconstrained cause repertoire for a purview.
@@ -458,7 +455,6 @@ class Subsystem:
                     yield (part0, part1)
         return
 
-
     @staticmethod
     def _null_mip(direction, mechanism, purview):
         # TODO Use properties here to infer mechanism and purview from
@@ -470,7 +466,6 @@ class Subsystem:
                    unpartitioned_repertoire=None,
                    partitioned_repertoire=None,
                    phi=0.0)
-
 
     def find_mip(self, direction, mechanism, purview, cut=None):
         """Return the minimum information partition for the past or future.
@@ -578,18 +573,46 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    def _all_connect_to_any(self, nodes1, nodes2):
-        """Returns whether all nodes in a tuple have a connection to at least
-        one node in the other tuple.
+    # TODO test
+    def _test_connections(self, axis, nodes1, nodes2):
+        """Tests connectivity of one set of nodes to another.
+
+        Args:
+            axis (int): The axis over which to take the sum of the connectivity
+                submatrix. If this is 0, the sum will be taken over the
+                columns; in this case returning ``True`` means "all nodes in
+                the second list have an input from some node in the first
+                list". If this is 1, the sum will be taken over the rows, and
+                returning ``True`` means "all nodes in the first list have a
+                connection to some node in the second list".
+            nodes1 ([Node]): the nodes whose outputs to ``nodes2`` will be
+                tested
+            nodes2 ([Node]): the nodes whose inputs from ``nodes1`` will
+                be tested
         """
-        # Get the connectivity matrix for just the mechanism and
-        # purview nodes
-        i = np.array([node.index for node in nodes1])
-        j = np.array([node.index for node in nodes2])
-        cm = self.network.connectivity_matrix[i, j]
+        if (self.network.connectivity_matrix is None or
+                not nodes1 or not nodes2):
+            return True
+        # Get the connectivity matrix representing the connections from the
+        # first node list to the second
+        submatrix_indices = np.ix_([node.index for node in nodes1],
+                                   [node.index for node in nodes2])
+        cm = self.network.connectivity_matrix[submatrix_indices]
         # Check that all nodes have at least one connection by summing over
-        # columns of connectivity submatrix
-        return all(sum(cm, axis=0))
+        # rows of connectivity submatrix
+        return cm.sum(axis).all()
+
+    # TODO test
+    def _any_connect_to_all(self, nodes1, nodes2):
+        """Return whether all nodes in the second list have inputs from some
+        node in the first list."""
+        return self._test_connections(0, nodes1, nodes2)
+
+    # TODO test
+    def _all_connect_to_any(self, nodes1, nodes2):
+        """Return whether all nodes in the first list connect to some node in
+        the second list."""
+        return self._test_connections(1, nodes1, nodes2)
 
     # TODO update docs
     def _find_mice(self, direction, mechanism, cut):
@@ -612,15 +635,19 @@ class Subsystem:
         maximal_repertoire = None
 
         purviews = powerset(self.nodes)
+
+        def not_trivially_reducible(purview):
+            if direction == DIRECTIONS[PAST]:
+                return self._all_connect_to_any(purview, mechanism)
+            elif direction == DIRECTIONS[FUTURE]:
+                return self._all_connect_to_any(mechanism, purview)
+
         # Filter out trivially reducible purviews if a connectivity matrix was
         # provided
-        if self.network.connectivity_matrix:
-            def not_trivially_reducible(purview):
-                return _all_connect_to_any(purview, mechanism)
-            purviews = filter(not_trivially_reducible, purviews)
+        purviews = filter(not_trivially_reducible, purviews)
 
-        # Loop over filtered purviews in this candidate set and find the purview
-        # over which phi is maximal.
+        # Loop over filtered purviews in this candidate set and find the
+        # purview over which phi is maximal.
         for purview in purviews:
             mip = self.find_mip(direction, mechanism, purview, cut)
             if mip:
@@ -669,10 +696,10 @@ class Subsystem:
         :ref:concept-space."""
         return Concept(
             mechanism=(),
-            location=np.array([self.unconstrained_cause_repertoire(self.nodes,
-                                                                   self.null_cut),
-                               self.unconstrained_effect_repertoire(self.nodes,
-                                                                    self.null_cut)]),
+            location=np.array([
+                self.unconstrained_cause_repertoire(self.nodes, self.null_cut),
+                self.unconstrained_effect_repertoire(self.nodes, self.null_cut)
+            ]),
             phi=0,
             cause=None,
             effect=None)
@@ -683,9 +710,8 @@ class Subsystem:
         # or has no outputs to the subsystem, then the mechanism is necessarily
         # reducible and cannot be a concept (since removing that node would
         # make no difference to at least one of the MICEs)
-        if (self.network.connectivity_matrix and not
-            (self._all_connect_to_any(mechanism, self.nodes) and
-             self._all_connect_to_any(self.nodes, mechanism))):
+        if not (self._all_connect_to_any(mechanism, self.nodes) and
+                self._any_connect_to_all(self.nodes, mechanism)):
             return None
 
         past_mice = self.core_cause(mechanism, cut)
