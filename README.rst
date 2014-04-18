@@ -19,7 +19,7 @@ To install the latest development version:
 
 .. code:: bash
 
-    pip install "git+https://github.com/wmayner/cyphi@develop#egg=pyemd"
+    pip install "git+https://github.com/wmayner/cyphi@develop#egg=cyphi"
 
 
 Usage
