@@ -7,6 +7,7 @@ Subsystem
 
 Represents a candidate set for |phi| calculation.
 """
+
 import numpy as np
 from itertools import chain
 from .constants import DIRECTIONS, PAST, FUTURE, EPSILON
@@ -27,14 +28,11 @@ class Subsystem:
 
     def __init__(self, nodes, current_state, past_state, network):
         """
-        :param nodes: A list of nodes in this subsystem
-        :type nodes: ``[Node]``
-        :param current_state: The current state of this subsystem
-        :type current_state: ``np.ndarray``
-        :param past_state: The past state of this subsystem
-        :type past_state: ``np.ndarray``
-        :param network: The network the subsystem is part of
-        :type network: ``Network``
+        Args:
+            nodes (list(Node)): A list of nodes in this subsystem
+            current_state (np.ndarray): The current state of this subsystem
+            past_state (np.ndarray): The past state of this subsystem
+            network (Network): The network the subsystem is part of
         """
         # This nodes in this subsystem.
         self.nodes = tuple(nodes)
@@ -121,12 +119,6 @@ class Subsystem:
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         validate.nodelist(mechanism, 'Mechanism')
         validate.nodelist(purview, 'Purview')
-        # Default cut is the null cut that leaves the system intact.
-        if not cut:
-            cut = self.null_cut
-        # If a cut was provided, validate it.
-        else:
-            cut = validate.cut(self, cut)
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
         # distribution.
@@ -136,6 +128,12 @@ class Subsystem:
         # multiplicative identity.
         if not purview:
             return np.array([1])
+        # Default cut is the null cut that leaves the system intact.
+        if not cut:
+            cut = self.null_cut
+        # If a cut was provided, validate it.
+        else:
+            cut = validate.cut(self, cut)
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
         cjd = np.ones(tuple(2 if node in purview else
@@ -234,16 +232,16 @@ class Subsystem:
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         validate.nodelist(mechanism, 'Mechanism')
         validate.nodelist(purview, 'Purview')
+        # If the purview is empty, the distribution is empty, so return the
+        # multiplicative identity.
+        if not purview:
+            return np.array([1])
         # Default cut is the null cut that leaves the system intact
         if not cut:
             cut = self.null_cut
         # If a cut was provided, validate it
         else:
             cut = validate.cut(self, cut)
-        # If the purview is empty, the distribution is empty, so return the
-        # multiplicative identity.
-        if not purview:
-            return np.array([1])
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
@@ -360,7 +358,16 @@ class Subsystem:
 
     def _get_repertoire(self, direction):
         """Returns the cause or effect repertoire function based on a
-        direction."""
+        direction.
+
+        Args:
+            direction (str): the direction specifying the cause or effect
+            repertoire
+
+        Returns:
+            The cause or effect repertoire function (cause for 'past', effect
+            for 'future').
+        """
         if direction == DIRECTIONS[PAST]:
             return self.cause_repertoire
         elif direction == DIRECTIONS[FUTURE]:

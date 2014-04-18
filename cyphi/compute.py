@@ -21,7 +21,15 @@ from . import utils
 
 
 def concept_distance(c1, c2):
-    """Return the distance between two concepts in concept-space."""
+    """Return the distance between two concepts in concept-space.
+
+    Args:
+        c1 (Mice): the first concept
+        c2 (Mice): the second concept
+
+    Returns:
+        The distance between the two concepts in concept-space.
+    ."""
     return sum([utils.hamming_emd(c1.location[constants.PAST],
                                   c2.location[constants.PAST]),
                 utils.hamming_emd(c1.location[constants.FUTURE],
