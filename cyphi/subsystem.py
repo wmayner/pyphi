@@ -30,8 +30,8 @@ class Subsystem:
         """
         Args:
             nodes (list(Node)): A list of nodes in this subsystem
-            current_state (np.ndarray): The current state of this subsystem
-            past_state (np.ndarray): The past state of this subsystem
+            current_state (tuple): The current state of this subsystem
+            past_state (tuple): The past state of this subsystem
             network (Network): The network the subsystem is part of
         """
         # This nodes in this subsystem.
@@ -39,9 +39,6 @@ class Subsystem:
 
         self.current_state = current_state
         self.past_state = past_state
-        # Make the state and past state immutable (for hashing).
-        self.current_state.flags.writeable = False
-        self.past_state.flags.writeable = False
 
         # The network this subsystem belongs to.
         self.network = network
@@ -67,8 +64,8 @@ class Subsystem:
         """Two subsystems are equal if their sets of nodes, current and past
         states, and networks are equal."""
         return (set(self.nodes) == set(other.nodes) and
-                np.array_equal(self.current_state, other.current_state) and
-                np.array_equal(self.past_state, other.past_state) and
+                self.current_state == other.current_state and
+                self.past_state == other.past_state and
                 self.network == other.network)
 
     def __bool__(self):
@@ -92,8 +89,8 @@ class Subsystem:
         return len(self.nodes) < len(other.nodes)
 
     def __hash__(self):
-        return hash((frozenset(self.nodes), self.current_state.tostring(),
-                     self.past_state.tostring(), self.network))
+        return hash((frozenset(self.nodes), self.current_state,
+                     self.past_state, self.network))
 
     def cause_repertoire(self, mechanism, purview, cut=None):
         """Return the cause repertoire of a mechanism over a purview.
