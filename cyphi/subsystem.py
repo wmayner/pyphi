@@ -143,16 +143,10 @@ class Subsystem:
         # this is the cause repertoire. Normalization happens after this loop.
         for mechanism_node in mechanism:
             # TODO extend to nonbinary nodes
-            conditioned_tpm = mechanism_node.tpm
-            # We're conditioning on this node's state, so take the
-            # probabilities that correspond to that state (The TPM subtracted
-            # from 1 gives the probabilities that the node is off).
-            if self.current_state[mechanism_node.index] == 0:
-                conditioned_tpm = 1 - conditioned_tpm
-            # Marginalize-out non-input nodes.
-            for node in set(self.network.nodes) - mechanism_node.inputs:
-                conditioned_tpm = conditioned_tpm.sum(node.index,
-                                                      keepdims=True) / 2
+            # We're conditioning on this node's state, so take the probability
+            # table for the node being in that state.
+            node_state = self.current_state[mechanism_node.index]
+            conditioned_tpm = mechanism_node.tpm[node_state]
             # Collect the nodes that are not in the purview and have
             # connections to this node.
             non_purview_inputs = (mechanism_node.inputs &
@@ -264,24 +258,14 @@ class Subsystem:
             # later conditioned by indexing.
 
             # TODO extend to nonbinary nodes
-            # Allocate the TPM.
-            tpm = np.zeros([2] * self.network.size +
-                           [2 if i == purview_node.index else 1 for i in
-                            range(self.network.size)])
-            tpm_off_indices = [slice(None)] * self.network.size + \
-                [0] * self.network.size
-            # Insert the TPM for the node being off.
-            tpm[tpm_off_indices] = 1 - purview_node.tpm
-            # Insert the TPM for the node being on.
-            tpm_on_indices = [slice(None)] * self.network.size + \
-                [1 if i == purview_node.index else 0 for i in
-                 range(self.network.size)]
-            tpm[tpm_on_indices] = purview_node.tpm
-
-            # Marginalize out the non-input nodes.
-            for node in (set(self.network.nodes) - purview_node.inputs):
-                # TODO extend to nonbinary nodes
-                tpm = tpm.sum(node.index, keepdims=True) / 2
+            # Rotate the dimensions so the first dimension is the last
+            tpm = purview_node.tpm
+            tpm = tpm.transpose(list(range(tpm.ndim))[1:] + [0])
+            # Expand the dimensions so the TPM can be indexed as described
+            first_half_shape = list(tpm.shape[:-1])
+            second_half_shape = [1] * self.network.size
+            second_half_shape[purview_node.index] = 2
+            tpm = tpm.reshape(first_half_shape + second_half_shape)
 
             # Collect nodes whose connections to this purview were severed by
             # the cut.
