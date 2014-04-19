@@ -26,6 +26,9 @@ class StateUnreachableError(ValueError):
         self.tpm = tpm
         self.message = message
 
+    def __str__(self):
+        return self.message
+
 
 def direction(direction):
     if direction not in constants.DIRECTIONS:
@@ -86,19 +89,19 @@ def connectivity_matrix(network):
 
 
 # TODO test
-def _state_reachable(state, tpm):
+def _state_reachable(current_state, tpm):
     """Return whether a state can be reached according to the given TPM."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
-    test = tpm - state
+    test = tpm - current_state
     return np.any(np.logical_and(-1 < test, test < 1).all(1))
 
 
 # TODO test
 def _state_reachable_from(past_state, current_state, tpm):
     """Return whether a state is reachable from the given past state."""
-    test = tpm[past_state] - state
+    test = tpm[past_state] - current_state
     return np.all(np.logical_and(-1 < test, test < 1))
 
 
@@ -107,20 +110,20 @@ def state(network):
     """Validate a network's current and past state."""
     current_state, past_state = network.current_state, network.past_state
     tpm = network.tpm
-    if (current_state.size != network.size or past_state.size != network.size):
+    if (len(current_state) != network.size or len(past_state) != network.size):
         raise ValueError(
-            "Invalid state: there must be one entry per node in the network; \
-            this state has " + str(network.current_state.size) + " entries, \
-            but there \ are " + str(network.size) + " nodes.")
-    if not _state_reachable(current_state):
+            "Invalid state: there must be one entry per node in the network; " +
+            "this state has " + str(network.current_state.size) + " entries, " +
+            "but there \ are " + str(network.size) + " nodes.")
+    if not _state_reachable(current_state, tpm):
         raise StateUnreachableError(
             current_state, past_state, tpm,
             "The current state is unreachable according to the given TPM.")
     if not _state_reachable_from(past_state, current_state, tpm):
         raise StateUnreachableError(
             current_state, past_state, tpm,
-            "The current state cannot be reached from the past state according \
-            to the given TPM.")
+            "The current state cannot be reached from the past state " +
+            "according to the given TPM.")
 
 
 # TODO test
