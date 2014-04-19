@@ -18,44 +18,64 @@ from . import utils
 
 class Network:
 
-    """A network of elements.
+    """A network of nodes.
 
     Represents the network we're analyzing and holds auxilary data about it.
+
+    Attributes:
+        size (int): The number of nodes in the network.
+        tpm (np.ndarray): The transition probability matrix for this network.
+        current_state (tuple): The current state of the network.
+            ``current_state[i]`` gives the current state of node ``i``.
+        past_state (tuple): The past state of the network. ``past_state[i]``
+            gives the past state of node ``i``.
+        connectivity_matrix (np.ndarray): A matrix describing the network's
+            connectivity. ``connectivity_matrix[i][j] == 1`` means that node
+            ``i`` is connected to node ``j``.
+        nodes (list(Node)): A list of nodes in the network.
+
+    Examples:
+        In a 3-node network, ``a_network.tpm[(0, 1, 0)]`` gives the transition
+        probabilities for each node at |t_0| given that state at |t_{-1}| was
+        |0,1,0|.
     """
 
     # TODO implement network definition via connectivity_matrix
     def __init__(self, tpm, current_state, past_state,
                  connectivity_matrix=None):
         """
-        :param tpm: The network's transition probability matrix **in
-            state-by-node form**, so that ``tpm[0][1][0]`` gives the
-            probabilities of each node being on if the past state is |0,1,0|.
-            The shape of this TPM should thus be
-            ``(number of states for each node) + (number of nodes)``.
-        :type tpm: ``np.ndarray``
-        :param state: An array describing the network's current state;
-            ``state[i]`` gives the state of ``self.nodes[i]``
-        :type state: ``np.ndarray``
-        :param past_state: An array describing the network's past state;
-            ``state[i]`` gives the past state of ``self.nodes[i]``
-        :type state: ``np.ndarray``
+        Args:
+            tpm (np.ndarray): The network's transition probability matrix, in
+                **state-by-node** form. It can be either 2-dimensional, so that
+                ``tpm[i]`` gives the probabilities of each node being on if the
+                past state is given by the binary representation of ``i``, or
+                in N-D form, so that ``tpm[0][1][0]`` gives the probabilities
+                of each node being on if the past state is |0,1,0|. The shape
+                of the 2-dimensional form of the TPM must be ``(S, N)``, and
+                the shape of the N-D form of the TPM must be ``[2] * N + [N]``,
+                where ``S`` is the number of states and ``N`` is the number of
+                nodes.
+            current_state (tuple): A tuple describing the network's current
+                state; ``state[i]`` gives the state of ``self.nodes[i]``
+            past_state (tuple): A tuple describing the network's past state;
+                ``state[i]`` gives the state of ``self.nodes[i]``
         """
+        # Get the number of nodes in the network.
+        # The TPM can be either 2-dimensional or in N-D form, where transition
+        # probabilities can be indexed by state-tuples. In either case, the
+        # size of last dimension is the number of nodes.
+        self.size = tpm.shape[-1]
         # TODO make tpm also optional when implementing logical network
         # definition
-        self.tpm = tpm
+        self.tpm = tpm.reshape([2] * self.size + [self.size]).astype(float)
         # TODO! test connectivity matrix
         self.connectivity_matrix = connectivity_matrix
         self.current_state = current_state
         self.past_state = past_state
-        # Make these properties immutable (for hashing)
+        # Make the TPM and connectivity matrix immutable (for hashing)
         self.tpm.flags.writeable = False
-        self.current_state.flags.writeable = False
-        self.past_state.flags.writeable = False
         if self.connectivity_matrix != None:
             self.connectivity_matrix.flags.writeable = False
-        # The number of nodes in the Network (TPM is in state-by-node form, so
-        # number of nodes is given by the size of the last dimension)
-        self.size = tpm.shape[-1]
 
         # Validate this network
         validate.network(self)
@@ -90,8 +110,8 @@ class Network:
     # TODO don't use tostring(not unique for large arrays)
     def __hash__(self):
         return hash((self.tpm.tostring(),
-                     self.current_state.tostring(),
-                     self.past_state.tostring(),
+                     self.current_state,
+                     self.past_state,
                      (self.connectivity_matrix.tostring() if
                       self.connectivity_matrix != None else None)))
 
