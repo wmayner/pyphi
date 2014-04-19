@@ -31,7 +31,7 @@ def test_purview_max_entropy_distribution():
     size = 3
     state = np.array([0, 1, 0])
     past_state = np.array([1, 1, 0])
-    tpm = np.zeros([2] * size + [size]).astype(float)
+    tpm = np.ones([2] * size + [size]).astype(float) / 2
     network = Network(tpm, state, past_state)
 
     max_ent = utils.max_entropy_distribution(network.nodes[0:2], network)
