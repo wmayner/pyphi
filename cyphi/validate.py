@@ -8,10 +8,23 @@ Validate
 Methods for validating common types of input.
 """
 
+import numpy as np
+
 from collections import Iterable
 from .models import Cut
 from .node import Node
 from . import constants
+
+
+class StateUnreachableError(ValueError):
+    """Raised when the current state of a network cannot be reached, either
+    from any state or from a given past state."""
+
+    def __init__(self, current_state, past_state, tpm, message):
+        self.current_state = current_state
+        self.past_state = past_state
+        self.tpm = tpm
+        self.message = message
 
 
 def direction(direction):
@@ -62,7 +75,7 @@ def tpm(tpm):
 # TODO! test
 def connectivity_matrix(network):
     cm = network.connectivity_matrix
-    if cm != None:
+    if cm is not None:
         if (cm.ndim != 2):
             raise ValueError("Connectivity matrix must be 2-dimensional.")
         if cm.shape[0] != cm.shape[1]:
@@ -72,17 +85,47 @@ def connectivity_matrix(network):
                              number of nodes in the network.")
 
 
+# TODO test
+def _state_reachable(state, tpm):
+    """Return whether a state can be reached according to the given TPM."""
+    # If there is a row `r` in the TPM such that all entries of `r - state` are
+    # between -1 and 1, then the given state has a nonzero probability of being
+    # reached from some state.
+    test = tpm - state
+    return np.any(np.logical_and(-1 < test, test < 1).all(1))
+
+
+# TODO test
+def _state_reachable_from(past_state, current_state, tpm):
+    """Return whether a state is reachable from the given past state."""
+    test = tpm[past_state] - state
+    return np.all(np.logical_and(-1 < test, test < 1))
+
+
+# TODO test
 def state(network):
-    if (network.current_state.size != network.size
-            or network.past_state.size != network.size):
+    """Validate a network's current and past state."""
+    current_state, past_state = network.current_state, network.past_state
+    tpm = network.tpm
+    if (current_state.size != network.size or past_state.size != network.size):
         raise ValueError(
             "Invalid state: there must be one entry per node in the network; \
             this state has " + str(network.current_state.size) + " entries, \
             but there \ are " + str(network.size) + " nodes.")
+    if not _state_reachable(current_state):
+        raise StateUnreachableError(
+            current_state, past_state, tpm,
+            "The current state is unreachable according to the given TPM.")
+    if not _state_reachable_from(past_state, current_state, tpm):
+        raise StateUnreachableError(
+            current_state, past_state, tpm,
+            "The current state cannot be reached from the past state according \
+            to the given TPM.")
 
 
+# TODO test
 def network(network):
-    """Validate TPM, connectivity_matrix, and current and past state."""
+    """Validate TPM, connectivity matrix, and current and past state."""
     tpm(network.tpm)
     connectivity_matrix(network)
     state(network)
