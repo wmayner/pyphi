@@ -13,7 +13,7 @@ def network():
     size = 3
     current_state = np.array([0., 1., 0.])
     past_state = np.array([1, 1, 0])
-    tpm = np.zeros([2] * size + [size]).astype(float)
+    tpm = np.ones([2] * size + [size]).astype(float) / 2
     return Network(tpm, current_state, past_state)
 
 

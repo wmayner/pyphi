@@ -10,23 +10,30 @@ class Node:
 
     """A node in a network.
 
-    Contains a TPM for just this node (indexed by network state). The TPM gives
-    the probability that this node is on.
+    Attributes:
+        network (Network): The network the node belongs to.
+        index (int): The node's index in the network's list of nodes.
+        label (str): An optional label for the node.
+        inputs (list(Node)): A list of nodes that have connections to this
+            node.
+        tpm (np.ndarray): The TPM for this node. ``this_node.tpm[0]`` and
+            ``this_node.tpm[1]`` gives the probability tables that this node is
+            off and on, respectively, indexed by network state.
 
-    For example, in a 3-node network, ``self.tpm[0][1][0]`` gives the
-    probability that this node is on at |t_0| if the state of the network
-    is |0,1,0| at |t_{-1}|.
+    Examples:
+        In a 3-node network, ``self.tpm[0][(0, 1, 0)]`` gives the probability
+        that this node is off at |t_0| if the state of the network is |0,1,0|
+        at |t_{-1}|.
     """
 
     def __init__(self, network, index, label=None):
         """
-        :param network: The network this node belongs to
-        :type network: ``Network``
-        :param index: The index of this node in the network's list of nodes
-        :type index: ``int``
-        :param label: The label for this node, for display purposes. Optional;
-            defaults to ``None``.
-        :type label: ``str``
+        Args:
+            network (Network): The network this node belongs to.
+            index (int): The index of this node in the network's list of nodes
+
+        Keyword Args:
+            label (str): The label for this node, for display purposes.
         """
         # This node's parent network
         self.network = network
@@ -35,34 +42,52 @@ class Node:
         # Label for display
         self.label = label
 
-        # TODO test
-        if self.network.connectivity_matrix != None:
+        # This will hold the list of nodes that have connections to this node.
+        # It can only be generated after the network to which this node belongs
+        # has finished initializing, so it's set to None for now.
+        self._inputs = None
+        # Get indices of the inputs
+        if self.network.connectivity_matrix is not None:
             # If a connectivity matrix was provided, store the indices of nodes
             # that connect to this node
             self._input_indices = np.array(
-                [index for index in range(self.network.size) if
-                 self.network.connectivity_matrix[index][self.index]])
+                [i for i in range(self.network.size) if
+                 self.network.connectivity_matrix[i][self.index]])
         else:
             # If no connectivity matrix was provided, assume all nodes connect
             # to all nodes
             self._input_indices = tuple(range(self.network.size))
 
-        # The node's conditional transition probability matrix (gives
-        # probability that node is on)
-        # TODO extend to nonbinary nodes
-        self.tpm = network.tpm[..., index]
-
-        # Make the TPM immutable (for hashing)
+        # Generate the node's TPM
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # TODO! document
+        tpm_on = self.network.tpm[..., self.index]
+        tpm_off = 1 - tpm_on
+        # Marginalize-out non-input nodes.
+        for index in range(self.network.size):
+            if index not in self._input_indices:
+                # TODO extend to nonbinary nodes
+                tpm_on = tpm_on.sum(index, keepdims=True) / 2
+                tpm_off = tpm_off.sum(index, keepdims=True) / 2
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Store the generated TPM
+        self.tpm = np.array([tpm_off, tpm_on])
+        # Make it immutable (for hashing)
         self.tpm.flags.writeable = False
 
-    # ``inputs`` must be a property because at the time of node creation, the
-    # network doesn't have a list of nodes yet (so we can only store the input
-    # indices during initialization, rather than a set of actual nodes, which
-    # is more convenient)
-    def getinputs(self):
-        return set([node for node in self.network.nodes if node.index in
-                    self._input_indices])
-    inputs = property(getinputs, "The set of nodes with connections to this node.")
+    # ``inputs`` must be a property because at the time of node
+    # creation, the network doesn't have a list of Node objects yet, only a
+    # size (and thus a range of node indices); we want the node's inputs to be
+    # a list of actual Node objects, so we defer access to this list of Nodes
+    # until it is created.
+    def get_inputs(self):
+        if self._inputs:
+            return self._inputs
+        else:
+            return set([node for node in self.network.nodes if node.index in
+                        self._input_indices])
+    inputs = property(get_inputs,
+                      "The set of nodes with connections to this node.")
 
     def __repr__(self):
         return self.__str__()
