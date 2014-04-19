@@ -128,20 +128,15 @@ def marginalize_out(node, tpm):
     """
     Marginalize out a node from a TPM.
 
-    The TPM must be indexed by individual node state.
+    Args:
+        node (Node): The node to be marginalized out
+        tpm (np.ndarray): The tpm to marginalize the node out of
 
-    :param node: The node to be marginalized out
-    :type node: ``Node``
-    :param tpm: The tpm to marginalize the node out of
-    :type tpm: ``np.ndarray``
-
-    :returns: The TPM after marginalizing out the node
-    :rtype: ``np.ndarray``
+    Returns:
+        A TPM with the same number of dimensions, with the node
+        marginalized out.
     """
-    # Preserve number of dimensions so node indices still index into the proper
-    # axis of the returned distribution, normalize the distribution by number
-    # of states
-    return (tpm.sum(node.index, keepdims=True) / tpm.shape[node.index])
+    return tpm.sum(node.index, keepdims=True) / tpm.shape[node.index]
 
 
 # TODO memoize this
