@@ -92,13 +92,16 @@ def s():
 
     Diagram:
 
-    |        +~~~+
-    |    +~~>| A |<~~+
-    |    |   +~~~+   |
-    |    |    AND    |
-    |  +~+~+       +~+~+
-    |  | B |       | C |
-    |  +~~~+       +~~~+
+    |           +~~~~~~~+
+    |    +~~~~~>|   A   |<~~~~+
+    |    | +~~~~+ (AND) +~~~+ |
+    |    | |    +~~~~~~~+   | |
+    |    | |                | |
+    |    | v                v |
+    |  +~+~~~~~~+      +~~~~~~+~+
+    |  |   B    |<~~~~~+    C   |
+    |  | (OFF)  +~~~~~>|  (OFF) |
+    |  +~~~~~~~~+      +~~~~~~~~+
 
     TPM:
 
@@ -127,13 +130,8 @@ def s():
                     [0, 0, 0],
                     [0, 0, 0],
                     [0, 0, 0]]).reshape([2] * 3 + [3]).astype(float)
-
-    cm = np.array([[0, 0, 0],
-                   [1, 0, 0],
-                   [1, 0, 0]])
-    cm = None if no_connectivity else cm
-    s = Network(tpm, a_just_turned_on, a_about_to_be_on,
-                connectivity_matrix=cm)
+    # Don't provide connectivity matrix
+    s = Network(tpm, a_just_turned_on, a_about_to_be_on)
     # Subsystem([n0, n1, n2]) of the simple 'AND' network.
     # Node n0 (A in the diagram) has just turned on.
     s.subsys_all_a_just_on = Subsystem(s.nodes,
