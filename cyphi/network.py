@@ -45,20 +45,22 @@ class Network:
                  connectivity_matrix=None):
         """
         Args:
-            tpm (np.ndarray): The network's transition probability matrix, in
-                **state-by-node** form. It can be either 2-dimensional, so that
-                ``tpm[i]`` gives the probabilities of each node being on if the
-                past state is given by the binary representation of ``i``, or
-                in N-D form, so that ``tpm[0][1][0]`` gives the probabilities
-                of each node being on if the past state is |0,1,0|. The shape
-                of the 2-dimensional form of the TPM must be ``(S, N)``, and
-                the shape of the N-D form of the TPM must be ``[2] * N + [N]``,
-                where ``S`` is the number of states and ``N`` is the number of
-                nodes.
-            current_state (tuple): A tuple describing the network's current
-                state; ``state[i]`` gives the state of ``self.nodes[i]``
-            past_state (tuple): A tuple describing the network's past state;
-                ``state[i]`` gives the state of ``self.nodes[i]``
+            tpm (np.ndarray):
+                The network's transition probability matrix, in state-by-node
+                form. It can be either 2-dimensional, so that ``tpm[i]`` gives
+                the probabilities of each node being on if the past state is
+                given by the binary representation of ``i``, or in N-D form, so
+                that ``tpm[0][1][0]`` gives the probabilities of each node
+                being on if the past state is |0,1,0|. The shape of the
+                2-dimensional form of the TPM must be ``(S, N)``, and the shape
+                of the N-D form of the TPM must be ``[2] * N + [N]``, where
+                ``S`` is the number of states and ``N`` is the number of nodes.
+            current_state (tuple):
+                A tuple describing the network's current state; ``state[i]``
+                gives the state of ``self.nodes[i]``
+            past_state (tuple):
+                A tuple describing the network's past state; ``state[i]`` gives
+                the state of ``self.nodes[i]``
         """
         # Get the number of nodes in the network.
         # The TPM can be either 2-dimensional or in N-D form, where transition
@@ -74,7 +76,7 @@ class Network:
         self.past_state = past_state
         # Make the TPM and connectivity matrix immutable (for hashing)
         self.tpm.flags.writeable = False
-        if self.connectivity_matrix != None:
+        if self.connectivity_matrix is not None:
             self.connectivity_matrix.flags.writeable = False
 
         # Validate this network
@@ -88,9 +90,10 @@ class Network:
 
     def __repr__(self):
         return ("Network(" + ", ".join([repr(self.tpm),
-                                          repr(self.current_state),
-                                          repr(self.past_state)]) +
-                ", connectivity_matrix=" + repr(self.connectivity_matrix) + ")")
+                                        repr(self.current_state),
+                                        repr(self.past_state)]) +
+                ", connectivity_matrix=" + repr(self.connectivity_matrix) +
+                ")")
 
     def __str__(self):
         return ("Network(" + str(self.tpm) + ", connectivity_matrix=" +
@@ -102,18 +105,19 @@ class Network:
         return (np.array_equal(self.tpm, other.tpm) and
                 np.array_equal(self.current_state, other.current_state) and
                 np.array_equal(self.past_state, other.past_state) and
-                np.array_equal(self.connectivity_matrix, other.connectivity_matrix))
+                np.array_equal(self.connectivity_matrix,
+                               other.connectivity_matrix))
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    # TODO don't use tostring(not unique for large arrays)
+    # TODO! don't use tostring(not unique for large arrays)
     def __hash__(self):
         return hash((self.tpm.tostring(),
                      self.current_state,
                      self.past_state,
                      (self.connectivity_matrix.tostring() if
-                      self.connectivity_matrix != None else None)))
+                      self.connectivity_matrix is not None else None)))
 
     def subsystems(self):
         """Return a generator of all possible subsystems of this network."""
