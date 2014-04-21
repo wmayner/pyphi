@@ -15,7 +15,6 @@ from scipy.sparse.csgraph import connected_components
 
 from .models import Cut, BigMip
 from .network import Network
-from . import validate
 from . import constants
 from . import utils
 
@@ -29,7 +28,7 @@ def concept_distance(c1, c2):
 
     Returns:
         The distance between the two concepts in concept-space.
-    ."""
+    """
     return sum([utils.hamming_emd(c1.location[constants.PAST],
                                   c2.location[constants.PAST]),
                 utils.hamming_emd(c1.location[constants.FUTURE],
@@ -103,17 +102,16 @@ def _null_mip(subsystem):
     This is the MIP associated with a reducible subsystem."""
     return BigMip(subsystem=subsystem,
                   phi=0.0,
-                  # TODO should this be null cut?
                   partition=subsystem.null_cut,
                   unpartitioned_constellation=[], partitioned_constellation=[])
 
 
-# TODO make null concept an attribute (property)?
+# TODO! make null concept an attribute (property)?
 # TODO document
 def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
-    # Compute forward mip
+    # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
-    forward_constellation = subsystem.constellation(forward_cut)
+    forward_constellation = subsystem.constellation(cut=forward_cut)
     forward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    forward_constellation,
@@ -122,9 +120,9 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=forward_constellation,
         subsystem=subsystem)
-    # Compute backward mip
+    # Compute backward mip.
     backward_cut = Cut(partition[1], partition[0])
-    backward_constellation = subsystem.constellation(backward_cut)
+    backward_constellation = subsystem.constellation(cut=backward_cut)
     backward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    backward_constellation,
@@ -133,9 +131,9 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=backward_constellation,
         subsystem=subsystem)
-    # Choose minimal unidirectional cut
+    # Choose minimal unidirectional cut.
     mip = min(forward_mip, backward_mip)
-    # Return the mip if the subsystem with the given partition is not reducible
+    # Return the mip if the subsystem with the given partition is not reducible.
     return mip if mip.phi > constants.EPSILON else _null_mip(subsystem)
 
 
@@ -143,11 +141,11 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 def big_mip(subsystem):
     """Return the MIP for a subsystem."""
     cm = subsystem.network.connectivity_matrix
-    # The first bipartition is the null cut (trivial bipartition), so skip it
+    # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = list(utils.bipartition(subsystem.nodes))[1:]
-    # Get the number of strongly connected components
-    num_components, _ = connected_components(cm) if cm != None else (1, None)
-
+    # Get the number of strongly connected components.
+    num_components, _ = connected_components(cm) if cm is not None else (1,
+                                                                         None)
     # Phi is necessarily zero if the subsystem is:
     #   - not strongly connected;
     #   - empty; or
@@ -155,16 +153,14 @@ def big_mip(subsystem):
     # So in those cases we immediately return a null MIP.
     if num_components > 1 or not subsystem or not bipartitions:
         return _null_mip(subsystem)
-
-    # Calculate the unpartitioned constellation
+    # Calculate the unpartitioned constellation.
     unpartitioned_constellation = subsystem.constellation(subsystem.null_cut)
-
-    # Parallel loop over all partitions
-    mip_candidates = Parallel(n_jobs=constants.NUMBER_OF_CORES)(
-        delayed(_evaluate_cut)(subsystem, partition,
+    # Parallel loop over all partitions (use all CPUs).
+    mip_candidates = Parallel(n_jobs=-1)(
+        delayed(_evaluate_cut)(subsystem,
+                               partition,
                                unpartitioned_constellation)
         for partition in bipartitions)
-
     return min(mip_candidates)
 
 
