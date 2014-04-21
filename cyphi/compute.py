@@ -12,6 +12,7 @@ subsystems.
 import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
+from scipy.sparse import csr_matrix
 
 from .models import Cut, BigMip
 from .network import Network
@@ -144,8 +145,8 @@ def big_mip(subsystem):
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = list(utils.bipartition(subsystem.nodes))[1:]
     # Get the number of strongly connected components.
-    num_components, _ = connected_components(cm) if cm is not None else (1,
-                                                                         None)
+    num_components, _ = (connected_components(csr_matrix(cm)) if cm is not None
+                         else (1, None))
     # Phi is necessarily zero if the subsystem is:
     #   - not strongly connected;
     #   - empty; or
