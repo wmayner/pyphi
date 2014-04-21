@@ -18,6 +18,7 @@ from .utils import (marginalize_out, hamming_emd, max_entropy_distribution,
 from .models import Cut, Mip, Part, Mice, Concept
 
 
+# TODO! go through docs and make sure to say when things an be None
 # TODO! make a NodeList object; factor out all_connect_to_any and any other
 # methods that are really properties of lists of nodes
 # TODO? refactor the computational methods out of the class so they explicitly
@@ -45,6 +46,10 @@ class Subsystem:
 
         # The null cut (leaves the system intact).
         self.null_cut = Cut(severed=(), intact=self.nodes)
+
+        # A cache for keeping core causes and effects that can be reused later
+        # in the event that a cut doesn't effect them
+        self._mice_cache = dict()
 
         # TODO use properties?
         # (https://docs.python.org/2/library/functions.html#property)
@@ -602,21 +607,59 @@ class Subsystem:
         the second list."""
         return self._test_connections(1, nodes1, nodes2)
 
+    def _get_cached_mice(self, direction, mechanism, cut):
+        """Return a cached MICE if there is one and the cut doesn't affect it.
+
+        Return False otherwise."""
+        if (direction, mechanism) in self._mice_cache:
+            cached = self._mice_cache[(direction, mechanism)]
+            # If we've already calculated the core cause for this mechanism
+            # with no cut, then we don't need to recalculate it with the cut if
+            #   - all mechanism nodes are severed, or
+            #   - all the cached cause's purview nodes are intact.
+            if (direction == DIRECTIONS[PAST] and
+                (all([nodes in cut.severed for nodes in mechanism]) or
+                 all([nodes in cut.intact for nodes in cached.purview]))):
+                return cached
+            # If we've already calculated the core cause for this mechanism
+            # with no cut, then we don't need to recalculate it with the cut if
+            #   - all mechanism nodes are intact, or
+            #   - all the cached effect's purview nodes are severed.
+            if (direction == DIRECTIONS[FUTURE] and
+                (all([nodes in cut.intact for nodes in mechanism]) or
+                 all([nodes in cut.severed for nodes in cached.purview]))):
+                return cached
+        return False
+
     # TODO update docs
     def _find_mice(self, direction, mechanism, cut):
         """Return the maximally irreducible cause or effect for a mechanism.
+
+        Args:
+            direction (str):
+            mechanism (tuple(Node)):
+            cut (Cut): May be ``None``.
+            cache (dict): May be ``None``.
 
         .. note:: Strictly speaking, the MICE is a pair of repertoires: the
             core cause repertoire and core effect repertoire of a mechanism,
             which are maximally different than the unconstrained cause/effect
             repertoires (*i.e.*, those that maximize |phi|). Here, we return
             only information corresponding to one direction, ``'past'`` or
-            ``'future'``.
+            ``'future'``, i.e., we return a core cause or core effect, not the
+            pair of them.
 
-        :returns: An object with attributes ``purview`` and ``phi``, containing
-            the core cause or effect purview and the |phi| value, respectively.
+        Returns:
+            A :class:`MICE` object.
         """
+        # Return a cached MICE if we were given a cache and there's a hit
+        cached_mice = (self._get_cached_mice(direction, mechanism, cut)
+                       if (cut and cut != self.null_cut) else False)
+        if cached_mice:
+            return cached_mice
+
         validate.direction(direction)
+        # Set defaults for a reducible MICE
         mip_max = None
         phi_max = float('-inf')
         maximal_purview = None
@@ -647,14 +690,25 @@ class Subsystem:
                     phi_max = mip.phi
                     maximal_purview = purview
                     maximal_repertoire = mip.unpartitioned_repertoire
+
+        # If there was no MIP, then phi is zero.
         if phi_max == float('-inf'):
             phi_max = 0
-        return Mice(direction=direction,
+
+        mice = Mice(direction=direction,
                     mechanism=mechanism,
                     purview=maximal_purview,
                     repertoire=maximal_repertoire,
                     mip=mip_max,
                     phi=phi_max)
+
+        # Store the MICE if there was no cut, since some future cuts won't
+        # effect it and it can be reused.
+        if (not cut or cut == self.null_cut
+                and (direction, mechanism) not in self._mice_cache):
+            self._mice_cache[(direction, mechanism)] = mice
+
+        return mice
 
     def core_cause(self, mechanism, cut=None):
         """Returns the core cause repertoire of a mechanism."""
@@ -697,7 +751,7 @@ class Subsystem:
         # If any node in the mechanism either has no inputs from the subsystem
         # or has no outputs to the subsystem, then the mechanism is necessarily
         # reducible and cannot be a concept (since removing that node would
-        # make no difference to at least one of the MICEs)
+        # make no difference to at least one of the MICEs).
         if not (self._all_connect_to_any(mechanism, self.nodes) and
                 self._any_connect_to_all(self.nodes, mechanism)):
             return None
@@ -725,5 +779,5 @@ class Subsystem:
 
     def constellation(self, cut=None):
         """Return the conceptual structure of this subsystem."""
-        return tuple(filter(None, [self.concept(mechanism, cut) for mechanism
-                                   in powerset(self.nodes)]))
+        return tuple(filter(None, [self.concept(mechanism, cut) for
+                                   mechanism in powerset(self.nodes)]))
