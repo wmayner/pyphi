@@ -18,6 +18,7 @@ from .models import Cut, BigMip
 from .network import Network
 from . import constants
 from . import utils
+from . import options
 
 
 def concept_distance(c1, c2):
@@ -141,6 +142,11 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 # TODO document
 def big_mip(subsystem):
     """Return the MIP for a subsystem."""
+    # Define Phi of single-node subsystems as zero if the user specified it
+    if (not options.CONSIDER_SINGLE_NODES_AS_COMPLEXES and
+            len(subsystem.nodes) < 2):
+        return _null_mip(subsystem)
+
     cm = subsystem.network.connectivity_matrix
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = list(utils.bipartition(subsystem.nodes))[1:]
