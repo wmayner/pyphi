@@ -21,29 +21,25 @@ def test_validate_direction():
     with pytest.raises(ValueError):
         validate.direction("dogeeeee")
 
-def test_validate_cut_bad_input(m):
-    s = m.subsys_all
+def test_validate_cut_bad_input(s):
     with pytest.raises(ValueError):
         validate.cut(s, ((), ()))
     with pytest.raises(ValueError):
-        validate.cut(s, (m.nodes[0], m.nodes[1]))
+        validate.cut(s, (s.nodes[0], s.nodes[1]))
     with pytest.raises(ValueError):
-        validate.cut(s, (m.nodes[0], (m.nodes[1], m.nodes[1])))
+        validate.cut(s, (s.nodes[0], (s.nodes[1], s.nodes[1])))
 
 
-def test_validate_cut_single_node(m):
-    s = m.subsys_all
-    validated = validate.cut(s, (m.nodes[0], (m.nodes[1], m.nodes[2])))
-    assert validated == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+def test_validate_cut_single_node(s):
+    validated = validate.cut(s, (s.nodes[0], (s.nodes[1], s.nodes[2])))
+    assert validated == Cut((s.nodes[0],), (s.nodes[1], s.nodes[2]))
 
 
-def test_validate_cut_list_input(m):
-    s = m.subsys_all
-    validated = validate.cut(s, ([m.nodes[0]], [m.nodes[1], m.nodes[2]]))
-    assert validated == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+def test_validate_cut_list_input(s):
+    validated = validate.cut(s, ([s.nodes[0]], [s.nodes[1], s.nodes[2]]))
+    assert validated == Cut((s.nodes[0],), (s.nodes[1], s.nodes[2]))
 
 
-def test_validate_cut(m):
-    s = m.subsys_all
-    validated = validate.cut(s, ((m.nodes[0],), (m.nodes[1], m.nodes[2])))
-    assert validated == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+def test_validate_cut(s):
+    validated = validate.cut(s, ((s.nodes[0],), (s.nodes[1], s.nodes[2])))
+    assert validated == Cut((s.nodes[0],), (s.nodes[1], s.nodes[2]))

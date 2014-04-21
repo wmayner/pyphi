@@ -185,8 +185,7 @@ def test_bigmip_ordering():
     assert phi1 >= different_phi1
 
 
-def test_bigmip_equality(m):
-    s = m.subsys_all
+def test_bigmip_equality(s):
     phi = 1.0
     bigmip = models.BigMip(partition=None, unpartitioned_constellation=None,
                            partitioned_constellation=None, phi=phi,

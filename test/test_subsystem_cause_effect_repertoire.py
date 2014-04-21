@@ -6,10 +6,22 @@ import numpy as np
 
 from cyphi.models import Cut
 
+from . import example_networks
 
-# Test scenario structure
+
+# Get example subsystems
+s = example_networks.s()
+s_all_a_just_on = example_networks.s_subsys_all_a_just_on()
+s_all_off = example_networks.s_subsys_all_off()
+subsys_n0n2 = example_networks.subsys_n0n2()
+subsys_n1n2 = example_networks.subsys_n1n2()
+
+
+# Set up test scenarios
+# =====================
+# Scenario structure:
 # (
-#     function to test, network,
+#     function to test,
 #     subsystem, cut,
 #     mechanism,
 #     purview,
@@ -23,38 +35,38 @@ scenarios = [
         # Full network, no cut {{{
         # ------------------------
     (
-        'cause_repertoire', 'm',
-        'subsys_all', None,
+        'cause_repertoire',
+        s, None,
         [0],
         [0],
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
     ), (
-        'cause_repertoire', 'm',
-        'subsys_all', None,
+        'cause_repertoire',
+        s, None,
         [0],
         [0],
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
     ), (
-        'cause_repertoire', 'm',
-        'subsys_all', None,
+        'cause_repertoire',
+        s, None,
         [0, 1],
         [0, 2],
         np.array([0.5, 0.5, 0.0, 0.0]).reshape(2, 1, 2, order="F")
     ), (
-        'cause_repertoire', 'm',
-        'subsys_all', None,
+        'cause_repertoire',
+        s, None,
         [1],
         [2],
         np.array([1.0, 0.0]).reshape(1, 1, 2, order="F")
     ), (
-        'cause_repertoire', 'm',
-        'subsys_all', None,
+        'cause_repertoire',
+        s, None,
         [],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
     ), (
-        'cause_repertoire', 'm',
-        'subsys_all', None,
+        'cause_repertoire',
+        s, None,
         [1],
         [],
         np.array([1])
@@ -63,8 +75,8 @@ scenarios = [
         # Full network, with cut {{{
         # --------------------------
     (
-        'cause_repertoire', 'm',
-        'subsys_all', (2, (0, 1)),
+        'cause_repertoire',
+        s, (2, (0, 1)),
         [0],
         [1],
         np.array([1/3, 2/3]).reshape(1, 2, 1, order="F")
@@ -73,20 +85,20 @@ scenarios = [
         # Subset, with cut {{{
         # --------------------
     (
-        'cause_repertoire', 'm',
-        'subsys_n1n2', (1, 2),
+        'cause_repertoire',
+        subsys_n1n2, (1, 2),
         [2],
         [1, 2],
         np.array([0.25, 0.25, 0.25, 0.25]).reshape(1, 2, 2, order="F")
     ), (
-        'cause_repertoire', 'm',
-        'subsys_n1n2', (1, 2),
+        'cause_repertoire',
+        subsys_n1n2, (1, 2),
         [2],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
     ), (
-        'cause_repertoire', 'm',
-        'subsys_n0n2', (0, 2),
+        'cause_repertoire',
+        subsys_n0n2, (0, 2),
         [2],
         [0],
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
@@ -98,8 +110,8 @@ scenarios = [
         # State: 'A' just turned on {{{
         # -----------------------------
     (
-        'cause_repertoire', 's',
-        'subsys_all_a_just_on', None,
+        'cause_repertoire',
+        s_all_a_just_on, None,
         [0],
         [0],
         # Cause repertoire is maximally selective; the past state must have
@@ -107,22 +119,22 @@ scenarios = [
         # should be 0
         np.array([1.0, 0.0]).reshape(2, 1, 1, order="F")
     ), (
-        'cause_repertoire', 's',
-        'subsys_all_a_just_on', None,
+        'cause_repertoire',
+        s_all_a_just_on, None,
         [],
         [0],
         # No matter the state of the purview (m0), the probability it will be
         # on in the next timestep is 1/8
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
     ), (
-        'cause_repertoire', 's',
-        'subsys_all_a_just_on', None,
+        'cause_repertoire',
+        s_all_a_just_on, None,
         [1],
         [0, 1, 2],
         np.ones((2, 2, 2)) / 8
     ), (
-        'cause_repertoire', 's',
-        'subsys_all_a_just_on', None,
+        'cause_repertoire',
+        s_all_a_just_on, None,
         [0, 1],
         [0, 2],
         np.array([0.0, 0.0, 1.0, 0.0]).reshape(2, 1, 2, order="F")
@@ -131,14 +143,14 @@ scenarios = [
         # State: all nodes off {{{
         # ------------------------
     (
-        'cause_repertoire', 's',
-        'subsys_all_off', None,
+        'cause_repertoire',
+        s_all_off, None,
         [0],
         [0],
         np.array([(3 / 7), (4 / 7)]).reshape(2, 1, 1, order="F")
     ), (
-        'cause_repertoire', 's',
-        'subsys_all_off', None,
+        'cause_repertoire',
+        s_all_off, None,
         [0],
         [0, 1, 2],
         # Cause repertoire is minimally selective; only {0,1,1} is ruled out,
@@ -157,56 +169,56 @@ scenarios = [
         # ------------------------
 
     (
-        'effect_repertoire', 'm',
-        'subsys_all', None,
+        'effect_repertoire',
+        s, None,
         [0],
         [0],
         np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
     ), (
-        'effect_repertoire', 'm',
-        'subsys_all', None,
+        'effect_repertoire',
+        s, None,
         [0, 1],
         [0, 2],
         np.array([0.0, 0.0, 0.5, 0.5]).reshape(2, 1, 2, order="F")
     ), (
-        'effect_repertoire', 'm',
-        'subsys_all', None,
+        'effect_repertoire',
+        s, None,
         [1],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
     ), (
-        'effect_repertoire', 'm',
-        'subsys_all', None,
+        'effect_repertoire',
+        s, None,
         [],
         [1],
         np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
     ), (
-        'effect_repertoire', 'm',
-        'subsys_all', None,
+        'effect_repertoire',
+        s, None,
         [2],
         [],
         np.array([1])
     ), (
-        'effect_repertoire', 'm',
-        'subsys_all', None,
+        'effect_repertoire',
+        s, None,
         [],
         [0],
         np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
     ), (
-        'effect_repertoire', 'm',
-        'subsys_all', None,
+        'effect_repertoire',
+        s, None,
         [0],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
     ), (
-        'effect_repertoire', 'm',
-        'subsys_all', None,
+        'effect_repertoire',
+        s, None,
         [1, 2],
         [0],
         np.array([1.0, 0.0]).reshape(2, 1, 1, order="F")
     ), (
-        'effect_repertoire', 'm',
-        'subsys_all', None,
+        'effect_repertoire',
+        s, None,
         [1],
         [],
         np.array([1])
@@ -215,14 +227,14 @@ scenarios = [
         # Full network, with cut {{{
         # --------------------------
     (
-        'effect_repertoire', 'm',
-        'subsys_all', ((0, 2), 1),
+        'effect_repertoire',
+        s, ((0, 2), 1),
         [0],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
     ), (
-        'effect_repertoire', 'm',
-        'subsys_all', ((0, 2), 1),
+        'effect_repertoire',
+        s, ((0, 2), 1),
         [0, 1, 2],
         [0, 2],
         np.array([0.0, 0.0, 1.0, 0.0]).reshape(2, 1, 2, order="F")
@@ -231,20 +243,20 @@ scenarios = [
         # Subset, with cut {{{
         # --------------------
     (
-        'effect_repertoire', 'm',
-        'subsys_n1n2', (1, 2),
+        'effect_repertoire',
+        subsys_n1n2, (1, 2),
         [1],
         [1, 2],
         np.array([0.25, 0.25, 0.25, 0.25]).reshape(1, 2, 2, order="F")
     ), (
-        'effect_repertoire', 'm',
-        'subsys_n1n2', (1, 2),
+        'effect_repertoire',
+        subsys_n1n2, (1, 2),
         [],
         [1],
         np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
     ), (
-        'effect_repertoire', 'm',
-        'subsys_n1n2', (1, 2),
+        'effect_repertoire',
+        subsys_n1n2, (1, 2),
         [1],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
@@ -256,28 +268,28 @@ scenarios = [
         # State: 'A' just turned on {{{
         # -----------------------------
     (
-        'effect_repertoire', 's',
-        'subsys_all_a_just_on', None,
+        'effect_repertoire',
+        s_all_a_just_on, None,
         [0],
         [0],
         np.array([1.0, 0.0]).reshape(2, 1, 1, order="F")
     ), (
-        'effect_repertoire', 's',
-        'subsys_all_a_just_on', None,
+        'effect_repertoire',
+        s_all_a_just_on, None,
         [],
         [0],
         # No matter the state of the purview {m0}, the probability it will
         # be on in the next timestep is 1/8
         np.array([0.875, 0.125]).reshape(2, 1, 1, order="F")
     ), (
-        'effect_repertoire', 's',
-        'subsys_all_a_just_on', None,
+        'effect_repertoire',
+        s_all_a_just_on, None,
         [1],
         [0, 1, 2],
         np.array([1., 0., 0., 0., 0., 0., 0., 0.]).reshape(2,2,2)
     ), (
-        'effect_repertoire', 's',
-        'subsys_all_a_just_on', None,
+        'effect_repertoire',
+        s_all_a_just_on, None,
         [1],
         [0, 2],
         np.array([1.0, 0.0, 0.0, 0.0]).reshape(2, 1, 2, order="F")
@@ -286,14 +298,14 @@ scenarios = [
         # State: all nodes off {{{
         # ------------------------
     (
-        'effect_repertoire', 's',
-        'subsys_all_off', None,
+        'effect_repertoire',
+        s_all_off, None,
         [0],
         [0],
         np.array([0.75, 0.25]).reshape(2, 1, 1, order="F")
     ), (
-        'effect_repertoire', 's',
-        'subsys_all_off', None,
+        'effect_repertoire',
+        s_all_off, None,
         [0],
         [0, 1, 2],
         np.array([0.75, 0., 0., 0., 0.25, 0., 0., 0.]).reshape(2,2,2)
@@ -302,24 +314,20 @@ scenarios = [
     # }}}
 # }}}
 ]
-# parameter_string = "function,network,subsystem,mechanism,purview,expected"
-parameter_string = "function,network,subsystem,cut,mechanism,purview,expected"
+parameter_string = "function,subsystem,cut,mechanism,purview,expected"
 
 
 @pytest.mark.parametrize(parameter_string, scenarios)
-def test_cause_and_effect_repertoire(capsys, m, s, function, network, subsystem, cut,
-                                     mechanism, purview, expected):
-    """Test `effect_repertoire` or `cause_repertoire`."""
+def test_cause_and_effect_repertoire(function, subsystem, cut, mechanism,
+                                     purview, expected):
+    """Test ``effect_repertoire`` or ``cause_repertoire``."""
 
-    print("\nTesting " + function + " with network \n"+network)
+    print("\nTesting " + function + " with subsystem \n" + str(subsystem))
 
     # Set up testing parameters from scenario
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Network is a string; grab the object from local scope
-    network = locals()[network]
-    mechanism = [network.nodes[index] for index in mechanism]
-    purview = [network.nodes[index] for index in purview]
-    subsystem = getattr(network, subsystem)
+    mechanism = [subsystem.network.nodes[index] for index in mechanism]
+    purview = [subsystem.network.nodes[index] for index in purview]
     compute_repertoire = getattr(subsystem, function)
     if cut:
         severed = cut[0]
@@ -329,8 +337,8 @@ def test_cause_and_effect_repertoire(capsys, m, s, function, network, subsystem,
             severed = (severed,)
         if not isinstance(intact, type(())):
             intact = (intact,)
-        severed = tuple(network.nodes[index] for index in severed)
-        intact = tuple(network.nodes[index] for index in intact)
+        severed = tuple(subsystem.network.nodes[index] for index in severed)
+        intact = tuple(subsystem.network.nodes[index] for index in intact)
         cut = Cut(severed, intact)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -347,8 +355,7 @@ def test_cause_and_effect_repertoire(capsys, m, s, function, network, subsystem,
 
 
 # Test validation
-def test_cause_and_effect_repertoire_validation(m):
-    s = m.subsys_all
+def test_cause_and_effect_repertoire_validation(s):
     with pytest.raises(ValueError):
         s.cause_repertoire([0], [1], s.null_cut)
     with pytest.raises(ValueError):

@@ -6,19 +6,18 @@ from itertools import chain
 
 from cyphi.models import Mice
 from cyphi.utils import phi_eq
-from .example_networks import m
+from . import example_networks
 
 
 # Expected results {{{
 # ====================
 
-m = m()
-subsystem = m.subsys_all
+subsystem = example_networks.s()
 directions = ['past', 'future']
 
 
 def indices2nodes(indices):
-    return tuple(m.nodes[index] for index in indices)
+    return tuple(subsystem.network.nodes[index] for index in indices)
 
 
 expected_purview_indices = {
@@ -70,7 +69,7 @@ mice_parameter_string = "direction,expected"
 
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
-def test_find_mice(m, direction, expected):
+def test_find_mice(direction, expected):
     result = subsystem._find_mice(direction, expected.mechanism,
                                   subsystem.null_cut)
 
@@ -82,8 +81,7 @@ def test_find_mice(m, direction, expected):
             == expected)
 
 
-def test_find_mice_empty(m):
-    s = m.subsys_all
+def test_find_mice_empty(s):
     expected = [
         Mice(direction=direction,
              mechanism=(),
@@ -97,21 +95,18 @@ def test_find_mice_empty(m):
 
 
 # Test input validation
-def test_find_mice_validation_bad_direction(m):
-    mechanism = (m.nodes[0])
-    s = m.subsys_all
+def test_find_mice_validation_bad_direction(s):
+    mechanism = (s.nodes[0])
     with pytest.raises(ValueError):
         s._find_mice('doge', mechanism, s.null_cut)
 
 
-def test_find_mice_validation_nonnode(m):
-    s = m.subsys_all
+def test_find_mice_validation_nonnode(s):
     with pytest.raises(ValueError):
-        s._find_mice('past', [0, 1], s.null_cut)
+        s._find_mice('past', (0, 1), s.null_cut)
 
 
-def test_find_mice_validation_noniterable(m):
-    s = m.subsys_all
+def test_find_mice_validation_noniterable(s):
     with pytest.raises(ValueError):
         s._find_mice('past', 0, s.null_cut)
 
@@ -119,8 +114,9 @@ def test_find_mice_validation_noniterable(m):
 # `phi_max` tests {{{
 # ===================
 
+
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
-def test_core_cause_or_effect(m, direction, expected):
+def test_core_cause_or_effect(direction, expected):
     if direction == 'past':
         core_ce = subsystem.core_cause
     elif direction == 'future':
@@ -137,8 +133,8 @@ phi_max_scenarios = [
 
 
 @pytest.mark.parametrize('mechanism, expected_phi_max', phi_max_scenarios)
-def test_phi_max(m, expected_phi_max, mechanism):
-    assert phi_eq(m.subsys_all.phi_max(mechanism), expected_phi_max)
+def test_phi_max(s, expected_phi_max, mechanism):
+    assert phi_eq(s.phi_max(mechanism), expected_phi_max)
 
 # }}}
 

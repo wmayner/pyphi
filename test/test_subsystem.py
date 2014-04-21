@@ -8,16 +8,16 @@ from cyphi.subsystem import Subsystem
 
 
 # TODO test against other matlab examples
-def test_empty_init(m):
+def test_empty_init(standard):
     # Empty mechanism
-    s = Subsystem([], m.current_state, m.past_state, m)
+    s = Subsystem([], standard.current_state, standard.past_state, standard)
     assert s.nodes == ()
 
 
-def test_eq(m):
-    assert m.subsys_n0n2 == m.subsys_n0n2
-    assert m.subsys_n0n2 != m.subsys_n1n2
+def test_eq(subsys_n0n2, subsys_n1n2):
+    assert subsys_n0n2 == subsys_n0n2
+    assert subsys_n0n2 != subsys_n1n2
 
 
-def test_hash(m):
-    print(hash(m.subsys_all))
+def test_hash(s):
+    print(hash(s))

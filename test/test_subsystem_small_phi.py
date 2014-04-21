@@ -8,6 +8,11 @@ import numpy as np
 from cyphi import constants
 from cyphi.models import Mip, Part
 
+from . import example_networks
+
+
+s = example_networks.s()
+
 
 # `find_mip` tests {{{
 # ====================
@@ -38,7 +43,7 @@ scenarios = [
     # ----------
     (
         'past',
-        'subsys_all', None,
+        s, None,
         [0],
         [0],
         None,
@@ -48,7 +53,7 @@ scenarios = [
     # ------------
     (
         'past',
-        'subsys_all', (0, (1, 2)),
+        s, (0, (1, 2)),
         [1],
         [2],
         {'partitions': {
@@ -68,7 +73,7 @@ scenarios = [
     # ----------
     (
         'future',
-        'subsys_all', None,
+        s, None,
         [0, 1, 2],
         [0, 1, 2],
         {'partitions': {
@@ -121,7 +126,7 @@ scenarios = [
     # ------------
     (
         'future',
-        'subsys_all', ((1, 2), 0),
+        s, ((1, 2), 0),
         [2],
         [1],
         {'partitions': {
@@ -134,7 +139,7 @@ scenarios = [
          'phi': 0.5}
     ), (
         'future',
-        'subsys_all', ((0, 2), 1),
+        s, ((0, 2), 1),
         [2],
         [0],
         {'partitions': {
@@ -147,7 +152,7 @@ scenarios = [
          'phi': 0.25}
     ), (
         'future',
-        'subsys_all', ((0, 2), 1),
+        s, ((0, 2), 1),
         [0, 1, 2],
         [0, 2],
         {'partitions': {
@@ -174,7 +179,7 @@ scenarios = [
         'phi': 0.5}
     ), (
         'future',
-        'subsys_all', ((0, 1), 2),
+        s, ((0, 1), 2),
         [1],
         [0],
         {'partitions': {
@@ -193,19 +198,16 @@ parameter_string = "direction,subsystem,cut,mechanism,purview,expected"
 
 
 @pytest.mark.parametrize(parameter_string, scenarios)
-def test_find_mip(m, direction, subsystem, cut, mechanism, purview, expected):
+def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     # Set up testing parameters from scenario
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    mechanism = [m.nodes[index] for index in mechanism]
-    purview = [m.nodes[index] for index in purview]
-    subsystem = getattr(m, subsystem)
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    mechanism = [subsystem.network.nodes[index] for index in mechanism]
+    purview = [subsystem.network.nodes[index] for index in purview]
 
     result = subsystem.find_mip(direction, mechanism, purview)
 
     # IMPORTANT: Since several different ways of partitioning the system can
     # yield the same phi value, the partition used in finding the MIP is not
-    # unique. Thus, expected['partitions'] is a dictionary that maps all the
+    # unique. Thus, ``expected['partitions']`` is a dictionary that maps all the
     # ways of partitioning the system that yeild the minimal phi value to their
     # expected partitioned repertoires.
 
@@ -214,13 +216,13 @@ def test_find_mip(m, direction, subsystem, cut, mechanism, purview, expected):
         expected = [
             Mip(direction=direction,
                 partition=(
-                    Part(mechanism=tuple(m.nodes[i] for i in
+                    Part(mechanism=tuple(subsystem.network.nodes[i] for i in
                                          expected_partition[0].mechanism),
-                         purview=tuple(m.nodes[i] for i in
+                         purview=tuple(subsystem.network.nodes[i] for i in
                                        expected_partition[0].purview)),
-                    Part(mechanism=tuple(m.nodes[i] for i in
+                    Part(mechanism=tuple(subsystem.network.nodes[i] for i in
                                          expected_partition[1].mechanism),
-                         purview=tuple(m.nodes[i] for i in
+                         purview=tuple(subsystem.network.nodes[i] for i in
                                        expected_partition[1].purview))
                 ),
                 mechanism=mechanism,
@@ -247,11 +249,11 @@ def test_find_mip(m, direction, subsystem, cut, mechanism, purview, expected):
 
 
 # Test input validation {{{
-def test_find_mip_bad_direction(m):
-    mechanism = [m.nodes[0]]
-    purview = [m.nodes[0]]
+def test_find_mip_bad_direction(s):
+    mechanism = [s.nodes[0]]
+    purview = [s.nodes[0]]
     with pytest.raises(ValueError):
-        m.subsys_all.find_mip('doge', mechanism, purview)
+        s.find_mip('doge', mechanism, purview)
 # }}}
 
 # }}}
@@ -261,55 +263,48 @@ def test_find_mip_bad_direction(m):
 # ========================
 
 
-def test_mip_past(m):
-    s = m.subsys_all
-    mechanism = m.nodes
-    purview = m.nodes
+def test_mip_past(s):
+    mechanism = s.nodes
+    purview = s.nodes
     mip_past = s.find_mip('past', mechanism, purview)
     assert mip_past == s.mip_past(mechanism, purview)
 
 
-def test_mip_future(m):
-    s = m.subsys_all
-    mechanism = m.nodes
-    purview = m.nodes
+def test_mip_future(s):
+    mechanism = s.nodes
+    purview = s.nodes
     mip_future = s.find_mip('future', mechanism, purview)
     assert mip_future == s.mip_future(mechanism, purview)
 
 
-def test_phi_mip_past(m):
-    s = m.subsys_all
-    mechanism = m.nodes
-    purview = m.nodes
+def test_phi_mip_past(s):
+    mechanism = s.nodes
+    purview = s.nodes
     assert (s.phi_mip_past(mechanism, purview) ==
             s.mip_past(mechanism, purview).phi)
 
 
-def test_phi_mip_past_reducible(m):
-    s = m.subsys_all
-    mechanism = [m.nodes[1]]
-    purview = [m.nodes[0]]
+def test_phi_mip_past_reducible(s):
+    mechanism = [s.nodes[1]]
+    purview = [s.nodes[0]]
     assert (0 == s.phi_mip_past(mechanism, purview))
 
 
-def test_phi_mip_future(m):
-    s = m.subsys_all
-    mechanism = m.nodes
-    purview = m.nodes
+def test_phi_mip_future(s):
+    mechanism = s.nodes
+    purview = s.nodes
     assert (s.phi_mip_future(mechanism, purview) ==
             s.mip_future(mechanism, purview).phi)
 
-def test_phi_mip_future_reducible(m):
-    s = m.subsys_all
-    mechanism = m.nodes[0:2]
-    purview = [m.nodes[1]]
+def test_phi_mip_future_reducible(s):
+    mechanism = s.nodes[0:2]
+    purview = [s.nodes[1]]
     assert (0 == s.phi_mip_future(mechanism, purview))
 
 
-def test_phi(m):
-    s = m.subsys_all
-    mechanism = m.nodes
-    purview = m.nodes
+def test_phi(s):
+    mechanism = s.nodes
+    purview = s.nodes
     assert abs(0.5 - s.phi(mechanism, purview)) < constants.EPSILON
 
 # }}}

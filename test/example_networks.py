@@ -10,7 +10,8 @@ from cyphi.subsystem import Subsystem
 
 no_connectivity = 0
 
-def m():
+
+def standard():
     """Matlab default network.
 
     Comes with subsystems attached, no assembly required.
@@ -75,30 +76,42 @@ def m():
 
     cm = None if no_connectivity else cm
     m = Network(tpm, current_state, past_state, connectivity_matrix=cm)
-    m.subsys_n0n2 = Subsystem([m.nodes[0], m.nodes[2]],
-                              m.current_state,
-                              m.past_state,
-                              m)
-    m.subsys_n1n2 = Subsystem([m.nodes[1], m.nodes[2]],
-                              m.current_state,
-                              m.past_state,
-                              m)
-    m.subsys_all = Subsystem(m.nodes, m.current_state, m.past_state, m)
     return m
 
 
+def subsys_n0n2():
+    m = standard()
+    return Subsystem([m.nodes[0], m.nodes[2]],
+                     m.current_state,
+                     m.past_state,
+                     m)
+
+
+def subsys_n1n2():
+    m = standard()
+    return Subsystem([m.nodes[1], m.nodes[2]],
+                     m.current_state,
+                     m.past_state,
+                     m)
+
+
 def s():
+    m = standard()
+    return Subsystem(m.nodes, m.current_state, m.past_state, m)
+
+
+def simple():
     """ Simple 'AND' network.
 
     Diagram:
 
     |           +~~~~~~~+
-    |    +~~~~~>|   A   |<~~~~+
-    |    | +~~~~+ (AND) +~~~+ |
+    |    +~~~~~~+   A   |<~~~~+
+    |    | +~~~>| (AND) +~~~+ |
     |    | |    +~~~~~~~+   | |
     |    | |                | |
-    |    | v                v |
-    |  +~+~~~~~~+      +~~~~~~+~+
+    |    v |                v |
+    |  +~+~+~~~~+      +~~~~~~+~+
     |  |   B    |<~~~~~+    C   |
     |  | (OFF)  +~~~~~>|  (OFF) |
     |  +~~~~~~~~+      +~~~~~~~~+
@@ -130,18 +143,17 @@ def s():
                     [0, 0, 0],
                     [0, 0, 0],
                     [0, 0, 0]]).reshape([2] * 3 + [3]).astype(float)
-    # Don't provide connectivity matrix
-    s = Network(tpm, a_just_turned_on, a_about_to_be_on)
-    # Subsystem([n0, n1, n2]) of the simple 'AND' network.
-    # Node n0 (A in the diagram) has just turned on.
-    s.subsys_all_a_just_on = Subsystem(s.nodes,
-                                       s.current_state,
-                                       s.past_state,
-                                       s)
-    # Subsystem([n0, n1, n2]) of the simple 'AND' network.
-    # All nodes are off.
-    s.subsys_all_off = Subsystem(s.nodes, (0, 0, 0), (0, 0, 0), s)
-    return s
+    return Network(tpm, a_just_turned_on, a_about_to_be_on)
+
+
+def s_subsys_all_off():
+    s = simple()
+    return Subsystem(s.nodes, (0, 0, 0), (0, 0, 0), s)
+
+
+def s_subsys_all_a_just_on():
+    s = simple()
+    return Subsystem(s.nodes, s.current_state, s.past_state, s)
 
 
 def big():
@@ -183,8 +195,14 @@ def big():
     # All on
     past_state = (1,) * 5
     big = Network(tpm, current_state, past_state)
-    big.subsys_all = Subsystem(big.nodes, current_state, past_state, big)
     return big
+
+
+def big_subsys_all():
+    """Return the subsystem associated with ``big``."""
+    b = big()
+    return Subsystem(b.nodes, b.current_state, b.past_state, b)
+
 
 def reducible():
     tpm = np.zeros([2] * 2 + [2])

@@ -8,7 +8,7 @@ from cyphi.node import Node
 from cyphi import utils
 
 
-def test_node_init_tpm(m):
+def test_node_init_tpm(standard):
     answer = [
         np.array([[[[1., 0.],
                     [0., 0.]]],
@@ -25,27 +25,27 @@ def test_node_init_tpm(m):
                    [[1.],
                     [0.]]]])
     ]
-    for node in m.nodes:
+    for node in standard.nodes:
         assert np.array_equal(node.tpm, answer[node.index])
 
-def test_node_init_inputs(m):
+def test_node_init_inputs(standard):
     answer = [
-        m.nodes[1:],
-        m.nodes[2:3],
-        m.nodes[:2]
+        standard.nodes[1:],
+        standard.nodes[2:3],
+        standard.nodes[:2]
     ]
-    for node in m.nodes:
+    for node in standard.nodes:
         assert node.inputs == set(answer[node.index])
 
 
-def test_node_eq(m):
-    assert m.nodes[1] == Node(m, 1)
+def test_node_eq(standard):
+    assert standard.nodes[1] == Node(standard, 1)
 
 
-def test_node_neq_by_index(m):
-    assert m.nodes[0] != Node(m, 1)
+def test_node_neq_by_index(standard):
+    assert standard.nodes[0] != Node(standard, 1)
 
 
-def test_node_neq_by_network(m):
-    other_network = Network(m.tpm, (0, 0, 0), (0, 0, 0))
-    assert m.nodes[0] != Node(other_network, 0)
+def test_node_neq_by_network(standard):
+    other_network = Network(standard.tpm, (0, 0, 0), (0, 0, 0))
+    assert standard.nodes[0] != Node(other_network, 0)
