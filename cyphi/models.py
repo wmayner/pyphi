@@ -9,7 +9,9 @@ Lightweight containers for MICE, MIP, cut, partition, and concept data.
 """
 
 from collections import namedtuple, Iterable
-from .utils import phi_eq as _phi_eq
+import numpy as np
+
+from . import utils
 
 # TODO use properties to avoid data duplication
 # TODO add proper docstrings with __doc__
@@ -32,54 +34,117 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
     """Represents one part of a bipartition.
 
-    When calculating |phi| of a subsystem, we take partition the system in the
-    following way::
-
-        mechanism:   A C        B
-                    ~~~~~  X  ~~~~~
-            purview:    B        A C
-
-    This class represents one term in the above product.
-
     Attributes:
-        mechanism (tuple(Node): The nodes in the mechanism for this part.
-        purview (tuple(Node): The nodes in the mechanism for this part.
+        mechanism (tuple(Node)):
+            The nodes in the mechanism for this part.
+        purview (tuple(Node)):
+            The nodes in the mechanism for this part.
+
+    Example:
+        When calculating |phi| of a 3-node subsystem, we partition the
+        system in the following way::
+
+            mechanism:   A C        B
+                        -----  X  -----
+              purview:    B        A C
+
+        This class represents one term in the above product.
     """
     pass
 
 
+# Phi-ordering methods
+# =============================================================================
+
+# Compare phi
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def _phi_eq(self, other):
+    try:
+        return utils.phi_eq(self.phi, other.phi)
+    except AttributeError:
+        return False
+
+
+def _phi_lt(self, other):
+    try:
+        if not utils.phi_eq(self.phi, other.phi):
+            return self.phi < other.phi
+        return False
+    except AttributeError:
+        return False
+
+
+def _phi_gt(self, other):
+    try:
+        if not utils.phi_eq(self.phi, other.phi):
+            return self.phi > other.phi
+        return False
+    except AttributeError:
+        return False
+
+
+def _phi_le(self, other):
+    return _phi_lt(self, other) or _phi_eq(self, other)
+
+
+def _phi_ge(self, other):
+    return _phi_gt(self, other) or _phi_eq(self, other)
+
+
+# First compare phi, then mechanism size
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def _phi_then_mechanism_size_lt(self, other):
+    if _phi_eq(self, other):
+        return (len(self.mechanism) < len(other.mechanism)
+                if hasattr(other, 'mechanism') else False)
+    else:
+        return _phi_lt(self, other)
+
+
+def _phi_then_mechanism_size_gt(self, other):
+    return (not _phi_then_mechanism_size_lt(self, other) and
+            not _phi_eq(self, other))
+
+
+def _phi_then_mechanism_size_le(self, other):
+    return (_phi_then_mechanism_size_lt(self, other) or
+            _phi_eq(self, other))
+
+
+def _phi_then_mechanism_size_ge(self, other):
+    return (_phi_then_mechanism_size_gt(self, other) or
+            _phi_eq(self, other))
+
+
+# Equality helpers
+# =============================================================================
+
+# TODO use builtin numpy methods here
 def _numpy_aware_eq(a, b):
-    """Return whether two objects are equal via recursion, using all(x == y)
-    for comparing numpy arays."""
-    if (not (isinstance(a, str) or isinstance(b, str)) and
-            isinstance(a, Iterable) and isinstance(b, Iterable)):
+    """Return whether two objects are equal via recursion, using
+    :func:`numpy.array_equal` for comparing numpy arays."""
+    if isinstance(a, type(np.array([]))) or isinstance(b, type(np.array([]))):
+        return np.array_equal(a, b)
+    if ((isinstance(a, Iterable) and isinstance(b, Iterable))
+            and not isinstance(a, str) and not isinstance(b, str)):
         return all(_numpy_aware_eq(x, y) for x, y in zip(a, b))
     return a == b
 
 
-# TODO cross reference PRECISION in docs
 def _general_eq(a, b, attributes):
     """Return whether two objects are equal up to the given attributes.
 
-    If an attribute is called ``'phi'``, it is compared up to
-    ``constants.PRECISION``. All other given attributes are compared with
-    :func:`_numpy_aware_eq`"""
-    if 'phi' in attributes:
-        if not _phi_eq(a.phi, b.phi):
-            return False
-    return all(_numpy_aware_eq(getattr(a, attr), getattr(b, attr)) if attr !=
-               'phi' else True for attr in attributes)
+    If an attribute is called ``'phi'``, it is compared up to |PRECISION|. All
+    other attributes are compared with :func:`_numpy_aware_eq`."""
+    try:
+        return all(_numpy_aware_eq(getattr(a, attr), getattr(b, attr)) if attr
+                   != 'phi' else _phi_eq(a, b) for attr in attributes)
+    except AttributeError:
+        return False
 
-# Phi-ordering methods
-_phi_lt = lambda self, other: (self.phi < other.phi) if other else False
-_phi_gt = lambda self, other: (self.phi > other.phi) if other else True
-_phi_le = lambda self, other: ((_phi_lt(self, other) or _phi_eq(self.phi,
-                                                                other.phi)) if
-                               other else False)
-_phi_ge = lambda self, other: ((_phi_gt(self, other) or _phi_eq(self.phi,
-                                                                other.phi)) if
-                               other else False)
-
+# =============================================================================
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
@@ -88,32 +153,38 @@ _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
 class Mip(namedtuple('Mip', _mip_attributes)):
     """A minimum information partition for |phi| calculation.
 
+    MIPs can be compared against each other with the normal python operators,
+    and are ordered first by |phi| value and then by mechanism size (the
+    exclusion principle).
+
     Attributes:
         phi (float):
-        direction (str):
-        mechanism (list(Node)):
-        purview (list(Node)):
-        partition (tuple(Part, Part)):
-        unpartitioned_repertoire (np.ndarray):
-        partitioned_repertoire (np.ndarray):
+            This is the difference between the mechanism's unpartitioned and
+            partitioned repertoires.
+        direction (str): The temporal direction specifiying whether this MIP
+            should be calculated with cause or effect repertoires.
+        mechanism (list(Node)): The mechanism over which to evaluate the MIP.
+        purview (list(Node)): The purview over which the unpartitioned
+            repertoire differs the least from the partitioned repertoire.
+        partition (tuple(Part, Part)): The partition that makes the least
+            difference to the mechanism's repertoire.
+        unpartitioned_repertoire (np.ndarray): The unpartitioned repertoire of
+            the mecanism.
+        partitioned_repertoire (np.ndarray): The partitioned repertoire of the
+            mechanism. This is the product of the repertoires of each part of
+            the partition.
     """
     def __eq__(self, other):
         return _general_eq(self, other, _mip_attributes)
 
-    # Order by phi value
+    # Order by phi value, then by mechanism size
+    __lt__ = _phi_then_mechanism_size_lt
+    __gt__ = _phi_then_mechanism_size_gt
+    __le__ = _phi_then_mechanism_size_le
+    __ge__ = _phi_then_mechanism_size_ge
 
-    def __lt__(self, other):
-        return _phi_lt(self, other)
 
-    def __gt__(self, other):
-        return _phi_gt(self, other)
-
-    def __le__(self, other):
-        return _phi_le(self, other)
-
-    def __ge__(self, other):
-        return _phi_ge(self, other)
-
+# =============================================================================
 
 _mice_attributes = ['phi', 'direction', 'mechanism', 'purview', 'repertoire',
                     'mip']
@@ -125,8 +196,8 @@ class Mice(namedtuple('Mice', _mice_attributes)):
 
     Attributes:
         phi (float):
-            The difference in information between the partitioned and
-            unpartitioned system.
+            The difference between the mechanism's unpartitioned and
+            partitioned repertoires.
         direction (str):
             Either 'past' or 'future'. If 'past' ('future'), this
             represents a maximally irreducible cause (effect).
@@ -144,20 +215,14 @@ class Mice(namedtuple('Mice', _mice_attributes)):
     def __eq__(self, other):
         return _general_eq(self, other, _mice_attributes)
 
-    # Order by phi value
+    # Order by phi value, then by mechanism size
+    __lt__ = _phi_then_mechanism_size_lt
+    __gt__ = _phi_then_mechanism_size_gt
+    __le__ = _phi_then_mechanism_size_le
+    __ge__ = _phi_then_mechanism_size_ge
 
-    def __lt__(self, other):
-        return _phi_lt(self, other)
 
-    def __gt__(self, other):
-        return _phi_gt(self, other)
-
-    def __le__(self, other):
-        return _phi_le(self, other)
-
-    def __ge__(self, other):
-        return _phi_ge(self, other)
-
+# =============================================================================
 
 _concept_attributes = ['phi', 'mechanism', 'location', 'cause', 'effect']
 
@@ -170,74 +235,80 @@ class Concept(namedtuple('Concept', _concept_attributes)):
 
     Attributes:
         phi (float):
+            The size of the concept. This is the minimum of the |phi| values of
+            the concept's core cause and core effect.
         mechanism (list(Node)):
+            The mechanism that the concept consists of.
         location (np.ndarray):
-            This concept's location in concept space. The first dimension
+            The concept's location in concept space. The first dimension
             corresponds to cause and effect, and the remaining dimensions
-            contain the cause and effect repertoire.
+            contain the cause and effect repertoire; i.e., ``concept.location =
+            array[direction][n_0][n_1]...[n_k]``, where `direction` is either
+            `PAST` or `FUTURE` and the rest of the dimensions correspond to a
+            node in the network.
         cause (Mice):
-            The Mice representing the core cause of this concept.
+            The :class:`Mice` representing the core cause of this concept.
         effect (Mice):
-            The Mice representing the core effect of this concept.
-
-    Examples:
-        The location of a concept in concept-space is given by the
-        probabilities of each state in its cause and effect repertoires, i.e.
-        ``concept.location = array[direction][n_0][n_1]...[n_k]``, where
-        `direction` is either `PAST` or `FUTURE` and the rest of the dimensions
-        correspond to a node in the network.
+            The :class:`Mice` representing the core effect of this concept.
     """
     def __eq__(self, other):
         return _general_eq(self, other, _concept_attributes)
 
-    # Order by phi value
-
-    def __lt__(self, other):
-        return _phi_lt(self, other)
-
-    def __gt__(self, other):
-        return _phi_gt(self, other)
-
-    def __le__(self, other):
-        return _phi_le(self, other)
-
-    def __ge__(self, other):
-        return _phi_ge(self, other)
+    # Order by phi value, then by mechanism size
+    __lt__ = _phi_then_mechanism_size_lt
+    __gt__ = _phi_then_mechanism_size_gt
+    __le__ = _phi_then_mechanism_size_le
+    __ge__ = _phi_then_mechanism_size_ge
 
 
-_bigmip_attributes = ['phi', 'partition', 'unpartitioned_constellation',
+# =============================================================================
+
+_bigmip_attributes = ['phi', 'cut', 'unpartitioned_constellation',
                       'partitioned_constellation', 'subsystem']
-# TODO! document comparison methods
-# TODO! implement exclusion principle in comparison methods
+# TODO! document comparison methods (exclusion principle)
 
 
 class BigMip(namedtuple('BigMip', _bigmip_attributes)):
     """A minimum information partition for |big_phi| calculation.
 
+    Attributes:
+        phi (float): The |big_phi| value for the subsystem when taken against
+            this MIP, *i.e.* the difference between the unpartitioned
+            constellation and this MIP's partitioned constellation.
+        cut (Cut): The unidirectional cut that makes the least difference to
+            the subsystem.
+        unpartitioned_constellation (list(Concept)): The constellation of the
+            whole subsystem.
+        partitioned_constellation (list(Concept)): The constellation when the
+            subsystem is cut.
+        subsystem (Subsystem): The subsystem this MIP was calculated for.
     """
     def __eq__(self, other):
         return _general_eq(self, other, _bigmip_attributes)
 
-    # Order by phi value, then by subsystem size
+    # First compare phi, then subsystem size
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def __lt__(self, other):
-        if other:
-            return (self.subsystem < other.subsystem if _phi_eq(self.phi,
-                                                                other.phi)
-                    else _phi_le(self, other))
+        if _phi_eq(self, other):
+            try:
+                return self.subsystem < other.subsystem
+            except AttributeError:
+                return False
         else:
-            return False
+            return _phi_lt(self, other)
+
 
     def __gt__(self, other):
-        if other:
-            return (self.subsystem > other.subsystem if _phi_eq(self.phi,
-                                                                other.phi)
-                    else _phi_gt(self, other))
-        else:
-            return True
+        return (not self.__lt__(other) and
+                not _phi_eq(self, other))
+
 
     def __le__(self, other):
-        return self < other or _phi_eq(self.phi, other.phi) if other else False
+        return (self.__lt__(other) or
+                _phi_eq(self, other))
+
 
     def __ge__(self, other):
-        return self > other or _phi_eq(self.phi, other.phi) if other else True
+        return (self.__gt__(other) or
+                _phi_eq(self, other))

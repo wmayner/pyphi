@@ -104,7 +104,7 @@ def _null_mip(subsystem):
     This is the MIP associated with a reducible subsystem."""
     return BigMip(subsystem=subsystem,
                   phi=0.0,
-                  partition=subsystem.null_cut,
+                  cut=subsystem.null_cut,
                   unpartitioned_constellation=[], partitioned_constellation=[])
 
 
@@ -118,7 +118,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
         phi=constellation_distance(unpartitioned_constellation,
                                    forward_constellation,
                                    subsystem.null_concept()),
-        partition=forward_cut,
+        cut=forward_cut,
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=forward_constellation,
         subsystem=subsystem)
@@ -129,7 +129,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
         phi=constellation_distance(unpartitioned_constellation,
                                    backward_constellation,
                                    subsystem.null_concept()),
-        partition=backward_cut,
+        cut=backward_cut,
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=backward_constellation,
         subsystem=subsystem)
