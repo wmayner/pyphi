@@ -134,7 +134,8 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
         subsystem=subsystem)
     # Choose minimal unidirectional cut.
     mip = min(forward_mip, backward_mip)
-    # Return the mip if the subsystem with the given partition is not reducible.
+    # Return the mip if the subsystem with the given partition is not
+    # reducible.
     return mip if mip.phi > constants.EPSILON else _null_mip(subsystem)
 
 
@@ -148,7 +149,6 @@ def big_mip(subsystem):
 
     # Check for degenerate cases
     # =========================================================================
-
     # Phi is necessarily zero if the subsystem is:
     #   - not strongly connected;
     #   - empty; or
@@ -158,12 +158,15 @@ def big_mip(subsystem):
     if not subsystem:
         return _null_mip(subsystem)
 
-    # Get the number of strongly connected components.
-    cm = subsystem.connectivity_matrix
-    num_components, _ = (connected_components(csr_matrix(cm)) if cm is not None
-                         else (1, None))
-    if num_components > 1:
-        return _null_mip(subsystem)
+    if subsystem.network.connectivity_matrix is not None:
+        # Get the connectivity of just the subsystem nodes.
+        submatrix_indices = np.ix_([node.index for node in subsystem.nodes],
+                                   [node.index for node in subsystem.nodes])
+        cm = subsystem.network.connectivity_matrix[submatrix_indices]
+        # Get the number of strongly connected components.
+        num_components, _ = connected_components(csr_matrix(cm))
+        if num_components > 1:
+            return _null_mip(subsystem)
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = list(utils.bipartition(subsystem.nodes))[1:]
