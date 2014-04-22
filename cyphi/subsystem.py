@@ -44,6 +44,17 @@ class Subsystem:
         # The network this subsystem belongs to.
         self.network = network
 
+        # TODO test
+        # The submatrix of the network's connectivity matrix that describes the
+        # connectivity of the subsystem
+        if self.network.connectivity_matrix is not None:
+            self.connectivity_matrix = self.network.connectivity_matrix[
+                [[node.index] for node in self.nodes],
+                [node.index for node in self.nodes]
+            ]
+        else:
+            self.connectivity_matrix = None
+
         # The null cut (leaves the system intact).
         self.null_cut = Cut(severed=(), intact=self.nodes)
 

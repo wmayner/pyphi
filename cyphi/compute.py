@@ -146,19 +146,32 @@ def big_mip(subsystem):
             len(subsystem.nodes) < 2):
         return _null_mip(subsystem)
 
-    cm = subsystem.network.connectivity_matrix
-    # The first bipartition is the null cut (trivial bipartition), so skip it.
-    bipartitions = list(utils.bipartition(subsystem.nodes))[1:]
-    # Get the number of strongly connected components.
-    num_components, _ = (connected_components(csr_matrix(cm)) if cm is not None
-                         else (1, None))
+    # Check for degenerate cases
+    # =========================================================================
+
     # Phi is necessarily zero if the subsystem is:
     #   - not strongly connected;
     #   - empty; or
     #   - an elementary mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null MIP.
-    if num_components > 1 or not subsystem or not bipartitions:
+
+    if not subsystem:
         return _null_mip(subsystem)
+
+    # Get the number of strongly connected components.
+    cm = subsystem.connectivity_matrix
+    num_components, _ = (connected_components(csr_matrix(cm)) if cm is not None
+                         else (1, None))
+    if num_components > 1:
+        return _null_mip(subsystem)
+
+    # The first bipartition is the null cut (trivial bipartition), so skip it.
+    bipartitions = list(utils.bipartition(subsystem.nodes))[1:]
+    if not bipartitions:
+        return _null_mip(subsystem)
+
+    # =========================================================================
+
     # Calculate the unpartitioned constellation.
     unpartitioned_constellation = subsystem.constellation(subsystem.null_cut)
     # Parallel loop over all partitions (use all CPUs).
@@ -168,6 +181,7 @@ def big_mip(subsystem):
                                partition,
                                unpartitioned_constellation)
         for partition in bipartitions)
+
     return min(mip_candidates)
 
 
