@@ -5,7 +5,8 @@
 Utilities
 ~~~~~~~~~
 
-Functions used within CyPhi that are consumed by more than one class or module.
+Functions used by more than one CyPhi module or class, or that might be of
+external use.
 """
 
 import numpy as np
@@ -18,24 +19,22 @@ from . import constants
 
 
 def phi_eq(x, y):
-    """Compare two phi values up to ``constants.PRECISION``."""
+    """Compare two phi values up to |PRECISION|."""
     return abs(x - y) < constants.EPSILON
 
 
 # see http://stackoverflow.com/questions/16003217
 def combs(a, r):
-    """
-    NumPy implementation of itertools.combinations.
+    """NumPy implementation of itertools.combinations.
 
     Return successive |r|-length combinations of elements in the array ``a``.
 
-    :param a: the array from which to get combinations
-    :type a: ``np.ndarray``
-    :param r:  the length of the combinations
-    :type r: ``int``
+    Args:
+      a (np.ndarray): The array from which to get combinations.
+      r (int): The length of the combinations.
 
-    :returns: An array of combinations
-    :rtype: ``np.ndarray``
+    Returns:
+        ``np.ndarray`` -- An array of combinations.
     """
     # Special-case for 0-length combinations
     if r == 0:
@@ -49,11 +48,17 @@ def combs(a, r):
 
 # see http://stackoverflow.com/questions/16003217/
 def comb_indices(n, k):
-    """
-    N-D version of itertools.combinations.
+    """N-D version of itertools.combinations.
 
-    Return indices that yeild the |r|-combinations of |n| elements.
+    Args:
+        a (np.ndarray): The array from which to get combinations.
+        k (int): The desired length of the combinations.
 
+    Returns:
+        ``np.ndarray`` -- Indices that give the |k|-combinations of |n|
+        elements.
+
+    Example:
         >>> n, k = 3, 2
         >>> data = np.arange(6).reshape(2, 3)
         >>> data[:, comb_indices(n, k)]
@@ -64,14 +69,6 @@ def comb_indices(n, k):
                [[3, 4],
                 [3, 5],
                 [4, 5]]])
-
-    :param a: array from which to get combinations
-    :type a: ``np.ndarray``
-    :param k: length of combinations
-    :type k: ``int``
-
-    :returns: Indices of the |r|-combinations of |n| elements
-    :rtype: ``np.ndarray``
     """
     # Count the number of combinations for preallocation
     count = comb(n, k, exact=True)
@@ -86,19 +83,19 @@ def comb_indices(n, k):
 
 # TODO? implement this with numpy
 def powerset(iterable):
-    """
-    Return the power set of an iterable (see `itertools recipes
+    """Return the power set of an iterable (see `itertools recipes
     <http://docs.python.org/2/library/itertools.html#recipes>`_).
 
+    Args:
+        iterable (Iterable): The iterable from which to generate the power set.
+
+    Returns:
+        ``chain`` -- An chained iterator over the power set.
+
+    Example:
         >>> ps = powerset(np.arange(2))
         >>> print(list(ps))
         [(), (0,), (1,), (0, 1)]
-
-    :param iterable: The iterable from which to generate the power set
-    :type iterable: iterable
-
-    :returns: An iterator over the power set
-    :rtype: iterator
     """
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
@@ -110,11 +107,11 @@ def uniform_distribution(number_of_nodes):
     (so there is one dimension per node, the size of which is the number of
     possible states for that node).
 
-    :param nodes: a set of indices of binary nodes
-    :type nodes: ``np.ndarray``
+    Args:
+        nodes (np.ndarray): A set of indices of binary nodes.
 
-    :returns: The uniform distribution over the set of nodes
-    :rtype: ``np.ndarray``
+    Returns:
+        ``np.ndarray`` -- The uniform distribution over the set of nodes.
     """
     # The size of the state space for binary nodes is 2^(number of nodes).
     number_of_states = 2 ** number_of_nodes
@@ -129,12 +126,12 @@ def marginalize_out(node, tpm):
     Marginalize out a node from a TPM.
 
     Args:
-        node (Node): The node to be marginalized out
-        tpm (np.ndarray): The tpm to marginalize the node out of
+        node (Node): The node to be marginalized out.
+        tpm (np.ndarray): The TPM to marginalize the node out of.
 
     Returns:
-        A TPM with the same number of dimensions, with the node
-        marginalized out.
+        ``np.ndarray`` -- A TPM with the same number of dimensions, with the
+        node marginalized out.
     """
     return tpm.sum(node.index, keepdims=True) / tpm.shape[node.index]
 
@@ -147,13 +144,14 @@ def max_entropy_distribution(nodes, network):
     This is different from the network's uniform distribution because nodes
     outside the are fixed and treated as if they have only 1 state.
 
-    :param nodes: The set of nodes
-    :type nodes: ``[Node]``
-    :param network: The network the nodes belong to
-    :type network: ``Network``
+    Args:
+        nodes (tuple(Nodes)): The set of nodes over which to take the
+            distribution.
+        network (Network): The network the nodes belong to.
 
-    :returns: The maximum entropy distribution over this subsystem
-    :rtype: ``np.ndarray``
+    Returns:
+        ``np.ndarray`` -- The maximum entropy distribution over the set of
+        nodes.
     """
     # TODO extend to nonbinary nodes
     distribution = np.ones([2 if node in nodes else 1 for node in
@@ -185,19 +183,20 @@ def hamming_emd(d1, d2):
 def bipartition(a):
     """Generates all bipartitions for a sequence or ``np.array``.
 
+    Args:
+        array (Iterable): The iterable to partition.
+
+    Returns:
+        ``generator`` -- A generator that yields a tuple containing each of the
+        two partitions.
+
+    Example:
         >>> from cyphi.utils import bipartition
         >>> list(bipartition([1, 2, 3]))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
-
-    :param array: The list to partition
-    :type array: ``[], (), or np.ndarray``
-
-    :returns: A generator that yields a tuple containing each of the two
-        partitions (lists of nodes)
-    :rtype: ``generator``
     """
     # Get size of list or array and validate
-    if isinstance(a, type(np.array([]))):
+    if isinstance(a, np.ndarray):
         size = a.size
     else:
         size = len(a)
@@ -220,19 +219,20 @@ def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of |N|
     binary nodes.
 
+    Args:
+        N (int): The number of nodes under consideration
+
+    Returns:
+        ``np.ndarray`` -- A |2^N x 2^N| matrix where the |ith| element is the
+        Hamming distance between state |i| and state |j|.
+
+    Example:
         >>> from cyphi.utils import _hamming_matrix
         >>> _hamming_matrix(2)
         array([[ 0.,  1.,  1.,  2.],
                [ 1.,  0.,  2.,  1.],
                [ 1.,  2.,  0.,  1.],
                [ 2.,  1.,  1.,  0.]])
-
-    :param N: The number of nodes under consideration
-    :type N: ``int``
-
-    :returns: A |2^N x 2^N| matrix where the |ith| element is the Hamming
-        distance between state |i| and state |j|.
-    :rtype: ``np.ndarray``
     """
     possible_states = np.array([list(bin(state)[2:].zfill(N)) for state in
                                 range(2 ** N)])
@@ -245,20 +245,20 @@ def _bitstring_index(a, bitstring):
     The |ith| element in the array is selected if there is a 1 at the |ith|
     position of the bitstring.
 
+    Args:
+        a (sequence or np.ndarray): The sequence to select from.
+        bitstring (str): The binary string indicating which elements are to be
+            selected.
+
+    Returns:
+        ``tuple`` -- The elements at indices where there is a 1 in the binary
+        string.
+
+    Example:
         >>> from cyphi.utils import _bitstring_index
         >>> bitstring = '10010100'
         >>> _bitstring_index([0, 1, 2, 3, 4, 5, 6, 7], bitstring)
         (0, 3, 5)
-
-    :param a: The sequence or ``np.array`` to select from.
-    :type a: ``sequence or np.ndarray``
-    :param bitstring: The binary string indicating which elements are to be
-        selected.
-    :type bitstring: ``str``
-
-    :returns: A list of all the elements at indices where there is a 1 in the
-        binary string
-    :rtype: ``tuple``
     """
     # Get size of iterable and validate
     if isinstance(a, type(np.array([]))):
@@ -284,19 +284,16 @@ def _flip(bitstring):
 
 
 # TODO? implement this
-def connectivity_matrix_to_tpm(connectivity_matrix):
+def connectivity_matrix_to_tpm(network):
+    """Generate a TPM from a connectivity matrix and nodes that implement
+    logical functions.
+
+    Args:
+        network (Network): The network for which to generate the TPM.
+
+    Returns:
+        ``np.ndarray`` -- A transition probability matrix.
     """
-    :param connectivity_matrix: The network's connectivity matrix (must be
-        square)
-    :type connectivity_matrix: ``np.ndarray``
-    :param tpm: The network's transition probability matrix (state-by-node
-        form)
-    :type tpm: ``np.ndarray``
-    """
-    # Ensure connectivity matrix is square
-    if (len(connectivity_matrix.shape) != 2 or
-                connectivity_matrix.shape[0] != connectivity_matrix.shape[1]):
-        raise ValueError("Connectivity matrix must be square.")
 
 
 # Custom printing methods

@@ -39,6 +39,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
+    'sphinxcontrib.napoleon'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -119,23 +120,39 @@ rst_prolog = """
 .. |2^n x 2^n| replace:: :math:`2^N \\times 2^N`
 .. |i| replace:: :math:`i`
 .. |j| replace:: :math:`j`
+.. |k| replace:: :math:`k`
+
+.. |past| replace:: :const:`DIRECTIONS[PAST]`
+.. |future| replace:: :const:`DIRECTIONS[FUTURE]`
+.. |PRECISION| replace:: :const:`constants.PRECISION`
+.. |EPSILON| replace:: :const:`constants.EPSILON`
 """
+
+# -- Options for Napoleon (docstring format extension) --------------------
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = True
+napoleon_use_admonition_for_examples = False
+napoleon_use_admonition_for_notes = False
+napoleon_use_admonition_for_references = False
+napoleon_use_ivar = False
+napoleon_use_param = True
+napoleon_use_rtype = True
 
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = 'bootstrap'
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-# html_theme = 'kr'
-# html_theme_path = ['_themes']
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
 html_logo = "phi.png"
 
-# Theme options are theme-specific and customize the look and feel of a
-# theme further.
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
 html_theme_options = {
     # Navigation bar title. (Default: ``project`` value)
 
@@ -200,13 +217,10 @@ html_theme_options = {
     'bootstrap_version': "3",
 }
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#html_theme_options = {}
+html_sidebars = {'**': ['localtoc.html']}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = ['_themes'] + sphinx_bootstrap_theme.get_html_theme_path()
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

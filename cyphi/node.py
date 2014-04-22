@@ -27,14 +27,6 @@ class Node:
     """
 
     def __init__(self, network, index, label=None):
-        """
-        Args:
-            network (Network): The network this node belongs to.
-            index (int): The index of this node in the network's list of nodes
-
-        Keyword Args:
-            label (str): The label for this node, for display purposes.
-        """
         # This node's parent network
         self.network = network
         # This node's index in the network's list of nodes
@@ -60,7 +52,7 @@ class Node:
 
         # Generate the node's TPM
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # TODO! document
+        # TODO! document tpm generation
         tpm_on = self.network.tpm[..., self.index]
         tpm_off = 1 - tpm_on
         # Marginalize-out non-input nodes.
@@ -97,14 +89,17 @@ class Node:
                 else 'n' + str(self.index))
 
     def __eq__(self, other):
-        """Two nodes are equal if they belong to the same network and have the
+        """Return whether this node equals the other object.
+
+        Two nodes are equal if they belong to the same network and have the
         same index (``tpm`` must be the same in that case, so this method
         doesn't need to check ``tpm`` equality).
 
         Labels are for display only, so two equal nodes may have different
         labels.
         """
-        return self.index == other.index and self.network == other.network
+        return ((self.index == other.index and self.network == other.network)
+                if isinstance(other, type(self)) else False)
 
     def __ne__(self, other):
         return not self.__eq__(other)

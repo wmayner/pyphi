@@ -29,8 +29,8 @@ class _Constants(object):
         return self._PRECISION
 
     PRECISION = property(get_precision, set_precision,
-                         "The number of decimal points to which phi values " +
-                         " are considered accurate")
+                         "The number of decimal points to which phi values "
+                         "are considered accurate.")
 
 
 # Make the class look like this module

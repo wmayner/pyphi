@@ -22,46 +22,41 @@ class Network:
 
     Represents the network we're analyzing and holds auxilary data about it.
 
-    Attributes:
-        size (int): The number of nodes in the network.
-        tpm (np.ndarray): The transition probability matrix for this network.
-        current_state (tuple): The current state of the network.
-            ``current_state[i]`` gives the current state of node ``i``.
-        past_state (tuple): The past state of the network. ``past_state[i]``
-            gives the past state of node ``i``.
-        connectivity_matrix (np.ndarray): A matrix describing the network's
-            connectivity. ``connectivity_matrix[i][j] == 1`` means that node
-            ``i`` is connected to node ``j``.
-        nodes (list(Node)): A list of nodes in the network.
-
     Examples:
         In a 3-node network, ``a_network.tpm[(0, 1, 0)]`` gives the transition
         probabilities for each node at |t_0| given that state at |t_{-1}| was
         |0,1,0|.
-    """
 
-    # TODO implement network definition via connectivity_matrix
+    Attributes:
+        size (int):
+            The number of nodes in the network.
+        tpm (np.ndarray):
+            The transition probability matrix for this network. Must be
+            provided in state-by-node form. It can be either 2-dimensional, so
+            that ``tpm[i]`` gives the probabilities of each node being on if
+            the past state is given by the binary representation of ``i``, or
+            in N-D form, so that ``tpm[0][1][0]`` gives the probabilities of
+            each node being on if the past state is |0,1,0|. The shape of the
+            2-dimensional form of the TPM must be ``(S, N)``, and the shape of
+            the N-D form of the TPM must be ``[2] * N + [N]``, where ``S`` is
+            the number of states and ``N`` is the number of nodes in the
+            network.
+        current_state (tuple):
+            The current state of the network. ``current_state[i]`` gives the
+            current state of node ``i``.
+        past_state (tuple):
+            The past state of the network. ``past_state[i]`` gives the past
+            state of node ``i``.
+        connectivity_matrix (np.ndarray):
+            A matrix describing the network's connectivity.
+            ``connectivity_matrix[i][j] == 1`` means that node
+            ``i`` is connected to node ``j``.
+        nodes (list(Node)):
+            A list of nodes in the network.
+
+    """
     def __init__(self, tpm, current_state, past_state,
                  connectivity_matrix=None):
-        """
-        Args:
-            tpm (np.ndarray):
-                The network's transition probability matrix, in state-by-node
-                form. It can be either 2-dimensional, so that ``tpm[i]`` gives
-                the probabilities of each node being on if the past state is
-                given by the binary representation of ``i``, or in N-D form, so
-                that ``tpm[0][1][0]`` gives the probabilities of each node
-                being on if the past state is |0,1,0|. The shape of the
-                2-dimensional form of the TPM must be ``(S, N)``, and the shape
-                of the N-D form of the TPM must be ``[2] * N + [N]``, where
-                ``S`` is the number of states and ``N`` is the number of nodes.
-            current_state (tuple):
-                A tuple describing the network's current state; ``state[i]``
-                gives the state of ``self.nodes[i]``
-            past_state (tuple):
-                A tuple describing the network's past state; ``state[i]`` gives
-                the state of ``self.nodes[i]``
-        """
         # Get the number of nodes in the network.
         # The TPM can be either 2-dimensional or in N-D form, where transition
         # probabilities can be indexed by state-tuples. In either case, the
@@ -100,13 +95,17 @@ class Network:
                 str(self.connectivity_matrix) + ")")
 
     def __eq__(self, other):
-        """Two networks are equal if they have the same TPM, current state, and
-        past state."""
-        return (np.array_equal(self.tpm, other.tpm) and
+        """Return whether this network equals the other object.
+
+        Two networks are equal if they have the same TPM, current state, and
+        past state.
+        """
+        return ((np.array_equal(self.tpm, other.tpm) and
                 np.array_equal(self.current_state, other.current_state) and
                 np.array_equal(self.past_state, other.past_state) and
                 np.array_equal(self.connectivity_matrix,
                                other.connectivity_matrix))
+                if isinstance(other, type(self)) else False)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -120,6 +119,8 @@ class Network:
                       self.connectivity_matrix is not None else None)))
 
     def subsystems(self):
-        """Return a generator of all possible subsystems of this network."""
+        """Return a generator of all possible subsystems of this network.
+
+        This is the just powerset of the network's set of nodes."""
         for subset in utils.powerset(self.nodes):
             yield Subsystem(subset, self.current_state, self.past_state, self)

@@ -18,7 +18,7 @@ from .utils import (marginalize_out, hamming_emd, max_entropy_distribution,
 from .models import Cut, Mip, Part, Mice, Concept
 
 
-# TODO! go through docs and make sure to say when things an be None
+# TODO! go through docs and make sure to say when things can be None
 # TODO! make a NodeList object; factor out all_connect_to_any and any other
 # methods that are really properties of lists of nodes
 # TODO? refactor the computational methods out of the class so they explicitly
@@ -66,12 +66,15 @@ class Subsystem:
                                           str(self.network)]) + ")"
 
     def __eq__(self, other):
-        """Two subsystems are equal if their sets of nodes, current and past
+        """Return whether this subsystem is equal to the other object.
+
+        Two subsystems are equal if their sets of nodes, current and past
         states, and networks are equal."""
-        return (set(self.nodes) == set(other.nodes) and
-                self.current_state == other.current_state and
-                self.past_state == other.past_state and
-                self.network == other.network)
+        return ((set(self.nodes) == set(other.nodes) and
+                 self.current_state == other.current_state and
+                 self.past_state == other.past_state and
+                 self.network == other.network)
+                if isinstance(other, type(self)) else False)
 
     def __bool__(self):
         """Return false if the subsystem has no nodes, true otherwise."""
@@ -102,13 +105,13 @@ class Subsystem:
 
         Args:
             mechanism (list(Node)): The mechanism for which to calculate the
-                cause repertoire
+                cause repertoire.
             purview (list(Node)): The purview over which to calculate the cause
-                repertoire
+                repertoire.
 
         Returns:
-            An np.array representing the cause repertoire of the mechanism over
-            a purview.
+            An array representing the cause repertoire of the
+            mechanism over a purview.
         """
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # NOTE: In the Matlab version's terminology,
@@ -347,12 +350,11 @@ class Subsystem:
         direction.
 
         Args:
-            direction (str): the direction specifying the cause or effect
-            repertoire
+            direction (str): The temporal direction, specifiying the cause or
+                effect repertoire.
 
         Returns:
-            The cause or effect repertoire function (cause for 'past', effect
-            for 'future').
+            The cause or effect repertoire function.
         """
         if direction == DIRECTIONS[PAST]:
             return self.cause_repertoire
@@ -369,14 +371,14 @@ class Subsystem:
 
         This is just the cause repertoire in the absence of any mechanism.
         """
-        return self._unconstrained_repertoire('past', purview, cut)
+        return self._unconstrained_repertoire(DIRECTIONS[PAST], purview, cut)
 
     def unconstrained_effect_repertoire(self, purview, cut=None):
         """Return the unconstrained effect repertoire for a purview.
 
         This is just the effect repertoire in the absence of any mechanism.
         """
-        return self._unconstrained_repertoire('future', purview, cut)
+        return self._unconstrained_repertoire(DIRECTIONS[FUTURE], purview, cut)
 
     def _expand_repertoire(self, direction, mechanism, purview, repertoire,
                            cut):
@@ -388,18 +390,18 @@ class Subsystem:
                                                             non_purview_nodes,
                                                             cut))
 
-    # TODO test
+    # TODO test expand cause repertoire
     def expand_cause_repertoire(self, mechanism, purview, repertoire, cut):
         """Expand a partial cause repertoire over a purview to a distribution
         over the entire subsystem's state space."""
-        return self._expand_repertoire('past', mechanism, purview, repertoire,
-                                       cut)
+        return self._expand_repertoire(DIRECTIONS[PAST], mechanism, purview,
+                                       repertoire, cut)
 
-    # TODO test
+    # TODO test expand effect repertoire
     def expand_effect_repertoire(self, mechanism, purview, repertoire, cut):
         """Expand a partial effect repertoire over a purview to a distribution
         over the entire subsystem's state space."""
-        return self._expand_repertoire('future', mechanism, purview,
+        return self._expand_repertoire(DIRECTIONS[FUTURE], mechanism, purview,
                                        repertoire, cut)
 
     def cause_info(self, mechanism, purview, cut=None):
@@ -461,22 +463,16 @@ class Subsystem:
                    phi=0.0)
 
     def find_mip(self, direction, mechanism, purview, cut=None):
-        """Return the minimum information partition for the past or future.
-        Where the ``partition`` attribute is a pair of objects, each with the
-        following attributes:
+        """Return the minimum information partition for a mechanism over a
+        purview.
 
-        * ``mechanism``: list of nodes in the numerator of this part of the
-            bipartition
-        * ``purview``: list of nodes in the denominator of this part of the
-            bipartition
+        Args:
+            direction (str): Either |past| or |future|.
+            mechanism (tuple(Node)): The nodes in the mechanism.
+            purview (tuple(Node)): The nodes in the purview.
 
-        :param direction: Either ``'past'`` or ``'future'``.
-        :type direction: ``str``
-        :param mechanism: A list of nodes in the mechanism
-        :type mechanism: ``[Node]``
-        :param purview: A list of nodes in the purview
-        :type mechanism: ``[Node]``
-        :returns: The minimum information partition.
+        Returns:
+            :class:`cyphi.models.Mip`
         """
         validate.direction(direction)
         repertoire = self._get_repertoire(direction)
@@ -521,18 +517,16 @@ class Subsystem:
     def mip_past(self, mechanism, purview, cut=None):
         """Return the past minimum information partition.
 
-        For a description of the MIP object that is returned, see
-        :func:`find_mip`.
+        Alias for :func:`find_mip` with ``direction`` set to |past|.
         """
-        return self.find_mip('past', mechanism, purview, cut)
+        return self.find_mip(DIRECTIONS[PAST], mechanism, purview, cut)
 
     def mip_future(self, mechanism, purview, cut=None):
         """Return the future minimum information partition.
 
-        For a description of the MIP object that is returned, see
-        :func:`find_mip`.
+        Alias for :func:`find_mip` with ``direction`` set to |future|.
         """
-        return self.find_mip('future', mechanism, purview, cut)
+        return self.find_mip(DIRECTIONS[FUTURE], mechanism, purview, cut)
 
     def phi_mip_past(self, mechanism, purview, cut=None):
         """Return the |phi| value of the past minimum information partition.
@@ -559,14 +553,14 @@ class Subsystem:
             return 0
 
     def phi(self, mechanism, purview, cut=None):
-        """Return the integrated information, "small |phi|"."""
+        """Return the |phi| value of a mechanism over a purview."""
         return min(self.phi_mip_past(mechanism, purview, cut),
                    self.phi_mip_future(mechanism, purview, cut))
 
     # Phi_max methods
     # =========================================================================
 
-    # TODO test
+    # TODO test phi max helpers
     def _test_connections(self, axis, nodes1, nodes2):
         """Tests connectivity of one set of nodes to another.
 
@@ -632,25 +626,27 @@ class Subsystem:
         return False
 
     # TODO update docs
-    def _find_mice(self, direction, mechanism, cut):
+    def find_mice(self, direction, mechanism, cut):
         """Return the maximally irreducible cause or effect for a mechanism.
 
         Args:
-            direction (str):
-            mechanism (tuple(Node)):
-            cut (Cut): May be ``None``.
-            cache (dict): May be ``None``.
-
-        .. note:: Strictly speaking, the MICE is a pair of repertoires: the
-            core cause repertoire and core effect repertoire of a mechanism,
-            which are maximally different than the unconstrained cause/effect
-            repertoires (*i.e.*, those that maximize |phi|). Here, we return
-            only information corresponding to one direction, ``'past'`` or
-            ``'future'``, i.e., we return a core cause or core effect, not the
-            pair of them.
+            direction (str): The temporal direction, specifying cause or effect.
+            mechanism (tuple(Node)): The mechanism to be tested for
+                irreducibility.
+            cut (Cut): The unidirectional cut that's been applied to the
+                subsystem. May be ``None``.
 
         Returns:
-            A :class:`MICE` object.
+            :class:`cyphi.models.Mice`
+
+        .. note::
+            Strictly speaking, the MICE is a pair of repertoires: the core
+            cause repertoire and core effect repertoire of a mechanism, which
+            are maximally different than the unconstrained cause/effect
+            repertoires (*i.e.*, those that maximize |phi|). Here, we return
+            only information corresponding to one direction, |past| or
+            |future|, i.e., we return a core cause or core effect, not the pair
+            of them.
         """
         # Return a cached MICE if we were given a cache and there's a hit
         cached_mice = (self._get_cached_mice(direction, mechanism, cut)
@@ -711,15 +707,21 @@ class Subsystem:
         return mice
 
     def core_cause(self, mechanism, cut=None):
-        """Returns the core cause repertoire of a mechanism."""
-        return self._find_mice('past', mechanism, cut)
+        """Returns the core cause repertoire of a mechanism.
+
+        Alias for :func:`find_mice` with ``direction`` set to |past|."""
+        return self.find_mice('past', mechanism, cut)
 
     def core_effect(self, mechanism, cut=None):
-        """Returns the core effect repertoire of a mechanism."""
-        return self._find_mice('future', mechanism, cut)
+        """Returns the core effect repertoire of a mechanism.
+
+        Alias for :func:`find_mice` with ``direction`` set to |past|."""
+        return self.find_mice('future', mechanism, cut)
 
     def phi_max(self, mechanism, cut=None):
-        """Return the |phi_max| of a mechanism."""
+        """Return the |phi_max| of a mechanism.
+
+        This is the maximum of |phi| taken over all possible purviews."""
         return min(self.core_cause(mechanism, cut).phi,
                    self.core_effect(mechanism, cut).phi)
 

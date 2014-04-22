@@ -108,7 +108,6 @@ def _null_mip(subsystem):
                   unpartitioned_constellation=[], partitioned_constellation=[])
 
 
-# TODO! make null concept an attribute (property)?
 # TODO document
 def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     # Compute forward mip.
