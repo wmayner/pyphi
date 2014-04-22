@@ -214,3 +214,65 @@ def reducible():
     r = Network(tpm, current_state, past_state, connectivity_matrix=cm)
     # Return the full subsystem
     return Subsystem(r.nodes, current_state, past_state, r)
+
+
+def rule30():
+    tpm = np.array([[0, 0, 0, 0, 0],
+                    [1, 1, 0, 0, 1],
+                    [1, 1, 1, 0, 0],
+                    [1, 0, 1, 0, 1],
+                    [0, 1, 1, 1, 0],
+                    [1, 0, 1, 1, 1],
+                    [1, 1, 0, 1, 0],
+                    [1, 0, 0, 1, 1],
+                    [0, 0, 1, 1, 1],
+                    [1, 1, 1, 1, 0],
+                    [1, 1, 0, 1, 1],
+                    [1, 0, 0, 1, 0],
+                    [0, 1, 1, 0, 1],
+                    [1, 0, 1, 0, 0],
+                    [1, 1, 0, 0, 1],
+                    [1, 0, 0, 0, 0],
+                    [1, 0, 0, 1, 1],
+                    [0, 1, 0, 1, 1],
+                    [0, 1, 1, 1, 1],
+                    [0, 0, 1, 1, 1],
+                    [1, 1, 1, 0, 1],
+                    [0, 0, 1, 0, 1],
+                    [0, 1, 0, 0, 1],
+                    [0, 0, 0, 0, 1],
+                    [1, 0, 1, 1, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 1, 0, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [1, 1, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 0, 0, 0]])
+
+    cm = np.array([[1, 1, 0, 0, 1],
+                   [1, 1, 1, 0, 0],
+                   [0, 1, 1, 1, 0],
+                   [0, 0, 1, 1, 1],
+                   [1, 0, 0, 1, 1]])
+
+    all_off = (0, 0, 0, 0, 0)
+
+    rule30 = Network(tpm, all_off, all_off, connectivity_matrix=cm)
+
+    return Subsystem(rule30.nodes,
+                     rule30.current_state,
+                     rule30.past_state,
+                     rule30)
+
+
+def trivial():
+    """Single-node network with a self-loop."""
+
+    trivial = Network(np.array([[1], [1]]), (1, ), (1, ),
+                      connectivity_matrix=np.array([[1]]))
+
+    return Subsystem(trivial.nodes,
+                     trivial.current_state,
+                     trivial.past_state,
+                     trivial)
