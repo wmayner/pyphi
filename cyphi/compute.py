@@ -139,13 +139,19 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     return mip if mip.phi > constants.EPSILON else _null_mip(subsystem)
 
 
-# TODO document
+# TODO document big_mip
 def big_mip(subsystem):
     """Return the MIP for a subsystem."""
-    # Define Phi of single-node subsystems as zero if the user specified it
-    if (not options.CONSIDER_SINGLE_NODES_AS_COMPLEXES and
-            len(subsystem.nodes) < 2):
-        return _null_mip(subsystem)
+    # Define Phi of single-node subsystems as 0.5 if the user specified it
+    if (len(subsystem.nodes) < 2 and
+          options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI):
+        # TODO return the actual concept
+        return = BigMip(
+            phi=0.5,
+            cut=Cut(subsystem.nodes, subsystem.nodes),
+            unpartitioned_constellation=None,
+            partitioned_constellation=None,
+            subsystem=subsystem)
 
     # Check for degenerate cases
     # =========================================================================

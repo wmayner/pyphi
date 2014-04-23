@@ -3,8 +3,8 @@
 
 """User-specified options."""
 
-# In some applications of this library, the user may prefer to simply consider
-# single-node subsystems as having zero phi.
-CONSIDER_SINGLE_NODES_AS_COMPLEXES = True
 # Choose whether to use multiple CPUs in evaluating subsystem cuts.
 PARALLEL_CUT_EVALUATION = True
+# In some applications of this library, the user may prefer to define
+# single-node subsystems as having 0.5 Phi.
+SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = False
