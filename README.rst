@@ -5,23 +5,6 @@ CyPhi: |phi| for Python
 CyPhi is a Python library for computing integrated information (|phi|), and
 the associated quantities and objects.
 
-Options
-~~~~~~~
-
-Module-level options are in ``cyphi.options``, and should be set after
-importing CyPhi.
-
-* ``cyphi.options.PARALLEL_CUT_EVALUATION`` (``bool``):
-
-  Control whether subsystem cuts should be evaluated in parallel. Defaults to
-  ``True``.
-
-* ``cyphi.options.SINGLE_NODE_SELFLOOP_PHI`` (``float`` or ``None``):
-
-  Define the |Phi| value of subsystems containing only a single node with a
-  self-loop (this implementation will compute their |Phi| to be zero
-  if this is ``None``). Defaults to ``None``.
-
 
 Installation
 ~~~~~~~~~~~~
