@@ -146,7 +146,7 @@ def big_mip(subsystem):
     if (len(subsystem.nodes) < 2 and
           options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI):
         # TODO return the actual concept
-        return = BigMip(
+        return BigMip(
             phi=0.5,
             cut=Cut(subsystem.nodes, subsystem.nodes),
             unpartitioned_constellation=None,
