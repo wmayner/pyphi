@@ -108,6 +108,23 @@ def _null_mip(subsystem):
                   unpartitioned_constellation=[], partitioned_constellation=[])
 
 
+def _single_node_mip(subsystem):
+    """Returns a the BigMip of a single-node with a selfloop.
+
+    Whether these have a nonzero |Phi| value depends on the CyPhi options.
+    """
+    if options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
+        # TODO return the actual concept
+        return BigMip(
+            phi=0.5,
+            cut=Cut(subsystem.nodes, subsystem.nodes),
+            unpartitioned_constellation=None,
+            partitioned_constellation=None,
+            subsystem=subsystem)
+    else:
+        return _null_mip(subsystem)
+
+
 # TODO document
 def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     # Compute forward mip.
@@ -142,16 +159,9 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 # TODO document big_mip
 def big_mip(subsystem):
     """Return the MIP for a subsystem."""
-    # Define Phi of single-node subsystems as 0.5 if the user specified it
-    if (len(subsystem.nodes) < 2 and
-          options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI):
-        # TODO return the actual concept
-        return BigMip(
-            phi=0.5,
-            cut=Cut(subsystem.nodes, subsystem.nodes),
-            unpartitioned_constellation=None,
-            partitioned_constellation=None,
-            subsystem=subsystem)
+    # Special case for single-node subsystems.
+    if (len(subsystem.nodes) == 1):
+        return _single_node_mip(subsystem)
 
     # Check for degenerate cases
     # =========================================================================
