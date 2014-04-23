@@ -23,9 +23,9 @@ class Network:
     Represents the network we're analyzing and holds auxilary data about it.
 
     Examples:
-        In a 3-node network, ``a_network.tpm[(0, 1, 0)]`` gives the transition
+        In a 3-node network, ``a_network.tpm[(0, 0, 1)]`` gives the transition
         probabilities for each node at |t_0| given that state at |t_{-1}| was
-        |0,1,0|.
+        |0,0,1|.
 
     Attributes:
         size (int):
