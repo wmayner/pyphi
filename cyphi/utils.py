@@ -137,6 +137,7 @@ def marginalize_out(node, tpm):
     return tpm.sum(node.index, keepdims=True) / tpm.shape[node.index]
 
 
+# TODO memoize this
 def max_entropy_distribution(nodes, network):
     """
     Return the maximum entropy distribution over a set of nodes.
@@ -198,8 +199,10 @@ def bipartition(a):
         return
     for bitstring in [bin(i)[2:].zfill(size)[::-1]
                       for i in range(2 ** (size - 1))]:
+
+        flip = bitstring.replace('1', '2').replace('0', '1').replace('2', '0')
         yield (_bitstring_index(a, bitstring),
-               _bitstring_index(a, bitstring.replace('1', '2').replace('0', '1').replace('2', '0')));
+               _bitstring_index(a, flip))
 
 
 # Internal helper methods
