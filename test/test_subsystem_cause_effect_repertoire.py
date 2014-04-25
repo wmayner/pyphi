@@ -326,8 +326,8 @@ def test_cause_and_effect_repertoire(function, subsystem, cut, mechanism,
 
     # Set up testing parameters from scenario
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    mechanism = [subsystem.network.nodes[index] for index in mechanism]
-    purview = [subsystem.network.nodes[index] for index in purview]
+    mechanism = tuple(subsystem.network.nodes[index] for index in mechanism)
+    purview = tuple(subsystem.network.nodes[index] for index in purview)
     compute_repertoire = getattr(subsystem, function)
     if cut:
         severed = cut[0]
@@ -357,11 +357,11 @@ def test_cause_and_effect_repertoire(function, subsystem, cut, mechanism,
 # Test validation
 def test_cause_and_effect_repertoire_validation(s):
     with pytest.raises(ValueError):
-        s.cause_repertoire([0], [1], s.null_cut)
+        s.cause_repertoire((0,), (1,), s.null_cut)
     with pytest.raises(ValueError):
-        s.effect_repertoire([0,1], [2], s.null_cut)
+        s.effect_repertoire((0,1), (2,), s.null_cut)
     with pytest.raises(ValueError):
-        s.effect_repertoire(0, [2], s.null_cut)
+        s.effect_repertoire(0, (2), s.null_cut)
 
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :

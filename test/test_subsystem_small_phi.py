@@ -200,8 +200,8 @@ parameter_string = "direction,subsystem,cut,mechanism,purview,expected"
 @pytest.mark.parametrize(parameter_string, scenarios)
 def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     # Set up testing parameters from scenario
-    mechanism = [subsystem.network.nodes[index] for index in mechanism]
-    purview = [subsystem.network.nodes[index] for index in purview]
+    mechanism = tuple(subsystem.network.nodes[index] for index in mechanism)
+    purview = tuple(subsystem.network.nodes[index] for index in purview)
 
     result = subsystem.find_mip(direction, mechanism, purview)
 
@@ -250,8 +250,8 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
 
 # Test input validation {{{
 def test_find_mip_bad_direction(s):
-    mechanism = [s.nodes[0]]
-    purview = [s.nodes[0]]
+    mechanism = (s.nodes[0], )
+    purview = (s.nodes[0], )
     with pytest.raises(ValueError):
         s.find_mip('doge', mechanism, purview)
 # }}}
@@ -285,8 +285,8 @@ def test_phi_mip_past(s):
 
 
 def test_phi_mip_past_reducible(s):
-    mechanism = [s.nodes[1]]
-    purview = [s.nodes[0]]
+    mechanism = (s.nodes[1], )
+    purview = (s.nodes[0], )
     assert (0 == s.phi_mip_past(mechanism, purview))
 
 
@@ -298,7 +298,7 @@ def test_phi_mip_future(s):
 
 def test_phi_mip_future_reducible(s):
     mechanism = s.nodes[0:2]
-    purview = [s.nodes[1]]
+    purview = (s.nodes[1], )
     assert (0 == s.phi_mip_future(mechanism, purview))
 
 
