@@ -10,3 +10,9 @@ docs/_build
 .coverage
 htmlcov
 .agignore
+
+callgraph.svg
+code_to_profile.py
+profile.pstats
+profile_data/
+save_current_profile.sh
