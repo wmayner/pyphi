@@ -128,8 +128,8 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_num_node_distribution``
         # ``cjd`` is ``numerator_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        validate.nodelist(mechanism, 'Mechanism')
-        validate.nodelist(purview, 'Purview')
+        mechanism = validate.nodelist(mechanism, 'Mechanism')
+        purview = validate.nodelist(purview, 'Purview')
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
         # distribution.
@@ -236,8 +236,8 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_denom_node_distribution``
         # ``accumulated_cjd`` is ``denom_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        validate.nodelist(mechanism, 'Mechanism')
-        validate.nodelist(purview, 'Purview')
+        mechanism = validate.nodelist(mechanism, 'Mechanism')
+        purview = validate.nodelist(purview, 'Purview')
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -371,7 +371,7 @@ class Subsystem:
     def _unconstrained_repertoire(self, direction, purview, cut):
         """Return the unconstrained cause or effect repertoire over a
         purview."""
-        return self._get_repertoire(direction)([], purview, cut)
+        return self._get_repertoire(direction)((), purview, cut)
 
     def unconstrained_cause_repertoire(self, purview, cut=None):
         """Return the unconstrained cause repertoire for a purview.
