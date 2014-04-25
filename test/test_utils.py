@@ -114,17 +114,6 @@ def test_bitstring_index_mismatched_length():
         assert utils._bitstring_index(array, bitstring)
 
 
-def test_bitstring_index_forgot_strip_b():
-    array = np.arange(8)
-    bitstring = bin(6).zfill(8)
-    with pytest.raises(ValueError):
-        assert utils._bitstring_index(array, bitstring)
-
-
-def test_flip():
-    assert (utils._flip('011010001') == '100101110')
-
-
 def test_bipartition():
     # Test with np.array input
     a = list(utils.bipartition(np.arange(3)))

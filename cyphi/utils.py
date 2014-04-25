@@ -10,7 +10,7 @@ external use.
 """
 
 import numpy as np
-from re import match
+from functools import lru_cache
 from itertools import chain, combinations
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
@@ -121,6 +121,7 @@ def uniform_distribution(number_of_nodes):
             number_of_states).reshape([2] * number_of_nodes)
 
 
+# TODO! don't use this, since function calls are expensive?
 def marginalize_out(node, tpm):
     """
     Marginalize out a node from a TPM.
@@ -136,7 +137,6 @@ def marginalize_out(node, tpm):
     return tpm.sum(node.index, keepdims=True) / tpm.shape[node.index]
 
 
-# TODO memoize this
 def max_entropy_distribution(nodes, network):
     """
     Return the maximum entropy distribution over a set of nodes.
@@ -178,10 +178,10 @@ def hamming_emd(d1, d2):
 # TODO? [optimization] optimize this to use indices rather than nodes
 # TODO? are native lists really slower
 def bipartition(a):
-    """Generates all bipartitions for a sequence or ``np.array``.
+    """Generates all bipartitions for a sequence.
 
     Args:
-        array (Iterable): The iterable to partition.
+        a (Iterable): The iterable to partition.
 
     Returns:
         ``generator`` -- A generator that yields a tuple containing each of the
@@ -192,19 +192,14 @@ def bipartition(a):
         >>> list(bipartition([1, 2, 3]))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
-    # Get size of list or array and validate
-    if isinstance(a, np.ndarray):
-        size = a.size
-    else:
-        size = len(a)
+    size = len(a)
     # Return on empty input
     if size <= 0:
         return
-
     for bitstring in [bin(i)[2:].zfill(size)[::-1]
                       for i in range(2 ** (size - 1))]:
         yield (_bitstring_index(a, bitstring),
-               _bitstring_index(a, _flip(bitstring)))
+               _bitstring_index(a, bitstring.replace('1', '2').replace('0', '1').replace('2', '0')));
 
 
 # Internal helper methods
@@ -237,6 +232,7 @@ def _hamming_matrix(N):
     return cdist(possible_states, possible_states, 'hamming') * N
 
 
+# TODO refactor this to have fewer calls and no validation, for speed
 def _bitstring_index(a, bitstring):
     """Select elements of a sequence or ``np.array`` based on a binary string.
 
@@ -268,17 +264,8 @@ def _bitstring_index(a, bitstring):
 
     if size != len(bitstring):
         raise ValueError("The bitstring must be the same length as the array.")
-    if not match('^[01]*$', bitstring):
-        raise ValueError("Bitstring must contain only 1s and 0s. Did you " +
-                         "forget to chop off the first two characters after " +
-                         "using `bin`?")
 
     return tuple(a[i] for i in range(size) if bitstring[i] == '1')
-
-
-def _flip(bitstring):
-    """Flip the bits in a string consisting of 1s and zeros."""
-    return ''.join('1' if x == '0' else '0' for x in bitstring)
 
 
 # TODO? implement this
