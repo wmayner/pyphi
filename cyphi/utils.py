@@ -161,9 +161,6 @@ def max_entropy_distribution(nodes, network):
 
 # TODO extend to binary nodes
 # TODO? parametrize and use other metrics (KDL, L1)
-# TODO ensure that we really don't need to keep track of the states for the
-#      correct hamming distance... are we really only comparing the same
-#      purviews?
 def hamming_emd(d1, d2):
     """Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node).
@@ -215,6 +212,7 @@ def bipartition(a):
 
 
 # TODO extend to nonbinary nodes
+@lru_cache(maxsize=None)
 def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of |N|
     binary nodes.
