@@ -67,6 +67,9 @@ class Node:
         # Make it immutable (for hashing)
         self.tpm.flags.writeable = False
 
+        # Only compute hash once
+        self._hash = hash((self.network, self.index))
+
     # ``inputs`` must be a property because at the time of node
     # creation, the network doesn't have a list of Node objects yet, only a
     # size (and thus a range of node indices); we want the node's inputs to be
@@ -105,4 +108,4 @@ class Node:
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash((self.network, self.index))
+        return self._hash

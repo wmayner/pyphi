@@ -54,6 +54,11 @@ class Subsystem:
         # TODO use properties?
         # (https://docs.python.org/2/library/functions.html#property)
 
+        self._hash = hash((frozenset(self.nodes),
+                           self.current_state,
+                           self.past_state,
+                           self.network))
+
     def __repr__(self):
         return "Subsystem(" + ", ".join([repr(self.nodes),
                                          repr(self.current_state),
@@ -97,8 +102,7 @@ class Subsystem:
         return len(self.nodes) < len(other.nodes)
 
     def __hash__(self):
-        return hash((frozenset(self.nodes), self.current_state,
-                     self.past_state, self.network))
+        return self._hash
 
     def cause_repertoire(self, mechanism, purview, cut=None):
         """Return the cause repertoire of a mechanism over a purview.

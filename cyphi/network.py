@@ -74,6 +74,14 @@ class Network:
         if self.connectivity_matrix is not None:
             self.connectivity_matrix.flags.writeable = False
 
+        # TODO! don't use tostring(not unique for large arrays)
+        # Only compute hash once
+        self._hash = hash((self.tpm.tostring(),
+                           self.current_state,
+                           self.past_state,
+                           (self.connectivity_matrix.tostring() if
+                            self.connectivity_matrix is not None else None)))
+
         # Validate this network
         validate.network(self)
 
@@ -110,13 +118,8 @@ class Network:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    # TODO! don't use tostring(not unique for large arrays)
     def __hash__(self):
-        return hash((self.tpm.tostring(),
-                     self.current_state,
-                     self.past_state,
-                     (self.connectivity_matrix.tostring() if
-                      self.connectivity_matrix is not None else None)))
+        return self._hash
 
     def subsystems(self):
         """Return a generator of all possible subsystems of this network.
