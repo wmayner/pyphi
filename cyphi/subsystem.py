@@ -10,6 +10,7 @@ Represents a candidate set for |phi| calculation.
 
 import numpy as np
 from itertools import chain
+from functools import lru_cache
 from .constants import DIRECTIONS, PAST, FUTURE, EPSILON
 from . import validate
 # TODO use namespaces more (honking great idea, etc.)
@@ -104,6 +105,7 @@ class Subsystem:
     def __hash__(self):
         return self._hash
 
+    @lru_cache(maxsize=None)
     def cause_repertoire(self, mechanism, purview, cut=None):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -212,6 +214,7 @@ class Subsystem:
         # whole comparisons are only ever done over the same purview.
         return cjd
 
+    @lru_cache(maxsize=None)
     def effect_repertoire(self, mechanism, purview, cut):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -634,7 +637,8 @@ class Subsystem:
         """Return the maximally irreducible cause or effect for a mechanism.
 
         Args:
-            direction (str): The temporal direction, specifying cause or effect.
+            direction (str): The temporal direction, specifying cause or
+                effect.
             mechanism (tuple(Node)): The mechanism to be tested for
                 irreducibility.
             cut (Cut): The unidirectional cut that's been applied to the
