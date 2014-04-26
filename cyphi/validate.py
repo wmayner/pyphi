@@ -97,14 +97,14 @@ def _state_reachable(current_state, tpm):
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
-    test = tpm - current_state
+    test = tpm - np.array(current_state)
     return np.any(np.logical_and(-1 < test, test < 1).all(1))
 
 
 # TODO test
 def _state_reachable_from(past_state, current_state, tpm):
     """Return whether a state is reachable from the given past state."""
-    test = tpm[past_state] - current_state
+    test = tpm[past_state] - np.array(current_state)
     return np.all(np.logical_and(-1 < test, test < 1))
 
 
@@ -117,7 +117,7 @@ def state(network):
     if (len(current_state) != network.size or len(past_state) != network.size):
         raise ValueError("Invalid state: there must be one entry per node in "
                          "the network; this state has {} entries, but there "
-                         "are {} nodes.".format(network.current_state.size,
+                         "are {} nodes.".format(len(network.current_state),
                                                 network.size))
     # Check that the state is reachable from some state.
     if not _state_reachable(current_state, tpm):
