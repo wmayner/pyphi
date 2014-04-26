@@ -234,30 +234,6 @@ def _hamming_matrix(N):
     return cdist(possible_states, possible_states, 'hamming') * N
 
 
-# TODO refactor this to have fewer calls and no validation, for speed
-def _bitstring_index(a, bitstring):
-    """Select elements of a sequence or ``np.array`` based on a binary string.
-
-    The |ith| element in the array is selected if there is a 1 at the |ith|
-    position of the bitstring.
-
-    Args:
-        a (sequence or np.ndarray): The sequence to select from.
-        bitstring (str): The binary string indicating which elements are to be
-            selected.
-
-    Returns:
-        ``tuple`` -- The elements at indices where there is a 1 in the binary
-        string.
-
-    Example:
-        >>> from cyphi.utils import _bitstring_index
-        >>> bitstring = '10010100'
-        >>> _bitstring_index([0, 1, 2, 3, 4, 5, 6, 7], bitstring)
-        (0, 3, 5)
-    """
-
-
 # TODO? implement this
 def connectivity_matrix_to_tpm(network):
     """Generate a TPM from a connectivity matrix and nodes that implement
