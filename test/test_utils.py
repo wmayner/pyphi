@@ -30,8 +30,8 @@ def test_marginalize_out(standard):
 def test_purview_max_entropy_distribution():
     # Individual setUp
     size = 3
-    state = np.array([0, 1, 0])
-    past_state = np.array([1, 1, 0])
+    state = (0, 1, 0)
+    past_state = (1, 1, 0)
     tpm = np.ones([2] * size + [size]).astype(float) / 2
     network = Network(tpm, state, past_state)
 
