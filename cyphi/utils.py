@@ -193,16 +193,15 @@ def bipartition(a):
         >>> list(bipartition([1, 2, 3]))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
-    size = len(a)
+    length = len(a)
     # Return on empty input
-    if size <= 0:
+    if length <= 0:
         return
-    for bitstring in [bin(i)[2:].zfill(size)[::-1]
-                      for i in range(2 ** (size - 1))]:
-
-        flip = bitstring.replace('1', '2').replace('0', '1').replace('2', '0')
-        yield (_bitstring_index(a, bitstring),
-               _bitstring_index(a, flip))
+    for bitstring in [bin(i)[2:].zfill(length)[::-1]
+                      for i in range(2**(length - 1))]:
+        part0 = tuple(a[i] for i in range(length) if bitstring[i] == '1')
+        part1 = tuple(a[i] for i in range(length) if bitstring[i] == '0')
+        yield (part0, part1)
 
 
 # Internal helper methods
@@ -257,18 +256,6 @@ def _bitstring_index(a, bitstring):
         >>> _bitstring_index([0, 1, 2, 3, 4, 5, 6, 7], bitstring)
         (0, 3, 5)
     """
-    # Get size of iterable and validate
-    if isinstance(a, type(np.array([]))):
-        if a.ndim != 1:
-            raise ValueError("Array must be 1-dimensional.")
-        size = a.size
-    else:
-        size = len(a)
-
-    if size != len(bitstring):
-        raise ValueError("The bitstring must be the same length as the array.")
-
-    return tuple(a[i] for i in range(size) if bitstring[i] == '1')
 
 
 # TODO? implement this

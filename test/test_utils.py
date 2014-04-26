@@ -87,33 +87,6 @@ def test_hamming_matrix():
     assert (H == answer).all()
 
 
-def test_bitstring_index():
-    bitstring = '11110100'
-    # Test with an array
-    a = np.arange(8)
-    assert (0, 1, 2, 3, 5) == utils._bitstring_index(a, bitstring)
-    # Test with a list
-    l = list(range(8))
-    assert (0, 1, 2, 3, 5) == utils._bitstring_index(l, bitstring)
-    # Test with a tuple
-    t = tuple(range(8))
-    assert (0, 1, 2, 3, 5) == utils._bitstring_index(t, bitstring)
-
-
-def test_bitstring_index_wrong_shape():
-    array = np.arange(8).reshape(2, 4)
-    bitstring = bin(6).zfill(8)
-    with pytest.raises(ValueError):
-        assert utils._bitstring_index(array, bitstring)
-
-
-def test_bitstring_index_mismatched_length():
-    array = np.arange(8)
-    bitstring = bin(6)[2:]
-    with pytest.raises(ValueError):
-        assert utils._bitstring_index(array, bitstring)
-
-
 def test_bipartition():
     # Test with np.array input
     a = list(utils.bipartition(np.arange(3)))
