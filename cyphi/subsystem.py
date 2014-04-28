@@ -395,7 +395,7 @@ class Subsystem:
         """Return the unconstrained cause or effect repertoire based on a
         direction."""
         validate.direction(direction)
-        non_purview_nodes = set(self.nodes) - set(purview)
+        non_purview_nodes = frozenset(self.nodes) - frozenset(purview)
         return (repertoire * self._unconstrained_repertoire(direction,
                                                             non_purview_nodes,
                                                             cut))
