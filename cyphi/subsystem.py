@@ -752,8 +752,10 @@ class Subsystem:
         return Concept(
             mechanism=(),
             location=np.array([
-                self.unconstrained_cause_repertoire(self.nodes, self.null_cut),
-                self.unconstrained_effect_repertoire(self.nodes, self.null_cut)
+                # Unconstrained cause repertoire
+                self.cause_repertoire((), self.nodes, self.null_cut),
+                # Unconstrained effect repertoire
+                self.effect_repertoire((), self.nodes, self.null_cut)
             ]),
             phi=0,
             cause=None,
