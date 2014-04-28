@@ -193,7 +193,9 @@ class Subsystem:
             # mechanism that are either not in the purview or whose connections
             # to this mechanism have not been severed by a subsystem cut.
             for node in marginal_inputs:
-                conditioned_tpm = marginalize_out(node, conditioned_tpm)
+                conditioned_tpm = (conditioned_tpm.sum(node.index,
+                                                       keepdims=True)
+                                   / conditioned_tpm.shape[node.index])
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
             # broadcasting, which spreads the singleton probabilities in the
@@ -295,7 +297,8 @@ class Subsystem:
             marginal_inputs = purview_node.inputs & (
                 (set(self.nodes) - set(mechanism)) | severed_nodes)
             for node in marginal_inputs:
-                tpm = marginalize_out(node, tpm)
+                tpm = (tpm.sum(node.index, keepdims=True)
+                       / tpm.shape[node.index])
                 # Expand the TPM along the axes corresponding to mechanism
                 # nodes who's connections to the purview were severed, since
                 # those will have conditioning indices despite having being
