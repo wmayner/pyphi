@@ -97,8 +97,8 @@ def powerset(iterable):
         >>> print(list(ps))
         [(), (0,), (1,), (0, 1)]
     """
-    s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+    return chain.from_iterable(combinations(iterable, r)
+                               for r in range(len(iterable) + 1))
 
 
 def uniform_distribution(number_of_nodes):
