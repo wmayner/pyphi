@@ -88,18 +88,10 @@ def test_hamming_matrix():
 
 
 def test_bipartition():
-    # Test with np.array input
-    a = list(utils.bipartition(np.arange(3)))
-    # Test with list input
-    b = list(utils.bipartition(list(range(3))))
-    # Test with tuple input
-    c = list(utils.bipartition(tuple(range(3))))
-    print(a, b, c, sep='\n')
     answer = [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
-    print(answer)
-    assert a == b == c == answer
+    assert answer == utils.bipartition(tuple(range(3)))
     # Test with empty input
-    assert [] == list(utils.bipartition([]))
+    assert [] == utils.bipartition(())
 
 
 def test_emd_same_distributions():
