@@ -438,8 +438,8 @@ class Subsystem:
     # TODO? something clever here so we don't do the full iteration
     @staticmethod
     def _mip_bipartition(mechanism, purview):
-        # TODO? better not to build this whole list in memory
-        purview_bipartitions = list(bipartition(purview))
+        purview_bipartitions = bipartition(purview)
+        result = []
         for denominators in (purview_bipartitions +
                              list(map(lambda x: x[::-1],
                                       purview_bipartitions))):
@@ -457,8 +457,8 @@ class Subsystem:
                                  purview=denominators[0])
                     part1 = Part(mechanism=numerators[1],
                                  purview=denominators[1])
-                    yield (part0, part1)
-        return
+                    result.append((part0, part1))
+        return result
 
     @staticmethod
     def _null_mip(direction, mechanism, purview):
