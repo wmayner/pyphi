@@ -55,6 +55,7 @@ class Network:
             A list of nodes in the network.
 
     """
+
     def __init__(self, tpm, current_state, past_state,
                  connectivity_matrix=None):
         # Get the number of nodes in the network.
@@ -74,13 +75,14 @@ class Network:
         if self.connectivity_matrix is not None:
             self.connectivity_matrix.flags.writeable = False
 
-        # TODO! don't use tostring(not unique for large arrays)
+        tpm_hash = utils.np_hash(self.tpm)
+        cm_hash = (utils.np_hash(self.connectivity_matrix)
+                   if self.connectivity_matrix is not None else None)
         # Only compute hash once
-        self._hash = hash((self.tpm.tostring(),
+        self._hash = hash((tpm_hash,
                            self.current_state,
                            self.past_state,
-                           (self.connectivity_matrix.tostring() if
-                            self.connectivity_matrix is not None else None)))
+                           cm_hash))
 
         # Validate this network
         validate.network(self)
@@ -88,6 +90,7 @@ class Network:
         # Generate the nodes
         self.nodes = [Node(self, node_index)
                       for node_index in range(self.size)]
+
         # TODO extend to nonbinary nodes
         self.num_states = 2 ** self.size
 

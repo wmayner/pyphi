@@ -55,6 +55,7 @@ class Subsystem:
         # TODO use properties?
         # (https://docs.python.org/2/library/functions.html#property)
 
+        # Hash node indices rather than the node objects
         self._hash = hash((frozenset(node.index for node in self.nodes),
                            self.current_state,
                            self.past_state,

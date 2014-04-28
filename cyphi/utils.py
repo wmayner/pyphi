@@ -9,6 +9,7 @@ Functions used by more than one CyPhi module or class, or that might be of
 external use.
 """
 
+import hashlib
 import numpy as np
 from functools import lru_cache
 from itertools import chain, combinations
@@ -16,6 +17,15 @@ from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
 from . import constants
+
+def np_hash(a):
+    """Return a hash of a NumPy array.
+
+    This is much faster than ``np.toString`` for large arrays."""
+    # Ensure that hashes are equal whatever the ordering in memory (C or Fortran)
+    a = np.ascontiguousarray(a)
+    # Compute the digest and return a decimal int
+    return int(hashlib.sha1(a.view(a.dtype)).hexdigest(), 16)
 
 
 def phi_eq(x, y):
