@@ -121,7 +121,6 @@ def uniform_distribution(number_of_nodes):
             number_of_states).reshape([2] * number_of_nodes)
 
 
-# TODO! don't use this, since function calls are expensive?
 def marginalize_out(node, tpm):
     """
     Marginalize out a node from a TPM.
@@ -179,29 +178,50 @@ def hamming_emd(d1, d2):
 # TODO? [optimization] optimize this to use indices rather than nodes
 # TODO? are native lists really slower
 def bipartition(a):
-    """Generates all bipartitions for a sequence.
+    """Return a list of bipartitions for a sequence.
 
     Args:
         a (Iterable): The iterable to partition.
 
     Returns:
-        ``generator`` -- A generator that yields a tuple containing each of the
-        two partitions.
+        ``list`` -- A list of tuples containing each of the two partitions.
 
     Example:
         >>> from cyphi.utils import bipartition
-        >>> list(bipartition([1, 2, 3]))
+        >>> bipartition((1, 2, 3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
-    length = len(a)
+    return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
+            for part0_idx, part1_idx in bipartition_indices(len(a))]
+
+
+@lru_cache(maxsize=None)
+def bipartition_indices(N):
+    """Returns indices for bipartitions of a sequence.
+
+    Args:
+        N (int): The length of the sequence.
+
+    Returns:
+        ``list`` -- A list of tuples containing the indices for each of the two
+        partitions.
+
+    Example:
+        >>> from cyphi.utils import bipartition_indices
+        >>> N = 3
+        >>> bipartition_indices(N)
+        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
+    """
+    result = []
     # Return on empty input
-    if length <= 0:
-        return
-    for bitstring in [bin(i)[2:].zfill(length)[::-1]
-                      for i in range(2**(length - 1))]:
-        part0 = tuple(a[i] for i in range(length) if bitstring[i] == '1')
-        part1 = tuple(a[i] for i in range(length) if bitstring[i] == '0')
-        yield (part0, part1)
+    if N <= 0:
+        return result
+    for bitstring in [bin(i)[2:].zfill(N)[::-1]
+                      for i in range(2**(N - 1))]:
+        result.append(
+            (tuple(i for i in range(N) if bitstring[i] == '1'),
+             tuple(i for i in range(N) if bitstring[i] == '0')))
+    return result
 
 
 # Internal helper methods
