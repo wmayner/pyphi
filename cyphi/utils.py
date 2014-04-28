@@ -167,8 +167,6 @@ def hamming_emd(d1, d2):
 
     Singleton dimensions are sqeezed out.
     """
-    if d1.shape != d2.shape:
-        raise ValueError("Distributions must be the same shape.")
     d1, d2 = d1.squeeze(), d2.squeeze()
     # Compute the EMD with Hamming distance between states as the
     # transportation cost function
