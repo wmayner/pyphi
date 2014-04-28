@@ -14,8 +14,8 @@ from functools import lru_cache
 from .constants import DIRECTIONS, PAST, FUTURE, EPSILON
 from . import validate
 # TODO use namespaces more (honking great idea, etc.)
-from .utils import (marginalize_out, hamming_emd, max_entropy_distribution,
-                    powerset, bipartition, phi_eq)
+from .utils import (hamming_emd, max_entropy_distribution, powerset,
+                    bipartition, phi_eq)
 from .models import Cut, Mip, Part, Mice, Concept
 
 
@@ -55,7 +55,7 @@ class Subsystem:
         # TODO use properties?
         # (https://docs.python.org/2/library/functions.html#property)
 
-        self._hash = hash((frozenset(self.nodes),
+        self._hash = hash((frozenset(node.index for node in self.nodes),
                            self.current_state,
                            self.past_state,
                            self.network))
@@ -355,6 +355,7 @@ class Subsystem:
         # whole comparisons are only ever done over the same purview.
         return accumulated_cjd
 
+    # TODO check if the cache is faster
     def _get_repertoire(self, direction):
         """Returns the cause or effect repertoire function based on a
         direction.
@@ -376,6 +377,7 @@ class Subsystem:
         purview."""
         return self._get_repertoire(direction)((), purview, cut)
 
+    # TODO! move exposed API functions that aren't interally used
     def unconstrained_cause_repertoire(self, purview, cut=None):
         """Return the unconstrained cause repertoire for a purview.
 
@@ -524,6 +526,7 @@ class Subsystem:
 
         return mip
 
+    # TODO Don't use these internally
     def mip_past(self, mechanism, purview, cut=None):
         """Return the past minimum information partition.
 
@@ -723,6 +726,7 @@ class Subsystem:
         Alias for :func:`find_mice` with ``direction`` set to |past|."""
         return self.find_mice('past', mechanism, cut)
 
+    # TODO! don't use these internally
     def core_effect(self, mechanism, cut=None):
         """Returns the core effect repertoire of a mechanism.
 
@@ -742,6 +746,7 @@ class Subsystem:
     # TODO add `concept-space` section to the docs:
         # The first dimension corresponds to the direction, past or future; the
         # correspond to the subsystem's state space."""
+    # TODO! make this a property
     def null_concept(self):
         """Return the null concept of this subsystem, a point in concept space
         identified with the unconstrained cause and effect repertoire of this
