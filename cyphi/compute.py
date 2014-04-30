@@ -193,9 +193,10 @@ def big_mip(subsystem):
 
     # Calculate the unpartitioned constellation.
     unpartitioned_constellation = subsystem.constellation(subsystem.null_cut)
-    # Parallel loop over all partitions (use all CPUs).
-    mip_candidates = Parallel(n_jobs=(-1 if options.PARALLEL_CUT_EVALUATION
-                                      else 1))(
+    # Parallel loop over all partitions (use all but one CPU).
+    mip_candidates = Parallel(n_jobs=(-2 if options.PARALLEL_CUT_EVALUATION
+                                      else 1),
+                              verbose=options.VERBOSE_PARALLEL)(
         delayed(_evaluate_cut)(subsystem,
                                partition,
                                unpartitioned_constellation)
