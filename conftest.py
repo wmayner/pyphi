@@ -6,7 +6,7 @@ import pytest
 import test.example_networks
 
 
-collect_ignore = ["setup.py", ".pythonrc.py"]
+collect_ignore = ["setup.py", ".pythonrc.py", "__cyphi_cache__"]
 
 
 # Test fixtures from example networks

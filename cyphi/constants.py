@@ -3,6 +3,8 @@
 
 import sys
 
+# TODO move precision to options
+
 
 class _Constants(object):
 
@@ -19,6 +21,8 @@ class _Constants(object):
         self.FUTURE = 1
         # Constants for using cause and effect methods
         self.DIRECTIONS = ('past', 'future')
+        # Directory for the persistent joblib Memory cache
+        self.CACHE_DIRECTORY = '__cyphi_cache__'
 
     # Update EPSILON whenever precision is changed
     def set_precision(self, precision):

@@ -4,10 +4,10 @@
 #    _______
 #   |__   __|
 #  ____| |____
-# |  __   __  |    _____         ___    __    _
-# | |  | |  | |   / ___/ __ __  / _ \  / /   (_)
-# | |__| |__| |  / /__  / // / / ___/ / _ \ / /
-# |____   ____|  \___/  \_, / /_/    /_//_//_/
+# |  __   __  |    _____         ___    __     _
+# | |  | |  | |   / ___/ __ __  / _ \  / /    (_)
+# | |__| |__| |  / /__  / // / / ___/ / _ \  / /
+# |____   ____|  \___/  \_, / /_/    /_//_/ /_/
 #    __| |__           /___/
 #   |_______|
 
@@ -30,6 +30,12 @@ They are listed here with their defaults:
     >>> cyphi.options.PARALLEL_CUT_EVALUATION
     True
 
+- Verbosity level for parallel computation (0 - 100).
+
+    >>> import cyphi
+    >>> cyphi.options.VERBOSE_PARALLEL
+    10
+
 - Define the Phi value of subsystems containing only a single node with a
   self-loop to be 0.5. If set to False, their Phi will be actually be computed
   (to be zero, in this implementation).
@@ -38,8 +44,6 @@ They are listed here with their defaults:
     >>> cyphi.options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
     False
 """
-
-# TODO document options here
 
 __title__ = 'cyphi'
 __version__ = '0.0.2'
@@ -56,11 +60,6 @@ from . import compute
 from . import options
 from . import constants
 
-
-# TODO Optimizations:
-# - Memoization
-# - Preallocation
-# - Vectorization
-# - Cythonize the hotspots
-# - Use generators instead of list comprehensions where possible for memory
-#   efficiency
+# Create the cache if it doesn't exist
+import os
+os.makedirs(constants.CACHE_DIRECTORY, exist_ok=True)
