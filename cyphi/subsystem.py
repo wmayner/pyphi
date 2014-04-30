@@ -28,16 +28,17 @@ class Subsystem:
 
     """A set of nodes in a network."""
 
-    def __init__(self, nodes, current_state, past_state, network):
+    def __init__(self, node_indices, current_state, past_state, network):
         """
         Args:
-            nodes (list(Node)): A list of nodes in this subsystem
-            current_state (tuple): The current state of this subsystem
-            past_state (tuple): The past state of this subsystem
-            network (Network): The network the subsystem is part of
+            nodes (tuple(int)): A sequence of indices of the nodes in this
+                subsystem.
+            current_state (tuple): The current state of this subsystem.
+            past_state (tuple): The past state of this subsystem.
+            network (Network): The network the subsystem is part of.
         """
         # This nodes in this subsystem.
-        self.nodes = tuple(nodes)
+        self.nodes = tuple(frozenset(network.nodes[i] for i in node_indices))
 
         self.current_state = current_state
         self.past_state = past_state
@@ -111,10 +112,10 @@ class Subsystem:
         """Return the cause repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (list(Node)): The mechanism for which to calculate the
+            mechanism (tuple(Node)): The mechanism for which to calculate the
                 cause repertoire.
-            purview (list(Node)): The purview over which to calculate the cause
-                repertoire.
+            purview (tuple(Node)): The purview over which to calculate the
+                cause repertoire.
 
         Returns:
             An array representing the cause repertoire of the
@@ -221,10 +222,10 @@ class Subsystem:
     def effect_repertoire(self, mechanism, purview, cut):
         """Return the effect repertoire of a mechanism over a purview.
 
-        mechanism (list(Node)): The mechanism for which to calculate the effect
-            repertoire
-        purview (list(Node)): The purview over which to calculate the effect
-            repertoire
+        mechanism (tuple(Node)): The mechanism for which to calculate the
+            effect repertoire.
+        purview (tuple(Node)): The purview over which to calculate the effect
+            repertoire.
 
         Returns:
             An np.array representing the effect repertoire of the mechanism
