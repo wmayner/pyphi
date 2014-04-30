@@ -6,9 +6,11 @@ import numpy as np
 
 from cyphi import models, constants
 
-nt_attributes = ['this', 'that', 'phi']
+
+nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
 nt = namedtuple('nt', nt_attributes)
-a = nt(('consciousness', 'is phi'), np.arange(3), 0.5)
+a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
+       mechanism=(0, 1, 2), purview=(2, 4))
 
 
 # Test equality helpers {{{
@@ -36,41 +38,40 @@ def test_numpy_aware_eq_identical():
 
 def test_general_eq_different_attributes():
     similar_nt = namedtuple('nt', nt_attributes + ['supbro'])
-    b = similar_nt(this=('consciousness', 'is phi'),
-                   that=np.arange(3),
-                   phi=0.5,
+    b = similar_nt(a.this, a.that, a.phi, a.mechanism, a.purview,
                    supbro="nothin' much")
     assert models._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_true():
-    b = nt(('consciousness', 'is phi'), np.arange(3), (a.phi -
-                                                       constants.EPSILON/2))
+    b = nt(a.this, a.that, (a.phi - constants.EPSILON/2), a.mechanism,
+           a.purview)
     assert models._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_false():
-    b = nt(('consciousness', 'is phi'), np.arange(3), (a.phi -
-                                                       constants.EPSILON*2))
+    b = nt(a.this, a.that, (a.phi - constants.EPSILON*2), a.mechanism,
+           a.purview)
     assert not models._general_eq(a, b, nt_attributes)
 
+
 # }}}
+
 # Test MIP {{{
 # ============
-
 # TODO! test ordering with exclusion principle
 
 def test_mip_ordering():
-    phi1 = models.Mip(direction=None, mechanism=(), purview=None,
+    phi1 = models.Mip(direction=None, mechanism=(), purview=(),
                       partition=None, unpartitioned_repertoire=None,
                       partitioned_repertoire=None,
                       phi=1.0)
     different_phi1 = models.Mip(direction='different', mechanism=(),
-                                purview=None, partition=0,
+                                purview=(), partition=0,
                                 unpartitioned_repertoire=None,
                                 partitioned_repertoire=None,
                                 phi=1.0)
-    phi2 = models.Mip(direction=0, mechanism=(), purview=None,
+    phi2 = models.Mip(direction=0, mechanism=(), purview=(),
                       partition='stilldifferent',
                       unpartitioned_repertoire=None,
                       partitioned_repertoire=None,
@@ -99,17 +100,19 @@ def test_mip_equality():
     assert mip == close_enough
     assert mip != not_quite
 
+
 # }}}
+
 # Test MICE {{{
 # =============
 
 def test_mice_ordering():
-    phi1 = models.Mice(direction=None, mechanism=(), purview=None,
+    phi1 = models.Mice(direction=None, mechanism=(), purview=(),
                        repertoire=None, mip=None, phi=1.0)
     different_phi1 = models.Mice(direction='different', mechanism=(0, 1),
-                                 purview=None, repertoire=None, mip=None,
+                                 purview=(), repertoire=None, mip=None,
                                  phi=1.0)
-    phi2 = models.Mice(direction=0, mechanism=(1, 2, 3), purview=None,
+    phi2 = models.Mice(direction=0, mechanism=(1, 2, 3), purview=(),
                        repertoire=None, mip=None, phi=1.0 +
                        constants.EPSILON*2)
     print(constants.EPSILON)
@@ -123,17 +126,20 @@ def test_mice_ordering():
 
 def test_mice_equality():
     phi = 1.0
-    mice = models.Mice(direction=None, mechanism=(), purview=None,
+    mice = models.Mice(direction=None, mechanism=(), purview=(),
                        repertoire=None, mip=None, phi=phi)
-    close_enough = models.Mice(direction=None, mechanism=(), purview=None,
-                       repertoire=None, mip=None, phi=(phi - constants.EPSILON/2))
-    not_quite = models.Mice(direction=None, mechanism=(), purview=None,
+    close_enough = models.Mice(direction=None, mechanism=(), purview=(),
+                               repertoire=None, mip=None,
+                               phi=(phi - constants.EPSILON/2))
+    not_quite = models.Mice(direction=None, mechanism=(), purview=(),
                             repertoire=None, mip=None,
                             phi=(phi - constants.EPSILON*2))
     assert mice == close_enough
     assert mice != not_quite
 
+
 # }}}
+
 # Test Concept {{{
 # ================
 
@@ -163,7 +169,9 @@ def test_concept_equality():
     assert concept == close_enough
     assert concept != not_quite
 
+
 # }}}
+
 # Test BigMip {{{
 # ===============
 
@@ -204,6 +212,7 @@ def test_bigmip_equality(s):
                               subsystem=s)
     assert bigmip == close_enough
     assert bigmip != not_quite
+
 
 # }}}
 
