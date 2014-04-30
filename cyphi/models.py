@@ -14,10 +14,10 @@ import numpy as np
 from . import utils
 
 # TODO use properties to avoid data duplication
-# TODO add proper docstrings with __doc__
 
 
 class Cut(namedtuple('Cut', ['severed', 'intact'])):
+
     """Represents a unidirectional cut.
 
     Attributes:
@@ -28,10 +28,12 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
             Connections to this group of nodes from those in ``severed`` are
             severed.
     """
+
     pass
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
+
     """Represents one part of a bipartition.
 
     Attributes:
@@ -50,6 +52,7 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
 
         This class represents one term in the above product.
     """
+
     pass
 
 
@@ -151,6 +154,7 @@ _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
 
 
 class Mip(namedtuple('Mip', _mip_attributes)):
+
     """A minimum information partition for |phi| calculation.
 
     MIPs can be compared against each other with the normal python operators,
@@ -174,8 +178,15 @@ class Mip(namedtuple('Mip', _mip_attributes)):
             mechanism. This is the product of the repertoires of each part of
             the partition.
     """
+
     def __eq__(self, other):
         return _general_eq(self, other, _mip_attributes)
+
+    def __hash__(self):
+        return hash((self.phi, self.direction, self.mechanism, self.purview,
+                     self.partition,
+                     utils.np_hash(self.unpartitioned_repertoire),
+                     utils.np_hash(self.partitioned_repertoire)))
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -191,6 +202,7 @@ _mice_attributes = ['phi', 'direction', 'mechanism', 'purview', 'repertoire',
 
 
 class Mice(namedtuple('Mice', _mice_attributes)):
+
     """A maximally irreducible cause or effect (i.e., "core cause" or "core
     effect").
 
@@ -212,8 +224,13 @@ class Mice(namedtuple('Mice', _mice_attributes)):
         mip (Mip):
             The minimum information partition for this mechanism.
     """
+
     def __eq__(self, other):
         return _general_eq(self, other, _mice_attributes)
+
+    def __hash__(self):
+        return hash((self.phi, self.direction, self.mechanism, self.purview,
+                     utils.np_hash(self.repertoire), self.mip))
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -228,6 +245,7 @@ _concept_attributes = ['phi', 'mechanism', 'location', 'cause', 'effect']
 
 
 class Concept(namedtuple('Concept', _concept_attributes)):
+
     """A star in concept-space.
 
     `phi` is the small-phi_max value. `cause` and `effect` are the MICE objects
@@ -251,8 +269,13 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         effect (Mice):
             The :class:`Mice` representing the core effect of this concept.
     """
+
     def __eq__(self, other):
         return _general_eq(self, other, _concept_attributes)
+
+    def __hash__(self):
+        return hash((self.phi, self.mechanism, utils.np_hash(self.location),
+                     self.cause, self.effect))
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -269,6 +292,7 @@ _bigmip_attributes = ['phi', 'cut', 'unpartitioned_constellation',
 
 
 class BigMip(namedtuple('BigMip', _bigmip_attributes)):
+
     """A minimum information partition for |big_phi| calculation.
 
     Attributes:
@@ -277,14 +301,19 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
             constellation and this MIP's partitioned constellation.
         cut (Cut): The unidirectional cut that makes the least difference to
             the subsystem.
-        unpartitioned_constellation (list(Concept)): The constellation of the
+        unpartitioned_constellation (tuple(Concept)): The constellation of the
             whole subsystem.
-        partitioned_constellation (list(Concept)): The constellation when the
+        partitioned_constellation (tuple(Concept)): The constellation when the
             subsystem is cut.
         subsystem (Subsystem): The subsystem this MIP was calculated for.
     """
+
     def __eq__(self, other):
         return _general_eq(self, other, _bigmip_attributes)
+
+    def __hash__(self):
+        return hash((self.phi, self.cut, self.unpartitioned_constellation,
+                     self.partitioned_constellation, self.subsystem))
 
     # First compare phi, then subsystem size
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -298,16 +327,13 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
         else:
             return _phi_lt(self, other)
 
-
     def __gt__(self, other):
         return (not self.__lt__(other) and
                 not _phi_eq(self, other))
 
-
     def __le__(self, other):
         return (self.__lt__(other) or
                 _phi_eq(self, other))
-
 
     def __ge__(self, other):
         return (self.__gt__(other) or
