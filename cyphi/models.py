@@ -140,10 +140,21 @@ def _general_eq(a, b, attributes):
     """Return whether two objects are equal up to the given attributes.
 
     If an attribute is called ``'phi'``, it is compared up to |PRECISION|. All
-    other attributes are compared with :func:`_numpy_aware_eq`."""
+    other attributes are compared with :func:`_numpy_aware_eq`.
+
+    If an attribute is called ``'mechanism'`` or ``'purview'``, it is compared
+    using set equality."""
     try:
-        return all(_numpy_aware_eq(getattr(a, attr), getattr(b, attr)) if attr
-                   != 'phi' else _phi_eq(a, b) for attr in attributes)
+        for attr in attributes:
+            _a, _b = getattr(a, attr), getattr(b, attr)
+            if attr == 'phi' and not _phi_eq(a, b):
+                return False
+            if (attr == 'mechanism' or attr == 'purview'):
+                if _a is None or _b is None and not _a == _b:
+                    return False
+                elif not set(_a) == set(_b):
+                    return False
+        return True
     except AttributeError:
         return False
 
