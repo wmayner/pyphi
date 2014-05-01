@@ -38,7 +38,9 @@ class Subsystem:
             network (Network): The network the subsystem is part of.
         """
         # This nodes in this subsystem.
-        self.nodes = tuple(frozenset(network.nodes[i] for i in node_indices))
+        # (Remove duplicates and sort)
+        self.nodes = tuple(sorted(list(set(network.nodes[i] for i in
+                                           node_indices))))
 
         self.current_state = current_state
         self.past_state = past_state
