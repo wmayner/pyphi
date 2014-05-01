@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import functools
 
 
 # TODO extend to nonbinary nodes
 # TODO? refactor to use purely indexes for nodes
-class Node:
+@functools.total_ordering
+class Node(object):
 
     """A node in a network.
 
@@ -109,3 +111,6 @@ class Node:
 
     def __hash__(self):
         return self._hash
+
+    def __lt__(self, other):
+        return self.index < other.index
