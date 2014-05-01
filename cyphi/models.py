@@ -154,6 +154,9 @@ def _general_eq(a, b, attributes):
                     return False
                 elif not set(_a) == set(_b):
                     return False
+            else:
+                if not _numpy_aware_eq(_a, _b):
+                    return False
         return True
     except AttributeError:
         return False
@@ -266,7 +269,7 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         phi (float):
             The size of the concept. This is the minimum of the |phi| values of
             the concept's core cause and core effect.
-        mechanism (list(Node)):
+        mechanism (tuple(Node)):
             The mechanism that the concept consists of.
         location (np.ndarray):
             The concept's location in concept space. The first dimension
