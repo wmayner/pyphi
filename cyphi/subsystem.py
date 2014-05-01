@@ -55,11 +55,7 @@ class Subsystem:
         # in the event that a cut doesn't effect them
         self._mice_cache = dict()
 
-        # TODO use properties?
-        # (https://docs.python.org/2/library/functions.html#property)
-
-        # Hash node indices rather than the node objects
-        self._hash = hash((frozenset(node.index for node in self.nodes),
+        self._hash = hash((self.nodes,
                            self.current_state,
                            self.past_state,
                            self.network))
