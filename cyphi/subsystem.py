@@ -11,7 +11,7 @@ Represents a candidate set for |phi| calculation.
 import numpy as np
 from itertools import chain
 from functools import lru_cache
-from .constants import DIRECTIONS, PAST, FUTURE, EPSILON
+from .constants import DIRECTIONS, PAST, FUTURE, EPSILON, LRU_CACHE_MAX_SIZE
 from . import validate
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (hamming_emd, max_entropy_distribution, powerset,
@@ -107,7 +107,7 @@ class Subsystem:
     def __hash__(self):
         return self._hash
 
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=LRU_CACHE_MAX_SIZE)
     def cause_repertoire(self, mechanism, purview, cut=None):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -218,7 +218,7 @@ class Subsystem:
         # whole comparisons are only ever done over the same purview.
         return cjd
 
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=LRU_CACHE_MAX_SIZE)
     def effect_repertoire(self, mechanism, purview, cut):
         """Return the effect repertoire of a mechanism over a purview.
 
