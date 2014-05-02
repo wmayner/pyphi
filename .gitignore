@@ -17,3 +17,4 @@ profile.pstats
 profile_data/
 save_current_profile.sh
 __cyphi_cache__
+profile.dat
