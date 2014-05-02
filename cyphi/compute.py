@@ -10,13 +10,18 @@ subsystems.
 """
 
 import numpy as np
-from joblib import Parallel, delayed
+from functools import lru_cache
+from joblib import Memory, Parallel, delayed
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
 from .models import Cut, BigMip
 from .network import Network
 from . import constants, utils, options
+
+
+# The joblib Memory object for persistent caching
+memory = Memory(cachedir=constants.CACHE_DIRECTORY, verbose=1)
 
 
 def concept_distance(c1, c2):
@@ -155,6 +160,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 
 
 # TODO document big_mip
+@memory.cache
 def big_mip(subsystem):
     """Return the MIP for a subsystem."""
     # Special case for single-node subsystems.
