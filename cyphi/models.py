@@ -5,7 +5,7 @@
 Models
 ~~~~~~
 
-Lightweight containers for MICE, MIP, cut, partition, and concept data.
+Containers for MICE, MIP, cut, partition, and concept data.
 """
 
 from collections import namedtuple, Iterable
@@ -147,7 +147,7 @@ def _general_eq(a, b, attributes):
     try:
         for attr in attributes:
             _a, _b = getattr(a, attr), getattr(b, attr)
-            if attr == 'phi' and not _phi_eq(a, b):
+            if attr == 'phi' and not utils.phi_eq(_a, _b):
                 return False
             if (attr == 'mechanism' or attr == 'purview'):
                 if _a is None or _b is None and not _a == _b:

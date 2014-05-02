@@ -63,20 +63,18 @@ def test_general_eq_phi_precision_comparison_false():
 # TODO! test ordering with exclusion principle
 
 def test_mip_ordering():
-    phi1 = models.Mip(direction=None, mechanism=(), purview=(),
-                      partition=None, unpartitioned_repertoire=None,
-                      partitioned_repertoire=None,
-                      phi=1.0)
-    different_phi1 = models.Mip(direction='different', mechanism=(),
-                                purview=(), partition=0,
-                                unpartitioned_repertoire=None,
-                                partitioned_repertoire=None,
-                                phi=1.0)
-    phi2 = models.Mip(direction=0, mechanism=(), purview=(),
-                      partition='stilldifferent',
-                      unpartitioned_repertoire=None,
-                      partitioned_repertoire=None,
-                      phi=1.0 + options.EPSILON*2)
+    phi1 = models.Mip(
+        direction=None, mechanism=(), purview=(), partition=None,
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=1.0)
+    different_phi1 = models.Mip(
+        direction='different', mechanism=(), purview=(), partition=0,
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=1.0)
+    phi2 = models.Mip(
+        direction=0, mechanism=(), purview=(), partition='stilldifferent',
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=1.0 + options.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -87,17 +85,18 @@ def test_mip_ordering():
 
 def test_mip_equality():
     phi = 1.0
-    mip = models.Mip(direction=None, mechanism=(), purview=(), partition=None,
-                     unpartitioned_repertoire=None,
-                     partitioned_repertoire=None, phi=phi)
-    close_enough = models.Mip(direction=None, mechanism=(), purview=(),
-                              partition=None, unpartitioned_repertoire=None,
-                              partitioned_repertoire=None,
-                              phi=(phi - options.EPSILON/2))
-    not_quite = models.Mip(direction=None, mechanism=(), purview=(),
-                           partition=None, unpartitioned_repertoire=None,
-                           partitioned_repertoire=None,
-                           phi=(phi - options.EPSILON*2))
+    mip = models.Mip(
+        direction=None, mechanism=(), purview=(), partition=None,
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=phi)
+    close_enough = models.Mip(
+        direction=None, mechanism=(), purview=(), partition=None,
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=(phi - options.EPSILON/2))
+    not_quite = models.Mip(
+        direction=None, mechanism=(), purview=(), partition=None,
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=(phi - options.EPSILON*2))
     assert mip == close_enough
     assert mip != not_quite
 
@@ -108,13 +107,15 @@ def test_mip_equality():
 # =============
 
 def test_mice_ordering():
-    phi1 = models.Mice(direction=None, mechanism=(), purview=(),
-                       repertoire=None, mip=None, phi=1.0)
-    different_phi1 = models.Mice(direction='different', mechanism=(0, 1),
-                                 purview=(), repertoire=None, mip=None,
-                                 phi=1.0)
-    phi2 = models.Mice(direction=0, mechanism=(1, 2, 3), purview=(),
-                       repertoire=None, mip=None, phi=1.0 + options.EPSILON*2)
+    phi1 = models.Mice(
+        direction=None, mechanism=(), purview=(), repertoire=None, mip=None,
+        phi=1.0)
+    different_phi1 = models.Mice(
+        direction='different', mechanism=(0, 1), purview=(), repertoire=None,
+        mip=None, phi=1.0)
+    phi2 = models.Mice(
+        direction=0, mechanism=(1, 2, 3), purview=(), repertoire=None,
+        mip=None, phi=1.0 + options.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -125,14 +126,15 @@ def test_mice_ordering():
 
 def test_mice_equality():
     phi = 1.0
-    mice = models.Mice(direction=None, mechanism=(), purview=(),
-                       repertoire=None, mip=None, phi=phi)
-    close_enough = models.Mice(direction=None, mechanism=(), purview=(),
-                               repertoire=None, mip=None,
-                               phi=(phi - options.EPSILON/2))
-    not_quite = models.Mice(direction=None, mechanism=(), purview=(),
-                            repertoire=None, mip=None,
-                            phi=(phi - options.EPSILON*2))
+    mice = models.Mice(
+        direction=None, mechanism=(), purview=(), repertoire=None, mip=None,
+        phi=phi)
+    close_enough = models.Mice(
+        direction=None, mechanism=(), purview=(), repertoire=None, mip=None,
+        phi=(phi - options.EPSILON/2))
+    not_quite = models.Mice(
+        direction=None, mechanism=(), purview=(), repertoire=None, mip=None,
+        phi=(phi - options.EPSILON*2))
     assert mice == close_enough
     assert mice != not_quite
 
@@ -143,12 +145,15 @@ def test_mice_equality():
 # ================
 
 def test_concept_ordering():
-    phi1 = models.Concept(mechanism=(0, 1), location=None, cause=None,
-                          effect=None, phi=1.0)
-    different_phi1 = models.Concept(mechanism=(), location=0,
-                                    cause=None, effect=None, phi=1.0)
-    phi2 = models.Concept(mechanism=0, location='stilldifferent', cause=None,
-                          effect=None, phi=1.0 + options.EPSILON*2)
+    phi1 = models.Concept(
+        mechanism=(0, 1), location=None, cause=None, effect=None,
+        phi=1.0)
+    different_phi1 = models.Concept(
+        mechanism=(), location=1, cause=None, effect=None,
+        phi=1.0)
+    phi2 = models.Concept(
+        mechanism=0, location='stilldifferent', cause=None, effect=None,
+        phi=1.0 + options.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -159,12 +164,15 @@ def test_concept_ordering():
 
 def test_concept_equality():
     phi = 1.0
-    concept = models.Concept(mechanism=(), location=None, cause=None,
-                             effect=None, phi=phi)
-    close_enough = models.Concept(mechanism=(), location=None, cause=None,
-                                  effect=None, phi=(phi - options.EPSILON/2))
-    not_quite = models.Concept(mechanism=(), location=None, cause=None,
-                               effect=None, phi=(phi - options.EPSILON*2))
+    concept = models.Concept(
+        mechanism=(), location=None, cause=None, effect=None,
+        phi=phi)
+    close_enough = models.Concept(
+        mechanism=(), location=None, cause=None, effect=None,
+        phi=(phi - options.EPSILON/2))
+    not_quite = models.Concept(
+        mechanism=(), location=None, cause=None, effect=None,
+        phi=(phi - options.EPSILON*2))
     assert concept == close_enough
     assert concept != not_quite
 
@@ -175,18 +183,18 @@ def test_concept_equality():
 # ===============
 
 def test_bigmip_ordering():
-    phi1 = models.BigMip(cut=None, unpartitioned_constellation=None,
-                         partitioned_constellation=None, phi=1.0,
-                         subsystem=())
-    different_phi1 = models.BigMip(cut='different',
-                                   unpartitioned_constellation=0,
-                                   partitioned_constellation=None, phi=1.0,
-                                   subsystem=())
-    phi2 = models.BigMip(cut=0,
-                         unpartitioned_constellation='stilldifferent',
-                         partitioned_constellation=None,
-                         phi=1.0 + options.EPSILON*2,
-                         subsystem=())
+    phi1 = models.BigMip(
+        cut=None, unpartitioned_constellation=None,
+        partitioned_constellation=None, subsystem=(),
+        phi=1.0)
+    different_phi1 = models.BigMip(
+        cut='different', unpartitioned_constellation=0,
+        partitioned_constellation=None, subsystem=(),
+        phi=1.0)
+    phi2 = models.BigMip(
+        cut=0, unpartitioned_constellation='stilldifferent',
+        partitioned_constellation=None, subsystem=(),
+        phi=1.0 + options.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -197,18 +205,18 @@ def test_bigmip_ordering():
 
 def test_bigmip_equality(s):
     phi = 1.0
-    bigmip = models.BigMip(cut=None, unpartitioned_constellation=None,
-                           partitioned_constellation=None, phi=phi,
-                           subsystem=s)
-    close_enough = models.BigMip(cut=None,
-                                 unpartitioned_constellation=None,
-                                 partitioned_constellation=None,
-                                 phi=(phi - options.EPSILON/2),
-                                 subsystem=s)
-    not_quite = models.BigMip(cut=None, unpartitioned_constellation=None,
-                              partitioned_constellation=None,
-                              phi=(phi - options.EPSILON*2),
-                              subsystem=s)
+    bigmip = models.BigMip(
+        cut=None, unpartitioned_constellation=None,
+        partitioned_constellation=None, subsystem=s,
+        phi=phi)
+    close_enough = models.BigMip(
+        cut=None, unpartitioned_constellation=None,
+        partitioned_constellation=None, subsystem=s,
+        phi=(phi - options.EPSILON/2))
+    not_quite = models.BigMip(
+        cut=None, unpartitioned_constellation=None,
+        partitioned_constellation=None, subsystem=s,
+        phi=(phi - options.EPSILON*2))
     assert bigmip == close_enough
     assert bigmip != not_quite
 

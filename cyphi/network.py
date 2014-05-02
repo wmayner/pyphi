@@ -12,8 +12,7 @@ context of all |phi| and |big_phi| computation.
 import numpy as np
 from .node import Node
 from .subsystem import Subsystem
-from . import validate
-from . import utils
+from . import validate, utils
 
 
 class Network:

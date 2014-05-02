@@ -56,9 +56,7 @@ __copyright__ = 'Copyright 2014 Will Mayner'
 
 from .network import Network
 from .subsystem import Subsystem
-from . import compute
-from . import options
-from . import constants
+from . import compute, options, constants
 
 # Create the cache if it doesn't exist
 import os

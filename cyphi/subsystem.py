@@ -12,8 +12,7 @@ import numpy as np
 from itertools import chain
 from functools import lru_cache
 from .constants import DIRECTIONS, PAST, FUTURE, LRU_CACHE_MAX_SIZE
-from . import options
-from . import validate
+from . import options, validate
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (hamming_emd, max_entropy_distribution, powerset,
                     bipartition, phi_eq)

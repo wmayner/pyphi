@@ -16,9 +16,7 @@ from scipy.sparse import csr_matrix
 
 from .models import Cut, BigMip
 from .network import Network
-from . import constants
-from . import utils
-from . import options
+from . import constants, utils, options
 
 
 def concept_distance(c1, c2):

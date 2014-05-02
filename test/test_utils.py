@@ -4,8 +4,7 @@
 import pytest
 import numpy as np
 
-from cyphi import utils
-from cyphi import options
+from cyphi import utils, options
 from cyphi.network import Network
 
 

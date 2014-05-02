@@ -5,10 +5,9 @@ import pytest
 from pprint import pprint
 import numpy as np
 
-from . import options
+from . import options, example_networks
 from cyphi.models import Mip, Part
 
-from . import example_networks
 
 
 s = example_networks.s()
