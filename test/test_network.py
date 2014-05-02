@@ -40,5 +40,5 @@ def test_network_init_validation(network):
 
 
 def test_network_init_nodes(network):
-    nodes = [Node(network, node_index) for node_index in range(network.size)]
+    nodes = tuple(Node(network, node_index) for node_index in range(network.size))
     assert nodes == network.nodes
