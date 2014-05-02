@@ -56,6 +56,21 @@ def test_general_eq_phi_precision_comparison_false():
     assert not models._general_eq(a, b, nt_attributes)
 
 
+def test_general_eq_different_mechanism_order():
+    b = nt(a.this, a.that, a.phi, a.mechanism[::-1], a.purview)
+    assert models._general_eq(a, b, nt_attributes)
+
+
+def test_general_eq_different_purview_order():
+    b = nt(a.this, a.that, a.phi, a.mechanism, a.purview[::-1])
+    assert models._general_eq(a, b, nt_attributes)
+
+
+def test_general_eq_different_mechanism_and_purview_order():
+    b = nt(a.this, a.that, a.phi, a.mechanism[::-1], a.purview[::-1])
+    assert models._general_eq(a, b, nt_attributes)
+
+
 # }}}
 
 # Test MIP {{{
