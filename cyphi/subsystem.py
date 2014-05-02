@@ -574,6 +574,7 @@ class Subsystem:
     # =========================================================================
 
     # TODO test phi max helpers
+    @lru_cache(maxsize=None)
     def _test_connections(self, axis, nodes1, nodes2):
         """Tests connectivity of one set of nodes to another.
 
