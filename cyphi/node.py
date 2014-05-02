@@ -78,11 +78,12 @@ class Node(object):
     # a list of actual Node objects, so we defer access to this list of Nodes
     # until it is created.
     def get_inputs(self):
-        if self._inputs:
+        if self._inputs is not None:
             return self._inputs
         else:
-            return set([node for node in self.network.nodes if node.index in
-                        self._input_indices])
+            self._inputs = [node for node in self.network.nodes if node.index
+                            in self._input_indices]
+            return self._inputs
     inputs = property(get_inputs,
                       "The set of nodes with connections to this node.")
 

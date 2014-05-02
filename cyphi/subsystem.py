@@ -156,6 +156,8 @@ class Subsystem:
         # (conditioned on the whole mechanism's state). After normalization,
         # this is the cause repertoire. Normalization happens after this loop.
         for mechanism_node in mechanism:
+            inputs = set(mechanism_node.inputs)
+
             # TODO extend to nonbinary nodes
             # We're conditioning on this node's state, so take the probability
             # table for the node being in that state.
@@ -163,11 +165,11 @@ class Subsystem:
             conditioned_tpm = mechanism_node.tpm[node_state]
             # Collect the nodes that are not in the purview and have
             # connections to this node.
-            non_purview_inputs = (mechanism_node.inputs &
+            non_purview_inputs = (inputs &
                                   (set(self.network.nodes) - set(purview)))
             # Collect the nodes in the network who had inputs to this mechanism
             # that were severed by this subsystem's cut.
-            severed_inputs = (mechanism_node.inputs &
+            severed_inputs = (inputs &
                               set([n for n in self.network.nodes if
                                    (n in cut.severed and mechanism_node in
                                     cut.intact)]))
@@ -274,6 +276,7 @@ class Subsystem:
             # overall CPT can be broadcast over the `accumulated_cjd` and then
             # later conditioned by indexing.
 
+            inputs = set(purview_node.inputs)
             # TODO extend to nonbinary nodes
             # Rotate the dimensions so the first dimension is the last
             tpm = purview_node.tpm
@@ -294,7 +297,7 @@ class Subsystem:
             # We marginalize-out inputs to the current purview node that are
             # within the subsystem but not in the mechanism, or those that were
             # severed by a cut.
-            marginal_inputs = purview_node.inputs & (
+            marginal_inputs = inputs & (
                 (set(self.nodes) - set(mechanism)) | severed_nodes)
             for node in marginal_inputs:
                 tpm = (tpm.sum(node.index, keepdims=True)
@@ -316,7 +319,7 @@ class Subsystem:
         # fix (by collapsing the CJD onto those states):
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Collect all nodes with inputs to any purview node.
-        inputs_to_purview = set.union(*[node.inputs for node in purview])
+        inputs_to_purview = set.union(*[set(node.inputs) for node in purview])
         # Collect nodes outside this subsystem.
         external_nodes = set(self.network.nodes) - set(self.nodes)
         # Fixed boundary condition nodes are those that are outside this
