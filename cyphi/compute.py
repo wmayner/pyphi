@@ -153,7 +153,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     mip = min(forward_mip, backward_mip)
     # Return the mip if the subsystem with the given partition is not
     # reducible.
-    return mip if mip.phi > constants.EPSILON else _null_mip(subsystem)
+    return mip if mip.phi > options.EPSILON else _null_mip(subsystem)
 
 
 # TODO document big_mip

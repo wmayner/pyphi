@@ -4,14 +4,15 @@
 import pytest
 import numpy as np
 
-from cyphi import utils, constants
+from cyphi import utils
+from cyphi import options
 from cyphi.network import Network
 
 
 def test_phi_eq():
     phi = 0.5
-    close_enough = phi - constants.EPSILON/2
-    not_quite = phi - constants.EPSILON*2
+    close_enough = phi - options.EPSILON/2
+    not_quite = phi - options.EPSILON*2
     assert utils.phi_eq(phi, close_enough)
     assert not utils.phi_eq(phi, not_quite)
     assert not utils.phi_eq(phi, (phi - phi))
@@ -21,10 +22,10 @@ def test_marginalize_out(standard):
     marginalized_distribution = utils.marginalize_out(standard.nodes[0],
                                                       standard.tpm)
     assert np.array_equal(marginalized_distribution,
-                            np.array([[[[0.,  0.,  0.5],
-                                        [1.,  1.,  0.5]],
-                                       [[1.,  0.,  0.5],
-                                        [1.,  1.,  0.5]]]]))
+                          np.array([[[[0.,  0.,  0.5],
+                                      [1.,  1.,  0.5]],
+                                     [[1.,  0.,  0.5],
+                                      [1.,  1.,  0.5]]]]))
 
 
 def test_purview_max_entropy_distribution():

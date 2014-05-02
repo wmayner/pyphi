@@ -16,7 +16,7 @@ from itertools import chain, combinations
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
-from . import constants
+from . import options
 
 def np_hash(a):
     """Return a hash of a NumPy array.
@@ -30,7 +30,7 @@ def np_hash(a):
 
 def phi_eq(x, y):
     """Compare two phi values up to |PRECISION|."""
-    return abs(x - y) < constants.EPSILON
+    return abs(x - y) < options.EPSILON
 
 
 # see http://stackoverflow.com/questions/16003217

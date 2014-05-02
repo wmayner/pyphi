@@ -11,7 +11,8 @@ Represents a candidate set for |phi| calculation.
 import numpy as np
 from itertools import chain
 from functools import lru_cache
-from .constants import DIRECTIONS, PAST, FUTURE, EPSILON, LRU_CACHE_MAX_SIZE
+from .constants import DIRECTIONS, PAST, FUTURE, LRU_CACHE_MAX_SIZE
+from . import options
 from . import validate
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (hamming_emd, max_entropy_distribution, powerset,
@@ -509,10 +510,10 @@ class Subsystem:
             phi = hamming_emd(unpartitioned_repertoire, partitioned_repertoire)
 
             # Return immediately if mechanism is reducible
-            if phi < EPSILON:
+            if phi < options.EPSILON:
                 return None
             # Update MIP if it's more minimal
-            if (phi_min - phi) > EPSILON:
+            if (phi_min - phi) > options.EPSILON:
                 phi_min = phi
                 # TODO Use properties here to infer mechanism and purview from
                 # partition yet access them with .mechanism and .partition
@@ -780,7 +781,7 @@ class Subsystem:
         future_mice = self.core_effect(mechanism, cut)
         phi = min(past_mice.phi, future_mice.phi)
 
-        if phi < EPSILON:
+        if phi < options.EPSILON:
             return None
         return Concept(
             mechanism=mechanism,
