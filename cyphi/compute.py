@@ -189,7 +189,7 @@ def big_mip(subsystem):
             return _null_mip(subsystem)
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
-    bipartitions = list(utils.bipartition(subsystem.nodes))[1:]
+    bipartitions = utils.bipartition(subsystem.nodes)[1:]
     if not bipartitions:
         return _null_mip(subsystem)
 
