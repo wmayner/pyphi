@@ -24,6 +24,7 @@ from . import constants, utils, options
 memory = Memory(cachedir=constants.CACHE_DIRECTORY, verbose=1)
 
 
+@lru_cache(maxsize=None)
 def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
@@ -75,7 +76,7 @@ def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, null_concept):
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)
 
 
-# TODO Figure out null concept - should it be a param for each one?
+@lru_cache(maxsize=None)
 def constellation_distance(C1, C2, null_concept):
     """Return the distance between two constellations in concept-space."""
     concepts_only_in_C1 = [c for c in C1 if c not in C2]
@@ -209,11 +210,13 @@ def big_mip(subsystem):
     return min(mip_candidates)
 
 
+@lru_cache(maxsize=None)
 def big_phi(subsystem):
     """Return the |big_phi| value of a subsystem."""
     return big_mip(subsystem).phi
 
 
+@lru_cache(maxsize=None)
 def complexes(network):
     """Return a generator for all complexes of the network.
 
@@ -226,6 +229,7 @@ def complexes(network):
     return (big_mip(subsystem) for subsystem in network.subsystems())
 
 
+@lru_cache(maxsize=None)
 def main_complex(network):
     """Return the main complex of the network."""
     if not isinstance(network, Network):
