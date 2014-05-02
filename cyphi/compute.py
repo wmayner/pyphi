@@ -224,7 +224,11 @@ def big_mip(subsystem):
     # will be merged, and we should use their solution.
     inital_cache_location = _big_mip.get_output_dir(subsystem)[0]
     mip = _big_mip(subsystem)
-    shutil.move(inital_cache_location, _big_mip.get_output_dir(subsystem)[0])
+    try:
+        shutil.move(inital_cache_location,
+                    _big_mip.get_output_dir(subsystem)[0])
+    except shutil.Error:
+        pass
     return mip
 
 
