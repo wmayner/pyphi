@@ -9,6 +9,9 @@ Methods for computing concepts, constellations, and integrated information of
 subsystems.
 """
 
+# TODO remove when uneeded
+import shutil
+
 import numpy as np
 from functools import lru_cache
 from joblib import Memory, Parallel, delayed
@@ -162,7 +165,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 
 # TODO document big_mip
 @memory.cache
-def big_mip(subsystem):
+def _big_mip(subsystem):
     """Return the MIP for a subsystem."""
     # Special case for single-node subsystems.
     if (len(subsystem.nodes) == 1):
@@ -208,6 +211,21 @@ def big_mip(subsystem):
         for partition in bipartitions)
 
     return min(mip_candidates)
+
+
+def big_mip(subsystem):
+    """Return the MIP for a subsystem."""
+    # TODO! joblib can't deal with the object changing at all, even if it
+    # defines its own hash function. The LRU cache data counts as a change, so
+    # without manually moving the results of a computation to the new joblib
+    # cache dir, big_mip will be called twice.
+    #
+    # This is a hacky workaround; at some point the joblib PR addressing this
+    # will be merged, and we should use their solution.
+    inital_cache_location = _big_mip.get_output_dir(subsystem)[0]
+    mip = _big_mip(subsystem)
+    shutil.move(inital_cache_location, _big_mip.get_output_dir(subsystem)[0])
+    return mip
 
 
 @lru_cache(maxsize=None)
