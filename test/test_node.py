@@ -35,7 +35,7 @@ def test_node_init_inputs(standard):
         standard.nodes[:2]
     ]
     for node in standard.nodes:
-        assert node.inputs == set(answer[node.index])
+        assert set(node.inputs) == set(answer[node.index])
 
 
 def test_node_eq(standard):
