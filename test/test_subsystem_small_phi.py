@@ -243,7 +243,7 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     print('\n')
 
     if expected:
-        assert any(result == mip for mip in expected)
+        assert result in expected
     else:
         assert result == expected
 
