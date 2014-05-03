@@ -87,8 +87,8 @@ class Network:
         validate.network(self)
 
         # Generate the nodes
-        self.nodes = [Node(self, node_index)
-                      for node_index in range(self.size)]
+        self.nodes = tuple([Node(self, node_index) for node_index in
+                            range(self.size)])
 
         # TODO extend to nonbinary nodes
         self.num_states = 2 ** self.size
