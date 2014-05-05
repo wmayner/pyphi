@@ -11,12 +11,13 @@ external use.
 
 import hashlib
 import numpy as np
-from functools import lru_cache
 from itertools import chain, combinations
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
 from . import options
+from .constants import USE_MEMORY_UP_TO
+from .lru_cache import lru_cache
 
 def np_hash(a):
     """Return a hash of a NumPy array.
@@ -203,7 +204,7 @@ def bipartition(a):
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
 
-@lru_cache(maxsize=None)
+@lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.
 
@@ -237,7 +238,7 @@ def bipartition_indices(N):
 
 
 # TODO extend to nonbinary nodes
-@lru_cache(maxsize=None)
+@lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
 def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of |N|
     binary nodes.
