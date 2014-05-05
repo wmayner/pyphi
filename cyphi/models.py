@@ -128,7 +128,7 @@ def _phi_then_mechanism_size_ge(self, other):
 def _numpy_aware_eq(a, b):
     """Return whether two objects are equal via recursion, using
     :func:`numpy.array_equal` for comparing numpy arays."""
-    if isinstance(a, type(np.array([]))) or isinstance(b, type(np.array([]))):
+    if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
         return np.array_equal(a, b)
     if ((isinstance(a, Iterable) and isinstance(b, Iterable))
             and not isinstance(a, str) and not isinstance(b, str)):
@@ -147,15 +147,18 @@ def _general_eq(a, b, attributes):
     try:
         for attr in attributes:
             _a, _b = getattr(a, attr), getattr(b, attr)
-            if attr == 'phi' and not utils.phi_eq(_a, _b):
-                return False
-            if (attr == 'mechanism' or attr == 'purview'):
+            if attr == 'phi':
+                if not utils.phi_eq(_a, _b):
+                    return False
+            elif (attr == 'mechanism' or attr == 'purview'):
                 if _a is None or _b is None and not _a == _b:
                     return False
                 elif not set(_a) == set(_b):
                     return False
             else:
                 if not _numpy_aware_eq(_a, _b):
+                    print(attr)
+                    print(_a, _b)
                     return False
         return True
     except AttributeError:
