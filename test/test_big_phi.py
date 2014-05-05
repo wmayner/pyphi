@@ -28,7 +28,8 @@ def test_concept(s):
 def big_phi_standard_example(subsystem):
     initial_precision = options.PRECISION
     options.PRECISION = 4
-    phi = cyphi.compute.big_phi(subsystem)
+    # Don't persist the output
+    phi = cyphi.compute._big_mip.func(subsystem).phi
     assert cyphi.utils.phi_eq(phi, 2.3125)
     options.PRECISION = initial_precision
 
