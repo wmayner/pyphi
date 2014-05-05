@@ -28,7 +28,7 @@ from .lru_cache import lru_cache
 memory = Memory(cachedir=CACHE_DIRECTORY, verbose=1)
 
 
-@lru_cache(maxsize=None, use_memory_up_to=USE_MEMORY_UP_TO)
+@lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
 def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
@@ -80,7 +80,7 @@ def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, null_concept):
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)
 
 
-@lru_cache(maxsize=None, use_memory_up_to=USE_MEMORY_UP_TO)
+@lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
 def constellation_distance(C1, C2, null_concept):
     """Return the distance between two constellations in concept-space."""
     concepts_only_in_C1 = [c for c in C1 if c not in C2]
@@ -233,13 +233,13 @@ def big_mip(subsystem):
     return mip
 
 
-@lru_cache(maxsize=None, use_memory_up_to=USE_MEMORY_UP_TO)
+@lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
 def big_phi(subsystem):
     """Return the |big_phi| value of a subsystem."""
     return big_mip(subsystem).phi
 
 
-@lru_cache(maxsize=None, use_memory_up_to=USE_MEMORY_UP_TO)
+@lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
 def complexes(network):
     """Return a generator for all complexes of the network.
 
@@ -252,7 +252,7 @@ def complexes(network):
     return (big_mip(subsystem) for subsystem in network.subsystems())
 
 
-@lru_cache(maxsize=None, use_memory_up_to=USE_MEMORY_UP_TO)
+@lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
 def main_complex(network):
     """Return the main complex of the network."""
     if not isinstance(network, Network):
