@@ -7,7 +7,7 @@ import test.example_networks
 
 
 collect_ignore = ["setup.py", ".pythonrc.py", "__cyphi_cache__",
-                  "test/__cyphi_cache__"]
+                  "test/__cyphi_cache__", "results"]
 
 
 # Test fixtures from example networks
