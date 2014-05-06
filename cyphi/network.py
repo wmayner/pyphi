@@ -57,6 +57,10 @@ class Network:
 
     def __init__(self, tpm, current_state, past_state,
                  connectivity_matrix=None):
+        # Coerce input to np.arrays
+        tpm = np.array(tpm)
+        if connectivity_matrix is not None:
+            connectivity_matrix = np.array(connectivity_matrix)
         # Get the number of nodes in the network.
         # The TPM can be either 2-dimensional or in N-D form, where transition
         # probabilities can be indexed by state-tuples. In either case, the
