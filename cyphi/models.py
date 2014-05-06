@@ -108,7 +108,7 @@ def _phi_then_mechanism_size_lt(self, other):
 
 def _phi_then_mechanism_size_gt(self, other):
     return (not _phi_then_mechanism_size_lt(self, other) and
-            not _phi_eq(self, other))
+            not self == other)
 
 
 def _phi_then_mechanism_size_le(self, other):
@@ -343,8 +343,7 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
             return _phi_lt(self, other)
 
     def __gt__(self, other):
-        return (not self.__lt__(other) and
-                not _phi_eq(self, other))
+        return not self.__lt__(other) and not self == other
 
     def __le__(self, other):
         return (self.__lt__(other) or
