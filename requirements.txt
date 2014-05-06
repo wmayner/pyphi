@@ -12,6 +12,7 @@ coverage==3.7.1
 # Dev requires
 Sphinx==1.2.2
 sphinx-bootstrap-theme==0.4.0
+sphinxcontrib-napoleon==0.2.7
 
 ## Nested dependencies
 Jinja2==2.7.2
