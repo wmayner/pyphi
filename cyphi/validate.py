@@ -67,15 +67,17 @@ def cut(subsystem, partition):
 
 def tpm(tpm):
     if (tpm.shape[-1] != len(tpm.shape) - 1):
-        raise ValueError("Invalid TPM: There must be a dimension for each node, "
-                         "each one being the size of the corresponding node's "
-                         "state space, plus one dimension that is the same size "
-                         "as the network.")
+        raise ValueError(
+            "Invalid TPM: There must be a dimension for each node, "
+            "each one being the size of the corresponding node's "
+            "state space, plus one dimension that is the same size "
+            "as the network.")
     # TODO extend to nonbinary nodes
     if (tpm.shape[:-1] != tuple([2] * tpm.shape[-1])):
-        raise ValueError("Invalid TPM: We can only handle binary nodes at the "
-                         "moment. Each dimension except the last must be of size "
-                         "2.")
+        raise ValueError(
+            "Invalid TPM: We can only handle binary nodes at the "
+            "moment. Each dimension except the last must be of size "
+            "2.")
 
 
 # TODO! test
@@ -121,11 +123,13 @@ def state(network):
                                                 network.size))
     # Check that the state is reachable from some state.
     if not _state_reachable(current_state, tpm):
-        raise StateUnreachableError(current_state, past_state, tpm,
+        raise StateUnreachableError(
+            current_state, past_state, tpm,
             "The current state is unreachable according to the given TPM.")
     # Check that the state is reachable from the given past state.
     if not _state_reachable_from(past_state, current_state, tpm):
-        raise StateUnreachableError(current_state, past_state, tpm,
+        raise StateUnreachableError(
+            current_state, past_state, tpm,
             "The current state cannot be reached from the past state "
             "according to the given TPM.")
 
