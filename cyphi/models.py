@@ -157,8 +157,6 @@ def _general_eq(a, b, attributes):
                     return False
             else:
                 if not _numpy_aware_eq(_a, _b):
-                    print(attr)
-                    print(_a, _b)
                     return False
         return True
     except AttributeError:
