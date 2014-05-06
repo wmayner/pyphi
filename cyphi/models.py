@@ -172,9 +172,10 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
     """A minimum information partition for |phi| calculation.
 
-    MIPs can be compared against each other with the normal python operators,
-    and are ordered first by |phi| value and then by mechanism size (the
-    exclusion principle).
+    ``Mip``s may be compared with the built-in Python comparison operators
+    (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
+    are equal up to |PRECISION|, the size of the mechanism is compared
+    (exclusion principle).
 
     Attributes:
         phi (float):
@@ -221,6 +222,11 @@ class Mice(namedtuple('Mice', _mice_attributes)):
     """A maximally irreducible cause or effect (i.e., "core cause" or "core
     effect").
 
+    ``Mice``s may be compared with the built-in Python comparison operators
+    (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
+    are equal up to |PRECISION|, the size of the mechanism is compared
+    (exclusion principle).
+
     Attributes:
         phi (float):
             The difference between the mechanism's unpartitioned and
@@ -266,6 +272,10 @@ class Concept(namedtuple('Concept', _concept_attributes)):
     `phi` is the small-phi_max value. `cause` and `effect` are the MICE objects
     for the past and future, respectively.
 
+    ``Concepts`` may be compared with the built-in Python comparison operators
+    (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
+    are equal up to |PRECISION|, the size of the mechanism is compared.
+
     Attributes:
         phi (float):
             The size of the concept. This is the minimum of the |phi| values of
@@ -303,12 +313,16 @@ class Concept(namedtuple('Concept', _concept_attributes)):
 
 _bigmip_attributes = ['phi', 'cut', 'unpartitioned_constellation',
                       'partitioned_constellation', 'subsystem']
-# TODO! document comparison methods (exclusion principle)
 
 
 class BigMip(namedtuple('BigMip', _bigmip_attributes)):
 
     """A minimum information partition for |big_phi| calculation.
+
+    ``BigMip``s may be compared with the built-in Python comparison operators
+    (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
+    are equal up to |PRECISION|, the size of the mechanism is compared
+    (exclusion principle).
 
     Attributes:
         phi (float): The |big_phi| value for the subsystem when taken against
