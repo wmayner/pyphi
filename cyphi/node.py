@@ -20,7 +20,8 @@ class Node(object):
             node.
         tpm (np.ndarray): The TPM for this node. ``this_node.tpm[0]`` and
             ``this_node.tpm[1]`` gives the probability tables that this node is
-            off and on, respectively, indexed by network state.
+            off and on, respectively, indexed by network state, **after
+            marginalizing-out nodes that don't connect to this node**.
 
     Examples:
         In a 3-node network, ``self.tpm[0][(0, 1, 0)]`` gives the probability
@@ -54,7 +55,6 @@ class Node(object):
 
         # Generate the node's TPM
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # TODO! document tpm generation
         tpm_on = self.network.tpm[..., self.index]
         tpm_off = 1 - tpm_on
         # Marginalize-out non-input nodes.
