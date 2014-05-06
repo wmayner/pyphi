@@ -10,7 +10,7 @@ Represents a candidate set for |phi| calculation.
 
 import numpy as np
 from itertools import chain
-from .constants import DIRECTIONS, PAST, FUTURE, USE_MEMORY_UP_TO
+from .constants import DIRECTIONS, PAST, FUTURE, MAXMEM
 from . import options, validate
 from .lru_cache import lru_cache
 # TODO use namespaces more (honking great idea, etc.)
@@ -105,7 +105,7 @@ class Subsystem:
     def __hash__(self):
         return self._hash
 
-    @lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
+    @lru_cache(maxmem=MAXMEM)
     def cause_repertoire(self, mechanism, purview, cut=None):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -218,7 +218,7 @@ class Subsystem:
         # whole comparisons are only ever done over the same purview.
         return cjd
 
-    @lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
+    @lru_cache(maxmem=MAXMEM)
     def effect_repertoire(self, mechanism, purview, cut):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -577,7 +577,7 @@ class Subsystem:
     # =========================================================================
 
     # TODO test phi max helpers
-    @lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
+    @lru_cache(maxmem=MAXMEM)
     def _test_connections(self, axis, nodes1, nodes2):
         """Tests connectivity of one set of nodes to another.
 

@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """
-Memory-aware LRU Cache function decorator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Memory-aware LRU cache decorator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A modification of the builtin ``functools.lru_cache`` decorator that takes an
-additional keyword argument, ``use_memory_up_to``. The cache is considered full
-if there are fewer than ``use_memory_up_to`` bytes of memory available.
+A modification of the builtin *functools.lru_cache* decorator that takes an
+additional keyword argument, *maxmem*, which specifies the maximum percentage
+of physical memory that the cache can use.
 
-If ``use_memory_up_to`` is set, then ``maxsize`` has no effect.
+If *maxmem* is set, then *maxsize* has no effect.
 
-Uses the ``psutil`` module to get the available memory.
+Uses the *psutil* module to get the percentage of available memory.
 """
 
 import psutil
@@ -63,15 +63,18 @@ def _make_key(args, kwds, typed,
         return key[0]
     return _HashedSeq(key)
 
-def lru_cache(maxsize=128, typed=False, use_memory_up_to=False):
+def lru_cache(maxsize=128, typed=False, maxmem=False):
     """Least-recently-used cache decorator.
 
-    *use_memory_up_to* is an integer representing the number of bytes of memory
-    that must be available on the system in order for a value to be cached. If
-    it is set, *maxsize* has no effect.
+    *maxmem* is an integer in range(1, 101) specifying the maximum percentage
+    of physical memory that the cache can use. If it is set, *maxsize* has no
+    effect.
 
-    If *maxsize* is set to None, the LRU features are disabled and the cache
-    can grow without bound.
+    If *maxsize* is set to None and *maxmem* is False, the LRU features are
+    disabled and the cache can grow without bound.
+
+    If *maxsize* is not None and *maxmem* is False, then the cache will be
+    limited to *maxsize* entries.
 
     If *typed* is True, arguments of different types will be cached separately.
     For example, f(3.0) and f(3) will be treated as distinct calls with
@@ -86,7 +89,8 @@ def lru_cache(maxsize=128, typed=False, use_memory_up_to=False):
     See:  http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used
 
     """
-    if use_memory_up_to:
+    # Disable maxsize if maxmem is set
+    if maxmem:
         maxsize=None
 
     # Users should only access the lru_cache through its public API:
@@ -108,7 +112,7 @@ def lru_cache(maxsize=128, typed=False, use_memory_up_to=False):
         root = []                # root of the circular doubly linked list
         root[:] = [root, root, None, None]     # initialize by pointing to self
 
-        if use_memory_up_to:
+        if maxmem:
 
             def wrapper(*args, **kwds):
                 # Size limited caching that tracks accesses by recency
@@ -161,8 +165,7 @@ def lru_cache(maxsize=128, typed=False, use_memory_up_to=False):
                         last = root[PREV]
                         link = [last, root, key, result]
                         last[NEXT] = root[PREV] = cache[key] = link
-                        full = (psutil.virtual_memory().available
-                                < use_memory_up_to)
+                        full = (psutil.virtual_memory().percent >= maxmem)
                     misses += 1
                 return result
 

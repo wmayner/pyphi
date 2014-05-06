@@ -16,14 +16,16 @@ from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
 from . import options
-from .constants import USE_MEMORY_UP_TO
+from .constants import MAXMEM
 from .lru_cache import lru_cache
+
 
 def np_hash(a):
     """Return a hash of a NumPy array.
 
     This is much faster than ``np.toString`` for large arrays."""
-    # Ensure that hashes are equal whatever the ordering in memory (C or Fortran)
+    # Ensure that hashes are equal whatever the ordering in memory (C or
+    # Fortran)
     a = np.ascontiguousarray(a)
     # Compute the digest and return a decimal int
     return int(hashlib.sha1(a.view(a.dtype)).hexdigest(), 16)
@@ -204,7 +206,7 @@ def bipartition(a):
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
 
-@lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
+@lru_cache(maxmem=MAXMEM)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.
 
@@ -238,7 +240,7 @@ def bipartition_indices(N):
 
 
 # TODO extend to nonbinary nodes
-@lru_cache(use_memory_up_to=USE_MEMORY_UP_TO)
+@lru_cache(maxmem=MAXMEM)
 def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of |N|
     binary nodes.
