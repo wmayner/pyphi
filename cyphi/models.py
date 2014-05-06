@@ -172,7 +172,7 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
     """A minimum information partition for |phi| calculation.
 
-    ``Mip``s may be compared with the built-in Python comparison operators
+    MIPs may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
     are equal up to |PRECISION|, the size of the mechanism is compared
     (exclusion principle).
@@ -222,7 +222,7 @@ class Mice(namedtuple('Mice', _mice_attributes)):
     """A maximally irreducible cause or effect (i.e., "core cause" or "core
     effect").
 
-    ``Mice``s may be compared with the built-in Python comparison operators
+    MICEs may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
     are equal up to |PRECISION|, the size of the mechanism is compared
     (exclusion principle).
@@ -272,7 +272,7 @@ class Concept(namedtuple('Concept', _concept_attributes)):
     `phi` is the small-phi_max value. `cause` and `effect` are the MICE objects
     for the past and future, respectively.
 
-    ``Concepts`` may be compared with the built-in Python comparison operators
+    Concepts may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
     are equal up to |PRECISION|, the size of the mechanism is compared.
 
@@ -319,7 +319,7 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
 
     """A minimum information partition for |big_phi| calculation.
 
-    ``BigMip``s may be compared with the built-in Python comparison operators
+    BigMIPs may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
     are equal up to |PRECISION|, the size of the mechanism is compared
     (exclusion principle).
