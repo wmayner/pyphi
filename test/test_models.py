@@ -75,7 +75,6 @@ def test_general_eq_different_mechanism_and_purview_order():
 
 # Test MIP {{{
 # ============
-# TODO! test ordering with exclusion principle
 
 def test_mip_ordering():
     phi1 = models.Mip(
@@ -121,15 +120,15 @@ def test_mip_equality():
 # Test MICE {{{
 # =============
 
-def test_mice_ordering():
+def test_mice_ordering_by_phi():
     phi1 = models.Mice(
         direction=None, mechanism=(), purview=(), repertoire=None, mip=None,
         phi=1.0)
     different_phi1 = models.Mice(
-        direction='different', mechanism=(0, 1), purview=(), repertoire=None,
+        direction='different', mechanism=(), purview=(), repertoire=None,
         mip=None, phi=1.0)
     phi2 = models.Mice(
-        direction=0, mechanism=(1, 2, 3), purview=(), repertoire=None,
+        direction=0, mechanism=(), purview=(), repertoire=None,
         mip=None, phi=1.0 + options.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
@@ -137,6 +136,20 @@ def test_mice_ordering():
     assert phi2 >= phi1
     assert phi1 <= different_phi1
     assert phi1 >= different_phi1
+
+
+def test_mice_odering_by_mechanism():
+    small = models.Mice(
+        direction=None, mechanism=(1, 2), purview=(), repertoire=None,
+        mip=None, phi=1.0)
+    big = models.Mice(
+        direction=None, mechanism=(1, 2, 3), purview=(), repertoire=None,
+        mip=None, phi=1.0)
+    assert small < big
+    assert small <= big
+    assert big > small
+    assert big >= small
+    assert big != small
 
 
 def test_mice_equality():
@@ -175,6 +188,20 @@ def test_concept_ordering():
     assert phi2 >= phi1
     assert phi1 <= different_phi1
     assert phi1 >= different_phi1
+
+
+def test_concept_odering_by_mechanism():
+    small = models.Concept(
+        mechanism=(0, 1), location=None, cause=None, effect=None,
+        phi=1.0)
+    big = models.Concept(
+        mechanism=(0, 1, 3), location=None, cause=None, effect=None,
+        phi=1.0)
+    assert small < big
+    assert small <= big
+    assert big > small
+    assert big >= small
+    assert big != small
 
 
 def test_concept_equality():
@@ -216,6 +243,22 @@ def test_bigmip_ordering():
     assert phi2 >= phi1
     assert phi1 <= different_phi1
     assert phi1 >= different_phi1
+
+
+def test_bigmip_odering_by_mechanism():
+    small = models.BigMip(
+        cut=None, unpartitioned_constellation=None,
+        partitioned_constellation=None, subsystem=1,
+        phi=1.0)
+    big = models.BigMip(
+        cut=None, unpartitioned_constellation=None,
+        partitioned_constellation=None, subsystem=2,
+        phi=1.0)
+    assert small < big
+    assert small <= big
+    assert big > small
+    assert big >= small
+    assert big != small
 
 
 def test_bigmip_equality(s):
