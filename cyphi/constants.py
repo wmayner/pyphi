@@ -10,5 +10,5 @@ DIRECTIONS = ('past', 'future')
 # Directory for the persistent joblib Memory cache
 CACHE_DIRECTORY = '__cyphi_cache__'
 # The maximum percentage of RAM that CyPhi should use for caching.
-# Defaults to 75%.
-MAXMEM = 75
+# Defaults to 50%.
+MAXMEM = 50
