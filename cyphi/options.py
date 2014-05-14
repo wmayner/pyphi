@@ -18,7 +18,7 @@ class _Options(object):
         # Choose whether to use multiple CPUs in evaluating subsystem cuts.
         self.PARALLEL_CUT_EVALUATION = True
         # The verbosity of parallel computation.
-        self.VERBOSE_PARALLEL = 10
+        self.VERBOSE_PARALLEL = 20
         # In some applications of this library, the user may prefer to define
         # single-node subsystems as having 0.5 Phi.
         self.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = False
