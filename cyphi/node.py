@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from .marbl import Marbl
 import numpy as np
 import functools
 
@@ -68,6 +69,9 @@ class Node(object):
         self.tpm = np.array([tpm_off, tpm_on])
         # Make it immutable (for hashing)
         self.tpm.flags.writeable = False
+
+        # Compute and store the normal form of the node's Markov blanket
+        self.marbl = Marbl(tpm_on.tolist())
 
         # Only compute hash once
         self._hash = hash((self.network, self.index))

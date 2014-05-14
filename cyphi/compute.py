@@ -13,19 +13,16 @@ subsystems.
 import shutil
 
 import numpy as np
-from joblib import Memory, Parallel, delayed
+from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
 from . import utils, options
+from .utils import memory
 from .models import Cut, BigMip
 from .network import Network
-from .constants import CACHE_DIRECTORY, PAST, FUTURE, MAXMEM
+from .constants import PAST, FUTURE, MAXMEM
 from .lru_cache import lru_cache
-
-
-# The joblib Memory object for persistent caching
-memory = Memory(cachedir=CACHE_DIRECTORY, verbose=1)
 
 
 @lru_cache(maxmem=MAXMEM)
