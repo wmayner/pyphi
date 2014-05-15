@@ -38,10 +38,6 @@ class Node(object):
         # Label for display
         self.label = label
 
-        # This will hold the list of nodes that have connections to this node.
-        # It can only be generated after the network to which this node belongs
-        # has finished initializing, so it's set to None for now.
-        self._inputs = None
         # Get indices of the inputs
         if self.network.connectivity_matrix is not None:
             # If a connectivity matrix was provided, store the indices of nodes
@@ -70,26 +66,37 @@ class Node(object):
         # Make it immutable (for hashing)
         self.tpm.flags.writeable = False
 
-        # Compute and store the normal form of the node's Markov blanket
-        self.marbl = Marbl(tpm_on.tolist())
-
         # Only compute hash once
         self._hash = hash((self.network, self.index))
 
-    # ``inputs`` must be a property because at the time of node
-    # creation, the network doesn't have a list of Node objects yet, only a
-    # size (and thus a range of node indices); we want the node's inputs to be
-    # a list of actual Node objects, so we defer access to this list of Nodes
-    # until it is created.
-    def get_inputs(self):
+        # Deferred properties
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # ``inputs`` and ``marbl`` must be properties because at the time of
+        # node creation, the network doesn't have a list of Node objects yet,
+        # only a size (and thus a range of node indices). So, we defer
+        # construction until the properties are needed.
+        self._inputs = None
+        self._marbl = None
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    @property
+    def inputs(self):
+        """The set of nodes with connections to this node."""
         if self._inputs is not None:
             return self._inputs
         else:
             self._inputs = [node for node in self.network.nodes if node.index
                             in self._input_indices]
             return self._inputs
-    inputs = property(get_inputs,
-                      "The set of nodes with connections to this node.")
+
+    @property
+    def marbl(self):
+        """The normalized representation of this node's Markov blanket."""
+        if self._marbl is not None:
+            return self._marbl
+        else:
+            self._marbl = Marbl(self.tpm[1], [n.tpm[1] for n in self.inputs])
+            return self._marbl
 
     def __repr__(self):
         return self.__str__()
