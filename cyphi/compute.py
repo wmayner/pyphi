@@ -18,10 +18,9 @@ from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
 from . import utils, options
-from .utils import memory
 from .models import Cut, BigMip
 from .network import Network
-from .constants import PAST, FUTURE, MAXMEM
+from .constants import PAST, FUTURE, MAXMEM, memory
 from .lru_cache import lru_cache
 
 

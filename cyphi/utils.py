@@ -11,18 +11,13 @@ external use.
 
 import hashlib
 import numpy as np
-from joblib import Memory
 from itertools import chain, combinations
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
 from . import options
-from .constants import MAXMEM, CACHE_DIRECTORY
+from .constants import MAXMEM
 from .lru_cache import lru_cache
-
-
-# The joblib Memory object for persistent caching
-memory = Memory(cachedir=CACHE_DIRECTORY, verbose=1)
 
 
 def np_hash(a):
