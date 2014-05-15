@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import pytest
 import numpy as np
 
 from cyphi import utils, options
@@ -98,17 +97,3 @@ def test_emd_same_distributions():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
     assert utils.hamming_emd(a, b) == 0.0
-
-
-def test_emd_different_shapes():
-    a = np.ones((2, 1, 2)) / 4
-    b = np.ones((2, 2, 2)) / 8
-    with pytest.raises(ValueError):
-        assert utils.hamming_emd(a, b)
-
-
-def test_emd_mismatched_size():
-    a = np.ones((2, 2, 2, 2)) / 16
-    b = np.ones((2, 2, 2)) / 8
-    with pytest.raises(ValueError):
-        assert utils.hamming_emd(a, b)
