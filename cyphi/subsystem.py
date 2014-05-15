@@ -67,10 +67,7 @@ class Subsystem:
                                          repr(self.past_state)]) + ")"
 
     def __str__(self):
-        return "Subsystem([" + ", ".join([str(list(map(str, self.nodes))),
-                                          str(self.current_state),
-                                          str(self.past_state),
-                                          str(self.network)]) + ")"
+        return repr(self)
 
     def __eq__(self, other):
         """Return whether this subsystem is equal to the other object.
