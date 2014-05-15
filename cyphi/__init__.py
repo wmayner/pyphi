@@ -34,7 +34,7 @@ They are listed here with their defaults:
 
     >>> import cyphi
     >>> cyphi.options.VERBOSE_PARALLEL
-    10
+    20
 
 - Define the Phi value of subsystems containing only a single node with a
   self-loop to be 0.5. If set to False, their Phi will be actually be computed
