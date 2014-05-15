@@ -10,13 +10,13 @@ Represents a candidate set for |phi| calculation.
 
 import numpy as np
 from itertools import chain
-from .marbl import MarblSet
-from .constants import DIRECTIONS, PAST, FUTURE, MAXMEM
+from marbl import MarblSet
+from .constants import DIRECTIONS, PAST, FUTURE, MAXMEM, memory
 from . import options, validate
 from .lru_cache import lru_cache
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (hamming_emd, max_entropy_distribution, powerset,
-                    bipartition, phi_eq, memory)
+                    bipartition, phi_eq)
 from .models import Cut, Mip, Part, Mice, Concept
 
 
@@ -776,8 +776,8 @@ class Subsystem:
     # cache hits, since the output depends only on the causual properties of
     # the nodes.
     # See the documentation for the ``marbl`` module.
-    @memory.cache(ignore='mechanism')
-    def concept(self, mechanism, marblset, cut=None):
+    @memory.cache(ignore=['self', 'mechanism'])
+    def concept(self, mechanism, marblset_hash, cut=None):
         """Returns the concept specified by a mechanism."""
         # If any node in the mechanism either has no inputs from the subsystem
         # or has no outputs to the subsystem, then the mechanism is necessarily
@@ -810,8 +810,9 @@ class Subsystem:
 
     def constellation(self, cut=None):
         """Return the conceptual structure of this subsystem."""
-        concepts = [self.concept(mechanism,
-                                 MarblSet(n.marbl for n in mechanism),
+        concepts = [self.concept(self,
+                                 mechanism,
+                                 hash(MarblSet(n.marbl for n in mechanism)),
                                  cut)
                     for mechanism in powerset(self.nodes)]
         # Filter out non-concepts
