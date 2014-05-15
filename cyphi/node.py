@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from .marbl import Marbl
+from marbl import Marbl
 import numpy as np
 import functools
 
