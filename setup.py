@@ -41,7 +41,7 @@ setup(
     package_data={'': ['LICENSE']},
     license='GNU General Public License v3.0',
     zip_safe=False,
-    classifiers=(
+    classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Natural Language :: English',
@@ -50,6 +50,6 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
-        'Topic :: Scientific/Engineering'
-    ),
+        'Topic :: Scientific/Engineering',
+    ]
 )
