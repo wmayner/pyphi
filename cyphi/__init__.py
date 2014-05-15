@@ -60,4 +60,4 @@ from . import compute, options, constants
 
 # Create the cache if it doesn't exist
 import os
-os.makedirs(constants.CACHE_DIRECTORY, exist_ok=True)
+os.makedirs(constants.CACHE_DIRECTORY, mode=0o755, exist_ok=True)
