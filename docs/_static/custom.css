@@ -1,0 +1,48 @@
+@import url(http://fonts.googleapis.com/css?family=Droid+Sans+Mono|Open+Sans:300,400,700);
+body {
+    font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+h1 {
+    font-size: 200%;
+}
+h2 {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    font-size: 170%;
+}
+.rst-content dl:not(.docutils) tt.descname,
+.rst-content dl:not(.docutils) tt.descclassname,
+em, .docutils.literal {
+    font-family: 'Droid Sans Mono', 'Monaco', monospace;
+}
+.rst-content dl:not(.docutils) tt.descclassname,
+.rst-content dl:not(.docutils) tt.docutils.literal {
+    font-weight: normal;
+}
+.rst-content dl:not(.docutils) tt.docutils.literal {
+    font-size: 90%;
+    padding: 3px 5px;
+    border: none;
+    color: #099;
+    border-radius: 4px;
+}
+.property {
+    padding: 0 10px;
+}
+.rst-content dl:not(.docutils) tt.descname {
+    font-size: 120% !important;
+}
+
+.rst-content dl:not(.docutils) big {
+    font-size: 140% !important;
+}
+
+.rst-content dl:not(.docutils) .attribute tt.descname {
+    font-size: 100% !important;
+}
+.rst-content dl:not(.docutils) dt {
+    margin-bottom: 15px;
+}
+.wy-nav-top i {
+    margin-top: 9px;
+}
