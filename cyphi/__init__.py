@@ -12,10 +12,24 @@
 #   |_______|
 
 """
+=====
 CyPhi
 =====
 
 CyPhi is a Python library for computing integrated information.
+
+
+Usage
+~~~~~
+
+The :class:`Network` object is the main object on which computations are performed. It represents the network of interest.
+
+The :class:`Subsystem` object is the secondary object; it represents a
+subsystem of a network. |big_phi| is defined on subsystems.
+
+The :mod:`cyphi.compute` module is the main entry-point for the library. It
+contains methods for calculating concepts, constellations, complexes, etc. See
+its documentation for details.
 
 
 Options
@@ -43,6 +57,7 @@ They are listed here with their defaults:
     >>> import cyphi
     >>> cyphi.options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
     False
+
 """
 
 __title__ = 'cyphi'
@@ -57,7 +72,3 @@ __copyright__ = 'Copyright 2014 Will Mayner'
 from .network import Network
 from .subsystem import Subsystem
 from . import compute, options, constants
-
-# Create the cache if it doesn't exist
-import os
-os.makedirs(constants.CACHE_DIRECTORY, mode=0o755, exist_ok=True)
