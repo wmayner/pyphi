@@ -10,10 +10,9 @@ Represents a candidate set for |phi| calculation.
 
 import numpy as np
 from itertools import chain
-from marbl import MarblSet
-from .constants import DIRECTIONS, PAST, FUTURE, MAXMEM, memory
-from . import options, validate
+from .constants import DIRECTIONS, PAST, FUTURE, MAXMEM
 from .lru_cache import lru_cache
+from . import options, validate
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (hamming_emd, max_entropy_distribution, powerset,
                     bipartition, phi_eq)
@@ -767,50 +766,3 @@ class Subsystem:
             phi=0,
             cause=None,
             effect=None)
-
-    # Cache the output using the normal form of the multiset of the mechanism
-    # nodes' Markov blankets (not the mechanism itself). This results in more
-    # cache hits, since the output depends only on the causual properties of
-    # the nodes.
-    # See the documentation for the ``marbl`` module.
-    @memory.cache(ignore=['self', 'mechanism'])
-    def concept(self, mechanism, marblset_hash, cut=None):
-        """Returns the concept specified by a mechanism."""
-        # If any node in the mechanism either has no inputs from the subsystem
-        # or has no outputs to the subsystem, then the mechanism is necessarily
-        # reducible and cannot be a concept (since removing that node would
-        # make no difference to at least one of the MICEs).
-        if not (self._all_connect_to_any(mechanism, self.nodes) and
-                self._any_connect_to_all(self.nodes, mechanism)):
-            return None
-
-        past_mice = self.core_cause(mechanism, cut)
-        future_mice = self.core_effect(mechanism, cut)
-        phi = min(past_mice.phi, future_mice.phi)
-
-        if phi < options.EPSILON:
-            return None
-        return Concept(
-            mechanism=mechanism,
-            location=np.array([
-                self.expand_cause_repertoire(past_mice.mechanism,
-                                             past_mice.purview,
-                                             past_mice.repertoire,
-                                             cut),
-                self.expand_effect_repertoire(future_mice.mechanism,
-                                              future_mice.purview,
-                                              future_mice.repertoire,
-                                              cut)]),
-            phi=phi,
-            cause=past_mice,
-            effect=future_mice)
-
-    def constellation(self, cut=None):
-        """Return the conceptual structure of this subsystem."""
-        concepts = [self.concept(self,
-                                 mechanism,
-                                 hash(MarblSet(n.marbl for n in mechanism)),
-                                 cut)
-                    for mechanism in powerset(self.nodes)]
-        # Filter out non-concepts
-        return tuple(filter(None, concepts))

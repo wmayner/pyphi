@@ -9,19 +9,69 @@ Methods for computing concepts, constellations, and integrated information of
 subsystems.
 """
 
-# TODO remove when uneeded
-import shutil
-
+import functools
 import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
 from . import utils, options
-from .models import Cut, BigMip
+from .models import Mechanism, Concept, Cut, BigMip
 from .network import Network
 from .constants import PAST, FUTURE, MAXMEM, memory
 from .lru_cache import lru_cache
+
+
+@memory.cache(ignore=['subsystem', 'mechanism'])
+def _concept(subsystem, mechanism, hash, cut):
+    """Returns the concept specified by a mechanism.
+
+    The output is "persistently cached" (saved to the disk for later access to
+    avoid recomputation).
+    Cache the output using the normal form of the multiset of the mechanism
+    nodes' Markov blankets (not the mechanism itself). This results in more
+    cache hits, since the output depends only on the causual properties of the
+    nodes. See the marbl documentation.
+    """
+    # If any node in the mechanism either has no inputs from the subsystem
+    # or has no outputs to the subsystem, then the mechanism is necessarily
+    # reducible and cannot be a concept (since removing that node would
+    # make no difference to at least one of the MICEs).
+    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
+            subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
+        return None
+
+    past_mice = subsystem.core_cause(mechanism, cut)
+    future_mice = subsystem.core_effect(mechanism, cut)
+    phi = min(past_mice.phi, future_mice.phi)
+
+    if phi < options.EPSILON:
+        return None
+    return Concept(
+        mechanism=mechanism,
+        location=np.array([
+            subsystem.expand_cause_repertoire(past_mice.mechanism,
+                                              past_mice.purview,
+                                              past_mice.repertoire, cut),
+            subsystem.expand_effect_repertoire(future_mice.mechanism,
+                                               future_mice.purview,
+                                               future_mice.repertoire, cut)]),
+        phi=phi,
+        cause=past_mice,
+        effect=future_mice)
+
+
+@functools.wraps(_concept)
+def concept(subsystem, mechanism, cut=None):
+    return _concept(subsystem, mechanism, hash(mechanism), cut)
+
+
+def constellation(subsystem, cut=None):
+    """Return the conceptual structure of this subsystem."""
+    concepts = [concept(subsystem, Mechanism(subset), cut) for subset in
+                utils.powerset(subsystem.nodes)]
+    # Filter out non-concepts
+    return tuple(filter(None, concepts))
 
 
 @lru_cache(maxmem=MAXMEM)
@@ -98,7 +148,7 @@ def conceptual_information(subsystem):
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    return constellation_distance(subsystem.constellation(), ())
+    return constellation_distance(constellation(subsystem), ())
 
 
 # TODO document
@@ -133,7 +183,7 @@ def _single_node_mip(subsystem):
 def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
-    forward_constellation = subsystem.constellation(cut=forward_cut)
+    forward_constellation = constellation(subsystem, cut=forward_cut)
     forward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    forward_constellation,
@@ -144,7 +194,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
         subsystem=subsystem)
     # Compute backward mip.
     backward_cut = Cut(partition[1], partition[0])
-    backward_constellation = subsystem.constellation(cut=backward_cut)
+    backward_constellation = constellation(subsystem, cut=backward_cut)
     backward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    backward_constellation,
@@ -161,11 +211,8 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 
 
 # TODO document big_mip
-# Use custom-defined subsystem hash instead of joblib hash
-@utils.use_native_hash
 @memory.cache(ignore=['subsystem'])
-def big_mip(subsystem,
-            subsystem_hash):
+def _big_mip(subsystem, cache_key):
     """Return the MIP for a subsystem."""
     # Special case for single-node subsystems.
     if (len(subsystem.nodes) == 1):
@@ -200,7 +247,7 @@ def big_mip(subsystem,
     # =========================================================================
 
     # Calculate the unpartitioned constellation.
-    unpartitioned_constellation = subsystem.constellation(subsystem.null_cut)
+    unpartitioned_constellation = constellation(subsystem, subsystem.null_cut)
     # Parallel loop over all partitions (use all but one CPU).
     mip_candidates = Parallel(n_jobs=(-2 if options.PARALLEL_CUT_EVALUATION
                                       else 1),
@@ -211,6 +258,12 @@ def big_mip(subsystem,
         for partition in bipartitions)
 
     return min(mip_candidates)
+
+
+# Wrapper so that joblib.Memory caches by the native hash
+@functools.wraps(_big_mip)
+def big_mip(subsystem):
+    return _big_mip(subsystem, hash(subsystem))
 
 
 @lru_cache(maxmem=MAXMEM)
