@@ -1,6 +1,9 @@
 ***********************
 CyPhi: |phi| for Python
 ***********************
+.. Travis build sticker:
+.. image:: https://travis-ci.org/wmayner/cyphi.svg?branch=develop
+    :target: https://travis-ci.org/wmayner/cyphi
 
 CyPhi is a Python library for computing integrated information (|phi|), and
 the associated quantities and objects.
@@ -56,9 +59,9 @@ with `Grunt.js <http:gruntjs.com>`_.
 
 To get ``grunt``, first install `Node.js <http://nodejs.org/>`_. Then, within
 the ``cyphi`` directory, run ``npm install`` to install the local ``npm``
-dependencies, then run ``sudo npm install -g grunt-cli`` to install the ``grunt``
-command to your system. Now you should be able to run tasks with ``grunt``,
-*e.g.*
+dependencies, then run ``sudo npm install -g grunt grunt-cli`` to install the
+``grunt`` command to your system. Now you should be able to run tasks with
+``grunt``, *e.g.*
 
 .. code:: bash
 
