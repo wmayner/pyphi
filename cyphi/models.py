@@ -17,6 +17,7 @@ from . import utils
 # TODO use properties to avoid data duplication
 
 
+# TODO make ref in docs
 class Mechanism(tuple):
 
     """Represents an unordered subset of nodes for |phi| evaluation.
@@ -25,8 +26,8 @@ class Mechanism(tuple):
     :ref:`Marbl-documentation`.
     """
 
-    def __new__(cls, args):
-        self = super(Mechanism, cls).__new__(cls, args)
+    def __new__(cls, *iterable):
+        self = super(Mechanism, cls).__new__(cls, *iterable)
         # Make the normal form of the Mechanism
         self.marblset = MarblSet(n.marbl for n in self)
         # Compute the canonical hash (once)
