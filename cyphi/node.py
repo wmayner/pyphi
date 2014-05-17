@@ -95,6 +95,7 @@ class Node(object):
         if self._marbl is not None:
             return self._marbl
         else:
+            # TODO extend to nonbinary nodes
             self._marbl = Marbl(self.tpm[1], [n.tpm[1] for n in self.inputs])
             return self._marbl
 
