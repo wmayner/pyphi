@@ -2,11 +2,15 @@ language: python
 python:
   - "3.2"
   - "3.3"
+virtualenv:
+    system_site_packages: true
 before_install:
-    # scipy won't install without these:
+    # Faster than `pip install scipy`:
+    - SITE_PKG_DIR=$VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/site-packages
+    - rm -f $VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/no-global-site-packages.txt  
     - sudo apt-get update -qq
-    - sudo apt-get install -qq gfortran libopenblas-dev liblapack-dev
+    - sudo apt-get install -qq python-numpy python-scipy
 # Install dependencies
-install: "pip install -q scipy && pip install -r requirements.txt"
+install: "pip install -r requirements.txt"
 # Run tests
 script: pytest
