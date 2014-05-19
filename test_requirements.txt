@@ -1,0 +1,5 @@
+pytest
+coverage
+Sphinx
+sphinxcontrib-napoleon
+sphinx_rtd_theme

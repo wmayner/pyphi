@@ -6,14 +6,12 @@ joblib==0.8.0a3
 psutil==2.1.1
 marbl-python<1.0.0
 
-# Tests require
-pytest==2.5.2
-coverage==3.7.1
-
-# Docs require
-Sphinx==1.2.2
-sphinx-bootstrap-theme==0.4.0
-sphinxcontrib-napoleon==0.2.7
+# Tests/docs require
+pytest
+coverage
+Sphinx
+sphinxcontrib-napoleon
+sphinx_rtd_theme
 
 ## Nested dependencies
 Jinja2==2.7.2
