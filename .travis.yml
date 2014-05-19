@@ -1,7 +1,6 @@
 language: python
 
 python:
-  - "3.2"
   - "3.3"
 
 # Setup miniconda
@@ -20,7 +19,8 @@ before_install:
 install:
   - conda create --yes -n cyphi python=$TRAVIS_PYTHON_VERSION pip numpy scipy
   - source activate cyphi
-  - pip install pytest  # not yet available for py3 in anaconda 
+  # Not yet available for py3 in anaconda 
+  - pip install pytest
   - python setup.py install
 
 # Run tests
