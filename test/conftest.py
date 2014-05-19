@@ -6,10 +6,6 @@ import pytest
 import example_networks
 
 
-collect_ignore = ["setup.py", ".pythonrc.py", "__cyphi_cache__",
-                  "test/__cyphi_cache__", "results"]
-
-
 # Test fixtures from example networks
 # ===================================
 
@@ -69,16 +65,3 @@ def big_subsys_all():
 @pytest.fixture()
 def reducible():
     return example_networks.reducible()
-
-
-# Run slow tests separately with command-line option
-# ==================================================
-
-
-def pytest_addoption(parser):
-    parser.addoption("--runslow", action="store_true", help="run slow tests")
-
-
-def pytest_runtest_setup(item):
-    if 'slow' in item.keywords and not item.config.getoption("--runslow"):
-        pytest.skip("need --runslow option to run")
