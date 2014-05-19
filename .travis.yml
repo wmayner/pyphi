@@ -1,12 +1,28 @@
 language: python
+
 python:
-  - "3.2"
   - "3.3"
+
+# Setup miniconda
 before_install:
-    # scipy won't install without these:
-    - sudo apt-get update -qq
-    - sudo apt-get install -qq gfortran libopenblas-dev liblapack-dev
-# Install dependencies
-install: "pip install -r requirements.txt"
+  - wget http://repo.continuum.io/miniconda/Miniconda3-3.3.0-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda3/bin:$PATH
+  # Update conda itself
+  - conda update --yes conda
+  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
+  - sudo rm -rf /dev/shm
+  - sudo ln -s /run/shm /dev/shm
+
+# Install packages
+install:
+  - conda create --yes -n cyphi python=$TRAVIS_PYTHON_VERSION pip numpy scipy
+  - source activate cyphi
+  # Not yet available for py3 in anaconda 
+  - pip install pytest
+  - pip freeze
+  - python setup.py install
+
 # Run tests
-script: pytest
+script: py.test

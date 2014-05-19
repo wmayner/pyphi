@@ -19,7 +19,7 @@ em, .docutils.literal {
 .rst-content dl:not(.docutils) tt.docutils.literal {
     font-weight: normal;
 }
-.rst-content dl:not(.docutils) tt.docutils.literal {
+.rst-content tt.docutils.literal {
     font-size: 90%;
     padding: 3px 5px;
     border: none;
