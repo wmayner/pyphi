@@ -21,6 +21,7 @@ install:
   - source activate cyphi
   # Not yet available for py3 in anaconda 
   - pip install pytest
+  - pip freeze
   - python setup.py install
 
 # Run tests
