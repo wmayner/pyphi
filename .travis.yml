@@ -17,9 +17,7 @@ before_install:
 
 # Install packages
 install:
-  - conda create --yes -n cyphi python=$TRAVIS_PYTHON_VERSION pip numpy scipy
-  - source activate cyphi
-  # Not yet available for py3 in anaconda 
+  - conda create --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy
   - pip install -r test_requirements.txt
   - pip freeze
   - python setup.py install
