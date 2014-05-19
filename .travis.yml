@@ -18,9 +18,8 @@ before_install:
 # Install packages
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy
-  - pip install -r test_requirements.txt
+  - pip install -r requirements.txt
   - pip freeze
-  - python setup.py install
 
 # Run tests
 script: py.test
