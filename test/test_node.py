@@ -5,7 +5,7 @@ import numpy as np
 
 from cyphi.network import Network
 from cyphi.node import Node
-from cyphi import utils
+
 
 
 def test_node_init_tpm(standard):
@@ -27,6 +27,7 @@ def test_node_init_tpm(standard):
     ]
     for node in standard.nodes:
         assert np.array_equal(node.tpm, answer[node.index])
+
 
 def test_node_init_inputs(standard):
     answer = [

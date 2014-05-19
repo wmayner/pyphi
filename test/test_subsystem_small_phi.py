@@ -6,9 +6,9 @@ from pprint import pprint
 import numpy as np
 
 from cyphi import options
-from . import example_networks
 from cyphi.models import Mip, Part
 
+import example_networks
 
 
 s = example_networks.s()

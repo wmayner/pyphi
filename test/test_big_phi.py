@@ -6,7 +6,7 @@ import numpy as np
 
 from cyphi import options, compute, models, utils
 
-from . import example_networks as examples
+import example_networks as examples
 
 
 # Precision for testing

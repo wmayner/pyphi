@@ -3,7 +3,7 @@
 
 import pytest
 
-import test.example_networks
+import example_networks
 
 
 collect_ignore = ["setup.py", ".pythonrc.py", "__cyphi_cache__",
@@ -17,58 +17,58 @@ collect_ignore = ["setup.py", ".pythonrc.py", "__cyphi_cache__",
 
 @pytest.fixture()
 def standard():
-    return test.example_networks.standard()
+    return example_networks.standard()
 
 
 @pytest.fixture()
 def s():
-    return test.example_networks.s()
+    return example_networks.s()
 
 
 @pytest.fixture()
 def subsys_n0n2():
-    return test.example_networks.subsys_n0n2()
+    return example_networks.subsys_n0n2()
 
 
 @pytest.fixture()
 def subsys_n1n2():
-    return test.example_networks.subsys_n1n2()
+    return example_networks.subsys_n1n2()
 
 
 # Simple network and subsystems
 
 @pytest.fixture()
 def simple():
-    return test.example_networks.simple()
+    return example_networks.simple()
 
 
 @pytest.fixture()
 def s_subsys_all_off():
-    return test.example_network.s_subsys_all_off()
+    return example_networks.s_subsys_all_off()
 
 
 @pytest.fixture()
 def s_subsys_all_a_just_on():
-    return test.example_network.s_subsys_all_a_just_on()
+    return example_networks.s_subsys_all_a_just_on()
 
 
 # Big network and subsystems
 
 @pytest.fixture()
 def big():
-    return test.example_networks.big()
+    return example_networks.big()
 
 
 @pytest.fixture()
 def big_subsys_all():
-    return test.example_networks.big_subsys_all()
+    return example_networks.big_subsys_all()
 
 
 # Reducible network
 
 @pytest.fixture()
 def reducible():
-    return test.example_networks.reducible()
+    return example_networks.reducible()
 
 
 # Run slow tests separately with command-line option

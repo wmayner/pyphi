@@ -6,7 +6,8 @@ from itertools import chain
 
 from cyphi.models import Mice
 from cyphi.utils import phi_eq
-from . import example_networks
+
+import example_networks
 
 
 # Expected results {{{

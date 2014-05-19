@@ -7,6 +7,7 @@ from cyphi.network import Network
 from cyphi.subsystem import Subsystem
 import cyphi.matlab as matlab
 
+
 # TODO pass just the subsystem (contains a reference to the network)
 
 use_connectivity_matrices = True

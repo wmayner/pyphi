@@ -7,6 +7,7 @@ from cyphi import utils, options
 from cyphi.network import Network
 
 
+
 def test_phi_eq():
     phi = 0.5
     close_enough = phi - options.EPSILON/2

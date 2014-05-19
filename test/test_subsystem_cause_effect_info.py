@@ -4,6 +4,7 @@
 from cyphi.utils import hamming_emd
 
 
+
 def test_cause_info(s):
     mechanism = (s.nodes[0], s.nodes[1])
     purview = (s.nodes[0], s.nodes[2])

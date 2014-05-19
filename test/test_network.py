@@ -8,6 +8,7 @@ from cyphi.network import Network
 from cyphi.node import Node
 
 
+
 @pytest.fixture()
 def network():
     size = 3

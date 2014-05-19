@@ -6,7 +6,7 @@ import numpy as np
 
 from cyphi.models import Cut
 
-from . import example_networks
+import example_networks
 
 
 # Get example subsystems
