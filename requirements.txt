@@ -1,10 +1,10 @@
 # Install requires
 numpy==1.8.1
 scipy==0.13.3
-pyemd==0.0.7
+pyemd<1.0.0
 joblib==0.8.0a3
 psutil==2.1.1
-marbl-python<=1.0.0
+marbl-python<1.0.0
 
 # Tests require
 pytest==2.5.2
