@@ -20,7 +20,7 @@ install:
   - conda create --yes -n cyphi python=$TRAVIS_PYTHON_VERSION pip numpy scipy
   - source activate cyphi
   # Not yet available for py3 in anaconda 
-  - pip install pytest
+  - pip install -r test_requirements.txt
   - pip freeze
   - python setup.py install
 
