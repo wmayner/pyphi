@@ -24,6 +24,7 @@ install_requires = [
 test_require = [
     'pytest',
     'coverage'
+    'sphinx_rtd_theme'
 ]
 
 
