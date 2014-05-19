@@ -26,3 +26,6 @@ install:
 
 # Run tests
 script: py.test
+
+notifications:
+  - email: false
