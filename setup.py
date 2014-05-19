@@ -23,7 +23,7 @@ install_requires = [
 
 test_require = [
     'pytest',
-    'coverage'
+    'coverage',
     'sphinx_rtd_theme'
 ]
 
@@ -38,7 +38,7 @@ setup(
     include_package_data=True,
     install_requires=install_requires,
     tests_require=test_require,
-    test_suite="py.test",
+    test_suite='test',
     packages=['cyphi'],
     package_data={'': ['LICENSE']},
     license='GNU General Public License v3.0',
