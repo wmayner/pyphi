@@ -16,15 +16,15 @@ from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
 from . import utils, options
-from .models import Concept, Cut, BigMip
+from .models import Concept, Cut, BigMip, MarblSet
 from .network import Network
 from .subsystem import Subsystem
 from .constants import PAST, FUTURE, MAXMEM, memory
 from .lru_cache import lru_cache
 
 
-@memory.cache(ignore=['subsystem', 'mechanism'])
-def _concept(subsystem, mechanism, hash, cut):
+@memory.cache(ignore=['subsystem', 'mechanism', 'cut'])
+def _concept(cache_key, subsystem, mechanism, cut):
     """Returns the concept specified by a mechanism.
 
     The output is "persistently cached" (saved to the disk for later access to
@@ -64,7 +64,10 @@ def _concept(subsystem, mechanism, hash, cut):
 
 @functools.wraps(_concept)
 def concept(subsystem, mechanism, cut=None):
-    return _concept(subsystem, mechanism, hash(mechanism), cut)
+    # Generate the cache key for memoizing concepts
+    cache_key = hash(MarblSet(mechanism, cut))
+    # Pass on the cache key
+    return _concept(cache_key, subsystem, mechanism, cut)
 
 
 def constellation(subsystem, cut=None):
