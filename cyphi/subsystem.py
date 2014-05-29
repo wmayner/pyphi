@@ -139,9 +139,6 @@ class Subsystem:
         # Default cut is the null cut that leaves the system intact.
         if not cut:
             cut = self.null_cut
-        # If a cut was provided, validate it.
-        else:
-            cut = validate.cut(self, cut)
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
         cjd = np.ones(tuple(2 if node in purview else
@@ -246,9 +243,6 @@ class Subsystem:
         # Default cut is the null cut that leaves the system intact
         if not cut:
             cut = self.null_cut
-        # If a cut was provided, validate it
-        else:
-            cut = validate.cut(self, cut)
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
