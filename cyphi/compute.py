@@ -16,7 +16,7 @@ from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
 from . import utils, options
-from .models import Mechanism, Concept, Cut, BigMip
+from .models import Concept, Cut, BigMip
 from .network import Network
 from .constants import PAST, FUTURE, MAXMEM, memory
 from .lru_cache import lru_cache
@@ -68,7 +68,7 @@ def concept(subsystem, mechanism, cut=None):
 
 def constellation(subsystem, cut=None):
     """Return the conceptual structure of this subsystem."""
-    concepts = [concept(subsystem, Mechanism(subset), cut) for subset in
+    concepts = [concept(subsystem, mechanism, cut) for mechanism in
                 utils.powerset(subsystem.nodes)]
     # Filter out non-concepts
     return tuple(filter(None, concepts))

@@ -17,27 +17,6 @@ from . import utils
 # TODO use properties to avoid data duplication
 
 
-# TODO make ref in docs
-class Mechanism(tuple):
-
-    """Represents an unordered subset of nodes for |phi| evaluation.
-
-    Allows for hashing via the normal form of the nodes' Marbls. See the
-    :ref:`Marbl-documentation`.
-    """
-
-    def __new__(cls, *iterable):
-        self = super(Mechanism, cls).__new__(cls, *iterable)
-        # Make the normal form of the Mechanism
-        self.marblset = MarblSet(n.marbl for n in self)
-        # Compute the canonical hash (once)
-        self._hash = hash(MarblSet(n.marbl for n in self))
-        return self
-
-    def __hash__(self):
-        return self._hash
-
-
 class Cut(namedtuple('Cut', ['severed', 'intact'])):
 
     """Represents a unidirectional cut.

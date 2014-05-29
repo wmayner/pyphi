@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from marbl import Marbl
 import numpy as np
 import functools
 
@@ -69,14 +68,13 @@ class Node(object):
         # Only compute hash once
         self._hash = hash((self.network, self.index))
 
-        # Deferred properties
+        # Deferred property
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # ``inputs`` and ``marbl`` must be properties because at the time of
+        # ``inputs`` must be properties because at the time of
         # node creation, the network doesn't have a list of Node objects yet,
         # only a size (and thus a range of node indices). So, we defer
         # construction until the properties are needed.
         self._inputs = None
-        self._marbl = None
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     @property
@@ -88,16 +86,6 @@ class Node(object):
             self._inputs = [node for node in self.network.nodes if node.index
                             in self._input_indices]
             return self._inputs
-
-    @property
-    def marbl(self):
-        """The normalized representation of this node's Markov blanket."""
-        if self._marbl is not None:
-            return self._marbl
-        else:
-            # TODO extend to nonbinary nodes
-            self._marbl = Marbl(self.tpm[1], [n.tpm[1] for n in self.inputs])
-            return self._marbl
 
     def __repr__(self):
         return self.__str__()

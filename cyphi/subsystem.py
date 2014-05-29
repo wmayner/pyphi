@@ -16,7 +16,7 @@ from . import options, validate
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (hamming_emd, max_entropy_distribution, powerset,
                     bipartition, phi_eq)
-from .models import Mechanism, Cut, Mip, Part, Mice, Concept
+from .models import Cut, Mip, Part, Mice, Concept
 
 
 # TODO! go through docs and make sure to say when things can be None
@@ -756,7 +756,7 @@ class Subsystem:
         For information on the indices used in the returned array, see
         :ref:concept-space."""
         return Concept(
-            mechanism=Mechanism(),
+            mechanism=(),
             location=np.array([
                 # Unconstrained cause repertoire
                 self.cause_repertoire((), self.nodes, self.null_cut),

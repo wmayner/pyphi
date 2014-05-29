@@ -28,7 +28,7 @@ def test_null_concept(s):
 
 
 def test_concept_nonexistent(s):
-    assert not compute.concept(s, models.Mechanism((s.nodes[0], s.nodes[2])))
+    assert not compute.concept(s, (s.nodes[0], s.nodes[2]))
 
 
 def test_big_phi_standard_example_sequential(s):
