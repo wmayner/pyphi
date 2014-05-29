@@ -2,7 +2,7 @@ __pycache__
 .ropeproject
 node_modules
 .env
-.pythonrc.py
+.pythonrc*
 
 build
 docs/_build
