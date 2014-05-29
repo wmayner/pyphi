@@ -18,6 +18,7 @@ from scipy.sparse import csr_matrix
 from . import utils, options
 from .models import Concept, Cut, BigMip
 from .network import Network
+from .subsystem import Subsystem
 from .constants import PAST, FUTURE, MAXMEM, memory
 from .lru_cache import lru_cache
 
@@ -293,3 +294,12 @@ def main_complex(network):
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
     return max(complexes(network))
+
+
+def subsystems(network):
+    """Return a generator of all possible subsystems of a network.
+
+    This is the just powerset of the network's set of nodes."""
+    for subset in utils.powerset(network.nodes):
+        yield Subsystem(subset, network.current_state, network.past_state,
+                        network)
