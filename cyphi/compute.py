@@ -65,6 +65,8 @@ def _concept(cache_key, subsystem, mechanism, cut):
 @functools.wraps(_concept)
 def concept(subsystem, mechanism, cut=None):
     # Generate the cache key for memoizing concepts
+    if cut is None:
+        cut = subsystem.null_cut
     cache_key = hash(MarblSet(mechanism, cut))
     # Pass on the cache key
     return _concept(cache_key, subsystem, mechanism, cut)
