@@ -20,6 +20,17 @@ from .constants import MAXMEM
 from .lru_cache import lru_cache
 
 
+# TODO test
+def apply_cut(cut, connectivity_matrix):
+    """Returns a modified connectivity matrix where the connections from one
+    set of nodes to the other are destroyed."""
+    cm = connectivity_matrix.copy()
+    for i in cut.severed:
+        for j in cut.intact:
+            cm[i][j] = 0
+    return cm
+
+
 def np_hash(a):
     """Return a hash of a NumPy array.
 
