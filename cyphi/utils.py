@@ -27,7 +27,7 @@ def apply_cut(cut, connectivity_matrix):
     cm = connectivity_matrix.copy()
     for i in cut.severed:
         for j in cut.intact:
-            cm[i][j] = 0
+            cm[i.index][j.index] = 0
     return cm
 
 
