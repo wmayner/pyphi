@@ -21,27 +21,3 @@ def test_validate_nodelist_nonnode():
 def test_validate_direction():
     with pytest.raises(ValueError):
         validate.direction("dogeeeee")
-
-
-def test_validate_cut_bad_input(s):
-    with pytest.raises(ValueError):
-        validate.cut(s, ((), ()))
-    with pytest.raises(ValueError):
-        validate.cut(s, (s.nodes[0], s.nodes[1]))
-    with pytest.raises(ValueError):
-        validate.cut(s, (s.nodes[0], (s.nodes[1], s.nodes[1])))
-
-
-def test_validate_cut_single_node(s):
-    validated = validate.cut(s, (s.nodes[0], (s.nodes[1], s.nodes[2])))
-    assert validated == Cut((s.nodes[0],), (s.nodes[1], s.nodes[2]))
-
-
-def test_validate_cut_list_input(s):
-    validated = validate.cut(s, ([s.nodes[0]], [s.nodes[1], s.nodes[2]]))
-    assert validated == Cut((s.nodes[0],), (s.nodes[1], s.nodes[2]))
-
-
-def test_validate_cut(s):
-    validated = validate.cut(s, ((s.nodes[0],), (s.nodes[1], s.nodes[2])))
-    assert validated == Cut((s.nodes[0],), (s.nodes[1], s.nodes[2]))

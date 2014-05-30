@@ -16,14 +16,15 @@ from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
 from . import utils, options
-from .models import Mechanism, Concept, Cut, BigMip
+from .models import Concept, Cut, BigMip, MarblSet
 from .network import Network
+from .subsystem import Subsystem
 from .constants import PAST, FUTURE, MAXMEM, memory
 from .lru_cache import lru_cache
 
 
-@memory.cache(ignore=['subsystem', 'mechanism'])
-def _concept(subsystem, mechanism, hash, cut):
+@memory.cache(ignore=['subsystem', 'mechanism', 'cut'])
+def _concept(cache_key, subsystem, mechanism, cut):
     """Returns the concept specified by a mechanism.
 
     The output is "persistently cached" (saved to the disk for later access to
@@ -63,12 +64,17 @@ def _concept(subsystem, mechanism, hash, cut):
 
 @functools.wraps(_concept)
 def concept(subsystem, mechanism, cut=None):
-    return _concept(subsystem, mechanism, hash(mechanism), cut)
+    # Generate the cache key for memoizing concepts
+    if cut is None:
+        cut = subsystem.null_cut
+    cache_key = hash(MarblSet(mechanism, cut))
+    # Pass on the cache key
+    return _concept(cache_key, subsystem, mechanism, cut)
 
 
 def constellation(subsystem, cut=None):
     """Return the conceptual structure of this subsystem."""
-    concepts = [concept(subsystem, Mechanism(subset), cut) for subset in
+    concepts = [concept(subsystem, mechanism, cut) for mechanism in
                 utils.powerset(subsystem.nodes)]
     # Filter out non-concepts
     return tuple(filter(None, concepts))
@@ -293,3 +299,12 @@ def main_complex(network):
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
     return max(complexes(network))
+
+
+def subsystems(network):
+    """Return a generator of all possible subsystems of a network.
+
+    This is the just powerset of the network's set of nodes."""
+    for subset in utils.powerset(network.nodes):
+        yield Subsystem(subset, network.current_state, network.past_state,
+                        network)

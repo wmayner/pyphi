@@ -16,7 +16,7 @@ from . import options, validate
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (hamming_emd, max_entropy_distribution, powerset,
                     bipartition, phi_eq)
-from .models import Mechanism, Cut, Mip, Part, Mice, Concept
+from .models import Cut, Mip, Part, Mice, Concept
 
 
 # TODO! go through docs and make sure to say when things can be None
@@ -139,9 +139,6 @@ class Subsystem:
         # Default cut is the null cut that leaves the system intact.
         if not cut:
             cut = self.null_cut
-        # If a cut was provided, validate it.
-        else:
-            cut = validate.cut(self, cut)
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
         cjd = np.ones(tuple(2 if node in purview else
@@ -246,9 +243,6 @@ class Subsystem:
         # Default cut is the null cut that leaves the system intact
         if not cut:
             cut = self.null_cut
-        # If a cut was provided, validate it
-        else:
-            cut = validate.cut(self, cut)
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
@@ -663,21 +657,16 @@ class Subsystem:
             |future|, i.e., we return a core cause or core effect, not the pair
             of them.
         """
-        # Return a cached MICE if we were given a cache and there's a hit
+        # Return a cached MICE if we were given a cache and there's a hit.
         cached_mice = (self._get_cached_mice(direction, mechanism, cut)
                        if (cut and cut != self.null_cut) else False)
         if cached_mice:
             return cached_mice
-
         validate.direction(direction)
-        # Set defaults for a reducible MICE
-        mip_max = None
-        phi_max = float('-inf')
-        maximal_purview = None
-        maximal_repertoire = None
-
+        # Generate all possible purviews.
         purviews = powerset(self.nodes)
 
+        # Pre-check if a MICE is necessarily reducible due to the connectivity.
         def not_trivially_reducible(purview):
             if direction == DIRECTIONS[PAST]:
                 return self._all_connect_to_any(purview, mechanism)
@@ -685,34 +674,18 @@ class Subsystem:
                 return self._all_connect_to_any(mechanism, purview)
 
         # Filter out trivially reducible purviews if a connectivity matrix was
-        # provided
+        # provided.
         purviews = filter(not_trivially_reducible, purviews)
-
-        # Loop over filtered purviews in this candidate set and find the
-        # purview over which phi is maximal.
-        for purview in purviews:
-            mip = self.find_mip(direction, mechanism, purview, cut)
-            if mip:
-                # Take the purview with higher phi, or if phi is equal, take
-                # the larger one (exclusion principle).
-                if mip.phi > phi_max or (phi_eq(mip.phi, phi_max) and
-                                         len(purview) > len(maximal_purview)):
-                    mip_max = mip
-                    phi_max = mip.phi
-                    maximal_purview = purview
-                    maximal_repertoire = mip.unpartitioned_repertoire
-
-        # If there was no MIP, then phi is zero.
-        if phi_max == float('-inf'):
-            phi_max = 0
-
+        # Find the maximal MIP.
+        mip = max(self.find_mip(direction, mechanism, purview) for purview
+                  in purviews)
+        # Build the corresponding MICE.
         mice = Mice(direction=direction,
                     mechanism=mechanism,
-                    purview=maximal_purview,
-                    repertoire=maximal_repertoire,
-                    mip=mip_max,
-                    phi=phi_max)
-
+                    purview=mip.purview,
+                    repertoire=mip.unpartitioned_repertoire,
+                    mip=mip,
+                    phi=mip.phi)
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
         if (not cut or cut == self.null_cut
@@ -756,7 +729,7 @@ class Subsystem:
         For information on the indices used in the returned array, see
         :ref:concept-space."""
         return Concept(
-            mechanism=Mechanism(),
+            mechanism=(),
             location=np.array([
                 # Unconstrained cause repertoire
                 self.cause_repertoire((), self.nodes, self.null_cut),

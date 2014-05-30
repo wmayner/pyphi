@@ -9,33 +9,39 @@ Containers for MICE, MIP, cut, partition, and concept data.
 """
 
 from collections import namedtuple, Iterable
-from marbl import MarblSet
+from marbl import MarblSet as _MarblSet
 import numpy as np
 
+from .network import Network
 from . import utils
 
 # TODO use properties to avoid data duplication
 
 
-# TODO make ref in docs
-class Mechanism(tuple):
+class MarblSet(_MarblSet):
 
-    """Represents an unordered subset of nodes for |phi| evaluation.
+    """A normalized set of markov blankets.
 
-    Allows for hashing via the normal form of the nodes' Marbls. See the
-    :ref:`Marbl-documentation`.
+    This class represents a mechanism rendered into a normal form that fully
+    captures the mechanism's causal role in a network in a consistent
+    representation, so that it can be used as a cache key in the calculation of
+    concepts. See the documentation for marbl-python.
     """
 
-    def __new__(cls, *iterable):
-        self = super(Mechanism, cls).__new__(cls, *iterable)
-        # Make the normal form of the Mechanism
-        self.marblset = MarblSet(n.marbl for n in self)
-        # Compute the canonical hash (once)
-        self._hash = hash(MarblSet(n.marbl for n in self))
-        return self
-
-    def __hash__(self):
-        return self._hash
+    def __init__(self, nodes, cut):
+        self.marbls = []
+        if nodes:
+            # Get the parent network
+            net = nodes[0].network
+            # Apply the cut to the network's connectivity matrix
+            cut_cm = utils.apply_cut(cut, net.connectivity_matrix)
+            # Make a new network with the cut applied
+            cut_network = Network(net.tpm, net.current_state, net.past_state,
+                                  connectivity_matrix=cut_cm)
+            # Grab the marbls from the cut network nodes
+            self.marbls = [n.marbl for n in cut_network.nodes if n.index in
+                           utils.nodes2indices(nodes)]
+        super().__init__(self, self.marbls)
 
 
 class Cut(namedtuple('Cut', ['severed', 'intact'])):
