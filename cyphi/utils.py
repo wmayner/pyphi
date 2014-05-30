@@ -20,6 +20,10 @@ from .constants import MAXMEM
 from .lru_cache import lru_cache
 
 
+def nodes2indices(nodes):
+    return tuple(n.index for n in nodes)
+
+
 # TODO test
 def apply_cut(cut, connectivity_matrix):
     """Returns a modified connectivity matrix where the connections from one
