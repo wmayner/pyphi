@@ -111,7 +111,9 @@ rst_prolog = """
 .. |phi| replace:: :math:`\\varphi`
 .. |t_{-1}| replace:: :math:`t_{-1}`
 .. |t_0| replace:: :math:`t_0`
+.. |1,0,0| replace:: :math:`\{1,0,0\}`
 .. |0,1,0| replace:: :math:`\{0,1,0\}`
+.. |0,0,1| replace:: :math:`\{0,0,1\}`
 .. |ith| replace:: :math:`i^{\\textrm{th}}`
 .. |r| replace:: :math:`r`
 .. |n| replace:: :math:`n`

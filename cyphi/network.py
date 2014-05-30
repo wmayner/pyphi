@@ -20,7 +20,7 @@ class Network:
 
     Represents the network we're analyzing and holds auxilary data about it.
 
-    Examples:
+    Example:
         In a 3-node network, ``a_network.tpm[(0, 0, 1)]`` gives the transition
         probabilities for each node at |t_0| given that state at |t_{-1}| was
         |0,0,1|.
@@ -29,15 +29,16 @@ class Network:
         size (int):
             The number of nodes in the network.
         tpm (np.ndarray):
-            The transition probability matrix for this network. Must be
-            provided in state-by-node form. It can be either 2-dimensional, so
-            that ``tpm[i]`` gives the probabilities of each node being on if
-            the past state is given by the binary representation of ``i``, or
-            in N-D form, so that ``tpm[0][1][0]`` gives the probabilities of
-            each node being on if the past state is |0,1,0|. The shape of the
-            2-dimensional form of the TPM must be ``(S, N)``, and the shape of
-            the N-D form of the TPM must be ``[2] * N + [N]``, where ``S`` is
-            the number of states and ``N`` is the number of nodes in the
+            The transition probability matrix that encodes the network's
+            mechanism. Must be provided in state-by-node form. It can be
+            either 2-dimensional, so that ``tpm[i]`` gives the
+            probabilities of each node being on if the past state is given
+            by the binary representation of ``i``, or in N-D form, so that
+            ``tpm[0][1][0]`` gives the probabilities of each node being on
+            if the past state is |0,1,0|. The shape of the 2-dimensional
+            form of the TPM must be ``(S, N)``, and the shape of the N-D
+            form of the TPM must be ``[2] * N + [N]``, where ``S`` is the
+            number of states and ``N`` is the number of nodes in the
             network.
         current_state (tuple):
             The current state of the network. ``current_state[i]`` gives the
@@ -46,12 +47,18 @@ class Network:
             The past state of the network. ``past_state[i]`` gives the past
             state of node ``i``.
         connectivity_matrix (np.ndarray):
-            A matrix describing the network's connectivity.
-            ``connectivity_matrix[i][j] == 1`` means that node
-            ``i`` is connected to node ``j``.
+            A square binary adjacency matrix indicating the connections
+            between nodes in the network.
         nodes (list(Node)):
             A list of nodes in the network.
 
+    Keyword Args:
+        connectivity_matrix (array or sequence):
+            A square binary adjacency matrix indicating the connections between
+            nodes in the network. ``connectivity_matrix[i][j] == 1`` means that
+            node ``i`` is connected to node ``j``. If no connectivity matrix is
+            given, every node is connected to every node **(including
+            itself)**.
     """
 
     def __init__(self, tpm, current_state, past_state,

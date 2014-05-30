@@ -14,17 +14,21 @@ class Node(object):
     """A node in a network.
 
     Attributes:
-        network (Network): The network the node belongs to.
-        index (int): The node's index in the network's list of nodes.
-        label (str): An optional label for the node.
-        inputs (list(Node)): A list of nodes that have connections to this
-            node.
-        tpm (np.ndarray): The TPM for this node. ``this_node.tpm[0]`` and
+        network (Network):
+            The network the node belongs to.
+        index (int):
+            The node's index in the network's list of nodes.
+        label (str):
+            An optional label for the node.
+        inputs (list(Node)):
+            A list of nodes that have connections to this node.
+        tpm (np.ndarray):
+            The TPM for this node. ``this_node.tpm[0]`` and
             ``this_node.tpm[1]`` gives the probability tables that this node is
             off and on, respectively, indexed by network state, **after
             marginalizing-out nodes that don't connect to this node**.
 
-    Examples:
+    Example:
         In a 3-node network, ``self.tpm[0][(0, 1, 0)]`` gives the probability
         that this node is off at |t_0| if the state of the network is |0,1,0|
         at |t_{-1}|.
