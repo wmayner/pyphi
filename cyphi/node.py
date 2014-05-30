@@ -35,17 +35,17 @@ class Node(object):
     """
 
     def __init__(self, network, index, label=None):
-        # This node's parent network
+        # This node's parent network.
         self.network = network
-        # This node's index in the network's list of nodes
+        # This node's index in the network's list of nodes.
         self.index = index
-        # Label for display
+        # Label for display.
         self.label = label
 
-        # Get indices of the inputs
+        # Get indices of the inputs.
         if self.network.connectivity_matrix is not None:
             # If a connectivity matrix was provided, store the indices of nodes
-            # that connect to this node
+            # that connect to this node.
             self._input_indices = np.array(
                 [i for i in range(self.network.size) if
                  self.network.connectivity_matrix[i][self.index]])
@@ -54,7 +54,7 @@ class Node(object):
                  self.network.connectivity_matrix[self.index][i]])
         else:
             # If no connectivity matrix was provided, assume all nodes connect
-            # to all nodes
+            # to all nodes.
             self._input_indices = tuple(range(self.network.size))
             self._output_indices = self._input_indices
 
@@ -91,10 +91,10 @@ class Node(object):
         # Make it immutable (for hashing).
         self.tpm.flags.writeable = False
 
-        # Only compute hash once
+        # Only compute hash once.
         self._hash = hash((self.network, self.index))
 
-        # Deferred property
+        # Deferred properties
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ``inputs``, ``outputs``, and ``marbl`` must be properties because at
         # the time of node creation, the network doesn't have a list of Node
@@ -132,7 +132,7 @@ class Node(object):
             return self._marbl
         else:
             # We take only the part of the TPM giving the probability the node
-            # is on
+            # is on.
             # TODO extend to nonbinary nodes
             augmented_child_tpms = [
                 [child._dimension_labels[self.index], child.tpm[1].squeeze()]
