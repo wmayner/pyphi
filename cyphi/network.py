@@ -51,6 +51,8 @@ class Network:
             between nodes in the network.
         nodes (list(Node)):
             A list of nodes in the network.
+        num_states (int):
+            The number of possible states of the network.
 
     Keyword Args:
         connectivity_matrix (array or sequence):
@@ -63,7 +65,7 @@ class Network:
 
     def __init__(self, tpm, current_state, past_state,
                  connectivity_matrix=None):
-        # Coerce input to np.arrays
+        # Cast TPM to np.array.
         tpm = np.array(tpm)
         # Get the number of nodes in the network.
         # The TPM can be either 2-dimensional or in N-D form, where transition
@@ -71,12 +73,12 @@ class Network:
         # size of last dimension is the number of nodes.
         self.size = tpm.shape[-1]
 
-        # Get the connectivity matrix
+        # Get the connectivity matrix.
         if connectivity_matrix is not None:
             connectivity_matrix = np.array(connectivity_matrix)
         else:
-            # TODO! document default connectivity matrix behavior
-            # If none was provided, assume all are connected, but no self-loops
+            # If none was provided, assume all are connected, but no
+            # self-loops.
             connectivity_matrix = np.ones((self.size, self.size))
 
         # TODO make tpm also optional when implementing logical network
@@ -86,7 +88,7 @@ class Network:
         self.connectivity_matrix = connectivity_matrix
         self.current_state = current_state
         self.past_state = past_state
-        # Make the TPM and connectivity matrix immutable (for hashing)
+        # Make the TPM and connectivity matrix immutable (for hashing).
         self.tpm.flags.writeable = False
         if self.connectivity_matrix is not None:
             self.connectivity_matrix.flags.writeable = False
@@ -94,16 +96,16 @@ class Network:
         tpm_hash = utils.np_hash(self.tpm)
         cm_hash = (utils.np_hash(self.connectivity_matrix)
                    if self.connectivity_matrix is not None else None)
-        # Only compute hash once
+        # Only compute hash once.
         self._hash = hash((tpm_hash,
                            self.current_state,
                            self.past_state,
                            cm_hash))
 
-        # Validate this network
+        # Validate this network.
         validate.network(self)
 
-        # Generate the nodes
+        # Generate the nodes.
         self.nodes = tuple([Node(self, node_index) for node_index in
                             range(self.size)])
 
