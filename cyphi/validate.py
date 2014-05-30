@@ -60,17 +60,11 @@ def tpm(tpm):
             "2.")
 
 
-# TODO! test
-def connectivity_matrix(network):
-    cm = network.connectivity_matrix
-    if cm is not None:
-        if (cm.ndim != 2):
-            raise ValueError("Connectivity matrix must be 2-dimensional.")
-        if cm.shape[0] != cm.shape[1]:
-            raise ValueError("Connectivity matrix must be square.")
-        if cm.shape[0] != network.size:
-            raise ValueError("Connectivity matrix must be NxN, where N is the "
-                             "number of nodes in the network.")
+def connectivity_matrix(cm):
+    if (cm.ndim != 2):
+        raise ValueError("Connectivity matrix must be 2-dimensional.")
+    if cm.shape[0] != cm.shape[1]:
+        raise ValueError("Connectivity matrix must be square.")
 
 
 # TODO test
@@ -118,5 +112,8 @@ def state(network):
 def network(network):
     """Validate TPM, connectivity matrix, and current and past state."""
     tpm(network.tpm)
-    connectivity_matrix(network)
     state(network)
+    connectivity_matrix(network.connectivity_matrix)
+    if network.connectivity_matrix.shape[0] != network.size:
+        raise ValueError("Connectivity matrix must be NxN, where N is the "
+                         "number of nodes in the network.")
