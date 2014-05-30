@@ -58,13 +58,20 @@ class Network:
                  connectivity_matrix=None):
         # Coerce input to np.arrays
         tpm = np.array(tpm)
-        if connectivity_matrix is not None:
-            connectivity_matrix = np.array(connectivity_matrix)
         # Get the number of nodes in the network.
         # The TPM can be either 2-dimensional or in N-D form, where transition
         # probabilities can be indexed by state-tuples. In either case, the
         # size of last dimension is the number of nodes.
         self.size = tpm.shape[-1]
+
+        # Get the connectivity matrix
+        if connectivity_matrix is not None:
+            connectivity_matrix = np.array(connectivity_matrix)
+        else:
+            # TODO! document default connectivity matrix behavior
+            # If none was provided, assume all are connected, but no self-loops
+            connectivity_matrix = np.ones((self.size, self.size))
+
         # TODO make tpm also optional when implementing logical network
         # definition
         self.tpm = tpm.reshape([2] * self.size + [self.size]).astype(float)
