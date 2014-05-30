@@ -39,7 +39,8 @@ class MarblSet(_MarblSet):
             cut_network = Network(net.tpm, net.current_state, net.past_state,
                                   connectivity_matrix=cut_cm)
             # Grab the marbls from the cut network nodes
-            self.marbls = [n.marbl for n in cut_network.nodes]
+            self.marbls = [n.marbl for n in cut_network.nodes if n.index in
+                           utils.nodes2indices(nodes)]
         super().__init__(self, self.marbls)
 
 
