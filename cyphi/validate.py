@@ -32,6 +32,7 @@ class StateUnreachableError(ValueError):
 def direction(direction):
     if direction not in constants.DIRECTIONS:
         raise ValueError("Direction must be either 'past' or 'future'.")
+    return True
 
 
 def nodelist(nodes, name):
@@ -58,6 +59,7 @@ def tpm(tpm):
             "Invalid TPM: We can only handle binary nodes at the "
             "moment. Each dimension except the last must be of size "
             "2.")
+    return True
 
 
 def connectivity_matrix(cm):
@@ -65,6 +67,7 @@ def connectivity_matrix(cm):
         raise ValueError("Connectivity matrix must be 2-dimensional.")
     if cm.shape[0] != cm.shape[1]:
         raise ValueError("Connectivity matrix must be square.")
+    return True
 
 
 # TODO test
@@ -106,6 +109,7 @@ def state(network):
             current_state, past_state, tpm,
             "The current state cannot be reached from the past state "
             "according to the given TPM.")
+    return True
 
 
 # TODO test
@@ -117,3 +121,4 @@ def network(network):
     if network.connectivity_matrix.shape[0] != network.size:
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")
+    return True
