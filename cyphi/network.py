@@ -30,16 +30,15 @@ class Network:
             The number of nodes in the network.
         tpm (np.ndarray):
             The transition probability matrix that encodes the network's
-            mechanism. Must be provided in state-by-node form. It can be
-            either 2-dimensional, so that ``tpm[i]`` gives the
-            probabilities of each node being on if the past state is given
-            by the binary representation of ``i``, or in N-D form, so that
-            ``tpm[0][1][0]`` gives the probabilities of each node being on
-            if the past state is |0,1,0|. The shape of the 2-dimensional
-            form of the TPM must be ``(S, N)``, and the shape of the N-D
-            form of the TPM must be ``[2] * N + [N]``, where ``S`` is the
-            number of states and ``N`` is the number of nodes in the
-            network.
+            mechanism. Must be provided in state-by-node form. It can be either
+            2-dimensional, so that ``tpm[i]`` gives the probabilities of each
+            node being on if the past state is given by the binary
+            representation of ``i``, or in N-D form, so that ``tpm[0][1][0]``
+            gives the probabilities of each node being on if the past state is
+            |0,1,0|. The shape of the 2-dimensional form of the TPM must be
+            ``(S, N)``, and the shape of the N-D form of the TPM must be ``[2]
+            * N + [N]``, where ``S`` is the number of states and ``N`` is the
+            number of nodes in the network.
         current_state (tuple):
             The current state of the network. ``current_state[i]`` gives the
             current state of node ``i``.
@@ -47,8 +46,8 @@ class Network:
             The past state of the network. ``past_state[i]`` gives the past
             state of node ``i``.
         connectivity_matrix (np.ndarray):
-            A square binary adjacency matrix indicating the connections
-            between nodes in the network.
+            A square binary adjacency matrix indicating the connections between
+            nodes in the network.
         nodes (list(Node)):
             A list of nodes in the network.
         num_states (int):
