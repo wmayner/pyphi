@@ -209,18 +209,22 @@ class Mip(namedtuple('Mip', _mip_attributes)):
         phi (float):
             This is the difference between the mechanism's unpartitioned and
             partitioned repertoires.
-        direction (str): The temporal direction specifiying whether this MIP
-            should be calculated with cause or effect repertoires.
-        mechanism (list(Node)): The mechanism over which to evaluate the MIP.
-        purview (list(Node)): The purview over which the unpartitioned
-            repertoire differs the least from the partitioned repertoire.
-        partition (tuple(Part, Part)): The partition that makes the least
-            difference to the mechanism's repertoire.
-        unpartitioned_repertoire (np.ndarray): The unpartitioned repertoire of
-            the mecanism.
-        partitioned_repertoire (np.ndarray): The partitioned repertoire of the
-            mechanism. This is the product of the repertoires of each part of
-            the partition.
+        direction (str):
+            The temporal direction specifiying whether this MIP should be
+            calculated with cause or effect repertoires.
+        mechanism (list(Node)):
+            The mechanism over which to evaluate the MIP.
+        purview (list(Node)):
+            The purview over which the unpartitioned repertoire differs the
+            least from the partitioned repertoire.
+        partition (tuple(Part, Part)):
+            The partition that makes the least difference to the mechanism's
+            repertoire.
+        unpartitioned_repertoire (np.ndarray):
+            The unpartitioned repertoire of the mecanism.
+        partitioned_repertoire (np.ndarray):
+            The partitioned repertoire of the mechanism. This is the product of
+            the repertoires of each part of the partition.
     """
 
     def __eq__(self, other):
