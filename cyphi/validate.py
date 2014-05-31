@@ -67,6 +67,9 @@ def connectivity_matrix(cm):
         raise ValueError("Connectivity matrix must be 2-dimensional.")
     if cm.shape[0] != cm.shape[1]:
         raise ValueError("Connectivity matrix must be square.")
+    if not np.all(np.logical_or(cm == 1, cm == 0)):
+        raise ValueError("Connectivity matrix must contain only binary "
+                         "values.")
     return True
 
 
