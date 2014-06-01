@@ -16,7 +16,7 @@ STANDARD_EXAMPLE_PHI = 2.3125
 # Compute the BigMip of the standard example full subsystem, once
 # Don't interact with cache
 big_mip_standard_example = compute.big_mip.func(examples.s(),
-                                                      hash(examples.s()))
+                                                hash(examples.s()))
 
 
 def test_null_concept(s):
@@ -61,7 +61,7 @@ def test_standard_example(s):
 
 
 @pytest.mark.slow
-def testbig_mip_big_network(big_subsys_all):
+def test_big_mip_big_network(big_subsys_all):
     initial_precision = options.PRECISION
     options.PRECISION = 4
     mip = compute.big_mip(big_subsys_all)
@@ -75,3 +75,12 @@ def testbig_mip_big_network(big_subsys_all):
     assert len(mip.unpartitioned_constellation) == 30
     assert len(mip.partitioned_constellation) == 17
     options.PRECISION = initial_precision
+
+
+def test_big_mip_empty_subsystem(s_empty):
+    assert (compute.big_mip.func(s_empty, hash(s_empty)) ==
+            models.BigMip(phi=0.0,
+                          cut=models.Cut(severed=(), intact=()),
+                          unpartitioned_constellation=[],
+                          partitioned_constellation=[],
+                          subsystem=s_empty))

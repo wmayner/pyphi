@@ -8,7 +8,6 @@ from cyphi import models
 from cyphi import options
 
 
-
 nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
 nt = namedtuple('nt', nt_attributes)
 a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,

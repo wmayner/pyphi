@@ -80,6 +80,14 @@ def standard():
     return Network(tpm, current_state, past_state, connectivity_matrix=cm)
 
 
+def s_empty():
+    m = standard()
+    return Subsystem((),
+                     m.current_state,
+                     m.past_state,
+                     m)
+
+
 def subsys_n0n2():
     m = standard()
     return Subsystem((0, 2),
