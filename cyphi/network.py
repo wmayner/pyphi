@@ -54,12 +54,11 @@ class Network:
             The number of possible states of the network.
 
     Keyword Args:
-        connectivity_matrix (array or sequence):
-            A square binary adjacency matrix indicating the connections between
-            nodes in the network. ``connectivity_matrix[i][j] == 1`` means that
-            node ``i`` is connected to node ``j``. If no connectivity matrix is
-            given, every node is connected to every node **(including
-            itself)**.
+        connectivity_matrix (array or sequence): A square binary adjacency
+            matrix indicating the connections between nodes in the network.
+            ``connectivity_matrix[i][j] == 1`` means that node ``i`` is
+            connected to node ``j``. If no connectivity matrix is given, every
+            node is connected to every node **(including itself)**.
     """
 
     def __init__(self, tpm, current_state, past_state,

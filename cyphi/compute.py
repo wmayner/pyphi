@@ -67,9 +67,9 @@ def concept(subsystem, mechanism, cut=None):
             no cut is applied.
 
     Returns:
-        ``Concept or None`` -- The pair of maximally irreducible cause/effect
-            repertoires that constitute the concept specified by the given
-            mechanism, or ``None`` if there isn't one.
+        ``Concept`` or ``None`` -- The pair of maximally irreducible
+            cause/effect repertoires that constitute the concept specified by
+            the given mechanism, or ``None`` if there isn't one.
 
     .. note::
         The output is "persistently cached" (saved to the disk for later
@@ -93,14 +93,13 @@ def constellation(subsystem, cut=None):
     """Return the conceptual structure of this subsystem.
 
     Args:
-        subsystem (Subsytem):
-            The subsystem for which to determine the constellation.
+        subsystem (Subsytem): The subsystem for which to determine the
+            constellation.
 
     Keyword Args:
-        cut (Cut):
-            The optional unidirectional cut that should be applied to the
-            network when doing the calculation. Defaults to ``None``, where no
-            cut is applied.
+        cut (Cut): The optional unidirectional cut that should be applied to
+            the network when doing the calculation. Defaults to ``None``, where
+            no cut is applied.
 
     Returns:
         ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
@@ -116,13 +115,11 @@ def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
     Args:
-        c1 (Mice):
-            The first concept.
-        c2 (Mice):
-            The second concept.
+        c1 (Mice): The first concept.
+        c2 (Mice): The second concept.
 
     Returns:
-        The distance between the two concepts in concept-space.
+        ``float`` -- The distance between the two concepts in concept-space.
     """
     return sum([utils.hamming_emd(c1.location[PAST],
                                   c2.location[PAST]),
@@ -170,13 +167,11 @@ def constellation_distance(C1, C2, null_concept):
     """Return the distance between two constellations in concept-space.
 
     Args:
-        C1 (tuple(Concept)):
-            The first constellation.
-        C2 (tuple(Concept)):
-            The second constellation.
-        null_concept (Concept):
-            The null concept of a candidate set, *i.e* the "origin" of the
-            concept space in which the given constellations reside.
+        C1 (tuple(Concept)): The first constellation.
+        C2 (tuple(Concept)): The second constellation.
+        null_concept (Concept): The null concept of a candidate set, *i.e* the
+            "origin" of the concept space in which the given constellations
+            reside.
 
     Returns:
         ``float`` -- The distance between the two constellations in
@@ -268,8 +263,7 @@ def _big_mip(subsystem, cache_key):
     """Return the MIP of a subsystem.
 
     Args:
-        subsystem (Subsystem):
-            The candidate set of nodes.
+        subsystem (Subsystem): The candidate set of nodes.
 
     Returns:
         ``BigMip`` -- A nested structure containing all the data from the
