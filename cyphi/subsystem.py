@@ -664,12 +664,7 @@ class Subsystem:
             return cached_mice
 
         validate.direction(direction)
-        # Set defaults for a reducible MICE
-        mip_max = None
-        phi_max = float('-inf')
-        maximal_purview = None
-        maximal_repertoire = None
-
+        # Get all possible purviews.
         purviews = powerset(self.nodes)
 
         def not_trivially_reducible(purview):
@@ -679,34 +674,13 @@ class Subsystem:
                 return self._all_connect_to_any(mechanism, purview)
 
         # Filter out trivially reducible purviews if a connectivity matrix was
-        # provided
+        # provided.
         purviews = filter(not_trivially_reducible, purviews)
-
-        # Loop over filtered purviews in this candidate set and find the
-        # purview over which phi is maximal.
-        for purview in purviews:
-            mip = self.find_mip(direction, mechanism, purview, cut)
-            if mip:
-                # Take the purview with higher phi, or if phi is equal, take
-                # the larger one (exclusion principle).
-                if mip.phi > phi_max or (phi_eq(mip.phi, phi_max) and
-                                         len(purview) > len(maximal_purview)):
-                    mip_max = mip
-                    phi_max = mip.phi
-                    maximal_purview = purview
-                    maximal_repertoire = mip.unpartitioned_repertoire
-
-        # If there was no MIP, then phi is zero.
-        if phi_max == float('-inf'):
-            phi_max = 0
-
-        mice = Mice(direction=direction,
-                    mechanism=mechanism,
-                    purview=maximal_purview,
-                    repertoire=maximal_repertoire,
-                    mip=mip_max,
-                    phi=phi_max)
-
+        # Find the maximal MIP over all purviews.
+        maximal_mip = max(self.find_mip(direction, mechanism, purview, cut) for
+                          purview in purviews)
+        # Construct the corresponding MICE.
+        mice = Mice(maximal_mip)
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
         if (not cut or cut == self.null_cut
