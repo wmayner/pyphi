@@ -285,15 +285,14 @@ def _big_mip(subsystem, cache_key):
     if not subsystem:
         return _null_mip(subsystem)
 
-    if subsystem.network.connectivity_matrix is not None:
-        # Get the connectivity of just the subsystem nodes.
-        submatrix_indices = np.ix_([node.index for node in subsystem.nodes],
-                                   [node.index for node in subsystem.nodes])
-        cm = subsystem.network.connectivity_matrix[submatrix_indices]
-        # Get the number of strongly connected components.
-        num_components, _ = connected_components(csr_matrix(cm))
-        if num_components > 1:
-            return _null_mip(subsystem)
+    # Get the connectivity of just the subsystem nodes.
+    submatrix_indices = np.ix_([node.index for node in subsystem.nodes],
+                                [node.index for node in subsystem.nodes])
+    cm = subsystem.network.connectivity_matrix[submatrix_indices]
+    # Get the number of strongly connected components.
+    num_components, _ = connected_components(csr_matrix(cm))
+    if num_components > 1:
+        return _null_mip(subsystem)
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = utils.bipartition(subsystem.nodes)[1:]
