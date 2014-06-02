@@ -43,20 +43,12 @@ class Node(object):
         self.label = label
 
         # Get indices of the inputs.
-        if self.network.connectivity_matrix is not None:
-            # If a connectivity matrix was provided, store the indices of nodes
-            # that connect to this node.
-            self._input_indices = np.array(
-                [i for i in range(self.network.size) if
-                 self.network.connectivity_matrix[i][self.index]])
-            self._output_indices = np.array(
-                [i for i in range(self.network.size) if
-                 self.network.connectivity_matrix[self.index][i]])
-        else:
-            # If no connectivity matrix was provided, assume all nodes connect
-            # to all nodes.
-            self._input_indices = tuple(range(self.network.size))
-            self._output_indices = self._input_indices
+        self._input_indices = np.array(
+            [i for i in range(self.network.size) if
+                self.network.connectivity_matrix[i][self.index]])
+        self._output_indices = np.array(
+            [i for i in range(self.network.size) if
+                self.network.connectivity_matrix[self.index][i]])
 
         # This will hold the indices of the nodes that correspond to
         # non-singleton dimensions of this node's on-TPM. It maps any network
