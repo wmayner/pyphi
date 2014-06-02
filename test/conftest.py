@@ -27,6 +27,11 @@ def s_empty():
 
 
 @pytest.fixture()
+def s_single():
+    return example_networks.s_single()
+
+
+@pytest.fixture()
 def subsys_n0n2():
     return example_networks.subsys_n0n2()
 

@@ -17,6 +17,35 @@ a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
 # Test equality helpers {{{
 # =========================
 
+def test_phi_comparisons():
+
+    class PhiThing:
+        def __init__(self, phi):
+            self.phi = phi
+    small = PhiThing(0.0)
+    large = PhiThing(2.0)
+
+    assert models._phi_lt(small, large)
+    assert not models._phi_lt(large, small)
+    assert not models._phi_lt(small, small)
+    assert not models._phi_lt(small, 'attr_error')
+
+    assert models._phi_le(small, large)
+    assert not models._phi_le(large, small)
+    assert models._phi_le(small, small)
+    assert not models._phi_le(small, 'attr_error')
+
+    assert models._phi_gt(large, small)
+    assert not models._phi_gt(small, large)
+    assert not models._phi_gt(large, large)
+    assert not models._phi_gt(small, 'attr_error')
+
+    assert models._phi_ge(large, small)
+    assert not models._phi_ge(small, large)
+    assert models._phi_ge(large, large)
+    assert not models._phi_ge(small, 'attr_error')
+
+
 def test_numpy_aware_eq_noniterable():
     b = 1
     assert not models._numpy_aware_eq(a, b)
@@ -115,6 +144,14 @@ def test_mip_equality():
     assert mip != not_quite
 
 
+def test_mip_repr_str():
+    mip = models.Mip(direction=None, mechanism=(), purview=(),
+                     unpartitioned_repertoire=None,
+                     partitioned_repertoire=None, phi=0.0, partition=())
+    print(repr(mip))
+    print(str(mip))
+
+
 # }}}
 
 # Test MICE {{{
@@ -175,6 +212,15 @@ def test_mice_equality():
     assert mice != not_quite
 
 
+def test_mice_repr_str():
+    mice = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=0.0, partition=()))
+    print(repr(mice))
+    print(str(mice))
+
+
 # }}}
 
 # Test Concept {{{
@@ -225,6 +271,13 @@ def test_concept_equality():
         phi=(phi - options.EPSILON*2))
     assert concept == close_enough
     assert concept != not_quite
+
+
+def test_concept_repr_str():
+    concept = models.Concept(
+        mechanism=(), location=None, cause=None, effect=None, phi=0.0)
+    print(repr(concept))
+    print(str(concept))
 
 
 # }}}
@@ -285,6 +338,14 @@ def test_bigmip_equality(s):
         phi=(phi - options.EPSILON*2))
     assert bigmip == close_enough
     assert bigmip != not_quite
+
+
+def test_bigmip_repr_str():
+    bigmip = models.BigMip(
+        cut=None, unpartitioned_constellation=None,
+        partitioned_constellation=None, subsystem=(), phi=1.0)
+    print(repr(bigmip))
+    print(str(bigmip))
 
 
 # }}}

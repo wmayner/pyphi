@@ -50,3 +50,11 @@ def test_node_neq_by_index(standard):
 def test_node_neq_by_network(standard):
     other_network = Network(standard.tpm, (0, 0, 0), (0, 0, 0))
     assert standard.nodes[0] != Node(other_network, 0)
+
+
+def test_repr(standard):
+    print(repr(standard.nodes[0]))
+
+
+def test_str(standard):
+    print(str(standard.nodes[0]))

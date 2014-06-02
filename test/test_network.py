@@ -8,7 +8,6 @@ from cyphi.network import Network
 from cyphi.node import Node
 
 
-
 @pytest.fixture()
 def network():
     size = 3
@@ -41,5 +40,14 @@ def test_network_init_validation(network):
 
 
 def test_network_init_nodes(network):
-    nodes = tuple(Node(network, node_index) for node_index in range(network.size))
+    nodes = tuple(Node(network, node_index) for node_index in
+                  range(network.size))
     assert nodes == network.nodes
+
+
+def test_repr(standard):
+    print(repr(standard))
+
+
+def test_str(standard):
+    print(str(standard))

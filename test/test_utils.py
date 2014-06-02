@@ -98,3 +98,8 @@ def test_emd_same_distributions():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
     assert utils.hamming_emd(a, b) == 0.0
+
+
+def test_uniform_distribution():
+    assert np.array_equal(utils.uniform_distribution(3),
+                          (np.ones(8)/8).reshape([2]*3))

@@ -88,6 +88,14 @@ def s_empty():
                      m)
 
 
+def s_single():
+    m = standard()
+    return Subsystem([0],
+                     m.current_state,
+                     m.past_state,
+                     m)
+
+
 def subsys_n0n2():
     m = standard()
     return Subsystem((0, 2),
