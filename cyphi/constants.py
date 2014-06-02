@@ -17,4 +17,4 @@ MAXMEM = 50
 
 
 # The joblib Memory object for persistent caching
-memory = Memory(cachedir=CACHE_DIRECTORY, verbose=1)
+memory = Memory(cachedir=CACHE_DIRECTORY, verbose=0)
