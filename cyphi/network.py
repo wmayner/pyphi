@@ -86,8 +86,7 @@ class Network:
         self.past_state = past_state
         # Make the TPM and connectivity matrix immutable (for hashing).
         self.tpm.flags.writeable = False
-        if self.connectivity_matrix is not None:
-            self.connectivity_matrix.flags.writeable = False
+        self.connectivity_matrix.flags.writeable = False
 
         tpm_hash = utils.np_hash(self.tpm)
         cm_hash = (utils.np_hash(self.connectivity_matrix)
