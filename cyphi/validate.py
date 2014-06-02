@@ -80,7 +80,7 @@ def _state_reachable(current_state, tpm):
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
     test = tpm - np.array(current_state)
-    return np.any(np.logical_and(-1 < test, test < 1).all(1))
+    return np.any(np.logical_and(-1 < test, test < 1).all(-1))
 
 
 # TODO test
