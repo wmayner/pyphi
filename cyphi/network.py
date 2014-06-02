@@ -76,14 +76,12 @@ class Network:
         if connectivity_matrix is not None:
             connectivity_matrix = np.array(connectivity_matrix)
         else:
-            # If none was provided, assume all are connected, but no
-            # self-loops.
+            # If none was provided, assume all are connected.
             connectivity_matrix = np.ones((self.size, self.size))
 
         # TODO make tpm also optional when implementing logical network
         # definition
         self.tpm = tpm.reshape([2] * self.size + [self.size]).astype(float)
-        # TODO! test connectivity matrix
         self.connectivity_matrix = connectivity_matrix
         self.current_state = current_state
         self.past_state = past_state

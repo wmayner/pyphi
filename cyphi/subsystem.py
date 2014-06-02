@@ -633,7 +633,6 @@ class Subsystem:
                 return cached
         return False
 
-    # TODO update docs
     def find_mice(self, direction, mechanism, cut):
         """Return the maximally irreducible cause or effect for a mechanism.
 
@@ -687,7 +686,6 @@ class Subsystem:
         if (not cut or cut == self.null_cut
                 and (direction, mechanism) not in self._mice_cache):
             self._mice_cache[(direction, mechanism)] = mice
-
         return mice
 
     def core_cause(self, mechanism, cut=None):
