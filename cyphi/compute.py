@@ -196,7 +196,8 @@ def conceptual_information(subsystem):
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    return constellation_distance(constellation(subsystem), ())
+    return constellation_distance(constellation(subsystem), (),
+                                  subsystem.null_concept)
 
 
 # TODO document
@@ -259,7 +260,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 
 # TODO document big_mip
 @memory.cache(ignore=['subsystem'])
-def _big_mip(subsystem, cache_key):
+def _big_mip(cache_key, subsystem):
     """Return the MIP of a subsystem.
 
     Args:
@@ -316,26 +317,13 @@ def _big_mip(subsystem, cache_key):
 # Wrapper so that joblib.Memory caches by the native hash
 @functools.wraps(_big_mip)
 def big_mip(subsystem):
-    return _big_mip(subsystem, hash(subsystem))
+    return _big_mip(hash(subsystem), subsystem)
 
 
 @lru_cache(maxmem=MAXMEM)
 def big_phi(subsystem):
     """Return the |big_phi| value of a subsystem."""
     return big_mip(subsystem).phi
-
-
-@lru_cache(maxmem=MAXMEM)
-def complexes(network):
-    """Return a generator for all complexes of the network.
-
-    This includes reducible, zero-phi complexes (which are not, strictly
-    speaking, complexes at all)."""
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
-    return (big_mip(subsystem) for subsystem in network.subsystems())
 
 
 @lru_cache(maxmem=MAXMEM)
@@ -352,6 +340,19 @@ def subsystems(network):
     """Return a generator of all possible subsystems of a network.
 
     This is the just powerset of the network's set of nodes."""
-    for subset in utils.powerset(network.nodes):
+    for subset in utils.powerset(range(network.size)):
         yield Subsystem(subset, network.current_state, network.past_state,
                         network)
+
+
+@lru_cache(maxmem=MAXMEM)
+def complexes(network):
+    """Return a generator for all complexes of the network.
+
+    This includes reducible, zero-phi complexes (which are not, strictly
+    speaking, complexes at all)."""
+    if not isinstance(network, Network):
+        raise ValueError(
+            """Input must be a Network (perhaps you passed a Subsystem
+            instead?)""")
+    return (big_mip(subsystem) for subsystem in subsystems(network))
