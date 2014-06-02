@@ -47,13 +47,7 @@ expected_mips = {
 }
 expected_mice = {
     direction: [
-        Mice(direction=direction,
-             mechanism=mechanism,
-             purview=expected_purviews[direction][mechanism],
-             repertoire=mip.unpartitioned_repertoire,
-             mip=mip,
-             phi=mip.phi)
-        for mechanism, mip in expected_mips[direction].items()
+        Mice(mip) for mechanism, mip in expected_mips[direction].items()
     ] for direction in directions
 }
 
@@ -83,14 +77,8 @@ def test_find_mice(direction, expected):
 
 
 def test_find_mice_empty(s):
-    expected = [
-        Mice(direction=direction,
-             mechanism=(),
-             purview=s.nodes,
-             repertoire=None,
-             mip=s._null_mip(direction, (), s.nodes),
-             phi=0)
-        for direction in directions]
+    expected = [Mice(s._null_mip(direction, (), s.nodes)) for direction in
+                directions]
     assert all(s.find_mice(mice.direction, mice.mechanism, s.null_cut) == mice
                for mice in expected)
 

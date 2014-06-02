@@ -121,15 +121,18 @@ def test_mip_equality():
 # =============
 
 def test_mice_ordering_by_phi():
-    phi1 = models.Mice(
-        direction=None, mechanism=(), purview=(), repertoire=None, mip=None,
-        phi=1.0)
-    different_phi1 = models.Mice(
-        direction='different', mechanism=(), purview=(), repertoire=None,
-        mip=None, phi=1.0)
-    phi2 = models.Mice(
-        direction=0, mechanism=(), purview=(), repertoire=None,
-        mip=None, phi=1.0 + options.EPSILON*2)
+    phi1 = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=1.0, partition=()))
+    different_phi1 = models.Mice(models.Mip(
+        direction='different', mechanism=(), purview=(),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=1.0, partition=()))
+    phi2 = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=(1.0 + options.EPSILON*2), partition=()))
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -139,12 +142,14 @@ def test_mice_ordering_by_phi():
 
 
 def test_mice_odering_by_mechanism():
-    small = models.Mice(
-        direction=None, mechanism=(1, 2), purview=(), repertoire=None,
-        mip=None, phi=1.0)
-    big = models.Mice(
-        direction=None, mechanism=(1, 2, 3), purview=(), repertoire=None,
-        mip=None, phi=1.0)
+    small = models.Mice(models.Mip(
+        direction=None, mechanism=(1, 2), purview=(),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=1.0, partition=()))
+    big = models.Mice(models.Mip(
+        direction=None, mechanism=(1, 2, 3), purview=(),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=1.0, partition=()))
     assert small < big
     assert small <= big
     assert big > small
@@ -154,15 +159,18 @@ def test_mice_odering_by_mechanism():
 
 def test_mice_equality():
     phi = 1.0
-    mice = models.Mice(
-        direction=None, mechanism=(), purview=(), repertoire=None, mip=None,
-        phi=phi)
-    close_enough = models.Mice(
-        direction=None, mechanism=(), purview=(), repertoire=None, mip=None,
-        phi=(phi - options.EPSILON/2))
-    not_quite = models.Mice(
-        direction=None, mechanism=(), purview=(), repertoire=None, mip=None,
-        phi=(phi - options.EPSILON*2))
+    mice = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=phi, partition=()))
+    close_enough = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=(phi - options.EPSILON/2), partition=()))
+    not_quite = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=(phi - options.EPSILON*2), partition=()))
     assert mice == close_enough
     assert mice != not_quite
 
