@@ -701,8 +701,8 @@ class Subsystem:
         mice = Mice(maximal_mip)
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
-        if (not cut or cut == self.null_cut
-                and (direction, mechanism) not in self._mice_cache):
+        if (cut == self.null_cut and (direction, mechanism) not in
+                self._mice_cache):
             self._mice_cache[(direction, mechanism)] = mice
         return mice
 
