@@ -31,11 +31,14 @@ class Subsystem:
     def __init__(self, node_indices, current_state, past_state, network):
         """
         Args:
-            nodes (tuple(int)): A sequence of indices of the nodes in this
-                subsystem.
-            current_state (tuple): The current state of this subsystem.
-            past_state (tuple): The past state of this subsystem.
-            network (Network): The network the subsystem is part of.
+            nodes (tuple(int)):
+                A sequence of indices of the nodes in this subsystem.
+            current_state (tuple):
+                The current state of this subsystem.
+            past_state (tuple):
+                The past state of this subsystem.
+            network (Network):
+                The network the subsystem is part of.
         """
         # This nodes in this subsystem.
         # (Remove duplicates and sort)
@@ -107,10 +110,16 @@ class Subsystem:
         """Return the cause repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (tuple(Node)): The mechanism for which to calculate the
-                cause repertoire.
-            purview (tuple(Node)): The purview over which to calculate the
-                cause repertoire.
+            mechanism (tuple(Node)):
+                The mechanism for which to calculate the cause repertoire.
+            purview (tuple(Node)):
+                The purview over which to calculate the cause repertoire.
+
+        Keywork Args:
+            cut (Cut):
+                The optional unidirectional cut that should be applied to the
+                network when doing the calculation. Defaults to ``None``, where
+                no cut is applied.
 
         Returns:
             An array representing the cause repertoire of the
@@ -213,13 +222,19 @@ class Subsystem:
         return cjd
 
     @lru_cache(maxmem=MAXMEM)
-    def effect_repertoire(self, mechanism, purview, cut):
+    def effect_repertoire(self, mechanism, purview, cut=None):
         """Return the effect repertoire of a mechanism over a purview.
 
-        mechanism (tuple(Node)): The mechanism for which to calculate the
-            effect repertoire.
-        purview (tuple(Node)): The purview over which to calculate the effect
-            repertoire.
+        mechanism (tuple(Node)):
+            The mechanism for which to calculate the effect repertoire.
+        purview (tuple(Node)):
+            The purview over which to calculate the effect repertoire.
+
+        Keywork Args:
+            cut (Cut):
+                The optional unidirectional cut that should be applied to the
+                network when doing the calculation. Defaults to ``None``, where
+                no cut is applied.
 
         Returns:
             An np.array representing the effect repertoire of the mechanism
@@ -355,8 +370,9 @@ class Subsystem:
         direction.
 
         Args:
-            direction (str): The temporal direction, specifiying the cause or
-                effect repertoire.
+            direction (str):
+                The temporal direction, specifiying the cause or effect
+                repertoire.
 
         Returns:
             The cause or effect repertoire function.
@@ -397,14 +413,16 @@ class Subsystem:
                                                             cut))
 
     # TODO test expand cause repertoire
-    def expand_cause_repertoire(self, mechanism, purview, repertoire, cut):
+    def expand_cause_repertoire(self, mechanism, purview, repertoire,
+                                cut=None):
         """Expand a partial cause repertoire over a purview to a distribution
         over the entire subsystem's state space."""
         return self._expand_repertoire(DIRECTIONS[PAST], mechanism, purview,
                                        repertoire, cut)
 
     # TODO test expand effect repertoire
-    def expand_effect_repertoire(self, mechanism, purview, repertoire, cut):
+    def expand_effect_repertoire(self, mechanism, purview, repertoire,
+                                 cut=None):
         """Expand a partial effect repertoire over a purview to a distribution
         over the entire subsystem's state space."""
         return self._expand_repertoire(DIRECTIONS[FUTURE], mechanism, purview,
@@ -473,9 +491,18 @@ class Subsystem:
         purview.
 
         Args:
-            direction (str): Either |past| or |future|.
-            mechanism (tuple(Node)): The nodes in the mechanism.
-            purview (tuple(Node)): The nodes in the purview.
+            direction (str):
+                Either |past| or |future|.
+            mechanism (tuple(Node)):
+                The nodes in the mechanism.
+            purview (tuple(Node)):
+                The nodes in the purview.
+
+        Keywork Args:
+            cut (Cut):
+                The optional unidirectional cut that should be applied to the
+                network when doing the calculation. Defaults to ``None``, where
+                no cut is applied.
 
         Returns:
             :class:`cyphi.models.Mip`
@@ -542,10 +569,7 @@ class Subsystem:
         MIP cause repertoire.
         """
         mip = self.mip_past(mechanism, purview, cut=None)
-        if mip:
-            return mip.phi
-        else:
-            return 0
+        return mip.phi if mip else 0
 
     def phi_mip_future(self, mechanism, purview, cut=None):
         """Return the |phi| value of the future minimum information partition.
@@ -573,17 +597,18 @@ class Subsystem:
         """Tests connectivity of one set of nodes to another.
 
         Args:
-            axis (int): The axis over which to take the sum of the connectivity
+            axis (int):
+                The axis over which to take the sum of the connectivity
                 submatrix. If this is 0, the sum will be taken over the
                 columns; in this case returning ``True`` means "all nodes in
                 the second list have an input from some node in the first
                 list". If this is 1, the sum will be taken over the rows, and
                 returning ``True`` means "all nodes in the first list have a
                 connection to some node in the second list".
-            nodes1 ([Node]): the nodes whose outputs to ``nodes2`` will be
-                tested
-            nodes2 ([Node]): the nodes whose inputs from ``nodes1`` will
-                be tested
+            nodes1 (tuple(Node)):
+                The nodes whose outputs to ``nodes2`` will be tested.
+            nodes2 (tuple(Node)):
+                The nodes whose inputs from ``nodes1`` will be tested.
         """
         if (self.network.connectivity_matrix is None or
                 not nodes1 or not nodes2):
@@ -633,16 +658,20 @@ class Subsystem:
                 return cached
         return False
 
-    def find_mice(self, direction, mechanism, cut):
+    def find_mice(self, direction, mechanism, cut=None):
         """Return the maximally irreducible cause or effect for a mechanism.
 
         Args:
-            direction (str): The temporal direction, specifying cause or
-                effect.
-            mechanism (tuple(Node)): The mechanism to be tested for
-                irreducibility.
-            cut (Cut): The unidirectional cut that's been applied to the
-                subsystem. May be ``None``.
+            direction (str):
+                The temporal direction, specifying cause or effect.
+            mechanism (tuple(Node)):
+                The mechanism to be tested for irreducibility.
+
+        Keywork Args:
+            cut (Cut):
+                The optional unidirectional cut that should be applied to the
+                network when doing the calculation. Defaults to ``None``, where
+                no cut is applied.
 
         Returns:
             :class:`cyphi.models.Mice`
