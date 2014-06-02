@@ -714,7 +714,7 @@ class Subsystem:
     # TODO add `concept-space` section to the docs:
         # The first dimension corresponds to the direction, past or future; the
         # correspond to the subsystem's state space."""
-    # TODO! make this a property
+    @property
     def null_concept(self):
         """Return the null concept of this subsystem, a point in concept space
         identified with the unconstrained cause and effect repertoire of this

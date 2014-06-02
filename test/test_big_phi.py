@@ -20,7 +20,7 @@ big_mip_standard_example = compute.big_mip.func(examples.s(),
 
 
 def test_null_concept(s):
-    assert (s.null_concept() == models.Concept(
+    assert (s.null_concept == models.Concept(
         mechanism=(),
         location=np.array([s.unconstrained_cause_repertoire(s.nodes),
                            s.unconstrained_effect_repertoire(s.nodes)]),
