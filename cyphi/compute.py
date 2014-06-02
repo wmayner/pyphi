@@ -297,8 +297,6 @@ def _big_mip(subsystem, cache_key):
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = utils.bipartition(subsystem.nodes)[1:]
-    if not bipartitions:
-        return _null_mip(subsystem)
 
     # =========================================================================
 
