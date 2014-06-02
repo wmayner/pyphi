@@ -249,7 +249,7 @@ _mice_attributes = ['phi', 'direction', 'mechanism', 'purview', 'repertoire',
                     'mip']
 
 
-class Mice(namedtuple('Mice', _mice_attributes)):
+class Mice:
 
     """A maximally irreducible cause or effect (i.e., "core cause" or "core
     effect").
@@ -278,12 +278,38 @@ class Mice(namedtuple('Mice', _mice_attributes)):
             The minimum information partition for this mechanism.
     """
 
+    def __init__(self, mip):
+        self._mip = mip
+
+    @property
+    def phi(self):
+        return self._mip.phi
+
+    @property
+    def direction(self):
+        return self._mip.direction
+
+    @property
+    def mechanism(self):
+        return self._mip.mechanism
+
+    @property
+    def purview(self):
+        return self._mip.purview
+
+    @property
+    def repertoire(self):
+        return self._mip.unpartitioned_repertoire
+
+    @property
+    def mip(self):
+        return self._mip
+
     def __eq__(self, other):
-        return _general_eq(self, other, _mice_attributes)
+        return self.mip == other.mip
 
     def __hash__(self):
-        return hash((self.phi, self.direction, self.mechanism, self.purview,
-                     utils.np_hash(self.repertoire), self.mip))
+        return hash(('Mice', self._mip))
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
