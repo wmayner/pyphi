@@ -25,19 +25,10 @@ from .lru_cache import lru_cache
 
 @memory.cache(ignore=['subsystem', 'mechanism', 'cut'])
 def _concept(cache_key, subsystem, mechanism, cut):
-    """Returns the concept specified by a mechanism.
-
-    The output is "persistently cached" (saved to the disk for later access to
-    avoid recomputation).
-    Cache the output using the normal form of the multiset of the mechanism
-    nodes' Markov blankets (not the mechanism itself). This results in more
-    cache hits, since the output depends only on the causual properties of the
-    nodes. See the marbl documentation.
-    """
-    # If any node in the mechanism either has no inputs from the subsystem
-    # or has no outputs to the subsystem, then the mechanism is necessarily
-    # reducible and cannot be a concept (since removing that node would
-    # make no difference to at least one of the MICEs).
+    # If any node in the mechanism either has no inputs from the subsystem or
+    # has no outputs to the subsystem, then the mechanism is necessarily
+    # reducible and cannot be a concept (since removing that node would make no
+    # difference to at least one of the MICEs).
     if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
             subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
         return None
@@ -62,8 +53,34 @@ def _concept(cache_key, subsystem, mechanism, cut):
         effect=future_mice)
 
 
-@functools.wraps(_concept)
 def concept(subsystem, mechanism, cut=None):
+    """Return the concept specified by the a mechanism within a subsytem.
+
+    Args:
+        subsystem (Subsytem): The context in which the mechanism should be
+            considered.
+        mechanism (tuple(Node)): The candidate set of nodes.
+
+    Keyword Args:
+        cut (Cut): The optional unidirectional cut that should be applied to
+            the network when doing the calculation. Defaults to ``None``, where
+            no cut is applied.
+
+    Returns:
+        ``Concept or None`` -- The pair of maximally irreducible cause/effect
+            repertoires that constitute the concept specified by the given
+            mechanism, or ``None`` if there isn't one.
+
+    .. note::
+        The output is "persistently cached" (saved to the disk for later
+        access), to avoid recomputation. The cache key is the hash of the
+        normal form of the multiset of the mechanism nodes' Markov blankets
+        (not the mechanism itself). This results in more cache hits, since the
+        output depends only on the causual properties of the nodes. See the
+        documentation for the `marbl specification
+        <https://github.com/wmayner/marbl>`_, and the `marbl-python
+        implementation <http://pythonhosted.org/marbl-python/>`_.
+    """
     # Generate the cache key for memoizing concepts
     if cut is None:
         cut = subsystem.null_cut
@@ -73,7 +90,21 @@ def concept(subsystem, mechanism, cut=None):
 
 
 def constellation(subsystem, cut=None):
-    """Return the conceptual structure of this subsystem."""
+    """Return the conceptual structure of this subsystem.
+
+    Args:
+        subsystem (Subsytem):
+            The subsystem for which to determine the constellation.
+
+    Keyword Args:
+        cut (Cut):
+            The optional unidirectional cut that should be applied to the
+            network when doing the calculation. Defaults to ``None``, where no
+            cut is applied.
+
+    Returns:
+        ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
+    """
     concepts = [concept(subsystem, mechanism, cut) for mechanism in
                 utils.powerset(subsystem.nodes)]
     # Filter out non-concepts
@@ -85,8 +116,10 @@ def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
     Args:
-        c1 (Mice): the first concept
-        c2 (Mice): the second concept
+        c1 (Mice):
+            The first concept.
+        c2 (Mice):
+            The second concept.
 
     Returns:
         The distance between the two concepts in concept-space.
@@ -134,7 +167,21 @@ def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, null_concept):
 
 @lru_cache(maxmem=MAXMEM)
 def constellation_distance(C1, C2, null_concept):
-    """Return the distance between two constellations in concept-space."""
+    """Return the distance between two constellations in concept-space.
+
+    Args:
+        C1 (tuple(Concept)):
+            The first constellation.
+        C2 (tuple(Concept)):
+            The second constellation.
+        null_concept (Concept):
+            The null concept of a candidate set, *i.e* the "origin" of the
+            concept space in which the given constellations reside.
+
+    Returns:
+        ``float`` -- The distance between the two constellations in
+        concept-space.
+    """
     concepts_only_in_C1 = [c for c in C1 if c not in C2]
     concepts_only_in_C2 = [c for c in C2 if c not in C1]
     # If the only difference in the constellations is that some concepts
@@ -171,8 +218,7 @@ def _null_mip(subsystem):
 def _single_node_mip(subsystem):
     """Returns a the BigMip of a single-node with a selfloop.
 
-    Whether these have a nonzero |Phi| value depends on the CyPhi options.
-    """
+    Whether these have a nonzero |Phi| value depends on the CyPhi options."""
     if options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
         # TODO return the actual concept
         return BigMip(
@@ -219,7 +265,17 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 # TODO document big_mip
 @memory.cache(ignore=['subsystem'])
 def _big_mip(subsystem, cache_key):
-    """Return the MIP for a subsystem."""
+    """Return the MIP of a subsystem.
+
+    Args:
+        subsystem (Subsystem):
+            The candidate set of nodes.
+
+    Returns:
+        ``BigMip`` -- A nested structure containing all the data from the
+        intermediate calculations. The top level contains the basic MIP
+        information for the given subsystem. See :class:`models.BigMip`.
+    """
     # Special case for single-node subsystems.
     if (len(subsystem.nodes) == 1):
         return _single_node_mip(subsystem)

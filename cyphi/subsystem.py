@@ -15,7 +15,7 @@ from .lru_cache import lru_cache
 from . import options, validate
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (hamming_emd, max_entropy_distribution, powerset,
-                    bipartition, phi_eq)
+                    bipartition)
 from .models import Cut, Mip, Part, Mice, Concept
 
 
@@ -31,14 +31,11 @@ class Subsystem:
     def __init__(self, node_indices, current_state, past_state, network):
         """
         Args:
-            nodes (tuple(int)):
-                A sequence of indices of the nodes in this subsystem.
-            current_state (tuple):
-                The current state of this subsystem.
-            past_state (tuple):
-                The past state of this subsystem.
-            network (Network):
-                The network the subsystem is part of.
+            nodes (tuple(int)): A sequence of indices of the nodes in this
+                subsystem.
+            current_state (tuple): The current state of this subsystem.
+            past_state (tuple): The past state of this subsystem.
+            network (Network): The network the subsystem is part of.
         """
         # This nodes in this subsystem.
         # (Remove duplicates and sort)
@@ -110,20 +107,19 @@ class Subsystem:
         """Return the cause repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (tuple(Node)):
-                The mechanism for which to calculate the cause repertoire.
-            purview (tuple(Node)):
-                The purview over which to calculate the cause repertoire.
+            mechanism (tuple(Node)): The mechanism for which to calculate the
+                cause repertoire.
+            purview (tuple(Node)): The purview over which to calculate the
+                cause repertoire.
 
-        Keywork Args:
-            cut (Cut):
-                The optional unidirectional cut that should be applied to the
-                network when doing the calculation. Defaults to ``None``, where
-                no cut is applied.
+        Keyword Args:
+            cut (Cut): The optional unidirectional cut that should be applied
+                to the network when doing the calculation. Defaults to
+                ``None``, where no cut is applied.
 
         Returns:
-            An array representing the cause repertoire of the
-            mechanism over a purview.
+            ``np.ndarray`` -- The cause repertoire of the mechanism over the
+            purview.
         """
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # NOTE: In the Matlab version's terminology,
@@ -225,20 +221,20 @@ class Subsystem:
     def effect_repertoire(self, mechanism, purview, cut=None):
         """Return the effect repertoire of a mechanism over a purview.
 
-        mechanism (tuple(Node)):
-            The mechanism for which to calculate the effect repertoire.
-        purview (tuple(Node)):
-            The purview over which to calculate the effect repertoire.
+        Args:
+            mechanism (tuple(Node)): The mechanism for which to calculate the
+                effect repertoire.
+            purview (tuple(Node)): The purview over which to calculate the
+                effect repertoire.
 
-        Keywork Args:
-            cut (Cut):
-                The optional unidirectional cut that should be applied to the
-                network when doing the calculation. Defaults to ``None``, where
-                no cut is applied.
+        Keyword Args:
+            cut (Cut): The optional unidirectional cut that should be applied
+                to the network when doing the calculation. Defaults to
+                ``None``, where no cut is applied.
 
         Returns:
-            An np.array representing the effect repertoire of the mechanism
-            over a purview.
+            ``np.ndarray`` -- The effect repertoire of the mechanism over the
+            purview.
         """
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # NOTE: In the Matlab version's terminology,
@@ -370,12 +366,11 @@ class Subsystem:
         direction.
 
         Args:
-            direction (str):
-                The temporal direction, specifiying the cause or effect
-                repertoire.
+            direction (str): The temporal direction, specifiying the cause or
+                effect repertoire.
 
         Returns:
-            The cause or effect repertoire function.
+            ``function`` -- The cause or effect repertoire function.
         """
         if direction == DIRECTIONS[PAST]:
             return self.cause_repertoire
@@ -491,18 +486,14 @@ class Subsystem:
         purview.
 
         Args:
-            direction (str):
-                Either |past| or |future|.
-            mechanism (tuple(Node)):
-                The nodes in the mechanism.
-            purview (tuple(Node)):
-                The nodes in the purview.
+            direction (str): Either |past| or |future|.
+            mechanism (tuple(Node)): The nodes in the mechanism.
+            purview (tuple(Node)): The nodes in the purview.
 
-        Keywork Args:
-            cut (Cut):
-                The optional unidirectional cut that should be applied to the
-                network when doing the calculation. Defaults to ``None``, where
-                no cut is applied.
+        Keyword Args:
+            cut (Cut): The optional unidirectional cut that should be applied
+                to the network when doing the calculation. Defaults to
+                ``None``, where no cut is applied.
 
         Returns:
             :class:`cyphi.models.Mip`
@@ -597,18 +588,17 @@ class Subsystem:
         """Tests connectivity of one set of nodes to another.
 
         Args:
-            axis (int):
-                The axis over which to take the sum of the connectivity
+            axis (int): The axis over which to take the sum of the connectivity
                 submatrix. If this is 0, the sum will be taken over the
                 columns; in this case returning ``True`` means "all nodes in
                 the second list have an input from some node in the first
                 list". If this is 1, the sum will be taken over the rows, and
                 returning ``True`` means "all nodes in the first list have a
                 connection to some node in the second list".
-            nodes1 (tuple(Node)):
-                The nodes whose outputs to ``nodes2`` will be tested.
-            nodes2 (tuple(Node)):
-                The nodes whose inputs from ``nodes1`` will be tested.
+            nodes1 (tuple(Node)): The nodes whose outputs to ``nodes2`` will be
+                tested.
+            nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
+                be tested.
         """
         if (self.network.connectivity_matrix is None or
                 not nodes1 or not nodes2):
@@ -662,16 +652,15 @@ class Subsystem:
         """Return the maximally irreducible cause or effect for a mechanism.
 
         Args:
-            direction (str):
-                The temporal direction, specifying cause or effect.
-            mechanism (tuple(Node)):
-                The mechanism to be tested for irreducibility.
+            direction (str): The temporal direction, specifying cause or
+                effect.
+            mechanism (tuple(Node)): The mechanism to be tested for
+                irreducibility.
 
-        Keywork Args:
-            cut (Cut):
-                The optional unidirectional cut that should be applied to the
-                network when doing the calculation. Defaults to ``None``, where
-                no cut is applied.
+        Keyword Args:
+            cut (Cut): The optional unidirectional cut that should be applied
+                to the network when doing the calculation. Defaults to
+                ``None``, where no cut is applied.
 
         Returns:
             :class:`cyphi.models.Mice`
