@@ -657,9 +657,10 @@ class Subsystem:
             |future|, i.e., we return a core cause or core effect, not the pair
             of them.
         """
-        # Return a cached MICE if we were given a cache and there's a hit
-        cached_mice = (self._get_cached_mice(direction, mechanism, cut)
-                       if (cut and cut != self.null_cut) else False)
+        if not cut:
+            cut = self.null_cut
+        # Return a cached MICE if there's a hit.
+        cached_mice = self._get_cached_mice(direction, mechanism, cut)
         if cached_mice:
             return cached_mice
 
