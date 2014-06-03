@@ -114,5 +114,5 @@ def test_big_mip_big_network(big_subsys_all):
     assert len(mip.partitioned_constellation) == 17
     options.PRECISION = initial_precision
 
-def test_complexes(standard):
-    assert (list(compute.complexes(standard)) == [0])
+# def test_complexes(standard):
+#     assert (list(compute.complexes(standard)) == [0])
