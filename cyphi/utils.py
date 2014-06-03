@@ -9,6 +9,7 @@ Functions used by more than one CyPhi module or class, or that might be of
 external use.
 """
 
+import math
 import hashlib
 import numpy as np
 from itertools import chain, combinations
@@ -18,6 +19,96 @@ from pyemd import emd
 from . import options
 from .constants import MAXMEM
 from .lru_cache import lru_cache
+
+
+def state_by_state2state_by_node(tpm):
+    """Convert a state-by-state TPM to a state-by-node TPM.
+
+    The binary representations of the indices of the rows and columns
+    correspond to states of the network.
+
+    .. note::
+        This function uses the convention that that low-order bits correspond
+        to low-index nodes; i.e., the least significant bit gives the state of
+        the first node, the second-least significant bit gives the state of the
+        second node, and so on.
+
+    Args:
+        tpm (list(list) or np.ndarray): A square state-by-state TPM.
+
+    Returns:
+        ``np.ndarray`` -- A state-by-node TPM.
+
+    Examples:
+        >>> from cyphi.utils import state_by_state2state_by_node
+        >>> tpm = np.array([[0.5, 0.5, 0.0, 0.0],
+        ...                 [0.0, 1.0, 0.0, 0.0],
+        ...                 [0.0, 0.2, 0.0, 0.8],
+        ...                 [0.0, 0.3, 0.7, 0.0]])
+        >>> state_by_state2state_by_node(tpm)
+        array([[[ 0.5,  0. ],
+                [ 1. ,  0.8]],
+        <BLANKLINE>
+               [[ 1. ,  0. ],
+                [ 0.3,  0.7]]])
+    """
+    # Cast to np.array.
+    tpm = np.array(tpm)
+    # Validate.
+    if tpm.ndim != 2:
+        raise ValueError("State-by-state TPM must be 2-dimensional.")
+    if tpm.shape[0] != tpm.shape[1]:
+        raise ValueError("State-by-state TPM must be square.")
+    if not all(tpm.sum(1) == 1):
+        raise ValueError("Rows of the TPM must sum to 1.")
+    # Get the number of states from the length of one side of the TPM.
+    S = tpm.shape[0]
+    # Get the number of nodes from the number of states.
+    N = int(math.sqrt(S))
+    # Initialize the new state-by node TPM.
+    sbn_tpm = np.zeros(([2] * N + [N]))
+    # Map indices to state-tuples.
+    state = {i: index2state(i, N) for i in range(S)}
+    # Iterate over the state-by-state TPM.
+    for i in range(S):
+        for j in range(S):
+            # Get the state-tuples represented by the decimal indices.
+            # For each node in the network...
+            for n in range(N):
+                # If this node is on in the j'th state...
+                if state[j][n]:
+                    # Increment by the probability that the i'th state
+                    # transitioned to the j'th state.
+                    sbn_tpm[state[i]][n] += tpm[i][j]
+    return sbn_tpm
+
+
+def index2state(i, number_of_nodes):
+    """Convert a decimal integer to a CyPhi state tuple.
+
+    .. note::
+        This function uses the convention that that low-order bits correspond
+        to low-index nodes; i.e., the least significant bit gives the state of
+        the first node, the second-least significant bit gives the state of the
+        second node, and so on.
+
+    Args:
+        index (int): A decimal integer corresponding to a network state.
+
+    Returns:
+        ``tuple(int)`` -- A state-tuple where the ``i``th element of the tuple
+            gives the state of the ``i``th node.
+
+    Examples:
+        >>> from cyphi.utils import index2state
+        >>> number_of_nodes = 5
+        >>> index2state(1, number_of_nodes)
+        (1, 0, 0, 0, 0)
+        >>> number_of_nodes = 8
+        >>> index2state(7, number_of_nodes)
+        (1, 1, 1, 0, 0, 0, 0, 0)
+    """
+    return tuple(map(int, bin(i)[2:].zfill(number_of_nodes)[::-1]))
 
 
 def nodes2indices(nodes):

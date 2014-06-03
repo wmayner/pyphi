@@ -12,21 +12,6 @@ their CyPhi equivalents.
 import numpy as np
 
 
-def matlab_index2state(i, number_of_nodes):
-    """Convert a decimal integer to a CyPhi state tuple.
-
-    Examples:
-        >>> from cyphi.matlab import matlab_index2state
-        >>> number_of_nodes = 5
-        >>> matlab_index2state(1, number_of_nodes)
-        (1, 0, 0, 0, 0)
-        >>> number_of_nodes = 8
-        >>> matlab_index2state(7, number_of_nodes)
-        (1, 1, 1, 0, 0, 0, 0, 0)
-    """
-    return tuple(map(int, bin(i)[2:].zfill(number_of_nodes)[::-1]))
-
-
 def state2matlab_index(state):
     """Convert a CyPhi state tuple to a decimal integer for indexing into a
     Matlab-style TPM.
