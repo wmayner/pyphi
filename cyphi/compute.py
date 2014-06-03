@@ -345,7 +345,6 @@ def subsystems(network):
                         network)
 
 
-@lru_cache(maxmem=MAXMEM)
 def complexes(network):
     """Return a generator for all complexes of the network.
 
