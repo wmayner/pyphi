@@ -59,7 +59,8 @@ def state_by_state2state_by_node(tpm):
         raise ValueError("State-by-state TPM must be 2-dimensional.")
     if tpm.shape[0] != tpm.shape[1]:
         raise ValueError("State-by-state TPM must be square.")
-    if not all(tpm.sum(1) == 1):
+    if not np.allclose(tpm.sum(1) == 1, np.ones(tpm.shape[1]),
+                       atol=options.PRECISION):
         raise ValueError("Rows of the TPM must sum to 1.")
     # Get the number of states from the length of one side of the TPM.
     S = tpm.shape[0]
