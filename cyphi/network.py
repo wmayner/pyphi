@@ -30,13 +30,18 @@ class Network:
             The number of nodes in the network.
         tpm (np.ndarray):
             The transition probability matrix that encodes the network's
-            mechanism. Must be provided in state-by-node form. It can be either
-            2-dimensional, so that ``tpm[i]`` gives the probabilities of each
-            node being on if the past state is given by the binary
-            representation of ``i``, or in N-D form, so that ``tpm[0][1][0]``
-            gives the probabilities of each node being on if the past state is
-            |0,1,0|. The shape of the 2-dimensional form of the TPM must be
-            ``(S, N)``, and the shape of the N-D form of the TPM must be ``[2]
+            mechanism. It can be provided in either state-by-node or
+            state-by-state form. In state-by-state form, decimal indices must
+            correspond to states so that lower-order bits of the binary
+            representation of the index give the state of low-index nodes. See
+            :func:`utils.state_by_state2state_by_node` for more info. If given
+            in state-by-node form, it can be either 2-dimensional, so that
+            ``tpm[i]`` gives the probabilities of each node being on if the
+            past state is given by the binary representation of ``i``, or in
+            N-D form, so that ``tpm[0][1][0]`` gives the probabilities of each
+            node being on if the past state is |0,1,0|. The shape of the
+            2-dimensional form of the TPM must be ``(S, N)``, and the shape of
+            the N-D form of the TPM must be ``[2]
             * N + [N]``, where ``S`` is the number of states and ``N`` is the
             number of nodes in the network.
         current_state (tuple):
@@ -65,6 +70,10 @@ class Network:
                  connectivity_matrix=None):
         # Cast TPM to np.array.
         tpm = np.array(tpm)
+        # Convert to state-by-node if we were given a square state-by-state
+        # TPM.
+        if tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]:
+            tpm = utils.state_by_state2state_by_node(tpm)
         # Get the number of nodes in the network.
         # The TPM can be either 2-dimensional or in N-D form, where transition
         # probabilities can be indexed by state-tuples. In either case, the

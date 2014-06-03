@@ -39,6 +39,19 @@ def test_network_init_validation(network):
     # TPM?)
 
 
+def test_network_state_by_state_tpm():
+    sbs_tpm = np.array([[0.5, 0.5, 0.0, 0.0],
+                        [0.0, 1.0, 0.0, 0.0],
+                        [0.0, 0.2, 0.0, 0.8],
+                        [0.0, 0.3, 0.7, 0.0]])
+    sbn_tpm = np.array([[[0.5, 0.0],
+                         [1.0, 0.8]],
+                        [[1.0, 0.0],
+                         [0.3, 0.7]]])
+    state = (0, 0)
+    assert (Network(sbs_tpm, state, state) == Network(sbn_tpm, state, state))
+
+
 def test_network_init_nodes(network):
     nodes = tuple(Node(network, node_index) for node_index in
                   range(network.size))
