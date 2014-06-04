@@ -65,7 +65,7 @@ def state_by_state2state_by_node(tpm):
     # Get the number of states from the length of one side of the TPM.
     S = tpm.shape[0]
     # Get the number of nodes from the number of states.
-    N = int(math.sqrt(S))
+    N = int(math.log(S, 2))
     # Initialize the new state-by node TPM.
     sbn_tpm = np.zeros(([2] * N + [N]))
     # Map indices to state-tuples.
