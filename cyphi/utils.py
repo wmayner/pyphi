@@ -131,6 +131,8 @@ def np_hash(a):
     """Return a hash of a NumPy array.
 
     This is much faster than ``np.toString`` for large arrays."""
+    if a is None:
+        return hash(None)
     # Ensure that hashes are equal whatever the ordering in memory (C or
     # Fortran)
     a = np.ascontiguousarray(a)
