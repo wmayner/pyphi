@@ -9,22 +9,21 @@ Methods for computing concepts, constellations, and integrated information of
 subsystems.
 """
 
-import functools
 import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
-from . import utils, options
+from . import utils, options, memory
 from .models import Concept, Cut, BigMip, MarblSet
 from .network import Network
 from .subsystem import Subsystem
-from .constants import MAXMEM, memory
+from .constants import MAXMEM
 from .lru_cache import lru_cache
 
 
 @memory.cache(ignore=['subsystem', 'mechanism', 'cut'])
-def _concept(cache_key, subsystem, mechanism, cut):
+def _concept(marblset, subsystem, mechanism, cut):
     # Calculate the maximally irreducible cause repertoire.
     cause = subsystem.core_cause(mechanism, cut)
     # Calculate the maximally irreducible effect repertoire.
@@ -85,10 +84,10 @@ def concept(subsystem, mechanism, cut=None):
     # Default to the subsystem's null cut.
     if cut is None:
         cut = subsystem.null_cut
-    # Generate the cache key for memoizing concepts.
-    cache_key = hash(MarblSet(mechanism, cut))
-    # Pass on the cache key to the underlying function.
-    return _concept(cache_key, subsystem, mechanism, cut)
+    # Generate the MarblSet for memoizing concepts.
+    marblset = MarblSet(mechanism, cut)
+    # Pass on the MarblSet.
+    return _concept(marblset, subsystem, mechanism, cut)
 
 
 def constellation(subsystem, cut=None):
@@ -270,18 +269,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 
 
 # TODO document big_mip
-@memory.cache(ignore=['subsystem'])
 def _big_mip(cache_key, subsystem):
-    """Return the MIP of a subsystem.
-
-    Args:
-        subsystem (Subsystem): The candidate set of nodes.
-
-    Returns:
-        ``BigMip`` -- A nested structure containing all the data from the
-        intermediate calculations. The top level contains the basic MIP
-        information for the given subsystem. See :class:`models.BigMip`.
-    """
     # Special case for single-node subsystems.
     if (len(subsystem.nodes) == 1):
         return _single_node_mip(subsystem)
@@ -325,9 +313,20 @@ def _big_mip(cache_key, subsystem):
     return min(mip_candidates)
 
 
-# Wrapper so that joblib.Memory caches by the native hash
-@functools.wraps(_big_mip)
+# Wrapper to ensure that the cache key is the native hash of the subsystem, so
+# joblib doesn't mistakenly recompute things when the subsystem's MICE cache is
+# changed.
 def big_mip(subsystem):
+    """Return the MIP of a subsystem.
+
+    Args:
+        subsystem (Subsystem): The candidate set of nodes.
+
+    Returns:
+        ``BigMip`` -- A nested structure containing all the data from the
+        intermediate calculations. The top level contains the basic MIP
+        information for the given subsystem. See :class:`models.BigMip`.
+    """
     return _big_mip(hash(subsystem), subsystem)
 
 
