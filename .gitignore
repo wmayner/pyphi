@@ -23,3 +23,4 @@ saveprofile.sh
 __results__
 results
 *.egg-info
+dump.rdb
