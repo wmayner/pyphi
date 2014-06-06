@@ -71,4 +71,4 @@ __copyright__ = 'Copyright 2014 Will Mayner'
 
 from .network import Network
 from .subsystem import Subsystem
-from . import compute, options, constants
+from . import compute, options, constants, db
