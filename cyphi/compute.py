@@ -200,12 +200,13 @@ def constellation_distance(C1, C2, subsystem, cut):
                                            cut)
 
 
-def conceptual_information(subsystem, cut):
+def conceptual_information(subsystem):
     """Return the conceptual information for a subsystem.
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    return constellation_distance(constellation(subsystem), (), subsystem, cut)
+    return constellation_distance(constellation(subsystem), (), subsystem,
+                                  subsystem.null_cut)
 
 
 # TODO document
