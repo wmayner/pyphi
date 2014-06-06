@@ -269,6 +269,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 
 
 # TODO document big_mip
+@memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
     # Special case for single-node subsystems.
     if (len(subsystem.nodes) == 1):
