@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import pickle
+import functools
+import joblib.func_inspect
+from redis import StrictRedis
+from . import constants
+
+
+class PickledRedis(StrictRedis):
+
+    """A subclass of the Redis object that pickles and un-pickles objects
+    before storing and retrieving."""
+
+    def get(self, name):
+        pickled_value = super(PickledRedis, self).get(name)
+        if pickled_value is None:
+            return None
+        return pickle.loads(pickled_value)
+
+    def set(self, name, value, ex=None, px=None, nx=False, xx=False):
+        return super(PickledRedis, self).set(
+            name, pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL),
+            ex, px, nx, xx)
+
+
+# Initialize a redis instance.
+instance = PickledRedis(host='localhost', port=6379, db=0)
+
+
+# Bring the set and get methods of the redis instance up to the module-level
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+@functools.wraps(instance.get)
+def get(*args, **kwargs):
+    return instance.get(*args, **kwargs)
+
+
+@functools.wraps(instance.set)
+def set(*args, **kwargs):
+    return instance.set(*args, **kwargs)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def memoize(ignore=[]):
+    """Decorator for memoizing a function to a redis instance."""
+
+    def decorator(func):
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # The first component of the key will be the full name of the
+            # function.
+            f_path, f_name = joblib.func_inspect.get_func_name(func)
+            full_name = '.'.join(f_path+[f_name])
+            # Get a dictionary mapping argument names to argument values where
+            # ignored arguments are omitted.
+            filtered_args = joblib.func_inspect.filter_args(func, ignore, args,
+                                                            kwargs)
+            # Get a sorted tuple of the filtered argument.
+            filtered_args = tuple(sorted(filtered_args.values()))
+            # Use native hash when hashing arguments.
+            argument_hash = hash(filtered_args)
+            # Construct the key string.
+            key = full_name + ":" + str(argument_hash)
+            print("Key:", key)
+            # Attempt to retrieve a precomputed value from the database.
+            cached_value = instance.get(argument_hash)
+            # If successful, return it.
+            if cached_value:
+                return cached_value
+            # Otherwise, compute, store, and return the value.
+            else:
+                result = func(*args, **kwargs)
+                # Use the argument hash as the key.
+                instance.set(argument_hash, result)
+                return result
+
+        return wrapper
+
+    return decorator
