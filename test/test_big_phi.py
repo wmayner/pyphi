@@ -5,6 +5,7 @@ import pytest
 import numpy as np
 
 from cyphi import options, compute, models, utils
+from cyphi.constants import DIRECTIONS, PAST, FUTURE
 
 import example_networks as examples
 
@@ -20,11 +21,16 @@ big_mip_standard_example = compute.big_mip.func(hash(examples.s()),
 
 
 def test_null_concept(s):
-    assert (s.null_concept == models.Concept(
-        mechanism=(),
-        location=np.array([s.unconstrained_cause_repertoire(s.nodes),
-                           s.unconstrained_effect_repertoire(s.nodes)]),
-        phi=0, cause=None, effect=None))
+    cause = models.Mice(models.Mip(
+        unpartitioned_repertoire=s.unconstrained_cause_repertoire(s.nodes),
+        phi=0, direction=DIRECTIONS[PAST], mechanism=(), purview=s.nodes,
+        partition=None, partitioned_repertoire=None))
+    effect = models.Mice(models.Mip(
+        unpartitioned_repertoire=s.unconstrained_effect_repertoire(s.nodes),
+        phi=0, direction=DIRECTIONS[FUTURE], mechanism=(), purview=s.nodes,
+        partition=None, partitioned_repertoire=None))
+    assert (s.null_concept ==
+            models.Concept(mechanism=(), phi=0, cause=cause, effect=effect))
 
 
 def test_concept_nonexistent(s):
