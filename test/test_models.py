@@ -228,13 +228,13 @@ def test_mice_repr_str():
 
 def test_concept_ordering():
     phi1 = models.Concept(
-        mechanism=(0, 1), location=None, cause=None, effect=None,
+        mechanism=(0, 1), cause=1, effect=None,
         phi=1.0)
     different_phi1 = models.Concept(
-        mechanism=(), location=1, cause=None, effect=None,
+        mechanism=(), cause='different', effect=None,
         phi=1.0)
     phi2 = models.Concept(
-        mechanism=0, location='stilldifferent', cause=None, effect=None,
+        mechanism=0, cause='stilldifferent', effect=None,
         phi=1.0 + options.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
@@ -246,11 +246,9 @@ def test_concept_ordering():
 
 def test_concept_odering_by_mechanism():
     small = models.Concept(
-        mechanism=(0, 1), location=None, cause=None, effect=None,
-        phi=1.0)
+        mechanism=(0, 1), cause=None, effect=None, phi=1.0)
     big = models.Concept(
-        mechanism=(0, 1, 3), location=None, cause=None, effect=None,
-        phi=1.0)
+        mechanism=(0, 1, 3), cause=None, effect=None, phi=1.0)
     assert small < big
     assert small <= big
     assert big > small
@@ -261,21 +259,23 @@ def test_concept_odering_by_mechanism():
 def test_concept_equality():
     phi = 1.0
     concept = models.Concept(
-        mechanism=(), location=None, cause=None, effect=None,
+        mechanism=(), cause=None, effect=None,
         phi=phi)
     close_enough = models.Concept(
-        mechanism=(), location=None, cause=None, effect=None,
+        mechanism=(), cause=None, effect=None,
         phi=(phi - options.EPSILON/2))
     not_quite = models.Concept(
-        mechanism=(), location=None, cause=None, effect=None,
+        mechanism=(), cause=None, effect=None,
         phi=(phi - options.EPSILON*2))
     assert concept == close_enough
     assert concept != not_quite
 
 
 def test_concept_repr_str():
+    r = namedtuple('object_with_repertoire', ['repertoire'])
     concept = models.Concept(
-        mechanism=(), location=None, cause=None, effect=None, phi=0.0)
+        mechanism=(), cause=r('a_repertoire'), effect=r('a_repertoire'),
+        phi=0.0)
     print(repr(concept))
     print(str(concept))
 
