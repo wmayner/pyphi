@@ -9,22 +9,21 @@ Methods for computing concepts, constellations, and integrated information of
 subsystems.
 """
 
-import functools
 import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
-from . import utils, options
+from . import utils, options, memory
 from .models import Concept, Cut, BigMip, MarblSet
 from .network import Network
 from .subsystem import Subsystem
-from .constants import PAST, FUTURE, MAXMEM, memory
+from .constants import PAST, FUTURE, MAXMEM
 from .lru_cache import lru_cache
 
 
 @memory.cache(ignore=['subsystem', 'mechanism', 'cut'])
-def _concept(cache_key, subsystem, mechanism, cut):
+def _concept(marblset, subsystem, mechanism, cut):
     # If any node in the mechanism either has no inputs from the subsystem or
     # has no outputs to the subsystem, then the mechanism is necessarily
     # reducible and cannot be a concept (since removing that node would make no
@@ -81,12 +80,12 @@ def concept(subsystem, mechanism, cut=None):
         <https://github.com/wmayner/marbl>`_, and the `marbl-python
         implementation <http://pythonhosted.org/marbl-python/>`_.
     """
-    # Generate the cache key for memoizing concepts
     if cut is None:
         cut = subsystem.null_cut
-    cache_key = hash(MarblSet(mechanism, cut))
-    # Pass on the cache key
-    return _concept(cache_key, subsystem, mechanism, cut)
+    # Generate the MarblSet for memoizing concepts.
+    marblset = MarblSet(mechanism, cut)
+    # Pass on the MarblSet.
+    return _concept(marblset, subsystem, mechanism, cut)
 
 
 def constellation(subsystem, cut=None):
@@ -259,18 +258,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
 
 
 # TODO document big_mip
-@memory.cache(ignore=['subsystem'])
 def _big_mip(cache_key, subsystem):
-    """Return the MIP of a subsystem.
-
-    Args:
-        subsystem (Subsystem): The candidate set of nodes.
-
-    Returns:
-        ``BigMip`` -- A nested structure containing all the data from the
-        intermediate calculations. The top level contains the basic MIP
-        information for the given subsystem. See :class:`models.BigMip`.
-    """
     # Special case for single-node subsystems.
     if (len(subsystem.nodes) == 1):
         return _single_node_mip(subsystem)
@@ -288,7 +276,7 @@ def _big_mip(cache_key, subsystem):
 
     # Get the connectivity of just the subsystem nodes.
     submatrix_indices = np.ix_([node.index for node in subsystem.nodes],
-                                [node.index for node in subsystem.nodes])
+                               [node.index for node in subsystem.nodes])
     cm = subsystem.network.connectivity_matrix[submatrix_indices]
     # Get the number of strongly connected components.
     num_components, _ = connected_components(csr_matrix(cm))
@@ -314,9 +302,20 @@ def _big_mip(cache_key, subsystem):
     return min(mip_candidates)
 
 
-# Wrapper so that joblib.Memory caches by the native hash
-@functools.wraps(_big_mip)
+# Wrapper to ensure that the cache key is the native hash of the subsystem, so
+# joblib doesn't mistakenly recompute things when the subsystem's MICE cache is
+# changed.
 def big_mip(subsystem):
+    """Return the MIP of a subsystem.
+
+    Args:
+        subsystem (Subsystem): The candidate set of nodes.
+
+    Returns:
+        ``BigMip`` -- A nested structure containing all the data from the
+        intermediate calculations. The top level contains the basic MIP
+        information for the given subsystem. See :class:`models.BigMip`.
+    """
     return _big_mip(hash(subsystem), subsystem)
 
 

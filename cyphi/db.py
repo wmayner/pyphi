@@ -44,40 +44,33 @@ def set(*args, **kwargs):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def memoize(ignore=[]):
+def memoize(func, ignore=[]):
     """Decorator for memoizing a function to a redis instance."""
-
-    def decorator(func):
-
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            # The first component of the key will be the full name of the
-            # function.
-            f_path, f_name = joblib.func_inspect.get_func_name(func)
-            full_name = '.'.join(f_path+[f_name])
-            # Get a dictionary mapping argument names to argument values where
-            # ignored arguments are omitted.
-            filtered_args = joblib.func_inspect.filter_args(func, ignore, args,
-                                                            kwargs)
-            # Get a sorted tuple of the filtered argument.
-            filtered_args = tuple(sorted(filtered_args.values()))
-            # Use native hash when hashing arguments.
-            argument_hash = hash(filtered_args)
-            # Construct the key string.
-            key = full_name + ":" + str(argument_hash)
-            print("Key:", key)
-            # Attempt to retrieve a precomputed value from the database.
-            cached_value = instance.get(argument_hash)
-            # If successful, return it.
-            if cached_value:
-                return cached_value
-            # Otherwise, compute, store, and return the value.
-            else:
-                result = func(*args, **kwargs)
-                # Use the argument hash as the key.
-                instance.set(argument_hash, result)
-                return result
-
-        return wrapper
-
-    return decorator
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        # The first component of the key will be the full name of the
+        # function.
+        f_path, f_name = joblib.func_inspect.get_func_name(func)
+        full_name = '.'.join(f_path+[f_name])
+        # Get a dictionary mapping argument names to argument values where
+        # ignored arguments are omitted.
+        filtered_args = joblib.func_inspect.filter_args(func, ignore, args,
+                                                        kwargs)
+        # Get a sorted tuple of the filtered argument.
+        filtered_args = tuple(sorted(filtered_args.values()))
+        # Use native hash when hashing arguments.
+        argument_hash = hash(filtered_args)
+        # Construct the key string.
+        key = full_name + ":" + str(argument_hash)
+        # Attempt to retrieve a precomputed value from the database.
+        cached_value = instance.get(key)
+        # If successful, return it.
+        if cached_value:
+            return cached_value
+        # Otherwise, compute, store, and return the value.
+        else:
+            result = func(*args, **kwargs)
+            # Use the argument hash as the key.
+            instance.set(key, result)
+            return result
+    return wrapper
