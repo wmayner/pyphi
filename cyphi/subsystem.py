@@ -397,8 +397,8 @@ class Subsystem:
         """
         return self._unconstrained_repertoire(DIRECTIONS[FUTURE], purview, cut)
 
-    def _expand_repertoire(self, direction, mechanism, purview, repertoire,
-                           cut):
+    def expand_repertoire(self, direction, purview, repertoire,
+                          cut):
         """Return the unconstrained cause or effect repertoire based on a
         direction."""
         validate.direction(direction)
@@ -408,20 +408,18 @@ class Subsystem:
                                                             cut))
 
     # TODO test expand cause repertoire
-    def expand_cause_repertoire(self, mechanism, purview, repertoire,
-                                cut=None):
+    def expand_cause_repertoire(self, purview, repertoire, cut=None):
         """Expand a partial cause repertoire over a purview to a distribution
         over the entire subsystem's state space."""
-        return self._expand_repertoire(DIRECTIONS[PAST], mechanism, purview,
-                                       repertoire, cut)
+        return self.expand_repertoire(DIRECTIONS[PAST], purview, repertoire,
+                                      cut)
 
     # TODO test expand effect repertoire
-    def expand_effect_repertoire(self, mechanism, purview, repertoire,
-                                 cut=None):
+    def expand_effect_repertoire(self, purview, repertoire, cut=None):
         """Expand a partial effect repertoire over a purview to a distribution
         over the entire subsystem's state space."""
-        return self._expand_repertoire(DIRECTIONS[FUTURE], mechanism, purview,
-                                       repertoire, cut)
+        return self.expand_repertoire(DIRECTIONS[FUTURE], purview, repertoire,
+                                      cut)
 
     def cause_info(self, mechanism, purview, cut=None):
         """Return the cause information for a mechanism over a purview."""
@@ -740,14 +738,23 @@ class Subsystem:
 
         For information on the indices used in the returned array, see
         :ref:concept-space."""
-        return Concept(
-            mechanism=(),
-            location=np.array([
-                # Unconstrained cause repertoire
-                self.cause_repertoire((), self.nodes, self.null_cut),
-                # Unconstrained effect repertoire
-                self.effect_repertoire((), self.nodes, self.null_cut)
-            ]),
-            phi=0,
-            cause=None,
-            effect=None)
+        # Unconstrained cause repertoire.
+        cause_repertoire = self.cause_repertoire(
+            (), self.nodes, self.null_cut)
+        # Unconstrained effect repertoire.
+        effect_repertoire = self.effect_repertoire(
+            (), self.nodes, self.null_cut)
+        # Null cause.
+        cause = Mice(
+            Mip(unpartitioned_repertoire=cause_repertoire,
+                phi=0, direction=DIRECTIONS[PAST], mechanism=(),
+                purview=self.nodes,
+                partition=None, partitioned_repertoire=None))
+        # Null mip.
+        effect = Mice(
+            Mip(unpartitioned_repertoire=effect_repertoire,
+                phi=0, direction=DIRECTIONS[FUTURE], mechanism=(),
+                purview=self.nodes,
+                partition=None, partitioned_repertoire=None))
+        # All together now...
+        return Concept(mechanism=(), phi=0, cause=cause, effect=effect)

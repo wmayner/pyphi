@@ -12,6 +12,7 @@ from collections import namedtuple, Iterable
 from marbl import MarblSet as _MarblSet
 import numpy as np
 
+from .constants import DIRECTIONS, PAST, FUTURE
 from .network import Network
 from . import utils
 
@@ -305,11 +306,18 @@ class Mice:
     def mip(self):
         return self._mip
 
+    def __str__(self):
+        return "Mice(" + str(self._mip) + ")"
+
+    def __repr__(self):
+        return "Mice(" + repr(self._mip) + ")"
+
     def __eq__(self, other):
         return self.mip == other.mip
 
     def __hash__(self):
         return hash(('Mice', self._mip))
+
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -320,7 +328,7 @@ class Mice:
 
 # =============================================================================
 
-_concept_attributes = ['phi', 'mechanism', 'location', 'cause', 'effect']
+_concept_attributes = ['phi', 'mechanism', 'cause', 'effect']
 
 
 class Concept(namedtuple('Concept', _concept_attributes)):
@@ -340,25 +348,42 @@ class Concept(namedtuple('Concept', _concept_attributes)):
             the concept's core cause and core effect.
         mechanism (tuple(Node)):
             The mechanism that the concept consists of.
-        location (np.ndarray):
-            The concept's location in concept space. The first dimension
-            corresponds to cause and effect, and the remaining dimensions
-            contain the cause and effect repertoire; i.e., ``concept.location =
-            array[direction][n_0][n_1]...[n_k]``, where `direction` is either
-            `PAST` or `FUTURE` and the rest of the dimensions correspond to a
-            node in the network.
+        location (tuple(np.ndarray)):
+            The concept's location in concept space. The two elements of the
+            tuple are the cause and effect repertoires.
         cause (Mice):
             The :class:`Mice` representing the core cause of this concept.
         effect (Mice):
             The :class:`Mice` representing the core effect of this concept.
     """
 
+    @property
+    def location(self):
+        return (self.cause.repertoire, self.effect.repertoire)
+
     def __eq__(self, other):
         return _general_eq(self, other, _concept_attributes)
 
     def __hash__(self):
-        return hash((self.phi, self.mechanism, utils.np_hash(self.location),
-                     self.cause, self.effect))
+        return hash((self.phi, self.mechanism, self.cause, self.effect))
+
+    def __str__(self):
+        return ('Concept(' +
+                ', '.join([str(self.mechanism), str(self.phi),
+                           str(self.location)])
+                + ')')
+
+    def expand_cause_repertoire(self, subsystem, cut):
+        return subsystem.expand_repertoire(DIRECTIONS[PAST],
+                                           self.cause.purview,
+                                           self.cause.repertoire,
+                                           cut)
+
+    def expand_effect_repertoire(self, subsystem, cut):
+        return subsystem.expand_repertoire(DIRECTIONS[FUTURE],
+                                           self.effect.purview,
+                                           self.effect.repertoire,
+                                           cut)
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt

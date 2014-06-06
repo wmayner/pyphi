@@ -19,38 +19,26 @@ from . import utils, options
 from .models import Concept, Cut, BigMip, MarblSet
 from .network import Network
 from .subsystem import Subsystem
-from .constants import PAST, FUTURE, MAXMEM, memory
+from .constants import MAXMEM, memory
 from .lru_cache import lru_cache
 
 
 @memory.cache(ignore=['subsystem', 'mechanism', 'cut'])
 def _concept(cache_key, subsystem, mechanism, cut):
-    # If any node in the mechanism either has no inputs from the subsystem or
-    # has no outputs to the subsystem, then the mechanism is necessarily
-    # reducible and cannot be a concept (since removing that node would make no
-    # difference to at least one of the MICEs).
-    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
-            subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
-        return None
-
-    past_mice = subsystem.core_cause(mechanism, cut)
-    future_mice = subsystem.core_effect(mechanism, cut)
-    phi = min(past_mice.phi, future_mice.phi)
-
+    # Calculate the maximally irreducible cause repertoire.
+    cause = subsystem.core_cause(mechanism, cut)
+    # Calculate the maximally irreducible effect repertoire.
+    effect = subsystem.core_effect(mechanism, cut)
+    # Get the minimal phi between them.
+    phi = min(cause.phi, effect.phi)
+    # If either one is reducible, i.e. has zero phi, the concept is reducible
+    # and is not a proper concept.
     if phi < options.EPSILON:
         return None
-    return Concept(
-        mechanism=mechanism,
-        location=np.array([
-            subsystem.expand_cause_repertoire(past_mice.mechanism,
-                                              past_mice.purview,
-                                              past_mice.repertoire, cut),
-            subsystem.expand_effect_repertoire(future_mice.mechanism,
-                                               future_mice.purview,
-                                               future_mice.repertoire, cut)]),
-        phi=phi,
-        cause=past_mice,
-        effect=future_mice)
+    # NOTE: Make sure to expand the repertoires to the size of the subsystem
+    # when calculating concept distance. For now, they must remain un-expanded
+    # so the concept doesn't depend on the subsystem.
+    return Concept(mechanism=mechanism, phi=phi, cause=cause, effect=effect)
 
 
 def concept(subsystem, mechanism, cut=None):
@@ -81,11 +69,25 @@ def concept(subsystem, mechanism, cut=None):
         <https://github.com/wmayner/marbl>`_, and the `marbl-python
         implementation <http://pythonhosted.org/marbl-python/>`_.
     """
-    # Generate the cache key for memoizing concepts
+    # Pre-checks
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # If the mechanism is empty, there is no concept.
+    if not mechanism:
+        return None
+    # If any node in the mechanism either has no inputs from the subsystem or
+    # has no outputs to the subsystem, then the mechanism is necessarily
+    # reducible and cannot be a concept (since removing that node would make no
+    # difference to at least one of the MICEs).
+    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
+            subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
+        return None
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Default to the subsystem's null cut.
     if cut is None:
         cut = subsystem.null_cut
+    # Generate the cache key for memoizing concepts.
     cache_key = hash(MarblSet(mechanism, cut))
-    # Pass on the cache key
+    # Pass on the cache key to the underlying function.
     return _concept(cache_key, subsystem, mechanism, cut)
 
 
@@ -111,7 +113,7 @@ def constellation(subsystem, cut=None):
 
 
 @lru_cache(maxmem=MAXMEM)
-def concept_distance(c1, c2):
+def concept_distance(c1, c2, subsystem, cut):
     """Return the distance between two concepts in concept-space.
 
     Args:
@@ -121,13 +123,17 @@ def concept_distance(c1, c2):
     Returns:
         ``float`` -- The distance between the two concepts in concept-space.
     """
-    return sum([utils.hamming_emd(c1.location[PAST],
-                                  c2.location[PAST]),
-                utils.hamming_emd(c1.location[FUTURE],
-                                  c2.location[FUTURE])])
+    # Calculate the sum of the past and future EMDs, expanding the repertoires
+    # to the full state-space of the subsystem, so that the EMD signatures are
+    # the same size.
+    return sum([
+        utils.hamming_emd(c1.expand_cause_repertoire(subsystem, cut),
+                          c2.expand_cause_repertoire(subsystem, cut)),
+        utils.hamming_emd(c1.expand_effect_repertoire(subsystem, cut),
+                          c2.expand_effect_repertoire(subsystem, cut))])
 
 
-def _constellation_distance_simple(C1, C2, null_concept):
+def _constellation_distance_simple(C1, C2, subsystem, cut):
     """Return the distance between two constellations in concept-space,
     assuming the only difference between them is that some concepts have
     disappeared."""
@@ -135,15 +141,18 @@ def _constellation_distance_simple(C1, C2, null_concept):
     if len(C2) > len(C1):
         C1, C2 = C2, C1
     destroyed = [c for c in C1 if c not in C2]
-    return sum(c.phi * concept_distance(c, null_concept) for c in destroyed)
+    return sum(c.phi * concept_distance(c, subsystem.null_concept, subsystem,
+                                        cut)
+               for c in destroyed)
 
 
-def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, null_concept):
+def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, subsystem, cut):
     """Return the distance between two constellations in concept-space,
     using the generalized EMD."""
     shared_concepts = [c for c in C1 if c in C2]
     # Construct null concept and list of all unique concepts.
-    all_concepts = shared_concepts + unique_C1 + unique_C2 + [null_concept]
+    all_concepts = (shared_concepts + unique_C1 + unique_C2 +
+                    [subsystem.null_concept])
     # Construct the two phi distributions.
     d1, d2 = [[c.phi if c in constellation else 0 for c in all_concepts]
               for constellation in (C1, C2)]
@@ -156,14 +165,14 @@ def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, null_concept):
         d1[-1] = residual
     # Generate the ground distance matrix.
     distance_matrix = np.array([
-        [concept_distance(i, j) for i in all_concepts] for j in
+        [concept_distance(i, j, subsystem, cut) for i in all_concepts] for j in
         all_concepts])
 
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)
 
 
 @lru_cache(maxmem=MAXMEM)
-def constellation_distance(C1, C2, null_concept):
+def constellation_distance(C1, C2, subsystem, cut):
     """Return the distance between two constellations in concept-space.
 
     Args:
@@ -180,24 +189,23 @@ def constellation_distance(C1, C2, null_concept):
     concepts_only_in_C1 = [c for c in C1 if c not in C2]
     concepts_only_in_C2 = [c for c in C2 if c not in C1]
     # If the only difference in the constellations is that some concepts
-    # disappeared, then we don't need to use the emd.
+    # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:
-        return _constellation_distance_simple(C1, C2, null_concept)
+        return _constellation_distance_simple(C1, C2, subsystem, cut)
     else:
         return _constellation_distance_emd(C1, C2,
                                            concepts_only_in_C1,
                                            concepts_only_in_C2,
-                                           null_concept)
+                                           subsystem,
+                                           cut)
 
 
-# TODO Define this for cuts? need to have a cut in the null concept then
-def conceptual_information(subsystem):
+def conceptual_information(subsystem, cut):
     """Return the conceptual information for a subsystem.
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    return constellation_distance(constellation(subsystem), (),
-                                  subsystem.null_concept)
+    return constellation_distance(constellation(subsystem), (), subsystem, cut)
 
 
 # TODO document
@@ -235,7 +243,8 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     forward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    forward_constellation,
-                                   subsystem.null_concept),
+                                   subsystem,
+                                   forward_cut),
         cut=forward_cut,
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=forward_constellation,
@@ -246,7 +255,8 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     backward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    backward_constellation,
-                                   subsystem.null_concept),
+                                   subsystem,
+                                   backward_cut),
         cut=backward_cut,
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=backward_constellation,
@@ -288,7 +298,7 @@ def _big_mip(cache_key, subsystem):
 
     # Get the connectivity of just the subsystem nodes.
     submatrix_indices = np.ix_([node.index for node in subsystem.nodes],
-                                [node.index for node in subsystem.nodes])
+                               [node.index for node in subsystem.nodes])
     cm = subsystem.network.connectivity_matrix[submatrix_indices]
     # Get the number of strongly connected components.
     num_components, _ = connected_components(csr_matrix(cm))
