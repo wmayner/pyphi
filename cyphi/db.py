@@ -72,4 +72,6 @@ def memoize(func, ignore=[]):
 
 
 def generate_key(value):
-    return hash(value)
+    # Convert the value to a (potentially singleton) tuple to be consistent
+    # with joblib.filtered_args.
+    return hash(tuple(value))
