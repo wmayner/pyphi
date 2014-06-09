@@ -95,6 +95,7 @@ class Node(object):
         self._inputs = None
         self._outputs = None
         self._marbl = None
+        self._raw_marbl = None
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     @property
@@ -132,6 +133,23 @@ class Node(object):
             ]
             self._marbl = Marbl(self.tpm[1], augmented_child_tpms)
             return self._marbl
+
+    @property
+    def raw_marbl(self):
+        """The un-normalized representation of this node's Markov blanket."""
+        if self._marbl is not None:
+            return self._raw_marbl
+        else:
+            # We take only the part of the TPM giving the probability the node
+            # is on.
+            # TODO extend to nonbinary nodes
+            augmented_child_tpms = [
+                [child._dimension_labels[self.index], child.tpm[1].squeeze()]
+                for child in self.outputs
+            ]
+            self._raw_marbl = Marbl(self.tpm[1], augmented_child_tpms,
+                                    normalize=False)
+            return self._raw_marbl
 
     def __repr__(self):
         return self.__str__()
