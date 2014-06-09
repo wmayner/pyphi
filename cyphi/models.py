@@ -29,7 +29,7 @@ class MarblSet(_MarblSet):
     concepts. See the documentation for marbl-python.
     """
 
-    def __init__(self, nodes, cut):
+    def __init__(self, nodes, cut, normalize=True):
         self.marbls = []
         if nodes:
             # Get the parent network
@@ -40,9 +40,10 @@ class MarblSet(_MarblSet):
             cut_network = Network(net.tpm, net.current_state, net.past_state,
                                   connectivity_matrix=cut_cm)
             # Grab the marbls from the cut network nodes
-            self.marbls = [n.marbl for n in cut_network.nodes if n.index in
+            self.marbls = [(n.marbl if normalize else n.raw_marbl) for n in
+                           cut_network.nodes if n.index in
                            utils.nodes2indices(nodes)]
-        super().__init__(self, self.marbls)
+        super().__init__(self.marbls, normalize=normalize)
 
 
 class Cut(namedtuple('Cut', ['severed', 'intact'])):
