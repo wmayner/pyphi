@@ -9,12 +9,13 @@ Methods for computing concepts, constellations, and integrated information of
 subsystems.
 """
 
+import functools
 import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
-from . import utils, options, memory
+from . import utils, options, memory, db
 from .models import Concept, Cut, BigMip, MarblSet
 from .network import Network
 from .subsystem import Subsystem
@@ -40,6 +41,7 @@ def _concept(marblset, subsystem, mechanism, cut):
     return Concept(mechanism=mechanism, phi=phi, cause=cause, effect=effect)
 
 
+@functools.wraps(_concept)
 def concept(subsystem, mechanism, cut=None):
     """Return the concept specified by the a mechanism within a subsytem.
 
@@ -84,10 +86,23 @@ def concept(subsystem, mechanism, cut=None):
     # Default to the subsystem's null cut.
     if cut is None:
         cut = subsystem.null_cut
+    # Get the unnormalized set of Markov blankets. This is much cheaper then
+    # normalizing them.
+    raw_marblset = MarblSet(mechanism, cut, normalize=False)
+    # See if we have a precomputed value without normalization.
+    cached_value = db.get(db.generate_key(raw_marblset))
+    if cached_value:
+        return cached_value
+    # We didn't find a precomputed value with the unnormalized MarblSet as the
+    # key, so now we compute the normalization and try that.
+    marblset = MarblSet(mechanism, cut)
     # Generate the MarblSet for memoizing concepts.
     marblset = MarblSet(mechanism, cut)
-    # Pass on the MarblSet.
-    return _concept(marblset, subsystem, mechanism, cut)
+    # Compute the concept.
+    concept = _concept(marblset, subsystem, mechanism, cut)
+    # Associate the concept with its unnormalized MarblSet key and return it.
+    db.set(db.generate_key(raw_marblset), concept)
+    return concept
 
 
 def constellation(subsystem, cut=None):
@@ -317,6 +332,7 @@ def _big_mip(cache_key, subsystem):
 # Wrapper to ensure that the cache key is the native hash of the subsystem, so
 # joblib doesn't mistakenly recompute things when the subsystem's MICE cache is
 # changed.
+@functools.wraps(_big_mip)
 def big_mip(subsystem):
     """Return the MIP of a subsystem.
 
