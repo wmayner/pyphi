@@ -59,6 +59,8 @@ class MemoizedFunc:
         # This will be the function that's actually called; it can refer to
         # any of the memoizations.
         self._memoized_func = self.memoizations[DEFAULT]
+        # Store the raw function, without any memoization.
+        self.func = func
 
     def set_backend(self, backend):
         self.backend = backend
