@@ -69,18 +69,16 @@ def state_by_state2state_by_node(tpm):
     # Initialize the new state-by node TPM.
     sbn_tpm = np.zeros(([2] * N + [N]))
     # Map indices to state-tuples.
-    state = {i: index2state(i, N) for i in range(S)}
-    # Iterate over the state-by-state TPM.
-    for i in range(S):
-        for j in range(S):
-            # Get the state-tuples represented by the decimal indices.
-            # For each node in the network...
-            for n in range(N):
-                # If this node is on in the j'th state...
-                if state[j][n]:
-                    # Increment by the probability that the i'th state
-                    # transitioned to the j'th state.
-                    sbn_tpm[state[i]][n] += tpm[i][j]
+    states = {i: index2state(i, N) for i in range(S)}
+    # Get an array for each node with 1 in positions that correspond to that
+    # node being on in the next state, and a 0 otherwise.
+    node_on = np.array([[states[i][n] for i in range(S)] for n in range(N)])
+    on_probabilities = [tpm * node_on[n] for n in range(N)]
+    for i, state in states.items():
+        # Get the probability of each node being on given the past state i,
+        # i.e., a row of the state-by-node TPM.
+        # Assignt that row to the ith state in the state-by-node TPM.
+        sbn_tpm[state] = [np.sum(on_probabilities[n][i]) for n in range(N)]
     return sbn_tpm
 
 
