@@ -107,7 +107,7 @@ def index2state(i, number_of_nodes):
         >>> index2state(7, number_of_nodes)
         (1, 1, 1, 0, 0, 0, 0, 0)
     """
-    return tuple(map(int, bin(i)[2:].zfill(number_of_nodes)[::-1]))
+    return tuple((i >> n) & 1 for n in range(number_of_nodes))
 
 
 def nodes2indices(nodes):

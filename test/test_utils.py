@@ -7,6 +7,11 @@ from cyphi import utils, options
 from cyphi.network import Network
 
 
+def test_index2state():
+    assert utils.index2state(7, 8) == (1, 1, 1, 0, 0, 0, 0, 0)
+    assert utils.index2state(1, 3) == (1, 0, 0)
+    assert utils.index2state(8, 4) == (0, 0, 0, 1)
+
 
 def test_phi_eq():
     phi = 0.5
