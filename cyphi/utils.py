@@ -335,11 +335,12 @@ def bipartition_indices(N):
     # Return on empty input
     if N <= 0:
         return result
-    for bitstring in [bin(i)[2:].zfill(N)[::-1]
-                      for i in range(2**(N - 1))]:
-        result.append(
-            (tuple(i for i in range(N) if bitstring[i] == '1'),
-             tuple(i for i in range(N) if bitstring[i] == '0')))
+    for i in range(2 ** (N - 1)):
+        part = [[],[]]
+        for n in range(N):
+            bit = (i >> n) & 1
+            part[bit].append(n)
+        result.append((tuple(part[1]), tuple(part[0])))
     return result
 
 
