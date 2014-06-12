@@ -577,3 +577,23 @@ def eight_node():
 def eights():
     net = eight_node()
     return Subsystem(range(net.size), net.current_state, net.past_state, net)
+
+
+def eight_node_sbs():
+    tpm = [[1] + ([0] * 255)] * 256
+    cm = np.array(
+        [[1, 1, 0, 0, 0, 0, 0, 1],
+         [1, 1, 1, 0, 0, 0, 0, 0],
+         [0, 1, 1, 1, 0, 0, 0, 0],
+         [0, 0, 1, 1, 1, 0, 0, 0],
+         [0, 0, 0, 1, 1, 1, 0, 0],
+         [0, 0, 0, 0, 1, 1, 1, 0],
+         [0, 0, 0, 0, 0, 1, 1, 1],
+         [1, 0, 0, 0, 0, 0, 1, 1]]
+    )
+    cm = cm if use_connectivity_matrices else None
+
+    current_state = tuple([0] * 8)
+    past_state = tuple([0] * 8)
+
+    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
