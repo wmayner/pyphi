@@ -313,6 +313,7 @@ def bipartition(a):
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
 
+# TODO use bitwise operators here
 @lru_cache(maxmem=MAXMEM)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.

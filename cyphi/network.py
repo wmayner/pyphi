@@ -89,7 +89,13 @@ class Network:
 
         # TODO make tpm also optional when implementing logical network
         # definition
-        self.tpm = tpm.reshape([2] * self.size + [self.size]).astype(float)
+
+        # We use Fortran ordering here so that low-order bits correspond to
+        # low-index nodes. Note that this does not change the memory layout (C-
+        # or Fortran-contiguous), so there is no performance loss.
+        self.tpm = tpm.reshape([2] * self.size + [self.size],
+                               order="F").astype(float)
+
         self.connectivity_matrix = connectivity_matrix
         self.current_state = current_state
         self.past_state = past_state
