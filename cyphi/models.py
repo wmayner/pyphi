@@ -247,9 +247,6 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
 # =============================================================================
 
-_mice_attributes = ['phi', 'direction', 'mechanism', 'purview', 'repertoire',
-                    'mip']
-
 
 class Mice:
 
