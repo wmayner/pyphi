@@ -582,7 +582,7 @@ class Subsystem:
 
     # TODO test phi max helpers
     @lru_cache(maxmem=MAXMEM)
-    def _test_connections(self, axis, nodes1, nodes2):
+    def _test_connections(self, axis, nodes1, nodes2, cut):
         """Tests connectivity of one set of nodes to another.
 
         Args:
@@ -598,29 +598,33 @@ class Subsystem:
             nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
                 be tested.
         """
-        if (self.network.connectivity_matrix is None or
-                not nodes1 or not nodes2):
+        if cut is None:
+            cut = self.null_cut
+        # If either set of nodes is empty, return (vacuously) True.
+        if not nodes1 or not nodes2:
             return True
+        # Apply the cut to the network's connectivity matrix.
+        cm = utils.apply_cut(cut, self.network.connectivity_matrix)
         # Get the connectivity matrix representing the connections from the
-        # first node list to the second
+        # first node list to the second.
         submatrix_indices = np.ix_([node.index for node in nodes1],
                                    [node.index for node in nodes2])
         cm = self.network.connectivity_matrix[submatrix_indices]
         # Check that all nodes have at least one connection by summing over
-        # rows of connectivity submatrix
+        # rows of connectivity submatrix.
         return cm.sum(axis).all()
 
     # TODO test
-    def _any_connect_to_all(self, nodes1, nodes2):
+    def _any_connect_to_all(self, nodes1, nodes2, cut=None):
         """Return whether all nodes in the second list have inputs from some
         node in the first list."""
-        return self._test_connections(0, nodes1, nodes2)
+        return self._test_connections(0, nodes1, nodes2, cut)
 
     # TODO test
-    def _all_connect_to_any(self, nodes1, nodes2):
+    def _all_connect_to_any(self, nodes1, nodes2, cut=None):
         """Return whether all nodes in the first list connect to some node in
         the second list."""
-        return self._test_connections(1, nodes1, nodes2)
+        return self._test_connections(1, nodes1, nodes2, cut)
 
     def _get_cached_mice(self, direction, mechanism, cut):
         """Return a cached MICE if there is one and the cut doesn't affect it.
