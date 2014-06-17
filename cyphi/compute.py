@@ -15,33 +15,16 @@ from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
-from . import utils, options, memory, db
-from .models import Concept, Cut, BigMip, MarblSet
+from . import utils, options, memory
+from .concept_caching import concept as _concept
+from .models import Concept, Cut, BigMip
 from .network import Network
 from .subsystem import Subsystem
 from .constants import MAXMEM
 from .lru_cache import lru_cache
 
 
-@memory.cache(ignore=['subsystem', 'mechanism', 'cut'])
-def _concept(marblset, subsystem, mechanism, cut):
-    # Calculate the maximally irreducible cause repertoire.
-    cause = subsystem.core_cause(mechanism, cut)
-    # Calculate the maximally irreducible effect repertoire.
-    effect = subsystem.core_effect(mechanism, cut)
-    # Get the minimal phi between them.
-    phi = min(cause.phi, effect.phi)
-    # If either one is reducible, i.e. has zero phi, the concept is reducible
-    # and is not a proper concept.
-    if phi < options.EPSILON:
-        return None
-    # NOTE: Make sure to expand the repertoires to the size of the subsystem
-    # when calculating concept distance. For now, they must remain un-expanded
-    # so the concept doesn't depend on the subsystem.
-    return Concept(mechanism=mechanism, phi=phi, cause=cause, effect=effect)
-
-
-@functools.wraps(_concept)
+# TODO update concept docs
 def concept(subsystem, mechanism, cut=None):
     """Return the concept specified by the a mechanism within a subsytem.
 
@@ -70,7 +53,7 @@ def concept(subsystem, mechanism, cut=None):
         <https://github.com/wmayner/marbl>`_, and the `marbl-python
         implementation <http://pythonhosted.org/marbl-python/>`_.
     """
-    # Pre-checks
+    # Pre-checks:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # If the mechanism is empty, there is no concept.
     if not mechanism:
@@ -83,26 +66,8 @@ def concept(subsystem, mechanism, cut=None):
             subsystem._any_connect_to_all(subsystem.nodes, mechanism, cut)):
         return Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Default to the subsystem's null cut.
-    if cut is None:
-        cut = subsystem.null_cut
-    # Get the unnormalized set of Markov blankets. This is much cheaper then
-    # normalizing them.
-    raw_marblset = MarblSet(mechanism, cut, normalize=False)
-    # See if we have a precomputed value without normalization.
-    cached_value = db.get(db.generate_key(raw_marblset))
-    if cached_value:
-        return cached_value
-    # We didn't find a precomputed value with the unnormalized MarblSet as the
-    # key, so now we compute the normalization and try that.
-    marblset = MarblSet(mechanism, cut)
-    # Generate the MarblSet for memoizing concepts.
-    marblset = MarblSet(mechanism, cut)
-    # Compute the concept.
-    concept = _concept(marblset, subsystem, mechanism, cut)
-    # Associate the concept with its unnormalized MarblSet key and return it.
-    db.set(db.generate_key(raw_marblset), concept)
-    return concept
+    # Passed prechecks; pass it over to the concept caching logic.
+    return _concept(subsystem, mechanism, cut)
 
 
 def constellation(subsystem, cut=None):
@@ -122,7 +87,7 @@ def constellation(subsystem, cut=None):
     """
     concepts = [concept(subsystem, mechanism, cut) for mechanism in
                 utils.powerset(subsystem.nodes)]
-    # Filter out non-concepts
+    # Filter out non-concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
 
@@ -251,6 +216,9 @@ def _single_node_mip(subsystem):
 
 
 # TODO document
+# TODO calculate cut network twice here and pass that to concept caching so it
+# isn't calulated for each concept. cut passing needs serious refactoring
+# anyway actually
 def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
