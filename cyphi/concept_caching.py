@@ -53,7 +53,7 @@ class NormalizedMechanism:
     # NOTE: We use lists and indices throughout, instead of dictionaries (which
     # would perhaps be more elegant), to avoid repeatedly computing the hash of
     # the marbls.
-    def __init__(self, mechanism, cut, normalize_tpms=True):
+    def __init__(self, mechanism, cut, subsystem, normalize_tpms=True):
         self.indices = utils.nodes2indices(mechanism)
         # Apply the cut to the network and get the MarblSet from its nodes.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,7 +63,7 @@ class NormalizedMechanism:
         cut_cm = utils.apply_cut(cut, net.connectivity_matrix)
         # Make a new network with the cut applied.
         cut_network = Network(net.tpm, net.current_state, net.past_state,
-                                connectivity_matrix=cut_cm)
+                              connectivity_matrix=cut_cm)
         # Get the nodes in the mechanism with the cut applied.
         cut_mechanism = tuple(cut_network.nodes[i] for i in
                               self.indices)
@@ -90,6 +90,7 @@ class NormalizedMechanism:
             DIRECTIONS[FUTURE]: [
                 marbl_preimage[m].outputs for m in M]
         }
+
         # Now, we generate the normalized index of each node that inputs
         # (outputs) to at least one mechanism node. Also record the reverse
         # mapping, that sends normalized indices to the original indices.
@@ -110,6 +111,10 @@ class NormalizedMechanism:
             DIRECTIONS[PAST]: {},
             DIRECTIONS[FUTURE]: {}
         }
+        # This will hold the normalized indices of the inputs/outputs that lie
+        # outside the subsystem.
+        external_normalized_indices = set()
+        # This will be used to label newly-encountered inputs/outpus.
         counter = {DIRECTIONS[PAST]: 0, DIRECTIONS[FUTURE]: 0}
         for d in DIRECTIONS:
             for m in M:
@@ -117,8 +122,12 @@ class NormalizedMechanism:
                 # hasn't been labeled already.
                 for node in io[d][m]:
                     if node.index not in self.normalized_indices[d]:
+                        normal_index = counter[d]
                         # Assign the next unused integer as the label.
-                        self.normalized_indices[d][node.index] = counter[d]
+                        self.normalized_indices[d][node.index] = normal_index
+                        # Record if the input/putput is external.
+                        if node.index not in subsystem.node_indices:
+                            external_normalized_indices.add(normal_index)
                         # Increment the counter so the next label is different.
                         counter[d] += 1
         # Get the inverse mappings.
@@ -131,6 +140,7 @@ class NormalizedMechanism:
                 self.normalized_indices[DIRECTIONS[FUTURE]].items()}
         }
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
         # Associate each marbl with its normally-labeled inputs.
         # This captures the interrelationships between the mechanism nodes in a
         # stable way.
@@ -142,6 +152,9 @@ class NormalizedMechanism:
             tuple(self.normalized_indices[DIRECTIONS[FUTURE]][n.index]
                   for n in io[DIRECTIONS[FUTURE]][m])
             for m in M)
+        # Convert the set of external normalized indices to a tuple (for
+        # hashing).
+        self.external_indices = tuple(external_normalized_indices)
 
     @property
     def permutation(self):
@@ -151,7 +164,8 @@ class NormalizedMechanism:
 
     # TODO!!!: make hash independent of python
     def __hash__(self):
-        return hash((self.marblset, self.inputs, self.outputs))
+        return hash((self.marblset, self.inputs, self.outputs,
+                     self.external_indices))
 
     def __str__(self):
         return str(self.indices)
@@ -292,12 +306,12 @@ def _unnormalize_mice(normalized_mice, normalized_mechanism, network):
 def _unnormalize(normalized_concept, normalized_mechanism, mechanism, network):
     """Convert a normalized concept to its proper representation in the context
     of the given network."""
-    cause=_unnormalize_mice(normalized_concept.cause,
-                            normalized_mechanism,
-                            network)
-    effect=_unnormalize_mice(normalized_concept.effect,
-                                normalized_mechanism,
-                                network)
+    cause = _unnormalize_mice(normalized_concept.cause,
+                              normalized_mechanism,
+                              network)
+    effect = _unnormalize_mice(normalized_concept.effect,
+                               normalized_mechanism,
+                               network)
     return models.Concept(
         phi=normalized_concept.phi,
         mechanism=mechanism,
@@ -330,7 +344,7 @@ def concept(subsystem, mechanism, cut=None):
     # First we try to retrieve the concept without normalizing TPMs, which is
     # expensive.
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    raw_normalized_mechanism = NormalizedMechanism(mechanism, cut,
+    raw_normalized_mechanism = NormalizedMechanism(mechanism, cut, subsystem,
                                                    normalize_tpms=False)
     # See if we have a precomputed value without normalization.
     cached_concept = _get(True, raw_normalized_mechanism, mechanism, subsystem)
@@ -339,7 +353,7 @@ def concept(subsystem, mechanism, cut=None):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # We didn't find a precomputed concept with the raw normalized TPM, so now
     # we normalize TPMs as well.
-    normalized_mechanism = NormalizedMechanism(mechanism, cut)
+    normalized_mechanism = NormalizedMechanism(mechanism, cut, subsystem)
     # Try to retrieve the concept with the fully-normalized mechanism.
     cached_concept = _get(False, normalized_mechanism, mechanism, subsystem)
     if cached_concept is not None:
