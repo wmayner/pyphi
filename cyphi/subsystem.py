@@ -41,6 +41,7 @@ class Subsystem:
         # (Remove duplicates and sort)
         self.nodes = tuple(sorted(list(set(network.nodes[i] for i in
                                            node_indices))))
+        self.node_indices = utils.nodes2indices(self.nodes)
 
         self.current_state = current_state
         self.past_state = past_state
