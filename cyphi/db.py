@@ -27,7 +27,9 @@ class PickledRedis(StrictRedis):
 
 
 # Initialize a redis instance.
-instance = PickledRedis(host='localhost', port=6379, db=0)
+instance = PickledRedis(host=constants.REDIS_CONFIG.HOST,
+                        port=constants.REDIS_CONFIG.PORT,
+                        db=constants.REDIS_CONFIG.DB)
 
 
 # Bring the set and get methods of the redis instance up to the module-level
