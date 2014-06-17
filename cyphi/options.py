@@ -7,6 +7,7 @@ from . import memory
 from . import constants
 
 
+# TODO: read cyphi config from a file
 class _Options(object):
 
     """User-specified options."""
@@ -48,6 +49,7 @@ class _Options(object):
 
     BACKEND = property(_get_backend, _set_backend,
                        "The backend that CyPhi uses for caching.")
+
 
 # Make the class look like this module
 instance = _Options()

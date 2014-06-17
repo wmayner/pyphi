@@ -348,6 +348,7 @@ def bipartition_indices(N):
 # =============================================================================
 
 
+# TODO cache this persistently; it's exponential
 # TODO extend to nonbinary nodes
 @lru_cache(maxmem=MAXMEM)
 def _hamming_matrix(N):

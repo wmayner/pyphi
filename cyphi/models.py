@@ -316,7 +316,6 @@ class Mice:
     def __hash__(self):
         return hash(('Mice', self._mip))
 
-
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
     __gt__ = _phi_then_mechanism_size_gt
@@ -329,6 +328,8 @@ class Mice:
 _concept_attributes = ['phi', 'mechanism', 'cause', 'effect']
 
 
+# TODO: make mechanism a property
+# TODO: make phi a property
 class Concept(namedtuple('Concept', _concept_attributes)):
 
     """A star in concept-space.

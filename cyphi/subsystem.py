@@ -704,6 +704,7 @@ class Subsystem:
                           purview in purviews)
         # Construct the corresponding MICE.
         mice = Mice(maximal_mip)
+        # TODO: do we want to store these with any cut?
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
         if (cut == self.null_cut and (direction, mechanism) not in
