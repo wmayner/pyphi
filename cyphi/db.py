@@ -3,6 +3,7 @@
 
 import pickle
 import functools
+from collections import Iterable
 import joblib.func_inspect
 from redis import StrictRedis
 from . import constants
@@ -71,7 +72,11 @@ def memoize(func, ignore=[]):
     return wrapper
 
 
+# TODO!!!: check this singleton tuple business
 def generate_key(value):
     # Convert the value to a (potentially singleton) tuple to be consistent
     # with joblib.filtered_args.
-    return hash(tuple(value))
+    if isinstance(value, Iterable):
+        return hash(tuple(value))
+    else:
+        return hash((value, ))
