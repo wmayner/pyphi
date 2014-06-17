@@ -60,7 +60,7 @@ def memoize(func, ignore=[]):
         # Attempt to retrieve a precomputed value from the database.
         cached_value = instance.get(key)
         # If successful, return it.
-        if cached_value:
+        if cached_value is not None:
             return cached_value
         # Otherwise, compute, store, and return the value.
         else:
