@@ -43,7 +43,7 @@ class MarblSet(_MarblSet):
             self.marbls = [(n.marbl if normalize else n.raw_marbl) for n in
                            cut_network.nodes if n.index in
                            utils.nodes2indices(nodes)]
-        super().__init__(self.marbls, normalize=normalize)
+        super().__init__(self.marbls)
 
 
 class Cut(namedtuple('Cut', ['severed', 'intact'])):
