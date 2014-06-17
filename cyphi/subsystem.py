@@ -765,3 +765,17 @@ class Subsystem:
                 partition=None, partitioned_repertoire=None))
         # All together now...
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect)
+
+    def concept(self, mechanism, cut=None):
+        """Calculate a concept."""
+        # Calculate the maximally irreducible cause repertoire.
+        cause = self.core_cause(mechanism, cut)
+        # Calculate the maximally irreducible effect repertoire.
+        effect = self.core_effect(mechanism, cut)
+        # Get the minimal phi between them.
+        phi = min(cause.phi, effect.phi)
+        # NOTE: Make sure to expand the repertoires to the size of the
+        # subsystem when calculating concept distance. For now, they must
+        # remain un-expanded so the concept doesn't depend on the subsystem.
+        return Concept(
+            mechanism=mechanism, phi=phi, cause=cause, effect=effect)
