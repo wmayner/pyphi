@@ -4,6 +4,7 @@
 import numpy as np
 import functools
 from marbl import Marbl
+from . import utils
 
 
 # TODO extend to nonbinary nodes
@@ -117,6 +118,18 @@ class Node(object):
             self._outputs = set(node for node in self.network.nodes if
                                 node.index in self._output_indices)
             return self._outputs
+
+    # TODO doc
+    def _io_with_cuts(self, direction, cut):
+        io_nodes = self.inputs if direction == 'inputs' else self.outputs
+        cut_cm = utils.apply_cut(cut, self.network.connectivity_matrix)
+        return [n for n in io_nodes if cut_cm[n.index][self.index]]
+
+    def inputs_with_cut(self, cut):
+        return self._io_with_cuts('inputs', cut)
+
+    def outputs_with_cut(self, cut):
+        return self._io_with_cuts('outputs', cut)
 
     @property
     def marbl(self):
