@@ -151,3 +151,6 @@ class Network:
 
     def __hash__(self):
         return self._hash
+
+    def indices2nodes(self, indices):
+        return tuple(self.nodes[i] for i in indices)
