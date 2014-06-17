@@ -250,6 +250,11 @@ class Mice:
 
     def __init__(self, mip):
         self._mip = mip
+        if (self.repertoire is not None and
+            any(self.repertoire.shape[i] != 2 for i in
+                utils.nodes2indices(self.purview))):
+            raise Exception("Attempted to create MICE with mismatched purview "
+                            "and repertoire.")
 
     @property
     def phi(self):
