@@ -12,7 +12,7 @@ import numpy as np
 from itertools import chain
 from .constants import DIRECTIONS, PAST, FUTURE, MAXMEM
 from .lru_cache import lru_cache
-from . import options, validate
+from . import options, validate, utils
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (hamming_emd, max_entropy_distribution, powerset,
                     bipartition)
@@ -402,10 +402,13 @@ class Subsystem:
         """Return the unconstrained cause or effect repertoire based on a
         direction."""
         validate.direction(direction)
-        non_purview_nodes = frozenset(self.nodes) - frozenset(purview)
-        return (repertoire * self._unconstrained_repertoire(direction,
-                                                            non_purview_nodes,
-                                                            cut))
+        # Get the unconstrained repertoire over the other nodes in the network.
+        non_purview_nodes = tuple(frozenset(self.network.nodes) -
+                                  frozenset(purview))
+        uc = self._unconstrained_repertoire(direction, non_purview_nodes, cut)
+        # Multiply the given repertoire by the unconstrained one to get a
+        # distribution over all the nodes in the network.
+        return repertoire * uc
 
     # TODO test expand cause repertoire
     def expand_cause_repertoire(self, purview, repertoire, cut=None):
