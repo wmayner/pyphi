@@ -74,14 +74,14 @@ def concept(subsystem, mechanism, cut=None):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # If the mechanism is empty, there is no concept.
     if not mechanism:
-        return None
+        return subsystem.null_concept
     # If any node in the mechanism either has no inputs from the subsystem or
     # has no outputs to the subsystem, then the mechanism is necessarily
     # reducible and cannot be a concept (since removing that node would make no
     # difference to at least one of the MICEs).
-    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
-            subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
-        return None
+    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes, cut) and
+            subsystem._any_connect_to_all(subsystem.nodes, mechanism, cut)):
+        return Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Default to the subsystem's null cut.
     if cut is None:
