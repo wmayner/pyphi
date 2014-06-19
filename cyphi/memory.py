@@ -10,14 +10,13 @@ A common interface for memoization, supporting different backends.
 """
 # TODO document
 
-from . import db
-from .constants import FILESYSTEM, DATABASE, joblib_memory
+from . import db, constants
 
 
 # Default to using the local filesystem as the caching backend.
-DEFAULT = DATABASE
+DEFAULT = constants.DATABASE
 # The backend currently being used.
-backend = DEFAULT
+BACKEND = DEFAULT
 
 
 # A list of all instances of MemoizedFuncs, so this singleton can set
@@ -27,6 +26,7 @@ _memoized_funcs = []
 
 def set_backend(backend):
     """Change the backend that CyPhi uses for memoization."""
+    global BACKEND
     BACKEND = backend
     for f in _memoized_funcs:
         f.set_backend(BACKEND)
@@ -49,13 +49,13 @@ class MemoizedFunc:
         # The backend this function is currently using.
         self.backend = DEFAULT
         # Memoize the function with the database.
-        fs_memoized = joblib_memory.cache(func, ignore=ignore)
+        fs_memoized = constants.joblib_memory.cache(func, ignore=ignore)
         # Memoize the function with joblib's Memory caching.
         db_memoized = db.memoize(func, ignore=ignore)
         # Store the memoized functions as attributes.
         self.memoizations = {}
-        self.memoizations[DATABASE] = db_memoized
-        self.memoizations[FILESYSTEM] = fs_memoized
+        self.memoizations[constants.DATABASE] = db_memoized
+        self.memoizations[constants.FILESYSTEM] = fs_memoized
         # This will be the function that's actually called; it can refer to
         # any of the memoizations.
         self._memoized_func = self.memoizations[DEFAULT]

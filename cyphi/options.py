@@ -26,8 +26,6 @@ class _Options(object):
         # In some applications of this library, the user may prefer to define
         # single-node subsystems as having 0.5 Phi.
         self.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = False
-        # The backend to use for caching. See the ``memory`` module.
-        self._BACKEND = constants.DATABASE
 
     # Update EPSILON whenever precision is changed
     def _set_precision(self, precision):
@@ -45,8 +43,9 @@ class _Options(object):
         memory.set_backend(backend)
 
     def _get_backend(self):
-        return memory.backend
+        return memory.BACKEND
 
+    # The backend to use for caching. See the ``memory`` module.
     BACKEND = property(_get_backend, _set_backend,
                        "The backend that CyPhi uses for caching.")
 
