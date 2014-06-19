@@ -2,53 +2,51 @@
 # -*- coding: utf-8 -*-
 
 import pickle
+import pymongo
+from bson.binary import Binary
 import functools
 from collections import Iterable
 import joblib.func_inspect
-from redis import StrictRedis
 from . import constants
 
-
-class PickledRedis(StrictRedis):
-
-    """A subclass of the Redis object that pickles and un-pickles objects
-    before storing and retrieving."""
-
-    def get(self, name):
-        pickled_value = super(PickledRedis, self).get(name)
-        if pickled_value is None:
-            return None
-        return pickle.loads(pickled_value)
-
-    def set(self, name, value, ex=None, px=None, nx=False, xx=False):
-        return super(PickledRedis, self).set(
-            name, pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL),
-            ex, px, nx, xx)
+client = pymongo.MongoClient(constants.MONGO_CONFIG.HOST,
+                             constants.MONGO_CONFIG.PORT)
+database = client[constants.MONGO_CONFIG.DATABASE_NAME]
+collection = database[constants.MONGO_CONFIG.COLLECTION_NAME]
+KEY_FIELD = 'k'
+VALUE_FIELD = 'v'
+# Index documents by their keys. Enforce that the keys be unique.
+collection.create_index('k', unique=True)
 
 
-# Initialize a redis instance.
-instance = PickledRedis(host=constants.REDIS_CONFIG.HOST,
-                        port=constants.REDIS_CONFIG.PORT,
-                        db=constants.REDIS_CONFIG.DB)
+def get(key):
+    docs = list(collection.find({KEY_FIELD: key}))
+    # Return None if we didn't find anything.
+    if not docs:
+        return None
+    pickled_value = docs[0][VALUE_FIELD]
+    # Unpickle and return the value.
+    return pickle.loads(pickled_value)
 
 
-# Bring the set and get methods of the redis instance up to the module-level
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-@functools.wraps(instance.get)
-def get(*args, **kwargs):
-    return instance.get(*args, **kwargs)
-
-
-@functools.wraps(instance.set)
-def set(*args, **kwargs):
-    return instance.set(*args, **kwargs)
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def set(key, value):
+    # Pickle the value.
+    value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
+    # Store the value as binary data in a document.
+    doc = {
+        KEY_FIELD: key,
+        VALUE_FIELD: Binary(value)
+    }
+    # Pickle and store the value with its key. If the key already exists, we
+    # don't insert (since the key is a unique index), and we don't care.
+    try:
+        return collection.insert(doc)
+    except pymongo.errors.DuplicateKeyError:
+        return None
 
 
 def memoize(func, ignore=[]):
-    """Decorator for memoizing a function to a redis instance."""
+    """Decorator for memoizing a function to a database."""
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         # Get a dictionary mapping argument names to argument values where
@@ -61,7 +59,7 @@ def memoize(func, ignore=[]):
         key = generate_key(filtered_args)
         # Construct the key string.
         # Attempt to retrieve a precomputed value from the database.
-        cached_value = instance.get(key)
+        cached_value = get(key)
         # If successful, return it.
         if cached_value is not None:
             return cached_value
@@ -69,7 +67,7 @@ def memoize(func, ignore=[]):
         else:
             result = func(*args, **kwargs)
             # Use the argument hash as the key.
-            instance.set(key, result)
+            set(key, result)
             return result
     return wrapper
 

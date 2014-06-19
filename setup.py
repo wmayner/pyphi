@@ -19,7 +19,7 @@ install_requires = [
     'joblib >=0.8.0a3, <1.0.0',
     'psutil >= 2.1.1, <3.0.0',
     'marbl-python >=2.0.0, <3.0.0',
-    'redis>=2.10.1, <3.0.0'
+    'pymongo >=2.7.1, <3.0.0'
 ]
 
 test_require = [

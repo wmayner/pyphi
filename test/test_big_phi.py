@@ -13,6 +13,9 @@ PRECISION = 4
 # Expected standard example phi value
 STANDARD_EXAMPLE_PHI = 2.3125
 
+# Use a test database
+db.collection = db.database.test
+
 
 # Helpers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -20,7 +23,7 @@ STANDARD_EXAMPLE_PHI = 2.3125
 # TODO: use different db for tests
 @pytest.fixture
 def flushdb():
-    return db.instance.flushdb()
+    return db.collection.remove({})
 
 
 def standard_example_is_correct(mip):
