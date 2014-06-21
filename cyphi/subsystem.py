@@ -8,6 +8,7 @@ Subsystem
 Represents a candidate set for |phi| calculation.
 """
 
+import psutil
 import numpy as np
 from itertools import chain
 from .constants import DIRECTIONS, PAST, FUTURE, MAXMEM
@@ -708,8 +709,10 @@ class Subsystem:
         # TODO: do we want to store these with any cut?
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
-        if (cut == self.null_cut and (direction, mechanism) not in
-                self._mice_cache):
+        memory_not_full = (psutil.virtual_memory().percent <= MAXMEM)
+        if (cut == self.null_cut and
+            (direction, mechanism) not in self._mice_cache and
+                memory_not_full):
             self._mice_cache[(direction, mechanism)] = mice
         return mice
 
