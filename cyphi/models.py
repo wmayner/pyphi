@@ -12,7 +12,7 @@ from collections import namedtuple, Iterable
 import numpy as np
 
 from .constants import DIRECTIONS, PAST, FUTURE
-from . import utils, options
+from . import utils, constants
 
 # TODO use properties to avoid data duplication
 
@@ -351,7 +351,7 @@ class Concept(namedtuple('Concept', _concept_attributes)):
     def __bool__(self):
         """A Concept is truthy if it is not reducible; i.e. if it has a
         significant amount of |big_phi|."""
-        return self.phi > options.EPSILON
+        return self.phi > constants.EPSILON
 
     def expand_cause_repertoire(self, subsystem, cut):
         return subsystem.expand_repertoire(DIRECTIONS[PAST],

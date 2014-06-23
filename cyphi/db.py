@@ -9,10 +9,10 @@ from collections import Iterable
 import joblib.func_inspect
 from . import constants
 
-client = pymongo.MongoClient(constants.MONGO_CONFIG.HOST,
-                             constants.MONGO_CONFIG.PORT)
-database = client[constants.MONGO_CONFIG.DATABASE_NAME]
-collection = database[constants.MONGO_CONFIG.COLLECTION_NAME]
+client = pymongo.MongoClient(constants.MONGODB_CONFIG['host'],
+                             constants.MONGODB_CONFIG['port'])
+database = client[constants.MONGODB_CONFIG['database_name']]
+collection = database[constants.MONGODB_CONFIG['collection_name']]
 KEY_FIELD = 'k'
 VALUE_FIELD = 'v'
 # Index documents by their keys. Enforce that the keys be unique.

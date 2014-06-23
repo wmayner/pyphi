@@ -4,13 +4,16 @@
 .. automodule:: cyphi.compute
     :members:
 
-.. automodule:: cyphi.models
+.. automodule:: cyphi.network
     :members:
 
 .. automodule:: cyphi.subsystem
     :members:
 
-.. automodule:: cyphi.network
+.. automodule:: cyphi.constants
+    :members:
+
+.. automodule:: cyphi.models
     :members:
 
 .. automodule:: cyphi.node

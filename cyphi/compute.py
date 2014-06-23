@@ -15,12 +15,11 @@ from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
-from . import utils, options, memory
+from . import utils, constants, memory
 from .concept_caching import concept as _concept
 from .models import Concept, Cut, BigMip
 from .network import Network
 from .subsystem import Subsystem
-from .constants import MAXMEM
 from .lru_cache import lru_cache
 
 
@@ -91,7 +90,7 @@ def constellation(subsystem, cut=None):
     return tuple(filter(None, concepts))
 
 
-@lru_cache(maxmem=MAXMEM)
+@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def concept_distance(c1, c2, subsystem, cut):
     """Return the distance between two concepts in concept-space.
 
@@ -150,7 +149,7 @@ def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, subsystem, cut):
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)
 
 
-@lru_cache(maxmem=MAXMEM)
+@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def constellation_distance(C1, C2, subsystem, cut):
     """Return the distance between two constellations in concept-space.
 
@@ -202,8 +201,8 @@ def _null_mip(subsystem):
 def _single_node_mip(subsystem):
     """Returns a the BigMip of a single-node with a selfloop.
 
-    Whether these have a nonzero |Phi| value depends on the CyPhi options."""
-    if options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
+    Whether these have a nonzero |Phi| value depends on the CyPhi constants."""
+    if constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
         # TODO return the actual concept
         return BigMip(
             phi=0.5,
@@ -248,7 +247,7 @@ def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
     mip = min(forward_mip, backward_mip)
     # Return the mip if the subsystem with the given partition is not
     # reducible.
-    return mip if mip.phi > options.EPSILON else _null_mip(subsystem)
+    return mip if mip.phi > constants.EPSILON else _null_mip(subsystem)
 
 
 # TODO document big_mip
@@ -286,9 +285,8 @@ def _big_mip(cache_key, subsystem):
     # Calculate the unpartitioned constellation.
     unpartitioned_constellation = constellation(subsystem, subsystem.null_cut)
     # Parallel loop over all partitions (use all but one CPU).
-    mip_candidates = Parallel(n_jobs=(-2 if options.PARALLEL_CUT_EVALUATION
-                                      else 1),
-                              verbose=options.VERBOSE_PARALLEL)(
+    mip_candidates = Parallel(n_jobs=(constants.NUMBER_OF_CORES),
+                              verbose=constants.PARALLEL_VERBOSITY)(
         delayed(_evaluate_cut)(subsystem,
                                partition,
                                unpartitioned_constellation)
@@ -315,13 +313,13 @@ def big_mip(subsystem):
     return _big_mip(hash(subsystem), subsystem)
 
 
-@lru_cache(maxmem=MAXMEM)
+@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def big_phi(subsystem):
     """Return the |big_phi| value of a subsystem."""
     return big_mip(subsystem).phi
 
 
-@lru_cache(maxmem=MAXMEM)
+@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def main_complex(network):
     """Return the main complex of the network."""
     if not isinstance(network, Network):

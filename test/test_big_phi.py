@@ -4,7 +4,7 @@
 import pytest
 import numpy as np
 
-from cyphi import options, compute, models, utils, db
+from cyphi import constants, compute, models, utils, db
 from cyphi.constants import DIRECTIONS, PAST, FUTURE
 
 
@@ -92,34 +92,34 @@ def test_big_mip_wrappers(reducible, flushdb):
 
 
 def test_big_mip_single_node(s_single, flushdb):
-    initial_option = options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
-    options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = True
+    initial_option = constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
+    constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = True
     assert compute.big_mip.func(hash(s_single), s_single).phi == 0.5
-    options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = False
+    constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = False
     assert compute.big_mip.func(hash(s_single), s_single).phi == 0.0
-    options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = initial_option
+    constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = initial_option
 
 
 def test_big_mip_standard_example_sequential(s, flushdb):
-    initial = options.PARALLEL_CUT_EVALUATION
-    options.PARALLEL_CUT_EVALUATION = False
+    initial = constants.NUMBER_OF_CORES
+    constants.NUMBER_OF_CORES = 1
     mip = compute.big_mip.func(hash(s), s)
     assert standard_example_is_correct(mip)
-    options.PARALLEL_CUT_EVALUATION = initial
+    constants.NUMBER_OF_CORES = initial
 
 
 def test_big_mip_standard_example_parallel(s, flushdb):
-    initial = options.PARALLEL_CUT_EVALUATION
-    options.PARALLEL_CUT_EVALUATION = True
+    initial = constants.NUMBER_OF_CORES
+    constants.NUMBER_OF_CORES = -2
     mip = compute.big_mip.func(hash(s), s)
     assert standard_example_is_correct(mip)
-    options.PARALLEL_CUT_EVALUATION = initial
+    constants.NUMBER_OF_CORES = initial
 
 
 @pytest.mark.slow
 def test_big_mip_big_network(big_subsys_all, flushdb):
-    initial_precision = options.PRECISION
-    options.PRECISION = 4
+    initial_precision = constants.PRECISION
+    constants.PRECISION = 4
     mip = compute.big_mip(big_subsys_all)
     assert utils.phi_eq(mip.phi, 10.744578)
     assert utils.phi_eq(
@@ -130,7 +130,7 @@ def test_big_mip_big_network(big_subsys_all, flushdb):
         3.564907)
     assert len(mip.unpartitioned_constellation) == 30
     assert len(mip.partitioned_constellation) == 17
-    options.PRECISION = initial_precision
+    constants.PRECISION = initial_precision
 
 
 # TODO!! add more assertions for the smaller subsystems

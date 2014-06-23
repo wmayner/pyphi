@@ -11,9 +11,10 @@ Represents a candidate set for |phi| calculation.
 import psutil
 import numpy as np
 from itertools import chain
-from .constants import DIRECTIONS, PAST, FUTURE, MAXMEM
+from . import constants
+from .constants import DIRECTIONS, PAST, FUTURE
 from .lru_cache import lru_cache
-from . import options, validate, utils
+from . import constants, validate, utils
 # TODO use namespaces more (honking great idea, etc.)
 from .utils import (hamming_emd, max_entropy_distribution, powerset,
                     bipartition)
@@ -104,7 +105,7 @@ class Subsystem:
     def __hash__(self):
         return self._hash
 
-    @lru_cache(maxmem=MAXMEM)
+    @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
     def cause_repertoire(self, mechanism, purview, cut=None):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -219,7 +220,7 @@ class Subsystem:
         # whole comparisons are only ever done over the same purview.
         return cjd
 
-    @lru_cache(maxmem=MAXMEM)
+    @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
     def effect_repertoire(self, mechanism, purview, cut=None):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -524,10 +525,10 @@ class Subsystem:
             phi = hamming_emd(unpartitioned_repertoire, partitioned_repertoire)
 
             # Return immediately if mechanism is reducible
-            if phi < options.EPSILON:
+            if phi < constants.EPSILON:
                 return None
             # Update MIP if it's more minimal
-            if (phi_min - phi) > options.EPSILON:
+            if (phi_min - phi) > constants.EPSILON:
                 phi_min = phi
                 # TODO Use properties here to infer mechanism and purview from
                 # partition yet access them with .mechanism and .partition
@@ -586,7 +587,7 @@ class Subsystem:
     # =========================================================================
 
     # TODO test phi max helpers
-    @lru_cache(maxmem=MAXMEM)
+    @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
     def _test_connections(self, axis, nodes1, nodes2, cut):
         """Tests connectivity of one set of nodes to another.
 
@@ -709,7 +710,8 @@ class Subsystem:
         # TODO: do we want to store these with any cut?
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
-        memory_not_full = (psutil.virtual_memory().percent <= MAXMEM)
+        memory_not_full = (psutil.virtual_memory().percent <=
+                           constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
         if (cut == self.null_cut and
             (direction, mechanism) not in self._mice_cache and
                 memory_not_full):

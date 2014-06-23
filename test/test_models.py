@@ -5,7 +5,7 @@ from collections import namedtuple
 import numpy as np
 
 from cyphi import models
-from cyphi import options
+from cyphi import constants
 
 
 nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
@@ -74,13 +74,13 @@ def test_general_eq_different_attributes():
 
 
 def test_general_eq_phi_precision_comparison_true():
-    b = nt(a.this, a.that, (a.phi - options.EPSILON/2), a.mechanism,
+    b = nt(a.this, a.that, (a.phi - constants.EPSILON/2), a.mechanism,
            a.purview)
     assert models._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_false():
-    b = nt(a.this, a.that, (a.phi - options.EPSILON*2), a.mechanism,
+    b = nt(a.this, a.that, (a.phi - constants.EPSILON*2), a.mechanism,
            a.purview)
     assert not models._general_eq(a, b, nt_attributes)
 
@@ -117,7 +117,7 @@ def test_mip_ordering():
     phi2 = models.Mip(
         direction=0, mechanism=(), purview=(), partition='stilldifferent',
         unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=1.0 + options.EPSILON*2)
+        phi=1.0 + constants.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -135,11 +135,11 @@ def test_mip_equality():
     close_enough = models.Mip(
         direction=None, mechanism=(), purview=(), partition=None,
         unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=(phi - options.EPSILON/2))
+        phi=(phi - constants.EPSILON/2))
     not_quite = models.Mip(
         direction=None, mechanism=(), purview=(), partition=None,
         unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=(phi - options.EPSILON*2))
+        phi=(phi - constants.EPSILON*2))
     assert mip == close_enough
     assert mip != not_quite
 
@@ -169,7 +169,7 @@ def test_mice_ordering_by_phi():
     phi2 = models.Mice(models.Mip(
         direction=None, mechanism=(), purview=(),
         unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=(1.0 + options.EPSILON*2), partition=()))
+        phi=(1.0 + constants.EPSILON*2), partition=()))
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -203,11 +203,11 @@ def test_mice_equality():
     close_enough = models.Mice(models.Mip(
         direction=None, mechanism=(), purview=(),
         unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=(phi - options.EPSILON/2), partition=()))
+        phi=(phi - constants.EPSILON/2), partition=()))
     not_quite = models.Mice(models.Mip(
         direction=None, mechanism=(), purview=(),
         unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=(phi - options.EPSILON*2), partition=()))
+        phi=(phi - constants.EPSILON*2), partition=()))
     assert mice == close_enough
     assert mice != not_quite
 
@@ -235,7 +235,7 @@ def test_concept_ordering():
         phi=1.0)
     phi2 = models.Concept(
         mechanism=0, cause='stilldifferent', effect=None,
-        phi=1.0 + options.EPSILON*2)
+        phi=1.0 + constants.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -263,10 +263,10 @@ def test_concept_equality():
         phi=phi)
     close_enough = models.Concept(
         mechanism=(), cause=None, effect=None,
-        phi=(phi - options.EPSILON/2))
+        phi=(phi - constants.EPSILON/2))
     not_quite = models.Concept(
         mechanism=(), cause=None, effect=None,
-        phi=(phi - options.EPSILON*2))
+        phi=(phi - constants.EPSILON*2))
     assert concept == close_enough
     assert concept != not_quite
 
@@ -297,7 +297,7 @@ def test_bigmip_ordering():
     phi2 = models.BigMip(
         cut=0, unpartitioned_constellation='stilldifferent',
         partitioned_constellation=None, subsystem=(),
-        phi=1.0 + options.EPSILON*2)
+        phi=1.0 + constants.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -331,11 +331,11 @@ def test_bigmip_equality(s):
     close_enough = models.BigMip(
         cut=None, unpartitioned_constellation=None,
         partitioned_constellation=None, subsystem=s,
-        phi=(phi - options.EPSILON/2))
+        phi=(phi - constants.EPSILON/2))
     not_quite = models.BigMip(
         cut=None, unpartitioned_constellation=None,
         partitioned_constellation=None, subsystem=s,
-        phi=(phi - options.EPSILON*2))
+        phi=(phi - constants.EPSILON*2))
     assert bigmip == close_enough
     assert bigmip != not_quite
 

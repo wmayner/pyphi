@@ -32,32 +32,13 @@ contains methods for calculating concepts, constellations, complexes, etc. See
 its documentation for details.
 
 
-Options
-~~~~~~~
+Configuration
+~~~~~~~~~~~~~
 
 There are several module-level options that control aspects of the computation.
-They are listed here with their defaults:
-
-- Control whether subsystem cuts should be evaluated in parallel.
-
-    >>> import cyphi
-    >>> cyphi.options.PARALLEL_CUT_EVALUATION
-    True
-
-- Verbosity level for parallel computation (0 - 100).
-
-    >>> import cyphi
-    >>> cyphi.options.VERBOSE_PARALLEL
-    20
-
-- Define the Phi value of subsystems containing only a single node with a
-  self-loop to be 0.5. If set to False, their Phi will be actually be computed
-  (to be zero, in this implementation).
-
-    >>> import cyphi
-    >>> cyphi.options.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
-    False
-
+These are loaded from a YAML configuration file, ``cyphi_config.yml``, which
+must be in the directory where CyPhi is run. See the documentation for
+:mod:`cyphi.constants` for a description of the options and their defaults.
 """
 
 __title__ = 'cyphi'
@@ -71,4 +52,4 @@ __copyright__ = 'Copyright 2014 Will Mayner'
 
 from .network import Network
 from .subsystem import Subsystem
-from . import compute, options, constants, db
+from . import compute, constants, db

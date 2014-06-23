@@ -16,8 +16,7 @@ from itertools import chain, combinations
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
-from . import options
-from .constants import MAXMEM
+from . import constants
 from .lru_cache import lru_cache
 
 
@@ -60,7 +59,7 @@ def state_by_state2state_by_node(tpm):
     if tpm.shape[0] != tpm.shape[1]:
         raise ValueError("State-by-state TPM must be square.")
     if not np.allclose(tpm.sum(1) == 1, np.ones(tpm.shape[1]),
-                       atol=options.PRECISION):
+                       atol=constants.PRECISION):
         raise ValueError("Rows of the TPM must sum to 1.")
     # Get the number of states from the length of one side of the TPM.
     S = tpm.shape[0]
@@ -140,7 +139,7 @@ def np_hash(a):
 
 def phi_eq(x, y):
     """Compare two phi values up to |PRECISION|."""
-    return abs(x - y) < options.EPSILON
+    return abs(x - y) < constants.EPSILON
 
 
 # see http://stackoverflow.com/questions/16003217
@@ -314,7 +313,7 @@ def bipartition(a):
 
 
 # TODO use bitwise operators here
-@lru_cache(maxmem=MAXMEM)
+@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.
 
@@ -350,7 +349,7 @@ def bipartition_indices(N):
 
 # TODO cache this persistently; it's exponential
 # TODO extend to nonbinary nodes
-@lru_cache(maxmem=MAXMEM)
+@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of |N|
     binary nodes.

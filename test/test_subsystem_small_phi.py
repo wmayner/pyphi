@@ -5,7 +5,7 @@ import pytest
 from pprint import pprint
 import numpy as np
 
-from cyphi import options
+from cyphi import constants
 from cyphi.models import Mip, Part
 
 import example_networks
@@ -305,7 +305,7 @@ def test_phi_mip_future_reducible(s):
 def test_phi(s):
     mechanism = s.nodes
     purview = s.nodes
-    assert abs(0.5 - s.phi(mechanism, purview)) < options.EPSILON
+    assert abs(0.5 - s.phi(mechanism, purview)) < constants.EPSILON
 
 # }}}
 

@@ -19,7 +19,8 @@ install_requires = [
     'joblib >=0.8.0a3, <1.0.0',
     'psutil >= 2.1.1, <3.0.0',
     'marbl-python >=2.0.0, <3.0.0',
-    'pymongo >=2.7.1, <3.0.0'
+    'pymongo >=2.7.1, <3.0.0',
+    'pyyaml>=3.11, < 4.0'
 ]
 
 test_require = [
@@ -41,7 +42,7 @@ setup(
     tests_require=test_require,
     test_suite='test',
     packages=['cyphi'],
-    package_data={'': ['LICENSE']},
+    package_data={'': ['LICENSE', 'cyphi_config.yml']},
     license='GNU General Public License v3.0',
     zip_safe=False,
     classifiers=[
