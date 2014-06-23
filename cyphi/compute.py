@@ -43,14 +43,8 @@ def concept(subsystem, mechanism, cut=None):
             the given mechanism, or ``None`` if there isn't one.
 
     .. note::
-        The output is "persistently cached" (saved to the disk for later
-        access), to avoid recomputation. The cache key is the hash of the
-        normal form of the multiset of the mechanism nodes' Markov blankets
-        (not the mechanism itself). This results in more cache hits, since the
-        output depends only on the causual properties of the nodes. See the
-        documentation for the `marbl specification
-        <https://github.com/wmayner/marbl>`_, and the `marbl-python
-        implementation <http://pythonhosted.org/marbl-python/>`_.
+        The output is persistently cached to avoid recomputation. See the
+        documentation for :mod:`cyphi.concept_caching`.
     """
     # Pre-checks:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

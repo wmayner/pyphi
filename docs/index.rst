@@ -22,5 +22,8 @@
 .. automodule:: cyphi.utils
     :members:
 
+.. automodule:: cyphi.concept_caching
+    :members:
+
 .. automodule:: cyphi.validate
     :members:

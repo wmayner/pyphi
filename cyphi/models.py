@@ -250,6 +250,7 @@ class Mice:
 
     def __init__(self, mip):
         self._mip = mip
+        # TODO remove?
         if (self.repertoire is not None and
             any(self.repertoire.shape[i] != 2 for i in
                 utils.nodes2indices(self.purview))):

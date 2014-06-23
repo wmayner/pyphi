@@ -18,36 +18,40 @@ from .network import Network
 from .constants import DIRECTIONS, PAST, FUTURE
 
 
-# A simple container for Mice data without the nested Mip structure.
-NormalizedMice = namedtuple('NormalizedMice', ['phi', 'direction', 'mechanism',
-                                               'purview', 'repertoire'])
-
-
 class NormalizedMechanism:
 
     """A mechanism rendered into a normal form, suitable for use as a cache key
     in concept memoization.
 
+    The broad outline for the normalization procedure is as follows:
 
-    - get the set of all nodes that input to (output from) at least one mechanism node
-    - sort the marbls in a stable way (this is done on initializing the marblset)
-    - iterate over sorted marbls; for each one, iterate over its corresponding
-    -     mechanism node's inputs (outputs)
-    - label each input (output) with a unique integer
-    - these are the "normalized indices" of the inputs (outputs)
-    - record the inverse mapping, that sends a normal index to a real index
+    - Get the set of all nodes that input to (output from) at least one
+      mechanism node.
+    - Sort the Marbls in a stable way (this is done by marbl-python, when the
+      MarblSet is initialized).
+    - Iterate over the sorted Marbls; for each one, iterate over its
+      corresponding mechanism node's inputs (outputs).
+    - Label each input (output) with a unique integer. These are the
+      "normalized indices" of the inputs (outputs).
+    - Record whether that node is "external", i.e. outside the subsystem that
+      the mechanism is a subset of.
+    - Record the inverse mapping, which sends a normalized index to a real
+      index.
 
-    two normalized mechanisms are the same if they have the same marblset,
-        inputs, and outputs.
-
-
+    Then two normalized mechanisms are the same if they have the same MarblSet,
+    inputs, outputs, and external indices.
 
     Attributes:
-        marblset:
-        normalized_indices:
-        unnormalized_indices:
-        inputs:
-        outputs:
+        marblset (MarblSet): The set of Marbls, one for each node in the
+            mechanism.
+        normalized_indices (dict): A mapping from mechanism node indices to
+            their normalized indices.
+        unnormalized_indices (dict): The inverse of ``normalized_indices``.
+        inputs (tuple(tuple(int))): A tuple where the |ith| element contains a
+            tuple of the normalized indices of the |ith| node, where |i| is a
+            normalized index.
+        outputs (tuple(tuple(int))): The same as ``inputs``, but the elements
+            contain normalized indices outputs.
     """
 
     # NOTE: We use lists and indices throughout, instead of dictionaries (which
@@ -174,6 +178,39 @@ class NormalizedMechanism:
         return str(self)
 
 
+# A simple container for Mice data without the nested Mip structure.
+_NormalizedMice = namedtuple('NormalizedMice', ['phi', 'direction', 'mechanism',
+                                               'purview', 'repertoire'])
+
+
+class NormalizedMice(_NormalizedMice):
+
+    """A lightweight container for MICE data.
+
+    See :class:`cyphi.models.Mice` for its unnormalized counterpart.
+
+    Attributes:
+        phi (float):
+            The difference between the mechanism's unpartitioned and
+            partitioned repertoires.
+        direction (str):
+            Either 'past' or 'future'. If 'past' ('future'), this represents a
+            maximally irreducible cause (effect).
+        mechanism (tuple(int)):
+            The normalized indices of the MICE's mechanism.
+        purview (tuple(int)):
+            A normalized purview. This is a tuple of the normalized indices of
+            its nodes.
+        repertoire (np.ndarray):
+            The normalized unpartitioned repertoire of the mechanism over the
+            purview. A repertoire is normalized by squeezing and then
+            reordering its dimensions so they correspond to the normalized
+            purview.
+    """
+
+    pass
+
+
 def _normalize_purview_and_repertoire(purview, repertoire, normalized_indices):
     """Return a normalized purview and repertoire.
 
@@ -215,19 +252,20 @@ class NormalizedConcept:
 
     """A precomputed concept in a form suitable for memoization.
 
+    Upon initialization, the normal form of the concept to be cached is
+    computed, and data relating its cause and effect purviews are stored,
+    which the concept to be reconstituted in a different network.
+
     Attributes:
-        mechanism (NormalizedMechanism):
-        phi (float):
-        cause (NormalizedMice):
-        effect (NormalizedMice):
+        mechanism (NormalizedMechanism): The mechanism the concept consists of.
+        phi (float): The |phi| value of the concept.
+        cause (NormalizedMice): The concept's normalized core cause.
+        effect (NormalizedMice): The concept's normalized core effect.
     """
 
     # TODO put in phi values
 
     def __init__(self, normalized_mechanism, concept):
-        """Upon initialization, the normal form of the concept to be cached is
-        computed, and data relating its cause and effect purviews are stored
-        that allows the concept to be reconstituted in a different network."""
         self.mechanism = normalized_mechanism
         self.phi = concept.phi
         self.cause = _normalize_mice(DIRECTIONS[PAST], concept.cause,
@@ -339,6 +377,8 @@ def _set(normalized_mechanism, concept):
 
 
 def concept(subsystem, mechanism, cut=None):
+    """Find the concept specified by a mechanism, returning a cached value if
+    one is found and computing and caching it otherwise."""
     if cut is None:
         cut = subsystem.null_cut
     # First we try to retrieve the concept without normalizing TPMs, which is
