@@ -15,9 +15,6 @@ from . import constants
 from .constants import DIRECTIONS, PAST, FUTURE
 from .lru_cache import lru_cache
 from . import constants, validate, utils
-# TODO use namespaces more (honking great idea, etc.)
-from .utils import (hamming_emd, max_entropy_distribution, powerset,
-                    bipartition)
 from .models import Cut, Mip, Part, Mice, Concept
 
 
@@ -139,7 +136,7 @@ class Subsystem:
         # of the purview, so just return the purview's maximum entropy
         # distribution.
         if not mechanism:
-            return max_entropy_distribution(purview, self.network)
+            return utils.max_entropy_distribution(purview, self.network)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -429,13 +426,15 @@ class Subsystem:
 
     def cause_info(self, mechanism, purview, cut=None):
         """Return the cause information for a mechanism over a purview."""
-        return hamming_emd(self.cause_repertoire(mechanism, purview, cut),
-                           self.unconstrained_cause_repertoire(purview, cut))
+        return utils.hamming_emd(
+            self.cause_repertoire(mechanism, purview, cut),
+            self.unconstrained_cause_repertoire(purview, cut))
 
     def effect_info(self, mechanism, purview, cut=None):
         """Return the effect information for a mechanism over a purview."""
-        return hamming_emd(self.effect_repertoire(mechanism, purview, cut),
-                           self.unconstrained_effect_repertoire(purview, cut))
+        return utils.hamming_emd(
+            self.effect_repertoire(mechanism, purview, cut),
+            self.unconstrained_effect_repertoire(purview, cut))
 
     def cause_effect_info(self, mechanism, purview, cut=None):
         """Return the cause-effect information for a mechanism over a
@@ -451,12 +450,12 @@ class Subsystem:
     # TODO? something clever here so we don't do the full iteration
     @staticmethod
     def _mip_bipartition(mechanism, purview):
-        purview_bipartitions = bipartition(purview)
+        purview_bipartitions = utils.bipartition(purview)
         result = []
         for denominators in (purview_bipartitions +
                              list(map(lambda x: x[::-1],
                                       purview_bipartitions))):
-            for numerators in bipartition(mechanism):
+            for numerators in utils.bipartition(mechanism):
                 # For the MIP, we only consider the bipartitions in which each
                 # node appears exactly once, e.g. for AB/ABC, (A/B) * (C/[]) is
                 # valid but (AB/BC) * ([]/A) is not (since B appears in both
@@ -522,7 +521,8 @@ class Subsystem:
             part2rep = repertoire(part1.mechanism, part1.purview, cut)
             partitioned_repertoire = part1rep * part2rep
 
-            phi = hamming_emd(unpartitioned_repertoire, partitioned_repertoire)
+            phi = utils.hamming_emd(unpartitioned_repertoire,
+                                    partitioned_repertoire)
 
             # Return immediately if mechanism is reducible
             if phi < constants.EPSILON:
@@ -691,7 +691,7 @@ class Subsystem:
 
         validate.direction(direction)
         # Get all possible purviews.
-        purviews = powerset(self.nodes)
+        purviews = utils.powerset(self.nodes)
 
         def not_trivially_reducible(purview):
             if direction == DIRECTIONS[PAST]:
