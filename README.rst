@@ -9,6 +9,19 @@ CyPhi is a Python library for computing integrated information (|phi|), and
 the associated quantities and objects.
 
 
+Usage, Examples, and API documentation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Documentation is available online `here <https://pythonhosted.org/cyphi>`_.
+
+It is also available via the standard Python ``help`` function:
+
+.. code:: python
+
+    >>> import cyphi
+    >>> help(cyphi)
+
+
 Installation
 ~~~~~~~~~~~~
 
@@ -25,24 +38,25 @@ To install the latest development version:
     pip install "git+https://github.com/wmayner/cyphi@develop#egg=cyphi"
 
 
-Usage
-~~~~~
+MongoDB
+```````
+CyPhi stores the results of |Phi| calculations as they're computed in order to
+avoid expensive re-computation. These results can be stored locally on the
+filesystem, or in a full-fledged database. 
 
-.. code:: bash
+To use the database-backed caching system, you must install `MongoDB
+<http://www.mongodb.org/>`_. Please see their `installation guide
+<http://docs.mongodb.org/manual/installation/>`_ for instructions.
 
-    >>> import cyphi
+Once you have MongoDB installed, use ``mongod`` to start the MongoDB server.
+Make sure the ``mongod`` configuration matches the CyPhi's database
+configuration settings in ``cyphi_config.yml`` (see the `configuration section
+<https://pythonhosted.org/cyphi/index.html#configuration>`_ of CyPhi's
+documentation).
 
-TODO
-
-
-Check out the `API <https://readthedocs.org/projects/cyphi>`_
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-Limitations and Caveats
-~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO
+You can also check out MongoDB's `Getting Started guide
+<http://docs.mongodb.org/manual/tutorial/getting-started/>`_ or the full
+`manual <http://docs.mongodb.org/manual/>`_.
 
 
 Contributing
@@ -79,7 +93,7 @@ At some point I'll try to use a Makefile instead, since many more people have
 access to ``make``.
 
 Developing on Linux
-```````````````````
+```````````````````````````
 
 Make sure you install the Python 3 C headers before installing the
 requirements:
@@ -96,21 +110,32 @@ This code is based on a `previous project <https://github.com/albantakis/iit>`_
 written in Matlab by B. Shababo, A. Nere, A. Hashmi, U. Olcese, P. Rana, and L.
 Albantakis.
 
-Please cite these papers if you use this code:
-``````````````````````````````````````````````
 
-TODO
+Please cite this paper if you use this code:
+````````````````````````````````````````````
+
+Oizumi M, Albantakis L, Tononi G (2014) `From the Phenomenology to the
+Mechanisms of Consciousness: Integrated Information Theory 3.0
+<http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1003588>`_.
+PLoS Comput Biol 10(5): e1003588. doi: 10.1371/journal.pcbi.1003588
+
 
 .. code:: latex
 
-    @INPROCEEDINGS{citationname,
-      title={},
-      author={},
-      booktitle={},
-      pages={},
-      year={},
-      month={},
-      publisher={}
+    @article{iit3,
+        author = {Oizumi, , Masafumi AND Albantakis, , Larissa AND Tononi, ,
+            Giulio},
+        journal = {PLoS Comput Biol},
+        publisher = {Public Library of Science},
+        title = {From the Phenomenology to the Mechanisms of Consciousness:
+            Integrated Information Theory 3.0},
+        year = {2014},
+        month = {05},
+        volume = {10},
+        url = {http://dx.doi.org/10.1371%2Fjournal.pcbi.1003588},
+        pages = {e1003588},
+        number = {5},
+        doi = {10.1371/journal.pcbi.1003588}
     }
 
 
