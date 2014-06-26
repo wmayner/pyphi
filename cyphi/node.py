@@ -181,8 +181,7 @@ class Node(object):
         Labels are for display only, so two equal nodes may have different
         labels.
         """
-        return ((self.index == other.index and self.network == other.network)
-                if isinstance(other, type(self)) else False)
+        return (self.index == other.index and self.network == other.network)
 
     def __ne__(self, other):
         return not self.__eq__(other)
