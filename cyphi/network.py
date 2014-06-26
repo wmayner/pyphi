@@ -37,19 +37,19 @@ class Network:
             :func:`utils.state_by_state2state_by_node` for more info. If given
             in state-by-node form, it can be either 2-dimensional, so that
             ``tpm[i]`` gives the probabilities of each node being on if the
-            past state is given by the binary representation of ``i``, or in
-            N-D form, so that ``tpm[0][1][0]`` gives the probabilities of each
-            node being on if the past state is |0,1,0|. The shape of the
+            past state is given by the binary representation of |i|, or in N-D
+            form, so that ``tpm[0][1][0]`` gives the probabilities of each node
+            being on if the past state is |0,1,0|. The shape of the
             2-dimensional form of the TPM must be ``(S, N)``, and the shape of
             the N-D form of the TPM must be ``[2]
             * N + [N]``, where ``S`` is the number of states and ``N`` is the
             number of nodes in the network.
         current_state (tuple):
             The current state of the network. ``current_state[i]`` gives the
-            current state of node ``i``.
+            current state of node |i|.
         past_state (tuple):
             The past state of the network. ``past_state[i]`` gives the past
-            state of node ``i``.
+            state of node |i|.
         connectivity_matrix (np.ndarray):
             A square binary adjacency matrix indicating the connections between
             nodes in the network.
@@ -61,9 +61,9 @@ class Network:
     Keyword Args:
         connectivity_matrix (array or sequence): A square binary adjacency
             matrix indicating the connections between nodes in the network.
-            ``connectivity_matrix[i][j] == 1`` means that node ``i`` is
-            connected to node ``j``. If no connectivity matrix is given, every
-            node is connected to every node **(including itself)**.
+            ``connectivity_matrix[i][j] == 1`` means that node |i| is connected
+            to node |j|. If no connectivity matrix is given, every node is
+            connected to every node **(including itself)**.
     """
 
     def __init__(self, tpm, current_state, past_state,

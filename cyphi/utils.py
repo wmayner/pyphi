@@ -94,8 +94,8 @@ def index2state(i, number_of_nodes):
         index (int): A decimal integer corresponding to a network state.
 
     Returns:
-        ``tuple(int)`` -- A state-tuple where the ``i``th element of the tuple
-            gives the state of the ``i``th node.
+        ``tuple(int)`` -- A state-tuple where the |ith| element of the tuple
+            gives the state of the |ith| node.
 
     Examples:
         >>> from cyphi.utils import index2state

@@ -11,7 +11,6 @@ Represents a candidate set for |phi| calculation.
 import psutil
 import numpy as np
 from itertools import chain
-from . import constants
 from .constants import DIRECTIONS, PAST, FUTURE
 from .lru_cache import lru_cache
 from . import constants, validate, utils
@@ -19,23 +18,19 @@ from .models import Cut, Mip, Part, Mice, Concept
 
 
 # TODO! go through docs and make sure to say when things can be None
-# TODO! make a NodeList object; factor out all_connect_to_any and any other
-# methods that are really properties of lists of nodes
-# TODO? refactor the computational methods out of the class so they explicitly
-# take a subsystem as a parameter
 class Subsystem:
 
-    """A set of nodes in a network."""
+    """A set of nodes in a network.
+
+    Args:
+        nodes (tuple(int)): A sequence of indices of the nodes in this
+            subsystem.
+        current_state (tuple): The current state of this subsystem.
+        past_state (tuple): The past state of this subsystem.
+        network (Network): The network the subsystem is part of.
+    """
 
     def __init__(self, node_indices, current_state, past_state, network):
-        """
-        Args:
-            nodes (tuple(int)): A sequence of indices of the nodes in this
-                subsystem.
-            current_state (tuple): The current state of this subsystem.
-            past_state (tuple): The past state of this subsystem.
-            network (Network): The network the subsystem is part of.
-        """
         # This nodes in this subsystem.
         # (Remove duplicates and sort)
         self.nodes = tuple(sorted(list(set(network.nodes[i] for i in
@@ -330,8 +325,6 @@ class Subsystem:
         boundary_inputs = inputs_to_purview & (set(mechanism) | external_nodes)
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
-        # TODO! are the external nodes really the ones outside this
-        # subsystem?
         conditioning_indices = [[slice(None)]] * self.network.size
         for node in boundary_inputs:
             # Preserve singleton dimensions with `np.newaxis`
@@ -382,7 +375,6 @@ class Subsystem:
         purview."""
         return self._get_repertoire(direction)((), purview, cut)
 
-    # TODO! move exposed API functions that aren't interally used
     def unconstrained_cause_repertoire(self, purview, cut=None):
         """Return the unconstrained cause repertoire for a purview.
 
@@ -724,7 +716,6 @@ class Subsystem:
         Alias for :func:`find_mice` with ``direction`` set to |past|."""
         return self.find_mice('past', mechanism, cut)
 
-    # TODO! don't use these internally
     def core_effect(self, mechanism, cut=None):
         """Returns the core effect repertoire of a mechanism.
 

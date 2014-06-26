@@ -15,8 +15,6 @@ use_connectivity_matrices = True
 def standard():
     """Matlab default network.
 
-    Comes with subsystems attached, no assembly required.
-
     Diagram:
 
     |           +~~~~~~+

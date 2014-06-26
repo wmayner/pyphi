@@ -121,12 +121,13 @@ rst_prolog = """
 .. |2^n x 2^n| replace:: :math:`2^N \\times 2^N`
 .. |i| replace:: :math:`i`
 .. |j| replace:: :math:`j`
+.. |i,jth| replace:: :math:`i,j^{\\textrm{th}}`
 .. |k| replace:: :math:`k`
-
 .. |past| replace:: :const:`DIRECTIONS[PAST]`
 .. |future| replace:: :const:`DIRECTIONS[FUTURE]`
 .. |PRECISION| replace:: :const:`constants.PRECISION`
 .. |EPSILON| replace:: :const:`constants.EPSILON`
+.. |CM[i][j] = 1| replace:: :math:`CM_{i,j} = 1`
 """
 
 # -- Options for Napoleon (docstring format extension) --------------------
