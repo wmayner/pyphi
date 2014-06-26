@@ -179,8 +179,9 @@ class NormalizedMechanism:
 
 
 # A simple container for Mice data without the nested Mip structure.
-_NormalizedMice = namedtuple('NormalizedMice', ['phi', 'direction', 'mechanism',
-                                               'purview', 'repertoire'])
+_NormalizedMice = namedtuple('NormalizedMice', ['phi', 'direction',
+                                                'mechanism', 'purview',
+                                                'repertoire'])
 
 
 class NormalizedMice(_NormalizedMice):
@@ -361,7 +362,7 @@ def _get(raw, normalized_mechanism, mechanism, subsystem):
     """Get a normalized concept from the database and unnormalize it before
     returning it."""
     key = db.generate_key(normalized_mechanism)
-    normalized_concept = db.get(key)
+    normalized_concept = db.find(key)
     if normalized_concept is None:
         return None
     concept = _unnormalize(normalized_concept, normalized_mechanism, mechanism,
@@ -373,7 +374,7 @@ def _set(normalized_mechanism, concept):
     """Normalize and store a concept with a normalized mechanism as the key."""
     key = db.generate_key(normalized_mechanism)
     value = NormalizedConcept(normalized_mechanism, concept)
-    return db.set(key, value)
+    return db.insert(key, value)
 
 
 def concept(subsystem, mechanism, cut=None):

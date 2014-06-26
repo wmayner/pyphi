@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Database
+~~~~~~~~
+
+Interface to MongoDB that exposes it as a key-value store.
+"""
+
 import pickle
 import pymongo
 from bson.binary import Binary
-import functools
 from collections import Iterable
-import joblib.func_inspect
 from . import constants
 
 client = pymongo.MongoClient(constants.MONGODB_CONFIG['host'],
@@ -19,7 +24,11 @@ VALUE_FIELD = 'v'
 collection.create_index('k', unique=True)
 
 
-def get(key):
+def find(key):
+    """Return the value associated with a key.
+
+    If there is no value with the given key, returns ``None``.
+    """
     docs = list(collection.find({KEY_FIELD: key}))
     # Return None if we didn't find anything.
     if not docs:
@@ -29,7 +38,10 @@ def get(key):
     return pickle.loads(pickled_value)
 
 
-def set(key, value):
+def insert(key, value):
+    """Store a value with a key.
+
+    If the key is already present in the database, this does nothing."""
     # Pickle the value.
     value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
     # Store the value as binary data in a document.
@@ -45,38 +57,15 @@ def set(key, value):
         return None
 
 
-def memoize(func, ignore=[]):
-    """Decorator for memoizing a function to a database."""
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        # Get a dictionary mapping argument names to argument values where
-        # ignored arguments are omitted.
-        filtered_args = joblib.func_inspect.filter_args(func, ignore, args,
-                                                        kwargs)
-        # Get a sorted tuple of the filtered argument.
-        filtered_args = tuple(sorted(filtered_args.values()))
-        # Use native hash when hashing arguments.
-        key = generate_key(filtered_args)
-        # Construct the key string.
-        # Attempt to retrieve a precomputed value from the database.
-        cached_value = get(key)
-        # If successful, return it.
-        if cached_value is not None:
-            return cached_value
-        # Otherwise, compute, store, and return the value.
-        else:
-            result = func(*args, **kwargs)
-            # Use the argument hash as the key.
-            set(key, result)
-            return result
-    return wrapper
-
-
 # TODO!!!: check this singleton tuple business
-def generate_key(value):
+def generate_key(filtered_args):
+    """Get a key from some input.
+
+    This function should be used whenever a key is needed, to keep keys
+    consistent."""
     # Convert the value to a (potentially singleton) tuple to be consistent
     # with joblib.filtered_args.
-    if isinstance(value, Iterable):
-        return hash(tuple(value))
+    if isinstance(filtered_args, Iterable):
+        return hash(tuple(filtered_args))
     else:
-        return hash((value, ))
+        return hash((filtered_args, ))
