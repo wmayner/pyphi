@@ -12,7 +12,8 @@ the associated quantities and objects.
 Usage, Examples, and API documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Documentation is available online `here <https://pythonhosted.org/cyphi>`_.
+Documentation for the latest release is available online `here
+<https://pythonhosted.org/cyphi>`_.
 
 It is also available via the standard Python ``help`` function:
 
@@ -20,6 +21,9 @@ It is also available via the standard Python ``help`` function:
 
     >>> import cyphi
     >>> help(cyphi)
+
+Documentation for the latest development version is available `here
+<https://wmayner.github.io/cyphi>`_.
 
 
 Installation
