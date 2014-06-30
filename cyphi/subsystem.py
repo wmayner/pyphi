@@ -8,6 +8,7 @@ Subsystem
 Represents a candidate set for |phi| calculation.
 """
 
+import os
 import psutil
 import numpy as np
 from itertools import chain
@@ -638,7 +639,7 @@ class Subsystem:
                 (all([nodes in cut.severed for nodes in mechanism]) or
                  all([nodes in cut.intact for nodes in cached.purview]))):
                 return cached
-            # If we've already calculated the core cause for this mechanism
+            # If we've already calculated the core effect for this mechanism
             # with no cut, then we don't need to recalculate it with the cut if
             #   - all mechanism nodes are intact, or
             #   - all the cached effect's purview nodes are severed.
@@ -699,14 +700,13 @@ class Subsystem:
                           purview in purviews)
         # Construct the corresponding MICE.
         mice = Mice(maximal_mip)
-        # TODO: do we want to store these with any cut?
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
-        memory_not_full = (psutil.virtual_memory().percent <=
-                           constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-        if (cut == self.null_cut and
-            (direction, mechanism) not in self._mice_cache and
-                memory_not_full):
+        current_process = psutil.Process(os.getpid())
+        not_full = (current_process.memory_percent() <
+                    constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+        if (cut == self.null_cut and (direction, mechanism) not in
+                self._mice_cache and not_full):
             self._mice_cache[(direction, mechanism)] = mice
         return mice
 
