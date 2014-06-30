@@ -90,11 +90,6 @@ def test_find_mice_validation_bad_direction(s):
         s.find_mice('doge', mechanism, s.null_cut)
 
 
-def test_find_mice_validation_nonnode(s):
-    with pytest.raises(ValueError):
-        s.find_mice('past', (0, 1), s.null_cut)
-
-
 def test_find_mice_validation_noniterable(s):
     with pytest.raises(ValueError):
         s.find_mice('past', 0, s.null_cut)
