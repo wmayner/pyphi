@@ -228,24 +228,6 @@ class Mice:
     (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
     are equal up to |PRECISION|, the size of the mechanism is compared
     (exclusion principle).
-
-    Attributes:
-        phi (float):
-            The difference between the mechanism's unpartitioned and
-            partitioned repertoires.
-        direction (str):
-            Either 'past' or 'future'. If 'past' ('future'), this
-            represents a maximally irreducible cause (effect).
-        mechanism (list(Node)):
-            The mechanism for which the MICE is evaluated.
-        purview (list(Node)):
-            The purview over which this mechanism's |phi| is
-            maximal.
-        repertoire (np.ndarray):
-            The unpartitioned repertoire of the mechanism over
-            the purview.
-        mip (Mip):
-            The minimum information partition for this mechanism.
     """
 
     def __init__(self, mip):
@@ -259,26 +241,48 @@ class Mice:
 
     @property
     def phi(self):
+        """
+        ``float`` -- The difference between the mechanism's unpartitioned and
+        partitioned repertoires.
+        """
         return self._mip.phi
 
     @property
     def direction(self):
+        """
+        ``str`` -- Either 'past' or 'future'. If 'past' ('future'), this
+        represents a maximally irreducible cause (effect).
+        """
         return self._mip.direction
 
     @property
     def mechanism(self):
+        """
+        ``list(Node)`` -- The mechanism for which the MICE is evaluated.
+        """
         return self._mip.mechanism
 
     @property
     def purview(self):
+        """
+        ``list(Node)`` -- The purview over which this mechanism's |phi| is
+        maximal.
+        """
         return self._mip.purview
 
     @property
     def repertoire(self):
+        """
+        ``np.ndarray`` -- The unpartitioned repertoire of the mechanism over
+        the purview.
+        """
         return self._mip.unpartitioned_repertoire
 
     @property
     def mip(self):
+        """
+        ``Mip`` -- The minimum information partition for this mechanism.
+        """
         return self._mip
 
     def __str__(self):
@@ -324,9 +328,6 @@ class Concept(namedtuple('Concept', _concept_attributes)):
             the concept's core cause and core effect.
         mechanism (tuple(Node)):
             The mechanism that the concept consists of.
-        location (tuple(np.ndarray)):
-            The concept's location in concept space. The two elements of the
-            tuple are the cause and effect repertoires.
         cause (Mice):
             The :class:`Mice` representing the core cause of this concept.
         effect (Mice):
@@ -335,6 +336,10 @@ class Concept(namedtuple('Concept', _concept_attributes)):
 
     @property
     def location(self):
+        """
+        ``tuple(np.ndarray)`` -- The concept's location in concept space. The
+        two elements of the tuple are the cause and effect repertoires.
+        """
         return (self.cause.repertoire, self.effect.repertoire)
 
     def __eq__(self, other):

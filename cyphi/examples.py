@@ -92,7 +92,7 @@ structures.
 
 .. note::
 
-    The examples discussed here are provided by the
+    You can play with the examples discussed here by using the
     :func:`cyphi.examples.network` and :func:`cyphi.examples.subsystem`
     functions.
 """
