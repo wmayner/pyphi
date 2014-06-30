@@ -14,6 +14,7 @@ If *maxmem* is set, then *maxsize* has no effect.
 Uses the *psutil* module to get the percentage of available memory.
 """
 
+import os
 import psutil
 from functools import RLock, update_wrapper, namedtuple
 
@@ -165,7 +166,8 @@ def lru_cache(maxsize=128, typed=False, maxmem=False):
                         last = root[PREV]
                         link = [last, root, key, result]
                         last[NEXT] = root[PREV] = cache[key] = link
-                        full = (psutil.virtual_memory().percent >= maxmem)
+                        current_process = psutil.Process(os.getpid())
+                        full = (current_process.memory_percent() >= maxmem)
                     misses += 1
                 return result
 
