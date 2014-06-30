@@ -36,3 +36,9 @@ div.highlight pre {
 p.rubric {
     font-weight: bold;
 }
+p.rubric:after {
+    content: ":"
+}
+a.reference.internal > tt.docutils.literal:hover {
+    text-decoration: underline;
+}
