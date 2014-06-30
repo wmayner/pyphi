@@ -36,6 +36,7 @@ module.exports = (grunt) ->
           "<%= cfg.srcDir %>/**/*"
           "<%= cfg.docDir %>/**/*"
           "!<%= cfg.docDir %>/_*/**/*"
+          "<%= cfg.docDir %>/_static/**/*"
         ]
         tasks: ["shell:buildDocs"]
       test:
