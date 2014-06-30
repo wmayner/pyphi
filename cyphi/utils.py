@@ -256,7 +256,7 @@ def marginalize_out(node, tpm):
 
 
 # TODO memoize this
-def max_entropy_distribution(nodes, network):
+def max_entropy_distribution(node_indices, number_of_nodes):
     """
     Return the maximum entropy distribution over a set of nodes.
 
@@ -273,8 +273,8 @@ def max_entropy_distribution(nodes, network):
         nodes.
     """
     # TODO extend to nonbinary nodes
-    distribution = np.ones([2 if node in nodes else 1 for node in
-                            network.nodes])
+    distribution = np.ones([2 if index in node_indices else 1 for index in
+                            range(number_of_nodes)])
     return distribution / distribution.size
 
 

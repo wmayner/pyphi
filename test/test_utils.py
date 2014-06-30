@@ -3,8 +3,25 @@
 
 import numpy as np
 
-from cyphi import utils, constants
+from cyphi import utils, constants, models
 from cyphi.network import Network
+
+
+def test_index2state():
+    cm = np.array([
+        [1, 0, 1, 0]
+        [1, 1, 1, 1]
+        [0, 1, 0, 1]
+        [1, 0, 1, 0]
+    ])
+    cut = models.Cut(severed=(0, 3), intact=(1, 2))
+    cut_cm = np.array([
+        [1, 0, 0, 0]
+        [1, 1, 1, 1]
+        [0, 0, 0, 1]
+        [1, 0, 1, 0]
+    ])
+    assert np.array_equal(utils.apply_cut(cut, cm), cut_cm)
 
 
 def test_index2state():
@@ -33,14 +50,7 @@ def test_marginalize_out(standard):
 
 
 def test_purview_max_entropy_distribution():
-    # Individual setUp
-    size = 3
-    state = (0, 1, 0)
-    past_state = (1, 1, 0)
-    tpm = np.ones([2] * size + [size]).astype(float) / 2
-    network = Network(tpm, state, past_state)
-
-    max_ent = utils.max_entropy_distribution(network.nodes[0:2], network)
+    max_ent = utils.max_entropy_distribution((0, 1), 3)
     assert max_ent.shape == (2, 2, 1)
     assert np.array_equal(max_ent,
                           (np.ones(4) / 4).reshape((2, 2, 1)))

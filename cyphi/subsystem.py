@@ -132,7 +132,8 @@ class Subsystem:
         # of the purview, so just return the purview's maximum entropy
         # distribution.
         if not mechanism:
-            return utils.max_entropy_distribution(purview, self.network)
+            return utils.max_entropy_distribution(utils.nodes2indices(purview),
+                                                  self.network.size)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
