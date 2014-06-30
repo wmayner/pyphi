@@ -270,15 +270,13 @@ def _big_mip(cache_key, subsystem):
     num_components, _ = connected_components(csr_matrix(cm))
     if num_components > 1:
         return _null_mip(subsystem)
+    # =========================================================================
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = utils.bipartition(subsystem.nodes)[1:]
 
-    # =========================================================================
-
-    # Calculate the unpartitioned constellation.
     unpartitioned_constellation = constellation(subsystem, subsystem.null_cut)
-    # Parallel loop over all partitions (use all but one CPU).
+    # Parallel loop over all partitions, using the specified number of cores.
     mip_candidates = Parallel(n_jobs=(constants.NUMBER_OF_CORES),
                               verbose=constants.PARALLEL_VERBOSITY)(
         delayed(_evaluate_cut)(subsystem,

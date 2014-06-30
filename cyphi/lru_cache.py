@@ -166,8 +166,10 @@ def lru_cache(maxsize=128, typed=False, maxmem=False):
                         last = root[PREV]
                         link = [last, root, key, result]
                         last[NEXT] = root[PREV] = cache[key] = link
+                        # Cache is full if the total recursive usage is greater
+                        # than the maximum allowed percentage.
                         current_process = psutil.Process(os.getpid())
-                        full = (current_process.memory_percent() >= maxmem)
+                        full = current_process.memory_percent() >= maxmem
                     misses += 1
                 return result
 
