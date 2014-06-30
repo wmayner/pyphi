@@ -11,7 +11,7 @@ docs/_build
 htmlcov
 .agignore
 
-callgraph.svg
+callgraph*
 code_to_profile.py
 profile.pstats
 profile_data/
