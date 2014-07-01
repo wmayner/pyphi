@@ -37,6 +37,7 @@ class Subsystem:
         self.nodes = tuple(sorted(list(set(network.nodes[i] for i in
                                            node_indices))))
         self.node_indices = utils.nodes2indices(self.nodes)
+        self.size = len(self.node_indices)
 
         self.current_state = current_state
         self.past_state = past_state
