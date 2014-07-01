@@ -360,12 +360,16 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         return self.phi > constants.EPSILON
 
     def expand_cause_repertoire(self, subsystem, cut):
+        """Expands a cause repertoire to be a distribution over an entire
+        network."""
         return subsystem.expand_repertoire(DIRECTIONS[PAST],
                                            self.cause.purview,
                                            self.cause.repertoire,
                                            cut)
 
     def expand_effect_repertoire(self, subsystem, cut):
+        """Expands an effect repertoire to be a distribution over an entire
+        network."""
         return subsystem.expand_repertoire(DIRECTIONS[FUTURE],
                                            self.effect.purview,
                                            self.effect.repertoire,

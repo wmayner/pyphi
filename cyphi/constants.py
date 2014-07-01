@@ -99,10 +99,10 @@ config = {
     'MAXIMUM_CACHE_MEMORY_PERCENTAGE': 50,
     # MongoDB configuration.
     'MONGODB_CONFIG': {
-        'collection_name': 'cache',
-        'database_name': 'cyphi',
         'host': 'localhost',
-        'port': 27017
+        'port': 27017,
+        'database_name': 'cyphi',
+        'collection_name': 'cache'
     },
     # The number of CPU cores to use in parallel cut evaluation. -1 means all
     # available cores, -2 means all but one available cores, etc.
@@ -125,6 +125,7 @@ config = {
 
 
 def print_config(self):
+    """Prints the current configuration."""
     print(''.center(50, '-'))
     pprint(config)
     print(''.center(50, '-'))

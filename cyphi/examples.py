@@ -26,6 +26,7 @@ state-by-node form.
 
     >>> import cyphi
     >>> tpm = np.array([
+    ... [0, 0, 0],
     ... [0, 0, 1],
     ... [1, 0, 1],
     ... [1, 0, 0],
@@ -51,7 +52,8 @@ there is a connection from node |i| to node |j|, and 0 otherwise.
 
 Now we construct the network itself with the arguments we just created:
 
-    >>> network = cyphi.Network(tpm, current_state, past_state)
+    >>> network = cyphi.Network(tpm, current_state, past_state,
+    ...                         connectivity_matrix=cm)
 
 The next step is to define a subsystem for which we want to evaluate |big_phi|.
 To make a subsystem, we need the indices of subset of nodes which should be
@@ -70,7 +72,8 @@ of the subsystem the same as that of the network:
 Now we use :func:`cyphi.compute.big_phi` function to compute the |big_phi| of
 our subsystem:
 
-    >>> cyphi.compute.big_phi(subsystem)
+    >>> phi = cyphi.compute.big_phi(subsystem)
+    >>> round(phi, cyphi.constants.PRECISION)
     2.312498
 
 If we want to take a deeper look at the integrated-information-theoretic

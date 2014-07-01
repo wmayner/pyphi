@@ -51,7 +51,7 @@ class NormalizedMechanism:
             tuple of the normalized indices of the |ith| node, where |i| is a
             normalized index.
         outputs (tuple(tuple(int))): The same as ``inputs``, but the elements
-            contain normalized indices outputs.
+            contain normalized indices of the outputs.
     """
 
     # NOTE: We use lists and indices throughout, instead of dictionaries (which
@@ -162,8 +162,10 @@ class NormalizedMechanism:
 
     @property
     def permutation(self):
-        """The permutation that maps mechanism nodes to the position of their
-        marbl in the marblset."""
+        """
+        ``tuple(int)`` -- The permutation that maps mechanism nodes to the
+        position of their marbl in the marblset.
+        """
         return self.marblset.permutation
 
     # TODO!!!: make hash independent of python

@@ -38,9 +38,9 @@ def concept(subsystem, mechanism, cut=None):
             no cut is applied.
 
     Returns:
-        ``Concept`` or ``None`` -- The pair of maximally irreducible
-            cause/effect repertoires that constitute the concept specified by
-            the given mechanism, or ``None`` if there isn't one.
+        ``Concept`` -- The pair of maximally irreducible cause/effect
+        repertoires that constitute the concept specified by the given
+        mechanism, or ``None`` if there isn't one.
 
     .. note::
         The output is persistently cached to avoid recomputation. See the

@@ -15,15 +15,10 @@ Usage, Examples, and API documentation
 Documentation for the latest release is available online `here
 <https://pythonhosted.org/cyphi>`_.
 
-It is also available via the standard Python ``help`` function:
-
-.. code:: python
-
-    >>> import cyphi
-    >>> help(cyphi)
-
 Documentation for the latest development version is available `here
 <https://wmayner.github.io/cyphi>`_.
+
+It is also available within the Python interpreter with the ``help`` function.
 
 
 Installation
