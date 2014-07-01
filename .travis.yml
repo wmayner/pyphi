@@ -1,5 +1,8 @@
 language: python
 
+# Provide a mongod process on port 27017 (default)
+services: mongodb
+
 python:
   - "3.3"
 
@@ -11,7 +14,8 @@ before_install:
   - export PATH=/home/travis/miniconda3/bin:$PATH
   # Update conda itself
   - conda update --yes conda
-  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
+  # The next couple lines fix a crash with multiprocessing on Travis and are
+  # not specific to using Miniconda
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
 
