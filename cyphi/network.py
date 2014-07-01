@@ -104,8 +104,8 @@ class Network:
         self.connectivity_matrix.flags.writeable = False
 
         tpm_hash = utils.np_hash(self.tpm)
-        cm_hash = (utils.np_hash(self.connectivity_matrix)
-                   if self.connectivity_matrix is not None else None)
+        cm_hash = utils.np_hash(self.connectivity_matrix)
+
         # Only compute hash once.
         self._hash = hash((tpm_hash,
                            self.current_state,
