@@ -67,7 +67,8 @@ class NormalizedMechanism:
         cut_cm = utils.apply_cut(cut, net.connectivity_matrix)
         # Make a new network with the cut applied.
         cut_network = Network(net.tpm, net.current_state, net.past_state,
-                              connectivity_matrix=cut_cm)
+                              connectivity_matrix=cut_cm,
+                              boundary_indices=subsystem.external_indices)
         # Get the nodes in the mechanism with the cut applied.
         cut_mechanism = tuple(cut_network.nodes[i] for i in
                               self.indices)
@@ -94,7 +95,6 @@ class NormalizedMechanism:
             DIRECTIONS[FUTURE]: [
                 marbl_preimage[m].outputs for m in M]
         }
-
         # Now, we generate the normalized index of each node that inputs
         # (outputs) to at least one mechanism node. Also record the reverse
         # mapping, that sends normalized indices to the original indices.
@@ -141,8 +141,7 @@ class NormalizedMechanism:
                 self.normalized_indices[DIRECTIONS[PAST]].items()},
             DIRECTIONS[FUTURE]: {
                 v: k for k, v in
-                self.normalized_indices[DIRECTIONS[FUTURE]].items()}
-        }
+                self.normalized_indices[DIRECTIONS[FUTURE]].items()} }
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Associate each marbl with its normally-labeled inputs.
@@ -289,12 +288,13 @@ class NormalizedConcept:
 def _unnormalize_purview_and_repertoire(normalized_purview,
                                         normalized_repertoire,
                                         unnormalized_indices,
-                                        network):
+                                        subsystem):
+    network = subsystem.network
     # Get the unnormalized purview indices.
     purview_indices = tuple(unnormalized_indices[normal_index]
                             for normal_index in normalized_purview)
     # Get the actual purview nodes.
-    purview = network.indices2nodes(purview_indices)
+    purview = subsystem.indices2nodes(purview_indices)
     # If the normalized repertoire is None, from a null MIP, return
     # immediately.
     if normalized_repertoire is None:
@@ -313,10 +313,13 @@ def _unnormalize_purview_and_repertoire(normalized_purview,
     # Permute the repertoires dimensions so they correspond to the unnormalized
     # purview.
     repertoire = repertoire.transpose(permutation)
+    if any(repertoire.shape[i] != 2 for i in utils.nodes2indices(purview)):
+        raise Exception(
+            "Unnormalized purview and repertoire don't match.")
     return purview, repertoire
 
 
-def _unnormalize_mice(normalized_mice, normalized_mechanism, network):
+def _unnormalize_mice(normalized_mice, normalized_mechanism, subsystem):
     """Convert a normalized MICE to its proper representation in the context of
     a network.
 
@@ -331,7 +334,7 @@ def _unnormalize_mice(normalized_mice, normalized_mechanism, network):
         normalized_mice.purview,
         normalized_mice.repertoire,
         normalized_mechanism.unnormalized_indices[normalized_mice.direction],
-        network)
+        subsystem)
     return models.Mice(models.Mip(
         phi=normalized_mice.phi,
         direction=normalized_mice.direction,
@@ -344,15 +347,16 @@ def _unnormalize_mice(normalized_mice, normalized_mechanism, network):
     ))
 
 
-def _unnormalize(normalized_concept, normalized_mechanism, mechanism, network):
+def _unnormalize(normalized_concept, normalized_mechanism, mechanism,
+                 subsystem):
     """Convert a normalized concept to its proper representation in the context
     of the given network."""
     cause = _unnormalize_mice(normalized_concept.cause,
                               normalized_mechanism,
-                              network)
+                              subsystem)
     effect = _unnormalize_mice(normalized_concept.effect,
                                normalized_mechanism,
-                               network)
+                               subsystem)
     return models.Concept(
         phi=normalized_concept.phi,
         mechanism=mechanism,
@@ -368,7 +372,7 @@ def _get(raw, normalized_mechanism, mechanism, subsystem):
     if normalized_concept is None:
         return None
     concept = _unnormalize(normalized_concept, normalized_mechanism, mechanism,
-                           subsystem.network)
+                           subsystem)
     return concept
 
 

@@ -67,7 +67,7 @@ class Network:
     """
 
     def __init__(self, tpm, current_state, past_state,
-                 connectivity_matrix=None):
+                 connectivity_matrix=None, boundary_indices=None):
         # Cast TPM to np.array.
         tpm = np.array(tpm)
         # Convert to state-by-node if we were given a square state-by-state
@@ -116,8 +116,9 @@ class Network:
         validate.network(self)
 
         # Generate the nodes.
-        self.nodes = tuple([Node(self, node_index) for node_index in
-                            range(self.size)])
+        self.nodes = tuple([Node(self, node_index,
+            boundary_indices=boundary_indices) for node_index in
+            range(self.size)])
 
         # TODO extend to nonbinary nodes
         self.num_states = 2 ** self.size

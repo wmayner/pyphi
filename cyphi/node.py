@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import numpy as np
+from itertools import chain
 import functools
+import numpy as np
 from marbl import Marbl
 from . import utils
 
@@ -10,7 +11,7 @@ from . import utils
 # TODO extend to nonbinary nodes
 # TODO? refactor to use purely indexes for nodes
 @functools.total_ordering
-class Node(object):
+class Node:
 
     """A node in a network.
 
@@ -35,33 +36,78 @@ class Node(object):
         at |t_{-1}|.
     """
 
-    def __init__(self, network, index, label=None):
+    def __init__(self, network, index, label=None, boundary_indices=None):
+        self.context = 'network'
+        if boundary_indices is not None:
+            self.context = 'subsystem'
+        else:
+            boundary_indices = ()
         # This node's parent network.
         self.network = network
         # This node's index in the network's list of nodes.
         self.index = index
         # Label for display.
         self.label = label
+        # Indices of nodes to be considered as boundary conditions. This node's
+        # TPM will be conditioned on the state of these nodes.
+        self.boundary_indices = boundary_indices
 
         # Get indices of the inputs.
         self._input_indices = np.array(
             [i for i in range(self.network.size) if
-                self.network.connectivity_matrix[i][self.index]])
+                self.network.connectivity_matrix[i][self.index] and
+                i not in self.boundary_indices])
         self._output_indices = np.array(
             [i for i in range(self.network.size) if
-                self.network.connectivity_matrix[self.index][i]])
+                self.network.connectivity_matrix[self.index][i] and
+                i not in self.boundary_indices])
 
+        # Generate the node's TPM.
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Get the part of the network's TPM that gives just the state of this
+        # node. This part is still indexed by network state, but its last
+        # dimension will be gone, since now there's just a single scalar value
+        # (this node's state) rather than a state-vector for all the network
+        # nodes.
+        tpm_on = self.network.tpm[..., self.index]
+        # Now we condition on the fixed states of the boundary nodes, if any.
+        for node_index in self.boundary_indices:
+            # First we initialize the conditioning indices, taking the slices
+            # as singleton lists-of-lists for later flattening with `chain`.
+            conditioning_indices = [[slice(None)]] * self.network.size
+            # Preserve singleton dimensions with `np.newaxis`.
+            conditioning_indices[node_index] = \
+                [self.network.current_state[node_index], np.newaxis]
+            # Flatten the indices.
+            conditioning_indices = list(
+                chain.from_iterable(conditioning_indices))
+            # Obtain the conditioned TPM by indexing with the conditioning
+            # indices; this collapses the TPM onto the fixed state of the
+            # boundary node, making that node's corresponding dimension into a
+            # singleton.
+            conditioned_part = tpm_on[conditioning_indices]
+            # Now we expand the boundary node's dimension to the size of the
+            # boundary node's state-space again, but this time all the entries
+            # correspond to that nodes fixed state. This allows us to index
+            # into the TPM normally, as if the boundary node could have any
+            # state, but the results of calculations will reflect that it is in
+            # one fixed state.
+            tpm_on = np.concatenate((conditioned_part, conditioned_part),
+                                    node_index)
+        # Get the TPM that gives the probability of the node being off, rather
+        # than on.
+        tpm_off = 1 - tpm_on
+
+        # Marginalize-out non-input nodes. Note that this does not include
+        # fixed nodes that may be inputs according to the connectivity matrix;
+        # these have already been dealt with.
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # This will hold the indices of the nodes that correspond to
         # non-singleton dimensions of this node's on-TPM. It maps any network
         # node index to the corresponding dimension of this node's TPM with
         # singleton dimensions removed. We need this for creating this node's
         # Marbl.
         self._dimension_labels = []
-        # Generate the node's TPM.
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        tpm_on = self.network.tpm[..., self.index]
-        tpm_off = 1 - tpm_on
-        # Marginalize-out non-input nodes.
         current_non_singleton_dim_index = 0
         for index in range(self.network.size):
             if index not in self._input_indices:
@@ -78,10 +124,12 @@ class Node(object):
                 # for the next one.
                 self._dimension_labels.append(current_non_singleton_dim_index)
                 current_non_singleton_dim_index += 1
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
         # Store the generated TPM.
         self.tpm = np.array([tpm_off, tpm_on])
-        # Make it immutable (for hashing).
+
+        # Make the TPM immutable (for hashing).
         self.tpm.flags.writeable = False
 
         # Only compute hash once.

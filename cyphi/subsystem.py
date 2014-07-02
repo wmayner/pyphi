@@ -16,6 +16,7 @@ from .constants import DIRECTIONS, PAST, FUTURE
 from .lru_cache import lru_cache
 from . import constants, validate, utils
 from .models import Cut, Mip, Part, Mice, Concept
+from .node import Node
 
 
 # TODO! go through docs and make sure to say when things can be None
@@ -32,18 +33,24 @@ class Subsystem:
     """
 
     def __init__(self, node_indices, current_state, past_state, network):
-        # This nodes in this subsystem.
-        # (Remove duplicates and sort)
-        self.nodes = tuple(sorted(list(set(network.nodes[i] for i in
-                                           node_indices))))
-        self.node_indices = utils.nodes2indices(self.nodes)
-        self.size = len(self.node_indices)
-
-        self.current_state = current_state
-        self.past_state = past_state
-
         # The network this subsystem belongs to.
         self.network = network
+        # Remove duplicates and sort node indices.
+        node_indices = tuple(sorted(list(set(node_indices))))
+        self.node_indices = node_indices
+        self.size = len(self.node_indices)
+        # Get the external nodes.
+        self.external_indices = tuple(
+            set(range(network.size)) - set(self.node_indices))
+        # Generate the nodes.
+        self.nodes = tuple(
+            Node(self.network, i, boundary_indices=self.external_indices) for i
+            in self.node_indices)
+
+        # TODO subsystems don't need states, user should just make a new
+        # network.
+        self.current_state = current_state
+        self.past_state = past_state
 
         # The null cut (leaves the system intact).
         self.null_cut = Cut(severed=(), intact=self.nodes)
@@ -99,6 +106,9 @@ class Subsystem:
     def __hash__(self):
         return self._hash
 
+    def indices2nodes(self, indices):
+        return tuple(n for n in self.nodes if n.index in indices)
+
     @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
     def cause_repertoire(self, mechanism, purview, cut=None):
         """Return the cause repertoire of a mechanism over a purview.
@@ -129,6 +139,7 @@ class Subsystem:
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         mechanism = validate.nodelist(mechanism, 'Mechanism')
         purview = validate.nodelist(purview, 'Purview')
+        purview_indices = utils.nodes2indices(purview)
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
         # distribution.
@@ -144,8 +155,8 @@ class Subsystem:
             cut = self.null_cut
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
-        cjd = np.ones(tuple(2 if node in purview else
-                            1 for node in self.network.nodes))
+        cjd = np.ones(tuple(2 if i in purview_indices else
+                            1 for i in range(self.network.size)))
         # Loop over all nodes in this mechanism, successively taking the
         # product (with expansion/broadcasting of singleton dimensions) of each
         # individual node's TPM (conditioned on that node's state) in order to
@@ -162,14 +173,17 @@ class Subsystem:
             conditioned_tpm = mechanism_node.tpm[node_state]
             # Collect the nodes that are not in the purview and have
             # connections to this node.
-            non_purview_inputs = (inputs &
-                                  (set(self.network.nodes) - set(purview)))
-            # Collect the nodes in the network who had inputs to this mechanism
-            # that were severed by this subsystem's cut.
+            non_purview_inputs = inputs & (set(self.network.nodes) - set(purview))
+            # Collect the nodes in the subsystem who had inputs to this
+            # mechanism that were severed by this subsystem's cut.
             severed_inputs = (inputs &
-                              set([n for n in self.network.nodes if
+                              set([n for n in self.nodes if
                                    (n in cut.severed and mechanism_node in
                                     cut.intact)]))
+            # # We will marginalize-out nodes that are within the subsystem, but
+            # # are either not in the purview or severed by a cut.
+            # marginal_inputs = (non_purview_inputs | severed_inputs)
+
             # Fixed boundary-condition nodes are those that are outside this
             # subsystem, and are either not in the purview or have been severed
             # by a cut.
@@ -188,6 +202,7 @@ class Subsystem:
                 conditioning_indices[node.index] = \
                     [self.past_state[node.index]]
                 conditioned_tpm = conditioned_tpm[conditioning_indices]
+
             # Marginalize-out the nodes in this subsystem with inputs to this
             # mechanism that are either not in the purview or whose connections
             # to this mechanism have not been severed by a subsystem cut.
@@ -245,6 +260,7 @@ class Subsystem:
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         mechanism = validate.nodelist(mechanism, 'Mechanism')
         purview = validate.nodelist(purview, 'Purview')
+        purview_indices = utils.nodes2indices(purview)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -255,8 +271,8 @@ class Subsystem:
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
-            [1] * self.network.size + [2 if node in purview else 1 for node in
-                                       self.network.nodes])
+            [1] * self.network.size + [2 if i in purview_indices else 1 for i in
+                                       range(self.network.size)])
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
         # individual node's TPM in order to get the joint distribution for the
@@ -278,7 +294,8 @@ class Subsystem:
 
             inputs = set(purview_node.inputs)
             # TODO extend to nonbinary nodes
-            # Rotate the dimensions so the first dimension is the last
+            # Rotate the dimensions so the first dimension is the last (the
+            # first dimension corresponds to the state of the node)
             tpm = purview_node.tpm
             tpm = tpm.transpose(list(range(tpm.ndim))[1:] + [0])
             # Expand the dimensions so the TPM can be indexed as described
@@ -289,9 +306,9 @@ class Subsystem:
 
             # Collect nodes whose connections to this purview were severed by
             # the cut.
-            severed_nodes = set([n for n in self.network.nodes if (
+            severed_nodes = set([n for n in self.nodes if (
                 n in cut.severed and purview_node in cut.intact)])
-            # Collect the nodes in the network who had connections to this
+            # Collect the nodes in the subsystem who had connections to this
             # purview node that were severed by this subsystem's cut.
             severed_mechanism_nodes = severed_nodes & set(mechanism)
             # We marginalize-out inputs to the current purview node that are
@@ -346,7 +363,7 @@ class Subsystem:
         # (the second half of the shape may also contain singleton dimensions,
         # depending on how many nodes are in the purview).
         accumulated_cjd = accumulated_cjd.reshape(
-            accumulated_cjd.shape[self.network.size:2 * self.network.size])
+            accumulated_cjd.shape[self.network.size:(2 * self.network.size)])
 
         # Note that we're not returning a distribution over all the nodes in
         # the network, only a distribution over the nodes in the purview. This
@@ -768,6 +785,7 @@ class Subsystem:
 
     def concept(self, mechanism, cut=None):
         """Calculate a concept."""
+        # TODO refactor to pass indices around, not nodes, throughout Subsystem
         # Calculate the maximally irreducible cause repertoire.
         cause = self.core_cause(mechanism, cut)
         # Calculate the maximally irreducible effect repertoire.
