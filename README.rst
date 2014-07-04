@@ -117,7 +117,7 @@ be directed to Larissa Albantakis, PhD, at `albantakis@wisc.edu
 Please cite this paper if you use this code:
 ````````````````````````````````````````````
 
-Oizumi M, Albantakis L, Tononi G (2014) `From the Phenomenology to the
+Albantakis L, Oizumi M, Tononi G (2014) `From the Phenomenology to the
 Mechanisms of Consciousness: Integrated Information Theory 3.0
 <http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1003588>`_.
 PLoS Comput Biol 10(5): e1003588. doi: 10.1371/journal.pcbi.1003588
@@ -126,7 +126,7 @@ PLoS Comput Biol 10(5): e1003588. doi: 10.1371/journal.pcbi.1003588
 .. code:: latex
 
     @article{iit3,
-        author = {Oizumi, , Masafumi AND Albantakis, , Larissa AND Tononi, ,
+        author = {Albantakis, , Larissa AND Oizumi, , Masafumi AND Tononi, ,
             Giulio},
         journal = {PLoS Comput Biol},
         publisher = {Public Library of Science},
