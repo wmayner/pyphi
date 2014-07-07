@@ -119,18 +119,6 @@ class Node(object):
                                 node.index in self._output_indices)
             return self._outputs
 
-    # TODO doc
-    def _io_with_cuts(self, direction, cut):
-        io_nodes = self.inputs if direction == 'inputs' else self.outputs
-        cut_cm = utils.apply_cut(cut, self.network.connectivity_matrix)
-        return [n for n in io_nodes if cut_cm[n.index][self.index]]
-
-    def inputs_with_cut(self, cut):
-        return self._io_with_cuts('inputs', cut)
-
-    def outputs_with_cut(self, cut):
-        return self._io_with_cuts('outputs', cut)
-
     @property
     def marbl(self):
         """The normalized representation of this node's Markov blanket."""

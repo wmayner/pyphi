@@ -24,18 +24,13 @@ from .lru_cache import lru_cache
 
 
 # TODO update concept docs
-def concept(subsystem, mechanism, cut=None):
+def concept(subsystem, mechanism):
     """Return the concept specified by the a mechanism within a subsytem.
 
     Args:
         subsystem (Subsytem): The context in which the mechanism should be
             considered.
         mechanism (tuple(Node)): The candidate set of nodes.
-
-    Keyword Args:
-        cut (Cut): The optional unidirectional cut that should be applied to
-            the network when doing the calculation. Defaults to ``None``, where
-            no cut is applied.
 
     Returns:
         ``Concept`` -- The pair of maximally irreducible cause/effect
@@ -55,37 +50,32 @@ def concept(subsystem, mechanism, cut=None):
     # has no outputs to the subsystem, then the mechanism is necessarily
     # reducible and cannot be a concept (since removing that node would make no
     # difference to at least one of the MICEs).
-    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes, cut) and
-            subsystem._any_connect_to_all(subsystem.nodes, mechanism, cut)):
+    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
+            subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
         return Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Passed prechecks; pass it over to the concept caching logic.
-    return _concept(subsystem, mechanism, cut)
+    return _concept(subsystem, mechanism)
 
 
-def constellation(subsystem, cut=None):
+def constellation(subsystem):
     """Return the conceptual structure of this subsystem.
 
     Args:
         subsystem (Subsytem): The subsystem for which to determine the
             constellation.
 
-    Keyword Args:
-        cut (Cut): The optional unidirectional cut that should be applied to
-            the network when doing the calculation. Defaults to ``None``, where
-            no cut is applied.
-
     Returns:
         ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
     """
-    concepts = [concept(subsystem, mechanism, cut) for mechanism in
+    concepts = [concept(subsystem, mechanism) for mechanism in
                 utils.powerset(subsystem.nodes)]
     # Filter out non-concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
 
 @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-def concept_distance(c1, c2, subsystem, cut):
+def concept_distance(c1, c2, subsystem):
     """Return the distance between two concepts in concept-space.
 
     Args:
@@ -99,13 +89,13 @@ def concept_distance(c1, c2, subsystem, cut):
     # to the full state-space of the subsystem, so that the EMD signatures are
     # the same size.
     return sum([
-        utils.hamming_emd(c1.expand_cause_repertoire(subsystem, cut),
-                          c2.expand_cause_repertoire(subsystem, cut)),
-        utils.hamming_emd(c1.expand_effect_repertoire(subsystem, cut),
-                          c2.expand_effect_repertoire(subsystem, cut))])
+        utils.hamming_emd(c1.expand_cause_repertoire(subsystem),
+                          c2.expand_cause_repertoire(subsystem)),
+        utils.hamming_emd(c1.expand_effect_repertoire(subsystem),
+                          c2.expand_effect_repertoire(subsystem))])
 
 
-def _constellation_distance_simple(C1, C2, subsystem, cut):
+def _constellation_distance_simple(C1, C2, subsystem):
     """Return the distance between two constellations in concept-space,
     assuming the only difference between them is that some concepts have
     disappeared."""
@@ -113,12 +103,11 @@ def _constellation_distance_simple(C1, C2, subsystem, cut):
     if len(C2) > len(C1):
         C1, C2 = C2, C1
     destroyed = [c for c in C1 if c not in C2]
-    return sum(c.phi * concept_distance(c, subsystem.null_concept, subsystem,
-                                        cut)
+    return sum(c.phi * concept_distance(c, subsystem.null_concept, subsystem)
                for c in destroyed)
 
 
-def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, subsystem, cut):
+def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, subsystem):
     """Return the distance between two constellations in concept-space,
     using the generalized EMD."""
     shared_concepts = [c for c in C1 if c in C2]
@@ -137,14 +126,14 @@ def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, subsystem, cut):
         d1[-1] = residual
     # Generate the ground distance matrix.
     distance_matrix = np.array([
-        [concept_distance(i, j, subsystem, cut) for i in all_concepts] for j in
+        [concept_distance(i, j, subsystem) for i in all_concepts] for j in
         all_concepts])
 
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)
 
 
 @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-def constellation_distance(C1, C2, subsystem, cut):
+def constellation_distance(C1, C2, subsystem):
     """Return the distance between two constellations in concept-space.
 
     Args:
@@ -163,13 +152,12 @@ def constellation_distance(C1, C2, subsystem, cut):
     # If the only difference in the constellations is that some concepts
     # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:
-        return _constellation_distance_simple(C1, C2, subsystem, cut)
+        return _constellation_distance_simple(C1, C2, subsystem)
     else:
         return _constellation_distance_emd(C1, C2,
                                            concepts_only_in_C1,
                                            concepts_only_in_C2,
-                                           subsystem,
-                                           cut)
+                                           subsystem)
 
 
 def conceptual_information(subsystem):
@@ -177,8 +165,7 @@ def conceptual_information(subsystem):
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    return constellation_distance(constellation(subsystem), (), subsystem,
-                                  subsystem.null_cut)
+    return constellation_distance(constellation(subsystem), (), subsystem)
 
 
 # TODO document
@@ -188,7 +175,6 @@ def _null_mip(subsystem):
     This is the MIP associated with a reducible subsystem."""
     return BigMip(subsystem=subsystem,
                   phi=0.0,
-                  cut=subsystem.null_cut,
                   unpartitioned_constellation=[], partitioned_constellation=[])
 
 
@@ -200,7 +186,6 @@ def _single_node_mip(subsystem):
         # TODO return the actual concept
         return BigMip(
             phi=0.5,
-            cut=Cut(subsystem.nodes, subsystem.nodes),
             unpartitioned_constellation=None,
             partitioned_constellation=None,
             subsystem=subsystem)
@@ -212,28 +197,34 @@ def _single_node_mip(subsystem):
 # TODO calculate cut network twice here and pass that to concept caching so it
 # isn't calulated for each concept. cut passing needs serious refactoring
 # anyway actually
-def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
+def _evaluate_partition(subsystem, partition, unpartitioned_constellation):
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
-    forward_constellation = constellation(subsystem, cut=forward_cut)
+    forward_cut_subsystem = Subsystem(subsystem.node_indices,
+                                      subsystem.current_state,
+                                      subsystem.past_state,
+                                      subsystem.network,
+                                      cut=forward_cut):
+    forward_constellation = constellation(subsystem)
     forward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    forward_constellation,
-                                   subsystem,
-                                   forward_cut),
-        cut=forward_cut,
+                                   subsystem),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=forward_constellation,
         subsystem=subsystem)
     # Compute backward mip.
     backward_cut = Cut(partition[1], partition[0])
-    backward_constellation = constellation(subsystem, cut=backward_cut)
+    backward_cut_subsystem = Subsystem(subsystem.node_indices,
+                                       subsystem.current_state,
+                                       subsystem.past_state,
+                                       subsystem.network,
+                                       cut=backward_cut):
+    backward_constellation = constellation(subsystem)
     backward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    backward_constellation,
-                                   subsystem,
-                                   backward_cut),
-        cut=backward_cut,
+                                   subsystem),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=backward_constellation,
         subsystem=subsystem)
@@ -275,13 +266,13 @@ def _big_mip(cache_key, subsystem):
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = utils.bipartition(subsystem.nodes)[1:]
 
-    unpartitioned_constellation = constellation(subsystem, subsystem.null_cut)
+    unpartitioned_constellation = constellation(subsystem)
     # Parallel loop over all partitions, using the specified number of cores.
     mip_candidates = Parallel(n_jobs=(constants.NUMBER_OF_CORES),
                               verbose=constants.PARALLEL_VERBOSITY)(
-        delayed(_evaluate_cut)(subsystem,
-                               partition,
-                               unpartitioned_constellation)
+        delayed(_evaluate_partition)(subsystem,
+                                     partition,
+                                     unpartitioned_constellation)
         for partition in bipartitions)
 
     return min(mip_candidates)

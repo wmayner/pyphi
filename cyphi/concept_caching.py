@@ -57,24 +57,11 @@ class NormalizedMechanism:
     # NOTE: We use lists and indices throughout, instead of dictionaries (which
     # would perhaps be more elegant), to avoid repeatedly computing the hash of
     # the marbls.
-    def __init__(self, mechanism, cut, subsystem, normalize_tpms=True):
+    def __init__(self, mechanism, subsystem, normalize_tpms=True):
         self.indices = utils.nodes2indices(mechanism)
-        # Apply the cut to the network and get the MarblSet from its nodes.
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # Get the ps
-        net = mechanism[0].network
-        # Apply the cut to the network's connectivity matrix.
-        cut_cm = utils.apply_cut(cut, net.connectivity_matrix)
-        # Make a new network with the cut applied.
-        cut_network = Network(net.tpm, net.current_state, net.past_state,
-                              connectivity_matrix=cut_cm)
-        # Get the nodes in the mechanism with the cut applied.
-        cut_mechanism = tuple(cut_network.nodes[i] for i in
-                              self.indices)
-        # Grab the marbls from the cut-network nodes.
-        marbls = [(n.marbl if normalize_tpms else n.raw_marbl)
-                  for n in cut_mechanism]
-        # Normalize the cut mechanism as a MarblSet.
+        # Grab the marbls from the mechanism nodes.
+        marbls = [(n.marbl if normalize_tpms else n.raw_marbl) for n in
+                  mechanism]
         self.marblset = MarblSet(marbls)
         M = range(len(self.marblset))
         # Associate marbls in the marblset to the mechanism nodes they were
@@ -82,7 +69,7 @@ class NormalizedMechanism:
         marbl_preimage = [
             # The ith marbl corresponds to the jth node in the mechanism, where
             # j is the image of i under the marblset's permutation.
-            cut_mechanism[self.marblset.permutation[i]]
+            mechanism[self.marblset.permutation[i]]
             for i, marbl in enumerate(self.marblset)
         ]
         # Associate each marbl to the inputs of its preimage node.
@@ -141,8 +128,7 @@ class NormalizedMechanism:
                 self.normalized_indices[DIRECTIONS[PAST]].items()},
             DIRECTIONS[FUTURE]: {
                 v: k for k, v in
-                self.normalized_indices[DIRECTIONS[FUTURE]].items()}
-        }
+                self.normalized_indices[DIRECTIONS[FUTURE]].items()} }
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Associate each marbl with its normally-labeled inputs.

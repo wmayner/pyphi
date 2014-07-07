@@ -384,7 +384,7 @@ class Concept(namedtuple('Concept', _concept_attributes)):
 
 # =============================================================================
 
-_bigmip_attributes = ['phi', 'cut', 'unpartitioned_constellation',
+_bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'partitioned_constellation', 'subsystem']
 
 
@@ -414,7 +414,7 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
         return _general_eq(self, other, _bigmip_attributes)
 
     def __hash__(self):
-        return hash((self.phi, self.cut, self.unpartitioned_constellation,
+        return hash((self.phi, self.unpartitioned_constellation,
                      self.partitioned_constellation, self.subsystem))
 
     # First compare phi, then subsystem size
