@@ -398,8 +398,7 @@ class Subsystem:
         direction."""
         validate.direction(direction)
         # Get the unconstrained repertoire over the other nodes in the network.
-        non_purview_nodes = tuple(frozenset(self.network.nodes) -
-                                  frozenset(purview))
+        non_purview_nodes = tuple(frozenset(self.nodes) - frozenset(purview))
         uc = self._unconstrained_repertoire(direction, non_purview_nodes, cut)
         # Multiply the given repertoire by the unconstrained one to get a
         # distribution over all the nodes in the network.
