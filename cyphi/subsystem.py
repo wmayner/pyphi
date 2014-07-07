@@ -38,7 +38,7 @@ class Subsystem:
         self.node_indices = utils.nodes2indices(self.nodes)
         # The unidirectional cut applied for phi evaluation within the
         # subsystem, if any.
-        self.cut = cut
+        self.cut = self.null_cut if cut is None else cut
 
         self.size = len(self.node_indices)
 
