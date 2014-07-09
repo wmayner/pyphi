@@ -108,7 +108,7 @@ class Subsystem:
         return self._hash
 
     def indices2nodes(self, indices):
-        return tuple(self.nodes[i] for i in indices)
+        return tuple(n for n in self.nodes if n.index in indices)
 
     @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
     def cause_repertoire(self, mechanism, purview):
