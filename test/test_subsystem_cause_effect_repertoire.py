@@ -354,14 +354,4 @@ def test_cause_and_effect_repertoire(function, subsystem, cut, mechanism,
     assert np.array_equal(result, expected)
 
 
-# Test validation
-def test_cause_and_effect_repertoire_validation(s):
-    with pytest.raises(ValueError):
-        s.cause_repertoire((0,), (1,), s.null_cut)
-    with pytest.raises(ValueError):
-        s.effect_repertoire((0,1), (2,), s.null_cut)
-    with pytest.raises(ValueError):
-        s.effect_repertoire(0, (2), s.null_cut)
-
-
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :
