@@ -102,7 +102,7 @@ def s():
     return Subsystem(range(m.size), m)
 
 
-def simple(past_state, current_state):
+def simple(current_state, past_state):
     """ Simple 'AND' network.
 
     Diagram:
@@ -143,19 +143,18 @@ def simple(past_state, current_state):
                     [0, 0, 0],
                     [1, 0, 0],
                     [0, 0, 0]])
-    return Network(tpm, past_state, current_state)
+    return Network(tpm, current_state, past_state)
 
 
 def s_subsys_all_off():
-    s = simple((0,0,0), (0,0,0))
-
+    s = simple((0, 0, 0), (0, 0, 0))
     return Subsystem(range(s.size), s)
 
 
 def s_subsys_all_a_just_on():
     a_about_to_be_on = (0, 1, 1)
     a_just_turned_on = (1, 0, 0)
-    s = simple(a_about_to_be_on, a_just_turned_on)
+    s = simple(a_just_turned_on, a_about_to_be_on)
     return Subsystem(range(s.size), s)
 
 
