@@ -81,7 +81,7 @@ class Subsystem:
 
         Two subsystems are equal if their sets of nodes, current and past
         states, and networks are equal."""
-        return ((set(self.nodes) == set(other.nodes) and
+        return ((set(self.node_indices) == set(other.node_indices) and
                  self.network == other.network))
 
     def __bool__(self):
