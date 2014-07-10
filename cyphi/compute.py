@@ -226,9 +226,7 @@ def _evaluate_partition(subsystem, partition, unpartitioned_constellation):
         subsystem=subsystem)
     # Choose minimal unidirectional cut.
     mip = min(forward_mip, backward_mip)
-    # Return the mip if the subsystem with the given partition is not
-    # reducible.
-    return mip if mip.phi > constants.EPSILON else _null_mip(subsystem)
+    return mip
 
 
 # TODO document big_mip
