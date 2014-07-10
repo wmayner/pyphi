@@ -202,7 +202,8 @@ def _evaluate_partition(subsystem, partition, unpartitioned_constellation):
     forward_cut = Cut(partition[0], partition[1])
     forward_cut_subsystem = Subsystem(subsystem.node_indices,
                                       subsystem.network,
-                                      cut=forward_cut)
+                                      cut=forward_cut,
+                                      mice_cache=subsystem._mice_cache)
     forward_constellation = constellation(subsystem)
     forward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
@@ -215,7 +216,8 @@ def _evaluate_partition(subsystem, partition, unpartitioned_constellation):
     backward_cut = Cut(partition[1], partition[0])
     backward_cut_subsystem = Subsystem(subsystem.node_indices,
                                        subsystem.network,
-                                       cut=backward_cut)
+                                       cut=backward_cut,
+                                       mice_cache=subsystem._mice_cache)
     backward_constellation = constellation(subsystem)
     backward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,

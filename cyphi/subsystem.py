@@ -30,7 +30,7 @@ class Subsystem:
         network (Network): The network the subsystem is part of.
     """
 
-    def __init__(self, node_indices, network, cut=None):
+    def __init__(self, node_indices, network, cut=None, mice_cache=dict()):
         # The network this subsystem belongs to.
         self.network = network
         # Remove duplicates and sort node indices.
