@@ -201,8 +201,6 @@ def _evaluate_partition(subsystem, partition, unpartitioned_constellation):
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
     forward_cut_subsystem = Subsystem(subsystem.node_indices,
-                                      subsystem.current_state,
-                                      subsystem.past_state,
                                       subsystem.network,
                                       cut=forward_cut)
     forward_constellation = constellation(subsystem)
@@ -216,8 +214,6 @@ def _evaluate_partition(subsystem, partition, unpartitioned_constellation):
     # Compute backward mip.
     backward_cut = Cut(partition[1], partition[0])
     backward_cut_subsystem = Subsystem(subsystem.node_indices,
-                                       subsystem.current_state,
-                                       subsystem.past_state,
                                        subsystem.network,
                                        cut=backward_cut)
     backward_constellation = constellation(subsystem)
