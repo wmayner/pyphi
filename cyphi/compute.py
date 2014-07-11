@@ -260,7 +260,7 @@ def _big_mip(cache_key, subsystem):
     # =========================================================================
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
-    bipartitions = utils.bipartition(subsystem.nodes)[1:]
+    bipartitions = utils.bipartition(subsystem.node_indices)[1:]
 
     unpartitioned_constellation = constellation(subsystem)
     # Parallel loop over all partitions, using the specified number of cores.
