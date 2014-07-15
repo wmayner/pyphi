@@ -555,27 +555,27 @@ class Subsystem:
         the second list."""
         return self._test_connections(1, nodes1, nodes2)
 
-    def _get_cached_mice(self, direction, mechanism):
+    def _get_cached_mice(self, direction, mechanism_indices):
         """Return a cached MICE if there is one and the cut doesn't affect it.
 
         Return False otherwise."""
-        if (direction, mechanism) in self._mice_cache:
-            cached = self._mice_cache[(direction, mechanism)]
+        if (direction, mechanism_indices) in self._mice_cache:
+            cached = self._mice_cache[(direction, mechanism_indices)]
             # If we've already calculated the core cause for this mechanism
             # with no cut, then we don't need to recalculate it with the cut if
             #   - all mechanism nodes are severed, or
             #   - all the cached cause's purview nodes are intact.
             if (direction == DIRECTIONS[PAST] and
-                (all([nodes in self.cut.severed for nodes in mechanism]) or
-                 all([nodes in self.cut.intact for nodes in cached.purview]))):
+                (all([n in self.cut.severed for n in mechanism_indices]) or
+                 all([n in self.cut.intact for n in cached.purview]))):
                 return cached
             # If we've already calculated the core effect for this mechanism
             # with no cut, then we don't need to recalculate it with the cut if
             #   - all mechanism nodes are intact, or
             #   - all the cached effect's purview nodes are severed.
             if (direction == DIRECTIONS[FUTURE] and
-                (all([nodes in self.cut.intact for nodes in mechanism]) or
-                 all([nodes in self.cut.severed for nodes in cached.purview]))):
+                (all([n in self.cut.intact for n in mechanism_indices]) or
+                 all([n in self.cut.severed for n in cached.purview]))):
                 return cached
         return False
 
@@ -630,7 +630,8 @@ class Subsystem:
                     constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
         if (self.cut is None and (direction, mechanism) not in
                 self._mice_cache and not_full):
-            self._mice_cache[(direction, mechanism)] = mice
+            self._mice_cache[(direction,
+                              utils.nodes2indices(mechanism))] = mice
         return mice
 
     def core_cause(self, mechanism):
