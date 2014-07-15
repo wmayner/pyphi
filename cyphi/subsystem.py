@@ -69,7 +69,7 @@ class Subsystem(object):
                            self.node_indices)
         # A cache for keeping core causes and effects that can be reused later
         # in the event that a cut doesn't effect them.
-        self._mice_cache = dict()
+        self._mice_cache = mice_cache
 
     def __repr__(self):
         return "Subsystem(" + repr(self.nodes) + ")"
