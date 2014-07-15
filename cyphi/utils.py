@@ -20,6 +20,25 @@ from . import constants
 from .lru_cache import lru_cache
 
 
+def condition_tpm(tpm, fixed_nodes, state):
+    """Return a TPM conditioned on the given fixed node indices, whose states
+    are fixed according to the given state-tuple.
+
+    The dimensions of the new TPM that correspond to the fixed nodes are
+    collapsed onto their state, making those dimensions singletons suitable for
+    broadcasting. The number of dimensions of the conditioned TPM will be the
+    same as the unconditioned TPM."""
+    conditioning_indices = [[slice(None)]] * len(state)
+    for i in fixed_nodes:
+        # Preserve singleton dimensions with `np.newaxis`
+        conditioning_indices[i] = [state[i], np.newaxis]
+    # Flatten the indices.
+    conditioning_indices = list(chain.from_iterable(conditioning_indices))
+    # Obtain the actual conditioned TPM by indexing with the conditioning
+    # indices.
+    return tpm[conditioning_indices]
+
+
 def state_by_state2state_by_node(tpm):
     """Convert a state-by-state TPM to a state-by-node TPM.
 
@@ -124,6 +143,34 @@ def apply_cut(cut, connectivity_matrix):
         for j in cut.intact:
             cm[i][j] = 0
     return cm
+
+
+def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
+    """Returns a connectivity matrix with all connections to or from external
+    nodes removed."""
+    cm = connectivity_matrix.copy()
+    for i in external_indices:
+        # Zero-out row
+        cm[i] = 0
+        # Zero-out column
+        cm[:,i] = 0
+    return cm
+
+
+# TODO test
+def get_inputs_from_cm(index, connectivity_matrix):
+    """Returns a tuple of node indices that have connections to the node with
+    the given index."""
+    return tuple(i for i in range(connectivity_matrix.shape[0]) if
+                 connectivity_matrix[i][index])
+
+
+# TODO test
+def get_outputs_from_cm(index, connectivity_matrix):
+    """Returns a tuple of node indices that the node with the given index has
+    connections to."""
+    return tuple(i for i in range(connectivity_matrix.shape[0]) if
+                 connectivity_matrix[index][i])
 
 
 def np_hash(a):
