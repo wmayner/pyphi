@@ -2,7 +2,7 @@
 CyPhi: |phi| for Python
 ***********************
 .. Travis build sticker:
-.. image:: https://travis-ci.org/wmayner/cyphi.svg?branch=develop
+.. image:: https://travis-ci.org/wmayner/cyphi.svg
     :target: https://travis-ci.org/wmayner/cyphi
 
 CyPhi is a Python library for computing integrated information (|phi|), and
