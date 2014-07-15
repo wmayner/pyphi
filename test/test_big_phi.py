@@ -20,6 +20,7 @@ db.collection = db.database.test
 # Helpers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 # TODO: use different db for tests
 @pytest.fixture
 def flushdb():
@@ -46,6 +47,7 @@ def standard_example_is_correct(mip):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_null_concept(s, flushdb):
+    assert 1
     cause = models.Mice(models.Mip(
         unpartitioned_repertoire=s.unconstrained_cause_repertoire(s.nodes),
         phi=0, direction=DIRECTIONS[PAST], mechanism=(), purview=s.nodes,
@@ -58,7 +60,7 @@ def test_null_concept(s, flushdb):
             models.Concept(mechanism=(), phi=0, cause=cause, effect=effect))
 
 
-def test_concept_nonexistent(s, flushdb):
+def test_concept_nonexistent(s):
     assert not compute.concept(s, (s.nodes[0], s.nodes[2]))
 
 
@@ -70,7 +72,6 @@ def test_conceptual_information(s, flushdb):
 def test_big_mip_empty_subsystem(s_empty, flushdb):
     assert (compute.big_mip.func(hash(s_empty), s_empty) ==
             models.BigMip(phi=0.0,
-                          cut=models.Cut(severed=(), intact=()),
                           unpartitioned_constellation=[],
                           partitioned_constellation=[],
                           subsystem=s_empty))
@@ -78,14 +79,14 @@ def test_big_mip_empty_subsystem(s_empty, flushdb):
 
 def test_big_mip_disconnected_network(reducible, flushdb):
     assert (compute.big_mip.func(hash(reducible), reducible) ==
-            models.BigMip(subsystem=reducible, phi=0.0, cut=reducible.null_cut,
+            models.BigMip(subsystem=reducible, phi=0.0,
                           unpartitioned_constellation=[],
                           partitioned_constellation=[]))
 
 
 def test_big_mip_wrappers(reducible, flushdb):
     assert (compute.big_mip(reducible) ==
-            models.BigMip(subsystem=reducible, phi=0.0, cut=reducible.null_cut,
+            models.BigMip(subsystem=reducible, phi=0.0,
                           unpartitioned_constellation=[],
                           partitioned_constellation=[]))
     assert compute.big_phi(reducible) == 0.0
@@ -108,12 +109,12 @@ def test_big_mip_standard_example_sequential(s, flushdb):
     constants.NUMBER_OF_CORES = initial
 
 
-def test_big_mip_standard_example_parallel(s, flushdb):
-    initial = constants.NUMBER_OF_CORES
-    constants.NUMBER_OF_CORES = -2
-    mip = compute.big_mip.func(hash(s), s)
-    assert standard_example_is_correct(mip)
-    constants.NUMBER_OF_CORES = initial
+# def test_big_mip_standard_example_parallel(s, flushdb):
+#     initial = constants.NUMBER_OF_CORES
+#     constants.NUMBER_OF_CORES = -2
+#     mip = compute.big_mip.func(hash(s), s)
+#     assert standard_example_is_correct(mip)
+#     constants.NUMBER_OF_CORES = initial
 
 
 @pytest.mark.slow
@@ -133,7 +134,36 @@ def test_big_mip_big_network(big_subsys_all, flushdb):
     constants.PRECISION = initial_precision
 
 
-# TODO!! add more assertions for the smaller subsystems
-def test_complexes(standard, flushdb):
-    complexes = list(compute.complexes(standard))
-    assert standard_example_is_correct(complexes[7])
+def test_big_mip_big_network_0_thru_3(big_subsys_0_thru_3, flushdb):
+    initial_precision = constants.PRECISION
+    constants.PRECISION = 4
+    mip = compute.big_mip(big_subsys_0_thru_3)
+    assert utils.phi_eq(mip.phi, 0.3663872111473395)
+    assert utils.phi_eq(
+        sum(C.phi for C in mip.unpartitioned_constellation),
+        1.0166667500000002)
+    assert utils.phi_eq(
+        sum(c.phi for c in mip.partitioned_constellation),
+        0.883334)
+    assert len(mip.unpartitioned_constellation) == 6
+    assert len(mip.partitioned_constellation) == 5
+    constants.PRECISION = initial_precision
+
+
+# # TODO!! add more assertions for the smaller subsystems
+# def test_complexes(standard, flushdb):
+#     complexes = list(compute.complexes(standard))
+#     assert standard_example_is_correct(complexes[7])
+
+
+# def test_concept_normalization(standard, flushdb):
+#     # Compute each subsystem using accumulated precomputed results.
+#     db_complexes = list(compute.complexes(standard))
+#     # Compute each subsystem with an empty db.
+#     no_db_complexes = []
+#     for subsystem in compute.subsystems(standard):
+#         db_flush()
+#         no_db_complexes.append(compute.big_mip(subsystem))
+#     # The empty-db and full-db results should be the same if concept caching is
+#     # working properly.
+#     assert db_complexes == no_db_complexes

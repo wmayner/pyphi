@@ -18,9 +18,9 @@ def test_validate_nodelist_nonnode():
         validate.nodelist([0, 1, 2], 'invest in dogecoin!')
 
 
-def test_validate_nodelist_nontuple_sequence(standard):
-    nodes = validate.nodelist(list(standard.nodes), 'such phi')
-    assert nodes == standard.nodes
+def test_validate_nodelist_nontuple_sequence(s):
+    nodes = validate.nodelist(list(s.nodes), 'such phi')
+    assert nodes == s.nodes
 
 
 def test_validate_direction():

@@ -287,15 +287,15 @@ def test_concept_repr_str():
 
 def test_bigmip_ordering():
     phi1 = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
+        unpartitioned_constellation=None,
         partitioned_constellation=None, subsystem=(),
         phi=1.0)
     different_phi1 = models.BigMip(
-        cut='different', unpartitioned_constellation=0,
+        unpartitioned_constellation=0,
         partitioned_constellation=None, subsystem=(),
         phi=1.0)
     phi2 = models.BigMip(
-        cut=0, unpartitioned_constellation='stilldifferent',
+        unpartitioned_constellation='stilldifferent',
         partitioned_constellation=None, subsystem=(),
         phi=1.0 + constants.EPSILON*2)
     assert phi1 < phi2
@@ -308,11 +308,11 @@ def test_bigmip_ordering():
 
 def test_bigmip_odering_by_mechanism():
     small = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
+        unpartitioned_constellation=None,
         partitioned_constellation=None, subsystem=1,
         phi=1.0)
     big = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
+        unpartitioned_constellation=None,
         partitioned_constellation=None, subsystem=2,
         phi=1.0)
     assert small < big
@@ -325,15 +325,15 @@ def test_bigmip_odering_by_mechanism():
 def test_bigmip_equality(s):
     phi = 1.0
     bigmip = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
+        unpartitioned_constellation=None,
         partitioned_constellation=None, subsystem=s,
         phi=phi)
     close_enough = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
+        unpartitioned_constellation=None,
         partitioned_constellation=None, subsystem=s,
         phi=(phi - constants.EPSILON/2))
     not_quite = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
+        unpartitioned_constellation=None,
         partitioned_constellation=None, subsystem=s,
         phi=(phi - constants.EPSILON*2))
     assert bigmip == close_enough
@@ -342,8 +342,8 @@ def test_bigmip_equality(s):
 
 def test_bigmip_repr_str():
     bigmip = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=(), phi=1.0)
+        unpartitioned_constellation=None, partitioned_constellation=None,
+        subsystem=(), phi=1.0)
     print(repr(bigmip))
     print(str(bigmip))
 

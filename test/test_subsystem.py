@@ -6,7 +6,7 @@ from cyphi.subsystem import Subsystem
 
 def test_empty_init(standard):
     # Empty mechanism
-    s = Subsystem([], standard.current_state, standard.past_state, standard)
+    s = Subsystem((), standard)
     assert s.nodes == ()
 
 
