@@ -12,6 +12,8 @@ from cyphi.subsystem import Subsystem
 use_connectivity_matrices = True
 
 
+
+
 def standard():
     """Matlab default network.
 
@@ -102,6 +104,10 @@ def s():
     return Subsystem(range(m.size), m)
 
 
+s_about_to_be_on = (0, 1, 1)
+s_just_turned_on = (1, 0, 0)
+s_all_off = (0, 0, 0)
+
 def simple(current_state, past_state):
     """ Simple 'AND' network.
 
@@ -146,8 +152,16 @@ def simple(current_state, past_state):
     return Network(tpm, current_state, past_state)
 
 
+def simple_all_off():
+    return simple(s_all_off, s_all_off)
+
+
+def simple_a_just_on():
+    return simple(s_just_turned_on, s_about_to_be_on)
+
+
 def s_subsys_all_off():
-    s = simple((0, 0, 0), (0, 0, 0))
+    s = simple(s_all_off, s_all_off)
     return Subsystem(range(s.size), s)
 
 
@@ -203,6 +217,12 @@ def big_subsys_all():
     """Return the subsystem associated with ``big``."""
     b = big()
     return Subsystem(range(b.size), b)
+
+
+def big_subsys_0_thru_3():
+    """Return a subsystem consisting of the first 4 nodes of ``big``."""
+    b = big()
+    return Subsystem(range(5)[:-1], b)
 
 
 def reducible():

@@ -70,6 +70,10 @@ def big_subsys_all():
     return example_networks.big_subsys_all()
 
 
+@pytest.fixture()
+def big_subsys_0_thru_3():
+    return example_networks.big_subsys_0_thru_3()
+
 # Reducible network
 
 @pytest.fixture()
