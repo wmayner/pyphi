@@ -45,9 +45,10 @@ class Subsystem:
         # Get the external nodes.
         self.external_indices = tuple(
             set(range(network.size)) - set(self.node_indices))
+        # The null cut (that leaves the system intact).
+        self.null_cut = Cut((), self.node_indices)
         # The unidirectional cut applied for phi evaluation within the
-        # subsystem, if any.
-        self.cut = cut
+        self.cut = cut if cut is not None else self.null_cut
         # Only compute hash once.
         self._hash = hash((self.node_indices, self.cut, self.network))
         # Get the subsystem's connectivity matrix. This is the network's
