@@ -79,6 +79,7 @@ class Network:
         # probabilities can be indexed by state-tuples. In either case, the
         # size of last dimension is the number of nodes.
         self.size = tpm.shape[-1]
+        self.node_indices = tuple(range(self.size))
 
         # Get the connectivity matrix.
         if connectivity_matrix is not None:
@@ -115,10 +116,6 @@ class Network:
         # Validate this network.
         validate.network(self)
 
-        # Generate the nodes.
-        self.nodes = tuple([Node(self, node_index) for node_index in
-                            range(self.size)])
-
         # TODO extend to nonbinary nodes
         self.num_states = 2 ** self.size
 
@@ -151,6 +148,3 @@ class Network:
 
     def __hash__(self):
         return self._hash
-
-    def indices2nodes(self, indices):
-        return tuple(self.nodes[i] for i in indices)
