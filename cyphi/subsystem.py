@@ -20,7 +20,7 @@ from .node import Node
 
 
 # TODO! go through docs and make sure to say when things can be None
-class Subsystem:
+class Subsystem(object):
 
     """A set of nodes in a network.
 
@@ -230,10 +230,7 @@ class Subsystem:
         # whole purview. After conditioning on the mechanism's state and that
         # of external nodes, this will be the effect repertoire as a
         # distribution over the purview.
-        print("purview:",purview)
         for purview_node in purview:
-            print("main loop".center(50,'-'))
-            print("purview_node:",purview_node)
             # Unlike in calculating the cause repertoire, here the TPM is not
             # conditioned yet. `tpm` is an array with twice as many dimensions
             # as the network has nodes. For example, in a network with three
@@ -251,17 +248,12 @@ class Subsystem:
             # Rotate the dimensions so the first dimension is the last (the
             # first dimension corresponds to the state of the node)
             tpm = purview_node.current_tpm
-            print("tpm.shape",tpm.shape)
             tpm = tpm.transpose(list(range(tpm.ndim))[1:] + [0])
-            print("tpm.shape",tpm.shape)
             # Expand the dimensions so the TPM can be indexed as described
             first_half_shape = list(tpm.shape[:-1])
             second_half_shape = [1] * self.network.size
             second_half_shape[purview_node.index] = 2
-            print("first_half_shape",first_half_shape)
-            print("second_half_shape",second_half_shape)
             tpm = tpm.reshape(first_half_shape + second_half_shape)
-            print(tpm.shape)
             # Marginalize-out non-mechanism purview inputs.
             non_mechanism_inputs = inputs - set(mechanism)
             for node in non_mechanism_inputs:
@@ -279,14 +271,17 @@ class Subsystem:
         inputs_to_purview = set.union(*[set(node.inputs) for node in purview])
         # Collect mechanism nodes with inputs to any purview node.
         fixed_inputs = utils.nodes2indices(inputs_to_purview & set(mechanism))
-        if any(i in self.external_indices for i in utils.nodes2indices(tuple(fixed_inputs))):
-            raise Exception("Fixed input node not in Subsystem")
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
-        print("fixed_inputs",fixed_inputs)
         accumulated_cjd = utils.condition_tpm(
             accumulated_cjd, fixed_inputs, self.network.current_state)
-        print("accumulated_cjd.shape",accumulated_cjd.shape)
+        # The distribution still has twice as many dimensions as the network
+        # has nodes, with the first half of the shape now all singleton
+        # dimensions, so we reshape to eliminate those singleton dimensions
+        # (the second half of the shape may also contain singleton dimensions,
+        # depending on how many nodes are in the purview).
+        accumulated_cjd = accumulated_cjd.reshape(
+            accumulated_cjd.shape[self.network.size:])
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Note that we're not returning a distribution over all the nodes in
         # the network, only a distribution over the nodes in the purview. This
@@ -629,7 +624,7 @@ class Subsystem:
         current_process = psutil.Process(os.getpid())
         not_full = (current_process.memory_percent() <
                     constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-        if (self.cut is None and (direction, mechanism) not in
+        if (self.cut == self.null_cut and (direction, mechanism) not in
                 self._mice_cache and not_full):
             self._mice_cache[(direction,
                               utils.nodes2indices(mechanism))] = mice
