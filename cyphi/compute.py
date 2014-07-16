@@ -52,7 +52,8 @@ def concept(subsystem, mechanism):
     # difference to at least one of the MICEs).
     if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
             subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
-        return Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None)
+        return Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None,
+                       subsystem=subsystem)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Passed prechecks; pass it over to the concept caching logic.
     return _concept(subsystem, mechanism)
