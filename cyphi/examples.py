@@ -72,7 +72,7 @@ our subsystem:
 
     >>> phi = cyphi.compute.big_phi(subsystem)
     >>> round(phi, cyphi.constants.PRECISION)
-    2.312498
+    2.312495
 
 If we want to take a deeper look at the integrated-information-theoretic
 properties of our network, we can access all the intermediate quantities and
