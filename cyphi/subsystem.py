@@ -621,13 +621,14 @@ class Subsystem(object):
         mice = Mice(maximal_mip)
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
+        key = (direction, utils.nodes2indices(mechanism))
         current_process = psutil.Process(os.getpid())
         not_full = (current_process.memory_percent() <
                     constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-        if (self.cut == self.null_cut and (direction, mechanism) not in
-                self._mice_cache and not_full):
-            self._mice_cache[(direction,
-                              utils.nodes2indices(mechanism))] = mice
+        if (self.cut == self.null_cut
+                and key not in self._mice_cache
+                and not_full):
+            self._mice_cache[key] = mice
         return mice
 
     def core_cause(self, mechanism):
