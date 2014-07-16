@@ -320,21 +320,6 @@ scenarios = [
 parameter_string = "function,subsystem,mechanism,purview,expected"
 
 
-# @pytest.fixture
-# def function():
-#     return 'effect_repertoire'
-# @pytest.fixture
-# def subsystem():
-#     return Subsystem((1, 2), standard, cut=Cut((1,), (2,)))
-# @pytest.fixture
-# def mechanism():
-#     return []
-# @pytest.fixture
-# def purview():
-#     return [1]
-# @pytest.fixture
-# def expected():
-#     return np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
 @pytest.mark.parametrize(parameter_string, scenarios)
 def test_cause_and_effect_repertoire(function, subsystem, mechanism, purview,
                                      expected):
