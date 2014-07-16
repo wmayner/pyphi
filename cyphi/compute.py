@@ -197,35 +197,36 @@ def _single_node_mip(subsystem):
 # TODO calculate cut network twice here and pass that to concept caching so it
 # isn't calulated for each concept. cut passing needs serious refactoring
 # anyway actually
-def _evaluate_partition(subsystem, partition, unpartitioned_constellation):
+def _evaluate_partition(uncut_subsystem, partition,
+                        unpartitioned_constellation):
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
-    forward_cut_subsystem = Subsystem(subsystem.node_indices,
-                                      subsystem.network,
+    forward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
+                                      uncut_subsystem.network,
                                       cut=forward_cut,
-                                      mice_cache=subsystem._mice_cache)
+                                      mice_cache=uncut_subsystem._mice_cache)
     forward_constellation = constellation(forward_cut_subsystem)
     forward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    forward_constellation,
-                                   subsystem),
+                                   uncut_subsystem),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=forward_constellation,
-        subsystem=subsystem)
+        subsystem=uncut_subsystem)
     # Compute backward mip.
     backward_cut = Cut(partition[1], partition[0])
-    backward_cut_subsystem = Subsystem(subsystem.node_indices,
-                                       subsystem.network,
+    backward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
+                                       uncut_subsystem.network,
                                        cut=backward_cut,
-                                       mice_cache=subsystem._mice_cache)
+                                       mice_cache=uncut_subsystem._mice_cache)
     backward_constellation = constellation(backward_cut_subsystem)
     backward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    backward_constellation,
-                                   subsystem),
+                                   uncut_subsystem),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=backward_constellation,
-        subsystem=subsystem)
+        subsystem=uncut_subsystem)
     # Choose minimal unidirectional cut.
     mip = min(forward_mip, backward_mip)
     return mip
