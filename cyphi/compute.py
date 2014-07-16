@@ -75,7 +75,7 @@ def constellation(subsystem):
 
 
 @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-def concept_distance(c1, c2, subsystem):
+def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
     Args:
@@ -89,10 +89,10 @@ def concept_distance(c1, c2, subsystem):
     # to the full state-space of the subsystem, so that the EMD signatures are
     # the same size.
     return sum([
-        utils.hamming_emd(c1.expand_cause_repertoire(subsystem),
-                          c2.expand_cause_repertoire(subsystem)),
-        utils.hamming_emd(c1.expand_effect_repertoire(subsystem),
-                          c2.expand_effect_repertoire(subsystem))])
+        utils.hamming_emd(c1.expand_cause_repertoire(),
+                          c2.expand_cause_repertoire()),
+        utils.hamming_emd(c1.expand_effect_repertoire(),
+                          c2.expand_effect_repertoire())])
 
 
 def _constellation_distance_simple(C1, C2, subsystem):
@@ -103,7 +103,7 @@ def _constellation_distance_simple(C1, C2, subsystem):
     if len(C2) > len(C1):
         C1, C2 = C2, C1
     destroyed = [c for c in C1 if c not in C2]
-    return sum(c.phi * concept_distance(c, subsystem.null_concept, subsystem)
+    return sum(c.phi * concept_distance(c, subsystem.null_concept)
                for c in destroyed)
 
 
@@ -126,7 +126,7 @@ def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, subsystem):
         d1[-1] = residual
     # Generate the ground distance matrix.
     distance_matrix = np.array([
-        [concept_distance(i, j, subsystem) for i in all_concepts] for j in
+        [concept_distance(i, j) for i in all_concepts] for j in
         all_concepts])
 
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)

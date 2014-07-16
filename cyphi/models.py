@@ -306,7 +306,7 @@ class Mice:
 
 # =============================================================================
 
-_concept_attributes = ['phi', 'mechanism', 'cause', 'effect']
+_concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem']
 
 
 # TODO: make mechanism a property
@@ -332,6 +332,8 @@ class Concept(namedtuple('Concept', _concept_attributes)):
             The :class:`Mice` representing the core cause of this concept.
         effect (Mice):
             The :class:`Mice` representing the core effect of this concept.
+        subsystem (Subsystem):
+            This Concept's parent subsystem.
     """
 
     @property
@@ -346,7 +348,8 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         return _general_eq(self, other, _concept_attributes)
 
     def __hash__(self):
-        return hash((self.phi, self.mechanism, self.cause, self.effect))
+        return hash((self.phi, self.mechanism, self.cause, self.effect,
+                     self.subsystem))
 
     def __str__(self):
         return ('Concept(' +
@@ -359,19 +362,19 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         significant amount of |big_phi|."""
         return self.phi > constants.EPSILON
 
-    def expand_cause_repertoire(self, subsystem):
+    def expand_cause_repertoire(self):
         """Expands a cause repertoire to be a distribution over an entire
         network."""
-        return subsystem.expand_repertoire(DIRECTIONS[PAST],
-                                           self.cause.purview,
-                                           self.cause.repertoire)
+        return self.subsystem.expand_repertoire(DIRECTIONS[PAST],
+                                                self.cause.purview,
+                                                self.cause.repertoire)
 
-    def expand_effect_repertoire(self, subsystem):
+    def expand_effect_repertoire(self):
         """Expands an effect repertoire to be a distribution over an entire
         network."""
-        return subsystem.expand_repertoire(DIRECTIONS[FUTURE],
-                                           self.effect.purview,
-                                           self.effect.repertoire)
+        return self.subsystem.expand_repertoire(DIRECTIONS[FUTURE],
+                                                self.effect.purview,
+                                                self.effect.repertoire)
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt

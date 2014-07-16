@@ -681,7 +681,8 @@ class Subsystem(object):
                 purview=self.nodes,
                 partition=None, partitioned_repertoire=None))
         # All together now...
-        return Concept(mechanism=(), phi=0, cause=cause, effect=effect)
+        return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
+                       subsystem=self)
 
     def concept(self, mechanism):
         """Calculate a concept."""
@@ -695,5 +696,5 @@ class Subsystem(object):
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.
-        return Concept(
-            mechanism=mechanism, phi=phi, cause=cause, effect=effect)
+        return Concept(mechanism=mechanism, phi=phi, cause=cause,
+                       effect=effect, subsystem=self)
