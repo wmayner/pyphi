@@ -109,12 +109,12 @@ def test_big_mip_standard_example_sequential(s, flushdb):
     constants.NUMBER_OF_CORES = initial
 
 
-# def test_big_mip_standard_example_parallel(s, flushdb):
-#     initial = constants.NUMBER_OF_CORES
-#     constants.NUMBER_OF_CORES = -2
-#     mip = compute.big_mip.func(hash(s), s)
-#     assert standard_example_is_correct(mip)
-#     constants.NUMBER_OF_CORES = initial
+def test_big_mip_standard_example_parallel(s, flushdb):
+    initial = constants.NUMBER_OF_CORES
+    constants.NUMBER_OF_CORES = -2
+    mip = compute.big_mip.func(hash(s), s)
+    assert standard_example_is_correct(mip)
+    constants.NUMBER_OF_CORES = initial
 
 
 @pytest.mark.slow
@@ -150,10 +150,10 @@ def test_big_mip_big_network_0_thru_3(big_subsys_0_thru_3, flushdb):
     constants.PRECISION = initial_precision
 
 
-# # TODO!! add more assertions for the smaller subsystems
-# def test_complexes(standard, flushdb):
-#     complexes = list(compute.complexes(standard))
-#     assert standard_example_is_correct(complexes[7])
+# TODO!! add more assertions for the smaller subsystems
+def test_complexes(standard, flushdb):
+    complexes = list(compute.complexes(standard))
+    assert standard_example_is_correct(complexes[7])
 
 
 # def test_concept_normalization(standard, flushdb):
