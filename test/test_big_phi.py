@@ -59,7 +59,7 @@ def test_null_concept(s, flushdb):
             models.Concept(mechanism=(), phi=0, cause=cause, effect=effect))
 
 
-def test_concept_nonexistent(s):
+def test_concept_nonexistent(s, flushdb):
     assert not compute.concept(s, (s.nodes[0], s.nodes[2]))
 
 
