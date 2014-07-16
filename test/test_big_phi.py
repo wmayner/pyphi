@@ -56,7 +56,8 @@ def test_null_concept(s, flushdb):
         phi=0, direction=DIRECTIONS[FUTURE], mechanism=(), purview=s.nodes,
         partition=None, partitioned_repertoire=None))
     assert (s.null_concept ==
-            models.Concept(mechanism=(), phi=0, cause=cause, effect=effect))
+            models.Concept(mechanism=(), phi=0, cause=cause, effect=effect,
+                           subsystem=s))
 
 
 def test_concept_nonexistent(s, flushdb):
