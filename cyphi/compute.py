@@ -315,8 +315,7 @@ def subsystems(network):
 
     This is the just powerset of the network's set of nodes."""
     for subset in utils.powerset(range(network.size)):
-        yield Subsystem(subset, network.current_state, network.past_state,
-                        network)
+        yield Subsystem(subset, network)
 
 
 def complexes(network):
