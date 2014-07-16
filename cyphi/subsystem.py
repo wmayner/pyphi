@@ -11,7 +11,6 @@ Represents a candidate set for |phi| calculation.
 import os
 import psutil
 import numpy as np
-from itertools import chain
 from .constants import DIRECTIONS, PAST, FUTURE
 from .lru_cache import lru_cache
 from . import constants, validate, utils
@@ -20,7 +19,7 @@ from .node import Node
 
 
 # TODO! go through docs and make sure to say when things can be None
-class Subsystem(object):
+class Subsystem:
 
     """A set of nodes in a network.
 
