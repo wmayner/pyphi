@@ -47,7 +47,6 @@ def standard_example_is_correct(mip):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_null_concept(s, flushdb):
-    assert 1
     cause = models.Mice(models.Mip(
         unpartitioned_repertoire=s.unconstrained_cause_repertoire(s.nodes),
         phi=0, direction=DIRECTIONS[PAST], mechanism=(), purview=s.nodes,
