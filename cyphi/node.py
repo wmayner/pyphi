@@ -158,7 +158,7 @@ class Node:
         if self._past_marbl is not None:
             return self._past_marbl
         else:
-            self._current_marbl = self.get_marbl(DIRECTIONS[PAST])
+            self._past_marbl = self.get_marbl(DIRECTIONS[PAST])
             return self._past_marbl
 
     @property
@@ -208,9 +208,9 @@ class Node:
         # TODO extend to nonbinary nodes
         augmented_child_tpms = [
             [child._dimension_labels[self.index],
-             child[tpm_name][1].squeeze()] for child in self.outputs
+             getattr(child, tpm_name)[1].squeeze()] for child in self.outputs
         ]
-        marbl = Marbl(self[tpm_name][1], augmented_child_tpms,
+        marbl = Marbl(getattr(self, tpm_name)[1], augmented_child_tpms,
                       normalize=normalize)
         return marbl
 
