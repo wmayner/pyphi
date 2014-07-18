@@ -140,8 +140,8 @@ class Node:
         if self._inputs is not None:
             return self._inputs
         else:
-            self._inputs = [node for node in self.context.nodes if node.index
-                            in self._input_indices]
+            self._inputs = [node for node in self.context.nodes if
+                            node.index in self._input_indices]
             return self._inputs
 
     @property
@@ -150,8 +150,8 @@ class Node:
         if self._outputs is not None:
             return self._outputs
         else:
-            self._outputs = set(node for node in self.context.nodes if
-                                node.index in self._output_indices)
+            self._outputs = [node for node in self.context.nodes if
+                             node.index in self._output_indices]
             return self._outputs
 
     @property
