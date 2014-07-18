@@ -32,19 +32,19 @@ class NormalizedMechanism:
       corresponding mechanism node's inputs (outputs).
     - Label each input (output) with a unique integer. These are the
       "normalized indices" of the inputs (outputs).
-    - Record whether that node is "external", i.e. outside the subsystem that
-      the mechanism is a subset of.
     - Record the inverse mapping, which sends a normalized index to a real
       index.
 
-    Then two normalized mechanisms are the same if they have the same MarblSet,
-    inputs, outputs, and external indices.
+    Then two normalized mechanisms are the same if they have the same
+    MarblSets, inputs, and outputs.
 
     Attributes:
-        marblset (MarblSet): The set of Marbls, one for each node in the
-            mechanism.
-        normalized_indices (dict): A mapping from mechanism node indices to
-            their normalized indices.
+        marblset (MarblSet): A dictionary where keys are directions, and values
+            are MarblSets containing Marbls generated from the TPMs of the
+            mechanism nodes' corresponding to the direction.
+        normalized_indices (dict): A dictionary where keys are directions, and
+            values are dictionaries mapping mechanism node indices to their
+            normalized indices for that direction.
         unnormalized_indices (dict): The inverse of ``normalized_indices``.
         inputs (tuple(tuple(int))): A tuple where the |ith| element contains a
             tuple of the normalized indices of the |ith| node, where |i| is a
