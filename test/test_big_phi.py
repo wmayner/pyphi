@@ -156,14 +156,14 @@ def test_complexes(standard, flushdb):
     assert standard_example_is_correct(complexes[7])
 
 
-# def test_concept_normalization(standard, flushdb):
-#     # Compute each subsystem using accumulated precomputed results.
-#     db_complexes = list(compute.complexes(standard))
-#     # Compute each subsystem with an empty db.
-#     no_db_complexes = []
-#     for subsystem in compute.subsystems(standard):
-#         db_flush()
-#         no_db_complexes.append(compute.big_mip(subsystem))
-#     # The empty-db and full-db results should be the same if concept caching is
-#     # working properly.
-#     assert db_complexes == no_db_complexes
+def test_concept_normalization(standard, flushdb):
+    # Compute each subsystem using accumulated precomputed results.
+    db_complexes = list(compute.complexes(standard))
+    # Compute each subsystem with an empty db.
+    no_db_complexes = []
+    for subsystem in compute.subsystems(standard):
+        flushdb()
+        no_db_complexes.append(compute.big_mip(subsystem))
+    # The empty-db and full-db results should be the same if concept caching is
+    # working properly.
+    assert db_complexes == no_db_complexes
