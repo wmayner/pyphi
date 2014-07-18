@@ -88,15 +88,19 @@ class Node:
             # ...but only marginalize out non-input nodes that are in the
             # context, since the external nodes have already been dealt with as
             # boundary conditions in the context's TPMs.
-            if (i not in self._input_indices and i in self.context.node_indices):
+            if i not in self._input_indices:
                 # Record that this node's index doesn't correspond to any
                 # dimension in this node's squeezed TPM.
                 self._dimension_labels.append(None)
                 # TODO extend to nonbinary nodes
-                past_tpm_on = past_tpm_on.sum(i, keepdims=True) / 2
-                past_tpm_off = past_tpm_off.sum(i, keepdims=True) / 2
-                current_tpm_on = current_tpm_on.sum(i, keepdims=True) / 2
-                current_tpm_off = current_tpm_off.sum(i, keepdims=True) / 2
+                # Only marginalize out non-input nodes that are within the
+                # subsystem, since external nodes have already been
+                # marginalized out in the Subsystem's initialization.
+                if i in self.context.node_indices:
+                    past_tpm_on = past_tpm_on.sum(i, keepdims=True) / 2
+                    past_tpm_off = past_tpm_off.sum(i, keepdims=True) / 2
+                    current_tpm_on = current_tpm_on.sum(i, keepdims=True) / 2
+                    current_tpm_off = current_tpm_off.sum(i, keepdims=True) / 2
             else:
                 # The current index will correspond to a dimension in this
                 # node's squeezed TPM, so we map it to the index of the
