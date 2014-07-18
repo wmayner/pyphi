@@ -20,11 +20,13 @@ db.collection = db.database.test
 # Helpers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+def _flushdb():
+    return db.collection.remove({})
 
-# TODO: use different db for tests
+
 @pytest.fixture
 def flushdb():
-    return db.collection.remove({})
+    return _flushdb()
 
 
 def standard_example_is_correct(mip):
@@ -162,7 +164,7 @@ def test_concept_normalization(standard, flushdb):
     # Compute each subsystem with an empty db.
     no_db_complexes = []
     for subsystem in compute.subsystems(standard):
-        flushdb()
+        _flushdb()
         no_db_complexes.append(compute.big_mip(subsystem))
     # The empty-db and full-db results should be the same if concept caching is
     # working properly.
