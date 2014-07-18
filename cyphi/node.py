@@ -56,10 +56,10 @@ class Node:
         # Label for display.
         self.label = label
         # Get indices of the inputs.
-        self._input_indices = utils.get_inputs_from_cm(self.index,
-                                                       context.connectivity_matrix)
-        self._output_indices = utils.get_outputs_from_cm(self.index,
-                                                         context.connectivity_matrix)
+        self._input_indices = utils.get_inputs_from_cm(
+            self.index, context.connectivity_matrix)
+        self._output_indices = utils.get_outputs_from_cm(
+            self.index, context.connectivity_matrix)
         # Generate the node's TPMs.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # For the past and current state, get the part of the context's TPM
@@ -134,6 +134,24 @@ class Node:
         self._raw_current_marbl = None
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    def get_marbl(self, direction, normalize=True):
+        """Generate a Marbl for this node, using either the past or current
+        TPM."""
+        if direction == DIRECTIONS[PAST]:
+            tpm_name = 'past_tpm'
+        if direction == DIRECTIONS[FUTURE]:
+            tpm_name = 'current_tpm'
+        # We take only the part of the TPM giving the probability the node
+        # is on.
+        # TODO extend to nonbinary nodes
+        augmented_child_tpms = [
+            [child._dimension_labels[self.index],
+             getattr(child, tpm_name)[1].squeeze()] for child in self.outputs
+        ]
+        marbl = Marbl(getattr(self, tpm_name)[1], augmented_child_tpms,
+                      normalize=normalize)
+        return marbl
+
     @property
     def inputs(self):
         """The set of nodes with connections to this node."""
@@ -199,24 +217,6 @@ class Node:
             self._raw_current_marbl = self.get_marbl(DIRECTIONS[FUTURE],
                                                      normalize=False)
             return self._raw_current_marbl
-
-    def get_marbl(self, direction, normalize=True):
-        """Generate a Marbl for this node, using either the past or current
-        TPM."""
-        if direction == DIRECTIONS[PAST]:
-            tpm_name = 'past_tpm'
-        if direction == DIRECTIONS[FUTURE]:
-            tpm_name = 'current_tpm'
-        # We take only the part of the TPM giving the probability the node
-        # is on.
-        # TODO extend to nonbinary nodes
-        augmented_child_tpms = [
-            [child._dimension_labels[self.index],
-             getattr(child, tpm_name)[1].squeeze()] for child in self.outputs
-        ]
-        marbl = Marbl(getattr(self, tpm_name)[1], augmented_child_tpms,
-                      normalize=normalize)
-        return marbl
 
     def __repr__(self):
         return (self.label if self.label is not None

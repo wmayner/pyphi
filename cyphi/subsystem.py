@@ -58,7 +58,8 @@ class Subsystem:
             utils.apply_cut(cut, network.connectivity_matrix))
         # The TPM conditioned on the past state of the external nodes.
         self.past_tpm = utils.condition_tpm(
-            self.network.tpm, self.external_indices, self.network.past_state)
+            self.network.tpm, self.external_indices,
+            self.network.past_state)
         # The TPM conditioned on the current state of the external nodes.
         self.current_tpm = utils.condition_tpm(
             self.network.tpm, self.external_indices,
