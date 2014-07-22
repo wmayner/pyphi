@@ -14,6 +14,10 @@ from .node import Node
 from . import validate, utils
 
 
+# TODO!!! raise error if user tries to change TPM or CM, double-check and document
+# that states can be changed
+
+
 class Network:
 
     """A network of nodes.
@@ -104,14 +108,8 @@ class Network:
         self.tpm.flags.writeable = False
         self.connectivity_matrix.flags.writeable = False
 
-        tpm_hash = utils.np_hash(self.tpm)
-        cm_hash = utils.np_hash(self.connectivity_matrix)
-
-        # Only compute hash once.
-        self._hash = hash((tpm_hash,
-                           self.current_state,
-                           self.past_state,
-                           cm_hash))
+        self._tpm_hash = utils.np_hash(self.tpm)
+        self._cm_hash = utils.np_hash(self.connectivity_matrix)
 
         # Validate this network.
         validate.network(self)
@@ -147,4 +145,5 @@ class Network:
         return not self.__eq__(other)
 
     def __hash__(self):
-        return self._hash
+        return hash((self._tpm_hash, self.current_state, self.past_state,
+                     sgelf._cm_hash))
