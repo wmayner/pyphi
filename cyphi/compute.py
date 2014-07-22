@@ -174,7 +174,7 @@ def _null_mip(subsystem):
     """Returns a BigMip with zero phi and empty constellations.
 
     This is the MIP associated with a reducible subsystem."""
-    return BigMip(subsystem=subsystem,
+    return BigMip(subsystem=subsystem, cut_subsystem=subsystem,
                   phi=0.0,
                   unpartitioned_constellation=[], partitioned_constellation=[])
 
@@ -189,7 +189,8 @@ def _single_node_mip(subsystem):
             phi=0.5,
             unpartitioned_constellation=None,
             partitioned_constellation=None,
-            subsystem=subsystem)
+            subsystem=subsystem,
+            cut_subsystem=subsystem)
     else:
         return _null_mip(subsystem)
 
@@ -213,7 +214,8 @@ def _evaluate_partition(uncut_subsystem, partition,
                                    uncut_subsystem),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=forward_constellation,
-        subsystem=uncut_subsystem)
+        subsystem=uncut_subsystem,
+        cut_subsystem=forward_cut_subsystem)
     # Compute backward mip.
     backward_cut = Cut(partition[1], partition[0])
     backward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
@@ -227,7 +229,8 @@ def _evaluate_partition(uncut_subsystem, partition,
                                    uncut_subsystem),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=backward_constellation,
-        subsystem=uncut_subsystem)
+        subsystem=uncut_subsystem,
+        cut_subsystem=backward_cut_subsystem)
     # Choose minimal unidirectional cut.
     mip = min(forward_mip, backward_mip)
     return mip

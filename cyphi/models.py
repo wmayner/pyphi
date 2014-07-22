@@ -386,7 +386,8 @@ class Concept(namedtuple('Concept', _concept_attributes)):
 # =============================================================================
 
 _bigmip_attributes = ['phi', 'unpartitioned_constellation',
-                      'partitioned_constellation', 'subsystem']
+                      'partitioned_constellation', 'subsystem',
+                      'cut_subsystem']
 
 
 class BigMip(namedtuple('BigMip', _bigmip_attributes)):
@@ -409,14 +410,21 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
         partitioned_constellation (tuple(Concept)): The constellation when the
             subsystem is cut.
         subsystem (Subsystem): The subsystem this MIP was calculated for.
+        cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
+        cut (Cut): The minimal cut.
     """
+
+    @property
+    def cut(self):
+        return self.cut_subsystem.cut
 
     def __eq__(self, other):
         return _general_eq(self, other, _bigmip_attributes)
 
     def __hash__(self):
         return hash((self.phi, self.unpartitioned_constellation,
-                     self.partitioned_constellation, self.subsystem))
+                     self.partitioned_constellation, self.subsystem,
+                     self.cut_subsystem))
 
     # First compare phi, then subsystem size
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

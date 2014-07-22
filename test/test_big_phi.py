@@ -77,20 +77,21 @@ def test_big_mip_empty_subsystem(s_empty, flushdb):
             models.BigMip(phi=0.0,
                           unpartitioned_constellation=[],
                           partitioned_constellation=[],
-                          subsystem=s_empty))
+                          subsystem=s_empty,
+                          cut_subsystem=s_empty))
 
 
 def test_big_mip_disconnected_network(reducible, flushdb):
     assert (compute.big_mip.func(hash(reducible), reducible) ==
-            models.BigMip(subsystem=reducible, phi=0.0,
-                          unpartitioned_constellation=[],
+            models.BigMip(subsystem=reducible, cut_subsystem=reducible,
+                          phi=0.0, unpartitioned_constellation=[],
                           partitioned_constellation=[]))
 
 
 def test_big_mip_wrappers(reducible, flushdb):
     assert (compute.big_mip(reducible) ==
-            models.BigMip(subsystem=reducible, phi=0.0,
-                          unpartitioned_constellation=[],
+            models.BigMip(subsystem=reducible, cut_subsystem=reducible,
+                          phi=0.0, unpartitioned_constellation=[],
                           partitioned_constellation=[]))
     assert compute.big_phi(reducible) == 0.0
 
