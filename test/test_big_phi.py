@@ -42,6 +42,7 @@ def standard_example_is_correct(mip):
         0.5)
     assert len(mip.unpartitioned_constellation) == 4
     assert len(mip.partitioned_constellation) == 1
+    assert mip.cut == models.Cut(severed=(1, 2), intact=(0,))
     return True
 
 
