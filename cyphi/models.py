@@ -154,7 +154,9 @@ def _general_eq(a, b, attributes):
             elif (attr == 'mechanism' or attr == 'purview'):
                 if _a is None or _b is None and not _a == _b:
                     return False
-                elif not set(_a) == set(_b):
+                # Don't use `set` because hashes may be different (contexts are
+                # included in node hashes); we want to use Node.__eq__.
+                elif not all(n in _b for n in _a) and len(_a) == len(_b):
                     return False
             else:
                 if not _numpy_aware_eq(_a, _b):
