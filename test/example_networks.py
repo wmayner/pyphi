@@ -12,8 +12,6 @@ from cyphi.subsystem import Subsystem
 use_connectivity_matrices = True
 
 
-
-
 def standard():
     """Matlab default network.
 
@@ -104,9 +102,35 @@ def s():
     return Subsystem(range(m.size), m)
 
 
+def standard_noised():
+    current_state = (1, 0, 0)
+    past_state = (1, 1, 0)
+    tpm = np.array([[0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.8],
+                    [0.7, 0.0, 1.0],
+                    [1.0, 0.0, 0.0],
+                    [0.2, 0.8, 0.0],
+                    [1.0, 1.0, 1.0],
+                    [1.0, 1.0, 0.3],
+                    [0.1, 1.0, 0.0]])
+
+    cm = np.array([[1, 1, 1],
+                   [1, 1, 1],
+                   [1, 1, 1]])
+
+    cm = cm if use_connectivity_matrices else None
+    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+
+
+def s_noised():
+    n = standard_noised()
+    return Subsystem(range(n.size), n)
+
+
 s_about_to_be_on = (0, 1, 1)
 s_just_turned_on = (1, 0, 0)
 s_all_off = (0, 0, 0)
+
 
 def simple(current_state, past_state):
     """ Simple 'AND' network.

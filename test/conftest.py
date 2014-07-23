@@ -41,6 +41,18 @@ def subsys_n1n2():
     return example_networks.subsys_n1n2()
 
 
+# Noised standard example
+
+@pytest.fixture()
+def noised():
+    return example_networks.noised()
+
+
+@pytest.fixture()
+def s_noised():
+    return example_networks.s_noised()
+
+
 # Simple network and subsystems
 
 @pytest.fixture()
@@ -75,6 +87,7 @@ def big_subsys_0_thru_3():
     return example_networks.big_subsys_0_thru_3()
 
 # Reducible network
+
 
 @pytest.fixture()
 def reducible():

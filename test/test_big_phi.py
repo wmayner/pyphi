@@ -46,6 +46,23 @@ def standard_example_is_correct(mip):
     return True
 
 
+def noised_example_is_correct(mip):
+    # Check that the given MIP is the correct output for the standard example
+    # (full subsystem)
+    np.testing.assert_almost_equal(mip.phi, 1.928588, PRECISION)
+    np.testing.assert_almost_equal(
+        sum(C.phi for C in mip.unpartitioned_constellation),
+        1.5242,
+        PRECISION)
+    # np.testing.assert_almost_equal(
+    #     sum(c.phi for c in mip.partitioned_constellation),
+    #     0.5)
+    assert len(mip.unpartitioned_constellation) == 7
+    # assert len(mip.partitioned_constellation) == 1
+    assert mip.cut == models.Cut(severed=(1, 2), intact=(0,))
+    return True
+
+
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -121,12 +138,28 @@ def test_big_mip_standard_example_parallel(s, flushdb):
     constants.NUMBER_OF_CORES = initial
 
 
+def test_big_mip_noised_example_sequential(s_noised, flushdb):
+    initial = constants.NUMBER_OF_CORES
+    constants.NUMBER_OF_CORES = 1
+    mip = compute.big_mip.func(hash(s_noised), s_noised)
+    assert noised_example_is_correct(mip)
+    constants.NUMBER_OF_CORES = initial
+
+
+def test_big_mip_noised_example_parallel(s_noised, flushdb):
+    initial = constants.NUMBER_OF_CORES
+    constants.NUMBER_OF_CORES = -2
+    mip = compute.big_mip.func(hash(s_noised), s_noised)
+    assert noised_example_is_correct(mip)
+    constants.NUMBER_OF_CORES = initial
+
+
 @pytest.mark.slow
 def test_big_mip_big_network(big_subsys_all, flushdb):
     initial_precision = constants.PRECISION
     constants.PRECISION = 4
     mip = compute.big_mip(big_subsys_all)
-    assert utils.phi_eq(mip.phi, 10.744578)
+    assert utils.phi_eq(mip.phi, 10.729482)
     assert utils.phi_eq(
         sum(C.phi for C in mip.unpartitioned_constellation),
         6.464257107140015)
