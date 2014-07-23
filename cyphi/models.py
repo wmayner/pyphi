@@ -156,7 +156,7 @@ def _general_eq(a, b, attributes):
                     return False
                 # Don't use `set` because hashes may be different (contexts are
                 # included in node hashes); we want to use Node.__eq__.
-                elif not all(n in _b for n in _a) and len(_a) == len(_b):
+                elif not (all(n in _b for n in _a) and len(_a) == len(_b)):
                     return False
             else:
                 if not _numpy_aware_eq(_a, _b):
