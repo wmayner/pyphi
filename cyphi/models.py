@@ -211,9 +211,7 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
     def __hash__(self):
         return hash((self.phi, self.direction, self.mechanism, self.purview,
-                     self.partition,
-                     utils.np_hash(self.unpartitioned_repertoire),
-                     utils.np_hash(self.partitioned_repertoire)))
+                     utils.np_hash(self.unpartitioned_repertoire)))
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
