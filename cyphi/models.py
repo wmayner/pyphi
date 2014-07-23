@@ -167,6 +167,8 @@ def _general_eq(a, b, attributes):
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
+_mip_attributes_for_eq = ['phi', 'direction', 'mechanism', 'purview',
+                          'unpartitioned_repertoire']
 
 
 class Mip(namedtuple('Mip', _mip_attributes)):
@@ -201,7 +203,9 @@ class Mip(namedtuple('Mip', _mip_attributes)):
     """
 
     def __eq__(self, other):
-        return _general_eq(self, other, _mip_attributes)
+        # We don't count the partition and partitioned repertoire in checking
+        # for MIP equality, since these are lost during normalization
+        return _general_eq(self, other, _mip_attributes_for_eq)
 
     def __hash__(self):
         return hash((self.phi, self.direction, self.mechanism, self.purview,
