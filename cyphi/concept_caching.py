@@ -204,14 +204,20 @@ def _normalize_purview_and_repertoire(purview, repertoire, normalized_indices):
     a normalized repertoire is obtained by squeezing and then reordering its
     dimensions so they correspond to the normalized purview.
     """
-    # Get the normalized indices of the purview nodes.
-    normalized_purview = tuple(normalized_indices[n.index] for n in purview)
+    # Ensure that the purview nodes are in the same order as their dimensions
+    # in the repertoire.
+    purview = sorted(purview)
+    # Get the normalized indices of the purview nodes. Sort it to ensure that
+    # the indices are in the same order as their dimensions in the normalized
+    # repertoire.
+    normalized_purview = tuple(sorted(normalized_indices[n.index] for n in
+                                      purview))
     # If the repertoire is None, from a null MIP, return immediately.
     if repertoire is None:
         return normalized_purview, repertoire
-    # Get the permutation of the purview nodes that sends them to the sorted
-    # list of their normalized indices.
-    L = [(normalized_purview[i], i) for i in range(len(normalized_purview))]
+    # Get the permutation of the purview nodes' indices that sends them to the
+    # sorted list of their normalized indices.
+    L = [(normalized_indices[n.index], i) for i, n in enumerate(purview)]
     L.sort()
     _, permutation = zip(*L)
     # Permute and squeeze the dimensions of the repertoire so they are ordered
