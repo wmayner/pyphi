@@ -19,7 +19,7 @@ class Node:
         network (network):
             The network the node belongs to.
         index (int):
-            The node's index in the context's list of nodes.
+            The node's index in the network's list of nodes.
         context (context):
             The context the node belongs to.
         label (str):
@@ -229,8 +229,8 @@ class Node:
         """Return whether this node equals the other object.
 
         Two nodes are equal if they belong to the same context and have the
-        same index (``tpm`` must be the same in that case, so this method
-        doesn't need to check ``tpm`` equality).
+        same index (their TPMs must be the same in that case, so this method
+        doesn't need to check TPM equality).
 
         Labels are for display only, so two equal nodes may have different
         labels.
