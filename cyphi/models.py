@@ -169,7 +169,7 @@ def _general_eq(a, b, attributes):
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
-_mip_attributes_for_eq = ['phi', 'direction', 'mechanism', 'purview',
+_mip_attributes_for_eq = ['phi', 'direction', 'mechanism',
                           'unpartitioned_repertoire']
 
 
@@ -206,8 +206,15 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
     def __eq__(self, other):
         # We don't count the partition and partitioned repertoire in checking
-        # for MIP equality, since these are lost during normalization
-        return _general_eq(self, other, _mip_attributes_for_eq)
+        # for MIP equality, since these are lost during normalization.
+        # We also don't count the mechanism and purview, since these may be
+        # different depending on the order in which purviews were evaluated.
+        # TODO!!! clarify the reason for that
+        # We do however check whether the size of the mechanism or purview is
+        # the same, since that matters (for the exclusion principle).
+        return (_general_eq(self, other, _mip_attributes_for_eq) and
+                len(self.mechanism) == len(other.mechanism) and
+                len(self.purview) == len(other.purview))
 
     def __hash__(self):
         return hash((self.phi, self.direction, self.mechanism, self.purview,
