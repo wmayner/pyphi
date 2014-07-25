@@ -306,7 +306,8 @@ def _unnormalize_purview_and_repertoire(normalized_purview,
     return purview, repertoire
 
 
-def _unnormalize_mice(normalized_mice, normalized_mechanism, subsystem):
+def _unnormalize_mice(normalized_mice, normalized_mechanism, mechanism,
+                      subsystem):
     """Convert a normalized MICE to its proper representation in the context of
     a subsystem.
 
@@ -325,7 +326,7 @@ def _unnormalize_mice(normalized_mice, normalized_mechanism, subsystem):
     return models.Mice(models.Mip(
         phi=normalized_mice.phi,
         direction=normalized_mice.direction,
-        mechanism=normalized_mice.mechanism,
+        mechanism=mechanism,
         purview=purview,
         unpartitioned_repertoire=repertoire,
         # Information about the partition is lost during normalization.
@@ -340,16 +341,21 @@ def _unnormalize(normalized_concept, normalized_mechanism, mechanism,
     of the given subsystem."""
     cause = _unnormalize_mice(normalized_concept.cause,
                               normalized_mechanism,
+                              mechanism,
                               subsystem)
     effect = _unnormalize_mice(normalized_concept.effect,
                                normalized_mechanism,
+                               mechanism,
                                subsystem)
-    return models.Concept(
+    concept = models.Concept(
         phi=normalized_concept.phi,
         mechanism=mechanism,
         cause=cause,
         effect=effect,
         subsystem=subsystem)
+    # Record that this concept was retrieved and unnormalized.
+    concept.cached = True
+    return concept
 
 
 def _get(raw, normalized_mechanism, mechanism, subsystem):
