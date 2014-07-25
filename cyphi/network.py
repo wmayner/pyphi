@@ -146,4 +146,4 @@ class Network:
 
     def __hash__(self):
         return hash((self._tpm_hash, self.current_state, self.past_state,
-                     sgelf._cm_hash))
+                     self._cm_hash))
