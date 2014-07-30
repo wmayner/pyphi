@@ -268,8 +268,7 @@ def _big_mip(cache_key, subsystem):
         return _null_mip(subsystem)
 
     # Get the connectivity of just the subsystem nodes.
-    submatrix_indices = np.ix_([node.index for node in subsystem.nodes],
-                               [node.index for node in subsystem.nodes])
+    submatrix_indices = np.ix_(subsystem.node_indices, subsystem.node_indices)
     cm = subsystem.network.connectivity_matrix[submatrix_indices]
     # Get the number of strongly connected components.
     num_components, _ = connected_components(csr_matrix(cm))
