@@ -373,6 +373,15 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         significant amount of |big_phi|."""
         return self.phi > constants.EPSILON
 
+    def eq_repertoires(self, other):
+        """Return whether this concept has the same cause and effect
+        repertoires as another."""
+        if self.subsystem.network != other.subsystem.network:
+            raise Exception("Can't compare repertoires of concepts from "
+                            "different networks.")
+        return (np.array_equal(self.cause.repertoire, other.cause.repertoire) and
+                np.array_equal(self.effect.repertoire, other.effect.repertoire))
+
     def expand_cause_repertoire(self):
         """Expands a cause repertoire to be a distribution over an entire
         network."""

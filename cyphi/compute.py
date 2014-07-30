@@ -108,28 +108,40 @@ def _constellation_distance_simple(C1, C2, subsystem):
                for c in destroyed)
 
 
-def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, subsystem):
+def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     """Return the distance between two constellations in concept-space,
     using the generalized EMD."""
-    shared_concepts = [c for c in C1 if c in C2]
-    # Construct null concept and list of all unique concepts.
-    all_concepts = (shared_concepts + unique_C1 + unique_C2 +
-                    [subsystem.null_concept])
+    # We need the null concept to be the partitioned constellation, in case a
+    # concept is destroyed by a cut (and needs to be moved to the null
+    # concept).
+    unique_C2 = unique_C2 + [subsystem.null_concept]
+    # Get the concept distances from the concepts in the unpartitioned
+    # constellation to the partitioned constellation.
+    distances = np.array([
+        [concept_distance(i, j) for j in unique_C2]
+        for i in unique_C1
+    ])
+    # Now we make the distance matrix.
+    # It has blocks of zeros in the upper left and bottom right to make the
+    # distance matrix square, and to ensure that we're only moving mass from
+    # the unpartitioned constellation to the partitioned constellation.
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    N, M = len(unique_C1), len(unique_C2)
+    distance_matrix = np.zeros([N + M] * 2)
+    # Top-right block.
+    distance_matrix[:N, N:] = distances
+    # Bottom-left block.
+    distance_matrix[N:, :N] = distances.T
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Construct the two phi distributions.
-    d1, d2 = [[c.phi if c in constellation else 0 for c in all_concepts]
-              for constellation in (C1, C2)]
-    # Calculate how much phi disappeared and assign it to the null concept
-    # (the null concept is the last element in the distribution).
-    residual = sum(d1) - sum(d2)
-    if residual > 0:
-        d2[-1] = residual
-    if residual < 0:
-        d1[-1] = residual
-    # Generate the ground distance matrix.
-    distance_matrix = np.array([
-        [concept_distance(i, j) for i in all_concepts] for j in
-        all_concepts])
-
+    d1 = [c.phi for c in unique_C1] + [0] * M
+    d2 = [0] * N + [c.phi for c in unique_C2]
+    # Calculate how much phi disappeared and assign it to the null concept (the
+    # null concept is the last element in the second distribution).
+    d2[-1] = sum(d1) - sum(d2)
+    # The sum of the two signatures should be the same.
+    assert utils.phi_eq(sum(d1), sum(d2))
+    # Calculate!
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)
 
 
@@ -148,15 +160,16 @@ def constellation_distance(C1, C2, subsystem):
         ``float`` -- The distance between the two constellations in
         concept-space.
     """
-    concepts_only_in_C1 = [c for c in C1 if c not in C2]
-    concepts_only_in_C2 = [c for c in C2 if c not in C1]
+    concepts_only_in_C1 = [
+        c1 for c1 in C1 if not any(c1.eq_repertoires(c2) for c2 in C2)]
+    concepts_only_in_C2 = [
+        c2 for c2 in C2 if not any(c2.eq_repertoires(c1) for c1 in C1)]
     # If the only difference in the constellations is that some concepts
     # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:
         return _constellation_distance_simple(C1, C2, subsystem)
     else:
-        return _constellation_distance_emd(C1, C2,
-                                           concepts_only_in_C1,
+        return _constellation_distance_emd(concepts_only_in_C1,
                                            concepts_only_in_C2,
                                            subsystem)
 
