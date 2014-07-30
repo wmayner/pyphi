@@ -451,15 +451,25 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
 
     def __lt__(self, other):
         if _phi_eq(self, other):
-            try:
-                return self.subsystem < other.subsystem
-            except AttributeError:
-                return False
+            if len(self.subsystem) == len(other.subsystem):
+                # Compare actual Phi values up to maximum precision, for
+                # more determinism in things like max and min
+                return self.phi < other.phi
+            else:
+                return len(self.subsystem) < len(other.subsystem)
         else:
             return _phi_lt(self, other)
 
     def __gt__(self, other):
-        return not self.__lt__(other) and not self == other
+        if _phi_eq(self, other):
+            if len(self.subsystem) == len(other.subsystem):
+                # Compare actual Phi values up to maximum precision, for
+                # more determinism in things like max and min
+                return self.phi > other.phi
+            else:
+                return len(self.subsystem) > len(other.subsystem)
+        else:
+            return _phi_gt(self, other)
 
     def __le__(self, other):
         return (self.__lt__(other) or
