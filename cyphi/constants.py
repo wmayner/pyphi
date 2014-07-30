@@ -94,7 +94,7 @@ import joblib
 # TODO: document mongo config
 # TODO: Use proper logging
 # Defaults for configurable constants
-config = {
+default_config = {
     # The maximum percentage of RAM that CyPhi should use for caching.
     'MAXIMUM_CACHE_MEMORY_PERCENTAGE': 50,
     # MongoDB configuration.
@@ -126,13 +126,6 @@ config = {
 }
 
 
-def print_config(self):
-    """Prints the current configuration."""
-    print(''.center(50, '-'))
-    pprint(config)
-    print(''.center(50, '-'))
-
-
 # The name of the file to load configuration data from.
 CYPHI_CONFIG_FILE = 'cyphi_config.yml'
 
@@ -144,6 +137,7 @@ try:
         print("\n[CyPhi] Loaded configuration from", CYPHI_CONFIG_FILE)
 except OSError as e:
     if e.errno == errno.ENOENT:
+        config = default_config
         print("\n[CyPhi] Using default configuration (no config file "
               "provided)")
     else:
@@ -152,8 +146,22 @@ except OSError as e:
 
 # Get a reference to this module's dictionary..
 this_module = sys.modules[__name__]
+
+
+def load_config(config):
+    """Load a configuration."""
+    this_module.__dict__.update(config)
+
+
+def print_config(config):
+    """Prints the current configuration."""
+    print(''.center(50, '-'))
+    pprint(config)
+    print(''.center(50, '-'))
+
+
 # Attach all the entries of the configuration dictionary to this module.
-this_module.__dict__.update(config)
+load_config(config)
 # Print the loaded configuration.
 print_config(config)
 
