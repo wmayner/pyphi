@@ -36,11 +36,6 @@ class Subsystem:
         self.node_indices = tuple(sorted(list(set(node_indices))))
         # Get the size of this subsystem.
         self.size = len(self.node_indices)
-        # Get a mapping from network indices to internal indices (a node's
-        # position in this subsystem's list of nodes)
-        self.internal_indices = {
-            network_index: internal_index for internal_index, network_index in
-            enumerate(self.node_indices)}
         # Get the external nodes.
         self.external_indices = tuple(
             set(range(network.size)) - set(self.node_indices))
