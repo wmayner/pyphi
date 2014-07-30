@@ -34,9 +34,10 @@ class NormalizedMechanism:
       "normalized indices" of the inputs (outputs).
     - Record the inverse mapping, which sends a normalized index to a real
       index.
+    - Record the state of the mechanism and all input/ouptut nodes.
 
     Then two normalized mechanisms are the same if they have the same
-    MarblSets, inputs, and outputs.
+    MarblSets, inputs, outputs, state, and input/output state.
 
     Attributes:
         marblset (MarblSet): A dictionary where keys are directions, and values
@@ -60,7 +61,11 @@ class NormalizedMechanism:
     # would perhaps be more elegant), to avoid repeatedly computing the hash of
     # the marbls.
     def __init__(self, mechanism, subsystem, normalize_tpms=True):
+        # Ensure the mechanism is in sorted order for consistency.
+        mechanism = sorted(mechanism)
         self.indices = utils.nodes2indices(mechanism)
+        # Record the state of the mechanism.
+        self.state = tuple(n.state for n in mechanism)
         # Grab the marbls from the mechanism nodes.
         marbls = {
             DIRECTIONS[PAST]: [(n.past_marbl if normalize_tpms else
@@ -138,6 +143,12 @@ class NormalizedMechanism:
                 self.normalized_indices[DIRECTIONS[FUTURE]].items()} }
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+        # Get the states of the input and output nodes.
+        self.io_state = tuple(
+            tuple(subsystem.network.current_state[i] for i in
+                  self.normalized_indices[d].keys())
+            for d in DIRECTIONS
+        )
         # Associate each marbl with its normally-labeled inputs.
         # This captures the interrelationships between the mechanism nodes in a
         # stable way.
@@ -154,7 +165,11 @@ class NormalizedMechanism:
     def __hash__(self):
         return hash((self.marblset[DIRECTIONS[PAST]],
                      self.marblset[DIRECTIONS[FUTURE]],
-                     self.inputs, self.outputs))
+                     self.inputs, self.outputs,
+                     self.state, self.io_state))
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
 
     def __str__(self):
         return str(self.indices)

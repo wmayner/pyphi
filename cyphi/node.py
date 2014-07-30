@@ -55,6 +55,8 @@ class Node:
         self.context = context
         # Label for display.
         self.label = label
+        # State of this node.
+        self.state = self.network.current_state[self.index]
         # Get indices of the inputs.
         self._input_indices = utils.get_inputs_from_cm(
             self.index, context.connectivity_matrix)
