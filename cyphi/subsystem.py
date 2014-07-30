@@ -101,6 +101,9 @@ class Subsystem:
     def __lt__(self, other):
         return len(self.nodes) < len(other.nodes)
 
+    def __len__(self):
+        return len(self.nodes)
+
     def __hash__(self):
         return self._hash
 
