@@ -56,7 +56,10 @@ def concept(subsystem, mechanism):
                        subsystem=subsystem)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Passed prechecks; pass it over to the concept caching logic.
-    return _concept(subsystem, mechanism)
+    if constants.CACHE_CONCEPTS:
+        return _concept(subsystem, mechanism)
+    else:
+        return subsystem.concept(mechanism)
 
 
 def constellation(subsystem):

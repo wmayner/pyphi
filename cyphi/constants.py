@@ -107,6 +107,8 @@ config = {
     # The number of CPU cores to use in parallel cut evaluation. -1 means all
     # available cores, -2 means all but one available cores, etc.
     'NUMBER_OF_CORES': -1,
+    # Controls whether the concept caching system is used.
+    'CACHE_CONCEPTS': True,
     # The caching system to use. "fs" means cache results in a subdirectory of
     # the current directory; "db" means connect to a database and store the
     # results there.

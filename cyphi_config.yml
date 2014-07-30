@@ -11,6 +11,8 @@ PARALLEL_VERBOSITY: 20
 # In some applications of this library, you may prefer to define single-nodes
 # with a self-loop as having 0.5 Phi, a priori.
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
+# Controls whether concepts are cached.
+CACHE_CONCEPTS: true
 # The caching system to use. "fs" means cache the results on the local
 # filesystem, in a subdirectory of the current directory; "db" means connect to
 # a database and store the results there.
