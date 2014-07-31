@@ -311,11 +311,11 @@ def test_bigmip_ordering():
 def test_bigmip_odering_by_mechanism():
     small = models.BigMip(
         unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=1, cut_subsystem=(),
+        partitioned_constellation=None, subsystem=[1], cut_subsystem=(),
         phi=1.0)
     big = models.BigMip(
         unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=2, cut_subsystem=(),
+        partitioned_constellation=None, subsystem=[1, 2], cut_subsystem=(),
         phi=1.0)
     assert small < big
     assert small <= big
