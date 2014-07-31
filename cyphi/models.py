@@ -322,7 +322,8 @@ class Mice:
 
 # =============================================================================
 
-_concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem']
+_concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
+                       'normalized']
 
 
 # TODO: make mechanism a property
@@ -351,6 +352,11 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         subsystem (Subsystem):
             This Concept's parent subsystem.
     """
+
+    def __new__(cls, phi=None, mechanism=None, cause=None, effect=None,
+                subsystem=None, normalized=None):
+        return super(Concept, cls).__new__(
+            cls, phi, mechanism, cause, effect, subsystem, normalized)
 
     @property
     def location(self):
