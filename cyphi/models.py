@@ -441,6 +441,11 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
     def __eq__(self, other):
         return _general_eq(self, other, _bigmip_attributes)
 
+    def __bool__(self):
+        """A BigMip is truthy if it is not reducible; i.e. if it has a
+        significant amount of |big_phi|."""
+        return self.phi > constants.EPSILON
+
     def __hash__(self):
         return hash((self.phi, self.unpartitioned_constellation,
                      self.partitioned_constellation, self.subsystem,
