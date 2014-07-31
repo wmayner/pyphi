@@ -216,6 +216,11 @@ class Mip(namedtuple('Mip', _mip_attributes)):
                 len(self.mechanism) == len(other.mechanism) and
                 len(self.purview) == len(other.purview))
 
+    def __bool__(self):
+        """A Mip is truthy if it is not reducible; i.e. if it has a significant
+        amount of |small_phi|."""
+        return self.phi > constants.EPSILON
+
     def __hash__(self):
         return hash((self.phi, self.direction, self.mechanism, self.purview,
                      utils.np_hash(self.unpartitioned_repertoire)))
