@@ -102,7 +102,7 @@ def s():
     return Subsystem(range(m.size), m)
 
 
-def standard_noised():
+def noised():
     current_state = (1, 0, 0)
     past_state = (1, 1, 0)
     tpm = np.array([[0.0, 0.0, 0.0],
@@ -123,7 +123,7 @@ def standard_noised():
 
 
 def s_noised():
-    n = standard_noised()
+    n = noised()
     return Subsystem(range(n.size), n)
 
 
@@ -619,3 +619,58 @@ def eight_node_sbs():
     past_state = tuple([0] * 8)
 
     return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+
+
+def rule152():
+    tpm = np.array(
+        [[0, 0, 0, 0, 0],
+         [0, 1, 0, 0, 0],
+         [0, 0, 1, 0, 0],
+         [1, 0, 1, 0, 0],
+         [0, 0, 0, 1, 0],
+         [0, 0, 0, 1, 0],
+         [0, 1, 0, 1, 0],
+         [1, 1, 0, 1, 0],
+         [0, 0, 0, 0, 1],
+         [0, 1, 0, 0, 0],
+         [0, 0, 0, 0, 1],
+         [1, 0, 0, 0, 0],
+         [0, 0, 1, 0, 1],
+         [0, 0, 1, 0, 0],
+         [0, 1, 1, 0, 1],
+         [1, 1, 1, 0, 0],
+         [1, 0, 0, 0, 0],
+         [0, 1, 0, 0, 1],
+         [0, 0, 1, 0, 0],
+         [1, 0, 1, 0, 1],
+         [1, 0, 0, 0, 0],
+         [0, 0, 0, 0, 1],
+         [0, 1, 0, 0, 0],
+         [1, 1, 0, 0, 1],
+         [1, 0, 0, 1, 0],
+         [0, 1, 0, 1, 1],
+         [0, 0, 0, 1, 0],
+         [1, 0, 0, 1, 1],
+         [1, 0, 1, 1, 0],
+         [0, 0, 1, 1, 1],
+         [0, 1, 1, 1, 0],
+         [1, 1, 1, 1, 1]]
+    )
+    cm = np.array(
+        [[1, 1, 0, 0, 1],
+         [1, 1, 1, 0, 0],
+         [0, 1, 1, 1, 0],
+         [0, 0, 1, 1, 1],
+         [1, 0, 0, 1, 1]]
+    )
+    cm = cm if use_connectivity_matrices else None
+
+    current_state = tuple([0] * 5)
+    past_state = tuple([0] * 5)
+
+    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+
+
+def rule152_s():
+    net = rule152()
+    return Subsystem(range(net.size), net)

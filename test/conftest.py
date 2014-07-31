@@ -92,3 +92,13 @@ def big_subsys_0_thru_3():
 @pytest.fixture()
 def reducible():
     return example_networks.reducible()
+
+
+@pytest.fixture()
+def rule152():
+    return example_networks.rule152()
+
+
+@pytest.fixture()
+def rule152_s():
+    return example_networks.rule152_s()
