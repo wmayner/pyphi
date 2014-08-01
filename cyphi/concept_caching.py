@@ -382,6 +382,7 @@ def _get(raw, normalized_mechanism, mechanism, subsystem):
         return None
     concept = _unnormalize(normalized_concept, normalized_mechanism, mechanism,
                            subsystem)
+    concept.normalized = normalized_concept
     return concept
 
 
