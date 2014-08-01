@@ -143,7 +143,7 @@ rule152_answer = {
     },
     'len_partitioned_constellation': 24,
     'sum_partitioned_small_phis': 4.185364469227005,
-    'cut': models.Cut(severed=(1, 2, 3, 4), intact=(0,))
+    'cut': models.Cut(severed=(0, 1, 3, 4), intact=(2,))
 }
 
 
