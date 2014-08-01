@@ -97,7 +97,7 @@ class Node:
                 # TODO extend to nonbinary nodes
                 # Only marginalize out non-input nodes that are within the
                 # subsystem, since external nodes have already been
-                # marginalized out in the Subsystem's initialization.
+                # conditioned out in the Subsystem's initialization.
                 if i in self.context.node_indices:
                     past_tpm_on = past_tpm_on.sum(i, keepdims=True) / 2
                     past_tpm_off = past_tpm_off.sum(i, keepdims=True) / 2

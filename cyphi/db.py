@@ -14,6 +14,7 @@ from bson.binary import Binary
 from collections import Iterable
 from . import constants
 
+# TODO!!! use reconnect proxy
 client = pymongo.MongoClient(constants.MONGODB_CONFIG['host'],
                              constants.MONGODB_CONFIG['port'])
 database = client[constants.MONGODB_CONFIG['database_name']]
