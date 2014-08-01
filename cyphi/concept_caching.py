@@ -13,7 +13,7 @@ from collections import namedtuple
 import numpy as np
 from marbl import MarblSet
 
-from . import utils, models, db
+from . import utils, models, db, constants
 from .constants import DIRECTIONS, PAST, FUTURE
 
 
@@ -56,7 +56,6 @@ class NormalizedMechanism:
             the values are the permutations that maps mechanism nodes to the
             position of their marbl in the marblset for that direction.
     """
-
     # NOTE: We use lists and indices throughout, instead of dictionaries (which
     # would perhaps be more elegant), to avoid repeatedly computing the hash of
     # the marbls.
@@ -367,7 +366,8 @@ def _unnormalize(normalized_concept, normalized_mechanism, mechanism,
         mechanism=mechanism,
         cause=cause,
         effect=effect,
-        subsystem=subsystem)
+        subsystem=subsystem,
+        normalized=normalized_concept)
     # Record that this concept was retrieved and unnormalized.
     concept.cached = True
     return concept
@@ -382,7 +382,6 @@ def _get(raw, normalized_mechanism, mechanism, subsystem):
         return None
     concept = _unnormalize(normalized_concept, normalized_mechanism, mechanism,
                            subsystem)
-    concept.normalized = normalized_concept
     return concept
 
 
@@ -406,18 +405,21 @@ def concept(subsystem, mechanism):
     if cached_concept is not None:
         return cached_concept
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # We didn't find a precomputed concept with the raw normalized TPM, so now
-    # we normalize TPMs as well.
-    normalized_mechanism = NormalizedMechanism(mechanism, subsystem)
-    # Try to retrieve the concept with the fully-normalized mechanism.
-    cached_concept = _get(False, normalized_mechanism, mechanism, subsystem)
-    if cached_concept is not None:
-        return cached_concept
+    if constants.NORMALIZE_TPMS:
+        # We didn't find a precomputed concept with the raw normalized TPM, so
+        # now we normalize TPMs as well.
+        normalized_mechanism = NormalizedMechanism(mechanism, subsystem)
+        # Try to retrieve the concept with the fully-normalized mechanism.
+        cached_concept = _get(False, normalized_mechanism, mechanism,
+                              subsystem)
+        if cached_concept is not None:
+            return cached_concept
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # We didn't find any precomputed concept at all, so compute it, and store
     # the result with the raw normalized mechanism and the fully-normalized
     # mechanism as keys.
     concept = subsystem.concept(mechanism)
     _set(raw_normalized_mechanism, concept)
-    _set(normalized_mechanism, concept)
+    if constants.NORMALIZE_TPMS:
+        _set(normalized_mechanism, concept)
     return concept

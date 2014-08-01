@@ -109,6 +109,10 @@ default_config = {
     'NUMBER_OF_CORES': -1,
     # Controls whether the concept caching system is used.
     'CACHE_CONCEPTS': True,
+    # Controls whether TPMs should be normalized as part of concept
+    # normalization. TPM normalization increases the chances that a precomputed
+    # concept can be used again, but is expensive.
+    'NORMALZE_TPMS': True,
     # The caching system to use. "fs" means cache results in a subdirectory of
     # the current directory; "db" means connect to a database and store the
     # results there.
@@ -122,7 +126,7 @@ default_config = {
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
     # The verbosity of parallel computation. See documentation for
     # `joblib.Parallel`.
-    'PARALLEL_VERBOSITY': 20
+    'PARALLEL_VERBOSITY': 20,
 }
 
 
