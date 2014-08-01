@@ -107,7 +107,7 @@ big_subsys_0_thru_3_answer = {
 
 
 rule152_answer = {
-    'phi': 6.933001530364033,
+    'phi': 6.9749327784596415,
     'unpartitioned_small_phis': {
         (0,): 0.125001874998,
         (1,): 0.125001874998,
