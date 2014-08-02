@@ -339,16 +339,3 @@ def test_big_mip_big_network_0_thru_3(big_subsys_0_thru_3, flushdb):
 def test_big_mip_rule152(rule152_s, flushdb):
     mip = compute.big_mip.func(hash(rule152_s), rule152_s)
     check_mip(mip, rule152_answer)
-
-
-def test_concept_normalization(standard, flushdb):
-    # Compute each subsystem using accumulated precomputed results.
-    db_complexes = list(compute.complexes(standard))
-    # Compute each subsystem with an empty db.
-    no_db_complexes = []
-    for subsystem in compute.subsystems(standard):
-        _flushdb()
-        no_db_complexes.append(compute.big_mip(subsystem))
-    # The empty-db and full-db results should be the same if concept caching is
-    # working properly.
-    assert db_complexes == no_db_complexes
