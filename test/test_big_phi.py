@@ -297,6 +297,31 @@ def test_complexes_standard(standard, flushdb):
     complexes = list(compute.complexes(standard))
     check_mip(complexes[7], standard_answer)
 
+# Connectivity matrix
+
+
+def test_big_mip_complete_graph_standard_example(s_complete):
+    mip = compute.big_mip.func(hash(s_complete), s_complete)
+    check_mip(mip, standard_answer)
+
+
+def test_big_mip_complete_graph_s_noised(s_noised_complete):
+    mip = compute.big_mip.func(hash(s_noised_complete), s_noised_complete)
+    check_mip(mip, noised_answer)
+
+
+@pytest.mark.slow
+def test_big_mip_complete_graph_big_subsys_all(big_subsys_all_complete):
+    mip = compute.big_mip.func(hash(big_subsys_all_complete),
+                               big_subsys_all_complete)
+    check_mip(mip, big_answer)
+
+
+@pytest.mark.slow
+def test_big_mip_complete_graph_rule152_s(rule152_s_complete):
+    mip = compute.big_mip.func(hash(rule152_s_complete), rule152_s_complete)
+    check_mip(mip, rule152_answer)
+
 
 @pytest.mark.slow
 def test_big_mip_big_network(big_subsys_all, flushdb):
