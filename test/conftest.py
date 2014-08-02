@@ -7,9 +7,12 @@ import example_networks
 
 
 # Test fixtures from example networks
-# ===================================
+# =============================================================================
+
 
 # Matlab standard network and subsystems
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 @pytest.fixture()
 def standard():
@@ -41,7 +44,8 @@ def subsys_n1n2():
     return example_networks.subsys_n1n2()
 
 
-# Noised standard example
+# Noised standard example and subsystems
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @pytest.fixture()
 def noised():
@@ -54,6 +58,8 @@ def s_noised():
 
 
 # Simple network and subsystems
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 @pytest.fixture()
 def simple():
@@ -71,6 +77,8 @@ def s_subsys_all_a_just_on():
 
 
 # Big network and subsystems
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 @pytest.fixture()
 def big():
@@ -86,7 +94,9 @@ def big_subsys_all():
 def big_subsys_0_thru_3():
     return example_networks.big_subsys_0_thru_3()
 
-# Reducible network
+
+# Trivially reducible network
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 @pytest.fixture()
@@ -102,3 +112,32 @@ def rule152():
 @pytest.fixture()
 def rule152_s():
     return example_networks.rule152_s()
+
+
+# Subsystems with complete graphs
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+@pytest.fixture()
+def s_complete():
+    return example_networks.s_complete()
+
+
+@pytest.fixture()
+def s_noised_complete():
+    return example_networks.s_noised_complete()
+
+
+@pytest.fixture()
+def big_subsys_all_complete():
+    return example_networks.big_subsys_all_complete()
+
+
+@pytest.fixture()
+def rule152_s_complete():
+    return example_networks.rule152_s_complete()
+
+
+@pytest.fixture()
+def eights_complete():
+    return example_networks.eights_complete()
