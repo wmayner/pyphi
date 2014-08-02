@@ -62,10 +62,12 @@ def test_normalize_purview_and_repertoire(big_subsys_all):
     assert np.array_equal(result_repertoire, repertoire)
 
 
+# TODO implement
 def test_unnormalize_mice():
     pass
 
 
+# TODO implement
 def test_unnormalize_concept():
     pass
 
@@ -106,10 +108,6 @@ def check_concept_caching(net, states):
     for s in states:
         caching_results.append(list(compute.complexes(networks[s])))
 
-    ans = caching_results == no_caching_results
-    zz = [list(zip([c.phi for c in C], [c.phi for c in CC])) for C, CC in
-          zip(caching_results, no_caching_results)]
-    import pdb; pdb.set_trace()  # XXX BREAKPOINT
     assert caching_results == no_caching_results
 
 
