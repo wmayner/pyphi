@@ -86,7 +86,6 @@ class Subsystem:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    # TODO write tests for cmp methods
     def __ge__(self, other):
         return len(self.nodes) >= len(other.nodes)
 

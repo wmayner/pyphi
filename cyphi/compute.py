@@ -23,7 +23,6 @@ from .subsystem import Subsystem
 from .lru_cache import lru_cache
 
 
-# TODO update concept docs
 def concept(subsystem, mechanism):
     """Return the concept specified by the a mechanism within a subsytem.
 
@@ -35,11 +34,12 @@ def concept(subsystem, mechanism):
     Returns:
         ``Concept`` -- The pair of maximally irreducible cause/effect
         repertoires that constitute the concept specified by the given
-        mechanism, or ``None`` if there isn't one.
+        mechanism.
 
     .. note::
-        The output is persistently cached to avoid recomputation. See the
-        documentation for :mod:`cyphi.concept_caching`.
+        The output is persistently cached by default to avoid recomputation.
+        This may be disabled in the configuration file. See the documentation
+        for :mod:`cyphi.concept_caching` and :mod:`cyphi.constants`.
     """
     # Pre-checks:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,7 +55,7 @@ def concept(subsystem, mechanism):
         return Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None,
                        subsystem=subsystem)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Passed prechecks; pass it over to the concept caching logic.
+    # Passed prechecks; pass it over to the concept caching logic if enabled.
     if constants.CACHE_CONCEPTS:
         return _concept(subsystem, mechanism)
     else:
@@ -74,7 +74,7 @@ def constellation(subsystem):
     """
     concepts = [concept(subsystem, mechanism) for mechanism in
                 utils.powerset(subsystem.nodes)]
-    # Filter out non-concepts, i.e. those with effectively zero Phi.
+    # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
 
@@ -211,10 +211,6 @@ def _single_node_mip(subsystem):
         return _null_mip(subsystem)
 
 
-# TODO document
-# TODO calculate cut network twice here and pass that to concept caching so it
-# isn't calulated for each concept. cut passing needs serious refactoring
-# anyway actually
 def _evaluate_partition(uncut_subsystem, partition,
                         unpartitioned_constellation):
     # Compute forward mip.
@@ -248,15 +244,14 @@ def _evaluate_partition(uncut_subsystem, partition,
         subsystem=uncut_subsystem,
         cut_subsystem=backward_cut_subsystem)
     # Choose minimal unidirectional cut.
-    mip = min(forward_mip, backward_mip)
-    return mip
+    return min(forward_mip, backward_mip)
 
 
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
     # Special case for single-node subsystems.
-    if (len(subsystem.nodes) == 1):
+    if len(subsystem) == 1:
         return _single_node_mip(subsystem)
 
     # Check for degenerate cases
