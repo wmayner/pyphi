@@ -48,9 +48,8 @@ class Subsystem:
         # Get the subsystem's connectivity matrix. This is the network's
         # connectivity matrix, but with the cut applied, and with all
         # connections to/from external nodes severed.
-        self.connectivity_matrix = utils.apply_boundary_conditions_to_cm(
-            self.external_indices,
-            utils.apply_cut(cut, network.connectivity_matrix))
+        self.connectivity_matrix = utils.apply_cut(
+            cut, network.connectivity_matrix)
         # The TPM conditioned on the past state of the external nodes.
         self.past_tpm = utils.condition_tpm(
             self.network.tpm, self.external_indices,
