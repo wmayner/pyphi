@@ -75,41 +75,44 @@ class Node:
         # than on.
         past_tpm_off = 1 - past_tpm_on
         current_tpm_off = 1 - current_tpm_on
-        # Marginalize-out non-input nodes.
+        # Marginalize-out non-input context nodes and get dimension labels.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # This will hold the indices of the nodes that correspond to
+        # This list will hold the indices of the nodes that correspond to
         # non-singleton dimensions of this node's on-TPM. It maps any context
         # node index to the corresponding dimension of this node's TPM with
         # singleton dimensions removed. We need this for creating this node's
         # Marbl.
         self._dimension_labels = []
+        # This is the counter that will provide the actual labels.
         current_non_singleton_dim_index = 0
         # Iterate over all the nodes in the network, since we need to keep
-        # track of all singleton dimensions...
+        # track of all singleton dimensions.
         for i in range(self.network.size):
-            # ...but only marginalize out non-input nodes that are in the
-            # context, since the external nodes have already been dealt with as
-            # boundary conditions in the context's TPMs.
-            if i not in self._input_indices:
-                # Record that this node's index doesn't correspond to any
-                # dimension in this node's squeezed TPM.
-                self._dimension_labels.append(None)
-                # TODO extend to nonbinary nodes
-                # Only marginalize out non-input nodes that are within the
-                # subsystem, since external nodes have already been
-                # conditioned out in the Subsystem's initialization.
-                if i in self.context.node_indices:
-                    past_tpm_on = past_tpm_on.sum(i, keepdims=True) / 2
-                    past_tpm_off = past_tpm_off.sum(i, keepdims=True) / 2
-                    current_tpm_on = current_tpm_on.sum(i, keepdims=True) / 2
-                    current_tpm_off = current_tpm_off.sum(i, keepdims=True) / 2
-            else:
-                # The current index will correspond to a dimension in this
-                # node's squeezed TPM, so we map it to the index of the
-                # corresponding dimension and increment the corresponding index
-                # for the next one.
+
+            # Input nodes that are within the context will correspond to a
+            # dimension in this node's squeezed TPM, so we map it to the index
+            # of the corresponding dimension and increment the corresponding
+            # index for the next one.
+            if i in self._input_indices and i in self.context.node_indices:
                 self._dimension_labels.append(current_non_singleton_dim_index)
                 current_non_singleton_dim_index += 1
+            # Boundary nodes and non-input nodes have already been conditioned
+            # and marginalized-out, so their dimension in the TPM will be a
+            # singleton and will be squeezed out when creating a Marbl. So, we
+            # don't give them a dimension label.
+            else:
+                self._dimension_labels.append(None)
+
+            # TODO extend to nonbinary nodes
+            # Marginalize out non-input nodes that are in the context, since
+            # the external nodes have already been dealt with as boundary
+            # conditions in the context's TPMs.
+            if i not in self._input_indices and i in self.context.node_indices:
+                past_tpm_on = past_tpm_on.sum(i, keepdims=True) / 2
+                past_tpm_off = past_tpm_off.sum(i, keepdims=True) / 2
+                current_tpm_on = current_tpm_on.sum(i, keepdims=True) / 2
+                current_tpm_off = current_tpm_off.sum(i, keepdims=True) / 2
+
         # Combine the on- and off-TPMs.
         self.past_tpm = np.array([past_tpm_off, past_tpm_on])
         self.current_tpm = np.array([current_tpm_off, current_tpm_on])
