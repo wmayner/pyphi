@@ -213,6 +213,7 @@ def _single_node_mip(subsystem):
 
 def _evaluate_partition(uncut_subsystem, partition,
                         unpartitioned_constellation):
+    print("[CyPhi] Evaluating partition", str(partition) + "...")
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
     forward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
@@ -243,6 +244,8 @@ def _evaluate_partition(uncut_subsystem, partition,
         partitioned_constellation=backward_constellation,
         subsystem=uncut_subsystem,
         cut_subsystem=backward_cut_subsystem)
+
+    print("[CyPhi] Finished evaluating partition", str(partition) + ".")
     # Choose minimal unidirectional cut.
     return min(forward_mip, backward_mip)
 
@@ -250,6 +253,8 @@ def _evaluate_partition(uncut_subsystem, partition,
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
+    print("\n[CyPhi] Calculating Phi data for", str(subsystem) + "...\n")
+
     # Special case for single-node subsystems.
     if len(subsystem) == 1:
         return _single_node_mip(subsystem)
@@ -286,6 +291,8 @@ def _big_mip(cache_key, subsystem):
                                      unpartitioned_constellation)
         for partition in bipartitions)
 
+    print("\n[CyPhi] ...Finished calculating Phi data for", str(subsystem)
+          + ".\n")
     return min(mip_candidates)
 
 
