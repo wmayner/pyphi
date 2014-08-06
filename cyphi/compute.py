@@ -253,7 +253,7 @@ def _evaluate_partition(uncut_subsystem, partition,
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
-    print("\n[CyPhi] Calculating Phi data for", str(subsystem) + "...\n")
+    print("[CyPhi] Calculating Phi data for", str(subsystem) + "...\n")
 
     # Special case for single-node subsystems.
     if len(subsystem) == 1:
@@ -291,7 +291,7 @@ def _big_mip(cache_key, subsystem):
                                      unpartitioned_constellation)
         for partition in bipartitions)
 
-    print("\n[CyPhi] ...Finished calculating Phi data for", str(subsystem)
+    print("[CyPhi] ...Finished calculating Phi data for", str(subsystem)
           + ".\n")
     return min(mip_candidates)
 
