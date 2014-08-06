@@ -52,12 +52,6 @@ def test_network_state_by_state_tpm():
     assert (Network(sbs_tpm, state, state) == Network(sbn_tpm, state, state))
 
 
-def test_network_init_nodes(network):
-    nodes = tuple(Node(network, node_index) for node_index in
-                  range(network.size))
-    assert nodes == network.nodes
-
-
 def test_repr(standard):
     print(repr(standard))
 

@@ -65,8 +65,6 @@ every node in the network in our subsystem, and make the current and past state
 of the subsystem the same as that of the network:
 
     >>> subsystem = Subsystem(range(network.size),
-    ...                       network.current_state,
-    ...                       network.past_state,
     ...                       network)
 
 Now we use :func:`cyphi.compute.big_phi` function to compute the |big_phi| of
@@ -183,4 +181,4 @@ def subsystem():
     """A subsystem containing all the nodes of the
     :func:`cyphi.examples.network`."""
     net = network()
-    return Subsystem(range(net.size), net.current_state, net.past_state, net)
+    return Subsystem(range(net.size), net)

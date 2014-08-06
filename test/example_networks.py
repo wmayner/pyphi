@@ -12,7 +12,7 @@ from cyphi.subsystem import Subsystem
 use_connectivity_matrices = True
 
 
-def standard():
+def standard(cm=False):
     """Matlab default network.
 
     Diagram:
@@ -68,53 +68,80 @@ def standard():
                     [1, 1, 1],
                     [1, 1, 1],
                     [1, 1, 0]])
-
-    cm = np.array([[0, 0, 1],
-                   [1, 0, 1],
-                   [1, 1, 0]])
-
-    cm = cm if use_connectivity_matrices else None
+    if cm is False:
+        cm = np.array([[0, 0, 1],
+                    [1, 0, 1],
+                    [1, 1, 0]])
     return Network(tpm, current_state, past_state, connectivity_matrix=cm)
 
 
 def s_empty():
     m = standard()
-    return Subsystem((),
-                     m.current_state,
-                     m.past_state,
-                     m)
+    return Subsystem((), m)
 
 
 def s_single():
     m = standard()
-    return Subsystem([0],
-                     m.current_state,
-                     m.past_state,
-                     m)
+    return Subsystem([0], m)
 
 
 def subsys_n0n2():
     m = standard()
-    return Subsystem((0, 2),
-                     m.current_state,
-                     m.past_state,
-                     m)
+    return Subsystem((0, 2), m)
 
 
 def subsys_n1n2():
     m = standard()
-    return Subsystem((1, 2),
-                     m.current_state,
-                     m.past_state,
-                     m)
+    return Subsystem((1, 2), m)
 
 
 def s():
     m = standard()
-    return Subsystem(range(m.size), m.current_state, m.past_state, m)
+    return Subsystem(range(m.size), m)
 
 
-def simple():
+def s_complete():
+    n = standard(cm=None)
+    return Subsystem(range(n.size), n)
+
+
+def noised(cm=False):
+    current_state = (1, 0, 0)
+    past_state = (1, 1, 0)
+    tpm = np.array([[0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.8],
+                    [0.7, 0.0, 1.0],
+                    [1.0, 0.0, 0.0],
+                    [0.2, 0.8, 0.0],
+                    [1.0, 1.0, 1.0],
+                    [1.0, 1.0, 0.3],
+                    [0.1, 1.0, 0.0]])
+
+    if cm is False:
+        cm = np.array([[1, 1, 1],
+                       [1, 1, 1],
+                       [1, 1, 1]])
+
+    cm = cm if use_connectivity_matrices else None
+    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+
+
+def s_noised():
+    n = noised()
+    return Subsystem(range(n.size), n)
+
+
+def s_noised_complete():
+    n = noised(cm=None)
+    return Subsystem(range(n.size), n)
+
+
+s_about_to_be_on = (0, 1, 1)
+s_just_turned_on = (1, 0, 0)
+s_all_off = (0, 0, 0)
+
+
+def simple(current_state=s_all_off, past_state=s_all_off, cm=False):
     """ Simple 'AND' network.
 
     Diagram:
@@ -147,8 +174,6 @@ def simple():
     |  {1, 1, 1}   |   {0, 0, 0}    |
     +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
     """
-    a_just_turned_on = (1, 0, 0)
-    a_about_to_be_on = (0, 1, 1)
     tpm = np.array([[0, 0, 0],
                     [0, 0, 0],
                     [0, 0, 0],
@@ -157,20 +182,32 @@ def simple():
                     [0, 0, 0],
                     [1, 0, 0],
                     [0, 0, 0]])
-    return Network(tpm, a_just_turned_on, a_about_to_be_on)
+    if cm is False:
+        cm = None
+    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+
+
+def simple_all_off():
+    return simple(s_all_off, s_all_off)
+
+
+def simple_a_just_on():
+    return simple(s_just_turned_on, s_about_to_be_on)
 
 
 def s_subsys_all_off():
-    s = simple()
-    return Subsystem(range(s.size), (0, 0, 0), (0, 0, 0), s)
+    s = simple(s_all_off, s_all_off)
+    return Subsystem(range(s.size), s)
 
 
 def s_subsys_all_a_just_on():
-    s = simple()
-    return Subsystem(range(s.size), s.current_state, s.past_state, s)
+    a_about_to_be_on = (0, 1, 1)
+    a_just_turned_on = (1, 0, 0)
+    s = simple(a_just_turned_on, a_about_to_be_on)
+    return Subsystem(range(s.size), s)
 
 
-def big():
+def big(cm=False):
     """Return a large network."""
     tpm = np.array([[0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0],
@@ -208,28 +245,43 @@ def big():
     current_state = (1,) * 5
     # All on
     past_state = (1,) * 5
-    return Network(tpm, current_state, past_state)
+    if cm is False:
+        cm = None
+    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
 
 
 def big_subsys_all():
     """Return the subsystem associated with ``big``."""
     b = big()
-    return Subsystem(range(b.size), b.current_state, b.past_state, b)
+    return Subsystem(range(b.size), b)
 
 
-def reducible():
+def big_subsys_all_complete():
+    """Return the subsystem associated with ``big`` with all nodes
+    connected."""
+    b = big(cm=None)
+    return Subsystem(range(b.size), b)
+
+
+def big_subsys_0_thru_3():
+    """Return a subsystem consisting of the first 4 nodes of ``big``."""
+    b = big()
+    return Subsystem(range(5)[:-1], b)
+
+
+def reducible(cm=False):
     tpm = np.zeros([2] * 2 + [2])
     current_state = (0, 0)
     past_state = (0, 0)
-    cm = np.array([[1, 0],
-                   [0, 1]])
-    cm = cm if use_connectivity_matrices else None
+    if cm is False:
+        cm = np.array([[1, 0],
+                       [0, 1]])
     r = Network(tpm, current_state, past_state, connectivity_matrix=cm)
     # Return the full subsystem
-    return Subsystem(range(r.size), current_state, past_state, r)
+    return Subsystem(range(r.size), r)
 
 
-def rule30():
+def rule30(cm=False):
     tpm = np.array([[0, 0, 0, 0, 0],
                     [1, 1, 0, 0, 1],
                     [1, 1, 1, 0, 0],
@@ -263,20 +315,18 @@ def rule30():
                     [0, 1, 0, 0, 0],
                     [0, 0, 0, 0, 0]])
 
-    cm = np.array([[1, 1, 0, 0, 1],
-                   [1, 1, 1, 0, 0],
-                   [0, 1, 1, 1, 0],
-                   [0, 0, 1, 1, 1],
-                   [1, 0, 0, 1, 1]])
+    if cm is False:
+        cm = np.array([[1, 1, 0, 0, 1],
+                       [1, 1, 1, 0, 0],
+                       [0, 1, 1, 1, 0],
+                       [0, 0, 1, 1, 1],
+                       [1, 0, 0, 1, 1]])
 
     all_off = (0, 0, 0, 0, 0)
 
     rule30 = Network(tpm, all_off, all_off, connectivity_matrix=cm)
 
-    return Subsystem(range(rule30.size),
-                     rule30.current_state,
-                     rule30.past_state,
-                     rule30)
+    return Subsystem(range(rule30.size), rule30)
 
 
 def trivial():
@@ -285,13 +335,10 @@ def trivial():
     trivial = Network(np.array([[1], [1]]), (1, ), (1, ),
                       connectivity_matrix=np.array([[1]]))
 
-    return Subsystem(range(trivial.size),
-                     trivial.current_state,
-                     trivial.past_state,
-                     trivial)
+    return Subsystem(range(trivial.size), trivial)
 
 
-def eight_node():
+def eight_node(cm=False):
     """Eight-node network."""
 
     tpm = np.array(
@@ -552,17 +599,17 @@ def eight_node():
          [1, 1, 0, 0, 0, 0, 0, 1],
          [0, 0, 0, 0, 0, 0, 0, 0]]
     )
-    cm = np.array(
-        [[1, 1, 0, 0, 0, 0, 0, 1],
-         [1, 1, 1, 0, 0, 0, 0, 0],
-         [0, 1, 1, 1, 0, 0, 0, 0],
-         [0, 0, 1, 1, 1, 0, 0, 0],
-         [0, 0, 0, 1, 1, 1, 0, 0],
-         [0, 0, 0, 0, 1, 1, 1, 0],
-         [0, 0, 0, 0, 0, 1, 1, 1],
-         [1, 0, 0, 0, 0, 0, 1, 1]]
-    )
-    cm = cm if use_connectivity_matrices else None
+    if cm is False:
+        cm = np.array(
+            [[1, 1, 0, 0, 0, 0, 0, 1],
+             [1, 1, 1, 0, 0, 0, 0, 0],
+             [0, 1, 1, 1, 0, 0, 0, 0],
+             [0, 0, 1, 1, 1, 0, 0, 0],
+             [0, 0, 0, 1, 1, 1, 0, 0],
+             [0, 0, 0, 0, 1, 1, 1, 0],
+             [0, 0, 0, 0, 0, 1, 1, 1],
+             [1, 0, 0, 0, 0, 0, 1, 1]]
+        )
 
     current_state = tuple([0] * 8)
     past_state = tuple([0] * 8)
@@ -572,24 +619,89 @@ def eight_node():
 
 def eights():
     net = eight_node()
-    return Subsystem(range(net.size), net.current_state, net.past_state, net)
+    return Subsystem(range(net.size), net)
 
 
-def eight_node_sbs():
+def eights_complete():
+    net = eight_node(cm=None)
+    return Subsystem(range(net.size), net)
+
+
+def eight_node_sbs(cm=False):
     tpm = [[1] + ([0] * 255)] * 256
-    cm = np.array(
-        [[1, 1, 0, 0, 0, 0, 0, 1],
-         [1, 1, 1, 0, 0, 0, 0, 0],
-         [0, 1, 1, 1, 0, 0, 0, 0],
-         [0, 0, 1, 1, 1, 0, 0, 0],
-         [0, 0, 0, 1, 1, 1, 0, 0],
-         [0, 0, 0, 0, 1, 1, 1, 0],
-         [0, 0, 0, 0, 0, 1, 1, 1],
-         [1, 0, 0, 0, 0, 0, 1, 1]]
-    )
-    cm = cm if use_connectivity_matrices else None
+    if cm is False:
+        cm = np.array(
+            [[1, 1, 0, 0, 0, 0, 0, 1],
+             [1, 1, 1, 0, 0, 0, 0, 0],
+             [0, 1, 1, 1, 0, 0, 0, 0],
+             [0, 0, 1, 1, 1, 0, 0, 0],
+             [0, 0, 0, 1, 1, 1, 0, 0],
+             [0, 0, 0, 0, 1, 1, 1, 0],
+             [0, 0, 0, 0, 0, 1, 1, 1],
+             [1, 0, 0, 0, 0, 0, 1, 1]]
+        )
 
     current_state = tuple([0] * 8)
     past_state = tuple([0] * 8)
 
     return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+
+
+def rule152(cm=False):
+    tpm = np.array(
+        [[0, 0, 0, 0, 0],
+         [0, 1, 0, 0, 0],
+         [0, 0, 1, 0, 0],
+         [1, 0, 1, 0, 0],
+         [0, 0, 0, 1, 0],
+         [0, 0, 0, 1, 0],
+         [0, 1, 0, 1, 0],
+         [1, 1, 0, 1, 0],
+         [0, 0, 0, 0, 1],
+         [0, 1, 0, 0, 0],
+         [0, 0, 0, 0, 1],
+         [1, 0, 0, 0, 0],
+         [0, 0, 1, 0, 1],
+         [0, 0, 1, 0, 0],
+         [0, 1, 1, 0, 1],
+         [1, 1, 1, 0, 0],
+         [1, 0, 0, 0, 0],
+         [0, 1, 0, 0, 1],
+         [0, 0, 1, 0, 0],
+         [1, 0, 1, 0, 1],
+         [1, 0, 0, 0, 0],
+         [0, 0, 0, 0, 1],
+         [0, 1, 0, 0, 0],
+         [1, 1, 0, 0, 1],
+         [1, 0, 0, 1, 0],
+         [0, 1, 0, 1, 1],
+         [0, 0, 0, 1, 0],
+         [1, 0, 0, 1, 1],
+         [1, 0, 1, 1, 0],
+         [0, 0, 1, 1, 1],
+         [0, 1, 1, 1, 0],
+         [1, 1, 1, 1, 1]]
+    )
+    if cm is False:
+        cm = np.array(
+            [[1, 1, 0, 0, 1],
+             [1, 1, 1, 0, 0],
+             [0, 1, 1, 1, 0],
+             [0, 0, 1, 1, 1],
+             [1, 0, 0, 1, 1]]
+        )
+
+    current_state = tuple([0] * 5)
+    past_state = tuple([0] * 5)
+
+    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+
+
+def rule152_s():
+    net = rule152()
+    return Subsystem(range(net.size), net)
+
+
+def rule152_s_complete():
+    net = rule152(cm=None)
+    return Subsystem(range(net.size), net)

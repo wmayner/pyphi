@@ -6,7 +6,7 @@ from cyphi.subsystem import Subsystem
 
 def test_empty_init(standard):
     # Empty mechanism
-    s = Subsystem([], standard.current_state, standard.past_state, standard)
+    s = Subsystem((), standard)
     assert s.nodes == ()
 
 
@@ -24,6 +24,12 @@ def test_cmp(subsys_n0n2, subsys_n1n2, s):
     assert subsys_n1n2 < s
     assert subsys_n0n2 <= s
     assert subsys_n0n2 <= subsys_n1n2
+
+
+def test_len(s, big_subsys_0_thru_3, big_subsys_all):
+    assert len(s) == 3
+    assert len(big_subsys_0_thru_3) == 4
+    assert len(big_subsys_all) == 5
 
 
 def test_hash(s):

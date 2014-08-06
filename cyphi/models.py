@@ -154,7 +154,9 @@ def _general_eq(a, b, attributes):
             elif (attr == 'mechanism' or attr == 'purview'):
                 if _a is None or _b is None and not _a == _b:
                     return False
-                elif not set(_a) == set(_b):
+                # Don't use `set` because hashes may be different (contexts are
+                # included in node hashes); we want to use Node.__eq__.
+                elif not (all(n in _b for n in _a) and len(_a) == len(_b)):
                     return False
             else:
                 if not _numpy_aware_eq(_a, _b):
@@ -167,6 +169,8 @@ def _general_eq(a, b, attributes):
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
+_mip_attributes_for_eq = ['phi', 'direction', 'mechanism',
+                          'unpartitioned_repertoire']
 
 
 class Mip(namedtuple('Mip', _mip_attributes)):
@@ -201,13 +205,25 @@ class Mip(namedtuple('Mip', _mip_attributes)):
     """
 
     def __eq__(self, other):
-        return _general_eq(self, other, _mip_attributes)
+        # We don't count the partition and partitioned repertoire in checking
+        # for MIP equality, since these are lost during normalization.
+        # We also don't count the mechanism and purview, since these may be
+        # different depending on the order in which purviews were evaluated.
+        # TODO!!! clarify the reason for that
+        # We do however check whether the size of the mechanism or purview is
+        # the same, since that matters (for the exclusion principle).
+        return (_general_eq(self, other, _mip_attributes_for_eq) and
+                len(self.mechanism) == len(other.mechanism) and
+                len(self.purview) == len(other.purview))
+
+    def __bool__(self):
+        """A Mip is truthy if it is not reducible; i.e. if it has a significant
+        amount of |small_phi|."""
+        return self.phi > constants.EPSILON
 
     def __hash__(self):
         return hash((self.phi, self.direction, self.mechanism, self.purview,
-                     self.partition,
-                     utils.np_hash(self.unpartitioned_repertoire),
-                     utils.np_hash(self.partitioned_repertoire)))
+                     utils.np_hash(self.unpartitioned_repertoire)))
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -306,7 +322,8 @@ class Mice:
 
 # =============================================================================
 
-_concept_attributes = ['phi', 'mechanism', 'cause', 'effect']
+_concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
+                       'normalized']
 
 
 # TODO: make mechanism a property
@@ -332,7 +349,14 @@ class Concept(namedtuple('Concept', _concept_attributes)):
             The :class:`Mice` representing the core cause of this concept.
         effect (Mice):
             The :class:`Mice` representing the core effect of this concept.
+        subsystem (Subsystem):
+            This Concept's parent subsystem.
     """
+
+    def __new__(cls, phi=None, mechanism=None, cause=None, effect=None,
+                subsystem=None, normalized=None):
+        return super(Concept, cls).__new__(
+            cls, phi, mechanism, cause, effect, subsystem, normalized)
 
     @property
     def location(self):
@@ -346,7 +370,8 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         return _general_eq(self, other, _concept_attributes)
 
     def __hash__(self):
-        return hash((self.phi, self.mechanism, self.cause, self.effect))
+        return hash((self.phi, self.mechanism, self.cause, self.effect,
+                     self.subsystem))
 
     def __str__(self):
         return ('Concept(' +
@@ -359,21 +384,28 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         significant amount of |big_phi|."""
         return self.phi > constants.EPSILON
 
-    def expand_cause_repertoire(self, subsystem, cut):
+    def eq_repertoires(self, other):
+        """Return whether this concept has the same cause and effect
+        repertoires as another."""
+        if self.subsystem.network != other.subsystem.network:
+            raise Exception("Can't compare repertoires of concepts from "
+                            "different networks.")
+        return (np.array_equal(self.cause.repertoire, other.cause.repertoire) and
+                np.array_equal(self.effect.repertoire, other.effect.repertoire))
+
+    def expand_cause_repertoire(self):
         """Expands a cause repertoire to be a distribution over an entire
         network."""
-        return subsystem.expand_repertoire(DIRECTIONS[PAST],
-                                           self.cause.purview,
-                                           self.cause.repertoire,
-                                           cut)
+        return self.subsystem.expand_repertoire(DIRECTIONS[PAST],
+                                                self.cause.purview,
+                                                self.cause.repertoire)
 
-    def expand_effect_repertoire(self, subsystem, cut):
+    def expand_effect_repertoire(self):
         """Expands an effect repertoire to be a distribution over an entire
         network."""
-        return subsystem.expand_repertoire(DIRECTIONS[FUTURE],
-                                           self.effect.purview,
-                                           self.effect.repertoire,
-                                           cut)
+        return self.subsystem.expand_repertoire(DIRECTIONS[FUTURE],
+                                                self.effect.purview,
+                                                self.effect.repertoire)
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -384,8 +416,9 @@ class Concept(namedtuple('Concept', _concept_attributes)):
 
 # =============================================================================
 
-_bigmip_attributes = ['phi', 'cut', 'unpartitioned_constellation',
-                      'partitioned_constellation', 'subsystem']
+_bigmip_attributes = ['phi', 'unpartitioned_constellation',
+                      'partitioned_constellation', 'subsystem',
+                      'cut_subsystem']
 
 
 class BigMip(namedtuple('BigMip', _bigmip_attributes)):
@@ -408,29 +441,51 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
         partitioned_constellation (tuple(Concept)): The constellation when the
             subsystem is cut.
         subsystem (Subsystem): The subsystem this MIP was calculated for.
+        cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
+        cut (Cut): The minimal cut.
     """
+
+    @property
+    def cut(self):
+        return self.cut_subsystem.cut
 
     def __eq__(self, other):
         return _general_eq(self, other, _bigmip_attributes)
 
+    def __bool__(self):
+        """A BigMip is truthy if it is not reducible; i.e. if it has a
+        significant amount of |big_phi|."""
+        return self.phi > constants.EPSILON
+
     def __hash__(self):
-        return hash((self.phi, self.cut, self.unpartitioned_constellation,
-                     self.partitioned_constellation, self.subsystem))
+        return hash((self.phi, self.unpartitioned_constellation,
+                     self.partitioned_constellation, self.subsystem,
+                     self.cut_subsystem))
 
     # First compare phi, then subsystem size
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def __lt__(self, other):
         if _phi_eq(self, other):
-            try:
-                return self.subsystem < other.subsystem
-            except AttributeError:
-                return False
+            if len(self.subsystem) == len(other.subsystem):
+                # Compare actual Phi values up to maximum precision, for
+                # more determinism in things like max and min
+                return self.phi < other.phi
+            else:
+                return len(self.subsystem) < len(other.subsystem)
         else:
             return _phi_lt(self, other)
 
     def __gt__(self, other):
-        return not self.__lt__(other) and not self == other
+        if _phi_eq(self, other):
+            if len(self.subsystem) == len(other.subsystem):
+                # Compare actual Phi values up to maximum precision, for
+                # more determinism in things like max and min
+                return self.phi > other.phi
+            else:
+                return len(self.subsystem) > len(other.subsystem)
+        else:
+            return _phi_gt(self, other)
 
     def __le__(self, other):
         return (self.__lt__(other) or

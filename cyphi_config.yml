@@ -11,6 +11,12 @@ PARALLEL_VERBOSITY: 20
 # In some applications of this library, you may prefer to define single-nodes
 # with a self-loop as having 0.5 Phi, a priori.
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
+# Controls whether concepts are cached.
+CACHE_CONCEPTS: true
+# Controls whether concepts should be normalized before being cached.
+# Normalization increases the chances that a precomputed concept can be used
+# again, but is expensive.
+NORMALIZE_TPMS: true
 # The caching system to use. "fs" means cache the results on the local
 # filesystem, in a subdirectory of the current directory; "db" means connect to
 # a database and store the results there.
@@ -20,7 +26,7 @@ CACHING_BACKEND: "db"
 # database.
 PERSISTENT_CACHE_DIRECTORY: "__cyphi_cache__"
 # Some functions are memoized using an in-memory LRU-cache. This is the maximum
-# percentage of memory these caches can use.
+# percentage of memory that each CyPhi process' caches can use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 # These are the settings for the MongoDB database used in the 'db' caching
 # backend.
@@ -28,4 +34,4 @@ MONGODB_CONFIG:
     host: "localhost"
     port: 27017
     database_name: "cyphi"
-    collection_name: "cache"
+    collection_name: "test"

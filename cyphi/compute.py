@@ -23,8 +23,7 @@ from .subsystem import Subsystem
 from .lru_cache import lru_cache
 
 
-# TODO update concept docs
-def concept(subsystem, mechanism, cut=None):
+def concept(subsystem, mechanism):
     """Return the concept specified by the a mechanism within a subsytem.
 
     Args:
@@ -32,19 +31,15 @@ def concept(subsystem, mechanism, cut=None):
             considered.
         mechanism (tuple(Node)): The candidate set of nodes.
 
-    Keyword Args:
-        cut (Cut): The optional unidirectional cut that should be applied to
-            the network when doing the calculation. Defaults to ``None``, where
-            no cut is applied.
-
     Returns:
         ``Concept`` -- The pair of maximally irreducible cause/effect
         repertoires that constitute the concept specified by the given
-        mechanism, or ``None`` if there isn't one.
+        mechanism.
 
     .. note::
-        The output is persistently cached to avoid recomputation. See the
-        documentation for :mod:`cyphi.concept_caching`.
+        The output is persistently cached by default to avoid recomputation.
+        This may be disabled in the configuration file. See the documentation
+        for :mod:`cyphi.concept_caching` and :mod:`cyphi.constants`.
     """
     # Pre-checks:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,37 +50,36 @@ def concept(subsystem, mechanism, cut=None):
     # has no outputs to the subsystem, then the mechanism is necessarily
     # reducible and cannot be a concept (since removing that node would make no
     # difference to at least one of the MICEs).
-    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes, cut) and
-            subsystem._any_connect_to_all(subsystem.nodes, mechanism, cut)):
-        return Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None)
+    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
+            subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
+        return Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None,
+                       subsystem=subsystem)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Passed prechecks; pass it over to the concept caching logic.
-    return _concept(subsystem, mechanism, cut)
+    # Passed prechecks; pass it over to the concept caching logic if enabled.
+    if constants.CACHE_CONCEPTS:
+        return _concept(subsystem, mechanism)
+    else:
+        return subsystem.concept(mechanism)
 
 
-def constellation(subsystem, cut=None):
+def constellation(subsystem):
     """Return the conceptual structure of this subsystem.
 
     Args:
         subsystem (Subsytem): The subsystem for which to determine the
             constellation.
 
-    Keyword Args:
-        cut (Cut): The optional unidirectional cut that should be applied to
-            the network when doing the calculation. Defaults to ``None``, where
-            no cut is applied.
-
     Returns:
         ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
     """
-    concepts = [concept(subsystem, mechanism, cut) for mechanism in
+    concepts = [concept(subsystem, mechanism) for mechanism in
                 utils.powerset(subsystem.nodes)]
-    # Filter out non-concepts, i.e. those with effectively zero Phi.
+    # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
 
 @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-def concept_distance(c1, c2, subsystem, cut):
+def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
     Args:
@@ -99,13 +93,13 @@ def concept_distance(c1, c2, subsystem, cut):
     # to the full state-space of the subsystem, so that the EMD signatures are
     # the same size.
     return sum([
-        utils.hamming_emd(c1.expand_cause_repertoire(subsystem, cut),
-                          c2.expand_cause_repertoire(subsystem, cut)),
-        utils.hamming_emd(c1.expand_effect_repertoire(subsystem, cut),
-                          c2.expand_effect_repertoire(subsystem, cut))])
+        utils.hamming_emd(c1.expand_cause_repertoire(),
+                          c2.expand_cause_repertoire()),
+        utils.hamming_emd(c1.expand_effect_repertoire(),
+                          c2.expand_effect_repertoire())])
 
 
-def _constellation_distance_simple(C1, C2, subsystem, cut):
+def _constellation_distance_simple(C1, C2, subsystem):
     """Return the distance between two constellations in concept-space,
     assuming the only difference between them is that some concepts have
     disappeared."""
@@ -113,38 +107,49 @@ def _constellation_distance_simple(C1, C2, subsystem, cut):
     if len(C2) > len(C1):
         C1, C2 = C2, C1
     destroyed = [c for c in C1 if c not in C2]
-    return sum(c.phi * concept_distance(c, subsystem.null_concept, subsystem,
-                                        cut)
+    return sum(c.phi * concept_distance(c, subsystem.null_concept)
                for c in destroyed)
 
 
-def _constellation_distance_emd(C1, C2, unique_C1, unique_C2, subsystem, cut):
+def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     """Return the distance between two constellations in concept-space,
     using the generalized EMD."""
-    shared_concepts = [c for c in C1 if c in C2]
-    # Construct null concept and list of all unique concepts.
-    all_concepts = (shared_concepts + unique_C1 + unique_C2 +
-                    [subsystem.null_concept])
+    # We need the null concept to be the partitioned constellation, in case a
+    # concept is destroyed by a cut (and needs to be moved to the null
+    # concept).
+    unique_C2 = unique_C2 + [subsystem.null_concept]
+    # Get the concept distances from the concepts in the unpartitioned
+    # constellation to the partitioned constellation.
+    distances = np.array([
+        [concept_distance(i, j) for j in unique_C2]
+        for i in unique_C1
+    ])
+    # Now we make the distance matrix.
+    # It has blocks of zeros in the upper left and bottom right to make the
+    # distance matrix square, and to ensure that we're only moving mass from
+    # the unpartitioned constellation to the partitioned constellation.
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    N, M = len(unique_C1), len(unique_C2)
+    distance_matrix = np.zeros([N + M] * 2)
+    # Top-right block.
+    distance_matrix[:N, N:] = distances
+    # Bottom-left block.
+    distance_matrix[N:, :N] = distances.T
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Construct the two phi distributions.
-    d1, d2 = [[c.phi if c in constellation else 0 for c in all_concepts]
-              for constellation in (C1, C2)]
-    # Calculate how much phi disappeared and assign it to the null concept
-    # (the null concept is the last element in the distribution).
-    residual = sum(d1) - sum(d2)
-    if residual > 0:
-        d2[-1] = residual
-    if residual < 0:
-        d1[-1] = residual
-    # Generate the ground distance matrix.
-    distance_matrix = np.array([
-        [concept_distance(i, j, subsystem, cut) for i in all_concepts] for j in
-        all_concepts])
-
+    d1 = [c.phi for c in unique_C1] + [0] * M
+    d2 = [0] * N + [c.phi for c in unique_C2]
+    # Calculate how much phi disappeared and assign it to the null concept (the
+    # null concept is the last element in the second distribution).
+    d2[-1] = sum(d1) - sum(d2)
+    # The sum of the two signatures should be the same.
+    assert utils.phi_eq(sum(d1), sum(d2))
+    # Calculate!
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)
 
 
 @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-def constellation_distance(C1, C2, subsystem, cut):
+def constellation_distance(C1, C2, subsystem):
     """Return the distance between two constellations in concept-space.
 
     Args:
@@ -158,18 +163,18 @@ def constellation_distance(C1, C2, subsystem, cut):
         ``float`` -- The distance between the two constellations in
         concept-space.
     """
-    concepts_only_in_C1 = [c for c in C1 if c not in C2]
-    concepts_only_in_C2 = [c for c in C2 if c not in C1]
+    concepts_only_in_C1 = [
+        c1 for c1 in C1 if not any(c1.eq_repertoires(c2) for c2 in C2)]
+    concepts_only_in_C2 = [
+        c2 for c2 in C2 if not any(c2.eq_repertoires(c1) for c1 in C1)]
     # If the only difference in the constellations is that some concepts
     # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:
-        return _constellation_distance_simple(C1, C2, subsystem, cut)
+        return _constellation_distance_simple(C1, C2, subsystem)
     else:
-        return _constellation_distance_emd(C1, C2,
-                                           concepts_only_in_C1,
+        return _constellation_distance_emd(concepts_only_in_C1,
                                            concepts_only_in_C2,
-                                           subsystem,
-                                           cut)
+                                           subsystem)
 
 
 def conceptual_information(subsystem):
@@ -177,8 +182,7 @@ def conceptual_information(subsystem):
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    return constellation_distance(constellation(subsystem), (), subsystem,
-                                  subsystem.null_cut)
+    return constellation_distance(constellation(subsystem), (), subsystem)
 
 
 # TODO document
@@ -186,9 +190,8 @@ def _null_mip(subsystem):
     """Returns a BigMip with zero phi and empty constellations.
 
     This is the MIP associated with a reducible subsystem."""
-    return BigMip(subsystem=subsystem,
+    return BigMip(subsystem=subsystem, cut_subsystem=subsystem,
                   phi=0.0,
-                  cut=subsystem.null_cut,
                   unpartitioned_constellation=[], partitioned_constellation=[])
 
 
@@ -200,55 +203,60 @@ def _single_node_mip(subsystem):
         # TODO return the actual concept
         return BigMip(
             phi=0.5,
-            cut=Cut(subsystem.nodes, subsystem.nodes),
             unpartitioned_constellation=None,
             partitioned_constellation=None,
-            subsystem=subsystem)
+            subsystem=subsystem,
+            cut_subsystem=subsystem)
     else:
         return _null_mip(subsystem)
 
 
-# TODO document
-# TODO calculate cut network twice here and pass that to concept caching so it
-# isn't calulated for each concept. cut passing needs serious refactoring
-# anyway actually
-def _evaluate_cut(subsystem, partition, unpartitioned_constellation):
+def _evaluate_partition(uncut_subsystem, partition,
+                        unpartitioned_constellation):
+    print("[CyPhi] Evaluating partition", str(partition) + "...")
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
-    forward_constellation = constellation(subsystem, cut=forward_cut)
+    forward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
+                                      uncut_subsystem.network,
+                                      cut=forward_cut,
+                                      mice_cache=uncut_subsystem._mice_cache)
+    forward_constellation = constellation(forward_cut_subsystem)
     forward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    forward_constellation,
-                                   subsystem,
-                                   forward_cut),
-        cut=forward_cut,
+                                   uncut_subsystem),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=forward_constellation,
-        subsystem=subsystem)
+        subsystem=uncut_subsystem,
+        cut_subsystem=forward_cut_subsystem)
     # Compute backward mip.
     backward_cut = Cut(partition[1], partition[0])
-    backward_constellation = constellation(subsystem, cut=backward_cut)
+    backward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
+                                       uncut_subsystem.network,
+                                       cut=backward_cut,
+                                       mice_cache=uncut_subsystem._mice_cache)
+    backward_constellation = constellation(backward_cut_subsystem)
     backward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    backward_constellation,
-                                   subsystem,
-                                   backward_cut),
-        cut=backward_cut,
+                                   uncut_subsystem),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=backward_constellation,
-        subsystem=subsystem)
+        subsystem=uncut_subsystem,
+        cut_subsystem=backward_cut_subsystem)
+
+    print("[CyPhi] Finished evaluating partition", str(partition) + ".")
     # Choose minimal unidirectional cut.
-    mip = min(forward_mip, backward_mip)
-    # Return the mip if the subsystem with the given partition is not
-    # reducible.
-    return mip if mip.phi > constants.EPSILON else _null_mip(subsystem)
+    return min(forward_mip, backward_mip)
 
 
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
+    print("\n[CyPhi] Calculating Phi data for", str(subsystem) + "...\n")
+
     # Special case for single-node subsystems.
-    if (len(subsystem.nodes) == 1):
+    if len(subsystem) == 1:
         return _single_node_mip(subsystem)
 
     # Check for degenerate cases
@@ -263,8 +271,7 @@ def _big_mip(cache_key, subsystem):
         return _null_mip(subsystem)
 
     # Get the connectivity of just the subsystem nodes.
-    submatrix_indices = np.ix_([node.index for node in subsystem.nodes],
-                               [node.index for node in subsystem.nodes])
+    submatrix_indices = np.ix_(subsystem.node_indices, subsystem.node_indices)
     cm = subsystem.network.connectivity_matrix[submatrix_indices]
     # Get the number of strongly connected components.
     num_components, _ = connected_components(csr_matrix(cm))
@@ -273,17 +280,19 @@ def _big_mip(cache_key, subsystem):
     # =========================================================================
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
-    bipartitions = utils.bipartition(subsystem.nodes)[1:]
+    bipartitions = utils.bipartition(subsystem.node_indices)[1:]
 
-    unpartitioned_constellation = constellation(subsystem, subsystem.null_cut)
+    unpartitioned_constellation = constellation(subsystem)
     # Parallel loop over all partitions, using the specified number of cores.
     mip_candidates = Parallel(n_jobs=(constants.NUMBER_OF_CORES),
                               verbose=constants.PARALLEL_VERBOSITY)(
-        delayed(_evaluate_cut)(subsystem,
-                               partition,
-                               unpartitioned_constellation)
+        delayed(_evaluate_partition)(subsystem,
+                                     partition,
+                                     unpartitioned_constellation)
         for partition in bipartitions)
 
+    print("\n[CyPhi] ...Finished calculating Phi data for", str(subsystem)
+          + ".\n")
     return min(mip_candidates)
 
 
@@ -326,8 +335,7 @@ def subsystems(network):
 
     This is the just powerset of the network's set of nodes."""
     for subset in utils.powerset(range(network.size)):
-        yield Subsystem(subset, network.current_state, network.past_state,
-                        network)
+        yield Subsystem(subset, network)
 
 
 def complexes(network):

@@ -14,6 +14,10 @@ from .node import Node
 from . import validate, utils
 
 
+# TODO!!! raise error if user tries to change TPM or CM, double-check and document
+# that states can be changed
+
+
 class Network:
 
     """A network of nodes.
@@ -79,6 +83,7 @@ class Network:
         # probabilities can be indexed by state-tuples. In either case, the
         # size of last dimension is the number of nodes.
         self.size = tpm.shape[-1]
+        self.node_indices = tuple(range(self.size))
 
         # Get the connectivity matrix.
         if connectivity_matrix is not None:
@@ -103,21 +108,11 @@ class Network:
         self.tpm.flags.writeable = False
         self.connectivity_matrix.flags.writeable = False
 
-        tpm_hash = utils.np_hash(self.tpm)
-        cm_hash = (utils.np_hash(self.connectivity_matrix)
-                   if self.connectivity_matrix is not None else None)
-        # Only compute hash once.
-        self._hash = hash((tpm_hash,
-                           self.current_state,
-                           self.past_state,
-                           cm_hash))
+        self._tpm_hash = utils.np_hash(self.tpm)
+        self._cm_hash = utils.np_hash(self.connectivity_matrix)
 
         # Validate this network.
         validate.network(self)
-
-        # Generate the nodes.
-        self.nodes = tuple([Node(self, node_index) for node_index in
-                            range(self.size)])
 
         # TODO extend to nonbinary nodes
         self.num_states = 2 ** self.size
@@ -150,7 +145,5 @@ class Network:
         return not self.__eq__(other)
 
     def __hash__(self):
-        return self._hash
-
-    def indices2nodes(self, indices):
-        return tuple(self.nodes[i] for i in indices)
+        return hash((self._tpm_hash, self.current_state, self.past_state,
+                     self._cm_hash))

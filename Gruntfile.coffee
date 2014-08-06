@@ -24,7 +24,7 @@ module.exports = (grunt) ->
           stdout: true
           failOnError: true
       openDocs:
-        command: "open docs/_build/html/index.html"
+        command: "google-chrome docs/_build/html/index.html"
       openCoverage:
         command: "open htmlcov/index.html"
 

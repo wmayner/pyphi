@@ -62,6 +62,7 @@ class DbMemoizedFunc:
     def __call__(self, *args, **kwargs):
         return self._memoized_func(*args, **kwargs)
 
+    # TODO make this easier to use
     def get_output_key(self, args, kwargs):
         """Return the key that the output should be cached with,
         given arguments, keyword arguments, and a list of arguments to ignore."""

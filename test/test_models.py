@@ -228,13 +228,13 @@ def test_mice_repr_str():
 
 def test_concept_ordering():
     phi1 = models.Concept(
-        mechanism=(0, 1), cause=1, effect=None,
+        mechanism=(0, 1), cause=1, effect=None, subsystem=None,
         phi=1.0)
     different_phi1 = models.Concept(
-        mechanism=(), cause='different', effect=None,
+        mechanism=(), cause='different', effect=None, subsystem=None,
         phi=1.0)
     phi2 = models.Concept(
-        mechanism=0, cause='stilldifferent', effect=None,
+        mechanism=0, cause='stilldifferent', effect=None, subsystem=None,
         phi=1.0 + constants.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
@@ -246,9 +246,11 @@ def test_concept_ordering():
 
 def test_concept_odering_by_mechanism():
     small = models.Concept(
-        mechanism=(0, 1), cause=None, effect=None, phi=1.0)
+        mechanism=(0, 1), cause=None, effect=None, subsystem=None,
+        phi=1.0)
     big = models.Concept(
-        mechanism=(0, 1, 3), cause=None, effect=None, phi=1.0)
+        mechanism=(0, 1, 3), cause=None, effect=None, subsystem=None,
+        phi=1.0)
     assert small < big
     assert small <= big
     assert big > small
@@ -259,13 +261,13 @@ def test_concept_odering_by_mechanism():
 def test_concept_equality():
     phi = 1.0
     concept = models.Concept(
-        mechanism=(), cause=None, effect=None,
+        mechanism=(), cause=None, effect=None, subsystem=None,
         phi=phi)
     close_enough = models.Concept(
-        mechanism=(), cause=None, effect=None,
+        mechanism=(), cause=None, effect=None, subsystem=None,
         phi=(phi - constants.EPSILON/2))
     not_quite = models.Concept(
-        mechanism=(), cause=None, effect=None,
+        mechanism=(), cause=None, effect=None, subsystem=None,
         phi=(phi - constants.EPSILON*2))
     assert concept == close_enough
     assert concept != not_quite
@@ -275,7 +277,7 @@ def test_concept_repr_str():
     r = namedtuple('object_with_repertoire', ['repertoire'])
     concept = models.Concept(
         mechanism=(), cause=r('a_repertoire'), effect=r('a_repertoire'),
-        phi=0.0)
+        subsystem=None, phi=0.0)
     print(repr(concept))
     print(str(concept))
 
@@ -287,16 +289,16 @@ def test_concept_repr_str():
 
 def test_bigmip_ordering():
     phi1 = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=(),
+        unpartitioned_constellation=None, partitioned_constellation=None,
+        subsystem=(), cut_subsystem=(),
         phi=1.0)
     different_phi1 = models.BigMip(
-        cut='different', unpartitioned_constellation=0,
-        partitioned_constellation=None, subsystem=(),
+        unpartitioned_constellation=0, partitioned_constellation=None,
+        subsystem=(), cut_subsystem=(),
         phi=1.0)
     phi2 = models.BigMip(
-        cut=0, unpartitioned_constellation='stilldifferent',
-        partitioned_constellation=None, subsystem=(),
+        unpartitioned_constellation='stilldifferent',
+        partitioned_constellation=None, subsystem=(), cut_subsystem=(),
         phi=1.0 + constants.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
@@ -308,12 +310,12 @@ def test_bigmip_ordering():
 
 def test_bigmip_odering_by_mechanism():
     small = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=1,
+        unpartitioned_constellation=None,
+        partitioned_constellation=None, subsystem=[1], cut_subsystem=(),
         phi=1.0)
     big = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=2,
+        unpartitioned_constellation=None,
+        partitioned_constellation=None, subsystem=[1, 2], cut_subsystem=(),
         phi=1.0)
     assert small < big
     assert small <= big
@@ -325,16 +327,16 @@ def test_bigmip_odering_by_mechanism():
 def test_bigmip_equality(s):
     phi = 1.0
     bigmip = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=s,
+        unpartitioned_constellation=None, partitioned_constellation=None,
+        subsystem=s, cut_subsystem=s,
         phi=phi)
     close_enough = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=s,
+        unpartitioned_constellation=None, partitioned_constellation=None,
+        subsystem=s, cut_subsystem=s,
         phi=(phi - constants.EPSILON/2))
     not_quite = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=s,
+        unpartitioned_constellation=None, partitioned_constellation=None,
+        subsystem=s, cut_subsystem=s,
         phi=(phi - constants.EPSILON*2))
     assert bigmip == close_enough
     assert bigmip != not_quite
@@ -342,8 +344,8 @@ def test_bigmip_equality(s):
 
 def test_bigmip_repr_str():
     bigmip = models.BigMip(
-        cut=None, unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=(), phi=1.0)
+        unpartitioned_constellation=None, partitioned_constellation=None,
+        subsystem=(), cut_subsystem=(), phi=1.0)
     print(repr(bigmip))
     print(str(bigmip))
 

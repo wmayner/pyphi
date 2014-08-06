@@ -200,8 +200,8 @@ parameter_string = "direction,subsystem,cut,mechanism,purview,expected"
 @pytest.mark.parametrize(parameter_string, scenarios)
 def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     # Set up testing parameters from scenario
-    mechanism = tuple(subsystem.network.nodes[index] for index in mechanism)
-    purview = tuple(subsystem.network.nodes[index] for index in purview)
+    mechanism = tuple(subsystem.nodes[index] for index in mechanism)
+    purview = tuple(subsystem.nodes[index] for index in purview)
 
     result = subsystem.find_mip(direction, mechanism, purview)
 
@@ -216,13 +216,13 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
         expected = [
             Mip(direction=direction,
                 partition=(
-                    Part(mechanism=tuple(subsystem.network.nodes[i] for i in
+                    Part(mechanism=tuple(subsystem.nodes[i] for i in
                                          expected_partition[0].mechanism),
-                         purview=tuple(subsystem.network.nodes[i] for i in
+                         purview=tuple(subsystem.nodes[i] for i in
                                        expected_partition[0].purview)),
-                    Part(mechanism=tuple(subsystem.network.nodes[i] for i in
+                    Part(mechanism=tuple(subsystem.nodes[i] for i in
                                          expected_partition[1].mechanism),
-                         purview=tuple(subsystem.network.nodes[i] for i in
+                         purview=tuple(subsystem.nodes[i] for i in
                                        expected_partition[1].purview))
                 ),
                 mechanism=mechanism,
