@@ -253,43 +253,43 @@ def test_big_mip_single_node(s_single, flushdb):
 
 
 def test_big_mip_standard_example_sequential(s, flushdb):
-    initial = constants.NUMBER_OF_CORES
-    constants.NUMBER_OF_CORES = 1
+    initial = constants.PARALLEL_CUT_EVALUATION
+    constants.PARALLEL_CUT_EVALUATION = False
 
     mip = compute.big_mip.func(hash(s), s)
     check_mip(mip, standard_answer)
 
-    constants.NUMBER_OF_CORES = initial
+    constants.PARALLEL_CUT_EVALUATION = initial
 
 
 def test_big_mip_standard_example_parallel(s, flushdb):
-    initial = constants.NUMBER_OF_CORES
-    constants.NUMBER_OF_CORES = -2
+    initial = (constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES)
+    constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = True, -2
 
     mip = compute.big_mip.func(hash(s), s)
     check_mip(mip, standard_answer)
 
-    constants.NUMBER_OF_CORES = initial
+    constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = initial
 
 
 def test_big_mip_noised_example_sequential(s_noised, flushdb):
-    initial = constants.NUMBER_OF_CORES
-    constants.NUMBER_OF_CORES = 1
+    initial = constants.PARALLEL_CUT_EVALUATION
+    constants.PARALLEL_CUT_EVALUATION = False
 
     mip = compute.big_mip.func(hash(s_noised), s_noised)
     check_mip(mip, noised_answer)
 
-    constants.NUMBER_OF_CORES = initial
+    constants.PARALLEL_CUT_EVALUATION = initial
 
 
 def test_big_mip_noised_example_parallel(s_noised, flushdb):
-    initial = constants.NUMBER_OF_CORES
-    constants.NUMBER_OF_CORES = -2
+    initial = (constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES)
+    constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = True, -2
 
     mip = compute.big_mip.func(hash(s_noised), s_noised)
     check_mip(mip, noised_answer)
 
-    constants.NUMBER_OF_CORES = initial
+    constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = initial
 
 
 # TODO!! add more assertions for the smaller subsystems
