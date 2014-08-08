@@ -4,7 +4,12 @@
 ---
 # The number of decimal places to which Phi values are considered accurate.
 PRECISION: 6
-# Choose whether to use multiple CPUs in evaluating subsystem cuts.
+# Controls whether cuts are evaluated in parallel, which requires more
+# memory. If cuts are evaluated sequentially, only two BigMips need to be
+# in memory at a time.
+PARALLEL_CUT_EVALUATION: true
+# The number of CPU cores to use in parallel cut evaluation. -1 means all
+# available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
 # The verbosity of parallel computation (integer from 0 to 100).
 PARALLEL_VERBOSITY: 20
