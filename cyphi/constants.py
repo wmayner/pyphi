@@ -104,9 +104,16 @@ default_config = {
         'database_name': 'cyphi',
         'collection_name': 'cache'
     },
+    # Controls whether cuts are evaluated in parallel, which requires more
+    # memory. If cuts are evaluated sequentially, only two BigMips need to be
+    # in memory at a time.
+    'PARALLEL_CUT_EVALUATION': True,
     # The number of CPU cores to use in parallel cut evaluation. -1 means all
     # available cores, -2 means all but one available cores, etc.
     'NUMBER_OF_CORES': -1,
+    # The verbosity of parallel computation (integer from 0 to 100). See
+    # documentation for `joblib.Parallel`.
+    'PARALLEL_VERBOSITY': 20,
     # Controls whether the concept caching system is used.
     'CACHE_CONCEPTS': True,
     # Controls whether TPMs should be normalized as part of concept
@@ -124,9 +131,6 @@ default_config = {
     # In some applications of this library, the user may prefer to define
     # single-node subsystems as having 0.5 Phi.
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
-    # The verbosity of parallel computation. See documentation for
-    # `joblib.Parallel`.
-    'PARALLEL_VERBOSITY': 20,
 }
 
 

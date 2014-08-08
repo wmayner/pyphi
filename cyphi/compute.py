@@ -213,7 +213,7 @@ def _single_node_mip(subsystem):
 
 def _evaluate_partition(uncut_subsystem, partition,
                         unpartitioned_constellation):
-    print("[CyPhi] Evaluating partition", str(partition) + "...")
+    print("[CyPhi]     Evaluating partition", str(partition) + "...")
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
     forward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
@@ -245,7 +245,7 @@ def _evaluate_partition(uncut_subsystem, partition,
         subsystem=uncut_subsystem,
         cut_subsystem=backward_cut_subsystem)
 
-    print("[CyPhi] Finished evaluating partition", str(partition) + ".")
+    print("[CyPhi]     Finished evaluating partition", str(partition) + ".")
     # Choose minimal unidirectional cut.
     return min(forward_mip, backward_mip)
 
@@ -253,7 +253,7 @@ def _evaluate_partition(uncut_subsystem, partition,
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
-    print("[CyPhi] Calculating Phi data for", str(subsystem) + "...\n")
+    print("[CyPhi] Calculating Phi data for", str(subsystem) + "...")
 
     # Special case for single-node subsystems.
     if len(subsystem) == 1:
@@ -266,10 +266,8 @@ def _big_mip(cache_key, subsystem):
     #   - empty; or
     #   - an elementary mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null MIP.
-
     if not subsystem:
         return _null_mip(subsystem)
-
     # Get the connectivity of just the subsystem nodes.
     submatrix_indices = np.ix_(subsystem.node_indices, subsystem.node_indices)
     cm = subsystem.network.connectivity_matrix[submatrix_indices]
@@ -283,17 +281,29 @@ def _big_mip(cache_key, subsystem):
     bipartitions = utils.bipartition(subsystem.node_indices)[1:]
 
     unpartitioned_constellation = constellation(subsystem)
-    # Parallel loop over all partitions, using the specified number of cores.
-    mip_candidates = Parallel(n_jobs=(constants.NUMBER_OF_CORES),
-                              verbose=constants.PARALLEL_VERBOSITY)(
-        delayed(_evaluate_partition)(subsystem,
-                                     partition,
-                                     unpartitioned_constellation)
-        for partition in bipartitions)
 
-    print("[CyPhi] ...Finished calculating Phi data for", str(subsystem)
-          + ".\n")
-    return min(mip_candidates)
+    if constants.PARALLEL_CUT_EVALUATION:
+        # Parallel loop over all partitions, using the specified number of
+        # cores.
+        mip_candidates = Parallel(n_jobs=(constants.NUMBER_OF_CORES),
+                                  verbose=constants.PARALLEL_VERBOSITY)(
+            delayed(_evaluate_partition)(subsystem, partition,
+                                         unpartitioned_constellation)
+            for partition in bipartitions)
+        result = min(mip_candidates)
+    else:
+        # Sequentially loop over all partitions, holding only two BigMips in
+        # memory at once.
+        min_phi, min_mip = float('inf'), _null_mip(subsystem)
+        for partition in bipartitions:
+            new_mip = _evaluate_partition(
+                subsystem, partition, unpartitioned_constellation)
+            if new_mip.phi < min_phi:
+                min_phi, min_mip = new_mip.phi, new_mip
+        result = min_mip
+
+    print("[CyPhi] Finished calculating Phi data for", str(subsystem) + ".")
+    return result
 
 
 # Wrapper to ensure that the cache key is the native hash of the subsystem, so
