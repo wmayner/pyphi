@@ -24,7 +24,6 @@ The various options are listed here with their defaults:
 - Set the configuration for the MongoDB database backend. This only has an
   effect if the caching backend is set to use the database.
 
-    >>> import cyphi
     >>> cyphi.constants.MONGODB_CONFIG['host']
     'localhost'
     >>> cyphi.constants.MONGODB_CONFIG['port']
@@ -37,21 +36,25 @@ The various options are listed here with their defaults:
 - If the caching backend is set to use the filesystem, the cache will be stored
   in this directory.
 
-    >>> import cyphi
     >>> cyphi.constants.PERSISTENT_CACHE_DIRECTORY
     '__cyphi_cache__'
+
+- Controls whether system cuts are evaluated in parallel, which requires more
+  memory. If cuts are evaluated sequentially, only two |BigMip|s need to be in
+  memory at once.
+
+    >>> cyphi.constants.PARALLEL_CUT_EVALUATION
+    True
 
 - Control the number of CPU cores to evaluate unidirectional cuts. Negative
   numbers count backwards from the total number of available cores, with ``-1``
   meaning "use all available cores".
 
-    >>> import cyphi
     >>> cyphi.constants.NUMBER_OF_CORES
     -1
 
 - Controls the verbosity level for parallel computation (0--100).
 
-    >>> import cyphi
     >>> cyphi.constants.PARALLEL_VERBOSITY
     20
 
@@ -59,7 +62,6 @@ The various options are listed here with their defaults:
   a single node with a self-loop to be ``0.5``. If set to False, their
   |big_phi| will be actually be computed (to be zero, in this implementation).
 
-    >>> import cyphi
     >>> cyphi.constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
     False
 
@@ -67,7 +69,6 @@ The various options are listed here with their defaults:
   these can quickly use up all the memory on a system; to avoid thrashing, this
   options limits the percentage of a system's RAM that the LRU caches can use.
 
-    >>> import cyphi
     >>> cyphi.constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE
     50
 
@@ -80,7 +81,6 @@ The various options are listed here with their defaults:
   be considered insignificant and treated as zero. The default value is about
   as accurate as the EMD computations get.
 
-    >>> import cyphi
     >>> cyphi.constants.PRECISION
     6
 """
