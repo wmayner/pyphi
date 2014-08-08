@@ -280,7 +280,9 @@ def _big_mip(cache_key, subsystem):
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = utils.bipartition(subsystem.node_indices)[1:]
 
+    print("[CyPhi]     Finding unpartitioned constellation...")
     unpartitioned_constellation = constellation(subsystem)
+    print("[CyPhi]     Found unpartitioned constellation.")
 
     if constants.PARALLEL_CUT_EVALUATION:
         # Parallel loop over all partitions, using the specified number of
@@ -295,9 +297,10 @@ def _big_mip(cache_key, subsystem):
         # Sequentially loop over all partitions, holding only two BigMips in
         # memory at once.
         min_phi, min_mip = float('inf'), _null_mip(subsystem)
-        for partition in bipartitions:
+        for i, partition in enumerate(bipartitions):
             new_mip = _evaluate_partition(
                 subsystem, partition, unpartitioned_constellation)
+            print("[CyPhi]         [", i + 1, "of", len(bipartitions), "]")
             if new_mip.phi < min_phi:
                 min_phi, min_mip = new_mip.phi, new_mip
         result = min_mip
