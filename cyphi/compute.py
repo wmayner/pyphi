@@ -9,6 +9,7 @@ Methods for computing concepts, constellations, and integrated information of
 subsystems.
 """
 
+import logging
 import functools
 import numpy as np
 from joblib import Parallel, delayed
@@ -21,6 +22,10 @@ from .models import Concept, Cut, BigMip
 from .network import Network
 from .subsystem import Subsystem
 from .lru_cache import lru_cache
+
+
+# Create a logger for this module.
+log = logging.getLogger(__name__)
 
 
 def concept(subsystem, mechanism):
@@ -213,7 +218,7 @@ def _single_node_mip(subsystem):
 
 def _evaluate_partition(uncut_subsystem, partition,
                         unpartitioned_constellation):
-    print("[CyPhi]     Evaluating partition", str(partition) + "...")
+    log.info("    Evaluating partition " + str(partition) + "...")
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
     forward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
@@ -245,7 +250,7 @@ def _evaluate_partition(uncut_subsystem, partition,
         subsystem=uncut_subsystem,
         cut_subsystem=backward_cut_subsystem)
 
-    print("[CyPhi]     Finished evaluating partition", str(partition) + ".")
+    log.info("    Finished evaluating partition " + str(partition) + ".")
     # Choose minimal unidirectional cut.
     return min(forward_mip, backward_mip)
 
@@ -253,7 +258,7 @@ def _evaluate_partition(uncut_subsystem, partition,
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
-    print("[CyPhi] Calculating Phi data for", str(subsystem) + "...")
+    log.info("Calculating Phi data for " + str(subsystem) + "...")
 
     # Special case for single-node subsystems.
     if len(subsystem) == 1:
@@ -280,9 +285,9 @@ def _big_mip(cache_key, subsystem):
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = utils.bipartition(subsystem.node_indices)[1:]
 
-    print("[CyPhi]     Finding unpartitioned constellation...")
+    log.info("    Finding unpartitioned constellation...")
     unpartitioned_constellation = constellation(subsystem)
-    print("[CyPhi]     Found unpartitioned constellation.")
+    log.info("    Found unpartitioned constellation.")
 
     if constants.PARALLEL_CUT_EVALUATION:
         # Parallel loop over all partitions, using the specified number of
@@ -300,12 +305,13 @@ def _big_mip(cache_key, subsystem):
         for i, partition in enumerate(bipartitions):
             new_mip = _evaluate_partition(
                 subsystem, partition, unpartitioned_constellation)
-            print("[CyPhi]         [", i + 1, "of", len(bipartitions), "]")
+            log.info("        [" + str(i + 1) + " of " + str(len(bipartitions))
+                     + "]")
             if new_mip.phi < min_phi:
                 min_phi, min_mip = new_mip.phi, new_mip
         result = min_mip
 
-    print("[CyPhi] Finished calculating Phi data for", str(subsystem) + ".")
+    log.info("Finished calculating Phi data for" + str(subsystem) + ".")
     return result
 
 
