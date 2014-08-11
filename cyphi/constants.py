@@ -86,8 +86,8 @@ The various options are listed here with their defaults:
 """
 
 from pprint import pprint
+import os
 import sys
-import errno
 import yaml
 import joblib
 
@@ -139,17 +139,13 @@ CYPHI_CONFIG_FILE = 'cyphi_config.yml'
 
 
 # Try to load the config file, falling back to the default configuration.
-try:
+if os.path.exists(CYPHI_CONFIG_FILE):
     with open(CYPHI_CONFIG_FILE) as f:
         config = yaml.load(f)
         print("\n[CyPhi] Loaded configuration from", CYPHI_CONFIG_FILE)
-except OSError as e:
-    if e.errno == errno.ENOENT:
-        config = default_config
-        print("\n[CyPhi] Using default configuration (no config file "
-              "provided)")
-    else:
-        raise e
+else:
+    config = default_config
+    print("\n[CyPhi] Using default configuration (no config file provided)")
 
 
 # Get a reference to this module's dictionary..
