@@ -25,3 +25,4 @@ results
 *.egg-info
 dump.rdb
 *.log
+.venv
