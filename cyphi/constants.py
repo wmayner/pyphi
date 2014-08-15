@@ -92,18 +92,8 @@ import yaml
 import joblib
 
 # TODO: document mongo config
-# TODO: Use proper logging
 # Defaults for configurable constants
 default_config = {
-    # The maximum percentage of RAM that CyPhi should use for caching.
-    'MAXIMUM_CACHE_MEMORY_PERCENTAGE': 50,
-    # MongoDB configuration.
-    'MONGODB_CONFIG': {
-        'host': 'localhost',
-        'port': 27017,
-        'database_name': 'cyphi',
-        'collection_name': 'cache'
-    },
     # Controls whether cuts are evaluated in parallel, which requires more
     # memory. If cuts are evaluated sequentially, only two BigMips need to be
     # in memory at a time.
@@ -120,6 +110,29 @@ default_config = {
     # normalization. TPM normalization increases the chances that a precomputed
     # concept can be used again, but is expensive.
     'NORMALIZE_TPMS': True,
+    # The maximum percentage of RAM that CyPhi should use for caching.
+    'MAXIMUM_CACHE_MEMORY_PERCENTAGE': 50,
+    # MongoDB configuration.
+    'MONGODB_CONFIG': {
+        'host': 'localhost',
+        'port': 27017,
+        'database_name': 'cyphi',
+        'collection_name': 'test'
+    },
+    # These are the settings for CyPhi logging.
+    'LOGGING_CONFIG': {
+        'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s',
+        # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
+        'file': {
+            'enabled': False,
+            'level': 'INFO',
+            'filename': 'cyphi.log'
+        },
+        'stdout': {
+            'enabled': True,
+            'level': 'INFO'
+        }
+    },
     # The caching system to use. "fs" means cache results in a subdirectory of
     # the current directory; "db" means connect to a database and store the
     # results there.
@@ -130,7 +143,7 @@ default_config = {
     'PRECISION': 6,
     # In some applications of this library, the user may prefer to define
     # single-node subsystems as having 0.5 Phi.
-    'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
+    'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False
 }
 
 

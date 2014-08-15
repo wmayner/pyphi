@@ -2,8 +2,6 @@
 # ~~~~~~~~~~~~~~~~~~~
 # See the documentation for ``cyphi.constants`` for more info.
 ---
-# The number of decimal places to which Phi values are considered accurate.
-PRECISION: 6
 # Controls whether cuts are evaluated in parallel, which requires more
 # memory. If cuts are evaluated sequentially, only two BigMips need to be
 # in memory at a time.
@@ -13,23 +11,12 @@ PARALLEL_CUT_EVALUATION: true
 NUMBER_OF_CORES: -1
 # The verbosity of parallel computation (integer from 0 to 100).
 PARALLEL_VERBOSITY: 20
-# In some applications of this library, you may prefer to define single-nodes
-# with a self-loop as having 0.5 Phi, a priori.
-SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 # Controls whether concepts are cached.
 CACHE_CONCEPTS: true
 # Controls whether concepts should be normalized before being cached.
 # Normalization increases the chances that a precomputed concept can be used
 # again, but is expensive.
 NORMALIZE_TPMS: true
-# The caching system to use. "fs" means cache the results on the local
-# filesystem, in a subdirectory of the current directory; "db" means connect to
-# a database and store the results there.
-CACHING_BACKEND: "db"
-# The directory to use for local persistent caching on the filesystem. This
-# only has an effect if the caching backend is the filesystem and not a
-# database.
-PERSISTENT_CACHE_DIRECTORY: "__cyphi_cache__"
 # Some functions are memoized using an in-memory LRU-cache. This is the maximum
 # percentage of memory that each CyPhi process' caches can use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
@@ -51,3 +38,16 @@ LOGGING_CONFIG:
     stdout:
         enabled: true
         level: "INFO"
+# The caching system to use. "fs" means cache the results on the local
+# filesystem, in a subdirectory of the current directory; "db" means connect to
+# a database and store the results there.
+CACHING_BACKEND: "db"
+# The directory to use for local persistent caching on the filesystem. This
+# only has an effect if the caching backend is the filesystem and not a
+# database.
+PERSISTENT_CACHE_DIRECTORY: "__cyphi_cache__"
+# The number of decimal places to which Phi values are considered accurate.
+PRECISION: 6
+# In some applications of this library, you may prefer to define single-nodes
+# with a self-loop as having 0.5 Phi, a priori.
+SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
