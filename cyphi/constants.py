@@ -119,7 +119,7 @@ default_config = {
     # Controls whether TPMs should be normalized as part of concept
     # normalization. TPM normalization increases the chances that a precomputed
     # concept can be used again, but is expensive.
-    'NORMALZE_TPMS': True,
+    'NORMALIZE_TPMS': True,
     # The caching system to use. "fs" means cache results in a subdirectory of
     # the current directory; "db" means connect to a database and store the
     # results there.
