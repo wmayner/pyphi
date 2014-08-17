@@ -57,15 +57,12 @@ Now we construct the network itself with the arguments we just created:
 
 The next step is to define a subsystem for which we want to evaluate |big_phi|.
 To make a subsystem, we need the indices of subset of nodes which should be
-included in it, the current and past state for which we want to do |big_phi|
-calculations, and the network that the subsystem belongs to.
+included in it and the network that the subsystem belongs to.
 
 In this case, we want the |big_phi| of the entire network, so we simply include
-every node in the network in our subsystem, and make the current and past state
-of the subsystem the same as that of the network:
+every node in the network in our subsystem:
 
-    >>> subsystem = Subsystem(range(network.size),
-    ...                       network)
+    >>> subsystem = Subsystem(range(network.size), network)
 
 Now we use :func:`cyphi.compute.big_phi` function to compute the |big_phi| of
 our subsystem:
@@ -78,7 +75,7 @@ If we want to take a deeper look at the integrated-information-theoretic
 properties of our network, we can access all the intermediate quantities and
 structures that are caclulated in the course of arriving at a final |big_phi|
 value by using :func:`cyphi.compute.big_mip`. This returns a deeply nested
-object , :class:`cyphi.models.BigMip`, that contains data about the subsystem's
+object, :class:`cyphi.models.BigMip`, that contains data about the subsystem's
 constellation of concepts, cause and effect repertoires, etc.
 
     >>> mip = cyphi.compute.big_mip(subsystem)
@@ -93,7 +90,7 @@ structures.
 
 .. note::
 
-    You can play with the examples discussed here by using the
+    The network and subsystem discussed here are returned by the
     :func:`cyphi.examples.network` and :func:`cyphi.examples.subsystem`
     functions.
 """
