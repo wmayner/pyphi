@@ -31,7 +31,7 @@ The various options are listed here with their defaults:
     >>> cyphi.constants.MONGODB_CONFIG['database_name']
     'cyphi'
     >>> cyphi.constants.MONGODB_CONFIG['collection_name']
-    'cache'
+    'test'
 
 - If the caching backend is set to use the filesystem, the cache will be stored
   in this directory.
