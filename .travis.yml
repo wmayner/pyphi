@@ -4,7 +4,7 @@ language: python
 services: mongodb
 
 python:
-  - "3.3"
+  - "3.4"
 
 # Setup miniconda
 before_install:
