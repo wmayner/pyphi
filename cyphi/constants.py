@@ -106,6 +106,8 @@ default_config = {
     'PARALLEL_VERBOSITY': 20,
     # Controls whether the concept caching system is used.
     'CACHE_CONCEPTS': True,
+    # Controls whether BigMips are cached and retreived.
+    'CACHE_BIGMIPS': True,
     # Controls whether TPMs should be normalized as part of concept
     # normalization. TPM normalization increases the chances that a precomputed
     # concept can be used again, but is expensive.
