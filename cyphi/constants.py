@@ -89,6 +89,7 @@ from pprint import pprint
 import os
 import sys
 import yaml
+import pickle
 import joblib
 
 # TODO: document mongo config
@@ -200,7 +201,7 @@ DIRECTIONS = ('past', 'future')
 FILESYSTEM = 'fs'
 DATABASE = 'db'
 # The protocol used for pickling objects.
-PICKLE_PROTOCOL = 4
+PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL
 # Create the joblib Memory object for persistent caching without a
 # database.
 joblib_memory = joblib.Memory(cachedir=config['PERSISTENT_CACHE_DIRECTORY'],
