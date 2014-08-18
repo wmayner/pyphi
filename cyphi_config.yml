@@ -14,7 +14,7 @@ PARALLEL_VERBOSITY: 20
 # Controls whether concepts are cached.
 CACHE_CONCEPTS: true
 # Controls whether BigMips are cached and retreived.
-CACHE_BIGMIPS: false
+CACHE_BIGMIPS: true
 # Controls whether concepts should be normalized before being cached.
 # Normalization increases the chances that a precomputed concept can be used
 # again, but is expensive.
