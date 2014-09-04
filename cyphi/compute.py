@@ -313,6 +313,8 @@ def _big_mip(cache_key, subsystem):
         result = min_mip
 
     log.info("Finished calculating Phi data for" + str(subsystem) + ".")
+    log.debug("RESULT: \n" + str(result))
+
     return result
 
 
@@ -347,8 +349,11 @@ def main_complex(network):
         raise ValueError(
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
-    return max(complexes(network))
-
+    log.info("Calculating Phi data for " + str(subsystem) + "...")
+    result = max(complexes(network))
+    log.info("Finished calculating main complex for" + str(network) + ".")
+    log.debug("RESULT: \n" + str(result))
+    return result
 
 def subsystems(network):
     """Return a generator of all possible subsystems of a network.
