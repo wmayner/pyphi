@@ -112,7 +112,7 @@ def _constellation_distance_simple(C1, C2, subsystem):
     # Make C1 refer to the bigger constellation
     if len(C2) > len(C1):
         C1, C2 = C2, C1
-    destroyed = [c for c in C1 if c not in C2]
+    destroyed = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
     return sum(c.phi * concept_distance(c, subsystem.null_concept)
                for c in destroyed)
 
@@ -170,9 +170,9 @@ def constellation_distance(C1, C2, subsystem):
         concept-space.
     """
     concepts_only_in_C1 = [
-        c1 for c1 in C1 if not any(c1.eq_repertoires(c2) for c2 in C2)]
+        c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
     concepts_only_in_C2 = [
-        c2 for c2 in C2 if not any(c2.eq_repertoires(c1) for c1 in C1)]
+        c2 for c2 in C2 if not any(c2.emd_eq(c1) for c1 in C1)]
     # If the only difference in the constellations is that some concepts
     # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:

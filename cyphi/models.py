@@ -390,8 +390,14 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         if self.subsystem.network != other.subsystem.network:
             raise Exception("Can't compare repertoires of concepts from "
                             "different networks.")
-        return (np.array_equal(self.cause.repertoire, other.cause.repertoire) and
-                np.array_equal(self.effect.repertoire, other.effect.repertoire))
+        return (
+            np.array_equal(self.cause.repertoire, other.cause.repertoire) and
+            np.array_equal(self.effect.repertoire, other.effect.repertoire))
+
+    def emd_eq(self, other):
+        """Return whether this concept is equal to another in the context of an
+        EMD calculation."""
+        return self.mechanism == other.mechanism and self.eq_repertoires(other)
 
     def expand_cause_repertoire(self):
         """Expands a cause repertoire to be a distribution over an entire
