@@ -31,7 +31,7 @@ MONGODB_CONFIG:
     collection_name: "test"
 # These are the settings for CyPhi logging.
 LOGGING_CONFIG:
-    format: "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
+    format: "%(asctime)s [%(name)s.%(funcName)s] %(levelname)s: %(message)s"
     # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
     file:
         enabled: true
