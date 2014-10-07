@@ -61,6 +61,7 @@ def concept(subsystem, mechanism):
                        subsystem=subsystem)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Passed prechecks; pass it over to the concept caching logic if enabled.
+    # Concept caching is only available if the caching backend is a database.
     if (constants.CACHE_CONCEPTS and
             constants.CACHING_BACKEND == constants.DATABASE):
         return _concept(subsystem, mechanism)

@@ -11,7 +11,9 @@ PARALLEL_CUT_EVALUATION: true
 NUMBER_OF_CORES: -1
 # The verbosity of parallel computation (integer from 0 to 100).
 PARALLEL_VERBOSITY: 20
-# Controls whether concepts are cached.
+# Controls whether concepts are cached. Note that concept caching is only
+# available if the caching backend is a database; otherwise, this setting has
+# no effect, and concepts will not be cached.
 CACHE_CONCEPTS: false
 # Controls whether BigMips are cached and retreived.
 CACHE_BIGMIPS: false
