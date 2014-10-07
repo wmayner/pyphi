@@ -128,6 +128,8 @@ rst_prolog = """
 .. |PRECISION| replace:: :const:`constants.PRECISION`
 .. |EPSILON| replace:: :const:`constants.EPSILON`
 .. |CM[i][j] = 1| replace:: :math:`CM_{i,j} = 1`
+.. |BigMip| replace:: :class:`cyphi.models.BigMip`
+.. |Concept| replace:: :class:`cyphi.models.Concept`
 """
 
 # -- Options for Napoleon (docstring format extension) --------------------

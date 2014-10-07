@@ -11,35 +11,29 @@ The configuration is loaded upon import from a YAML file in the directory where
 CyPhi is run: ``cyphi_config.yml``. If no file is found, the default
 configuration is used.
 
-The various options are listed here with their defaults:
+The various options are listed here with their defaults.
 
-- Control whether precomputed results are stored and read from a database or
-  from a local filesystem-based cache in the current directory. Set this to
-  'fs' for the filesystem, 'db' for the database.
+
+System resource configuration
+`````````````````````````````
+These settings control how much processing power and memory is available for
+CyPhi to use. The default values may not be appropriate for your use-case or
+machine, so **please check these settings before running anything**. Otherwise,
+there is a risk that simulations might crash (potentially after running for a
+long time!), resulting in data loss.
+
+- CyPhi employs several in-memory LRU-caches to speed up computation. However,
+  these can quickly use up all the memory on a system; to avoid thrashing, this
+  options limits the percentage of a system's RAM that the LRU caches can use.
+  **NOTE:** If you are running multiple instances of CyPhi on the same machine,
+  then the number of CyPhi instances multiplied by this number should be less
+  than ~80.
 
     >>> import cyphi
-    >>> cyphi.constants.CACHING_BACKEND
-    'fs'
+    >>> cyphi.constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE
+    50
 
-- Set the configuration for the MongoDB database backend. This only has an
-  effect if the caching backend is set to use the database.
-
-    >>> cyphi.constants.MONGODB_CONFIG['host']
-    'localhost'
-    >>> cyphi.constants.MONGODB_CONFIG['port']
-    27017
-    >>> cyphi.constants.MONGODB_CONFIG['database_name']
-    'cyphi'
-    >>> cyphi.constants.MONGODB_CONFIG['collection_name']
-    'test'
-
-- If the caching backend is set to use the filesystem, the cache will be stored
-  in this directory.
-
-    >>> cyphi.constants.PERSISTENT_CACHE_DIRECTORY
-    '__cyphi_cache__'
-
-- Controls whether system cuts are evaluated in parallel, which requires more
+- Control whether system cuts are evaluated in parallel, which requires more
   memory. If cuts are evaluated sequentially, only two |BigMip|s need to be in
   memory at once.
 
@@ -53,11 +47,107 @@ The various options are listed here with their defaults:
     >>> cyphi.constants.NUMBER_OF_CORES
     -1
 
-- Controls the verbosity level for parallel computation (0--100).
+
+Caching system configuration
+````````````````````````````
+CyPhi is equipped with a transparent caching system for |BigMip|s and
+|Concept|s, which stores them as they are computed to avoid having to recompute
+them later. This makes it easy to play around interactively with the program,
+or to accumulate results with minimal effort. For larger projects, however, it
+is recommended that you manage the results explicitly, rather than relying on
+the cache. For this reason it is disabled by default.
+
+- Control whether |BigMip|s are cached and retreived.
+
+    >>> cyphi.constants.CACHE_BIGMIPS
+    False
+
+- Control whether the concept caching system is used.
+
+    >>> cyphi.constants.CACHE_CONCEPTS
+    False
+
+- Control whether precomputed results are stored and read from a database or
+  from a local filesystem-based cache in the current directory. Set this to
+  'fs' for the filesystem, 'db' for the database. Caching results on the
+  filesystem is the easiest to use but least robust caching system. Caching
+  results in a database is more robust, but requires installing MongoDB.
+
+    >>> cyphi.constants.CACHING_BACKEND
+    'fs'
+
+- If the caching backend is set to use the filesystem, the cache will be stored
+  in this directory. This directory can be copied and moved around if you want
+  to reuse results _e.g._ on a another computer, but it must be in the same
+  directory from which CyPhi is being run.
+
+    >>> cyphi.constants.PERSISTENT_CACHE_DIRECTORY
+    '__cyphi_cache__'
+
+- Set the configuration for the MongoDB database backend. This only has an
+  effect if the caching backend is set to use the database.
+
+    >>> cyphi.constants.MONGODB_CONFIG['host']
+    'localhost'
+    >>> cyphi.constants.MONGODB_CONFIG['port']
+    27017
+    >>> cyphi.constants.MONGODB_CONFIG['database_name']
+    'cyphi'
+    >>> cyphi.constants.MONGODB_CONFIG['collection_name']
+    'test'
+
+- Control whether TPMs should be normalized as part of concept normalization.
+  TPM normalization increases the chances that a precomputed concept can be
+  used again, but is expensive.
+
+    >>> cyphi.constants.NORMALIZE_TPMS
+    True
+
+
+Logging configuration
+`````````````````````
+These are the settings for CyPhi logging. You can control the format of the
+logs and the name of the log file. Logs can be written to standard output, a
+file, both, or none. See the `documentation on Python's logger
+<https://docs.python.org/3.4/library/logging.html>`_ for more information.
+
+- Control whether logs are written to a file.
+
+    >>> cyphi.constants.LOGGING_CONFIG['file']['enabled']
+    True
+
+- Control the name of the logfile.
+
+    >>> cyphi.constants.LOGGING_CONFIG['file']['filename']
+    'cyphi.log'
+
+- Control the concern level of file logging. Can be one of ``'DEBUG'``,
+  ``'INFO'``, ``'WARNING'``, ``'ERROR'``, or ``'CRITICAL'``.
+
+    >>> cyphi.constants.LOGGING_CONFIG['file']['level']
+    'INFO'
+
+- Control whether logs are written to standard output.
+
+    >>> cyphi.constants.LOGGING_CONFIG['stdout']['enabled']
+    True
+
+- Control the concern level of standard output logging. Takes the same levels
+  as file logging.
+
+    >>> cyphi.constants.LOGGING_CONFIG['stdout']['level']
+    'INFO'
+
+- If parallel computation is enabled, it will have its own, separate messages,
+  which are always sent to standard output. This setting controls their verbosity
+  (0--100).
 
     >>> cyphi.constants.PARALLEL_VERBOSITY
     20
 
+
+Theoretical configuration
+`````````````````````````
 - If set to ``True``, this defines the Phi value of subsystems containing only
   a single node with a self-loop to be ``0.5``. If set to False, their
   |big_phi| will be actually be computed (to be zero, in this implementation).
@@ -65,13 +155,9 @@ The various options are listed here with their defaults:
     >>> cyphi.constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
     False
 
-- CyPhi employs several in-memory LRU-caches to speed up computation. However,
-  these can quickly use up all the memory on a system; to avoid thrashing, this
-  options limits the percentage of a system's RAM that the LRU caches can use.
 
-    >>> cyphi.constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE
-    50
-
+Numerical configuration
+```````````````````````
 - Computations in CyPhi rely on finding the Earth Mover's Distance. This is
   done via an external C++ library that uses flow-optimization to find a good
   approximation of the EMD. Consequently, systems with zero |big_phi| will
@@ -83,6 +169,7 @@ The various options are listed here with their defaults:
 
     >>> cyphi.constants.PRECISION
     6
+
 """
 
 from pprint import pprint

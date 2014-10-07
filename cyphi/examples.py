@@ -75,8 +75,8 @@ If we want to take a deeper look at the integrated-information-theoretic
 properties of our network, we can access all the intermediate quantities and
 structures that are caclulated in the course of arriving at a final |big_phi|
 value by using :func:`cyphi.compute.big_mip`. This returns a deeply nested
-object, :class:`cyphi.models.BigMip`, that contains data about the subsystem's
-constellation of concepts, cause and effect repertoires, etc.
+object, |BigMip|, that contains data about the subsystem's constellation of
+concepts, cause and effect repertoires, etc.
 
     >>> mip = cyphi.compute.big_mip(subsystem)
 
