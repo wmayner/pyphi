@@ -19,7 +19,7 @@ The various options are listed here with their defaults:
 
     >>> import cyphi
     >>> cyphi.constants.CACHING_BACKEND
-    'db'
+    'fs'
 
 - Set the configuration for the MongoDB database backend. This only has an
   effect if the caching backend is set to use the database.
@@ -106,9 +106,9 @@ default_config = {
     # documentation for `joblib.Parallel`.
     'PARALLEL_VERBOSITY': 20,
     # Controls whether the concept caching system is used.
-    'CACHE_CONCEPTS': True,
+    'CACHE_CONCEPTS': False,
     # Controls whether BigMips are cached and retreived.
-    'CACHE_BIGMIPS': True,
+    'CACHE_BIGMIPS': False,
     # Controls whether TPMs should be normalized as part of concept
     # normalization. TPM normalization increases the chances that a precomputed
     # concept can be used again, but is expensive.
@@ -120,14 +120,14 @@ default_config = {
         'host': 'localhost',
         'port': 27017,
         'database_name': 'cyphi',
-        'collection_name': 'test'
+        'collection_name': 'cache'
     },
     # These are the settings for CyPhi logging.
     'LOGGING_CONFIG': {
         'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s',
         # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
         'file': {
-            'enabled': False,
+            'enabled': True,
             'level': 'INFO',
             'filename': 'cyphi.log'
         },
@@ -139,7 +139,7 @@ default_config = {
     # The caching system to use. "fs" means cache results in a subdirectory of
     # the current directory; "db" means connect to a database and store the
     # results there.
-    'CACHING_BACKEND': 'db',
+    'CACHING_BACKEND': 'fs',
     # Directory for the persistent joblib Memory cache.
     'PERSISTENT_CACHE_DIRECTORY': '__cyphi_cache__',
     # The number of decimal points to which phi values are considered accurate

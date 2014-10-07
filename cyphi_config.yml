@@ -12,9 +12,9 @@ NUMBER_OF_CORES: -1
 # The verbosity of parallel computation (integer from 0 to 100).
 PARALLEL_VERBOSITY: 20
 # Controls whether concepts are cached.
-CACHE_CONCEPTS: true
+CACHE_CONCEPTS: false
 # Controls whether BigMips are cached and retreived.
-CACHE_BIGMIPS: true
+CACHE_BIGMIPS: false
 # Controls whether concepts should be normalized before being cached.
 # Normalization increases the chances that a precomputed concept can be used
 # again, but is expensive.
@@ -34,7 +34,7 @@ LOGGING_CONFIG:
     format: "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
     # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
     file:
-        enabled: false
+        enabled: true
         level: "INFO"
         filename: "cyphi.log"
     stdout:
@@ -43,7 +43,7 @@ LOGGING_CONFIG:
 # The caching system to use. "fs" means cache the results on the local
 # filesystem, in a subdirectory of the current directory; "db" means connect to
 # a database and store the results there.
-CACHING_BACKEND: "db"
+CACHING_BACKEND: "fs"
 # The directory to use for local persistent caching on the filesystem. This
 # only has an effect if the caching backend is the filesystem and not a
 # database.
