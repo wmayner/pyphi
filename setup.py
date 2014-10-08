@@ -32,8 +32,8 @@ test_require = [
 
 setup(
     name="cyphi",
-    version='0.0.2',
-    description='Python library for computing integrated information.',
+    version='0.1.0',
+    description='A Python library for computing integrated information.',
     author='Will Mayner',
     author_email='wmayner@gmail.com',
     long_description=readme,

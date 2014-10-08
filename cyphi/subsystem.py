@@ -26,7 +26,19 @@ class Subsystem:
     Args:
         nodes (tuple(int)): A sequence of indices of the nodes in this
             subsystem.
-        network (Network): The network the subsystem is part of.
+        network (Network): The network the subsystem belongs to.
+
+    Attributes:
+        nodes (list(Node)): A list of nodes in the subsystem.
+        node_indices (tuple(int)): The indices of the nodes in the subsystem.
+        size (int): The number of nodes in the subsystem.
+        network (Network): The network the subsystem belongs to.
+        cut (Cut): The cut that has been applied to this subsystem.
+        null_cut (Cut): The cut object representing no cut.
+        past_tpm (np.array): The TPM conditioned on the past state of the
+            external nodes (nodes outside the subsystem).
+        current_tpm (np.array): The TPM conditioned on the current state of the
+            external nodes.
     """
 
     def __init__(self, node_indices, network, cut=None, mice_cache=dict()):

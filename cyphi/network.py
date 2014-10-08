@@ -29,9 +29,19 @@ class Network:
         probabilities for each node at |t_0| given that state at |t_{-1}| was
         |0,0,1|.
 
+    Args:
+        tpm (np.ndarray): See the corresponding attribute.
+        current_state (tuple): See the corresponding attribute.
+        past_state (tuple): See the corresponding attribute.
+
+    Keyword Args:
+        connectivity_matrix (array or sequence): A square binary adjacency
+            matrix indicating the connections between nodes in the network.
+            ``connectivity_matrix[i][j] == 1`` means that node |i| is connected
+            to node |j|. If no connectivity matrix is given, every node is
+            connected to every node **(including itself)**.
+
     Attributes:
-        size (int):
-            The number of nodes in the network.
         tpm (np.ndarray):
             The transition probability matrix that encodes the network's
             mechanism. It can be provided in either state-by-node or
@@ -57,17 +67,10 @@ class Network:
         connectivity_matrix (np.ndarray):
             A square binary adjacency matrix indicating the connections between
             nodes in the network.
-        nodes (list(Node)):
-            A list of nodes in the network.
+        size (int):
+            The number of nodes in the network.
         num_states (int):
             The number of possible states of the network.
-
-    Keyword Args:
-        connectivity_matrix (array or sequence): A square binary adjacency
-            matrix indicating the connections between nodes in the network.
-            ``connectivity_matrix[i][j] == 1`` means that node |i| is connected
-            to node |j|. If no connectivity matrix is given, every node is
-            connected to every node **(including itself)**.
     """
 
     def __init__(self, tpm, current_state, past_state,

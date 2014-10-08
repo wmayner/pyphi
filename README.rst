@@ -12,13 +12,12 @@ the associated quantities and objects.
 Usage, Examples, and API documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Documentation for the latest release is available online `here
-<https://pythonhosted.org/cyphi>`_.
+Check out the `documentation for the latest release
+<https://pythonhosted.org/cyphi>`_, or the `documentation for the latest
+development version <https://wmayner.github.io/cyphi>`_.
 
-Documentation for the latest development version is available `here
-<https://wmayner.github.io/cyphi>`_.
-
-It is also available within the Python interpreter with the ``help`` function.
+The documentation is also available within the Python interpreter with the
+``help`` function.
 
 
 Installation
@@ -37,11 +36,13 @@ To install the latest development version:
     pip install "git+https://github.com/wmayner/cyphi@develop#egg=cyphi"
 
 
-MongoDB
-```````
+Result caching and MongoDB
+``````````````````````````
 CyPhi stores the results of |Phi| calculations as they're computed in order to
 avoid expensive re-computation. These results can be stored locally on the
-filesystem, or in a full-fledged database. 
+filesystem (the default setting), or in a full-fledged database. Using the
+default caching system is easier and works out of the box, but using a database
+is more robust.
 
 To use the database-backed caching system, you must install `MongoDB
 <http://www.mongodb.org/>`_. Please see their `installation guide
@@ -78,7 +79,7 @@ dependencies, then run ``sudo npm install -g grunt grunt-cli`` to install the
 
 .. code:: bash
 
-    grunt tests
+    grunt test
 
 which will run the unit tests every time you change the source code. Similarly,
 
@@ -92,7 +93,7 @@ At some point I'll try to use a Makefile instead, since many more people have
 access to ``make``.
 
 Developing on Linux
-```````````````````````````
+```````````````````
 
 Make sure you install the Python 3 C headers before installing the
 requirements:
