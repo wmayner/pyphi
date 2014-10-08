@@ -34,8 +34,8 @@ long time!), resulting in data loss.
     50
 
 - Control whether system cuts are evaluated in parallel, which requires more
-  memory. If cuts are evaluated sequentially, only two |BigMip|s need to be in
-  memory at once.
+  memory. If cuts are evaluated sequentially, only two |BigMip| instances need
+  to be in memory at once.
 
     >>> cyphi.constants.PARALLEL_CUT_EVALUATION
     True
@@ -50,14 +50,14 @@ long time!), resulting in data loss.
 
 Caching system configuration
 ````````````````````````````
-CyPhi is equipped with a transparent caching system for |BigMip|s and
-|Concept|s, which stores them as they are computed to avoid having to recompute
-them later. This makes it easy to play around interactively with the program,
-or to accumulate results with minimal effort. For larger projects, however, it
-is recommended that you manage the results explicitly, rather than relying on
-the cache. For this reason it is disabled by default.
+CyPhi is equipped with a transparent caching system for the |BigMip| and
+|Concept| objects, which stores them as they are computed to avoid having to
+recompute them later. This makes it easy to play around interactively with the
+program, or to accumulate results with minimal effort. For larger projects,
+however, it is recommended that you manage the results explicitly, rather than
+relying on the cache. For this reason it is disabled by default.
 
-- Control whether |BigMip|s are cached and retreived.
+- Control whether |BigMip| objects are cached and retreived.
 
     >>> cyphi.constants.CACHE_BIGMIPS
     False
