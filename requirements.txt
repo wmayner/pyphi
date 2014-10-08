@@ -10,12 +10,13 @@ marbl-python>=2.0.0, <3.0.0
 pymongo>=2.7.1, <3.0.0
 pyyaml>=3.11, < 4.0
 
-# Tests/docs require
+# Tests/docs/distribution requires
 pytest
 coverage
 Sphinx
 sphinxcontrib-napoleon
 sphinx_rtd_theme
+wheel
 
 ## Nested dependencies
 Jinja2>=2.7.2
