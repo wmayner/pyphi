@@ -42,7 +42,7 @@ setup(
     tests_require=test_require,
     test_suite='test',
     packages=['cyphi'],
-    package_data={'': ['LICENSE', 'cyphi_config.yml']},
+    package_data={'': ['README.rst', 'LICENSE.md', 'cyphi_config.yml']},
     license='GNU General Public License v3.0',
     zip_safe=False,
     classifiers=[
