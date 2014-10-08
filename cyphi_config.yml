@@ -1,0 +1,57 @@
+# CyPhi configuration
+# ~~~~~~~~~~~~~~~~~~~
+# See the documentation for ``cyphi.constants`` for more info.
+---
+# Controls whether cuts are evaluated in parallel, which requires more
+# memory. If cuts are evaluated sequentially, only two BigMips need to be
+# in memory at a time.
+PARALLEL_CUT_EVALUATION: true
+# The number of CPU cores to use in parallel cut evaluation. -1 means all
+# available cores, -2 means all but one available cores, etc.
+NUMBER_OF_CORES: -1
+# The verbosity of parallel computation (integer from 0 to 100).
+PARALLEL_VERBOSITY: 20
+# Controls whether concepts are cached. Note that concept caching is only
+# available if the caching backend is a database; otherwise, this setting has
+# no effect, and concepts will not be cached.
+CACHE_CONCEPTS: false
+# Controls whether BigMips are cached and retreived.
+CACHE_BIGMIPS: false
+# Controls whether concepts should be normalized before being cached.
+# Normalization increases the chances that a precomputed concept can be used
+# again, but is expensive.
+NORMALIZE_TPMS: true
+# Some functions are memoized using an in-memory LRU-cache. This is the maximum
+# percentage of memory that each CyPhi process' caches can use.
+MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
+# These are the settings for the MongoDB database used in the 'db' caching
+# backend.
+MONGODB_CONFIG:
+    host: "localhost"
+    port: 27017
+    database_name: "cyphi"
+    collection_name: "test"
+# These are the settings for CyPhi logging.
+LOGGING_CONFIG:
+    format: "%(asctime)s [%(name)s.%(funcName)s] %(levelname)s: %(message)s"
+    # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
+    file:
+        enabled: true
+        level: "INFO"
+        filename: "cyphi.log"
+    stdout:
+        enabled: true
+        level: "INFO"
+# The caching system to use. "fs" means cache the results on the local
+# filesystem, in a subdirectory of the current directory; "db" means connect to
+# a database and store the results there.
+CACHING_BACKEND: "fs"
+# The directory to use for local persistent caching on the filesystem. This
+# only has an effect if the caching backend is the filesystem and not a
+# database.
+PERSISTENT_CACHE_DIRECTORY: "__cyphi_cache__"
+# The number of decimal places to which Phi values are considered accurate.
+PRECISION: 6
+# In some applications of this library, you may prefer to define single-nodes
+# with a self-loop as having 0.5 Phi, a priori.
+SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false

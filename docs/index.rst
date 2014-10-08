@@ -1,33 +1,51 @@
-.. CyPhi documentation master file, created by
-   sphinx-quickstart on Fri Jan 17 11:15:55 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. automodule:: cyphi
+    :members:
+    :undoc-members:
 
-=====
-CyPhi
-=====
-Release |version| (:ref:`Installation <install>`)
-
-  CyPhi is a Python module for computing integrated information.
-
+.. automodule:: cyphi.examples
+    :members:
+    :undoc-members:
 
 .. automodule:: cyphi.compute
     :members:
-
-.. automodule:: cyphi.models
-    :members:
-
-.. automodule:: cyphi.subsystem
-    :members:
+    :undoc-members:
 
 .. automodule:: cyphi.network
     :members:
+    :undoc-members:
+
+.. automodule:: cyphi.subsystem
+    :members:
+    :undoc-members:
+
+.. automodule:: cyphi.constants
+    :members:
+    :undoc-members:
+
+.. automodule:: cyphi.models
+    :members:
+    :undoc-members:
 
 .. automodule:: cyphi.node
     :members:
+    :undoc-members:
+
+.. automodule:: cyphi.concept_caching
+    :members:
+    :undoc-members:
+
+.. automodule:: cyphi.memory
+    :members:
+    :undoc-members:
+
+.. automodule:: cyphi.db
+    :members:
+    :undoc-members:
 
 .. automodule:: cyphi.utils
     :members:
+    :undoc-members:
 
 .. automodule:: cyphi.validate
     :members:
+    :undoc-members:

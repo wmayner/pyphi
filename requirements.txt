@@ -1,17 +1,27 @@
-## Top-level dependencies required by CyPhi
-numpy==1.8.1
-joblib==0.8.0a3
-git+git://github.com/wmayner/pyemd.git
-Sphinx==1.2.2
-sphinx-bootstrap-theme==0.4.0
-pytest==2.5.2
-coverage==3.7.1
-scipy==0.13.3
-psutil==2.0.0
+# TODO: freeze dependencies
 
-## Nested dependencies added by pip
-Jinja2==2.7.2
-MarkupSafe==0.19
-Pygments==1.6
-docutils==0.11
-py==1.4.20
+# Install requires
+numpy>=1.8.1, <2.0.0
+scipy>=0.13.3, <1.0.0
+pyemd>=0.0.9, <1.0.0
+joblib>=0.8.0a3, <1.0.0
+psutil>=2.1.1, <3.0.0
+marbl-python>=2.0.0, <3.0.0
+pymongo>=2.7.1, <3.0.0
+pyyaml>=3.11, < 4.0
+
+# Tests/docs/distribution requires
+pytest
+coverage
+Sphinx
+sphinxcontrib-napoleon
+sphinx_rtd_theme
+wheel
+
+## Nested dependencies
+Jinja2>=2.7.2
+MarkupSafe>=0.19
+Pygments>=1.6
+docutils>=0.11
+py>=1.4.20
+msgpack-python>=0.4.2

@@ -3,34 +3,22 @@
 
 import pytest
 
-import test.example_networks
 
-
-collect_ignore = ["setup.py", ".pythonrc.py"]
-
-
-# Test fixtures from example networks
-# ===================================
-
-
-@pytest.fixture()
-def m():
-    return test.example_networks.m()
-
-
-@pytest.fixture()
-def s():
-    return test.example_networks.s()
+collect_ignore = ["setup.py", ".pythonrc.py", "__cyphi_cache__",
+                  "test/__cyphi_cache__", "results"]
 
 
 # Run slow tests separately with command-line option
 # ==================================================
 
-
 def pytest_addoption(parser):
-    parser.addoption("--runslow", action="store_true", help="run slow tests")
+    parser.addoption("--slow", action="store_true", help="run slow tests")
+    parser.addoption("--veryslow", action="store_true",
+                     help="run very slow tests")
 
 
 def pytest_runtest_setup(item):
-    if 'slow' in item.keywords and not item.config.getoption("--runslow"):
-        pytest.skip("need --runslow option to run")
+    if 'slow' in item.keywords and not item.config.getoption("--slow"):
+        pytest.skip("need --slow option to run")
+    if 'veryslow' in item.keywords and not item.config.getoption("--veryslow"):
+        pytest.skip("need --veryslow option to run")

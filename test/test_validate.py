@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+import numpy as np
 
-from cyphi.models import Cut
+from cyphi.network import Network
 from cyphi import validate
 
 
@@ -17,33 +18,66 @@ def test_validate_nodelist_nonnode():
         validate.nodelist([0, 1, 2], 'invest in dogecoin!')
 
 
+def test_validate_nodelist_nontuple_sequence(s):
+    nodes = validate.nodelist(list(s.nodes), 'such phi')
+    assert nodes == s.nodes
+
+
 def test_validate_direction():
     with pytest.raises(ValueError):
-        validate.direction("dogeeeee")
+        assert validate.direction("dogeeeee")
 
-def test_validate_cut_bad_input(m):
-    s = m.subsys_all
+
+def test_validate_tpm_wrong_shape():
+    tpm = np.arange(3**3).reshape(3, 3, 3)
     with pytest.raises(ValueError):
-        validate.cut(s, ((), ()))
+        assert validate.tpm(tpm)
+
+
+def test_validate_tpm_nonbinary_nodes():
+    tpm = np.arange(3*3*2).reshape(3, 3, 2)
     with pytest.raises(ValueError):
-        validate.cut(s, (m.nodes[0], m.nodes[1]))
+        assert validate.tpm(tpm)
+
+
+def test_validate_cm_valid(s):
+    assert validate.connectivity_matrix(s.network.connectivity_matrix)
+
+
+def test_validate_cm_not_square():
+    cm = np.random.binomial(1, 0.5, (4, 5))
     with pytest.raises(ValueError):
-        validate.cut(s, (m.nodes[0], (m.nodes[1], m.nodes[1])))
+        assert validate.connectivity_matrix(cm)
 
 
-def test_validate_cut_single_node(m):
-    s = m.subsys_all
-    validated = validate.cut(s, (m.nodes[0], (m.nodes[1], m.nodes[2])))
-    assert validated == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+def test_validate_cm_not_2D():
+    cm = np.arange(8).reshape(2, 2, 2)
+    with pytest.raises(ValueError):
+        assert validate.connectivity_matrix(cm)
 
 
-def test_validate_cut_list_input(m):
-    s = m.subsys_all
-    validated = validate.cut(s, ([m.nodes[0]], [m.nodes[1], m.nodes[2]]))
-    assert validated == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+def test_validate_cm_not_binary():
+    cm = np.arange(16).reshape(4, 4)
+    with pytest.raises(ValueError):
+        assert validate.connectivity_matrix(cm)
 
 
-def test_validate_cut(m):
-    s = m.subsys_all
-    validated = validate.cut(s, ((m.nodes[0],), (m.nodes[1], m.nodes[2])))
-    assert validated == Cut((m.nodes[0],), (m.nodes[1], m.nodes[2]))
+def test_validate_network_wrong_cm_size(standard):
+    with pytest.raises(ValueError):
+        Network(standard.tpm, standard.current_state, standard.past_state,
+                np.ones(16).reshape(4, 4))
+
+
+def test_validate_state_wrong_size(standard):
+    with pytest.raises(ValueError):
+        Network(standard.tpm, (0, 0, 0, 0), standard.past_state)
+
+
+def test_validate_state_not_reachable_at_all(standard):
+    with pytest.raises(validate.StateUnreachableError):
+        Network(standard.tpm, (0, 1, 1), standard.past_state)
+
+
+def test_validate_state_not_reachable_from_given(standard):
+    with pytest.raises(validate.StateUnreachableError):
+        Network(standard.tpm, (0, 0, 0), (1, 1, 1))

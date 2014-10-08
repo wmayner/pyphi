@@ -24,7 +24,7 @@ module.exports = (grunt) ->
           stdout: true
           failOnError: true
       openDocs:
-        command: "open docs/_build/html/index.html"
+        command: "google-chrome docs/_build/html/index.html"
       openCoverage:
         command: "open htmlcov/index.html"
 
@@ -36,6 +36,7 @@ module.exports = (grunt) ->
           "<%= cfg.srcDir %>/**/*"
           "<%= cfg.docDir %>/**/*"
           "!<%= cfg.docDir %>/_*/**/*"
+          "<%= cfg.docDir %>/_static/**/*"
         ]
         tasks: ["shell:buildDocs"]
       test:
@@ -60,6 +61,7 @@ module.exports = (grunt) ->
   ]
   grunt.registerTask "docs", [
     "shell:openDocs"
+    "shell:buildDocs"
     "watch:docs"
   ]
   grunt.registerTask "test", [
