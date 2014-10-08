@@ -1,6 +1,9 @@
 ***********************
 CyPhi: |phi| for Python
 ***********************
+.. Zenodo DOI sticker:
+.. image:: https://zenodo.org/badge/4651/wmayner/cyphi.png 
+    :target: http://dx.doi.org/10.5281/zenodo.11998
 .. Travis build sticker:
 .. image:: https://travis-ci.org/wmayner/cyphi.svg
     :target: https://travis-ci.org/wmayner/cyphi
