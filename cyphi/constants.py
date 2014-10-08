@@ -132,15 +132,15 @@ file, both, or none. See the `documentation on Python's logger
     >>> cyphi.constants.LOGGING_CONFIG['stdout']['enabled']
     True
 
-- Control the concern level of standard output logging. Takes the same levels
-  as file logging.
+- Control the concern level of standard output logging. Same possible values as
+  file logging.
 
     >>> cyphi.constants.LOGGING_CONFIG['stdout']['level']
     'INFO'
 
 - If parallel computation is enabled, it will have its own, separate messages,
-  which are always sent to standard output. This setting controls their verbosity
-  (0--100).
+  which are always sent to standard output. This setting controls their
+  verbosity, an integer from 0 to 100.
 
     >>> cyphi.constants.PARALLEL_VERBOSITY
     20
@@ -179,6 +179,7 @@ import yaml
 import pickle
 import joblib
 
+# TODO!!!: breakout config into its own module, leave constants in here
 # TODO: document mongo config
 # Defaults for configurable constants
 default_config = {
@@ -261,7 +262,7 @@ def load_config(config):
 
 
 def print_config(config):
-    """Prints the current configuration."""
+    """Print the current configuration."""
     print(''.center(50, '-'))
     pprint(config)
     print(''.center(50, '-'))
