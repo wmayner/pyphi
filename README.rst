@@ -12,6 +12,9 @@ CyPhi: |phi| for Python
 CyPhi is a Python library for computing integrated information (|phi|), and
 the associated quantities and objects.
 
+If you use this code, please cite both this repository (see DOI badge above)
+and the IIT 3.0 paper (see last section below).
+
 
 Usage, Examples, and API documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
