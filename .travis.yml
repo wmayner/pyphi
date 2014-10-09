@@ -23,10 +23,13 @@ before_install:
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy
   - pip install -r requirements.txt
+  - pip install coveralls
   - pip freeze
 
 # Run tests
-script: py.test
+script: coverage run --source=cyphi py.test
+
+after_success: coveralls
 
 notifications:
   - email: false
