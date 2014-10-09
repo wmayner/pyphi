@@ -27,7 +27,7 @@ install:
   - pip freeze
 
 # Run tests
-script: coverage run --source=cyphi py.test
+script: coverage run --source=cyphi -m py.test
 
 after_success: coveralls
 
