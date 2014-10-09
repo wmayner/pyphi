@@ -4,8 +4,15 @@
 import pytest
 
 
-collect_ignore = ["setup.py", ".pythonrc.py", "__cyphi_cache__",
-                  "test/__cyphi_cache__", "results"]
+collect_ignore = [
+    "setup.py",
+    ".pythonrc.py",
+    "__cyphi_cache__",
+    "__cyphi_cache__.BACKUP",
+    "test/__cyphi_cache__",
+    "results",
+    "build"
+]
 
 
 # Run slow tests separately with command-line option

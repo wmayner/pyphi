@@ -4,19 +4,15 @@
 import pytest
 import numpy as np
 
-from cyphi import compute, constants, db, Network, Subsystem
+from cyphi import compute, constants, Network, Subsystem
 import cyphi.concept_caching as cc
-
-
-# Use a test database
-db.collection = db.database.test
 
 
 # Unit tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def test_normalized_mechanism():
-
+    # TODO test_normalized_mechanism
     pass
 
 
@@ -75,23 +71,17 @@ def test_unnormalize_concept():
 # Helpers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _flushdb():
-    return db.collection.remove({})
 
+def check_concept_caching(net, states, flushcache):
+    flushcache()
 
-@pytest.fixture
-def flushdb():
-    return _flushdb()
-
-
-def check_concept_caching(net, states):
     # Build the networks for each pair of current/past states.
     networks = {
         s: Network(net.tpm, s[0], s[1], net.connectivity_matrix) for s in states
     }
 
-    # Empty the db.
-    _flushdb()
+    # Empty the cache.
+    flushcache()
 
     # Get the complexes for each state with no concept caching.
     constants.CACHE_CONCEPTS = False
@@ -99,8 +89,8 @@ def check_concept_caching(net, states):
     for s in states:
         no_caching_results.append(list(compute.complexes(networks[s])))
 
-    # Empty the db.
-    _flushdb()
+    # Empty the cache.
+    flushcache()
 
     # Get the complexes for each state with concept caching.
     constants.CACHE_CONCEPTS = True
@@ -115,23 +105,27 @@ def check_concept_caching(net, states):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @pytest.mark.slow
-def test_standard(standard, flushdb):
+def test_standard(standard, flushcache):
+    flushcache()
     check_concept_caching(standard, [(standard.current_state,
                                       standard.past_state)])
 
 
 @pytest.mark.slow
-def test_noised(noised, flushdb):
+def test_noised(noised, flushcache):
+    flushcache()
     check_concept_caching(noised, [(noised.current_state, noised.past_state)])
 
 
 @pytest.mark.slow
-def test_big(big, flushdb):
+def test_big(big, flushcache):
+    flushcache()
     check_concept_caching(big, [(big.current_state, big.past_state)])
 
 
 @pytest.mark.veryslow
-def test_rule152(rule152, flushdb):
+def test_rule152(rule152, flushcache):
+    flushcache()
     states = [
         ((0, 1, 0, 0, 0), (1, 0, 0, 0, 0)),
         ((1, 1, 1, 1, 1), (1, 1, 1, 1, 1)),
