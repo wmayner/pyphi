@@ -2,7 +2,7 @@
 .. image:: https://zenodo.org/badge/4651/wmayner/cyphi.png 
     :target: http://dx.doi.org/10.5281/zenodo.12159
 .. Travis build sticker:
-.. image:: https://travis-ci.org/wmayner/cyphi.svg
+.. image:: http://img.shields.io/travis/wmayner/cyphi/develop.svg
     :target: https://travis-ci.org/wmayner/cyphi
 
 ***********************
