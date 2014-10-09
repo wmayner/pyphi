@@ -1,6 +1,6 @@
 .. Zenodo DOI sticker:
 .. image:: https://zenodo.org/badge/4651/wmayner/cyphi.png 
-    :target: http://dx.doi.org/10.5281/zenodo.12000
+    :target: http://dx.doi.org/10.5281/zenodo.12159
 .. Travis build sticker:
 .. image:: https://travis-ci.org/wmayner/cyphi.svg
     :target: https://travis-ci.org/wmayner/cyphi
@@ -13,7 +13,7 @@ CyPhi is a Python library for computing integrated information (|phi|), and
 the associated quantities and objects.
 
 If you use this code, please cite both this repository (DOI
-`10.5281/zenodo.11200 <http://dx.doi.org/10.5281/zenodo.11200>`_) and the IIT
+`10.5281/zenodo.11200 <http://dx.doi.org/10.5281/zenodo.12159>`_) and the IIT
 3.0 paper (DOI `10.1371/journal.pcbi.1003588
 <http://dx.doi.org/10.1371/journal.pcbi.1003588>`_).
 
