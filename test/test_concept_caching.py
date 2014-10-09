@@ -106,26 +106,25 @@ def check_concept_caching(net, states, flushcache):
 
 @pytest.mark.slow
 def test_standard(standard, flushcache):
-    flushcache()
-    check_concept_caching(standard, [(standard.current_state,
-                                      standard.past_state)])
+    check_concept_caching(standard,
+                          [(standard.current_state, standard.past_state)],
+                          flushcache)
 
 
 @pytest.mark.slow
 def test_noised(noised, flushcache):
-    flushcache()
-    check_concept_caching(noised, [(noised.current_state, noised.past_state)])
+    check_concept_caching(noised, [(noised.current_state, noised.past_state)],
+                          flushcache)
 
 
 @pytest.mark.slow
 def test_big(big, flushcache):
-    flushcache()
-    check_concept_caching(big, [(big.current_state, big.past_state)])
+    check_concept_caching(big, [(big.current_state, big.past_state)],
+                          flushcache)
 
 
 @pytest.mark.veryslow
 def test_rule152(rule152, flushcache):
-    flushcache()
     states = [
         ((0, 1, 0, 0, 0), (1, 0, 0, 0, 0)),
         ((1, 1, 1, 1, 1), (1, 1, 1, 1, 1)),
@@ -133,4 +132,4 @@ def test_rule152(rule152, flushcache):
         ((0, 0, 0, 0, 0), (0, 0, 0, 0, 0)),
         ((1, 0, 1, 0, 0), (1, 1, 0, 0, 0))
     ]
-    check_concept_caching(rule152, states)
+    check_concept_caching(rule152, states, flushcache)
