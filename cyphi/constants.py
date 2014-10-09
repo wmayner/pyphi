@@ -94,7 +94,7 @@ relying on the cache. For this reason it is disabled by default.
     >>> cyphi.constants.MONGODB_CONFIG['database_name']
     'cyphi'
     >>> cyphi.constants.MONGODB_CONFIG['collection_name']
-    'test'
+    'cache'
 
 - Control whether TPMs should be normalized as part of concept normalization.
   TPM normalization increases the chances that a precomputed concept can be
