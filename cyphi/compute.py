@@ -42,9 +42,11 @@ def concept(subsystem, mechanism):
         mechanism.
 
     .. note::
-        The output is persistently cached by default to avoid recomputation.
-        This may be disabled in the configuration file. See the documentation
-        for :mod:`cyphi.concept_caching` and :mod:`cyphi.constants`.
+        The output can be persistently cached to avoid recomputation. This may
+        be enabled in the configuration file---however, it is only available if
+        the caching backend is a database (not the filesystem). See the
+        documentation for :mod:`cyphi.concept_caching` and
+        :mod:`cyphi.constants`.
     """
     # Pre-checks:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

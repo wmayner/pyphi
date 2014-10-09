@@ -25,6 +25,7 @@ documentation for :class:`cyphi.Network`. Here we'll use the 2-dimensional
 state-by-node form.
 
     >>> import cyphi
+    >>> import numpy as np
     >>> tpm = np.array([
     ... [0, 0, 0],
     ... [0, 0, 1],
@@ -62,7 +63,7 @@ included in it and the network that the subsystem belongs to.
 In this case, we want the |big_phi| of the entire network, so we simply include
 every node in the network in our subsystem:
 
-    >>> subsystem = Subsystem(range(network.size), network)
+    >>> subsystem = cyphi.Subsystem(range(network.size), network)
 
 Now we use :func:`cyphi.compute.big_phi` function to compute the |big_phi| of
 our subsystem:

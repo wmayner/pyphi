@@ -5,16 +5,12 @@ import pickle
 import pytest
 import numpy as np
 
-from cyphi import constants, compute, models, utils, db, Network
+from cyphi import constants, compute, models, utils, Network
 from cyphi.constants import DIRECTIONS, PAST, FUTURE
 
 
-# Precision for testing
+# Precision for testing.
 PRECISION = 5
-
-# Use a test database
-db.collection = db.database.test
-
 
 # Answers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -150,14 +146,6 @@ rule152_answer = {
 # Helpers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def _flushdb():
-    return db.collection.remove({})
-
-
-@pytest.fixture
-def flushdb():
-    return _flushdb()
-
 
 def check_unpartitioned_small_phis(small_phis, unpartitioned_constellation):
     assert len(small_phis) == len(unpartitioned_constellation)
@@ -196,7 +184,8 @@ def check_mip(mip, answer):
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def test_null_concept(s, flushdb):
+def test_null_concept(s, flushcache, restore_fs_cache):
+    flushcache()
     cause = models.Mice(models.Mip(
         unpartitioned_repertoire=s.unconstrained_cause_repertoire(s.nodes),
         phi=0, direction=DIRECTIONS[PAST], mechanism=(), purview=s.nodes,
@@ -210,17 +199,20 @@ def test_null_concept(s, flushdb):
                            subsystem=s))
 
 
-def test_concept_nonexistent(s, flushdb):
+def test_concept_nonexistent(s, flushcache, restore_fs_cache):
+    flushcache()
     assert not compute.concept(s, (s.nodes[0], s.nodes[2]))
 
 
-def test_conceptual_information(s, flushdb):
+def test_conceptual_information(s, flushcache, restore_fs_cache):
+    flushcache()
     np.testing.assert_almost_equal(compute.conceptual_information(s), 2.812497,
                                    PRECISION)
 
 
-def test_big_mip_empty_subsystem(s_empty, flushdb):
-    assert (compute.big_mip.func(hash(s_empty), s_empty) ==
+def test_big_mip_empty_subsystem(s_empty, flushcache, restore_fs_cache):
+    flushcache()
+    assert (compute.big_mip(s_empty) ==
             models.BigMip(phi=0.0,
                           unpartitioned_constellation=[],
                           partitioned_constellation=[],
@@ -228,14 +220,16 @@ def test_big_mip_empty_subsystem(s_empty, flushdb):
                           cut_subsystem=s_empty))
 
 
-def test_big_mip_disconnected_network(reducible, flushdb):
-    assert (compute.big_mip.func(hash(reducible), reducible) ==
+def test_big_mip_disconnected_network(reducible, flushcache, restore_fs_cache):
+    flushcache()
+    assert (compute.big_mip(reducible) ==
             models.BigMip(subsystem=reducible, cut_subsystem=reducible,
                           phi=0.0, unpartitioned_constellation=[],
                           partitioned_constellation=[]))
 
 
-def test_big_mip_wrappers(reducible, flushdb):
+def test_big_mip_wrappers(reducible, flushcache, restore_fs_cache):
+    flushcache()
     assert (compute.big_mip(reducible) ==
             models.BigMip(subsystem=reducible, cut_subsystem=reducible,
                           phi=0.0, unpartitioned_constellation=[],
@@ -243,57 +237,65 @@ def test_big_mip_wrappers(reducible, flushdb):
     assert compute.big_phi(reducible) == 0.0
 
 
-def test_big_mip_single_node(s_single, flushdb):
+def test_big_mip_single_node(s_single, flushcache, restore_fs_cache):
+    flushcache()
     initial_option = constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
     constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = True
-    assert compute.big_mip.func(hash(s_single), s_single).phi == 0.5
+    assert compute.big_mip(s_single).phi == 0.5
     constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = False
-    assert compute.big_mip.func(hash(s_single), s_single).phi == 0.0
+    assert compute.big_mip(s_single).phi == 0.0
     constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = initial_option
 
 
-def test_big_mip_standard_example_sequential(s, flushdb):
+def test_big_mip_standard_example_sequential(s, flushcache, restore_fs_cache):
+    flushcache()
     initial = constants.PARALLEL_CUT_EVALUATION
     constants.PARALLEL_CUT_EVALUATION = False
 
-    mip = compute.big_mip.func(hash(s), s)
+    mip = compute.big_mip(s)
     check_mip(mip, standard_answer)
 
     constants.PARALLEL_CUT_EVALUATION = initial
 
 
-def test_big_mip_standard_example_parallel(s, flushdb):
+def test_big_mip_standard_example_parallel(s, flushcache, restore_fs_cache):
+    flushcache()
     initial = (constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES)
     constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = True, -2
 
-    mip = compute.big_mip.func(hash(s), s)
+    mip = compute.big_mip(s)
     check_mip(mip, standard_answer)
 
     constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = initial
 
 
-def test_big_mip_noised_example_sequential(s_noised, flushdb):
+def test_big_mip_noised_example_sequential(s_noised, flushcache,
+                                           restore_fs_cache):
+    flushcache()
     initial = constants.PARALLEL_CUT_EVALUATION
     constants.PARALLEL_CUT_EVALUATION = False
 
-    mip = compute.big_mip.func(hash(s_noised), s_noised)
+    mip = compute.big_mip(s_noised)
     check_mip(mip, noised_answer)
 
     constants.PARALLEL_CUT_EVALUATION = initial
 
 
-def test_big_mip_noised_example_parallel(s_noised, flushdb):
+def test_big_mip_noised_example_parallel(s_noised, flushcache,
+                                         restore_fs_cache):
+    flushcache()
     initial = (constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES)
     constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = True, -2
 
-    mip = compute.big_mip.func(hash(s_noised), s_noised)
+    mip = compute.big_mip(s_noised)
     check_mip(mip, noised_answer)
 
     constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = initial
 
 
 # TODO!! add more assertions for the smaller subsystems
-def test_complexes_standard(standard, flushdb):
+def test_complexes_standard(standard, flushcache, restore_fs_cache):
+    flushcache()
     complexes = list(compute.complexes(standard))
     check_mip(complexes[7], standard_answer)
 
@@ -301,41 +303,44 @@ def test_complexes_standard(standard, flushdb):
 
 
 def test_big_mip_complete_graph_standard_example(s_complete):
-    mip = compute.big_mip.func(hash(s_complete), s_complete)
+    mip = compute.big_mip(s_complete)
     check_mip(mip, standard_answer)
 
 
 def test_big_mip_complete_graph_s_noised(s_noised_complete):
-    mip = compute.big_mip.func(hash(s_noised_complete), s_noised_complete)
+    mip = compute.big_mip(s_noised_complete)
     check_mip(mip, noised_answer)
 
 
 @pytest.mark.slow
 def test_big_mip_complete_graph_big_subsys_all(big_subsys_all_complete):
-    mip = compute.big_mip.func(hash(big_subsys_all_complete),
-                               big_subsys_all_complete)
+    mip = compute.big_mip(big_subsys_all_complete)
     check_mip(mip, big_answer)
 
 
 @pytest.mark.slow
 def test_big_mip_complete_graph_rule152_s(rule152_s_complete):
-    mip = compute.big_mip.func(hash(rule152_s_complete), rule152_s_complete)
+    mip = compute.big_mip(rule152_s_complete)
     check_mip(mip, rule152_answer)
 
 
 @pytest.mark.slow
-def test_big_mip_big_network(big_subsys_all, flushdb):
-    mip = compute.big_mip.func(hash(big_subsys_all), big_subsys_all)
+def test_big_mip_big_network(big_subsys_all, flushcache, restore_fs_cache):
+    flushcache()
+    mip = compute.big_mip(big_subsys_all)
     check_mip(mip, big_answer)
 
 
 @pytest.mark.slow
-def test_big_mip_big_network_0_thru_3(big_subsys_0_thru_3, flushdb):
-    mip = compute.big_mip.func(hash(big_subsys_0_thru_3), big_subsys_0_thru_3)
+def test_big_mip_big_network_0_thru_3(big_subsys_0_thru_3, flushcache,
+                                      restore_fs_cache):
+    flushcache()
+    mip = compute.big_mip(big_subsys_0_thru_3)
     check_mip(mip, big_subsys_0_thru_3_answer)
 
 
 @pytest.mark.slow
-def test_big_mip_rule152(rule152_s, flushdb):
-    mip = compute.big_mip.func(hash(rule152_s), rule152_s)
+def test_big_mip_rule152(rule152_s, flushcache, restore_fs_cache):
+    flushcache()
+    mip = compute.big_mip(rule152_s)
     check_mip(mip, rule152_answer)
