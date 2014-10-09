@@ -32,7 +32,7 @@ must be in the directory where CyPhi is run. See the documentation for
 """
 
 __title__ = 'cyphi'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
