@@ -46,6 +46,7 @@ from . import compute, constants, db, examples
 
 import os
 import yaml
+import logging
 import logging.config
 
 
@@ -77,3 +78,12 @@ logging.config.dictConfig({
                      constants.LOGGING_CONFIG[h]['enabled']]
     }
 })
+
+log = logging.getLogger()
+
+# Log the currently loaded configuration.
+if constants.config_file_was_loaded:
+    log.info('Loaded configuration from ' + constants.CYPHI_CONFIG_FILE)
+else:
+    log.info("Using default configuration (no config file provided)")
+log.info('Current CyPhi configuration:\n' + constants.get_config_string())
