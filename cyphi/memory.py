@@ -18,6 +18,8 @@ def cache(ignore=[]):
     database."""
 
     def joblib_decorator(func):
+        if func.__name__ == '_big_mip' and not constants.CACHE_BIGMIPS:
+            return func
         return constants.joblib_memory.cache(func, ignore=ignore)
 
     def db_decorator(func):
