@@ -32,7 +32,7 @@ must be in the directory where CyPhi is run. See the documentation for
 """
 
 __title__ = 'cyphi'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
@@ -46,30 +46,8 @@ from . import compute, constants, db, examples
 
 import os
 import yaml
+import logging
 import logging.config
-
-
-# Default user-configured logging options.
-logging_config = {
-    'format': "%(asctime)s [%(name)s] %(levelname)s: %(message)s",
-    # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
-    'file': {
-        'enabled': True,
-        'level': "INFO",
-        'filename': "cyphi.log"
-    },
-    'stdout': {
-        'enabled': True,
-        'level': "INFO",
-    }
-}
-
-
-# Load user's logging configuration if available.
-if os.path.exists(constants.CYPHI_CONFIG_FILE):
-    with open(constants.CYPHI_CONFIG_FILE) as f:
-        config = yaml.load(f)
-        logging_config = config['LOGGING_CONFIG']
 
 
 # Configure logging module.
@@ -78,18 +56,18 @@ logging.config.dictConfig({
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': logging_config['format']
+            'format': constants.LOGGING_CONFIG['format']
         }
     },
     'handlers': {
         'file': {
-            'level': logging_config['file']['level'],
+            'level': constants.LOGGING_CONFIG['file']['level'],
             'class': 'logging.FileHandler',
-            'filename': logging_config['file']['filename'],
+            'filename': constants.LOGGING_CONFIG['file']['filename'],
             'formatter': 'standard',
         },
         'stdout': {
-            'level': logging_config['stdout']['level'],
+            'level': constants.LOGGING_CONFIG['stdout']['level'],
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
         }
@@ -97,6 +75,15 @@ logging.config.dictConfig({
     'root': {
         'level': 'INFO',
         'handlers': [h for h in ['file', 'stdout'] if
-                     logging_config[h]['enabled']]
+                     constants.LOGGING_CONFIG[h]['enabled']]
     }
 })
+
+log = logging.getLogger()
+
+# Log the currently loaded configuration.
+if constants.config_file_was_loaded:
+    log.info('Loaded configuration from ' + constants.CYPHI_CONFIG_FILE)
+else:
+    log.info("Using default configuration (no config file provided)")
+log.info('Current CyPhi configuration:\n' + constants.get_config_string())

@@ -177,12 +177,13 @@ Numerical configuration
 
 """
 
-from pprint import pprint
+import pprint
 import os
 import sys
 import yaml
 import pickle
 import joblib
+
 
 # TODO!!!: breakout config into its own module, leave constants in here
 # TODO: document mongo config
@@ -243,20 +244,6 @@ default_config = {
 }
 
 
-# The name of the file to load configuration data from.
-CYPHI_CONFIG_FILE = 'cyphi_config.yml'
-
-
-# Try to load the config file, falling back to the default configuration.
-if os.path.exists(CYPHI_CONFIG_FILE):
-    with open(CYPHI_CONFIG_FILE) as f:
-        config = yaml.load(f)
-        print('\n[CyPhi] Loaded configuration from', CYPHI_CONFIG_FILE + ':')
-else:
-    config = default_config
-    print("\n[CyPhi] Using default configuration (no config file provided):")
-
-
 # Get a reference to this module's dictionary..
 this_module = sys.modules[__name__]
 
@@ -266,17 +253,28 @@ def load_config(config):
     this_module.__dict__.update(config)
 
 
-def print_config(config):
+def get_config_string():
+    """Return a string representation of the currently loaded configuration."""
+    return pprint.pformat(config, indent=2)
+
+
+def print_config():
     """Print the current configuration."""
-    print('\n' + ''.center(72, '-'))
-    pprint(config)
-    print(''.center(72, '-'), '\n')
+    print('Current CyPhi configuration:\n', get_config_string())
 
 
-# Attach all the entries of the configuration dictionary to this module.
+# The name of the file to load configuration data from.
+CYPHI_CONFIG_FILE = 'cyphi_config.yml'
+
+# Try to load the config file, falling back to the default configuration.
+config_file_was_loaded = False
+if os.path.exists(CYPHI_CONFIG_FILE):
+    with open(CYPHI_CONFIG_FILE) as f:
+        config = yaml.load(f)
+        config_file_was_loaded = True
+else:
+    config = default_config
 load_config(config)
-# Print the loaded configuration.
-print_config(config)
 
 
 # Un-configurable constants
