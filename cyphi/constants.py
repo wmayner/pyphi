@@ -57,24 +57,29 @@ program, or to accumulate results with minimal effort. For larger projects,
 however, it is recommended that you manage the results explicitly, rather than
 relying on the cache. For this reason it is disabled by default.
 
-- Control whether |BigMip| objects are cached and retreived.
-
-    >>> cyphi.constants.CACHE_BIGMIPS
-    False
-
-- Control whether the concept caching system is used.
-
-    >>> cyphi.constants.CACHE_CONCEPTS
-    False
-
 - Control whether precomputed results are stored and read from a database or
   from a local filesystem-based cache in the current directory. Set this to
   'fs' for the filesystem, 'db' for the database. Caching results on the
   filesystem is the easiest to use but least robust caching system. Caching
-  results in a database is more robust, but requires installing MongoDB.
+  results in a database is more robust and allows for caching individual
+  concepts, but requires installing MongoDB.
 
     >>> cyphi.constants.CACHING_BACKEND
     'fs'
+
+- Control whether |BigMip| objects are cached and automatically retreived.
+
+    >>> cyphi.constants.CACHE_BIGMIPS
+    False
+
+- Control whether |Concept| objects are cached and automatically retrieved.
+
+    >>> cyphi.constants.CACHE_CONCEPTS
+    False
+
+.. note::
+    Concept caching only has an effect when a database is used as the the
+    caching backend.
 
 - If the caching backend is set to use the filesystem, the cache will be stored
   in this directory. This directory can be copied and moved around if you want
