@@ -251,10 +251,10 @@ CYPHI_CONFIG_FILE = 'cyphi_config.yml'
 if os.path.exists(CYPHI_CONFIG_FILE):
     with open(CYPHI_CONFIG_FILE) as f:
         config = yaml.load(f)
-        print("\n[CyPhi] Loaded configuration from", CYPHI_CONFIG_FILE)
+        print('\n[CyPhi] Loaded configuration from', CYPHI_CONFIG_FILE + ':')
 else:
     config = default_config
-    print("\n[CyPhi] Using default configuration (no config file provided)")
+    print("\n[CyPhi] Using default configuration (no config file provided):")
 
 
 # Get a reference to this module's dictionary..
@@ -268,9 +268,9 @@ def load_config(config):
 
 def print_config(config):
     """Print the current configuration."""
-    print(''.center(50, '-'))
+    print('\n' + ''.center(72, '-'))
     pprint(config)
-    print(''.center(50, '-'))
+    print(''.center(72, '-'), '\n')
 
 
 # Attach all the entries of the configuration dictionary to this module.
