@@ -4,8 +4,8 @@
 from collections import namedtuple
 import numpy as np
 
-from cyphi import models
-from cyphi import constants
+from pyphi import models
+from pyphi import constants
 
 
 nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']

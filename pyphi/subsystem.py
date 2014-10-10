@@ -428,7 +428,7 @@ class Subsystem:
             purview (tuple(Node)): The nodes in the purview.
 
         Returns:
-            :class:`cyphi.models.Mip`
+            :class:`pyphi.models.Mip`
         """
         validate.direction(direction)
         repertoire = self._get_repertoire(direction)
@@ -596,7 +596,7 @@ class Subsystem:
                 irreducibility.
 
         Returns:
-            :class:`cyphi.models.Mice`
+            :class:`pyphi.models.Mice`
 
         .. note::
             Strictly speaking, the MICE is a pair of repertoires: the core

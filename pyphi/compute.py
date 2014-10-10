@@ -45,8 +45,8 @@ def concept(subsystem, mechanism):
         The output can be persistently cached to avoid recomputation. This may
         be enabled in the configuration file---however, it is only available if
         the caching backend is a database (not the filesystem). See the
-        documentation for :mod:`cyphi.concept_caching` and
-        :mod:`cyphi.constants`.
+        documentation for :mod:`pyphi.concept_caching` and
+        :mod:`pyphi.constants`.
     """
     # Pre-checks:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -207,7 +207,7 @@ def _null_mip(subsystem):
 def _single_node_mip(subsystem):
     """Returns a the BigMip of a single-node with a selfloop.
 
-    Whether these have a nonzero |Phi| value depends on the CyPhi constants."""
+    Whether these have a nonzero |Phi| value depends on the PyPhi constants."""
     if constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
         # TODO return the actual concept
         return BigMip(

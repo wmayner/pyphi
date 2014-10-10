@@ -5,7 +5,7 @@
 Network
 ~~~~~~~
 
-Represents the network of interest. This is the primary object of CyPhi and the
+Represents the network of interest. This is the primary object of PyPhi and the
 context of all |phi| and |big_phi| computation.
 """
 

@@ -4,7 +4,7 @@
 import pytest
 import os
 import shutil
-from cyphi import constants, db
+from pyphi import constants, db
 
 import example_networks
 

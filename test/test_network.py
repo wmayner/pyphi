@@ -4,8 +4,8 @@
 import pytest
 import numpy as np
 
-from cyphi.network import Network
-from cyphi.node import Node
+from pyphi.network import Network
+from pyphi.node import Node
 
 
 @pytest.fixture()

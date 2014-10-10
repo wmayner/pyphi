@@ -4,8 +4,8 @@
 import pytest
 import numpy as np
 
-from cyphi import compute, constants, Network, Subsystem
-import cyphi.concept_caching as cc
+from pyphi import compute, constants, Network, Subsystem
+import pyphi.concept_caching as cc
 
 
 # Unit tests

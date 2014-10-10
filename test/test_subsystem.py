@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from cyphi.subsystem import Subsystem
+from pyphi.subsystem import Subsystem
 
 
 def test_empty_init(standard):

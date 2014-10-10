@@ -5,8 +5,8 @@ import pickle
 import pytest
 import numpy as np
 
-from cyphi import constants, compute, models, utils, Network
-from cyphi.constants import DIRECTIONS, PAST, FUTURE
+from pyphi import constants, compute, models, utils, Network
+from pyphi.constants import DIRECTIONS, PAST, FUTURE
 
 
 # Precision for testing.
@@ -344,3 +344,55 @@ def test_big_mip_rule152(rule152_s, flushcache, restore_fs_cache):
     flushcache()
     mip = compute.big_mip(rule152_s)
     check_mip(mip, rule152_answer)
+
+
+@pytest.mark.veryslow
+def test_rule152_complexes_no_caching(rule152):
+    net = rule152
+    # Mapping from index of a PyPhi subsystem in network.subsystems to the
+    # index of the corresponding subsystem in the Matlab list of subsets
+    perm = {0: 0, 1: 1, 2: 3, 3: 7, 4: 15, 5: 2, 6: 4, 7: 8, 8: 16, 9: 5, 10:
+            9, 11: 17, 12: 11, 13: 19, 14: 23, 15: 6, 16: 10, 17: 18, 18: 12,
+            19: 20, 20: 24, 21: 13, 22: 21, 23: 25, 24: 27, 25: 14, 26: 22, 27:
+            26, 28: 28, 29: 29, 30: 30}
+    with open('test/data/rule152_results.pkl', 'rb') as f:
+        results = pickle.load(f)
+
+    # Don't use concept caching for this test.
+    constants.CACHE_CONCEPTS = False
+
+    for k, result in results.items():
+        print(net.current_state, net.past_state)
+        # Empty the DB.
+        _flushdb()
+        # Unpack the current/past state from the results key.
+        current_state, past_state = k
+        # Generate the network with the current and past state we're testing.
+        net = Network(rule152.tpm, current_state, past_state,
+                      connectivity_matrix=rule152.connectivity_matrix)
+        # Comptue all the complexes, leaving out the first (empty) subsystem
+        # since Matlab doesn't include it in results.
+        complexes = list(compute.complexes(net))[1:]
+        # Check the phi values of all complexes.
+        zz = [(bigmip.phi, result['subsystem_phis'][perm[i]]) for i, bigmip in
+            list(enumerate(complexes))]
+        diff = [utils.phi_eq(bigmip.phi, result['subsystem_phis'][perm[i]]) for
+                i, bigmip in list(enumerate(complexes))]
+        assert all(utils.phi_eq(bigmip.phi, result['subsystem_phis'][perm[i]])
+                for i, bigmip in list(enumerate(complexes))[:])
+        # Check the main complex in particular.
+        main = compute.main_complex(net)
+        # Check the phi value of the main complex.
+        assert utils.phi_eq(main.phi, result['phi'])
+        # Check that the nodes are the same.
+        assert (main.subsystem.node_indices ==
+                complexes[result['main_complex'] - 1].subsystem.node_indices)
+        # Check that the concept's phi values are the same.
+        result_concepts = [c for c in result['concepts'] if c['is_irreducible']]
+        z = list(zip([c.phi for c in main.unpartitioned_constellation],
+                    [c['phi'] for c in result_concepts]))
+        diff = [i for i in range(len(z)) if not utils.phi_eq(z[i][0], z[i][1])]
+        assert all(list(utils.phi_eq(c.phi, result_concepts[i]['phi']) for i, c
+                        in enumerate(main.unpartitioned_constellation)))
+        # Check that the minimal cut is the same.
+        assert main.cut == result['cut']

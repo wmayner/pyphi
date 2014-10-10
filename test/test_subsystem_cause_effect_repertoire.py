@@ -4,8 +4,8 @@
 import pytest
 import numpy as np
 
-from cyphi.models import Cut
-from cyphi import Subsystem
+from pyphi.models import Cut
+from pyphi import Subsystem
 
 import example_networks
 

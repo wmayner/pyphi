@@ -3,8 +3,8 @@
 
 import numpy as np
 
-from cyphi import utils, constants, models
-from cyphi.network import Network
+from pyphi import utils, constants, models
+from pyphi.network import Network
 
 
 def test_index2state():

@@ -5,8 +5,8 @@ import pytest
 from pprint import pprint
 import numpy as np
 
-from cyphi import constants
-from cyphi.models import Mip, Part
+from pyphi import constants
+from pyphi.models import Mip, Part
 
 import example_networks
 
