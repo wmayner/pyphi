@@ -32,7 +32,7 @@ must be in the directory where PyPhi is run. See the documentation for
 """
 
 __title__ = 'pyphi'
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
