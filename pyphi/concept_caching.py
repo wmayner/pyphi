@@ -187,7 +187,7 @@ class NormalizedMice(_NormalizedMice):
 
     """A lightweight container for MICE data.
 
-    See :class:`cyphi.models.Mice` for its unnormalized counterpart.
+    See :class:`pyphi.models.Mice` for its unnormalized counterpart.
 
     Attributes:
         phi (float):

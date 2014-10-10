@@ -1,51 +1,51 @@
-.. automodule:: cyphi
+.. automodule:: pyphi
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.examples
+.. automodule:: pyphi.examples
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.compute
+.. automodule:: pyphi.compute
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.network
+.. automodule:: pyphi.network
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.subsystem
+.. automodule:: pyphi.subsystem
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.constants
+.. automodule:: pyphi.constants
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.models
+.. automodule:: pyphi.models
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.node
+.. automodule:: pyphi.node
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.concept_caching
+.. automodule:: pyphi.concept_caching
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.memory
+.. automodule:: pyphi.memory
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.db
+.. automodule:: pyphi.db
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.utils
+.. automodule:: pyphi.utils
     :members:
     :undoc-members:
 
-.. automodule:: cyphi.validate
+.. automodule:: pyphi.validate
     :members:
     :undoc-members:

@@ -1,18 +1,18 @@
 .. Zenodo DOI badge
-.. image:: https://zenodo.org/badge/4651/wmayner/cyphi.png 
+.. image:: https://zenodo.org/badge/4651/wmayner/pyphi.png 
     :target: http://dx.doi.org/10.5281/zenodo.12159
 .. Travis build badge
-.. image:: http://img.shields.io/travis/wmayner/cyphi/develop.svg
-    :target: https://travis-ci.org/wmayner/cyphi
+.. image:: http://img.shields.io/travis/wmayner/pyphi/develop.svg
+    :target: https://travis-ci.org/wmayner/pyphi
 .. Coveralls.io badge
-.. image:: http://img.shields.io/coveralls/wmayner/cyphi/master.svg
-    :target: https://coveralls.io/r/wmayner/cyphi?branch=master
+.. image:: http://img.shields.io/coveralls/wmayner/pyphi/develop.svg
+    :target: https://coveralls.io/r/wmayner/pyphi?branch=develop
 
 ***********************
-CyPhi: |phi| for Python
+PyPhi: |phi| for Python
 ***********************
 
-CyPhi is a Python library for computing integrated information (|phi|), and
+PyPhi is a Python library for computing integrated information (|phi|), and
 the associated quantities and objects.
 
 If you use this code, please cite both this repository (DOI
@@ -25,8 +25,8 @@ Usage, Examples, and API documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Check out the `documentation for the latest release
-<https://pythonhosted.org/cyphi>`_, or the `documentation for the latest
-development version <https://wmayner.github.io/cyphi>`_.
+<https://pythonhosted.org/pyphi>`_, or the `documentation for the latest
+development version <https://wmayner.github.io/pyphi>`_.
 
 The documentation is also available within the Python interpreter with the
 ``help`` function.
@@ -39,18 +39,18 @@ To install the latest release:
 
 .. code:: bash
 
-    pip install cyphi
+    pip install pyphi
 
 To install the latest development version:
 
 .. code:: bash
 
-    pip install "git+https://github.com/wmayner/cyphi@develop#egg=cyphi"
+    pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
 
 
 Result caching and MongoDB
 ``````````````````````````
-CyPhi stores the results of |Phi| calculations as they're computed in order to
+PyPhi stores the results of |Phi| calculations as they're computed in order to
 avoid expensive re-computation. These results can be stored locally on the
 filesystem (the default setting), or in a full-fledged database. Using the
 default caching system is easier and works out of the box, but using a database
@@ -61,9 +61,9 @@ To use the database-backed caching system, you must install `MongoDB
 <http://docs.mongodb.org/manual/installation/>`_ for instructions.
 
 Once you have MongoDB installed, use ``mongod`` to start the MongoDB server.
-Make sure the ``mongod`` configuration matches the CyPhi's database
-configuration settings in ``cyphi_config.yml`` (see the `configuration section
-<https://pythonhosted.org/cyphi/index.html#configuration>`_ of CyPhi's
+Make sure the ``mongod`` configuration matches the PyPhi's database
+configuration settings in ``pyphi_config.yml`` (see the `configuration section
+<https://pythonhosted.org/pyphi/index.html#configuration>`_ of PyPhi's
 documentation).
 
 You can also check out MongoDB's `Getting Started guide
@@ -74,7 +74,7 @@ You can also check out MongoDB's `Getting Started guide
 Contributing
 ~~~~~~~~~~~~
 
-To help develop CyPhi, fork the project on GitHub and install the requirements
+To help develop PyPhi, fork the project on GitHub and install the requirements
 with ``pip install -r requirements.txt``.
 
 Development workflow
@@ -84,7 +84,7 @@ Development workflow
 with `Grunt.js <http:gruntjs.com>`_.
 
 To get ``grunt``, first install `Node.js <http://nodejs.org/>`_. Then, within
-the ``cyphi`` directory, run ``npm install`` to install the local ``npm``
+the ``pyphi`` directory, run ``npm install`` to install the local ``npm``
 dependencies, then run ``sudo npm install -g grunt grunt-cli`` to install the
 ``grunt`` command to your system. Now you should be able to run tasks with
 ``grunt``, *e.g.*

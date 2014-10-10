@@ -2,7 +2,7 @@ module.exports = (grunt) ->
   grunt.initConfig
     cfg:
       docDir: "docs"
-      srcDir: "cyphi"
+      srcDir: "pyphi"
       testDir: "test"
 
     shell:

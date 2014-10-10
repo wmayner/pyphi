@@ -3,9 +3,9 @@
 
 import numpy as np
 
-from cyphi.network import Network
-from cyphi.subsystem import Subsystem
-from cyphi.node import Node
+from pyphi.network import Network
+from pyphi.subsystem import Subsystem
+from pyphi.node import Node
 
 
 def test_node_init_tpm(s):

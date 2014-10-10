@@ -1,6 +1,6 @@
-# CyPhi configuration
+# PyPhi configuration
 # ~~~~~~~~~~~~~~~~~~~
-# See the documentation for ``cyphi.constants`` for more info.
+# See the documentation for ``pyphi.constants`` for more info.
 ---
 # Controls whether cuts are evaluated in parallel, which requires more
 # memory. If cuts are evaluated sequentially, only two BigMips need to be
@@ -22,23 +22,23 @@ CACHE_BIGMIPS: false
 # again, but is expensive.
 NORMALIZE_TPMS: true
 # Some functions are memoized using an in-memory LRU-cache. This is the maximum
-# percentage of memory that each CyPhi process' caches can use.
+# percentage of memory that each PyPhi process' caches can use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 # These are the settings for the MongoDB database used in the 'db' caching
 # backend.
 MONGODB_CONFIG:
     host: "localhost"
     port: 27017
-    database_name: "cyphi"
+    database_name: "pyphi"
     collection_name: "test"
-# These are the settings for CyPhi logging.
+# These are the settings for PyPhi logging.
 LOGGING_CONFIG:
     format: "%(asctime)s [%(name)s.%(funcName)s] %(levelname)s: %(message)s"
     # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
     file:
         enabled: true
         level: "INFO"
-        filename: "cyphi.log"
+        filename: "pyphi.log"
     stdout:
         enabled: true
         level: "INFO"
@@ -49,7 +49,7 @@ CACHING_BACKEND: "fs"
 # The directory to use for local persistent caching on the filesystem. This
 # only has an effect if the caching backend is the filesystem and not a
 # database.
-PERSISTENT_CACHE_DIRECTORY: "__cyphi_cache__"
+PERSISTENT_CACHE_DIRECTORY: "__pyphi_cache__"
 # The number of decimal places to which Phi values are considered accurate.
 PRECISION: 6
 # In some applications of this library, you may prefer to define single-nodes

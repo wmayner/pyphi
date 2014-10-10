@@ -31,8 +31,8 @@ test_require = [
 
 
 setup(
-    name="cyphi",
-    version='0.1.2',
+    name="pyphi",
+    version='0.1.3',
     description='A Python library for computing integrated information.',
     author='Will Mayner',
     author_email='wmayner@gmail.com',
@@ -41,8 +41,8 @@ setup(
     install_requires=install_requires,
     tests_require=test_require,
     test_suite='test',
-    packages=['cyphi'],
-    package_data={'': ['README.rst', 'LICENSE.md', 'cyphi_config.yml']},
+    packages=['pyphi'],
+    package_data={'': ['README.rst', 'LICENSE.md', 'pyphi_config.yml']},
     license='GNU General Public License v3.0',
     zip_safe=False,
     classifiers=[

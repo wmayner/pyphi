@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# CyPhi documentation build configuration file, created by
+# PyPhi documentation build configuration file, created by
 # sphinx-quickstart on Fri Jan 17 11:15:55 2014.
 #
 # This file is execfile()d with the current directory set to its
@@ -22,7 +22,7 @@ import sphinx_rtd_theme
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
-from cyphi import __version__, __author__
+from pyphi import __version__, __author__
 
 
 # -- General configuration ------------------------------------------------
@@ -54,7 +54,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'CyPhi v' + __version__
+project = 'PyPhi v' + __version__
 copyright = '2014 ' + __author__
 
 # The version info for the project you're documenting, acts as replacement for
@@ -128,8 +128,8 @@ rst_prolog = """
 .. |PRECISION| replace:: :const:`constants.PRECISION`
 .. |EPSILON| replace:: :const:`constants.EPSILON`
 .. |CM[i][j] = 1| replace:: :math:`CM_{i,j} = 1`
-.. |BigMip| replace:: :class:`cyphi.models.BigMip`
-.. |Concept| replace:: :class:`cyphi.models.Concept`
+.. |BigMip| replace:: :class:`pyphi.models.BigMip`
+.. |Concept| replace:: :class:`pyphi.models.Concept`
 """
 
 # -- Options for Napoleon (docstring format extension) --------------------
@@ -232,7 +232,7 @@ html_use_smartypants = True
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'CyPhidoc'
+htmlhelp_basename = 'PyPhidoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -252,7 +252,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'CyPhi.tex', 'CyPhi Documentation',
+  ('index', 'PyPhi.tex', 'PyPhi Documentation',
    'Will Mayner', 'manual'),
 ]
 
@@ -282,7 +282,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'cyphi', 'CyPhi Documentation',
+    ('index', 'pyphi', 'PyPhi Documentation',
      ['Will Mayner'], 1)
 ]
 
@@ -296,8 +296,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'CyPhi', 'CyPhi Documentation',
-   'Will Mayner', 'CyPhi',
+  ('index', 'PyPhi', 'PyPhi Documentation',
+   'Will Mayner', 'PyPhi',
    'A Python module for computing integrated information',
    'Miscellaneous'),
 ]

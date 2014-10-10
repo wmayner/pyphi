@@ -4,9 +4,9 @@
 import pytest
 from itertools import chain
 
-from cyphi import Subsystem
-from cyphi.models import Mice, Cut
-from cyphi.utils import phi_eq
+from pyphi import Subsystem
+from pyphi.models import Mice, Cut
+from pyphi.utils import phi_eq
 
 import example_networks
 

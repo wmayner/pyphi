@@ -3,8 +3,8 @@
 
 import numpy as np
 
-from cyphi.network import Network
-from cyphi.subsystem import Subsystem
+from pyphi.network import Network
+from pyphi.subsystem import Subsystem
 
 
 # TODO pass just the subsystem (contains a reference to the network)

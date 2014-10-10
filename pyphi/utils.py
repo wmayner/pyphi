@@ -5,7 +5,7 @@
 Utilities
 ~~~~~~~~~
 
-Functions used by more than one CyPhi module or class, or that might be of
+Functions used by more than one PyPhi module or class, or that might be of
 external use.
 """
 
@@ -58,7 +58,7 @@ def state_by_state2state_by_node(tpm):
         ``np.ndarray`` -- A state-by-node TPM.
 
     Examples:
-        >>> from cyphi.utils import state_by_state2state_by_node
+        >>> from pyphi.utils import state_by_state2state_by_node
         >>> tpm = np.array([[0.5, 0.5, 0.0, 0.0],
         ...                 [0.0, 1.0, 0.0, 0.0],
         ...                 [0.0, 0.2, 0.0, 0.8],
@@ -101,7 +101,7 @@ def state_by_state2state_by_node(tpm):
 
 
 def index2state(i, number_of_nodes):
-    """Convert a decimal integer to a CyPhi state tuple.
+    """Convert a decimal integer to a PyPhi state tuple.
 
     .. note::
         This function uses the convention that that low-order bits correspond
@@ -117,7 +117,7 @@ def index2state(i, number_of_nodes):
             gives the state of the |ith| node.
 
     Examples:
-        >>> from cyphi.utils import index2state
+        >>> from pyphi.utils import index2state
         >>> number_of_nodes = 5
         >>> index2state(1, number_of_nodes)
         (1, 0, 0, 0, 0)
@@ -353,7 +353,7 @@ def bipartition(a):
         ``list`` -- A list of tuples containing each of the two partitions.
 
     Example:
-        >>> from cyphi.utils import bipartition
+        >>> from pyphi.utils import bipartition
         >>> bipartition((1, 2, 3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
@@ -374,7 +374,7 @@ def bipartition_indices(N):
         partitions.
 
     Example:
-        >>> from cyphi.utils import bipartition_indices
+        >>> from pyphi.utils import bipartition_indices
         >>> N = 3
         >>> bipartition_indices(N)
         [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
@@ -411,7 +411,7 @@ def _hamming_matrix(N):
         Hamming distance between state |i| and state |j|.
 
     Example:
-        >>> from cyphi.utils import _hamming_matrix
+        >>> from pyphi.utils import _hamming_matrix
         >>> _hamming_matrix(2)
         array([[ 0.,  1.,  1.,  2.],
                [ 1.,  0.,  2.,  1.],

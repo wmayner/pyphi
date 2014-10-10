@@ -13,12 +13,12 @@
 
 """
 =====
-CyPhi
+PyPhi
 =====
 
-CyPhi is a Python library for computing integrated information.
+PyPhi is a Python library for computing integrated information.
 
-See the documentation for :mod:`cyphi.examples` for information on how to use
+See the documentation for :mod:`pyphi.examples` for information on how to use
 it.
 
 
@@ -26,13 +26,13 @@ Configuration
 ~~~~~~~~~~~~~
 
 There are several module-level options that control aspects of the computation.
-These are loaded from a YAML configuration file, ``cyphi_config.yml``, which
-must be in the directory where CyPhi is run. See the documentation for
-:mod:`cyphi.constants` for a description of the options and their defaults.
+These are loaded from a YAML configuration file, ``pyphi_config.yml``, which
+must be in the directory where PyPhi is run. See the documentation for
+:mod:`pyphi.constants` for a description of the options and their defaults.
 """
 
-__title__ = 'cyphi'
-__version__ = '0.1.2'
+__title__ = 'pyphi'
+__version__ = '0.1.3'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
@@ -83,7 +83,7 @@ log = logging.getLogger()
 
 # Log the currently loaded configuration.
 if constants.config_file_was_loaded:
-    log.info('Loaded configuration from ' + constants.CYPHI_CONFIG_FILE)
+    log.info('Loaded configuration from ' + constants.PYPHI_CONFIG_FILE)
 else:
     log.info("Using default configuration (no config file provided)")
-log.info('Current CyPhi configuration:\n' + constants.get_config_string())
+log.info('Current PyPhi configuration:\n' + constants.get_config_string())

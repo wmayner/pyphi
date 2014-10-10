@@ -4,8 +4,8 @@
 import pytest
 import numpy as np
 
-from cyphi.network import Network
-from cyphi import validate
+from pyphi.network import Network
+from pyphi import validate
 
 
 def test_validate_nodelist_noniterable():

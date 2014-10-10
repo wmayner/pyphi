@@ -7,9 +7,9 @@ import pytest
 collect_ignore = [
     "setup.py",
     ".pythonrc.py",
-    "__cyphi_cache__",
-    "__cyphi_cache__.BACKUP",
-    "test/__cyphi_cache__",
+    "__pyphi_cache__",
+    "__pyphi_cache__.BACKUP",
+    "test/__pyphi_cache__",
     "results",
     "build"
 ]

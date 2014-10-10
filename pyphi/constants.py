@@ -8,7 +8,7 @@ Constants
 This module contains package-wide constants, some of which are configurable.
 
 The configuration is loaded upon import from a YAML file in the directory where
-CyPhi is run: ``cyphi_config.yml``. If no file is found, the default
+PyPhi is run: ``pyphi_config.yml``. If no file is found, the default
 configuration is used.
 
 The various options are listed here with their defaults.
@@ -17,40 +17,40 @@ The various options are listed here with their defaults.
 System resource configuration
 `````````````````````````````
 These settings control how much processing power and memory is available for
-CyPhi to use. The default values may not be appropriate for your use-case or
+PyPhi to use. The default values may not be appropriate for your use-case or
 machine, so **please check these settings before running anything**. Otherwise,
 there is a risk that simulations might crash (potentially after running for a
 long time!), resulting in data loss.
 
-- CyPhi employs several in-memory LRU-caches to speed up computation. However,
+- PyPhi employs several in-memory LRU-caches to speed up computation. However,
   these can quickly use up all the memory on a system; to avoid thrashing, this
   options limits the percentage of a system's RAM that the LRU caches can use.
-  **NOTE:** If you are running multiple instances of CyPhi on the same machine,
-  then the number of CyPhi instances multiplied by this number should be less
+  **NOTE:** If you are running multiple instances of PyPhi on the same machine,
+  then the number of PyPhi instances multiplied by this number should be less
   than ~80.
 
-    >>> import cyphi
-    >>> cyphi.constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE
+    >>> import pyphi
+    >>> pyphi.constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE
     50
 
 - Control whether system cuts are evaluated in parallel, which requires more
   memory. If cuts are evaluated sequentially, only two |BigMip| instances need
   to be in memory at once.
 
-    >>> cyphi.constants.PARALLEL_CUT_EVALUATION
+    >>> pyphi.constants.PARALLEL_CUT_EVALUATION
     True
 
 - Control the number of CPU cores to evaluate unidirectional cuts. Negative
   numbers count backwards from the total number of available cores, with ``-1``
   meaning "use all available cores".
 
-    >>> cyphi.constants.NUMBER_OF_CORES
+    >>> pyphi.constants.NUMBER_OF_CORES
     -1
 
 
 Caching system configuration
 ````````````````````````````
-CyPhi is equipped with a transparent caching system for the |BigMip| and
+PyPhi is equipped with a transparent caching system for the |BigMip| and
 |Concept| objects, which stores them as they are computed to avoid having to
 recompute them later. This makes it easy to play around interactively with the
 program, or to accumulate results with minimal effort. For larger projects,
@@ -64,17 +64,17 @@ relying on the cache. For this reason it is disabled by default.
   results in a database is more robust and allows for caching individual
   concepts, but requires installing MongoDB.
 
-    >>> cyphi.constants.CACHING_BACKEND
+    >>> pyphi.constants.CACHING_BACKEND
     'fs'
 
 - Control whether |BigMip| objects are cached and automatically retreived.
 
-    >>> cyphi.constants.CACHE_BIGMIPS
+    >>> pyphi.constants.CACHE_BIGMIPS
     False
 
 - Control whether |Concept| objects are cached and automatically retrieved.
 
-    >>> cyphi.constants.CACHE_CONCEPTS
+    >>> pyphi.constants.CACHE_CONCEPTS
     False
 
 .. note::
@@ -84,70 +84,70 @@ relying on the cache. For this reason it is disabled by default.
 - If the caching backend is set to use the filesystem, the cache will be stored
   in this directory. This directory can be copied and moved around if you want
   to reuse results _e.g._ on a another computer, but it must be in the same
-  directory from which CyPhi is being run.
+  directory from which PyPhi is being run.
 
-    >>> cyphi.constants.PERSISTENT_CACHE_DIRECTORY
-    '__cyphi_cache__'
+    >>> pyphi.constants.PERSISTENT_CACHE_DIRECTORY
+    '__pyphi_cache__'
 
 - Set the configuration for the MongoDB database backend. This only has an
   effect if the caching backend is set to use the database.
 
-    >>> cyphi.constants.MONGODB_CONFIG['host']
+    >>> pyphi.constants.MONGODB_CONFIG['host']
     'localhost'
-    >>> cyphi.constants.MONGODB_CONFIG['port']
+    >>> pyphi.constants.MONGODB_CONFIG['port']
     27017
-    >>> cyphi.constants.MONGODB_CONFIG['database_name']
-    'cyphi'
-    >>> cyphi.constants.MONGODB_CONFIG['collection_name']
+    >>> pyphi.constants.MONGODB_CONFIG['database_name']
+    'pyphi'
+    >>> pyphi.constants.MONGODB_CONFIG['collection_name']
     'test'
 
 - Control whether TPMs should be normalized as part of concept normalization.
   TPM normalization increases the chances that a precomputed concept can be
   used again, but is expensive.
 
-    >>> cyphi.constants.NORMALIZE_TPMS
+    >>> pyphi.constants.NORMALIZE_TPMS
     True
 
 
 Logging configuration
 `````````````````````
-These are the settings for CyPhi logging. You can control the format of the
+These are the settings for PyPhi logging. You can control the format of the
 logs and the name of the log file. Logs can be written to standard output, a
 file, both, or none. See the `documentation on Python's logger
 <https://docs.python.org/3.4/library/logging.html>`_ for more information.
 
 - Control whether logs are written to a file.
 
-    >>> cyphi.constants.LOGGING_CONFIG['file']['enabled']
+    >>> pyphi.constants.LOGGING_CONFIG['file']['enabled']
     True
 
 - Control the name of the logfile.
 
-    >>> cyphi.constants.LOGGING_CONFIG['file']['filename']
-    'cyphi.log'
+    >>> pyphi.constants.LOGGING_CONFIG['file']['filename']
+    'pyphi.log'
 
 - Control the concern level of file logging. Can be one of ``'DEBUG'``,
   ``'INFO'``, ``'WARNING'``, ``'ERROR'``, or ``'CRITICAL'``.
 
-    >>> cyphi.constants.LOGGING_CONFIG['file']['level']
+    >>> pyphi.constants.LOGGING_CONFIG['file']['level']
     'INFO'
 
 - Control whether logs are written to standard output.
 
-    >>> cyphi.constants.LOGGING_CONFIG['stdout']['enabled']
+    >>> pyphi.constants.LOGGING_CONFIG['stdout']['enabled']
     True
 
 - Control the concern level of standard output logging. Same possible values as
   file logging.
 
-    >>> cyphi.constants.LOGGING_CONFIG['stdout']['level']
+    >>> pyphi.constants.LOGGING_CONFIG['stdout']['level']
     'INFO'
 
 - If parallel computation is enabled, it will have its own, separate messages,
   which are always sent to standard output. This setting controls their
   verbosity, an integer from 0 to 100.
 
-    >>> cyphi.constants.PARALLEL_VERBOSITY
+    >>> pyphi.constants.PARALLEL_VERBOSITY
     20
 
 
@@ -157,22 +157,22 @@ Theoretical configuration
   a single node with a self-loop to be ``0.5``. If set to False, their
   |big_phi| will be actually be computed (to be zero, in this implementation).
 
-    >>> cyphi.constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
+    >>> pyphi.constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
     False
 
 
 Numerical configuration
 ```````````````````````
-- Computations in CyPhi rely on finding the Earth Mover's Distance. This is
+- Computations in PyPhi rely on finding the Earth Mover's Distance. This is
   done via an external C++ library that uses flow-optimization to find a good
   approximation of the EMD. Consequently, systems with zero |big_phi| will
   sometimes be computed to have a small but non-zero amount. This setting
-  controls the number of decimal places to which CyPhi will consider EMD
+  controls the number of decimal places to which PyPhi will consider EMD
   calculations accurate. Values of |big_phi| lower than ``10e-PRECISION`` will
   be considered insignificant and treated as zero. The default value is about
   as accurate as the EMD computations get.
 
-    >>> cyphi.constants.PRECISION
+    >>> pyphi.constants.PRECISION
     6
 
 """
@@ -207,23 +207,23 @@ default_config = {
     # normalization. TPM normalization increases the chances that a precomputed
     # concept can be used again, but is expensive.
     'NORMALIZE_TPMS': True,
-    # The maximum percentage of RAM that CyPhi should use for caching.
+    # The maximum percentage of RAM that PyPhi should use for caching.
     'MAXIMUM_CACHE_MEMORY_PERCENTAGE': 50,
     # MongoDB configuration.
     'MONGODB_CONFIG': {
         'host': 'localhost',
         'port': 27017,
-        'database_name': 'cyphi',
+        'database_name': 'pyphi',
         'collection_name': 'cache'
     },
-    # These are the settings for CyPhi logging.
+    # These are the settings for PyPhi logging.
     'LOGGING_CONFIG': {
         'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s',
         # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
         'file': {
             'enabled': True,
             'level': 'INFO',
-            'filename': 'cyphi.log'
+            'filename': 'pyphi.log'
         },
         'stdout': {
             'enabled': True,
@@ -235,7 +235,7 @@ default_config = {
     # results there.
     'CACHING_BACKEND': 'fs',
     # Directory for the persistent joblib Memory cache.
-    'PERSISTENT_CACHE_DIRECTORY': '__cyphi_cache__',
+    'PERSISTENT_CACHE_DIRECTORY': '__pyphi_cache__',
     # The number of decimal points to which phi values are considered accurate
     'PRECISION': 6,
     # In some applications of this library, the user may prefer to define
@@ -260,16 +260,16 @@ def get_config_string():
 
 def print_config():
     """Print the current configuration."""
-    print('Current CyPhi configuration:\n', get_config_string())
+    print('Current PyPhi configuration:\n', get_config_string())
 
 
 # The name of the file to load configuration data from.
-CYPHI_CONFIG_FILE = 'cyphi_config.yml'
+PYPHI_CONFIG_FILE = 'pyphi_config.yml'
 
 # Try to load the config file, falling back to the default configuration.
 config_file_was_loaded = False
-if os.path.exists(CYPHI_CONFIG_FILE):
-    with open(CYPHI_CONFIG_FILE) as f:
+if os.path.exists(PYPHI_CONFIG_FILE):
+    with open(PYPHI_CONFIG_FILE) as f:
         config = yaml.load(f)
         config_file_was_loaded = True
 else:
