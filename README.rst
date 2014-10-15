@@ -94,8 +94,9 @@ To install the latest development version (which may be buggy):
     pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
 
 
-Caching with a database
-```````````````````````
+Optional: caching with a database
+`````````````````````````````````
+
 PyPhi stores the results of |Phi| calculations as they're computed in order to
 avoid expensive re-computation. These results can be stored locally on the
 filesystem (the default setting), or in a full-fledged database. Using the
