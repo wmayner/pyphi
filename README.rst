@@ -77,9 +77,11 @@ counterparts.
 
 The virtual environment should have been activated automatically after creating
 it. It can be manually activated with ``workon <name_of_your_project>``, and
-deactivated with ``deactivate``. Remember to activate it before working on your
-project. Also, note that the virtual environment is *not* associated with any
-particular folder; it is associated with a terminal shell.
+deactivated with ``deactivate``.
+
+Remember to activate the virtual environment *every time* you begin working on
+your project. Also, note that the virtual environment is *not* associated with
+any particular folder; it is associated with a terminal shell.
 
 Finally, you can install PyPhi into your new virtual environment:
 
@@ -166,8 +168,8 @@ Credits
 ~~~~~~~
 
 This code is based on a `previous project <https://github.com/albantakis/iit>`_
-written in Matlab by L. Albantakis, A. Hashmi, A. Nere, U. Olces, P. Rana, and
-B. Shababo.
+written in Matlab by L. Albantakis, M. Oizumi, A. Hashmi, A. Nere, U. Olces, P.
+Rana, and B. Shababo.
 
 Correspondence regarding the Matlab code and the IIT 3.0 paper (below) should
 be directed to Larissa Albantakis, PhD, at `albantakis@wisc.edu
