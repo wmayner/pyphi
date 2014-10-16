@@ -35,7 +35,7 @@ file must be in the directory where PyPhi is run**. If there is no such file,
 the default configuration will be used.
 
 You can download an example configuration file `here
-<https://github.com/wmayner/pyphi/blob/master/pyphi_config.yml>`_.
+<https://raw.githubusercontent.com/wmayner/pyphi/master/pyphi_config.yml>`_.
 
 See the documentation for :mod:`pyphi.constants` for a description of the
 options and their defaults.
