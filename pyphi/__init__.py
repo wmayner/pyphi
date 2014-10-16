@@ -21,18 +21,28 @@ PyPhi is a Python library for computing integrated information.
 See the documentation for :mod:`pyphi.examples` for information on how to use
 it.
 
+To report issues, please use the issue tracker on the `GitHub repository
+<https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
+welcome.
 
-Configuration
-~~~~~~~~~~~~~
+Configuration (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are several module-level options that control aspects of the computation.
-These are loaded from a YAML configuration file, ``pyphi_config.yml``, which
-must be in the directory where PyPhi is run. See the documentation for
-:mod:`pyphi.constants` for a description of the options and their defaults.
+
+These are loaded from a YAML configuration file, ``pyphi_config.yml``. **This
+file must be in the directory where PyPhi is run**. If there is no such file,
+the default configuration will be used.
+
+You can download an example configuration file `here
+<https://github.com/wmayner/pyphi/blob/master/pyphi_config.yml>`_.
+
+See the documentation for :mod:`pyphi.constants` for a description of the
+options and their defaults.
 """
 
 __title__ = 'pyphi'
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
