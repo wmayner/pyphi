@@ -8,18 +8,19 @@ from pyphi.network import Network
 
 
 def test_index2state():
+def test_apply_cut():
     cm = np.array([
-        [1, 0, 1, 0]
-        [1, 1, 1, 1]
-        [0, 1, 0, 1]
+        [1, 0, 1, 0],
+        [1, 1, 1, 1],
+        [0, 1, 0, 1],
         [1, 0, 1, 0]
     ])
     cut = models.Cut(severed=(0, 3), intact=(1, 2))
     cut_cm = np.array([
+        [1, 0, 0, 0],
+        [1, 1, 1, 1],
+        [0, 1, 0, 1],
         [1, 0, 0, 0]
-        [1, 1, 1, 1]
-        [0, 0, 0, 1]
-        [1, 0, 1, 0]
     ])
     assert np.array_equal(utils.apply_cut(cut, cm), cut_cm)
 
