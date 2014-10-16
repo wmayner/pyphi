@@ -1,14 +1,14 @@
-.. image:: https://zenodo.org/badge/4651/wmayner/pyphi.png 
-    :target: http://dx.doi.org/10.5281/zenodo.12194
-    :alt: Zenodo DOI badge
-
-.. image:: http://img.shields.io/travis/wmayner/pyphi/develop.svg
+.. image:: http://img.shields.io/travis/wmayner/pyphi/master.svg
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build badge
 
-.. image:: http://img.shields.io/coveralls/wmayner/pyphi/develop.svg
+.. image:: http://img.shields.io/coveralls/wmayner/pyphi/master.svg
     :target: https://coveralls.io/r/wmayner/pyphi?branch=develop
     :alt: Coveralls.io badge
+
+.. image:: https://zenodo.org/badge/4651/wmayner/pyphi.png 
+    :target: http://dx.doi.org/10.5281/zenodo.12194
+    :alt: Zenodo DOI badge
 
 *************************
 PyPhi: |phi| for Python 3
