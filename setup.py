@@ -32,7 +32,7 @@ test_require = [
 
 setup(
     name="pyphi",
-    version='0.1.3',
+    version='0.1.4',
     description='A Python library for computing integrated information.',
     author='Will Mayner',
     author_email='wmayner@gmail.com',
