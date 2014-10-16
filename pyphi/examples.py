@@ -26,15 +26,8 @@ state-by-node form.
 
     >>> import pyphi
     >>> import numpy as np
-    >>> tpm = np.array([
-    ... [0, 0, 0],
-    ... [0, 0, 1],
-    ... [1, 0, 1],
-    ... [1, 0, 0],
-    ... [1, 1, 0],
-    ... [1, 1, 1],
-    ... [1, 1, 1],
-    ... [1, 1, 0]])
+    >>> tpm = np.array([[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0], [1, 1, 0],
+    ...                 [1, 1, 1], [1, 1, 1], [1, 1, 0]])
 
 The current and past states should be |n|-tuples, where |n| is the number of
 nodes in the network, where the |ith| element is the state of the |ith| node in
@@ -46,10 +39,7 @@ the network.
 The connectivity matrix is a square matrix such that the |i,jth| entry is 1 if
 there is a connection from node |i| to node |j|, and 0 otherwise.
 
-    >>> cm = np.array([
-    ... [0, 0, 1],
-    ... [1, 0, 1],
-    ... [1, 1, 0]])
+    >>> cm = np.array([[0, 0, 1], [1, 0, 1], [1, 1, 0]])
 
 Now we construct the network itself with the arguments we just created:
 
