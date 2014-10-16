@@ -80,8 +80,8 @@ it. It can be manually activated with ``workon <name_of_your_project>``, and
 deactivated with ``deactivate``.
 
 Remember to activate the virtual environment *every time* you begin working on
-your project. Also, note that the virtual environment is *not* associated with
-any particular folder; it is associated with a terminal shell.
+your project. Also, note that the currently active virtual environment is *not*
+associated with any particular folder; it is associated with a terminal shell.
 
 Finally, you can install PyPhi into your new virtual environment:
 
@@ -89,7 +89,8 @@ Finally, you can install PyPhi into your new virtual environment:
 
     pip install pyphi
 
-To install the latest development version (which may be buggy):
+To install the latest development version (which is a work in progress and may
+have bugs):
 
 .. code:: bash
 
@@ -101,9 +102,10 @@ Optional: caching with a database
 
 PyPhi stores the results of |Phi| calculations as they're computed in order to
 avoid expensive re-computation. These results can be stored locally on the
-filesystem (the default setting), or in a full-fledged database. Using the
-default caching system is easier and works out of the box, but using a database
-is more robust.
+filesystem (the default setting), or in a full-fledged database. 
+
+Using the default caching system is easier and works out of the box, but using
+a database is more robust.
 
 To use the database-backed caching system, you must install `MongoDB
 <http://www.mongodb.org/>`_. Please see their `installation guide
