@@ -7,7 +7,45 @@ from pyphi import utils, constants, models
 from pyphi.network import Network
 
 
-def test_index2state():
+def test_high_to_low_index2low_to_low_index():
+    assert utils.high_to_low_index2low_to_low_index(0, 3) == 0
+    assert utils.high_to_low_index2low_to_low_index(1, 3) == 4
+    assert utils.high_to_low_index2low_to_low_index(2, 3) == 2
+    assert utils.high_to_low_index2low_to_low_index(3, 3) == 6
+    assert utils.high_to_low_index2low_to_low_index(4, 3) == 1
+    assert utils.high_to_low_index2low_to_low_index(5, 3) == 5
+    assert utils.high_to_low_index2low_to_low_index(6, 3) == 3
+    assert utils.high_to_low_index2low_to_low_index(7, 3) == 7
+    assert utils.high_to_low_index2low_to_low_index(12, 5) == 6
+
+
+def test_paper_state_by_state_reverse2pyphi_state_by_state():
+    paper_tpm = np.array([
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1]
+    ])
+    answer = np.array([
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1]
+    ])
+    assert np.array_equal(
+        answer,
+        utils.paper_state_by_state_reverse2pyphi_state_by_state(paper_tpm)
+    )
+
+
 def test_apply_cut():
     cm = np.array([
         [1, 0, 1, 0],
