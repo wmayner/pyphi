@@ -12,7 +12,7 @@ import logging
 log = logging.getLogger()
 
 # Cache management and fixtures
-# =========================
+# =============================
 
 # Use a test database if database caching is enabled.
 if constants.CACHING_BACKEND == constants.DATABASE:
@@ -20,17 +20,6 @@ if constants.CACHING_BACKEND == constants.DATABASE:
 
 # Backup location for the existing joblib cache directory.
 BACKUP_CACHE_DIR = constants.PERSISTENT_CACHE_DIRECTORY + '.BACKUP'
-
-# Move the joblib cache to a backup location and create a fresh cache if
-# filesystem caching is enabled
-if constants.CACHING_BACKEND == constants.FILESYSTEM:
-    if os.path.exists(BACKUP_CACHE_DIR):
-        raise Exception("You must move the backup of the filesystem cache "
-                        "at " + BACKUP_CACHE_DIR + " before running the test "
-                        "suite.")
-    shutil.move(constants.PERSISTENT_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
-    os.mkdir(constants.PERSISTENT_CACHE_DIRECTORY)
-
 
 
 def _flush_joblib_cache():
@@ -59,15 +48,29 @@ def flushcache():
 
 @pytest.fixture(scope="session")
 def restore_fs_cache(request):
-    """Restore the user's joblib cache after each testing session."""
+    """Temporarily backup, then restore, the user's joblib cache after each
+    testing session."""
+    # Move the joblib cache to a backup location and create a fresh cache if
+    # filesystem caching is enabled
+    if constants.CACHING_BACKEND == constants.FILESYSTEM:
+        if os.path.exists(BACKUP_CACHE_DIR):
+            raise Exception("You must move the backup of the filesystem cache "
+                            "at " + BACKUP_CACHE_DIR + " before running the test "
+                            "suite.")
+        shutil.move(constants.PERSISTENT_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
+        os.mkdir(constants.PERSISTENT_CACHE_DIRECTORY)
+
     def fin():
+        log.info("in fin")
         if constants.CACHING_BACKEND == constants.FILESYSTEM:
             # Remove the tests' joblib cache directory.
             shutil.rmtree(constants.PERSISTENT_CACHE_DIRECTORY)
             # Restore the old joblib cache.
             shutil.move(BACKUP_CACHE_DIR,
                         constants.PERSISTENT_CACHE_DIRECTORY)
+
     # Restore the cache after the last test with this fixture has run
+    log.info("In fixture def")
     request.addfinalizer(fin)
 
 

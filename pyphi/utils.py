@@ -50,7 +50,7 @@ def high_to_low_index2low_to_low_index(i, number_of_nodes):
     return int(bin(i)[2:].zfill(number_of_nodes)[::-1], 2)
 
 
-def paper_state_by_state_reverse2pyphi_state_by_state(tpm):
+def paper_state_by_state2pyphi_state_by_state(tpm):
     """Convert a square, state-by-state TPM where the index of a row
     corresponds to a state, and where the low-order bits of the binary
     representation of those indices correspond to **high**-order nodes, into
