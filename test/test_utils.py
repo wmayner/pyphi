@@ -19,7 +19,7 @@ def test_high_to_low_index2low_to_low_index():
     assert utils.high_to_low_index2low_to_low_index(12, 5) == 6
 
 
-def test_paper_state_by_state_reverse2pyphi_state_by_state():
+def test_paper_state_by_state2pyphi_state_by_state():
     paper_tpm = np.array([
         [1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0, 0, 0, 0],
@@ -42,7 +42,7 @@ def test_paper_state_by_state_reverse2pyphi_state_by_state():
     ])
     assert np.array_equal(
         answer,
-        utils.paper_state_by_state_reverse2pyphi_state_by_state(paper_tpm)
+        utils.paper_state_by_state2pyphi_state_by_state(paper_tpm)
     )
 
 
