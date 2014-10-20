@@ -44,6 +44,30 @@ def test_paper_state_by_state2pyphi_state_by_state():
         answer,
         utils.paper_state_by_state2pyphi_state_by_state(paper_tpm)
     )
+    paper_tpm = np.array([
+        [0, 0, 0, 0, 0, 0, 0, 1],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0]
+    ])
+    answer = np.array([
+        [0, 0, 0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0]
+    ])
+    assert np.array_equal(
+        answer,
+        utils.paper_state_by_state2pyphi_state_by_state(paper_tpm)
+    )
 
 
 def test_apply_cut():
