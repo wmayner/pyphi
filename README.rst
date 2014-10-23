@@ -43,14 +43,18 @@ Set up a Python 3 virtual environment and install using ``pip install pyphi``.
 Detailed guide for those unfamiliar with Python
 ```````````````````````````````````````````````
 
-This is a Python 3 project, so in order to use it you must install `Python
-3 <https://www.python.org/downloads/>`_.
+This is a Python 3 project, so in order to use it you must install `Python 3
+<https://www.python.org/downloads/>`_. 
 
-Once you've installed Python 3, it is highly recommended to set up a **virtual
-environment** in which to install PyPhi. Virtual environments allow different
-projects to isolate their dependencies from one another, so that they don't
-interact in unexpected ways. They also protect your system's version of Python
-from unwanted changes. Please see `this guide
+You should also install `Python 2 <https://www.python.org/downloads/>`_, if you
+haven't already (this is recommended even if your system came with Python, in
+order to protect your system's version of Python from unwanted changes).
+
+Once you've installed Python 2 and 3, it is highly recommended to set up a
+**virtual environment** in which to install PyPhi. Virtual environments allow
+different projects to isolate their dependencies from one another, so that they
+don't interact in unexpected ways and cause bugs that are difficult to
+diagnose. Please see `this guide
 <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_ for more
 information.
 
@@ -59,15 +63,33 @@ for manipulating virtual environments
 <http://virtualenvwrapper.readthedocs.org/en/latest/>`_. Both of those tools
 are available on `PyPI <https://pypi.python.org/pypi>`_, the Python package
 index, and can be installed with ``pip``, the command-line utility for
-installing and managing Python packages (``pip`` is installed automatically
-with Python):
+installing and managing Python packages (``pip`` should have been installed
+automatically when you installed Python 2):
 
 .. code:: bash
 
-    pip install virtualenv virtualenvwrapper
+    pip install virtualenvwrapper
 
-Then use ``virtualenvwrapper`` to create a Python 3 virtual environment, like
-so:
+Now, add three lines to your shell startup file (``.bashrc``,
+``.bash_profile``, etc.) to set the location where the virtual environments
+should live, the location of your development project directories, and the
+location of the script installed with this package. **Note:** The location of
+the script can be found by running ``which virtualenvwrapper.sh``.
+
+The second line will different for everyone and the third line will be
+different depending on how Python 2 was installed, but here is an example:
+
+.. code:: bash
+
+    export WORKON_HOME=$HOME/.virtualenvs
+    export PROJECT_HOME=$HOME/dev
+    source /usr/local/bin/virtualenvwrapper.sh
+
+After editing the startup file, open a new terminal shell or reload the startup
+file (*e.g.*, run ``source ~/.bash_profile``).
+
+Now that ``virtualenvwrapper`` is fully installed, use it to create a Python 3
+virtual environment, like so:
 
 .. code:: bash
 
