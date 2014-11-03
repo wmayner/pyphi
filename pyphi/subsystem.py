@@ -586,7 +586,7 @@ class Subsystem:
                 return cached
         return False
 
-    def find_mice(self, direction, mechanism):
+    def find_mice(self, direction, mechanism, purviews=False):
         """Return the maximally irreducible cause or effect for a mechanism.
 
         Args:
@@ -594,6 +594,12 @@ class Subsystem:
                 effect.
             mechanism (tuple(Node)): The mechanism to be tested for
                 irreducibility.
+
+        Keyword Args:
+            purviews (tuple(Node)): Optionally restrict the possible purviews
+                to a subset of the subsystem. This may be useful for _e.g._
+                finding only concepts that are "about" a certain subset of
+                nodes.
 
         Returns:
             :class:`pyphi.models.Mice`
@@ -613,8 +619,10 @@ class Subsystem:
             return cached_mice
 
         validate.direction(direction)
-        # Get all possible purviews.
-        purviews = utils.powerset(self.nodes)
+
+        if not purviews:
+            # Get all possible purviews.
+            purviews = utils.powerset(self.nodes)
 
         def not_trivially_reducible(purview):
             if direction == DIRECTIONS[PAST]:
