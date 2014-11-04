@@ -650,17 +650,17 @@ class Subsystem:
             self._mice_cache[key] = mice
         return mice
 
-    def core_cause(self, mechanism):
+    def core_cause(self, mechanism, purviews=False):
         """Returns the core cause repertoire of a mechanism.
 
         Alias for :func:`find_mice` with ``direction`` set to |past|."""
-        return self.find_mice('past', mechanism)
+        return self.find_mice('past', mechanism, purviews=purviews)
 
-    def core_effect(self, mechanism):
+    def core_effect(self, mechanism, purviews=False):
         """Returns the core effect repertoire of a mechanism.
 
         Alias for :func:`find_mice` with ``direction`` set to |past|."""
-        return self.find_mice('future', mechanism)
+        return self.find_mice('future', mechanism, purviews=purviews)
 
     def phi_max(self, mechanism):
         """Return the |phi_max| of a mechanism.
