@@ -66,6 +66,28 @@ def paper_state_by_state2pyphi_state_by_state(tpm):
     return pyphi_tpm
 
 
+# TODO support nondeterministic TPMs
+def state_by_node2state_by_state(tpm):
+    # Determine the number of nodes for a properly defined TPM.
+    N = tpm.shape[-1]
+    # If ndim == 2 verify that the shape is correct and then reshape.
+    if tpm.ndim == 2 and tpm.shape[0] == 2**N:
+        tpm = tpm.reshape(([2] * N) + [N], order='F').astype(float)
+    elif tpm.ndim == 2:
+        raise ValueError('Improper TPM format')
+    # If ndim != 2 assume just check for proper shape.
+    if tpm.ndim != N + 1 or tpm.shape[0:N] != (2,) * N:
+        raise ValueError('Improper TPM format')
+    new_tpm = np.zeros((2**N, 2**N))
+    # For each past state get a binary representation. Then use the TPM to find
+    # the current state and then covert back to state number.
+    for past_state_index in range(0, 2**N):
+        past_state = tuple(map(int, bin(past_state_index)[2:].zfill(N)[::-1]))
+        current_state_index = int(''.join(str(int(i)) for i in tpm[past_state]), 2)
+        new_tpm[past_state_index, current_state_index] = 1
+    return new_tpm
+
+
 def state_by_state2state_by_node(tpm):
     """Convert a state-by-state TPM to a state-by-node TPM.
 
