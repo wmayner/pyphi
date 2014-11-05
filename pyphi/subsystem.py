@@ -633,6 +633,9 @@ class Subsystem:
         # Filter out trivially reducible purviews if a connectivity matrix was
         # provided.
         purviews = tuple(filter(not_trivially_reducible, purviews))
+        # If no purviews are left, return immediately.
+        if not purviews:
+            return ()
         # Find the maximal MIP over all purviews.
         maximal_mip = max(self.find_mip(direction, mechanism, purview) for
                           purview in purviews)
