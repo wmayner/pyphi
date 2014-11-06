@@ -635,7 +635,7 @@ class Subsystem:
         purviews = tuple(filter(not_trivially_reducible, purviews))
         # If no purviews are left, return a null MICE immediately.
         if not purviews:
-            return self.find_mip(direction, mechanism, ())
+            return Mice(self.find_mip(direction, mechanism, ()))
         # Find the maximal MIP over all purviews.
         maximal_mip = max(self.find_mip(direction, mechanism, purview) for
                           purview in purviews)
