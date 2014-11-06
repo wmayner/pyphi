@@ -434,7 +434,8 @@ class Subsystem:
         repertoire = self._get_repertoire(direction)
 
         # We default to the null MIP (the MIP of a reducible mechanism)
-        mip = self._null_mip(direction, mechanism, purview)
+        null_mip = self._null_mip(direction, mechanism, purview)
+        mip = null_mip
 
         phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
@@ -455,7 +456,7 @@ class Subsystem:
 
             # Return immediately if mechanism is reducible
             if phi < constants.EPSILON:
-                return None
+                return null_mip
             # Update MIP if it's more minimal. We take the bigger purview if
             # the the phi values are indistinguishable.
             if ((phi_min - phi) > constants.EPSILON or (
