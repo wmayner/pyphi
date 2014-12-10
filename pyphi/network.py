@@ -45,19 +45,18 @@ class Network:
         tpm (np.ndarray):
             The transition probability matrix that encodes the network's
             mechanism. It can be provided in either state-by-node or
-            state-by-state form. In state-by-state form, decimal indices must
-            correspond to states so that lower-order bits of the binary
-            representation of the index give the state of low-index nodes (see
-            note below). If given in state-by-node form, it can be either
-            2-dimensional, so that ``tpm[i]`` gives the probabilities of each
-            node being on if the past state is given by the binary
-            representation of |i|, where again, low-order bits correspond to
-            low-index nodes, or in N-D form, so that ``tpm[0][1][0]`` gives the
-            probabilities of each node being on if the past state is |0,1,0|.
-            The shape of the 2-dimensional form of the TPM must be ``(S, N)``,
-            and the shape of the N-D form of the TPM must be ``[2] * N + [N]``,
-            where ``S`` is the number of states and ``N`` is the number of
-            nodes in the network.
+            state-by-state form. In state-by-state form, row *and* column
+            indices must follow the **HOLI** convention (see note below). If
+            given in state-by-node form, it can be either 2-dimensional, so
+            that ``tpm[i]`` gives the probabilities of each node being on if
+            the past state is given by the binary representation of |i|, where
+            ``i`` represents a state according to the **LOLI** convention, or
+            in N-D form, so that ``tpm[0][1][0]`` gives the probabilities of
+            each node being on if the past state is |0,1,0|. The shape of the
+            2-dimensional form of the TPM must be ``(S, N)``, and the shape of
+            the N-D form of the TPM must be ``[2] * N + [N]``, where ``S`` is
+            the number of states and ``N`` is the number of nodes in the
+            network.
         current_state (tuple):
             The current state of the network. ``current_state[i]`` gives the
             current state of node |i|.
@@ -73,12 +72,18 @@ class Network:
             The number of possible states of the network.
 
     .. note::
-        Throughout PyPhi, when decimal indices are used to represent the state
-        of a set of binary nodes, the low-order bits of the binary
-        representation of the decimal index correspond to the low-index nodes.
-        The rationale is that this low-order to low-index mapping is more
-        stable under changes in the number of nodes, in that the same bit
-        always corresponds to the same node index.
+        Throughout PyPhi, when decimal indices of state-by-node TPM **rows**
+        are used to represent the state of a set of binary nodes, the indices
+        follow the **LOLI** convention: low-order bits of the binary
+        representation of the index correspond to low-index nodes. The
+        rationale is that this low-order to low-index mapping is stable under
+        changes in the number of nodes, in the sense that the same bit always
+        corresponds to the same node index.
+
+    .. note::
+        Column indices still use the more intuitive **HOLI** convention, so that
+        when the row is read as a state-tuple, the index of the node gives the
+        state of that node.
     """
 
     def __init__(self, tpm, current_state, past_state,

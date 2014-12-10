@@ -15,16 +15,20 @@ collect_ignore = [
 ]
 
 
-# Run slow tests separately with command-line option
-# ==================================================
+# Run slow tests separately with command-line option, filter tests
+# ================================================================
 
 def pytest_addoption(parser):
+    parser.addoption("--filter", action="store_true",
+                     help="run only tests marked with 'filter'")
     parser.addoption("--slow", action="store_true", help="run slow tests")
     parser.addoption("--veryslow", action="store_true",
                      help="run very slow tests")
 
 
 def pytest_runtest_setup(item):
+    if 'filter' not in item.keywords and item.config.getoption("--filter"):
+        pytest.skip("only running tests with 'filter' mark")
     if 'slow' in item.keywords and not item.config.getoption("--slow"):
         pytest.skip("need --slow option to run")
     if 'veryslow' in item.keywords and not item.config.getoption("--veryslow"):
