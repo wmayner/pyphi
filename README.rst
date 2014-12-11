@@ -44,7 +44,7 @@ Set up a Python 3 virtual environment and install with
     pip install pyphi
 
 To install the latest development version, which is a work in progress and may
-have bugs, instead run:
+have bugs, run:
 
 .. code:: bash
 
