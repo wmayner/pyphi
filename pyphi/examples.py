@@ -5,10 +5,10 @@
 Usage and Examples
 ~~~~~~~~~~~~~~~~~~
 
-The :class:`pyphi.Network` object is the main object on which computations are
+The :class:`pyphi.network` object is the main object on which computations are
 performed. It represents the network of interest.
 
-The :class:`pyphi.Subsystem` object is the secondary object; it represents a
+The :class:`pyphi.subsystem` object is the secondary object; it represents a
 subsystem of a network. |big_phi| is defined on subsystems.
 
 The :mod:`pyphi.compute` module is the main entry-point for the library. It
@@ -21,7 +21,7 @@ Let's make a simple 3-node network and compute its |big_phi|.
 
 To make a network, we need a TPM, current state, past state, and optionally a
 connectivity matrix. The TPM can be in more than one form; see the
-documentation for :class:`pyphi.Network`. Here we'll use the 2-dimensional
+documentation for :class:`pyphi.network`. Here we'll use the 2-dimensional
 state-by-node form.
 
     >>> import pyphi
@@ -112,7 +112,7 @@ def network():
     +--------------+---------------+
     | Past state   | Current state |
     +--------------+---------------+
-    |   A, B, C    |    C, B, A    |
+    |   C, B, A    |    A, B, C    |
     +==============+===============+
     |  {0, 0, 0}   |   {0, 0, 0}   |
     +--------------+---------------+

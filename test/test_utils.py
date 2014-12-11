@@ -7,27 +7,33 @@ from pyphi import utils, constants, models
 from pyphi.network import Network
 
 
-def test_index2state():
+def test_apply_cut():
     cm = np.array([
-        [1, 0, 1, 0]
-        [1, 1, 1, 1]
-        [0, 1, 0, 1]
+        [1, 0, 1, 0],
+        [1, 1, 1, 1],
+        [0, 1, 0, 1],
         [1, 0, 1, 0]
     ])
     cut = models.Cut(severed=(0, 3), intact=(1, 2))
     cut_cm = np.array([
+        [1, 0, 0, 0],
+        [1, 1, 1, 1],
+        [0, 1, 0, 1],
         [1, 0, 0, 0]
-        [1, 1, 1, 1]
-        [0, 0, 0, 1]
-        [1, 0, 1, 0]
     ])
     assert np.array_equal(utils.apply_cut(cut, cm), cut_cm)
 
 
-def test_index2state():
-    assert utils.index2state(7, 8) == (1, 1, 1, 0, 0, 0, 0, 0)
-    assert utils.index2state(1, 3) == (1, 0, 0)
-    assert utils.index2state(8, 4) == (0, 0, 0, 1)
+def test_pyphi_index2state():
+    assert utils.pyphi_index2state(7, 8) == (1, 1, 1, 0, 0, 0, 0, 0)
+    assert utils.pyphi_index2state(1, 3) == (1, 0, 0)
+    assert utils.pyphi_index2state(8, 4) == (0, 0, 0, 1)
+
+
+def test_natural_index2state():
+    assert utils.natural_index2state(7, 8) == (0, 0, 0, 0, 0, 1, 1, 1)
+    assert utils.natural_index2state(1, 3) == (0, 0, 1)
+    assert utils.natural_index2state(8, 4) == (1, 0, 0, 0)
 
 
 def test_phi_eq():

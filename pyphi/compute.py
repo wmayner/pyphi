@@ -238,6 +238,9 @@ def _evaluate_partition(uncut_subsystem, partition,
         partitioned_constellation=forward_constellation,
         subsystem=uncut_subsystem,
         cut_subsystem=forward_cut_subsystem)
+    # Short-circuit if the forward MIP has no Phi.
+    if utils.phi_eq(forward_mip.phi, 0):
+        return forward_mip
     # Compute backward mip.
     backward_cut = Cut(partition[1], partition[0])
     backward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,

@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 
 from pyphi.network import Network
-from pyphi import validate
+from pyphi import validate, compute, Subsystem
 
 
 def test_validate_nodelist_noniterable():
@@ -81,3 +81,8 @@ def test_validate_state_not_reachable_at_all(standard):
 def test_validate_state_not_reachable_from_given(standard):
     with pytest.raises(validate.StateUnreachableError):
         Network(standard.tpm, (0, 0, 0), (1, 1, 1))
+
+
+@pytest.mark.filter
+def test_validate_state_reachable_from_given(micro):
+    net = Network(micro.tpm, (0, 0, 1, 1), (1, 1, 0, 0))

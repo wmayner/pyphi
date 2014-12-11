@@ -5,12 +5,13 @@ import pickle
 import pytest
 import numpy as np
 
-from pyphi import constants, compute, models, utils, Network
+from pyphi import constants, compute, models, utils, Network, Subsystem
 from pyphi.constants import DIRECTIONS, PAST, FUTURE
 
 
 # Precision for testing.
 PRECISION = 5
+
 
 # Answers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -140,6 +141,30 @@ rule152_answer = {
     'len_partitioned_constellation': 24,
     'sum_partitioned_small_phis': 4.185364469227005,
     'cut': models.Cut(severed=(0, 1, 3, 4), intact=(2,))
+}
+
+
+micro_answer = {
+    'phi': 0.97441,
+    'unpartitioned_small_phis': {
+        (0,): 0.175,
+        (1,): 0.175,
+        (2,): 0.175,
+        (3,): 0.175,
+        (0, 1): 0.34811,
+        (2, 3): 0.34811,
+    },
+    'cut': models.Cut(severed=(0, 2), intact=(1, 3))
+}
+
+
+macro_answer = {
+    'phi': 0.86905,
+    'unpartitioned_small_phis': {
+        (0,): 0.455,
+        (1,): 0.455,
+    },
+    'cut': models.Cut(severed=(0,), intact=(1,))
 }
 
 
@@ -299,8 +324,6 @@ def test_complexes_standard(standard, flushcache, restore_fs_cache):
     complexes = list(compute.complexes(standard))
     check_mip(complexes[7], standard_answer)
 
-# Connectivity matrix
-
 
 def test_big_mip_complete_graph_standard_example(s_complete):
     mip = compute.big_mip(s_complete)
@@ -396,3 +419,16 @@ def test_rule152_complexes_no_caching(rule152):
                         in enumerate(main.unpartitioned_constellation)))
         # Check that the minimal cut is the same.
         assert main.cut == result['cut']
+
+
+def test_big_mip_micro(micro_s, flushcache, restore_fs_cache):
+    flushcache()
+    mip = compute.big_mip(micro_s)
+    check_mip(mip, micro_answer)
+
+
+@pytest.mark.filter
+def test_big_mip_macro(macro_s, flushcache, restore_fs_cache):
+    flushcache()
+    mip = compute.big_mip(macro_s)
+    check_mip(mip, macro_answer)
