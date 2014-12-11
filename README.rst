@@ -167,12 +167,14 @@ Finally, you can install PyPhi into your new virtual environment:
 
 Congratulations, you've just installed PyPhi!
 
-----
-
 To play around with the software, ensure that you've activated the virtual
-environment with ``workon <name_of_your_project>``, then run ``python`` to
+environment with ``workon <name_of_your_project>``. Then run ``python`` to
 start a Python 3 interpreter. Then, in the interpreter's command-line (which is
-preceded by the ``>>>`` prompt), run ``import pyphi``.
+preceded by the ``>>>`` prompt), run 
+
+.. code:: python
+
+    import pyphi
 
 Please see the documentation for some `examples
 <http://pythonhosted.org/pyphi/#usage-and-examples>`_ and information on how to
