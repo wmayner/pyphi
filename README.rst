@@ -39,23 +39,53 @@ Installation
 
 Set up a Python 3 virtual environment and install using ``pip install pyphi``.
 
+**Note:** this software has only been tested on the Mac OS X and Linux
+operating systems. Windows is not supported, though it might work on with minor
+modifications. If you do get it to work, a writeup of the steps would be much
+appreciated!
 
-Detailed guide for those unfamiliar with Python
-```````````````````````````````````````````````
 
-This is a Python 3 project, so in order to use it you must install `Python 3
-<https://www.python.org/downloads/>`_. 
+Detailed installation guide for Mac OS X
+````````````````````````````````````````
 
-You should also install `Python 2 <https://www.python.org/downloads/>`_, if you
-haven't already (this is recommended even if your system came with Python, in
-order to protect your system's version of Python from unwanted changes).
+This is a step-by-step guide intended for those unfamiliar with Python or the
+command-line (*a.k.a.* the “shell”).
 
-Once you've installed Python 2 and 3, it is highly recommended to set up a
-**virtual environment** in which to install PyPhi. Virtual environments allow
-different projects to isolate their dependencies from one another, so that they
-don't interact in unexpected ways and cause bugs that are difficult to
-diagnose. Please see `this guide
-<http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_ for more
+A shell can be opened by opening a new tab in the Terminal app (in Utilities).
+Every line in the code blocks below is meant to be copied and pasted into the
+terminal (hit the Enter key to run the command).
+
+The fist step is to install the versions of Python that we need. The most
+convenient way of doing this is to use the OS X package manager `Homebrew
+<http://brew.sh/>`_. Install Homebrew by running this command:
+
+.. code:: bash
+
+   ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+Now you should have access to the `brew` command. First, we need to install
+Python 2 and 3. Using these so-called “brewed” Python versions, rather than the
+version of Python that comes with your computer, will protect your computer's
+Python version from unwanted changes that could interfere with other
+applications.
+
+.. code:: bash
+
+   brew install python python3
+
+Then we need to ensure that the terminal “knows about” the newly-installed
+Python versions:
+
+.. code:: bash
+
+    brew link --overwrite python
+    brew link --overwrite python3
+
+Now that we're using our shiny new Python versions, it is highly recommended to
+set up a **virtual environment** in which to install PyPhi. Virtual
+environments allow different projects to isolate their dependencies from one
+another, so that they don't interact in unexpected ways. . Please see `this
+guide <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_ for more
 information.
 
 To do this, you must install ``virtualenv`` and ``virtualenvwrapper``, a `tool
@@ -63,21 +93,30 @@ for manipulating virtual environments
 <http://virtualenvwrapper.readthedocs.org/en/latest/>`_. Both of those tools
 are available on `PyPI <https://pypi.python.org/pypi>`_, the Python package
 index, and can be installed with ``pip``, the command-line utility for
-installing and managing Python packages (``pip`` should have been installed
-automatically when you installed Python 2):
+installing and managing Python packages (``pip`` was installed automatically
+with the brewed Python):
 
 .. code:: bash
 
     pip install virtualenvwrapper
 
-Now, add three lines to your shell startup file (``.bashrc``,
-``.bash_profile``, etc.) to set the location where the virtual environments
-should live, the location of your development project directories, and the
-location of the script installed with this package. **Note:** The location of
-the script can be found by running ``which virtualenvwrapper.sh``.
+Now we need to edit your shell startup file. This is a file that runs automatically every time you open a new shell (a new window or tab in the Terminal app). This file should be in your home directory, though it will be invisible in the Finder because the filename is preceded by a period. On most Macs it is called ``.bash_profile``. You can open this in a text editor by running this command:
 
-The second line will different for everyone and the third line will be
-different depending on how Python 2 was installed, but here is an example:
+.. code:: bash
+
+    open -a TextEdit ~/.bash_profile
+
+If this doesn't work because the file doesn't exist, then run `touch
+~/.bash_profile` first.
+
+Now, you'll add three lines to the shell startup file. These lines will set the
+location where the virtual environments should live, the location of your
+development project directories, and the location of the script installed with
+this package. **Note:** The location of the script can be found by running
+``which virtualenvwrapper.sh``.
+
+The filepath after the equals sign on second line will different for everyone.
+but here is an example:
 
 .. code:: bash
 
@@ -85,8 +124,9 @@ different depending on how Python 2 was installed, but here is an example:
     export PROJECT_HOME=$HOME/dev
     source /usr/local/bin/virtualenvwrapper.sh
 
-After editing the startup file, open a new terminal shell or reload the startup
-file (*e.g.*, run ``source ~/.bash_profile``).
+After editing the startup file and saving, open a new terminal shell by opening
+a new tab or window, or reload the startup file (*e.g.*, run ``source
+~/.bash_profile``).
 
 Now that ``virtualenvwrapper`` is fully installed, use it to create a Python 3
 virtual environment, like so:
@@ -103,9 +143,10 @@ The virtual environment should have been activated automatically after creating
 it. It can be manually activated with ``workon <name_of_your_project>``, and
 deactivated with ``deactivate``.
 
-Remember to activate the virtual environment *every time* you begin working on
-your project. Also, note that the currently active virtual environment is *not*
-associated with any particular folder; it is associated with a terminal shell.
+**Important:** Remember to activate the virtual environment *every time* you
+begin working on your project. Also, note that the currently active virtual
+environment is *not* associated with any particular folder; it is associated
+with a terminal shell.
 
 Finally, you can install PyPhi into your new virtual environment:
 
@@ -113,8 +154,11 @@ Finally, you can install PyPhi into your new virtual environment:
 
     pip install pyphi
 
-To install the latest development version (which is a work in progress and may
-have bugs):
+
+----
+
+To install the latest development version, which is a work in progress and may
+have bugs, instead run:
 
 .. code:: bash
 
