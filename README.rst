@@ -37,7 +37,18 @@ The documentation is also available within the Python interpreter with the
 Installation
 ~~~~~~~~~~~~
 
-Set up a Python 3 virtual environment and install using ``pip install pyphi``.
+Set up a Python 3 virtual environment and install with
+
+.. code:: bash
+
+    pip install pyphi
+
+To install the latest development version, which is a work in progress and may
+have bugs, instead run:
+
+.. code:: bash
+
+    pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
 
 **Note:** this software has only been tested on the Mac OS X and Linux
 operating systems. Windows is not supported, though it might work on with minor
@@ -51,9 +62,9 @@ Detailed installation guide for Mac OS X
 This is a step-by-step guide intended for those unfamiliar with Python or the
 command-line (*a.k.a.* the “shell”).
 
-A shell can be opened by opening a new tab in the Terminal app (in Utilities).
-Every line in the code blocks below is meant to be copied and pasted into the
-terminal (hit the Enter key to run the command).
+A shell can be opened by opening a new tab in the Terminal app (located in
+Utilities). Text that is ``formatted like code`` is meant to be copied and
+pasted into the terminal (hit the Enter key to run the command).
 
 The fist step is to install the versions of Python that we need. The most
 convenient way of doing this is to use the OS X package manager `Homebrew
@@ -63,7 +74,7 @@ convenient way of doing this is to use the OS X package manager `Homebrew
 
    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-Now you should have access to the `brew` command. First, we need to install
+Now you should have access to the ``brew`` command. First, we need to install
 Python 2 and 3. Using these so-called “brewed” Python versions, rather than the
 version of Python that comes with your computer, will protect your computer's
 Python version from unwanted changes that could interfere with other
@@ -106,16 +117,16 @@ Now we need to edit your shell startup file. This is a file that runs automatica
 
     open -a TextEdit ~/.bash_profile
 
-If this doesn't work because the file doesn't exist, then run `touch
-~/.bash_profile` first.
+If this doesn't work because the file doesn't exist, then run ``touch
+~/.bash_profile`` first.
 
 Now, you'll add three lines to the shell startup file. These lines will set the
-location where the virtual environments should live, the location of your
+location where the virtual environments will live, the location of your
 development project directories, and the location of the script installed with
-this package. **Note:** The location of the script can be found by running
-``which virtualenvwrapper.sh``.
+this package, respectively. **Note:** The location of the script can be found
+by running ``which virtualenvwrapper.sh``.
 
-The filepath after the equals sign on second line will different for everyone.
+The filepath after the equals sign on second line will different for everyone,
 but here is an example:
 
 .. code:: bash
@@ -124,9 +135,9 @@ but here is an example:
     export PROJECT_HOME=$HOME/dev
     source /usr/local/bin/virtualenvwrapper.sh
 
-After editing the startup file and saving, open a new terminal shell by opening
-a new tab or window, or reload the startup file (*e.g.*, run ``source
-~/.bash_profile``).
+After editing the startup file and saving it, open a new terminal shell by
+opening a new tab or window (or just reload the startup file by running
+``source ~/.bash_profile``).
 
 Now that ``virtualenvwrapper`` is fully installed, use it to create a Python 3
 virtual environment, like so:
@@ -154,15 +165,18 @@ Finally, you can install PyPhi into your new virtual environment:
 
     pip install pyphi
 
+Congratulations, you've just installed PyPhi!
 
 ----
 
-To install the latest development version, which is a work in progress and may
-have bugs, instead run:
+To play around with the software, ensure that you've activated the virtual
+environment with ``workon <name_of_your_project>``, then run ``python`` to
+start a Python 3 interpreter. Then, in the interpreter's command-line (which is
+preceded by the ``>>>`` prompt), run ``import pyphi``.
 
-.. code:: bash
-
-    pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
+Please see the documentation for some `examples
+<http://pythonhosted.org/pyphi/#usage-and-examples>`_ and information on how to
+`configure <http://pythonhosted.org/pyphi/#configuration-optional>`_ it.
 
 
 Optional: caching with a database
