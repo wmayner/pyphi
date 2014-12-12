@@ -24,7 +24,21 @@ module.exports = (grunt) ->
           stdout: true
           failOnError: true
       openDocs:
-        command: "google-chrome docs/_build/html/index.html"
+        command: "open docs/_build/html/index.html"
+      uploadGithubDocs:
+        command: [
+          "cp -r docs/_build/html github-docs"
+          "git checkout gh-pages"
+          "cp github-docs/* ."
+          "git add ."
+          "git commit -a -m 'Update docs'"
+          "git push"
+          "git checkout develop"
+          "rm -r ./github-docs"
+        ].join "&&"
+        options:
+          stdout: true
+          failOnError: true
       openCoverage:
         command: "open htmlcov/index.html"
 
@@ -62,7 +76,15 @@ module.exports = (grunt) ->
   grunt.registerTask "docs", [
     "shell:openDocs"
     "shell:buildDocs"
-    "watch:docs"
+  ]
+  grunt.registerTask "watch-docs", [
+    "shell:openDocs"
+    "shell:buildDocs"
+    "shell:watchDocs"
+  ]
+  grunt.registerTask "upload-github-docs", [
+    "shell:buildDocs"
+    "shell:uploadGithubDocs"
   ]
   grunt.registerTask "test", [
     "shell:test"
