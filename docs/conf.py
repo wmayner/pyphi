@@ -41,6 +41,8 @@ extensions = [
     'sphinxcontrib.napoleon'
 ]
 
+mathjax_path = '//cdn.mathjax.org/mathjax/latest/MathJax.js'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
