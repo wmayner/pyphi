@@ -29,7 +29,7 @@ module.exports = (grunt) ->
         command: [
           "cp -r docs/_build/html github-docs"
           "git checkout gh-pages"
-          "cp github-docs/* ."
+          "cp -r github-docs/* ."
           "git add ."
           "git commit -a -m 'Update docs'"
           "git push"
