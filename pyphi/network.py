@@ -27,7 +27,7 @@ class Network:
     Example:
         In a 3-node network, ``a_network.tpm[(0, 0, 1)]`` gives the transition
         probabilities for each node at |t_0| given that state at |t_{-1}| was
-        |0,0,1|.
+        |N_0 = 0, N_1 = 0, N_2 = 1|.
 
     Args:
         tpm (np.ndarray): See the corresponding attribute.
@@ -51,12 +51,11 @@ class Network:
             that ``tpm[i]`` gives the probabilities of each node being on if
             the past state is given by the binary representation of |i|, where
             ``i`` represents a state according to the **LOLI** convention, or
-            in N-D form, so that ``tpm[0][1][0]`` gives the probabilities of
-            each node being on if the past state is |0,1,0|. The shape of the
-            2-dimensional form of the TPM must be ``(S, N)``, and the shape of
-            the N-D form of the TPM must be ``[2] * N + [N]``, where ``S`` is
-            the number of states and ``N`` is the number of nodes in the
-            network.
+            in N-D form, so that ``tpm[(0, 0, 1)]`` gives the probabilities of
+            each node being on if the past state is |N_0 = 0, N_1 = 0, N_2 = 1|. The shape of the 2-dimensional form of the TPM must be ``(S,
+            N)``, and the shape of the N-D form of the TPM must be ``[2] * N +
+            [N]``, where ``S`` is the number of states and ``N`` is the number
+            of nodes in the network.
         current_state (tuple):
             The current state of the network. ``current_state[i]`` gives the
             current state of node |i|.
