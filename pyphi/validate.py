@@ -95,18 +95,24 @@ def state(network):
     """Validate a network's current and past state."""
     current_state, past_state = network.current_state, network.past_state
     tpm = network.tpm
-    # Check that the state is the right size.
-    if (len(current_state) != network.size or len(past_state) != network.size):
-        raise ValueError("Invalid state: there must be one entry per node in "
-                         "the network; this state has {} entries, but there "
-                         "are {} nodes.".format(len(network.current_state),
-                                                network.size))
-    # Check that the state is reachable from some state.
+    # Check that the current and past states are the right size.
+    invalid_state = False
+    if len(current_state) != network.size:
+        invalid_state = ('current', len(network.current_state))
+    if len(past_state) != network.size:
+        invalid_state = ('past', len(network.past_state))
+    if invalid_state:
+        raise ValueError("Invalid {} state: there must be one entry per node "
+                         "in the network; this state has {} entries, but "
+                         "there are {} nodes.".format(invalid_state[0],
+                                                      invalid_state[1],
+                                                      network.size))
+    # Check that the current state is reachable from some state.
     if not _state_reachable(current_state, tpm):
         raise StateUnreachableError(
             current_state, past_state, tpm,
             "The current state is unreachable according to the given TPM.")
-    # Check that the state is reachable from the given past state.
+    # Check that the current state is reachable from the given past state.
     if not _state_reachable_from(past_state, current_state, tpm):
         raise StateUnreachableError(
             current_state, past_state, tpm,
