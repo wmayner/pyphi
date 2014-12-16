@@ -194,7 +194,7 @@ and possible past purviews
 
    >>> CD = subsystem.indices2nodes((2,3))
    >>> DE = subsystem.indices2nodes((3,4))
-   >>> CDE = subsystem.indices2nodeS((2,3,4))
+   >>> CDE = subsystem.indices2nodes((2,3,4))
 
 We can then evaluate the cause information for each of the mechanisms over the
 past purview CDE,
@@ -212,7 +212,7 @@ The composite mechanism AB has greater cause information than either of the indi
 mechanisms. This goes against the idea that AB should exist minimally in this system.
 
 Instead, we can quantify existence as the irreducible cause information of a mechanism.
-The MIP of a mechansim is the partition of mechansim and purview which makes the least
+The MIP of a mechanism is the partition of mechanism and purview which makes the least
 difference to the cause repertoire. The irreducible cause information is the distance
 between the unpartitioned and partitioned repertoires.
 
@@ -225,23 +225,23 @@ We can then determine what the specific partition is
    >>> mip_AB.partition
    (Part(mechanism=(), purview=(n2,)), Part(mechanism=(n0, n1), purview=(n3, n4)))
 
-The labels (n0, n1, n2, n3, n4) correspond to nodes (A,B,C,D,E) repsectively. Thus the
+The labels (n0, n1, n2, n3, n4) correspond to nodes (A,B,C,D,E) respectively. Thus the
 MIP is (AB | DE) X ([] | C), where [] denotes the empty mechanism.
 
 The partitioned repertoire of the MIP can also be retrieved,
 
-   >>> mip_AB.partitioned_repertoire.reshape([8], order='F')
+   >>> mip_AB.partitioned_repertoire.flatten(order='F')
    array([ 0.2,  0.2,  0.1,  0.1,  0.2,  0.2,  0. ,  0. ])
 
 and we can then calculate the irreducible cause information as the difference between
-paritioned and unpartitioned repertoires,
+partitioned and unpartitioned repertoires,
 
    >>> mip_AB.phi
    0.09999990000000035
 
-One counter-intuitive result which merrits discussion is that since irreducible cause information
+One counter-intuitive result which merits discussion is that since irreducible cause information
 is what defines existence, we must also evaluate the irreducible cause information of
-the mechansims A and B.
+the mechanisms A and B.
 
 The mechanism A over the purview CDE is completely reducible to (A|CD) x ([]|E) because E has no
 effect on A, there is no output returned from the subsystem.mip_past function,
@@ -259,7 +259,7 @@ In this case, there is a well defined MIP
 
 which is ([]|C) x (A|D). It has partitioned repertoire
 
-   >>> mip_A.partitioned_repertoire.reshape([4], order='F')
+   >>> mip_A.partitioned_repertoire.flatten(order='F')
    array([ 0.33333333,  0.33333333,  0.16666667,  0.16666667])
 
 and irreducible cause information
@@ -267,7 +267,7 @@ and irreducible cause information
    >>> mip_A.phi
    0.16666700000000023
 
-A similar result holds for B. Thus the mechansims A and B exist at levels of phi=1/6, while
+A similar result holds for B. Thus the mechanisms A and B exist at levels of phi=1/6, while
 the higher-order mechanism AB exists only as the residual of causes, at a level of phi=1/10.
 
 """
