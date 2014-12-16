@@ -7,69 +7,6 @@ from pyphi import utils, constants, models
 from pyphi.network import Network
 
 
-def test_high_to_low_index2low_to_low_index():
-    assert utils.high_to_low_index2low_to_low_index(0, 3) == 0
-    assert utils.high_to_low_index2low_to_low_index(1, 3) == 4
-    assert utils.high_to_low_index2low_to_low_index(2, 3) == 2
-    assert utils.high_to_low_index2low_to_low_index(3, 3) == 6
-    assert utils.high_to_low_index2low_to_low_index(4, 3) == 1
-    assert utils.high_to_low_index2low_to_low_index(5, 3) == 5
-    assert utils.high_to_low_index2low_to_low_index(6, 3) == 3
-    assert utils.high_to_low_index2low_to_low_index(7, 3) == 7
-    assert utils.high_to_low_index2low_to_low_index(12, 5) == 6
-
-
-def test_paper_state_by_state2pyphi_state_by_state():
-    paper_tpm = np.array([
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, 0, 0, 0, 0, 1, 0],
-        [0, 0, 0, 0, 0, 0, 0, 1]
-    ])
-    answer = np.array([
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 1, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 1]
-    ])
-    assert np.array_equal(
-        answer,
-        utils.paper_state_by_state2pyphi_state_by_state(paper_tpm)
-    )
-    paper_tpm = np.array([
-        [0, 0, 0, 0, 0, 0, 0, 1],
-        [0, 1, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, 0, 0, 0, 0, 1, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0]
-    ])
-    answer = np.array([
-        [0, 0, 0, 0, 0, 0, 0, 1],
-        [0, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 1, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0]
-    ])
-    assert np.array_equal(
-        answer,
-        utils.paper_state_by_state2pyphi_state_by_state(paper_tpm)
-    )
-
-
 def test_apply_cut():
     cm = np.array([
         [1, 0, 1, 0],
@@ -87,10 +24,16 @@ def test_apply_cut():
     assert np.array_equal(utils.apply_cut(cut, cm), cut_cm)
 
 
-def test_index2state():
-    assert utils.index2state(7, 8) == (1, 1, 1, 0, 0, 0, 0, 0)
-    assert utils.index2state(1, 3) == (1, 0, 0)
-    assert utils.index2state(8, 4) == (0, 0, 0, 1)
+def test_pyphi_index2state():
+    assert utils.pyphi_index2state(7, 8) == (1, 1, 1, 0, 0, 0, 0, 0)
+    assert utils.pyphi_index2state(1, 3) == (1, 0, 0)
+    assert utils.pyphi_index2state(8, 4) == (0, 0, 0, 1)
+
+
+def test_natural_index2state():
+    assert utils.natural_index2state(7, 8) == (0, 0, 0, 0, 0, 1, 1, 1)
+    assert utils.natural_index2state(1, 3) == (0, 0, 1)
+    assert utils.natural_index2state(8, 4) == (1, 0, 0, 0)
 
 
 def test_phi_eq():

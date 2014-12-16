@@ -210,3 +210,27 @@ def rule152_s_complete():
 @pytest.fixture()
 def eights_complete():
     return example_networks.eights_complete()
+
+
+# Macro/Micro networks
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+@pytest.fixture()
+def macro():
+    return example_networks.macro()
+
+
+@pytest.fixture()
+def macro_s():
+    return example_networks.macro_s()
+
+
+@pytest.fixture()
+def micro():
+    return example_networks.micro()
+
+
+@pytest.fixture()
+def micro_s():
+    return example_networks.micro_s()

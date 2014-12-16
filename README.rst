@@ -37,88 +37,29 @@ The documentation is also available within the Python interpreter with the
 Installation
 ~~~~~~~~~~~~
 
-Set up a Python 3 virtual environment and install using ``pip install pyphi``.
-
-
-Detailed guide for those unfamiliar with Python
-```````````````````````````````````````````````
-
-This is a Python 3 project, so in order to use it you must install `Python 3
-<https://www.python.org/downloads/>`_. 
-
-You should also install `Python 2 <https://www.python.org/downloads/>`_, if you
-haven't already (this is recommended even if your system came with Python, in
-order to protect your system's version of Python from unwanted changes).
-
-Once you've installed Python 2 and 3, it is highly recommended to set up a
-**virtual environment** in which to install PyPhi. Virtual environments allow
-different projects to isolate their dependencies from one another, so that they
-don't interact in unexpected ways and cause bugs that are difficult to
-diagnose. Please see `this guide
-<http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_ for more
-information.
-
-To do this, you must install ``virtualenv`` and ``virtualenvwrapper``, a `tool
-for manipulating virtual environments
-<http://virtualenvwrapper.readthedocs.org/en/latest/>`_. Both of those tools
-are available on `PyPI <https://pypi.python.org/pypi>`_, the Python package
-index, and can be installed with ``pip``, the command-line utility for
-installing and managing Python packages (``pip`` should have been installed
-automatically when you installed Python 2):
-
-.. code:: bash
-
-    pip install virtualenvwrapper
-
-Now, add three lines to your shell startup file (``.bashrc``,
-``.bash_profile``, etc.) to set the location where the virtual environments
-should live, the location of your development project directories, and the
-location of the script installed with this package. **Note:** The location of
-the script can be found by running ``which virtualenvwrapper.sh``.
-
-The second line will different for everyone and the third line will be
-different depending on how Python 2 was installed, but here is an example:
-
-.. code:: bash
-
-    export WORKON_HOME=$HOME/.virtualenvs
-    export PROJECT_HOME=$HOME/dev
-    source /usr/local/bin/virtualenvwrapper.sh
-
-After editing the startup file, open a new terminal shell or reload the startup
-file (*e.g.*, run ``source ~/.bash_profile``).
-
-Now that ``virtualenvwrapper`` is fully installed, use it to create a Python 3
-virtual environment, like so:
-
-.. code:: bash
-
-    mkvirtualenv -p `which python3` <name_of_your_project>
-
-The ``-p `which python3``` option ensures that when the virtual environment is
-activated, the commands ``python`` and ``pip`` will refer to their Python 3
-counterparts.
-
-The virtual environment should have been activated automatically after creating
-it. It can be manually activated with ``workon <name_of_your_project>``, and
-deactivated with ``deactivate``.
-
-Remember to activate the virtual environment *every time* you begin working on
-your project. Also, note that the currently active virtual environment is *not*
-associated with any particular folder; it is associated with a terminal shell.
-
-Finally, you can install PyPhi into your new virtual environment:
+Set up a Python 3 virtual environment and install with
 
 .. code:: bash
 
     pip install pyphi
 
-To install the latest development version (which is a work in progress and may
-have bugs):
+To install the latest development version, which is a work in progress and may
+have bugs, run:
 
 .. code:: bash
 
     pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
+
+**Note:** this software has only been tested on the Mac OS X and Linux
+operating systems. Windows is not supported, though it might work on with minor
+modifications. If you do get it to work, a writeup of the steps would be much
+appreciated!
+
+
+Detailed installation guide for Mac OS X
+````````````````````````````````````````
+
+`See here <https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.md>`_.
 
 
 Optional: caching with a database

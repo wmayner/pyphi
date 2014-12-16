@@ -41,6 +41,8 @@ extensions = [
     'sphinxcontrib.napoleon'
 ]
 
+mathjax_path = '//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -114,6 +116,7 @@ rst_prolog = """
 .. |1,0,0| replace:: :math:`\{1,0,0\}`
 .. |0,1,0| replace:: :math:`\{0,1,0\}`
 .. |0,0,1| replace:: :math:`\{0,0,1\}`
+.. |N_0 = 0, N_1 = 0, N_2 = 1| replace:: :math:`\{N_0 = 0, N_1 = 0, N_2 = 1\}`
 .. |ith| replace:: :math:`i^{\\textrm{th}}`
 .. |r| replace:: :math:`r`
 .. |n| replace:: :math:`n`
