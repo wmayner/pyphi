@@ -37,13 +37,13 @@ class Node:
             boundary nodes.
 
     Examples:
-        In a 3-node context, ``self.past_tpm[0][(0, 1, 0)]`` gives the
+        In a 3-node context, ``self.past_tpm[0][(0, 0, 1)]`` gives the
         probability that this node is off at |t_0| if the state of the network
-        is |0,1,0| at |t_{-1}|.
+        is |N_0 = 0, N_1 = 0, N_2 = 1| at |t_{-1}|.
 
-        Similarly, ``self.current_tpm[0][(0, 1, 0)]`` gives the probability
-        that this node is off at |t_1| if the state of the network is |0,1,0|
-        at |t_0|.
+        Similarly, ``self.current_tpm[1][(0, 0, 1)]`` gives the probability
+        that this node is on at |t_1| if the state of the network is |N_0 = 0,
+        N_1 = 0, N_2 = 1| at |t_0|.
     """
 
     def __init__(self, network, index, context, label=None):
