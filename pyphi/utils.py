@@ -39,33 +39,6 @@ def condition_tpm(tpm, fixed_nodes, state):
     return tpm[conditioning_indices]
 
 
-def high_to_low_index2low_to_low_index(i, number_of_nodes):
-    """Convert a decimal integer representing a state according to the
-    convention that low-order bits correspond to high-order node indices into a
-    decimal integer that uses the reverse convention."""
-    # Get the binary representation of the index, pad it with leading zeros so
-    # there are as many bits as there are nodes...
-    # ♪♫ put that thing down, flip it and reverse it ♫♪
-    # ...convert back to an integer and return.
-    return int(bin(i)[2:].zfill(number_of_nodes)[::-1], 2)
-
-
-def paper_state_by_state2pyphi_state_by_state(tpm):
-    """Convert a square, state-by-state TPM where the index of a row
-    corresponds to a state, and where the low-order bits of the binary
-    representation of those indices correspond to **high**-order nodes, into
-    the equivalent TPM under the PyPhi convention of low-order bits
-    corresponding to low-order nodes."""
-    pyphi_tpm = np.empty(tpm.shape)
-    number_of_rows = tpm.shape[0]
-    # Get the number of nodes from the number of states
-    N = int(math.log(number_of_rows, 2))
-    # Map each row to its PyPhi-conventional position
-    for i in range(number_of_rows):
-        pyphi_tpm[high_to_low_index2low_to_low_index(i, N)] = tpm[i]
-    return pyphi_tpm
-
-
 # TODO support nondeterministic TPMs
 def state_by_node2state_by_state(tpm):
     # Determine the number of nodes for a properly defined TPM.
