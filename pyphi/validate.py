@@ -86,7 +86,7 @@ def _state_reachable(current_state, tpm):
 # TODO test
 def _state_reachable_from(past_state, current_state, tpm):
     """Return whether a state is reachable from the given past state."""
-    test = tpm[past_state] - np.array(current_state)
+    test = tpm[tuple(past_state)] - np.array(current_state)
     return np.all(np.logical_and(-1 < test, test < 1))
 
 

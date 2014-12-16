@@ -117,8 +117,8 @@ class Network:
                                order="F").astype(float)
 
         self.connectivity_matrix = connectivity_matrix
-        self.current_state = current_state
-        self.past_state = past_state
+        self.current_state = tuple(current_state)
+        self.past_state = tuple(past_state)
         # Make the TPM and connectivity matrix immutable (for hashing).
         self.tpm.flags.writeable = False
         self.connectivity_matrix.flags.writeable = False
