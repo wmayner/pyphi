@@ -80,7 +80,7 @@ module.exports = (grunt) ->
   grunt.registerTask "watch-docs", [
     "shell:openDocs"
     "shell:buildDocs"
-    "shell:watchDocs"
+    "watch:docs"
   ]
   grunt.registerTask "upload-github-docs", [
     "shell:buildDocs"
