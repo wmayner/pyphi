@@ -7,6 +7,48 @@ from pyphi import utils, constants, models
 from pyphi.network import Network
 
 
+def test_state_by_node2state_by_state():
+    state_by_state = np.array([
+    [1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,0],
+    [0,0,0,0,0,1,0,0],
+    [0,0,0,1,0,0,0,0],
+    [0,0,0,1,0,0,0,0],
+    [0,0,0,0,0,1,0,0],
+    [0,0,0,0,0,0,1,0],
+    [1,0,0,0,0,0,0,0]])
+    state_by_node = np.array([
+    [0,0,0],
+    [0,1,1],
+    [1,0,1],
+    [1,1,0],
+    [1,1,0],
+    [1,0,1],
+    [0,1,1],
+    [0,0,0]])
+    assert np.array_equal(state_by_state, utils.state_by_node2state_by_state(state_by_node))
+
+def test_state_by_state2state_by_node():
+    state_by_state = np.array([
+    [1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,0],
+    [0,0,0,0,0,1,0,0],
+    [0,0,0,1,0,0,0,0],
+    [0,0,0,1,0,0,0,0],
+    [0,0,0,0,0,1,0,0],
+    [0,0,0,0,0,0,1,0],
+    [1,0,0,0,0,0,0,0]])
+    state_by_node = np.array([
+    [0,0,0],
+    [0,1,1],
+    [1,0,1],
+    [1,1,0],
+    [1,1,0],
+    [1,0,1],
+    [0,1,1],
+    [0,0,0]]).reshape([2]*3+[3], order='F')
+    assert np.array_equal(state_by_node, utils.state_by_state2state_by_node(state_by_state))
+
 def test_apply_cut():
     cm = np.array([
         [1, 0, 1, 0],
