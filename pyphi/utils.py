@@ -56,7 +56,7 @@ def state_by_node2state_by_state(tpm):
     # the current state and then covert back to state number.
     for past_state_index in range(0, 2**N):
         past_state = tuple(map(int, bin(past_state_index)[2:].zfill(N)[::-1]))
-        current_state_index = int(''.join(str(int(i)) for i in tpm[past_state]), 2)
+        current_state_index = int(''.join(str(int(i)) for i in tpm[past_state])[::-1], 2)
         new_tpm[past_state_index, current_state_index] = 1
     return new_tpm
 
