@@ -266,8 +266,8 @@ between the unpartitioned and partitioned repertoires.</p>
 </pre></div>
 </div>
 <p>The labels <tt class="docutils literal"><span class="pre">(n0,</span> <span class="pre">n1,</span> <span class="pre">n2,</span> <span class="pre">n3,</span> <span class="pre">n4)</span></tt> correspond to nodes <span class="math">\(A, B, C, D, E\)</span>
-respectively. Thus the MIP is | (AB / DE) x ([] / C) <a href="#id1"><span class="problematic" id="id2">|</span></a>, where <span class="math">\([]\)</span>
-denotes the empty mechanism.</p>
+respectively. Thus the MIP is <span class="math">\(\frac{AB}{DE} \times \frac{\left[\right]}{C}\)</span>, where <span class="math">\([]\)</span> denotes
+the empty mechanism.</p>
 <p>The partitioned repertoire of the MIP can also be retrieved:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_AB</span><span class="o">.</span><span class="n">partitioned_repertoire</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">)</span>
 <span class="go">array([ 0.2,  0.2,  0.1,  0.1,  0.2,  0.2,  0. ,  0. ])</span>
@@ -282,14 +282,12 @@ between partitioned and unpartitioned repertoires.</p>
 <p>One counterintuitive result which merits discussion is that since irreducible
 cause information is what defines existence, we must also evaluate the
 irreducible cause information of the mechanisms <span class="math">\(A\)</span> and <span class="math">\(B\)</span>.</p>
-<p>The mechanism <span class="math">\(A\)</span> over the purview <span class="math">\(CDE\)</span> is completely reducible to
-| (A / CD) x ([] / E) | because <a href="#id5"><span class="problematic" id="id6">|E|</span></a> has no effect on <span class="math">\(A\)</span>, so it has zero
-<a href="#id7"><span class="problematic" id="id8">|small_phi|</span></a>.</p>
+<p>The mechanism <span class="math">\(A\)</span> over the purview <span class="math">\(CDE\)</span> is completely reducible to <span class="math">\(\frac{A}{CD} \times \frac{\left[\right]}{E}\)</span> because <span class="math">\(E\)</span> has no effect on <span class="math">\(A\)</span>, so it has zero <span class="math">\(\varphi\)</span>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span>
 <span class="go">Mip(phi=0.0, direction=&#39;past&#39;, mechanism=(n0,), purview=(n2, n3, n4), partition=None, unpartitioned_repertoire=None, partitioned_repertoire=None)</span>
 </pre></div>
 </div>
-<p>Instead, we should evaluate <span class="math">\(A\)</span> over the purview <a href="#id9"><span class="problematic" id="id10">|CD|</span></a></p>
+<p>Instead, we should evaluate <span class="math">\(A\)</span> over the purview <span class="math">\(CD\)</span></p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_A</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CD</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -298,7 +296,7 @@ irreducible cause information of the mechanisms <span class="math">\(A\)</span> 
 <span class="go">(Part(mechanism=(), purview=(n2,)), Part(mechanism=(n0,), purview=(n3,)))</span>
 </pre></div>
 </div>
-<p>which is | ([] / C) x (A / D) <a href="#id3"><span class="problematic" id="id4">|</span></a>. It has partitioned repertoire</p>
+<p>which is <span class="math">\(\frac{\left[\right]}{C} \times \frac{A}{D}\)</span>. It has partitioned repertoire</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_A</span><span class="o">.</span><span class="n">partitioned_repertoire</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">)</span>
 <span class="go">array([ 0.33333333,  0.33333333,  0.16666667,  0.16666667])</span>
 </pre></div>
@@ -1750,7 +1748,7 @@ the repertoires of each part of the partition.</p>
 <dt id="pyphi.models.Mip.__bool__">
 <tt class="descname">__bool__</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.models.Mip.__bool__" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Mip is truthy if it is not reducible; i.e. if it has a significant
-amount of <a href="#id11"><span class="problematic" id="id12">|small_phi|</span></a>.</p>
+amount of <span class="math">\(\varphi\)</span>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -2035,7 +2033,7 @@ boundary nodes.</p>
 probability that this node is off at <span class="math">\(t_0\)</span> if the state of the network
 is <span class="math">\(\{N_0 = 0, N_1 = 0, N_2 = 1\}\)</span> at <span class="math">\(t_{-1}\)</span>.</p>
 <p>Similarly, <tt class="docutils literal"><span class="pre">self.current_tpm[1][(0,</span> <span class="pre">0,</span> <span class="pre">1)]</span></tt> gives the probability
-that this node is on at <a href="#id13"><span class="problematic" id="id14">|t_1|</span></a> if the state of the network is <span class="math">\(\{N_0 = 0, N_1 = 0, N_2 = 1\}\)</span> at <span class="math">\(t_0\)</span>.</p>
+that this node is on at <a href="#id1"><span class="problematic" id="id2">|t_1|</span></a> if the state of the network is <span class="math">\(\{N_0 = 0, N_1 = 0, N_2 = 1\}\)</span> at <span class="math">\(t_0\)</span>.</p>
 <dl class="method">
 <dt id="pyphi.node.Node.__eq__">
 <tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyphi.node.Node.__eq__" title="Permalink to this definition">¶</a></dt>
