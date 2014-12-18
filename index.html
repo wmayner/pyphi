@@ -266,7 +266,7 @@ between the unpartitioned and partitioned repertoires.</p>
 </pre></div>
 </div>
 <p>The labels <tt class="docutils literal"><span class="pre">(n0,</span> <span class="pre">n1,</span> <span class="pre">n2,</span> <span class="pre">n3,</span> <span class="pre">n4)</span></tt> correspond to nodes <span class="math">\(A, B, C, D, E\)</span>
-respectively. Thus the MIP is <span class="math">\(\frac{AB}{DE} \times \frac{\left[\right]}{C}\)</span>, where <span class="math">\([]\)</span> denotes
+respectively. Thus the MIP is <span class="math">\(\frac{AB}{DE} \times \frac{\left[\,\right]}{C}\)</span>, where <span class="math">\([]\)</span> denotes
 the empty mechanism.</p>
 <p>The partitioned repertoire of the MIP can also be retrieved:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_AB</span><span class="o">.</span><span class="n">partitioned_repertoire</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">)</span>
@@ -282,7 +282,7 @@ between partitioned and unpartitioned repertoires.</p>
 <p>One counterintuitive result which merits discussion is that since irreducible
 cause information is what defines existence, we must also evaluate the
 irreducible cause information of the mechanisms <span class="math">\(A\)</span> and <span class="math">\(B\)</span>.</p>
-<p>The mechanism <span class="math">\(A\)</span> over the purview <span class="math">\(CDE\)</span> is completely reducible to <span class="math">\(\frac{A}{CD} \times \frac{\left[\right]}{E}\)</span> because <span class="math">\(E\)</span> has no effect on <span class="math">\(A\)</span>, so it has zero <span class="math">\(\varphi\)</span>.</p>
+<p>The mechanism <span class="math">\(A\)</span> over the purview <span class="math">\(CDE\)</span> is completely reducible to <span class="math">\(\frac{A}{CD} \times \frac{\left[\,\right]}{E}\)</span> because <span class="math">\(E\)</span> has no effect on <span class="math">\(A\)</span>, so it has zero <span class="math">\(\varphi\)</span>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span>
 <span class="go">Mip(phi=0.0, direction=&#39;past&#39;, mechanism=(n0,), purview=(n2, n3, n4), partition=None, unpartitioned_repertoire=None, partitioned_repertoire=None)</span>
 </pre></div>
