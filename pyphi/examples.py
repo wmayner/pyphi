@@ -171,7 +171,7 @@ The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
    >>> subsystem.mip_past(A, CDE)
    Mip(phi=0.0, direction='past', mechanism=(n0,), purview=(n2, n3, n4), partition=None, unpartitioned_repertoire=None, partitioned_repertoire=None)
 
-Instead, we should evaluate |A| over the purview |CD|
+Instead, we should evaluate |A| over the purview |CD|.
 
    >>> mip_A = subsystem.mip_past(A, CD)
 
