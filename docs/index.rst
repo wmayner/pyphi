@@ -22,6 +22,10 @@
     :members:
     :undoc-members:
 
+.. automodule:: pyphi.convert
+    :members:
+    :undoc-members:
+
 .. automodule:: pyphi.models
     :members:
     :undoc-members:

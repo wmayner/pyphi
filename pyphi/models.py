@@ -12,7 +12,7 @@ from collections import namedtuple, Iterable
 import numpy as np
 
 from .constants import DIRECTIONS, PAST, FUTURE
-from . import utils, constants
+from . import utils, constants, convert
 
 # TODO use properties to avoid data duplication
 
@@ -251,7 +251,7 @@ class Mice:
         # TODO remove?
         if (self.repertoire is not None and
             any(self.repertoire.shape[i] != 2 for i in
-                utils.nodes2indices(self.purview))):
+                convert.nodes2indices(self.purview))):
             raise Exception("Attempted to create MICE with mismatched purview "
                             "and repertoire.")
 
