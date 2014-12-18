@@ -325,3 +325,63 @@ def residue_subsystem():
 
     network = Network(tpm, current_state, past_state, connectivity_matrix=cm)
     return Subsystem(range(network.size), network)
+
+
+
+
+def xor_subsystem():
+    """ A fully connected system of three XOR gates. In the state (0,0,0), none of the elementary
+    mechanisms exist.
+
+    Diagram:
+    +---------+         +---------+
+    |         |         |         |
+    |  A(XOR) +---------+  B(XOR) |
+    |         |         |         |
+    |         |         |         |
+    +-----+---+         +-----+---+
+          |                   |
+          |                   |
+          |                   |
+          |                   |
+          |   +---------+     |
+          |   |         |     |
+          +---+  C(XOR) +-----+
+              |         |
+              |         |
+              +---------+
+
+
+    Connectivity matrix:
+    +---+---+---+---+
+    | . | A | B | C |
+    +---+---+---+---+
+    | A | 0 | 1 | 1 |
+    +---+---+---+---+
+    | B | 1 | 0 | 1 |
+    +---+---+---+---+
+    | C | 1 | 1 | 0 |
+    +---+---+---+---+
+    """
+
+    tpm = np.array([[0,0,0],
+                    [0,1,1],
+                    [1,0,1],
+                    [1,1,0],
+                    [1,1,0],
+                    [1,0,1],
+                    [0,1,1],
+                    [0,0,0]])
+
+    current_state = (0,0,0)
+    past_state = (0,0,0)
+
+    cm = np.array([[0, 1, 1],
+                   [1, 0, 1],
+                   [1, 1, 0]])
+
+    network = Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Subsystem(range(network.size), network)
+
+
+
