@@ -454,9 +454,15 @@ class Subsystem:
             phi = utils.hamming_emd(unpartitioned_repertoire,
                                     partitioned_repertoire)
 
-            # Return immediately if mechanism is reducible
+            # Return immediately if mechanism is reducible.
             if phi < constants.EPSILON:
-                return null_mip
+                return Mip(direction=direction,
+                           mechanism=mechanism,
+                           purview=purview,
+                           partition=(part0, part1),
+                           unpartitioned_repertoire=unpartitioned_repertoire,
+                           partitioned_repertoire=partitioned_repertoire,
+                           phi=0.0)
             # Update MIP if it's more minimal. We take the bigger purview if
             # the the phi values are indistinguishable.
             if ((phi_min - phi) > constants.EPSILON or (
