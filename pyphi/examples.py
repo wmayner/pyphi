@@ -147,8 +147,8 @@ We can then determine what the specific partition is.
    (Part(mechanism=(), purview=(n2,)), Part(mechanism=(n0, n1), purview=(n3, n4)))
 
 The labels ``(n0, n1, n2, n3, n4)`` correspond to nodes :math:`A, B, C, D, E`
-respectively. Thus the MIP is | (AB / DE) x ([] / C) |, where :math:`[]`
-denotes the empty mechanism.
+respectively. Thus the MIP is |(AB / DE) x ([] / C)|, where :math:`[]` denotes
+the empty mechanism.
 
 The partitioned repertoire of the MIP can also be retrieved:
 
@@ -165,9 +165,8 @@ One counterintuitive result which merits discussion is that since irreducible
 cause information is what defines existence, we must also evaluate the
 irreducible cause information of the mechanisms |A| and |B|.
 
-The mechanism |A| over the purview |CDE| is completely reducible to
-| (A / CD) x ([] / E) | because |E| has no effect on |A|, so it has zero
-|small_phi|.
+The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
+([] / E)| because |E| has no effect on |A|, so it has zero |small_phi|.
 
    >>> subsystem.mip_past(A, CDE)
    Mip(phi=0.0, direction='past', mechanism=(n0,), purview=(n2, n3, n4), partition=None, unpartitioned_repertoire=None, partitioned_repertoire=None)
@@ -181,7 +180,7 @@ In this case, there is a well defined MIP
    >>> mip_A.partition
    (Part(mechanism=(), purview=(n2,)), Part(mechanism=(n0,), purview=(n3,)))
 
-which is | ([] / C) x (A / D) |. It has partitioned repertoire
+which is |([] / C) x (A / D)|. It has partitioned repertoire
 
    >>> mip_A.partitioned_repertoire.flatten(order='F')
    array([ 0.33333333,  0.33333333,  0.16666667,  0.16666667])

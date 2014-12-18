@@ -109,19 +109,21 @@ pygments_style = 'sphinx'
 # Substitutions for math elements to make docstrings more readable
 rst_prolog = """
 .. |big_phi| replace:: :math:`\\Phi`
+.. |small_phi| replace:: :math:`\\varphi`
 .. |phi_max| replace:: :math:`\\varphi^{\\textrm{max}}`
 .. |phi| replace:: :math:`\\varphi`
 .. |A| replace:: :math:`A`
 .. |B| replace:: :math:`B`
 .. |C| replace:: :math:`C`
+.. |D| replace:: :math:`D`
+.. |E| replace:: :math:`E`
 .. |AB| replace:: :math:`AB`
-.. |BC| replace:: :math:`BA`
-.. |CA| replace:: :math:`CA`
+.. |CD| replace:: :math:`CD`
 .. |ABC| replace:: :math:`ABC`
 .. |CDE| replace:: :math:`CDE`
-.. | (AB / DE) x ([] / C) | replace:: :math:`\\frac{AB}{DE} \\times \\frac{\left[\\right]}{C}`
-.. | (A / CD) x ([] / E) | replace:: :math:`\\frac{A}{CD} \\times \\frac{\left[\\right]}{E}`
-.. | ([] / C) x (A / D) | replace:: :math:`\\frac{\\left[\\right]}{C} \\times \\frac{A}{D}`
+.. |(AB / DE) x ([] / C)| replace:: :math:`\\frac{AB}{DE} \\times \\frac{\left[\\,\\right]}{C}`
+.. |(A / CD) x ([] / E)| replace:: :math:`\\frac{A}{CD} \\times \\frac{\left[\\,\\right]}{E}`
+.. |([] / C) x (A / D)| replace:: :math:`\\frac{\\left[\\right]}{C} \\times \\frac{A}{D}`
 .. |small_phi = 1/6| replace:: :math:`\\varphi = 1/6`
 .. |small_phi = 1/10| replace:: :math:`\\varphi = 1/10`
 .. |t_{-1}| replace:: :math:`t_{-1}`
