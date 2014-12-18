@@ -5,7 +5,7 @@ import pickle
 import pytest
 import numpy as np
 
-from pyphi import constants, compute, models, utils, Network, Subsystem
+from pyphi import constants, compute, models, utils, convert, Network
 from pyphi.constants import DIRECTIONS, PAST, FUTURE
 
 
@@ -177,7 +177,7 @@ def check_unpartitioned_small_phis(small_phis, unpartitioned_constellation):
     for c in unpartitioned_constellation:
         np.testing.assert_almost_equal(
             c.phi,
-            small_phis[utils.nodes2indices(c.mechanism)],
+            small_phis[convert.nodes2indices(c.mechanism)],
             PRECISION)
 
 

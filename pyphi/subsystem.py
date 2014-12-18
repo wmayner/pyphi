@@ -13,7 +13,7 @@ import psutil
 import numpy as np
 from .constants import DIRECTIONS, PAST, FUTURE
 from .lru_cache import lru_cache
-from . import constants, validate, utils
+from . import constants, validate, utils, convert
 from .models import Cut, Mip, Part, Mice, Concept
 from .node import Node
 
@@ -145,7 +145,7 @@ class Subsystem:
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
         # distribution.
-        purview_indices = utils.nodes2indices(purview)
+        purview_indices = convert.nodes2indices(purview)
         if not mechanism:
             return utils.max_entropy_distribution(purview_indices,
                                                   self.network.size)
@@ -222,7 +222,7 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_denom_node_distribution``
         # ``accumulated_cjd`` is ``denom_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        purview_indices = utils.nodes2indices(purview)
+        purview_indices = convert.nodes2indices(purview)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -278,7 +278,7 @@ class Subsystem:
         # Collect all nodes with inputs to any purview node.
         inputs_to_purview = set.union(*[set(node.inputs) for node in purview])
         # Collect mechanism nodes with inputs to any purview node.
-        fixed_inputs = utils.nodes2indices(inputs_to_purview & set(mechanism))
+        fixed_inputs = convert.nodes2indices(inputs_to_purview & set(mechanism))
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
         accumulated_cjd = utils.condition_tpm(
@@ -650,7 +650,7 @@ class Subsystem:
         mice = Mice(maximal_mip)
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
-        key = (direction, utils.nodes2indices(mechanism))
+        key = (direction, convert.nodes2indices(mechanism))
         current_process = psutil.Process(os.getpid())
         not_full = (current_process.memory_percent() <
                     constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)

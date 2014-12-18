@@ -11,7 +11,7 @@ context of all |phi| and |big_phi| computation.
 
 import numpy as np
 from .node import Node
-from . import validate, utils
+from . import validate, utils, convert
 
 
 # TODO!!! raise error if user tries to change TPM or CM, double-check and document
@@ -43,19 +43,19 @@ class Network:
 
     Attributes:
         tpm (np.ndarray):
-            The transition probability matrix that encodes the network's
-            mechanism. It can be provided in either state-by-node or
-            state-by-state form. In state-by-state form, row *and* column
-            indices must follow the **HOLI** convention (see note below). If
-            given in state-by-node form, it can be either 2-dimensional, so
-            that ``tpm[i]`` gives the probabilities of each node being on if
-            the past state is given by the binary representation of |i|, where
-            ``i`` represents a state according to the **LOLI** convention, or
-            in N-D form, so that ``tpm[(0, 0, 1)]`` gives the probabilities of
-            each node being on if the past state is |N_0 = 0, N_1 = 0, N_2 = 1|. The shape of the 2-dimensional form of the TPM must be ``(S,
-            N)``, and the shape of the N-D form of the TPM must be ``[2] * N +
-            [N]``, where ``S`` is the number of states and ``N`` is the number
-            of nodes in the network.
+            The network's transition probability matrix. It can be provided in
+            either state-by-node (either 2-D or N-D) or state-by-state form. In
+            either form, row indices must follow the **LOLI** convention (see
+            discussion in :mod:`pyphi.examples`), and in state-by-state form,
+            so must column indices. If given in state-by-node form, it can be
+            either 2-dimensional, so that ``tpm[i]`` gives the probabilities of
+            each node being on if the past state is encoded by |i| according to
+            **LOLI**, or in N-D form, so that ``tpm[(0, 0, 1)]`` gives the
+            probabilities of each node being on if the past state is |N_0 = 0,
+            N_1 = 0, N_2 = 1|. The shape of the 2-dimensional form of a
+            state-by-node TPM must be ``(S, N)``, and the shape of the N-D form
+            of the TPM must be ``[2] * N + [N]``, where ``S`` is the number of
+            states and ``N`` is the number of nodes in the network.
         current_state (tuple):
             The current state of the network. ``current_state[i]`` gives the
             current state of node |i|.
@@ -69,34 +69,25 @@ class Network:
             The number of nodes in the network.
         num_states (int):
             The number of possible states of the network.
-
-    .. note::
-        Throughout PyPhi, when decimal indices of state-by-node TPM **rows**
-        are used to represent the state of a set of binary nodes, the indices
-        follow the **LOLI** convention: low-order bits of the binary
-        representation of the index correspond to low-index nodes. The
-        rationale is that this low-order to low-index mapping is stable under
-        changes in the number of nodes, in the sense that the same bit always
-        corresponds to the same node index.
-
-    .. note::
-        Column indices still use the more intuitive **HOLI** convention, so that
-        when the row is read as a state-tuple, the index of the node gives the
-        state of that node.
     """
 
     def __init__(self, tpm, current_state, past_state,
                  connectivity_matrix=None):
         # Cast TPM to np.array.
         tpm = np.array(tpm)
-        # Convert to state-by-node if we were given a square state-by-state
-        # TPM.
-        if tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]:
-            tpm = utils.state_by_state2state_by_node(tpm)
-        # Get the number of nodes in the network.
+        # Validate TPM.
         # The TPM can be either 2-dimensional or in N-D form, where transition
-        # probabilities can be indexed by state-tuples. In either case, the
-        # size of last dimension is the number of nodes.
+        # probabilities can be indexed by state-tuples.
+        validate.tpm(tpm)
+        # Convert to N-D state-by-node if we were given a square state-by-state
+        # TPM. Otherwise, force conversion to N-D format.
+        if tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]:
+            tpm = convert.state_by_state2state_by_node(tpm)
+        else:
+            tpm = convert.to_n_dimensional(tpm)
+
+        self.tpm = tpm
+        # Get the number of nodes in the network.
         self.size = tpm.shape[-1]
         self.node_indices = tuple(range(self.size))
 
@@ -110,12 +101,6 @@ class Network:
         # TODO make tpm also optional when implementing logical network
         # definition
 
-        # We use Fortran ordering here so that low-order bits correspond to
-        # low-index nodes. Note that this does not change the memory layout (C-
-        # or Fortran-contiguous), so there is no performance loss.
-        self.tpm = tpm.reshape([2] * self.size + [self.size],
-                               order="F").astype(float)
-
         self.connectivity_matrix = connectivity_matrix
         self.current_state = tuple(current_state)
         self.past_state = tuple(past_state)
@@ -126,11 +111,11 @@ class Network:
         self._tpm_hash = utils.np_hash(self.tpm)
         self._cm_hash = utils.np_hash(self.connectivity_matrix)
 
-        # Validate this network.
-        validate.network(self)
-
         # TODO extend to nonbinary nodes
         self.num_states = 2 ** self.size
+
+        # Validate the entire network.
+        validate.network(self)
 
     def __repr__(self):
         return ("Network(" + ", ".join([repr(self.tpm),
