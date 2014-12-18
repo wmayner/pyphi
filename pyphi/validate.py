@@ -47,18 +47,31 @@ def nodelist(nodes, name):
 
 
 def tpm(tpm):
-    if (tpm.shape[-1] != len(tpm.shape) - 1):
+    """Validate a TPM."""
+    see_tpm_docs = ('See documentation for pyphi.Network for more information '
+                    'TPM formats.')
+    # Cast to np.array.
+    tpm = np.array(tpm)
+    # Get the number of nodes from the state-by-node TPM.
+    N = tpm.shape[-1]
+    if tpm.ndim == 2:
+        if not ((tpm.shape[0] == 2**N and tpm.shape[1] == N) or
+                (tpm.shape[0] == tpm.shape[1])):
+            raise ValueError(
+                'Invalid shape for 2-D TPM: {}\nFor a state-by-node TPM, '
+                'there must be ' '2^N rows and N columns, where N is the '
+                'number of nodes. State-by-state TPM must be square. '
+                '{}'.format(tpm.shape, see_tpm_docs))
+    elif tpm.ndim == (N + 1):
+        if not (tpm.shape == tuple([2] * N + [N])):
+            raise ValueError(
+                'Invalid shape for N-D state-by-node TPM: {}\nThe shape '
+                'should be {} for {} nodes.'.format(
+                    tpm.shape, ([2] * N) + [N], N, see_tpm_docs))
+    else:
         raise ValueError(
-            "Invalid TPM: There must be a dimension for each node, "
-            "each one being the size of the corresponding node's "
-            "state space, plus one dimension that is the same size "
-            "as the network.")
-    # TODO extend to nonbinary nodes
-    if (tpm.shape[:-1] != tuple([2] * tpm.shape[-1])):
-        raise ValueError(
-            "Invalid TPM: We can only handle binary nodes at the "
-            "moment. Each dimension except the last must be of size "
-            "2.")
+            'Invalid state-by-node TPM: TPM must be in either 2-D or N-D '
+            'form. {}'.format(see_tpm_docs))
     return True
 
 

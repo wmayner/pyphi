@@ -13,7 +13,7 @@ from collections import namedtuple
 import numpy as np
 from marbl import MarblSet
 
-from . import utils, models, db, constants
+from . import utils, models, db, constants, convert
 from .constants import DIRECTIONS, PAST, FUTURE
 
 
@@ -62,7 +62,7 @@ class NormalizedMechanism:
     def __init__(self, mechanism, subsystem, normalize_tpms=True):
         # Ensure the mechanism is in sorted order for consistency.
         mechanism = sorted(mechanism)
-        self.indices = utils.nodes2indices(mechanism)
+        self.indices = convert.nodes2indices(mechanism)
         # Record the state of the mechanism.
         self.state = tuple(n.state for n in mechanism)
         # Grab the marbls from the mechanism nodes.

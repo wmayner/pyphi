@@ -9,15 +9,14 @@ Functions used by more than one PyPhi module or class, or that might be of
 external use.
 """
 
-import math
 import hashlib
 import numpy as np
 from itertools import chain, combinations
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
-from . import constants
 from .lru_cache import lru_cache
+from . import constants
 
 
 def condition_tpm(tpm, fixed_nodes, state):
@@ -37,137 +36,6 @@ def condition_tpm(tpm, fixed_nodes, state):
     # Obtain the actual conditioned TPM by indexing with the conditioning
     # indices.
     return tpm[conditioning_indices]
-
-
-def state_by_state2state_by_node(tpm):
-    """Convert a state-by-state TPM to a state-by-node TPM.
-
-    .. note::
-        The indices of the rows and columns of the state-by-state TPM are
-        assumed to follow the **HOLI** convention. The indices of the rows of
-        the resulting state-by-node TPM follow the **LOLI** convention, while
-        the indices of the columns follow the **HOLI** convention. See the
-        documentation for :class:`pyphi.network` for more info on these
-        conventions.
-
-    Args:
-        tpm (list(list) or np.ndarray): A square state-by-state TPM with row
-            and column indices following the **HOLI** convention.
-
-    Returns:
-        ``np.ndarray`` -- A state-by-node TPM, with row indices following the
-            **LOLI** convention, and column indices following the **HOLI**
-            convention.
-
-    Examples:
-        >>> from pyphi.utils import state_by_state2state_by_node
-        >>> tpm = np.array([[0.5, 0.5, 0.0, 0.0],
-        ...                 [0.0, 1.0, 0.0, 0.0],
-        ...                 [0.0, 0.2, 0.0, 0.8],
-        ...                 [0.0, 0.3, 0.7, 0.0]])
-        >>> state_by_state2state_by_node(tpm)
-        array([[[ 0. ,  0.5],
-                [ 0. ,  1. ]],
-        <BLANKLINE>
-               [[ 0.8,  1. ],
-                [ 0.7,  0.3]]])
-    """
-    # Cast to np.array.
-    tpm = np.array(tpm)
-    # Validate.
-    if tpm.ndim != 2:
-        raise ValueError("State-by-state TPM must be 2-dimensional.")
-    if tpm.shape[0] != tpm.shape[1]:
-        raise ValueError("State-by-state TPM must be square.")
-    if not np.allclose(tpm.sum(1) == 1, np.ones(tpm.shape[1]),
-                       atol=constants.PRECISION):
-        raise ValueError("Rows of the TPM must sum to 1.")
-    # Get the number of states from the length of one side of the TPM.
-    S = tpm.shape[0]
-    # Get the number of nodes from the number of states.
-    N = int(math.log(S, 2))
-    # Initialize the new state-by node TPM.
-    sbn_tpm = np.zeros(([2] * N + [N]))
-    # Map indices to state-tuples with the HOLI convention.
-    states = {i: natural_index2state(i, N) for i in range(S)}
-    # Get an array for each node with 1 in positions that correspond to that
-    # node being on in the next state, and a 0 otherwise.
-    node_on = np.array([[states[i][n] for i in range(S)] for n in range(N)])
-    on_probabilities = [tpm * node_on[n] for n in range(N)]
-    for i, state in states.items():
-        # Get the probability of each node being on given the past state i,
-        # i.e., a row of the state-by-node TPM.
-        # Assign that row to the ith state in the state-by-node TPM.
-        sbn_tpm[state] = [np.sum(on_probabilities[n][i]) for n in range(N)]
-    return sbn_tpm
-
-
-def pyphi_index2state(i, number_of_nodes):
-    """Convert a decimal integer to a PyPhi state tuple with the **LOLI**
-    convention.
-
-    The output is the reverse of :func:`natural_index2state`.
-
-    .. note::
-        This function uses PyPhi's **LOLI** convention that that low-order bits
-        of binary numbers correspond to low-index nodes; i.e., the least
-        significant bit gives the state of the first node, the second-least
-        significant bit gives the state of the second node, and so on.
-
-    Args:
-        i (int): A decimal integer corresponding to a network state under the
-            **LOLI** convention.
-
-    Returns:
-        ``tuple(int)`` -- A state-tuple where the |ith| element of the tuple
-            gives the state of the |ith| node.
-
-    Examples:
-        >>> from pyphi.utils import pyphi_index2state
-        >>> number_of_nodes = 5
-        >>> pyphi_index2state(1, number_of_nodes)
-        (1, 0, 0, 0, 0)
-        >>> number_of_nodes = 8
-        >>> pyphi_index2state(7, number_of_nodes)
-        (1, 1, 1, 0, 0, 0, 0, 0)
-    """
-    return tuple((i >> n) & 1 for n in range(number_of_nodes))
-
-
-def natural_index2state(i, number_of_nodes):
-    """Convert a decimal integer to a PyPhi state tuple using the **HOLI**
-    convention that high-order bits correspond to low-index nodes.
-
-    The output is the reverse of :func:`pyphi_index2state`.
-
-    .. note::
-        This function uses the **HOLI** convention that that high-order bits of
-        binary numbers correspond to low-index nodes; i.e., the most
-        significant bit gives the state of the first node, the second-most
-        significant bit gives the state of the second node, and so on.
-
-    Args:
-        i (int): A decimal integer corresponding to a network state under the
-            **HOLI** convention.
-
-    Returns:
-        ``tuple(int)`` -- A state-tuple where the |ith| element of the tuple
-            gives the state of the |ith| node.
-
-    Examples:
-        >>> from pyphi.utils import natural_index2state
-        >>> number_of_nodes = 5
-        >>> natural_index2state(1, number_of_nodes)
-        (0, 0, 0, 0, 1)
-        >>> number_of_nodes = 8
-        >>> natural_index2state(7, number_of_nodes)
-        (0, 0, 0, 0, 0, 1, 1, 1)
-    """
-    return pyphi_index2state(i, number_of_nodes)[::-1]
-
-
-def nodes2indices(nodes):
-    return tuple(n.index for n in nodes)
 
 
 # TODO test
