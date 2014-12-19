@@ -189,10 +189,11 @@ def state_by_node2state_by_state(tpm):
     """Convert a state-by-node TPM to a state-by-state TPM.
 
     .. note::
-        This function does not work for non-deterministic state-by-node TPMs,
-        since the mapping between them is not one-to-one; a non-deterministic
-        state-by-node TPM can have more than one representation as a
-        state-by-state TPM.
+        For non-deterministic state-by-node TPMs, since the mapping
+        between them is not one-to-one; a non-deterministic state-by-node
+        TPM can have more than one representation as a state-by-state TPM.
+        This function returns the representation corresponding to a
+        conditionally independent state-by-state TPM.
 
     .. note::
         The indices of the rows of the state-by-node TPM are assumed to follow
@@ -240,9 +241,18 @@ def state_by_node2state_by_state(tpm):
     S = 2**N
     # Initialize the state-by-state TPM.
     sbs_tpm = np.zeros((S, S))
-    for past_state_index in range(S):
-        # Use the LOLI convention to get the row and column indices.
-        past_state = loli_index2state(past_state_index, N)
-        current_state_index = state2loli_index(tpm[past_state])
-        sbs_tpm[past_state_index, current_state_index] = 1
+    if ~np.any(np.logical_and(tpm < 1, tpm > 0)):
+        for past_state_index in range(S):
+            # Use the LOLI convention to get the row and column indices.
+            past_state = loli_index2state(past_state_index, N)
+            current_state_index = state2loli_index(tpm[past_state])
+            sbs_tpm[past_state_index, current_state_index] = 1
+    else:
+        for past_state_index in range(S):
+            # Use the LOLI convention to get the row and column indices.
+            past_state = loli_index2state(past_state_index, N)
+            marginal_tpm = tpm[past_state]
+            for current_state_index in range(S):
+                current_state = np.array([i for i in loli_index2state(current_state_index, N)])
+                sbs_tpm[past_state_index, current_state_index] =  np.prod(marginal_tpm[current_state==1]) * np.prod(1-marginal_tpm[current_state==0])
     return sbs_tpm
