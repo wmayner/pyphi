@@ -168,8 +168,10 @@ irreducible cause information of the mechanisms |A| and |B|.
 The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
 ([] / E)| because |E| has no effect on |A|, so it has zero |small_phi|.
 
-   >>> subsystem.mip_past(A, CDE)
-   Mip(phi=0.0, direction='past', mechanism=(n0,), purview=(n2, n3, n4), partition=None, unpartitioned_repertoire=None, partitioned_repertoire=None)
+   >>> subsystem.mip_past(A, CDE).phi
+   0.0
+   >>> subsystem.mip_past(A, CDE).partition
+   (Part(mechanism=(), purview=(n4,)), Part(mechanism=(n0,), purview=(n2, n3)))
 
 Instead, we should evaluate |A| over the purview |CD|.
 
@@ -193,6 +195,12 @@ and irreducible cause information
 A similar result holds for |B|. Thus the mechanisms |A| and |B| exist at levels
 of |small_phi = 1/6|, while the higher-order mechanism |AB| exists only as the
 residual of causes, at a level of |small_phi = 1/10|.
+
+-------------------------------------------------------------------------------
+
+**XOR Example**
+
+
 
 
 A note on conventions
