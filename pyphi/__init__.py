@@ -42,7 +42,7 @@ options and their defaults.
 """
 
 __title__ = 'pyphi'
-__version__ = '0.1.7'
+__version__ = '0.2.0'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
