@@ -278,6 +278,8 @@ fastest, is similarly called **HOLI**.
 
 Throughout PyPhi, if ``CM`` is a connectivity matrix, then |CM[i][j] = 1| means
 that node |i| is connected to node |j|.
+
+-------------------------------------------------------------------------------
 """
 
 import numpy as np
