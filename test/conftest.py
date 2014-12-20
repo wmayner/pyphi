@@ -22,6 +22,7 @@ if constants.CACHING_BACKEND == constants.DATABASE:
 BACKUP_CACHE_DIR = constants.PERSISTENT_CACHE_DIRECTORY + '.BACKUP'
 
 
+
 def _flush_joblib_cache():
     # Remove the old joblib cache directory.
     shutil.rmtree(constants.PERSISTENT_CACHE_DIRECTORY)
@@ -61,7 +62,6 @@ def restore_fs_cache(request):
         os.mkdir(constants.PERSISTENT_CACHE_DIRECTORY)
 
     def fin():
-        log.info("in fin")
         if constants.CACHING_BACKEND == constants.FILESYSTEM:
             # Remove the tests' joblib cache directory.
             shutil.rmtree(constants.PERSISTENT_CACHE_DIRECTORY)
@@ -70,7 +70,6 @@ def restore_fs_cache(request):
                         constants.PERSISTENT_CACHE_DIRECTORY)
 
     # Restore the cache after the last test with this fixture has run
-    log.info("In fixture def")
     request.addfinalizer(fin)
 
 

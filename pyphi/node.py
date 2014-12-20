@@ -4,7 +4,7 @@
 import functools
 import numpy as np
 from marbl import Marbl
-from . import utils
+from . import utils, json
 from .constants import DIRECTIONS, PAST, FUTURE
 
 
@@ -250,3 +250,7 @@ class Node:
 
     def __hash__(self):
         return self._hash
+
+    # TODO do we need more than the index?
+    def json_dict(self):
+        return self.index
