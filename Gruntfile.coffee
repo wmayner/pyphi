@@ -27,14 +27,11 @@ module.exports = (grunt) ->
         command: "open docs/_build/html/index.html"
       uploadGithubDocs:
         command: [
-          "cp -r docs/_build/html github-docs"
-          "git checkout gh-pages"
-          "cp -r github-docs/* ."
-          "git add ."
+          "cp -r docs/_build/html/* ../pyphi-docs"
+          "cd ../pyphi-docs"
           "git commit -a -m 'Update docs'"
-          "git push"
-          "git checkout develop"
-          "rm -r ./github-docs"
+          "git push origin gh-pages"
+          "cd ../pyphi"
         ].join "&&"
         options:
           stdout: true

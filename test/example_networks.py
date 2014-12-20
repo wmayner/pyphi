@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from pyphi import utils
+import pyphi
 from pyphi.network import Network
 from pyphi.subsystem import Subsystem
 
@@ -14,66 +14,7 @@ use_connectivity_matrices = True
 
 
 def standard(cm=False):
-    """Matlab default network.
-
-    Diagram:
-
-    |           +~~~~~~+
-    |    +~~~~~>|   A  |<~~~~+
-    |    |      | (OR) +~~~+ |
-    |    |      +~~~~~~+   | |
-    |    |                 | |
-    |    |                 v |
-    |  +~+~~~~~~+      +~~~~~+~+
-    |  |   B    |<~~~~~+   C   |
-    |  | (COPY) +~~~~~>| (XOR) |
-    |  +~~~~~~~~+      +~~~~~~~+
-
-    TPM:
-
-    +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
-    | Past state ~~> Current state |
-    |~~~~~~~~~~~~~~+~~~~~~~~~~~~~~~|
-    |   C, B, A    |    A, B, C    |
-    |~~~~~~~~~~~~~~+~~~~~~~~~~~~~~~|
-    |  {0, 0, 0}   |   {0, 0, 0}   |
-    |  {0, 0, 1}   |   {0, 0, 1}   |
-    |  {0, 1, 0}   |   {1, 0, 1}   |
-    |  {0, 1, 1}   |   {1, 0, 0}   |
-    |  {1, 0, 0}   |   {1, 1, 0}   |
-    |  {1, 0, 1}   |   {1, 1, 1}   |
-    |  {1, 1, 0}   |   {1, 1, 1}   |
-    |  {1, 1, 1}   |   {1, 1, 0}   |
-    +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
-
-    Connectivity matrix:
-
-    (CM_ij = 1 means that node i is connected to node j)
-
-    |       A  B  C
-    |     +~~~~~~~~~+
-    |   A | 0, 0, 1 |
-    |   B | 1, 0, 1 |
-    |   C | 1, 1, 0 |
-    |     +~~~~~~~~~+
-
-    """
-    # TODO? make these into dictionaries/named tuples
-    current_state = (1, 0, 0)
-    past_state = (1, 1, 0)
-    tpm = np.array([[0, 0, 0],
-                    [0, 0, 1],
-                    [1, 0, 1],
-                    [1, 0, 0],
-                    [1, 1, 0],
-                    [1, 1, 1],
-                    [1, 1, 1],
-                    [1, 1, 0]])
-    if cm is False:
-        cm = np.array([[0, 0, 1],
-                    [1, 0, 1],
-                    [1, 1, 0]])
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return pyphi.examples.basic_network()
 
 
 def s_empty():
