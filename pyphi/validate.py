@@ -13,6 +13,8 @@ import numpy as np
 from collections import Iterable
 from .node import Node
 from . import constants
+from .convert import state_by_node2state_by_state
+from .convert import state_by_state2state_by_node
 
 
 class StateUnreachableError(ValueError):
@@ -46,6 +48,13 @@ def nodelist(nodes, name):
     return nodes
 
 
+def cond_indep(tpm):
+    if (~np.all(tpm==state_by_node2state_by_state(state_by_state2state_by_node(tpm)))):
+            raise UserWarning(
+                'The tpm is not conditionally independent, see documentation '
+                'for pyphi.Examples for more information')
+
+
 def tpm(tpm):
     """Validate a TPM."""
     see_tpm_docs = ('See documentation for pyphi.Network for more information '
@@ -62,6 +71,7 @@ def tpm(tpm):
                 'there must be ' '2^N rows and N columns, where N is the '
                 'number of nodes. State-by-state TPM must be square. '
                 '{}'.format(tpm.shape, see_tpm_docs))
+        cond_indep(tpm)
     elif tpm.ndim == (N + 1):
         if not (tpm.shape == tuple([2] * N + [N])):
             raise ValueError(
