@@ -255,4 +255,8 @@ def state_by_node2state_by_state(tpm):
             for current_state_index in range(S):
                 current_state = np.array([i for i in loli_index2state(current_state_index, N)])
                 sbs_tpm[past_state_index, current_state_index] = np.prod(marginal_tpm[current_state==1]) * np.prod(1-marginal_tpm[current_state==0])
+                if ~np.all(tpm==state_by_state2state_by_node(sbs_tpm)):
+                    raise UserWarning(
+                        'The tpm is not conditionally independent, see documentation '
+                        'of pyphi.Examples for more information on this warning')
     return sbs_tpm
