@@ -154,6 +154,7 @@ def state_by_state2state_by_node(tpm):
         ...                 [0.0, 0.2, 0.0, 0.8],
         ...                 [0.0, 0.3, 0.7, 0.0]])
         >>> state_by_state2state_by_node(tpm)
+        Warning: The tpm is not conditionally independent, see documentation of pyphi.Examples for more information on how this is handled
         array([[[ 0.5,  0. ],
                 [ 1. ,  0.8]],
         <BLANKLINE>

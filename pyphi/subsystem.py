@@ -34,6 +34,8 @@ class Subsystem:
         size (int): The number of nodes in the subsystem.
         network (Network): The network the subsystem belongs to.
         cut (Cut): The cut that has been applied to this subsystem.
+        connectivity_matrix (np.array): The connectivity matrix after applying the cut
+        perturb_vector (np.array): The vector of perturbation probabilities for each node
         null_cut (Cut): The cut object representing no cut.
         past_tpm (np.array): The TPM conditioned on the past state of the
             external nodes (nodes outside the subsystem).
@@ -62,6 +64,8 @@ class Subsystem:
         # connections to/from external nodes severed.
         self.connectivity_matrix = utils.apply_cut(
             cut, network.connectivity_matrix)
+        # Get the perturbation probabilities for each node in the subsystem
+        self.perturb_vector = [network.perturb_vector[i] for i in self.node_indices]
         # The TPM conditioned on the past state of the external nodes.
         self.past_tpm = utils.condition_tpm(
             self.network.tpm, self.external_indices,
@@ -176,6 +180,8 @@ class Subsystem:
             non_purview_inputs = inputs - set(purview)
             # Marginalize-out the non-purview inputs.
             for node in non_purview_inputs:
+                # The division here is weighting the nodes states at 0.5 and 0.5
+                # I think I will need to do a perturb weighted average instead
                 conditioned_tpm = (conditioned_tpm.sum(node.index,
                                                        keepdims=True)
                                    / conditioned_tpm.shape[node.index])

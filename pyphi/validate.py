@@ -132,6 +132,15 @@ def state(network):
             "according to the given TPM.")
     return True
 
+# TODO test
+def perturb_vector(pv, size):
+    """Validate a network's pertubation vector"""
+    if (pv.size != size):
+        raise ValueError("Perturbation vector must have one entry per node.")
+    if (np.any(pv >  1) or np.any(pv < 0)):
+        raise ValueError("Entries must be probabilities, between 0 and 1.")
+    return True
+
 
 # TODO test
 def network(network):
@@ -139,6 +148,7 @@ def network(network):
     tpm(network.tpm)
     state(network)
     connectivity_matrix(network.connectivity_matrix)
+    perturb_vector(network.perturb_vector, network.size)
     if network.connectivity_matrix.shape[0] != network.size:
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")

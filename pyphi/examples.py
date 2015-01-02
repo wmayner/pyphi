@@ -91,6 +91,12 @@ structures.
 
 -------------------------------------------------------------------------------
 
+**Conditional Independence Example**
+
+An assumption of IIT is that mechansims are conditionally independent.
+
+-------------------------------------------------------------------------------
+
 
 **Residue Example**
 
