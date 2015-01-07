@@ -17,6 +17,7 @@ from scipy.spatial.distance import cdist
 from pyemd import emd
 from .lru_cache import lru_cache
 from . import constants
+from re import finditer
 
 
 def condition_tpm(tpm, fixed_nodes, state):
@@ -195,7 +196,7 @@ def uniform_distribution(number_of_nodes):
             number_of_states).reshape([2] * number_of_nodes)
 
 
-def marginalize_out(node, tpm):
+def marginalize_out(node, tpm, perturb_value = 0.5):
     """
     Marginalize out a node from a TPM.
 
@@ -207,11 +208,15 @@ def marginalize_out(node, tpm):
         ``np.ndarray`` -- A TPM with the same number of dimensions, with the
         node marginalized out.
     """
-    return tpm.sum(node.index, keepdims=True) / tpm.shape[node.index]
+    if (perturb_value == 0.5):
+        return tpm.sum(node.index, keepdims=True) / tpm.shape[node.index]
+    else:
+        tpm = np.average(tpm, node.index, weights = [1-perturb_value, perturb_value])
+        return tpm.reshape([i for i in tpm.shape[0:node.index]] + [1] + [i for i in tpm.shape[node.index:]])
 
 
 # TODO memoize this
-def max_entropy_distribution(node_indices, number_of_nodes):
+def max_entropy_distribution(node_indices, number_of_nodes, perturb_vector = None):
     """
     Return the maximum entropy distribution over a set of nodes.
 
@@ -228,9 +233,18 @@ def max_entropy_distribution(node_indices, number_of_nodes):
         nodes.
     """
     # TODO extend to nonbinary nodes
-    distribution = np.ones([2 if index in node_indices else 1 for index in
-                            range(number_of_nodes)])
-    return distribution / distribution.size
+    if (perturb_vector == None) or (np.all(perturb_vector==0.5)) or (len(perturb_vector)==0):
+        distribution = np.ones([2 if index in node_indices else 1 for index in
+                                range(number_of_nodes)])
+        return distribution / distribution.size
+    else:
+        perturb_vector = np.array(perturb_vector)
+        bin_states = [bin(x)[2:].zfill(len(node_indices))[::-1] for x in range(2**len(node_indices))]
+        distribution = np.array([np.prod(perturb_vector[[m.start() for m in finditer('1', bin_states[x])]])
+                                 * np.prod(1-perturb_vector[[m.start() for m in finditer('0', bin_states[x])]])
+                                 for x in range(2**len(node_indices))])
+        return distribution.reshape([2 if index in node_indices else 1 for index in
+                                     range(number_of_nodes)], order='F')
 
 
 # TODO extend to binary nodes
