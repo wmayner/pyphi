@@ -184,24 +184,18 @@ class Subsystem:
             # Marginalize-out the non-purview inputs.
             for node in non_purview_inputs:
                 conditioned_tpm = utils.marginalize_out(node, conditioned_tpm, self.perturb_vector[node.index])
-                #if self.perturb_vector[node.index]==0.5:
-                #    conditioned_tpm = (conditioned_tpm.sum(node.index, keepdims=True)
-                #                       / conditioned_tpm.shape[node.index])
-                #else:
-                #    conditioned_tpm = np.average(conditioned_tpm, node.index,
-                #                                 weights=[1-self.perturb_vector[node.index],
-                #                                          self.perturb_vector[node.index]])
-                #    conditioned_tpm = conditioned_tpm.reshape([i for i in conditioned_tpm.shape[0:node.index]]
-                #                                               + [1] + [i for i in conditioned_tpm.shape[node.index:]])
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
             # broadcasting, which spreads the singleton probabilities in the
             # collapsed dimensions out along the whole distribution in the
             # appropriate way.
             cjd *= conditioned_tpm
+        # If the perturbation vector is not maximum entropy, then weight
+        # the probabilities before normalization.
+        if (not np.all(self.perturb_vector == 0.5)):
+            cjd *= max_entropy_dist
         # Finally, normalize to get the mechanism's actual conditional joint
-        # ditribution.
-        cjd *= max_entropy_dist
+        # distribution.
         cjd_sum = np.sum(cjd)
         # Don't divide by zero
         if cjd_sum != 0:
@@ -281,16 +275,6 @@ class Subsystem:
             non_mechanism_inputs = inputs - set(mechanism)
             for node in non_mechanism_inputs:
                 tpm = utils.marginalize_out(node, tpm, self.perturb_vector[node.index])
-                #if self.perturb_vector[node.index==0.5]:
-                #    tpm = (tpm.sum(node.index, keepdims=True)
-                #           / tpm.shape[node.index])
-                #else:
-                #    tpm = np.average(tpm, node.index,
-                #                     weights=[1-self.perturb_vector[node.index], self.perturb_vector[node.index]])
-                #    tpm = tpm.reshape([i for i in tpm.shape[0:node.index]]
-                #                      + [1] + [i for i in tpm.shape[node.index:]])
-                #tpm = (tpm.sum(node.index, keepdims=True)
-                #       / tpm.shape[node.index])
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution by taking the product (with singleton
             # broadcasting).

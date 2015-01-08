@@ -233,16 +233,16 @@ def max_entropy_distribution(node_indices, number_of_nodes, perturb_vector = Non
         nodes.
     """
     # TODO extend to nonbinary nodes
-    if (perturb_vector == None) or (np.all(perturb_vector==0.5)) or (len(perturb_vector)==0):
+    if (perturb_vector == None) or (np.all(perturb_vector == 0.5)) or (len(perturb_vector) == 0):
         distribution = np.ones([2 if index in node_indices else 1 for index in
                                 range(number_of_nodes)])
         return distribution / distribution.size
     else:
         perturb_vector = np.array(perturb_vector)
-        bin_states = [bin(x)[2:].zfill(len(node_indices))[::-1] for x in range(2**len(node_indices))]
+        bin_states = [bin(x)[2:].zfill(len(node_indices))[::-1] for x in range(2 ** len(node_indices))]
         distribution = np.array([np.prod(perturb_vector[[m.start() for m in finditer('1', bin_states[x])]])
-                                 * np.prod(1-perturb_vector[[m.start() for m in finditer('0', bin_states[x])]])
-                                 for x in range(2**len(node_indices))])
+                                 * np.prod(1 - perturb_vector[[m.start() for m in finditer('0', bin_states[x])]])
+                                 for x in range(2 ** len(node_indices))])
         return distribution.reshape([2 if index in node_indices else 1 for index in
                                      range(number_of_nodes)], order='F')
 
