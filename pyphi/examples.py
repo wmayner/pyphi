@@ -91,12 +91,6 @@ structures.
 
 -------------------------------------------------------------------------------
 
-**Conditional Independence Example**
-
-An assumption of IIT is that mechansims are conditionally independent.
-
--------------------------------------------------------------------------------
-
 
 **Residue Example**
 
@@ -203,10 +197,6 @@ of |small_phi = 1/6|, while the higher-order mechanism |AB| exists only as the
 residual of causes, at a level of |small_phi = 1/10|.
 
 -------------------------------------------------------------------------------
-
-**XOR Example**
-
-
 
 
 A note on conventions
