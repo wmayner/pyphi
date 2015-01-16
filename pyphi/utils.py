@@ -196,12 +196,12 @@ def uniform_distribution(number_of_nodes):
             number_of_states).reshape([2] * number_of_nodes)
 
 
-def marginalize_out(node, tpm, perturb_value = 0.5):
+def marginalize_out(index, tpm, perturb_value = 0.5):
     """
     Marginalize out a node from a TPM.
 
     Args:
-        node (Node): The node to be marginalized out.
+        index (list): The index of node(s) to be marginalized out.
         tpm (np.ndarray): The TPM to marginalize the node out of.
 
     Returns:
@@ -209,10 +209,10 @@ def marginalize_out(node, tpm, perturb_value = 0.5):
         node marginalized out.
     """
     if (perturb_value == 0.5):
-        return tpm.sum(node.index, keepdims=True) / tpm.shape[node.index]
+        return tpm.sum(index, keepdims=True) / tpm.shape[index]
     else:
-        tpm = np.average(tpm, node.index, weights = [1-perturb_value, perturb_value])
-        return tpm.reshape([i for i in tpm.shape[0:node.index]] + [1] + [i for i in tpm.shape[node.index:]])
+        tpm = np.average(tpm, index, weights = [1-perturb_value, perturb_value])
+        return tpm.reshape([i for i in tpm.shape[0:index]] + [1] + [i for i in tpm.shape[index:]])
 
 
 # TODO memoize this

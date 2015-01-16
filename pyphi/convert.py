@@ -11,7 +11,7 @@ Conversion functions.
 import math
 import numpy as np
 from . import constants, validate
-
+import logging
 
 def nodes2indices(nodes):
     return tuple(n.index for n in nodes)
@@ -154,7 +154,6 @@ def state_by_state2state_by_node(tpm):
         ...                 [0.0, 0.2, 0.0, 0.8],
         ...                 [0.0, 0.3, 0.7, 0.0]])
         >>> state_by_state2state_by_node(tpm)
-        Warning: The tpm is not conditionally independent, see documentation of pyphi.Examples for more information on how this is handled
         array([[[ 0.5,  0. ],
                 [ 1. ,  0.8]],
         <BLANKLINE>
@@ -183,7 +182,7 @@ def state_by_state2state_by_node(tpm):
         # Assign that row to the ith state in the state-by-node TPM.
         sbn_tpm[state] = [np.sum(on_probabilities[n][i]) for n in range(N)]
     if ~np.all(tpm==state_by_node2state_by_state(sbn_tpm)):
-        print('Warning: The tpm is not conditionally independent, see documentation '
+        logging.warning('The tpm is not conditionally independent, see documentation '
               'of pyphi.Examples for more information on how this is handled')
     return sbn_tpm
 

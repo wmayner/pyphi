@@ -189,7 +189,7 @@ class Subsystem:
             non_purview_inputs = inputs - set(purview)
             # Marginalize-out the non-purview inputs.
             for node in non_purview_inputs:
-                conditioned_tpm = utils.marginalize_out(node, conditioned_tpm, self.perturb_vector[node.index])
+                conditioned_tpm = utils.marginalize_out(node.index, conditioned_tpm, self.perturb_vector[node.index])
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
             # broadcasting, which spreads the singleton probabilities in the
@@ -280,7 +280,7 @@ class Subsystem:
             # Marginalize-out non-mechanism purview inputs.
             non_mechanism_inputs = inputs - set(mechanism)
             for node in non_mechanism_inputs:
-                tpm = utils.marginalize_out(node, tpm, self.perturb_vector[node.index])
+                tpm = utils.marginalize_out(node.index, tpm, self.perturb_vector[node.index])
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution by taking the product (with singleton
             # broadcasting).
