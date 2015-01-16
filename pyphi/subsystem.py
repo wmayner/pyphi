@@ -13,7 +13,7 @@ import psutil
 import numpy as np
 from .constants import DIRECTIONS, PAST, FUTURE
 from .lru_cache import lru_cache
-from . import constants, validate, utils, convert
+from . import constants, validate, utils, convert, json
 from .models import Cut, Mip, Part, Mice, Concept
 from .node import Node
 
@@ -119,6 +119,12 @@ class Subsystem:
 
     def __hash__(self):
         return self._hash
+
+    def json_dict(self):
+        return {
+            'node_indices': json.make_encodable(self.node_indices),
+            'cut': json.make_encodable(self.cut),
+        }
 
     def indices2nodes(self, indices):
         return tuple(n for n in self.nodes if n.index in indices)

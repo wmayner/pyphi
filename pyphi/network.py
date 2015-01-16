@@ -10,8 +10,7 @@ context of all |phi| and |big_phi| computation.
 """
 
 import numpy as np
-from .node import Node
-from . import validate, utils, convert
+from . import validate, utils, json, convert
 
 
 # TODO!!! raise error if user tries to change TPM or CM, double-check and document
@@ -110,6 +109,8 @@ class Network:
 
         self.perturb_vector = perturb_vector
         self.connectivity_matrix = connectivity_matrix
+        # Coerce current and past state to tuples so they can be properly used
+        # as np.array indices.
         self.current_state = tuple(current_state)
         self.past_state = tuple(past_state)
         # Make the TPM, pertubation vector  and connectivity matrix immutable (for hashing).
@@ -160,3 +161,12 @@ class Network:
     def __hash__(self):
         return hash((self._tpm_hash, self.current_state, self.past_state,
                      self._cm_hash, self._pv_hash))
+
+    def json_dict(self):
+        return {
+            'tpm': json.make_encodable(self.tpm),
+            'current_state': json.make_encodable(self.current_state),
+            'past_state': json.make_encodable(self.past_state),
+            'connectivity_matrix': json.make_encodable(self.connectivity_matrix),
+            'size': json.make_encodable(self.size),
+        }
