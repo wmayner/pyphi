@@ -4,10 +4,10 @@
 #    _______
 #   |__   __|
 #  ____| |____
-# |  __   __  |    _____         ___    __     _
-# | |  | |  | |   / ___/ __ __  / _ \  / /    (_)
-# | |__| |__| |  / /__  / // / / ___/ / _ \  / /
-# |____   ____|  \___/  \_, / /_/    /_//_/ /_/
+# |  __   __  |     ___         ___   __    _
+# | |  | |  | |    / _ \ __ __ / _ \ / /   (_)
+# | |__| |__| |   / ___// // // ___// _ \ / /
+# |____   ____|  /_/    \_, //_/   /_//_//_/
 #    __| |__           /___/
 #   |_______|
 
@@ -54,8 +54,6 @@ from .network import Network
 from .subsystem import Subsystem
 from . import compute, constants, db, examples
 
-import os
-import yaml
 import logging
 import logging.config
 
