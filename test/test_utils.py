@@ -111,3 +111,34 @@ def test_emd_same_distributions():
 def test_uniform_distribution():
     assert np.array_equal(utils.uniform_distribution(3),
                           (np.ones(8)/8).reshape([2]*3))
+
+
+def test_block_cm():
+    cm1 = np.array([
+         [1, 0, 0, 1, 1, 0],
+         [1, 0, 1, 0, 0, 1],
+         [0, 0, 0, 1, 0, 0],
+         [0, 1, 0, 0, 0, 0],
+         [1, 1, 0, 0, 0, 1]
+    ])
+    cm2 = np.array([
+         [1, 0, 0],
+         [0, 1, 1],
+         [0, 1, 1]
+    ])
+    cm3 = np.array([
+         [1, 1, 0, 0, 0],
+         [0, 0, 1, 1, 1]
+    ])
+    cm4 = np.array([
+         [1, 1, 0, 0, 0],
+         [0, 1, 1, 0, 0],
+         [0, 0, 1, 1, 0],
+         [0, 0, 0, 1, 1],
+         [1, 0, 0, 0, 0]
+    ])
+
+    assert not utils.block_cm(cm1)
+    assert utils.block_cm(cm2)
+    assert utils.block_cm(cm3)
+    assert not utils.block_cm(cm4)

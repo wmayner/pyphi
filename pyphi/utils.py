@@ -355,6 +355,32 @@ def connectivity_matrix_to_tpm(network):
         ``np.ndarray`` -- A transition probability matrix.
     """
 
+def block_cm(cm):
+    """ Determining if a given connectivity matrix be rearranged as a block
+    connectivity matrix. If so, the corresponding mechanism/purview is
+    trivially reducible."""
+    # validate the cm
+    In = cm.shape[1]
+    if np.any(np.sum(cm,1)==0):
+        return True
+    if np.all(np.sum(cm > 0,1) == 1):
+        return True
+    m_ind = np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]
+    p_ind = np.where(cm[m_ind,:] > 0)[0]
+    temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
+    while 1:
+        if np.all(temp==m_ind):
+            break
+        else:
+            m_ind = temp
+            p_ind = np.where(np.sum(cm[m_ind,:], 0)  > 0)[0]
+            temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
+    if np.all(p_ind  == [i for i in range(In)]):
+        return False
+    else:
+        return True
+
+
 
 # Custom printing methods
 # =============================================================================
