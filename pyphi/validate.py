@@ -45,6 +45,7 @@ def nodelist(nodes, name):
         nodes = tuple(nodes)
     return nodes
 
+
 def tpm(tpm):
     """Validate a TPM."""
     see_tpm_docs = ('See documentation for pyphi.Network for more information '
@@ -132,13 +133,15 @@ def state(network):
             "according to the given TPM.")
     return True
 
+
 # TODO test
 def perturb_vector(pv, size):
-    """Validate a network's pertubation vector"""
-    if (pv.size != size):
-        raise ValueError("Perturbation vector must have one entry per node.")
-    if (np.any(pv >  1) or np.any(pv < 0)):
-        raise ValueError("Entries must be probabilities, between 0 and 1.")
+    """Validate a network's pertubation vector."""
+    if pv.size != size:
+        raise ValueError("Perturbation vector must have one element per node.")
+    if np.any(pv > 1) or np.any(pv < 0):
+        raise ValueError("Perturbation vector elements must be probabilities, "
+                         "between 0 and 1.")
     return True
 
 

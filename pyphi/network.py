@@ -104,8 +104,8 @@ class Network:
         if perturb_vector is not None:
             perturb_vector = np.array(perturb_vector)
         else:
-            # If none was provided, assume all are max entropy
-            perturb_vector = np.ones(self.size)/2
+            # If none was provided, assume maximum-entropy.
+            perturb_vector = np.ones(self.size) / 2
 
         self.perturb_vector = perturb_vector
         self.connectivity_matrix = connectivity_matrix
@@ -113,7 +113,8 @@ class Network:
         # as np.array indices.
         self.current_state = tuple(current_state)
         self.past_state = tuple(past_state)
-        # Make the TPM, pertubation vector  and connectivity matrix immutable (for hashing).
+        # Make the TPM, pertubation vector  and connectivity matrix immutable
+        # (for hashing).
         self.tpm.flags.writeable = False
         self.connectivity_matrix.flags.writeable = False
         self.perturb_vector.flags.writeable = False
@@ -167,6 +168,7 @@ class Network:
             'tpm': json.make_encodable(self.tpm),
             'current_state': json.make_encodable(self.current_state),
             'past_state': json.make_encodable(self.past_state),
-            'connectivity_matrix': json.make_encodable(self.connectivity_matrix),
+            'connectivity_matrix':
+                json.make_encodable(self.connectivity_matrix),
             'size': json.make_encodable(self.size),
         }

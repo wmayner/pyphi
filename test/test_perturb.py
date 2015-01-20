@@ -22,8 +22,8 @@ pv = np.array([0.75, 0.75, 0.25])
 current_state = (0, 1, 0)
 past_state = (0, 0, 1)
 
-network = pyphi.Network(tpm, current_state, past_state,
-                        connectivity_matrix = cm, perturb_vector = pv)
+network = pyphi.Network(tpm, current_state, past_state, connectivity_matrix=cm,
+                        perturb_vector=pv)
 
 subsystem = pyphi.Subsystem(range(network.size), network)
 
@@ -31,7 +31,7 @@ A = (subsystem.nodes[0],)
 B = (subsystem.nodes[1],)
 C = (subsystem.nodes[2],)
 AB = subsystem.nodes[0:2]
-AC = subsystem.indices2nodes([0,2])
+AC = subsystem.indices2nodes([0, 2])
 BC = subsystem.nodes[1:3]
 ABC = subsystem.nodes[:]
 
@@ -59,10 +59,10 @@ def test_perturb_unconstrained_cause_repertoire():
                   == np.array([3, 1]) / 4)
 
 
-
 def test_perturb_unconstrained_effect_repertoire():
-    assert np.all(subsystem.effect_repertoire((), ABC).flatten(order='F')
-                  == np.array([273, 63, 1183, 273, 351, 81, 1521, 351]) / 16 ** 3)
+    assert np.all(
+        subsystem.effect_repertoire((), ABC).flatten(order='F')
+        == np.array([273, 63, 1183, 273, 351, 81, 1521, 351]) / 16 ** 3)
 
     assert np.all(subsystem.effect_repertoire((), AB).flatten(order='F')
                   == np.array([39, 9, 169, 39]) / 16 ** 2)
@@ -104,6 +104,7 @@ def test_perturb_constrained_effect_repertoire_A():
 
     assert np.all(subsystem.effect_repertoire(A, C).flatten(order='F')
                   == np.array([1, 0]))
+
 
 def test_perturb_constrained_effect_repertoire_B():
     assert np.all(subsystem.effect_repertoire(B, ABC).flatten(order='F')
@@ -243,12 +244,6 @@ def test_perturb_constrained_effect_repertoire_ABC():
                   == np.array([1, 0]))
 
 
-
-
-
-
-
-
 def test_perturb_constrained_cause_repertoire_A():
     assert np.all(subsystem.cause_repertoire(A, ABC).flatten(order='F')
                   == np.array([0, 0, 9, 27, 1, 3, 3, 9]) / 52)
@@ -272,8 +267,6 @@ def test_perturb_constrained_cause_repertoire_A():
                   == np.array([36, 16]) / 52)
 
 
-
-
 def test_perturb_constrained_cause_repertoire_B():
     assert np.all(subsystem.cause_repertoire(B, ABC).flatten(order='F')
                   == np.array([0, 9, 0, 27, 1, 3, 3, 9]) / 52)
@@ -295,7 +288,6 @@ def test_perturb_constrained_cause_repertoire_B():
 
     assert np.all(subsystem.cause_repertoire(B, C).flatten(order='F')
                   == np.array([36, 16]) / 52)
-
 
 
 def test_perturb_constrained_cause_repertoire_C():
@@ -390,7 +382,6 @@ def test_perturb_constrained_cause_repertoire_BC():
                   == np.array([252, 112]) / 364)
 
 
-
 def test_perturb_constrained_cause_repertoire_ABC():
     assert np.all(subsystem.cause_repertoire(ABC, ABC).flatten(order='F')
                   == np.array([0, 0, 0, 0, 1, 3, 3, 0]) / 7)
@@ -412,8 +403,3 @@ def test_perturb_constrained_cause_repertoire_ABC():
 
     assert np.all(subsystem.cause_repertoire(ABC, C).flatten(order='F')
                   == np.array([3024, 1792]) / 4816)
-
-
-
-
-

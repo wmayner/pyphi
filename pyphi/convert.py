@@ -10,8 +10,13 @@ Conversion functions.
 
 import math
 import numpy as np
-from . import constants, validate
+from . import validate
 import logging
+
+
+# Create a logger for this module.
+log = logging.getLogger(__name__)
+
 
 def nodes2indices(nodes):
     return tuple(n.index for n in nodes)
@@ -181,9 +186,11 @@ def state_by_state2state_by_node(tpm):
         # i.e., a row of the state-by-node TPM.
         # Assign that row to the ith state in the state-by-node TPM.
         sbn_tpm[state] = [np.sum(on_probabilities[n][i]) for n in range(N)]
-    if ~np.all(tpm==state_by_node2state_by_state(sbn_tpm)):
-        logging.warning('The tpm is not conditionally independent, see documentation '
-              'of pyphi.Examples for more information on how this is handled')
+    if not np.all(tpm == state_by_node2state_by_state(sbn_tpm)):
+        logging.warning(
+            'The TPM is not conditionally independent. See the documentation '
+            'for `pyphi.examples` for more information on how this is '
+            'handled.')
     return sbn_tpm
 
 
@@ -192,11 +199,12 @@ def state_by_node2state_by_state(tpm):
     """Convert a state-by-node TPM to a state-by-state TPM.
 
     .. note::
-        For non-deterministic state-by-node TPMs, since the mapping
-        between them is not one-to-one; a non-deterministic state-by-node
-        TPM can have more than one representation as a state-by-state TPM.
-        This function returns the representation corresponding to a
-        conditionally independent state-by-state TPM.
+        **A nondeterministic state-by-node TPM can have more than one
+        representation as a state-by-state TPM.** However, the mapping can be
+        made to be one-to-one if we assume the TPMs to be conditionally
+        independent. Therefore, given a nondeterministic state-by-node TPM,
+        this function returns the corresponding conditionally independent
+        state-by-state.
 
     .. note::
         The indices of the rows of the state-by-node TPM are assumed to follow
@@ -244,18 +252,23 @@ def state_by_node2state_by_state(tpm):
     S = 2**N
     # Initialize the state-by-state TPM.
     sbs_tpm = np.zeros((S, S))
-    if ~np.any(np.logical_and(tpm < 1, tpm > 0)):
+    if not np.any(np.logical_and(tpm < 1, tpm > 0)):
+        # TPM is deterministic.
         for past_state_index in range(S):
             # Use the LOLI convention to get the row and column indices.
             past_state = loli_index2state(past_state_index, N)
             current_state_index = state2loli_index(tpm[past_state])
             sbs_tpm[past_state_index, current_state_index] = 1
     else:
+        # TPM is nondeterministic.
         for past_state_index in range(S):
             # Use the LOLI convention to get the row and column indices.
             past_state = loli_index2state(past_state_index, N)
             marginal_tpm = tpm[past_state]
             for current_state_index in range(S):
-                current_state = np.array([i for i in loli_index2state(current_state_index, N)])
-                sbs_tpm[past_state_index, current_state_index] = np.prod(marginal_tpm[current_state==1]) * np.prod(1-marginal_tpm[current_state==0])
+                current_state = np.array(
+                    [i for i in loli_index2state(current_state_index, N)])
+                sbs_tpm[past_state_index, current_state_index] = (
+                    np.prod(marginal_tpm[current_state == 1]) *
+                    np.prod(1 - marginal_tpm[current_state == 0]))
     return sbs_tpm

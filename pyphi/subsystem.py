@@ -161,9 +161,12 @@ class Subsystem:
         # multiplicative identity.
         if not purview:
             return np.array([1])
-        # Calculate the maximum entropy distribution. If there is no mechanism, return it.
-        max_entropy_dist = utils.max_entropy_distribution(purview_indices, self.network.size,
-                                                          [self.perturb_vector[i] for i in purview_indices])
+        # Calculate the maximum entropy distribution. If there is no mechanism,
+        # return it.
+        max_entropy_dist = utils.max_entropy_distribution(
+            purview_indices,
+            self.network.size,
+            [self.perturb_vector[i] for i in purview_indices])
         if not mechanism:
             return max_entropy_dist
         # Preallocate the mechanism's conditional joint distribution.
@@ -189,16 +192,19 @@ class Subsystem:
             non_purview_inputs = inputs - set(purview)
             # Marginalize-out the non-purview inputs.
             for node in non_purview_inputs:
-                conditioned_tpm = utils.marginalize_out(node.index, conditioned_tpm, self.perturb_vector[node.index])
+                conditioned_tpm = utils.marginalize_out(
+                    node.index,
+                    conditioned_tpm,
+                    self.perturb_vector[node.index])
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
             # broadcasting, which spreads the singleton probabilities in the
             # collapsed dimensions out along the whole distribution in the
             # appropriate way.
             cjd *= conditioned_tpm
-        # If the perturbation vector is not maximum entropy, then weight
-        # the probabilities before normalization.
-        if (not np.all(self.perturb_vector == 0.5)):
+        # If the perturbation vector is not maximum entropy, then weight the
+        # probabilities before normalization.
+        if not np.all(self.perturb_vector == 0.5):
             cjd *= max_entropy_dist
         # Finally, normalize to get the mechanism's actual conditional joint
         # distribution.
