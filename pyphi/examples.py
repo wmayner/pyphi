@@ -168,8 +168,10 @@ irreducible cause information of the mechanisms |A| and |B|.
 The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
 ([] / E)| because |E| has no effect on |A|, so it has zero |small_phi|.
 
-   >>> subsystem.mip_past(A, CDE)
-   Mip(phi=0.0, direction='past', mechanism=(n0,), purview=(n2, n3, n4), partition=None, unpartitioned_repertoire=None, partitioned_repertoire=None)
+   >>> subsystem.mip_past(A, CDE).phi
+   0.0
+   >>> subsystem.mip_past(A, CDE).partition
+   (Part(mechanism=(), purview=(n4,)), Part(mechanism=(n0,), purview=(n2, n3)))
 
 Instead, we should evaluate |A| over the purview |CD|.
 
@@ -193,6 +195,132 @@ and irreducible cause information
 A similar result holds for |B|. Thus the mechanisms |A| and |B| exist at levels
 of |small_phi = 1/6|, while the higher-order mechanism |AB| exists only as the
 residual of causes, at a level of |small_phi = 1/10|.
+
+-------------------------------------------------------------------------------
+
+
+**Conditional Independence Example**
+
+This example explores the assumption of conditional independence, and the
+behaviour of the program when it is not satisfied.
+
+Every state-by-node tpm corresponds to a unique state-by-state tpm
+which satisfies the conditional independence assumption. If a
+state-by-node tpm is given as input for a network, the program assumes
+that it is from a system with the corresponding conditionally independent
+state-by-state tpm.
+
+When a state-by-state tpm is given as input for a network, the state-by-state
+tpm is first converted to a state-by-node tpm. The program then assumes that
+the system corresponds to the unique conditionally independent representation of
+the state-by-node tpm. If a non-conditionally independent tpm is given, the analyzed
+system will not correspond to the original tpm. (Note that every deterministic
+state-by-state tpm will automatically satisfy the conditional independence
+assumption.)
+
+Consider a system of two binary nodes(A and B) which do not change if
+they have the same value, but flip with probability 50% if they have
+different values.
+
+Load the state_by_state tpm for such a system,
+
+   >>> tpm = pyphi.examples.cond_depend_tpm()
+   >>> print(tpm)
+   [[ 1.   0.   0.   0. ]
+    [ 0.   0.5  0.5  0. ]
+    [ 0.   0.5  0.5  0. ]
+    [ 0.   0.   0.   1. ]]
+
+This system does not satisfy the conditional independence assumption;
+given a past state of (1,0) the current state of node A depends on
+whether or not B has flipped.
+
+When creating a network, the program will convert this state-by-state
+tpm to a state-by-node form, and issue a warning if it does not
+satisfy the assumption,
+
+   >>> sbn_tpm = pyphi.convert.state_by_state2state_by_node(tpm)
+
+
+ Warning: The tpm is not conditionally independent, see documentation of pyphi.Examples
+ for more information on how this is handled
+
+   >>> print(sbn_tpm)
+   [[[ 0.   0. ]
+     [ 0.5  0.5]]
+   <BLANKLINE>
+    [[ 0.5  0.5]
+     [ 1.   1. ]]]
+
+The program will continue with the state-by-node tpm, but since it assumes
+conditional independence, it does not correspond to the original system.
+
+To see the corresponding conditionally independent tpm, convert the state-by-node
+tpm back to state-by-state form,
+
+   >>> sbs_tpm = pyphi.convert.state_by_node2state_by_state(sbn_tpm)
+   >>> print(sbs_tpm)
+   [[ 1.    0.    0.    0.  ]
+    [ 0.25  0.25  0.25  0.25]
+    [ 0.25  0.25  0.25  0.25]
+    [ 0.    0.    0.    1.  ]]
+
+
+A system which does not satisfy the conditional independence assumption shows 'instantaneous causality'
+In such situations, there must be additional exogenous variable(s) which explain the dependence.
+
+Consider the above example, except that there is a third node (C) which is equally likely to be ON or OFF.
+When nodes A and B are in different states, they will flip when C is ON, but stay the same when C is OFF.
+
+   >>> tpm2 = pyphi.examples.cond_independ_tpm()
+   >>> print(tpm2)
+   [[ 0.5  0.   0.   0.   0.5  0.   0.   0. ]
+    [ 0.   0.5  0.   0.   0.   0.5  0.   0. ]
+    [ 0.   0.   0.5  0.   0.   0.   0.5  0. ]
+    [ 0.   0.   0.   0.5  0.   0.   0.   0.5]
+    [ 0.5  0.   0.   0.   0.5  0.   0.   0. ]
+    [ 0.   0.   0.5  0.   0.   0.   0.5  0. ]
+    [ 0.   0.5  0.   0.   0.   0.5  0.   0. ]
+    [ 0.   0.   0.   0.5  0.   0.   0.   0.5]]
+
+The resulting state-by-state tpm now satisfies the conditional independence
+assumption.
+
+   >>> sbn_tpm2 = pyphi.convert.state_by_state2state_by_node(tpm2)
+   >>> print(sbn_tpm2)
+   [[[[ 0.   0.   0.5]
+      [ 0.   0.   0.5]]
+   <BLANKLINE>
+     [[ 0.   1.   0.5]
+      [ 1.   0.   0.5]]]
+   <BLANKLINE>
+   <BLANKLINE>
+    [[[ 1.   0.   0.5]
+      [ 0.   1.   0.5]]
+   <BLANKLINE>
+     [[ 1.   1.   0.5]
+      [ 1.   1.   0.5]]]]
+
+The node indices are [0,1] for AB and [2] for C,
+
+   >>> AB = np.array([0,1])
+   >>> C = np.array([2])
+
+From here, if we marginalize out the node C
+
+   >>> tpm2_marginalizeC = pyphi.utils.marginalize_out(C, sbn_tpm2)
+
+And then restrict the purview to only nodes A and B
+
+   >>> tpm2_purviewAB = np.squeeze(tpm2_marginalizeC[:,:,:,AB])
+
+We get back the original state-by-node tpm from the system with
+just A and B
+
+   >>> np.all(tpm2_purviewAB == sbn_tpm)
+   True
+
+-------------------------------------------------------------------------------
 
 
 A note on conventions
@@ -343,20 +471,25 @@ def basic_network():
 
         |CM[i][j] = 1| means that node |i| is connected to node |j|.
     """
+    tpm = np.array([
+        [0, 0, 0],
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 0, 0],
+        [1, 1, 0],
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 0]
+    ])
+
+    cm = np.array([
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 1, 0]
+    ])
+
     current_state = (1, 0, 0)
     past_state = (1, 1, 0)
-    tpm = np.array([[0, 0, 0],
-                    [0, 0, 1],
-                    [1, 0, 1],
-                    [1, 0, 0],
-                    [1, 1, 0],
-                    [1, 1, 1],
-                    [1, 1, 1],
-                    [1, 1, 0]])
-
-    cm = np.array([[0, 0, 1],
-                   [1, 0, 1],
-                   [1, 1, 0]])
 
     return Network(tpm, current_state, past_state, connectivity_matrix=cm)
 
@@ -404,7 +537,9 @@ def residue_network():
     | E | 0 | 1 | 0 | 0 | 0 |
     +---+---+---+---+---+---+
     """
-    tpm = np.array([[int(s) for s in bin(x)[2:].zfill(5)[::-1]] for x in range(32)])
+    tpm = np.array([
+        [int(s) for s in bin(x)[2:].zfill(5)[::-1]] for x in range(32)
+    ])
     tpm[np.where(np.sum(tpm[0:, 2:4], 1) == 2), 0] = 1
     tpm[np.where(np.sum(tpm[0:, 3:5], 1) == 2), 1] = 1
     tpm[np.where(np.sum(tpm[0:, 2:4], 1) < 2), 0] = 0
@@ -425,3 +560,173 @@ def residue_subsystem():
     :func:`pyphi.examples.residue_network`."""
     net = residue_network()
     return Subsystem(range(net.size), net)
+
+
+def xor_network():
+    """A fully connected system of three XOR gates. In the state ``(0, 0, 0)``,
+    none of the elementary mechanisms exist.
+
+    Diagram::
+
+        +~~~~~~~+       +~~~~~~~+
+        |   A   +<~~~~~>|   B   |
+        | (XOR) |       | (XOR) |
+        +~~~~~~~+       +~~~~~~~+
+            ^               ^
+            |   +~~~~~~~+   |
+            +~~>|   C   |<~~+
+                | (XOR) |
+                +~~~~~~~+
+
+    Connectivity matrix:
+
+    +---+---+---+---+
+    | . | A | B | C |
+    +---+---+---+---+
+    | A | 0 | 1 | 1 |
+    +---+---+---+---+
+    | B | 1 | 0 | 1 |
+    +---+---+---+---+
+    | C | 1 | 1 | 0 |
+    +---+---+---+---+
+    """
+    tpm = np.array([
+        [0, 0, 0],
+        [0, 1, 1],
+        [1, 0, 1],
+        [1, 1, 0],
+        [1, 1, 0],
+        [1, 0, 1],
+        [0, 1, 1],
+        [0, 0, 0]
+    ])
+
+    cm = np.array([
+        [0, 1, 1],
+        [1, 0, 1],
+        [1, 1, 0]
+    ])
+
+    current_state = (0, 0, 0)
+    past_state = (0, 0, 0)
+
+    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+
+
+def xor_subsystem():
+    """The subsystem containing all the nodes of the
+    :func:`pyphi.examples.xor_network`."""
+    net = xor_network()
+    return Subsystem(range(net.size), net)
+
+
+def cond_depend_tpm():
+    """A system of two general logic gates A and B such if they are in the same
+    state they stay the same, but if they are in different states, they flip
+    with probability 50%.
+
+    Diagram::
+
+        +~~~~~+         +~~~~~+
+        |  A  |<~~~~~~~>|  B  |
+        +~~~~~+         +~~~~~+
+
+    TPM:
+
+    +------+------+------+------+------+
+    |      |(0, 0)|(1, 0)|(0, 1)|(1, 1)|
+    +------+------+------+------+------+
+    |(0, 0)| 1.0  | 0.0  | 0.0  | 0.0  |
+    +------+------+------+------+------+
+    |(1, 0)| 0.0  | 0.5  | 0.5  | 0.0  |
+    +------+------+------+------+------+
+    |(0, 1)| 0.0  | 0.5  | 0.5  | 0.0  |
+    +------+------+------+------+------+
+    |(1, 1)| 0.0  | 0.0  | 0.0  | 1.0  |
+    +------+------+------+------+------+
+
+    Connectivity matrix:
+
+    +---+---+---+
+    | . | A | B |
+    +---+---+---+
+    | A | 0 | 1 |
+    +---+---+---+
+    | B | 1 | 0 |
+    +---+---+---+
+    """
+
+    tpm = np.array([
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.5, 0.5, 0.0],
+        [0.0, 0.5, 0.5, 0.0],
+        [0.0, 0.0, 0.0, 1.0]
+    ])
+
+    return tpm
+
+
+def cond_independ_tpm():
+    """A system of three general logic gates A, B and C such that if A and B
+    are in the same state then they stay the same. If they are in different
+    states, they flip if C is ''ON and stay the same if C is OFF. Node C is ON
+    50% of the time, independent of the previous state.
+
+    Diagram::
+
+        +~~~~~+         +~~~~~+
+        |  A  |<~~~~~~~>|  B  |
+        +~~~~~+         +~~~~~+
+           ^               ^
+           |    +~~~~~+    |
+           +~~~~+  C  +~~~~+
+                +~~~~~+
+
+    TPM:
+
+    +---------+---------+---------+---------+---------+---------+---------+---------+---------+
+    |         |(0, 0, 0)|(1, 0, 0)|(0, 1, 0)|(1, 1, 0)|(0, 0, 1)|(1, 0, 1)|(0, 1, 1)|(1, 1, 1)|
+    +---------+---------+---------+---------+---------+---------+---------+---------+---------+
+    |(0, 0, 0)|   0.5   |   0.0   |   0.0   |   0.0   |   0.5   |   0.0   |   0.0   |   0.0   |
+    +---------+---------+---------+---------+---------+---------+---------+---------+---------+
+    |(1, 0, 0)|   0.0   |   0.5   |   0.0   |   0.0   |   0.0   |   0.5   |   0.0   |   0.0   |
+    +---------+---------+---------+---------+---------+---------+---------+---------+---------+
+    |(0, 1, 0)|   0.0   |   0.0   |   0.5   |   0.0   |   0.0   |   0.0   |   0.5   |   0.0   |
+    +---------+---------+---------+---------+---------+---------+---------+---------+---------+
+    |(1, 1, 0)|   0.0   |   0.0   |   0.0   |   0.5   |   0.0   |   0.0   |   0.0   |   0.5   |
+    +---------+---------+---------+---------+---------+---------+---------+---------+---------+
+    |(0, 0, 1)|   0.5   |   0.0   |   0.0   |   0.0   |   0.5   |   0.0   |   0.0   |   0.0   |
+    +---------+---------+---------+---------+---------+---------+---------+---------+---------+
+    |(1, 0, 1)|   0.0   |   0.0   |   0.5   |   0.0   |   0.0   |   0.0   |   0.5   |   0.0   |
+    +---------+---------+---------+---------+---------+---------+---------+---------+---------+
+    |(0, 1, 1)|   0.0   |   0.5   |   0.0   |   0.0   |   0.0   |   0.5   |   0.0   |   0.0   |
+    +---------+---------+---------+---------+---------+---------+---------+---------+---------+
+    |(1, 1, 1)|   0.0   |   0.0   |   0.0   |   0.5   |   0.0   |   0.0   |   0.0   |   0.5   |
+    +---------+---------+---------+---------+---------+---------+---------+---------+---------+
+
+    Connectivity matrix:
+
+    +---+---+---+---+
+    | . | A | B | C |
+    +---+---+---+---+
+    | A | 0 | 1 | 0 |
+    +---+---+---+---+
+    | B | 1 | 0 | 0 |
+    +---+---+---+---+
+    | C | 1 | 1 | 0 |
+    +---+---+---+---+
+    """
+
+    tpm = np.array([
+        [0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0],
+        [0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0],
+        [0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0],
+        [0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5],
+        [0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0],
+        [0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5]
+    ])
+
+    return tpm
+

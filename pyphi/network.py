@@ -71,7 +71,7 @@ class Network:
     """
 
     def __init__(self, tpm, current_state, past_state,
-                 connectivity_matrix=None):
+                 connectivity_matrix=None, perturb_vector=None):
         # Cast TPM to np.array.
         tpm = np.array(tpm)
         # Validate TPM.
@@ -100,15 +100,26 @@ class Network:
         # TODO make tpm also optional when implementing logical network
         # definition
 
+        # Get pertubation vector.
+        if perturb_vector is not None:
+            perturb_vector = np.array(perturb_vector)
+        else:
+            # If none was provided, assume maximum-entropy.
+            perturb_vector = np.ones(self.size) / 2
+
+        self.perturb_vector = perturb_vector
         self.connectivity_matrix = connectivity_matrix
         # Coerce current and past state to tuples so they can be properly used
         # as np.array indices.
         self.current_state = tuple(current_state)
         self.past_state = tuple(past_state)
-        # Make the TPM and connectivity matrix immutable (for hashing).
+        # Make the TPM, pertubation vector  and connectivity matrix immutable
+        # (for hashing).
         self.tpm.flags.writeable = False
         self.connectivity_matrix.flags.writeable = False
+        self.perturb_vector.flags.writeable = False
 
+        self._pv_hash = utils.np_hash(self.perturb_vector)
         self._tpm_hash = utils.np_hash(self.tpm)
         self._cm_hash = utils.np_hash(self.connectivity_matrix)
 
@@ -123,6 +134,7 @@ class Network:
                                         repr(self.current_state),
                                         repr(self.past_state)]) +
                 ", connectivity_matrix=" + repr(self.connectivity_matrix) +
+                ", perturb_vector=" + repr(self.perturb_vector) +
                 ")")
 
     def __str__(self):
@@ -139,7 +151,9 @@ class Network:
                 np.array_equal(self.current_state, other.current_state) and
                 np.array_equal(self.past_state, other.past_state) and
                 np.array_equal(self.connectivity_matrix,
-                               other.connectivity_matrix))
+                               other.connectivity_matrix) and
+                np.array_equal(self.perturb_vector,
+                               other.perturb_vector))
                 if isinstance(other, type(self)) else False)
 
     def __ne__(self, other):
@@ -147,13 +161,14 @@ class Network:
 
     def __hash__(self):
         return hash((self._tpm_hash, self.current_state, self.past_state,
-                     self._cm_hash))
+                     self._cm_hash, self._pv_hash))
 
     def json_dict(self):
         return {
             'tpm': json.make_encodable(self.tpm),
             'current_state': json.make_encodable(self.current_state),
             'past_state': json.make_encodable(self.past_state),
-            'connectivity_matrix': json.make_encodable(self.connectivity_matrix),
+            'connectivity_matrix':
+                json.make_encodable(self.connectivity_matrix),
             'size': json.make_encodable(self.size),
         }

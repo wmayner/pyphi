@@ -9,6 +9,7 @@ Functions used by more than one PyPhi module or class, or that might be of
 external use.
 """
 
+import re
 import hashlib
 import numpy as np
 from itertools import chain, combinations
@@ -59,7 +60,7 @@ def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
         # Zero-out row
         cm[i] = 0
         # Zero-out column
-        cm[:,i] = 0
+        cm[:, i] = 0
     return cm
 
 
@@ -195,23 +196,29 @@ def uniform_distribution(number_of_nodes):
             number_of_states).reshape([2] * number_of_nodes)
 
 
-def marginalize_out(node, tpm):
+def marginalize_out(index, tpm, perturb_value=0.5):
     """
     Marginalize out a node from a TPM.
 
     Args:
-        node (Node): The node to be marginalized out.
+        index (list): The index of the node to be marginalized out.
         tpm (np.ndarray): The TPM to marginalize the node out of.
 
     Returns:
         ``np.ndarray`` -- A TPM with the same number of dimensions, with the
         node marginalized out.
     """
-    return tpm.sum(node.index, keepdims=True) / tpm.shape[node.index]
+    if (perturb_value == 0.5):
+        return tpm.sum(index, keepdims=True) / tpm.shape[index]
+    else:
+        tpm = np.average(tpm, index, weights=[1 - perturb_value, perturb_value])
+        return tpm.reshape([i for i in tpm.shape[0:index]] +
+                           [1] + [i for i in tpm.shape[index:]])
 
 
 # TODO memoize this
-def max_entropy_distribution(node_indices, number_of_nodes):
+def max_entropy_distribution(node_indices, number_of_nodes,
+                             perturb_vector=None):
     """
     Return the maximum entropy distribution over a set of nodes.
 
@@ -228,9 +235,27 @@ def max_entropy_distribution(node_indices, number_of_nodes):
         nodes.
     """
     # TODO extend to nonbinary nodes
-    distribution = np.ones([2 if index in node_indices else 1 for index in
-                            range(number_of_nodes)])
-    return distribution / distribution.size
+    if ((perturb_vector is None) or
+            (np.all(perturb_vector == 0.5)) or
+            (len(perturb_vector) == 0)):
+        distribution = np.ones([2 if index in node_indices else 1 for index in
+                                range(number_of_nodes)])
+        return distribution / distribution.size
+    else:
+        perturb_vector = np.array(perturb_vector)
+        bin_states = [bin(x)[2:].zfill(len(node_indices))[::-1] for x in
+                      range(2 ** len(node_indices))]
+        distribution = np.array([
+            np.prod(perturb_vector[[m.start() for m in
+                                    re.finditer('1', bin_states[x])]])
+            * np.prod(1 - perturb_vector[[m.start() for m in
+                                          re.finditer('0', bin_states[x])]])
+            for x in range(2 ** len(node_indices))
+        ])
+        return distribution.reshape(
+            [2 if index in node_indices else 1 for index in
+             range(number_of_nodes)],
+            order='F')
 
 
 # TODO extend to binary nodes
@@ -267,7 +292,6 @@ def bipartition(a):
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
 
-# TODO use bitwise operators here
 @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.
@@ -290,7 +314,7 @@ def bipartition_indices(N):
     if N <= 0:
         return result
     for i in range(2 ** (N - 1)):
-        part = [[],[]]
+        part = [[], []]
         for n in range(N):
             bit = (i >> n) & 1
             part[bit].append(n)

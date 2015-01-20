@@ -33,7 +33,7 @@ def test_phi_eq():
 
 
 def test_marginalize_out(s):
-    marginalized_distribution = utils.marginalize_out(s.nodes[0],
+    marginalized_distribution = utils.marginalize_out(s.nodes[0].index,
                                                       s.network.tpm)
     assert np.array_equal(marginalized_distribution,
                           np.array([[[[0.,  0.,  0.5],
