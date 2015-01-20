@@ -48,6 +48,10 @@ module.exports = (grunt) ->
           "<%= cfg.docDir %>/**/*"
           "!<%= cfg.docDir %>/_*/**/*"
           "<%= cfg.docDir %>/_static/**/*"
+          "!**/pyphi.log"
+          "!**/__pyphi_cache__"
+          "!**/__pyphi_cache__.BACKUP"
+          "!**/*.pyc"
         ]
         tasks: ["shell:buildDocs"]
       test:
@@ -71,12 +75,12 @@ module.exports = (grunt) ->
     "watch:test"
   ]
   grunt.registerTask "docs", [
-    "shell:openDocs"
     "shell:buildDocs"
+    "shell:openDocs"
   ]
   grunt.registerTask "watch-docs", [
-    "shell:openDocs"
     "shell:buildDocs"
+    "shell:openDocs"
     "watch:docs"
   ]
   grunt.registerTask "upload-github-docs", [
