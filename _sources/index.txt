@@ -1,55 +1,55 @@
-.. automodule:: pyphi
-    :members:
-    :undoc-members:
+PyPhi
+=====
 
-.. automodule:: pyphi.examples
-    :members:
-    :undoc-members:
+PyPhi is a Python library for computing integrated information.
 
-.. automodule:: pyphi.compute
-    :members:
-    :undoc-members:
+See the documentation for :mod:`pyphi.examples` for information on how to use
+it.
 
-.. automodule:: pyphi.network
-    :members:
-    :undoc-members:
+To report issues, please use the issue tracker on the `GitHub repository
+<https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
+welcome.
 
-.. automodule:: pyphi.subsystem
-    :members:
-    :undoc-members:
 
-.. automodule:: pyphi.constants
-    :members:
-    :undoc-members:
+Getting started
+~~~~~~~~~~~~~~~
 
-.. automodule:: pyphi.convert
-    :members:
-    :undoc-members:
+The :class:`pyphi.network` object is the main object on which computations are
+performed. It represents the network of interest.
 
-.. automodule:: pyphi.models
-    :members:
-    :undoc-members:
+The :class:`pyphi.subsystem` object is the secondary object; it represents a
+subsystem of a network. |big_phi| is defined on subsystems.
 
-.. automodule:: pyphi.node
-    :members:
-    :undoc-members:
+The :mod:`pyphi.compute` module is the main entry-point for the library. It
+contains methods for calculating concepts, constellations, complexes, etc.
 
-.. automodule:: pyphi.concept_caching
-    :members:
-    :undoc-members:
+Examples
+~~~~~~~~
 
-.. automodule:: pyphi.memory
-    :members:
-    :undoc-members:
+The best way to familiarize yourself with the software is to go through the
+examples below, following along in a REPL.
 
-.. automodule:: pyphi.db
-    :members:
-    :undoc-members:
+.. toctree::
+    :maxdepth: 2
 
-.. automodule:: pyphi.utils
-    :members:
-    :undoc-members:
+    examples/index
 
-.. automodule:: pyphi.validate
-    :members:
-    :undoc-members:
+
+Configuration
+~~~~~~~~~~~~~
+
+PyPhi can be configured in various important ways; see below for details.
+
+.. toctree::
+    :maxdepth: 2
+
+    configuration
+
+
+API Reference
+~~~~~~~~~~~~~
+
+.. toctree::
+    :maxdepth: 2
+
+    api/index
