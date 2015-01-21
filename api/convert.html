@@ -1,0 +1,427 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>convert &mdash; v0.3.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="v0.3.0 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="examples" href="examples.html"/>
+        <link rel="prev" title="subsystem" href="subsystem.html"/>
+  <link rel="stylesheet" href="_static/custom.css">
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resource-configuration">System resource configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching-system-configuration">Caching system configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging-configuration">Logging configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-configuration">Theoretical configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-configuration">Numerical configuration</a></li>
+</ul>
+</li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi v0.3.0</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+      
+    <li><tt class="docutils literal"><span class="pre">convert</span></tt></li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/api/convert.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="module-pyphi.convert">
+<span id="convert"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">convert</span></tt><a class="headerlink" href="#module-pyphi.convert" title="Permalink to this headline">¶</a></h1>
+<p>Conversion functions.</p>
+<dl class="function">
+<dt id="pyphi.convert.nodes2indices">
+<tt class="descclassname">pyphi.convert.</tt><tt class="descname">nodes2indices</tt><big>(</big><em>nodes</em><big>)</big><a class="headerlink" href="#pyphi.convert.nodes2indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyphi.convert.state2holi_index">
+<tt class="descclassname">pyphi.convert.</tt><tt class="descname">state2holi_index</tt><big>(</big><em>state</em><big>)</big><a class="headerlink" href="#pyphi.convert.state2holi_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a PyPhi state-tuple to a decimal index according to the <strong>HOLI</strong>
+convention.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>tuple(int)</em>) &#8211; A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of the tuple
+gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">int</span></tt> &#8211; A decimal integer corresponding to a network state under the
+<strong>HOLI</strong> convention.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.convert</span> <span class="kn">import</span> <span class="n">state2loli_index</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">state2holi_index</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="go">16</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">state2holi_index</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="go">224</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.convert.state2loli_index">
+<tt class="descclassname">pyphi.convert.</tt><tt class="descname">state2loli_index</tt><big>(</big><em>state</em><big>)</big><a class="headerlink" href="#pyphi.convert.state2loli_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a PyPhi state-tuple to a decimal index according to the <strong>LOLI</strong>
+convention.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>tuple(int)</em>) &#8211; A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of the tuple
+gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">int</span></tt> &#8211; A decimal integer corresponding to a network state under the
+<strong>LOLI</strong> convention.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.convert</span> <span class="kn">import</span> <span class="n">state2loli_index</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">state2loli_index</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">state2loli_index</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="go">7</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.convert.loli_index2state">
+<tt class="descclassname">pyphi.convert.</tt><tt class="descname">loli_index2state</tt><big>(</big><em>i</em>, <em>number_of_nodes</em><big>)</big><a class="headerlink" href="#pyphi.convert.loli_index2state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a decimal integer to a PyPhi state tuple with the <strong>LOLI</strong>
+convention.</p>
+<p>The output is the reverse of <a class="reference internal" href="#pyphi.convert.holi_index2state" title="pyphi.convert.holi_index2state"><tt class="xref py py-func docutils literal"><span class="pre">holi_index2state()</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>i</strong> (<em>int</em>) &#8211; A decimal integer corresponding to a network state under the
+<strong>LOLI</strong> convention.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(int)</span></tt> &#8211; A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of the tuple
+gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.convert</span> <span class="kn">import</span> <span class="n">loli_index2state</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">number_of_nodes</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loli_index2state</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">number_of_nodes</span><span class="p">)</span>
+<span class="go">(1, 0, 0, 0, 0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">number_of_nodes</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loli_index2state</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">number_of_nodes</span><span class="p">)</span>
+<span class="go">(1, 1, 1, 0, 0, 0, 0, 0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.convert.holi_index2state">
+<tt class="descclassname">pyphi.convert.</tt><tt class="descname">holi_index2state</tt><big>(</big><em>i</em>, <em>number_of_nodes</em><big>)</big><a class="headerlink" href="#pyphi.convert.holi_index2state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a decimal integer to a PyPhi state tuple using the <strong>HOLI</strong>
+convention that high-order bits correspond to low-index nodes.</p>
+<p>The output is the reverse of <a class="reference internal" href="#pyphi.convert.loli_index2state" title="pyphi.convert.loli_index2state"><tt class="xref py py-func docutils literal"><span class="pre">loli_index2state()</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>i</strong> (<em>int</em>) &#8211; A decimal integer corresponding to a network state under the
+<strong>HOLI</strong> convention.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(int)</span></tt> &#8211; A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of the tuple
+gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.convert</span> <span class="kn">import</span> <span class="n">holi_index2state</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">number_of_nodes</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">holi_index2state</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">number_of_nodes</span><span class="p">)</span>
+<span class="go">(0, 0, 0, 0, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">number_of_nodes</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">holi_index2state</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">number_of_nodes</span><span class="p">)</span>
+<span class="go">(0, 0, 0, 0, 0, 1, 1, 1)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.convert.to_n_dimensional">
+<tt class="descclassname">pyphi.convert.</tt><tt class="descname">to_n_dimensional</tt><big>(</big><em>tpm</em><big>)</big><a class="headerlink" href="#pyphi.convert.to_n_dimensional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reshape a state-by-node TPM to the N-D form.</p>
+<p>See documentation for <a class="reference internal" href="network.html#module-pyphi.network" title="pyphi.network"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.network</span></tt></a> for more information on TPM
+formats.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.convert.state_by_state2state_by_node">
+<tt class="descclassname">pyphi.convert.</tt><tt class="descname">state_by_state2state_by_node</tt><big>(</big><em>tpm</em><big>)</big><a class="headerlink" href="#pyphi.convert.state_by_state2state_by_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a state-by-state TPM to a state-by-node TPM.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The indices of the rows and columns of the state-by-state TPM are
+assumed to follow the <strong>LOLI</strong> convention. The indices of the rows of
+the resulting state-by-node TPM also follow the <strong>LOLI</strong> convention.
+See the documentation for <a class="reference internal" href="examples.html#module-pyphi.examples" title="pyphi.examples"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.examples</span></tt></a> for more info on
+these conventions.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tpm</strong> (<em>list(list) or np.ndarray</em>) &#8211; A square state-by-state TPM with row
+and column indices following the <strong>LOLI</strong> convention.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; A state-by-node TPM, with row indices following the
+<strong>LOLI</strong> convention.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.convert</span> <span class="kn">import</span> <span class="n">state_by_state2state_by_node</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tpm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">state_by_state2state_by_node</span><span class="p">(</span><span class="n">tpm</span><span class="p">)</span>
+<span class="go">array([[[ 0.5,  0. ],</span>
+<span class="go">        [ 1. ,  0.8]],</span>
+
+<span class="go">       [[ 1. ,  0. ],</span>
+<span class="go">        [ 0.3,  0.7]]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.convert.state_by_node2state_by_state">
+<tt class="descclassname">pyphi.convert.</tt><tt class="descname">state_by_node2state_by_state</tt><big>(</big><em>tpm</em><big>)</big><a class="headerlink" href="#pyphi.convert.state_by_node2state_by_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a state-by-node TPM to a state-by-state TPM.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><strong>A nondeterministic state-by-node TPM can have more than one
+representation as a state-by-state TPM.</strong> However, the mapping can be
+made to be one-to-one if we assume the TPMs to be conditionally
+independent. Therefore, given a nondeterministic state-by-node TPM,
+this function returns the corresponding conditionally independent
+state-by-state.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The indices of the rows of the state-by-node TPM are assumed to follow
+the <strong>LOLI</strong> convention, while the indices of the columns follow the
+<strong>HOLI</strong> convention. The indices of the rows and columns of the
+resulting state-by-state TPM both follow the <strong>HOLI</strong> convention.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tpm</strong> (<em>list(list) or np.ndarray</em>) &#8211; A state-by-node TPM with row indices
+following the <strong>LOLI</strong> convention and column indices following the
+<strong>HOLI</strong> convention.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; A state-by-state TPM, with both row and column
+indices following the <strong>HOLI</strong> convention.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.convert</span> <span class="kn">import</span> <span class="n">state_by_node2state_by_state</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tpm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">state_by_node2state_by_state</span><span class="p">(</span><span class="n">tpm</span><span class="p">)</span>
+<span class="go">array([[ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.],</span>
+<span class="go">       [ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  1.,  0.,  0.,  0.,  0.,  0.,  0.],</span>
+<span class="go">       [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.],</span>
+<span class="go">       [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="examples.html" class="btn btn-neutral float-right" title="examples"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="subsystem.html" class="btn btn-neutral" title="subsystem"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Jan 20, 2015.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

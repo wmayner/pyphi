@@ -1,0 +1,240 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>validate &mdash; v0.3.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="v0.3.0 documentation" href="../index.html"/>
+  <link rel="stylesheet" href="_static/custom.css">
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resource-configuration">System resource configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching-system-configuration">Caching system configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging-configuration">Logging configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-configuration">Theoretical configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-configuration">Numerical configuration</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi v0.3.0</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+    <li><tt class="docutils literal"><span class="pre">validate</span></tt></li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/api/valiate.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="module-pyphi.validate">
+<span id="validate"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">validate</span></tt><a class="headerlink" href="#module-pyphi.validate" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2>Validate<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Methods for validating common types of input.</p>
+<dl class="exception">
+<dt id="pyphi.validate.StateUnreachableError">
+<em class="property">exception </em><tt class="descclassname">pyphi.validate.</tt><tt class="descname">StateUnreachableError</tt><big>(</big><em>current_state</em>, <em>past_state</em>, <em>tpm</em>, <em>message</em><big>)</big><a class="headerlink" href="#pyphi.validate.StateUnreachableError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raised when the current state of a network cannot be reached, either
+from any state or from a given past state.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.direction">
+<tt class="descclassname">pyphi.validate.</tt><tt class="descname">direction</tt><big>(</big><em>direction</em><big>)</big><a class="headerlink" href="#pyphi.validate.direction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.nodelist">
+<tt class="descclassname">pyphi.validate.</tt><tt class="descname">nodelist</tt><big>(</big><em>nodes</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyphi.validate.nodelist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.tpm">
+<tt class="descclassname">pyphi.validate.</tt><tt class="descname">tpm</tt><big>(</big><em>tpm</em><big>)</big><a class="headerlink" href="#pyphi.validate.tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a TPM.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.connectivity_matrix">
+<tt class="descclassname">pyphi.validate.</tt><tt class="descname">connectivity_matrix</tt><big>(</big><em>cm</em><big>)</big><a class="headerlink" href="#pyphi.validate.connectivity_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.state">
+<tt class="descclassname">pyphi.validate.</tt><tt class="descname">state</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.validate.state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a network&#8217;s current and past state.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.perturb_vector">
+<tt class="descclassname">pyphi.validate.</tt><tt class="descname">perturb_vector</tt><big>(</big><em>pv</em>, <em>size</em><big>)</big><a class="headerlink" href="#pyphi.validate.perturb_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a network&#8217;s pertubation vector.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.network">
+<tt class="descclassname">pyphi.validate.</tt><tt class="descname">network</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.validate.network" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate TPM, connectivity matrix, and current and past state.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Jan 20, 2015.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

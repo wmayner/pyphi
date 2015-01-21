@@ -1,0 +1,560 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>subsystem &mdash; v0.3.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="v0.3.0 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="convert" href="convert.html"/>
+        <link rel="prev" title="network" href="network.html"/>
+  <link rel="stylesheet" href="_static/custom.css">
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resource-configuration">System resource configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching-system-configuration">Caching system configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging-configuration">Logging configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-configuration">Theoretical configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-configuration">Numerical configuration</a></li>
+</ul>
+</li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi v0.3.0</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+      
+    <li><tt class="docutils literal"><span class="pre">subsystem</span></tt></li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/api/subsystem.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="module-pyphi.subsystem">
+<span id="subsystem"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">subsystem</span></tt><a class="headerlink" href="#module-pyphi.subsystem" title="Permalink to this headline">¶</a></h1>
+<p>Represents a candidate set for <span class="math">\(\varphi\)</span> calculation.</p>
+<dl class="class">
+<dt id="pyphi.subsystem.Subsystem">
+<em class="property">class </em><tt class="descclassname">pyphi.subsystem.</tt><tt class="descname">Subsystem</tt><big>(</big><em>node_indices</em>, <em>network</em>, <em>cut=None</em>, <em>mice_cache={}</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>A set of nodes in a network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nodes</strong> (<em>tuple(int)</em>) &#8211; A sequence of indices of the nodes in this
+subsystem.</li>
+<li><strong>network</strong> (<em>Network</em>) &#8211; The network the subsystem belongs to.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.nodes">
+<tt class="descname">nodes</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list(Node)</em></p>
+<p>A list of nodes in the subsystem.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.node_indices">
+<tt class="descname">node_indices</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.node_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(int)</em></p>
+<p>The indices of the nodes in the subsystem.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.size">
+<tt class="descname">size</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.size" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em></p>
+<p>The number of nodes in the subsystem.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.network">
+<tt class="descname">network</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.network" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Network</em></p>
+<p>The network the subsystem belongs to.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.cut">
+<tt class="descname">cut</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.cut" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Cut</em></p>
+<p>The cut that has been applied to this subsystem.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.connectivity_matrix">
+<tt class="descname">connectivity_matrix</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.connectivity_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.array</em></p>
+<p>The connectivity matrix after applying the cut</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.perturb_vector">
+<tt class="descname">perturb_vector</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.perturb_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.array</em></p>
+<p>The vector of perturbation probabilities for each node</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.null_cut">
+<tt class="descname">null_cut</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.null_cut" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Cut</em></p>
+<p>The cut object representing no cut.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.past_tpm">
+<tt class="descname">past_tpm</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.past_tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.array</em></p>
+<p>The TPM conditioned on the past state of the
+external nodes (nodes outside the subsystem).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.current_tpm">
+<tt class="descname">current_tpm</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.current_tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.array</em></p>
+<p>The TPM conditioned on the current state of the
+external nodes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.__eq__">
+<tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether this subsystem is equal to the other object.</p>
+<p>Two subsystems are equal if their sets of nodes, current and past
+states, and networks are equal.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.__bool__">
+<tt class="descname">__bool__</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.__bool__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return false if the subsystem has no nodes, true otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.json_dict">
+<tt class="descname">json_dict</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.json_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.indices2nodes">
+<tt class="descname">indices2nodes</tt><big>(</big><em>indices</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.indices2nodes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.cause_repertoire">
+<tt class="descname">cause_repertoire</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.cause_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the cause repertoire of a mechanism over a purview.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism for which to calculate the
+cause repertoire.</li>
+<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The purview over which to calculate the
+cause repertoire.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; The cause repertoire of the mechanism over the
+purview.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.effect_repertoire">
+<tt class="descname">effect_repertoire</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.effect_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the effect repertoire of a mechanism over a purview.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism for which to calculate the
+effect repertoire.</li>
+<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The purview over which to calculate the
+effect repertoire.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; The effect repertoire of the mechanism over the
+purview.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.unconstrained_cause_repertoire">
+<tt class="descname">unconstrained_cause_repertoire</tt><big>(</big><em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.unconstrained_cause_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the unconstrained cause repertoire for a purview.</p>
+<p>This is just the cause repertoire in the absence of any mechanism.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.unconstrained_effect_repertoire">
+<tt class="descname">unconstrained_effect_repertoire</tt><big>(</big><em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.unconstrained_effect_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the unconstrained effect repertoire for a purview.</p>
+<p>This is just the effect repertoire in the absence of any mechanism.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.expand_repertoire">
+<tt class="descname">expand_repertoire</tt><big>(</big><em>direction</em>, <em>purview</em>, <em>repertoire</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.expand_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the unconstrained cause or effect repertoire based on a
+direction.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.expand_cause_repertoire">
+<tt class="descname">expand_cause_repertoire</tt><big>(</big><em>purview</em>, <em>repertoire</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.expand_cause_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand a partial cause repertoire over a purview to a distribution
+over the entire subsystem&#8217;s state space.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.expand_effect_repertoire">
+<tt class="descname">expand_effect_repertoire</tt><big>(</big><em>purview</em>, <em>repertoire</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.expand_effect_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand a partial effect repertoire over a purview to a distribution
+over the entire subsystem&#8217;s state space.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.cause_info">
+<tt class="descname">cause_info</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.cause_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the cause information for a mechanism over a purview.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.effect_info">
+<tt class="descname">effect_info</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.effect_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the effect information for a mechanism over a purview.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.cause_effect_info">
+<tt class="descname">cause_effect_info</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.cause_effect_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the cause-effect information for a mechanism over a
+purview.</p>
+<p>This is the minimum of the cause and effect information.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.find_mip">
+<tt class="descname">find_mip</tt><big>(</big><em>direction</em>, <em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.find_mip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the minimum information partition for a mechanism over a
+purview.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>direction</strong> (<em>str</em>) &#8211; Either <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt> or <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[FUTURE]</span></tt>.</li>
+<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The nodes in the mechanism.</li>
+<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The nodes in the purview.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#pyphi.models.Mip" title="pyphi.models.Mip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mip</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.mip_past">
+<tt class="descname">mip_past</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.mip_past" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the past minimum information partition.</p>
+<p>Alias for <a class="reference internal" href="#pyphi.subsystem.Subsystem.find_mip" title="pyphi.subsystem.Subsystem.find_mip"><tt class="xref py py-func docutils literal"><span class="pre">find_mip()</span></tt></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.mip_future">
+<tt class="descname">mip_future</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.mip_future" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the future minimum information partition.</p>
+<p>Alias for <a class="reference internal" href="#pyphi.subsystem.Subsystem.find_mip" title="pyphi.subsystem.Subsystem.find_mip"><tt class="xref py py-func docutils literal"><span class="pre">find_mip()</span></tt></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[FUTURE]</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.phi_mip_past">
+<tt class="descname">phi_mip_past</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.phi_mip_past" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <span class="math">\(\varphi\)</span> value of the past minimum information partition.</p>
+<p>This is the distance between the unpartitioned cause repertoire and the
+MIP cause repertoire.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.phi_mip_future">
+<tt class="descname">phi_mip_future</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.phi_mip_future" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <span class="math">\(\varphi\)</span> value of the future minimum information partition.</p>
+<p>This is the distance between the unpartitioned effect repertoire and
+the MIP cause repertoire.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.phi">
+<tt class="descname">phi</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <span class="math">\(\varphi\)</span> value of a mechanism over a purview.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.find_mice">
+<tt class="descname">find_mice</tt><big>(</big><em>direction</em>, <em>mechanism</em>, <em>purviews=False</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.find_mice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the maximally irreducible cause or effect for a mechanism.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>direction</strong> (<em>str</em>) &#8211; The temporal direction, specifying cause or
+effect.</li>
+<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism to be tested for
+irreducibility.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first"><strong>purviews</strong> (<em>tuple(Node)</em>) &#8211;
+Optionally restrict the possible purviews
+to a subset of the subsystem. This may be useful for _e.g._
+finding only concepts that are &#8220;about&#8221; a certain subset of
+nodes.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#pyphi.models.Mice" title="pyphi.models.Mice"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mice</span></tt></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Strictly speaking, the MICE is a pair of repertoires: the core
+cause repertoire and core effect repertoire of a mechanism, which
+are maximally different than the unconstrained cause/effect
+repertoires (<em>i.e.</em>, those that maximize <span class="math">\(\varphi\)</span>). Here, we return
+only information corresponding to one direction, <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt> or
+<tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[FUTURE]</span></tt>, i.e., we return a core cause or core effect, not the pair
+of them.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.core_cause">
+<tt class="descname">core_cause</tt><big>(</big><em>mechanism</em>, <em>purviews=False</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.core_cause" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the core cause repertoire of a mechanism.</p>
+<p>Alias for <a class="reference internal" href="#pyphi.subsystem.Subsystem.find_mice" title="pyphi.subsystem.Subsystem.find_mice"><tt class="xref py py-func docutils literal"><span class="pre">find_mice()</span></tt></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.core_effect">
+<tt class="descname">core_effect</tt><big>(</big><em>mechanism</em>, <em>purviews=False</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.core_effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the core effect repertoire of a mechanism.</p>
+<p>Alias for <a class="reference internal" href="#pyphi.subsystem.Subsystem.find_mice" title="pyphi.subsystem.Subsystem.find_mice"><tt class="xref py py-func docutils literal"><span class="pre">find_mice()</span></tt></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.phi_max">
+<tt class="descname">phi_max</tt><big>(</big><em>mechanism</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.phi_max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <span class="math">\(\varphi^{\textrm{max}}\)</span> of a mechanism.</p>
+<p>This is the maximum of <span class="math">\(\varphi\)</span> taken over all possible purviews.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.null_concept">
+<tt class="descname">null_concept</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.null_concept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the null concept of this subsystem, a point in concept space
+identified with the unconstrained cause and effect repertoire of this
+subsystem.</p>
+<p>For information on the indices used in the returned array, see
+:ref:concept-space.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.concept">
+<tt class="descname">concept</tt><big>(</big><em>mechanism</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.concept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a concept.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="convert.html" class="btn btn-neutral float-right" title="convert"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="network.html" class="btn btn-neutral" title="network"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Jan 20, 2015.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

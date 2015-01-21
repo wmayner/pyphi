@@ -1,0 +1,134 @@
+pyphi package
+=============
+
+Submodules
+----------
+
+pyphi.compute module
+--------------------
+
+.. automodule:: pyphi.compute
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.concept_caching module
+----------------------------
+
+.. automodule:: pyphi.concept_caching
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.constants module
+----------------------
+
+.. automodule:: pyphi.constants
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.convert module
+--------------------
+
+.. automodule:: pyphi.convert
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.db module
+---------------
+
+.. automodule:: pyphi.db
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.examples module
+---------------------
+
+.. automodule:: pyphi.examples
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.json module
+-----------------
+
+.. automodule:: pyphi.json
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.lru_cache module
+----------------------
+
+.. automodule:: pyphi.lru_cache
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.memory module
+-------------------
+
+.. automodule:: pyphi.memory
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.models module
+-------------------
+
+.. automodule:: pyphi.models
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.network module
+--------------------
+
+.. automodule:: pyphi.network
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.node module
+-----------------
+
+.. automodule:: pyphi.node
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.subsystem module
+----------------------
+
+.. automodule:: pyphi.subsystem
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.utils module
+------------------
+
+.. automodule:: pyphi.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyphi.validate module
+---------------------
+
+.. automodule:: pyphi.validate
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyphi
+    :members:
+    :undoc-members:
+    :show-inheritance:

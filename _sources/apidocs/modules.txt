@@ -1,0 +1,7 @@
+pyphi
+=====
+
+.. toctree::
+   :maxdepth: 4
+
+   pyphi

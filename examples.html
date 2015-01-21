@@ -1,0 +1,610 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Usage and Examples &mdash; v0.2.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="v0.2.0 documentation" href="index.html"/>
+        <link rel="next" title="Configuration" href="configuration.html"/>
+        <link rel="prev" title="PyPhi" href="index.html"/>
+  <link rel="stylesheet" href="_static/custom.css">
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> PyPhi v0.2.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-example">Basic Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#residue-example">Residue Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conditional-independence-example">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-note-on-conventions">A Note On Conventions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#system-resource-configuration">System resource configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#caching-system-configuration">Caching system configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#logging-configuration">Logging configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#theoretical-configuration">Theoretical configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#numerical-configuration">Numerical configuration</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">PyPhi v0.2.0</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Usage and Examples</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/examples.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="usage-and-examples">
+<h1>Usage and Examples<a class="headerlink" href="#usage-and-examples" title="Permalink to this headline">¶</a></h1>
+<p>All the examples discussed here are available from the <tt class="xref py py-mod docutils literal"><span class="pre">examples</span></tt> module,
+so you can follow along with a Python REPL.</p>
+<div class="section" id="basic-example">
+<h2>Basic Example<a class="headerlink" href="#basic-example" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="apidocs/pyphi.html#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_network()</span></tt></a></li>
+<li><a class="reference internal" href="apidocs/pyphi.html#pyphi.examples.basic_subsystem" title="pyphi.examples.basic_subsystem"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_subsystem()</span></tt></a></li>
+</ul>
+<p>Let&#8217;s make a simple 3-node network and compute its <span class="math">\(\Phi\)</span>.</p>
+<p>To make a network, we need a TPM, current state, past state, and optionally a
+connectivity matrix. The TPM can be in more than one form; see the
+documentation for <a class="reference internal" href="apidocs/pyphi.html#module-pyphi.network" title="pyphi.network"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.network</span></tt></a>. Here we&#8217;ll use the 2-dimensional
+state-by-node form.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyphi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tpm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>                <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>The current and past states should be <span class="math">\(n\)</span>-tuples, where <span class="math">\(n\)</span> is the number of
+nodes in the network, where the <span class="math">\(i^{\textrm{th}}\)</span> element is the state of the <span class="math">\(i^{\textrm{th}}\)</span> node in
+the network.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">current_state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">past_state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The connectivity matrix is a square matrix such that the <span class="math">\(i,j^{\textrm{th}}\)</span> entry is 1 if
+there is a connection from node <span class="math">\(i\)</span> to node <span class="math">\(j\)</span>, and 0 otherwise.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>Now we construct the network itself with the arguments we just created:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">tpm</span><span class="p">,</span> <span class="n">current_state</span><span class="p">,</span> <span class="n">past_state</span><span class="p">,</span>
+<span class="gp">... </span>                        <span class="n">connectivity_matrix</span><span class="o">=</span><span class="n">cm</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The next step is to define a subsystem for which we want to evaluate <span class="math">\(\Phi\)</span>.
+To make a subsystem, we need the indices of subset of nodes which should be
+included in it and the network that the subsystem belongs to.</p>
+<p>In this case, we want the <span class="math">\(\Phi\)</span> of the entire network, so we simply include
+every node in the network in our subsystem:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">network</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we use <a class="reference internal" href="compute.html#pyphi.compute.big_phi" title="pyphi.compute.big_phi"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_phi()</span></tt></a> function to compute the <span class="math">\(\Phi\)</span> of
+our subsystem:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_phi</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">PRECISION</span><span class="p">)</span>
+<span class="go">2.312498</span>
+</pre></div>
+</div>
+<p>If we want to take a deeper look at the integrated-information-theoretic
+properties of our network, we can access all the intermediate quantities and
+structures that are calculated in the course of arriving at a final <span class="math">\(\Phi\)</span>
+value by using <a class="reference internal" href="compute.html#pyphi.compute.big_mip" title="pyphi.compute.big_mip"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_mip()</span></tt></a>. This returns a deeply nested
+object, <a class="reference internal" href="apidocs/pyphi.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.BigMip</span></tt></a>, that contains data about the subsystem&#8217;s constellation of
+concepts, cause and effect repertoires, etc.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_mip</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For instance, we can see that this network has 4 concepts:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">mip</span><span class="o">.</span><span class="n">unpartitioned_constellation</span><span class="p">)</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+<p>The documentation for <a class="reference internal" href="apidocs/pyphi.html#module-pyphi.models" title="pyphi.models"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.models</span></tt></a> contains description of these
+structures.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The network and subsystem discussed here are returned by the
+<a class="reference internal" href="apidocs/pyphi.html#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_network()</span></tt></a> and
+<a class="reference internal" href="apidocs/pyphi.html#pyphi.examples.basic_subsystem" title="pyphi.examples.basic_subsystem"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_subsystem()</span></tt></a> functions.</p>
+</div>
+</div>
+<div class="section" id="residue-example">
+<h2>Residue Example<a class="headerlink" href="#residue-example" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="apidocs/pyphi.html#pyphi.examples.residue_network" title="pyphi.examples.residue_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.residue_network()</span></tt></a></li>
+<li><a class="reference internal" href="apidocs/pyphi.html#pyphi.examples.residue_subsystem" title="pyphi.examples.residue_subsystem"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.residue_subsystem()</span></tt></a></li>
+</ul>
+<p>This example describes a system containing two <strong>AND</strong> nodes, <span class="math">\(A\)</span> and <span class="math">\(B\)</span>, with
+a single overlapping input node.</p>
+<p>First let&#8217;s create the subsystem corresponding to the residue network, with all
+nodes off in the current and past states.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">residue_subsystem</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Next, we can define the mechanisms of interest:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">0</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">1</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">AB</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>And the possible past purviews that we&#8217;re interested in:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">CD</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DE</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">CDE</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We can then evaluate the cause information for each of the mechanisms over the
+past purview <span class="math">\(CDE\)</span>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span>
+<span class="go">0.33333191666400036</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span>
+<span class="go">0.33333191666400036</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">(</span><span class="n">AB</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span>
+<span class="go">0.49999972500000006</span>
+</pre></div>
+</div>
+<p>The composite mechanism <span class="math">\(AB\)</span> has greater cause information than either of the
+individual mechanisms. This contradicts the idea that <span class="math">\(AB\)</span> should exist
+minimally in this system.</p>
+<p>Instead, we can quantify existence as the irreducible cause information of a
+mechanism. The <strong>MIP</strong> of a mechanism is the partition of mechanism and purview
+which makes the least difference to the cause repertoire (see
+<a class="reference internal" href="apidocs/pyphi.html#pyphi.models.Mip" title="pyphi.models.Mip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mip</span></tt></a>). The irreducible cause information is the distance
+between the unpartitioned and partitioned repertoires.</p>
+<p>To calculate the MIP structure of mechanism <span class="math">\(AB\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_AB</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">AB</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can then determine what the specific partition is.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_AB</span><span class="o">.</span><span class="n">partition</span>
+<span class="go">(Part(mechanism=(), purview=(n2,)), Part(mechanism=(n0, n1), purview=(n3, n4)))</span>
+</pre></div>
+</div>
+<p>The labels <tt class="docutils literal"><span class="pre">(n0,</span> <span class="pre">n1,</span> <span class="pre">n2,</span> <span class="pre">n3,</span> <span class="pre">n4)</span></tt> correspond to nodes <span class="math">\(A, B, C, D, E\)</span>
+respectively. Thus the MIP is <span class="math">\(\frac{AB}{DE} \times \frac{\left[\;\right]}{C}\)</span>, where <span class="math">\([]\)</span> denotes
+the empty mechanism.</p>
+<p>The partitioned repertoire of the MIP can also be retrieved:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_AB</span><span class="o">.</span><span class="n">partitioned_repertoire</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">)</span>
+<span class="go">array([ 0.2,  0.2,  0.1,  0.1,  0.2,  0.2,  0. ,  0. ])</span>
+</pre></div>
+</div>
+<p>And we can then calculate the irreducible cause information as the difference
+between partitioned and unpartitioned repertoires.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_AB</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.09999990000000035</span>
+</pre></div>
+</div>
+<p>One counterintuitive result which merits discussion is that since irreducible
+cause information is what defines existence, we must also evaluate the
+irreducible cause information of the mechanisms <span class="math">\(A\)</span> and <span class="math">\(B\)</span>.</p>
+<p>The mechanism <span class="math">\(A\)</span> over the purview <span class="math">\(CDE\)</span> is completely reducible to <span class="math">\(\frac{A}{CD} \times \frac{\left[\;\right]}{E}\)</span> because <span class="math">\(E\)</span> has no effect on <span class="math">\(A\)</span>, so it has zero <span class="math">\(\varphi\)</span>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span><span class="o">.</span><span class="n">partition</span>
+<span class="go">(Part(mechanism=(), purview=(n4,)), Part(mechanism=(n0,), purview=(n2, n3)))</span>
+</pre></div>
+</div>
+<p>Instead, we should evaluate <span class="math">\(A\)</span> over the purview <span class="math">\(CD\)</span>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_A</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CD</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case, there is a well defined MIP</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_A</span><span class="o">.</span><span class="n">partition</span>
+<span class="go">(Part(mechanism=(), purview=(n2,)), Part(mechanism=(n0,), purview=(n3,)))</span>
+</pre></div>
+</div>
+<p>which is <span class="math">\(\frac{\left[\;\right]}{C} \times \frac{A}{D}\)</span>. It has partitioned repertoire</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_A</span><span class="o">.</span><span class="n">partitioned_repertoire</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">)</span>
+<span class="go">array([ 0.33333333,  0.33333333,  0.16666667,  0.16666667])</span>
+</pre></div>
+</div>
+<p>and irreducible cause information</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_A</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.16666700000000023</span>
+</pre></div>
+</div>
+<p>A similar result holds for <span class="math">\(B\)</span>. Thus the mechanisms <span class="math">\(A\)</span> and <span class="math">\(B\)</span> exist at levels
+of <span class="math">\(\varphi = \frac{1}{6}\)</span>, while the higher-order mechanism <span class="math">\(AB\)</span> exists only as the
+residual of causes, at a level of <span class="math">\(\varphi = \frac{1}{10}\)</span>.</p>
+</div>
+<div class="section" id="conditional-independence-example">
+<h2>Conditional Independence Example<a class="headerlink" href="#conditional-independence-example" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="apidocs/pyphi.html#pyphi.examples.cond_depend_tpm" title="pyphi.examples.cond_depend_tpm"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.examples.cond_depend_tpm()</span></tt></a></li>
+<li><a class="reference internal" href="apidocs/pyphi.html#pyphi.examples.cond_independ_tpm" title="pyphi.examples.cond_independ_tpm"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.examples.cond_independ_tpm()</span></tt></a></li>
+</ul>
+<p>This example explores the assumption of conditional independence, and the
+behaviour of the program when it is not satisfied.</p>
+<p>Every state-by-node TPM corresponds to a unique state-by-state TPM which
+satisfies the conditional independence assumption. If a state-by-node TPM is
+given as input for a network, the program assumes that it is from a system with
+the corresponding conditionally independent state-by-state TPM.</p>
+<p>When a state-by-state TPM is given as input for a network, the state-by-state
+TPM is first converted to a state-by-node TPM. The program then assumes that
+the system corresponds to the unique conditionally independent representation
+of the state-by-node TPM. If a non-conditionally independent TPM is given, the
+analyzed system will not correspond to the original TPM. Note that every
+deterministic state-by-state TPM will automatically satisfy the conditional
+independence assumption.</p>
+<p>Consider a system of two binary nodes(<span class="math">\(A\)</span> and <span class="math">\(B\)</span>) which do not change if they
+have the same value, but flip with probability 50% if they have different
+values.</p>
+<p>We&#8217;ll load the state-by-state TPM for such a system from the examples module:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tpm</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">cond_depend_tpm</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">tpm</span><span class="p">)</span>
+<span class="go">[[ 1.   0.   0.   0. ]</span>
+<span class="go"> [ 0.   0.5  0.5  0. ]</span>
+<span class="go"> [ 0.   0.5  0.5  0. ]</span>
+<span class="go"> [ 0.   0.   0.   1. ]]</span>
+</pre></div>
+</div>
+<p>This system does not satisfy the conditional independence assumption; given a
+past state of <tt class="docutils literal"><span class="pre">(1,</span> <span class="pre">0)</span></tt>, the current state of node <span class="math">\(A\)</span> depends on whether or
+not <span class="math">\(B\)</span> has flipped.</p>
+<p>When creating a network, the program will convert this state-by-state TPM to a
+state-by-node form, and issue a warning if it does not satisfy the assumption:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sbn_tpm</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">state_by_state2state_by_node</span><span class="p">(</span><span class="n">tpm</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sbn_tpm</span><span class="p">)</span>
+<span class="go">[[[ 0.   0. ]</span>
+<span class="go">  [ 0.5  0.5]]</span>
+
+<span class="go"> [[ 0.5  0.5]</span>
+<span class="go">  [ 1.   1. ]]]</span>
+</pre></div>
+</div>
+<p>The program will continue with the state-by-node TPM, but since it assumes
+conditional independence, the network will not correspond to the original
+system.</p>
+<p>To see the corresponding conditionally independent TPM, convert the
+state-by-node TPM back to state-by-state form:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sbs_tpm</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">state_by_node2state_by_state</span><span class="p">(</span><span class="n">sbn_tpm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sbs_tpm</span><span class="p">)</span>
+<span class="go">[[ 1.    0.    0.    0.  ]</span>
+<span class="go"> [ 0.25  0.25  0.25  0.25]</span>
+<span class="go"> [ 0.25  0.25  0.25  0.25]</span>
+<span class="go"> [ 0.    0.    0.    1.  ]]</span>
+</pre></div>
+</div>
+<p>A system which does not satisfy the conditional independence assumption shows
+“instantaneous causality.” In such situations, there must be additional
+exogenous variable(s) which explain the dependence.</p>
+<p>Consider the above example, but with the addition of a third node (<span class="math">\(C\)</span>) which
+is equally likely to be ON or OFF, and such that when nodes <span class="math">\(A\)</span> and <span class="math">\(B\)</span> are in
+different states, they will flip when <span class="math">\(C\)</span> is ON, but stay the same when <span class="math">\(C\)</span> is
+OFF.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tpm2</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">cond_independ_tpm</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">tpm2</span><span class="p">)</span>
+<span class="go">[[ 0.5  0.   0.   0.   0.5  0.   0.   0. ]</span>
+<span class="go"> [ 0.   0.5  0.   0.   0.   0.5  0.   0. ]</span>
+<span class="go"> [ 0.   0.   0.5  0.   0.   0.   0.5  0. ]</span>
+<span class="go"> [ 0.   0.   0.   0.5  0.   0.   0.   0.5]</span>
+<span class="go"> [ 0.5  0.   0.   0.   0.5  0.   0.   0. ]</span>
+<span class="go"> [ 0.   0.   0.5  0.   0.   0.   0.5  0. ]</span>
+<span class="go"> [ 0.   0.5  0.   0.   0.   0.5  0.   0. ]</span>
+<span class="go"> [ 0.   0.   0.   0.5  0.   0.   0.   0.5]]</span>
+</pre></div>
+</div>
+<p>The resulting state-by-state TPM now satisfies the conditional independence
+assumption.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">sbn_tpm2</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">state_by_state2state_by_node</span><span class="p">(</span><span class="n">tpm2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">sbn_tpm2</span><span class="p">)</span>
+<span class="go">[[[[ 0.   0.   0.5]</span>
+<span class="go">   [ 0.   0.   0.5]]</span>
+
+<span class="go">  [[ 0.   1.   0.5]</span>
+<span class="go">   [ 1.   0.   0.5]]]</span>
+
+
+<span class="go"> [[[ 1.   0.   0.5]</span>
+<span class="go">   [ 0.   1.   0.5]]</span>
+
+<span class="go">  [[ 1.   1.   0.5]</span>
+<span class="go">   [ 1.   1.   0.5]]]]</span>
+</pre></div>
+</div>
+<p>The node indices are <tt class="docutils literal"><span class="pre">0</span></tt> and <tt class="docutils literal"><span class="pre">1</span></tt> for <span class="math">\(A\)</span> and <span class="math">\(B\)</span>, and <tt class="docutils literal"><span class="pre">2</span></tt> for <span class="math">\(C\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">AB</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>From here, if we marginalize out the node <span class="math">\(C\)</span>;</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tpm2_marginalizeC</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">marginalize_out</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">sbn_tpm2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And then restrict the purview to only nodes <span class="math">\(A\)</span> and <span class="math">\(B\)</span>;</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tpm2_purviewAB</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">tpm2_marginalizeC</span><span class="p">[:,:,:,</span><span class="n">AB</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>We get back the original state-by-node TPM from the system with just <span class="math">\(A\)</span> and
+<span class="math">\(B\)</span>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">tpm2_purviewAB</span> <span class="o">==</span> <span class="n">sbn_tpm</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="a-note-on-conventions">
+<h2>A Note On Conventions<a class="headerlink" href="#a-note-on-conventions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="tpms">
+<h3>TPMs<a class="headerlink" href="#tpms" title="Permalink to this headline">¶</a></h3>
+<p>There are several ways to write down a TPM. With both state-by-state and
+state-by-node TPMs, one is confronted with a choice about which rows correspond
+to which states. In state-by-state TPMs, this choice must also be made for the
+columns.</p>
+<p>Either the first node changes state every other row:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="31%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">A, B</th>
+<th class="head">A</th>
+<th class="head">B</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0, 0</td>
+<td>0.1</td>
+<td>0.2</td>
+</tr>
+<tr class="row-odd"><td>1, 0</td>
+<td>0.3</td>
+<td>0.4</td>
+</tr>
+<tr class="row-even"><td>0, 1</td>
+<td>0.5</td>
+<td>0.6</td>
+</tr>
+<tr class="row-odd"><td>1, 1</td>
+<td>0.7</td>
+<td>0.8</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Or the last node does:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="31%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">A, B</th>
+<th class="head">A</th>
+<th class="head">B</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0, 0</td>
+<td>0.1</td>
+<td>0.2</td>
+</tr>
+<tr class="row-odd"><td>0, 1</td>
+<td>0.5</td>
+<td>0.6</td>
+</tr>
+<tr class="row-even"><td>1, 0</td>
+<td>0.3</td>
+<td>0.4</td>
+</tr>
+<tr class="row-odd"><td>1, 1</td>
+<td>0.7</td>
+<td>0.8</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Note that the index <span class="math">\(i\)</span> of a row in a TPM encodes a network state: convert the
+index to binary, and each bit gives the state of a node. The question is, which
+node?</p>
+<p><strong>Throughout PyPhi, we always choose the first convention—the first node&#8217;s
+state varies the fastest.</strong></p>
+<p>Since numbers are written with the least-significant digit on the right, the
+right-most digit varies the fastest. This means that according to our
+convention, <strong>the right-most (least-significant) bit gives the state of the
+first node</strong>.</p>
+<p>We call this convention the <strong>LOLI convention</strong>: Low Order bits correspond to
+Low Index nodes. The other convention, where the highest-index node varies the
+fastest, is similarly called <strong>HOLI</strong>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The rationale for this choice of convention is that the <strong>LOLI</strong> mapping is
+stable under changes in the number of nodes, in the sense that the same bit
+always corresponds to the same node index. The <strong>HOLI</strong> mapping does not
+have this property.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This obviously applies to only situations where decimal indices are
+encoding states. Whenever a network state is represented as a list or
+tuple, we use the only sensible convention: the <span class="math">\(i^{\textrm{th}}\)</span> element gives the
+state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There are various conversion functions available for converting between
+TPMs, states, and indices using different conventions: see the
+<a class="reference internal" href="apidocs/pyphi.html#module-pyphi.convert" title="pyphi.convert"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.convert</span></tt></a> module.</p>
+</div>
+</div>
+<div class="section" id="connectivity-matrices">
+<h3>Connectivity Matrices<a class="headerlink" href="#connectivity-matrices" title="Permalink to this headline">¶</a></h3>
+<p>Throughout PyPhi, if <tt class="docutils literal"><span class="pre">CM</span></tt> is a connectivity matrix, then <span class="math">\(CM_{i,j} = 1\)</span> means
+that node <span class="math">\(i\)</span> is connected to node <span class="math">\(j\)</span>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="configuration.html" class="btn btn-neutral float-right" title="Configuration"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="PyPhi"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Jan 20, 2015.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'v0.2.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,372 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>concept_caching &mdash; v0.3.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="v0.3.0 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="memory" href="memory.html"/>
+        <link rel="prev" title="node" href="node.html"/>
+  <link rel="stylesheet" href="_static/custom.css">
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resource-configuration">System resource configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching-system-configuration">Caching system configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging-configuration">Logging configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-configuration">Theoretical configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-configuration">Numerical configuration</a></li>
+</ul>
+</li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi v0.3.0</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+      
+    <li><tt class="docutils literal"><span class="pre">concept_caching</span></tt></li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/api/concept_caching.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="module-pyphi.concept_caching">
+<span id="concept-caching"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">concept_caching</span></tt><a class="headerlink" href="#module-pyphi.concept_caching" title="Permalink to this headline">¶</a></h1>
+<p>Objects and functions for managing the normalization, caching, and retrieval of
+concepts.</p>
+<dl class="class">
+<dt id="pyphi.concept_caching.NormalizedMechanism">
+<em class="property">class </em><tt class="descclassname">pyphi.concept_caching.</tt><tt class="descname">NormalizedMechanism</tt><big>(</big><em>mechanism</em>, <em>subsystem</em>, <em>normalize_tpms=True</em><big>)</big><a class="headerlink" href="#pyphi.concept_caching.NormalizedMechanism" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mechanism rendered into a normal form, suitable for use as a cache key
+in concept memoization.</p>
+<p>The broad outline for the normalization procedure is as follows:</p>
+<ul class="simple">
+<li>Get the set of all nodes that input to (output from) at least one
+mechanism node.</li>
+<li>Sort the Marbls in a stable way (this is done by marbl-python, when the
+MarblSet is initialized).</li>
+<li>Iterate over the sorted Marbls; for each one, iterate over its
+corresponding mechanism node&#8217;s inputs (outputs).</li>
+<li>Label each input (output) with a unique integer. These are the
+&#8220;normalized indices&#8221; of the inputs (outputs).</li>
+<li>Record the inverse mapping, which sends a normalized index to a real
+index.</li>
+<li>Record the state of the mechanism and all input/ouptut nodes.</li>
+</ul>
+<p>Then two normalized mechanisms are the same if they have the same
+MarblSets, inputs, outputs, state, and input/output state.</p>
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMechanism.marblset">
+<tt class="descname">marblset</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMechanism.marblset" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>MarblSet</em></p>
+<p>A dictionary where keys are directions, and values
+are MarblSets containing Marbls generated from the TPMs of the
+mechanism nodes&#8217; corresponding to the direction.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMechanism.normalized_indices">
+<tt class="descname">normalized_indices</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMechanism.normalized_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em></p>
+<p>A dictionary where keys are directions, and
+values are dictionaries mapping mechanism node indices to their
+normalized indices for that direction.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMechanism.unnormalized_indices">
+<tt class="descname">unnormalized_indices</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMechanism.unnormalized_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em></p>
+<p>The inverse of <tt class="docutils literal"><span class="pre">normalized_indices</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMechanism.inputs">
+<tt class="descname">inputs</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMechanism.inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(tuple(int))</em></p>
+<p>A tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element contains a
+tuple of the normalized indices of the <span class="math">\(i^{\textrm{th}}\)</span> node, where <span class="math">\(i\)</span> is a
+normalized index.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMechanism.outputs">
+<tt class="descname">outputs</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMechanism.outputs" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(tuple(int))</em></p>
+<p>The same as <tt class="docutils literal"><span class="pre">inputs</span></tt>, but the elements
+contain normalized indices of the outputs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMechanism.permutation">
+<tt class="descname">permutation</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMechanism.permutation" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict()</em></p>
+<p>A dictionary where the keys are directions and
+the values are the permutations that maps mechanism nodes to the
+position of their marbl in the marblset for that direction.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyphi.concept_caching.NormalizedMice">
+<em class="property">class </em><tt class="descclassname">pyphi.concept_caching.</tt><tt class="descname">NormalizedMice</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMice" title="Permalink to this definition">¶</a></dt>
+<dd><p>A lightweight container for MICE data.</p>
+<p>See <a class="reference internal" href="models.html#pyphi.models.Mice" title="pyphi.models.Mice"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mice</span></tt></a> for its unnormalized counterpart.</p>
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMice.phi">
+<tt class="descname">phi</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMice.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>The difference between the mechanism&#8217;s unpartitioned and
+partitioned repertoires.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMice.direction">
+<tt class="descname">direction</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMice.direction" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em></p>
+<p>Either &#8216;past&#8217; or &#8216;future&#8217;. If &#8216;past&#8217; (&#8216;future&#8217;), this represents a
+maximally irreducible cause (effect).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMice.mechanism">
+<tt class="descname">mechanism</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMice.mechanism" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(int)</em></p>
+<p>The normalized indices of the MICE&#8217;s mechanism.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMice.purview">
+<tt class="descname">purview</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMice.purview" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(int)</em></p>
+<p>A normalized purview. This is a tuple of the normalized indices of
+its nodes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedMice.repertoire">
+<tt class="descname">repertoire</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedMice.repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.ndarray</em></p>
+<p>The normalized unpartitioned repertoire of the mechanism over the
+purview. A repertoire is normalized by squeezing and then
+reordering its dimensions so they correspond to the normalized
+purview.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyphi.concept_caching.NormalizedConcept">
+<em class="property">class </em><tt class="descclassname">pyphi.concept_caching.</tt><tt class="descname">NormalizedConcept</tt><big>(</big><em>normalized_mechanism</em>, <em>concept</em><big>)</big><a class="headerlink" href="#pyphi.concept_caching.NormalizedConcept" title="Permalink to this definition">¶</a></dt>
+<dd><p>A precomputed concept in a form suitable for memoization.</p>
+<p>Upon initialization, the normal form of the concept to be cached is
+computed, and data relating its cause and effect purviews are stored,
+which the concept to be reconstituted in a different subsystem.</p>
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedConcept.mechanism">
+<tt class="descname">mechanism</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedConcept.mechanism" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>NormalizedMechanism</em></p>
+<p>The mechanism the concept consists of.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedConcept.phi">
+<tt class="descname">phi</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedConcept.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>The <span class="math">\(\varphi\)</span> value of the concept.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedConcept.cause">
+<tt class="descname">cause</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedConcept.cause" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>NormalizedMice</em></p>
+<p>The concept&#8217;s normalized core cause.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.concept_caching.NormalizedConcept.effect">
+<tt class="descname">effect</tt><a class="headerlink" href="#pyphi.concept_caching.NormalizedConcept.effect" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>NormalizedMice</em></p>
+<p>The concept&#8217;s normalized core effect.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.concept_caching.concept">
+<tt class="descclassname">pyphi.concept_caching.</tt><tt class="descname">concept</tt><big>(</big><em>subsystem</em>, <em>mechanism</em><big>)</big><a class="headerlink" href="#pyphi.concept_caching.concept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the concept specified by a mechanism, returning a cached value if
+one is found and computing and caching it otherwise.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="memory.html" class="btn btn-neutral float-right" title="memory"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="node.html" class="btn btn-neutral" title="node"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Jan 20, 2015.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
