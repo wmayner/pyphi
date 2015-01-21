@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# utils.py
 """
-Utilities
-~~~~~~~~~
-
 Functions used by more than one PyPhi module or class, or that might be of
 external use.
 """

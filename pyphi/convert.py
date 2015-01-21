@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# convert.py
 """
-Convert
-~~~~~~~
-
 Conversion functions.
 """
 
@@ -188,9 +186,9 @@ def state_by_state2state_by_node(tpm):
         sbn_tpm[state] = [np.sum(on_probabilities[n][i]) for n in range(N)]
     if not np.all(tpm == state_by_node2state_by_state(sbn_tpm)):
         logging.warning(
-            'The TPM is not conditionally independent. See the documentation '
-            'for `pyphi.examples` for more information on how this is '
-            'handled.')
+            'The TPM is not conditionally independent. See the conditional '
+            'independence example in the documentation for more information '
+            'on how this is handled.')
     return sbn_tpm
 
 

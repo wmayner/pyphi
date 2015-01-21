@@ -25,6 +25,21 @@ To report issues, please use the issue tracker on the `GitHub repository
 <https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
 welcome.
 
+
+Usage
+~~~~~
+
+The :class:`pyphi.network` object is the main object on which computations are
+performed. It represents the network of interest.
+
+The :class:`pyphi.subsystem` object is the secondary object; it represents a
+subsystem of a network. |big_phi| is defined on subsystems.
+
+The :mod:`pyphi.compute` module is the main entry-point for the library. It
+contains methods for calculating concepts, constellations, complexes, etc. See
+its documentation for details.
+
+
 Configuration (optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 

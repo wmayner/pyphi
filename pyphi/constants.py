@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# constants.py
 """
-Constants
-~~~~~~~~~
-
-This module contains package-wide constants, some of which are configurable.
-
 The configuration is loaded upon import from a YAML file in the directory where
 PyPhi is run: ``pyphi_config.yml``. If no file is found, the default
 configuration is used.
@@ -15,7 +11,8 @@ The various options are listed here with their defaults.
 
 
 System resource configuration
-`````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 These settings control how much processing power and memory is available for
 PyPhi to use. The default values may not be appropriate for your use-case or
 machine, so **please check these settings before running anything**. Otherwise,
@@ -49,7 +46,8 @@ long time!), resulting in data loss.
 
 
 Caching system configuration
-````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 PyPhi is equipped with a transparent caching system for the |BigMip| and
 |Concept| objects, which stores them as they are computed to avoid having to
 recompute them later. This makes it easy to play around interactively with the
@@ -110,7 +108,8 @@ relying on the cache. For this reason it is disabled by default.
 
 
 Logging configuration
-`````````````````````
+~~~~~~~~~~~~~~~~~~~~~
+
 These are the settings for PyPhi logging. You can control the format of the
 logs and the name of the log file. Logs can be written to standard output, a
 file, both, or none. See the `documentation on Python's logger
@@ -152,7 +151,8 @@ file, both, or none. See the `documentation on Python's logger
 
 
 Theoretical configuration
-`````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - If set to ``True``, this defines the Phi value of subsystems containing only
   a single node with a self-loop to be ``0.5``. If set to False, their
   |big_phi| will be actually be computed (to be zero, in this implementation).
@@ -162,7 +162,8 @@ Theoretical configuration
 
 
 Numerical configuration
-```````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~
+
 - Computations in PyPhi rely on finding the Earth Mover's Distance. This is
   done via an external C++ library that uses flow-optimization to find a good
   approximation of the EMD. Consequently, systems with zero |big_phi| will

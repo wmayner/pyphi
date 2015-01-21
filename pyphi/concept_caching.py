@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# concept_caching.py
 """
-Concept Caching
-~~~~~~~~~~~~~~~
-
 Objects and functions for managing the normalization, caching, and retrieval of
 concepts.
 """

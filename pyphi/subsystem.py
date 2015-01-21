@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# subsystem.py
 """
-Subsystem
-~~~~~~~~~
-
 Represents a candidate set for |phi| calculation.
 """
 

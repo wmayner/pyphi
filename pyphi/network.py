@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# network.py
 """
-Network
-~~~~~~~
-
 Represents the network of interest. This is the primary object of PyPhi and the
 context of all |phi| and |big_phi| computation.
 """
