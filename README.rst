@@ -142,7 +142,6 @@ Correspondence regarding the Matlab code and the IIT 3.0 paper (below) should
 be directed to Larissa Albantakis, PhD, at `albantakis@wisc.edu
 <mailto:albantakis@wisc.edu>`_.
 
-
 Please cite this paper if you use this code:
 ````````````````````````````````````````````
 
