@@ -15,7 +15,6 @@
 
 import sys
 import os
-import sphinx_rtd_theme
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -166,7 +165,13 @@ napoleon_use_rtype = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    import sphinx_rtd_theme
+    html_theme = 'sphinx_rtd_theme'
+    # Add any paths that contain custom themes here, relative to this
+    # directory.
+    html_theme_path = ['_themes'] + [sphinx_rtd_theme.get_html_theme_path()]
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
@@ -178,9 +183,6 @@ html_logo = "phi.png"
 # html_theme_options = {}
 
 html_sidebars = {'**': ['localtoc.html']}
-
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ['_themes'] + [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

@@ -38,6 +38,18 @@ state_by_state = np.array([
     [0, 0, 0, 0, 0, 0, 1, 0],
     [1, 0, 0, 0, 0, 0, 0, 0]
 ])
+state_by_node_nondet = np.array([
+    [0.0, 0.0],
+    [0.5, 0.5],
+    [0.5, 0.5],
+    [1.0, 1.0]
+])
+state_by_state_nondet = np.array([
+    [1.00, 0.00, 0.00, 0.00],
+    [0.25, 0.25, 0.25, 0.25],
+    [0.25, 0.25, 0.25, 0.25],
+    [0.00, 0.00, 0.00, 1.00]
+])
 
 
 def test_to_n_dimensional():
@@ -52,6 +64,28 @@ def test_to_n_dimensional():
 def test_state_by_state2state_by_node():
     result = convert.state_by_state2state_by_node(state_by_state)
     expected = convert.to_n_dimensional(state_by_node)
+    print("Result:")
+    print(result)
+    print("Expected:")
+    print(expected)
+    assert np.array_equal(result, expected)
+
+
+def test_nondet_state_by_node2state_by_state():
+    # Test for nondeterministic TPM.
+    result = convert.state_by_node2state_by_state(state_by_node_nondet)
+    expected = state_by_state_nondet
+    print("Result:")
+    print(result)
+    print("Expected:")
+    print(expected)
+    assert np.array_equal(result, expected)
+
+
+def test_nondet_state_by_state2state_by_node():
+    # Test for nondeterministic TPM.
+    result = convert.state_by_state2state_by_node(state_by_state_nondet)
+    expected = convert.to_n_dimensional(state_by_node_nondet)
     print("Result:")
     print(result)
     print("Expected:")

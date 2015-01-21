@@ -4,10 +4,10 @@
 #    _______
 #   |__   __|
 #  ____| |____
-# |  __   __  |    _____         ___    __     _
-# | |  | |  | |   / ___/ __ __  / _ \  / /    (_)
-# | |__| |__| |  / /__  / // / / ___/ / _ \  / /
-# |____   ____|  \___/  \_, / /_/    /_//_/ /_/
+# |  __   __  |     ___         ___   __    _
+# | |  | |  | |    / _ \ __ __ / _ \ / /   (_)
+# | |__| |__| |   / ___// // // ___// _ \ / /
+# |____   ____|  /_/    \_, //_/   /_//_//_/
 #    __| |__           /___/
 #   |_______|
 
@@ -24,6 +24,21 @@ it.
 To report issues, please use the issue tracker on the `GitHub repository
 <https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
 welcome.
+
+
+Usage
+~~~~~
+
+The :class:`pyphi.network` object is the main object on which computations are
+performed. It represents the network of interest.
+
+The :class:`pyphi.subsystem` object is the secondary object; it represents a
+subsystem of a network. |big_phi| is defined on subsystems.
+
+The :mod:`pyphi.compute` module is the main entry-point for the library. It
+contains methods for calculating concepts, constellations, complexes, etc. See
+its documentation for details.
+
 
 Configuration (optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,7 +57,7 @@ options and their defaults.
 """
 
 __title__ = 'pyphi'
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
@@ -54,8 +69,6 @@ from .network import Network
 from .subsystem import Subsystem
 from . import compute, constants, db, examples
 
-import os
-import yaml
 import logging
 import logging.config
 

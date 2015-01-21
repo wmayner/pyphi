@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# subsystem.py
 """
-Subsystem
-~~~~~~~~~
-
 Represents a candidate set for |phi| calculation.
 """
 
@@ -34,6 +32,8 @@ class Subsystem:
         size (int): The number of nodes in the subsystem.
         network (Network): The network the subsystem belongs to.
         cut (Cut): The cut that has been applied to this subsystem.
+        connectivity_matrix (np.array): The connectivity matrix after applying the cut
+        perturb_vector (np.array): The vector of perturbation probabilities for each node
         null_cut (Cut): The cut object representing no cut.
         past_tpm (np.array): The TPM conditioned on the past state of the
             external nodes (nodes outside the subsystem).
@@ -62,6 +62,8 @@ class Subsystem:
         # connections to/from external nodes severed.
         self.connectivity_matrix = utils.apply_cut(
             cut, network.connectivity_matrix)
+        # Get the perturbation probabilities for each node in the network
+        self.perturb_vector = network.perturb_vector
         # The TPM conditioned on the past state of the external nodes.
         self.past_tpm = utils.condition_tpm(
             self.network.tpm, self.external_indices,
@@ -152,13 +154,19 @@ class Subsystem:
         # of the purview, so just return the purview's maximum entropy
         # distribution.
         purview_indices = convert.nodes2indices(purview)
-        if not mechanism:
-            return utils.max_entropy_distribution(purview_indices,
-                                                  self.network.size)
+
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
             return np.array([1])
+        # Calculate the maximum entropy distribution. If there is no mechanism,
+        # return it.
+        max_entropy_dist = utils.max_entropy_distribution(
+            purview_indices,
+            self.network.size,
+            [self.perturb_vector[i] for i in purview_indices])
+        if not mechanism:
+            return max_entropy_dist
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
         cjd = np.ones(tuple(2 if i in purview_indices else
@@ -182,17 +190,22 @@ class Subsystem:
             non_purview_inputs = inputs - set(purview)
             # Marginalize-out the non-purview inputs.
             for node in non_purview_inputs:
-                conditioned_tpm = (conditioned_tpm.sum(node.index,
-                                                       keepdims=True)
-                                   / conditioned_tpm.shape[node.index])
+                conditioned_tpm = utils.marginalize_out(
+                    node.index,
+                    conditioned_tpm,
+                    self.perturb_vector[node.index])
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
             # broadcasting, which spreads the singleton probabilities in the
             # collapsed dimensions out along the whole distribution in the
             # appropriate way.
             cjd *= conditioned_tpm
+        # If the perturbation vector is not maximum entropy, then weight the
+        # probabilities before normalization.
+        if not np.all(self.perturb_vector == 0.5):
+            cjd *= max_entropy_dist
         # Finally, normalize to get the mechanism's actual conditional joint
-        # ditribution.
+        # distribution.
         cjd_sum = np.sum(cjd)
         # Don't divide by zero
         if cjd_sum != 0:
@@ -271,8 +284,7 @@ class Subsystem:
             # Marginalize-out non-mechanism purview inputs.
             non_mechanism_inputs = inputs - set(mechanism)
             for node in non_mechanism_inputs:
-                tpm = (tpm.sum(node.index, keepdims=True)
-                       / tpm.shape[node.index])
+                tpm = utils.marginalize_out(node.index, tpm, self.perturb_vector[node.index])
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution by taking the product (with singleton
             # broadcasting).
@@ -460,9 +472,15 @@ class Subsystem:
             phi = utils.hamming_emd(unpartitioned_repertoire,
                                     partitioned_repertoire)
 
-            # Return immediately if mechanism is reducible
+            # Return immediately if mechanism is reducible.
             if phi < constants.EPSILON:
-                return null_mip
+                return Mip(direction=direction,
+                           mechanism=mechanism,
+                           purview=purview,
+                           partition=(part0, part1),
+                           unpartitioned_repertoire=unpartitioned_repertoire,
+                           partitioned_repertoire=partitioned_repertoire,
+                           phi=0.0)
             # Update MIP if it's more minimal. We take the bigger purview if
             # the the phi values are indistinguishable.
             if ((phi_min - phi) > constants.EPSILON or (

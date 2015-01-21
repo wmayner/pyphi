@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# node.py
+"""
+Represents a node in a subsystem. Each node has a unique index, its position
+in the network's list of nodes.
+"""
+
 import functools
 import numpy as np
 from marbl import Marbl
-from . import utils, json
+from . import utils
 from .constants import DIRECTIONS, PAST, FUTURE
 
 
@@ -13,15 +19,15 @@ from .constants import DIRECTIONS, PAST, FUTURE
 @functools.total_ordering
 class Node:
 
-    """A node in a context.
+    """A node in a subsystem.
 
     Attributes:
         network (network):
             The network the node belongs to.
         index (int):
             The node's index in the network's list of nodes.
-        context (context):
-            The context the node belongs to.
+        subsystem (Subsystem):
+            The subsystem the node belongs to.
         label (str):
             An optional label for the node.
         inputs (list(Node)):
@@ -30,14 +36,14 @@ class Node:
             The TPM for this node, conditioned on the past state of the
             boundary nodes, whose states are fixed. ``this_node.past_tpm[0]``
             and ``this_node.past_tpm[1]`` gives the probability tables that
-            this node is off and on, respectively, indexed by context state,
+            this node is off and on, respectively, indexed by subsystem state,
             **after marginalizing-out nodes that don't connect to this node**.
         current_tpm (np.ndarray):
             Same as ``past_tpm``, but conditioned on the current state of the
             boundary nodes.
 
     Examples:
-        In a 3-node context, ``self.past_tpm[0][(0, 0, 1)]`` gives the
+        In a 3-node subsystem, ``self.past_tpm[0][(0, 0, 1)]`` gives the
         probability that this node is off at |t_0| if the state of the network
         is |N_0 = 0, N_1 = 0, N_2 = 1| at |t_{-1}|.
 
@@ -46,39 +52,39 @@ class Node:
         N_1 = 0, N_2 = 1| at |t_0|.
     """
 
-    def __init__(self, network, index, context, label=None):
+    def __init__(self, network, index, subsystem, label=None):
         # This node's parent network.
         self.network = network
         # This node's index in the network's list of nodes.
         self.index = index
-        # This node's parent context.
-        self.context = context
+        # This node's parent subsystem.
+        self.subsystem = subsystem
         # Label for display.
         self.label = label
         # State of this node.
         self.state = self.network.current_state[self.index]
         # Get indices of the inputs.
         self._input_indices = utils.get_inputs_from_cm(
-            self.index, context.connectivity_matrix)
+            self.index, subsystem.connectivity_matrix)
         self._output_indices = utils.get_outputs_from_cm(
-            self.index, context.connectivity_matrix)
+            self.index, subsystem.connectivity_matrix)
         # Generate the node's TPMs.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # For the past and current state, get the part of the context's TPM
+        # For the past and current state, get the part of the subsystem's TPM
         # that gives just the state of this node. This part is still indexed by
         # network state, but its last dimension will be gone, since now there's
         # just a single scalar value (this node's state) rather than a
         # state-vector for all the network nodes.
-        past_tpm_on = self.context.past_tpm[..., self.index]
-        current_tpm_on = self.context.current_tpm[..., self.index]
+        past_tpm_on = self.subsystem.past_tpm[..., self.index]
+        current_tpm_on = self.subsystem.current_tpm[..., self.index]
         # Get the TPMs that give the probability of the node being off, rather
         # than on.
         past_tpm_off = 1 - past_tpm_on
         current_tpm_off = 1 - current_tpm_on
-        # Marginalize-out non-input context nodes and get dimension labels.
+        # Marginalize-out non-input subsystem nodes and get dimension labels.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # This list will hold the indices of the nodes that correspond to
-        # non-singleton dimensions of this node's on-TPM. It maps any context
+        # non-singleton dimensions of this node's on-TPM. It maps any subsystem
         # node index to the corresponding dimension of this node's TPM with
         # singleton dimensions removed. We need this for creating this node's
         # Marbl.
@@ -89,11 +95,11 @@ class Node:
         # track of all singleton dimensions.
         for i in range(self.network.size):
 
-            # Input nodes that are within the context will correspond to a
+            # Input nodes that are within the subsystem will correspond to a
             # dimension in this node's squeezed TPM, so we map it to the index
             # of the corresponding dimension and increment the corresponding
             # index for the next one.
-            if i in self._input_indices and i in self.context.node_indices:
+            if i in self._input_indices and i in self.subsystem.node_indices:
                 self._dimension_labels.append(current_non_singleton_dim_index)
                 current_non_singleton_dim_index += 1
             # Boundary nodes and non-input nodes have already been conditioned
@@ -104,10 +110,10 @@ class Node:
                 self._dimension_labels.append(None)
 
             # TODO extend to nonbinary nodes
-            # Marginalize out non-input nodes that are in the context, since
+            # Marginalize out non-input nodes that are in the subsystem, since
             # the external nodes have already been dealt with as boundary
-            # conditions in the context's TPMs.
-            if i not in self._input_indices and i in self.context.node_indices:
+            # conditions in the subsystem's TPMs.
+            if i not in self._input_indices and i in self.subsystem.node_indices:
                 past_tpm_on = past_tpm_on.sum(i, keepdims=True) / 2
                 past_tpm_off = past_tpm_off.sum(i, keepdims=True) / 2
                 current_tpm_on = current_tpm_on.sum(i, keepdims=True) / 2
@@ -123,12 +129,12 @@ class Node:
         self.current_tpm.flags.writeable = False
 
         # Only compute the hash once.
-        self._hash = hash((self.index, self.context))
+        self._hash = hash((self.index, self.subsystem))
 
         # Deferred properties
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ``inputs``, ``outputs``, and ``marbl`` must be properties because at
-        # the time of node creation, the context doesn't have a list of Node
+        # the time of node creation, the subsystem doesn't have a list of Node
         # objects yet, only a size (and thus a range of node indices). So, we
         # defer construction until the properties are needed.
         self._inputs = None
@@ -163,7 +169,7 @@ class Node:
         if self._inputs is not None:
             return self._inputs
         else:
-            self._inputs = [node for node in self.context.nodes if
+            self._inputs = [node for node in self.subsystem.nodes if
                             node.index in self._input_indices]
             return self._inputs
 
@@ -173,7 +179,7 @@ class Node:
         if self._outputs is not None:
             return self._outputs
         else:
-            self._outputs = [node for node in self.context.nodes if
+            self._outputs = [node for node in self.subsystem.nodes if
                              node.index in self._output_indices]
             return self._outputs
 
@@ -233,14 +239,14 @@ class Node:
     def __eq__(self, other):
         """Return whether this node equals the other object.
 
-        Two nodes are equal if they belong to the same context and have the
+        Two nodes are equal if they belong to the same subsystem and have the
         same index (their TPMs must be the same in that case, so this method
         doesn't need to check TPM equality).
 
         Labels are for display only, so two equal nodes may have different
         labels.
         """
-        return (self.index == other.index and self.context == other.context)
+        return (self.index == other.index and self.subsystem == other.subsystem)
 
     def __ne__(self, other):
         return not self.__eq__(other)

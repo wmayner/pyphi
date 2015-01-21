@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# db.py
 """
-Database
-~~~~~~~~
-
 Interface to MongoDB that exposes it as a key-value store.
 """
 

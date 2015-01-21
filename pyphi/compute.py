@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# compute.py
 """
-Compute
-~~~~~~~
-
 Methods for computing concepts, constellations, and integrated information of
 subsystems.
 """
@@ -360,6 +358,7 @@ def main_complex(network):
     log.info("Finished calculating main complex for" + str(network) + ".")
     log.debug("RESULT: \n" + str(result))
     return result
+
 
 def subsystems(network):
     """Return a generator of all possible subsystems of a network.
