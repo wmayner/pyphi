@@ -28,7 +28,7 @@ from .lru_cache import lru_cache
 log = logging.getLogger(__name__)
 
 
-def concept(subsystem, mechanism):
+def concept(subsystem, mechanism, method=0):
     """Return the concept specified by the a mechanism within a subsytem.
 
     Args:
@@ -68,10 +68,10 @@ def concept(subsystem, mechanism):
             constants.CACHING_BACKEND == constants.DATABASE):
         return _concept(subsystem, mechanism)
     else:
-        return subsystem.concept(mechanism)
+        return subsystem.concept(mechanism, method)
 
 
-def constellation(subsystem):
+def constellation(subsystem, method):
     """Return the conceptual structure of this subsystem.
 
     Args:
@@ -81,7 +81,7 @@ def constellation(subsystem):
     Returns:
         ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
     """
-    concepts = [concept(subsystem, mechanism) for mechanism in
+    concepts = [concept(subsystem, mechanism, method) for mechanism in
                 utils.powerset(subsystem.nodes)]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
@@ -186,12 +186,12 @@ def constellation_distance(C1, C2, subsystem):
                                            subsystem)
 
 
-def conceptual_information(subsystem):
+def conceptual_information(subsystem, method=0):
     """Return the conceptual information for a subsystem.
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    return constellation_distance(constellation(subsystem), (), subsystem)
+    return constellation_distance(constellation(subsystem, method), (), subsystem)
 
 
 # TODO document
@@ -221,7 +221,7 @@ def _single_node_mip(subsystem):
 
 
 def _evaluate_partition(uncut_subsystem, partition,
-                        unpartitioned_constellation):
+                        unpartitioned_constellation, method):
     log.info("    Evaluating partition " + str(partition) + "...")
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
@@ -229,7 +229,7 @@ def _evaluate_partition(uncut_subsystem, partition,
                                       uncut_subsystem.network,
                                       cut=forward_cut,
                                       mice_cache=uncut_subsystem._mice_cache)
-    forward_constellation = constellation(forward_cut_subsystem)
+    forward_constellation = constellation(forward_cut_subsystem, method)
     forward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    forward_constellation,
@@ -247,7 +247,7 @@ def _evaluate_partition(uncut_subsystem, partition,
                                        uncut_subsystem.network,
                                        cut=backward_cut,
                                        mice_cache=uncut_subsystem._mice_cache)
-    backward_constellation = constellation(backward_cut_subsystem)
+    backward_constellation = constellation(backward_cut_subsystem, method)
     backward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    backward_constellation,
@@ -264,7 +264,7 @@ def _evaluate_partition(uncut_subsystem, partition,
 
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
-def _big_mip(cache_key, subsystem):
+def _big_mip(cache_key, subsystem, method=0):
     log.info("Calculating Phi data for " + str(subsystem) + "...")
 
     # Special case for single-node subsystems.
@@ -291,9 +291,8 @@ def _big_mip(cache_key, subsystem):
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = utils.bipartition(subsystem.node_indices)[1:]
-
     log.info("    Finding unpartitioned constellation...")
-    unpartitioned_constellation = constellation(subsystem)
+    unpartitioned_constellation = constellation(subsystem, method)
     log.info("    Found unpartitioned constellation.")
 
     if constants.PARALLEL_CUT_EVALUATION:
@@ -302,16 +301,16 @@ def _big_mip(cache_key, subsystem):
         mip_candidates = Parallel(n_jobs=(constants.NUMBER_OF_CORES),
                                   verbose=constants.PARALLEL_VERBOSITY)(
             delayed(_evaluate_partition)(subsystem, partition,
-                                         unpartitioned_constellation)
+                                         unpartitioned_constellation, method)
             for partition in bipartitions)
         result = min(mip_candidates)
     else:
         # Sequentially loop over all partitions, holding only two BigMips in
         # memory at once.
-        min_phi, min_mip = float('inf'), _null_mip(subsystem)
+        min_phi, min_mip = float('inf'), _null_mip(subsystem, method)
         for i, partition in enumerate(bipartitions):
             new_mip = _evaluate_partition(
-                subsystem, partition, unpartitioned_constellation)
+                subsystem, partition, unpartitioned_constellation, method)
             log.info("        [" + str(i + 1) + " of " + str(len(bipartitions))
                      + "]")
             if new_mip.phi < min_phi:
@@ -328,7 +327,7 @@ def _big_mip(cache_key, subsystem):
 # joblib doesn't mistakenly recompute things when the subsystem's MICE cache is
 # changed.
 @functools.wraps(_big_mip)
-def big_mip(subsystem):
+def big_mip(subsystem, method=0):
     """Return the MIP of a subsystem.
 
     Args:
@@ -339,7 +338,7 @@ def big_mip(subsystem):
         intermediate calculations. The top level contains the basic MIP
         information for the given subsystem. See :class:`models.BigMip`.
     """
-    return _big_mip(hash(subsystem), subsystem)
+    return _big_mip(hash(subsystem), subsystem, method)
 
 
 @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)

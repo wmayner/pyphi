@@ -607,7 +607,7 @@ class Subsystem:
                 return cached
         return False
 
-    def find_mice(self, direction, mechanism, purviews=False):
+    def find_mice(self, direction, mechanism, purviews=False, method=0):
         """Return the maximally irreducible cause or effect for a mechanism.
 
         Args:
@@ -651,12 +651,48 @@ class Subsystem:
             elif direction == DIRECTIONS[FUTURE]:
                 return self._all_connect_to_any(mechanism, purview)
 
+        def block_filter(purview):
+            if not mechanism or not purview:
+                return True
+            if direction == DIRECTIONS[PAST] and not self._all_connect_to_any(purview, mechanism):
+                return False
+            if direction == DIRECTIONS[FUTURE] and not self._all_connect_to_any(mechanism, purview):
+                return False
+            cm = utils.apply_cut(self.cut, self.network.connectivity_matrix)
+            if direction == DIRECTIONS[PAST]:
+                # Get the connectivity matrix representing the connections from the
+                # purview nodes to the mechanism nodes.
+                submatrix_indices = np.ix_([node.index for node in purview],
+                                           [node.index for node in mechanism])
+                cm = cm[submatrix_indices]
+                return utils.block_cm(cm)
+            elif direction == DIRECTIONS[FUTURE]:
+                # Get the connectivity matrix representing the connections from the
+                # purview nodes to the mechanism nodes.
+                submatrix_indices = np.ix_([node.index for node in mechanism],
+                                           [node.index for node in purview])
+                cm = cm[submatrix_indices]
+                return utils.block_cm(cm)
+
         # Filter out trivially reducible purviews if a connectivity matrix was
         # provided.
-        purviews = tuple(filter(not_trivially_reducible, purviews))
-        # If no purviews are left, return a null MICE immediately.
-        if not purviews:
-            return Mice(self._null_mip(direction, mechanism, None))
+        if not np.all(self.connectivity_matrix == 1):
+            if method == 0:
+                purviews = tuple(filter(not_trivially_reducible, purviews))
+            elif method == 1:
+                purviews = tuple(filter(block_filter, purviews))
+            elif method == 2:
+                temp = []
+                for purview in tuple(purviews)[1:]:
+                    if len(temp) > 0 and sum([set(temp[i]).issubset(purview) for i in range(len(temp))])>0:
+                        temp.append(purview)
+                    elif block_filter(purview):
+                        temp.append(purview)
+                purviews = tuple(temp)
+                print(mechanism, purviews)
+                # If no purviews are left, return a null MICE immediately.
+            if not purviews:
+                return Mice(self._null_mip(direction, mechanism, None))
         # Find the maximal MIP over all purviews.
         maximal_mip = max(self.find_mip(direction, mechanism, purview) for
                           purview in purviews)
@@ -674,17 +710,17 @@ class Subsystem:
             self._mice_cache[key] = mice
         return mice
 
-    def core_cause(self, mechanism, purviews=False):
+    def core_cause(self, mechanism, purviews=False, method=0):
         """Returns the core cause repertoire of a mechanism.
 
         Alias for :func:`find_mice` with ``direction`` set to |past|."""
-        return self.find_mice('past', mechanism, purviews=purviews)
+        return self.find_mice('past', mechanism, purviews=purviews, method=method)
 
-    def core_effect(self, mechanism, purviews=False):
+    def core_effect(self, mechanism, purviews=False, method=0):
         """Returns the core effect repertoire of a mechanism.
 
         Alias for :func:`find_mice` with ``direction`` set to |past|."""
-        return self.find_mice('future', mechanism, purviews=purviews)
+        return self.find_mice('future', mechanism, purviews=purviews, method=method)
 
     def phi_max(self, mechanism):
         """Return the |phi_max| of a mechanism.
@@ -727,13 +763,13 @@ class Subsystem:
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
                        subsystem=self)
 
-    def concept(self, mechanism):
+    def concept(self, mechanism, method = 0):
         """Calculate a concept."""
         # TODO refactor to pass indices around, not nodes, throughout Subsystem
         # Calculate the maximally irreducible cause repertoire.
-        cause = self.core_cause(mechanism)
+        cause = self.core_cause(mechanism, False, method)
         # Calculate the maximally irreducible effect repertoire.
-        effect = self.core_effect(mechanism)
+        effect = self.core_effect(mechanism, False, method)
         # Get the minimal phi between them.
         phi = min(cause.phi, effect.phi)
         # NOTE: Make sure to expand the repertoires to the size of the
