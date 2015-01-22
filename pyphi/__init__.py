@@ -102,7 +102,7 @@ logging.config.dictConfig({
     }
 })
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 # Log the currently loaded configuration.
 if config.file_loaded:
