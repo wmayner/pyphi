@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# validate.py
 """
-Validate
-~~~~~~~~
-
 Methods for validating common types of input.
 """
 
@@ -149,7 +147,8 @@ def perturb_vector(pv, size):
 def network(network):
     """Validate TPM, connectivity matrix, and current and past state."""
     tpm(network.tpm)
-    state(network)
+    if constants.VALIDATE_NETWORK_STATE:
+        state(network)
     connectivity_matrix(network.connectivity_matrix)
     perturb_vector(network.perturb_vector, network.size)
     if network.connectivity_matrix.shape[0] != network.size:
