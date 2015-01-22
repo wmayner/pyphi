@@ -8,7 +8,7 @@ Decorators and objects for memoization.
 
 import functools
 import joblib.func_inspect
-from . import db, constants
+from . import db, constants, config
 
 
 def cache(ignore=[]):
@@ -16,19 +16,19 @@ def cache(ignore=[]):
     database."""
 
     def joblib_decorator(func):
-        if func.__name__ == '_big_mip' and not constants.CACHE_BIGMIPS:
+        if func.__name__ == '_big_mip' and not config.CACHE_BIGMIPS:
             return func
         return constants.joblib_memory.cache(func, ignore=ignore)
 
     def db_decorator(func):
-        if func.__name__ == '_big_mip' and not constants.CACHE_BIGMIPS:
+        if func.__name__ == '_big_mip' and not config.CACHE_BIGMIPS:
             return func
         return DbMemoizedFunc(func, ignore)
 
-    if constants.CACHING_BACKEND == 'fs':
+    if config.CACHING_BACKEND == 'fs':
         # Decorate the function with the filesystem memoizer.
         return joblib_decorator
-    if constants.CACHING_BACKEND == 'db':
+    if config.CACHING_BACKEND == 'db':
         # Decorate the function with the database memoizer.
         return db_decorator
 

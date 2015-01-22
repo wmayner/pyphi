@@ -10,7 +10,7 @@ import numpy as np
 
 from collections import Iterable
 from .node import Node
-from . import constants
+from . import constants, config
 
 
 class StateUnreachableError(ValueError):
@@ -118,17 +118,18 @@ def state(network):
                          "there are {} nodes.".format(invalid_state[0],
                                                       invalid_state[1],
                                                       network.size))
-    # Check that the current state is reachable from some state.
-    if not _state_reachable(current_state, tpm):
-        raise StateUnreachableError(
-            current_state, past_state, tpm,
-            "The current state is unreachable according to the given TPM.")
-    # Check that the current state is reachable from the given past state.
-    if not _state_reachable_from(past_state, current_state, tpm):
-        raise StateUnreachableError(
-            current_state, past_state, tpm,
-            "The current state cannot be reached from the past state "
-            "according to the given TPM.")
+    if config.VALIDATE_NETWORK_STATE:
+        # Check that the current state is reachable from some state.
+        if not _state_reachable(current_state, tpm):
+            raise StateUnreachableError(
+                current_state, past_state, tpm,
+                "The current state is unreachable according to the given TPM.")
+        # Check that the current state is reachable from the given past state.
+        if not _state_reachable_from(past_state, current_state, tpm):
+            raise StateUnreachableError(
+                current_state, past_state, tpm,
+                "The current state cannot be reached from the past state "
+                "according to the given TPM.")
     return True
 
 
@@ -147,8 +148,7 @@ def perturb_vector(pv, size):
 def network(network):
     """Validate TPM, connectivity matrix, and current and past state."""
     tpm(network.tpm)
-    if constants.VALIDATE_NETWORK_STATE:
-        state(network)
+    state(network)
     connectivity_matrix(network.connectivity_matrix)
     perturb_vector(network.perturb_vector, network.size)
     if network.connectivity_matrix.shape[0] != network.size:

@@ -67,7 +67,7 @@ __copyright__ = 'Copyright 2014 Will Mayner'
 
 from .network import Network
 from .subsystem import Subsystem
-from . import compute, constants, db, examples
+from . import compute, constants, config, db, examples
 
 import logging
 import logging.config
@@ -79,18 +79,18 @@ logging.config.dictConfig({
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': constants.LOGGING_CONFIG['format']
+            'format': config.LOGGING_CONFIG['format']
         }
     },
     'handlers': {
         'file': {
-            'level': constants.LOGGING_CONFIG['file']['level'],
+            'level': config.LOGGING_CONFIG['file']['level'],
             'class': 'logging.FileHandler',
-            'filename': constants.LOGGING_CONFIG['file']['filename'],
+            'filename': config.LOGGING_CONFIG['file']['filename'],
             'formatter': 'standard',
         },
         'stdout': {
-            'level': constants.LOGGING_CONFIG['stdout']['level'],
+            'level': config.LOGGING_CONFIG['stdout']['level'],
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
         }
@@ -98,15 +98,15 @@ logging.config.dictConfig({
     'root': {
         'level': 'INFO',
         'handlers': [h for h in ['file', 'stdout'] if
-                     constants.LOGGING_CONFIG[h]['enabled']]
+                     config.LOGGING_CONFIG[h]['enabled']]
     }
 })
 
 log = logging.getLogger()
 
 # Log the currently loaded configuration.
-if constants.config_file_was_loaded:
-    log.info('Loaded configuration from ' + constants.PYPHI_CONFIG_FILE)
+if config.file_loaded:
+    log.info('Loaded configuration from ' + config.PYPHI_CONFIG_FILENAME)
 else:
     log.info("Using default configuration (no config file provided)")
-log.info('Current PyPhi configuration:\n' + constants.get_config_string())
+log.info('Current PyPhi configuration:\n' + config.get_config_string())

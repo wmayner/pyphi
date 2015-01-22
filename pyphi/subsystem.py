@@ -11,7 +11,7 @@ import psutil
 import numpy as np
 from .constants import DIRECTIONS, PAST, FUTURE
 from .lru_cache import lru_cache
-from . import constants, validate, utils, convert, json
+from . import constants, config, validate, utils, convert, json
 from .models import Cut, Mip, Part, Mice, Concept
 from .node import Node
 
@@ -127,7 +127,7 @@ class Subsystem:
     def indices2nodes(self, indices):
         return tuple(n for n in self.nodes if n.index in indices)
 
-    @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+    @lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -218,7 +218,7 @@ class Subsystem:
         # whole comparisons are only ever done over the same purview.
         return cjd
 
-    @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+    @lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
     def effect_repertoire(self, mechanism, purview):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -544,7 +544,7 @@ class Subsystem:
     # =========================================================================
 
     # TODO test phi max helpers
-    @lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+    @lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
     def _test_connections(self, axis, nodes1, nodes2):
         """Tests connectivity of one set of nodes to another.
 
@@ -671,7 +671,7 @@ class Subsystem:
         key = (direction, convert.nodes2indices(mechanism))
         current_process = psutil.Process(os.getpid())
         not_full = (current_process.memory_percent() <
-                    constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+                    config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
         if (self.cut == self.null_cut
                 and key not in self._mice_cache
                 and not_full):

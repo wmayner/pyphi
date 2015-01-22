@@ -35,8 +35,6 @@ def test_network_init_validation(network):
     with pytest.raises(ValueError):
         state = (0, 1)
         Network(network.tpm, network.current_state, state)
-    # TODO test state validation (are current and past states congruent to
-    # TPM?)
 
 
 def test_repr(standard):
