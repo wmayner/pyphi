@@ -57,7 +57,7 @@ options and their defaults.
 """
 
 __title__ = 'pyphi'
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
@@ -102,7 +102,7 @@ logging.config.dictConfig({
     }
 })
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 # Log the currently loaded configuration.
 if config.file_loaded:
