@@ -8,6 +8,9 @@ except ImportError:
     from distutils.core import setup
 
 
+from pyphi import __version__
+
+
 with open('README.rst') as f:
     readme = f.read()
 
@@ -32,7 +35,7 @@ test_require = [
 
 setup(
     name="pyphi",
-    version='0.3.0',
+    version=__version__,
     description='A Python library for computing integrated information.',
     author='Will Mayner',
     author_email='wmayner@gmail.com',
