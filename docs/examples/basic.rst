@@ -46,7 +46,7 @@ Now we use :func:`pyphi.compute.big_phi` function to compute the |big_phi| of
 our subsystem:
 
     >>> phi = pyphi.compute.big_phi(subsystem)
-    >>> round(phi, pyphi.constants.PRECISION)
+    >>> round(phi, pyphi.config.PRECISION)
     2.312498
 
 If we want to take a deeper look at the integrated-information-theoretic

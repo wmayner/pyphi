@@ -1,5 +1,6 @@
+{# layout.html #}
+{# Import the theme's layout. #}
 {% extends "!layout.html" %}
 
-{% block extrahead %}
-  <link rel="stylesheet" href="_static/custom.css">
-{% endblock %}
+{# Add custom css. #}
+{% set css_files = css_files + ['_static/custom.css'] %}

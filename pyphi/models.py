@@ -10,7 +10,7 @@ from collections import namedtuple, Iterable
 import numpy as np
 
 from .constants import DIRECTIONS, PAST, FUTURE
-from . import utils, constants, convert, json
+from . import utils, constants, config, convert, json
 
 # TODO use properties to avoid data duplication
 

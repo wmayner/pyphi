@@ -15,7 +15,7 @@ from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
 from .lru_cache import lru_cache
-from . import constants
+from . import constants, config
 
 
 def condition_tpm(tpm, fixed_nodes, state):
@@ -290,7 +290,7 @@ def bipartition(a):
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
 
-@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.
 
@@ -326,7 +326,7 @@ def bipartition_indices(N):
 
 # TODO cache this persistently; it's exponential
 # TODO extend to nonbinary nodes
-@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of |N|
     binary nodes.
