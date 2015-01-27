@@ -282,7 +282,7 @@ def _big_mip(cache_key, subsystem):
     submatrix_indices = np.ix_(subsystem.node_indices, subsystem.node_indices)
     cm = subsystem.network.connectivity_matrix[submatrix_indices]
     # Get the number of strongly connected components.
-    num_components, _ = connected_components(csr_matrix(cm))
+    num_components, _ = connected_components(csr_matrix(cm), connection='strong')
     if num_components > 1:
         return _null_mip(subsystem)
     # =========================================================================
