@@ -14,7 +14,7 @@ from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
-from . import utils, constants, memory
+from . import utils, constants, config, memory
 from .concept_caching import concept as _concept
 from .models import Concept, Cut, BigMip
 from .network import Network
@@ -62,8 +62,8 @@ def concept(subsystem, mechanism):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Passed prechecks; pass it over to the concept caching logic if enabled.
     # Concept caching is only available if the caching backend is a database.
-    if (constants.CACHE_CONCEPTS and
-            constants.CACHING_BACKEND == constants.DATABASE):
+    if (config.CACHE_CONCEPTS and
+            config.CACHING_BACKEND == constants.DATABASE):
         return _concept(subsystem, mechanism)
     else:
         return subsystem.concept(mechanism)
@@ -85,7 +85,7 @@ def constellation(subsystem):
     return tuple(filter(None, concepts))
 
 
-@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
@@ -155,7 +155,7 @@ def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)
 
 
-@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def constellation_distance(C1, C2, subsystem):
     """Return the distance between two constellations in concept-space.
 
@@ -206,7 +206,7 @@ def _single_node_mip(subsystem):
     """Returns a the BigMip of a single-node with a selfloop.
 
     Whether these have a nonzero |Phi| value depends on the PyPhi constants."""
-    if constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
+    if config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
         # TODO return the actual concept
         return BigMip(
             phi=0.5,
@@ -294,11 +294,11 @@ def _big_mip(cache_key, subsystem):
     unpartitioned_constellation = constellation(subsystem)
     log.info("    Found unpartitioned constellation.")
 
-    if constants.PARALLEL_CUT_EVALUATION:
+    if config.PARALLEL_CUT_EVALUATION:
         # Parallel loop over all partitions, using the specified number of
         # cores.
-        mip_candidates = Parallel(n_jobs=(constants.NUMBER_OF_CORES),
-                                  verbose=constants.PARALLEL_VERBOSITY)(
+        mip_candidates = Parallel(n_jobs=(config.NUMBER_OF_CORES),
+                                  verbose=config.PARALLEL_VERBOSITY)(
             delayed(_evaluate_partition)(subsystem, partition,
                                          unpartitioned_constellation)
             for partition in bipartitions)
@@ -340,13 +340,13 @@ def big_mip(subsystem):
     return _big_mip(hash(subsystem), subsystem)
 
 
-@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def big_phi(subsystem):
     """Return the |big_phi| value of a subsystem."""
     return big_mip(subsystem).phi
 
 
-@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def main_complex(network):
     """Return the main complex of the network."""
     if not isinstance(network, Network):

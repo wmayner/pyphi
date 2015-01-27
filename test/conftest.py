@@ -4,7 +4,7 @@
 import pytest
 import os
 import shutil
-from pyphi import constants, db
+from pyphi import constants, config, db
 
 import example_networks
 
@@ -15,19 +15,19 @@ log = logging.getLogger()
 # =============================
 
 # Use a test database if database caching is enabled.
-if constants.CACHING_BACKEND == constants.DATABASE:
+if config.CACHING_BACKEND == constants.DATABASE:
     db.collection = db.database.test
 
 # Backup location for the existing joblib cache directory.
-BACKUP_CACHE_DIR = constants.PERSISTENT_CACHE_DIRECTORY + '.BACKUP'
+BACKUP_CACHE_DIR = config.PERSISTENT_CACHE_DIRECTORY + '.BACKUP'
 
 
 
 def _flush_joblib_cache():
     # Remove the old joblib cache directory.
-    shutil.rmtree(constants.PERSISTENT_CACHE_DIRECTORY)
+    shutil.rmtree(config.PERSISTENT_CACHE_DIRECTORY)
     # Make a new, empty one.
-    os.mkdir(constants.PERSISTENT_CACHE_DIRECTORY)
+    os.mkdir(config.PERSISTENT_CACHE_DIRECTORY)
 
 
 def _flush_database_cache():
@@ -40,9 +40,9 @@ def flushcache():
     """Flush the currently enabled cache."""
     def cache_flusher():
         log.info("FLUSHING CACHE!")
-        if constants.CACHING_BACKEND == constants.DATABASE:
+        if config.CACHING_BACKEND == constants.DATABASE:
             _flush_database_cache()
-        elif constants.CACHING_BACKEND == constants.FILESYSTEM:
+        elif config.CACHING_BACKEND == constants.FILESYSTEM:
             _flush_joblib_cache()
     return cache_flusher
 
@@ -53,21 +53,21 @@ def restore_fs_cache(request):
     testing session."""
     # Move the joblib cache to a backup location and create a fresh cache if
     # filesystem caching is enabled
-    if constants.CACHING_BACKEND == constants.FILESYSTEM:
+    if config.CACHING_BACKEND == constants.FILESYSTEM:
         if os.path.exists(BACKUP_CACHE_DIR):
             raise Exception("You must move the backup of the filesystem cache "
                             "at " + BACKUP_CACHE_DIR + " before running the test "
                             "suite.")
-        shutil.move(constants.PERSISTENT_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
-        os.mkdir(constants.PERSISTENT_CACHE_DIRECTORY)
+        shutil.move(config.PERSISTENT_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
+        os.mkdir(config.PERSISTENT_CACHE_DIRECTORY)
 
     def fin():
-        if constants.CACHING_BACKEND == constants.FILESYSTEM:
+        if config.CACHING_BACKEND == constants.FILESYSTEM:
             # Remove the tests' joblib cache directory.
-            shutil.rmtree(constants.PERSISTENT_CACHE_DIRECTORY)
+            shutil.rmtree(config.PERSISTENT_CACHE_DIRECTORY)
             # Restore the old joblib cache.
             shutil.move(BACKUP_CACHE_DIR,
-                        constants.PERSISTENT_CACHE_DIRECTORY)
+                        config.PERSISTENT_CACHE_DIRECTORY)
 
     # Restore the cache after the last test with this fixture has run
     request.addfinalizer(fin)

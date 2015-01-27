@@ -11,7 +11,7 @@ from collections import namedtuple
 import numpy as np
 from marbl import MarblSet
 
-from . import utils, models, db, constants, convert
+from . import utils, models, db, constants, config, convert
 from .constants import DIRECTIONS, PAST, FUTURE
 
 
@@ -403,7 +403,7 @@ def concept(subsystem, mechanism):
     if cached_concept is not None:
         return cached_concept
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    if constants.NORMALIZE_TPMS:
+    if config.NORMALIZE_TPMS:
         # We didn't find a precomputed concept with the raw normalized TPM, so
         # now we normalize TPMs as well.
         normalized_mechanism = NormalizedMechanism(mechanism, subsystem)
@@ -418,6 +418,6 @@ def concept(subsystem, mechanism):
     # mechanism as keys.
     concept = subsystem.concept(mechanism)
     _set(raw_normalized_mechanism, concept)
-    if constants.NORMALIZE_TPMS:
+    if config.NORMALIZE_TPMS:
         _set(normalized_mechanism, concept)
     return concept

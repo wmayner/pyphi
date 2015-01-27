@@ -1,9 +1,15 @@
 Conventions
 ===========
 
+Connectivity Matrices
+~~~~~~~~~~~~~~~~~~~~~
+
+Throughout PyPhi, if ``CM`` is a connectivity matrix, then |CM[i][j] = 1| means
+that node |i| is connected to node |j|.
+
+
 TPMs
 ~~~~
-
 
 There are several ways to write down a TPM. With both state-by-state and
 state-by-node TPMs, one is confronted with a choice about which rows correspond
@@ -73,10 +79,3 @@ fastest, is similarly called **HOLI**.
     There are various conversion functions available for converting between
     TPMs, states, and indices using different conventions: see the
     :mod:`pyphi.convert` module.
-
-
-Connectivity Matrices
-~~~~~~~~~~~~~~~~~~~~~
-
-Throughout PyPhi, if ``CM`` is a connectivity matrix, then |CM[i][j] = 1| means
-that node |i| is connected to node |j|.

@@ -21,6 +21,6 @@ PyPhi uses some conventions for TPM and connectivity matrix formats. These are
 important to keep in mind when setting up networks.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     conventions

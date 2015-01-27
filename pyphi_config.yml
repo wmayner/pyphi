@@ -1,6 +1,6 @@
 # PyPhi configuration
 # ~~~~~~~~~~~~~~~~~~~
-# See the documentation for ``pyphi.constants`` for more info.
+# See the documentation for ``pyphi.config`` for more info.
 ---
 # Controls whether cuts are evaluated in parallel, which requires more
 # memory. If cuts are evaluated sequentially, only two BigMips need to be
@@ -24,6 +24,14 @@ NORMALIZE_TPMS: true
 # Some functions are memoized using an in-memory LRU-cache. This is the maximum
 # percentage of memory that each PyPhi process' caches can use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
+# The caching system to use. "fs" means cache the results on the local
+# filesystem, in a subdirectory of the current directory; "db" means connect to
+# a database and store the results there.
+CACHING_BACKEND: "fs"
+# The directory to use for local persistent caching on the filesystem. This
+# only has an effect if the caching backend is the filesystem and not a
+# database.
+PERSISTENT_CACHE_DIRECTORY: "__pyphi_cache__"
 # These are the settings for the MongoDB database used in the 'db' caching
 # backend.
 MONGODB_CONFIG:
@@ -42,16 +50,10 @@ LOGGING_CONFIG:
     stdout:
         enabled: true
         level: "INFO"
-# The caching system to use. "fs" means cache the results on the local
-# filesystem, in a subdirectory of the current directory; "db" means connect to
-# a database and store the results there.
-CACHING_BACKEND: "fs"
-# The directory to use for local persistent caching on the filesystem. This
-# only has an effect if the caching backend is the filesystem and not a
-# database.
-PERSISTENT_CACHE_DIRECTORY: "__pyphi_cache__"
-# The number of decimal places to which Phi values are considered accurate.
-PRECISION: 6
+# Controls whether network states are validated upon network creation.
+VALIDATE_NETWORK_STATE: false
 # In some applications of this library, you may prefer to define single-nodes
 # with a self-loop as having 0.5 Phi, a priori.
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
+# The number of decimal places to which Phi values are considered accurate.
+PRECISION: 6
