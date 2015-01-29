@@ -10,6 +10,7 @@ import math
 import numpy as np
 from . import validate
 import logging
+from .constants import EPSILON
 
 
 # Create a logger for this module.
@@ -184,7 +185,7 @@ def state_by_state2state_by_node(tpm):
         # i.e., a row of the state-by-node TPM.
         # Assign that row to the ith state in the state-by-node TPM.
         sbn_tpm[state] = [np.sum(on_probabilities[n][i]) for n in range(N)]
-    if not np.all(tpm == state_by_node2state_by_state(sbn_tpm)):
+    if not np.all((tpm - state_by_node2state_by_state(sbn_tpm)) < EPSILON):
         logging.warning(
             'The TPM is not conditionally independent. See the conditional '
             'independence example in the documentation for more information '

@@ -353,28 +353,33 @@ class Subsystem:
         """
         return self._unconstrained_repertoire(DIRECTIONS[FUTURE], purview)
 
-    def expand_repertoire(self, direction, purview, repertoire):
+    def expand_repertoire(self, direction, purview, repertoire, new_purview=None):
         """Return the unconstrained cause or effect repertoire based on a
         direction."""
         validate.direction(direction)
+        # If not specified, the new purview is the entire network
+        if (new_purview==None):
+            new_purview = self.nodes
+        elif not (set(purview).issubset(set(new_purview))):
+            raise ValueError("Expanded purview must contain original purview.")
         # Get the unconstrained repertoire over the other nodes in the network.
-        non_purview_nodes = tuple(frozenset(self.nodes) - frozenset(purview))
+        non_purview_nodes = tuple(frozenset(new_purview) - frozenset(purview))
         uc = self._unconstrained_repertoire(direction, non_purview_nodes)
         # Multiply the given repertoire by the unconstrained one to get a
         # distribution over all the nodes in the network.
         return repertoire * uc
 
     # TODO test expand cause repertoire
-    def expand_cause_repertoire(self, purview, repertoire):
+    def expand_cause_repertoire(self, purview, repertoire, new_purview=None):
         """Expand a partial cause repertoire over a purview to a distribution
         over the entire subsystem's state space."""
-        return self.expand_repertoire(DIRECTIONS[PAST], purview, repertoire)
+        return self.expand_repertoire(DIRECTIONS[PAST], purview, repertoire, new_purview)
 
     # TODO test expand effect repertoire
-    def expand_effect_repertoire(self, purview, repertoire):
+    def expand_effect_repertoire(self, purview, repertoire, new_purview=None):
         """Expand a partial effect repertoire over a purview to a distribution
         over the entire subsystem's state space."""
-        return self.expand_repertoire(DIRECTIONS[FUTURE], purview, repertoire)
+        return self.expand_repertoire(DIRECTIONS[FUTURE], purview, repertoire, new_purview)
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
