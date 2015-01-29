@@ -369,13 +369,11 @@ class Subsystem:
         # distribution over all the nodes in the network.
         return repertoire * uc
 
-    # TODO test expand cause repertoire
     def expand_cause_repertoire(self, purview, repertoire, new_purview=None):
         """Expand a partial cause repertoire over a purview to a distribution
         over the entire subsystem's state space."""
         return self.expand_repertoire(DIRECTIONS[PAST], purview, repertoire, new_purview)
 
-    # TODO test expand effect repertoire
     def expand_effect_repertoire(self, purview, repertoire, new_purview=None):
         """Expand a partial effect repertoire over a purview to a distribution
         over the entire subsystem's state space."""
