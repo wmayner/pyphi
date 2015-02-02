@@ -360,7 +360,7 @@ class Subsystem:
         # If not specified, the new purview is the entire network
         if (new_purview==None):
             new_purview = self.nodes
-        elif not (set(purview).issubset(set(new_purview))):
+        elif not (set([node.index for node in purview]).issubset([node.index for node in new_purview])):
             raise ValueError("Expanded purview must contain original purview.")
         # Get the unconstrained repertoire over the other nodes in the network.
         non_purview_nodes = tuple(frozenset(new_purview) - frozenset(purview))
