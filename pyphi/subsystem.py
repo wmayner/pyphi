@@ -367,7 +367,12 @@ class Subsystem:
         uc = self._unconstrained_repertoire(direction, non_purview_nodes)
         # Multiply the given repertoire by the unconstrained one to get a
         # distribution over all the nodes in the network.
-        return repertoire * uc
+        expanded_repertoire = repertoire * uc
+        # Renormalize
+        if (np.sum(expanded_repertoire > 0)):
+            return expanded_repertoire / np.sum(expanded_repertoire)
+        else:
+            return expanded_repertoire
 
     def expand_cause_repertoire(self, purview, repertoire, new_purview=None):
         """Expand a partial cause repertoire over a purview to a distribution
