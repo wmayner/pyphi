@@ -9,8 +9,7 @@ Containers for MICE, MIP, cut, partition, and concept data.
 from collections import namedtuple, Iterable
 import numpy as np
 
-from .constants import DIRECTIONS, PAST, FUTURE
-from . import utils, constants, config, convert, json
+from . import utils, constants, convert, json
 
 # TODO use properties to avoid data duplication
 
@@ -415,17 +414,19 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         return self.mechanism == other.mechanism and self.eq_repertoires(other)
 
     # TODO Rename to expanded_cause_repertoire, etc
-    def expand_cause_repertoire(self):
+    def expand_cause_repertoire(self, new_purview=None):
         """Expands a cause repertoire to be a distribution over an entire
         network."""
         return self.subsystem.expand_cause_repertoire(self.cause.purview,
-                                                      self.cause.repertoire)
+                                                      self.cause.repertoire,
+                                                      new_purview)
 
-    def expand_effect_repertoire(self):
+    def expand_effect_repertoire(self, new_purview=None):
         """Expands an effect repertoire to be a distribution over an entire
         network."""
         return self.subsystem.expand_effect_repertoire(self.effect.purview,
-                                                       self.effect.repertoire)
+                                                       self.effect.repertoire,
+                                                       new_purview)
 
     def expand_partitioned_cause_repertoire(self):
         """Expands a partitioned cause repertoire to be a distribution over an
