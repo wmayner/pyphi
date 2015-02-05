@@ -84,8 +84,15 @@ relying on the cache. For this reason it is disabled by default.
   to reuse results _e.g._ on a another computer, but it must be in the same
   directory from which PyPhi is being run.
 
-    >>> pyphi.config.PERSISTENT_CACHE_DIRECTORY
+    >>> pyphi.config.FS_CACHE_DIRECTORY
     '__pyphi_cache__'
+
+- Control how much caching information is printed. Takes a value between 0 and
+  11. Note that printing during a loop iteration can slow down the loop
+  considerably.
+
+    >>> pyphi.config.FS_CACHE_VERBOSITY
+    0
 
 - Set the configuration for the MongoDB database backend. This only has an
   effect if the caching backend is set to use the database.
@@ -196,8 +203,8 @@ import yaml
 
 
 # TODO: document mongo config
-# Defaults for configurable constants
-default_config = {
+# Defaults for configurable constants.
+config = {
     # Controls whether cuts are evaluated in parallel, which requires more
     # memory. If cuts are evaluated sequentially, only two BigMips need to be
     # in memory at a time.
@@ -223,7 +230,9 @@ default_config = {
     # results there.
     'CACHING_BACKEND': 'fs',
     # Directory for the persistent joblib Memory cache.
-    'PERSISTENT_CACHE_DIRECTORY': '__pyphi_cache__',
+    'FS_CACHE_DIRECTORY': '__pyphi_cache__',
+    # joblib.Memory verbosity.
+    'FS_CACHE_VERBOSITY': 0,
     # MongoDB configuration.
     'MONGODB_CONFIG': {
         'host': 'localhost',
@@ -281,8 +290,8 @@ PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
 file_loaded = False
 if os.path.exists(PYPHI_CONFIG_FILENAME):
     with open(PYPHI_CONFIG_FILENAME) as f:
-        config = yaml.load(f)
+        config.update(yaml.load(f))
         file_loaded = True
-else:
-    config = default_config
+
+# Load the configuration.
 load_config(config)
