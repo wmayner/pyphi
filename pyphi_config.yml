@@ -31,7 +31,9 @@ CACHING_BACKEND: "fs"
 # The directory to use for local persistent caching on the filesystem. This
 # only has an effect if the caching backend is the filesystem and not a
 # database.
-PERSISTENT_CACHE_DIRECTORY: "__pyphi_cache__"
+FS_CACHE_DIRECTORY: "__pyphi_cache__"
+# The verbosity of filesystem caching (integer from 0 to 11).
+FS_CACHE_VERBOSITY: 0
 # These are the settings for the MongoDB database used in the 'db' caching
 # backend.
 MONGODB_CONFIG:

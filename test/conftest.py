@@ -19,15 +19,14 @@ if config.CACHING_BACKEND == constants.DATABASE:
     db.collection = db.database.test
 
 # Backup location for the existing joblib cache directory.
-BACKUP_CACHE_DIR = config.PERSISTENT_CACHE_DIRECTORY + '.BACKUP'
-
+BACKUP_CACHE_DIR = config.FS_CACHE_DIRECTORY + '.BACKUP'
 
 
 def _flush_joblib_cache():
     # Remove the old joblib cache directory.
-    shutil.rmtree(config.PERSISTENT_CACHE_DIRECTORY)
+    shutil.rmtree(config.FS_CACHE_DIRECTORY)
     # Make a new, empty one.
-    os.mkdir(config.PERSISTENT_CACHE_DIRECTORY)
+    os.mkdir(config.FS_CACHE_DIRECTORY)
 
 
 def _flush_database_cache():
@@ -56,22 +55,21 @@ def restore_fs_cache(request):
     if config.CACHING_BACKEND == constants.FILESYSTEM:
         if os.path.exists(BACKUP_CACHE_DIR):
             raise Exception("You must move the backup of the filesystem cache "
-                            "at " + BACKUP_CACHE_DIR + " before running the test "
-                            "suite.")
-        shutil.move(config.PERSISTENT_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
-        os.mkdir(config.PERSISTENT_CACHE_DIRECTORY)
+                            "at " + BACKUP_CACHE_DIR + " before running the "
+                            "test suite.")
+        shutil.move(config.FS_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
+        os.mkdir(config.FS_CACHE_DIRECTORY)
 
     def fin():
         if config.CACHING_BACKEND == constants.FILESYSTEM:
             # Remove the tests' joblib cache directory.
-            shutil.rmtree(config.PERSISTENT_CACHE_DIRECTORY)
+            shutil.rmtree(config.FS_CACHE_DIRECTORY)
             # Restore the old joblib cache.
             shutil.move(BACKUP_CACHE_DIR,
-                        config.PERSISTENT_CACHE_DIRECTORY)
+                        config.FS_CACHE_DIRECTORY)
 
     # Restore the cache after the last test with this fixture has run
     request.addfinalizer(fin)
-
 
 
 # Test fixtures from example networks
