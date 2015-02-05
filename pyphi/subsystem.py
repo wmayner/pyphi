@@ -32,8 +32,10 @@ class Subsystem:
         size (int): The number of nodes in the subsystem.
         network (Network): The network the subsystem belongs to.
         cut (Cut): The cut that has been applied to this subsystem.
-        connectivity_matrix (np.array): The connectivity matrix after applying the cut
-        perturb_vector (np.array): The vector of perturbation probabilities for each node
+        connectivity_matrix (np.array): The connectivity matrix after applying
+            the cut.
+        perturb_vector (np.array): The vector of perturbation probabilities for
+            each node.
         null_cut (Cut): The cut object representing no cut.
         past_tpm (np.array): The TPM conditioned on the past state of the
             external nodes (nodes outside the subsystem).
@@ -284,7 +286,8 @@ class Subsystem:
             # Marginalize-out non-mechanism purview inputs.
             non_mechanism_inputs = inputs - set(mechanism)
             for node in non_mechanism_inputs:
-                tpm = utils.marginalize_out(node.index, tpm, self.perturb_vector[node.index])
+                tpm = utils.marginalize_out(node.index, tpm,
+                                            self.perturb_vector[node.index])
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution by taking the product (with singleton
             # broadcasting).
@@ -353,19 +356,24 @@ class Subsystem:
         """
         return self._unconstrained_repertoire(DIRECTIONS[FUTURE], purview)
 
-    def expand_repertoire(self, direction, purview, repertoire, new_purview=None):
+    def expand_repertoire(self, direction, purview, repertoire,
+                          new_purview=None):
         """Return the unconstrained cause or effect repertoire based on a
         direction."""
         validate.direction(direction)
         # If not specified, the new purview is the entire network
-        if (new_purview==None):
+        if (new_purview is None):
             new_purview = self.nodes
-        elif not (set([node.index for node in purview]).issubset([node.index for node in new_purview])):
+        elif not (set([node.index for node in purview])
+                  .issubset([node.index for node in new_purview])):
             raise ValueError("Expanded purview must contain original purview.")
         # Get the unconstrained repertoire over the other nodes in the network.
-        non_purview_nodes = tuple(frozenset([node.index for node in new_purview]) -
-                                  frozenset([node.index for node in purview]))
-        uc = self._unconstrained_repertoire(direction, self.indices2nodes(non_purview_nodes))
+        non_purview_nodes = tuple(
+            frozenset([node.index for node in new_purview]) -
+            frozenset([node.index for node in purview])
+        )
+        uc = self._unconstrained_repertoire(
+            direction, self.indices2nodes(non_purview_nodes))
         # Multiply the given repertoire by the unconstrained one to get a
         # distribution over all the nodes in the network.
         expanded_repertoire = repertoire * uc
@@ -378,12 +386,14 @@ class Subsystem:
     def expand_cause_repertoire(self, purview, repertoire, new_purview=None):
         """Expand a partial cause repertoire over a purview to a distribution
         over the entire subsystem's state space."""
-        return self.expand_repertoire(DIRECTIONS[PAST], purview, repertoire, new_purview)
+        return self.expand_repertoire(DIRECTIONS[PAST], purview, repertoire,
+                                      new_purview)
 
     def expand_effect_repertoire(self, purview, repertoire, new_purview=None):
         """Expand a partial effect repertoire over a purview to a distribution
         over the entire subsystem's state space."""
-        return self.expand_repertoire(DIRECTIONS[FUTURE], purview, repertoire, new_purview)
+        return self.expand_repertoire(DIRECTIONS[FUTURE], purview, repertoire,
+                                      new_purview)
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
