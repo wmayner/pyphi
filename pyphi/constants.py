@@ -29,4 +29,4 @@ PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL
 # Create the joblib Memory object for persistent caching without a
 # database.
 joblib_memory = joblib.Memory(cachedir=config.PERSISTENT_CACHE_DIRECTORY,
-                              verbose=1)
+                              verbose=0)

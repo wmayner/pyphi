@@ -363,8 +363,9 @@ class Subsystem:
         elif not (set([node.index for node in purview]).issubset([node.index for node in new_purview])):
             raise ValueError("Expanded purview must contain original purview.")
         # Get the unconstrained repertoire over the other nodes in the network.
-        non_purview_nodes = tuple(frozenset(new_purview) - frozenset(purview))
-        uc = self._unconstrained_repertoire(direction, non_purview_nodes)
+        non_purview_nodes = tuple(frozenset([node.index for node in new_purview]) -
+                                  frozenset([node.index for node in purview]))
+        uc = self._unconstrained_repertoire(direction, self.indices2nodes(non_purview_nodes))
         # Multiply the given repertoire by the unconstrained one to get a
         # distribution over all the nodes in the network.
         expanded_repertoire = repertoire * uc
