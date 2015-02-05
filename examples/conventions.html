@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Conventions &mdash; v0.3.0 documentation</title>
+  <title>Conventions &mdash; v0.3.2 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.3.0 documentation" href="../index.html"/>
+    <link rel="top" title="v0.3.2 documentation" href="../index.html"/>
         <link rel="up" title="Usage and Examples" href="index.html"/>
         <link rel="next" title="Configuration" href="../configuration.html"/>
         <link rel="prev" title="Conditional Independence Example" href="conditional_independence.html"/> 
@@ -49,7 +49,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.0</a>
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.2</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -73,11 +73,12 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resource-configuration">System resource configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching-system-configuration">Caching system configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging-configuration">Logging configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-configuration">Theoretical configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-configuration">Numerical configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resources">System resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching">Caching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#network-state-validation">Network state validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-concerns">Theoretical concerns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-precision">Numerical precision</a></li>
 </ul>
 </li>
 </ul>
@@ -108,7 +109,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.3.0</a>
+        <a href="../index.html">PyPhi v0.3.2</a>
       </nav>
 
 
@@ -134,6 +135,11 @@
             
   <div class="section" id="conventions">
 <h1>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="connectivity-matrices">
+<h2>Connectivity Matrices<a class="headerlink" href="#connectivity-matrices" title="Permalink to this headline">¶</a></h2>
+<p>Throughout PyPhi, if <tt class="docutils literal"><span class="pre">CM</span></tt> is a connectivity matrix, then <span class="math">\(CM_{i,j} = 1\)</span> means
+that node <span class="math">\(i\)</span> is connected to node <span class="math">\(j\)</span>.</p>
+</div>
 <div class="section" id="tpms">
 <h2>TPMs<a class="headerlink" href="#tpms" title="Permalink to this headline">¶</a></h2>
 <p>There are several ways to write down a TPM. With both state-by-state and
@@ -241,11 +247,6 @@ TPMs, states, and indices using different conventions: see the
 <a class="reference internal" href="../api/convert.html#module-pyphi.convert" title="pyphi.convert"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.convert</span></tt></a> module.</p>
 </div>
 </div>
-<div class="section" id="connectivity-matrices">
-<h2>Connectivity Matrices<a class="headerlink" href="#connectivity-matrices" title="Permalink to this headline">¶</a></h2>
-<p>Throughout PyPhi, if <tt class="docutils literal"><span class="pre">CM</span></tt> is a connectivity matrix, then <span class="math">\(CM_{i,j} = 1\)</span> means
-that node <span class="math">\(i\)</span> is connected to node <span class="math">\(j\)</span>.</p>
-</div>
 </div>
 
 
@@ -267,7 +268,7 @@ that node <span class="math">\(i\)</span> is connected to node <span class="math
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Jan 20, 2015.
+      Last updated on Feb 05, 2015.
     </p>
   </div>
 
@@ -287,7 +288,7 @@ that node <span class="math">\(i\)</span> is connected to node <span class="math
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.3.0',
+            VERSION:'v0.3.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
