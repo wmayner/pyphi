@@ -16,7 +16,7 @@ state-by-node TPMs, one is confronted with a choice about which rows correspond
 to which states. In state-by-state TPMs, this choice must also be made for the
 columns.
 
-Either the first node changes state every other row:
+Either the first node changes state every other row (**LOLI**):
 
     +------+-----+-----+
     | A, B |  A  |  B  |
@@ -30,7 +30,7 @@ Either the first node changes state every other row:
     | 1, 1 | 0.7 | 0.8 |
     +------+-----+-----+
 
-Or the last node does:
+Or the last node does (**HOLI**):
 
     +------+-----+-----+
     | A, B |  A  |  B  |
