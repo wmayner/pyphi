@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Conventions &mdash; v0.3.2 documentation</title>
+  <title>Conventions &mdash; v0.3.3 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.3.2 documentation" href="../index.html"/>
+    <link rel="top" title="v0.3.3 documentation" href="../index.html"/>
         <link rel="up" title="Usage and Examples" href="index.html"/>
         <link rel="next" title="Configuration" href="../configuration.html"/>
         <link rel="prev" title="Conditional Independence Example" href="conditional_independence.html"/> 
@@ -49,7 +49,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.2</a>
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.3</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -109,7 +109,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.3.2</a>
+        <a href="../index.html">PyPhi v0.3.3</a>
       </nav>
 
 
@@ -140,8 +140,8 @@
 <p>Throughout PyPhi, if <tt class="docutils literal"><span class="pre">CM</span></tt> is a connectivity matrix, then <span class="math">\(CM_{i,j} = 1\)</span> means
 that node <span class="math">\(i\)</span> is connected to node <span class="math">\(j\)</span>.</p>
 </div>
-<div class="section" id="tpms">
-<h2>TPMs<a class="headerlink" href="#tpms" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="loli-low-order-bits-correspond-to-low-index-nodes">
+<h2>LOLI: Low-Order bits correspond to Low-Index nodes<a class="headerlink" href="#loli-low-order-bits-correspond-to-low-index-nodes" title="Permalink to this headline">¶</a></h2>
 <p>There are several ways to write down a TPM. With both state-by-state and
 state-by-node TPMs, one is confronted with a choice about which rows correspond
 to which states. In state-by-state TPMs, this choice must also be made for the
@@ -217,12 +217,9 @@ columns.</p>
 <p>Note that the index <span class="math">\(i\)</span> of a row in a TPM encodes a network state: convert the
 index to binary, and each bit gives the state of a node. The question is, which
 node?</p>
-<p><strong>Throughout PyPhi, we always choose the first convention—the first node&#8217;s
-state varies the fastest.</strong></p>
-<p>Since numbers are written with the least-significant digit on the right, the
-right-most digit varies the fastest. This means that according to our
-convention, <strong>the right-most (least-significant) bit gives the state of the
-first node</strong>.</p>
+<p><strong>Throughout PyPhi, we always choose the first convention—the state of the
+first node (the one with the lowest index) varies the fastest.</strong> So, the
+lowest-order bit—the one&#8217;s place—gives the state of the lowest-index node.</p>
 <p>We call this convention the <strong>LOLI convention</strong>: Low Order bits correspond to
 Low Index nodes. The other convention, where the highest-index node varies the
 fastest, is similarly called <strong>HOLI</strong>.</p>
@@ -235,10 +232,9 @@ have this property.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This obviously applies to only situations where decimal indices are
-encoding states. Whenever a network state is represented as a list or
-tuple, we use the only sensible convention: the <span class="math">\(i^{\textrm{th}}\)</span> element gives the
-state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</p>
+<p class="last">This applies to only situations where decimal indices are encoding states.
+Whenever a network state is represented as a list or tuple, we use the only
+sensible convention: the <span class="math">\(i^{\textrm{th}}\)</span> element gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -268,7 +264,7 @@ TPMs, states, and indices using different conventions: see the
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 05, 2015.
+      Last updated on Feb 10, 2015.
     </p>
   </div>
 
@@ -288,7 +284,7 @@ TPMs, states, and indices using different conventions: see the
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.3.2',
+            VERSION:'v0.3.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
