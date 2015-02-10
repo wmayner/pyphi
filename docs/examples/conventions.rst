@@ -8,8 +8,8 @@ Throughout PyPhi, if ``CM`` is a connectivity matrix, then |CM[i][j] = 1| means
 that node |i| is connected to node |j|.
 
 
-TPMs
-~~~~
+LOLI: Low-Order bits correspond to Low-Index nodes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are several ways to write down a TPM. With both state-by-state and
 state-by-node TPMs, one is confronted with a choice about which rows correspond
@@ -48,13 +48,9 @@ Note that the index |i| of a row in a TPM encodes a network state: convert the
 index to binary, and each bit gives the state of a node. The question is, which
 node?
 
-**Throughout PyPhi, we always choose the first convention—the first node's
-state varies the fastest.**
-
-Since numbers are written with the least-significant digit on the right, the
-right-most digit varies the fastest. This means that according to our
-convention, **the right-most (least-significant) bit gives the state of the
-first node**.
+**Throughout PyPhi, we always choose the first convention—the state of the
+first node (the one with the lowest index) varies the fastest.** So, the
+lowest-order bit—the one's place—gives the state of the lowest-index node.
 
 We call this convention the **LOLI convention**: Low Order bits correspond to
 Low Index nodes. The other convention, where the highest-index node varies the
@@ -69,10 +65,9 @@ fastest, is similarly called **HOLI**.
 
 .. note::
 
-    This obviously applies to only situations where decimal indices are
-    encoding states. Whenever a network state is represented as a list or
-    tuple, we use the only sensible convention: the |ith| element gives the
-    state of the |ith| node.
+    This applies to only situations where decimal indices are encoding states.
+    Whenever a network state is represented as a list or tuple, we use the only
+    sensible convention: the |ith| element gives the state of the |ith| node.
 
 .. note::
 
