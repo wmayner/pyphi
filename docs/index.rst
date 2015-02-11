@@ -3,9 +3,6 @@ PyPhi
 
 PyPhi is a Python library for computing integrated information.
 
-See the documentation for :mod:`pyphi.examples` for information on how to use
-it.
-
 To report issues, please use the issue tracker on the `GitHub repository
 <https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
 welcome.
