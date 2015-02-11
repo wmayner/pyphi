@@ -19,7 +19,6 @@ from .concept_caching import concept as _concept
 from .models import Concept, Cut, BigMip
 from .network import Network
 from .subsystem import Subsystem
-from .lru_cache import lru_cache
 
 
 # Create a logger for this module.
@@ -85,7 +84,6 @@ def constellation(subsystem):
     return tuple(filter(None, concepts))
 
 
-@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
@@ -155,7 +153,6 @@ def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)
 
 
-@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def constellation_distance(C1, C2, subsystem):
     """Return the distance between two constellations in concept-space.
 
@@ -341,13 +338,11 @@ def big_mip(subsystem):
     return _big_mip(hash(subsystem), subsystem)
 
 
-@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def big_phi(subsystem):
     """Return the |big_phi| value of a subsystem."""
     return big_mip(subsystem).phi
 
 
-@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def main_complex(network):
     """Return the main complex of the network."""
     if not isinstance(network, Network):
