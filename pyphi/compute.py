@@ -307,7 +307,7 @@ def _big_mip(cache_key, subsystem, method=0):
     else:
         # Sequentially loop over all partitions, holding only two BigMips in
         # memory at once.
-        min_phi, min_mip = float('inf'), _null_mip(subsystem, method)
+        min_phi, min_mip = float('inf'), _null_mip(subsystem)
         for i, partition in enumerate(bipartitions):
             new_mip = _evaluate_partition(
                 subsystem, partition, unpartitioned_constellation, method)
