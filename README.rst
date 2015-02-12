@@ -1,5 +1,5 @@
 .. image:: https://zenodo.org/badge/4651/wmayner/pyphi.png
-    :target: http://dx.doi.org/10.5281/zenodo.12194
+    :target: http://dx.doi.org/10.5281/zenodo.15038
     :alt: Zenodo DOI
 
 .. image:: https://travis-ci.org/wmayner/pyphi.svg?branch=develop
