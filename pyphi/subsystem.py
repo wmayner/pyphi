@@ -233,7 +233,7 @@ def _test_connections(self, axis, nodes1, nodes2):
     # Get the connectivity matrix representing the connections from the
     # first node list to the second.
     submatrix_indices = np.ix_([node.index for node in nodes1],
-                                [node.index for node in nodes2])
+                               [node.index for node in nodes2])
     cm = cm[submatrix_indices]
     # Check that all nodes have at least one connection by summing over
     # rows of connectivity submatrix.
@@ -305,18 +305,24 @@ class Subsystem:
         # in the event that a cut doesn't effect them.
         self._mice_cache = mice_cache
 
-        # Make LRU-cached functions cache per-instance, rather than using a
-        # global, class-wide cache for every instance.
+        # A general-purpose cache.
+        self._cache = {}
+
+        # Use the general-purpose cache for cause and effect repertoire
+        # calculations, and for testing connections.
         self.cause_repertoire = types.MethodType(
-            lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            lru_cache(self._cache,
+                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 cause_repertoire),
             self)
         self.effect_repertoire = types.MethodType(
-            lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            lru_cache(self._cache,
+                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 effect_repertoire),
             self)
         self._test_connections = types.MethodType(
-            lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            lru_cache(self._cache,
+                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 _test_connections),
             self)
 
@@ -329,15 +335,18 @@ class Subsystem:
 
     def __setstate__(self, d):
         d['cause_repertoire'] = types.MethodType(
-            lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            lru_cache(cache=d['_cache'],
+                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 cause_repertoire),
             self)
         d['effect_repertoire'] = types.MethodType(
-            lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            lru_cache(cache=d['_cache'],
+                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 effect_repertoire),
             self)
         d['_test_connections'] = types.MethodType(
-            lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            lru_cache(cache=d['_cache'],
+                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 _test_connections),
             self)
         self.__dict__ = d

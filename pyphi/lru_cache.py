@@ -62,7 +62,7 @@ def _make_key(args, kwds, typed,
         return key[0]
     return _HashedSeq(key)
 
-def lru_cache(maxsize=128, typed=False, maxmem=False):
+def lru_cache(cache={}, maxsize=128, typed=False, maxmem=False):
     """Least-recently-used cache decorator.
 
     *maxmem* is an integer in range(1, 101) specifying the maximum percentage
@@ -103,7 +103,6 @@ def lru_cache(maxsize=128, typed=False, maxmem=False):
     PREV, NEXT, KEY, RESULT = 0, 1, 2, 3   # names for the link fields
 
     def decorating_function(user_function):
-        cache = {}
         hits = misses = 0
         full = False
         cache_get = cache.get    # bound method to lookup a key or return None
