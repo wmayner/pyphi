@@ -8,6 +8,7 @@ external use.
 """
 
 import re
+import logging
 import hashlib
 import numpy as np
 from itertools import chain, combinations
@@ -16,6 +17,10 @@ from scipy.spatial.distance import cdist
 from pyemd import emd
 from .lru_cache import lru_cache
 from . import constants, config
+
+
+# Create a logger for this module.
+log = logging.getLogger(__name__)
 
 
 def condition_tpm(tpm, fixed_nodes, state):
@@ -324,9 +329,15 @@ def bipartition_indices(N):
 # =============================================================================
 
 
-# TODO cache this persistently; it's exponential
+# Load precomputed hamming matrices.
+import os
+_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+_NUM_PRECOMPUTED_HAMMING_MATRICES = 10
+_hamming_matrices = [
+    np.load(os.path.join(_ROOT, 'data', 'hamming_matrices', str(i) + '.npy'))
+    for i in range( _NUM_PRECOMPUTED_HAMMING_MATRICES)
+]
 # TODO extend to nonbinary nodes
-@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of |N|
     binary nodes.
@@ -346,9 +357,23 @@ def _hamming_matrix(N):
                [ 1.,  2.,  0.,  1.],
                [ 2.,  1.,  1.,  0.]])
     """
-    possible_states = np.array([list(bin(state)[2:].zfill(N)) for state in
-                                range(2 ** N)])
-    return cdist(possible_states, possible_states, 'hamming') * N
+    if N < 10:
+        return _hamming_matrices[N]
+    else:
+        log.warn(
+            "Hamming matrices for more than {} nodes have not been "
+            "precomputed. This will make EMD calculations less inefficient; "
+            "calculating hamming matrices is an exponential-time procedure. "
+            "Consider pre-computing the hamming matrices up to the desired "
+            "number of nodes with the ``pyphi.utils._hamming_matrix`` "
+            "function and saving them to the 'data' directory in the "
+            "directory where PyPhi was installed (you can find this directory "
+            "by typing ``import pyphi; pyphi;`` into a Python interperter)."
+            .format(_NUM_PRECOMPUTED_HAMMING_MATRICES - 1)
+        )
+        possible_states = np.array([list(bin(state)[2:].zfill(N)) for state in
+                                    range(2 ** N)])
+        return cdist(possible_states, possible_states, 'hamming') * N
 
 
 # TODO? implement this
