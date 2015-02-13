@@ -139,7 +139,7 @@ def effect_repertoire(self, mechanism, purview):
     # TODO extend to nonbinary nodes
     accumulated_cjd = np.ones(
         [1] * self.network.size + [2 if i in purview_indices else
-                                    1 for i in self.network.node_indices])
+                                   1 for i in self.network.node_indices])
     # Loop over all nodes in the purview, successively taking the product
     # (with 'expansion'/'broadcasting' of singleton dimensions) of each
     # individual node's TPM in order to get the joint distribution for the
