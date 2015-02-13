@@ -217,7 +217,7 @@ def _single_node_mip(subsystem):
 
 def _evaluate_partition(uncut_subsystem, partition,
                         unpartitioned_constellation):
-    log.info("    Evaluating partition " + str(partition) + "...")
+    log.debug("    Evaluating partition " + str(partition) + "...")
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
     forward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
@@ -252,7 +252,7 @@ def _evaluate_partition(uncut_subsystem, partition,
         subsystem=uncut_subsystem,
         cut_subsystem=backward_cut_subsystem)
 
-    log.info("    Finished evaluating partition " + str(partition) + ".")
+    log.debug("    Finished evaluating partition " + str(partition) + ".")
     # Choose minimal unidirectional cut.
     return min(forward_mip, backward_mip)
 
@@ -288,9 +288,9 @@ def _big_mip(cache_key, subsystem):
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = utils.bipartition(subsystem.node_indices)[1:]
 
-    log.info("    Finding unpartitioned constellation...")
+    log.debug("    Finding unpartitioned constellation...")
     unpartitioned_constellation = constellation(subsystem)
-    log.info("    Found unpartitioned constellation.")
+    log.debug("    Found unpartitioned constellation.")
 
     if config.PARALLEL_CUT_EVALUATION:
         # Parallel loop over all partitions, using the specified number of
