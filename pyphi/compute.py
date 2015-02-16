@@ -314,7 +314,7 @@ def _big_mip(cache_key, subsystem):
                 min_phi, min_mip = new_mip.phi, new_mip
         result = min_mip
 
-    log.info("Finished calculating Phi data for" + str(subsystem) + ".")
+    log.info("Finished calculating Phi data for " + str(subsystem) + ".")
     log.debug("RESULT: \n" + str(result))
 
     return result
