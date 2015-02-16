@@ -308,7 +308,7 @@ def _big_mip(cache_key, subsystem):
         for i, partition in enumerate(bipartitions):
             new_mip = _evaluate_partition(
                 subsystem, partition, unpartitioned_constellation)
-            log.info("Finished {} of {} partitions.".format(
+            log.debug("Finished {} of {} partitions.".format(
                 i + 1, len(bipartitions)))
             if new_mip.phi < min_phi:
                 min_phi, min_mip = new_mip.phi, new_mip
