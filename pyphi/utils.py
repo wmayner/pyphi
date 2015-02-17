@@ -331,7 +331,7 @@ def bipartition_indices(N):
 
 # Load precomputed hamming matrices.
 import os
-_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+_ROOT = os.path.abspath(os.path.dirname(__file__))
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
 _hamming_matrices = [
     np.load(os.path.join(_ROOT, 'data', 'hamming_matrices', str(i) + '.npy'))
