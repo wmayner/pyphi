@@ -304,24 +304,27 @@ class Subsystem:
         # A cache for keeping core causes and effects that can be reused later
         # in the event that a cut doesn't effect them.
         self._mice_cache = mice_cache
-
-        # A general-purpose cache.
-        self._cache = {}
+        # Cause repertoire cache.
+        self._cr_cache = {}
+        # Effect repertoire cache.
+        self._er_cache = {}
+        # Test connections cache.
+        self._test_conn_cache = {}
 
         # Use the general-purpose cache for cause and effect repertoire
         # calculations, and for testing connections.
         self.cause_repertoire = types.MethodType(
-            lru_cache(self._cache,
+            lru_cache(cache=self._cr_cache,
                       maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 cause_repertoire),
             self)
         self.effect_repertoire = types.MethodType(
-            lru_cache(self._cache,
+            lru_cache(cache=self._er_cache,
                       maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 effect_repertoire),
             self)
         self._test_connections = types.MethodType(
-            lru_cache(self._cache,
+            lru_cache(cache=self._test_conn_cache,
                       maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 _test_connections),
             self)
@@ -335,17 +338,17 @@ class Subsystem:
 
     def __setstate__(self, d):
         d['cause_repertoire'] = types.MethodType(
-            lru_cache(cache=d['_cache'],
+            lru_cache(cache=d['_cr_cache'],
                       maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 cause_repertoire),
             self)
         d['effect_repertoire'] = types.MethodType(
-            lru_cache(cache=d['_cache'],
+            lru_cache(cache=d['_er_cache'],
                       maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 effect_repertoire),
             self)
         d['_test_connections'] = types.MethodType(
-            lru_cache(cache=d['_cache'],
+            lru_cache(cache=d['_test_conn_cache'],
                       maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
                 _test_connections),
             self)
