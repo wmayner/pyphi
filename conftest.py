@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+import os
 
 
 collect_ignore = [
@@ -9,8 +10,8 @@ collect_ignore = [
     ".pythonrc.py"
 ]
 # Also ignore everything that git ignores.
-collect_ignore += list(filter(None, open('.gitignore').read().split('\n')))
-print(collect_ignore)
+git_ignore = os.path.join(os.path.dirname(__file__), '.gitignore')
+collect_ignore += list(filter(None, open(git_ignore).read().split('\n')))
 
 # Run slow tests separately with command-line option, filter tests
 # ================================================================
