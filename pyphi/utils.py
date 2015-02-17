@@ -219,7 +219,7 @@ def marginalize_out(index, tpm, perturb_value=0.5):
                            [1] + [i for i in tpm.shape[index:]])
 
 
-# TODO memoize this
+@lru_cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def max_entropy_distribution(node_indices, number_of_nodes,
                              perturb_vector=None):
     """
@@ -295,7 +295,7 @@ def bipartition(a):
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
 
-@lru_cache(maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+@lru_cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.
 
