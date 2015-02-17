@@ -10,7 +10,7 @@ PARALLEL_CUT_EVALUATION: true
 # available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
 # The verbosity of parallel computation (integer from 0 to 100).
-PARALLEL_VERBOSITY: 20
+PARALLEL_VERBOSITY: 0
 # Controls whether concepts are cached. Note that concept caching is only
 # available if the caching backend is a database; otherwise, this setting has
 # no effect, and concepts will not be cached.

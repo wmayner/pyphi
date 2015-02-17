@@ -217,7 +217,7 @@ def _single_node_mip(subsystem):
 
 def _evaluate_partition(uncut_subsystem, partition,
                         unpartitioned_constellation):
-    log.info("    Evaluating partition " + str(partition) + "...")
+    log.debug("Evaluating partition {}...".format(partition))
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
     forward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
@@ -252,7 +252,7 @@ def _evaluate_partition(uncut_subsystem, partition,
         subsystem=uncut_subsystem,
         cut_subsystem=backward_cut_subsystem)
 
-    log.info("    Finished evaluating partition " + str(partition) + ".")
+    log.debug("Finished evaluating partition {}.".format(partition))
     # Choose minimal unidirectional cut.
     return min(forward_mip, backward_mip)
 
@@ -260,7 +260,7 @@ def _evaluate_partition(uncut_subsystem, partition,
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
-    log.info("Calculating Phi data for " + str(subsystem) + "...")
+    log.info("Calculating big-phi data for {}...".format(subsystem))
 
     # Special case for single-node subsystems.
     if len(subsystem) == 1:
@@ -274,6 +274,8 @@ def _big_mip(cache_key, subsystem):
     #   - an elementary mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null MIP.
     if not subsystem:
+        log.info('Subsystem {} is empty; returning null MIP '
+                 'immediately.'.format(subsystem))
         return _null_mip(subsystem)
     # Get the connectivity of just the subsystem nodes.
     submatrix_indices = np.ix_(subsystem.node_indices, subsystem.node_indices)
@@ -282,15 +284,17 @@ def _big_mip(cache_key, subsystem):
     num_components, _ = connected_components(csr_matrix(cm),
                                              connection='strong')
     if num_components > 1:
+        log.info('{} is not strongly connected; returning null MIP '
+                 'immediately.'.format(subsystem))
         return _null_mip(subsystem)
     # =========================================================================
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
     bipartitions = utils.bipartition(subsystem.node_indices)[1:]
 
-    log.info("    Finding unpartitioned constellation...")
+    log.debug("Finding unpartitioned constellation...")
     unpartitioned_constellation = constellation(subsystem)
-    log.info("    Found unpartitioned constellation.")
+    log.debug("Found unpartitioned constellation.")
 
     if config.PARALLEL_CUT_EVALUATION:
         # Parallel loop over all partitions, using the specified number of
@@ -308,13 +312,13 @@ def _big_mip(cache_key, subsystem):
         for i, partition in enumerate(bipartitions):
             new_mip = _evaluate_partition(
                 subsystem, partition, unpartitioned_constellation)
-            log.info("        [" + str(i + 1) + " of " + str(len(bipartitions))
-                     + "]")
+            log.debug("Finished {} of {} partitions.".format(
+                i + 1, len(bipartitions)))
             if new_mip.phi < min_phi:
                 min_phi, min_mip = new_mip.phi, new_mip
         result = min_mip
 
-    log.info("Finished calculating Phi data for" + str(subsystem) + ".")
+    log.info("Finished calculating big-phi data for {}.".format(subsystem))
     log.debug("RESULT: \n" + str(result))
 
     return result

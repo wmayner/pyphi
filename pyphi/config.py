@@ -154,7 +154,7 @@ file, both, or none. See the `documentation on Python's logger
   verbosity, an integer from 0 to 100.
 
     >>> pyphi.config.PARALLEL_VERBOSITY
-    20
+    0
 
 
 Network state validation
