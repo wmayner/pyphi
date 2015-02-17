@@ -53,7 +53,7 @@ def cause_repertoire(self, mechanism, purview):
     max_entropy_dist = utils.max_entropy_distribution(
         purview_indices,
         self.network.size,
-        [self.perturb_vector[i] for i in purview_indices])
+        tuple(self.perturb_vector[i] for i in purview_indices))
     if not mechanism:
         return max_entropy_dist
     # Preallocate the mechanism's conditional joint distribution.
