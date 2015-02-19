@@ -264,6 +264,8 @@ def _big_mip(cache_key, subsystem):
 
     # Special case for single-node subsystems.
     if len(subsystem) == 1:
+        log.info('Single-node {}; returning the hard-coded single-node MIP '
+                 'immediately.'.format(subsystem))
         return _single_node_mip(subsystem)
 
     # Check for degenerate cases
