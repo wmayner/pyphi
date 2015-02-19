@@ -290,6 +290,8 @@ def _big_mip(cache_key, subsystem):
     # =========================================================================
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
+    # TODO!!! see if we can check if any of these cuts will actually do
+    # anything before evaluating them
     bipartitions = utils.bipartition(subsystem.node_indices)[1:]
 
     log.debug("Finding unpartitioned constellation...")
@@ -316,6 +318,9 @@ def _big_mip(cache_key, subsystem):
                 i + 1, len(bipartitions)))
             if new_mip.phi < min_phi:
                 min_phi, min_mip = new_mip.phi, new_mip
+            # Stop as soon as we find a MIP with effectively 0 phi.
+            if min_phi < constants.EPSILON:
+                break
         result = min_mip
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
