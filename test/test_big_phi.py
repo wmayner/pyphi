@@ -156,7 +156,7 @@ micro_answer = {
         (0, 1): 0.34811,
         (2, 3): 0.34811,
     },
-    'cut': models.Cut(severed=(1, 3), intact=(0, 2))
+    'cut': models.Cut(severed=(0, 2), intact=(1, 3))
 }
 
 
@@ -423,10 +423,28 @@ def test_rule152_complexes_no_caching(rule152):
         assert main.cut == result['cut']
 
 
-def test_big_mip_micro(micro_s, flushcache, restore_fs_cache):
+def test_big_mip_micro_parallel(micro_s, flushcache, restore_fs_cache):
     flushcache()
+
+    initial = config.PARALLEL_CUT_EVALUATION
+    config.PARALLEL_CUT_EVALUATION = True
+
     mip = compute.big_mip(micro_s)
     check_mip(mip, micro_answer)
+
+    config.PARALLEL_CUT_EVALUATION = initial
+
+
+def test_big_mip_micro_sequential(micro_s, flushcache, restore_fs_cache):
+    flushcache()
+
+    initial = config.PARALLEL_CUT_EVALUATION
+    config.PARALLEL_CUT_EVALUATION = False
+
+    mip = compute.big_mip(micro_s)
+    check_mip(mip, micro_answer)
+
+    config.PARALLEL_CUT_EVALUATION = initial
 
 
 @pytest.mark.filter
@@ -435,23 +453,20 @@ def test_big_mip_macro(macro_s, flushcache, restore_fs_cache):
     mip = compute.big_mip(macro_s)
     check_mip(mip, macro_answer)
 
+
 def test_strongly_connected():
-    # A disconnected matrix
+    # A disconnected matrix.
     cm1 = np.array([[0, 0, 1],
                     [0, 1, 0],
                     [1, 0, 0]])
-    # A strongly connected matrix
+    # A strongly connected matrix.
     cm2 = np.array([[0, 1, 0],
                     [0, 0, 1],
                     [1, 0, 0]])
-    # A weakly connected matrix
+    # A weakly connected matrix.
     cm3 = np.array([[0, 1, 0],
                     [0, 0, 1],
                     [0, 1, 0]])
     assert connected_components(csr_matrix(cm1), connection='strong')[0] > 1
     assert connected_components(csr_matrix(cm2), connection='strong')[0] == 1
     assert connected_components(csr_matrix(cm3), connection='strong')[0] > 1
-
-
-
-

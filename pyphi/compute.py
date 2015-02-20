@@ -330,16 +330,17 @@ def _big_mip(cache_key, subsystem):
     else:
         # Sequentially loop over all partitions, holding only two BigMips in
         # memory at once.
-        min_phi, min_mip = float('inf'), _null_mip(subsystem)
+        min_mip = _null_mip(subsystem)
+        min_mip.phi = float('inf')
         for i, partition in enumerate(bipartitions):
             new_mip = _evaluate_partition(
                 subsystem, partition, unpartitioned_constellation)
             log.debug("Finished {} of {} partitions.".format(
                 i + 1, len(bipartitions)))
-            if new_mip.phi < min_phi:
-                min_phi, min_mip = new_mip.phi, new_mip
-            # Stop as soon as we find a MIP with effectively 0 phi.
-            if min_phi < constants.EPSILON:
+            if new_mip < min_mip:
+                min_mip = new_mip
+            # Short-circuit as soon as we find a MIP with effectively 0 phi.
+            if not min_mip:
                 break
         return time_annotated(min_mip, small_phi_time)
 

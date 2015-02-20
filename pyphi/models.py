@@ -545,7 +545,7 @@ class BigMip:
     def __bool__(self):
         """A BigMip is truthy if it is not reducible; i.e. if it has a
         significant amount of |big_phi|."""
-        return self.phi > constants.EPSILON
+        return self.phi >= constants.EPSILON
 
     def __hash__(self):
         return hash((self.phi, self.unpartitioned_constellation,
@@ -558,9 +558,7 @@ class BigMip:
     def __lt__(self, other):
         if _phi_eq(self, other):
             if len(self.subsystem) == len(other.subsystem):
-                # Compare actual Phi values up to maximum precision, for
-                # more determinism in things like max and min
-                return self.phi < other.phi
+                return False
             else:
                 return len(self.subsystem) < len(other.subsystem)
         else:
@@ -569,9 +567,7 @@ class BigMip:
     def __gt__(self, other):
         if _phi_eq(self, other):
             if len(self.subsystem) == len(other.subsystem):
-                # Compare actual Phi values up to maximum precision, for
-                # more determinism in things like max and min
-                return self.phi > other.phi
+                return False
             else:
                 return len(self.subsystem) > len(other.subsystem)
         else:
