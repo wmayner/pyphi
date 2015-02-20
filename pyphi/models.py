@@ -136,6 +136,8 @@ def _numpy_aware_eq(a, b):
         return np.array_equal(a, b)
     if ((isinstance(a, Iterable) and isinstance(b, Iterable))
             and not isinstance(a, str) and not isinstance(b, str)):
+        if len(a) != len(b):
+            return False
         return all(_numpy_aware_eq(x, y) for x, y in zip(a, b))
     return a == b
 
