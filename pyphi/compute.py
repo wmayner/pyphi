@@ -11,7 +11,7 @@ import logging
 import functools
 from time import time
 import numpy as np
-from joblib import Parallel, delayed
+import multiprocessing
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
@@ -264,6 +264,15 @@ def _evaluate_partition(uncut_subsystem, partition,
     # Choose minimal unidirectional cut.
     return min(forward_mip, backward_mip)
 
+# Wrapper for _evaluate_partition for parallel processing
+def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
+    while True:
+        partition = in_queue.get()
+        if partition == None:
+            break
+        new_mip = _evaluate_partition(subsystem, partition, unpartitioned_constellation)
+        out_queue.put(new_mip)
+    out_queue.put(None)
 
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
@@ -317,21 +326,50 @@ def _big_mip(cache_key, subsystem):
     unpartitioned_constellation = constellation(subsystem)
     small_phi_time = time() - small_phi_start
     log.debug("Found unpartitioned constellation.")
-
+    min_mip = _null_mip(subsystem)
+    min_mip.phi = float('inf')
     if config.PARALLEL_CUT_EVALUATION:
         # Parallel loop over all partitions, using the specified number of
         # cores.
-        mip_candidates = Parallel(n_jobs=(config.NUMBER_OF_CORES),
-                                  verbose=config.PARALLEL_VERBOSITY)(
-            delayed(_evaluate_partition)(subsystem, partition,
-                                         unpartitioned_constellation)
-            for partition in bipartitions)
-        return time_annotated(min(mip_candidates), small_phi_time)
+        in_queue = multiprocessing.Queue()
+        out_queue = multiprocessing.Queue()
+        if config.NUMBER_OF_CORES < 0:
+            number_of_processes = multiprocessing.cpu_count()+config.NUMBER_OF_CORES+1
+        elif config.NUMBER_OF_CORES <= multiprocessing.cpu_count():
+            number_of_processes = config.NUMBER_OF_CORES
+        else:
+            raise ValueError(
+                'Invalid number of cores, value may not be 0, and must be less'
+                'than the number of cores ({} for this '
+                'system).'.format(multiprocessing.cpu_count()))
+        processes = [multiprocessing.Process(target = _eval_wrapper,
+                                             args = (in_queue, out_queue, subsystem,
+                                                     unpartitioned_constellation))
+                     for i in range(number_of_processes)]
+        for partition in bipartitions:
+            in_queue.put(partition)
+        for i in range(number_of_processes):
+            in_queue.put(None)
+        for i in range(number_of_processes):
+            processes[i].start()
+        while True:
+            new_mip = out_queue.get()
+            if new_mip == None:
+                number_of_processes -= 1
+                if number_of_processes == 0:
+                    break
+            elif utils.phi_eq(new_mip.phi, 0):
+                min_mip = new_mip
+                for process in processes:
+                    process.terminate()
+                break
+            else:
+                if (new_mip < min_mip):
+                    min_mip = new_mip
+        result = time_annotated(min_mip, small_phi_time)
     else:
         # Sequentially loop over all partitions, holding only two BigMips in
         # memory at once.
-        min_mip = _null_mip(subsystem)
-        min_mip.phi = float('inf')
         for i, partition in enumerate(bipartitions):
             new_mip = _evaluate_partition(
                 subsystem, partition, unpartitioned_constellation)
@@ -342,7 +380,7 @@ def _big_mip(cache_key, subsystem):
             # Short-circuit as soon as we find a MIP with effectively 0 phi.
             if not min_mip:
                 break
-        return time_annotated(min_mip, small_phi_time)
+        result = time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
     log.debug("RESULT: \n" + str(result))
