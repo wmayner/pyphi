@@ -558,9 +558,7 @@ class BigMip:
     def __lt__(self, other):
         if _phi_eq(self, other):
             if len(self.subsystem) == len(other.subsystem):
-                # Compare actual Phi values up to maximum precision, for
-                # more determinism in things like max and min
-                return self.phi < other.phi
+                return False
             else:
                 return len(self.subsystem) < len(other.subsystem)
         else:
@@ -569,9 +567,7 @@ class BigMip:
     def __gt__(self, other):
         if _phi_eq(self, other):
             if len(self.subsystem) == len(other.subsystem):
-                # Compare actual Phi values up to maximum precision, for
-                # more determinism in things like max and min
-                return self.phi > other.phi
+                return False
             else:
                 return len(self.subsystem) > len(other.subsystem)
         else:
