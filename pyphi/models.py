@@ -545,7 +545,7 @@ class BigMip:
     def __bool__(self):
         """A BigMip is truthy if it is not reducible; i.e. if it has a
         significant amount of |big_phi|."""
-        return self.phi > constants.EPSILON
+        return self.phi >= constants.EPSILON
 
     def __hash__(self):
         return hash((self.phi, self.unpartitioned_constellation,
