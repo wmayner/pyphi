@@ -378,7 +378,10 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         ``tuple(np.ndarray)`` -- The concept's location in concept space. The
         two elements of the tuple are the cause and effect repertoires.
         """
-        return (self.cause.repertoire, self.effect.repertoire)
+        if self.cause and self.effect:
+            return (self.cause.repertoire, self.effect.repertoire)
+        else:
+            return (self.cause, self.effect)
 
     def __eq__(self, other):
         return _general_eq(self, other, _concept_attributes)
