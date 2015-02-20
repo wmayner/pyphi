@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>subsystem &mdash; v0.3.3 documentation</title>
+  <title>subsystem &mdash; v0.3.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.3.3 documentation" href="../index.html"/>
+    <link rel="top" title="v0.3.7 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
         <link rel="next" title="convert" href="convert.html"/>
         <link rel="prev" title="network" href="network.html"/> 
@@ -49,7 +49,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.3</a>
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.7</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -109,7 +109,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.3.3</a>
+        <a href="../index.html">PyPhi v0.3.7</a>
       </nav>
 
 
@@ -136,6 +136,54 @@
   <div class="section" id="module-pyphi.subsystem">
 <span id="subsystem"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">subsystem</span></tt><a class="headerlink" href="#module-pyphi.subsystem" title="Permalink to this headline">¶</a></h1>
 <p>Represents a candidate set for <span class="math">\(\varphi\)</span> calculation.</p>
+<dl class="function">
+<dt id="pyphi.subsystem.cause_repertoire">
+<tt class="descclassname">pyphi.subsystem.</tt><tt class="descname">cause_repertoire</tt><big>(</big><em>self</em>, <em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.cause_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the cause repertoire of a mechanism over a purview.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism for which to calculate the
+cause repertoire.</li>
+<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The purview over which to calculate the
+cause repertoire.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; The cause repertoire of the mechanism over the
+purview.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.subsystem.effect_repertoire">
+<tt class="descclassname">pyphi.subsystem.</tt><tt class="descname">effect_repertoire</tt><big>(</big><em>self</em>, <em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.effect_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the effect repertoire of a mechanism over a purview.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism for which to calculate the
+effect repertoire.</li>
+<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The purview over which to calculate the
+effect repertoire.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; The effect repertoire of the mechanism over the
+purview.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="class">
 <dt id="pyphi.subsystem.Subsystem">
 <em class="property">class </em><tt class="descclassname">pyphi.subsystem.</tt><tt class="descname">Subsystem</tt><big>(</big><em>node_indices</em>, <em>network</em>, <em>cut=None</em>, <em>mice_cache={}</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem" title="Permalink to this definition">¶</a></dt>
@@ -231,8 +279,8 @@ external nodes.</p>
 <dt id="pyphi.subsystem.Subsystem.__eq__">
 <tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether this subsystem is equal to the other object.</p>
-<p>Two subsystems are equal if their sets of nodes, current and past
-states, and networks are equal.</p>
+<p>Two subsystems are equal if their sets of nodes, networks, and cuts are
+equal.</p>
 </dd></dl>
 
 <dl class="method">
@@ -250,54 +298,6 @@ states, and networks are equal.</p>
 <dt id="pyphi.subsystem.Subsystem.indices2nodes">
 <tt class="descname">indices2nodes</tt><big>(</big><em>indices</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.indices2nodes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="method">
-<dt id="pyphi.subsystem.Subsystem.cause_repertoire">
-<tt class="descname">cause_repertoire</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.cause_repertoire" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the cause repertoire of a mechanism over a purview.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism for which to calculate the
-cause repertoire.</li>
-<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The purview over which to calculate the
-cause repertoire.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; The cause repertoire of the mechanism over the
-purview.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyphi.subsystem.Subsystem.effect_repertoire">
-<tt class="descname">effect_repertoire</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.effect_repertoire" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the effect repertoire of a mechanism over a purview.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism for which to calculate the
-effect repertoire.</li>
-<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The purview over which to calculate the
-effect repertoire.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; The effect repertoire of the mechanism over the
-purview.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
 
 <dl class="method">
 <dt id="pyphi.subsystem.Subsystem.unconstrained_cause_repertoire">
@@ -514,7 +514,7 @@ subsystem.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 10, 2015.
+      Last updated on Feb 19, 2015.
     </p>
   </div>
 
@@ -534,7 +534,7 @@ subsystem.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.3.3',
+            VERSION:'v0.3.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

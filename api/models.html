@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>models &mdash; v0.3.3 documentation</title>
+  <title>models &mdash; v0.3.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.3.3 documentation" href="../index.html"/>
+    <link rel="top" title="v0.3.7 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
         <link rel="next" title="node" href="node.html"/>
         <link rel="prev" title="examples" href="examples.html"/> 
@@ -49,7 +49,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.3</a>
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.3.7</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -109,7 +109,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.3.3</a>
+        <a href="../index.html">PyPhi v0.3.7</a>
       </nav>
 
 
@@ -331,7 +331,7 @@ the purview.</p>
 
 <dl class="class">
 <dt id="pyphi.models.Concept">
-<em class="property">class </em><tt class="descclassname">pyphi.models.</tt><tt class="descname">Concept</tt><a class="headerlink" href="#pyphi.models.Concept" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyphi.models.</tt><tt class="descname">Concept</tt><big>(</big><em>phi=None</em>, <em>mechanism=None</em>, <em>cause=None</em>, <em>effect=None</em>, <em>subsystem=None</em>, <em>normalized=False</em><big>)</big><a class="headerlink" href="#pyphi.models.Concept" title="Permalink to this definition">¶</a></dt>
 <dd><p>A star in concept-space.</p>
 <p><cite>phi</cite> is the small-phi_max value. <cite>cause</cite> and <cite>effect</cite> are the MICE objects
 for the past and future, respectively.</p>
@@ -372,6 +372,13 @@ the concept&#8217;s core cause and core effect.</p>
 <tt class="descname">subsystem</tt><a class="headerlink" href="#pyphi.models.Concept.subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>Subsystem</em></p>
 <p>This Concept&#8217;s parent subsystem.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.Concept.time">
+<tt class="descname">time</tt><a class="headerlink" href="#pyphi.models.Concept.time" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>The number of seconds it took to calculate.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -439,7 +446,7 @@ entire network.</p>
 
 <dl class="class">
 <dt id="pyphi.models.BigMip">
-<em class="property">class </em><tt class="descclassname">pyphi.models.</tt><tt class="descname">BigMip</tt><a class="headerlink" href="#pyphi.models.BigMip" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyphi.models.</tt><tt class="descname">BigMip</tt><big>(</big><em>phi=None</em>, <em>unpartitioned_constellation=None</em>, <em>partitioned_constellation=None</em>, <em>subsystem=None</em>, <em>cut_subsystem=None</em><big>)</big><a class="headerlink" href="#pyphi.models.BigMip" title="Permalink to this definition">¶</a></dt>
 <dd><p>A minimum information partition for <span class="math">\(\Phi\)</span> calculation.</p>
 <p>BigMIPs may be compared with the built-in Python comparison operators
 (<tt class="docutils literal"><span class="pre">&lt;</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.). First, <tt class="docutils literal"><span class="pre">phi</span></tt> values are compared. Then, if these
@@ -500,6 +507,21 @@ subsystem is cut.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyphi.models.BigMip.time">
+<tt class="descname">time</tt><a class="headerlink" href="#pyphi.models.BigMip.time" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>The number of seconds it took to calculate.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.BigMip.small_phi_time">
+<tt class="descname">small_phi_time</tt><a class="headerlink" href="#pyphi.models.BigMip.small_phi_time" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>The number of seconds it took to calculate the
+unpartitioned constellation.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt>
 <tt class="descname">cut</tt></dt>
 <dd></dd></dl>
@@ -539,7 +561,7 @@ significant amount of <span class="math">\(\Phi\)</span>.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 10, 2015.
+      Last updated on Feb 19, 2015.
     </p>
   </div>
 
@@ -559,7 +581,7 @@ significant amount of <span class="math">\(\Phi\)</span>.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.3.3',
+            VERSION:'v0.3.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
