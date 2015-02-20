@@ -9,6 +9,7 @@ subsystems.
 
 import logging
 import functools
+from time import time
 import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse.csgraph import connected_components
@@ -45,27 +46,34 @@ def concept(subsystem, mechanism):
         documentation for :mod:`pyphi.concept_caching` and
         :mod:`pyphi.constants`.
     """
+    start = time()
+    def time_annotated(concept):
+        concept.time = time() - start
+        return concept
+
     # Pre-checks:
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # If the mechanism is empty, there is no concept.
     if not mechanism:
-        return subsystem.null_concept
+        return time_annotated(subsystem.null_concept)
     # If any node in the mechanism either has no inputs from the subsystem or
     # has no outputs to the subsystem, then the mechanism is necessarily
     # reducible and cannot be a concept (since removing that node would make no
     # difference to at least one of the MICEs).
     if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
             subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
-        return Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None,
-                       subsystem=subsystem)
+        return time_annotated(
+            Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None,
+                    subsystem=subsystem))
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     # Passed prechecks; pass it over to the concept caching logic if enabled.
     # Concept caching is only available if the caching backend is a database.
     if (config.CACHE_CONCEPTS and
             config.CACHING_BACKEND == constants.DATABASE):
-        return _concept(subsystem, mechanism)
+        return time_annotated(_concept(subsystem, mechanism))
     else:
-        return subsystem.concept(mechanism)
+        return time_annotated(subsystem.concept(mechanism))
 
 
 def constellation(subsystem):
@@ -261,12 +269,20 @@ def _evaluate_partition(uncut_subsystem, partition,
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
     log.info("Calculating big-phi data for {}...".format(subsystem))
+    start = time()
+
+    # Annote a BigMip with the total elapsed calculation time, and optionally
+    # also with the time taken to calculate the unpartitioned constellation.
+    def time_annotated(big_mip, small_phi_time=0.0):
+        big_mip.time = time() - start
+        big_mip.small_phi_time = small_phi_time
+        return big_mip
 
     # Special case for single-node subsystems.
     if len(subsystem) == 1:
         log.info('Single-node {}; returning the hard-coded single-node MIP '
                  'immediately.'.format(subsystem))
-        return _single_node_mip(subsystem)
+        return time_annotated(_single_node_mip(subsystem))
 
     # Check for degenerate cases
     # =========================================================================
@@ -278,7 +294,7 @@ def _big_mip(cache_key, subsystem):
     if not subsystem:
         log.info('Subsystem {} is empty; returning null MIP '
                  'immediately.'.format(subsystem))
-        return _null_mip(subsystem)
+        return time_annotated(_null_mip(subsystem))
     # Get the connectivity of just the subsystem nodes.
     submatrix_indices = np.ix_(subsystem.node_indices, subsystem.node_indices)
     cm = subsystem.network.connectivity_matrix[submatrix_indices]
@@ -288,7 +304,7 @@ def _big_mip(cache_key, subsystem):
     if num_components > 1:
         log.info('{} is not strongly connected; returning null MIP '
                  'immediately.'.format(subsystem))
-        return _null_mip(subsystem)
+        return time_annotated(_null_mip(subsystem))
     # =========================================================================
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
@@ -297,7 +313,9 @@ def _big_mip(cache_key, subsystem):
     bipartitions = utils.bipartition(subsystem.node_indices)[1:]
 
     log.debug("Finding unpartitioned constellation...")
+    small_phi_start = time()
     unpartitioned_constellation = constellation(subsystem)
+    small_phi_time = time() - small_phi_start
     log.debug("Found unpartitioned constellation.")
 
     if config.PARALLEL_CUT_EVALUATION:
@@ -308,7 +326,7 @@ def _big_mip(cache_key, subsystem):
             delayed(_evaluate_partition)(subsystem, partition,
                                          unpartitioned_constellation)
             for partition in bipartitions)
-        result = min(mip_candidates)
+        return time_annotated(min(mip_candidates), small_phi_time)
     else:
         # Sequentially loop over all partitions, holding only two BigMips in
         # memory at once.
@@ -323,7 +341,7 @@ def _big_mip(cache_key, subsystem):
             # Stop as soon as we find a MIP with effectively 0 phi.
             if min_phi < constants.EPSILON:
                 break
-        result = min_mip
+        return time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
     log.debug("RESULT: \n" + str(result))

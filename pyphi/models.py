@@ -344,7 +344,7 @@ _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept(namedtuple('Concept', _concept_attributes)):
+class Concept:
 
     """A star in concept-space.
 
@@ -367,12 +367,25 @@ class Concept(namedtuple('Concept', _concept_attributes)):
             The :class:`Mice` representing the core effect of this concept.
         subsystem (Subsystem):
             This Concept's parent subsystem.
+        time (float): The number of seconds it took to calculate.
     """
 
-    def __new__(cls, phi=None, mechanism=None, cause=None, effect=None,
-                subsystem=None, normalized=None):
-        return super(Concept, cls).__new__(
-            cls, phi, mechanism, cause, effect, subsystem, normalized)
+    def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
+                subsystem=None, normalized=False):
+        self.phi = phi
+        self.mechanism = mechanism
+        self.cause = cause
+        self.effect = effect
+        self.subsystem = subsystem
+        self.normalized = normalized
+        self.time = None
+
+    def __repr__(self):
+        return 'Concept(' + ', '.join(attr + '=' + str(getattr(self, attr)) for
+                                      attr in _concept_attributes) + ')'
+
+    def __str__(self):
+        return self.__repr__()
 
     @property
     def location(self):
@@ -477,7 +490,7 @@ _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'cut_subsystem']
 
 
-class BigMip(namedtuple('BigMip', _bigmip_attributes)):
+class BigMip:
 
     """A minimum information partition for |big_phi| calculation.
 
@@ -499,7 +512,28 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
         subsystem (Subsystem): The subsystem this MIP was calculated for.
         cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
         cut (Cut): The minimal cut.
+        time (float): The number of seconds it took to calculate.
+        small_phi_time (float): The number of seconds it took to calculate the
+            unpartitioned constellation.
     """
+
+    def __init__(self, phi=None, unpartitioned_constellation=None,
+                 partitioned_constellation=None, subsystem=None,
+                 cut_subsystem=None):
+        self.phi = phi
+        self.unpartitioned_constellation = unpartitioned_constellation
+        self.partitioned_constellation = partitioned_constellation
+        self.subsystem = subsystem
+        self.cut_subsystem = cut_subsystem
+        self.time = None
+        self.small_phi_time = None
+
+    def __repr__(self):
+        return 'BigMip(' + ', '.join(attr + '=' + str(getattr(self, attr)) for
+                                     attr in _bigmip_attributes) + ')'
+
+    def __str__(self):
+        return self.__repr__()
 
     @property
     def cut(self):
