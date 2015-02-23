@@ -205,7 +205,7 @@ def _null_mip(subsystem):
     This is the MIP associated with a reducible subsystem."""
     return BigMip(subsystem=subsystem, cut_subsystem=subsystem,
                   phi=0.0,
-                  unpartitioned_constellation=[], partitioned_constellation=[])
+                  unpartitioned_constellation=(), partitioned_constellation=())
 
 
 def _single_node_mip(subsystem):
