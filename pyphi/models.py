@@ -224,7 +224,7 @@ class Mip(namedtuple('Mip', _mip_attributes)):
     def __bool__(self):
         """A Mip is truthy if it is not reducible; i.e. if it has a significant
         amount of |small_phi|."""
-        return self.phi > constants.EPSILON
+        return not utils.phi_eq(self.phi, 0)
 
     def __hash__(self):
         return hash((self.phi, self.direction, self.mechanism, self.purview,
@@ -414,7 +414,7 @@ class Concept:
     def __bool__(self):
         """A Concept is truthy if it is not reducible; i.e. if it has a
         significant amount of |big_phi|."""
-        return self.phi > constants.EPSILON
+        return not utils.phi_eq(self.phi, 0)
 
     def eq_repertoires(self, other):
         """Return whether this concept has the same cause and effect
@@ -545,7 +545,7 @@ class BigMip:
     def __bool__(self):
         """A BigMip is truthy if it is not reducible; i.e. if it has a
         significant amount of |big_phi|."""
-        return self.phi >= constants.EPSILON
+        return not utils.phi_eq(self.phi, 0)
 
     def __hash__(self):
         return hash((self.phi, self.unpartitioned_constellation,
