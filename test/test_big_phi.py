@@ -159,6 +159,18 @@ micro_answer = {
     'cut': models.Cut(severed=(0, 2), intact=(1, 3))
 }
 
+micro_answer2 = {
+    'phi': 0.97441,
+    'unpartitioned_small_phis': {
+        (0,): 0.175,
+        (1,): 0.175,
+        (2,): 0.175,
+        (3,): 0.175,
+        (0, 1): 0.34811,
+        (2, 3): 0.34811,
+    },
+    'cut': models.Cut(severed=(1, 2), intact=(0, 3))
+}
 
 macro_answer = {
     'phi': 0.86905,
@@ -194,7 +206,7 @@ def check_partitioned_small_phis(answer, partitioned_constellation):
             PRECISION)
 
 
-def check_mip(mip, answer):
+def check_mip(mip, answer, answer2=None):
     # Check big phi value.
     np.testing.assert_almost_equal(mip.phi, answer['phi'], PRECISION)
     # Check small phis of unpartitioned constellation.
@@ -205,7 +217,10 @@ def check_mip(mip, answer):
     check_partitioned_small_phis(answer, mip.partitioned_constellation)
     # Check cut.
     if 'cut' in answer:
-        assert mip.cut == answer['cut']
+        if answer2 == None:
+            assert mip.cut == answer['cut']
+        else:
+            assert mip.cut == answer['cut'] or answer2['cut']
 
 
 # Tests
@@ -430,7 +445,7 @@ def test_big_mip_micro_parallel(micro_s, flushcache, restore_fs_cache):
     config.PARALLEL_CUT_EVALUATION = True
 
     mip = compute.big_mip(micro_s)
-    check_mip(mip, micro_answer)
+    check_mip(mip, micro_answer, micro_answer2)
 
     config.PARALLEL_CUT_EVALUATION = initial
 
@@ -443,7 +458,6 @@ def test_big_mip_micro_sequential(micro_s, flushcache, restore_fs_cache):
 
     mip = compute.big_mip(micro_s)
     check_mip(mip, micro_answer)
-
     config.PARALLEL_CUT_EVALUATION = initial
 
 
