@@ -216,8 +216,8 @@ def _single_node_mip(subsystem):
         # TODO return the actual concept
         return BigMip(
             phi=0.5,
-            unpartitioned_constellation=None,
-            partitioned_constellation=None,
+            unpartitioned_constellation=(),
+            partitioned_constellation=(),
             subsystem=subsystem,
             cut_subsystem=subsystem)
     else:
