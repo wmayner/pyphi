@@ -326,7 +326,7 @@ def _big_mip(cache_key, subsystem):
             delayed(_evaluate_partition)(subsystem, partition,
                                          unpartitioned_constellation)
             for partition in bipartitions)
-        return time_annotated(min(mip_candidates), small_phi_time)
+        result = time_annotated(min(mip_candidates), small_phi_time)
     else:
         # Sequentially loop over all partitions, holding only two BigMips in
         # memory at once.
@@ -342,7 +342,7 @@ def _big_mip(cache_key, subsystem):
             # Short-circuit as soon as we find a MIP with effectively 0 phi.
             if not min_mip:
                 break
-        return time_annotated(min_mip, small_phi_time)
+        result = time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
     log.debug("RESULT: \n" + str(result))
@@ -385,12 +385,14 @@ def main_complex(network):
     log.debug("RESULT: \n" + str(result))
     return result
 
-
 def subsystems(network):
     """Return a generator of all possible subsystems of a network.
 
-    This is the just powerset of the network's set of nodes."""
-    for subset in utils.powerset(range(network.size)):
+    This is the just powerset of the network's non-input and non-ouput
+    nodes."""
+    for subset in utils.powerset(np.where(np.logical_and(
+        np.sum(network.connectivity_matrix, 0) > 0,
+        np.sum(network.connectivity_matrix, 1) > 0))[0]):
         yield Subsystem(subset, network)
 
 
