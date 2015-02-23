@@ -25,7 +25,6 @@ from .subsystem import Subsystem
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
-
 def concept(subsystem, mechanism):
     """Return the concept specified by the a mechanism within a subsytem.
 
@@ -221,7 +220,6 @@ def _single_node_mip(subsystem):
             cut_subsystem=subsystem)
     else:
         return _null_mip(subsystem)
-
 
 def _evaluate_partition(uncut_subsystem, partition,
                         unpartitioned_constellation):
