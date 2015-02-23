@@ -156,9 +156,11 @@ micro_answer = {
         (0, 1): 0.34811,
         (2, 3): 0.34811,
     },
-    'cut': models.Cut(severed=(0, 2), intact=(1, 3))
+    'cuts': [
+        models.Cut(severed=(0, 2), intact=(1, 3)),
+        models.Cut(severed=(1, 2), intact=(0, 3)),
+    ]
 }
-
 
 macro_answer = {
     'phi': 0.86905,
@@ -206,6 +208,8 @@ def check_mip(mip, answer):
     # Check cut.
     if 'cut' in answer:
         assert mip.cut == answer['cut']
+    elif 'cuts' in answer:
+        assert mip.cut in answer['cuts']
 
 
 # Tests
