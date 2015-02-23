@@ -67,8 +67,6 @@ The documentation for :mod:`pyphi.models` contains description of these
 structures.
 
 .. note::
-
     The network and subsystem discussed here are returned by the
     :func:`pyphi.examples.basic_network` and
     :func:`pyphi.examples.basic_subsystem` functions.
-
