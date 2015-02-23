@@ -25,6 +25,7 @@ from .subsystem import Subsystem
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
+
 def concept(subsystem, mechanism):
     """Return the concept specified by the a mechanism within a subsytem.
 
@@ -46,6 +47,7 @@ def concept(subsystem, mechanism):
         :mod:`pyphi.constants`.
     """
     start = time()
+
     def time_annotated(concept):
         concept.time = time() - start
         return concept
@@ -198,7 +200,7 @@ def conceptual_information(subsystem):
 
 # TODO document
 def _null_mip(subsystem):
-    """Returns a BigMip with zero phi and empty constellations.
+    """Returns a BigMip with zero Phi and empty constellations.
 
     This is the MIP associated with a reducible subsystem."""
     return BigMip(subsystem=subsystem, cut_subsystem=subsystem,
@@ -220,6 +222,7 @@ def _single_node_mip(subsystem):
             cut_subsystem=subsystem)
     else:
         return _null_mip(subsystem)
+
 
 def _evaluate_partition(uncut_subsystem, partition,
                         unpartitioned_constellation):
@@ -262,13 +265,15 @@ def _evaluate_partition(uncut_subsystem, partition,
     # Choose minimal unidirectional cut.
     return min(forward_mip, backward_mip)
 
-# Wrapper for _evaluate_partition for parallel processing
+
+# Wrapper for _evaluate_partition for parallel processing.
 def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
     while True:
         partition = in_queue.get()
-        if partition == None:
+        if partition is None:
             break
-        new_mip = _evaluate_partition(subsystem, partition, unpartitioned_constellation)
+        new_mip = _evaluate_partition(subsystem, partition,
+                                      unpartitioned_constellation)
         out_queue.put(new_mip)
     out_queue.put(None)
 
