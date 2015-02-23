@@ -277,6 +277,75 @@ def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
         out_queue.put(new_mip)
     out_queue.put(None)
 
+
+def _find_mip_parallel(subsystem, bipartitions, unpartitioned_constellation,
+                       min_mip):
+    """Parallel loop over all partitions, using the specified number of
+    cores."""
+    if config.NUMBER_OF_CORES < 0:
+        number_of_processes = (multiprocessing.cpu_count() +
+                               config.NUMBER_OF_CORES + 1)
+    elif config.NUMBER_OF_CORES <= multiprocessing.cpu_count():
+        number_of_processes = config.NUMBER_OF_CORES
+    else:
+        raise ValueError(
+            'Invalid number of cores; value may not be 0, and must be less'
+            'than the number of cores ({} for this '
+            'system).'.format(multiprocessing.cpu_count()))
+    # Define input and output queues to allow short-circuit if a cut if found
+    # with zero Phi. Load the input queue with all possible cuts and a 'poison
+    # pill' for each process.
+    in_queue = multiprocessing.Queue()
+    out_queue = multiprocessing.Queue()
+    for partition in bipartitions:
+        in_queue.put(partition)
+    for i in range(number_of_processes):
+        in_queue.put(None)
+    # Initialize the processes and start them.
+    processes = [
+        multiprocessing.Process(target=_eval_wrapper,
+                                args=(in_queue, out_queue, subsystem,
+                                      unpartitioned_constellation))
+        for i in range(number_of_processes)
+    ]
+    for i in range(number_of_processes):
+        processes[i].start()
+    # Continue to process output queue until all processes have completed, or a
+    # 'poison pill' has been returned.
+    while True:
+        new_mip = out_queue.get()
+        if new_mip is None:
+            number_of_processes -= 1
+            if number_of_processes == 0:
+                break
+        elif utils.phi_eq(new_mip.phi, 0):
+            min_mip = new_mip
+            for process in processes:
+                process.terminate()
+            break
+        else:
+            if new_mip < min_mip:
+                min_mip = new_mip
+    return min_mip
+
+
+def _find_mip_sequential(subsystem, bipartitions, unpartitioned_constellation,
+                         min_mip):
+    """Sequentially loop over all partitions, holding only two BigMips in
+    memory at once."""
+    for i, partition in enumerate(bipartitions):
+        new_mip = _evaluate_partition(
+            subsystem, partition, unpartitioned_constellation)
+        log.debug("Finished {} of {} partitions.".format(
+            i + 1, len(bipartitions)))
+        if new_mip < min_mip:
+            min_mip = new_mip
+        # Short-circuit as soon as we find a MIP with effectively 0 phi.
+        if not min_mip:
+            break
+    return min_mip
+
+
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
@@ -332,64 +401,12 @@ def _big_mip(cache_key, subsystem):
     min_mip = _null_mip(subsystem)
     min_mip.phi = float('inf')
     if config.PARALLEL_CUT_EVALUATION:
-        # Parallel loop over all partitions, using the specified number of
-        # cores.
-        if config.NUMBER_OF_CORES < 0:
-            number_of_processes = multiprocessing.cpu_count()+config.NUMBER_OF_CORES+1
-        elif config.NUMBER_OF_CORES <= multiprocessing.cpu_count():
-            number_of_processes = config.NUMBER_OF_CORES
-        else:
-            raise ValueError(
-                'Invalid number of cores, value may not be 0, and must be less'
-                'than the number of cores ({} for this '
-                'system).'.format(multiprocessing.cpu_count()))
-        # Define input and output queues to allow short-circuit if a cut
-        # if found with Phi = 0. Load the input queue with all possible
-        # cuts and a 'poison pill' for each process.
-        in_queue = multiprocessing.Queue()
-        out_queue = multiprocessing.Queue()
-        for partition in bipartitions:
-            in_queue.put(partition)
-        for i in range(number_of_processes):
-            in_queue.put(None)
-        # Initialize the processes and start them
-        processes = [multiprocessing.Process(target = _eval_wrapper,
-                                             args = (in_queue, out_queue, subsystem,
-                                                     unpartitioned_constellation))
-                     for i in range(number_of_processes)]
-        for i in range(number_of_processes):
-            processes[i].start()
-        # Continue to process output queue until all processes have completed,
-        # or a 'poison pill' has been returned
-        while True:
-            new_mip = out_queue.get()
-            if new_mip == None:
-                number_of_processes -= 1
-                if number_of_processes == 0:
-                    break
-            elif utils.phi_eq(new_mip.phi, 0):
-                min_mip = new_mip
-                for process in processes:
-                    process.terminate()
-                break
-            else:
-                if (new_mip < min_mip):
-                    min_mip = new_mip
-        result = time_annotated(min_mip, small_phi_time)
+        min_mip = _find_mip_parallel(subsystem, bipartitions,
+                                     unpartitioned_constellation, min_mip)
     else:
-        # Sequentially loop over all partitions, holding only two BigMips in
-        # memory at once.
-        for i, partition in enumerate(bipartitions):
-            new_mip = _evaluate_partition(
-                subsystem, partition, unpartitioned_constellation)
-            log.debug("Finished {} of {} partitions.".format(
-                i + 1, len(bipartitions)))
-            if new_mip < min_mip:
-                min_mip = new_mip
-            # Short-circuit as soon as we find a MIP with effectively 0 phi.
-            if not min_mip:
-                break
-        result = time_annotated(min_mip, small_phi_time)
+        min_mip = _find_mip_sequential(subsystem, bipartitions,
+                                       unpartitioned_constellation, min_mip)
+    result = time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
     log.debug("RESULT: \n" + str(result))
