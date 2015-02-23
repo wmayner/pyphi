@@ -331,8 +331,6 @@ def _big_mip(cache_key, subsystem):
     if config.PARALLEL_CUT_EVALUATION:
         # Parallel loop over all partitions, using the specified number of
         # cores.
-        in_queue = multiprocessing.Queue()
-        out_queue = multiprocessing.Queue()
         if config.NUMBER_OF_CORES < 0:
             number_of_processes = multiprocessing.cpu_count()+config.NUMBER_OF_CORES+1
         elif config.NUMBER_OF_CORES <= multiprocessing.cpu_count():
@@ -342,16 +340,24 @@ def _big_mip(cache_key, subsystem):
                 'Invalid number of cores, value may not be 0, and must be less'
                 'than the number of cores ({} for this '
                 'system).'.format(multiprocessing.cpu_count()))
-        processes = [multiprocessing.Process(target = _eval_wrapper,
-                                             args = (in_queue, out_queue, subsystem,
-                                                     unpartitioned_constellation))
-                     for i in range(number_of_processes)]
+        # Define input and output queues to allow short-circuit if a cut
+        # if found with Phi = 0. Load the input queue with all possible
+        # cuts and a 'poison pill' for each process.
+        in_queue = multiprocessing.Queue()
+        out_queue = multiprocessing.Queue()
         for partition in bipartitions:
             in_queue.put(partition)
         for i in range(number_of_processes):
             in_queue.put(None)
+        # Initialize the processes and start them
+        processes = [multiprocessing.Process(target = _eval_wrapper,
+                                             args = (in_queue, out_queue, subsystem,
+                                                     unpartitioned_constellation))
+                     for i in range(number_of_processes)]
         for i in range(number_of_processes):
             processes[i].start()
+        # Continue to process output queue until all processes have completed,
+        # or a 'poison pill' has been returned
         while True:
             new_mip = out_queue.get()
             if new_mip == None:
