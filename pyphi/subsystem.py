@@ -15,6 +15,7 @@ from .lru_cache import lru_cache
 from . import constants, config, validate, utils, convert, json
 from .models import Cut, Mip, Part, Mice, Concept
 from .node import Node
+from itertools import product
 
 
 def cause_repertoire(self, mechanism, purview):
@@ -766,6 +767,22 @@ class Subsystem:
         return min(self.core_cause(mechanism).phi,
                    self.core_effect(mechanism).phi)
 
+    def concept_cm(self, mechanism, cause_purview, effect_purview):
+
+        cm = np.zeros((self.network.size, self.network.size))
+        c_ind = [mechanism[i].index for i in range(len(mechanism))]
+        p_ind = [cause_purview[i].index for i in range(len(cause_purview))]
+        f_ind = [effect_purview[i].index for i in range(len(effect_purview))]
+        future_connections = np.array(list(product(c_ind, f_ind)))
+        past_connections = np.array(list(product(p_ind, c_ind)))
+        cm[future_connections[:, 0], future_connections[:, 1]] = 1
+        cm[past_connections[:, 0], past_connections[:, 1]] = 1
+        ind = [self.nodes[i].index for i in range(len(self))]
+        cm = cm[np.ix_(ind,ind)]
+        return cm
+
+
+
     # Big Phi methods
     # =========================================================================
 
@@ -798,7 +815,8 @@ class Subsystem:
                 partition=None, partitioned_repertoire=None))
         # All together now...
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
-                       subsystem=self)
+                       mice_cm = None, subsystem=self)
+
 
     def concept(self, mechanism):
         """Calculate a concept."""
@@ -809,8 +827,10 @@ class Subsystem:
         effect = self.core_effect(mechanism)
         # Get the minimal phi between them.
         phi = min(cause.phi, effect.phi)
+        # Find the mice connectivity matrix for this concept
+        mice_cm = self.concept_cm(mechanism, cause.purview, effect.purview)
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.
         return Concept(mechanism=mechanism, phi=phi, cause=cause,
-                       effect=effect, subsystem=self)
+                       effect=effect, mice_cm = mice_cm, subsystem=self)

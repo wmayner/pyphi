@@ -20,7 +20,7 @@ from .concept_caching import concept as _concept
 from .models import Concept, Cut, BigMip
 from .network import Network
 from .subsystem import Subsystem
-
+from itertools import product
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ def concept(subsystem, mechanism):
         return time_annotated(subsystem.concept(mechanism))
 
 
-def constellation(subsystem):
+def constellation(subsystem, mechanisms_to_be_checked = None):
     """Return the conceptual structure of this subsystem.
 
     Args:
@@ -87,11 +87,14 @@ def constellation(subsystem):
     Returns:
         ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
     """
-    concepts = [concept(subsystem, mechanism) for mechanism in
-                utils.powerset(subsystem.nodes)]
+    if not mechanisms_to_be_checked:
+        concepts = [concept(subsystem, mechanism) for mechanism in
+                    utils.powerset(subsystem.nodes)]
+    else:
+        concepts = [concept(subsystem, mechanism) for mechanism in
+                    mechanisms_to_be_checked]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
-
 
 def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
@@ -224,16 +227,42 @@ def _single_node_mip(subsystem):
         return _null_mip(subsystem)
 
 
+def cut_check(subsystem, partition):
+    Part0 = subsystem.indices2nodes(partition[0])
+    Part1 = subsystem.indices2nodes(partition[1])
+    result = [mechanism if bool((set(mechanism) & set(Part0)) and (set(mechanism) & set(Part1))) else None
+            for mechanism in utils.powerset(subsystem.nodes)]
+    return tuple(filter(None, result))
+
+def cut_concepts(partition, unpartitioned_constellation, direction):
+    NumberOfNodes = len(unpartitioned_constellation[0].subsystem)
+    cut_matrix = np.zeros((NumberOfNodes, NumberOfNodes))
+    list_of_cuts = np.array(list(product(partition[0], partition[1])))
+    if direction == 'future':
+        cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
+    elif direction == 'past':
+        cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
+    safe_concepts = tuple(filter(None, [concept if np.all(concept.mice_cm*cut_matrix == 0)
+                     else None for concept in unpartitioned_constellation]))
+    unsafe_concepts = tuple(filter(None, [concept if np.any(concept.mice_cm*cut_matrix == 1)
+                       else None for concept in unpartitioned_constellation]))
+    return (tuple(concept for concept in safe_concepts),
+            tuple(concept.mechanism for concept in unsafe_concepts))
+
+
+
 def _evaluate_partition(uncut_subsystem, partition,
                         unpartitioned_constellation):
     log.debug("Evaluating partition {}...".format(partition))
+    cut_recheck = cut_check(uncut_subsystem, partition)
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
     forward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
                                       uncut_subsystem.network,
                                       cut=forward_cut,
                                       mice_cache=uncut_subsystem._mice_cache)
-    forward_constellation = constellation(forward_cut_subsystem)
+    forward_uncut_concepts, forward_cut_concepts = cut_concepts(partition, unpartitioned_constellation, 'future')
+    forward_constellation = constellation(forward_cut_subsystem, tuple(set(cut_recheck + forward_cut_concepts))) + forward_uncut_concepts
     forward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    forward_constellation,
@@ -251,7 +280,10 @@ def _evaluate_partition(uncut_subsystem, partition,
                                        uncut_subsystem.network,
                                        cut=backward_cut,
                                        mice_cache=uncut_subsystem._mice_cache)
-    backward_constellation = constellation(backward_cut_subsystem)
+    backward_uncut_concepts, backward_cut_concepts = cut_concepts(partition, unpartitioned_constellation, 'past')
+    backward_constellation = (constellation(backward_cut_subsystem,
+                                               tuple(set(cut_recheck + backward_cut_concepts)))
+                                 + backward_uncut_concepts)
     backward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    backward_constellation,
@@ -327,6 +359,8 @@ def _find_mip_parallel(subsystem, bipartitions, unpartitioned_constellation,
             if new_mip < min_mip:
                 min_mip = new_mip
     return min_mip
+
+
 
 
 def _find_mip_sequential(subsystem, bipartitions, unpartitioned_constellation,
