@@ -270,8 +270,9 @@ class Subsystem:
     def __init__(self, node_indices, network, cut=None, mice_cache=dict()):
         # The network this subsystem belongs to.
         self.network = network
-        # Remove duplicates and sort node indices.
-        self.node_indices = tuple(sorted(list(set(node_indices))))
+        # Remove duplicates, sort, and ensure indices are native Python `int`s
+        # (for JSON serialization).
+        self.node_indices = tuple(sorted(list(set(map(int, node_indices)))))
         # Get the size of this subsystem.
         self.size = len(self.node_indices)
         # Get the external nodes.
