@@ -98,7 +98,7 @@ def np_hash(a):
 
 def phi_eq(x, y):
     """Compare two phi values up to |PRECISION|."""
-    return abs(x - y) < constants.EPSILON
+    return abs(x - y) <= constants.EPSILON
 
 
 # see http://stackoverflow.com/questions/16003217

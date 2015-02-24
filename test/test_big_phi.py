@@ -324,10 +324,16 @@ def test_big_mip_noised_example_parallel(s_noised, flushcache,
     config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = initial
 
 
-# TODO!! add more assertions for the smaller subsystems
 def test_complexes_standard(standard, flushcache, restore_fs_cache):
     flushcache()
     complexes = list(compute.complexes(standard))
+    check_mip(complexes[2], standard_answer)
+
+
+# TODO!! add more assertions for the smaller subsystems
+def test_all_complexes_standard(standard, flushcache, restore_fs_cache):
+    flushcache()
+    complexes = list(compute.all_complexes(standard))
     check_mip(complexes[7], standard_answer)
 
 

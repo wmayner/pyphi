@@ -575,7 +575,7 @@ class Subsystem:
                                     partitioned_repertoire)
 
             # Return immediately if mechanism is reducible.
-            if phi < constants.EPSILON:
+            if utils.phi_eq(phi, 0):
                 return Mip(direction=direction,
                            mechanism=mechanism,
                            purview=purview,
@@ -590,7 +590,7 @@ class Subsystem:
                     len(purview) > len(mip.purview))):
                 phi_min = phi
                 # TODO Use properties here to infer mechanism and purview from
-                # partition yet access them with .mechanism and .partition
+                # partition yet access them with .mechanism and .purview
                 mip = Mip(direction=direction,
                           mechanism=mechanism,
                           purview=purview,
@@ -598,7 +598,6 @@ class Subsystem:
                           unpartitioned_repertoire=unpartitioned_repertoire,
                           partitioned_repertoire=partitioned_repertoire,
                           phi=phi)
-
         return mip
 
     # TODO Don't use these internally
