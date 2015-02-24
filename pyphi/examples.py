@@ -64,7 +64,6 @@ def basic_network():
     +---+---+---+---+
 
     .. note::
-
         |CM[i][j] = 1| means that node |i| is connected to node |j|.
     """
     tpm = np.array([

@@ -30,11 +30,13 @@ def test_network_init_validation(network):
         state = (0, 1, 0)
         Network(tpm, state, past_state)
     with pytest.raises(ValueError):
-        state = (0, 1)
-        Network(network.tpm, state, network.past_state)
+        # Wrong current state length
+        current_state = (0, 1)
+        Network(network.tpm, current_state, network.past_state)
     with pytest.raises(ValueError):
-        state = (0, 1)
-        Network(network.tpm, network.current_state, state)
+        # Wrong past state length
+        past_state = (0, 1)
+        Network(network.tpm, network.current_state, past_state)
 
 
 def test_repr(standard):

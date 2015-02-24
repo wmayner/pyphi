@@ -11,7 +11,7 @@ import logging
 import functools
 from time import time
 import numpy as np
-from joblib import Parallel, delayed
+import multiprocessing
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
@@ -47,6 +47,7 @@ def concept(subsystem, mechanism):
         :mod:`pyphi.constants`.
     """
     start = time()
+
     def time_annotated(concept):
         concept.time = time() - start
         return concept
@@ -199,12 +200,12 @@ def conceptual_information(subsystem):
 
 # TODO document
 def _null_mip(subsystem):
-    """Returns a BigMip with zero phi and empty constellations.
+    """Returns a BigMip with zero Phi and empty constellations.
 
     This is the MIP associated with a reducible subsystem."""
     return BigMip(subsystem=subsystem, cut_subsystem=subsystem,
                   phi=0.0,
-                  unpartitioned_constellation=[], partitioned_constellation=[])
+                  unpartitioned_constellation=(), partitioned_constellation=())
 
 
 def _single_node_mip(subsystem):
@@ -215,8 +216,8 @@ def _single_node_mip(subsystem):
         # TODO return the actual concept
         return BigMip(
             phi=0.5,
-            unpartitioned_constellation=None,
-            partitioned_constellation=None,
+            unpartitioned_constellation=(),
+            partitioned_constellation=(),
             subsystem=subsystem,
             cut_subsystem=subsystem)
     else:
@@ -263,6 +264,86 @@ def _evaluate_partition(uncut_subsystem, partition,
     log.debug("Finished evaluating partition {}.".format(partition))
     # Choose minimal unidirectional cut.
     return min(forward_mip, backward_mip)
+
+
+# Wrapper for _evaluate_partition for parallel processing.
+def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
+    while True:
+        partition = in_queue.get()
+        if partition is None:
+            break
+        new_mip = _evaluate_partition(subsystem, partition,
+                                      unpartitioned_constellation)
+        out_queue.put(new_mip)
+    out_queue.put(None)
+
+
+def _find_mip_parallel(subsystem, bipartitions, unpartitioned_constellation,
+                       min_mip):
+    """Parallel loop over all partitions, using the specified number of
+    cores."""
+    if config.NUMBER_OF_CORES < 0:
+        number_of_processes = (multiprocessing.cpu_count() +
+                               config.NUMBER_OF_CORES + 1)
+    elif config.NUMBER_OF_CORES <= multiprocessing.cpu_count():
+        number_of_processes = config.NUMBER_OF_CORES
+    else:
+        raise ValueError(
+            'Invalid number of cores; value may not be 0, and must be less'
+            'than the number of cores ({} for this '
+            'system).'.format(multiprocessing.cpu_count()))
+    # Define input and output queues to allow short-circuit if a cut if found
+    # with zero Phi. Load the input queue with all possible cuts and a 'poison
+    # pill' for each process.
+    in_queue = multiprocessing.Queue()
+    out_queue = multiprocessing.Queue()
+    for partition in bipartitions:
+        in_queue.put(partition)
+    for i in range(number_of_processes):
+        in_queue.put(None)
+    # Initialize the processes and start them.
+    processes = [
+        multiprocessing.Process(target=_eval_wrapper,
+                                args=(in_queue, out_queue, subsystem,
+                                      unpartitioned_constellation))
+        for i in range(number_of_processes)
+    ]
+    for i in range(number_of_processes):
+        processes[i].start()
+    # Continue to process output queue until all processes have completed, or a
+    # 'poison pill' has been returned.
+    while True:
+        new_mip = out_queue.get()
+        if new_mip is None:
+            number_of_processes -= 1
+            if number_of_processes == 0:
+                break
+        elif utils.phi_eq(new_mip.phi, 0):
+            min_mip = new_mip
+            for process in processes:
+                process.terminate()
+            break
+        else:
+            if new_mip < min_mip:
+                min_mip = new_mip
+    return min_mip
+
+
+def _find_mip_sequential(subsystem, bipartitions, unpartitioned_constellation,
+                         min_mip):
+    """Sequentially loop over all partitions, holding only two BigMips in
+    memory at once."""
+    for i, partition in enumerate(bipartitions):
+        new_mip = _evaluate_partition(
+            subsystem, partition, unpartitioned_constellation)
+        log.debug("Finished {} of {} partitions.".format(
+            i + 1, len(bipartitions)))
+        if new_mip < min_mip:
+            min_mip = new_mip
+        # Short-circuit as soon as we find a MIP with effectively 0 phi.
+        if not min_mip:
+            break
+    return min_mip
 
 
 # TODO document big_mip
@@ -317,32 +398,15 @@ def _big_mip(cache_key, subsystem):
     unpartitioned_constellation = constellation(subsystem)
     small_phi_time = time() - small_phi_start
     log.debug("Found unpartitioned constellation.")
-
+    min_mip = _null_mip(subsystem)
+    min_mip.phi = float('inf')
     if config.PARALLEL_CUT_EVALUATION:
-        # Parallel loop over all partitions, using the specified number of
-        # cores.
-        mip_candidates = Parallel(n_jobs=(config.NUMBER_OF_CORES),
-                                  verbose=config.PARALLEL_VERBOSITY)(
-            delayed(_evaluate_partition)(subsystem, partition,
-                                         unpartitioned_constellation)
-            for partition in bipartitions)
-        return time_annotated(min(mip_candidates), small_phi_time)
+        min_mip = _find_mip_parallel(subsystem, bipartitions,
+                                     unpartitioned_constellation, min_mip)
     else:
-        # Sequentially loop over all partitions, holding only two BigMips in
-        # memory at once.
-        min_mip = _null_mip(subsystem)
-        min_mip.phi = float('inf')
-        for i, partition in enumerate(bipartitions):
-            new_mip = _evaluate_partition(
-                subsystem, partition, unpartitioned_constellation)
-            log.debug("Finished {} of {} partitions.".format(
-                i + 1, len(bipartitions)))
-            if new_mip < min_mip:
-                min_mip = new_mip
-            # Short-circuit as soon as we find a MIP with effectively 0 phi.
-            if not min_mip:
-                break
-        return time_annotated(min_mip, small_phi_time)
+        min_mip = _find_mip_sequential(subsystem, bipartitions,
+                                       unpartitioned_constellation, min_mip)
+    result = time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
     log.debug("RESULT: \n" + str(result))
@@ -373,6 +437,49 @@ def big_phi(subsystem):
     return big_mip(subsystem).phi
 
 
+def possible_main_complexes(network):
+    """"Return a generator of the subsystems of a network that could be a main
+    complex.
+
+    This is the just powerset of the nodes that have at least one input and
+    output (nodes with no inputs or no outputs cannot be part of a main
+    complex, because they do not have a causal link with the rest of the
+    subsystem in the past or future, respectively)."""
+    inputs = np.sum(network.connectivity_matrix, 1)
+    outputs = np.sum(network.connectivity_matrix, 0)
+    nodes_have_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
+    causally_significant_nodes = np.where(nodes_have_inputs_and_outputs)[0]
+    for subset in utils.powerset(causally_significant_nodes):
+        yield Subsystem(subset, network)
+
+
+def subsystems(network):
+    """Return a generator of all possible subsystems of a network."""
+    for subset in utils.powerset(network.node_indices):
+        yield Subsystem(subset, network)
+
+
+def complexes(network):
+    """Return a generator for all irreducible complexes of the network."""
+    if not isinstance(network, Network):
+        raise ValueError(
+            """Input must be a Network (perhaps you passed a Subsystem
+            instead?)""")
+    return tuple(filter(None, (big_mip(subsystem) for subsystem in
+            possible_main_complexes(network))))
+
+
+def all_complexes(network):
+    """Return a generator for all complexes of the network, including
+    reducible, zero-phi complexes (which are not, strictly speaking, complexes
+    at all)."""
+    if not isinstance(network, Network):
+        raise ValueError(
+            """Input must be a Network (perhaps you passed a Subsystem
+            instead?)""")
+    return (big_mip(subsystem) for subsystem in subsystems(network))
+
+
 def main_complex(network):
     """Return the main complex of the network."""
     if not isinstance(network, Network):
@@ -384,23 +491,3 @@ def main_complex(network):
     log.info("Finished calculating main complex for" + str(network) + ".")
     log.debug("RESULT: \n" + str(result))
     return result
-
-
-def subsystems(network):
-    """Return a generator of all possible subsystems of a network.
-
-    This is the just powerset of the network's set of nodes."""
-    for subset in utils.powerset(range(network.size)):
-        yield Subsystem(subset, network)
-
-
-def complexes(network):
-    """Return a generator for all complexes of the network.
-
-    This includes reducible, zero-phi complexes (which are not, strictly
-    speaking, complexes at all)."""
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
-    return (big_mip(subsystem) for subsystem in subsystems(network))

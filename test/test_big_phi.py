@@ -156,9 +156,11 @@ micro_answer = {
         (0, 1): 0.34811,
         (2, 3): 0.34811,
     },
-    'cut': models.Cut(severed=(0, 2), intact=(1, 3))
+    'cuts': [
+        models.Cut(severed=(0, 2), intact=(1, 3)),
+        models.Cut(severed=(1, 2), intact=(0, 3)),
+    ]
 }
-
 
 macro_answer = {
     'phi': 0.86905,
@@ -206,6 +208,8 @@ def check_mip(mip, answer):
     # Check cut.
     if 'cut' in answer:
         assert mip.cut == answer['cut']
+    elif 'cuts' in answer:
+        assert mip.cut in answer['cuts']
 
 
 # Tests
@@ -320,10 +324,16 @@ def test_big_mip_noised_example_parallel(s_noised, flushcache,
     config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = initial
 
 
-# TODO!! add more assertions for the smaller subsystems
 def test_complexes_standard(standard, flushcache, restore_fs_cache):
     flushcache()
     complexes = list(compute.complexes(standard))
+    check_mip(complexes[2], standard_answer)
+
+
+# TODO!! add more assertions for the smaller subsystems
+def test_all_complexes_standard(standard, flushcache, restore_fs_cache):
+    flushcache()
+    complexes = list(compute.all_complexes(standard))
     check_mip(complexes[7], standard_answer)
 
 
