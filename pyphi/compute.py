@@ -460,16 +460,24 @@ def subsystems(network):
 
 
 def complexes(network):
-    """Return a generator for all complexes of the network.
-
-    This includes reducible, zero-phi complexes (which are not, strictly
-    speaking, complexes at all)."""
+    """Return a generator for all irreducible complexes of the network."""
     if not isinstance(network, Network):
         raise ValueError(
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
-    return (big_mip(subsystem) for subsystem in
-            possible_main_complexes(network))
+    return tuple(filter(None, (big_mip(subsystem) for subsystem in
+            possible_main_complexes(network))))
+
+
+def all_complexes(network):
+    """Return a generator for all complexes of the network, including
+    reducible, zero-phi complexes (which are not, strictly speaking, complexes
+    at all)."""
+    if not isinstance(network, Network):
+        raise ValueError(
+            """Input must be a Network (perhaps you passed a Subsystem
+            instead?)""")
+    return (big_mip(subsystem) for subsystem in subsystems(network))
 
 
 def main_complex(network):
