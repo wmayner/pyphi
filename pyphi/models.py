@@ -418,10 +418,13 @@ class Concept:
 
     def eq_repertoires(self, other):
         """Return whether this concept has the same cause and effect
-        repertoires as another."""
-        if self.subsystem.network != other.subsystem.network:
-            raise Exception("Can't compare repertoires of concepts from "
-                            "different networks.")
+        repertoires as another.
+
+        .. warning::
+            This only checks if the cause and effect repertoires are equal as
+            arrays; mechanisms, purviews, or even the nodes that node indices
+            refer to, might be different.
+        """
         return (
             np.array_equal(self.cause.repertoire, other.cause.repertoire) and
             np.array_equal(self.effect.repertoire, other.effect.repertoire))
