@@ -466,7 +466,7 @@ class Concept:
     def json_dict(self):
         d = {
             attr: json.make_encodable(getattr(self, attr))
-            for attr in ['phi', 'mechanism', 'cause', 'effect']
+            for attr in ['phi', 'mechanism', 'cause', 'effect', 'time']
         }
         # Expand the repertoires.
         d['cause']['repertoire'] = json.make_encodable(
@@ -587,5 +587,5 @@ class BigMip:
     def json_dict(self):
         return {
             attr: json.make_encodable(getattr(self, attr))
-            for attr in _bigmip_attributes
+            for attr in _bigmip_attributes + ['time', 'small_phi_time']
         }
