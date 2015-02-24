@@ -4,10 +4,10 @@
 #    _______
 #   |__   __|
 #  ____| |____
-# |  __   __  |    _____         ___    __     _
-# | |  | |  | |   / ___/ __ __  / _ \  / /    (_)
-# | |__| |__| |  / /__  / // / / ___/ / _ \  / /
-# |____   ____|  \___/  \_, / /_/    /_//_/ /_/
+# |  __   __  |     ___         ___   __    _
+# | |  | |  | |    / _ \ __ __ / _ \ / /   (_)
+# | |__| |__| |   / ___// // // ___// _ \ / /
+# |____   ____|  /_/    \_, //_/   /_//_//_/
 #    __| |__           /___/
 #   |_______|
 
@@ -24,6 +24,21 @@ it.
 To report issues, please use the issue tracker on the `GitHub repository
 <https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
 welcome.
+
+
+Usage
+~~~~~
+
+The :class:`pyphi.network` object is the main object on which computations are
+performed. It represents the network of interest.
+
+The :class:`pyphi.subsystem` object is the secondary object; it represents a
+subsystem of a network. |big_phi| is defined on subsystems.
+
+The :mod:`pyphi.compute` module is the main entry-point for the library. It
+contains methods for calculating concepts, constellations, complexes, etc. See
+its documentation for details.
+
 
 Configuration (optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,7 +57,7 @@ options and their defaults.
 """
 
 __title__ = 'pyphi'
-__version__ = '0.2.0'
+__version__ = '0.3.8'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
@@ -52,10 +67,8 @@ __copyright__ = 'Copyright 2014 Will Mayner'
 
 from .network import Network
 from .subsystem import Subsystem
-from . import compute, constants, db, examples
+from . import compute, constants, config, db, examples
 
-import os
-import yaml
 import logging
 import logging.config
 
@@ -66,18 +79,18 @@ logging.config.dictConfig({
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': constants.LOGGING_CONFIG['format']
+            'format': config.LOGGING_CONFIG['format']
         }
     },
     'handlers': {
         'file': {
-            'level': constants.LOGGING_CONFIG['file']['level'],
+            'level': config.LOGGING_CONFIG['file']['level'],
             'class': 'logging.FileHandler',
-            'filename': constants.LOGGING_CONFIG['file']['filename'],
+            'filename': config.LOGGING_CONFIG['file']['filename'],
             'formatter': 'standard',
         },
         'stdout': {
-            'level': constants.LOGGING_CONFIG['stdout']['level'],
+            'level': config.LOGGING_CONFIG['stdout']['level'],
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
         }
@@ -85,15 +98,15 @@ logging.config.dictConfig({
     'root': {
         'level': 'INFO',
         'handlers': [h for h in ['file', 'stdout'] if
-                     constants.LOGGING_CONFIG[h]['enabled']]
+                     config.LOGGING_CONFIG[h]['enabled']]
     }
 })
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 # Log the currently loaded configuration.
-if constants.config_file_was_loaded:
-    log.info('Loaded configuration from ' + constants.PYPHI_CONFIG_FILE)
+if config.file_loaded:
+    log.info('Loaded configuration from ' + config.PYPHI_CONFIG_FILENAME)
 else:
     log.info("Using default configuration (no config file provided)")
-log.info('Current PyPhi configuration:\n' + constants.get_config_string())
+log.info('Current PyPhi configuration:\n' + config.get_config_string())

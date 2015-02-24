@@ -70,8 +70,9 @@ def test_state_by_state2state_by_node():
     print(expected)
     assert np.array_equal(result, expected)
 
+
 def test_nondet_state_by_node2state_by_state():
-    # Test for nondeterministic tpm
+    # Test for nondeterministic TPM.
     result = convert.state_by_node2state_by_state(state_by_node_nondet)
     expected = state_by_state_nondet
     print("Result:")
@@ -80,8 +81,9 @@ def test_nondet_state_by_node2state_by_state():
     print(expected)
     assert np.array_equal(result, expected)
 
+
 def test_nondet_state_by_state2state_by_node():
-    # Test for nondeterministic tpm
+    # Test for nondeterministic TPM.
     result = convert.state_by_state2state_by_node(state_by_state_nondet)
     expected = convert.to_n_dimensional(state_by_node_nondet)
     print("Result:")
@@ -89,6 +91,7 @@ def test_nondet_state_by_state2state_by_node():
     print("Expected:")
     print(expected)
     assert np.array_equal(result, expected)
+
 
 def test_2_d_state_by_node2state_by_state():
     # Check with 2-D form.

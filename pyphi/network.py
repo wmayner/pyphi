@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# network.py
 """
-Network
-~~~~~~~
-
 Represents the network of interest. This is the primary object of PyPhi and the
 context of all |phi| and |big_phi| computation.
 """
 
 import numpy as np
-from . import validate, utils, json, convert
+from . import validate, utils, json, convert, config
 
 
 # TODO!!! raise error if user tries to change TPM or CM, double-check and document
@@ -70,8 +68,74 @@ class Network:
             The number of possible states of the network.
     """
 
+    # TODO make tpm also optional when implementing logical network definition
     def __init__(self, tpm, current_state, past_state,
                  connectivity_matrix=None, perturb_vector=None):
+        self.tpm = tpm
+
+        self._size = self.tpm.shape[-1]
+        # TODO extend to nonbinary nodes
+        self._num_states = 2 ** self.size
+        self._node_indices = tuple(range(self.size))
+
+        self._current_state = tuple(current_state)
+        self._past_state = tuple(past_state)
+        self.perturb_vector = perturb_vector
+        self.connectivity_matrix = connectivity_matrix
+
+        # Validate the entire network.
+        validate.network(self)
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def num_states(self):
+        return self._num_states
+
+    @property
+    def node_indices(self):
+        return self._node_indices
+
+    @property
+    def current_state(self):
+        return self._current_state
+
+    @current_state.setter
+    def current_state(self, current_state):
+        # Cast current state to a tuple so it can be hashed and properly used
+        # as np.array indices.
+        current_state = tuple(current_state)
+        # Validate it.
+        validate.current_state_length(current_state, self.size)
+        if config.VALIDATE_NETWORK_STATE:
+            validate.state_reachable(self.past_state, current_state, self.tpm)
+            validate.state_reachable_from(self.past_state, current_state,
+                                          self.tpm)
+        self._current_state = current_state
+
+    @property
+    def past_state(self):
+        return self._past_state
+
+    @past_state.setter
+    def past_state(self, past_state):
+        # Cast past state to a tuple so it can be hashed and properly used
+        # as np.array indices.
+        past_state = tuple(past_state)
+        # Validate it.
+        validate.past_state_length(past_state, self.size)
+        if config.VALIDATE_NETWORK_STATE:
+            validate.state_reachable_from(past_state, self.current_state, self.tpm)
+        self._past_state = past_state
+
+    @property
+    def tpm(self):
+        return self._tpm
+
+    @tpm.setter
+    def tpm(self, tpm):
         # Cast TPM to np.array.
         tpm = np.array(tpm)
         # Validate TPM.
@@ -81,52 +145,47 @@ class Network:
         # Convert to N-D state-by-node if we were given a square state-by-state
         # TPM. Otherwise, force conversion to N-D format.
         if tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]:
-            tpm = convert.state_by_state2state_by_node(tpm)
+            self._tpm = convert.state_by_state2state_by_node(tpm)
         else:
-            tpm = convert.to_n_dimensional(tpm)
+            self._tpm = convert.to_n_dimensional(tpm)
+        # Make the underlying attribute immutable.
+        self._tpm.flags.writeable = False
+        # Update hash.
+        self._tpm_hash = utils.np_hash(self.tpm)
 
-        self.tpm = tpm
-        # Get the number of nodes in the network.
-        self.size = tpm.shape[-1]
-        self.node_indices = tuple(range(self.size))
+    @property
+    def connectivity_matrix(self):
+        return self._connectivity_matrix
 
+    @connectivity_matrix.setter
+    def connectivity_matrix(self, cm):
         # Get the connectivity matrix.
-        if connectivity_matrix is not None:
-            connectivity_matrix = np.array(connectivity_matrix)
+        if cm is not None:
+            self._connectivity_matrix = np.array(cm)
         else:
             # If none was provided, assume all are connected.
-            connectivity_matrix = np.ones((self.size, self.size))
-
-        # TODO make tpm also optional when implementing logical network
-        # definition
-
-        # Get pertubation vector.
-        if perturb_vector is not None:
-            perturb_vector = np.array(perturb_vector)
-        else:
-            # If none was provided, assume all are max entropy
-            perturb_vector = np.ones(self.size)/2
-
-        self.perturb_vector = perturb_vector
-        self.connectivity_matrix = connectivity_matrix
-        # Coerce current and past state to tuples so they can be properly used
-        # as np.array indices.
-        self.current_state = tuple(current_state)
-        self.past_state = tuple(past_state)
-        # Make the TPM, pertubation vector  and connectivity matrix immutable (for hashing).
-        self.tpm.flags.writeable = False
-        self.connectivity_matrix.flags.writeable = False
-        self.perturb_vector.flags.writeable = False
-
-        self._pv_hash = utils.np_hash(self.perturb_vector)
-        self._tpm_hash = utils.np_hash(self.tpm)
+            self._connectivity_matrix = np.ones((self.size, self.size))
+        # Make the underlying attribute immutable.
+        self._connectivity_matrix.flags.writeable = False
+        # Update hash.
         self._cm_hash = utils.np_hash(self.connectivity_matrix)
 
-        # TODO extend to nonbinary nodes
-        self.num_states = 2 ** self.size
+    @property
+    def perturb_vector(self):
+        return self._perturb_vector
 
-        # Validate the entire network.
-        validate.network(self)
+    @perturb_vector.setter
+    def perturb_vector(self, perturb_vector):
+        # Get pertubation vector.
+        if perturb_vector is not None:
+            self._perturb_vector = np.array(perturb_vector)
+        else:
+            # If none was provided, assume maximum-entropy.
+            self._perturb_vector = np.ones(self.size) / 2
+        # Make the underlying attribute immutable.
+        self._perturb_vector.flags.writeable = False
+        # Update hash.
+        self._pv_hash = utils.np_hash(self.perturb_vector)
 
     def __repr__(self):
         return ("Network(" + ", ".join([repr(self.tpm),
@@ -159,6 +218,7 @@ class Network:
         return not self.__eq__(other)
 
     def __hash__(self):
+        # TODO: hash only once?
         return hash((self._tpm_hash, self.current_state, self.past_state,
                      self._cm_hash, self._pv_hash))
 
@@ -167,6 +227,7 @@ class Network:
             'tpm': json.make_encodable(self.tpm),
             'current_state': json.make_encodable(self.current_state),
             'past_state': json.make_encodable(self.past_state),
-            'connectivity_matrix': json.make_encodable(self.connectivity_matrix),
+            'connectivity_matrix':
+                json.make_encodable(self.connectivity_matrix),
             'size': json.make_encodable(self.size),
         }

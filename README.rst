@@ -1,5 +1,5 @@
 .. image:: https://zenodo.org/badge/4651/wmayner/pyphi.png
-    :target: http://dx.doi.org/10.5281/zenodo.12194
+    :target: http://dx.doi.org/10.5281/zenodo.15038
     :alt: Zenodo DOI
 
 .. image:: https://travis-ci.org/wmayner/pyphi.svg?branch=develop
@@ -141,7 +141,6 @@ Rana, and B. Shababo.
 Correspondence regarding the Matlab code and the IIT 3.0 paper (below) should
 be directed to Larissa Albantakis, PhD, at `albantakis@wisc.edu
 <mailto:albantakis@wisc.edu>`_.
-
 
 Please cite this paper if you use this code:
 ````````````````````````````````````````````

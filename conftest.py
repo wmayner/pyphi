@@ -2,21 +2,20 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+import os
 
 
 collect_ignore = [
     "setup.py",
-    ".pythonrc.py",
-    "__pyphi_cache__",
-    "__pyphi_cache__.BACKUP",
-    "test/__pyphi_cache__",
-    "results",
-    "build"
+    ".pythonrc.py"
 ]
-
+# Also ignore everything that git ignores.
+git_ignore = os.path.join(os.path.dirname(__file__), '.gitignore')
+collect_ignore += list(filter(None, open(git_ignore).read().split('\n')))
 
 # Run slow tests separately with command-line option, filter tests
 # ================================================================
+
 
 def pytest_addoption(parser):
     parser.addoption("--filter", action="store_true",

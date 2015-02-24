@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# utils.py
 """
-Utilities
-~~~~~~~~~
-
 Functions used by more than one PyPhi module or class, or that might be of
 external use.
 """
 
+import re
+import logging
 import hashlib
 import numpy as np
 from itertools import chain, combinations
@@ -16,8 +16,11 @@ from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
 from .lru_cache import lru_cache
-from . import constants
-from re import finditer
+from . import constants, config
+
+
+# Create a logger for this module.
+log = logging.getLogger(__name__)
 
 
 def condition_tpm(tpm, fixed_nodes, state):
@@ -60,7 +63,7 @@ def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
         # Zero-out row
         cm[i] = 0
         # Zero-out column
-        cm[:,i] = 0
+        cm[:, i] = 0
     return cm
 
 
@@ -196,12 +199,12 @@ def uniform_distribution(number_of_nodes):
             number_of_states).reshape([2] * number_of_nodes)
 
 
-def marginalize_out(index, tpm, perturb_value = 0.5):
+def marginalize_out(index, tpm, perturb_value=0.5):
     """
     Marginalize out a node from a TPM.
 
     Args:
-        index (list): The index of node(s) to be marginalized out.
+        index (list): The index of the node to be marginalized out.
         tpm (np.ndarray): The TPM to marginalize the node out of.
 
     Returns:
@@ -211,12 +214,14 @@ def marginalize_out(index, tpm, perturb_value = 0.5):
     if (perturb_value == 0.5):
         return tpm.sum(index, keepdims=True) / tpm.shape[index]
     else:
-        tpm = np.average(tpm, index, weights = [1-perturb_value, perturb_value])
-        return tpm.reshape([i for i in tpm.shape[0:index]] + [1] + [i for i in tpm.shape[index:]])
+        tpm = np.average(tpm, index, weights=[1 - perturb_value, perturb_value])
+        return tpm.reshape([i for i in tpm.shape[0:index]] +
+                           [1] + [i for i in tpm.shape[index:]])
 
 
-# TODO memoize this
-def max_entropy_distribution(node_indices, number_of_nodes, perturb_vector = None):
+@lru_cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+def max_entropy_distribution(node_indices, number_of_nodes,
+                             perturb_vector=None):
     """
     Return the maximum entropy distribution over a set of nodes.
 
@@ -233,18 +238,27 @@ def max_entropy_distribution(node_indices, number_of_nodes, perturb_vector = Non
         nodes.
     """
     # TODO extend to nonbinary nodes
-    if (perturb_vector == None) or (np.all(perturb_vector == 0.5)) or (len(perturb_vector) == 0):
+    if ((perturb_vector is None) or
+            (np.all(perturb_vector == 0.5)) or
+            (len(perturb_vector) == 0)):
         distribution = np.ones([2 if index in node_indices else 1 for index in
                                 range(number_of_nodes)])
         return distribution / distribution.size
     else:
         perturb_vector = np.array(perturb_vector)
-        bin_states = [bin(x)[2:].zfill(len(node_indices))[::-1] for x in range(2 ** len(node_indices))]
-        distribution = np.array([np.prod(perturb_vector[[m.start() for m in finditer('1', bin_states[x])]])
-                                 * np.prod(1 - perturb_vector[[m.start() for m in finditer('0', bin_states[x])]])
-                                 for x in range(2 ** len(node_indices))])
-        return distribution.reshape([2 if index in node_indices else 1 for index in
-                                     range(number_of_nodes)], order='F')
+        bin_states = [bin(x)[2:].zfill(len(node_indices))[::-1] for x in
+                      range(2 ** len(node_indices))]
+        distribution = np.array([
+            np.prod(perturb_vector[[m.start() for m in
+                                    re.finditer('1', bin_states[x])]])
+            * np.prod(1 - perturb_vector[[m.start() for m in
+                                          re.finditer('0', bin_states[x])]])
+            for x in range(2 ** len(node_indices))
+        ])
+        return distribution.reshape(
+            [2 if index in node_indices else 1 for index in
+             range(number_of_nodes)],
+            order='F')
 
 
 # TODO extend to binary nodes
@@ -281,8 +295,7 @@ def bipartition(a):
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
 
-# TODO use bitwise operators here
-@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+@lru_cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.
 
@@ -304,7 +317,7 @@ def bipartition_indices(N):
     if N <= 0:
         return result
     for i in range(2 ** (N - 1)):
-        part = [[],[]]
+        part = [[], []]
         for n in range(N):
             bit = (i >> n) & 1
             part[bit].append(n)
@@ -316,9 +329,15 @@ def bipartition_indices(N):
 # =============================================================================
 
 
-# TODO cache this persistently; it's exponential
+# Load precomputed hamming matrices.
+import os
+_ROOT = os.path.abspath(os.path.dirname(__file__))
+_NUM_PRECOMPUTED_HAMMING_MATRICES = 10
+_hamming_matrices = [
+    np.load(os.path.join(_ROOT, 'data', 'hamming_matrices', str(i) + '.npy'))
+    for i in range( _NUM_PRECOMPUTED_HAMMING_MATRICES)
+]
 # TODO extend to nonbinary nodes
-@lru_cache(maxmem=constants.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of |N|
     binary nodes.
@@ -338,9 +357,23 @@ def _hamming_matrix(N):
                [ 1.,  2.,  0.,  1.],
                [ 2.,  1.,  1.,  0.]])
     """
-    possible_states = np.array([list(bin(state)[2:].zfill(N)) for state in
-                                range(2 ** N)])
-    return cdist(possible_states, possible_states, 'hamming') * N
+    if N < 10:
+        return _hamming_matrices[N]
+    else:
+        log.warn(
+            "Hamming matrices for more than {} nodes have not been "
+            "precomputed. This will make EMD calculations less inefficient; "
+            "calculating hamming matrices is an exponential-time procedure. "
+            "Consider pre-computing the hamming matrices up to the desired "
+            "number of nodes with the ``pyphi.utils._hamming_matrix`` "
+            "function and saving them to the 'data' directory in the "
+            "directory where PyPhi was installed (you can find this directory "
+            "by typing ``import pyphi; pyphi;`` into a Python interperter)."
+            .format(_NUM_PRECOMPUTED_HAMMING_MATRICES - 1)
+        )
+        possible_states = np.array([list(bin(state)[2:].zfill(N)) for state in
+                                    range(2 ** N)])
+        return cdist(possible_states, possible_states, 'hamming') * N
 
 
 # TODO? implement this

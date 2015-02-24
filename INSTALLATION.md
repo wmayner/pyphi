@@ -41,10 +41,9 @@ another, so that they don't interact in unexpected ways. Please see [this
 guide](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for more
 information.
 
-To do this, you must install `virtualenv` and `virtualenvwrapper`, a [tool for
-manipulating virtual
-environments](http://virtualenvwrapper.readthedocs.org/en/latest/). Both of
-those tools are available on [PyPI](https://pypi.python.org/pypi), the Python
+To do this, you must install `virtualenvwrapper`, a [tool for manipulating
+virtual environments](http://virtualenvwrapper.readthedocs.org/en/latest/).
+This tool is available on [PyPI](https://pypi.python.org/pypi), the Python
 package index, and can be installed with `pip`, the command-line utility for
 installing and managing Python packages (`pip` was installed automatically with
 the brewed Python):
@@ -73,8 +72,8 @@ development project directories, and the location of the script installed with
 this package, respectively. **Note:** The location of the script can be found
 by running `which virtualenvwrapper.sh`.
 
-The filepath after the equals sign on second line will different for everyone,
-but here is an example:
+The filepath after the equals sign on the second line will different for
+everyone, but here is an example:
 
 ```bash
 export WORKON_HOME=$HOME/.virtualenvs
@@ -93,7 +92,7 @@ virtual environment, like so:
 mkvirtualenv -p `which python3` <name_of_your_project>
 ```
 
-The `` -p `which python3 ``\` option ensures that when the virtual environment
+The option `` -p `which python3 ``\` ensures that when the virtual environment
 is activated, the commands `python` and `pip` will refer to their Python 3
 counterparts.
 
@@ -124,6 +123,5 @@ import pyphi
 ```
 
 Please see the documentation for some
-[examples](http://pythonhosted.org/pyphi/#usage-and-examples) and information
-on how to [configure](http://pythonhosted.org/pyphi/#configuration-optional)
-it.
+[examples](http://pythonhosted.org/pyphi/#examples) and information on how to
+[configure](http://pythonhosted.org/pyphi/#configuration) it.

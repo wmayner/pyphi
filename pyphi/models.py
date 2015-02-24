@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# models.py
 """
-Models
-~~~~~~
-
 Containers for MICE, MIP, cut, partition, and concept data.
 """
 
 from collections import namedtuple, Iterable
 import numpy as np
 
-from .constants import DIRECTIONS, PAST, FUTURE
 from . import utils, constants, convert, json
 
 # TODO use properties to avoid data duplication
@@ -139,6 +136,8 @@ def _numpy_aware_eq(a, b):
         return np.array_equal(a, b)
     if ((isinstance(a, Iterable) and isinstance(b, Iterable))
             and not isinstance(a, str) and not isinstance(b, str)):
+        if len(a) != len(b):
+            return False
         return all(_numpy_aware_eq(x, y) for x, y in zip(a, b))
     return a == b
 
@@ -345,7 +344,7 @@ _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept(namedtuple('Concept', _concept_attributes)):
+class Concept:
 
     """A star in concept-space.
 
@@ -368,12 +367,25 @@ class Concept(namedtuple('Concept', _concept_attributes)):
             The :class:`Mice` representing the core effect of this concept.
         subsystem (Subsystem):
             This Concept's parent subsystem.
+        time (float): The number of seconds it took to calculate.
     """
 
-    def __new__(cls, phi=None, mechanism=None, cause=None, effect=None,
-                subsystem=None, normalized=None):
-        return super(Concept, cls).__new__(
-            cls, phi, mechanism, cause, effect, subsystem, normalized)
+    def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
+                subsystem=None, normalized=False):
+        self.phi = phi
+        self.mechanism = mechanism
+        self.cause = cause
+        self.effect = effect
+        self.subsystem = subsystem
+        self.normalized = normalized
+        self.time = None
+
+    def __repr__(self):
+        return 'Concept(' + ', '.join(attr + '=' + str(getattr(self, attr)) for
+                                      attr in _concept_attributes) + ')'
+
+    def __str__(self):
+        return self.__repr__()
 
     @property
     def location(self):
@@ -381,7 +393,10 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         ``tuple(np.ndarray)`` -- The concept's location in concept space. The
         two elements of the tuple are the cause and effect repertoires.
         """
-        return (self.cause.repertoire, self.effect.repertoire)
+        if self.cause and self.effect:
+            return (self.cause.repertoire, self.effect.repertoire)
+        else:
+            return (self.cause, self.effect)
 
     def __eq__(self, other):
         return _general_eq(self, other, _concept_attributes)
@@ -417,17 +432,19 @@ class Concept(namedtuple('Concept', _concept_attributes)):
         return self.mechanism == other.mechanism and self.eq_repertoires(other)
 
     # TODO Rename to expanded_cause_repertoire, etc
-    def expand_cause_repertoire(self):
+    def expand_cause_repertoire(self, new_purview=None):
         """Expands a cause repertoire to be a distribution over an entire
         network."""
         return self.subsystem.expand_cause_repertoire(self.cause.purview,
-                                                      self.cause.repertoire)
+                                                      self.cause.repertoire,
+                                                      new_purview)
 
-    def expand_effect_repertoire(self):
+    def expand_effect_repertoire(self, new_purview=None):
         """Expands an effect repertoire to be a distribution over an entire
         network."""
         return self.subsystem.expand_effect_repertoire(self.effect.purview,
-                                                       self.effect.repertoire)
+                                                       self.effect.repertoire,
+                                                       new_purview)
 
     def expand_partitioned_cause_repertoire(self):
         """Expands a partitioned cause repertoire to be a distribution over an
@@ -473,7 +490,7 @@ _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'cut_subsystem']
 
 
-class BigMip(namedtuple('BigMip', _bigmip_attributes)):
+class BigMip:
 
     """A minimum information partition for |big_phi| calculation.
 
@@ -495,7 +512,28 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
         subsystem (Subsystem): The subsystem this MIP was calculated for.
         cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
         cut (Cut): The minimal cut.
+        time (float): The number of seconds it took to calculate.
+        small_phi_time (float): The number of seconds it took to calculate the
+            unpartitioned constellation.
     """
+
+    def __init__(self, phi=None, unpartitioned_constellation=None,
+                 partitioned_constellation=None, subsystem=None,
+                 cut_subsystem=None):
+        self.phi = phi
+        self.unpartitioned_constellation = unpartitioned_constellation
+        self.partitioned_constellation = partitioned_constellation
+        self.subsystem = subsystem
+        self.cut_subsystem = cut_subsystem
+        self.time = None
+        self.small_phi_time = None
+
+    def __repr__(self):
+        return 'BigMip(' + ', '.join(attr + '=' + str(getattr(self, attr)) for
+                                     attr in _bigmip_attributes) + ')'
+
+    def __str__(self):
+        return self.__repr__()
 
     @property
     def cut(self):
@@ -507,7 +545,7 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
     def __bool__(self):
         """A BigMip is truthy if it is not reducible; i.e. if it has a
         significant amount of |big_phi|."""
-        return self.phi > constants.EPSILON
+        return self.phi >= constants.EPSILON
 
     def __hash__(self):
         return hash((self.phi, self.unpartitioned_constellation,
@@ -520,9 +558,7 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
     def __lt__(self, other):
         if _phi_eq(self, other):
             if len(self.subsystem) == len(other.subsystem):
-                # Compare actual Phi values up to maximum precision, for
-                # more determinism in things like max and min
-                return self.phi < other.phi
+                return False
             else:
                 return len(self.subsystem) < len(other.subsystem)
         else:
@@ -531,9 +567,7 @@ class BigMip(namedtuple('BigMip', _bigmip_attributes)):
     def __gt__(self, other):
         if _phi_eq(self, other):
             if len(self.subsystem) == len(other.subsystem):
-                # Compare actual Phi values up to maximum precision, for
-                # more determinism in things like max and min
-                return self.phi > other.phi
+                return False
             else:
                 return len(self.subsystem) > len(other.subsystem)
         else:

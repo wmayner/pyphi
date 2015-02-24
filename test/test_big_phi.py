@@ -5,9 +5,11 @@ import pickle
 import pytest
 import numpy as np
 
-from pyphi import constants, compute, models, utils, convert, Network
+from pyphi import constants, config, compute, models, utils, convert, Network
 from pyphi.constants import DIRECTIONS, PAST, FUTURE
 
+from scipy.sparse.csgraph import connected_components
+from scipy.sparse import csr_matrix
 
 # Precision for testing.
 PRECISION = 5
@@ -154,9 +156,11 @@ micro_answer = {
         (0, 1): 0.34811,
         (2, 3): 0.34811,
     },
-    'cut': models.Cut(severed=(0, 2), intact=(1, 3))
+    'cuts': [
+        models.Cut(severed=(0, 2), intact=(1, 3)),
+        models.Cut(severed=(1, 2), intact=(0, 3)),
+    ]
 }
-
 
 macro_answer = {
     'phi': 0.86905,
@@ -204,6 +208,8 @@ def check_mip(mip, answer):
     # Check cut.
     if 'cut' in answer:
         assert mip.cut == answer['cut']
+    elif 'cuts' in answer:
+        assert mip.cut in answer['cuts']
 
 
 # Tests
@@ -264,58 +270,58 @@ def test_big_mip_wrappers(reducible, flushcache, restore_fs_cache):
 
 def test_big_mip_single_node(s_single, flushcache, restore_fs_cache):
     flushcache()
-    initial_option = constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
-    constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = True
+    initial_option = config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
+    config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = True
     assert compute.big_mip(s_single).phi == 0.5
-    constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = False
+    config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = False
     assert compute.big_mip(s_single).phi == 0.0
-    constants.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = initial_option
+    config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = initial_option
 
 
 def test_big_mip_standard_example_sequential(s, flushcache, restore_fs_cache):
     flushcache()
-    initial = constants.PARALLEL_CUT_EVALUATION
-    constants.PARALLEL_CUT_EVALUATION = False
+    initial = config.PARALLEL_CUT_EVALUATION
+    config.PARALLEL_CUT_EVALUATION = False
 
     mip = compute.big_mip(s)
     check_mip(mip, standard_answer)
 
-    constants.PARALLEL_CUT_EVALUATION = initial
+    config.PARALLEL_CUT_EVALUATION = initial
 
 
 def test_big_mip_standard_example_parallel(s, flushcache, restore_fs_cache):
     flushcache()
-    initial = (constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES)
-    constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = True, -2
+    initial = (config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES)
+    config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = True, -2
 
     mip = compute.big_mip(s)
     check_mip(mip, standard_answer)
 
-    constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = initial
+    config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = initial
 
 
 def test_big_mip_noised_example_sequential(s_noised, flushcache,
                                            restore_fs_cache):
     flushcache()
-    initial = constants.PARALLEL_CUT_EVALUATION
-    constants.PARALLEL_CUT_EVALUATION = False
+    initial = config.PARALLEL_CUT_EVALUATION
+    config.PARALLEL_CUT_EVALUATION = False
 
     mip = compute.big_mip(s_noised)
     check_mip(mip, noised_answer)
 
-    constants.PARALLEL_CUT_EVALUATION = initial
+    config.PARALLEL_CUT_EVALUATION = initial
 
 
 def test_big_mip_noised_example_parallel(s_noised, flushcache,
                                          restore_fs_cache):
     flushcache()
-    initial = (constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES)
-    constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = True, -2
+    initial = (config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES)
+    config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = True, -2
 
     mip = compute.big_mip(s_noised)
     check_mip(mip, noised_answer)
 
-    constants.PARALLEL_CUT_EVALUATION, constants.NUMBER_OF_CORES = initial
+    config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = initial
 
 
 # TODO!! add more assertions for the smaller subsystems
@@ -421,10 +427,28 @@ def test_rule152_complexes_no_caching(rule152):
         assert main.cut == result['cut']
 
 
-def test_big_mip_micro(micro_s, flushcache, restore_fs_cache):
+def test_big_mip_micro_parallel(micro_s, flushcache, restore_fs_cache):
     flushcache()
+
+    initial = config.PARALLEL_CUT_EVALUATION
+    config.PARALLEL_CUT_EVALUATION = True
+
     mip = compute.big_mip(micro_s)
     check_mip(mip, micro_answer)
+
+    config.PARALLEL_CUT_EVALUATION = initial
+
+
+def test_big_mip_micro_sequential(micro_s, flushcache, restore_fs_cache):
+    flushcache()
+
+    initial = config.PARALLEL_CUT_EVALUATION
+    config.PARALLEL_CUT_EVALUATION = False
+
+    mip = compute.big_mip(micro_s)
+    check_mip(mip, micro_answer)
+
+    config.PARALLEL_CUT_EVALUATION = initial
 
 
 @pytest.mark.filter
@@ -432,3 +456,21 @@ def test_big_mip_macro(macro_s, flushcache, restore_fs_cache):
     flushcache()
     mip = compute.big_mip(macro_s)
     check_mip(mip, macro_answer)
+
+
+def test_strongly_connected():
+    # A disconnected matrix.
+    cm1 = np.array([[0, 0, 1],
+                    [0, 1, 0],
+                    [1, 0, 0]])
+    # A strongly connected matrix.
+    cm2 = np.array([[0, 1, 0],
+                    [0, 0, 1],
+                    [1, 0, 0]])
+    # A weakly connected matrix.
+    cm3 = np.array([[0, 1, 0],
+                    [0, 0, 1],
+                    [0, 1, 0]])
+    assert connected_components(csr_matrix(cm1), connection='strong')[0] > 1
+    assert connected_components(csr_matrix(cm2), connection='strong')[0] == 1
+    assert connected_components(csr_matrix(cm3), connection='strong')[0] > 1
