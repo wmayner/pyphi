@@ -57,20 +57,17 @@ Low Index nodes. The other convention, where the highest-index node varies the
 fastest, is similarly called **HOLI**.
 
 .. note::
-
     The rationale for this choice of convention is that the **LOLI** mapping is
     stable under changes in the number of nodes, in the sense that the same bit
     always corresponds to the same node index. The **HOLI** mapping does not
     have this property.
 
 .. note::
-
     This applies to only situations where decimal indices are encoding states.
     Whenever a network state is represented as a list or tuple, we use the only
     sensible convention: the |ith| element gives the state of the |ith| node.
 
 .. note::
-
     There are various conversion functions available for converting between
     TPMs, states, and indices using different conventions: see the
     :mod:`pyphi.convert` module.
