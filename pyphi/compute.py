@@ -241,7 +241,7 @@ def cut_concepts(partition, unpartitioned_constellation, direction):
     if direction == 'future':
         cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
     elif direction == 'past':
-        cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
+        cut_matrix[list_of_cuts[:, 1], list_of_cuts[:, 0]] = 1
     safe_concepts = tuple(filter(None, [concept if np.all(concept.mice_cm*cut_matrix == 0)
                      else None for concept in unpartitioned_constellation]))
     unsafe_concepts = tuple(filter(None, [concept if np.any(concept.mice_cm*cut_matrix == 1)
