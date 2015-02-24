@@ -36,6 +36,11 @@ def make_encodable(obj):
         # TODO stamp?
         # d.update(get_stamp(obj))
         return d
+    # If we have numpy data types, convert them to native Python data types.
+    elif isinstance(obj, np.int32) or isinstance(obj, np.int64):
+        return int(obj)
+    elif isinstance(obj, np.float64):
+        return float(obj)
     # If we have an array, convert it to a list.
     elif isinstance(obj, np.ndarray):
         return obj.tolist()
