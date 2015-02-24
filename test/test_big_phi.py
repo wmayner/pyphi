@@ -245,8 +245,8 @@ def test_big_mip_empty_subsystem(s_empty, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.big_mip(s_empty) ==
             models.BigMip(phi=0.0,
-                          unpartitioned_constellation=[],
-                          partitioned_constellation=[],
+                          unpartitioned_constellation=(),
+                          partitioned_constellation=(),
                           subsystem=s_empty,
                           cut_subsystem=s_empty))
 
