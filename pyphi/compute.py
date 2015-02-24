@@ -437,26 +437,25 @@ def big_phi(subsystem):
     return big_mip(subsystem).phi
 
 
-def main_complex(network):
-    """Return the main complex of the network."""
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
-    log.info("Calculating main complex for " + str(network) + "...")
-    result = max(complexes(network))
-    log.info("Finished calculating main complex for" + str(network) + ".")
-    log.debug("RESULT: \n" + str(result))
-    return result
+def possible_main_complexes(network):
+    """"Return a generator of the subsystems of a network that could be a main
+    complex.
+
+    This is the just powerset of the nodes that have at least one input and
+    output (nodes with no inputs or no outputs cannot be part of a main
+    complex, because they do not have a causal link with the rest of the
+    subsystem in the past or future, respectively)."""
+    inputs = np.sum(network.connectivity_matrix, 1)
+    outputs = np.sum(network.connectivity_matrix, 0)
+    nodes_have_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
+    causally_significant_nodes = np.where(nodes_have_inputs_and_outputs)[0]
+    for subset in utils.powerset(causally_significant_nodes):
+        yield Subsystem(subset, network)
+
 
 def subsystems(network):
-    """Return a generator of all possible subsystems of a network.
-
-    This is the just powerset of the network's non-input and non-ouput
-    nodes."""
-    for subset in utils.powerset(np.where(np.logical_and(
-        np.sum(network.connectivity_matrix, 0) > 0,
-        np.sum(network.connectivity_matrix, 1) > 0))[0]):
+    """Return a generator of all possible subsystems of a network."""
+    for subset in utils.powerset(network.node_indices):
         yield Subsystem(subset, network)
 
 
@@ -469,4 +468,18 @@ def complexes(network):
         raise ValueError(
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
-    return (big_mip(subsystem) for subsystem in subsystems(network))
+    return (big_mip(subsystem) for subsystem in
+            possible_main_complexes(network))
+
+
+def main_complex(network):
+    """Return the main complex of the network."""
+    if not isinstance(network, Network):
+        raise ValueError(
+            """Input must be a Network (perhaps you passed a Subsystem
+            instead?)""")
+    log.info("Calculating main complex for " + str(network) + "...")
+    result = max(complexes(network))
+    log.info("Finished calculating main complex for" + str(network) + ".")
+    log.debug("RESULT: \n" + str(result))
+    return result
