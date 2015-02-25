@@ -19,12 +19,10 @@ machine, so **please check these settings before running anything**. Otherwise,
 there is a risk that simulations might crash (potentially after running for a
 long time!), resulting in data loss.
 
-- PyPhi employs several in-memory LRU-caches to speed up computation. However,
-  these can quickly use up all the memory on a system; to avoid thrashing, this
-  options limits the percentage of a system's RAM that the LRU caches can use.
-  **NOTE:** If you are running multiple instances of PyPhi on the same machine,
-  then the number of PyPhi instances multiplied by this number should be less
-  than ~80.
+- PyPhi employs several in-memory caches to speed up computation. However,
+  these can quickly use a lot of memory for large networks or large numbers of
+  them; to avoid thrashing, this options limits the percentage of a system's
+  RAM that the caches can collectively use.
 
     >>> import pyphi
     >>> pyphi.config.MAXIMUM_CACHE_MEMORY_PERCENTAGE
