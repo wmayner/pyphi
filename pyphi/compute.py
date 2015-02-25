@@ -486,8 +486,8 @@ def main_complex(network):
         raise ValueError(
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
-    log.info("Calculating main complex for " + str(network) + "...")
+    log.info("Calculating main complex for {}...".format(network))
     result = max(complexes(network))
-    log.info("Finished calculating main complex for" + str(network) + ".")
+    log.info("Finished calculating main complex for {}.".format(network))
     log.debug("RESULT: \n" + str(result))
     return result
