@@ -315,18 +315,15 @@ class Subsystem:
         # Use the general-purpose cache for cause and effect repertoire
         # calculations, and for testing connections.
         self.cause_repertoire = types.MethodType(
-            cache(cache=self._cr_cache,
-                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            cache(cache=self._cr_cache)(
                 cause_repertoire),
             self)
         self.effect_repertoire = types.MethodType(
-            cache(cache=self._er_cache,
-                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            cache(cache=self._er_cache)(
                 effect_repertoire),
             self)
         self._test_connections = types.MethodType(
-            cache(cache=self._test_conn_cache,
-                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            cache(cache=self._test_conn_cache)(
                 _test_connections),
             self)
 
@@ -339,18 +336,15 @@ class Subsystem:
 
     def __setstate__(self, d):
         d['cause_repertoire'] = types.MethodType(
-            cache(cache=d['_cr_cache'],
-                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            cache(cache=d['_cr_cache'])(
                 cause_repertoire),
             self)
         d['effect_repertoire'] = types.MethodType(
-            cache(cache=d['_er_cache'],
-                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            cache(cache=d['_er_cache'])(
                 effect_repertoire),
             self)
         d['_test_connections'] = types.MethodType(
-            cache(cache=d['_test_conn_cache'],
-                      maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)(
+            cache(cache=d['_test_conn_cache'])(
                 _test_connections),
             self)
         self.__dict__ = d

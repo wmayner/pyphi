@@ -9,6 +9,7 @@ A memory-limited cache decorator.
 import os
 import psutil
 from functools import update_wrapper, namedtuple
+from . import config
 
 
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
@@ -57,7 +58,7 @@ def _make_key(args, kwds, typed,
     return _HashedSeq(key)
 
 
-def cache(cache={}, maxmem=None, typed=False):
+def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed=False):
     """Memory-limited cache decorator.
 
     *maxmem* is a float between 0 and 100, inclusive, specifying the maximum
