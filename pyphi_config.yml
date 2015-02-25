@@ -21,8 +21,8 @@ CACHE_BIGMIPS: false
 # Normalization increases the chances that a precomputed concept can be used
 # again, but is expensive.
 NORMALIZE_TPMS: true
-# Some functions are memoized using an in-memory LRU-cache. This is the maximum
-# percentage of memory that each PyPhi process' caches can use.
+# Some functions are memoized using an in-memory cache. This is the maximum
+# percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 # The caching system to use. "fs" means cache the results on the local
 # filesystem, in a subdirectory of the current directory; "db" means connect to
