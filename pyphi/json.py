@@ -66,7 +66,7 @@ class JSONEncoder(_json.JSONEncoder):
         """Encode using the object's ``json_dict`` method if exists, falling
         back on the built-in encoder if not."""
         try:
-            return super().encode(obj.json_dict())
+            return super().encode(make_encodable(obj))
         except AttributeError:
             return super().encode(obj)
 
