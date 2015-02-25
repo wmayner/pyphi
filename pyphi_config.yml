@@ -59,3 +59,5 @@ VALIDATE_NETWORK_STATE: false
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 # The number of decimal places to which Phi values are considered accurate.
 PRECISION: 6
+# Whether to use the matlab approximation which assumes new concepts cannot be created
+MATLAB_APPROX: true

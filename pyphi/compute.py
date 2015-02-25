@@ -256,7 +256,8 @@ def cut_concepts(partition, unpartitioned_constellation, direction):
 def _evaluate_partition(uncut_subsystem, partition,
                         unpartitioned_constellation):
     log.debug("Evaluating partition {}...".format(partition))
-    cut_recheck = cut_check(uncut_subsystem, partition)
+    if not config.MATLAB_APPROX:
+        cut_recheck = cut_check(uncut_subsystem, partition)
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
     forward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
@@ -264,7 +265,10 @@ def _evaluate_partition(uncut_subsystem, partition,
                                       cut=forward_cut,
                                       mice_cache=uncut_subsystem._mice_cache)
     forward_uncut_concepts, forward_cut_concepts = cut_concepts(partition, unpartitioned_constellation, 'future')
-    mechanisms_to_be_checked = tuple(set(cut_recheck + forward_cut_concepts))
+    if config.MATLAB_APPROX:
+        mechanisms_to_be_checked = tuple(set(forward_cut_concepts))
+    else:
+        mechanisms_to_be_checked = tuple(set(cut_recheck + forward_cut_concepts))
     indices_to_be_checked = (nodes2indices(mechanism) for mechanism in mechanisms_to_be_checked)
     forward_constellation = constellation(forward_cut_subsystem, indices_to_be_checked) + forward_uncut_concepts
     forward_mip = BigMip(
@@ -285,7 +289,10 @@ def _evaluate_partition(uncut_subsystem, partition,
                                        cut=backward_cut,
                                        mice_cache=uncut_subsystem._mice_cache)
     backward_uncut_concepts, backward_cut_concepts = cut_concepts(partition, unpartitioned_constellation, 'past')
-    mechanisms_to_be_checked = tuple(set(cut_recheck + backward_cut_concepts))
+    if config.MATLAB_APPROX:
+        mechanisms_to_be_checked = tuple(set(backward_cut_concepts))
+    else:
+        mechanisms_to_be_checked = tuple(set(cut_recheck + backward_cut_concepts))
     indices_to_be_checked = (nodes2indices(mechanism) for mechanism in mechanisms_to_be_checked)
     backward_constellation = constellation(backward_cut_subsystem, indices_to_be_checked) + backward_uncut_concepts
     backward_mip = BigMip(
