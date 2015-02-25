@@ -15,8 +15,8 @@ from itertools import chain, combinations
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
-from .lru_cache import lru_cache
-from . import constants, config
+from .cache import cache
+from . import constants
 
 
 # Create a logger for this module.
@@ -219,7 +219,7 @@ def marginalize_out(index, tpm, perturb_value=0.5):
                            [1] + [i for i in tpm.shape[index:]])
 
 
-@lru_cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+@cache(cache={}, maxmem=None)
 def max_entropy_distribution(node_indices, number_of_nodes,
                              perturb_vector=None):
     """
@@ -295,7 +295,7 @@ def bipartition(a):
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
 
-@lru_cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+@cache(cache={}, maxmem=None)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.
 
