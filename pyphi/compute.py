@@ -434,6 +434,8 @@ def _big_mip(cache_key, subsystem):
     log.debug("Finding unpartitioned constellation...")
     small_phi_start = time()
     unpartitioned_constellation = constellation(subsystem)
+    if not unpartitioned_constellation:
+        return time_annotated(_null_mip(subsystem))
     small_phi_time = time() - small_phi_start
     log.debug("Found unpartitioned constellation.")
     min_mip = _null_mip(subsystem)
