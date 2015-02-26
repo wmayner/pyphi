@@ -18,7 +18,6 @@ from pyemd import emd
 from .cache import cache
 from . import constants
 
-
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
@@ -324,6 +323,24 @@ def bipartition_indices(N):
         result.append((tuple(part[1]), tuple(part[0])))
     return result
 
+# Methods to evaluate the effect of a Cut
+# ============================================================================
+
+def split_by_cut(subsystem, cut):
+    Part0 = subsystem.indices2nodes(cut[0])
+    Part1 = subsystem.indices2nodes(cut[1])
+    result = [mechanism if bool((set(mechanism) & set(Part0)) and (set(mechanism) & set(Part1))) else None
+            for mechanism in powerset(subsystem.nodes)]
+    return tuple(filter(None, result))
+
+def cut_concepts(cut_matrix, unpartitioned_constellation):
+    Concepts = tuple(filter(None, [concept if np.any(concept.mice_cm * cut_matrix == 1)
+                       else None for concept in unpartitioned_constellation]))
+    return tuple(concept.mechanism for concept in Concepts)
+
+def uncut_concepts(cut_matrix, unpartitioned_constellation):
+    return tuple(filter(None, [concept if np.all(concept.mice_cm * cut_matrix == 0)
+                     else None for concept in unpartitioned_constellation]))
 
 # Internal helper methods
 # =============================================================================

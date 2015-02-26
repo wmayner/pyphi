@@ -241,6 +241,7 @@ def _test_connections(self, axis, nodes1, nodes2):
     return cm.sum(axis).all()
 
 
+
 # TODO! go through docs and make sure to say when things can be None
 class Subsystem:
 
@@ -283,7 +284,7 @@ class Subsystem:
         self.null_cut = Cut((), self.node_indices)
         # The unidirectional cut applied for phi evaluation within the
         self.cut = cut if cut is not None else self.null_cut
-        # Only compute hash once.
+                # Only compute hash once.
         self._hash = hash((self.node_indices, self.cut, self.network))
         # Get the subsystem's connectivity matrix. This is the network's
         # connectivity matrix, but with the cut applied, and with all
@@ -303,6 +304,9 @@ class Subsystem:
         # Generate the nodes.
         self.nodes = tuple(Node(self.network, i, self) for i in
                            self.node_indices)
+        # The matrix of connections which are severed due to the cut
+        self.null_cut_matrix = np.zeros((len(self), len(self)))
+        self.cut_matrix = self._find_cut_matrix(cut) if cut is not None else self.null_cut_matrix
         # A cache for keeping core causes and effects that can be reused later
         # in the event that a cut doesn't effect them.
         self._mice_cache = mice_cache
@@ -327,6 +331,13 @@ class Subsystem:
             cache(cache=self._test_conn_cache)(
                 _test_connections),
             self)
+
+    def _find_cut_matrix(self, cut):
+        subsystem_index = convert.nodes2indices(self.nodes)
+        cut_matrix = np.zeros((self.network.size, self.network.size))
+        list_of_cuts = np.array(list(product(cut[0], cut[1])))
+        cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
+        return cut_matrix[np.ix_(subsystem_index, subsystem_index)]
 
     def __getstate__(self):
         d = self.__dict__.copy()
