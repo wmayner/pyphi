@@ -214,7 +214,7 @@ config = {
     # documentation for `joblib.Parallel`.
     'PARALLEL_VERBOSITY': 20,
     # Whether to use the matlab approximation
-    'MATHLAB_APPROX': False,
+    'MATLAB_APPROX': False,
     # Controls whether the concept caching system is used.
     'CACHE_CONCEPTS': False,
     # Controls whether BigMips are cached and retreived.
