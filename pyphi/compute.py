@@ -201,7 +201,7 @@ def conceptual_information(subsystem):
 
 
 # TODO document
-def _null_mip(subsystem):
+def _null_bigmip(subsystem):
     """Returns a BigMip with zero Phi and empty constellations.
 
     This is the MIP associated with a reducible subsystem."""
@@ -223,7 +223,7 @@ def _single_node_mip(subsystem):
             subsystem=subsystem,
             cut_subsystem=subsystem)
     else:
-        return _null_mip(subsystem)
+        return _null_bigmip(subsystem)
 
 
 def _evaluate_partition(uncut_subsystem, partition,
@@ -395,7 +395,7 @@ def _big_mip(cache_key, subsystem):
     if not subsystem:
         log.info('Subsystem {} is empty; returning null MIP '
                  'immediately.'.format(subsystem))
-        return time_annotated(_null_mip(subsystem))
+        return time_annotated(_null_bigmip(subsystem))
     # Get the connectivity of just the subsystem nodes.
     submatrix_indices = np.ix_(subsystem.node_indices, subsystem.node_indices)
     cm = subsystem.network.connectivity_matrix[submatrix_indices]
@@ -405,7 +405,7 @@ def _big_mip(cache_key, subsystem):
     if num_components > 1:
         log.info('{} is not strongly connected; returning null MIP '
                  'immediately.'.format(subsystem))
-        return time_annotated(_null_mip(subsystem))
+        return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
 
     # The first bipartition is the null cut (trivial bipartition), so skip it.
@@ -417,10 +417,10 @@ def _big_mip(cache_key, subsystem):
     small_phi_start = time()
     unpartitioned_constellation = constellation(subsystem)
     if not unpartitioned_constellation:
-        return time_annotated(_null_mip(subsystem))
+        return time_annotated(_null_bigmip(subsystem))
     small_phi_time = time() - small_phi_start
     log.debug("Found unpartitioned constellation.")
-    min_mip = _null_mip(subsystem)
+    min_mip = _null_bigmip(subsystem)
     min_mip.phi = float('inf')
     if config.PARALLEL_CUT_EVALUATION:
         min_mip = _find_mip_parallel(subsystem, bipartitions,
@@ -509,7 +509,12 @@ def main_complex(network):
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
     log.info("Calculating main complex for {}...".format(network))
-    result = max(complexes(network))
+    result = complexes(network)
+    if result:
+        result = max(result)
+    else:
+        empty_subsystem = Subsystem((), network)
+        result = _null_bigmip(empty_subsystem)
     log.info("Finished calculating main complex for {}.".format(network))
     log.debug("RESULT: \n" + str(result))
     return result
