@@ -371,12 +371,13 @@ class Concept:
     """
 
     def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
-                subsystem=None, normalized=False):
+                 mice_cm=None, subsystem=None, normalized=False):
         self.phi = phi
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
         self.subsystem = subsystem
+        self.mice_cm = mice_cm
         self.normalized = normalized
         self.time = None
 

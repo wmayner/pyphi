@@ -14,13 +14,12 @@ import numpy as np
 import multiprocessing
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
-
+from pyphi.convert import nodes2indices
 from . import utils, constants, config, memory
 from .concept_caching import concept as _concept
 from .models import Concept, Cut, BigMip
 from .network import Network
 from .subsystem import Subsystem
-
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -77,7 +76,7 @@ def concept(subsystem, mechanism):
         return time_annotated(subsystem.concept(mechanism))
 
 
-def constellation(subsystem):
+def constellation(subsystem, indices_to_be_checked = None):
     """Return the conceptual structure of this subsystem.
 
     Args:
@@ -87,11 +86,14 @@ def constellation(subsystem):
     Returns:
         ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
     """
-    concepts = [concept(subsystem, mechanism) for mechanism in
-                utils.powerset(subsystem.nodes)]
+    if not indices_to_be_checked:
+        concepts = [concept(subsystem, mechanism) for mechanism in
+                    utils.powerset(subsystem.nodes)]
+    else:
+        concepts = [concept(subsystem, subsystem.indices2nodes(index)) for index in
+                    indices_to_be_checked]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
-
 
 def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
@@ -229,11 +231,20 @@ def _evaluate_partition(uncut_subsystem, partition,
     log.debug("Evaluating partition {}...".format(partition))
     # Compute forward mip.
     forward_cut = Cut(partition[0], partition[1])
+    if not config.MATLAB_APPROX:
+        cut_mechanisms = utils.split_by_cut(uncut_subsystem, forward_cut)
     forward_cut_subsystem = Subsystem(uncut_subsystem.node_indices,
                                       uncut_subsystem.network,
                                       cut=forward_cut,
                                       mice_cache=uncut_subsystem._mice_cache)
-    forward_constellation = constellation(forward_cut_subsystem)
+    forward_cut_concepts = utils.cut_concepts(forward_cut_subsystem.cut_matrix, unpartitioned_constellation)
+    forward_uncut_concepts = utils.uncut_concepts(forward_cut_subsystem.cut_matrix, unpartitioned_constellation)
+    if config.MATLAB_APPROX:
+        mechanisms_to_be_checked = tuple(set(forward_cut_concepts))
+    else:
+        mechanisms_to_be_checked = tuple(set(cut_mechanisms + forward_cut_concepts))
+    indices_to_be_checked = (nodes2indices(mechanism) for mechanism in mechanisms_to_be_checked)
+    forward_constellation = constellation(forward_cut_subsystem, indices_to_be_checked) + forward_uncut_concepts
     forward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    forward_constellation,
@@ -251,7 +262,14 @@ def _evaluate_partition(uncut_subsystem, partition,
                                        uncut_subsystem.network,
                                        cut=backward_cut,
                                        mice_cache=uncut_subsystem._mice_cache)
-    backward_constellation = constellation(backward_cut_subsystem)
+    backward_uncut_concepts = utils.uncut_concepts(backward_cut_subsystem.cut_matrix, unpartitioned_constellation)
+    backward_cut_concepts = utils.cut_concepts(backward_cut_subsystem.cut_matrix, unpartitioned_constellation)
+    if config.MATLAB_APPROX:
+        mechanisms_to_be_checked = tuple(set(backward_cut_concepts))
+    else:
+        mechanisms_to_be_checked = tuple(set(cut_mechanisms + backward_cut_concepts))
+    indices_to_be_checked = (nodes2indices(mechanism) for mechanism in mechanisms_to_be_checked)
+    backward_constellation = constellation(backward_cut_subsystem, indices_to_be_checked) + backward_uncut_concepts
     backward_mip = BigMip(
         phi=constellation_distance(unpartitioned_constellation,
                                    backward_constellation,
@@ -329,6 +347,8 @@ def _find_mip_parallel(subsystem, bipartitions, unpartitioned_constellation,
     return min_mip
 
 
+
+
 def _find_mip_sequential(subsystem, bipartitions, unpartitioned_constellation,
                          min_mip):
     """Sequentially loop over all partitions, holding only two BigMips in
@@ -396,6 +416,8 @@ def _big_mip(cache_key, subsystem):
     log.debug("Finding unpartitioned constellation...")
     small_phi_start = time()
     unpartitioned_constellation = constellation(subsystem)
+    if not unpartitioned_constellation:
+        return time_annotated(_null_mip(subsystem))
     small_phi_time = time() - small_phi_start
     log.debug("Found unpartitioned constellation.")
     min_mip = _null_mip(subsystem)

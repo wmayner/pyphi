@@ -213,6 +213,8 @@ config = {
     # The verbosity of parallel computation (integer from 0 to 100). See
     # documentation for `joblib.Parallel`.
     'PARALLEL_VERBOSITY': 20,
+    # Whether to use the matlab approximation
+    'MATLAB_APPROX': False,
     # Controls whether the concept caching system is used.
     'CACHE_CONCEPTS': False,
     # Controls whether BigMips are cached and retreived.
@@ -258,8 +260,8 @@ config = {
     # single-node subsystems as having 0.5 Phi.
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
     # The number of decimal points to which phi values are considered accurate
-    'PRECISION': 6
-}
+    'PRECISION': 6,
+    }
 
 
 # Get a reference to this module's dictionary..

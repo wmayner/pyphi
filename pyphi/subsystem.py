@@ -15,6 +15,7 @@ from .cache import cache
 from . import constants, config, validate, utils, convert, json
 from .models import Cut, Mip, Part, Mice, Concept
 from .node import Node
+from itertools import product
 
 
 def cause_repertoire(self, mechanism, purview):
@@ -240,6 +241,7 @@ def _test_connections(self, axis, nodes1, nodes2):
     return cm.sum(axis).all()
 
 
+
 # TODO! go through docs and make sure to say when things can be None
 class Subsystem:
 
@@ -282,7 +284,7 @@ class Subsystem:
         self.null_cut = Cut((), self.node_indices)
         # The unidirectional cut applied for phi evaluation within the
         self.cut = cut if cut is not None else self.null_cut
-        # Only compute hash once.
+                # Only compute hash once.
         self._hash = hash((self.node_indices, self.cut, self.network))
         # Get the subsystem's connectivity matrix. This is the network's
         # connectivity matrix, but with the cut applied, and with all
@@ -302,6 +304,9 @@ class Subsystem:
         # Generate the nodes.
         self.nodes = tuple(Node(self.network, i, self) for i in
                            self.node_indices)
+        # The matrix of connections which are severed due to the cut
+        self.null_cut_matrix = np.zeros((len(self), len(self)))
+        self.cut_matrix = self._find_cut_matrix(cut) if cut is not None else self.null_cut_matrix
         # A cache for keeping core causes and effects that can be reused later
         # in the event that a cut doesn't effect them.
         self._mice_cache = mice_cache
@@ -326,6 +331,13 @@ class Subsystem:
             cache(cache=self._test_conn_cache)(
                 _test_connections),
             self)
+
+    def _find_cut_matrix(self, cut):
+        subsystem_index = convert.nodes2indices(self.nodes)
+        cut_matrix = np.zeros((self.network.size, self.network.size))
+        list_of_cuts = np.array(list(product(cut[0], cut[1])))
+        cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
+        return cut_matrix[np.ix_(subsystem_index, subsystem_index)]
 
     def __getstate__(self):
         d = self.__dict__.copy()
@@ -761,6 +773,22 @@ class Subsystem:
         return min(self.core_cause(mechanism).phi,
                    self.core_effect(mechanism).phi)
 
+    def concept_cm(self, mechanism, cause_purview, effect_purview):
+
+        cm = np.zeros((self.network.size, self.network.size))
+        c_ind = [mechanism[i].index for i in range(len(mechanism))]
+        p_ind = [cause_purview[i].index for i in range(len(cause_purview))]
+        f_ind = [effect_purview[i].index for i in range(len(effect_purview))]
+        future_connections = np.array(list(product(c_ind, f_ind)))
+        past_connections = np.array(list(product(p_ind, c_ind)))
+        cm[future_connections[:, 0], future_connections[:, 1]] = 1
+        cm[past_connections[:, 0], past_connections[:, 1]] = 1
+        ind = [self.nodes[i].index for i in range(len(self))]
+        cm = cm[np.ix_(ind,ind)]
+        return cm
+
+
+
     # Big Phi methods
     # =========================================================================
 
@@ -793,7 +821,8 @@ class Subsystem:
                 partition=None, partitioned_repertoire=None))
         # All together now...
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
-                       subsystem=self)
+                       mice_cm = None, subsystem=self)
+
 
     def concept(self, mechanism):
         """Calculate a concept."""
@@ -804,8 +833,10 @@ class Subsystem:
         effect = self.core_effect(mechanism)
         # Get the minimal phi between them.
         phi = min(cause.phi, effect.phi)
+        # Find the mice connectivity matrix for this concept
+        mice_cm = self.concept_cm(mechanism, cause.purview, effect.purview)
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.
         return Concept(mechanism=mechanism, phi=phi, cause=cause,
-                       effect=effect, subsystem=self)
+                       effect=effect, mice_cm = mice_cm, subsystem=self)
