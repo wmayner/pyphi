@@ -14,8 +14,8 @@ import numpy as np
 import multiprocessing
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
-from pyphi.convert import nodes2indices
 from . import utils, constants, config, memory
+from .convert import nodes2indices
 from .concept_caching import concept as _concept
 from .models import Concept, Cut, BigMip
 from .network import Network
@@ -76,7 +76,7 @@ def concept(subsystem, mechanism):
         return time_annotated(subsystem.concept(mechanism))
 
 
-def constellation(subsystem, indices_to_be_checked = None):
+def constellation(subsystem, mechanism_indices_to_check=None):
     """Return the conceptual structure of this subsystem.
 
     Args:
@@ -86,14 +86,15 @@ def constellation(subsystem, indices_to_be_checked = None):
     Returns:
         ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
     """
-    if not indices_to_be_checked:
+    if not mechanism_indices_to_check:
         concepts = [concept(subsystem, mechanism) for mechanism in
                     utils.powerset(subsystem.nodes)]
     else:
-        concepts = [concept(subsystem, subsystem.indices2nodes(index)) for index in
-                    indices_to_be_checked]
+        concepts = [concept(subsystem, subsystem.indices2nodes(indices))
+                    for indices in mechanism_indices_to_check]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
+
 
 def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
