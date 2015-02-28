@@ -203,7 +203,7 @@ def conceptual_information(subsystem):
 
 # TODO document
 def _null_bigmip(subsystem):
-    """Returns a BigMip with zero Phi and empty constellations.
+    """Returns a ``BigMip`` with zero Phi and empty constellations.
 
     This is the MIP associated with a reducible subsystem."""
     return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=0.0,
@@ -211,7 +211,7 @@ def _null_bigmip(subsystem):
 
 
 def _single_node_mip(subsystem):
-    """Returns a the BigMip of a single-node with a selfloop.
+    """Returns a the ``BigMip`` of a single-node with a selfloop.
 
     Whether these have a nonzero |Phi| value depends on the PyPhi constants."""
     if config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
@@ -227,32 +227,37 @@ def _single_node_mip(subsystem):
 
 
 def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
-    log.debug("Evaluating partition {}...".format(cut))
-    if not config.MATLAB_APPROX:
-        cut_mechanisms = utils.split_by_cut(uncut_subsystem, cut)
+    """Find the ``BigMip`` for a given cut."""
+    log.debug("Evaluating cut {}...".format(cut))
+
     cut_subsystem = Subsystem(uncut_subsystem.node_indices,
                               uncut_subsystem.network,
                               cut=cut,
                               mice_cache=uncut_subsystem._mice_cache)
-    cut_concepts = utils.cut_concepts(cut_subsystem.cut_matrix,
-                                      unpartitioned_constellation)
-    uncut_concepts = utils.uncut_concepts(cut_subsystem.cut_matrix,
-                                          unpartitioned_constellation)
-    if config.MATLAB_APPROX:
-        mechanisms_to_be_checked = tuple(set(cut_concepts))
+    cut_concept_mechanisms = tuple(
+        c.mechanism for c in utils.cut_concepts(cut_subsystem.cut_matrix,
+                                                unpartitioned_constellation))
+
+    if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
+        mechanism_indices_to_check = set(
+            map(nodes2indices, cut_concept_mechanisms))
     else:
-        mechanisms_to_be_checked = tuple(set(cut_mechanisms + cut_concepts))
-    indices_to_be_checked = (nodes2indices(mechanism) for mechanism in
-                             mechanisms_to_be_checked)
-    cut_constellation = constellation(cut_subsystem, indices_to_be_checked) + uncut_concepts
+        mechanism_indices_to_check = set(
+            tuple(map(nodes2indices, cut_concept_mechanisms)) +
+            utils.cut_mechanism_indices(uncut_subsystem, cut))
+
+    partitioned_constellation = (
+        constellation(cut_subsystem, mechanism_indices_to_check) +
+        utils.uncut_concepts(cut_subsystem.cut_matrix,
+                             unpartitioned_constellation))
 
     log.debug("Finished evaluating cut {}.".format(cut))
     return BigMip(
         phi=constellation_distance(unpartitioned_constellation,
-                                   cut_constellation,
+                                   partitioned_constellation,
                                    uncut_subsystem),
         unpartitioned_constellation=unpartitioned_constellation,
-        partitioned_constellation=cut_constellation,
+        partitioned_constellation=partitioned_constellation,
         subsystem=uncut_subsystem,
         cut_subsystem=cut_subsystem)
 
@@ -268,10 +273,9 @@ def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
     out_queue.put(None)
 
 
-def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation,
-                       min_mip):
-    """Parallel loop over all partitions, using the specified number of
-    cores."""
+def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
+    """Find the MIP for a subsystem with a parallel loop over all cuts,
+    using the specified number of cores."""
     if config.NUMBER_OF_CORES < 0:
         number_of_processes = (multiprocessing.cpu_count() +
                                config.NUMBER_OF_CORES + 1)
@@ -321,8 +325,8 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation,
 
 def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
                          min_mip):
-    """Sequentially loop over all cuts, holding only two BigMips in
-    memory at once."""
+    """Find the minimal cut for a subsystem by sequentially loop over all cuts,
+    holding only two ``BigMip``s in memory at once."""
     for i, cut in enumerate(cuts):
         new_mip = _evaluate_cut(subsystem, cut, unpartitioned_constellation)
         log.debug("Finished {} of {} cuts.".format(
@@ -377,9 +381,8 @@ def _big_mip(cache_key, subsystem):
         return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
 
-    # The first bipartition is the null cut (trivial bipartition), so skip it.
-    # TODO!!! see if we can check if any of these cuts will actually do
-    # anything before evaluating them
+    # The first and last bipartitions are the null cut (trivial bipartition),
+    # so skip them.
     bipartitions = utils.bipartition(subsystem.node_indices)[1:-1]
     cuts = [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
@@ -387,19 +390,23 @@ def _big_mip(cache_key, subsystem):
     log.debug("Finding unpartitioned constellation...")
     small_phi_start = time()
     unpartitioned_constellation = constellation(subsystem)
-    if not unpartitioned_constellation:
-        return time_annotated(_null_bigmip(subsystem))
     small_phi_time = time() - small_phi_start
     log.debug("Found unpartitioned constellation.")
-    min_mip = _null_bigmip(subsystem)
-    min_mip.phi = float('inf')
-    if config.PARALLEL_CUT_EVALUATION:
-        min_mip = _find_mip_parallel(subsystem, cuts,
-                                     unpartitioned_constellation, min_mip)
+
+    if not unpartitioned_constellation:
+        # Short-circuit if there are no concepts in the unpartitioned
+        # constellation.
+        result = time_annotated(_null_bigmip(subsystem))
     else:
-        min_mip = _find_mip_sequential(subsystem, cuts,
-                                       unpartitioned_constellation, min_mip)
-    result = time_annotated(min_mip, small_phi_time)
+        min_mip = _null_bigmip(subsystem)
+        min_mip.phi = float('inf')
+        if config.PARALLEL_CUT_EVALUATION:
+            min_mip = _find_mip_parallel(
+                subsystem, cuts, unpartitioned_constellation, min_mip)
+        else:
+            min_mip = _find_mip_sequential(
+                subsystem, cuts, unpartitioned_constellation, min_mip)
+        result = time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
     log.debug("RESULT: \n" + str(result))
@@ -459,7 +466,7 @@ def complexes(network):
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
     return tuple(filter(None, (big_mip(subsystem) for subsystem in
-            possible_main_complexes(network))))
+                               possible_main_complexes(network))))
 
 
 def all_complexes(network):

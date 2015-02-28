@@ -9,7 +9,7 @@ Containers for MICE, MIP, cut, partition, and concept data.
 from collections import namedtuple, Iterable
 import numpy as np
 
-from . import utils, constants, convert, json
+from . import utils, convert, json
 
 # TODO use properties to avoid data duplication
 
@@ -19,10 +19,10 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
     """Represents a unidirectional cut.
 
     Attributes:
-        severed (tuple(Node)):
+        severed (tuple(int)):
             Connections from this group of nodes to those in ``intact`` are
             severed.
-        intact (tuple(Node)):
+        intact (tuple(int)):
             Connections to this group of nodes from those in ``severed`` are
             severed.
     """
@@ -367,17 +367,24 @@ class Concept:
             The :class:`Mice` representing the core effect of this concept.
         subsystem (Subsystem):
             This Concept's parent subsystem.
+        relevant_connections (np.array):
+            An ``N x N`` matrix, where ``N`` is the number of nodes in this
+            Concept's subsystem, that identifies connections that “matter” to
+            this concept; ``relevant_connections[i,j]`` is ``1`` if either node
+            ``i`` is in the cause purview and node ``j`` is in the mechanism or
+            node ``i`` is in the mechanism and node ``j`` is in the effect
+            purview (and ``0`` otherwise).
         time (float): The number of seconds it took to calculate.
     """
 
     def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
-                 mice_cm=None, subsystem=None, normalized=False):
+                 subsystem=None, relevant_connections=None, normalized=False):
         self.phi = phi
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
         self.subsystem = subsystem
-        self.mice_cm = mice_cm
+        self.relevant_connections = relevant_connections
         self.normalized = normalized
         self.time = None
 
@@ -405,12 +412,6 @@ class Concept:
     def __hash__(self):
         return hash((self.phi, self.mechanism, self.cause, self.effect,
                      self.subsystem))
-
-    def __str__(self):
-        return ('Concept(' +
-                ', '.join([str(self.mechanism), str(self.phi),
-                           str(self.location)])
-                + ')')
 
     def __bool__(self):
         """A Concept is truthy if it is not reducible; i.e. if it has a

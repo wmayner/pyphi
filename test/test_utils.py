@@ -5,10 +5,12 @@ import numpy as np
 import pyphi
 from pyphi import utils, constants, models
 
+
 sub = pyphi.examples.basic_subsystem()
 mip = pyphi.compute.big_mip(sub)
-cut = pyphi.models.Cut((0,), (1,2))
-s_cut = pyphi.subsystem.Subsystem(sub.node_indices, sub.network, cut, sub._mice_cache)
+cut = pyphi.models.Cut((0,), (1, 2))
+s_cut = pyphi.subsystem.Subsystem(sub.node_indices, sub.network, cut,
+                                  sub._mice_cache)
 
 
 def test_apply_cut():
@@ -118,21 +120,18 @@ def test_uniform_distribution():
     assert np.array_equal(utils.uniform_distribution(3),
                           (np.ones(8)/8).reshape([2]*3))
 
-def test_split_by_cut():
-    split_mechanisms = utils.split_by_cut(sub, cut)
-    split_indices = [pyphi.convert.nodes2indices(mechanism) for mechanism in split_mechanisms]
-    assert split_indices == [(0, 1), (0, 2), (0, 1, 2)]
+
+def test_cut_mechanism_indices():
+    assert ((0, 1), (0, 2), (0, 1, 2)) == utils.cut_mechanism_indices(sub, cut)
 
 
 def test_cut_concepts():
-    cut_mechanisms = utils.cut_concepts(s_cut.cut_matrix, mip.unpartitioned_constellation)
-    answer = tuple(mip.unpartitioned_constellation[i].mechanism for i in [1,2,3])
-    print(cut_mechanisms)
-    print(answer)
-    assert cut_mechanisms == answer
+    answer = tuple(mip.unpartitioned_constellation[i] for i in [1, 2, 3])
+    assert answer == utils.cut_concepts(s_cut.cut_matrix,
+                                        mip.unpartitioned_constellation)
+
 
 def test_uncut_concepts():
-    uncut_concepts = utils.uncut_concepts(s_cut.cut_matrix, mip.unpartitioned_constellation)
     answer = tuple(mip.unpartitioned_constellation[i] for i in [0])
-    assert uncut_concepts == answer
-
+    assert answer == utils.uncut_concepts(s_cut.cut_matrix,
+                                          mip.unpartitioned_constellation)

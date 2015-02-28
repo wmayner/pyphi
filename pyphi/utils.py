@@ -22,6 +22,32 @@ from . import constants
 log = logging.getLogger(__name__)
 
 
+# Methods to evaluate the effect of a Cut
+# ============================================================================
+
+def cut_mechanism_indices(subsystem, cut):
+    """Returns a tuple of indices of mechanisms that have nodes on both sides
+    of the given cut."""
+    def split_by_cut(indices):
+        return ((set(indices) & set(cut[0])) and
+                (set(indices) & set(cut[1])))
+    return tuple(filter(split_by_cut, powerset(subsystem.node_indices)))
+
+
+def cut_concepts(cut_matrix, unpartitioned_constellation):
+    """Return a tuple of concepts that could be affected by the cut."""
+    return tuple(concept for concept in unpartitioned_constellation
+                 if np.any(concept.relevant_connections * cut_matrix == 1))
+
+
+def uncut_concepts(cut_matrix, unpartitioned_constellation):
+    """Return a tuple of concepts that cannot be affected by the cut."""
+    return tuple(concept for concept in unpartitioned_constellation
+                 if np.all(concept.relevant_connections * cut_matrix == 0))
+
+# ============================================================================
+
+
 def condition_tpm(tpm, fixed_nodes, state):
     """Return a TPM conditioned on the given fixed node indices, whose states
     are fixed according to the given state-tuple.
@@ -323,24 +349,6 @@ def bipartition_indices(N):
         result.append((tuple(part[1]), tuple(part[0])))
     return result
 
-# Methods to evaluate the effect of a Cut
-# ============================================================================
-
-def split_by_cut(subsystem, cut):
-    Part0 = subsystem.indices2nodes(cut[0])
-    Part1 = subsystem.indices2nodes(cut[1])
-    result = [mechanism if bool((set(mechanism) & set(Part0)) and (set(mechanism) & set(Part1))) else None
-            for mechanism in powerset(subsystem.nodes)]
-    return tuple(filter(None, result))
-
-def cut_concepts(cut_matrix, unpartitioned_constellation):
-    Concepts = tuple(filter(None, [concept if np.any(concept.mice_cm * cut_matrix == 1)
-                       else None for concept in unpartitioned_constellation]))
-    return tuple(concept.mechanism for concept in Concepts)
-
-def uncut_concepts(cut_matrix, unpartitioned_constellation):
-    return tuple(filter(None, [concept if np.all(concept.mice_cm * cut_matrix == 0)
-                     else None for concept in unpartitioned_constellation]))
 
 # Internal helper methods
 # =============================================================================
