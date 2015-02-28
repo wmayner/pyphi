@@ -101,8 +101,9 @@ def test_hamming_matrix():
 
 
 def test_bipartition():
-    answer = [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
-    assert answer == utils.bipartition(tuple(range(3)))
+    answer = [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)),
+              ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
+    assert answer == utils.bipartition((1, 2, 3))
     # Test with empty input
     assert [] == utils.bipartition(())
 

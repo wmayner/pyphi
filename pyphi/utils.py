@@ -288,7 +288,7 @@ def bipartition(a):
     Example:
         >>> from pyphi.utils import bipartition
         >>> bipartition((1, 2, 3))
-        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
+        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
     """
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
             for part0_idx, part1_idx in bipartition_indices(len(a))]
@@ -309,13 +309,13 @@ def bipartition_indices(N):
         >>> from pyphi.utils import bipartition_indices
         >>> N = 3
         >>> bipartition_indices(N)
-        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
+        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
     """
     result = []
     # Return on empty input
     if N <= 0:
         return result
-    for i in range(2 ** (N - 1)):
+    for i in range(2 ** N):
         part = [[], []]
         for n in range(N):
             bit = (i >> n) & 1
