@@ -8,7 +8,8 @@ _2015-03-02_
 
 ### Optimizations
 - Concepts are only recomputed if they could have been changed by a cut.
-- Cuts are evaluated individually, rather than in bidirectional pairs, which allows for better parallel performance.
+- Cuts are evaluated individually, rather than in bidirectional pairs, which
+  allows for better parallel performance.
 
 ### API changes
 - Removed the unused `validate.nodelist` function.
