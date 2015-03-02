@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>utils &mdash; v0.4.0 documentation</title>
+  <title>utils &mdash; v0.5.0 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.4.0 documentation" href="../index.html"/>
+    <link rel="top" title="v0.5.0 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
         <link rel="prev" title="db" href="db.html"/> 
 
@@ -48,7 +48,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.4.0</a>
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.5.0</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -72,12 +72,12 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-approximations">Theoretical approximations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resources">System resources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching">Caching</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging">Logging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration.html#network-state-validation">Network state validation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-concerns">Theoretical concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#miscellaneous">Miscellaneous</a></li>
 </ul>
 </li>
 </ul>
@@ -108,7 +108,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.4.0</a>
+        <a href="../index.html">PyPhi v0.5.0</a>
       </nav>
 
 
@@ -136,6 +136,25 @@
 <span id="utils"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">utils</span></tt><a class="headerlink" href="#module-pyphi.utils" title="Permalink to this headline">¶</a></h1>
 <p>Functions used by more than one PyPhi module or class, or that might be of
 external use.</p>
+<dl class="function">
+<dt id="pyphi.utils.cut_mechanism_indices">
+<tt class="descclassname">pyphi.utils.</tt><tt class="descname">cut_mechanism_indices</tt><big>(</big><em>subsystem</em>, <em>cut</em><big>)</big><a class="headerlink" href="#pyphi.utils.cut_mechanism_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a tuple of indices of mechanisms that have nodes on both sides
+of the given cut.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.cut_concepts">
+<tt class="descclassname">pyphi.utils.</tt><tt class="descname">cut_concepts</tt><big>(</big><em>cut_matrix</em>, <em>unpartitioned_constellation</em><big>)</big><a class="headerlink" href="#pyphi.utils.cut_concepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a tuple of concepts that could be affected by the cut.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.uncut_concepts">
+<tt class="descclassname">pyphi.utils.</tt><tt class="descname">uncut_concepts</tt><big>(</big><em>cut_matrix</em>, <em>unpartitioned_constellation</em><big>)</big><a class="headerlink" href="#pyphi.utils.uncut_concepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a tuple of concepts that cannot be affected by the cut.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="pyphi.utils.condition_tpm">
 <tt class="descclassname">pyphi.utils.</tt><tt class="descname">condition_tpm</tt><big>(</big><em>tpm</em>, <em>fixed_nodes</em>, <em>state</em><big>)</big><a class="headerlink" href="#pyphi.utils.condition_tpm" title="Permalink to this definition">¶</a></dt>
@@ -357,7 +376,7 @@ by state, one dimension per node).</p>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.utils</span> <span class="kn">import</span> <span class="n">bipartition</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bipartition</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="go">[((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]</span>
+<span class="go">[((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -381,7 +400,7 @@ partitions.</td>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.utils</span> <span class="kn">import</span> <span class="n">bipartition_indices</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">N</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bipartition_indices</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
-<span class="go">[((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]</span>
+<span class="go">[((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -437,7 +456,7 @@ logical functions.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 23, 2015.
+      Last updated on Mar 02, 2015.
     </p>
   </div>
 
@@ -457,7 +476,7 @@ logical functions.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.4.0',
+            VERSION:'v0.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

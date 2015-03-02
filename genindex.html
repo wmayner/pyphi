@@ -10,7 +10,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; v0.4.0 documentation</title>
+  <title>Index &mdash; v0.5.0 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
   
     <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.4.0 documentation" href="index.html"/> 
+    <link rel="top" title="v0.5.0 documentation" href="index.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -47,7 +47,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="index.html" class="fa fa-home"> PyPhi v0.4.0</a>
+        <a href="index.html" class="fa fa-home"> PyPhi v0.5.0</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -71,12 +71,12 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#theoretical-approximations">Theoretical approximations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#system-resources">System resources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#caching">Caching</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#logging">Logging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="configuration.html#network-state-validation">Network state validation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="configuration.html#theoretical-concerns">Theoretical concerns</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#miscellaneous">Miscellaneous</a></li>
 </ul>
 </li>
 </ul>
@@ -107,7 +107,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">PyPhi v0.4.0</a>
+        <a href="index.html">PyPhi v0.5.0</a>
       </nav>
 
 
@@ -329,6 +329,10 @@
   <dt><a href="api/utils.html#pyphi.utils.condition_tpm">condition_tpm() (in module pyphi.utils)</a>
   </dt>
 
+      
+  <dt><a href="api/subsystem.html#pyphi.subsystem.Subsystem.connections_relevant_for_concept">connections_relevant_for_concept() (pyphi.subsystem.Subsystem method)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
@@ -401,6 +405,14 @@
   </dt>
 
       </dl></dd>
+      
+  <dt><a href="api/utils.html#pyphi.utils.cut_concepts">cut_concepts() (in module pyphi.utils)</a>
+  </dt>
+
+      
+  <dt><a href="api/utils.html#pyphi.utils.cut_mechanism_indices">cut_mechanism_indices() (in module pyphi.utils)</a>
+  </dt>
+
       
   <dt><a href="api/models.html#pyphi.models.BigMip.cut_subsystem">cut_subsystem (pyphi.models.BigMip attribute)</a>
   </dt>
@@ -784,10 +796,6 @@
 
       </dl></dd>
       
-  <dt><a href="api/valiate.html#pyphi.validate.nodelist">nodelist() (in module pyphi.validate)</a>
-  </dt>
-
-      
   <dt><a href="api/subsystem.html#pyphi.subsystem.Subsystem.nodes">nodes (pyphi.subsystem.Subsystem attribute)</a>
   </dt>
 
@@ -795,12 +803,12 @@
   <dt><a href="api/convert.html#pyphi.convert.nodes2indices">nodes2indices() (in module pyphi.convert)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api/concept_caching.html#pyphi.concept_caching.NormalizedMechanism.normalized_indices">normalized_indices (pyphi.concept_caching.NormalizedMechanism attribute)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api/concept_caching.html#pyphi.concept_caching.NormalizedConcept">NormalizedConcept (class in pyphi.concept_caching)</a>
   </dt>
@@ -1064,6 +1072,12 @@
   </dt>
 
       
+  <dt><a href="api/models.html#pyphi.models.Concept.relevant_connections">relevant_connections (pyphi.models.Concept attribute)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
   <dt><a href="api/concept_caching.html#pyphi.concept_caching.NormalizedMice.repertoire">repertoire (pyphi.concept_caching.NormalizedMice attribute)</a>
   </dt>
 
@@ -1073,8 +1087,6 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api/examples.html#pyphi.examples.residue_network">residue_network() (in module pyphi.examples)</a>
   </dt>
@@ -1208,6 +1220,10 @@
   </dt>
 
       
+  <dt><a href="api/utils.html#pyphi.utils.uncut_concepts">uncut_concepts() (in module pyphi.utils)</a>
+  </dt>
+
+      
   <dt><a href="api/utils.html#pyphi.utils.uniform_distribution">uniform_distribution() (in module pyphi.utils)</a>
   </dt>
 
@@ -1255,7 +1271,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 23, 2015.
+      Last updated on Mar 02, 2015.
     </p>
   </div>
 
@@ -1275,7 +1291,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.4.0',
+            VERSION:'v0.5.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
