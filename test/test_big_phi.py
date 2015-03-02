@@ -170,7 +170,7 @@ macro_answer = {
     },
     'cuts': [
         models.Cut(severed=(0,), intact=(1,)),
-        models.Cut(severed=(0,), intact=(1,))
+        models.Cut(severed=(1,), intact=(0,)),
     ]
 }
 
