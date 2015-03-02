@@ -168,7 +168,10 @@ macro_answer = {
         (0,): 0.455,
         (1,): 0.455,
     },
-    'cut': models.Cut(severed=(0,), intact=(1,))
+    'cuts': [
+        models.Cut(severed=(0,), intact=(1,)),
+        models.Cut(severed=(1,), intact=(0,)),
+    ]
 }
 
 
@@ -245,8 +248,8 @@ def test_big_mip_empty_subsystem(s_empty, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.big_mip(s_empty) ==
             models.BigMip(phi=0.0,
-                          unpartitioned_constellation=[],
-                          partitioned_constellation=[],
+                          unpartitioned_constellation=(),
+                          partitioned_constellation=(),
                           subsystem=s_empty,
                           cut_subsystem=s_empty))
 
