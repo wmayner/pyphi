@@ -123,5 +123,5 @@ import pyphi
 ```
 
 Please see the documentation for some
-[examples](http://pythonhosted.org/pyphi/#examples) and information on how to
-[configure](http://pythonhosted.org/pyphi/#configuration) it.
+[examples](http://pythonhosted.org/pyphi/examples/index.html) and information
+on how to [configure](http://pythonhosted.org/pyphi/configuration.html) it.
