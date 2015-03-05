@@ -92,21 +92,23 @@ virtual environment, like so:
 mkvirtualenv -p `which python3` <name_of_your_project>
 ```
 
-The option `` -p `which python3 ``\` ensures that when the virtual environment
+The option `` -p `which python3` `` ensures that when the virtual environment
 is activated, the commands `python` and `pip` will refer to their Python 3
 counterparts.
 
 The virtual environment should have been activated automatically after creating
-it. It can be manually activated with `workon <name_of_your_project>`, and
-deactivated with `deactivate`.
+it. Virtual environments can be manually activated with `workon
+<name_of_your_project>`, and deactivated with `deactivate`.
 
-**Important:** Remember to activate the virtual environment *every time* you
-begin working on your project. Also, note that the currently active virtual
-environment is *not* associated with any particular folder; it is associated
-with a terminal shell.
+**Important:** Remember to activate the virtual environment with the `workon`
+command **every time you begin working on your project**. Also, note that the
+currently active virtual environment is *not* associated with any particular
+folder; it is associated with a terminal shell. When a virtual environment is
+active, your command-line prompt will be prepended with the name of the virtual
+environment in parentheses.
 
-Finally, you can install PyPhi into your new virtual environment:
-
+Once you've checked that the new virtual environment is active, you're finally
+ready to install PyPhi into it (note that this may take a few minutes):
 ```bash
 pip install pyphi
 ```
