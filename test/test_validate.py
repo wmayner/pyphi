@@ -8,21 +8,6 @@ from pyphi.network import Network
 from pyphi import validate, config
 
 
-def test_validate_nodelist_noniterable():
-    with pytest.raises(ValueError):
-        validate.nodelist(2, "it's a doge")
-
-
-def test_validate_nodelist_nonnode():
-    with pytest.raises(ValueError):
-        validate.nodelist([0, 1, 2], 'invest in dogecoin!')
-
-
-def test_validate_nodelist_nontuple_sequence(s):
-    nodes = validate.nodelist(list(s.nodes), 'such phi')
-    assert nodes == s.nodes
-
-
 def test_validate_direction():
     with pytest.raises(ValueError):
         assert validate.direction("dogeeeee")
