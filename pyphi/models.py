@@ -203,7 +203,7 @@ class Mip(namedtuple('Mip', _mip_attributes)):
             The partition that makes the least difference to the mechanism's
             repertoire.
         unpartitioned_repertoire (np.ndarray):
-            The unpartitioned repertoire of the mecanism.
+            The unpartitioned repertoire of the mechanism.
         partitioned_repertoire (np.ndarray):
             The partitioned repertoire of the mechanism. This is the product of
             the repertoires of each part of the partition.
