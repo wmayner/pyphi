@@ -656,23 +656,27 @@ class Subsystem:
 
         Return False otherwise."""
         mechanism_indices = convert.nodes2indices(mechanism)
-        if (direction, mechanism_indices) in self._mice_cache:
+        # TODO As currently implemented, the validation that each node in the
+        # cached purview is in the subsystem does not work
+        if 1==2: #(direction, mechanism_indices) in self._mice_cache:
             cached = self._mice_cache[(direction, mechanism_indices)]
             # If we've already calculated the core cause for this mechanism
             # with no cut, then we don't need to recalculate it with the cut if
             #   - all mechanism nodes are severed, or
             #   - all the cached cause's purview nodes are intact.
             if (direction == DIRECTIONS[PAST] and
-                (all([n in self.cut.severed for n in mechanism_indices]) or
-                 all([n in self.cut.intact for n in cached.purview]))):
+                (all([n in self.indices2nodes(self.cut.severed) for n in mechanism]) or
+                 all([n in self.indices2nodes(self.cut.intact) for n in cached.purview]))):
                 return cached
             # If we've already calculated the core effect for this mechanism
             # with no cut, then we don't need to recalculate it with the cut if
             #   - all mechanism nodes are intact, or
             #   - all the cached effect's purview nodes are severed.
             if (direction == DIRECTIONS[FUTURE] and
-                (all([n in self.cut.intact for n in mechanism_indices]) or
-                 all([n in self.cut.severed for n in cached.purview]))):
+                (all([n in self.indices2nodes(self.cut.intact) for n in mechanism]) or
+                 all([n in self.indices2nodes(self.cut.severed) for n in cached.purview]))):
+                print(cached.purview)
+                print(self.indices2nodes(self.cut.severed))
                 return cached
         return False
 
@@ -737,7 +741,6 @@ class Subsystem:
         cached_mice = self._get_cached_mice(direction, mechanism)
         if cached_mice:
             return cached_mice
-
         validate.direction(direction)
 
         if direction == DIRECTIONS[PAST]:
