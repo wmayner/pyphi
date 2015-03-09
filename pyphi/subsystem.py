@@ -651,10 +651,11 @@ class Subsystem:
     # =========================================================================
 
 
-    def _get_cached_mice(self, direction, mechanism_indices):
+    def _get_cached_mice(self, direction, mechanism):
         """Return a cached MICE if there is one and the cut doesn't affect it.
 
         Return False otherwise."""
+        mechanism_indices = convert.nodes2indices(mechanism)
         if (direction, mechanism_indices) in self._mice_cache:
             cached = self._mice_cache[(direction, mechanism_indices)]
             # If we've already calculated the core cause for this mechanism

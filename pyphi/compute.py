@@ -26,10 +26,11 @@ log = logging.getLogger(__name__)
 
 def _concept_wrapper(in_queue, out_queue, subsystem):
     while True:
-        mechanism = in_queue.get()
+        (index, mechanism) = in_queue.get()
         if mechanism is None:
             break
         new_concept = concept(subsystem, mechanism)
+        print(index)
         out_queue.put(new_concept)
     out_queue.put(None)
 
@@ -123,10 +124,10 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
     # pill' for each process.
     in_queue = multiprocessing.Queue()
     out_queue = multiprocessing.Queue()
-    for index in mechanism_indices_to_check:
-        in_queue.put(subsystem.indices2nodes(index))
+    for i, index in enumerate(mechanism_indices_to_check):
+        in_queue.put((i, subsystem.indices2nodes(index)))
     for i in range(number_of_processes):
-        in_queue.put(None)
+        in_queue.put((None, None))
     # Initialize the processes and start them.
     processes = [
         multiprocessing.Process(target=_concept_wrapper,
