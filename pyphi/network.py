@@ -9,11 +9,27 @@ context of all |phi| and |big_phi| computation.
 
 import numpy as np
 from . import validate, utils, json, convert, config
-
+import types
+from .cache import cache
+from .constants import DIRECTIONS, PAST, FUTURE
 
 # TODO!!! raise error if user tries to change TPM or CM, double-check and document
 # that states can be changed
 
+
+def list_past_purview(self, mechanism):
+    return _build_purview_list(self, mechanism, 'past')
+
+def list_future_purview(self, mechanism):
+    return _build_purview_list(self, mechanism, 'future')
+
+def _build_purview_list(self, mechanism, direction):
+    if direction == DIRECTIONS[PAST]:
+        return [purview for purview in utils.powerset(self._node_indices)
+                if utils.not_block_reducible(self.connectivity_matrix, purview, mechanism)]
+    elif direction == DIRECTIONS[FUTURE]:
+        return [purview for purview in utils.powerset(self._node_indices)
+                if utils.not_block_reducible(self.connectivity_matrix, mechanism, purview)]
 
 class Network:
 
@@ -83,6 +99,17 @@ class Network:
         self.perturb_vector = perturb_vector
         self.connectivity_matrix = connectivity_matrix
 
+        self._past_purview_cache = {}
+        self._future_purview_cache = {}
+
+        self.list_past_purview = types.MethodType(
+            cache(cache=self._past_purview_cache)(
+                list_past_purview),
+            self)
+        self.list_future_purview = types.MethodType(
+            cache(cache=self._future_purview_cache)(
+                list_future_purview),
+            self)
         # Validate the entire network.
         validate.network(self)
 
@@ -186,6 +213,25 @@ class Network:
         self._perturb_vector.flags.writeable = False
         # Update hash.
         self._pv_hash = utils.np_hash(self.perturb_vector)
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d['list_past_purview']
+        del d['list_future_purview']
+        return d
+
+    def __setstate__(self, d):
+        d['list_past_purview'] = types.MethodType(
+            cache(cache=d['_past_purview_cache'])(
+                list_past_purview),
+            self)
+        d['list_future_purview'] = types.MethodType(
+            cache(cache=d['_future_purview_cache'])(
+                list_past_purview),
+            self)
+        self.__dict__ = d
+
+
 
     def __repr__(self):
         return ("Network(" + ", ".join([repr(self.tpm),

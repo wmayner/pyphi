@@ -159,6 +159,7 @@ micro_answer = {
     'cuts': [
         models.Cut(severed=(0, 2), intact=(1, 3)),
         models.Cut(severed=(1, 2), intact=(0, 3)),
+        models.Cut(severed=(0, 3), intact=(1, 2)),
     ]
 }
 

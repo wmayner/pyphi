@@ -217,9 +217,13 @@ class Mip(namedtuple('Mip', _mip_attributes)):
         # TODO!!! clarify the reason for that
         # We do however check whether the size of the mechanism or purview is
         # the same, since that matters (for the exclusion principle).
-        return (_general_eq(self, other, _mip_attributes_for_eq) and
-                len(self.mechanism) == len(other.mechanism) and
-                len(self.purview) == len(other.purview))
+        if (not self.purview) or (not other.purview):
+            return (_general_eq(self, other, _mip_attributes_for_eq) and
+                    len(self.mechanism) == len(other.mechanism))
+        else:
+            return (_general_eq(self, other, _mip_attributes_for_eq) and
+                    len(self.mechanism) == len(other.mechanism) and
+                    len(self.purview) == len(other.purview))
 
     def __bool__(self):
         """A Mip is truthy if it is not reducible; i.e. if it has a significant

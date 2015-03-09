@@ -17,15 +17,23 @@ from scipy.sparse import csr_matrix
 from . import utils, constants, config, memory
 from .convert import nodes2indices
 from .concept_caching import concept as _concept
-from .models import Concept, Cut, BigMip
+from .models import Cut, BigMip
 from .network import Network
 from .subsystem import Subsystem
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
+def _concept_wrapper(in_queue, out_queue, subsystem):
+    while True:
+        mechanism = in_queue.get()
+        if mechanism is None:
+            break
+        new_concept = concept(subsystem, mechanism)
+        out_queue.put(new_concept)
+    out_queue.put(None)
 
-def concept(subsystem, mechanism, method=0):
+def concept(subsystem, mechanism):
     """Return the concept specified by the a mechanism within a subsytem.
 
     Args:
@@ -56,15 +64,6 @@ def concept(subsystem, mechanism, method=0):
     # If the mechanism is empty, there is no concept.
     if not mechanism:
         return time_annotated(subsystem.null_concept)
-    # If any node in the mechanism either has no inputs from the subsystem or
-    # has no outputs to the subsystem, then the mechanism is necessarily
-    # reducible and cannot be a concept (since removing that node would make no
-    # difference to at least one of the MICEs).
-    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
-            subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
-        return time_annotated(
-            Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None,
-                    subsystem=subsystem))
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     # Passed prechecks; pass it over to the concept caching logic if enabled.
@@ -73,28 +72,81 @@ def concept(subsystem, mechanism, method=0):
             config.CACHING_BACKEND == constants.DATABASE):
         return time_annotated(_concept(subsystem, mechanism))
     else:
-        return time_annotated(subsystem.concept(mechanism, method))
+        return time_annotated(subsystem.concept(mechanism))
 
 
-def constellation(subsystem, mechanism_indices_to_check=None, method=None):
+def constellation(subsystem, mechanism_indices_to_check=None):
     """Return the conceptual structure of this subsystem.
 
     Args:
-        subsystem (Subsytem): The subsystem for which to determine the
+        subsystem (Subsystem): The subsystem for which to determine the
             constellation.
 
     Returns:
         ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
     """
     if not mechanism_indices_to_check:
-        concepts = [concept(subsystem, mechanism, method) for mechanism in
+        concepts = [concept(subsystem, mechanism) for mechanism in
                     utils.powerset(subsystem.nodes)]
     else:
-        concepts = [concept(subsystem, subsystem.indices2nodes(indices), method)
+        concepts = [concept(subsystem, subsystem.indices2nodes(indices))
                     for indices in mechanism_indices_to_check]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
+def parallel_constellation(subsystem, mechanism_indices_to_check=None):
+    """ Return the conceptual structure of this subsystem. Concepts are evaluated
+    in parallel.
+
+    Args:
+        subsystem (Subsystem): The subsystem for which to determine the
+            constellation.
+
+    Returns:
+        ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
+    """
+
+    if not mechanism_indices_to_check:
+        mechanism_indices_to_check = utils.powerset(subsystem.node_indices)
+    if config.NUMBER_OF_CORES < 0:
+        number_of_processes = (multiprocessing.cpu_count() +
+                               config.NUMBER_OF_CORES + 1)
+    elif config.NUMBER_OF_CORES <= multiprocessing.cpu_count():
+        number_of_processes = config.NUMBER_OF_CORES
+    else:
+        raise ValueError(
+            'Invalid number of cores; value may not be 0, and must be less'
+            'than the number of cores ({} for this '
+            'system).'.format(multiprocessing.cpu_count()))
+    # Define input and output queues.
+    # Load the input queue with all possible cuts and a 'poison
+    # pill' for each process.
+    in_queue = multiprocessing.Queue()
+    out_queue = multiprocessing.Queue()
+    for index in mechanism_indices_to_check:
+        in_queue.put(subsystem.indices2nodes(index))
+    for i in range(number_of_processes):
+        in_queue.put(None)
+    # Initialize the processes and start them.
+    processes = [
+        multiprocessing.Process(target=_concept_wrapper,
+                                args=(in_queue, out_queue, subsystem))
+        for i in range(number_of_processes)
+    ]
+    for i in range(number_of_processes):
+        processes[i].start()
+    # Continue to process output queue until all processes have completed, or a
+    # 'poison pill' has been returned.
+    concepts = []
+    while True:
+        new_concept = out_queue.get()
+        if new_concept is None:
+            number_of_processes -= 1
+            if number_of_processes == 0:
+                break
+        else:
+            concepts.append(new_concept)
+    return concepts
 
 def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
@@ -198,7 +250,7 @@ def conceptual_information(subsystem, method=0):
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    return constellation_distance(constellation(subsystem, method), (), subsystem)
+    return constellation_distance(constellation(subsystem), (), subsystem)
 
 
 # TODO document
@@ -226,7 +278,7 @@ def _single_node_mip(subsystem):
         return _null_bigmip(subsystem)
 
 
-def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation, method):
+def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     """Find the ``BigMip`` for a given cut."""
     log.debug("Evaluating cut {}...".format(cut))
 
@@ -247,7 +299,7 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation, method):
             utils.cut_mechanism_indices(uncut_subsystem, cut))
 
     partitioned_constellation = (
-        constellation(cut_subsystem, mechanism_indices_to_check, method) +
+        constellation(cut_subsystem, mechanism_indices_to_check) +
         utils.uncut_concepts(cut_subsystem.cut_matrix,
                              unpartitioned_constellation))
 
@@ -263,17 +315,17 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation, method):
 
 
 # Wrapper for _evaluate_cut for parallel processing.
-def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation, method):
+def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
     while True:
         cut = in_queue.get()
         if cut is None:
             break
-        new_mip = _evaluate_cut(subsystem, cut, unpartitioned_constellation, method)
+        new_mip = _evaluate_cut(subsystem, cut, unpartitioned_constellation)
         out_queue.put(new_mip)
     out_queue.put(None)
 
 
-def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip, method):
+def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
     """Find the MIP for a subsystem with a parallel loop over all cuts,
     using the specified number of cores."""
     if config.NUMBER_OF_CORES < 0:
@@ -299,7 +351,7 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip, me
     processes = [
         multiprocessing.Process(target=_eval_wrapper,
                                 args=(in_queue, out_queue, subsystem,
-                                      unpartitioned_constellation, method))
+                                      unpartitioned_constellation))
         for i in range(number_of_processes)
     ]
     for i in range(number_of_processes):
@@ -324,11 +376,11 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip, me
 
 
 def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
-                         min_mip, method):
+                         min_mip):
     """Find the minimal cut for a subsystem by sequentially loop over all cuts,
     holding only two ``BigMip``s in memory at once."""
     for i, cut in enumerate(cuts):
-        new_mip = _evaluate_cut(subsystem, cut, unpartitioned_constellation, method)
+        new_mip = _evaluate_cut(subsystem, cut, unpartitioned_constellation)
         log.debug("Finished {} of {} cuts.".format(
             i + 1, len(cuts)))
         if new_mip < min_mip:
@@ -341,7 +393,7 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
 
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
-def _big_mip(cache_key, subsystem, method=0):
+def _big_mip(cache_key, subsystem):
     log.info("Calculating big-phi data for {}...".format(subsystem))
     start = time()
 
@@ -388,7 +440,7 @@ def _big_mip(cache_key, subsystem, method=0):
 
     log.debug("Finding unpartitioned constellation...")
     small_phi_start = time()
-    unpartitioned_constellation = constellation(subsystem, method)
+    unpartitioned_constellation = constellation(subsystem)
     small_phi_time = time() - small_phi_start
     log.debug("Found unpartitioned constellation.")
     if not unpartitioned_constellation:
@@ -400,10 +452,10 @@ def _big_mip(cache_key, subsystem, method=0):
         min_mip.phi = float('inf')
         if config.PARALLEL_CUT_EVALUATION:
             min_mip = _find_mip_parallel(
-                subsystem, cuts, unpartitioned_constellation, min_mip, method)
+                subsystem, cuts, unpartitioned_constellation, min_mip)
         else:
             min_mip = _find_mip_sequential(
-                subsystem, cuts, unpartitioned_constellation, min_mip, method)
+                subsystem, cuts, unpartitioned_constellation, min_mip)
         result = time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
@@ -415,7 +467,7 @@ def _big_mip(cache_key, subsystem, method=0):
 # joblib doesn't mistakenly recompute things when the subsystem's MICE cache is
 # changed.
 @functools.wraps(_big_mip)
-def big_mip(subsystem, method=0):
+def big_mip(subsystem):
     """Return the MIP of a subsystem.
 
     Args:
@@ -426,7 +478,7 @@ def big_mip(subsystem, method=0):
         intermediate calculations. The top level contains the basic MIP
         information for the given subsystem. See :class:`models.BigMip`.
     """
-    return _big_mip(hash(subsystem), subsystem, method)
+    return _big_mip(hash(subsystem), subsystem)
 
 
 def big_phi(subsystem):

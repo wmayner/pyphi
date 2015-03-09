@@ -414,27 +414,55 @@ def connectivity_matrix_to_tpm(network):
     """
 
 def block_cm(cm):
-    """ Determining if a given connectivity matrix be rearranged as a block
-    connectivity matrix. If so, the corresponding mechanism/purview is
-    trivially reducible."""
-    # validate the cm
-    In = cm.shape[1]
-    if np.any(np.sum(cm,1)==0):
+        """ Determining if a given connectivity matrix be rearranged as a block
+        connectivity matrix. If so, the corresponding mechanism/purview is
+        trivially reducible."""
+        # validate the cm
+        In = cm.shape[1]
+        if np.any(np.sum(cm,1)==0):
+            return True
+        if np.all(np.sum(cm > 0,1) == 1):
+            return True
+        m_ind = np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]
+        p_ind = np.where(cm[m_ind,:] > 0)[0]
+        temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
+        while 1:
+            if np.all(temp==m_ind):
+                break
+            else:
+                m_ind = temp
+                p_ind = np.where(np.sum(cm[m_ind,:], 0)  > 0)[0]
+                temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
+                if np.all(p_ind  == [i for i in range(In)]):
+                    return False
         return True
-    if np.all(np.sum(cm > 0,1) == 1):
-        return True
-    m_ind = np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]
-    p_ind = np.where(cm[m_ind,:] > 0)[0]
-    temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
-    while 1:
-        if np.all(temp==m_ind):
-            break
-        else:
-            m_ind = temp
-            p_ind = np.where(np.sum(cm[m_ind,:], 0)  > 0)[0]
-            temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
-    if np.all(p_ind  == [i for i in range(In)]):
+
+# TODO test phi max helpers
+def not_block_reducible(cm, nodes1, nodes2):
+    """Tests connectivity of one set of nodes to another.
+
+    Args:
+        cm (np.ndarray): The network connectivity matrix
+        nodes1 (tuple(Node)): The nodes whose outputs to ``nodes2`` will be
+            tested.
+        nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
+            be tested.
+    """
+
+    # If either set of nodes is empty, return (vacuously) True.
+    if not nodes1 or not nodes2:
         return False
+    # Get the connectivity matrix representing the connections from the
+    # first node list to the second.
+    submatrix_indices = np.ix_([node for node in nodes1],
+                               [node for node in nodes2])
+    cm = cm[submatrix_indices]
+    # Check that all nodes have at least one connection by summing over
+    # rows of connectivity submatrix.
+    if not cm.sum(0).all() or not cm.sum(1).all():
+        return False
+    elif len(nodes1) > 1 and len(nodes2) > 1:
+        return not block_cm(cm)
     else:
         return True
 
