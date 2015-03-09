@@ -35,7 +35,7 @@ def _concept_wrapper(in_queue, out_queue, subsystem):
     out_queue.put(None)
 
 def concept(subsystem, mechanism):
-    """Return the concept specified by the a mechanism within a subsytem.
+    """Return the concept specified by a mechanism within a subsytem.
 
     Args:
         subsystem (Subsytem): The context in which the mechanism should be
