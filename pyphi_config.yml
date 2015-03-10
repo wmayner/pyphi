@@ -10,6 +10,11 @@
 # happen can increase performance significantly, however the obtained results
 # are not strictly accurate.
 ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
+# Evaluate the minimum information partition using only cut connections
+# to or from a single node. It is possible that the MIP cut will include
+# multiple nodes, however this approximation is usually correct, and at
+# worst provides an upper bound for integrated information.
+ONE_CUT_APPROXIMATION: false
 
 # System resources
 # ~~~~~~~~~~~~~~~~

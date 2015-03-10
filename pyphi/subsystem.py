@@ -862,6 +862,7 @@ class Subsystem:
         """Calculate a concept."""
         # TODO refactor to pass indices around, not nodes, throughout Subsystem
         # Calculate the maximally irreducible cause repertoire.
+        print(mechanism)
         cause = self.core_cause(mechanism)
         # Calculate the maximally irreducible effect repertoire.
         effect = self.core_effect(mechanism)

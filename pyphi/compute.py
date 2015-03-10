@@ -433,9 +433,12 @@ def _big_mip(cache_key, subsystem):
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
-    # The first and last bipartitions are the null cut (trivial bipartition),
-    # so skip them.
-    bipartitions = utils.bipartition(subsystem.node_indices)[1:-1]
+    if config.CUT_ONE_APPROXIMATION:
+        bipartitions = utils.bipartition_of_one(subsystem.node_indices)
+    else:
+        # The first and last bipartitions are the null cut (trivial bipartition),
+        # so skip them.
+        bipartitions = utils.bipartition(subsystem.node_indices)[1:-1]
     cuts = [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
 

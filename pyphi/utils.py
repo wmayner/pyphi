@@ -320,6 +320,26 @@ def bipartition(a):
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
 
+def bipartition_of_one(a):
+    """Return a list of bipartitions for a sequence where each
+    bipartitions includes a set of size 1.
+
+    Args:
+        a (Iterable): The iterable to partition.
+
+    Returns:
+        ``list`` -- A list of tuples containing each of the two partitions.
+
+    Example:
+        >>> from pyphi.utils import bipartition, bipartition_of_one
+        >>> bipartition_of_one((1,2,3))
+        [((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,))]
+    """
+    def is_length_one(part):
+        return len(part[0])==1 or len(part[1])==1
+    bipartitions = bipartition(a)
+    return tuple(filter(is_length_one, bipartitions))
+
 @cache(cache={}, maxmem=None)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.

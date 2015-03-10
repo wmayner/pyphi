@@ -218,6 +218,8 @@ config = {
     # Assumptions that speed up computation at the cost of theoretical
     # accuracy.
     'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
+    # Only check single nodes cuts for the MIP. 2**n cuts instead of n.
+    'ONE_CUT_APPROXIMATION': False,
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Controls whether cuts are evaluated in parallel, which requires more
     # memory. If cuts are evaluated sequentially, only two BigMips need to be
