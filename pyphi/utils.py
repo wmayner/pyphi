@@ -338,7 +338,7 @@ def bipartition_of_one(a):
     def is_length_one(part):
         return len(part[0])==1 or len(part[1])==1
     bipartitions = bipartition(a)
-    return tuple(filter(is_length_one, bipartitions))
+    return list(filter(is_length_one, bipartitions))
 
 @cache(cache={}, maxmem=None)
 def bipartition_indices(N):
