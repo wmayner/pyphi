@@ -168,7 +168,10 @@ macro_answer = {
         (0,): 0.455,
         (1,): 0.455,
     },
-    'cut': models.Cut(severed=(0,), intact=(1,))
+    'cuts': [
+        models.Cut(severed=(0,), intact=(1,)),
+        models.Cut(severed=(1,), intact=(0,)),
+    ]
 }
 
 

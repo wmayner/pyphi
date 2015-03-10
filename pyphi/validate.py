@@ -9,7 +9,6 @@ Methods for validating common types of input.
 import numpy as np
 
 from collections import Iterable
-from .node import Node
 from . import constants, config
 
 
@@ -31,17 +30,6 @@ def direction(direction):
     if direction not in constants.DIRECTIONS:
         raise ValueError("Direction must be either 'past' or 'future'.")
     return True
-
-
-def nodelist(nodes, name):
-    if not isinstance(nodes, Iterable):
-        raise ValueError("{} must be an iterable.".format(name))
-    if not all(isinstance(node, Node) for node in nodes):
-        raise ValueError("{} must consist only of Nodes (perhaps you "
-                         "gave a node's index instead?)".format(name))
-    if not isinstance(nodes, tuple):
-        nodes = tuple(nodes)
-    return nodes
 
 
 def tpm(tpm):

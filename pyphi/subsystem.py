@@ -15,7 +15,7 @@ from .cache import cache
 from . import constants, config, validate, utils, convert, json
 from .models import Cut, Mip, Part, Mice, Concept
 from .node import Node
-from itertools import product
+import itertools
 
 
 def cause_repertoire(self, mechanism, purview):
@@ -241,7 +241,6 @@ def _test_connections(self, axis, nodes1, nodes2):
     return cm.sum(axis).all()
 
 
-
 # TODO! go through docs and make sure to say when things can be None
 class Subsystem:
 
@@ -306,7 +305,8 @@ class Subsystem:
                            self.node_indices)
         # The matrix of connections which are severed due to the cut
         self.null_cut_matrix = np.zeros((len(self), len(self)))
-        self.cut_matrix = self._find_cut_matrix(cut) if cut is not None else self.null_cut_matrix
+        self.cut_matrix = (self._find_cut_matrix(cut) if cut is not None
+                           else self.null_cut_matrix)
         # A cache for keeping core causes and effects that can be reused later
         # in the event that a cut doesn't effect them.
         self._mice_cache = mice_cache
@@ -333,11 +333,11 @@ class Subsystem:
             self)
 
     def _find_cut_matrix(self, cut):
-        subsystem_index = convert.nodes2indices(self.nodes)
+        subsystem_indices = convert.nodes2indices(self.nodes)
         cut_matrix = np.zeros((self.network.size, self.network.size))
-        list_of_cuts = np.array(list(product(cut[0], cut[1])))
+        list_of_cuts = np.array(list(itertools.product(cut[0], cut[1])))
         cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
-        return cut_matrix[np.ix_(subsystem_index, subsystem_index)]
+        return cut_matrix[np.ix_(subsystem_indices, subsystem_indices)]
 
     def __getstate__(self):
         d = self.__dict__.copy()
@@ -773,21 +773,28 @@ class Subsystem:
         return min(self.core_cause(mechanism).phi,
                    self.core_effect(mechanism).phi)
 
-    def concept_cm(self, mechanism, cause_purview, effect_purview):
-
+    def connections_relevant_for_concept(self, mechanism, cause_purview,
+                                         effect_purview):
+        """Return a matrix that identifies connections that “matter” to this
+        concept. """
+        # Get an empty square matrix the size of the network.
         cm = np.zeros((self.network.size, self.network.size))
-        c_ind = [mechanism[i].index for i in range(len(mechanism))]
-        p_ind = [cause_purview[i].index for i in range(len(cause_purview))]
-        f_ind = [effect_purview[i].index for i in range(len(effect_purview))]
-        future_connections = np.array(list(product(c_ind, f_ind)))
-        past_connections = np.array(list(product(p_ind, c_ind)))
+        # Get mechanism and purview node indices.
+        mechanism_indices = convert.nodes2indices(mechanism)
+        past_purview_indices = convert.nodes2indices(cause_purview)
+        effect_purview_indices = convert.nodes2indices(effect_purview)
+        # Set `i, j` to 1 if `i` is a mechanism node and `j` is an effect
+        # purview node.
+        future_connections = np.array(
+            list(itertools.product(mechanism_indices, effect_purview_indices)))
         cm[future_connections[:, 0], future_connections[:, 1]] = 1
+        # Set `i, j` to 1 if `i` is a cause purview node and `j` is a mechanism
+        # node.
+        past_connections = np.array(
+            list(itertools.product(past_purview_indices, mechanism_indices)))
         cm[past_connections[:, 0], past_connections[:, 1]] = 1
-        ind = [self.nodes[i].index for i in range(len(self))]
-        cm = cm[np.ix_(ind,ind)]
-        return cm
-
-
+        # Return only the submatrix that corresponds to this subsystem's nodes.
+        return cm[np.ix_(self.node_indices, self.node_indices)]
 
     # Big Phi methods
     # =========================================================================
@@ -821,7 +828,7 @@ class Subsystem:
                 partition=None, partitioned_repertoire=None))
         # All together now...
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
-                       mice_cm = None, subsystem=self)
+                       relevant_connections=None, subsystem=self)
 
 
     def concept(self, mechanism):
@@ -834,9 +841,11 @@ class Subsystem:
         # Get the minimal phi between them.
         phi = min(cause.phi, effect.phi)
         # Find the mice connectivity matrix for this concept
-        mice_cm = self.concept_cm(mechanism, cause.purview, effect.purview)
+        relevant_connections = self.connections_relevant_for_concept(
+            mechanism, cause.purview, effect.purview)
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.
-        return Concept(mechanism=mechanism, phi=phi, cause=cause,
-                       effect=effect, mice_cm = mice_cm, subsystem=self)
+        return Concept(
+            mechanism=mechanism, phi=phi, cause=cause, effect=effect,
+            relevant_connections=relevant_connections, subsystem=self)

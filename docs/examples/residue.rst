@@ -81,7 +81,7 @@ The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
    >>> subsystem.mip_past(A, CDE).phi
    0.0
    >>> subsystem.mip_past(A, CDE).partition
-   (Part(mechanism=(), purview=(n4,)), Part(mechanism=(n0,), purview=(n2, n3)))
+   (Part(mechanism=(n0,), purview=(n2, n3)), Part(mechanism=(), purview=(n4,)))
 
 Instead, we should evaluate |A| over the purview |CD|.
 

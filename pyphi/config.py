@@ -10,6 +10,22 @@ configuration is used.
 The various options are listed here with their defaults.
 
 
+Theoretical approximations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section with deals assumptions that speed up computation at the cost of
+theoretical accuracy.
+
+- In certain cases, making a cut can actually cause a previously reducible
+  concept to become a proper, irreducible concept. Assuming this can never
+  happen can increase performance significantly, however the obtained results
+  are not strictly accurate.
+
+    >>> import pyphi
+    >>> pyphi.config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS
+    False
+
+
 System resources
 ~~~~~~~~~~~~~~~~
 
@@ -18,15 +34,6 @@ PyPhi to use. The default values may not be appropriate for your use-case or
 machine, so **please check these settings before running anything**. Otherwise,
 there is a risk that simulations might crash (potentially after running for a
 long time!), resulting in data loss.
-
-- PyPhi employs several in-memory caches to speed up computation. However,
-  these can quickly use a lot of memory for large networks or large numbers of
-  them; to avoid thrashing, this options limits the percentage of a system's
-  RAM that the caches can collectively use.
-
-    >>> import pyphi
-    >>> pyphi.config.MAXIMUM_CACHE_MEMORY_PERCENTAGE
-    50
 
 - Control whether system cuts are evaluated in parallel, which requires more
   memory. If cuts are evaluated sequentially, only two |BigMip| instances need
@@ -42,6 +49,20 @@ long time!), resulting in data loss.
     >>> pyphi.config.NUMBER_OF_CORES
     -1
 
+- If parallel computation is enabled, it will have its own, separate messages,
+  which are always sent to standard output. This setting controls their
+  verbosity, an integer from 0 to 100.
+
+    >>> pyphi.config.PARALLEL_VERBOSITY
+    0
+
+- PyPhi employs several in-memory caches to speed up computation. However,
+  these can quickly use a lot of memory for large networks or large numbers of
+  them; to avoid thrashing, this options limits the percentage of a system's
+  RAM that the caches can collectively use.
+
+    >>> pyphi.config.MAXIMUM_CACHE_MEMORY_PERCENTAGE
+    50
 
 Caching
 ~~~~~~~
@@ -52,16 +73,6 @@ recompute them later. This makes it easy to play around interactively with the
 program, or to accumulate results with minimal effort. For larger projects,
 however, it is recommended that you manage the results explicitly, rather than
 relying on the cache. For this reason it is disabled by default.
-
-- Control whether precomputed results are stored and read from a database or
-  from a local filesystem-based cache in the current directory. Set this to
-  'fs' for the filesystem, 'db' for the database. Caching results on the
-  filesystem is the easiest to use but least robust caching system. Caching
-  results in a database is more robust and allows for caching individual
-  concepts, but requires installing MongoDB.
-
-    >>> pyphi.config.CACHING_BACKEND
-    'fs'
 
 - Control whether |BigMip| objects are cached and automatically retreived.
 
@@ -77,13 +88,22 @@ relying on the cache. For this reason it is disabled by default.
     Concept caching only has an effect when a database is used as the the
     caching backend.
 
-- If the caching backend is set to use the filesystem, the cache will be stored
-  in this directory. This directory can be copied and moved around if you want
-  to reuse results _e.g._ on a another computer, but it must be in the same
-  directory from which PyPhi is being run.
+- Control whether TPMs should be normalized as part of concept normalization.
+  TPM normalization increases the chances that a precomputed concept can be
+  used again, but is expensive.
 
-    >>> pyphi.config.FS_CACHE_DIRECTORY
-    '__pyphi_cache__'
+    >>> pyphi.config.NORMALIZE_TPMS
+    True
+
+- Control whether precomputed results are stored and read from a database or
+  from a local filesystem-based cache in the current directory. Set this to
+  'fs' for the filesystem, 'db' for the database. Caching results on the
+  filesystem is the easiest to use but least robust caching system. Caching
+  results in a database is more robust and allows for caching individual
+  concepts, but requires installing MongoDB.
+
+    >>> pyphi.config.CACHING_BACKEND
+    'fs'
 
 - Control how much caching information is printed. Takes a value between 0 and
   11. Note that printing during a loop iteration can slow down the loop
@@ -91,6 +111,14 @@ relying on the cache. For this reason it is disabled by default.
 
     >>> pyphi.config.FS_CACHE_VERBOSITY
     0
+
+- If the caching backend is set to use the filesystem, the cache will be stored
+  in this directory. This directory can be copied and moved around if you want
+  to reuse results _e.g._ on a another computer, but it must be in the same
+  directory from which PyPhi is being run.
+
+    >>> pyphi.config.FS_CACHE_DIRECTORY
+    '__pyphi_cache__'
 
 - Set the configuration for the MongoDB database backend. This only has an
   effect if the caching backend is set to use the database.
@@ -103,13 +131,6 @@ relying on the cache. For this reason it is disabled by default.
     'pyphi'
     >>> pyphi.config.MONGODB_CONFIG['collection_name']
     'test'
-
-- Control whether TPMs should be normalized as part of concept normalization.
-  TPM normalization increases the chances that a precomputed concept can be
-  used again, but is expensive.
-
-    >>> pyphi.config.NORMALIZE_TPMS
-    True
 
 
 Logging
@@ -147,35 +168,6 @@ file, both, or none. See the `documentation on Python's logger
     >>> pyphi.config.LOGGING_CONFIG['stdout']['level']
     'INFO'
 
-- If parallel computation is enabled, it will have its own, separate messages,
-  which are always sent to standard output. This setting controls their
-  verbosity, an integer from 0 to 100.
-
-    >>> pyphi.config.PARALLEL_VERBOSITY
-    0
-
-
-Network state validation
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-- Control whether PyPhi checks if the network's current state is possible,
-  given the TPM and the past state. Nodes with no inputs are assumed to be able
-  to have any state, and will not constrain the possible states.
-
-    >>> pyphi.config.VALIDATE_NETWORK_STATE
-    False
-
-
-Theoretical concerns
-~~~~~~~~~~~~~~~~~~~~
-
-- If set to ``True``, this defines the Phi value of subsystems containing only
-  a single node with a self-loop to be ``0.5``. If set to False, their
-  |big_phi| will be actually be computed (to be zero, in this implementation).
-
-    >>> pyphi.config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
-    False
-
 
 Numerical precision
 ~~~~~~~~~~~~~~~~~~~
@@ -192,6 +184,25 @@ Numerical precision
     >>> pyphi.config.PRECISION
     6
 
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+- Control whether PyPhi checks if the network's current state is possible,
+  given the TPM and the past state. Nodes with no inputs are assumed to be able
+  to have any state, and will not constrain the possible states.
+
+    >>> pyphi.config.VALIDATE_NETWORK_STATE
+    False
+
+- If set to ``True``, this defines the Phi value of subsystems containing only
+  a single node with a self-loop to be ``0.5``. If set to False, their
+  |big_phi| will be actually be computed (to be zero, in this implementation).
+
+    >>> pyphi.config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
+    False
+
+-------------------------------------------------------------------------------
 """
 
 import pprint
@@ -203,6 +214,11 @@ import yaml
 # TODO: document mongo config
 # Defaults for configurable constants.
 config = {
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Assumptions that speed up computation at the cost of theoretical
+    # accuracy.
+    'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Controls whether cuts are evaluated in parallel, which requires more
     # memory. If cuts are evaluated sequentially, only two BigMips need to be
     # in memory at a time.
@@ -213,26 +229,24 @@ config = {
     # The verbosity of parallel computation (integer from 0 to 100). See
     # documentation for `joblib.Parallel`.
     'PARALLEL_VERBOSITY': 20,
-    # Whether to use the matlab approximation
-    'MATLAB_APPROX': False,
-    # Controls whether the concept caching system is used.
-    'CACHE_CONCEPTS': False,
+    # The maximum percentage of RAM that PyPhi should use for caching.
+    'MAXIMUM_CACHE_MEMORY_PERCENTAGE': 50,
     # Controls whether BigMips are cached and retreived.
     'CACHE_BIGMIPS': False,
+    # Controls whether the concept caching system is used.
+    'CACHE_CONCEPTS': False,
     # Controls whether TPMs should be normalized as part of concept
     # normalization. TPM normalization increases the chances that a precomputed
     # concept can be used again, but is expensive.
     'NORMALIZE_TPMS': True,
-    # The maximum percentage of RAM that PyPhi should use for caching.
-    'MAXIMUM_CACHE_MEMORY_PERCENTAGE': 50,
     # The caching system to use. "fs" means cache results in a subdirectory of
     # the current directory; "db" means connect to a database and store the
     # results there.
     'CACHING_BACKEND': 'fs',
-    # Directory for the persistent joblib Memory cache.
-    'FS_CACHE_DIRECTORY': '__pyphi_cache__',
     # joblib.Memory verbosity.
     'FS_CACHE_VERBOSITY': 0,
+    # Directory for the persistent joblib Memory cache.
+    'FS_CACHE_DIRECTORY': '__pyphi_cache__',
     # MongoDB configuration.
     'MONGODB_CONFIG': {
         'host': 'localhost',
@@ -254,14 +268,14 @@ config = {
             'level': 'INFO'
         }
     },
+    # The number of decimal points to which phi values are considered accurate
+    'PRECISION': 6,
     # Controls whether network states are validated upon network creation.
     'VALIDATE_NETWORK_STATE': False,
     # In some applications of this library, the user may prefer to define
     # single-node subsystems as having 0.5 Phi.
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
-    # The number of decimal points to which phi values are considered accurate
-    'PRECISION': 6,
-    }
+}
 
 
 # Get a reference to this module's dictionary..

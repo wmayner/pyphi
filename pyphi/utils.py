@@ -22,6 +22,32 @@ from . import constants
 log = logging.getLogger(__name__)
 
 
+# Methods to evaluate the effect of a Cut
+# ============================================================================
+
+def cut_mechanism_indices(subsystem, cut):
+    """Returns a tuple of indices of mechanisms that have nodes on both sides
+    of the given cut."""
+    def split_by_cut(indices):
+        return ((set(indices) & set(cut[0])) and
+                (set(indices) & set(cut[1])))
+    return tuple(filter(split_by_cut, powerset(subsystem.node_indices)))
+
+
+def cut_concepts(cut_matrix, unpartitioned_constellation):
+    """Return a tuple of concepts that could be affected by the cut."""
+    return tuple(concept for concept in unpartitioned_constellation
+                 if np.any(concept.relevant_connections * cut_matrix == 1))
+
+
+def uncut_concepts(cut_matrix, unpartitioned_constellation):
+    """Return a tuple of concepts that cannot be affected by the cut."""
+    return tuple(concept for concept in unpartitioned_constellation
+                 if np.all(concept.relevant_connections * cut_matrix == 0))
+
+# ============================================================================
+
+
 def condition_tpm(tpm, fixed_nodes, state):
     """Return a TPM conditioned on the given fixed node indices, whose states
     are fixed according to the given state-tuple.
@@ -288,7 +314,7 @@ def bipartition(a):
     Example:
         >>> from pyphi.utils import bipartition
         >>> bipartition((1, 2, 3))
-        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
+        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
     """
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
             for part0_idx, part1_idx in bipartition_indices(len(a))]
@@ -309,13 +335,13 @@ def bipartition_indices(N):
         >>> from pyphi.utils import bipartition_indices
         >>> N = 3
         >>> bipartition_indices(N)
-        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
+        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
     """
     result = []
     # Return on empty input
     if N <= 0:
         return result
-    for i in range(2 ** (N - 1)):
+    for i in range(2 ** N):
         part = [[], []]
         for n in range(N):
             bit = (i >> n) & 1
@@ -323,24 +349,6 @@ def bipartition_indices(N):
         result.append((tuple(part[1]), tuple(part[0])))
     return result
 
-# Methods to evaluate the effect of a Cut
-# ============================================================================
-
-def split_by_cut(subsystem, cut):
-    Part0 = subsystem.indices2nodes(cut[0])
-    Part1 = subsystem.indices2nodes(cut[1])
-    result = [mechanism if bool((set(mechanism) & set(Part0)) and (set(mechanism) & set(Part1))) else None
-            for mechanism in powerset(subsystem.nodes)]
-    return tuple(filter(None, result))
-
-def cut_concepts(cut_matrix, unpartitioned_constellation):
-    Concepts = tuple(filter(None, [concept if np.any(concept.mice_cm * cut_matrix == 1)
-                       else None for concept in unpartitioned_constellation]))
-    return tuple(concept.mechanism for concept in Concepts)
-
-def uncut_concepts(cut_matrix, unpartitioned_constellation):
-    return tuple(filter(None, [concept if np.all(concept.mice_cm * cut_matrix == 0)
-                     else None for concept in unpartitioned_constellation]))
 
 # Internal helper methods
 # =============================================================================
