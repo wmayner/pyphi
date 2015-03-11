@@ -314,9 +314,6 @@ class Subsystem:
         self._cr_cache = {}
         # Effect repertoire cache.
         self._er_cache = {}
-        # Test connections cache.
-        self._test_conn_cache = {}
-
         # Use the general-purpose cache for cause and effect repertoire
         # calculations, and for testing connections.
         self.cause_repertoire = types.MethodType(
@@ -326,10 +323,6 @@ class Subsystem:
         self.effect_repertoire = types.MethodType(
             cache(cache=self._er_cache)(
                 effect_repertoire),
-            self)
-        self._test_connections = types.MethodType(
-            cache(cache=self._test_conn_cache)(
-                _test_connections),
             self)
 
     def _find_cut_matrix(self, cut):
@@ -343,7 +336,6 @@ class Subsystem:
         d = self.__dict__.copy()
         del d['cause_repertoire']
         del d['effect_repertoire']
-        del d['_test_connections']
         return d
 
     def __setstate__(self, d):
@@ -354,10 +346,6 @@ class Subsystem:
         d['effect_repertoire'] = types.MethodType(
             cache(cache=d['_er_cache'])(
                 effect_repertoire),
-            self)
-        d['_test_connections'] = types.MethodType(
-            cache(cache=d['_test_conn_cache'])(
-                _test_connections),
             self)
         self.__dict__ = d
 
