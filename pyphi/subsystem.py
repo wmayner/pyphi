@@ -833,20 +833,20 @@ class Subsystem:
         For information on the indices used in the returned array, see
         :ref:concept-space."""
         # Unconstrained cause repertoire.
-        cause_repertoire = self.cause_repertoire((), self.nodes)
+        cause_repertoire = self.cause_repertoire((), ())
         # Unconstrained effect repertoire.
-        effect_repertoire = self.effect_repertoire((), self.nodes)
+        effect_repertoire = self.effect_repertoire((), ())
         # Null cause.
         cause = Mice(
             Mip(unpartitioned_repertoire=cause_repertoire,
                 phi=0, direction=DIRECTIONS[PAST], mechanism=(),
-                purview=self.nodes,
+                purview=(),
                 partition=None, partitioned_repertoire=None))
         # Null mip.
         effect = Mice(
             Mip(unpartitioned_repertoire=effect_repertoire,
                 phi=0, direction=DIRECTIONS[FUTURE], mechanism=(),
-                purview=self.nodes,
+                purview=(),
                 partition=None, partitioned_repertoire=None))
         # All together now...
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
