@@ -24,6 +24,8 @@ from .subsystem import Subsystem
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
+# TODO: Fix parallel constellation from eating memory.
+# Currently not implemented
 def _concept_wrapper(in_queue, out_queue, subsystem):
     while True:
         (index, mechanism) = in_queue.get()
@@ -95,6 +97,8 @@ def constellation(subsystem, mechanism_indices_to_check=None):
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
+# TODO: Stop parallel_constellation from eating memory
+# Currently not implemented
 def parallel_constellation(subsystem, mechanism_indices_to_check=None):
     """ Return the conceptual structure of this subsystem. Concepts are evaluated
     in parallel.

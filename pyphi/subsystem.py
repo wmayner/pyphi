@@ -650,7 +650,7 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-
+    #TODO: Revisit mice_cache to try and make it work
     def _get_cached_mice(self, direction, mechanism):
         """Return a cached MICE if there is one and the cut doesn't affect it.
 
@@ -737,10 +737,11 @@ class Subsystem:
             |future|, i.e., we return a core cause or core effect, not the pair
             of them.
         """
+        # TODO: Try to fix MICE caching
         # Return a cached MICE if there's a hit.
-        cached_mice = self._get_cached_mice(direction, mechanism)
-        if cached_mice:
-            return cached_mice
+        #cached_mice = self._get_cached_mice(direction, mechanism)
+        #if cached_mice:
+        #    return cached_mice
         validate.direction(direction)
 
         if direction == DIRECTIONS[PAST]:
