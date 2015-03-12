@@ -160,13 +160,15 @@ def concept_distance(c1, c2):
         ``float`` -- The distance between the two concepts in concept-space.
     """
     # Calculate the sum of the past and future EMDs, expanding the repertoires
-    # to the full state-space of the subsystem, so that the EMD signatures are
+    # to the combined purview of the two concepts, so that the EMD signatures are
     # the same size.
+    cause_purview = tuple(set(c1.cause.purview + c2.cause.purview))
+    effect_purview = tuple(set(c1.effect.purview + c2.effect.purview))
     return sum([
-        utils.hamming_emd(c1.expand_cause_repertoire(),
-                          c2.expand_cause_repertoire()),
-        utils.hamming_emd(c1.expand_effect_repertoire(),
-                          c2.expand_effect_repertoire())])
+        utils.hamming_emd(c1.expand_cause_repertoire(cause_purview),
+                          c2.expand_cause_repertoire(cause_purview)),
+        utils.hamming_emd(c1.expand_effect_repertoire(effect_purview),
+                          c2.expand_effect_repertoire(effect_purview))])
 
 
 def _constellation_distance_simple(C1, C2, subsystem):
