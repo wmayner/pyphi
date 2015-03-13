@@ -62,6 +62,9 @@ def tpm(tpm):
 
 
 def connectivity_matrix(cm):
+    # Special case for empty matrices.
+    if cm.size == 0:
+        return True
     if (cm.ndim != 2):
         raise ValueError("Connectivity matrix must be 2-dimensional.")
     if cm.shape[0] != cm.shape[1]:
