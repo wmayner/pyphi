@@ -145,7 +145,8 @@ def network(network):
     state(network)
     connectivity_matrix(network.connectivity_matrix)
     perturb_vector(network.perturb_vector, network.size)
-    if network.connectivity_matrix.shape[0] != network.size:
+    if (network.connectivity_matrix.shape[0] != network.size
+            and not network.connectivity_matrix.size == 0):
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")
     return True
