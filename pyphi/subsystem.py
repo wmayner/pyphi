@@ -48,7 +48,7 @@ def cause_repertoire(self, mechanism, purview):
     # If the purview is empty, the distribution is empty, so return the
     # multiplicative identity.
     if not purview:
-        return np.array([1])
+        return np.array([1.0])
     # Calculate the maximum entropy distribution. If there is no mechanism,
     # return it.
     max_entropy_dist = utils.max_entropy_distribution(
@@ -135,7 +135,7 @@ def effect_repertoire(self, mechanism, purview):
     # If the purview is empty, the distribution is empty, so return the
     # multiplicative identity.
     if not purview:
-        return np.array([1])
+        return np.array([1.0])
     # Preallocate the purview's joint distribution
     # TODO extend to nonbinary nodes
     accumulated_cjd = np.ones(
