@@ -295,9 +295,15 @@ def hamming_emd(d1, d2):
     Singleton dimensions are sqeezed out.
     """
     d1, d2 = d1.squeeze(), d2.squeeze()
-    # Compute the EMD with Hamming distance between states as the
-    # transportation cost function
-    return emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
+    dim = d1.ndim
+    d1, d2 = d1.ravel(), d2.ravel()
+    index = np.not_equal(d1, d2)
+    if not np.any(index):
+        return 0
+    else:
+        # Compute the EMD with Hamming distance between states as the
+        # transportation cost function
+        return emd(d1[index], d2[index], _hamming_matrix(dim)[np.ix_(index,index)])
 
 
 # TODO? [optimization] optimize this to use indices rather than nodes
