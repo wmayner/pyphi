@@ -32,8 +32,9 @@ def _concept_wrapper(in_queue, out_queue, subsystem):
         if mechanism is None:
             break
         new_concept = concept(subsystem, mechanism)
-        print(index)
-        out_queue.put(new_concept)
+        if new_concept.phi > 0:
+            print(index)
+            out_queue.put(new_concept)
     out_queue.put(None)
 
 def concept(subsystem, mechanism):
