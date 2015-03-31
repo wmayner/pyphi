@@ -718,11 +718,9 @@ class Subsystem:
 
         def not_trivially_reducible(purview):
             if direction == DIRECTIONS[PAST]:
-                return (self._all_connect_to_any(purview, mechanism) and
-                        self._any_connect_to_all(purview, mechanism))
+                return self._test_connections(purview, mechanism)
             elif direction == DIRECTIONS[FUTURE]:
-                return (self._all_connect_to_any(mechanism, purview) and
-                        self._any_connect_to_all(mechanism, purview))
+                return self._test_connections(mechanism, purview)
 
         # Filter out trivially reducible purviews if a connectivity matrix was
         # provided.
