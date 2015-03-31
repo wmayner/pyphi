@@ -209,38 +209,6 @@ def effect_repertoire(self, mechanism, purview):
     return accumulated_cjd
 
 
-# TODO test phi max helpers
-def _test_connections(self, axis, nodes1, nodes2):
-    """Tests connectivity of one set of nodes to another.
-
-    Args:
-        axis (int): The axis over which to take the sum of the connectivity
-            submatrix. If this is 0, the sum will be taken over the
-            columns; in this case returning ``True`` means "all nodes in
-            the second list have an input from some node in the first
-            list". If this is 1, the sum will be taken over the rows, and
-            returning ``True`` means "all nodes in the first list have a
-            connection to some node in the second list".
-        nodes1 (tuple(Node)): The nodes whose outputs to ``nodes2`` will be
-            tested.
-        nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
-            be tested.
-    """
-    # If either set of nodes is empty, return (vacuously) True.
-    if not nodes1 or not nodes2:
-        return True
-    # Apply the cut to the network's connectivity matrix.
-    cm = utils.apply_cut(self.cut, self.network.connectivity_matrix)
-    # Get the connectivity matrix representing the connections from the
-    # first node list to the second.
-    submatrix_indices = np.ix_([node.index for node in nodes1],
-                               [node.index for node in nodes2])
-    cm = cm[submatrix_indices]
-    # Check that all nodes have at least one connection by summing over
-    # rows of connectivity submatrix.
-    return cm.sum(axis).all()
-
-
 # TODO! go through docs and make sure to say when things can be None
 class Subsystem:
 
@@ -642,21 +610,39 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    # TODO test
-    def _any_connect_to_all(self, nodes1, nodes2):
-        """Return whether all nodes in the second list have inputs from some
-        node in the first list."""
-        return self._test_connections(0, nodes1, nodes2)
-
-    # TODO test
-    def _all_connect_to_any(self, nodes1, nodes2):
-        """Return whether all nodes in the first list connect to some node in
-        the second list."""
-        return self._test_connections(1, nodes1, nodes2)
+    def _test_connections(self, nodes1, nodes2):
+        """Tests connectivity of one set of nodes to another.
+        Args:
+            submatrix. If this is 0, the sum will be taken over the
+            columns; in this case returning ``True`` means "all nodes in
+            the second list have an input from some node in the first
+            list". If this is 1, the sum will be taken over the rows, and
+            returning ``True`` means "all nodes in the first list have a
+            connection to some node in the second list".
+            nodes1 (tuple(Node)): The nodes whose outputs to ``nodes2`` will be
+            tested.
+            nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
+            be tested.
+            """
+        # If either set of nodes is empty, return (vacuously) True.
+        if not nodes1 or not nodes2:
+            return True
+        # Apply the cut to the network's connectivity matrix.
+        cm = utils.apply_cut(self.cut, self.network.connectivity_matrix)
+        # Get the connectivity matrix representing the connections from the
+        # first node list to the second.
+        submatrix_indices = np.ix_([node.index for node in nodes1],
+                                   [node.index for node in nodes2])
+        cm = cm[submatrix_indices]
+        # Check that all nodes have at least one connection by summing over
+        # rows of connectivity submatrix.
+        if len(nodes1)==1:
+            return cm.sum(0).all()
+        else:
+            return cm.sum(0).all() and cm.sum(1).all()
 
     def _get_cached_mice(self, direction, mechanism_indices):
         """Return a cached MICE if there is one and the cut doesn't affect it.
-
         Return False otherwise."""
         if (direction, mechanism_indices) in self._mice_cache:
             cached = self._mice_cache[(direction, mechanism_indices)]

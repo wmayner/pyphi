@@ -60,8 +60,7 @@ def concept(subsystem, mechanism):
     # has no outputs to the subsystem, then the mechanism is necessarily
     # reducible and cannot be a concept (since removing that node would make no
     # difference to at least one of the MICEs).
-    if not (subsystem._all_connect_to_any(mechanism, subsystem.nodes) and
-            subsystem._any_connect_to_all(subsystem.nodes, mechanism)):
+    if not subsystem._test_connections(mechanism, subsystem.nodes):
         return time_annotated(
             Concept(mechanism=mechanism, phi=0.0, cause=None, effect=None,
                     subsystem=subsystem))
