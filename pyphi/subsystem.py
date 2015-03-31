@@ -210,7 +210,6 @@ def effect_repertoire(self, mechanism, purview):
     return accumulated_cjd
 
 
-
 # TODO! go through docs and make sure to say when things can be None
 class Subsystem:
 
@@ -284,7 +283,6 @@ class Subsystem:
         self._cr_cache = {}
         # Effect repertoire cache.
         self._er_cache = {}
-
         # Use the general-purpose cache for cause and effect repertoire
         # calculations.
         self.cause_repertoire = types.MethodType(
@@ -619,36 +617,6 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    #TODO: Revisit mice_cache to try and make it work
-    def _get_cached_mice(self, direction, mechanism):
-        """Return a cached MICE if there is one and the cut doesn't affect it.
-
-        Return False otherwise."""
-        mechanism_indices = convert.nodes2indices(mechanism)
-        # TODO As currently implemented, the validation that each node in the
-        # cached purview is in the subsystem does not work
-        if 1==2: #(direction, mechanism_indices) in self._mice_cache:
-            cached = self._mice_cache[(direction, mechanism_indices)]
-            # If we've already calculated the core cause for this mechanism
-            # with no cut, then we don't need to recalculate it with the cut if
-            #   - all mechanism nodes are severed, or
-            #   - all the cached cause's purview nodes are intact.
-            if (direction == DIRECTIONS[PAST] and
-                (all([n in self.indices2nodes(self.cut.severed) for n in mechanism]) or
-                 all([n in self.indices2nodes(self.cut.intact) for n in cached.purview]))):
-                return cached
-            # If we've already calculated the core effect for this mechanism
-            # with no cut, then we don't need to recalculate it with the cut if
-            #   - all mechanism nodes are intact, or
-            #   - all the cached effect's purview nodes are severed.
-            if (direction == DIRECTIONS[FUTURE] and
-                (all([n in self.indices2nodes(self.cut.intact) for n in mechanism]) or
-                 all([n in self.indices2nodes(self.cut.severed) for n in cached.purview]))):
-                print(cached.purview)
-                print(self.indices2nodes(self.cut.severed))
-                return cached
-        return False
-
     def _test_connections(self, nodes1, nodes2):
         """Tests connectivity of one set of nodes to another.
         Args:
@@ -679,6 +647,34 @@ class Subsystem:
             return cm.sum(0).all()
         else:
             return cm.sum(0).all() and cm.sum(1).all()
+
+    def _get_cached_mice(self, direction, mechanism):
+        """Return a cached MICE if there is one and the cut doesn't affect it.
+        Return False otherwise."""
+        mechanism_indices = convert.nodes2indices(mechanism)
+        # TODO As currently implemented, the validation that each node in the
+        # cached purview is in the subsystem does not work
+        if 1==2: #(direction, mechanism_indices) in self._mice_cache:
+            cached = self._mice_cache[(direction, mechanism_indices)]
+            # If we've already calculated the core cause for this mechanism
+            # with no cut, then we don't need to recalculate it with the cut if
+            #   - all mechanism nodes are severed, or
+            #   - all the cached cause's purview nodes are intact.
+            if (direction == DIRECTIONS[PAST] and
+                (all([n in self.indices2nodes(self.cut.severed) for n in mechanism]) or
+                 all([n in self.indices2nodes(self.cut.intact) for n in cached.purview]))):
+                return cached
+            # If we've already calculated the core effect for this mechanism
+            # with no cut, then we don't need to recalculate it with the cut if
+            #   - all mechanism nodes are intact, or
+            #   - all the cached effect's purview nodes are severed.
+            if (direction == DIRECTIONS[FUTURE] and
+                (all([n in self.indices2nodes(self.cut.intact) for n in mechanism]) or
+                 all([n in self.indices2nodes(self.cut.severed) for n in cached.purview]))):
+                print(cached.purview)
+                print(self.indices2nodes(self.cut.severed))
+                return cached
+        return False
 
     def find_mice(self, direction, mechanism, purviews=False):
         """Return the maximally irreducible cause or effect for a mechanism.
@@ -725,6 +721,8 @@ class Subsystem:
                 return self._test_connections(purview, mechanism)
             elif direction == DIRECTIONS[FUTURE]:
                 return self._test_connections(mechanism, purview)
+        # Filter out trivially reducible purviews if a connectivity matrix was
+        # provided.
         purviews = tuple(filter(not_trivially_reducible, purviews))
         if not purviews:
             maximal_mip = self._null_mip(direction, mechanism, None)
