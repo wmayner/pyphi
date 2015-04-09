@@ -253,7 +253,7 @@ def constellation_distance(C1, C2, subsystem):
                                            subsystem)
 
 
-def conceptual_information(subsystem, method=0):
+def conceptual_information(subsystem):
     """Return the conceptual information for a subsystem.
 
     This is the distance from the subsystem's constellation to the null
