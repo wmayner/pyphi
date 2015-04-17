@@ -237,6 +237,9 @@ config = {
     'CACHE_BIGMIPS': False,
     # Controls whether the concept caching system is used.
     'CACHE_CONCEPTS': False,
+    # Controls whether the potential purviews of the mechanisms of a network
+    # are cached. Speeds up calculations, but takes up additional memory.
+    'CACHE_POTENTIAL_PURVIEWS': True,
     # Controls whether TPMs should be normalized as part of concept
     # normalization. TPM normalization increases the chances that a precomputed
     # concept can be used again, but is expensive.

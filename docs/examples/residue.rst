@@ -69,7 +69,7 @@ And we can then calculate the irreducible cause information as the difference
 between partitioned and unpartitioned repertoires.
 
    >>> mip_AB.phi
-   0.1
+   0.09999990000000035
 
 One counterintuitive result which merits discussion is that since irreducible
 cause information is what defines existence, we must also evaluate the
@@ -81,7 +81,7 @@ The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
    >>> subsystem.mip_past(A, CDE).phi
    0.0
    >>> subsystem.mip_past(A, CDE).partition
-   (Part(mechanism=(n0,), purview=(n2, n3)), Part(mechanism=(), purview=(n4,)))
+   (Part(mechanism=(), purview=(n4,)), Part(mechanism=(n0,), purview=(n2, n3)))
 
 Instead, we should evaluate |A| over the purview |CD|.
 
@@ -100,7 +100,7 @@ which is |([] / C) x (A / D)|. It has partitioned repertoire
 and irreducible cause information
 
    >>> mip_A.phi
-   0.16666666666666666
+   0.16666700000000023
 
 A similar result holds for |B|. Thus the mechanisms |A| and |B| exist at levels
 of |small_phi = 1/6|, while the higher-order mechanism |AB| exists only as the

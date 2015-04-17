@@ -228,6 +228,8 @@ class Subsystem:
         cut (Cut): The cut that has been applied to this subsystem.
         connectivity_matrix (np.array): The connectivity matrix after applying
             the cut.
+        cut_matrix (np.array): A matrix of connections which have been severed
+            by the cut.
         perturb_vector (np.array): The vector of perturbation probabilities for
             each node.
         null_cut (Cut): The cut object representing no cut.
@@ -237,7 +239,7 @@ class Subsystem:
             external nodes.
     """
 
-    def __init__(self, node_indices, network, cut=None, mice_cache=dict()):
+    def __init__(self, node_indices, network, cut=None, mice_cache=None):
         # The network this subsystem belongs to.
         self.network = network
         # Remove duplicates, sort, and ensure indices are native Python `int`s
@@ -278,6 +280,8 @@ class Subsystem:
                            else self.null_cut_matrix)
         # A cache for keeping core causes and effects that can be reused later
         # in the event that a cut doesn't effect them.
+        if mice_cache is None:
+            mice_cache = dict()
         self._mice_cache = mice_cache
         # Cause repertoire cache.
         self._cr_cache = {}
@@ -652,27 +656,10 @@ class Subsystem:
         """Return a cached MICE if there is one and the cut doesn't affect it.
         Return False otherwise."""
         mechanism_indices = convert.nodes2indices(mechanism)
-        # TODO As currently implemented, the validation that each node in the
-        # cached purview is in the subsystem does not work
-        if 1==2: #(direction, mechanism_indices) in self._mice_cache:
+        if (direction, mechanism_indices) in self._mice_cache:
             cached = self._mice_cache[(direction, mechanism_indices)]
-            # If we've already calculated the core cause for this mechanism
-            # with no cut, then we don't need to recalculate it with the cut if
-            #   - all mechanism nodes are severed, or
-            #   - all the cached cause's purview nodes are intact.
-            if (direction == DIRECTIONS[PAST] and
-                (all([n in self.indices2nodes(self.cut.severed) for n in mechanism]) or
-                 all([n in self.indices2nodes(self.cut.intact) for n in cached.purview]))):
-                return cached
-            # If we've already calculated the core effect for this mechanism
-            # with no cut, then we don't need to recalculate it with the cut if
-            #   - all mechanism nodes are intact, or
-            #   - all the cached effect's purview nodes are severed.
-            if (direction == DIRECTIONS[FUTURE] and
-                (all([n in self.indices2nodes(self.cut.intact) for n in mechanism]) or
-                 all([n in self.indices2nodes(self.cut.severed) for n in cached.purview]))):
-                print(cached.purview)
-                print(self.indices2nodes(self.cut.severed))
+            if ((not utils.mechanism_split_by_cut(mechanism_indices, self.cut))
+                and (not utils.cut_mice(cached, self.cut_matrix))):
                 return cached
         return False
 
@@ -702,17 +689,18 @@ class Subsystem:
             |future|, i.e., we return a core cause or core effect, not the pair
             of them.
         """
-        # TODO: Try to fix MICE caching
         # Return a cached MICE if there's a hit.
-        #cached_mice = self._get_cached_mice(direction, mechanism)
-        #if cached_mice:
-        #    return cached_mice
+        cached_mice = self._get_cached_mice(direction, mechanism)
+        if cached_mice:
+            return cached_mice
         validate.direction(direction)
-
-        if direction == DIRECTIONS[PAST]:
-            purviews = list_past_purview(self.network, convert.nodes2indices(mechanism))
-        elif direction == DIRECTIONS[FUTURE]:
-            purviews = list_future_purview(self.network, convert.nodes2indices(mechanism))
+        if config.CACHE_POTENTIAL_PURVIEWS:
+            purviews = self.network.purview_cache[(direction, convert.nodes2indices(mechanism))]
+        else:
+            if direction == DIRECTIONS[PAST]:
+                purviews = list_past_purview(self.network, convert.nodes2indices(mechanism))
+            elif direction == DIRECTIONS[FUTURE]:
+                purviews = list_future_purview(self.network, convert.nodes2indices(mechanism))
         purviews = filter(self.not_in_subsystem, purviews)
         purviews = [self.indices2nodes(purview) for purview in purviews]
         # Find the maximal MIP over all purviews.
@@ -721,26 +709,32 @@ class Subsystem:
                 return self._test_connections(purview, mechanism)
             elif direction == DIRECTIONS[FUTURE]:
                 return self._test_connections(mechanism, purview)
-        # Filter out trivially reducible purviews if a connectivity matrix was
-        # provided.
-        purviews = tuple(filter(not_trivially_reducible, purviews))
+        # Filter out trivially reducible purviews if a cut has been applied.
+        if not self.cut[0] == ():
+            purviews = tuple(filter(not_trivially_reducible, purviews))
         if not purviews:
             maximal_mip = self._null_mip(direction, mechanism, None)
         else:
             maximal_mip = max(self.find_mip(direction, mechanism, purview) for
                               purview in purviews)
+        # Identify the relevant connections for the MICE
+        if not utils.phi_eq(maximal_mip.phi, 0):
+            relevant_connections = self.connections_relevant_for_mice(maximal_mip)
+        else:
+            relevant_connections = None
         # Construct the corresponding MICE.
-        mice = Mice(maximal_mip)
+        mice = Mice(maximal_mip, relevant_connections)
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
-        #key = (direction, convert.nodes2indices(mechanism))
-        #current_process = psutil.Process(os.getpid())
-        #not_full = (current_process.memory_percent() <
-        #            config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-        #if (self.cut == self.null_cut
-        #        and key not in self._mice_cache
-        #        and not_full):
-        #    self._mice_cache[key] = mice
+        key = (direction, convert.nodes2indices(mechanism))
+        current_process = psutil.Process(os.getpid())
+        not_full = (current_process.memory_percent() <
+                    config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+        if (self.cut == self.null_cut
+                and key not in self._mice_cache
+                and not_full
+                and not utils.phi_eq(mice.phi, 0)):
+            self._mice_cache[key] = mice
         return mice
 
     def core_cause(self, mechanism, purviews=False):
@@ -762,26 +756,27 @@ class Subsystem:
         return min(self.core_cause(mechanism).phi,
                    self.core_effect(mechanism).phi)
 
-    def connections_relevant_for_concept(self, mechanism, cause_purview,
-                                         effect_purview):
+    def connections_relevant_for_mice(self, mip):
         """Return a matrix that identifies connections that “matter” to this
         concept. """
         # Get an empty square matrix the size of the network.
         cm = np.zeros((self.network.size, self.network.size))
         # Get mechanism and purview node indices.
-        mechanism_indices = convert.nodes2indices(mechanism)
-        past_purview_indices = convert.nodes2indices(cause_purview)
-        effect_purview_indices = convert.nodes2indices(effect_purview)
-        # Set `i, j` to 1 if `i` is a mechanism node and `j` is an effect
-        # purview node.
-        future_connections = np.array(
-            list(itertools.product(mechanism_indices, effect_purview_indices)))
-        cm[future_connections[:, 0], future_connections[:, 1]] = 1
-        # Set `i, j` to 1 if `i` is a cause purview node and `j` is a mechanism
-        # node.
-        past_connections = np.array(
-            list(itertools.product(past_purview_indices, mechanism_indices)))
-        cm[past_connections[:, 0], past_connections[:, 1]] = 1
+        mechanism_indices = convert.nodes2indices(mip.mechanism)
+        purview_indices = convert.nodes2indices(mip.purview)
+        direction = mip.direction
+        if direction == DIRECTIONS[FUTURE]:
+            # Set `i, j` to 1 if `i` is a mechanism node and `j` is an effect
+            # purview node.
+            connections = np.array(
+                list(itertools.product(mechanism_indices, purview_indices)))
+            cm[connections[:, 0], connections[:, 1]] = 1
+        elif direction == DIRECTIONS[PAST]:
+            # Set `i, j` to 1 if `i` is a cause purview node and `j` is a mechanism
+            # node.
+            connections = np.array(
+                list(itertools.product(purview_indices, mechanism_indices)))
+            cm[connections[:, 0], connections[:, 1]] = 1
         # Return only the submatrix that corresponds to this subsystem's nodes.
         return cm[np.ix_(self.node_indices, self.node_indices)]
 
@@ -817,10 +812,15 @@ class Subsystem:
                 partition=None, partitioned_repertoire=None))
         # All together now...
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
-                       relevant_connections=None, subsystem=self)
+                       subsystem=self)
 
 
     def not_in_subsystem(self, purview):
+        """ Return true if all node indices are contained in the subsystem.
+
+        Args:
+            purview (tuple(index)): The indices to be checked.
+        """
         if set(purview).issubset(convert.nodes2indices(self.nodes)):
             return True
         else:
@@ -835,15 +835,8 @@ class Subsystem:
         effect = self.core_effect(mechanism)
         # Get the minimal phi between them.
         phi = min(cause.phi, effect.phi)
-        # Find the mice connectivity matrix for this concept
-        if not utils.phi_eq(phi, 0):
-            relevant_connections = self.connections_relevant_for_concept(
-                mechanism, cause.purview, effect.purview)
-        else:
-            relevant_connections = None
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.
         return Concept(
-            mechanism=mechanism, phi=phi, cause=cause, effect=effect,
-            relevant_connections=relevant_connections, subsystem=self)
+            mechanism=mechanism, phi=phi, cause=cause, effect=effect, subsystem=self)

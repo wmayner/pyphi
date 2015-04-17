@@ -255,14 +255,28 @@ class Mice:
     """A maximally irreducible cause or effect (i.e., "core cause" or "core
     effect").
 
+    relevant_connections (np.array):
+        An ``N x N`` matrix, where ``N`` is the number of nodes in this
+            corresponding subsystem, that identifies connections that “matter” to
+            this MICE;
+
+        direction = 'past':  ``relevant_connections[i,j]`` is ``1`` if node
+                             ``i`` is in the cause purview and node ``j`` is in the
+                             mechanism (and ``0`` otherwise).
+
+        direction = 'future':  ``relevant_connections[i,j]`` is ``1`` if node
+                               ``i`` is in the mechanism and node ``j`` is in
+                               the effect purview (and ``0`` otherwise).
+
     MICEs may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
     are equal up to |PRECISION|, the size of the mechanism is compared
     (exclusion principle).
     """
 
-    def __init__(self, mip):
+    def __init__(self, mip, relevant_connections=None):
         self._mip = mip
+        self._relevant_connections = relevant_connections
         # TODO remove?
         if (self.repertoire is not None and
             any(self.repertoire.shape[i] != 2 for i in
@@ -371,24 +385,16 @@ class Concept:
             The :class:`Mice` representing the core effect of this concept.
         subsystem (Subsystem):
             This Concept's parent subsystem.
-        relevant_connections (np.array):
-            An ``N x N`` matrix, where ``N`` is the number of nodes in this
-            Concept's subsystem, that identifies connections that “matter” to
-            this concept; ``relevant_connections[i,j]`` is ``1`` if either node
-            ``i`` is in the cause purview and node ``j`` is in the mechanism or
-            node ``i`` is in the mechanism and node ``j`` is in the effect
-            purview (and ``0`` otherwise).
         time (float): The number of seconds it took to calculate.
     """
 
     def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
-                 subsystem=None, relevant_connections=None, normalized=False):
+                 subsystem=None, normalized=False):
         self.phi = phi
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
         self.subsystem = subsystem
-        self.relevant_connections = relevant_connections
         self.normalized = normalized
         self.time = None
 

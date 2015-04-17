@@ -24,16 +24,14 @@ from .subsystem import Subsystem
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
-# TODO: Fix parallel constellation from eating memory.
-# Currently not implemented
 def _concept_wrapper(in_queue, out_queue, subsystem):
+    """Wrapper for parallel evaluation of concepts."""
     while True:
         (index, mechanism) = in_queue.get()
         if mechanism is None:
             break
         new_concept = concept(subsystem, mechanism)
         if new_concept.phi > 0:
-            print(index)
             out_queue.put(new_concept)
     out_queue.put(None)
 
@@ -98,8 +96,6 @@ def constellation(subsystem, mechanism_indices_to_check=None):
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
-# TODO: Stop parallel_constellation from eating memory
-# Currently not implemented
 def parallel_constellation(subsystem, mechanism_indices_to_check=None):
     """ Return the conceptual structure of this subsystem. Concepts are evaluated
     in parallel.
@@ -294,22 +290,14 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
                               uncut_subsystem.network,
                               cut=cut,
                               mice_cache=uncut_subsystem._mice_cache)
-    cut_concept_mechanisms = tuple(
-        c.mechanism for c in utils.cut_concepts(cut_subsystem.cut_matrix,
-                                                unpartitioned_constellation))
-
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
         mechanism_indices_to_check = set(
-            map(nodes2indices, cut_concept_mechanisms))
+            map(nodes2indices, [c.mechanism for c in unpartitioned_constellation]))
     else:
         mechanism_indices_to_check = set(
-            tuple(map(nodes2indices, cut_concept_mechanisms)) +
+            tuple(map(nodes2indices, [c.mechanism for c in unpartitioned_constellation])) +
             utils.cut_mechanism_indices(uncut_subsystem, cut))
-
-    partitioned_constellation = (
-        constellation(cut_subsystem, mechanism_indices_to_check) +
-        utils.uncut_concepts(cut_subsystem.cut_matrix,
-                             unpartitioned_constellation))
+    partitioned_constellation = constellation(cut_subsystem, mechanism_indices_to_check)
 
     log.debug("Finished evaluating cut {}.".format(cut))
     return BigMip(
@@ -441,11 +429,11 @@ def _big_mip(cache_key, subsystem):
         return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
     if config.CUT_ONE_APPROXIMATION:
-        bipartitions = utils.bipartition_of_one(subsystem.node_indices)
+        bipartitions = utils.directed_bipartition_of_one(subsystem.node_indices)
     else:
         # The first and last bipartitions are the null cut (trivial bipartition),
         # so skip them.
-        bipartitions = utils.bipartition(subsystem.node_indices)[1:-1]
+        bipartitions = utils.directed_bipartition(subsystem.node_indices)[1:-1]
     cuts = [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
 

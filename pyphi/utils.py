@@ -33,18 +33,12 @@ def cut_mechanism_indices(subsystem, cut):
                 (set(indices) & set(cut[1])))
     return tuple(filter(split_by_cut, powerset(subsystem.node_indices)))
 
+def mechanism_split_by_cut(mechanism_indices, cut):
+    return ((set(mechanism_indices) & set(cut[0])) and
+            (set(mechanism_indices) & set(cut[1])))
 
-def cut_concepts(cut_matrix, unpartitioned_constellation):
-    """Return a tuple of concepts that could be affected by the cut."""
-    return tuple(concept for concept in unpartitioned_constellation
-                 if np.any(concept.relevant_connections * cut_matrix == 1))
-
-
-def uncut_concepts(cut_matrix, unpartitioned_constellation):
-    """Return a tuple of concepts that cannot be affected by the cut."""
-    return tuple(concept for concept in unpartitioned_constellation
-                 if np.all(concept.relevant_connections * cut_matrix == 0))
-
+def cut_mice(mice, cut_matrix):
+    return np.any(mice._relevant_connections * cut_matrix == 1)
 # ============================================================================
 
 
@@ -295,21 +289,19 @@ def hamming_emd(d1, d2):
     Singleton dimensions are sqeezed out.
     """
     d1, d2 = d1.squeeze(), d2.squeeze()
-    dim = d1.ndim
-    d1, d2 = d1.ravel(), d2.ravel()
-    index = np.not_equal(d1, d2)
-    if not np.any(index):
-        return 0
-    else:
+    #dim = d1.ndim
+    #d1, d2 = d1.ravel(), d2.ravel()
+    #index = np.not_equal(d1, d2)
+    #if not np.any(index):
+    #    return 0
+    #else:
         # Compute the EMD with Hamming distance between states as the
         # transportation cost function
-        return emd(d1[index], d2[index], _hamming_matrix(dim)[np.ix_(index,index)])
+    #    return emd(d1[index], d2[index], _hamming_matrix(dim)[np.ix_(index,index)])
+    return emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
 
-
-# TODO? [optimization] optimize this to use indices rather than nodes
-# TODO? are native lists really slower
 def bipartition(a):
-    """Return a list of bipartitions for a sequence.
+    """ Return a list of bipartitions for a sequence.
 
     Args:
         a (Iterable): The iterable to partition.
@@ -319,15 +311,35 @@ def bipartition(a):
 
     Example:
         >>> from pyphi.utils import bipartition
-        >>> bipartition((1, 2, 3))
-        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
+        >>> bipartition((1,2,3))
+        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
+
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
+# TODO? [optimization] optimize this to use indices rather than nodes
+# TODO? are native lists really slower
+def directed_bipartition(a):
+    """Return a list of directed bipartitions for a sequence.
 
-def bipartition_of_one(a):
-    """Return a list of bipartitions for a sequence where each
+    Args:
+        a (Iterable): The iterable to partition.
+
+    Returns:
+        ``list`` -- A list of tuples containing each of the two partitions.
+
+    Example:
+        >>> from pyphi.utils import directed_bipartition
+        >>> directed_bipartition((1, 2, 3))
+        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
+    """
+    return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
+            for part0_idx, part1_idx in directed_bipartition_indices(len(a))]
+
+
+def directed_bipartition_of_one(a):
+    """Return a list of directed bipartitions for a sequence where each
     bipartitions includes a set of size 1.
 
     Args:
@@ -337,14 +349,43 @@ def bipartition_of_one(a):
         ``list`` -- A list of tuples containing each of the two partitions.
 
     Example:
-        >>> from pyphi.utils import bipartition, bipartition_of_one
-        >>> bipartition_of_one((1,2,3))
+        >>> from pyphi.utils import directed_bipartition, directed_bipartition_of_one
+        >>> directed_bipartition_of_one((1,2,3))
         [((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,))]
     """
     def is_length_one(part):
         return len(part[0])==1 or len(part[1])==1
-    bipartitions = bipartition(a)
+    bipartitions = directed_bipartition(a)
     return list(filter(is_length_one, bipartitions))
+
+@cache(cache={}, maxmem=None)
+def directed_bipartition_indices(N):
+    """Returns indices for directed bipartitions of a sequence.
+
+    Args:
+        N (int): The length of the sequence.
+
+    Returns:
+        ``list`` -- A list of tuples containing the indices for each of the two
+        partitions.
+
+    Example:
+        >>> from pyphi.utils import directed_bipartition_indices
+        >>> N = 3
+        >>> directed_bipartition_indices(N)
+        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
+    """
+    result = []
+    # Return on empty input
+    if N <= 0:
+        return result
+    for i in range(2 ** N):
+        part = [[], []]
+        for n in range(N):
+            bit = (i >> n) & 1
+            part[bit].append(n)
+        result.append((tuple(part[1]), tuple(part[0])))
+    return result
 
 @cache(cache={}, maxmem=None)
 def bipartition_indices(N):
@@ -361,20 +402,19 @@ def bipartition_indices(N):
         >>> from pyphi.utils import bipartition_indices
         >>> N = 3
         >>> bipartition_indices(N)
-        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
+        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
     """
     result = []
     # Return on empty input
     if N <= 0:
         return result
-    for i in range(2 ** N):
+    for i in range(2 ** (N-1)):
         part = [[], []]
         for n in range(N):
             bit = (i >> n) & 1
             part[bit].append(n)
         result.append((tuple(part[1]), tuple(part[0])))
     return result
-
 
 # Internal helper methods
 # =============================================================================
