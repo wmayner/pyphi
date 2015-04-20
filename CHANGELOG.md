@@ -2,6 +2,26 @@ Changelog
 =========
 
 
+0.6.0
+------------------
+_2015-04-20_
+
+### Optimizations
+- Pre-compute and cache possible purviews.
+- Cmopute concept distance over least-common-purview rather than whole system.
+- Store `relevant_connections` on MICE objects for MICE cache checking.
+- Only recheck concepts and cut mechanisms after a system cut.
+
+### API additions
+- Constellations can now be computed in parallel.
+- The new configuration option `CUT_ONE_APPROXIMATION` gives an approximation
+  of Φ by only considering cuts that cut off a single node.
+
+### Fixes
+- Bipartition function.
+- MICE caching.
+
+
 0.5.0
 ------------------
 _2015-03-02_
