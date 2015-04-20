@@ -412,7 +412,6 @@ class Subsystem:
                           new_purview=None):
         """Return the unconstrained cause or effect repertoire based on a
         direction."""
-        validate.direction(direction)
         # If not specified, the new purview is the entire network
         if (new_purview is None):
             new_purview = self.nodes
@@ -522,7 +521,6 @@ class Subsystem:
         Returns:
             :class:`pyphi.models.Mip`
         """
-        validate.direction(direction)
         repertoire = self._get_repertoire(direction)
 
         # We default to the null MIP (the MIP of a reducible mechanism)
@@ -717,8 +715,6 @@ class Subsystem:
         if cached_mice:
             return cached_mice
 
-        validate.direction(direction)
-
         # Get cached purviews if available.
         if config.CACHE_POTENTIAL_PURVIEWS:
             purviews = self.network.purview_cache[
@@ -730,6 +726,8 @@ class Subsystem:
             elif direction == DIRECTIONS[FUTURE]:
                 purviews = list_future_purview(self.network,
                                                convert.nodes2indices(mechanism))
+            else:
+                validate.direction(direction)
 
         # Filter out purviews that aren't in the subsystem.
         purviews = [purview for purview in purviews if
