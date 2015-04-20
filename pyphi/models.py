@@ -211,13 +211,13 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
     def __eq__(self, other):
         # We don't count the partition and partitioned repertoire in checking
-        # for MIP equality, since these are lost during normalization.
-        # We also don't count the mechanism and purview, since these may be
-        # different depending on the order in which purviews were evaluated.
+        # for MIP equality, since these are lost during normalization. We also
+        # don't count the mechanism and purview, since these may be different
+        # depending on the order in which purviews were evaluated.
         # TODO!!! clarify the reason for that
         # We do however check whether the size of the mechanism or purview is
         # the same, since that matters (for the exclusion principle).
-        if (not self.purview) or (not other.purview):
+        if not self.purview or not other.purview:
             return (_general_eq(self, other, _mip_attributes_for_eq) and
                     len(self.mechanism) == len(other.mechanism))
         else:
@@ -252,26 +252,28 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
 class Mice:
 
-    """A maximally irreducible cause or effect (i.e., "core cause" or "core
-    effect").
+    """A maximally irreducible cause or effect (i.e., “core cause” or “core
+    effect”).
 
     relevant_connections (np.array):
         An ``N x N`` matrix, where ``N`` is the number of nodes in this
-            corresponding subsystem, that identifies connections that “matter” to
-            this MICE;
+        corresponding subsystem, that identifies connections that “matter” to
+        this MICE.
 
-        direction = 'past':  ``relevant_connections[i,j]`` is ``1`` if node
-                             ``i`` is in the cause purview and node ``j`` is in the
-                             mechanism (and ``0`` otherwise).
+        ``direction == 'past'``:
+            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
+            cause purview and node ``j`` is in the mechanism (and ``0``
+            otherwise).
 
-        direction = 'future':  ``relevant_connections[i,j]`` is ``1`` if node
-                               ``i`` is in the mechanism and node ``j`` is in
-                               the effect purview (and ``0`` otherwise).
+        ``direction == 'future'``:
+            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
+            mechanism and node ``j`` is in the effect purview (and ``0``
+            otherwise).
 
-    MICEs may be compared with the built-in Python comparison operators
-    (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
-    are equal up to |PRECISION|, the size of the mechanism is compared
-    (exclusion principle).
+    MICEs may be compared with the built-in Python comparison operators (``<``,
+    ``>``, etc.). First, ``phi`` values are compared. Then, if these are equal
+    up to |PRECISION|, the size of the mechanism is compared (exclusion
+    principle).
     """
 
     def __init__(self, mip, relevant_connections=None):
@@ -281,8 +283,8 @@ class Mice:
         if (self.repertoire is not None and
             any(self.repertoire.shape[i] != 2 for i in
                 convert.nodes2indices(self.purview))):
-            raise Exception("Attempted to create MICE with mismatched purview "
-                            "and repertoire.")
+            raise Exception('Attempted to create MICE with mismatched purview '
+                            'and repertoire.')
 
     @property
     def phi(self):
