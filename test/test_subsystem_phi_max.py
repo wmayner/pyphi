@@ -41,14 +41,14 @@ expected_purview_indices = {
         'past': {
             (1,): (2,),
             (2,): (0, 1),
-            (0, 1): (2,),
-            (0, 1, 2): (0, 1, 2)
+            (0, 1): None,
+            (0, 1, 2): None,
         },
         'future': {
-            (1,): (0, 1, 2),
+            (1,): (2,),
             (2,): (1,),
             (0, 1): (2,),
-            (0, 1, 2): (0, 1, 2)
+            (0, 1, 2): None,
         }
     }
 }
@@ -109,12 +109,6 @@ def test_find_mice_empty(s):
     assert all(s.find_mice(mice.direction, mice.mechanism) == mice
                for mice in expected)
 
-
-# Test input validation
-def test_find_mice_validation_bad_direction(s):
-    mechanism = (s.nodes[0])
-    with pytest.raises(ValueError):
-        s.find_mice('doge', mechanism)
 
 # }}}
 # `phi_max` tests {{{

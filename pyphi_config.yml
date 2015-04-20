@@ -10,6 +10,11 @@
 # happen can increase performance significantly, however the obtained results
 # are not strictly accurate.
 ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
+# When evaluating the minimum information partition, only consider cuts that
+# cut off a single node. It is possible that the MIP cut will cut off multiple
+# nodes, but this approximation is usually correct, and at worst provides an
+# upper bound for integrated information.
+CUT_ONE_APPROXIMATION: false
 
 # System resources
 # ~~~~~~~~~~~~~~~~
@@ -34,6 +39,9 @@ CACHE_BIGMIPS: false
 # available if the caching backend is a database; otherwise, this setting has
 # no effect, and concepts will not be cached.
 CACHE_CONCEPTS: false
+# Controls whether the potential purviews of the mechanisms of a network are
+# cached. Speeds up calculations, but takes up additional memory.
+CACHE_POTENTIAL_PURVIEWS: true
 # Controls whether concepts should be normalized before being cached.
 # Normalization increases the chances that a precomputed concept can be used
 # again, but is expensive.

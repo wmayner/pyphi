@@ -34,16 +34,13 @@ def cut_mechanism_indices(subsystem, cut):
     return tuple(filter(split_by_cut, powerset(subsystem.node_indices)))
 
 
-def cut_concepts(cut_matrix, unpartitioned_constellation):
-    """Return a tuple of concepts that could be affected by the cut."""
-    return tuple(concept for concept in unpartitioned_constellation
-                 if np.any(concept.relevant_connections * cut_matrix == 1))
+def mechanism_split_by_cut(mechanism_indices, cut):
+    return ((set(mechanism_indices) & set(cut[0])) and
+            (set(mechanism_indices) & set(cut[1])))
 
 
-def uncut_concepts(cut_matrix, unpartitioned_constellation):
-    """Return a tuple of concepts that cannot be affected by the cut."""
-    return tuple(concept for concept in unpartitioned_constellation
-                 if np.all(concept.relevant_connections * cut_matrix == 0))
+def cut_mice(mice, cut_matrix):
+    return np.any(mice._relevant_connections * cut_matrix == 1)
 
 # ============================================================================
 
@@ -296,14 +293,12 @@ def hamming_emd(d1, d2):
     """
     d1, d2 = d1.squeeze(), d2.squeeze()
     # Compute the EMD with Hamming distance between states as the
-    # transportation cost function
+    # transportation cost function.
     return emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
 
 
-# TODO? [optimization] optimize this to use indices rather than nodes
-# TODO? are native lists really slower
 def bipartition(a):
-    """Return a list of bipartitions for a sequence.
+    """ Return a list of bipartitions for a sequence.
 
     Args:
         a (Iterable): The iterable to partition.
@@ -313,11 +308,81 @@ def bipartition(a):
 
     Example:
         >>> from pyphi.utils import bipartition
-        >>> bipartition((1, 2, 3))
+        >>> bipartition((1,2,3))
+        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
+    """
+
+    return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
+            for part0_idx, part1_idx in bipartition_indices(len(a))]
+
+
+# TODO? [optimization] optimize this to use indices rather than nodes
+# TODO? are native lists really slower
+def directed_bipartition(a):
+    """Return a list of directed bipartitions for a sequence.
+
+    Args:
+        a (Iterable): The iterable to partition.
+
+    Returns:
+        ``list`` -- A list of tuples containing each of the two partitions.
+
+    Example:
+        >>> from pyphi.utils import directed_bipartition
+        >>> directed_bipartition((1, 2, 3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
     """
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
-            for part0_idx, part1_idx in bipartition_indices(len(a))]
+            for part0_idx, part1_idx in directed_bipartition_indices(len(a))]
+
+
+def directed_bipartition_of_one(a):
+    """Return a list of directed bipartitions for a sequence where each
+    bipartitions includes a set of size 1.
+
+    Args:
+        a (Iterable): The iterable to partition.
+
+    Returns:
+        ``list`` -- A list of tuples containing each of the two partitions.
+
+    Example:
+        >>> from pyphi.utils import directed_bipartition_of_one
+        >>> directed_bipartition_of_one((1,2,3))
+        [((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,))]
+    """
+    return [partition for partition in directed_bipartition(a)
+            if len(partition[0]) == 1 or len(partition[1]) == 1]
+
+
+@cache(cache={}, maxmem=None)
+def directed_bipartition_indices(N):
+    """Returns indices for directed bipartitions of a sequence.
+
+    Args:
+        N (int): The length of the sequence.
+
+    Returns:
+        ``list`` -- A list of tuples containing the indices for each of the two
+        partitions.
+
+    Example:
+        >>> from pyphi.utils import directed_bipartition_indices
+        >>> N = 3
+        >>> directed_bipartition_indices(N)
+        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
+    """
+    result = []
+    # Return on empty input
+    if N <= 0:
+        return result
+    for i in range(2 ** N):
+        part = [[], []]
+        for n in range(N):
+            bit = (i >> n) & 1
+            part[bit].append(n)
+        result.append((tuple(part[1]), tuple(part[0])))
+    return result
 
 
 @cache(cache={}, maxmem=None)
@@ -335,13 +400,13 @@ def bipartition_indices(N):
         >>> from pyphi.utils import bipartition_indices
         >>> N = 3
         >>> bipartition_indices(N)
-        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
+        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
     """
     result = []
     # Return on empty input
     if N <= 0:
         return result
-    for i in range(2 ** N):
+    for i in range(2 ** (N-1)):
         part = [[], []]
         for n in range(N):
             bit = (i >> n) & 1
@@ -353,15 +418,16 @@ def bipartition_indices(N):
 # Internal helper methods
 # =============================================================================
 
-
 # Load precomputed hamming matrices.
 import os
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
 _hamming_matrices = [
     np.load(os.path.join(_ROOT, 'data', 'hamming_matrices', str(i) + '.npy'))
-    for i in range( _NUM_PRECOMPUTED_HAMMING_MATRICES)
+    for i in range(_NUM_PRECOMPUTED_HAMMING_MATRICES)
 ]
+
+
 # TODO extend to nonbinary nodes
 def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of |N|
@@ -412,6 +478,63 @@ def connectivity_matrix_to_tpm(network):
     Returns:
         ``np.ndarray`` -- A transition probability matrix.
     """
+    pass
+
+
+def block_cm(cm):
+    """Determining if a given connectivity matrix be rearranged as a block
+    connectivity matrix.
+
+    If so, the corresponding mechanism/purview is trivially reducible.
+    """
+    # Validate the connectivity matrix.
+    num_inputs = cm.shape[1]
+    if np.any(np.sum(cm, 1) == 0):
+        return True
+    if np.all(np.sum(cm > 0, 1) == 1):
+        return True
+    m_ind = np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]
+    p_ind = np.where(cm[m_ind, :] > 0)[0]
+    temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
+    while 1:
+        if np.all(temp == m_ind):
+            break
+        else:
+            m_ind = temp
+            p_ind = np.where(np.sum(cm[m_ind, :], 0) > 0)[0]
+            temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
+            if np.all(p_ind == [i for i in range(num_inputs)]):
+                return False
+    return True
+
+
+# TODO test phi max helpers
+def not_block_reducible(cm, nodes1, nodes2):
+    """Tests connectivity of one set of nodes to another.
+
+    Args:
+        cm (np.ndarray): The network's connectivity matrix.
+        nodes1 (tuple(Node)): The nodes whose outputs to ``nodes2`` will be
+            tested.
+        nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
+            be tested.
+    """
+    # If either set of nodes is empty, return (vacuously) True.
+    if not nodes1 or not nodes2:
+        return False
+    # Get the connectivity matrix representing the connections from the
+    # first node list to the second.
+    submatrix_indices = np.ix_([node for node in nodes1],
+                               [node for node in nodes2])
+    cm = cm[submatrix_indices]
+    # Check that all nodes have at least one connection by summing over
+    # rows of connectivity submatrix.
+    if not cm.sum(0).all() or not cm.sum(1).all():
+        return False
+    elif len(nodes1) > 1 and len(nodes2) > 1:
+        return not block_cm(cm)
+    else:
+        return True
 
 
 # Custom printing methods
