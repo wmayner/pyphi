@@ -57,7 +57,7 @@ options and their defaults.
 """
 
 __title__ = 'pyphi'
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
