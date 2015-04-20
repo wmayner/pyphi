@@ -369,10 +369,8 @@ class Subsystem:
         }
 
     def indices2nodes(self, indices):
-        if not indices:
-            return ()
-        else:
-            return tuple(n for n in self.nodes if n.index in indices)
+        return () if not indices else tuple(
+            n for n in self.nodes if n.index in indices)
 
     # TODO check if the cache is faster
     def _get_repertoire(self, direction):
@@ -423,12 +421,12 @@ class Subsystem:
             raise ValueError("Expanded purview must contain original purview.")
         # Get the unconstrained repertoire over the other nodes in the network.
         if not purview:
-            non_purview_nodes = tuple(frozenset([node.index for node in new_purview]))
+            non_purview_nodes = tuple(
+                frozenset([node.index for node in new_purview]))
         else:
             non_purview_nodes = tuple(
-                frozenset([node.index for node in new_purview]) -
-                frozenset([node.index for node in purview])
-        )
+                frozenset([node.index for node in new_purview])
+                - frozenset([node.index for node in purview]))
         uc = self._unconstrained_repertoire(
             direction, self.indices2nodes(non_purview_nodes))
         # Multiply the given repertoire by the unconstrained one to get a
@@ -623,18 +621,19 @@ class Subsystem:
 
     def _test_connections(self, nodes1, nodes2):
         """Tests connectivity of one set of nodes to another.
+
         Args:
-            submatrix. If this is 0, the sum will be taken over the
-            columns; in this case returning ``True`` means "all nodes in
-            the second list have an input from some node in the first
-            list". If this is 1, the sum will be taken over the rows, and
-            returning ``True`` means "all nodes in the first list have a
-            connection to some node in the second list".
+            submatrix (np.array): If this is ``0``, the sum will be taken over
+                the columns; in this case returning ``True`` means “all nodes
+                in the second list have an input from some node in the first
+                list.” If this is ``1``, the sum will be taken over the rows,
+                and returning ``True`` means “all nodes in the first list have
+                a connection to some node in the second list.”
             nodes1 (tuple(Node)): The nodes whose outputs to ``nodes2`` will be
-            tested.
+                tested.
             nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
-            be tested.
-            """
+                be tested.
+        """
         # If either set of nodes is empty, return (vacuously) True.
         if not nodes1 or not nodes2:
             return True
@@ -647,7 +646,7 @@ class Subsystem:
         cm = cm[submatrix_indices]
         # Check that all nodes have at least one connection by summing over
         # rows of connectivity submatrix.
-        if len(nodes1)==1:
+        if len(nodes1) == 1:
             return cm.sum(0).all()
         else:
             return cm.sum(0).all() and cm.sum(1).all()
@@ -838,5 +837,5 @@ class Subsystem:
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.
-        return Concept(
-            mechanism=mechanism, phi=phi, cause=cause, effect=effect, subsystem=self)
+        return Concept(mechanism=mechanism, phi=phi, cause=cause,
+                       effect=effect, subsystem=self)
