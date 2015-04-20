@@ -24,16 +24,6 @@ from .subsystem import Subsystem
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
-def _concept_wrapper(in_queue, out_queue, subsystem):
-    """Wrapper for parallel evaluation of concepts."""
-    while True:
-        (index, mechanism) = in_queue.get()
-        if mechanism is None:
-            break
-        new_concept = concept(subsystem, mechanism)
-        if new_concept.phi > 0:
-            out_queue.put(new_concept)
-    out_queue.put(None)
 
 def concept(subsystem, mechanism):
     """Return the concept specified by a mechanism within a subsytem.
@@ -96,9 +86,22 @@ def constellation(subsystem, mechanism_indices_to_check=None):
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
+
+def _concept_wrapper(in_queue, out_queue, subsystem):
+    """Wrapper for parallel evaluation of concepts."""
+    while True:
+        (index, mechanism) = in_queue.get()
+        if mechanism is None:
+            break
+        new_concept = concept(subsystem, mechanism)
+        if new_concept.phi > 0:
+            out_queue.put(new_concept)
+    out_queue.put(None)
+
+
 def parallel_constellation(subsystem, mechanism_indices_to_check=None):
-    """ Return the conceptual structure of this subsystem. Concepts are evaluated
-    in parallel.
+    """Return the conceptual structure of this subsystem. Concepts are
+    evaluated in parallel.
 
     Args:
         subsystem (Subsystem): The subsystem for which to determine the
@@ -117,12 +120,12 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
         number_of_processes = config.NUMBER_OF_CORES
     else:
         raise ValueError(
-            'Invalid number of cores; value may not be 0, and must be less'
-            'than the number of cores ({} for this '
+            'Invalid number of cores; value may not be 0, and must be less '
+            'than or equal to than the available number of cores ({} for this '
             'system).'.format(multiprocessing.cpu_count()))
     # Define input and output queues.
-    # Load the input queue with all possible cuts and a 'poison
-    # pill' for each process.
+    # Load the input queue with all possible cuts and a 'poison pill' for each
+    # process.
     in_queue = multiprocessing.Queue()
     out_queue = multiprocessing.Queue()
     for i, index in enumerate(mechanism_indices_to_check):
@@ -150,6 +153,7 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
             concepts.append(new_concept)
     return concepts
 
+
 def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
@@ -161,8 +165,8 @@ def concept_distance(c1, c2):
         ``float`` -- The distance between the two concepts in concept-space.
     """
     # Calculate the sum of the past and future EMDs, expanding the repertoires
-    # to the combined purview of the two concepts, so that the EMD signatures are
-    # the same size.
+    # to the combined purview of the two concepts, so that the EMD signatures
+    # are the same size.
     cause_purview = tuple(set(c1.cause.purview + c2.cause.purview))
     effect_purview = tuple(set(c1.effect.purview + c2.effect.purview))
     return sum([
@@ -176,7 +180,7 @@ def _constellation_distance_simple(C1, C2, subsystem):
     """Return the distance between two constellations in concept-space,
     assuming the only difference between them is that some concepts have
     disappeared."""
-    # Make C1 refer to the bigger constellation
+    # Make C1 refer to the bigger constellation.
     if len(C2) > len(C1):
         C1, C2 = C2, C1
     destroyed = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
@@ -431,8 +435,8 @@ def _big_mip(cache_key, subsystem):
     if config.CUT_ONE_APPROXIMATION:
         bipartitions = utils.directed_bipartition_of_one(subsystem.node_indices)
     else:
-        # The first and last bipartitions are the null cut (trivial bipartition),
-        # so skip them.
+        # The first and last bipartitions are the null cut (trivial
+        # bipartition), so skip them.
         bipartitions = utils.directed_bipartition(subsystem.node_indices)[1:-1]
     cuts = [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
