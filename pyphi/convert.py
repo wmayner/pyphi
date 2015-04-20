@@ -18,10 +18,7 @@ log = logging.getLogger(__name__)
 
 
 def nodes2indices(nodes):
-    if not nodes:
-        return ()
-    else:
-        return tuple(n.index for n in nodes)
+    return tuple(n.index for n in nodes) if nodes else ()
 
 
 def state2holi_index(state):
