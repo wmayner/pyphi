@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>subsystem &mdash; v0.5.0 documentation</title>
+  <title>subsystem &mdash; v0.6.0 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.5.0 documentation" href="../index.html"/>
+    <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
         <link rel="next" title="convert" href="convert.html"/>
         <link rel="prev" title="network" href="network.html"/> 
@@ -49,7 +49,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.5.0</a>
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.6.0</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -109,7 +109,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.5.0</a>
+        <a href="../index.html">PyPhi v0.6.0</a>
       </nav>
 
 
@@ -186,7 +186,7 @@ purview.</p>
 
 <dl class="class">
 <dt id="pyphi.subsystem.Subsystem">
-<em class="property">class </em><tt class="descclassname">pyphi.subsystem.</tt><tt class="descname">Subsystem</tt><big>(</big><em>node_indices</em>, <em>network</em>, <em>cut=None</em>, <em>mice_cache={}</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyphi.subsystem.</tt><tt class="descname">Subsystem</tt><big>(</big><em>node_indices</em>, <em>network</em>, <em>cut=None</em>, <em>mice_cache=None</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>A set of nodes in a network.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -242,6 +242,14 @@ subsystem.</li>
 <dd><p><em>np.array</em></p>
 <p>The connectivity matrix after applying
 the cut.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.cut_matrix">
+<tt class="descname">cut_matrix</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.cut_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.array</em></p>
+<p>A matrix of connections which have been severed
+by the cut.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -475,13 +483,6 @@ of them.</p>
 <p>This is the maximum of <span class="math">\(\varphi\)</span> taken over all possible purviews.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="pyphi.subsystem.Subsystem.connections_relevant_for_concept">
-<tt class="descname">connections_relevant_for_concept</tt><big>(</big><em>mechanism</em>, <em>cause_purview</em>, <em>effect_purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.connections_relevant_for_concept" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a matrix that identifies connections that “matter” to this
-concept.</p>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="pyphi.subsystem.Subsystem.null_concept">
 <tt class="descname">null_concept</tt><a class="headerlink" href="#pyphi.subsystem.Subsystem.null_concept" title="Permalink to this definition">¶</a></dt>
@@ -521,7 +522,7 @@ subsystem.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Mar 02, 2015.
+      Last updated on Apr 24, 2015.
     </p>
   </div>
 
@@ -541,7 +542,7 @@ subsystem.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.5.0',
+            VERSION:'v0.6.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

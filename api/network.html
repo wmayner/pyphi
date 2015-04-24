@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>network &mdash; v0.5.0 documentation</title>
+  <title>network &mdash; v0.6.0 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.5.0 documentation" href="../index.html"/>
+    <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
         <link rel="next" title="subsystem" href="subsystem.html"/>
         <link rel="prev" title="compute" href="compute.html"/> 
@@ -49,7 +49,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.5.0</a>
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.6.0</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -109,7 +109,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.5.0</a>
+        <a href="../index.html">PyPhi v0.6.0</a>
       </nav>
 
 
@@ -137,9 +137,19 @@
 <span id="network"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">network</span></tt><a class="headerlink" href="#module-pyphi.network" title="Permalink to this headline">¶</a></h1>
 <p>Represents the network of interest. This is the primary object of PyPhi and the
 context of all <span class="math">\(\varphi\)</span> and <span class="math">\(\Phi\)</span> computation.</p>
+<dl class="function">
+<dt id="pyphi.network.list_past_purview">
+<tt class="descclassname">pyphi.network.</tt><tt class="descname">list_past_purview</tt><big>(</big><em>self</em>, <em>mechanism</em><big>)</big><a class="headerlink" href="#pyphi.network.list_past_purview" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyphi.network.list_future_purview">
+<tt class="descclassname">pyphi.network.</tt><tt class="descname">list_future_purview</tt><big>(</big><em>self</em>, <em>mechanism</em><big>)</big><a class="headerlink" href="#pyphi.network.list_future_purview" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="class">
 <dt id="pyphi.network.Network">
-<em class="property">class </em><tt class="descclassname">pyphi.network.</tt><tt class="descname">Network</tt><big>(</big><em>tpm</em>, <em>current_state</em>, <em>past_state</em>, <em>connectivity_matrix=None</em>, <em>perturb_vector=None</em><big>)</big><a class="headerlink" href="#pyphi.network.Network" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyphi.network.</tt><tt class="descname">Network</tt><big>(</big><em>tpm</em>, <em>current_state</em>, <em>past_state</em>, <em>connectivity_matrix=None</em>, <em>perturb_vector=None</em>, <em>purview_cache=None</em><big>)</big><a class="headerlink" href="#pyphi.network.Network" title="Permalink to this definition">¶</a></dt>
 <dd><p>A network of nodes.</p>
 <p>Represents the network we&#8217;re analyzing and holds auxilary data about it.</p>
 <p class="rubric">Example</p>
@@ -265,6 +275,11 @@ nodes in the network.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="pyphi.network.Network.build_purview_cache">
+<tt class="descname">build_purview_cache</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.network.Network.build_purview_cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="pyphi.network.Network.__eq__">
 <tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyphi.network.Network.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether this network equals the other object.</p>
@@ -300,7 +315,7 @@ past state.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Mar 02, 2015.
+      Last updated on Apr 24, 2015.
     </p>
   </div>
 
@@ -320,7 +335,7 @@ past state.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.5.0',
+            VERSION:'v0.6.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

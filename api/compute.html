@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>compute &mdash; v0.5.0 documentation</title>
+  <title>compute &mdash; v0.6.0 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.5.0 documentation" href="../index.html"/>
+    <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
         <link rel="next" title="network" href="network.html"/>
         <link rel="prev" title="API Reference" href="index.html"/> 
@@ -49,7 +49,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.5.0</a>
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.6.0</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -109,7 +109,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.5.0</a>
+        <a href="../index.html">PyPhi v0.6.0</a>
       </nav>
 
 
@@ -140,7 +140,7 @@ subsystems.</p>
 <dl class="function">
 <dt id="pyphi.compute.concept">
 <tt class="descclassname">pyphi.compute.</tt><tt class="descname">concept</tt><big>(</big><em>subsystem</em>, <em>mechanism</em><big>)</big><a class="headerlink" href="#pyphi.compute.concept" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the concept specified by the a mechanism within a subsytem.</p>
+<dd><p>Return the concept specified by a mechanism within a subsytem.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -170,14 +170,50 @@ documentation for <a class="reference internal" href="concept_caching.html#modul
 </dd></dl>
 
 <dl class="function">
-<dt id="pyphi.compute.constellation">
-<tt class="descclassname">pyphi.compute.</tt><tt class="descname">constellation</tt><big>(</big><em>subsystem</em>, <em>mechanism_indices_to_check=None</em><big>)</big><a class="headerlink" href="#pyphi.compute.constellation" title="Permalink to this definition">¶</a></dt>
+<dt id="pyphi.compute.sequential_constellation">
+<tt class="descclassname">pyphi.compute.</tt><tt class="descname">sequential_constellation</tt><big>(</big><em>subsystem</em>, <em>mechanism_indices_to_check=None</em><big>)</big><a class="headerlink" href="#pyphi.compute.sequential_constellation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the conceptual structure of this subsystem.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsystem</strong> (<em>Subsytem</em>) &#8211; The subsystem for which to determine the
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsystem</strong> (<em>Subsystem</em>) &#8211; The subsystem for which to determine the
+constellation.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(Concept)</span></tt> &#8211; A tuple of all the Concepts in the constellation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.parallel_constellation">
+<tt class="descclassname">pyphi.compute.</tt><tt class="descname">parallel_constellation</tt><big>(</big><em>subsystem</em>, <em>mechanism_indices_to_check=None</em><big>)</big><a class="headerlink" href="#pyphi.compute.parallel_constellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the conceptual structure of this subsystem. Concepts are
+evaluated in parallel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsystem</strong> (<em>Subsystem</em>) &#8211; The subsystem for which to determine the
+constellation.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(Concept)</span></tt> &#8211; A tuple of all the Concepts in the constellation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.constellation">
+<tt class="descclassname">pyphi.compute.</tt><tt class="descname">constellation</tt><big>(</big><em>subsystem</em>, <em>mechanism_indices_to_check=None</em><big>)</big><a class="headerlink" href="#pyphi.compute.constellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the conceptual structure of this subsystem. Concepts are
+evaluated in parallel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsystem</strong> (<em>Subsystem</em>) &#8211; The subsystem for which to determine the
 constellation.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(Concept)</span></tt> &#8211; A tuple of all the Concepts in the constellation.</td>
@@ -309,7 +345,7 @@ at all).</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Mar 02, 2015.
+      Last updated on Apr 24, 2015.
     </p>
   </div>
 
@@ -329,7 +365,7 @@ at all).</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.5.0',
+            VERSION:'v0.6.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Residue Example &mdash; v0.5.0 documentation</title>
+  <title>Residue Example &mdash; v0.6.0 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.5.0 documentation" href="../index.html"/>
+    <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
         <link rel="up" title="Usage and Examples" href="index.html"/>
         <link rel="next" title="Conditional Independence Example" href="conditional_independence.html"/>
         <link rel="prev" title="Basic Usage" href="basic.html"/> 
@@ -49,7 +49,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.5.0</a>
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.6.0</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -109,7 +109,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.5.0</a>
+        <a href="../index.html">PyPhi v0.6.0</a>
       </nav>
 
 
@@ -211,7 +211,7 @@ irreducible cause information of the mechanisms <span class="math">\(A\)</span> 
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span><span class="o">.</span><span class="n">phi</span>
 <span class="go">0.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span><span class="o">.</span><span class="n">partition</span>
-<span class="go">(Part(mechanism=(n0,), purview=(n2, n3)), Part(mechanism=(), purview=(n4,)))</span>
+<span class="go">(Part(mechanism=(), purview=(n4,)), Part(mechanism=(n0,), purview=(n2, n3)))</span>
 </pre></div>
 </div>
 <p>Instead, we should evaluate <span class="math">\(A\)</span> over the purview <span class="math">\(CD\)</span>.</p>
@@ -257,7 +257,7 @@ residual of causes, at a level of <span class="math">\(\varphi = \frac{1}{10}\)<
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Mar 02, 2015.
+      Last updated on Apr 24, 2015.
     </p>
   </div>
 
@@ -277,7 +277,7 @@ residual of causes, at a level of <span class="math">\(\varphi = \frac{1}{10}\)<
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.5.0',
+            VERSION:'v0.6.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

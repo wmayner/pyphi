@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>utils &mdash; v0.5.0 documentation</title>
+  <title>utils &mdash; v0.6.0 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.5.0 documentation" href="../index.html"/>
+    <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
         <link rel="prev" title="db" href="db.html"/> 
 
@@ -48,7 +48,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.5.0</a>
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.6.0</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -108,7 +108,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.5.0</a>
+        <a href="../index.html">PyPhi v0.6.0</a>
       </nav>
 
 
@@ -144,16 +144,14 @@ of the given cut.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="pyphi.utils.cut_concepts">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">cut_concepts</tt><big>(</big><em>cut_matrix</em>, <em>unpartitioned_constellation</em><big>)</big><a class="headerlink" href="#pyphi.utils.cut_concepts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a tuple of concepts that could be affected by the cut.</p>
-</dd></dl>
+<dt id="pyphi.utils.mechanism_split_by_cut">
+<tt class="descclassname">pyphi.utils.</tt><tt class="descname">mechanism_split_by_cut</tt><big>(</big><em>mechanism_indices</em>, <em>cut</em><big>)</big><a class="headerlink" href="#pyphi.utils.mechanism_split_by_cut" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
-<dt id="pyphi.utils.uncut_concepts">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">uncut_concepts</tt><big>(</big><em>cut_matrix</em>, <em>unpartitioned_constellation</em><big>)</big><a class="headerlink" href="#pyphi.utils.uncut_concepts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a tuple of concepts that cannot be affected by the cut.</p>
-</dd></dl>
+<dt id="pyphi.utils.cut_mice">
+<tt class="descclassname">pyphi.utils.</tt><tt class="descname">cut_mice</tt><big>(</big><em>mice</em>, <em>cut_matrix</em><big>)</big><a class="headerlink" href="#pyphi.utils.cut_mice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.condition_tpm">
@@ -375,8 +373,77 @@ by state, one dimension per node).</p>
 </table>
 <p class="rubric">Example</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.utils</span> <span class="kn">import</span> <span class="n">bipartition</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bipartition</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bipartition</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="go">[((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.directed_bipartition">
+<tt class="descclassname">pyphi.utils.</tt><tt class="descname">directed_bipartition</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#pyphi.utils.directed_bipartition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of directed bipartitions for a sequence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> (<em>Iterable</em>) &#8211; The iterable to partition.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt> &#8211; A list of tuples containing each of the two partitions.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.utils</span> <span class="kn">import</span> <span class="n">directed_bipartition</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed_bipartition</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="go">[((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.directed_bipartition_of_one">
+<tt class="descclassname">pyphi.utils.</tt><tt class="descname">directed_bipartition_of_one</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#pyphi.utils.directed_bipartition_of_one" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of directed bipartitions for a sequence where each
+bipartitions includes a set of size 1.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> (<em>Iterable</em>) &#8211; The iterable to partition.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt> &#8211; A list of tuples containing each of the two partitions.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.utils</span> <span class="kn">import</span> <span class="n">directed_bipartition_of_one</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed_bipartition_of_one</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="go">[((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,))]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.directed_bipartition_indices">
+<tt class="descclassname">pyphi.utils.</tt><tt class="descname">directed_bipartition_indices</tt><big>(</big><em>N</em><big>)</big><a class="headerlink" href="#pyphi.utils.directed_bipartition_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns indices for directed bipartitions of a sequence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>N</strong> (<em>int</em>) &#8211; The length of the sequence.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt> &#8211; A list of tuples containing the indices for each of the two
+partitions.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.utils</span> <span class="kn">import</span> <span class="n">directed_bipartition_indices</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">N</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directed_bipartition_indices</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+<span class="go">[((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -400,7 +467,7 @@ partitions.</td>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi.utils</span> <span class="kn">import</span> <span class="n">bipartition_indices</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">N</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bipartition_indices</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
-<span class="go">[((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]</span>
+<span class="go">[((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -417,6 +484,35 @@ logical functions.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>network</strong> (<em>Network</em>) &#8211; The network for which to generate the TPM.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; A transition probability matrix.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.block_cm">
+<tt class="descclassname">pyphi.utils.</tt><tt class="descname">block_cm</tt><big>(</big><em>cm</em><big>)</big><a class="headerlink" href="#pyphi.utils.block_cm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determining if a given connectivity matrix be rearranged as a block
+connectivity matrix.</p>
+<p>If so, the corresponding mechanism/purview is trivially reducible.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.not_block_reducible">
+<tt class="descclassname">pyphi.utils.</tt><tt class="descname">not_block_reducible</tt><big>(</big><em>cm</em>, <em>nodes1</em>, <em>nodes2</em><big>)</big><a class="headerlink" href="#pyphi.utils.not_block_reducible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests connectivity of one set of nodes to another.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cm</strong> (<em>np.ndarray</em>) &#8211; The network&#8217;s connectivity matrix.</li>
+<li><strong>nodes1</strong> (<em>tuple(Node)</em>) &#8211; The nodes whose outputs to <tt class="docutils literal"><span class="pre">nodes2</span></tt> will be
+tested.</li>
+<li><strong>nodes2</strong> (<em>tuple(Node)</em>) &#8211; The nodes whose inputs from <tt class="docutils literal"><span class="pre">nodes1</span></tt> will
+be tested.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -456,7 +552,7 @@ logical functions.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Mar 02, 2015.
+      Last updated on Apr 24, 2015.
     </p>
   </div>
 
@@ -476,7 +572,7 @@ logical functions.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.5.0',
+            VERSION:'v0.6.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
