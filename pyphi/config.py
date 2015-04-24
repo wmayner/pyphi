@@ -273,6 +273,8 @@ config = {
             'level': 'INFO'
         }
     },
+    # Controls whether the current configuration is printed upon import.
+    'LOG_CONFIG_ON_IMPORT': True,
     # The number of decimal points to which phi values are considered accurate
     'PRECISION': 6,
     # Controls whether network states are validated upon network creation.
