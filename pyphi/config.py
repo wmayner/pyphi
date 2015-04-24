@@ -42,6 +42,12 @@ long time!), resulting in data loss.
     >>> pyphi.config.PARALLEL_CUT_EVALUATION
     True
 
+- Control whether concepts are computed in parallel when computing
+  constellations.
+
+    >>> pyphi.config.PARALLEL_CONCEPT_EVALUATION
+    False
+
 - Control the number of CPU cores to evaluate unidirectional cuts. Negative
   numbers count backwards from the total number of available cores, with ``-1``
   meaning "use all available cores".
@@ -168,6 +174,11 @@ file, both, or none. See the `documentation on Python's logger
     >>> pyphi.config.LOGGING_CONFIG['stdout']['level']
     'INFO'
 
+- Controls whether the current configuration is printed when PyPhi is imported.
+
+    >>> pyphi.config.LOG_CONFIG_ON_IMPORT
+    True
+
 
 Numerical precision
 ~~~~~~~~~~~~~~~~~~~
@@ -225,6 +236,8 @@ config = {
     # memory. If cuts are evaluated sequentially, only two BigMips need to be
     # in memory at a time.
     'PARALLEL_CUT_EVALUATION': True,
+    # Controls whether concepts are evaluated in parallel.
+    'PARALLEL_CONCEPT_EVALUATION': True,
     # The number of CPU cores to use in parallel cut evaluation. -1 means all
     # available cores, -2 means all but one available cores, etc.
     'NUMBER_OF_CORES': -1,

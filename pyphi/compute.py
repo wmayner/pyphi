@@ -67,7 +67,7 @@ def concept(subsystem, mechanism):
         return time_annotated(subsystem.concept(mechanism))
 
 
-def constellation(subsystem, mechanism_indices_to_check=None):
+def sequential_constellation(subsystem, mechanism_indices_to_check=None):
     """Return the conceptual structure of this subsystem.
 
     Args:
@@ -110,7 +110,6 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
     Returns:
         ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
     """
-
     if not mechanism_indices_to_check:
         mechanism_indices_to_check = utils.powerset(subsystem.node_indices)
     if config.NUMBER_OF_CORES < 0:
@@ -152,6 +151,12 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
         else:
             concepts.append(new_concept)
     return concepts
+
+
+if config.PARALLEL_CONCEPT_EVALUATION:
+    constellation = parallel_constellation
+else:
+    constellation = sequential_constellation
 
 
 def concept_distance(c1, c2):
@@ -391,6 +396,12 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
     return min_mip
 
 
+if config.PARALLEL_CUT_EVALUATION:
+    _find_mip = _find_mip_parallel
+else:
+    _find_mip = _find_mip_sequential
+
+
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
@@ -453,12 +464,8 @@ def _big_mip(cache_key, subsystem):
     else:
         min_mip = _null_bigmip(subsystem)
         min_mip.phi = float('inf')
-        if config.PARALLEL_CUT_EVALUATION:
-            min_mip = _find_mip_parallel(
-                subsystem, cuts, unpartitioned_constellation, min_mip)
-        else:
-            min_mip = _find_mip_sequential(
-                subsystem, cuts, unpartitioned_constellation, min_mip)
+        min_mip = _find_mip(subsystem, cuts, unpartitioned_constellation,
+                            min_mip)
         result = time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
