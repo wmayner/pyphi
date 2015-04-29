@@ -1,0 +1,621 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>IIT 3.0 Paper (2014) &mdash; v0.6.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
+        <link rel="up" title="Usage and Examples" href="index.html"/>
+        <link rel="next" title="Conventions" href="conventions.html"/>
+        <link rel="prev" title="Conditional Independence Example" href="conditional_independence.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.6.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Usage and Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="residue.html">Residue Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">IIT 3.0 Paper (2014)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resources">System resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching">Caching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi v0.6.0</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Usage and Examples</a> &raquo;</li>
+      
+    <li>IIT 3.0 Paper (2014)</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/examples/2014paper.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="iit-3-0-paper-2014">
+<h1>IIT 3.0 Paper (2014)<a class="headerlink" href="#iit-3-0-paper-2014" title="Permalink to this headline">¶</a></h1>
+<p>This section is meant to serve as a companion to the paper <a class="reference external" href="http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003588">From the
+Phenomenology to the Mechanisms of Consciousness: Integrated Information Theory
+3.0</a>
+by Oizumi, Albantakis, and Tononi, and as a demonstration of how to use PyPhi.
+Readers are encouraged to follow along and analyze the systems shown in the
+figures, hopefully becoming more familiar with both the theory and the software
+in the process.</p>
+<p>First, start a Python 3 <a class="reference external" href="http://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop">REPL</a> by
+running <tt class="docutils literal"><span class="pre">python3</span></tt> on the command line. Then import PyPhi and NumPy:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyphi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+</pre></div>
+</div>
+<div class="section" id="figure-1">
+<h2>Figure 1<a class="headerlink" href="#figure-1" title="Permalink to this headline">¶</a></h2>
+<p><strong>Existence: Mechanisms in a state having causal power.</strong></p>
+<p>For the first figure, we&#8217;ll demonstrate how to set up a network and a candidate
+set. In PyPhi, networks are built by specifying a transition probability
+matrix, a past state, a current state, and (optionally) a connectivity matrix.
+(If no connectivity matrix is given, full connectivity is assumed.) So, to set
+up the system shown in Figure 1, we&#8217;ll start by defining its TPM.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The TPM in the figure is given in <strong>state-by-state</strong> form; there is a row
+and a column for each state. However, in PyPhi, we use a more compact
+representation: <strong>state-by-node</strong> form, in which there is a row for each
+state, but a column for each node. The <span class="math">\(i,j^{\textrm{th}}\)</span> entry gives the probability
+that the <span class="math">\(j^{\textrm{th}}\)</span> node is on in the <span class="math">\(i^{\textrm{th}}\)</span> state. For more information on how
+TPMs are represented in PyPhi, see the documentation for the
+<a class="reference internal" href="../api/network.html#pyphi-network"><em>network</em></a> module and the explanation of <a class="reference internal" href="conventions.html#loli-convention"><em>LOLI: Low-Order bits correspond to Low-Index nodes</em></a>.</p>
+</div>
+<p>In the figure, the TPM is shown only for the candidate set. We&#8217;ll define the
+entire network&#8217;s TPM. Also, nodes <span class="math">\(D, E\)</span> and <span class="math">\(F\)</span> are not assigned
+mechanisms; for the purposes of this example we will assume they are <strong>OR</strong>
+gates. With that assumption, we get the following TPM (before copying and
+pasting, see note below):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tpm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This network is already built for you; you can get it from the
+<a class="reference internal" href="../api/examples.html#module-pyphi.examples" title="pyphi.examples"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.examples</span></tt></a> module with <tt class="docutils literal"><span class="pre">network</span> <span class="pre">=</span> <span class="pre">pyphi.examples.fig1a()</span></tt>. The
+TPM can then be accessed with <tt class="docutils literal"><span class="pre">network.tpm</span></tt>.</p>
+</div>
+<p>Now we&#8217;ll define the current and past state:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">current_state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">past_state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next we&#8217;ll define the connectivity matrix. In PyPhi, the <span class="math">\(i,j^{\textrm{th}}\)</span> entry in a
+connectivity matrix indicates whether node <span class="math">\(i\)</span> is connected to node <span class="math">\(j\)</span>. Thus,
+this network&#8217;s connectivity matrix is</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Now we can pass the TPM, current and past states, and connectivity matrix as
+arguments to the network constructor (note that the current state is the second
+argument and the past state is the third argument):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">tpm</span><span class="p">,</span> <span class="n">current_state</span><span class="p">,</span> <span class="n">past_state</span><span class="p">,</span>
+<span class="gp">... </span>                        <span class="n">connectivity_matrix</span><span class="o">=</span><span class="n">cm</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now the network shown in the figure is stored in a variable called <tt class="docutils literal"><span class="pre">network</span></tt>.
+You can find more information about the network object we just created by
+running <tt class="docutils literal"><span class="pre">help(network)</span></tt> or by consulting the <a class="reference external" href="http://en.wikipedia.org/wiki/Application_programming_interface">API</a>
+documentation here: <a class="reference internal" href="../api/network.html#module-pyphi.network" title="pyphi.network"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.network</span></tt></a>.</p>
+<p>The next step is to define the candidate set shown in the figure, consisting of
+nodes <span class="math">\(A, B\)</span> and <span class="math">\(C\)</span>. In PyPhi, a candidate set for <span class="math">\(\Phi\)</span>
+evaluation is represented by the <tt class="xref py py-class docutils literal"><span class="pre">pyphi.Subsystem</span></tt> class. Subsystems are
+built by giving the indices of the nodes in the subsystem and the network it is
+a part of. So, we define our candidate set like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ABC</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">network</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For more information on the subsystem object, see <a class="reference internal" href="../api/subsystem.html#module-pyphi.subsystem" title="pyphi.subsystem"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.subsystem</span></tt></a>.</p>
+<p>That covers the basic workflow with PyPhi and introduces the two types of
+objects we use to represent and analyze networks. First you define the network
+of interest with a TPM, current/past state, and connectivity matrix, then
+you define a candidate set you want to analyze.</p>
+</div>
+<div class="section" id="figure-3">
+<h2>Figure 3<a class="headerlink" href="#figure-3" title="Permalink to this headline">¶</a></h2>
+<p><strong>Information requires selectivity.</strong></p>
+<div class="section" id="a">
+<h3>(A)<a class="headerlink" href="#a" title="Permalink to this headline">¶</a></h3>
+<p>We&#8217;ll start by setting up the subsytem depicted in the figure and labeling the
+nodes. In this case, the subsystem is just the entire network.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">fig3a</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span><span class="o">.</span><span class="n">current_state</span>
+<span class="go">(1, 0, 0, 0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span>
+</pre></div>
+</div>
+<p>Since the connections are noisy, we see that <span class="math">\(A = 1\)</span> is unselective; all
+past states are equally likely:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
+<span class="go">array([[[[ 0.125,  0.125],</span>
+<span class="go">         [ 0.125,  0.125]],</span>
+
+<span class="go">        [[ 0.125,  0.125],</span>
+<span class="go">         [ 0.125,  0.125]]]])</span>
+</pre></div>
+</div>
+<p>And this gives us zero cause information:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="b">
+<h3>(B)<a class="headerlink" href="#b" title="Permalink to this headline">¶</a></h3>
+<p>The same as (A) but without noisy connections:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">fig3b</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span>
+</pre></div>
+</div>
+<p>Now, <span class="math">\(A\)</span>&#8216;s cause repertoire is maximally selective.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cr</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cr</span>
+<span class="go">array([[[[ 0.,  0.],</span>
+<span class="go">         [ 0.,  0.]],</span>
+
+<span class="go">        [[ 0.,  0.],</span>
+<span class="go">         [ 0.,  1.]]]])</span>
+</pre></div>
+</div>
+<p>Since the cause repertoire is over the purview <span class="math">\(BCD\)</span>, the first dimension
+(which corresponds to <span class="math">\(A\)</span>&#8216;s states) is a singleton. We can squeeze out
+<span class="math">\(A\)</span>&#8216;s singleton dimension with</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cr</span> <span class="o">=</span> <span class="n">cr</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>and now we can see that the probability of <span class="math">\(B, C,\)</span> and <span class="math">\(D\)</span> having
+been all on is 1:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cr</span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<p>Now the cause information specified by <span class="math">\(A = 1\)</span> is 1.5:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
+<span class="go">1.5</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="c">
+<h3>(C)<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h3>
+<p>The same as (B) but with <span class="math">\(A = 0\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">fig3c</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span><span class="o">.</span><span class="n">current_state</span>
+<span class="go">(0, 0, 0, 0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span>
+</pre></div>
+</div>
+<p>And here the cause repertoire is minimally selective, only ruling out the state
+where <span class="math">\(B, C,\)</span> and <span class="math">\(D\)</span> were all on:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
+<span class="go">array([[[[ 0.14285714,  0.14285714],</span>
+<span class="go">         [ 0.14285714,  0.14285714]],</span>
+
+<span class="go">        [[ 0.14285714,  0.14285714],</span>
+<span class="go">         [ 0.14285714,  0.        ]]]])</span>
+</pre></div>
+</div>
+<p>And so we have less cause information:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
+<span class="go">0.21428400000000067</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="figure-4">
+<h2>Figure 4<a class="headerlink" href="#figure-4" title="Permalink to this headline">¶</a></h2>
+<p><strong>Information: “Differences that make a difference to a system from its own
+intrinsic perspective.”</strong></p>
+<p>First we&#8217;ll get the network from the examples module, set up a subsystem, and
+label the nodes, as usual:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">fig4</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span>
+</pre></div>
+</div>
+<p>Then we&#8217;ll compute the cause and effect repertoires of mechanism <span class="math">\(A\)</span> over
+purview <span class="math">\(ABC\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">array([[[ 0.        ,  0.16666667],</span>
+<span class="go">        [ 0.16666667,  0.16666667]],</span>
+
+<span class="go">       [[ 0.        ,  0.16666667],</span>
+<span class="go">        [ 0.16666667,  0.16666667]]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">effect_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">array([[[ 0.0625,  0.0625],</span>
+<span class="go">        [ 0.0625,  0.0625]],</span>
+
+<span class="go">       [[ 0.1875,  0.1875],</span>
+<span class="go">        [ 0.1875,  0.1875]]])</span>
+</pre></div>
+</div>
+<p>And the unconstrained repertoires over the same (these functions don&#8217;t take a
+mechanism; they only take a purview):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">unconstrained_cause_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">array([[[ 0.125,  0.125],</span>
+<span class="go">        [ 0.125,  0.125]],</span>
+
+<span class="go">       [[ 0.125,  0.125],</span>
+<span class="go">        [ 0.125,  0.125]]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">unconstrained_effect_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">array([[[ 0.09375,  0.09375],</span>
+<span class="go">        [ 0.03125,  0.03125]],</span>
+
+<span class="go">       [[ 0.28125,  0.28125],</span>
+<span class="go">        [ 0.09375,  0.09375]]])</span>
+</pre></div>
+</div>
+<p>The Earth Mover&#8217;s distance between them gives the cause and effect information:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">0.33333191666400036</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">effect_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">0.24999975000000002</span>
+</pre></div>
+</div>
+<p>And the minimum of those gives the cause-effect information:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_effect_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">0.24999975000000002</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="figure-5">
+<h2>Figure 5<a class="headerlink" href="#figure-5" title="Permalink to this headline">¶</a></h2>
+<p><strong>A mechanism generates information only if it has both selective causes and selective effects within the system.</strong></p>
+<div class="section" id="id1">
+<h3>(A)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">fig5a</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span>
+</pre></div>
+</div>
+<p><span class="math">\(A\)</span> has inputs, so its cause repertoire is selective and it has cause information:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">array([[[ 0. ,  0. ],</span>
+<span class="go">        [ 0. ,  0.5]],</span>
+
+<span class="go">       [[ 0. ,  0. ],</span>
+<span class="go">        [ 0. ,  0.5]]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">0.9999997500000001</span>
+</pre></div>
+</div>
+<p>But because it has no outputs, its effect repertoire no different from the unconstrained effect repertoire, so it has no effect information:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">subsystem</span><span class="o">.</span><span class="n">effect_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)),</span>
+<span class="gp">... </span>               <span class="n">subsystem</span><span class="o">.</span><span class="n">unconstrained_effect_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">effect_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>And thus its cause effect information is zero.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_effect_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>(B)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">fig5b</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span>
+</pre></div>
+</div>
+<p>Symmetrically, <span class="math">\(A\)</span> now has outputs, so its effect repertoire is
+selective and it has effect information:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">effect_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">array([[[ 0.,  0.],</span>
+<span class="go">        [ 0.,  0.]],</span>
+
+<span class="go">       [[ 0.,  0.],</span>
+<span class="go">        [ 0.,  1.]]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">effect_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">0.4999996875</span>
+</pre></div>
+</div>
+<p>But because it now has no inputs, its cause repertoire is no different from the
+unconstrained effect repertoire, so it has no cause information:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)),</span>
+<span class="gp">... </span>               <span class="n">subsystem</span><span class="o">.</span><span class="n">unconstrained_cause_repertoire</span><span class="p">((</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>And its cause effect information is again zero.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_effect_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="figure-6">
+<h2>Figure 6<a class="headerlink" href="#figure-6" title="Permalink to this headline">¶</a></h2>
+<p><strong>Integrated information: The information generated by the whole that is
+irreducible to the information generated by its parts.</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">fig6</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ABC</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span>
+</pre></div>
+</div>
+<p>Here we demonstrate the functions that find the minimum information partition a
+mechanism over a purview:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_c</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">ABC</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mip_e</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">mip_future</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">ABC</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>These objects contain the <span class="math">\(\varphi^{\textrm{MIP}_{\textrm{cause}}}\)</span> and
+<span class="math">\(\varphi^{\textrm{MIP}_{\textrm{effect}}}\)</span> values in their respective
+<tt class="docutils literal"><span class="pre">phi</span></tt> attributes, and the minimal partitions in their <tt class="docutils literal"><span class="pre">partition</span></tt>
+attributes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_c</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.499998999999</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mip_c</span><span class="o">.</span><span class="n">partition</span>
+<span class="go">(Part(mechanism=(n0,), purview=()), Part(mechanism=(n1, n2), purview=(n0, n1, n2)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mip_e</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.24999975000000002</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mip_e</span><span class="o">.</span><span class="n">partition</span>
+<span class="go">(Part(mechanism=(), purview=(n1,)), Part(mechanism=(n0, n1, n2), purview=(n0, n2)))</span>
+</pre></div>
+</div>
+<p>For more information on these objects, see the API documentation for the
+<a class="reference internal" href="../api/models.html#pyphi.models.Mip" title="pyphi.models.Mip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mip</span></tt></a> class, or use <tt class="docutils literal"><span class="pre">help(mip_c)</span></tt>.</p>
+<p>Note that the minimal partition found for the past is</p>
+<div class="math">
+\[frac{A^{c}}{\left[\right]} \times \frac{BC^{c}}{ABC^{p}}\]</div>
+<p>rather than the one shown in the figure. However, both partitions result in a
+difference of <span class="math">\(0.5\)</span> between the unpartitioned and partitioned cause
+repertoires. So we see that in small networks like this, there can be multiple
+choices of partition that yield the same, minimal
+<span class="math">\(\varphi^{\textrm{MIP}}\)</span>. In these cases, which partition the software
+chooses is left undefined.</p>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="conventions.html" class="btn btn-neutral float-right" title="Conventions"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="conditional_independence.html" class="btn btn-neutral" title="Conditional Independence Example"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Apr 29, 2015.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.6.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
