@@ -301,12 +301,15 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
                               mice_cache=uncut_subsystem._mice_cache)
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
         mechanism_indices_to_check = set(
-            map(nodes2indices, [c.mechanism for c in unpartitioned_constellation]))
+            map(nodes2indices,
+                [c.mechanism for c in unpartitioned_constellation]))
     else:
         mechanism_indices_to_check = set(
-            tuple(map(nodes2indices, [c.mechanism for c in unpartitioned_constellation])) +
+            tuple(map(nodes2indices,
+                      [c.mechanism for c in unpartitioned_constellation])) +
             utils.cut_mechanism_indices(uncut_subsystem, cut))
-    partitioned_constellation = constellation(cut_subsystem, mechanism_indices_to_check)
+    partitioned_constellation = constellation(cut_subsystem,
+                                              mechanism_indices_to_check)
 
     log.debug("Finished evaluating cut {}.".format(cut))
     return BigMip(
