@@ -17,8 +17,10 @@ running ``python3`` on the command line. Then import PyPhi and NumPy:
     >>> import pyphi
     >>> import numpy as np
 
-Figure 1: Existence: Mechanisms in a state having causal power.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Figure 1
+~~~~~~~~
+
+**Existence: Mechanisms in a state having causal power.**
 
 For the first figure, we'll demonstrate how to set up a network and a candidate
 set. In PyPhi, networks are built by specifying a transition probability
@@ -160,8 +162,10 @@ of interest with a TPM, current/past state, and connectivity matrix, then
 you define a candidate set you want to analyze.
 
 
-Figure 3: Information requires selectivity.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Figure 3
+~~~~~~~~
+
+**Information requires selectivity.**
 
 (A)
 ```
@@ -211,14 +215,14 @@ Now, :math:`A`'s cause repertoire is maximally selective.
              [ 0.,  1.]]]])
 
 
-Since the cause repertoire is over the purview :math:`B, C, D`, the first
-dimension (which corresponds to :math:`A`'s states) is a singleton. We can
-squeeze out :math:`A`'s singleton dimension with
+Since the cause repertoire is over the purview :math:`BCD`, the first dimension
+(which corresponds to :math:`A`'s states) is a singleton. We can squeeze out
+:math:`A`'s singleton dimension with
 
     >>> cr = cr.squeeze()
 
-and now we can see that the probability of :math:`B, C, D` having been all on
-is 1:
+and now we can see that the probability of :math:`B, C,` and :math:`D` having
+been all on is 1:
 
     >>> cr[(1, 1, 1)]
     1.0
@@ -241,7 +245,7 @@ The same as (B) but with :math:`A = 0`:
     >>> A, B, C, D = subsystem.nodes
 
 And here the cause repertoire is minimally selective, only ruling out the state
-where :math:`B, C, D` were all on:
+where :math:`B, C,` and :math:`D` were all on:
 
     >>> subsystem.cause_repertoire((A,), (B, C, D))
     array([[[[ 0.14285714,  0.14285714],
@@ -255,8 +259,11 @@ And so we have less cause information:
     >>> subsystem.cause_info((A,), (B, C, D))
     0.21428400000000067
 
-Figure 4. Information: “Differences that make a difference to a system from its own intrinsic perspective.”
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Figure 4
+~~~~~~~~
+
+**Information: “Differences that make a difference to a system from its own
+intrinsic perspective.”**
 
 First we'll get the network from the examples module, set up a subsystem, and
 label the nodes, as usual:
@@ -265,8 +272,8 @@ label the nodes, as usual:
     >>> subsystem = pyphi.Subsystem(range(network.size), network)
     >>> A, B, C = subsystem.nodes
 
-Then we'll compute the cause and effect repertoires of :math:`A`
-over :math:`A, B, C`:
+Then we'll compute the cause and effect repertoires of mechanism :math:`A` over
+purview :math:`ABC`:
 
     >>> subsystem.cause_repertoire((A,), (A, B, C))
     array([[[ 0.        ,  0.16666667],
@@ -308,3 +315,117 @@ And the minimum of those gives the cause-effect information:
 
     >>> subsystem.cause_effect_info((A,), (A, B, C))
     0.24999975000000002
+
+
+Figure 5
+~~~~~~~~
+
+**A mechanism generates information only if it has both selective causes and selective effects within the system.**
+
+(A)
+```
+    >>> network = pyphi.examples.fig5a()
+    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> A, B, C = subsystem.nodes
+
+:math:`A` has inputs, so its cause repertoire is selective and it has cause information:
+
+    >>> subsystem.cause_repertoire((A,), (A, B, C))
+    array([[[ 0. ,  0. ],
+            [ 0. ,  0.5]],
+    <BLANKLINE>
+           [[ 0. ,  0. ],
+            [ 0. ,  0.5]]])
+    >>> subsystem.cause_info((A,), (A, B, C))
+    0.9999997500000001
+
+But because it has no outputs, its effect repertoire no different from the unconstrained effect repertoire, so it has no effect information:
+
+    >>> np.array_equal(subsystem.effect_repertoire((A,), (A, B, C)),
+    ...                subsystem.unconstrained_effect_repertoire((A, B, C)))
+    True
+    >>> subsystem.effect_info((A,), (A, B, C))
+    0.0
+
+And thus its cause effect information is zero.
+
+    >>> subsystem.cause_effect_info((A,), (A, B, C))
+    0.0
+
+(B)
+```
+
+    >>> network = pyphi.examples.fig5b()
+    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> A, B, C = subsystem.nodes
+
+Symmetrically, :math:`A` now has outputs, so its effect repertoire is
+selective and it has effect information:
+
+    >>> subsystem.effect_repertoire((A,), (A, B, C))
+    array([[[ 0.,  0.],
+            [ 0.,  0.]],
+    <BLANKLINE>
+           [[ 0.,  0.],
+            [ 0.,  1.]]])
+    >>> subsystem.effect_info((A,), (A, B, C))
+    0.4999996875
+
+But because it now has no inputs, its cause repertoire is no different from the
+unconstrained effect repertoire, so it has no cause information:
+
+    >>> np.array_equal(subsystem.cause_repertoire((A,), (A, B, C)),
+    ...                subsystem.unconstrained_cause_repertoire((A, B, C)))
+    True
+    >>> subsystem.cause_info((A,), (A, B, C))
+    0.0
+
+And its cause effect information is again zero.
+
+    >>> subsystem.cause_effect_info((A,), (A, B, C))
+    0.0
+
+Figure 6
+~~~~~~~~
+
+**Integrated information: The information generated by the whole that is
+irreducible to the information generated by its parts.**
+
+    >>> network = pyphi.examples.fig6()
+    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> ABC = subsystem.nodes
+
+Here we demonstrate the functions that find the minimum information partition a
+mechanism over a purview:
+
+    >>> mip_c = subsystem.mip_past(ABC, ABC)
+    >>> mip_e = subsystem.mip_future(ABC, ABC)
+
+These objects contain the :math:`\varphi^{\textrm{MIP}_{\textrm{cause}}}` and
+:math:`\varphi^{\textrm{MIP}_{\textrm{effect}}}` values in their respective
+``phi`` attributes, and the minimal partitions in their ``partition``
+attributes:
+
+    >>> mip_c.phi
+    0.499998999999
+    >>> mip_c.partition
+    (Part(mechanism=(n0,), purview=()), Part(mechanism=(n1, n2), purview=(n0, n1, n2)))
+    >>> mip_e.phi
+    0.24999975000000002
+    >>> mip_e.partition
+    (Part(mechanism=(), purview=(n1,)), Part(mechanism=(n0, n1, n2), purview=(n0, n2)))
+
+For more information on these objects, see the API documentation for the
+:class:`pyphi.models.Mip` class, or use ``help(mip_c)``. 
+
+Note that the minimal partition found for the past is
+
+.. math::
+    frac{A^{c}}{\left[\right]} \times \frac{BC^{c}}{ABC^{p}}
+    
+rather than the one shown in the figure. However, both partitions result in a
+difference of :math:`0.5` between the unpartitioned and partitioned cause
+repertoires. So we see that in small networks like this, there can be multiple
+choices of partition that yield the same, minimal
+:math:`\varphi^{\textrm{MIP}}`. In these cases, which partition the software
+chooses is left undefined.
