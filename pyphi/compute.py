@@ -558,3 +558,9 @@ def main_complex(network):
     log.info("Finished calculating main complex for {}.".format(network))
     log.debug("RESULT: \n" + str(result))
     return result
+
+
+def condense(network):
+    """Return the maximal set of non-overlapping complexes."""
+    C = complexes(network)
+    condensed = []
