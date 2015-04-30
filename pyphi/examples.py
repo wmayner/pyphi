@@ -7,6 +7,7 @@ Example networks and subsystems to go along with the documentation.
 """
 
 import numpy as np
+from pyphi.convert import loli_index2state
 from .network import Network
 from .subsystem import Subsystem
 
@@ -324,3 +325,115 @@ def cond_independ_tpm():
     ])
 
     return tpm
+
+
+def propagation_delay_network():
+   """ A version of the primary example from the IIT 3.0 paper
+   with deterministic COPY gates on each connection. These
+   copy gates essentially function as propagation delays on the
+   signal between OR, AND and XOR gates from the original system.
+
+   The current and past states of the network are also selected
+   to  mimic the corresponding states from the IIT 3.0 paper.
+
+
+   Diagram::
+                                        +----------+
+                  +---------------------+ C (COPY) +<---------------------+
+                  V                     +----------+                      |
+       +----------+--+                                                 +--+----------+
+       |             |                  +----------+                   |             |
+       |   A (OR)    +----------------->+ B (COPY) +------------------>+   D (XOR)   |
+       |             |                  +----------+                   |             |
+       +--+-------+--+                                                 +--+-------+--+
+          |       ^                                                       ^       |
+          |       |                                                       |       |
+          |       |   +----------+                        +----------+    |       |
+          |       +---+ H (COPY) +<-------+      +------->+ F (COPY) +----+       |
+          |           +----------+        |      |        +----------+            |
+          |                               |      |                                |
+          |                            +--+------+--+                             |
+          |           +----------+     |            |     +----------+            |
+          +---------->+ I (COPY) +---->|  G (AND)   |<----+ E (COPY) +<-----------+
+                      +----------+     |            |     +----------+
+                                       +----------- +
+
+   Connectivity matrix:
+
+    +---+---+---+---+---+---+---+---+---+---+
+    | . | A | B | C | D | E | F | G | H | I |
+    +---+---+---+---+---+---+---+---+---+---+
+    | A | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
+    +---+---+---+---+---+---+---+---+---+---+
+    | B | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 |
+    +---+---+---+---+---+---+---+---+---+---+
+    | C | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+    +---+---+---+---+---+---+---+---+---+---+
+    | D | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 0 | 0 |
+    +---+---+---+---+---+---+---+---+---+---+
+    | E | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 |
+    +---+---+---+---+---+---+---+---+---+---+
+    | F | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 |
+    +---+---+---+---+---+---+---+---+---+---+
+    | G | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 |
+    +---+---+---+---+---+---+---+---+---+---+
+    | H | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+    +---+---+---+---+---+---+---+---+---+---+
+    | I | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 |
+    +---+---+---+---+---+---+---+---+---+---+
+
+   States:
+
+        In the IIT 3.0 paper example, the past state of the system has only
+        the XOR gate on. For the propagation delay network, this corresponds
+        to a state of (0, 0, 0, 1, 0, 0, 0, 0, 0).
+
+        The current state of the IIT 3.0 example has only the OR gate on. By
+        advancing the propagation delay system two time steps, the current
+        state (1, 0, 0, 0, 0, 0, 0, 0, 0) is achieved, with corresponding
+        past state (0, 0, 1, 0, 1, 0, 0, 0, 0).
+    """
+   num_nodes = 9
+   num_states = 2**num_nodes
+
+   tpm = np.zeros((num_states, num_nodes))
+
+   for past_state_index in range(num_states):
+       past_state = loli_index2state(past_state_index, num_nodes)
+       current_state = [0 for i in range(num_nodes)]
+       if (past_state[2] == 1 or past_state[7] == 1):
+           current_state[0] = 1
+       if (past_state[0] == 1):
+           current_state[1] = 1
+           current_state[8] = 1
+       if (past_state[3] == 1):
+           current_state[2] = 1
+           current_state[4] = 1
+       if (past_state[1] == 1 ^ past_state[5] == 1):
+           current_state[3] = 1
+       if (past_state[4] == 1 and past_state[8] == 1):
+           current_state[6] = 1
+       if (past_state[6] == 1):
+           current_state[5] = 1
+           current_state[7] = 1
+       tpm[past_state_index, :] = current_state
+
+   cm = np.array([[0, 1, 0, 0, 0, 0, 0, 0, 1],
+                  [0, 0, 0, 1, 0, 0, 0, 0, 0],
+                  [1, 0, 0, 0, 0, 0, 0, 0, 0],
+                  [0, 0, 1, 0, 1, 0, 0, 0, 0],
+                  [0, 0, 0, 0, 0, 0, 1, 0, 0],
+                  [0, 0, 0, 1, 0, 0, 0, 0, 0],
+                  [0, 0, 0, 0, 0, 1, 0, 1, 0],
+                  [1, 0, 0, 0, 0, 0, 0, 0, 0],
+                  [0, 0, 0, 0, 0, 0, 1, 0, 0]])
+
+   current_state = (1, 0, 0, 0, 0, 0, 0, 0, 0)
+   past_state = (0, 0, 1, 0, 1, 0, 0, 0, 0)
+
+   return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+
+
+
+
+
