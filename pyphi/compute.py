@@ -499,8 +499,25 @@ def big_phi(subsystem):
     return big_mip(subsystem).phi
 
 
-def possible_main_complexes(network):
-    """"Return a generator of the subsystems of a network that could be a main
+def subsystems(network):
+    """Return a generator of all possible subsystems of a network."""
+    for subset in utils.powerset(network.node_indices):
+        yield Subsystem(subset, network)
+
+
+def all_complexes(network):
+    """Return a generator for all complexes of the network, including
+    reducible, zero-phi complexes (which are not, strictly speaking, complexes
+    at all)."""
+    if not isinstance(network, Network):
+        raise ValueError(
+            """Input must be a Network (perhaps you passed a Subsystem
+            instead?)""")
+    return (big_mip(subsystem) for subsystem in subsystems(network))
+
+
+def possible_complexes(network):
+    """"Return a generator of the subsystems of a network that could be a
     complex.
 
     This is the just powerset of the nodes that have at least one input and
@@ -515,12 +532,6 @@ def possible_main_complexes(network):
         yield Subsystem(subset, network)
 
 
-def subsystems(network):
-    """Return a generator of all possible subsystems of a network."""
-    for subset in utils.powerset(network.node_indices):
-        yield Subsystem(subset, network)
-
-
 def complexes(network):
     """Return a generator for all irreducible complexes of the network."""
     if not isinstance(network, Network):
@@ -528,18 +539,7 @@ def complexes(network):
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
     return tuple(filter(None, (big_mip(subsystem) for subsystem in
-                               possible_main_complexes(network))))
-
-
-def all_complexes(network):
-    """Return a generator for all complexes of the network, including
-    reducible, zero-phi complexes (which are not, strictly speaking, complexes
-    at all)."""
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
-    return (big_mip(subsystem) for subsystem in subsystems(network))
+                               possible_complexes(network))))
 
 
 def main_complex(network):
