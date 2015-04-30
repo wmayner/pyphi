@@ -65,9 +65,10 @@ __author_website__ = 'http://willmayner.com'
 __copyright__ = 'Copyright 2014-2015 Will Mayner'
 
 
-from .network import Network
-from .subsystem import Subsystem
-from . import compute, constants, config, db, examples
+from . import network, subsystem, compute, constants, config, db, examples
+
+Network = network.Network
+Subsystem = subsystem.Subsystem
 
 import logging
 import logging.config
