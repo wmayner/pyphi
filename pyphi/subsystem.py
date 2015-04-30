@@ -307,18 +307,27 @@ class Subsystem:
 
     def __getstate__(self):
         d = self.__dict__.copy()
+        # Get the cache_info to preserve the hit and miss count
+        # after pickling
+        d['cr_cache_info'] = self.cause_repertoire.cache_info()[:]
+        d['er_cache_info'] = self.effect_repertoire.cache_info()[:]
         del d['cause_repertoire']
         del d['effect_repertoire']
         return d
 
     def __setstate__(self, d):
+        # Set the hit and miss count post-pickling
+        hits = d['cr_cache_info'][0]
+        misses = d['cr_cache_info'][1]
         d['cause_repertoire'] = types.MethodType(
             cache(cache=d['_cr_cache'])(
-                cause_repertoire),
+                cause_repertoire, hits, misses),
             self)
+        hits = d['er_cache_info'][0]
+        misses = d['er_cache_info'][1]
         d['effect_repertoire'] = types.MethodType(
             cache(cache=d['_er_cache'])(
-                effect_repertoire),
+                effect_repertoire, hits, misses),
             self)
         self.__dict__ = d
 
