@@ -578,5 +578,8 @@ def fig5b():
     past_state = (0, 0, 0)
     return Network(tpm, current_state, past_state, connectivity_matrix=cm)
 
-# The networks in figures 4 and 6 are the same.
-fig6 = fig4
+# The networks in figures 4, 6 and 8 are the same.
+fig6, fig8, fig9, fig10 = 4 * (fig4,)
+
+# The network in Figure 14 is the same as that in Figure 1A.
+fig14 = fig1a

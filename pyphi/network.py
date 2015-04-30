@@ -4,7 +4,7 @@
 # network.py
 """
 Represents the network of interest. This is the primary object of PyPhi and the
-context of all |phi| and |big_phi| computation.
+context of all |small_phi| and |big_phi| computation.
 """
 
 import numpy as np
