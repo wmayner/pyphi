@@ -19,6 +19,16 @@ from .constants import DIRECTIONS, PAST, FUTURE
 # to be checked in concept calculation.
 
 
+def from_json(json):
+    """Convert a JSON representation of a network to a PyPhi network."""
+    tpm = json['tpm']
+    current_state = json['currentState']
+    past_state = json['pastState']
+    cm = json['connectivityMatrix']
+    network = Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return network
+
+
 def list_past_purview(self, mechanism):
     return _build_purview_list(self, mechanism, 'past')
 
