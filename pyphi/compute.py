@@ -153,10 +153,12 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
     return concepts
 
 
-if config.PARALLEL_CONCEPT_EVALUATION:
-    constellation = parallel_constellation
-else:
-    constellation = sequential_constellation
+# TODO fix and release in version 0.7.0
+# if config.PARALLEL_CONCEPT_EVALUATION:
+#     constellation = parallel_constellation
+# else:
+#     constellation = sequential_constellation
+constellation = sequential_constellation
 
 
 def concept_distance(c1, c2):
