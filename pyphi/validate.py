@@ -62,6 +62,9 @@ def tpm(tpm):
 
 
 def connectivity_matrix(cm):
+    # Special case for empty matrices.
+    if cm.size == 0:
+        return True
     if (cm.ndim != 2):
         raise ValueError("Connectivity matrix must be 2-dimensional.")
     if cm.shape[0] != cm.shape[1]:
@@ -96,20 +99,20 @@ def state_reachable_from(past_state, current_state, tpm):
             "The current state is unreachable according to the given TPM.")
 
 
-def _state_length(state, size, name):
+def _state_length(name, state, size):
     if len(state) != size:
         raise ValueError('Invalid {} state: there must be one entry per '
                          'node in the network; this state has {} entries, but '
-                         'there are {} nodes.'.format(len(state), size, name))
+                         'there are {} nodes.'.format(name, len(state), size))
     return True
 
 
 def current_state_length(state, size):
-    return _state_length(state, size, 'current')
+    return _state_length('current', state, size)
 
 
 def past_state_length(state, size):
-    return _state_length(state, size, 'past')
+    return _state_length('past', state, size)
 
 
 # TODO test
@@ -142,7 +145,8 @@ def network(network):
     state(network)
     connectivity_matrix(network.connectivity_matrix)
     perturb_vector(network.perturb_vector, network.size)
-    if network.connectivity_matrix.shape[0] != network.size:
+    if (network.connectivity_matrix.shape[0] != network.size
+            and not network.connectivity_matrix.size == 0):
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")
     return True

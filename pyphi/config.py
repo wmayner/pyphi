@@ -168,6 +168,11 @@ file, both, or none. See the `documentation on Python's logger
     >>> pyphi.config.LOGGING_CONFIG['stdout']['level']
     'INFO'
 
+- Controls whether the current configuration is printed when PyPhi is imported.
+
+    >>> pyphi.config.LOG_CONFIG_ON_IMPORT
+    True
+
 
 Numerical precision
 ~~~~~~~~~~~~~~~~~~~
@@ -218,6 +223,8 @@ config = {
     # Assumptions that speed up computation at the cost of theoretical
     # accuracy.
     'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
+    # Only check single nodes cuts for the MIP. 2**n cuts instead of n.
+    'CUT_ONE_APPROXIMATION': False,
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Controls whether cuts are evaluated in parallel, which requires more
     # memory. If cuts are evaluated sequentially, only two BigMips need to be
@@ -235,6 +242,9 @@ config = {
     'CACHE_BIGMIPS': False,
     # Controls whether the concept caching system is used.
     'CACHE_CONCEPTS': False,
+    # Controls whether the potential purviews of the mechanisms of a network
+    # are cached. Speeds up calculations, but takes up additional memory.
+    'CACHE_POTENTIAL_PURVIEWS': True,
     # Controls whether TPMs should be normalized as part of concept
     # normalization. TPM normalization increases the chances that a precomputed
     # concept can be used again, but is expensive.
@@ -268,6 +278,8 @@ config = {
             'level': 'INFO'
         }
     },
+    # Controls whether the current configuration is printed upon import.
+    'LOG_CONFIG_ON_IMPORT': True,
     # The number of decimal points to which phi values are considered accurate
     'PRECISION': 6,
     # Controls whether network states are validated upon network creation.

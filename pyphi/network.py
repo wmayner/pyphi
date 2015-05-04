@@ -4,15 +4,59 @@
 # network.py
 """
 Represents the network of interest. This is the primary object of PyPhi and the
-context of all |phi| and |big_phi| computation.
+context of all |small_phi| and |big_phi| computation.
 """
 
+import json
 import numpy as np
-from . import validate, utils, json, convert, config
+from . import validate, utils, convert, config
+from .json import make_encodable
+from .constants import DIRECTIONS, PAST, FUTURE
+
+# TODO!!! raise error if user tries to change TPM or CM, double-check and
+# document that states can be changed
 
 
-# TODO!!! raise error if user tries to change TPM or CM, double-check and document
-# that states can be changed
+# Methods to compute reducible purviews for any mechanism, so they do not have
+# to be checked in concept calculation.
+
+
+def from_json(filename):
+    """Convert a JSON representation of a network to a PyPhi network.
+
+    Args:
+        filename (str): A path to a JSON file representing a network.
+
+    Returns:
+       ``Network`` -- The corresponding PyPhi network object.
+    """
+    with open(filename) as f:
+        network_dictionary = json.load(f)
+    tpm = network_dictionary['tpm']
+    current_state = network_dictionary['currentState']
+    past_state = network_dictionary['pastState']
+    cm = network_dictionary['connectivityMatrix']
+    network = Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return network
+
+
+def list_past_purview(self, mechanism):
+    return _build_purview_list(self, mechanism, 'past')
+
+
+def list_future_purview(self, mechanism):
+    return _build_purview_list(self, mechanism, 'future')
+
+
+def _build_purview_list(self, mechanism, direction):
+    if direction == DIRECTIONS[PAST]:
+        return [purview for purview in utils.powerset(self._node_indices)
+                if utils.not_block_reducible(self.connectivity_matrix, purview,
+                                             mechanism)]
+    elif direction == DIRECTIONS[FUTURE]:
+        return [purview for purview in utils.powerset(self._node_indices)
+                if utils.not_block_reducible(self.connectivity_matrix,
+                                             mechanism, purview)]
 
 
 class Network:
@@ -70,7 +114,8 @@ class Network:
 
     # TODO make tpm also optional when implementing logical network definition
     def __init__(self, tpm, current_state, past_state,
-                 connectivity_matrix=None, perturb_vector=None):
+                 connectivity_matrix=None, perturb_vector=None,
+                 purview_cache=None):
         self.tpm = tpm
 
         self._size = self.tpm.shape[-1]
@@ -82,7 +127,14 @@ class Network:
         self._past_state = tuple(past_state)
         self.perturb_vector = perturb_vector
         self.connectivity_matrix = connectivity_matrix
-
+        if purview_cache is None:
+            purview_cache = dict()
+        self.purview_cache = purview_cache
+        # If CACHE_POTENTIAL_PURVIEWS is set to True then pre-compute the list
+        # for each mechanism. This will save time if results are desired for
+        # more than one subsystem of the network.
+        if config.CACHE_POTENTIAL_PURVIEWS:
+            self.build_purview_cache()
         # Validate the entire network.
         validate.network(self)
 
@@ -187,6 +239,13 @@ class Network:
         # Update hash.
         self._pv_hash = utils.np_hash(self.perturb_vector)
 
+    def build_purview_cache(self):
+        for index in utils.powerset(self._node_indices):
+            for direction in DIRECTIONS:
+                key = (direction, index)
+                self.purview_cache[key] = _build_purview_list(self, index,
+                                                              direction)
+
     def __repr__(self):
         return ("Network(" + ", ".join([repr(self.tpm),
                                         repr(self.current_state),
@@ -224,10 +283,10 @@ class Network:
 
     def json_dict(self):
         return {
-            'tpm': json.make_encodable(self.tpm),
-            'current_state': json.make_encodable(self.current_state),
-            'past_state': json.make_encodable(self.past_state),
+            'tpm': make_encodable(self.tpm),
+            'current_state': make_encodable(self.current_state),
+            'past_state': make_encodable(self.past_state),
             'connectivity_matrix':
-                json.make_encodable(self.connectivity_matrix),
-            'size': json.make_encodable(self.size),
+                make_encodable(self.connectivity_matrix),
+            'size': make_encodable(self.size),
         }

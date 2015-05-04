@@ -102,12 +102,12 @@ def test_hamming_matrix():
     assert (H == answer).all()
 
 
-def test_bipartition():
+def test_directed_bipartition():
     answer = [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)),
               ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
-    assert answer == utils.bipartition((1, 2, 3))
+    assert answer == utils.directed_bipartition((1, 2, 3))
     # Test with empty input
-    assert [] == utils.bipartition(())
+    assert [] == utils.directed_bipartition(())
 
 
 def test_emd_same_distributions():
@@ -120,18 +120,36 @@ def test_uniform_distribution():
     assert np.array_equal(utils.uniform_distribution(3),
                           (np.ones(8)/8).reshape([2]*3))
 
+def test_block_cm():
+    cm1 = np.array([
+         [1, 0, 0, 1, 1, 0],
+         [1, 0, 1, 0, 0, 1],
+         [0, 0, 0, 1, 0, 0],
+         [0, 1, 0, 0, 0, 0],
+         [1, 1, 0, 0, 0, 1]
+    ])
+    cm2 = np.array([
+         [1, 0, 0],
+         [0, 1, 1],
+         [0, 1, 1]
+    ])
+    cm3 = np.array([
+         [1, 1, 0, 0, 0],
+         [0, 0, 1, 1, 1]
+    ])
+    cm4 = np.array([
+         [1, 1, 0, 0, 0],
+         [0, 1, 1, 0, 0],
+         [0, 0, 1, 1, 0],
+         [0, 0, 0, 1, 1],
+         [1, 0, 0, 0, 0]
+    ])
+    assert not utils.block_cm(cm1)
+    assert utils.block_cm(cm2)
+    assert utils.block_cm(cm3)
+    assert not utils.block_cm(cm4)
+
 
 def test_cut_mechanism_indices():
     assert ((0, 1), (0, 2), (0, 1, 2)) == utils.cut_mechanism_indices(sub, cut)
 
-
-def test_cut_concepts():
-    answer = tuple(mip.unpartitioned_constellation[i] for i in [1, 2, 3])
-    assert answer == utils.cut_concepts(s_cut.cut_matrix,
-                                        mip.unpartitioned_constellation)
-
-
-def test_uncut_concepts():
-    answer = tuple(mip.unpartitioned_constellation[i] for i in [0])
-    assert answer == utils.uncut_concepts(s_cut.cut_matrix,
-                                          mip.unpartitioned_constellation)

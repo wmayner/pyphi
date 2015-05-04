@@ -159,6 +159,8 @@ micro_answer = {
     'cuts': [
         models.Cut(severed=(0, 2), intact=(1, 3)),
         models.Cut(severed=(1, 2), intact=(0, 3)),
+        models.Cut(severed=(0, 3), intact=(1, 2)),
+        models.Cut(severed=(1, 3), intact=(0, 2)),
     ]
 }
 
@@ -221,12 +223,12 @@ def check_mip(mip, answer):
 def test_null_concept(s, flushcache, restore_fs_cache):
     flushcache()
     cause = models.Mice(models.Mip(
-        unpartitioned_repertoire=s.unconstrained_cause_repertoire(s.nodes),
-        phi=0, direction=DIRECTIONS[PAST], mechanism=(), purview=s.nodes,
+        unpartitioned_repertoire=s.unconstrained_cause_repertoire(()),
+        phi=0, direction=DIRECTIONS[PAST], mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
     effect = models.Mice(models.Mip(
-        unpartitioned_repertoire=s.unconstrained_effect_repertoire(s.nodes),
-        phi=0, direction=DIRECTIONS[FUTURE], mechanism=(), purview=s.nodes,
+        unpartitioned_repertoire=s.unconstrained_effect_repertoire(()),
+        phi=0, direction=DIRECTIONS[FUTURE], mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
     assert (s.null_concept ==
             models.Concept(mechanism=(), phi=0, cause=cause, effect=effect,

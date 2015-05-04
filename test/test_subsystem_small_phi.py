@@ -254,15 +254,6 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     else:
         assert result == expected
 
-
-# Test input validation {{{
-def test_find_mip_bad_direction(s):
-    mechanism = (s.nodes[0], )
-    purview = (s.nodes[0], )
-    with pytest.raises(ValueError):
-        s.find_mip('doge', mechanism, purview)
-# }}}
-
 # }}}
 
 

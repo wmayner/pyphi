@@ -44,7 +44,7 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
             The nodes in the mechanism for this part.
 
     Example:
-        When calculating |phi| of a 3-node subsystem, we partition the
+        When calculating |small_phi| of a 3-node subsystem, we partition the
         system in the following way::
 
             mechanism:   A C        B
@@ -180,7 +180,7 @@ _mip_attributes_for_eq = ['phi', 'direction', 'mechanism',
 
 class Mip(namedtuple('Mip', _mip_attributes)):
 
-    """A minimum information partition for |phi| calculation.
+    """A minimum information partition for |small_phi| calculation.
 
     MIPs may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
@@ -203,7 +203,7 @@ class Mip(namedtuple('Mip', _mip_attributes)):
             The partition that makes the least difference to the mechanism's
             repertoire.
         unpartitioned_repertoire (np.ndarray):
-            The unpartitioned repertoire of the mecanism.
+            The unpartitioned repertoire of the mechanism.
         partitioned_repertoire (np.ndarray):
             The partitioned repertoire of the mechanism. This is the product of
             the repertoires of each part of the partition.
@@ -211,15 +211,19 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
     def __eq__(self, other):
         # We don't count the partition and partitioned repertoire in checking
-        # for MIP equality, since these are lost during normalization.
-        # We also don't count the mechanism and purview, since these may be
-        # different depending on the order in which purviews were evaluated.
+        # for MIP equality, since these are lost during normalization. We also
+        # don't count the mechanism and purview, since these may be different
+        # depending on the order in which purviews were evaluated.
         # TODO!!! clarify the reason for that
         # We do however check whether the size of the mechanism or purview is
         # the same, since that matters (for the exclusion principle).
-        return (_general_eq(self, other, _mip_attributes_for_eq) and
-                len(self.mechanism) == len(other.mechanism) and
-                len(self.purview) == len(other.purview))
+        if not self.purview or not other.purview:
+            return (_general_eq(self, other, _mip_attributes_for_eq) and
+                    len(self.mechanism) == len(other.mechanism))
+        else:
+            return (_general_eq(self, other, _mip_attributes_for_eq) and
+                    len(self.mechanism) == len(other.mechanism) and
+                    len(self.purview) == len(other.purview))
 
     def __bool__(self):
         """A Mip is truthy if it is not reducible; i.e. if it has a significant
@@ -248,23 +252,39 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
 class Mice:
 
-    """A maximally irreducible cause or effect (i.e., "core cause" or "core
-    effect").
+    """A maximally irreducible cause or effect (i.e., “core cause” or “core
+    effect”).
 
-    MICEs may be compared with the built-in Python comparison operators
-    (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
-    are equal up to |PRECISION|, the size of the mechanism is compared
-    (exclusion principle).
+    relevant_connections (np.array):
+        An ``N x N`` matrix, where ``N`` is the number of nodes in this
+        corresponding subsystem, that identifies connections that “matter” to
+        this MICE.
+
+        ``direction == 'past'``:
+            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
+            cause purview and node ``j`` is in the mechanism (and ``0``
+            otherwise).
+
+        ``direction == 'future'``:
+            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
+            mechanism and node ``j`` is in the effect purview (and ``0``
+            otherwise).
+
+    MICEs may be compared with the built-in Python comparison operators (``<``,
+    ``>``, etc.). First, ``phi`` values are compared. Then, if these are equal
+    up to |PRECISION|, the size of the mechanism is compared (exclusion
+    principle).
     """
 
-    def __init__(self, mip):
+    def __init__(self, mip, relevant_connections=None):
         self._mip = mip
+        self._relevant_connections = relevant_connections
         # TODO remove?
         if (self.repertoire is not None and
             any(self.repertoire.shape[i] != 2 for i in
                 convert.nodes2indices(self.purview))):
-            raise Exception("Attempted to create MICE with mismatched purview "
-                            "and repertoire.")
+            raise Exception('Attempted to create MICE with mismatched purview '
+                            'and repertoire.')
 
     @property
     def phi(self):
@@ -292,8 +312,8 @@ class Mice:
     @property
     def purview(self):
         """
-        ``list(Node)`` -- The purview over which this mechanism's |phi| is
-        maximal.
+        ``list(Node)`` -- The purview over which this mechanism's |small_phi|
+        is maximal.
         """
         return self._mip.purview
 
@@ -348,8 +368,8 @@ class Concept:
 
     """A star in concept-space.
 
-    `phi` is the small-phi_max value. `cause` and `effect` are the MICE objects
-    for the past and future, respectively.
+    The ``phi`` attribute is the |small_phi_max| value. ``cause`` and
+    ``effect`` are the MICE objects for the past and future, respectively.
 
     Concepts may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
@@ -357,8 +377,8 @@ class Concept:
 
     Attributes:
         phi (float):
-            The size of the concept. This is the minimum of the |phi| values of
-            the concept's core cause and core effect.
+            The size of the concept. This is the minimum of the |small_phi|
+            values of the concept's core cause and core effect.
         mechanism (tuple(Node)):
             The mechanism that the concept consists of.
         cause (Mice):
@@ -367,24 +387,16 @@ class Concept:
             The :class:`Mice` representing the core effect of this concept.
         subsystem (Subsystem):
             This Concept's parent subsystem.
-        relevant_connections (np.array):
-            An ``N x N`` matrix, where ``N`` is the number of nodes in this
-            Concept's subsystem, that identifies connections that “matter” to
-            this concept; ``relevant_connections[i,j]`` is ``1`` if either node
-            ``i`` is in the cause purview and node ``j`` is in the mechanism or
-            node ``i`` is in the mechanism and node ``j`` is in the effect
-            purview (and ``0`` otherwise).
         time (float): The number of seconds it took to calculate.
     """
 
     def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
-                 subsystem=None, relevant_connections=None, normalized=False):
+                 subsystem=None, normalized=False):
         self.phi = phi
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
         self.subsystem = subsystem
-        self.relevant_connections = relevant_connections
         self.normalized = normalized
         self.time = None
 
@@ -508,15 +520,12 @@ class BigMip:
         phi (float): The |big_phi| value for the subsystem when taken against
             this MIP, *i.e.* the difference between the unpartitioned
             constellation and this MIP's partitioned constellation.
-        cut (Cut): The unidirectional cut that makes the least difference to
-            the subsystem.
         unpartitioned_constellation (tuple(Concept)): The constellation of the
             whole subsystem.
         partitioned_constellation (tuple(Concept)): The constellation when the
             subsystem is cut.
         subsystem (Subsystem): The subsystem this MIP was calculated for.
         cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
-        cut (Cut): The minimal cut.
         time (float): The number of seconds it took to calculate.
         small_phi_time (float): The number of seconds it took to calculate the
             unpartitioned constellation.
@@ -542,6 +551,8 @@ class BigMip:
 
     @property
     def cut(self):
+        """The unidirectional cut that makes the least difference to the
+        subsystem."""
         return self.cut_subsystem.cut
 
     def __eq__(self, other):
