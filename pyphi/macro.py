@@ -10,8 +10,8 @@ spatial analysis.
 
 import pyphi
 import numpy as np
-from pyphi.convert import loli_index2state as i2s
-from pyphi.convert import state2loli_index as s2i
+from pyphi.convert import loli_index2state
+from pyphi.convert import state2loli_index
 import itertools
 import logging
 
@@ -39,19 +39,19 @@ def _partitions_list(N):
 
     Example:
         >>> from pyphi.macro import _partitions_list
-        >>> _partition_list(3)
+        >>> _partitions_list(3)
         [[[0, 1], [2]], [[0, 2], [1]], [[0], [1, 2]], [[0], [1], [2]]]
 
     """
     if N < (_NUM_PRECOMPUTED_PARTITION_LISTS):
-        return _partition_lists[N]
+        return list(_partition_lists[N])
     else:
         raise ValueError('Partition lists not yet available for system with %d \
                          nodes or more' % (_NUM_PRECOMPUTED_PARTITION_LISTS))
 
 
 
-def list_all_possible_grains(network):
+def list_possible_grains(network):
     """ Return a list of all possible coarse grains of a network
 
     Args:
@@ -63,9 +63,40 @@ def list_all_possible_grains(network):
             correspong to macro elements
 
     """
-    partitions = partitions_list(network.size)
+    partitions = _partitions_list(network.size)
     partitions[-1] = [[index for index in range(network.size)]]
     return partitions
+
+
+def list_possible_groupings(network, partition):
+    """ Return a list of all possible groupings of states, for a
+        particular coarse graining (partition) of a network
+
+    Args:
+        network (Network): The physical system to act as the 'micro'
+            level
+
+        partitions (list(list)): The partition of micro elements into
+            macro elements
+
+    Returns:
+        groupings (list(list)): A list of all possible correspondences
+            between micro states and macro states.
+
+    """
+    num_macro_elements = len(partition)
+    micro_groups = [[list(loli_index2state(index, len(part)))[::-1]
+                             for index in range(2**len(part))]
+                            for part in partition] # Used to be possible_elemental_states
+    micro_state_groupings = [_partition_lists(len(part)+1) if len(part) > 1
+                             else [[0], [1]] for part in partition]
+    def is_binary(part):
+        return np.all(np.array([len(element) for element in part]))
+
+    micro_state_groupings = [groupings(state) for state in micro_element_states] # Used to be possible_partitions_element
+    macro_states = [list(tuple) for tuple in itertools.product(*micro_state_groups)] # Used to be full_system_partition
+    return list(filter(is_binary, macro_states))
+
 
 
 
