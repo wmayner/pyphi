@@ -520,15 +520,12 @@ class BigMip:
         phi (float): The |big_phi| value for the subsystem when taken against
             this MIP, *i.e.* the difference between the unpartitioned
             constellation and this MIP's partitioned constellation.
-        cut (Cut): The unidirectional cut that makes the least difference to
-            the subsystem.
         unpartitioned_constellation (tuple(Concept)): The constellation of the
             whole subsystem.
         partitioned_constellation (tuple(Concept)): The constellation when the
             subsystem is cut.
         subsystem (Subsystem): The subsystem this MIP was calculated for.
         cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
-        cut (Cut): The minimal cut.
         time (float): The number of seconds it took to calculate.
         small_phi_time (float): The number of seconds it took to calculate the
             unpartitioned constellation.
@@ -554,6 +551,8 @@ class BigMip:
 
     @property
     def cut(self):
+        """The unidirectional cut that makes the least difference to the
+        subsystem."""
         return self.cut_subsystem.cut
 
     def __eq__(self, other):
