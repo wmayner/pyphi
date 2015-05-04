@@ -564,8 +564,10 @@ def condensed(network):
     """Return the set of maximal non-overlapping complexes."""
     condensed = []
     covered_nodes = set()
+    log.info("Condensing {}...".format(network))
     for c in reversed(sorted(complexes(network))):
         if not any(n in covered_nodes for n in c.subsystem.node_indices):
             condensed.append(c)
             covered_nodes = covered_nodes | set(c.subsystem.node_indices)
+    log.info("Finished condensing {}.".format(network))
     return condensed
