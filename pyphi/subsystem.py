@@ -3,7 +3,7 @@
 
 # subsystem.py
 """
-Represents a candidate set for |phi| calculation.
+Represents a candidate set for |small_phi| calculation.
 """
 
 import os
@@ -589,7 +589,8 @@ class Subsystem:
         return self.find_mip(DIRECTIONS[FUTURE], mechanism, purview)
 
     def phi_mip_past(self, mechanism, purview):
-        """Return the |phi| value of the past minimum information partition.
+        """Return the |small_phi| value of the past minimum information
+        partition.
 
         This is the distance between the unpartitioned cause repertoire and the
         MIP cause repertoire.
@@ -598,7 +599,8 @@ class Subsystem:
         return mip.phi if mip else 0
 
     def phi_mip_future(self, mechanism, purview):
-        """Return the |phi| value of the future minimum information partition.
+        """Return the |small_phi| value of the future minimum information
+        partition.
 
         This is the distance between the unpartitioned effect repertoire and
         the MIP cause repertoire.
@@ -610,7 +612,7 @@ class Subsystem:
             return 0
 
     def phi(self, mechanism, purview):
-        """Return the |phi| value of a mechanism over a purview."""
+        """Return the |small_phi| value of a mechanism over a purview."""
         return min(self.phi_mip_past(mechanism, purview),
                    self.phi_mip_future(mechanism, purview))
 
@@ -705,8 +707,8 @@ class Subsystem:
             Strictly speaking, the MICE is a pair of repertoires: the core
             cause repertoire and core effect repertoire of a mechanism, which
             are maximally different than the unconstrained cause/effect
-            repertoires (*i.e.*, those that maximize |phi|). Here, we return
-            only information corresponding to one direction, |past| or
+            repertoires (*i.e.*, those that maximize |small_phi|). Here, we
+            return only information corresponding to one direction, |past| or
             |future|, i.e., we return a core cause or core effect, not the pair
             of them.
         """
@@ -785,9 +787,9 @@ class Subsystem:
         return self.find_mice('future', mechanism, purviews=purviews)
 
     def phi_max(self, mechanism):
-        """Return the |phi_max| of a mechanism.
+        """Return the |small_phi_max| of a mechanism.
 
-        This is the maximum of |phi| taken over all possible purviews."""
+        This is the maximum of |small_phi| taken over all possible purviews."""
         return min(self.core_cause(mechanism).phi,
                    self.core_effect(mechanism).phi)
 
@@ -801,10 +803,7 @@ class Subsystem:
     def null_concept(self):
         """Return the null concept of this subsystem, a point in concept space
         identified with the unconstrained cause and effect repertoire of this
-        subsystem.
-
-        For information on the indices used in the returned array, see
-        :ref:concept-space."""
+        subsystem."""
         # Unconstrained cause repertoire.
         cause_repertoire = self.cause_repertoire((), ())
         # Unconstrained effect repertoire.

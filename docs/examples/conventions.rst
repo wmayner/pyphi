@@ -8,6 +8,8 @@ Throughout PyPhi, if ``CM`` is a connectivity matrix, then |CM[i][j] = 1| means
 that node |i| is connected to node |j|.
 
 
+.. _loli-convention:
+
 LOLI: Low-Order bits correspond to Low-Index nodes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

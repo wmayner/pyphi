@@ -168,6 +168,11 @@ file, both, or none. See the `documentation on Python's logger
     >>> pyphi.config.LOGGING_CONFIG['stdout']['level']
     'INFO'
 
+- Controls whether the current configuration is printed when PyPhi is imported.
+
+    >>> pyphi.config.LOG_CONFIG_ON_IMPORT
+    True
+
 
 Numerical precision
 ~~~~~~~~~~~~~~~~~~~
@@ -273,6 +278,8 @@ config = {
             'level': 'INFO'
         }
     },
+    # Controls whether the current configuration is printed upon import.
+    'LOG_CONFIG_ON_IMPORT': True,
     # The number of decimal points to which phi values are considered accurate
     'PRECISION': 6,
     # Controls whether network states are validated upon network creation.

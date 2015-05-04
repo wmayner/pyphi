@@ -57,7 +57,7 @@ options and their defaults.
 """
 
 __title__ = 'pyphi'
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
@@ -65,9 +65,10 @@ __author_website__ = 'http://willmayner.com'
 __copyright__ = 'Copyright 2014-2015 Will Mayner'
 
 
-from .network import Network
-from .subsystem import Subsystem
-from . import compute, constants, config, db, examples
+from . import network, subsystem, compute, constants, config, db, examples
+
+Network = network.Network
+Subsystem = subsystem.Subsystem
 
 import logging
 import logging.config
@@ -105,8 +106,9 @@ logging.config.dictConfig({
 log = logging.getLogger(__name__)
 
 # Log the currently loaded configuration.
-if config.file_loaded:
-    log.info('Loaded configuration from ' + config.PYPHI_CONFIG_FILENAME)
-else:
-    log.info("Using default configuration (no config file provided)")
-log.info('Current PyPhi configuration:\n' + config.get_config_string())
+if config.LOG_CONFIG_ON_IMPORT:
+    if config.file_loaded:
+        log.info('Loaded configuration from ' + config.PYPHI_CONFIG_FILENAME)
+    else:
+        log.info("Using default configuration (no config file provided)")
+    log.info('Current PyPhi configuration:\n' + config.get_config_string())

@@ -108,9 +108,9 @@ pygments_style = 'sphinx'
 # Substitutions for math elements to make docstrings more readable
 rst_prolog = """
 .. |big_phi| replace:: :math:`\\Phi`
+.. |big_phi_max| replace:: :math:`\\Phi^{\\textrm{max}}`
 .. |small_phi| replace:: :math:`\\varphi`
-.. |phi_max| replace:: :math:`\\varphi^{\\textrm{max}}`
-.. |phi| replace:: :math:`\\varphi`
+.. |small_phi_max| replace:: :math:`\\varphi^{\\textrm{max}}`
 .. |A| replace:: :math:`A`
 .. |B| replace:: :math:`B`
 .. |C| replace:: :math:`C`
@@ -132,6 +132,7 @@ rst_prolog = """
 .. |0,0,1| replace:: :math:`\{0,0,1\}`
 .. |N_0 = 0, N_1 = 0, N_2 = 1| replace:: :math:`\{N_0 = 0, N_1 = 0, N_2 = 1\}`
 .. |ith| replace:: :math:`i^{\\textrm{th}}`
+.. |jth| replace:: :math:`j^{\\textrm{th}}`
 .. |r| replace:: :math:`r`
 .. |n| replace:: :math:`n`
 .. |N| replace:: :math:`N`

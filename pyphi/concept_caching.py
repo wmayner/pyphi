@@ -262,7 +262,7 @@ class NormalizedConcept:
 
     Attributes:
         mechanism (NormalizedMechanism): The mechanism the concept consists of.
-        phi (float): The |phi| value of the concept.
+        phi (float): The |small_phi| value of the concept.
         cause (NormalizedMice): The concept's normalized core cause.
         effect (NormalizedMice): The concept's normalized core effect.
     """
