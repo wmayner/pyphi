@@ -33,12 +33,15 @@ def cut_mechanism_indices(subsystem, cut):
                 (set(indices) & set(cut[1])))
     return tuple(filter(split_by_cut, powerset(subsystem.node_indices)))
 
+
 def mechanism_split_by_cut(mechanism_indices, cut):
     return ((set(mechanism_indices) & set(cut[0])) and
             (set(mechanism_indices) & set(cut[1])))
 
+
 def cut_mice(mice, cut_matrix):
     return np.any(mice._relevant_connections * cut_matrix == 1)
+
 # ============================================================================
 
 
@@ -289,16 +292,10 @@ def hamming_emd(d1, d2):
     Singleton dimensions are sqeezed out.
     """
     d1, d2 = d1.squeeze(), d2.squeeze()
-    #dim = d1.ndim
-    #d1, d2 = d1.ravel(), d2.ravel()
-    #index = np.not_equal(d1, d2)
-    #if not np.any(index):
-    #    return 0
-    #else:
-        # Compute the EMD with Hamming distance between states as the
-        # transportation cost function
-    #    return emd(d1[index], d2[index], _hamming_matrix(dim)[np.ix_(index,index)])
+    # Compute the EMD with Hamming distance between states as the
+    # transportation cost function.
     return emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
+
 
 def bipartition(a):
     """ Return a list of bipartitions for a sequence.
@@ -317,6 +314,7 @@ def bipartition(a):
 
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
             for part0_idx, part1_idx in bipartition_indices(len(a))]
+
 
 # TODO? [optimization] optimize this to use indices rather than nodes
 # TODO? are native lists really slower
@@ -349,14 +347,13 @@ def directed_bipartition_of_one(a):
         ``list`` -- A list of tuples containing each of the two partitions.
 
     Example:
-        >>> from pyphi.utils import directed_bipartition, directed_bipartition_of_one
+        >>> from pyphi.utils import directed_bipartition_of_one
         >>> directed_bipartition_of_one((1,2,3))
         [((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,))]
     """
-    def is_length_one(part):
-        return len(part[0])==1 or len(part[1])==1
-    bipartitions = directed_bipartition(a)
-    return list(filter(is_length_one, bipartitions))
+    return [partition for partition in directed_bipartition(a)
+            if len(partition[0]) == 1 or len(partition[1]) == 1]
+
 
 @cache(cache={}, maxmem=None)
 def directed_bipartition_indices(N):
@@ -387,6 +384,7 @@ def directed_bipartition_indices(N):
         result.append((tuple(part[1]), tuple(part[0])))
     return result
 
+
 @cache(cache={}, maxmem=None)
 def bipartition_indices(N):
     """Returns indices for bipartitions of a sequence.
@@ -416,9 +414,9 @@ def bipartition_indices(N):
         result.append((tuple(part[1]), tuple(part[0])))
     return result
 
+
 # Internal helper methods
 # =============================================================================
-
 
 # Load precomputed hamming matrices.
 import os
@@ -426,8 +424,10 @@ _ROOT = os.path.abspath(os.path.dirname(__file__))
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
 _hamming_matrices = [
     np.load(os.path.join(_ROOT, 'data', 'hamming_matrices', str(i) + '.npy'))
-    for i in range( _NUM_PRECOMPUTED_HAMMING_MATRICES)
+    for i in range(_NUM_PRECOMPUTED_HAMMING_MATRICES)
 ]
+
+
 # TODO extend to nonbinary nodes
 def _hamming_matrix(N):
     """Return a matrix of Hamming distances for the possible states of |N|
@@ -478,43 +478,47 @@ def connectivity_matrix_to_tpm(network):
     Returns:
         ``np.ndarray`` -- A transition probability matrix.
     """
+    pass
+
 
 def block_cm(cm):
-        """ Determining if a given connectivity matrix be rearranged as a block
-        connectivity matrix. If so, the corresponding mechanism/purview is
-        trivially reducible."""
-        # validate the cm
-        In = cm.shape[1]
-        if np.any(np.sum(cm,1)==0):
-            return True
-        if np.all(np.sum(cm > 0,1) == 1):
-            return True
-        m_ind = np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]
-        p_ind = np.where(cm[m_ind,:] > 0)[0]
-        temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
-        while 1:
-            if np.all(temp==m_ind):
-                break
-            else:
-                m_ind = temp
-                p_ind = np.where(np.sum(cm[m_ind,:], 0)  > 0)[0]
-                temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
-                if np.all(p_ind  == [i for i in range(In)]):
-                    return False
+    """Determining if a given connectivity matrix be rearranged as a block
+    connectivity matrix.
+
+    If so, the corresponding mechanism/purview is trivially reducible.
+    """
+    # Validate the connectivity matrix.
+    num_inputs = cm.shape[1]
+    if np.any(np.sum(cm, 1) == 0):
         return True
+    if np.all(np.sum(cm > 0, 1) == 1):
+        return True
+    m_ind = np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]
+    p_ind = np.where(cm[m_ind, :] > 0)[0]
+    temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
+    while 1:
+        if np.all(temp == m_ind):
+            break
+        else:
+            m_ind = temp
+            p_ind = np.where(np.sum(cm[m_ind, :], 0) > 0)[0]
+            temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
+            if np.all(p_ind == [i for i in range(num_inputs)]):
+                return False
+    return True
+
 
 # TODO test phi max helpers
 def not_block_reducible(cm, nodes1, nodes2):
     """Tests connectivity of one set of nodes to another.
 
     Args:
-        cm (np.ndarray): The network connectivity matrix
+        cm (np.ndarray): The network's connectivity matrix.
         nodes1 (tuple(Node)): The nodes whose outputs to ``nodes2`` will be
             tested.
         nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
             be tested.
     """
-
     # If either set of nodes is empty, return (vacuously) True.
     if not nodes1 or not nodes2:
         return False
@@ -531,7 +535,6 @@ def not_block_reducible(cm, nodes1, nodes2):
         return not block_cm(cm)
     else:
         return True
-
 
 
 # Custom printing methods

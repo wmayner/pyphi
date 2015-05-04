@@ -110,12 +110,6 @@ def test_find_mice_empty(s):
                for mice in expected)
 
 
-# Test input validation
-def test_find_mice_validation_bad_direction(s):
-    mechanism = (s.nodes[0],)
-    with pytest.raises(ValueError):
-        s.find_mice('doge', mechanism)
-
 # }}}
 # `phi_max` tests {{{
 # ===================

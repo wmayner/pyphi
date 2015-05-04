@@ -11,26 +11,32 @@ import numpy as np
 from . import validate, utils, json, convert, config
 from .constants import DIRECTIONS, PAST, FUTURE
 
-# TODO!!! raise error if user tries to change TPM or CM, double-check and document
-# that states can be changed
+# TODO!!! raise error if user tries to change TPM or CM, double-check and
+# document that states can be changed
 
 
 # Methods to compute reducible purviews for any mechanism, so they do not have
 # to be checked in concept calculation.
 
+
 def list_past_purview(self, mechanism):
     return _build_purview_list(self, mechanism, 'past')
+
 
 def list_future_purview(self, mechanism):
     return _build_purview_list(self, mechanism, 'future')
 
+
 def _build_purview_list(self, mechanism, direction):
     if direction == DIRECTIONS[PAST]:
         return [purview for purview in utils.powerset(self._node_indices)
-                if utils.not_block_reducible(self.connectivity_matrix, purview, mechanism)]
+                if utils.not_block_reducible(self.connectivity_matrix, purview,
+                                             mechanism)]
     elif direction == DIRECTIONS[FUTURE]:
         return [purview for purview in utils.powerset(self._node_indices)
-                if utils.not_block_reducible(self.connectivity_matrix, mechanism, purview)]
+                if utils.not_block_reducible(self.connectivity_matrix,
+                                             mechanism, purview)]
+
 
 class Network:
 
@@ -87,7 +93,8 @@ class Network:
 
     # TODO make tpm also optional when implementing logical network definition
     def __init__(self, tpm, current_state, past_state,
-                 connectivity_matrix=None, perturb_vector=None, purview_cache=None):
+                 connectivity_matrix=None, perturb_vector=None,
+                 purview_cache=None):
         self.tpm = tpm
 
         self._size = self.tpm.shape[-1]
@@ -102,10 +109,9 @@ class Network:
         if purview_cache is None:
             purview_cache = dict()
         self.purview_cache = purview_cache
-        # If CACHE_POTENTIAL_PURVIEWS then pre-compute
-        # the list for each mechanism. This will save
-        # time if results are desired for more than
-        # one subsystem of the network.
+        # If CACHE_POTENTIAL_PURVIEWS is set to True then pre-compute the list
+        # for each mechanism. This will save time if results are desired for
+        # more than one subsystem of the network.
         if config.CACHE_POTENTIAL_PURVIEWS:
             self.build_purview_cache()
         # Validate the entire network.
@@ -216,7 +222,8 @@ class Network:
         for index in utils.powerset(self._node_indices):
             for direction in DIRECTIONS:
                 key = (direction, index)
-                self.purview_cache[key] = _build_purview_list(self, index, direction)
+                self.purview_cache[key] = _build_purview_list(self, index,
+                                                              direction)
 
     def __repr__(self):
         return ("Network(" + ", ".join([repr(self.tpm),
