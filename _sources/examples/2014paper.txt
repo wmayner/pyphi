@@ -228,7 +228,7 @@ been all on is 1:
     >>> cr[(1, 1, 1)]
     1.0
 
-Now the cause information specified by :math:`A = 1` is 1.5:
+Now the cause information specified by :math:`A = 1` is :math:`1.5`:
 
     >>> subsystem.cause_info((A,), (B, C, D))
     1.5
@@ -649,8 +649,8 @@ into, use :func:`~pyphi.compute.condensed`:
 We find that there are 3 complexes: the major complex :math:`ABC` with
 :math:`\Phi \approx 1.92`, and the two minor complexes :math:`DE` with
 :math:`\Phi \approx 0.028` and :math:`FG` with :math:`\Phi \approx 0.069` (note
-that there is typo in the figure; :math:`\FG`'s :math:`\Phi` value should be
-:math:`\0.069`).
+that there is typo in the figure; :math:`FG`'s :math:`\Phi` value should be
+:math:`0.069`).
 
     >>> len(condensed)
     3
