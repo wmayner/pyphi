@@ -7,207 +7,15 @@ Represents a candidate set for |phi| calculation.
 """
 
 import os
-import types
 import psutil
 import numpy as np
 from .constants import DIRECTIONS, PAST, FUTURE
-from .cache import cache
 from . import constants, config, validate, utils, convert, json
 from .models import Cut, Mip, Part, Mice, Concept
 from .node import Node
 import itertools
 from .network import list_past_purview, list_future_purview
 
-
-def cause_repertoire(self, mechanism, purview):
-    """Return the cause repertoire of a mechanism over a purview.
-
-    Args:
-        mechanism (tuple(Node)): The mechanism for which to calculate the
-            cause repertoire.
-        purview (tuple(Node)): The purview over which to calculate the
-            cause repertoire.
-
-    Returns:
-        ``np.ndarray`` -- The cause repertoire of the mechanism over the
-        purview.
-    """
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # NOTE: In the Matlab version's terminology,
-    #
-    # "Cause repertoire" is "backward repertoire"
-    # "Mechanism" is "numerator"
-    # "Purview" is "denominator"
-    # ``conditioned_tpm`` is ``next_num_node_distribution``
-    # ``cjd`` is ``numerator_conditional_joint``
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # If the mechanism is empty, nothing is specified about the past state
-    # of the purview, so just return the purview's maximum entropy
-    # distribution.
-    purview_indices = convert.nodes2indices(purview)
-
-    # If the purview is empty, the distribution is empty, so return the
-    # multiplicative identity.
-    if not purview:
-        return np.array([1.0])
-    # Calculate the maximum entropy distribution. If there is no mechanism,
-    # return it.
-    max_entropy_dist = utils.max_entropy_distribution(
-        purview_indices,
-        self.network.size,
-        tuple(self.perturb_vector[i] for i in purview_indices))
-    if not mechanism:
-        return max_entropy_dist
-    # Preallocate the mechanism's conditional joint distribution.
-    # TODO extend to nonbinary nodes
-    cjd = np.ones(tuple(2 if i in purview_indices else
-                        1 for i in self.network.node_indices))
-    # Loop over all nodes in this mechanism, successively taking the
-    # product (with expansion/broadcasting of singleton dimensions) of each
-    # individual node's TPM (conditioned on that node's state) in order to
-    # get the conditional joint distribution for the whole mechanism
-    # (conditioned on the whole mechanism's state). After normalization,
-    # this is the cause repertoire. Normalization happens after this loop.
-    for mechanism_node in mechanism:
-        inputs = set(mechanism_node.inputs)
-
-        # TODO extend to nonbinary nodes
-        # We're conditioning on this node's state, so take the probability
-        # table for the node being in that state.
-        node_state = self.network.current_state[mechanism_node.index]
-        conditioned_tpm = mechanism_node.past_tpm[node_state]
-        # Collect the nodes that are not in the purview and have
-        # connections to this node.
-        non_purview_inputs = inputs - set(purview)
-        # Marginalize-out the non-purview inputs.
-        for node in non_purview_inputs:
-            conditioned_tpm = utils.marginalize_out(
-                node.index,
-                conditioned_tpm,
-                self.perturb_vector[node.index])
-        # Incorporate this node's CPT into the mechanism's conditional
-        # joint distribution by taking the product (with singleton
-        # broadcasting, which spreads the singleton probabilities in the
-        # collapsed dimensions out along the whole distribution in the
-        # appropriate way.
-        cjd *= conditioned_tpm
-    # If the perturbation vector is not maximum entropy, then weight the
-    # probabilities before normalization.
-    if not np.all(self.perturb_vector == 0.5):
-        cjd *= max_entropy_dist
-    # Finally, normalize to get the mechanism's actual conditional joint
-    # distribution.
-    cjd_sum = np.sum(cjd)
-    # Don't divide by zero
-    if cjd_sum != 0:
-        cjd /= cjd_sum
-    # NOTE: we're not returning a distribution over all the nodes in the
-    # network, only a distribution over the nodes in the purview. This is
-    # because we never actually need to compare proper cause/effect
-    # repertoires, which are distributions over the whole network; we need
-    # only compare the purview-repertoires with each other, since cut vs.
-    # whole comparisons are only ever done over the same purview.
-    return cjd
-
-
-def effect_repertoire(self, mechanism, purview):
-    """Return the effect repertoire of a mechanism over a purview.
-
-    Args:
-        mechanism (tuple(Node)): The mechanism for which to calculate the
-            effect repertoire.
-        purview (tuple(Node)): The purview over which to calculate the
-            effect repertoire.
-
-    Returns:
-        ``np.ndarray`` -- The effect repertoire of the mechanism over the
-        purview.
-    """
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # NOTE: In the Matlab version's terminology,
-    #
-    # "Effect repertoire" is "forward repertoire"
-    # "Mechanism" is "numerator"
-    # "Purview" is "denominator"
-    # ``conditioned_tpm`` is ``next_denom_node_distribution``
-    # ``accumulated_cjd`` is ``denom_conditional_joint``
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    purview_indices = convert.nodes2indices(purview)
-    # If the purview is empty, the distribution is empty, so return the
-    # multiplicative identity.
-    if not purview:
-        return np.array([1.0])
-    # Preallocate the purview's joint distribution
-    # TODO extend to nonbinary nodes
-    accumulated_cjd = np.ones(
-        [1] * self.network.size + [2 if i in purview_indices else
-                                   1 for i in self.network.node_indices])
-    # Loop over all nodes in the purview, successively taking the product
-    # (with 'expansion'/'broadcasting' of singleton dimensions) of each
-    # individual node's TPM in order to get the joint distribution for the
-    # whole purview. After conditioning on the mechanism's state and that
-    # of external nodes, this will be the effect repertoire as a
-    # distribution over the purview.
-    for purview_node in purview:
-        # Unlike in calculating the cause repertoire, here the TPM is not
-        # conditioned yet. `tpm` is an array with twice as many dimensions
-        # as the network has nodes. For example, in a network with three
-        # nodes {n0, n1, n2}, the CPT for node n1 would have shape
-        # (2,2,2,1,2,1). The CPT for the node being off would be given by
-        # `tpm[:,:,:,0,0,0]`, and the CPT for the node being on would be
-        # given by `tpm[:,:,:,0,1,0]`. The second half of the shape is for
-        # indexing based on the current node's state, and the first half of
-        # the shape is the CPT indexed by network state, so that the
-        # overall CPT can be broadcast over the `accumulated_cjd` and then
-        # later conditioned by indexing.
-
-        inputs = set(purview_node.inputs)
-        # TODO extend to nonbinary nodes
-        # Rotate the dimensions so the first dimension is the last (the
-        # first dimension corresponds to the state of the node)
-        tpm = purview_node.current_tpm
-        tpm = tpm.transpose(list(range(tpm.ndim))[1:] + [0])
-        # Expand the dimensions so the TPM can be indexed as described
-        first_half_shape = list(tpm.shape[:-1])
-        second_half_shape = [1] * self.network.size
-        second_half_shape[purview_node.index] = 2
-        tpm = tpm.reshape(first_half_shape + second_half_shape)
-        # Marginalize-out non-mechanism purview inputs.
-        non_mechanism_inputs = inputs - set(mechanism)
-        for node in non_mechanism_inputs:
-            tpm = utils.marginalize_out(node.index, tpm,
-                                        self.perturb_vector[node.index])
-        # Incorporate this node's CPT into the future_nodes' conditional
-        # joint distribution by taking the product (with singleton
-        # broadcasting).
-        accumulated_cjd = accumulated_cjd * tpm
-
-    # Now we condition on the state of mechanism nodes (by collapsing the
-    # CJD onto those states):
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Collect all nodes with inputs to any purview node.
-    inputs_to_purview = set.union(*[set(node.inputs) for node in purview])
-    # Collect mechanism nodes with inputs to any purview node.
-    fixed_inputs = convert.nodes2indices(inputs_to_purview & set(mechanism))
-    # Initialize the conditioning indices, taking the slices as singleton
-    # lists-of-lists for later flattening with `chain`.
-    accumulated_cjd = utils.condition_tpm(
-        accumulated_cjd, fixed_inputs, self.network.current_state)
-    # The distribution still has twice as many dimensions as the network
-    # has nodes, with the first half of the shape now all singleton
-    # dimensions, so we reshape to eliminate those singleton dimensions
-    # (the second half of the shape may also contain singleton dimensions,
-    # depending on how many nodes are in the purview).
-    accumulated_cjd = accumulated_cjd.reshape(
-        accumulated_cjd.shape[self.network.size:])
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Note that we're not returning a distribution over all the nodes in
-    # the network, only a distribution over the nodes in the purview. This
-    # is because we never actually need to compare proper cause/effect
-    # repertoires, which are distributions over the whole network; we need
-    # only compare the purview-repertoires with each other, since cut vs.
-    # whole comparisons are only ever done over the same purview.
-    return accumulated_cjd
 
 
 # TODO! go through docs and make sure to say when things can be None
@@ -239,7 +47,8 @@ class Subsystem:
             external nodes.
     """
 
-    def __init__(self, node_indices, network, cut=None, mice_cache=None):
+    def __init__(self, node_indices, network, cut=None, mice_cache=None,
+                 repertoire_cache=None, cache_info=None):
         # The network this subsystem belongs to.
         self.network = network
         # Remove duplicates, sort, and ensure indices are native Python `int`s
@@ -283,20 +92,14 @@ class Subsystem:
         if mice_cache is None:
             mice_cache = dict()
         self._mice_cache = mice_cache
-        # Cause repertoire cache.
-        self._cr_cache = {}
-        # Effect repertoire cache.
-        self._er_cache = {}
-        # Use the general-purpose cache for cause and effect repertoire
-        # calculations.
-        self.cause_repertoire = types.MethodType(
-            cache(cache=self._cr_cache)(
-                cause_repertoire),
-            self)
-        self.effect_repertoire = types.MethodType(
-            cache(cache=self._er_cache)(
-                effect_repertoire),
-            self)
+        # Repertoire cache.
+        if repertoire_cache is None:
+            repertoire_cache = dict()
+        self._repertoire_cache = repertoire_cache
+        # Cache info
+        if cache_info is None:
+            cache_info = [0,0,0]
+        self.cache_info = cache_info
 
     def _find_cut_matrix(self, cut):
         subsystem_indices = convert.nodes2indices(self.nodes)
@@ -304,32 +107,6 @@ class Subsystem:
         list_of_cuts = np.array(list(itertools.product(cut[0], cut[1])))
         cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
         return cut_matrix[np.ix_(subsystem_indices, subsystem_indices)]
-
-    def __getstate__(self):
-        d = self.__dict__.copy()
-        # Get the cache_info to preserve the hit and miss count
-        # after pickling
-        d['cr_cache_info'] = self.cause_repertoire.cache_info()[:]
-        d['er_cache_info'] = self.effect_repertoire.cache_info()[:]
-        del d['cause_repertoire']
-        del d['effect_repertoire']
-        return d
-
-    def __setstate__(self, d):
-        # Set the hit and miss count post-pickling
-        hits = d['cr_cache_info'][0]
-        misses = d['cr_cache_info'][1]
-        d['cause_repertoire'] = types.MethodType(
-            cache(cache=d['_cr_cache'])(
-                cause_repertoire, hits, misses),
-            self)
-        hits = d['er_cache_info'][0]
-        misses = d['er_cache_info'][1]
-        d['effect_repertoire'] = types.MethodType(
-            cache(cache=d['_er_cache'])(
-                effect_repertoire, hits, misses),
-            self)
-        self.__dict__ = d
 
     def __repr__(self):
         return "Subsystem(" + repr(self.nodes) + ")"
@@ -371,6 +148,9 @@ class Subsystem:
     def __hash__(self):
         return self._hash
 
+    def __del__(self):
+        pass
+
     def json_dict(self):
         return {
             'node_indices': json.make_encodable(self.node_indices),
@@ -382,6 +162,238 @@ class Subsystem:
             return ()
         else:
             return tuple(n for n in self.nodes if n.index in indices)
+
+    def cause_repertoire(self, mechanism, purview):
+        """Return the cause repertoire of a mechanism over a purview.
+
+        Args:
+            mechanism (tuple(Node)): The mechanism for which to calculate the
+            cause repertoire.
+            purview (tuple(Node)): The purview over which to calculate the
+            cause repertoire.
+        Returns:
+            ``np.ndarray`` -- The cause repertoire of the mechanism over the
+            purview.
+        """
+        # Return a repertoire if there's a hit.
+        cached_repertoire = self._get_cached_repertoire(DIRECTIONS[PAST], mechanism, purview)
+        if isinstance(cached_repertoire, np.ndarray):
+            self.cache_info[0] += 1
+            return cached_repertoire
+        self.cache_info[1] += 1
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # NOTE: In the Matlab version's terminology,
+        #
+        # "Cause repertoire" is "backward repertoire"
+        # "Mechanism" is "numerator"
+        # "Purview" is "denominator"
+        # ``conditioned_tpm`` is ``next_num_node_distribution``
+        # ``cjd`` is ``numerator_conditional_joint``
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # If the mechanism is empty, nothing is specified about the past state
+        # of the purview, so just return the purview's maximum entropy
+        # distribution.
+        purview_indices = convert.nodes2indices(purview)
+
+        # If the purview is empty, the distribution is empty, so return the
+        # multiplicative identity.
+        if not purview:
+            cjd = np.array([1.0])
+            key = (DIRECTIONS[PAST], convert.nodes2indices(mechanism), convert.nodes2indices(purview))
+            if key not in self._repertoire_cache:
+                self.cache_info[2] += 1
+                self._repertoire_cache[key] = cjd
+            return cjd
+        # Calculate the maximum entropy distribution. If there is no mechanism,
+        # return it.
+        max_entropy_dist = utils.max_entropy_distribution(
+            purview_indices,
+            self.network.size,
+            tuple(self.perturb_vector[i] for i in purview_indices))
+        if not mechanism:
+            cjd = max_entropy_dist
+            key = (DIRECTIONS[PAST], convert.nodes2indices(mechanism), convert.nodes2indices(purview))
+            if key not in self._repertoire_cache:
+                self.cache_info[2] += 1
+                self._repertoire_cache[key] = cjd
+            return cjd
+        # Preallocate the mechanism's conditional joint distribution.
+        # TODO extend to nonbinary nodes
+        cjd = np.ones(tuple(2 if i in purview_indices else
+                            1 for i in self.network.node_indices))
+        # Loop over all nodes in this mechanism, successively taking the
+        # product (with expansion/broadcasting of singleton dimensions) of each
+        # individual node's TPM (conditioned on that node's state) in order to
+        # get the conditional joint distribution for the whole mechanism
+        # (conditioned on the whole mechanism's state). After normalization,
+        # this is the cause repertoire. Normalization happens after this loop.
+        for mechanism_node in mechanism:
+            inputs = set(mechanism_node.inputs)
+            # TODO extend to nonbinary nodes
+            # We're conditioning on this node's state, so take the probability
+            # table for the node being in that state.
+            node_state = self.network.current_state[mechanism_node.index]
+            conditioned_tpm = mechanism_node.past_tpm[node_state]
+            # Collect the nodes that are not in the purview and have
+            # connections to this node.
+            non_purview_inputs = inputs - set(purview)
+            # Marginalize-out the non-purview inputs.
+            for node in non_purview_inputs:
+                conditioned_tpm = utils.marginalize_out(
+                    node.index,
+                    conditioned_tpm,
+                    self.perturb_vector[node.index])
+            # Incorporate this node's CPT into the mechanism's conditional
+            # joint distribution by taking the product (with singleton
+            # broadcasting, which spreads the singleton probabilities in the
+            # collapsed dimensions out along the whole distribution in the
+            # appropriate way.
+            cjd *= conditioned_tpm
+        # If the perturbation vector is not maximum entropy, then weight the
+        # probabilities before normalization.
+        if not np.all(self.perturb_vector == 0.5):
+            cjd *= max_entropy_dist
+        # Finally, normalize to get the mechanism's actual conditional joint
+        # distribution.
+        cjd_sum = np.sum(cjd)
+        # Don't divide by zero
+        if cjd_sum != 0:
+            cjd /= cjd_sum
+        # NOTE: we're not returning a distribution over all the nodes in the
+        # network, only a distribution over the nodes in the purview. This is
+        # because we never actually need to compare proper cause/effect
+        # repertoires, which are distributions over the whole network; we need
+        # only compare the purview-repertoires with each other, since cut vs.
+        # whole comparisons are only ever done over the same purview.
+        key = (DIRECTIONS[PAST], convert.nodes2indices(mechanism), convert.nodes2indices(purview))
+        if key not in self._repertoire_cache:
+            self.cache_info[2] += 1
+            self._repertoire_cache[key] = cjd
+        return cjd
+
+
+    def effect_repertoire(self, mechanism, purview):
+        """Return the effect repertoire of a mechanism over a purview.
+
+        Args:
+            mechanism (tuple(Node)): The mechanism for which to calculate the
+            effect repertoire.
+
+            purview (tuple(Node)): The purview over which to calculate the
+            effect repertoire.
+
+        Returns:
+            ``np.ndarray`` -- The effect repertoire of the mechanism over the
+            purview.
+        """
+        # Return a repertoire if there's a hit.
+        cached_repertoire = self._get_cached_repertoire(DIRECTIONS[FUTURE], mechanism, purview)
+        if isinstance(cached_repertoire, np.ndarray):
+            self.cache_info[0] += 1
+            return cached_repertoire
+        self.cache_info[1] += 1
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # NOTE: In the Matlab version's terminology,
+        #
+        # "Effect repertoire" is "forward repertoire"
+        # "Mechanism" is "numerator"
+        # "Purview" is "denominator"
+        # ``conditioned_tpm`` is ``next_denom_node_distribution``
+        # ``accumulated_cjd`` is ``denom_conditional_joint``
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        purview_indices = convert.nodes2indices(purview)
+        # If the purview is empty, the distribution is empty, so return the
+        # multiplicative identity.
+        if not purview:
+            accumulated_cjd = np.array([1.0])
+            key = (DIRECTIONS[FUTURE], convert.nodes2indices(mechanism), convert.nodes2indices(purview))
+            if key not in self._repertoire_cache:
+                self.cache_info[2] += 1
+                self._repertoire_cache[key] = accumulated_cjd
+            return accumulated_cjd
+        # Preallocate the purview's joint distribution
+        # TODO extend to nonbinary nodes
+        accumulated_cjd = np.ones(
+            [1] * self.network.size + [2 if i in purview_indices else
+                                       1 for i in self.network.node_indices])
+        # Loop over all nodes in the purview, successively taking the product
+        # (with 'expansion'/'broadcasting' of singleton dimensions) of each
+        # individual node's TPM in order to get the joint distribution for the
+        # whole purview. After conditioning on the mechanism's state and that
+        # of external nodes, this will be the effect repertoire as a
+        # distribution over the purview.
+        for purview_node in purview:
+            # Unlike in calculating the cause repertoire, here the TPM is not
+            # conditioned yet. `tpm` is an array with twice as many dimensions
+            # as the network has nodes. For example, in a network with three
+            # nodes {n0, n1, n2}, the CPT for node n1 would have shape
+            # (2,2,2,1,2,1). The CPT for the node being off would be given by
+            # `tpm[:,:,:,0,0,0]`, and the CPT for the node being on would be
+            # given by `tpm[:,:,:,0,1,0]`. The second half of the shape is for
+            # indexing based on the current node's state, and the first half of
+            # the shape is the CPT indexed by network state, so that the
+            # overall CPT can be broadcast over the `accumulated_cjd` and then
+            # later conditioned by indexing.
+            inputs = set(purview_node.inputs)
+            # TODO extend to nonbinary nodes
+            # Rotate the dimensions so the first dimension is the last (the
+            # first dimension corresponds to the state of the node)
+            tpm = purview_node.current_tpm
+            tpm = tpm.transpose(list(range(tpm.ndim))[1:] + [0])
+            # Expand the dimensions so the TPM can be indexed as described
+            first_half_shape = list(tpm.shape[:-1])
+            second_half_shape = [1] * self.network.size
+            second_half_shape[purview_node.index] = 2
+            tpm = tpm.reshape(first_half_shape + second_half_shape)
+            # Marginalize-out non-mechanism purview inputs.
+            non_mechanism_inputs = inputs - set(mechanism)
+            for node in non_mechanism_inputs:
+                tpm = utils.marginalize_out(node.index, tpm,
+                                            self.perturb_vector[node.index])
+            # Incorporate this node's CPT into the future_nodes' conditional
+            # joint distribution by taking the product (with singleton
+            # broadcasting).
+            accumulated_cjd = accumulated_cjd * tpm
+        # Now we condition on the state of mechanism nodes (by collapsing the
+        # CJD onto those states):
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Collect all nodes with inputs to any purview node.
+        inputs_to_purview = set.union(*[set(node.inputs) for node in purview])
+        # Collect mechanism nodes with inputs to any purview node.
+        fixed_inputs = convert.nodes2indices(inputs_to_purview & set(mechanism))
+        # Initialize the conditioning indices, taking the slices as singleton
+        # lists-of-lists for later flattening with `chain`.
+        accumulated_cjd = utils.condition_tpm(
+            accumulated_cjd, fixed_inputs, self.network.current_state)
+        # The distribution still has twice as many dimensions as the network
+        # has nodes, with the first half of the shape now all singleton
+        # dimensions, so we reshape to eliminate those singleton dimensions
+        # (the second half of the shape may also contain singleton dimensions,
+        # depending on how many nodes are in the purview).
+        accumulated_cjd = accumulated_cjd.reshape(
+            accumulated_cjd.shape[self.network.size:])
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Note that we're not returning a distribution over all the nodes in
+        # the network, only a distribution over the nodes in the purview. This
+        # is because we never actually need to compare proper cause/effect
+        # repertoires, which are distributions over the whole network; we need
+        # only compare the purview-repertoires with each other, since cut vs.
+        # whole comparisons are only ever done over the same purview.
+        key = (DIRECTIONS[FUTURE], convert.nodes2indices(mechanism), convert.nodes2indices(purview))
+        if key not in self._repertoire_cache:
+            self._repertoire_cache[key] = accumulated_cjd
+            self.cache_info[2] += 1
+        return accumulated_cjd
+
+    def _get_cached_repertoire(self, direction, mechanism, purview):
+        """Return a cached repertoire if there is one, False otherwise."""
+        mechanism_indices = convert.nodes2indices(mechanism)
+        purview_indices = convert.nodes2indices(purview)
+        if (direction, mechanism_indices, purview_indices) in self._repertoire_cache:
+            cached = self._repertoire_cache[(direction, mechanism_indices, purview_indices)]
+            return cached
+        return False
 
     # TODO check if the cache is faster
     def _get_repertoire(self, direction):
