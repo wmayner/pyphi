@@ -463,6 +463,10 @@ and ``'connectivityMatrix'``:
     tpm = network_dictionary['tpm']
     cm = network_dictionary['connectivityMatrix']
 
+For your convenience, there is a function that does this for you:
+:func:`pyphi.network.from_json()` that takes a path the a JSON file and returns
+a PyPhi network object.
+
 
 Figure 8
 ~~~~~~~~
@@ -553,7 +557,7 @@ Figure 12
 **Assessing the integrated conceptual information Φ of a constellation C.**
 
 To calculate :math:`\Phi^{\textrm{MIP}}` for a candidate set, we use the
-function :func:`~pyphi.compute.big_mip`
+function :func:`~pyphi.compute.big_mip`:
 
     >>> big_mip = pyphi.compute.big_mip(subsystem)
 
@@ -561,9 +565,10 @@ The returned value is a large object containing the :math:`\Phi^{\textrm{MIP}}`
 value, the minimal cut, the constellation of concepts of the whole set and that
 of the partitioned set :math:`C_{\rightarrow}^{\textrm{MIP}}`, the total
 calculation time, the calculation time for just the unpartitioned
-constellation, a reference to the subsystem that was analyzed, and to the
-subsystem with the minimal unidirectional cut applied. For details see the API
-documentation for :class:`~pyphi.models.BigMip` or use ``help(big_mip)``.
+constellation, a reference to the subsystem that was analyzed, and a reference
+to the subsystem with the minimal unidirectional cut applied. For details see
+the API documentation for :class:`~pyphi.models.BigMip` or use
+``help(big_mip)``.
 
 We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
 shown in the figure:
@@ -627,10 +632,35 @@ for you; click the **Load Example** button and select “IIT 3.0 Paper, Figure 1
 Figure 16
 ~~~~~~~~~
 
+**A system can condense into a major complex and minor complexes that may or
+may not interact with it.**
+
+For this figure, we omit nodes :math:`H, I, J, K` and :math:`L`, since the TPM
+of the full 12-node network is very large, and the point can be illustrated
+without them.
+
+    >>> network = pyphi.examples.fig16()
+
 To find the maximal set of non-overlapping complexes that a network condenses
-into, use :func:`~pyphi.compute.condense`:
+into, use :func:`~pyphi.compute.condensed`:
 
     >>> condensed = pyphi.compute.condensed(network)
+
+We find that there are 3 complexes: the major complex :math:`ABC` with
+:math:`\Phi \approx 1.92`, and the two minor complexes :math:`DE` with
+:math:`\Phi \approx 0.028` and :math:`FG` with :math:`\Phi \approx 0.069` (note
+that there is typo in the figure; :math:`\FG`'s :math:`\Phi` value should be
+:math:`\0.069`).
+
+    >>> len(condensed)
+    3
+    >>> ABC, DE, FG = condensed
+    >>> (ABC.subsystem.nodes, ABC.phi)
+    ((n0, n1, n2), 1.916662694926084)
+    >>> (DE.subsystem.nodes, DE.phi)
+    ((n5, n6), 0.06944459259257413)
+    >>> (FG.subsystem.nodes, FG.phi)
+    ((n3, n4), 0.027777936507761905)
 
 There are several other functions available for working with complexes; see the
 documentation for :func:`~pyphi.compute.subsystems`,
