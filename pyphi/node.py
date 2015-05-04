@@ -9,6 +9,7 @@ in the network's list of nodes.
 
 import functools
 import numpy as np
+import weakref
 from marbl import Marbl
 from . import utils
 from .constants import DIRECTIONS, PAST, FUTURE
@@ -58,7 +59,7 @@ class Node:
         # This node's index in the network's list of nodes.
         self.index = index
         # This node's parent subsystem.
-        self.subsystem = subsystem
+        self.subsystem = weakref.ref(subsystem)
         # Label for display.
         self.label = label
         # State of this node.
@@ -75,8 +76,8 @@ class Node:
         # network state, but its last dimension will be gone, since now there's
         # just a single scalar value (this node's state) rather than a
         # state-vector for all the network nodes.
-        past_tpm_on = self.subsystem.past_tpm[..., self.index]
-        current_tpm_on = self.subsystem.current_tpm[..., self.index]
+        past_tpm_on = self.subsystem().past_tpm[..., self.index]
+        current_tpm_on = self.subsystem().current_tpm[..., self.index]
         # Get the TPMs that give the probability of the node being off, rather
         # than on.
         past_tpm_off = 1 - past_tpm_on
@@ -99,7 +100,7 @@ class Node:
             # dimension in this node's squeezed TPM, so we map it to the index
             # of the corresponding dimension and increment the corresponding
             # index for the next one.
-            if i in self._input_indices and i in self.subsystem.node_indices:
+            if i in self._input_indices and i in self.subsystem().node_indices:
                 self._dimension_labels.append(current_non_singleton_dim_index)
                 current_non_singleton_dim_index += 1
             # Boundary nodes and non-input nodes have already been conditioned
@@ -113,7 +114,7 @@ class Node:
             # Marginalize out non-input nodes that are in the subsystem, since
             # the external nodes have already been dealt with as boundary
             # conditions in the subsystem's TPMs.
-            if i not in self._input_indices and i in self.subsystem.node_indices:
+            if i not in self._input_indices and i in self.subsystem().node_indices:
                 past_tpm_on = past_tpm_on.sum(i, keepdims=True) / 2
                 past_tpm_off = past_tpm_off.sum(i, keepdims=True) / 2
                 current_tpm_on = current_tpm_on.sum(i, keepdims=True) / 2
@@ -169,7 +170,7 @@ class Node:
         if self._inputs is not None:
             return self._inputs
         else:
-            self._inputs = [node for node in self.subsystem.nodes if
+            self._inputs = [node for node in self.subsystem().nodes if
                             node.index in self._input_indices]
             return self._inputs
 
@@ -179,7 +180,7 @@ class Node:
         if self._outputs is not None:
             return self._outputs
         else:
-            self._outputs = [node for node in self.subsystem.nodes if
+            self._outputs = [node for node in self.subsystem().nodes if
                              node.index in self._output_indices]
             return self._outputs
 
@@ -246,7 +247,7 @@ class Node:
         Labels are for display only, so two equal nodes may have different
         labels.
         """
-        return (self.index == other.index and self.subsystem == other.subsystem)
+        return (self.index == other.index and self.subsystem() == other.subsystem())
 
     def __ne__(self, other):
         return not self.__eq__(other)
