@@ -323,8 +323,8 @@ represents a maximally irreducible cause (effect).</p>
 <dl class="attribute">
 <dt id="pyphi.models.Mice.purview">
 <tt class="descname">purview</tt><a class="headerlink" href="#pyphi.models.Mice.purview" title="Permalink to this definition">¶</a></dt>
-<dd><p><tt class="docutils literal"><span class="pre">list(Node)</span></tt> &#8211; The purview over which this mechanism&#8217;s <span class="math">\(\varphi\)</span> is
-maximal.</p>
+<dd><p><tt class="docutils literal"><span class="pre">list(Node)</span></tt> &#8211; The purview over which this mechanism&#8217;s <span class="math">\(\varphi\)</span>
+is maximal.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -351,8 +351,8 @@ the purview.</p>
 <dt id="pyphi.models.Concept">
 <em class="property">class </em><tt class="descclassname">pyphi.models.</tt><tt class="descname">Concept</tt><big>(</big><em>phi=None</em>, <em>mechanism=None</em>, <em>cause=None</em>, <em>effect=None</em>, <em>subsystem=None</em>, <em>normalized=False</em><big>)</big><a class="headerlink" href="#pyphi.models.Concept" title="Permalink to this definition">¶</a></dt>
 <dd><p>A star in concept-space.</p>
-<p><cite>phi</cite> is the small-phi_max value. <cite>cause</cite> and <cite>effect</cite> are the MICE objects
-for the past and future, respectively.</p>
+<p>The <tt class="docutils literal"><span class="pre">phi</span></tt> attribute is the <span class="math">\(\varphi^{\textrm{max}}\)</span> value. <tt class="docutils literal"><span class="pre">cause</span></tt> and
+<tt class="docutils literal"><span class="pre">effect</span></tt> are the MICE objects for the past and future, respectively.</p>
 <p>Concepts may be compared with the built-in Python comparison operators
 (<tt class="docutils literal"><span class="pre">&lt;</span></tt>, <tt class="docutils literal"><span class="pre">&gt;</span></tt>, etc.). First, <tt class="docutils literal"><span class="pre">phi</span></tt> values are compared. Then, if these
 are equal up to <tt class="xref py py-const docutils literal"><span class="pre">constants.PRECISION</span></tt>, the size of the mechanism is compared.</p>
@@ -360,8 +360,8 @@ are equal up to <tt class="xref py py-const docutils literal"><span class="pre">
 <dt id="pyphi.models.Concept.phi">
 <tt class="descname">phi</tt><a class="headerlink" href="#pyphi.models.Concept.phi" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>float</em></p>
-<p>The size of the concept. This is the minimum of the <span class="math">\(\varphi\)</span> values of
-the concept&#8217;s core cause and core effect.</p>
+<p>The size of the concept. This is the minimum of the <span class="math">\(\varphi\)</span>
+values of the concept&#8217;s core cause and core effect.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -486,14 +486,6 @@ constellation and this MIP&#8217;s partitioned constellation.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pyphi.models.BigMip.cut">
-<tt class="descname">cut</tt><a class="headerlink" href="#pyphi.models.BigMip.cut" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Cut</em></p>
-<p>The unidirectional cut that makes the least difference to
-the subsystem.</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="pyphi.models.BigMip.unpartitioned_constellation">
 <tt class="descname">unpartitioned_constellation</tt><a class="headerlink" href="#pyphi.models.BigMip.unpartitioned_constellation" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>tuple(Concept)</em></p>
@@ -524,13 +516,6 @@ subsystem is cut.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt>
-<tt class="descname">cut</tt></dt>
-<dd><p><em>Cut</em></p>
-<p>The minimal cut.</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="pyphi.models.BigMip.time">
 <tt class="descname">time</tt><a class="headerlink" href="#pyphi.models.BigMip.time" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>float</em></p>
@@ -546,9 +531,11 @@ unpartitioned constellation.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt>
-<tt class="descname">cut</tt></dt>
-<dd></dd></dl>
+<dt id="pyphi.models.BigMip.cut">
+<tt class="descname">cut</tt><a class="headerlink" href="#pyphi.models.BigMip.cut" title="Permalink to this definition">¶</a></dt>
+<dd><p>The unidirectional cut that makes the least difference to the
+subsystem.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyphi.models.BigMip.__bool__">
@@ -585,7 +572,7 @@ significant amount of <span class="math">\(\Phi\)</span>.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Apr 27, 2015.
+      Last updated on May 04, 2015.
     </p>
   </div>
 

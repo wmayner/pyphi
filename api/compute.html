@@ -208,8 +208,7 @@ constellation.</td>
 <dl class="function">
 <dt id="pyphi.compute.constellation">
 <tt class="descclassname">pyphi.compute.</tt><tt class="descname">constellation</tt><big>(</big><em>subsystem</em>, <em>mechanism_indices_to_check=None</em><big>)</big><a class="headerlink" href="#pyphi.compute.constellation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the conceptual structure of this subsystem. Concepts are
-evaluated in parallel.</p>
+<dd><p>Return the conceptual structure of this subsystem.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -289,26 +288,9 @@ concept.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="pyphi.compute.possible_main_complexes">
-<tt class="descclassname">pyphi.compute.</tt><tt class="descname">possible_main_complexes</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.compute.possible_main_complexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>&#8220;Return a generator of the subsystems of a network that could be a main
-complex.</p>
-<p>This is the just powerset of the nodes that have at least one input and
-output (nodes with no inputs or no outputs cannot be part of a main
-complex, because they do not have a causal link with the rest of the
-subsystem in the past or future, respectively).</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="pyphi.compute.subsystems">
 <tt class="descclassname">pyphi.compute.</tt><tt class="descname">subsystems</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.compute.subsystems" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a generator of all possible subsystems of a network.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pyphi.compute.complexes">
-<tt class="descclassname">pyphi.compute.</tt><tt class="descname">complexes</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.compute.complexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a generator for all irreducible complexes of the network.</p>
 </dd></dl>
 
 <dl class="function">
@@ -320,9 +302,32 @@ at all).</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pyphi.compute.possible_complexes">
+<tt class="descclassname">pyphi.compute.</tt><tt class="descname">possible_complexes</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.compute.possible_complexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8220;Return a generator of the subsystems of a network that could be a
+complex.</p>
+<p>This is the just powerset of the nodes that have at least one input and
+output (nodes with no inputs or no outputs cannot be part of a main
+complex, because they do not have a causal link with the rest of the
+subsystem in the past or future, respectively).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.complexes">
+<tt class="descclassname">pyphi.compute.</tt><tt class="descname">complexes</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.compute.complexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a generator for all irreducible complexes of the network.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyphi.compute.main_complex">
 <tt class="descclassname">pyphi.compute.</tt><tt class="descname">main_complex</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.compute.main_complex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the main complex of the network.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.condensed">
+<tt class="descclassname">pyphi.compute.</tt><tt class="descname">condensed</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.compute.condensed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the set of maximal non-overlapping complexes.</p>
 </dd></dl>
 
 </div>
@@ -346,7 +351,7 @@ at all).</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Apr 27, 2015.
+      Last updated on May 04, 2015.
     </p>
   </div>
 

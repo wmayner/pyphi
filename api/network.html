@@ -139,6 +139,22 @@
 <p>Represents the network of interest. This is the primary object of PyPhi and the
 context of all <span class="math">\(\varphi\)</span> and <span class="math">\(\Phi\)</span> computation.</p>
 <dl class="function">
+<dt id="pyphi.network.from_json">
+<tt class="descclassname">pyphi.network.</tt><tt class="descname">from_json</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pyphi.network.from_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a JSON representation of a network to a PyPhi network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; A path to a JSON file representing a network.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">Network</span></tt> &#8211; The corresponding PyPhi network object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyphi.network.list_past_purview">
 <tt class="descclassname">pyphi.network.</tt><tt class="descname">list_past_purview</tt><big>(</big><em>self</em>, <em>mechanism</em><big>)</big><a class="headerlink" href="#pyphi.network.list_past_purview" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -316,7 +332,7 @@ past state.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Apr 27, 2015.
+      Last updated on May 04, 2015.
     </p>
   </div>
 

@@ -274,16 +274,17 @@ argument and the past state is the third argument):</p>
 <p>Now the network shown in the figure is stored in a variable called <tt class="docutils literal"><span class="pre">network</span></tt>.
 You can find more information about the network object we just created by
 running <tt class="docutils literal"><span class="pre">help(network)</span></tt> or by consulting the <a class="reference external" href="http://en.wikipedia.org/wiki/Application_programming_interface">API</a>
-documentation here: <a class="reference internal" href="../api/network.html#module-pyphi.network" title="pyphi.network"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.network</span></tt></a>.</p>
+documentation for <a class="reference internal" href="../api/network.html#pyphi.network.Network" title="pyphi.network.Network"><tt class="xref py py-class docutils literal"><span class="pre">Network</span></tt></a>.</p>
 <p>The next step is to define the candidate set shown in the figure, consisting of
 nodes <span class="math">\(A, B\)</span> and <span class="math">\(C\)</span>. In PyPhi, a candidate set for <span class="math">\(\Phi\)</span>
-evaluation is represented by the <tt class="xref py py-class docutils literal"><span class="pre">pyphi.Subsystem</span></tt> class. Subsystems are
-built by giving the indices of the nodes in the subsystem and the network it is
-a part of. So, we define our candidate set like so:</p>
+evaluation is represented by the <a class="reference internal" href="../api/subsystem.html#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><tt class="xref py py-class docutils literal"><span class="pre">Subsystem</span></tt></a> class.
+Subsystems are built by giving the indices of the nodes in the subsystem and
+the network it is a part of. So, we define our candidate set like so:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ABC</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">network</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>For more information on the subsystem object, see <a class="reference internal" href="../api/subsystem.html#module-pyphi.subsystem" title="pyphi.subsystem"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.subsystem</span></tt></a>.</p>
+<p>For more information on the subsystem object, see the API documentation for
+<a class="reference internal" href="../api/subsystem.html#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><tt class="xref py py-class docutils literal"><span class="pre">Subsystem</span></tt></a>.</p>
 <p>That covers the basic workflow with PyPhi and introduces the two types of
 objects we use to represent and analyze networks. First you define the network
 of interest with a TPM, current/past state, and connectivity matrix, then
@@ -523,8 +524,8 @@ mechanism over a purview:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mip_e</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">mip_future</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">ABC</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>These objects contain the <span class="math">\(\varphi^{\textrm{MIP}_{\textrm{cause}}}\)</span> and
-<span class="math">\(\varphi^{\textrm{MIP}_{\textrm{effect}}}\)</span> values in their respective
+<p>These objects contain the <span class="math">\(\varphi^{\textrm{MIP}}_{\textrm{cause}}\)</span> and
+<span class="math">\(\varphi^{\textrm{MIP}}_{\textrm{effect}}\)</span> values in their respective
 <tt class="docutils literal"><span class="pre">phi</span></tt> attributes, and the minimal partitions in their <tt class="docutils literal"><span class="pre">partition</span></tt>
 attributes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_c</span><span class="o">.</span><span class="n">phi</span>
@@ -538,16 +539,222 @@ attributes:</p>
 </pre></div>
 </div>
 <p>For more information on these objects, see the API documentation for the
-<a class="reference internal" href="../api/models.html#pyphi.models.Mip" title="pyphi.models.Mip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mip</span></tt></a> class, or use <tt class="docutils literal"><span class="pre">help(mip_c)</span></tt>.</p>
+<a class="reference internal" href="../api/models.html#pyphi.models.Mip" title="pyphi.models.Mip"><tt class="xref py py-class docutils literal"><span class="pre">Mip</span></tt></a> class, or use <tt class="docutils literal"><span class="pre">help(mip_c)</span></tt>.</p>
 <p>Note that the minimal partition found for the past is</p>
 <div class="math">
-\[frac{A^{c}}{\left[\right]} \times \frac{BC^{c}}{ABC^{p}}\]</div>
+\[\frac{A^{c}}{\left[\right]} \times \frac{BC^{c}}{ABC^{p}},\]</div>
 <p>rather than the one shown in the figure. However, both partitions result in a
 difference of <span class="math">\(0.5\)</span> between the unpartitioned and partitioned cause
 repertoires. So we see that in small networks like this, there can be multiple
 choices of partition that yield the same, minimal
 <span class="math">\(\varphi^{\textrm{MIP}}\)</span>. In these cases, which partition the software
 chooses is left undefined.</p>
+</div>
+<div class="section" id="figure-7">
+<h2>Figure 7<a class="headerlink" href="#figure-7" title="Permalink to this headline">¶</a></h2>
+<p><strong>A mechanism generates integrated information only if it has both integrated
+causes and integrated effects.</strong></p>
+<p>It is left as an exercise for the reader to use the subsystem methods
+<tt class="docutils literal"><span class="pre">mip_past</span></tt> and <tt class="docutils literal"><span class="pre">mip_future</span></tt>, introduced in the previous section, to
+demonstrate the points made in Figure 7.</p>
+<p>To avoid building TPMs and connectivity matrices by hand, one can use the
+graphical user interface for PyPhi available online at
+<a class="reference external" href="http://integratedinformationtheory.org/calculate.html">http://integratedinformationtheory.org/calculate.html</a>. You can build the
+networks shown in the figure there, and then use the <strong>Export</strong> button to
+obtain a <a class="reference external" href="http://en.wikipedia.org/wiki/JSON">JSON</a> file representing the
+network. You can then import the file into Python with the <tt class="docutils literal"><span class="pre">json</span></tt> module:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">json</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;path/to/network.json&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+    <span class="n">network_dictionary</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The TPM and connectivity matrix can then be looked up with the keys <tt class="docutils literal"><span class="pre">'tpm'</span></tt>
+and <tt class="docutils literal"><span class="pre">'connectivityMatrix'</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">tpm</span> <span class="o">=</span> <span class="n">network_dictionary</span><span class="p">[</span><span class="s">&#39;tpm&#39;</span><span class="p">]</span>
+<span class="n">cm</span> <span class="o">=</span> <span class="n">network_dictionary</span><span class="p">[</span><span class="s">&#39;connectivityMatrix&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>For your convenience, there is a function that does this for you:
+<a class="reference internal" href="../api/network.html#pyphi.network.from_json" title="pyphi.network.from_json"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.network.from_json()</span></tt></a> that takes a path the a JSON file and returns
+a PyPhi network object.</p>
+</div>
+<div class="section" id="figure-8">
+<h2>Figure 8<a class="headerlink" href="#figure-8" title="Permalink to this headline">¶</a></h2>
+<p><strong>The maximally integrated cause repertoire over the power set of purviews is
+the “core cause” specified by a mechanism.</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">fig8</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span>
+</pre></div>
+</div>
+<p>To find the core cause of a mechanism over all purviews, we just use the
+subsystem method of that name:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">core_cause</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">core_cause</span><span class="p">((</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">core_cause</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.333334</span>
+</pre></div>
+</div>
+<p>For a detailed description of the objects returned by the
+<a class="reference internal" href="../api/subsystem.html#pyphi.subsystem.Subsystem.core_cause" title="pyphi.subsystem.Subsystem.core_cause"><tt class="xref py py-meth docutils literal"><span class="pre">core_cause()</span></tt></a> and
+<a class="reference internal" href="../api/subsystem.html#pyphi.subsystem.Subsystem.core_effect" title="pyphi.subsystem.Subsystem.core_effect"><tt class="xref py py-meth docutils literal"><span class="pre">core_effect()</span></tt></a> methods, see the API
+documentation for <a class="reference internal" href="../api/models.html#pyphi.models.Mice" title="pyphi.models.Mice"><tt class="xref py py-class docutils literal"><span class="pre">Mice</span></tt></a> or use <tt class="docutils literal"><span class="pre">help(core_cause)</span></tt>.</p>
+</div>
+<div class="section" id="figure-9">
+<h2>Figure 9<a class="headerlink" href="#figure-9" title="Permalink to this headline">¶</a></h2>
+<p><strong>A mechanism that specifies a maximally irreducible cause-effect repertoire.</strong></p>
+<p>This figure and the next few use the same network as in Figure 8, so we don&#8217;t
+need to reassign the <tt class="docutils literal"><span class="pre">network</span></tt> and <tt class="docutils literal"><span class="pre">subsystem</span></tt> variables.</p>
+<p>Together, the core cause and core effect of a mechanism specify a “concept.” In
+PyPhi, this is represented by the <a class="reference internal" href="../api/models.html#pyphi.models.Concept" title="pyphi.models.Concept"><tt class="xref py py-class docutils literal"><span class="pre">Concept</span></tt></a> object.
+Concepts are computed using the <a class="reference internal" href="../api/subsystem.html#pyphi.subsystem.Subsystem.concept" title="pyphi.subsystem.Subsystem.concept"><tt class="xref py py-meth docutils literal"><span class="pre">concept()</span></tt></a>
+method of a subsystem:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">concept_A</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">concept</span><span class="p">((</span><span class="n">A</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">concept_A</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.166667</span>
+</pre></div>
+</div>
+<p>As usual, please consult the API documentation or use <tt class="docutils literal"><span class="pre">help(concept_A)</span></tt> for a
+detailed description of the <a class="reference internal" href="../api/models.html#pyphi.models.Concept" title="pyphi.models.Concept"><tt class="xref py py-class docutils literal"><span class="pre">Concept</span></tt></a> object.</p>
+</div>
+<div class="section" id="figure-10">
+<h2>Figure 10<a class="headerlink" href="#figure-10" title="Permalink to this headline">¶</a></h2>
+<p><strong>Information: A conceptual structure C (constellation of concepts) is the set
+of all concepts generated by a set of elements in a state.</strong></p>
+<p>For functions of entire subsystems rather than mechanisms within them, we use
+the <a class="reference internal" href="../compute.html#module-pyphi.compute" title="pyphi.compute"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.compute</span></tt></a> module. In this figure, we see the constellation of
+concepts of the powerset of <span class="math">\(ABC\)</span>&#8216;s mechanisms. We can compute the
+constellation of the subsystem like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">constellation</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">constellation</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And verify that the <span class="math">\(\varphi\)</span> values match (rounding to two decimal
+places):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">concept</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">constellation</span><span class="p">]</span>
+<span class="go">[0.17, 0.17, 0.25, 0.25, 0.33, 0.5]</span>
+</pre></div>
+</div>
+<p>The null concept (the small black cross shown in concept-space) is available as
+an attribute of the subsystem:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">null_concept</span>
+<span class="go">Concept(phi=0, mechanism=(), cause=Mice(Mip(phi=0, direction=&#39;past&#39;, mechanism=(), purview=(), partition=None, unpartitioned_repertoire=array([ 1.]), partitioned_repertoire=None)), effect=Mice(Mip(phi=0, direction=&#39;future&#39;, mechanism=(), purview=(), partition=None, unpartitioned_repertoire=array([ 1.]), partitioned_repertoire=None)), subsystem=Subsystem((n0, n1, n2)), normalized=False)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="figure-11">
+<h2>Figure 11<a class="headerlink" href="#figure-11" title="Permalink to this headline">¶</a></h2>
+<p><strong>Assessing the conceptual information CI of a conceptual structure
+(constellation of concepts).</strong></p>
+<p>Conceptual information can be computed using the function named, as you might
+expect, <a class="reference internal" href="../compute.html#pyphi.compute.conceptual_information" title="pyphi.compute.conceptual_information"><tt class="xref py py-func docutils literal"><span class="pre">conceptual_information()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">conceptual_information</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
+<span class="go">2.1111091388868752</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="figure-12">
+<h2>Figure 12<a class="headerlink" href="#figure-12" title="Permalink to this headline">¶</a></h2>
+<p><strong>Assessing the integrated conceptual information Φ of a constellation C.</strong></p>
+<p>To calculate <span class="math">\(\Phi^{\textrm{MIP}}\)</span> for a candidate set, we use the
+function <a class="reference internal" href="../compute.html#pyphi.compute.big_mip" title="pyphi.compute.big_mip"><tt class="xref py py-func docutils literal"><span class="pre">big_mip()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">big_mip</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_mip</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The returned value is a large object containing the <span class="math">\(\Phi^{\textrm{MIP}}\)</span>
+value, the minimal cut, the constellation of concepts of the whole set and that
+of the partitioned set <span class="math">\(C_{\rightarrow}^{\textrm{MIP}}\)</span>, the total
+calculation time, the calculation time for just the unpartitioned
+constellation, a reference to the subsystem that was analyzed, and a reference
+to the subsystem with the minimal unidirectional cut applied. For details see
+the API documentation for <a class="reference internal" href="../api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a> or use
+<tt class="docutils literal"><span class="pre">help(big_mip)</span></tt>.</p>
+<p>We can verify that the <span class="math">\(\Phi^{\textrm{MIP}}\)</span> value and minimal cut are as
+shown in the figure:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">big_mip</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">1.916662694926084</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">big_mip</span><span class="o">.</span><span class="n">cut</span>
+<span class="go">Cut(severed=(0, 1), intact=(2,))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A note on how to interpret the <a class="reference internal" href="../api/models.html#pyphi.models.Cut" title="pyphi.models.Cut"><tt class="xref py py-class docutils literal"><span class="pre">Cut</span></tt></a> object: it has
+two attributes, <tt class="docutils literal"><span class="pre">severed</span></tt> and <tt class="docutils literal"><span class="pre">intact</span></tt>. The connections going from the
+nodes in the <tt class="docutils literal"><span class="pre">severed</span></tt> set to those in the <tt class="docutils literal"><span class="pre">intact</span></tt> set are the
+connections removed by the cut.</p>
+</div>
+</div>
+<div class="section" id="figure-13">
+<h2>Figure 13<a class="headerlink" href="#figure-13" title="Permalink to this headline">¶</a></h2>
+<p><strong>A set of elements generates integrated conceptual information Φ only if each
+subset has both causes and effects in the rest of the set.</strong></p>
+<p>It is left as an exercise for the reader to demonstrate that of the networks
+shown, only <strong>(B)</strong> has <span class="math">\(\Phi &gt; 0\)</span>.</p>
+</div>
+<div class="section" id="figure-14">
+<h2>Figure 14<a class="headerlink" href="#figure-14" title="Permalink to this headline">¶</a></h2>
+<p><strong>A complex: A local maximum of integrated conceptual information Φ.</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">fig14</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To find the subsystem within a network that is the main complex, we use the
+function of that name, which returns a <a class="reference internal" href="../api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And we see that the nodes in the complex are indeed <span class="math">\(A, B,\)</span> and
+<span class="math">\(C\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span><span class="o">.</span><span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span>
+<span class="go">(n0, n1, n2)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="figure-15">
+<h2>Figure 15<a class="headerlink" href="#figure-15" title="Permalink to this headline">¶</a></h2>
+<p><strong>A quale: The maximally irreducible conceptual structure (MICS) generated by a
+complex.</strong></p>
+<p>PyPhi does not provide any way to visualize a constellation out-of-the-box, but
+you can use the visual interface at
+<a class="reference external" href="http://integratedinformationtheory.org/calculate.html">http://integratedinformationtheory.org/calculate.html</a> to view a constellation
+in a 3D projection of qualia space. The network in the figure is already built
+for you; click the <strong>Load Example</strong> button and select “IIT 3.0 Paper, Figure 1”
+(this network is the same as the candidate set in Figure 1).</p>
+</div>
+<div class="section" id="figure-16">
+<h2>Figure 16<a class="headerlink" href="#figure-16" title="Permalink to this headline">¶</a></h2>
+<p><strong>A system can condense into a major complex and minor complexes that may or
+may not interact with it.</strong></p>
+<p>For this figure, we omit nodes <span class="math">\(H, I, J, K\)</span> and <span class="math">\(L\)</span>, since the TPM
+of the full 12-node network is very large, and the point can be illustrated
+without them.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">fig16</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To find the maximal set of non-overlapping complexes that a network condenses
+into, use <a class="reference internal" href="../compute.html#pyphi.compute.condensed" title="pyphi.compute.condensed"><tt class="xref py py-func docutils literal"><span class="pre">condensed()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">condensed</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">condensed</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We find that there are 3 complexes: the major complex <span class="math">\(ABC\)</span> with
+<span class="math">\(\Phi \approx 1.92\)</span>, and the two minor complexes <span class="math">\(DE\)</span> with
+<span class="math">\(\Phi \approx 0.028\)</span> and <span class="math">\(FG\)</span> with <span class="math">\(\Phi \approx 0.069\)</span> (note
+that there is typo in the figure; <span class="math">\(\FG\)</span>&#8216;s <span class="math">\(\Phi\)</span> value should be
+<span class="math">\(\0.069\)</span>).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">condensed</span><span class="p">)</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ABC</span><span class="p">,</span> <span class="n">DE</span><span class="p">,</span> <span class="n">FG</span> <span class="o">=</span> <span class="n">condensed</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">ABC</span><span class="o">.</span><span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">ABC</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
+<span class="go">((n0, n1, n2), 1.916662694926084)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">DE</span><span class="o">.</span><span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">DE</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
+<span class="go">((n5, n6), 0.06944459259257413)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">FG</span><span class="o">.</span><span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">FG</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
+<span class="go">((n3, n4), 0.027777936507761905)</span>
+</pre></div>
+</div>
+<p>There are several other functions available for working with complexes; see the
+documentation for <a class="reference internal" href="../compute.html#pyphi.compute.subsystems" title="pyphi.compute.subsystems"><tt class="xref py py-func docutils literal"><span class="pre">subsystems()</span></tt></a>,
+<a class="reference internal" href="../compute.html#pyphi.compute.all_complexes" title="pyphi.compute.all_complexes"><tt class="xref py py-func docutils literal"><span class="pre">all_complexes()</span></tt></a>,
+<a class="reference internal" href="../compute.html#pyphi.compute.possible_complexes" title="pyphi.compute.possible_complexes"><tt class="xref py py-func docutils literal"><span class="pre">possible_complexes()</span></tt></a>, and
+<a class="reference internal" href="../compute.html#pyphi.compute.complexes" title="pyphi.compute.complexes"><tt class="xref py py-func docutils literal"><span class="pre">complexes()</span></tt></a>.</p>
 </div>
 </div>
 
@@ -570,7 +777,7 @@ chooses is left undefined.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Apr 29, 2015.
+      Last updated on May 04, 2015.
     </p>
   </div>
 

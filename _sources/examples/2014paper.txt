@@ -144,17 +144,18 @@ Now the network shown in the figure is stored in a variable called ``network``.
 You can find more information about the network object we just created by
 running ``help(network)`` or by consulting the `API
 <http://en.wikipedia.org/wiki/Application_programming_interface>`_
-documentation here: :mod:`pyphi.network`.
+documentation for :class:`~pyphi.network.Network`.
 
 The next step is to define the candidate set shown in the figure, consisting of
 nodes :math:`A, B` and :math:`C`. In PyPhi, a candidate set for |big_phi|
-evaluation is represented by the :class:`pyphi.Subsystem` class. Subsystems are
-built by giving the indices of the nodes in the subsystem and the network it is
-a part of. So, we define our candidate set like so:
+evaluation is represented by the :class:`~pyphi.subsystem.Subsystem` class.
+Subsystems are built by giving the indices of the nodes in the subsystem and
+the network it is a part of. So, we define our candidate set like so:
 
     >>> ABC = pyphi.Subsystem([0, 1, 2], network)
 
-For more information on the subsystem object, see :mod:`pyphi.subsystem`.
+For more information on the subsystem object, see the API documentation for
+:class:`~pyphi.subsystem.Subsystem`.
 
 That covers the basic workflow with PyPhi and introduces the two types of
 objects we use to represent and analyze networks. First you define the network
@@ -401,8 +402,8 @@ mechanism over a purview:
     >>> mip_c = subsystem.mip_past(ABC, ABC)
     >>> mip_e = subsystem.mip_future(ABC, ABC)
 
-These objects contain the :math:`\varphi^{\textrm{MIP}_{\textrm{cause}}}` and
-:math:`\varphi^{\textrm{MIP}_{\textrm{effect}}}` values in their respective
+These objects contain the :math:`\varphi^{\textrm{MIP}}_{\textrm{cause}}` and
+:math:`\varphi^{\textrm{MIP}}_{\textrm{effect}}` values in their respective
 ``phi`` attributes, and the minimal partitions in their ``partition``
 attributes:
 
@@ -416,12 +417,12 @@ attributes:
     (Part(mechanism=(), purview=(n1,)), Part(mechanism=(n0, n1, n2), purview=(n0, n2)))
 
 For more information on these objects, see the API documentation for the
-:class:`pyphi.models.Mip` class, or use ``help(mip_c)``. 
+:class:`~pyphi.models.Mip` class, or use ``help(mip_c)``. 
 
 Note that the minimal partition found for the past is
 
 .. math::
-    frac{A^{c}}{\left[\right]} \times \frac{BC^{c}}{ABC^{p}}
+    \frac{A^{c}}{\left[\right]} \times \frac{BC^{c}}{ABC^{p}},
     
 rather than the one shown in the figure. However, both partitions result in a
 difference of :math:`0.5` between the unpartitioned and partitioned cause
@@ -429,3 +430,240 @@ repertoires. So we see that in small networks like this, there can be multiple
 choices of partition that yield the same, minimal
 :math:`\varphi^{\textrm{MIP}}`. In these cases, which partition the software
 chooses is left undefined.
+
+
+Figure 7
+~~~~~~~~
+
+**A mechanism generates integrated information only if it has both integrated
+causes and integrated effects.**
+
+It is left as an exercise for the reader to use the subsystem methods
+``mip_past`` and ``mip_future``, introduced in the previous section, to
+demonstrate the points made in Figure 7.
+
+To avoid building TPMs and connectivity matrices by hand, one can use the
+graphical user interface for PyPhi available online at
+http://integratedinformationtheory.org/calculate.html. You can build the
+networks shown in the figure there, and then use the **Export** button to
+obtain a `JSON <http://en.wikipedia.org/wiki/JSON>`_ file representing the
+network. You can then import the file into Python with the ``json`` module:
+
+.. code-block:: python
+
+    import json
+    with open('path/to/network.json') as json_file:
+        network_dictionary = json.load(json_file)
+
+The TPM and connectivity matrix can then be looked up with the keys ``'tpm'``
+and ``'connectivityMatrix'``:
+
+.. code-block:: python 
+
+    tpm = network_dictionary['tpm']
+    cm = network_dictionary['connectivityMatrix']
+
+For your convenience, there is a function that does this for you:
+:func:`pyphi.network.from_json()` that takes a path the a JSON file and returns
+a PyPhi network object.
+
+
+Figure 8
+~~~~~~~~
+
+**The maximally integrated cause repertoire over the power set of purviews is
+the “core cause” specified by a mechanism.**
+
+    >>> network = pyphi.examples.fig8()
+    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> A, B, C = subsystem.nodes
+
+To find the core cause of a mechanism over all purviews, we just use the
+subsystem method of that name:
+    
+    >>> core_cause = subsystem.core_cause((B, C))
+    >>> core_cause.phi
+    0.333334
+
+For a detailed description of the objects returned by the
+:meth:`~pyphi.subsystem.Subsystem.core_cause` and
+:meth:`~pyphi.subsystem.Subsystem.core_effect` methods, see the API
+documentation for :class:`~pyphi.models.Mice` or use ``help(core_cause)``.
+
+
+Figure 9
+~~~~~~~~
+
+**A mechanism that specifies a maximally irreducible cause-effect repertoire.**
+
+This figure and the next few use the same network as in Figure 8, so we don't
+need to reassign the ``network`` and ``subsystem`` variables.
+
+Together, the core cause and core effect of a mechanism specify a “concept.” In
+PyPhi, this is represented by the :class:`~pyphi.models.Concept` object.
+Concepts are computed using the :meth:`~pyphi.subsystem.Subsystem.concept`
+method of a subsystem:
+
+    >>> concept_A = subsystem.concept((A,))            
+    >>> concept_A.phi
+    0.166667
+
+As usual, please consult the API documentation or use ``help(concept_A)`` for a
+detailed description of the :class:`~pyphi.models.Concept` object.
+
+
+Figure 10
+~~~~~~~~~
+
+**Information: A conceptual structure C (constellation of concepts) is the set
+of all concepts generated by a set of elements in a state.**
+
+For functions of entire subsystems rather than mechanisms within them, we use
+the :mod:`pyphi.compute` module. In this figure, we see the constellation of
+concepts of the powerset of :math:`ABC`'s mechanisms. We can compute the
+constellation of the subsystem like so:
+
+    >>> constellation = pyphi.compute.constellation(subsystem)
+
+And verify that the :math:`\varphi` values match (rounding to two decimal
+places):
+
+    >>> [round(concept.phi, 2) for concept in constellation]
+    [0.17, 0.17, 0.25, 0.25, 0.33, 0.5]
+
+The null concept (the small black cross shown in concept-space) is available as
+an attribute of the subsystem:
+
+    >>> subsystem.null_concept
+    Concept(phi=0, mechanism=(), cause=Mice(Mip(phi=0, direction='past', mechanism=(), purview=(), partition=None, unpartitioned_repertoire=array([ 1.]), partitioned_repertoire=None)), effect=Mice(Mip(phi=0, direction='future', mechanism=(), purview=(), partition=None, unpartitioned_repertoire=array([ 1.]), partitioned_repertoire=None)), subsystem=Subsystem((n0, n1, n2)), normalized=False)
+
+
+Figure 11
+~~~~~~~~~
+
+**Assessing the conceptual information CI of a conceptual structure
+(constellation of concepts).**
+
+Conceptual information can be computed using the function named, as you might
+expect, :func:`~pyphi.compute.conceptual_information`:
+
+    >>> pyphi.compute.conceptual_information(subsystem)
+    2.1111091388868752
+
+
+Figure 12
+~~~~~~~~~
+
+**Assessing the integrated conceptual information Φ of a constellation C.**
+
+To calculate :math:`\Phi^{\textrm{MIP}}` for a candidate set, we use the
+function :func:`~pyphi.compute.big_mip`:
+
+    >>> big_mip = pyphi.compute.big_mip(subsystem)
+
+The returned value is a large object containing the :math:`\Phi^{\textrm{MIP}}`
+value, the minimal cut, the constellation of concepts of the whole set and that
+of the partitioned set :math:`C_{\rightarrow}^{\textrm{MIP}}`, the total
+calculation time, the calculation time for just the unpartitioned
+constellation, a reference to the subsystem that was analyzed, and a reference
+to the subsystem with the minimal unidirectional cut applied. For details see
+the API documentation for :class:`~pyphi.models.BigMip` or use
+``help(big_mip)``.
+
+We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
+shown in the figure:
+
+    >>> big_mip.phi
+    1.916662694926084
+    >>> big_mip.cut
+    Cut(severed=(0, 1), intact=(2,))
+
+.. note:: 
+
+    A note on how to interpret the :class:`~pyphi.models.Cut` object: it has
+    two attributes, ``severed`` and ``intact``. The connections going from the
+    nodes in the ``severed`` set to those in the ``intact`` set are the
+    connections removed by the cut.
+
+
+Figure 13
+~~~~~~~~~
+
+**A set of elements generates integrated conceptual information Φ only if each
+subset has both causes and effects in the rest of the set.**
+
+It is left as an exercise for the reader to demonstrate that of the networks
+shown, only **(B)** has :math:`\Phi > 0`.
+
+
+Figure 14
+~~~~~~~~~
+
+**A complex: A local maximum of integrated conceptual information Φ.**
+
+    >>> network = pyphi.examples.fig14()
+
+To find the subsystem within a network that is the main complex, we use the
+function of that name, which returns a :class:`~pyphi.models.BigMip` object:
+
+    >>> main_complex = pyphi.compute.main_complex(network)
+
+And we see that the nodes in the complex are indeed :math:`A, B,` and
+:math:`C`:
+
+    >>> main_complex.subsystem.nodes
+    (n0, n1, n2)
+
+
+Figure 15
+~~~~~~~~~
+
+**A quale: The maximally irreducible conceptual structure (MICS) generated by a
+complex.**
+
+PyPhi does not provide any way to visualize a constellation out-of-the-box, but
+you can use the visual interface at
+http://integratedinformationtheory.org/calculate.html to view a constellation
+in a 3D projection of qualia space. The network in the figure is already built
+for you; click the **Load Example** button and select “IIT 3.0 Paper, Figure 1”
+(this network is the same as the candidate set in Figure 1).
+
+
+Figure 16
+~~~~~~~~~
+
+**A system can condense into a major complex and minor complexes that may or
+may not interact with it.**
+
+For this figure, we omit nodes :math:`H, I, J, K` and :math:`L`, since the TPM
+of the full 12-node network is very large, and the point can be illustrated
+without them.
+
+    >>> network = pyphi.examples.fig16()
+
+To find the maximal set of non-overlapping complexes that a network condenses
+into, use :func:`~pyphi.compute.condensed`:
+
+    >>> condensed = pyphi.compute.condensed(network)
+
+We find that there are 3 complexes: the major complex :math:`ABC` with
+:math:`\Phi \approx 1.92`, and the two minor complexes :math:`DE` with
+:math:`\Phi \approx 0.028` and :math:`FG` with :math:`\Phi \approx 0.069` (note
+that there is typo in the figure; :math:`\FG`'s :math:`\Phi` value should be
+:math:`\0.069`).
+
+    >>> len(condensed)
+    3
+    >>> ABC, DE, FG = condensed
+    >>> (ABC.subsystem.nodes, ABC.phi)
+    ((n0, n1, n2), 1.916662694926084)
+    >>> (DE.subsystem.nodes, DE.phi)
+    ((n5, n6), 0.06944459259257413)
+    >>> (FG.subsystem.nodes, FG.phi)
+    ((n3, n4), 0.027777936507761905)
+
+There are several other functions available for working with complexes; see the
+documentation for :func:`~pyphi.compute.subsystems`,
+:func:`~pyphi.compute.all_complexes`,
+:func:`~pyphi.compute.possible_complexes`, and
+:func:`~pyphi.compute.complexes`.
