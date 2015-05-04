@@ -13,8 +13,6 @@ _2015-04-20_
 - Only recheck concepts and cut mechanisms after a system cut.
 
 ### API additions
-- Concepts can now be computed in parallel with the
-  `PARALLEL_CONCEPT_EVALUATION` option.
 - The new configuration option `CUT_ONE_APPROXIMATION` gives an approximation
   of Φ by only considering cuts that cut off a single node.
 - Formerly, the configuration was always printed when PyPhi was imported. Now
