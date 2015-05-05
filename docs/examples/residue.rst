@@ -29,13 +29,13 @@ We can then evaluate the cause information for each of the mechanisms over the
 past purview |CDE|.
 
    >>> subsystem.cause_info(A, CDE)
-   0.33333191666400036
+   0.333332
 
    >>> subsystem.cause_info(B, CDE)
-   0.33333191666400036
+   0.333332
 
    >>> subsystem.cause_info(AB, CDE)
-   0.49999972500000006
+   0.5
 
 The composite mechanism |AB| has greater cause information than either of the
 individual mechanisms. This contradicts the idea that |AB| should exist
@@ -69,7 +69,7 @@ And we can then calculate the irreducible cause information as the difference
 between partitioned and unpartitioned repertoires.
 
    >>> mip_AB.phi
-   0.09999990000000035
+   0.1
 
 One counterintuitive result which merits discussion is that since irreducible
 cause information is what defines existence, we must also evaluate the
@@ -100,7 +100,7 @@ which is |([] / C) x (A / D)|. It has partitioned repertoire
 and irreducible cause information
 
    >>> mip_A.phi
-   0.16666700000000023
+   0.166667
 
 A similar result holds for |B|. Thus the mechanisms |A| and |B| exist at levels
 of |small_phi = 1/6|, while the higher-order mechanism |AB| exists only as the

@@ -11,6 +11,7 @@ import psutil
 import numpy as np
 from .constants import DIRECTIONS, PAST, FUTURE
 from . import constants, config, validate, utils, convert, json
+from .config import PRECISION
 from .models import Cut, Mip, Part, Mice, Concept
 from .node import Node
 import itertools
@@ -472,15 +473,17 @@ class Subsystem:
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
-        return utils.hamming_emd(
+        return round(utils.hamming_emd(
             self.cause_repertoire(mechanism, purview),
-            self.unconstrained_cause_repertoire(purview))
+            self.unconstrained_cause_repertoire(purview)),
+            PRECISION)
 
     def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
-        return utils.hamming_emd(
+        return round(utils.hamming_emd(
             self.effect_repertoire(mechanism, purview),
-            self.unconstrained_effect_repertoire(purview))
+            self.unconstrained_effect_repertoire(purview)),
+            PRECISION)
 
     def cause_effect_info(self, mechanism, purview):
         """Return the cause-effect information for a mechanism over a
@@ -591,7 +594,7 @@ class Subsystem:
                           partition=(part0, part1),
                           unpartitioned_repertoire=unpartitioned_repertoire,
                           partitioned_repertoire=partitioned_repertoire,
-                          phi=phi)
+                          phi=round(phi, PRECISION))
         return mip
 
     # TODO Don't use these internally

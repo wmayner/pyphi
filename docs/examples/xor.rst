@@ -21,7 +21,7 @@ main complex of the network:
 The main complex exists (|Phi > 0|),
 
    >>> main_complex.phi
-   1.8749970000011253
+   1.874999
 
 and is the subsystem that is the entire network,
 
@@ -46,7 +46,7 @@ the results will be similar for the other second order mechanisms.
 
    >>> concept = constellation[0]
    >>> concept.phi
-   0.49999950000000004
+   0.5
 
 The mechanism has |small_phi = 1/2|.
 
@@ -122,7 +122,7 @@ In order to exist, a mechanism must have irreducible cause and effect
 power within the system.
 
    >>> subsystem.cause_info(n0, n0n1n2)
-   0.49999950000000004
+   0.5
    >>> subsystem.effect_info(n0, n0n1n2)
    0.0
 
@@ -145,7 +145,7 @@ To complete the discussion, we can also investigate the potential third order
 mechanism |n0, n1, n2|. Consider the cause power over the purview (n0, n1, n2):
 
    >>> subsystem.cause_info(n0n1n2, n0n1n2)
-   0.74999925
+   0.749999
 
 The mechanism has cause power over the system, but is it irreducible?
 

@@ -15,6 +15,7 @@ import multiprocessing
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 from . import utils, constants, config, memory
+from .config import PRECISION
 from .convert import nodes2indices
 from .concept_caching import concept as _concept
 from .models import Cut, BigMip
@@ -265,7 +266,7 @@ def conceptual_information(subsystem):
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    return constellation_distance(constellation(subsystem), (), subsystem)
+    return round(constellation_distance(constellation(subsystem), (), subsystem), PRECISION)
 
 
 # TODO document
@@ -315,9 +316,9 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
 
     log.debug("Finished evaluating cut {}.".format(cut))
     return BigMip(
-        phi=constellation_distance(unpartitioned_constellation,
+        phi=round(constellation_distance(unpartitioned_constellation,
                                    partitioned_constellation,
-                                   uncut_subsystem),
+                                   uncut_subsystem), PRECISION),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=partitioned_constellation,
         subsystem=uncut_subsystem,

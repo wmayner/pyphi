@@ -35,7 +35,7 @@ standard_answer = {
 
 
 noised_answer = {
-    'phi': 1.928588,
+    'phi': 1.928594,
     'unpartitioned_small_phis': {
         (0,): 0.0625,
         (1,): 0.2,
