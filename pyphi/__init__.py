@@ -67,7 +67,7 @@ __copyright__ = 'Copyright 2014-2015 Will Mayner'
 
 from .network import Network
 from .subsystem import Subsystem
-from . import compute, constants, config, db, examples
+from . import compute, constants, config, db, examples, macro
 
 import logging
 import logging.config

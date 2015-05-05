@@ -8,9 +8,7 @@ Conversion functions.
 
 import math
 import numpy as np
-from . import validate
 import logging
-from .constants import EPSILON
 
 
 # Create a logger for this module.
@@ -164,8 +162,6 @@ def state_by_state2state_by_node(tpm):
                [[ 1. ,  0. ],
                 [ 0.3,  0.7]]])
     """
-    # Validate the TPM.
-    validate.tpm(tpm)
     # Cast to np.array.
     tpm = np.array(tpm)
     # Get the number of states from the length of one side of the TPM.
@@ -185,11 +181,6 @@ def state_by_state2state_by_node(tpm):
         # i.e., a row of the state-by-node TPM.
         # Assign that row to the ith state in the state-by-node TPM.
         sbn_tpm[state] = [np.sum(on_probabilities[n][i]) for n in range(N)]
-    if not np.all((tpm - state_by_node2state_by_state(sbn_tpm)) < EPSILON):
-        logging.warning(
-            'The TPM is not conditionally independent. See the conditional '
-            'independence example in the documentation for more information '
-            'on how this is handled.')
     return sbn_tpm
 
 
@@ -241,8 +232,6 @@ def state_by_node2state_by_state(tpm):
     """
     # Cast to np.array.
     tpm = np.array(tpm)
-    # Validate the TPM.
-    validate.tpm(tpm)
     # Convert to N-D form.
     tpm = to_n_dimensional(tpm)
     # Get the number of nodes from the last dimension of the TPM.
