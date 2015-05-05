@@ -67,7 +67,7 @@ def concept(subsystem, mechanism):
         return time_annotated(subsystem.concept(mechanism))
 
 
-def constellation(subsystem, mechanism_indices_to_check=None):
+def sequential_constellation(subsystem, mechanism_indices_to_check=None):
     """Return the conceptual structure of this subsystem.
 
     Args:
@@ -110,7 +110,6 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
     Returns:
         ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
     """
-
     if not mechanism_indices_to_check:
         mechanism_indices_to_check = utils.powerset(subsystem.node_indices)
     if config.NUMBER_OF_CORES < 0:
@@ -152,6 +151,14 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
         else:
             concepts.append(new_concept)
     return concepts
+
+
+# TODO fix and release in version 0.7.0
+# if config.PARALLEL_CONCEPT_EVALUATION:
+#     constellation = parallel_constellation
+# else:
+#     constellation = sequential_constellation
+constellation = sequential_constellation
 
 
 def concept_distance(c1, c2):
@@ -296,12 +303,15 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
                               mice_cache=uncut_subsystem._mice_cache)
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
         mechanism_indices_to_check = set(
-            map(nodes2indices, [c.mechanism for c in unpartitioned_constellation]))
+            map(nodes2indices,
+                [c.mechanism for c in unpartitioned_constellation]))
     else:
         mechanism_indices_to_check = set(
-            tuple(map(nodes2indices, [c.mechanism for c in unpartitioned_constellation])) +
+            tuple(map(nodes2indices,
+                      [c.mechanism for c in unpartitioned_constellation])) +
             utils.cut_mechanism_indices(uncut_subsystem, cut))
-    partitioned_constellation = constellation(cut_subsystem, mechanism_indices_to_check)
+    partitioned_constellation = constellation(cut_subsystem,
+                                              mechanism_indices_to_check)
 
     log.debug("Finished evaluating cut {}.".format(cut))
     return BigMip(
@@ -391,6 +401,12 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
     return min_mip
 
 
+if config.PARALLEL_CUT_EVALUATION:
+    _find_mip = _find_mip_parallel
+else:
+    _find_mip = _find_mip_sequential
+
+
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
@@ -453,12 +469,8 @@ def _big_mip(cache_key, subsystem):
     else:
         min_mip = _null_bigmip(subsystem)
         min_mip.phi = float('inf')
-        if config.PARALLEL_CUT_EVALUATION:
-            min_mip = _find_mip_parallel(
-                subsystem, cuts, unpartitioned_constellation, min_mip)
-        else:
-            min_mip = _find_mip_sequential(
-                subsystem, cuts, unpartitioned_constellation, min_mip)
+        min_mip = _find_mip(subsystem, cuts, unpartitioned_constellation,
+                            min_mip)
         result = time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
@@ -489,8 +501,25 @@ def big_phi(subsystem):
     return big_mip(subsystem).phi
 
 
-def possible_main_complexes(network):
-    """"Return a generator of the subsystems of a network that could be a main
+def subsystems(network):
+    """Return a generator of all possible subsystems of a network."""
+    for subset in utils.powerset(network.node_indices):
+        yield Subsystem(subset, network)
+
+
+def all_complexes(network):
+    """Return a generator for all complexes of the network, including
+    reducible, zero-phi complexes (which are not, strictly speaking, complexes
+    at all)."""
+    if not isinstance(network, Network):
+        raise ValueError(
+            """Input must be a Network (perhaps you passed a Subsystem
+            instead?)""")
+    return (big_mip(subsystem) for subsystem in subsystems(network))
+
+
+def possible_complexes(network):
+    """"Return a generator of the subsystems of a network that could be a
     complex.
 
     This is the just powerset of the nodes that have at least one input and
@@ -505,12 +534,6 @@ def possible_main_complexes(network):
         yield Subsystem(subset, network)
 
 
-def subsystems(network):
-    """Return a generator of all possible subsystems of a network."""
-    for subset in utils.powerset(network.node_indices):
-        yield Subsystem(subset, network)
-
-
 def complexes(network):
     """Return a generator for all irreducible complexes of the network."""
     if not isinstance(network, Network):
@@ -518,18 +541,7 @@ def complexes(network):
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
     return tuple(filter(None, (big_mip(subsystem) for subsystem in
-                               possible_main_complexes(network))))
-
-
-def all_complexes(network):
-    """Return a generator for all complexes of the network, including
-    reducible, zero-phi complexes (which are not, strictly speaking, complexes
-    at all)."""
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
-    return (big_mip(subsystem) for subsystem in subsystems(network))
+                               possible_complexes(network))))
 
 
 def main_complex(network):
@@ -548,3 +560,16 @@ def main_complex(network):
     log.info("Finished calculating main complex for {}.".format(network))
     log.debug("RESULT: \n" + str(result))
     return result
+
+
+def condensed(network):
+    """Return the set of maximal non-overlapping complexes."""
+    condensed = []
+    covered_nodes = set()
+    log.info("Condensing {}...".format(network))
+    for c in reversed(sorted(complexes(network))):
+        if not any(n in covered_nodes for n in c.subsystem.node_indices):
+            condensed.append(c)
+            covered_nodes = covered_nodes | set(c.subsystem.node_indices)
+    log.info("Finished condensing {}.".format(network))
+    return condensed

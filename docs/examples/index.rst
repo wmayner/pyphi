@@ -12,6 +12,7 @@ The relevant functions are listed at the beginning of each example.
     basic
     residue
     conditional_independence
+    2014paper
 
 
 Conventions

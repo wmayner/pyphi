@@ -4,11 +4,13 @@
 # network.py
 """
 Represents the network of interest. This is the primary object of PyPhi and the
-context of all |phi| and |big_phi| computation.
+context of all |small_phi| and |big_phi| computation.
 """
 
+import json
 import numpy as np
-from . import validate, utils, json, convert, config
+from . import validate, utils, convert, config
+from .json import make_encodable
 from .constants import DIRECTIONS, PAST, FUTURE
 
 # TODO!!! raise error if user tries to change TPM or CM, double-check and
@@ -17,6 +19,25 @@ from .constants import DIRECTIONS, PAST, FUTURE
 
 # Methods to compute reducible purviews for any mechanism, so they do not have
 # to be checked in concept calculation.
+
+
+def from_json(filename):
+    """Convert a JSON representation of a network to a PyPhi network.
+
+    Args:
+        filename (str): A path to a JSON file representing a network.
+
+    Returns:
+       ``Network`` -- The corresponding PyPhi network object.
+    """
+    with open(filename) as f:
+        network_dictionary = json.load(f)
+    tpm = network_dictionary['tpm']
+    current_state = network_dictionary['currentState']
+    past_state = network_dictionary['pastState']
+    cm = network_dictionary['connectivityMatrix']
+    network = Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return network
 
 
 def list_past_purview(self, mechanism):
@@ -262,10 +283,10 @@ class Network:
 
     def json_dict(self):
         return {
-            'tpm': json.make_encodable(self.tpm),
-            'current_state': json.make_encodable(self.current_state),
-            'past_state': json.make_encodable(self.past_state),
+            'tpm': make_encodable(self.tpm),
+            'current_state': make_encodable(self.current_state),
+            'past_state': make_encodable(self.past_state),
             'connectivity_matrix':
-                json.make_encodable(self.connectivity_matrix),
-            'size': json.make_encodable(self.size),
+                make_encodable(self.connectivity_matrix),
+            'size': make_encodable(self.size),
         }
