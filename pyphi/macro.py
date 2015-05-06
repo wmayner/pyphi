@@ -14,7 +14,6 @@ from pyphi.convert import loli_index2state
 from pyphi.convert import state2loli_index
 import itertools
 import logging
-from functools import namedtuple
 
 # Create a logger for this  module
 log = logging.getLogger(__name__)
@@ -28,7 +27,36 @@ _partition_lists = [
    for i in range(_NUM_PRECOMPUTED_PARTITION_LISTS)
 ]
 
-_MacroInfo = namedtuple("MacroInfo", ["micro_network", "micro_phi", "partition", "grouping", "macro_network", "macro_phi", "emergence"])
+class Macro_Network:
+    """A coarse grained network of nodes. See ``docs/examples/macro.rst``.
+
+    Attributes:
+        network (Network):
+            The network object of the macro system.
+        phi (float):
+            The integrated information of the networks main complex
+        micro_network (Network):
+            The network object of the corresponding micro system.
+        micro_phi (float):
+            The integrated information of the main complex of the corresponding micro system.
+        partition (list):
+            The partition which defines macro elements in terms of micro elements.
+        grouping (list(list)):
+            The correspondence between micro states and macro states.
+        emergence (float):
+            The increase in integrated information going from the micro system to the macro system.
+    """
+    def __init__(self, macro_network, macro_phi, micro_network, micro_phi,
+                 partition, grouping):
+        self.network = macro_network
+        self.phi = macro_phi
+        self.micro_network = micro_network
+        self.micro_phi = micro_phi
+        self.partition = partition
+        self.grouping = grouping
+        self.emergence = self.phi - self.micro_phi
+
+
 
 def _partitions_list(N):
     """ Return a list of partitions of the |N| binary nodes.
@@ -129,6 +157,16 @@ def make_mapping(micro_tpm, partition, grouping):
     return mapping
 
 def make_macro_tpm(micro_tpm, mapping):
+    """ Create the macro tpm for a given mapping from micro to macro states
+
+    Args:
+        micro_tpm (nd.array): tpm of the micro system
+
+        mapping (nd.array): Mapping from micro states to macro states
+
+    Returns:
+        macro_tpm (nd.array): tpm of the macro system
+    """
     number_of_macro_states = int(max(mapping)+1)
     tpm = pyphi.convert.state_by_node2state_by_state(micro_tpm)
     number_of_micro_states = len(tpm)
@@ -142,6 +180,18 @@ def make_macro_tpm(micro_tpm, mapping):
     return np.array([list(row) if sum(row) == 0 else list(row/sum(row)) for row in macro_tpm])
 
 def make_macro_network(network, mapping):
+    """ Create the macro network for a given mapping from micro to macro states.
+    Returns false is the macro tpm does not satisfy condititional independence
+    assumption.
+
+    Args:
+        micro_tpm (nd.array): tpm of the micro system
+
+        mapping (nd.array): Mapping from micro states to macro states
+
+    Returns:
+        macro_network (Network): Network of the macro system.
+    """
     number_of_macro_nodes = int(np.log2(max(mapping)+1))
     macro_tpm = make_macro_tpm(network.tpm, mapping)
     macro_current_state = loli_index2state(mapping[state2loli_index(network.current_state)].astype(int), number_of_macro_nodes)
@@ -152,6 +202,16 @@ def make_macro_network(network, mapping):
         return None
 
 def emergence(network):
+    """ Check for emergence of a macro system into a macro system. Checks all possible
+    partitions and groupings of the micro system to find the spatial scale with maximum
+    integrated information.
+
+    Args:
+        network (Network): The network of the micro system under investigation.
+
+    Returns:
+        macro (Macro): The maximal course graining of the micro system.
+    """
     micro_phi = pyphi.compute.main_complex(network).phi
     partitions = list_all_partitions(network)
     max_phi = 0
@@ -168,13 +228,12 @@ def emergence(network):
                     max_partition = partition
                     max_grouping = grouping
                     max_network = macro_network
-    return _MacroInfo(micro_network = network,
-                      micro_phi = micro_phi,
-                      partition = max_partition,
-                      grouping = max_grouping,
-                      macro_network = max_network,
-                      macro_phi = max_phi,
-                      emergence = max_phi - micro_phi)
+    return Macro_Network(macro_network = max_network,
+                         macro_phi = max_phi,
+                         micro_network = network,
+                         micro_phi = micro_phi,
+                         partition = max_partition,
+                         grouping = max_grouping)
 
 
 
