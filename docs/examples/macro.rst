@@ -41,7 +41,7 @@ and determine the |big_phi| value,
 The question is, whether there are other spatial scales which have greater values
 of |big_phi|. This is accomplished by considering all possible coarse graining of
 micro elements to form macro elements. A coarse graining of nodes is any partition
-of the elements of the micro system. To get a list of all possible partitions, 
+of the elements of the micro system. To get a list of all possible partitions,
 
     >>> partitions = pyphi.macro.list_all_partitions(network)
     >>> pp().pprint(partitions)
@@ -121,7 +121,7 @@ micro states and macro states,
     array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  2.,  2.,  2.,  2.,  2.,
             2.,  2.,  3.])
 
-The interpretation of the mapping uses the LOLI convention of indexing. 
+The interpretation of the mapping uses the LOLI convention of indexing.
 
     >>> mapping[7]
     1.0
@@ -134,7 +134,7 @@ This says that index 7 micro state corresponds to the 1 index macro state,
     >>> pyphi.convert.loli_index2state(1, 2)
     (1, 0)
 
-In micro state 7, all three elements corresponding to the first macro element are |ON|, 
+In micro state 7, all three elements corresponding to the first macro element are |ON|,
 so that macro element is |ON|. The micro element corresponding to the second macro element
 is |OFF|, so that element is |OFF|.
 
@@ -149,7 +149,7 @@ to the selected partition and grouping,
            [ 0.    ,  0.    ,  0.    ,  1.    ]])
 
 This macro_tpm does not satisfy the conditional independence assumption, so this particular
-partition and grouping combination is not a valid coarse graining of the system, 
+partition and grouping combination is not a valid coarse graining of the system,
 
     >>> pyphi.validate.conditionally_independent(macro_tpm)
     False
@@ -175,12 +175,12 @@ Lets consider a different partition instead,
     >>> mapping
     array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,
             2.,  2.,  3.])
-    
+
     >>> macro_network = pyphi.macro.make_macro_network(network, mapping)
     >>> bool(macro_network)
     True
 
-We can then consider the integrated information of this macro network and 
+We can then consider the integrated information of this macro network and
 compare it to the micro network.
 
     >>> macro_main_complex = pyphi.compute.main_complex(macro_network)
@@ -190,8 +190,8 @@ compare it to the micro network.
 The integrated information of the macro system |big_phi = 0.86905| is greater
 than the integrated information of the micro system |big_phi = 0.113889|. We
 can conclude that a macro scale is appropriate for this system, but to determine
-which one, we must check all possible partitions and all possible groupings to 
-find the maximum of integrated information across all scales. 
+which one, we must check all possible partitions and all possible groupings to
+find the maximum of integrated information across all scales.
 
     >>> M = pyphi.macro.emergence(network)
     >>> M.partition
@@ -203,7 +203,7 @@ find the maximum of integrated information across all scales.
 
 The analysis determines the partition and grouping which results in the maximum
 value of integrated information, as well as the emergence (increase in |big_phi|)
-from the micro scale to the macro scale. 
+from the micro scale to the macro scale.
 
 
 
