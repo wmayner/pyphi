@@ -428,6 +428,38 @@ def propagation_delay_network():
    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
 
 
+def macro_network():
+    """ A network of micro elements which has greater integrated information
+    after coarse graining to a macro scale.
+
+    """
+
+    tpm = np.array([[0.3, 0.3, 0.3, 0.3],
+                    [0.3, 0.3, 0.3, 0.3],
+                    [0.3, 0.3, 0.3, 0.3],
+                    [0.3, 0.3, 1.0, 1.0],
+                    [0.3, 0.3, 0.3, 0.3],
+                    [0.3, 0.3, 0.3, 0.3],
+                    [0.3, 0.3, 0.3, 0.3],
+                    [0.3, 0.3, 1.0, 1.0],
+                    [0.3, 0.3, 0.3, 0.3],
+                    [0.3, 0.3, 0.3, 0.3],
+                    [0.3, 0.3, 0.3, 0.3],
+                    [0.3, 0.3, 1.0, 1.0],
+                    [1.0, 1.0, 0.3, 0.3],
+                    [1.0, 1.0, 0.3, 0.3],
+                    [1.0, 1.0, 0.3, 0.3],
+                    [1.0, 1.0, 1.0, 1.0]])
+
+    current_state = (0, 0, 0, 0)
+    past_state = (0, 0, 0, 0)
+    return Network(tpm, current_state, past_state)
+
+def macro_subsystem():
+    network = macro_network()
+    return Subsystem(range(network.size), network)
+
+
 def fig1a():
     """The network shown in Figure 1A of the 2014 IIT 3.0 paper."""
     tpm = np.array([

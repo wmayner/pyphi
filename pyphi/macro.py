@@ -28,7 +28,7 @@ _partition_lists = [
    for i in range(_NUM_PRECOMPUTED_PARTITION_LISTS)
 ]
 
-_MacroInfo = namedtuple("MacroInfo", ["Phi", "partition", "grouping", "network"])
+_MacroInfo = namedtuple("MacroInfo", ["micro_network", "micro_phi", "partition", "grouping", "macro_network", "macro_phi", "emergence"])
 
 def _partitions_list(N):
     """ Return a list of partitions of the |N| binary nodes.
@@ -54,7 +54,7 @@ def _partitions_list(N):
 
 
 
-def list_possible_grains(network):
+def list_all_partitions(network):
     """ Return a list of all possible coarse grains of a network
 
     Args:
@@ -71,7 +71,7 @@ def list_possible_grains(network):
     return partitions
 
 
-def list_possible_groupings(partition):
+def list_all_groupings(partition):
     """ Return a list of all possible groupings of states, for a
         particular coarse graining (partition) of a network
 
@@ -116,15 +116,15 @@ def make_mapping(micro_tpm, partition, grouping):
     number_of_macro_nodes = len(grouping)
     number_of_micro_nodes = sum([len(part) for part in partition])
     number_of_micro_states = 2**number_of_micro_nodes
-    micro_states = np.array([tuple(map(int, bin(state_index)[2:].zfill(number_of_micro_nodes)))
+    micro_states = np.array([tuple(map(int, bin(state_index)[2:].zfill(number_of_micro_nodes)[::-1]))
                              for state_index in range(number_of_micro_states)]).astype(float)
     mapping = np.zeros(number_of_micro_states)
-    macro_states = list(itertools.product(*grouping))
+    macro_states = list(itertools.product(*grouping[::-1]))
     macro_states = [list(tuple) for tuple in macro_states]
     for macro_index, macro_state in enumerate(macro_states):
         for micro_index, micro_state in enumerate(micro_states):
             micro_sum = [sum([micro_state[node] for node in partition[x]]) for x in range(number_of_macro_nodes)]
-            if all([micro_sum[x] in macro_state[x] for x in range(number_of_macro_nodes)]):
+            if all([micro_sum[x] in macro_state[::-1][x] for x in range(number_of_macro_nodes)]):
                 mapping[micro_index] = macro_index
     return mapping
 
@@ -141,8 +141,8 @@ def make_macro_tpm(micro_tpm, mapping):
                                                        + tpm[past_state_index, current_state_index])
     return np.array([list(row) if sum(row) == 0 else list(row/sum(row)) for row in macro_tpm])
 
-def make_macro_network(network, partition, grouping, mapping):
-    number_of_macro_nodes = len(partition)
+def make_macro_network(network, mapping):
+    number_of_macro_nodes = int(np.log2(max(mapping)+1))
     macro_tpm = make_macro_tpm(network.tpm, mapping)
     macro_current_state = loli_index2state(mapping[state2loli_index(network.current_state)].astype(int), number_of_macro_nodes)
     macro_past_state = loli_index2state(mapping[state2loli_index(network.past_state)].astype(int), number_of_macro_nodes)
@@ -151,22 +151,33 @@ def make_macro_network(network, partition, grouping, mapping):
     else:
         return None
 
-def check_all_macro(network):
-    partitions = list_possible_grains(network)
-    max_macro = (0, None, None)
+def emergence(network):
+    micro_phi = pyphi.compute.main_complex(network).phi
+    partitions = list_all_partitions(network)
+    max_phi = 0
     for partition in partitions:
-        groupings = list_possible_groupings(partition)
+        groupings = list_all_groupings(partition)
         for grouping in groupings:
             mapping = make_mapping(network.tpm, partition, grouping)
-            macro_network = make_macro_network(network, partition, grouping, mapping)
+            macro_network = make_macro_network(network, mapping)
             if macro_network:
-                #sub = pyphi.Subsystem(range(macro_network.size), macro_network)
-                #phi = pyphi.compute.big_phi(sub)
                 main_complex = pyphi.compute.main_complex(macro_network)
                 phi = main_complex.phi
-                if phi > max_macro[0]:
-                    max_macro = (phi, partition, grouping, macro_network)
-    return _MacroInfo(max_macro[0], max_macro[1], max_macro[2], max_macro[3])
+                if phi > max_phi:
+                    max_phi = phi
+                    max_partition = partition
+                    max_grouping = grouping
+                    max_network = macro_network
+    return _MacroInfo(micro_network = network,
+                      micro_phi = micro_phi,
+                      partition = max_partition,
+                      grouping = max_grouping,
+                      macro_network = max_network,
+                      macro_phi = max_phi,
+                      emergence = max_phi - micro_phi)
+
+
+
 
 
 
