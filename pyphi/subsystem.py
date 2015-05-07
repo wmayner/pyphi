@@ -18,6 +18,10 @@ import itertools
 from .network import list_past_purview, list_future_purview
 
 
+from collections import namedtuple
+_CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "size"])
+HITS, MISSES = 0, 1
+
 
 # TODO! go through docs and make sure to say when things can be None
 class Subsystem:
@@ -93,15 +97,19 @@ class Subsystem:
         if mice_cache is None:
             mice_cache = dict()
         self._mice_cache = mice_cache
-        # Repertoire cache.
-        if repertoire_cache is None:
-            repertoire_cache = dict()
-        self._repertoire_cache = repertoire_cache
-        # Cache info
-        if cache_info is None:
-            cache_info = [0,0,0]
-        self.cache_info = cache_info
+        # Set up cause/effect repertoire cache.
+        self._repertoire_cache = (dict() if repertoire_cache is None else
+                                  repertoire_cache)
+        self._repertoire_cache_info = ([0, 0] if cache_info is None else
+                                       cache_info)
 
+    def repertoire_cache_info(self):
+        """Report repertoire cache statistics."""
+        return _CacheInfo(self._repertoire_cache_info[HITS],
+                          self._repertoire_cache_info[MISSES],
+                          len(self._repertoire_cache))
+
+    # TODO write docstring
     def _find_cut_matrix(self, cut):
         subsystem_indices = convert.nodes2indices(self.nodes)
         cut_matrix = np.zeros((self.network.size, self.network.size))
@@ -149,9 +157,6 @@ class Subsystem:
     def __hash__(self):
         return self._hash
 
-    def __del__(self):
-        pass
-
     def json_dict(self):
         return {
             'node_indices': json.make_encodable(self.node_indices),
@@ -162,25 +167,46 @@ class Subsystem:
         return () if not indices else tuple(
             n for n in self.nodes if n.index in indices)
 
+    def _make_repertoire_key(self, direction, mechanism, purview):
+        """Make a key for looking up repertoires in the cache."""
+        mechanism_indices = convert.nodes2indices(mechanism)
+        purview_indices = convert.nodes2indices(purview)
+        return (direction, mechanism_indices, purview_indices)
+
+    def _get_cached_repertoire(self, direction, mechanism, purview):
+        """Return a cached repertoire if there is one, ``False`` otherwise."""
+        key = self._make_repertoire_key(direction, mechanism, purview)
+        if key in self._repertoire_cache:
+            cached = self._repertoire_cache[key]
+            self._repertoire_cache_info[HITS] += 1
+            return cached
+        self._repertoire_cache_info[MISSES] += 1
+        return None
+
+    def _set_cached_repertoire(self, direction, mechanism, purview,
+                               repertoire):
+        """Store a repertoire in the cache."""
+        key = self._make_repertoire_key(direction, mechanism, purview)
+        if key not in self._repertoire_cache:
+            self._repertoire_cache[key] = repertoire
+
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
 
         Args:
             mechanism (tuple(Node)): The mechanism for which to calculate the
-            cause repertoire.
+                cause repertoire.
             purview (tuple(Node)): The purview over which to calculate the
-            cause repertoire.
+                cause repertoire.
         Returns:
             ``np.ndarray`` -- The cause repertoire of the mechanism over the
-            purview.
+                purview.
         """
-        # Return a repertoire if there's a hit.
-        cached_repertoire = self._get_cached_repertoire(DIRECTIONS[PAST], mechanism, purview)
-        if isinstance(cached_repertoire, np.ndarray):
-            self.cache_info[0] += 1
+        # Return a cached repertoire if there is one.
+        cached_repertoire = self._get_cached_repertoire(
+            DIRECTIONS[PAST], mechanism, purview)
+        if cached_repertoire is not None:
             return cached_repertoire
-        self.cache_info[1] += 1
-
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # NOTE: In the Matlab version's terminology,
         #
@@ -194,15 +220,12 @@ class Subsystem:
         # of the purview, so just return the purview's maximum entropy
         # distribution.
         purview_indices = convert.nodes2indices(purview)
-
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
             cjd = np.array([1.0])
-            key = (DIRECTIONS[PAST], convert.nodes2indices(mechanism), convert.nodes2indices(purview))
-            if key not in self._repertoire_cache:
-                self.cache_info[2] += 1
-                self._repertoire_cache[key] = cjd
+            self._set_cached_repertoire(DIRECTIONS[PAST], mechanism, purview,
+                                        cjd)
             return cjd
         # Calculate the maximum entropy distribution. If there is no mechanism,
         # return it.
@@ -211,12 +234,9 @@ class Subsystem:
             self.network.size,
             tuple(self.perturb_vector[i] for i in purview_indices))
         if not mechanism:
-            cjd = max_entropy_dist
-            key = (DIRECTIONS[PAST], convert.nodes2indices(mechanism), convert.nodes2indices(purview))
-            if key not in self._repertoire_cache:
-                self.cache_info[2] += 1
-                self._repertoire_cache[key] = cjd
-            return cjd
+            self._set_cached_repertoire(DIRECTIONS[PAST], mechanism, purview,
+                                        max_entropy_dist)
+            return max_entropy_dist
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
         cjd = np.ones(tuple(2 if i in purview_indices else
@@ -265,12 +285,8 @@ class Subsystem:
         # repertoires, which are distributions over the whole network; we need
         # only compare the purview-repertoires with each other, since cut vs.
         # whole comparisons are only ever done over the same purview.
-        key = (DIRECTIONS[PAST], convert.nodes2indices(mechanism), convert.nodes2indices(purview))
-        if key not in self._repertoire_cache:
-            self.cache_info[2] += 1
-            self._repertoire_cache[key] = cjd
+        self._set_cached_repertoire(DIRECTIONS[PAST], mechanism, purview, cjd)
         return cjd
-
 
     def effect_repertoire(self, mechanism, purview):
         """Return the effect repertoire of a mechanism over a purview.
@@ -287,11 +303,10 @@ class Subsystem:
             purview.
         """
         # Return a repertoire if there's a hit.
-        cached_repertoire = self._get_cached_repertoire(DIRECTIONS[FUTURE], mechanism, purview)
-        if isinstance(cached_repertoire, np.ndarray):
-            self.cache_info[0] += 1
+        cached_repertoire = self._get_cached_repertoire(DIRECTIONS[FUTURE],
+                                                        mechanism, purview)
+        if cached_repertoire is not None:
             return cached_repertoire
-        self.cache_info[1] += 1
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # NOTE: In the Matlab version's terminology,
         #
@@ -306,10 +321,8 @@ class Subsystem:
         # multiplicative identity.
         if not purview:
             accumulated_cjd = np.array([1.0])
-            key = (DIRECTIONS[FUTURE], convert.nodes2indices(mechanism), convert.nodes2indices(purview))
-            if key not in self._repertoire_cache:
-                self.cache_info[2] += 1
-                self._repertoire_cache[key] = accumulated_cjd
+            self._set_cached_repertoire(
+                DIRECTIONS[FUTURE], mechanism, purview, accumulated_cjd)
             return accumulated_cjd
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
@@ -379,20 +392,9 @@ class Subsystem:
         # repertoires, which are distributions over the whole network; we need
         # only compare the purview-repertoires with each other, since cut vs.
         # whole comparisons are only ever done over the same purview.
-        key = (DIRECTIONS[FUTURE], convert.nodes2indices(mechanism), convert.nodes2indices(purview))
-        if key not in self._repertoire_cache:
-            self._repertoire_cache[key] = accumulated_cjd
-            self.cache_info[2] += 1
+        self._set_cached_repertoire(
+            DIRECTIONS[FUTURE], mechanism, purview, accumulated_cjd)
         return accumulated_cjd
-
-    def _get_cached_repertoire(self, direction, mechanism, purview):
-        """Return a cached repertoire if there is one, False otherwise."""
-        mechanism_indices = convert.nodes2indices(mechanism)
-        purview_indices = convert.nodes2indices(purview)
-        if (direction, mechanism_indices, purview_indices) in self._repertoire_cache:
-            cached = self._repertoire_cache[(direction, mechanism_indices, purview_indices)]
-            return cached
-        return False
 
     # TODO check if the cache is faster
     def _get_repertoire(self, direction):
