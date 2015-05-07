@@ -65,7 +65,8 @@ __author_website__ = 'http://willmayner.com'
 __copyright__ = 'Copyright 2014-2015 Will Mayner'
 
 
-from . import network, subsystem, compute, constants, config, db, examples, macro
+from . import (network, subsystem, compute, constants, config, db, examples,
+               macro)
 
 Network = network.Network
 Subsystem = subsystem.Subsystem
