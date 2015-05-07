@@ -8,7 +8,8 @@ import numpy as np
 from pyphi import constants, config, compute, models, utils, convert, Network
 from pyphi.constants import DIRECTIONS, PAST, FUTURE
 from pyphi.models import Cut
-from pyphi.compute import constellation, _find_mip_parallel, _find_mip_sequential, _null_bigmip
+from pyphi.compute import (constellation, _find_mip_parallel,
+                           _find_mip_sequential, _null_bigmip)
 
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
@@ -320,7 +321,7 @@ def test_find_mip_parallel_standard_example(s, flushcache, restore_fs_cache):
 
 
 def test_find_mip_sequential_noised_example(s_noised, flushcache,
-                                           restore_fs_cache):
+                                            restore_fs_cache):
     flushcache()
     initial = config.PARALLEL_CUT_EVALUATION
     config.PARALLEL_CUT_EVALUATION = False
@@ -477,7 +478,8 @@ def test_find_mip_parallel_micro(micro_s, flushcache, restore_fs_cache):
             for bipartition in bipartitions]
     min_mip = _null_bigmip(micro_s)
     min_mip.phi = float('inf')
-    mip = _find_mip_parallel(micro_s, cuts, unpartitioned_constellation, min_mip)
+    mip = _find_mip_parallel(micro_s, cuts, unpartitioned_constellation,
+                             min_mip)
     check_mip(mip, micro_answer)
 
     config.PARALLEL_CUT_EVALUATION = initial
@@ -495,7 +497,8 @@ def test_find_mip_sequential_micro(micro_s, flushcache, restore_fs_cache):
             for bipartition in bipartitions]
     min_mip = _null_bigmip(micro_s)
     min_mip.phi = float('inf')
-    mip = _find_mip_sequential(micro_s, cuts, unpartitioned_constellation, min_mip)
+    mip = _find_mip_sequential(micro_s, cuts, unpartitioned_constellation,
+                               min_mip)
     check_mip(mip, micro_answer)
 
     config.PARALLEL_CUT_EVALUATION = initial
