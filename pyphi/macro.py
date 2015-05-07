@@ -230,10 +230,9 @@ def emergence(network):
             mapping = make_mapping(network.tpm, partition, grouping)
             macro_network = make_macro_network(network, mapping)
             if macro_network:
-                main_complex = pyphi.compute.main_complex(macro_network)
-                phi = main_complex.phi
-                if phi > max_phi:
-                    max_phi = phi
+                main_complex = compute.main_complex(macro_network)
+                if (main_complex.phi - max_phi) > constants.EPSILON:
+                    max_phi = main_complex.phi
                     max_partition = partition
                     max_grouping = grouping
                     max_network = macro_network
