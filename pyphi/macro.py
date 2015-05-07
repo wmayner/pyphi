@@ -6,12 +6,11 @@
 Methods for coarse graining systems to different levels of spatial analysis.
 """
 
-import pyphi
 import numpy as np
-from pyphi.convert import loli_index2state
-from pyphi.convert import state2loli_index
 import itertools
 import logging
+from . import constants, validate, compute, convert
+from .network import Network
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -166,7 +165,7 @@ def make_macro_tpm(micro_tpm, mapping):
         macro_tpm (nd.array): TPM of the macro system.
     """
     num_macro_states = max(mapping) + 1
-    micro_tpm = pyphi.convert.state_by_node2state_by_state(micro_tpm)
+    micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
     num_micro_states = len(micro_tpm)
     macro_tpm = np.zeros((num_macro_states, num_macro_states))
     # For every possible micro state transition, get the corresponding past and
@@ -198,14 +197,14 @@ def make_macro_network(network, mapping):
     """
     num_macro_nodes = int(np.log2(max(mapping) + 1))
     macro_tpm = make_macro_tpm(network.tpm, mapping)
-    macro_current_state = loli_index2state(
-        mapping[state2loli_index(network.current_state)].astype(int),
+    macro_current_state = convert.loli_index2state(
+        mapping[convert.state2loli_index(network.current_state)].astype(int),
         num_macro_nodes)
-    macro_past_state = loli_index2state(
-        mapping[state2loli_index(network.past_state)].astype(int),
+    macro_past_state = convert.loli_index2state(
+        mapping[convert.state2loli_index(network.past_state)].astype(int),
         num_macro_nodes)
-    if pyphi.validate.conditionally_independent(macro_tpm):
-        return pyphi.Network(macro_tpm, macro_current_state, macro_past_state)
+    if validate.conditionally_independent(macro_tpm):
+        return Network(macro_tpm, macro_current_state, macro_past_state)
     else:
         return None
 
@@ -221,7 +220,7 @@ def emergence(network):
     Returns:
         macro (Macro): The maximal course graining of the micro system.
     """
-    micro_phi = pyphi.compute.main_complex(network).phi
+    micro_phi = compute.main_complex(network).phi
     partitions = list_all_partitions(network)
     max_phi = 0
     for partition in partitions:
