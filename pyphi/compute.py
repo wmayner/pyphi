@@ -266,7 +266,8 @@ def conceptual_information(subsystem):
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    return round(constellation_distance(constellation(subsystem), (), subsystem), PRECISION)
+    ci = constellation_distance(constellation(subsystem), (), subsystem)
+    return round(ci, PRECISION)
 
 
 # TODO document
@@ -315,10 +316,12 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
                                               mechanism_indices_to_check)
 
     log.debug("Finished evaluating cut {}.".format(cut))
+
+    phi = constellation_distance(unpartitioned_constellation,
+                                 partitioned_constellation,
+                                 uncut_subsystem)
     return BigMip(
-        phi=round(constellation_distance(unpartitioned_constellation,
-                                   partitioned_constellation,
-                                   uncut_subsystem), PRECISION),
+        phi=round(phi, PRECISION),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=partitioned_constellation,
         subsystem=uncut_subsystem,
