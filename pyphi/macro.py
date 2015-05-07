@@ -31,23 +31,18 @@ class MacroNetwork:
     See the 'macro' example in the documentation for more information.
 
     Attributes:
-        network (Network):
-            The network object of the macro system.
-        phi (float):
-            The |big_phi| of the network's main complex.
-        micro_network (Network):
-            The network object of the corresponding micro system.
-        micro_phi (float):
-            The |big_phi| of the main complex of the corresponding micro
+        network (Network): The network object of the macro system.
+        phi (float): The |big_phi| of the network's main complex.
+        micro_network (Network): The network object of the corresponding micro
             system.
-        partition (list):
-            The partition which defines macro elements in terms of micro
-            elements.
-        grouping (list(list)):
-            The correspondence between micro states and macro states.
-        emergence (float):
-            The difference between the |big_phi| of the macro and the micro
-            system.
+        micro_phi (float): The |big_phi| of the main complex of the
+            corresponding micro system.
+        partition (list): The partition which defines macro elements in terms
+            of micro elements.
+        grouping (list(list)): The correspondence between micro states and
+            macro states.
+        emergence (float): The difference between the |big_phi| of the macro
+            and the micro system.
     """
     def __init__(self, macro_network, macro_phi, micro_network, micro_phi,
                  partition, grouping):
