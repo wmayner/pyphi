@@ -132,19 +132,22 @@ def make_mapping(micro_tpm, partition, grouping):
     num_macro_nodes = len(grouping)
     num_micro_nodes = sum([len(part) for part in partition])
     num_micro_states = 2**num_micro_nodes
-    micro_states = np.array([
-        tuple(map(int, bin(state_index)[2:].zfill(num_micro_nodes)[::-1]))
-        for state_index in range(num_micro_states)
-    ]).astype(float)
+    micro_states = [convert.loli_index2state(micro_state_index,
+                                             num_micro_nodes)
+                    for micro_state_index in range(num_micro_states)]
     mapping = np.zeros(num_micro_states)
-    macro_states = list(map(list, itertools.product(*reversed(grouping))))
-    for macro_index, macro_state in enumerate(macro_states):
-        for micro_index, micro_state in enumerate(micro_states):
-            micro_sum = [sum([micro_state[node] for node in partition[x]])
-                         for x in range(num_macro_nodes)]
-            if all([micro_sum[x] in reversed(macro_state)[x]
-                    for x in range(num_macro_nodes)]):
-                mapping[micro_index] = macro_index
+    # For every micro state, find the corresponding macro state and add it to
+    # the mapping.
+    for micro_state_index, micro_state in enumerate(micro_states):
+        # Sum the number of micro elements that are ON for each macro element.
+        micro_sum = [sum([micro_state[node] for node in partition[i]])
+                     for i in range(num_macro_nodes)]
+        # Check if the number of micro elements that are ON corresponds to the
+        # macro element being ON or OFF.
+        macro_state = [0 if micro_sum[i] in grouping[i][0] else 1
+                       for i in range(num_macro_nodes)]
+        # Record the mapping.
+        mapping[micro_state_index] = convert.state2loli_index(macro_state)
     return mapping
 
 
@@ -172,6 +175,8 @@ def make_macro_tpm(micro_tpm, mapping):
         macro_tpm[mapping[past_state_index],
                   mapping[current_state_index]] += \
             micro_tpm[past_state_index, current_state_index]
+    # Because we're going from a bigger TPM to a smaller TPM, we have to
+    # re-normalize each row.
     return np.array([list(row) if sum(row) == 0 else list(row / sum(row))
                      for row in macro_tpm])
 
