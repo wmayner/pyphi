@@ -88,7 +88,7 @@ def list_all_partitions(network):
         macro elements.
     """
     partitions = _partitions_list(network.size)
-    partitions[-1] = [range(network.size)]
+    partitions[-1] = [list(range(network.size))]
     return partitions
 
 
