@@ -14,19 +14,16 @@ from pyphi.compute import (constellation, _find_mip_parallel,
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
-# Precision for testing.
-PRECISION = 5
-
 
 # Answers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 standard_answer = {
-    'phi': 2.3125,
+    'phi': 2.312496,
     'unpartitioned_small_phis': {
         (1,): 0.25,
         (2,): 0.5,
-        (0, 1): 1/3,
+        (0, 1): 0.333333,
         (0, 1, 2): 0.5
     },
     'len_partitioned_constellation': 1,
@@ -41,50 +38,50 @@ noised_answer = {
         (0,): 0.0625,
         (1,): 0.2,
         (2,): 0.316326,
-        (0, 1): 0.31904700000000025,
+        (0, 1): 0.319047,
         (0, 2): 0.0125,
-        (1, 2): 0.26384703498300066,
-        (0, 1, 2): 0.34999965000000005
+        (1, 2): 0.263847,
+        (0, 1, 2): 0.35
     },
     'len_partitioned_constellation': 7,
-    'sum_partitioned_small_phis': 0.50491,
+    'sum_partitioned_small_phis': 0.504906,
     'cut': models.Cut(severed=(1, 2), intact=(0,))
 }
 
 
 big_answer = {
-    'phi': 10.729482,
+    'phi': 10.729488,
     'unpartitioned_small_phis': {
-        (0,): 0.24999975000000002,
-        (1,): 0.24999975000000002,
-        (2,): 0.24999975000000002,
-        (3,): 0.24999975000000002,
-        (4,): 0.24999975000000002,
-        (0, 1): 0.19999980000000003,
-        (0, 2): 0.2000000000000017,
-        (0, 3): 0.2000000000000017,
-        (0, 4): 0.19999980000000003,
-        (1, 2): 0.19999980000000003,
-        (1, 3): 0.20000000000000057,
-        (1, 4): 0.2000000000000017,
-        (2, 3): 0.19999980000000003,
-        (2, 4): 0.2000000000000017,
-        (3, 4): 0.19999980000000003,
+        (0,): 0.25,
+        (1,): 0.25,
+        (2,): 0.25,
+        (3,): 0.25,
+        (4,): 0.25,
+        (0, 1): 0.2,
+        (0, 2): 0.2,
+        (0, 3): 0.2,
+        (0, 4): 0.2,
+        (1, 2): 0.2,
+        (1, 3): 0.2,
+        (1, 4): 0.2,
+        (2, 3): 0.2,
+        (2, 4): 0.2,
+        (3, 4): 0.2,
         (0, 1, 2): 0.2,
-        (0, 1, 3): 0.257142871428,
+        (0, 1, 3): 0.257142,
         (0, 1, 4): 0.2,
-        (0, 2, 3): 0.257142871428,
-        (0, 2, 4): 0.257142871428,
+        (0, 2, 3): 0.257142,
+        (0, 2, 4): 0.257142,
         (0, 3, 4): 0.2,
         (1, 2, 3): 0.2,
-        (1, 2, 4): 0.257142871428,
-        (1, 3, 4): 0.257142871428,
+        (1, 2, 4): 0.257142,
+        (1, 3, 4): 0.257142,
         (2, 3, 4): 0.2,
-        (0, 1, 2, 3): 0.18570900000000226,
-        (0, 1, 2, 4): 0.18570900000000112,
-        (0, 1, 3, 4): 0.18570900000000112,
-        (0, 2, 3, 4): 0.18570900000000226,
-        (1, 2, 3, 4): 0.18570900000000112
+        (0, 1, 2, 3): 0.185709,
+        (0, 1, 2, 4): 0.185709,
+        (0, 1, 3, 4): 0.185709,
+        (0, 2, 3, 4): 0.185709,
+        (1, 2, 3, 4): 0.185709
     },
     'len_partitioned_constellation': 17,
     'sum_partitioned_small_phis': 3.564907,
@@ -97,8 +94,8 @@ big_subsys_0_thru_3_answer = {
     'unpartitioned_small_phis': {
         (0,): 0.166667,
         (1,): 0.166667,
-        (2,): 0.166667,
-        (3,): 0.24999975000000002,
+        (2,): 0.166867,
+        (3,): 0.25,
         (0, 1): 0.133333,
         (1, 2): 0.133333
     },
@@ -109,22 +106,22 @@ big_subsys_0_thru_3_answer = {
 
 
 rule152_answer = {
-    'phi': 6.9749327784596415,
+    'phi': 6.974947,
     'unpartitioned_small_phis': {
-        (0,): 0.125001874998,
-        (1,): 0.125001874998,
-        (2,): 0.125001874998,
-        (3,): 0.125001874998,
-        (4,): 0.125001874998,
+        (0,): 0.125002,
+        (1,): 0.125002,
+        (2,): 0.125002,
+        (3,): 0.125002,
+        (4,): 0.125002,
         (0, 1): 0.25,
-        (0, 2): 0.18461400000000092,
-        (0, 3): 0.18461400000000092,
+        (0, 2): 0.184614,
+        (0, 3): 0.184614,
         (0, 4): 0.25,
         (1, 2): 0.25,
-        (1, 3): 0.18461400000000092,
-        (1, 4): 0.18461400000000092,
+        (1, 3): 0.184614,
+        (1, 4): 0.184614,
         (2, 3): 0.25,
-        (2, 4): 0.18461400000000092,
+        (2, 4): 0.184614,
         (3, 4): 0.25,
         (0, 1, 2): 0.25,
         (0, 1, 3): 0.316666,
@@ -144,20 +141,20 @@ rule152_answer = {
         (0, 1, 2, 3, 4): 0.25
     },
     'len_partitioned_constellation': 24,
-    'sum_partitioned_small_phis': 4.185364469227005,
+    'sum_partitioned_small_phis': 4.185364,
     'cut': models.Cut(severed=(0, 1, 3, 4), intact=(2,))
 }
 
 
 micro_answer = {
-    'phi': 0.97441,
+    'phi': 0.974411,
     'unpartitioned_small_phis': {
         (0,): 0.175,
         (1,): 0.175,
         (2,): 0.175,
         (3,): 0.175,
-        (0, 1): 0.34811,
-        (2, 3): 0.34811,
+        (0, 1): 0.348114,
+        (2, 3): 0.348114,
     },
     'cuts': [
         models.Cut(severed=(0, 2), intact=(1, 3)),
@@ -187,10 +184,7 @@ macro_answer = {
 def check_unpartitioned_small_phis(small_phis, unpartitioned_constellation):
     assert len(small_phis) == len(unpartitioned_constellation)
     for c in unpartitioned_constellation:
-        np.testing.assert_almost_equal(
-            c.phi,
-            small_phis[convert.nodes2indices(c.mechanism)],
-            PRECISION)
+        assert c.phi == small_phis[convert.nodes2indices(c.mechanism)]
 
 
 def check_partitioned_small_phis(answer, partitioned_constellation):
@@ -198,15 +192,13 @@ def check_partitioned_small_phis(answer, partitioned_constellation):
         assert (answer['len_partitioned_constellation'] ==
                 len(partitioned_constellation))
     if 'sum_partitioned_small_phis' in answer:
-        np.testing.assert_almost_equal(
-            sum(c.phi for c in partitioned_constellation),
-            answer['sum_partitioned_small_phis'],
-            PRECISION)
+        assert (sum(c.phi for c in partitioned_constellation) ==
+                answer['sum_partitioned_small_phis'])
 
 
 def check_mip(mip, answer):
     # Check big phi value.
-    np.testing.assert_almost_equal(mip.phi, answer['phi'], PRECISION)
+    assert mip.phi == answer['phi']
     # Check small phis of unpartitioned constellation.
     check_unpartitioned_small_phis(answer['unpartitioned_small_phis'],
                                    mip.unpartitioned_constellation)
@@ -245,8 +237,7 @@ def test_concept_nonexistent(s, flushcache, restore_fs_cache):
 
 def test_conceptual_information(s, flushcache, restore_fs_cache):
     flushcache()
-    np.testing.assert_almost_equal(compute.conceptual_information(s), 2.812497,
-                                   PRECISION)
+    assert compute.conceptual_information(s) == 2.8125
 
 
 def test_big_mip_empty_subsystem(s_empty, flushcache, restore_fs_cache):
