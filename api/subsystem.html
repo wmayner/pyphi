@@ -402,14 +402,14 @@ purview.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>mip</strong> &#8211;
-The mininum-information partition</p>
+The mininum-information partition in one temporal</p>
 <blockquote>
-<div><p>in one temporal direction.</p>
+<div><p>direction.</p>
 </div></blockquote>
 </p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#pyphi.models.Mip" title="pyphi.models.Mip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mip</span></tt></a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#pyphi.models.Mip" title="pyphi.models.Mip"><tt class="xref py py-class docutils literal"><span class="pre">Mip</span></tt></a></p>
 </td>
 </tr>
 </tbody>
@@ -420,14 +420,14 @@ The mininum-information partition</p>
 <dt id="pyphi.subsystem.Subsystem.mip_past">
 <tt class="descname">mip_past</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.mip_past" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the past minimum information partition.</p>
-<p>Alias for <a class="reference internal" href="#pyphi.subsystem.Subsystem.find_mip" title="pyphi.subsystem.Subsystem.find_mip"><tt class="xref py py-func docutils literal"><span class="pre">find_mip()</span></tt></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt>.</p>
+<p>Alias for <a href="#id1"><span class="problematic" id="id2">|find_mip|</span></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyphi.subsystem.Subsystem.mip_future">
 <tt class="descname">mip_future</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.mip_future" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the future minimum information partition.</p>
-<p>Alias for <a class="reference internal" href="#pyphi.subsystem.Subsystem.find_mip" title="pyphi.subsystem.Subsystem.find_mip"><tt class="xref py py-func docutils literal"><span class="pre">find_mip()</span></tt></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[FUTURE]</span></tt>.</p>
+<p>Alias for <a href="#id3"><span class="problematic" id="id4">|find_mip|</span></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[FUTURE]</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -478,15 +478,11 @@ finding only concepts that are &#8220;about&#8221; a certain subset of
 nodes.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>mice</strong> &#8211;
-The maximally-irreducible cause</p>
-<blockquote>
-<div><p>or effect.</p>
-</div></blockquote>
-</p>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mice</strong> &#8211;
+The maximally-irreducible cause or effect.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#pyphi.models.Mice" title="pyphi.models.Mice"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mice</span></tt></a></p>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#pyphi.models.Mice" title="pyphi.models.Mice"><tt class="xref py py-class docutils literal"><span class="pre">Mice</span></tt></a></p>
 </td>
 </tr>
 </tbody>
@@ -507,14 +503,14 @@ them.</p>
 <dt id="pyphi.subsystem.Subsystem.core_cause">
 <tt class="descname">core_cause</tt><big>(</big><em>mechanism</em>, <em>purviews=False</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.core_cause" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the core cause repertoire of a mechanism.</p>
-<p>Alias for <a class="reference internal" href="#pyphi.subsystem.Subsystem.find_mice" title="pyphi.subsystem.Subsystem.find_mice"><tt class="xref py py-func docutils literal"><span class="pre">find_mice()</span></tt></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt>.</p>
+<p>Alias for <a href="#id5"><span class="problematic" id="id6">|find_mice|</span></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyphi.subsystem.Subsystem.core_effect">
 <tt class="descname">core_effect</tt><big>(</big><em>mechanism</em>, <em>purviews=False</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.core_effect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the core effect repertoire of a mechanism.</p>
-<p>Alias for <a class="reference internal" href="#pyphi.subsystem.Subsystem.find_mice" title="pyphi.subsystem.Subsystem.find_mice"><tt class="xref py py-func docutils literal"><span class="pre">find_mice()</span></tt></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt>.</p>
+<p>Alias for <a href="#id7"><span class="problematic" id="id8">|find_mice|</span></a> with <tt class="docutils literal"><span class="pre">direction</span></tt> set to <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">

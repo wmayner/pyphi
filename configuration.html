@@ -64,10 +64,10 @@
             <ul>
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Usage and Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/residue.html">Residue Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/conditional_independence.html">Conditional Independence Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/xor.html">XOR Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/macro.html">Emergence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/xor.html">XOR Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/macro.html">Emergence (Macro/Micro)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/index.html#conventions">Conventions</a></li>
 </ul>
@@ -89,6 +89,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
@@ -97,6 +98,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
 </ul>
 </li>
 </ul>
@@ -165,7 +167,7 @@ there is a risk that simulations might crash (potentially after running for a
 long time!), resulting in data loss.</p>
 <ul>
 <li><p class="first">Control whether system cuts are evaluated in parallel, which requires more
-memory. If cuts are evaluated sequentially, only two <a class="reference internal" href="api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.BigMip</span></tt></a> instances need
+memory. If cuts are evaluated sequentially, only two <a class="reference internal" href="api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a> instances need
 to be in memory at once.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">PARALLEL_CUT_EVALUATION</span>
 <span class="go">True</span>
@@ -201,20 +203,20 @@ RAM that the caches can collectively use.</p>
 </div>
 <div class="section" id="caching">
 <h2>Caching<a class="headerlink" href="#caching" title="Permalink to this headline">¶</a></h2>
-<p>PyPhi is equipped with a transparent caching system for the <a class="reference internal" href="api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.BigMip</span></tt></a> and
-<a class="reference internal" href="api/models.html#pyphi.models.Concept" title="pyphi.models.Concept"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Concept</span></tt></a> objects, which stores them as they are computed to avoid having to
+<p>PyPhi is equipped with a transparent caching system for the <a class="reference internal" href="api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a> and
+<a class="reference internal" href="api/models.html#pyphi.models.Concept" title="pyphi.models.Concept"><tt class="xref py py-class docutils literal"><span class="pre">Concept</span></tt></a> objects, which stores them as they are computed to avoid having to
 recompute them later. This makes it easy to play around interactively with the
 program, or to accumulate results with minimal effort. For larger projects,
 however, it is recommended that you manage the results explicitly, rather than
 relying on the cache. For this reason it is disabled by default.</p>
 <ul>
-<li><p class="first">Control whether <a class="reference internal" href="api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.BigMip</span></tt></a> objects are cached and automatically retreived.</p>
+<li><p class="first">Control whether <a class="reference internal" href="api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a> objects are cached and automatically retreived.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">CACHE_BIGMIPS</span>
 <span class="go">False</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Control whether <a class="reference internal" href="api/models.html#pyphi.models.Concept" title="pyphi.models.Concept"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Concept</span></tt></a> objects are cached and automatically retrieved.</p>
+<li><p class="first">Control whether <a class="reference internal" href="api/models.html#pyphi.models.Concept" title="pyphi.models.Concept"><tt class="xref py py-class docutils literal"><span class="pre">Concept</span></tt></a> objects are cached and automatically retrieved.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">CACHE_CONCEPTS</span>
 <span class="go">False</span>
 </pre></div>

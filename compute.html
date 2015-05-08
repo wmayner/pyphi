@@ -84,6 +84,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/config.html"><tt class="docutils literal"><span class="pre">config</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
@@ -151,10 +152,10 @@ considered.</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>concept</strong> &#8211;
-The pair of maximally</p>
+The pair of maximally irreducible cause/effect</p>
 <blockquote>
-<div><p>irreducible cause/effect repertoires that constitute the concept
-specified by the given mechanism.</p>
+<div><p>repertoires that constitute the concept specified by the given
+mechanism.</p>
 </div></blockquote>
 </p>
 </td>
@@ -169,8 +170,7 @@ specified by the given mechanism.</p>
 <p class="last">The output can be persistently cached to avoid recomputation. This may
 be enabled in the configuration file&#8212;however, it is only available if
 the caching backend is a database (not the filesystem). See the
-documentation for <a class="reference internal" href="api/concept_caching.html#module-pyphi.concept_caching" title="pyphi.concept_caching"><tt class="xref py py-mod docutils literal"><span class="pre">concept_caching</span></tt></a> and
-<a class="reference internal" href="configuration.html#module-pyphi.config" title="pyphi.config"><tt class="xref py py-mod docutils literal"><span class="pre">config</span></tt></a>.</p>
+documentation for the <a class="reference internal" href="api/concept_caching.html#module-pyphi.concept_caching" title="pyphi.concept_caching"><tt class="xref py py-mod docutils literal"><span class="pre">concept_caching</span></tt></a> and <a class="reference internal" href="configuration.html#module-pyphi.config" title="pyphi.config"><tt class="xref py py-mod docutils literal"><span class="pre">config</span></tt></a> modules.</p>
 </div>
 </dd></dl>
 
@@ -321,9 +321,9 @@ concept.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsystem</strong> (<em>Subsystem</em>) &#8211; The candidate set of nodes.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>big_mip</strong> &#8211;
-A nested structure containing<blockquote>
-<div>all the data from the intermediate calculations. The top level
-contains the basic MIP information for the given subsystem.</div></blockquote>
+A nested structure containing all the data from the<blockquote>
+<div>intermediate calculations. The top level contains the basic MIP
+information for the given subsystem.</div></blockquote>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a></td>

@@ -213,7 +213,7 @@ A decimal integer corresponding to a network<blockquote>
 <tt class="descclassname">pyphi.convert.</tt><tt class="descname">loli_index2state</tt><big>(</big><em>i</em>, <em>number_of_nodes</em><big>)</big><a class="headerlink" href="#pyphi.convert.loli_index2state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a decimal integer to a PyPhi state tuple with the <strong>LOLI</strong>
 convention.</p>
-<p>The output is the reverse of <a class="reference internal" href="#pyphi.convert.holi_index2state" title="pyphi.convert.holi_index2state"><tt class="xref py py-func docutils literal"><span class="pre">holi_index2state()</span></tt></a>.</p>
+<p>The output is the reverse of <a class="reference internal" href="#pyphi.convert.holi_index2state" title="pyphi.convert.holi_index2state"><tt class="xref py py-class docutils literal"><span class="pre">holi_index2state</span></tt></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -247,7 +247,7 @@ A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of
 <tt class="descclassname">pyphi.convert.</tt><tt class="descname">holi_index2state</tt><big>(</big><em>i</em>, <em>number_of_nodes</em><big>)</big><a class="headerlink" href="#pyphi.convert.holi_index2state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a decimal integer to a PyPhi state tuple using the <strong>HOLI</strong>
 convention that high-order bits correspond to low-index nodes.</p>
-<p>The output is the reverse of <a class="reference internal" href="#pyphi.convert.loli_index2state" title="pyphi.convert.loli_index2state"><tt class="xref py py-func docutils literal"><span class="pre">loli_index2state()</span></tt></a>.</p>
+<p>The output is the reverse of <a class="reference internal" href="#pyphi.convert.loli_index2state" title="pyphi.convert.loli_index2state"><tt class="xref py py-class docutils literal"><span class="pre">loli_index2state</span></tt></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -280,7 +280,7 @@ A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of
 <dt id="pyphi.convert.to_n_dimensional">
 <tt class="descclassname">pyphi.convert.</tt><tt class="descname">to_n_dimensional</tt><big>(</big><em>tpm</em><big>)</big><a class="headerlink" href="#pyphi.convert.to_n_dimensional" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reshape a state-by-node TPM to the N-D form.</p>
-<p>See documentation for <a class="reference internal" href="network.html#module-pyphi.network" title="pyphi.network"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.network</span></tt></a> for more information on TPM
+<p>See documentation for the <a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><tt class="xref py py-class docutils literal"><span class="pre">Network</span></tt></a> object for more information on TPM
 formats.</p>
 </dd></dl>
 
@@ -293,8 +293,8 @@ formats.</p>
 <p class="last">The indices of the rows and columns of the state-by-state TPM are
 assumed to follow the <strong>LOLI</strong> convention. The indices of the rows of
 the resulting state-by-node TPM also follow the <strong>LOLI</strong> convention.
-See the documentation for <a class="reference internal" href="examples.html#module-pyphi.examples" title="pyphi.examples"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.examples</span></tt></a> for more info on
-these conventions.</p>
+See the documentation for the <a class="reference internal" href="examples.html#module-pyphi.examples" title="pyphi.examples"><tt class="xref py py-mod docutils literal"><span class="pre">examples</span></tt></a> module for more info on these
+conventions.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

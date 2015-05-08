@@ -65,10 +65,10 @@
             <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
 </ul>
@@ -90,6 +90,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
@@ -98,6 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
 </ul>
 </li>
 </ul>
@@ -238,7 +240,7 @@
 <dt id="pyphi.examples.basic_subsystem">
 <tt class="descclassname">pyphi.examples.</tt><tt class="descname">basic_subsystem</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.basic_subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>A subsystem containing all the nodes of the
-<a class="reference internal" href="#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_network()</span></tt></a>.</p>
+<a class="reference internal" href="#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><tt class="xref py py-func docutils literal"><span class="pre">basic_network()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -322,7 +324,7 @@
 <dt id="pyphi.examples.residue_subsystem">
 <tt class="descclassname">pyphi.examples.</tt><tt class="descname">residue_subsystem</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.residue_subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>The subsystem containing all the nodes of the
-<a class="reference internal" href="#pyphi.examples.residue_network" title="pyphi.examples.residue_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.residue_network()</span></tt></a>.</p>
+<a class="reference internal" href="#pyphi.examples.residue_network" title="pyphi.examples.residue_network"><tt class="xref py py-func docutils literal"><span class="pre">residue_network()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -379,7 +381,7 @@ none of the elementary mechanisms exist.</p>
 <dt id="pyphi.examples.xor_subsystem">
 <tt class="descclassname">pyphi.examples.</tt><tt class="descname">xor_subsystem</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.xor_subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>The subsystem containing all the nodes of the
-<a class="reference internal" href="#pyphi.examples.xor_network" title="pyphi.examples.xor_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.xor_network()</span></tt></a>.</p>
+<a class="reference internal" href="#pyphi.examples.xor_network" title="pyphi.examples.xor_network"><tt class="xref py py-func docutils literal"><span class="pre">xor_network()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -622,62 +624,36 @@ is <strong>ON</strong> 50% of the time, independent of the previous state.</p>
 <dl class="function">
 <dt id="pyphi.examples.propagation_delay_network">
 <tt class="descclassname">pyphi.examples.</tt><tt class="descname">propagation_delay_network</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.propagation_delay_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>A version of the primary example from the IIT 3.0 paper
-with deterministic COPY gates on each connection. These
-copy gates essentially function as propagation delays on the
-signal between OR, AND and XOR gates from the original system.</p>
-<p>The current and past states of the network are also selected
-to  mimic the corresponding states from the IIT 3.0 paper.</p>
-<dl class="docutils">
-<dt>Diagram::</dt>
-<dd><blockquote class="first">
-<div><blockquote>
-<div><table border="1" class="docutils">
-<colgroup>
-</colgroup>
-<tbody valign="top">
-</tbody>
-</table>
-</div></blockquote>
-<p>+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;+ C (COPY) +&lt;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;+
-V                     +&#8212;&#8212;&#8212;-+                      |</p>
-</div></blockquote>
-<p>+&#8212;&#8212;&#8212;-+&#8211;+                                                 +&#8211;+&#8212;&#8212;&#8212;-+
-|             |                  +&#8212;&#8212;&#8212;-+                   |             |
-|   A (OR)    +&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;&gt;+ B (COPY) +&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&gt;+   D (XOR)   |
-|             |                  +&#8212;&#8212;&#8212;-+                   |             |
-+&#8211;+&#8212;&#8212;-+&#8211;+                                                 +&#8211;+&#8212;&#8212;-+&#8211;+</p>
-<blockquote class="last">
-<div><div class="line-block">
-<div class="line">^                                                       ^       |</div>
-<div class="line">|                                                       |       |</div>
-<div class="line">|   +&#8212;&#8212;&#8212;-+                        +&#8212;&#8212;&#8212;-+    |       |</div>
-<div class="line">+&#8212;+ H (COPY) +&lt;&#8212;&#8212;-+      +&#8212;&#8212;-&gt;+ F (COPY) +&#8212;-+       |</div>
-<div class="line-block">
-<div class="line">+&#8212;&#8212;&#8212;-+        |      |        +&#8212;&#8212;&#8212;-+            |</div>
-<div class="line-block">
-<div class="line-block">
-<div class="line">|      |                                |</div>
+<dd><p>A version of the primary example from the IIT 3.0 paper with
+deterministic COPY gates on each connection. These copy gates essentially
+function as propagation delays on the signal between OR, AND and XOR gates
+from the original system.</p>
+<p>The current and past states of the network are also selected to mimic the
+corresponding states from the IIT 3.0 paper.</p>
+<p>Diagram:</p>
+<div class="highlight-python"><div class="highlight"><pre>                                  +----------+
+            +---------------------+ C (COPY) +&lt;---------------------+
+            V                     +----------+                      |
++----------+--+                                                 +--+----------+
+|             |                  +----------+                   |             |
+|   A (OR)    +-----------------&gt;+ B (COPY) +------------------&gt;+   D (XOR)   |
+|             |                  +----------+                   |             |
++--+-------+--+                                                 +--+-------+--+
+    |       ^                                                       ^       |
+    |       |                                                       |       |
+    |       |   +----------+                        +----------+    |       |
+    |       +---+ H (COPY) +&lt;-------+      +-------&gt;+ F (COPY) +----+       |
+    |           +----------+        |      |        +----------+            |
+    |                               |      |                                |
+    |                            +--+------+--+                             |
+    |           +----------+     |            |     +----------+            |
+    +----------&gt;+ I (COPY) +----&gt;|  G (AND)   |&lt;----+ E (COPY) +&lt;-----------+
+                +----------+     |            |     +----------+
+                                +----------- +
+</pre></div>
 </div>
-<div class="line">+&#8211;+&#8212;&#8212;+&#8211;+                             |</div>
-</div>
-<div class="line">+&#8212;&#8212;&#8212;-+     |            |     +&#8212;&#8212;&#8212;-+            |</div>
-</div>
-</div>
-<dl class="docutils">
-<dt>+&#8212;&#8212;&#8212;-&gt;+ I (COPY) +&#8212;-&gt;|  G (AND)   <a href="#id1"><span class="problematic" id="id2">|</span></a>&lt;&#8212;-+ E (COPY) +&lt;&#8212;&#8212;&#8212;&#8211;+</dt>
-<dd><dl class="first last docutils">
-<dt>+&#8212;&#8212;&#8212;-+     |            |     +&#8212;&#8212;&#8212;-+</dt>
-<dd>+&#8212;&#8212;&#8212;&#8211; +</dd>
-</dl>
-</dd>
-</dl>
-</div></blockquote>
-</dd>
-</dl>
 <p>Connectivity matrix:</p>
-<blockquote>
-<div><table border="1" class="docutils">
+<table border="1" class="docutils">
 <colgroup>
 <col width="10%" />
 <col width="10%" />
@@ -803,17 +779,14 @@ V                     +&#8212;&#8212;&#8212;-+                      |</p>
 </tr>
 </tbody>
 </table>
-</div></blockquote>
 <p>States:</p>
-<blockquote>
-<div><p>In the IIT 3.0 paper example, the past state of the system has only
-the XOR gate on. For the propagation delay network, this corresponds
-to a state of (0, 0, 0, 1, 0, 0, 0, 0, 0).</p>
+<p>In the IIT 3.0 paper example, the past state of the system has only the XOR
+gate on. For the propagation delay network, this corresponds to a state of
+<tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0)</span></tt>.</p>
 <p>The current state of the IIT 3.0 example has only the OR gate on. By
-advancing the propagation delay system two time steps, the current
-state (1, 0, 0, 0, 0, 0, 0, 0, 0) is achieved, with corresponding
-past state (0, 0, 1, 0, 1, 0, 0, 0, 0).</p>
-</div></blockquote>
+advancing the propagation delay system two time steps, the current state
+<tt class="docutils literal"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0)</span></tt> is achieved, with corresponding past state
+<tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0)</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">

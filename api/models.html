@@ -65,10 +65,10 @@
             <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
 </ul>
@@ -90,6 +90,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
@@ -98,6 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
 </ul>
 </li>
 </ul>
@@ -376,14 +378,14 @@ values of the concept&#8217;s core cause and core effect.</p>
 <dl class="attribute">
 <dt id="pyphi.models.Concept.cause">
 <tt class="descname">cause</tt><a class="headerlink" href="#pyphi.models.Concept.cause" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Mice</em></p>
+<dd><p><em>|Mice|</em></p>
 <p>The <a class="reference internal" href="#pyphi.models.Mice" title="pyphi.models.Mice"><tt class="xref py py-class docutils literal"><span class="pre">Mice</span></tt></a> representing the core cause of this concept.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.models.Concept.effect">
 <tt class="descname">effect</tt><a class="headerlink" href="#pyphi.models.Concept.effect" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Mice</em></p>
+<dd><p><em>|Mice|</em></p>
 <p>The <a class="reference internal" href="#pyphi.models.Mice" title="pyphi.models.Mice"><tt class="xref py py-class docutils literal"><span class="pre">Mice</span></tt></a> representing the core effect of this concept.</p>
 </dd></dl>
 
@@ -391,7 +393,7 @@ values of the concept&#8217;s core cause and core effect.</p>
 <dt id="pyphi.models.Concept.subsystem">
 <tt class="descname">subsystem</tt><a class="headerlink" href="#pyphi.models.Concept.subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>Subsystem</em></p>
-<p>This Concept&#8217;s parent subsystem.</p>
+<p>This concept&#8217;s parent subsystem.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -411,7 +413,7 @@ two elements of the tuple are the cause and effect repertoires.</p>
 <dl class="method">
 <dt id="pyphi.models.Concept.__bool__">
 <tt class="descname">__bool__</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.models.Concept.__bool__" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Concept is truthy if it is not reducible; i.e. if it has a
+<dd><p>A concept is truthy if it is not reducible; i.e. if it has a
 significant amount of <span class="math">\(\Phi\)</span>.</p>
 </dd></dl>
 
