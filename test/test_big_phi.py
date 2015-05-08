@@ -68,14 +68,14 @@ big_answer = {
         (2, 4): 0.2,
         (3, 4): 0.2,
         (0, 1, 2): 0.2,
-        (0, 1, 3): 0.257142,
+        (0, 1, 3): 0.257143,
         (0, 1, 4): 0.2,
-        (0, 2, 3): 0.257142,
-        (0, 2, 4): 0.257142,
+        (0, 2, 3): 0.257143,
+        (0, 2, 4): 0.257143,
         (0, 3, 4): 0.2,
         (1, 2, 3): 0.2,
-        (1, 2, 4): 0.257142,
-        (1, 3, 4): 0.257142,
+        (1, 2, 4): 0.257143,
+        (1, 3, 4): 0.257143,
         (2, 3, 4): 0.2,
         (0, 1, 2, 3): 0.185709,
         (0, 1, 2, 4): 0.185709,
@@ -84,17 +84,17 @@ big_answer = {
         (1, 2, 3, 4): 0.185709
     },
     'len_partitioned_constellation': 17,
-    'sum_partitioned_small_phis': 3.564907,
+    'sum_partitioned_small_phis': 3.564909,
     'cut': models.Cut(severed=(0, 3), intact=(1, 2, 4))
 }
 
 
 big_subsys_0_thru_3_answer = {
-    'phi': 0.3663872111473395,
+    'phi': 0.366389,
     'unpartitioned_small_phis': {
         (0,): 0.166667,
         (1,): 0.166667,
-        (2,): 0.166867,
+        (2,): 0.166667,
         (3,): 0.25,
         (0, 1): 0.133333,
         (1, 2): 0.133333
@@ -141,8 +141,8 @@ rule152_answer = {
         (0, 1, 2, 3, 4): 0.25
     },
     'len_partitioned_constellation': 24,
-    'sum_partitioned_small_phis': 4.185364,
-    'cut': models.Cut(severed=(0, 1, 3, 4), intact=(2,))
+    'sum_partitioned_small_phis': 4.185367,
+    'cut': models.Cut(severed=(0, 1, 2, 4), intact=(3,))
 }
 
 
@@ -192,7 +192,8 @@ def check_partitioned_small_phis(answer, partitioned_constellation):
         assert (answer['len_partitioned_constellation'] ==
                 len(partitioned_constellation))
     if 'sum_partitioned_small_phis' in answer:
-        assert (sum(c.phi for c in partitioned_constellation) ==
+        assert (round(sum(c.phi for c in partitioned_constellation),
+                      config.PRECISION) ==
                 answer['sum_partitioned_small_phis'])
 
 
@@ -390,7 +391,6 @@ def test_big_mip_big_network(big_subsys_all, flushcache, restore_fs_cache):
     check_mip(mip, big_answer)
 
 
-@pytest.mark.slow
 def test_big_mip_big_network_0_thru_3(big_subsys_0_thru_3, flushcache,
                                       restore_fs_cache):
     flushcache()
