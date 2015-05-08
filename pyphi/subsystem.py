@@ -199,8 +199,8 @@ class Subsystem:
             purview (tuple(Node)): The purview over which to calculate the
                 cause repertoire.
         Returns:
-            ``np.ndarray`` -- The cause repertoire of the mechanism over the
-                purview.
+            cause_repertoire (``np.ndarray``): The cause repertoire of the
+                mechanism over the purview.
         """
         # Return a cached repertoire if there is one.
         cached_repertoire = self._get_cached_repertoire(
@@ -299,8 +299,8 @@ class Subsystem:
             effect repertoire.
 
         Returns:
-            ``np.ndarray`` -- The effect repertoire of the mechanism over the
-            purview.
+            effect_repertoire (``np.ndarray``): The effect repertoire of the
+                mechanism over the purview.
         """
         # Return a repertoire if there's a hit.
         cached_repertoire = self._get_cached_repertoire(DIRECTIONS[FUTURE],
@@ -406,7 +406,8 @@ class Subsystem:
                 effect repertoire.
 
         Returns:
-            ``function`` -- The cause or effect repertoire function.
+            repertoire_function (``function``): The cause or effect repertoire
+                function.
         """
         if direction == DIRECTIONS[PAST]:
             return self.cause_repertoire
@@ -545,7 +546,8 @@ class Subsystem:
             purview (tuple(Node)): The nodes in the purview.
 
         Returns:
-            :class:`pyphi.models.Mip`
+            mip (:class:`pyphi.models.Mip`): The mininum-information partition
+                in one temporal direction.
         """
         repertoire = self._get_repertoire(direction)
 
@@ -727,7 +729,8 @@ class Subsystem:
                 finding only concepts that are "about" a certain subset of
                 nodes.
         Returns:
-            :class:`pyphi.models.Mice`
+            mice (:class:`pyphi.models.Mice`): The maximally-irreducible cause
+                or effect.
 
         .. note::
             Strictly speaking, the MICE is a pair of repertoires: the core
@@ -735,8 +738,8 @@ class Subsystem:
             are maximally different than the unconstrained cause/effect
             repertoires (*i.e.*, those that maximize |small_phi|). Here, we
             return only information corresponding to one direction, |past| or
-            |future|, i.e., we return a core cause or core effect, not the pair
-            of them.
+            |future|, i.e., we return a core cause or core effect, not the pair of
+            them.
         """
         # Return a cached MICE if there's a hit.
         cached_mice = self._get_cached_mice(direction, mechanism)

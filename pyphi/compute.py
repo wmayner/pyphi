@@ -35,16 +35,16 @@ def concept(subsystem, mechanism):
         mechanism (tuple(Node)): The candidate set of nodes.
 
     Returns:
-        ``Concept`` -- The pair of maximally irreducible cause/effect
-        repertoires that constitute the concept specified by the given
-        mechanism.
+        concept (:class:`~pyphi.models.Concept`): The pair of maximally
+            irreducible cause/effect repertoires that constitute the concept
+            specified by the given mechanism.
 
     .. note::
         The output can be persistently cached to avoid recomputation. This may
         be enabled in the configuration file---however, it is only available if
         the caching backend is a database (not the filesystem). See the
-        documentation for :mod:`pyphi.concept_caching` and
-        :mod:`pyphi.constants`.
+        documentation for :mod:`~pyphi.concept_caching` and
+        :mod:`~pyphi.config`.
     """
     start = time()
 
@@ -76,7 +76,8 @@ def sequential_constellation(subsystem, mechanism_indices_to_check=None):
             constellation.
 
     Returns:
-        ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
+        constellation (``tuple(Concept)``): A tuple of all the Concepts in the
+            constellation.
     """
     if not mechanism_indices_to_check:
         concepts = [concept(subsystem, mechanism) for mechanism in
@@ -109,7 +110,8 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
             constellation.
 
     Returns:
-        ``tuple(Concept)`` -- A tuple of all the Concepts in the constellation.
+        constellation (``tuple(Concept)``): A tuple of all the Concepts in the
+            constellation.
     """
     if not mechanism_indices_to_check:
         mechanism_indices_to_check = utils.powerset(subsystem.node_indices)
@@ -170,7 +172,8 @@ def concept_distance(c1, c2):
         c2 (Mice): The second concept.
 
     Returns:
-        ``float`` -- The distance between the two concepts in concept-space.
+        distance (``float``): The distance between the two concepts in
+            concept-space.
     """
     # Calculate the sum of the past and future EMDs, expanding the repertoires
     # to the combined purview of the two concepts, so that the EMD signatures
@@ -244,8 +247,8 @@ def constellation_distance(C1, C2, subsystem):
             reside.
 
     Returns:
-        ``float`` -- The distance between the two constellations in
-        concept-space.
+        distance (``float``): The distance between the two constellations in
+            concept-space.
     """
     concepts_only_in_C1 = [
         c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
@@ -272,7 +275,8 @@ def conceptual_information(subsystem):
 
 # TODO document
 def _null_bigmip(subsystem):
-    """Returns a ``BigMip`` with zero Phi and empty constellations.
+    """Returns a :class:`~pyphi.models.BigMip` with zero Phi and empty
+    constellations.
 
     This is the MIP associated with a reducible subsystem."""
     return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=0.0,
@@ -414,6 +418,16 @@ else:
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
+    """Return the minimal information partition of a subsystem.
+
+    Args:
+        subsystem (Subsystem): The candidate set of nodes.
+
+    Returns:
+        big_mip (:class:`~pyphi.models.BigMip`): A nested structure containing
+            all the data from the intermediate calculations. The top level
+            contains the basic MIP information for the given subsystem.
+    """
     log.info("Calculating big-phi data for {}...".format(subsystem))
     start = time()
 
@@ -487,16 +501,6 @@ def _big_mip(cache_key, subsystem):
 # changed.
 @functools.wraps(_big_mip)
 def big_mip(subsystem):
-    """Return the MIP of a subsystem.
-
-    Args:
-        subsystem (Subsystem): The candidate set of nodes.
-
-    Returns:
-        ``BigMip`` -- A nested structure containing all the data from the
-        intermediate calculations. The top level contains the basic MIP
-        information for the given subsystem. See :class:`models.BigMip`.
-    """
     return _big_mip(hash(subsystem), subsystem)
 
 
@@ -523,7 +527,7 @@ def all_complexes(network):
 
 
 def possible_complexes(network):
-    """"Return a generator of the subsystems of a network that could be a
+    """Return a generator of the subsystems of a network that could be a
     complex.
 
     This is the just powerset of the nodes that have at least one input and

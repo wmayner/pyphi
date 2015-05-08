@@ -28,8 +28,8 @@ def state2holi_index(state):
             gives the state of the |ith| node.
 
     Returns:
-        ``int`` -- A decimal integer corresponding to a network state under the
-            **HOLI** convention.
+        holi_index (``int``): A decimal integer corresponding to a network
+            state under the **HOLI** convention.
 
     Examples:
         >>> from pyphi.convert import state2loli_index
@@ -50,8 +50,8 @@ def state2loli_index(state):
             gives the state of the |ith| node.
 
     Returns:
-        ``int`` -- A decimal integer corresponding to a network state under the
-            **LOLI** convention.
+        loli_index (``int``): A decimal integer corresponding to a network
+            state under the **LOLI** convention.
 
     Examples:
         >>> from pyphi.convert import state2loli_index
@@ -74,8 +74,8 @@ def loli_index2state(i, number_of_nodes):
             **LOLI** convention.
 
     Returns:
-        ``tuple(int)`` -- A state-tuple where the |ith| element of the tuple
-            gives the state of the |ith| node.
+        state (``tuple(int)``): A state-tuple where the |ith| element of the
+            tuple gives the state of the |ith| node.
 
     Examples:
         >>> from pyphi.convert import loli_index2state
@@ -100,8 +100,8 @@ def holi_index2state(i, number_of_nodes):
             **HOLI** convention.
 
     Returns:
-        ``tuple(int)`` -- A state-tuple where the |ith| element of the tuple
-            gives the state of the |ith| node.
+        state (``tuple(int)``): A state-tuple where the |ith| element of the
+            tuple gives the state of the |ith| node.
 
     Examples:
         >>> from pyphi.convert import holi_index2state
@@ -146,8 +146,8 @@ def state_by_state2state_by_node(tpm):
             and column indices following the **LOLI** convention.
 
     Returns:
-        ``np.ndarray`` -- A state-by-node TPM, with row indices following the
-            **LOLI** convention.
+        state_by_node_tpm (``np.ndarray``): A state-by-node TPM, with row
+            indices following the **LOLI** convention.
 
     Examples:
         >>> from pyphi.convert import state_by_state2state_by_node
@@ -208,8 +208,8 @@ def state_by_node2state_by_state(tpm):
             **HOLI** convention.
 
     Returns:
-        ``np.ndarray`` -- A state-by-state TPM, with both row and column
-            indices following the **HOLI** convention.
+        state_by_state_tpm (``np.ndarray``): A state-by-state TPM, with both
+            row and column indices following the **HOLI** convention.
 
     >>> from pyphi.convert import state_by_node2state_by_state
     >>> tpm = np.array([[1, 1, 0],

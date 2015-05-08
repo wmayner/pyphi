@@ -134,7 +134,7 @@ def combs(a, r):
       r (int): The length of the combinations.
 
     Returns:
-        ``np.ndarray`` -- An array of combinations.
+        combinations (``np.ndarray``): An array of combinations.
     """
     # Special-case for 0-length combinations
     if r == 0:
@@ -155,8 +155,8 @@ def comb_indices(n, k):
         k (int): The desired length of the combinations.
 
     Returns:
-        ``np.ndarray`` -- Indices that give the |k|-combinations of |n|
-        elements.
+        combination_indices (``np.ndarray``): Indices that give the
+            |k|-combinations of |n| elements.
 
     Example:
         >>> n, k = 3, 2
@@ -190,7 +190,7 @@ def powerset(iterable):
         iterable (Iterable): The iterable from which to generate the power set.
 
     Returns:
-        ``chain`` -- An chained iterator over the power set.
+        chain (``Iterable``): An chained iterator over the power set.
 
     Example:
         >>> ps = powerset(np.arange(2))
@@ -211,7 +211,8 @@ def uniform_distribution(number_of_nodes):
         nodes (np.ndarray): A set of indices of binary nodes.
 
     Returns:
-        ``np.ndarray`` -- The uniform distribution over the set of nodes.
+        distribution (``np.ndarray``): The uniform distribution over the set of
+            nodes.
     """
     # The size of the state space for binary nodes is 2^(number of nodes).
     number_of_states = 2 ** number_of_nodes
@@ -230,8 +231,8 @@ def marginalize_out(index, tpm, perturb_value=0.5):
         tpm (np.ndarray): The TPM to marginalize the node out of.
 
     Returns:
-        ``np.ndarray`` -- A TPM with the same number of dimensions, with the
-        node marginalized out.
+        tpm (``np.ndarray``): A TPM with the same number of dimensions, with
+            the node marginalized out.
     """
     if (perturb_value == 0.5):
         return tpm.sum(index, keepdims=True) / tpm.shape[index]
@@ -256,8 +257,8 @@ def max_entropy_distribution(node_indices, number_of_nodes,
         network (Network): The network the nodes belong to.
 
     Returns:
-        ``np.ndarray`` -- The maximum entropy distribution over the set of
-        nodes.
+        distribution (``np.ndarray``): The maximum entropy distribution over
+            the set of nodes.
     """
     # TODO extend to nonbinary nodes
     if ((perturb_vector is None) or
@@ -304,7 +305,8 @@ def bipartition(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        ``list`` -- A list of tuples containing each of the two partitions.
+        bipartition (``list(tuple(tuple))``): A list of tuples containing each
+            of the two partitions.
 
     Example:
         >>> from pyphi.utils import bipartition
@@ -325,7 +327,8 @@ def directed_bipartition(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        ``list`` -- A list of tuples containing each of the two partitions.
+        bipartition (``list(tuple(tuple))``): A list of tuples containing each
+            of the two partitions.
 
     Example:
         >>> from pyphi.utils import directed_bipartition
@@ -344,7 +347,8 @@ def directed_bipartition_of_one(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        ``list`` -- A list of tuples containing each of the two partitions.
+        bipartition (``list(tuple(tuple))``): A list of tuples containing each
+            of the two partitions.
 
     Example:
         >>> from pyphi.utils import directed_bipartition_of_one
@@ -363,8 +367,8 @@ def directed_bipartition_indices(N):
         N (int): The length of the sequence.
 
     Returns:
-        ``list`` -- A list of tuples containing the indices for each of the two
-        partitions.
+        bipartition_indices (``list``): A list of tuples containing the indices
+            for each of the two partitions.
 
     Example:
         >>> from pyphi.utils import directed_bipartition_indices
@@ -393,8 +397,8 @@ def bipartition_indices(N):
         N (int): The length of the sequence.
 
     Returns:
-        ``list`` -- A list of tuples containing the indices for each of the two
-        partitions.
+        bipartition_indices (``list``): A list of tuples containing the indices
+            for each of the two partitions.
 
     Example:
         >>> from pyphi.utils import bipartition_indices
@@ -437,8 +441,8 @@ def _hamming_matrix(N):
         N (int): The number of nodes under consideration
 
     Returns:
-        ``np.ndarray`` -- A |2^N x 2^N| matrix where the |ith| element is the
-        Hamming distance between state |i| and state |j|.
+        hamming_matrix (``np.ndarray``): A |2^N x 2^N| matrix where the |ith|
+            element is the Hamming distance between state |i| and state |j|.
 
     Example:
         >>> from pyphi.utils import _hamming_matrix
@@ -476,7 +480,7 @@ def connectivity_matrix_to_tpm(network):
         network (Network): The network for which to generate the TPM.
 
     Returns:
-        ``np.ndarray`` -- A transition probability matrix.
+        tpm (``np.ndarray``): A transition probability matrix.
     """
     pass
 
