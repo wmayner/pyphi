@@ -35,16 +35,15 @@ def concept(subsystem, mechanism):
         mechanism (tuple(Node)): The candidate set of nodes.
 
     Returns:
-        concept (:class:`~pyphi.models.Concept`): The pair of maximally
-            irreducible cause/effect repertoires that constitute the concept
-            specified by the given mechanism.
+        concept (|Concept|): The pair of maximally irreducible cause/effect
+            repertoires that constitute the concept specified by the given
+            mechanism.
 
     .. note::
         The output can be persistently cached to avoid recomputation. This may
         be enabled in the configuration file---however, it is only available if
         the caching backend is a database (not the filesystem). See the
-        documentation for :mod:`~pyphi.concept_caching` and
-        :mod:`~pyphi.config`.
+        documentation for the |concept_caching| and |config| modules.
     """
     start = time()
 
@@ -275,8 +274,7 @@ def conceptual_information(subsystem):
 
 # TODO document
 def _null_bigmip(subsystem):
-    """Returns a :class:`~pyphi.models.BigMip` with zero Phi and empty
-    constellations.
+    """Returns a |BigMip with zero |big_phi| and empty constellations.
 
     This is the MIP associated with a reducible subsystem."""
     return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=0.0,
@@ -424,9 +422,9 @@ def _big_mip(cache_key, subsystem):
         subsystem (Subsystem): The candidate set of nodes.
 
     Returns:
-        big_mip (:class:`~pyphi.models.BigMip`): A nested structure containing
-            all the data from the intermediate calculations. The top level
-            contains the basic MIP information for the given subsystem.
+        big_mip (|BigMip|): A nested structure containing all the data from the
+            intermediate calculations. The top level contains the basic MIP
+            information for the given subsystem.
     """
     log.info("Calculating big-phi data for {}...".format(subsystem))
     start = time()

@@ -546,8 +546,8 @@ class Subsystem:
             purview (tuple(Node)): The nodes in the purview.
 
         Returns:
-            mip (:class:`pyphi.models.Mip`): The mininum-information partition
-                in one temporal direction.
+            mip (|Mip|): The mininum-information partition in one temporal
+                direction.
         """
         repertoire = self._get_repertoire(direction)
 
@@ -605,14 +605,14 @@ class Subsystem:
     def mip_past(self, mechanism, purview):
         """Return the past minimum information partition.
 
-        Alias for :func:`find_mip` with ``direction`` set to |past|.
+        Alias for |find_mip| with ``direction`` set to |past|.
         """
         return self.find_mip(DIRECTIONS[PAST], mechanism, purview)
 
     def mip_future(self, mechanism, purview):
         """Return the future minimum information partition.
 
-        Alias for :func:`find_mip` with ``direction`` set to |future|.
+        Alias for |find_mip| with ``direction`` set to |future|.
         """
         return self.find_mip(DIRECTIONS[FUTURE], mechanism, purview)
 
@@ -729,8 +729,7 @@ class Subsystem:
                 finding only concepts that are "about" a certain subset of
                 nodes.
         Returns:
-            mice (:class:`pyphi.models.Mice`): The maximally-irreducible cause
-                or effect.
+            mice (|Mice|): The maximally-irreducible cause or effect.
 
         .. note::
             Strictly speaking, the MICE is a pair of repertoires: the core
@@ -806,13 +805,13 @@ class Subsystem:
     def core_cause(self, mechanism, purviews=False):
         """Returns the core cause repertoire of a mechanism.
 
-        Alias for :func:`find_mice` with ``direction`` set to |past|."""
+        Alias for |find_mice| with ``direction`` set to |past|."""
         return self.find_mice('past', mechanism, purviews=purviews)
 
     def core_effect(self, mechanism, purviews=False):
         """Returns the core effect repertoire of a mechanism.
 
-        Alias for :func:`find_mice` with ``direction`` set to |past|."""
+        Alias for |find_mice| with ``direction`` set to |past|."""
         return self.find_mice('future', mechanism, purviews=purviews)
 
     def phi_max(self, mechanism):

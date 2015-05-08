@@ -67,7 +67,7 @@ def loli_index2state(i, number_of_nodes):
     """Convert a decimal integer to a PyPhi state tuple with the **LOLI**
     convention.
 
-    The output is the reverse of :func:`holi_index2state`.
+    The output is the reverse of |holi_index2state|.
 
     Args:
         i (int): A decimal integer corresponding to a network state under the
@@ -93,7 +93,7 @@ def holi_index2state(i, number_of_nodes):
     """Convert a decimal integer to a PyPhi state tuple using the **HOLI**
     convention that high-order bits correspond to low-index nodes.
 
-    The output is the reverse of :func:`loli_index2state`.
+    The output is the reverse of |loli_index2state|.
 
     Args:
         i (int): A decimal integer corresponding to a network state under the
@@ -118,7 +118,7 @@ def holi_index2state(i, number_of_nodes):
 def to_n_dimensional(tpm):
     """Reshape a state-by-node TPM to the N-D form.
 
-    See documentation for :class:`pyphi.network` for more information on TPM
+    See documentation for the |Network| object for more information on TPM
     formats."""
     # Cast to np.array.
     tpm = np.array(tpm)
@@ -138,8 +138,8 @@ def state_by_state2state_by_node(tpm):
         The indices of the rows and columns of the state-by-state TPM are
         assumed to follow the **LOLI** convention. The indices of the rows of
         the resulting state-by-node TPM also follow the **LOLI** convention.
-        See the documentation for :class:`pyphi.examples` for more info on
-        these conventions.
+        See the documentation for the |examples| module for more info on these
+        conventions.
 
     Args:
         tpm (list(list) or np.ndarray): A square state-by-state TPM with row
