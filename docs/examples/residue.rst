@@ -1,5 +1,5 @@
-Residue Example
-===============
+Residue
+=======
 
 * :func:`pyphi.examples.residue_network`
 * :func:`pyphi.examples.residue_subsystem`
