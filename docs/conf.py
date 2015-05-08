@@ -153,8 +153,30 @@ rst_prolog = """
 .. |PRECISION| replace:: :const:`constants.PRECISION`
 .. |EPSILON| replace:: :const:`constants.EPSILON`
 .. |CM[i][j] = 1| replace:: :math:`CM_{i,j} = 1`
-.. |BigMip| replace:: :class:`pyphi.models.BigMip`
-.. |Concept| replace:: :class:`pyphi.models.Concept`
+.. |compute| replace:: :mod:`~pyphi.compute`
+.. |network| replace:: :mod:`~pyphi.network`
+.. |subsystem| replace:: :mod:`~pyphi.subsystem`
+.. |macro| replace:: :mod:`~pyphi.macro`
+.. |convert| replace:: :mod:`~pyphi.convert`
+.. |examples| replace:: :mod:`~pyphi.examples`
+.. |node| replace:: :mod:`~pyphi.node`
+.. |concept_caching| replace:: :mod:`~pyphi.concept_caching`
+.. |memory| replace:: :mod:`~pyphi.memory`
+.. |db| replace:: :mod:`~pyphi.db`
+.. |utils| replace:: :mod:`~pyphi.utils`
+.. |validate| replace:: :mod:`~pyphi.validate`
+.. |config| replace:: :mod:`~pyphi.config`
+.. |Subsystem| replace:: :class:`~pyphi.subsystem.Subsystem`
+.. |Network| replace:: :class:`~pyphi.network.Network`
+.. |BigMip| replace:: :class:`~pyphi.models.BigMip`
+.. |Concept| replace:: :class:`~pyphi.models.Concept`
+.. |Mip| replace:: :class:`~pyphi.models.Mip`
+.. |Mice| replace:: :class:`~pyphi.models.Mice`
+.. |find_mip| :func:`~pyphi.subsystem.find_mip`
+.. |find_mice| :func:`~pyphi.subsystem.find_mice`
+.. |loli_index2state| replace:: :class:`~pyphi.convert.loli_index2state`
+.. |holi_index2state| replace:: :class:`~pyphi.convert.holi_index2state`
+.. |big_phi > 0| replace:: :math:`\\Phi > 0`
 """
 
 # -- Options for Napoleon (docstring format extension) --------------------

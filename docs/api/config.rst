@@ -1,0 +1,6 @@
+:mod:`config`
+=============
+
+.. automodule:: pyphi.config
+    :members:
+    :undoc-members:

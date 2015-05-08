@@ -19,7 +19,7 @@ complex of the network:
 
     >>> main_complex = pyphi.compute.main_complex(network)
 
-The main complex exists (|Phi > 0|),
+The main complex exists (|big_phi > 0|),
 
     >>> main_complex.phi
     1.874999
