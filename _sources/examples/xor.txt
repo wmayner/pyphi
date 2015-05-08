@@ -179,7 +179,7 @@ The mechanism has :math:`ci = 0.75`, but it is completely reducible
 (:math:`\varphi = 0`) to the partition 
 
 .. math::
-    \frac{n0}{\left[\,\right]} \times \frac{n_1n_2}{n_0n_1n_2}
+    \frac{n_0}{\left[\,\right]} \times \frac{n_1n_2}{n_0n_1n_2}
 
 This result can be understood as follows: knowing that |n1| and |n2| are
 **OFF** in the current state is sufficient to know that |n0|, |n1|, and |n2|
