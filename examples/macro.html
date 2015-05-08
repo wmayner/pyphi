@@ -1,0 +1,422 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Emergence (Macro/Micro) &mdash; v0.6.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
+        <link rel="up" title="Usage and Examples" href="index.html"/>
+        <link rel="next" title="IIT 3.0 Paper (2014)" href="2014paper.html"/>
+        <link rel="prev" title="XOR Network" href="xor.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.6.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Usage and Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Emergence (Macro/Micro)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resources">System resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching">Caching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi v0.6.0</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Usage and Examples</a> &raquo;</li>
+      
+    <li>Emergence (Macro/Micro)</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/examples/macro.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="emergence-macro-micro">
+<h1>Emergence (Macro/Micro)<a class="headerlink" href="#emergence-macro-micro" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.macro_network" title="pyphi.examples.macro_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.macro_network()</span></tt></a></li>
+</ul>
+<p>For this example, we will use the <tt class="docutils literal"><span class="pre">pprint</span></tt> module to display lists in a way
+which makes them easer to read.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+</pre></div>
+</div>
+<p>We&#8217;ll use the <a class="reference internal" href="../api/macro.html#module-pyphi.macro" title="pyphi.macro"><tt class="xref py py-mod docutils literal"><span class="pre">macro</span></tt></a> module to explore alternate spatial scales of
+a network. The network under consideration is a 4-node non-deterministic
+network, available from the <a class="reference internal" href="../api/examples.html#module-pyphi.examples" title="pyphi.examples"><tt class="xref py py-mod docutils literal"><span class="pre">examples</span></tt></a> module.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyphi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">macro_network</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>All nodes are <strong>OFF</strong> in the current and past state,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span><span class="o">.</span><span class="n">current_state</span>
+<span class="go">(0, 0, 0, 0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span><span class="o">.</span><span class="n">past_state</span>
+<span class="go">(0, 0, 0, 0)</span>
+</pre></div>
+</div>
+<p>and the connectivity matrix is all-to-all.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span><span class="o">.</span><span class="n">connectivity_matrix</span>
+<span class="go">array([[ 1.,  1.,  1.,  1.],</span>
+<span class="go">       [ 1.,  1.,  1.,  1.],</span>
+<span class="go">       [ 1.,  1.,  1.,  1.],</span>
+<span class="go">       [ 1.,  1.,  1.,  1.]])</span>
+</pre></div>
+</div>
+<p>At the “micro” spatial scale, we can compute the main complex, and determine
+the <span class="math">\(\Phi\)</span> value:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.113889</span>
+</pre></div>
+</div>
+<p>The question is whether there are other spatial scales which have greater
+values of <span class="math">\(\Phi\)</span>. This is accomplished by considering all possible
+coarse-graining of micro-elements to form macro-elements. A coarse-graining of
+nodes is any partition of the elements of the micro system. First we&#8217;ll get a
+list of all possible partitions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partitions</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">list_all_partitions</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">partitions</span><span class="p">)</span>
+<span class="go">[[[0, 1, 2], [3]],</span>
+<span class="go"> [[0, 1, 3], [2]],</span>
+<span class="go"> [[0, 1], [2, 3]],</span>
+<span class="go"> [[0, 1], [2], [3]],</span>
+<span class="go"> [[0, 2, 3], [1]],</span>
+<span class="go"> [[0, 2], [1, 3]],</span>
+<span class="go"> [[0, 2], [1], [3]],</span>
+<span class="go"> [[0, 3], [1, 2]],</span>
+<span class="go"> [[0], [1, 2, 3]],</span>
+<span class="go"> [[0], [1, 2], [3]],</span>
+<span class="go"> [[0, 3], [1], [2]],</span>
+<span class="go"> [[0], [1, 3], [2]],</span>
+<span class="go"> [[0], [1], [2, 3]],</span>
+<span class="go"> [[0, 1, 2, 3]]]</span>
+</pre></div>
+</div>
+<p>Lets start by considering the partition <tt class="docutils literal"><span class="pre">[[0,</span> <span class="pre">1,</span> <span class="pre">2],</span> <span class="pre">[3]]</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span> <span class="o">=</span> <span class="n">partitions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span>
+<span class="go">[[0, 1, 2], [3]]</span>
+</pre></div>
+</div>
+<p>For this partition there are two macro-elements, one consisting of
+micro-elements <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></tt> and the other is simply micro-element <tt class="docutils literal"><span class="pre">3</span></tt>.</p>
+<p>We must then determine the relationship between micro-elements and
+macro-elements. An assumption when coarse-graining the system, is that the
+resulting macro-elements do not differentiate the different micro-elements.
+Thus any correspondence between states must be stated soley in terms of the
+number of micro-elements which are on, and not depend on which micro-element
+are on.</p>
+<p>For example, consider the macro-element <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></tt>. We may say that the
+macro-element is <strong>ON</strong> if at least one micro-element is on, or if all
+micro-elements are on; however, we may not say that the macro-element is <strong>ON</strong>
+if micro-element <tt class="docutils literal"><span class="pre">1</span></tt> is on, because this relationship involves identifying
+specific micro-elements.</p>
+<p>To see a list of all possible groupings of micro-states into macro-states:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">groupings</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">list_all_groupings</span><span class="p">(</span><span class="n">partition</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">groupings</span><span class="p">)</span>
+<span class="go">[[[[0, 1, 2], [3]], [[0], [1]]],</span>
+<span class="go"> [[[0, 1, 3], [2]], [[0], [1]]],</span>
+<span class="go"> [[[0, 1], [2, 3]], [[0], [1]]],</span>
+<span class="go"> [[[0, 2, 3], [1]], [[0], [1]]],</span>
+<span class="go"> [[[0, 2], [1, 3]], [[0], [1]]],</span>
+<span class="go"> [[[0, 3], [1, 2]], [[0], [1]]],</span>
+<span class="go"> [[[0], [1, 2, 3]], [[0], [1]]]]</span>
+</pre></div>
+</div>
+<p>We will focus on the first grouping in the list.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span> <span class="o">=</span> <span class="n">groupings</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span>
+<span class="go">[[[0, 1, 2], [3]], [[0], [1]]]</span>
+</pre></div>
+</div>
+<p>The grouping contains two lists, one for each macro-element.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">[[0, 1, 2], [3]]</span>
+</pre></div>
+</div>
+<p>For the first macro-element, this grouping means that the element will be
+<strong>OFF</strong> if zero, one or two of its micro-elements are <strong>ON</strong>, and will be
+<strong>ON</strong> if all three micro-elements are <strong>ON</strong>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">[[0], [1]]</span>
+</pre></div>
+</div>
+<p>For the second macro-element, the grouping means that the element will be
+<strong>OFF</strong> if its micro-element is <strong>OFF</strong>, and <strong>ON</strong> if its micro-element is
+<strong>ON</strong>.</p>
+<p>One we have selected a partition and grouping for analysis, we can create a
+mapping between micro-states and macro-states:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_mapping</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">tpm</span><span class="p">,</span> <span class="n">partition</span><span class="p">,</span> <span class="n">grouping</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span>
+<span class="go">array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  2.,  2.,  2.,  2.,  2.,</span>
+<span class="go">        2.,  2.,  3.])</span>
+</pre></div>
+</div>
+<p>The interpretation of the mapping uses the <strong>LOLI</strong> convention of indexing (see
+<a class="reference internal" href="conventions.html#loli-convention"><em>LOLI: Low-Order bits correspond to Low-Index nodes</em></a>).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<p>This says that micro-state 7 corresponds to macro-state 1:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">loli_index2state</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="go">(1, 1, 1, 0)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">loli_index2state</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">(1, 0)</span>
+</pre></div>
+</div>
+<p>In micro-state 7, all three elements corresponding to the first macro-element
+are <strong>ON</strong>, so that macro-element is <strong>ON</strong>. The micro-element corresponding to
+the second macro-element is <strong>OFF</strong>, so that macro-element is <strong>OFF</strong>.</p>
+<p>Using the mapping, we can then create a state-by-state TPM for the macro-system
+corresponding to the selected partition and grouping:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_tpm</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_macro_tpm</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">tpm</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">macro_tpm</span>
+<span class="go">array([[ 0.5838,  0.0162,  0.3802,  0.0198],</span>
+<span class="go">       [ 0.    ,  0.    ,  0.91  ,  0.09  ],</span>
+<span class="go">       [ 0.5019,  0.0981,  0.3451,  0.0549],</span>
+<span class="go">       [ 0.    ,  0.    ,  0.    ,  1.    ]])</span>
+</pre></div>
+</div>
+<p>This macro-TPM does not satisfy the conditional independence assumption, so
+this particular partition and grouping combination is not a valid
+coarse-graining of the system:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">validate</span><span class="o">.</span><span class="n">conditionally_independent</span><span class="p">(</span><span class="n">macro_tpm</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>In these cases, the object returned <a class="reference internal" href="../api/macro.html#pyphi.macro.make_macro_network" title="pyphi.macro.make_macro_network"><tt class="xref py py-func docutils literal"><span class="pre">make_macro_network()</span></tt></a>
+function will have a boolean value of <tt class="docutils literal"><span class="pre">False</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_macro_network</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">macro_network</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>Lets consider a different partition instead.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span> <span class="o">=</span> <span class="n">partitions</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span>
+<span class="go">[[0, 1], [2, 3]]</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">groupings</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">list_all_groupings</span><span class="p">(</span><span class="n">partition</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span> <span class="o">=</span> <span class="n">groupings</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span>
+<span class="go">[[[0, 1], [2]], [[0, 1], [2]]]</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_mapping</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">tpm</span><span class="p">,</span> <span class="n">partition</span><span class="p">,</span> <span class="n">grouping</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span>
+<span class="go">array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,</span>
+<span class="go">        2.,  2.,  3.])</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_macro_network</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">macro_network</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>We can then consider the integrated information of this macro-network and
+compare it to the micro-network.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">macro_network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">macro_main_complex</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.86905</span>
+</pre></div>
+</div>
+<p>The integrated information of the macro system (<span class="math">\(\Phi = 0.86905\)</span>) is
+greater than the integrated information of the micro system (<span class="math">\(\Phi =
+0.113889\)</span>). We can conclude that a macro-scale is appropriate for this system,
+but to determine which one, we must check all possible partitions and all
+possible groupings to find the maximum of integrated information across all
+scales.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">M</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">emergence</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">partition</span>
+<span class="go">[[0, 1], [2, 3]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">grouping</span>
+<span class="go">[[[0, 1], [2]], [[0, 1], [2]]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">emergence</span>
+<span class="go">0.755161</span>
+</pre></div>
+</div>
+<p>The analysis determines the partition and grouping which results in the maximum
+value of integrated information, as well as the emergence (increase in
+<span class="math">\(\Phi\)</span>) from the micro-scale to the macro-scale.</p>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="2014paper.html" class="btn btn-neutral float-right" title="IIT 3.0 Paper (2014)"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="xor.html" class="btn btn-neutral" title="XOR Network"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on May 08, 2015.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.6.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

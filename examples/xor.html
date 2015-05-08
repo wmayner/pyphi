@@ -1,0 +1,405 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>XOR Network &mdash; v0.6.0 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+    <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
+        <link rel="up" title="Usage and Examples" href="index.html"/>
+        <link rel="next" title="Emergence" href="macro.html"/>
+        <link rel="prev" title="Conditional Independence" href="conditional_independence.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="fa fa-home"> PyPhi v0.6.0</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Usage and Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">XOR Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html">Emergence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resources">System resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching">Caching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi v0.6.0</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Usage and Examples</a> &raquo;</li>
+      
+    <li>XOR Network</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="../_sources/examples/xor.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            
+  <div class="section" id="xor-network">
+<h1>XOR Network<a class="headerlink" href="#xor-network" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.xor_network" title="pyphi.examples.xor_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.xor_network()</span></tt></a></li>
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.xor_subsystem" title="pyphi.examples.xor_subsystem"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.xor_subsystem()</span></tt></a></li>
+</ul>
+<p>This example describes a system of three fully connected <strong>XOR</strong> nodes, <span class="math">\(n_{0}\)</span>,
+<span class="math">\(n_{1}\)</span> and <span class="math">\(n_{2}\)</span> (no self-connections).</p>
+<p>First let&#8217;s create the XOR network, with all nodes <strong>OFF</strong> in both the current
+and past states.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyphi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">xor_network</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Existence is a top-down process; the whole is more important than its parts.
+The first step is to confirm the existence of the whole, by finding the main
+complex of the network:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The main complex exists (<a href="#id1"><span class="problematic" id="id2">|Phi &gt; 0|</span></a>),</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">1.874999</span>
+</pre></div>
+</div>
+<p>and it consists of the entire network:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span><span class="o">.</span><span class="n">subsystem</span>
+<span class="go">Subsystem((n0, n1, n2))</span>
+</pre></div>
+</div>
+<p>Knowing what exists at the system level, we can now investigate the existence
+of concepts within the complex.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">constellation</span> <span class="o">=</span> <span class="n">main_complex</span><span class="o">.</span><span class="n">unpartitioned_constellation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">constellation</span><span class="p">)</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">concept</span><span class="o">.</span><span class="n">mechanism</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">constellation</span><span class="p">]</span>
+<span class="go">[(n0, n1), (n0, n2), (n1, n2)]</span>
+</pre></div>
+</div>
+<p>There are three concepts in the constellation. They are all the possible
+second order mechanisms: <span class="math">\(n_{0}n_{1}\)</span>, <span class="math">\(n_{0}n_{2}\)</span> and <span class="math">\(n_{1}n_{2}\)</span>.</p>
+<p>Focusing on the concept specified by mechanism <span class="math">\(n_{0}n_{1}\)</span>, we investigate
+existence, and the irreducible cause and effect. Based on the symmetry of the
+network, the results will be similar for the other second order mechanisms.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">concept</span> <span class="o">=</span> <span class="n">constellation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">concept</span><span class="o">.</span><span class="n">mechanism</span>
+<span class="go">(n0, n1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">concept</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.5</span>
+</pre></div>
+</div>
+<p>The concept has <span class="math">\(\varphi = \frac{1}{2}\)</span>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">concept</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">purview</span>
+<span class="go">(n0, n1, n2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">concept</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">repertoire</span>
+<span class="go">array([[[ 0.5,  0. ],</span>
+<span class="go">        [ 0. ,  0. ]],</span>
+
+<span class="go">       [[ 0. ,  0. ],</span>
+<span class="go">        [ 0. ,  0.5]]])</span>
+</pre></div>
+</div>
+<p>So we see that the cause purview of this mechanism is the whole system <span class="math">\(n_{0}n_{1}n_{2}\)</span>, and that the repertoire shows a <span class="math">\(0.5\)</span> of probability the past state
+being <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></tt> and the same for <tt class="docutils literal"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1)</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">concept</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">repertoire</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+<span class="go">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">concept</span><span class="o">.</span><span class="n">cause</span><span class="o">.</span><span class="n">repertoire</span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+<span class="go">0.5</span>
+</pre></div>
+</div>
+<p>This tells us that knowing both <span class="math">\(n_{0}\)</span> and <span class="math">\(n_{1}\)</span> are currently <strong>OFF</strong> means that
+the past state of the system was either all <strong>OFF</strong> or all <strong>ON</strong> with equal
+probability.</p>
+<p>For any reduced purview, we would still have the same information about the
+elements in the purview (either all <strong>ON</strong> or all <strong>OFF</strong>), but we would lose
+the information about the elements outside the purview.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">concept</span><span class="o">.</span><span class="n">effect</span><span class="o">.</span><span class="n">purview</span>
+<span class="go">(n2,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">concept</span><span class="o">.</span><span class="n">effect</span><span class="o">.</span><span class="n">repertoire</span>
+<span class="go">array([[[ 1.,  0.]]])</span>
+</pre></div>
+</div>
+<p>The effect purview of this concept is the node <span class="math">\(n_{2}\)</span>. The mechanism <span class="math">\(n_{0}n_{1}\)</span> is
+able to completely specify the next state of <span class="math">\(n_{2}\)</span>. Since both nodes are
+<strong>OFF</strong>, the next state of <span class="math">\(n_{2}\)</span> will be <strong>OFF</strong>.</p>
+<p>The mechanism <span class="math">\(n_{0}n_{1}\)</span> does not provide any information about the next state of
+either <span class="math">\(n_{0}\)</span> or <span class="math">\(n_{1}\)</span>, because the relationship depends on the value of <span class="math">\(n_{2}\)</span>.
+That is, the next state of <span class="math">\(n_{0}\)</span> (or <span class="math">\(n_{1}\)</span>) may be either <strong>ON</strong> or <strong>OFF</strong>,
+depending on the value of <span class="math">\(n_{2}\)</span>. Any purview larger than <span class="math">\(n_{2}\)</span> would be reducible
+by pruning away the additional elements.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="24%" />
+<col width="27%" />
+<col width="28%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head" colspan="4">Main Complex: <span class="math">\(n_{0}n_{1}n_{2}\)</span> with <span class="math">\(\Phi = 1.875\)</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>Mechanism</strong></td>
+<td><span class="math">\(\varphi\)</span></td>
+<td><strong>Cause Purview</strong></td>
+<td><strong>Effect Purview</strong></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(n_{0}n_{1}\)</span></td>
+<td>0.5</td>
+<td><span class="math">\(n_{0}n_{1}n_{2}\)</span></td>
+<td><span class="math">\(n_{2}\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(n_{0}n_{2}\)</span></td>
+<td>0.5</td>
+<td><span class="math">\(n_{0}n_{1}n_{2}\)</span></td>
+<td><span class="math">\(n_{1}\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(n_{1}n_{2}\)</span></td>
+<td>0.5</td>
+<td><span class="math">\(n_{0}n_{1}n_{2}\)</span></td>
+<td><span class="math">\(n_{0}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>An analysis of the <cite>intrinsic existence</cite> of this system reveals that the main
+complex of the system is the entire network of <strong>XOR</strong> nodes. Furthermore, the
+concepts which exist within the complex are those specified by the second-order
+mechanisms <span class="math">\(n_{0}n_{1}\)</span>, <span class="math">\(n_{0}n_{2}\)</span>, and <span class="math">\(n_{1}n_{2}\)</span>.</p>
+<p>To understand the notion of intrinsic existence, in addition to determining
+what exists for the system, it is useful to consider also what does not exist.</p>
+<p>Specifically, it may be surprising that none of the first order mechanisms
+<span class="math">\(n_{0}\)</span>, <span class="math">\(n_{1}\)</span> or <span class="math">\(n_{2}\)</span> exist. This physical system of <strong>XOR</strong> gates is sitting on
+the table in front of me; I can touch the individual elements of the system, so
+how can it be that they do not exist?</p>
+<p>That sort of existence is what we term <cite>extrinsic existence</cite>. The <strong>XOR</strong> gates
+exist for me as an observer, external to the system. I am able to manipulate
+them, and observe their causes and effects, but the question that matters for
+<cite>intrinsic</cite> existence is, do they have irreducible causes and effects within
+the system? There are two reasons a mechanism may have no irreducible
+cause-effect power: either the cause-effect power is completely reducible, or
+there was no cause-effect power to begin with. In the case of elementary
+mechanisms, it must be the latter.</p>
+<p>To see this, again due to symmetry of the system, we will focus only on the
+mechanism <span class="math">\(n_{0}\)</span>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">xor_subsystem</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n0</span> <span class="o">=</span> <span class="p">(</span><span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n0n1n2</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span>
+</pre></div>
+</div>
+<p>In order to exist, a mechanism must have irreducible cause and effect power
+within the system.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">(</span><span class="n">n0</span><span class="p">,</span> <span class="n">n0n1n2</span><span class="p">)</span>
+<span class="go">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">effect_info</span><span class="p">(</span><span class="n">n0</span><span class="p">,</span> <span class="n">n0n1n2</span><span class="p">)</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>The mechanism has no effect power over the entire subsystem, so it cannot have
+effect power over any purview within the subsystem. Furthermore, if a mechanism
+has no effect power, it certainly has no irreducible effect power. The
+first-order mechanisms of this system do not exist intrinsically, because they
+have no effect power (having causal power is not enough).</p>
+<p>To see why this is true, consider the effect of <span class="math">\(n_{0}\)</span>. There is no self-loop, so
+<span class="math">\(n_{0}\)</span> can have no effect on itself. Without knowing the current state of <span class="math">\(n_{0}\)</span>,
+in the next state <span class="math">\(n_{1}\)</span> could be either <strong>ON</strong> or <strong>OFF</strong>. If we know that the
+current state of <span class="math">\(n_{0}\)</span> is <strong>ON</strong>, then <span class="math">\(n_{1}\)</span> could still be either <strong>ON</strong> or
+<strong>OFF</strong>, depending on the state of <span class="math">\(n_{2}\)</span>. Thus, on its own, the current state of
+<span class="math">\(n_{0}\)</span> does not provide any information about the next state of <span class="math">\(n_{1}\)</span>. A similar
+result holds for the effect of <span class="math">\(n_{0}\)</span> on <span class="math">\(n_{2}\)</span>. Since <span class="math">\(n_{0}\)</span> has no effect power
+over any element of the system, it does not exist from the intrinsic
+perspective.</p>
+<p>To complete the discussion, we can also investigate the potential third order
+mechanism <span class="math">\(n_{0}n_{1}n_{2}\)</span>. Consider the cause information over the purview <span class="math">\(n_{0}n_{1}n_{2}\)</span>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">(</span><span class="n">n0n1n2</span><span class="p">,</span> <span class="n">n0n1n2</span><span class="p">)</span>
+<span class="go">0.749999</span>
+</pre></div>
+</div>
+<p>Since the mechanism has nonzero cause information, it has causal power over the
+system—but is it irreducible?</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">n0n1n2</span><span class="p">,</span> <span class="n">n0n1n2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mip</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mip</span><span class="o">.</span><span class="n">partition</span>
+<span class="go">(Part(mechanism=(n0,), purview=()), Part(mechanism=(n1, n2), purview=(n0, n1, n2)))</span>
+</pre></div>
+</div>
+<p>The mechanism has <span class="math">\(ci = 0.75\)</span>, but it is completely reducible
+(<span class="math">\(\varphi = 0\)</span>) to the partition</p>
+<div class="math">
+\[\frac{n0}{[\left\,\right]} \times \frac{n_1n_2}{n_0n_1n_2}\]</div>
+<p>This result can be understood as follows: knowing that <span class="math">\(n_{1}\)</span> and <span class="math">\(n_{2}\)</span> are
+<strong>OFF</strong> in the current state is sufficient to know that <span class="math">\(n_{0}\)</span>, <span class="math">\(n_{1}\)</span>, and <span class="math">\(n_{2}\)</span>
+were all <strong>OFF</strong> in the past state; there is no additional information gained
+by knowing that <span class="math">\(n_{0}\)</span> is currently <strong>OFF</strong>.</p>
+<p>Similarly for any other potential purview, the current state of <span class="math">\(n_{1}\)</span> and <span class="math">\(n_{2}\)</span>
+being <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0)</span></tt> is always enough to fully specify the previous state, so the
+mechanism is reducible for all possible purviews, and hence does not exist.</p>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="macro.html" class="btn btn-neutral float-right" title="Emergence"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="conditional_independence.html" class="btn btn-neutral" title="Conditional Independence"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on May 08, 2015.
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.6.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
