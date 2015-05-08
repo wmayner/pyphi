@@ -120,6 +120,13 @@ rst_prolog = """
 .. |CD| replace:: :math:`CD`
 .. |ABC| replace:: :math:`ABC`
 .. |CDE| replace:: :math:`CDE`
+.. |n0| replace:: :math:`n_{0}`
+.. |n1| replace:: :math:`n_{1}`
+.. |n2| replace:: :math:`n_{2}`
+.. |n0, n1| replace:: :math:`n_{0}n_{1}`
+.. |n0, n2| replace:: :math:`n_{0}n_{2}`
+.. |n1, n2| replace:: :math:`n_{1}n_{2}`
+.. |n0, n1, n2| replace:: :math:`n_{0}n_{1}n_{2}`
 .. |(AB / DE) x ([] / C)| replace:: :math:`\\frac{AB}{DE} \\times \\frac{\left[\\;\\right]}{C}`
 .. |(A / CD) x ([] / E)| replace:: :math:`\\frac{A}{CD} \\times \\frac{\left[\\;\\right]}{E}`
 .. |([] / C) x (A / D)| replace:: :math:`\\frac{\\left[\\;\\right]}{C} \\times \\frac{A}{D}`
