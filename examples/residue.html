@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Residue Example &mdash; v0.6.0 documentation</title>
+  <title>Residue &mdash; v0.6.0 documentation</title>
   
 
   
@@ -65,8 +65,10 @@
             <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Usage and Examples</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Usage</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="">Residue Example</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html">Emergence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
 </ul>
@@ -123,7 +125,7 @@
       
           <li><a href="index.html">Usage and Examples</a> &raquo;</li>
       
-    <li>Residue Example</li>
+    <li>Residue</li>
       <li class="wy-breadcrumbs-aside">
         
           <a href="../_sources/examples/residue.txt" rel="nofollow"> View page source</a>
@@ -134,8 +136,8 @@
 </div>
           <div role="main">
             
-  <div class="section" id="residue-example">
-<h1>Residue Example<a class="headerlink" href="#residue-example" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="residue">
+<h1>Residue<a class="headerlink" href="#residue" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><a class="reference internal" href="../api/examples.html#pyphi.examples.residue_network" title="pyphi.examples.residue_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.residue_network()</span></tt></a></li>
 <li><a class="reference internal" href="../api/examples.html#pyphi.examples.residue_subsystem" title="pyphi.examples.residue_subsystem"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.residue_subsystem()</span></tt></a></li>
@@ -163,15 +165,15 @@ nodes off in the current and past states.</p>
 <p>We can then evaluate the cause information for each of the mechanisms over the
 past purview <span class="math">\(CDE\)</span>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span>
-<span class="go">0.33333191666400036</span>
+<span class="go">0.333332</span>
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span>
-<span class="go">0.33333191666400036</span>
+<span class="go">0.333332</span>
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">(</span><span class="n">AB</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span>
-<span class="go">0.49999972500000006</span>
+<span class="go">0.5</span>
 </pre></div>
 </div>
 <p>The composite mechanism <span class="math">\(AB\)</span> has greater cause information than either of the
@@ -202,7 +204,7 @@ the empty mechanism.</p>
 <p>And we can then calculate the irreducible cause information as the difference
 between partitioned and unpartitioned repertoires.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_AB</span><span class="o">.</span><span class="n">phi</span>
-<span class="go">0.09999990000000035</span>
+<span class="go">0.1</span>
 </pre></div>
 </div>
 <p>One counterintuitive result which merits discussion is that since irreducible
@@ -231,7 +233,7 @@ irreducible cause information of the mechanisms <span class="math">\(A\)</span> 
 </div>
 <p>and irreducible cause information</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_A</span><span class="o">.</span><span class="n">phi</span>
-<span class="go">0.16666700000000023</span>
+<span class="go">0.166667</span>
 </pre></div>
 </div>
 <p>A similar result holds for <span class="math">\(B\)</span>. Thus the mechanisms <span class="math">\(A\)</span> and <span class="math">\(B\)</span> exist at levels
@@ -258,7 +260,7 @@ residual of causes, at a level of <span class="math">\(\varphi = \frac{1}{10}\)<
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 04, 2015.
+      Last updated on May 08, 2015.
     </p>
   </div>
 

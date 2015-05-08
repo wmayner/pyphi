@@ -34,7 +34,7 @@
   
     <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
-        <link rel="next" title="convert" href="convert.html"/>
+        <link rel="next" title="macro" href="macro.html"/>
         <link rel="prev" title="network" href="network.html"/> 
 
   
@@ -65,8 +65,10 @@
             <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
 </ul>
@@ -88,6 +90,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
@@ -96,6 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
 </ul>
 </li>
 </ul>
@@ -137,57 +141,9 @@
   <div class="section" id="module-pyphi.subsystem">
 <span id="subsystem"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">subsystem</span></tt><a class="headerlink" href="#module-pyphi.subsystem" title="Permalink to this headline">¶</a></h1>
 <p>Represents a candidate set for <span class="math">\(\varphi\)</span> calculation.</p>
-<dl class="function">
-<dt id="pyphi.subsystem.cause_repertoire">
-<tt class="descclassname">pyphi.subsystem.</tt><tt class="descname">cause_repertoire</tt><big>(</big><em>self</em>, <em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.cause_repertoire" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the cause repertoire of a mechanism over a purview.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism for which to calculate the
-cause repertoire.</li>
-<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The purview over which to calculate the
-cause repertoire.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; The cause repertoire of the mechanism over the
-purview.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="pyphi.subsystem.effect_repertoire">
-<tt class="descclassname">pyphi.subsystem.</tt><tt class="descname">effect_repertoire</tt><big>(</big><em>self</em>, <em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.effect_repertoire" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the effect repertoire of a mechanism over a purview.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism for which to calculate the
-effect repertoire.</li>
-<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The purview over which to calculate the
-effect repertoire.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; The effect repertoire of the mechanism over the
-purview.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="class">
 <dt id="pyphi.subsystem.Subsystem">
-<em class="property">class </em><tt class="descclassname">pyphi.subsystem.</tt><tt class="descname">Subsystem</tt><big>(</big><em>node_indices</em>, <em>network</em>, <em>cut=None</em>, <em>mice_cache=None</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyphi.subsystem.</tt><tt class="descname">Subsystem</tt><big>(</big><em>node_indices</em>, <em>network</em>, <em>cut=None</em>, <em>mice_cache=None</em>, <em>repertoire_cache=None</em>, <em>cache_info=None</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>A set of nodes in a network.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -285,6 +241,12 @@ external nodes.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="pyphi.subsystem.Subsystem.repertoire_cache_info">
+<tt class="descname">repertoire_cache_info</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.repertoire_cache_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report repertoire cache statistics.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="pyphi.subsystem.Subsystem.__eq__">
 <tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether this subsystem is equal to the other object.</p>
@@ -307,6 +269,66 @@ equal.</p>
 <dt id="pyphi.subsystem.Subsystem.indices2nodes">
 <tt class="descname">indices2nodes</tt><big>(</big><em>indices</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.indices2nodes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.cause_repertoire">
+<tt class="descname">cause_repertoire</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.cause_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the cause repertoire of a mechanism over a purview.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism for which to calculate the
+cause repertoire.</li>
+<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The purview over which to calculate the
+cause repertoire.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>cause_repertoire</strong> &#8211;
+The cause repertoire of the</p>
+<blockquote>
+<div><p>mechanism over the purview.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.effect_repertoire">
+<tt class="descname">effect_repertoire</tt><big>(</big><em>mechanism</em>, <em>purview</em><big>)</big><a class="headerlink" href="#pyphi.subsystem.Subsystem.effect_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the effect repertoire of a mechanism over a purview.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mechanism</strong> (<em>tuple(Node)</em>) &#8211; The mechanism for which to calculate the</li>
+<li><strong>purview</strong> (<em>tuple(Node)</em>) &#8211; The purview over which to calculate the</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>effect_repertoire</strong> &#8211;
+The effect repertoire of the</p>
+<blockquote>
+<div><p>mechanism over the purview.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pyphi.subsystem.Subsystem.unconstrained_cause_repertoire">
@@ -379,7 +401,15 @@ purview.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#pyphi.models.Mip" title="pyphi.models.Mip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mip</span></tt></a></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>mip</strong> &#8211;
+The mininum-information partition</p>
+<blockquote>
+<div><p>in one temporal direction.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#pyphi.models.Mip" title="pyphi.models.Mip"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mip</span></tt></a></p>
 </td>
 </tr>
 </tbody>
@@ -448,7 +478,15 @@ finding only concepts that are &#8220;about&#8221; a certain subset of
 nodes.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#pyphi.models.Mice" title="pyphi.models.Mice"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mice</span></tt></a></p>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>mice</strong> &#8211;
+The maximally-irreducible cause</p>
+<blockquote>
+<div><p>or effect.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#pyphi.models.Mice" title="pyphi.models.Mice"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.models.Mice</span></tt></a></p>
 </td>
 </tr>
 </tbody>
@@ -460,8 +498,8 @@ cause repertoire and core effect repertoire of a mechanism, which
 are maximally different than the unconstrained cause/effect
 repertoires (<em>i.e.</em>, those that maximize <span class="math">\(\varphi\)</span>). Here, we
 return only information corresponding to one direction, <tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></tt> or
-<tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[FUTURE]</span></tt>, i.e., we return a core cause or core effect, not the pair
-of them.</p>
+<tt class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[FUTURE]</span></tt>, i.e., we return a core cause or core effect, not the pair of
+them.</p>
 </div>
 </dd></dl>
 
@@ -510,7 +548,7 @@ subsystem.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="convert.html" class="btn btn-neutral float-right" title="convert"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="macro.html" class="btn btn-neutral float-right" title="macro"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="network.html" class="btn btn-neutral" title="network"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -523,7 +561,7 @@ subsystem.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 04, 2015.
+      Last updated on May 08, 2015.
     </p>
   </div>
 

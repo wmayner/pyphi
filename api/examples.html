@@ -67,6 +67,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
 </ul>
@@ -618,6 +620,215 @@ is <strong>ON</strong> 50% of the time, independent of the previous state.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pyphi.examples.propagation_delay_network">
+<tt class="descclassname">pyphi.examples.</tt><tt class="descname">propagation_delay_network</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.propagation_delay_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>A version of the primary example from the IIT 3.0 paper
+with deterministic COPY gates on each connection. These
+copy gates essentially function as propagation delays on the
+signal between OR, AND and XOR gates from the original system.</p>
+<p>The current and past states of the network are also selected
+to  mimic the corresponding states from the IIT 3.0 paper.</p>
+<dl class="docutils">
+<dt>Diagram::</dt>
+<dd><blockquote class="first">
+<div><blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+</colgroup>
+<tbody valign="top">
+</tbody>
+</table>
+</div></blockquote>
+<p>+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;+ C (COPY) +&lt;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;+
+V                     +&#8212;&#8212;&#8212;-+                      |</p>
+</div></blockquote>
+<p>+&#8212;&#8212;&#8212;-+&#8211;+                                                 +&#8211;+&#8212;&#8212;&#8212;-+
+|             |                  +&#8212;&#8212;&#8212;-+                   |             |
+|   A (OR)    +&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;&gt;+ B (COPY) +&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&gt;+   D (XOR)   |
+|             |                  +&#8212;&#8212;&#8212;-+                   |             |
++&#8211;+&#8212;&#8212;-+&#8211;+                                                 +&#8211;+&#8212;&#8212;-+&#8211;+</p>
+<blockquote class="last">
+<div><div class="line-block">
+<div class="line">^                                                       ^       |</div>
+<div class="line">|                                                       |       |</div>
+<div class="line">|   +&#8212;&#8212;&#8212;-+                        +&#8212;&#8212;&#8212;-+    |       |</div>
+<div class="line">+&#8212;+ H (COPY) +&lt;&#8212;&#8212;-+      +&#8212;&#8212;-&gt;+ F (COPY) +&#8212;-+       |</div>
+<div class="line-block">
+<div class="line">+&#8212;&#8212;&#8212;-+        |      |        +&#8212;&#8212;&#8212;-+            |</div>
+<div class="line-block">
+<div class="line-block">
+<div class="line">|      |                                |</div>
+</div>
+<div class="line">+&#8211;+&#8212;&#8212;+&#8211;+                             |</div>
+</div>
+<div class="line">+&#8212;&#8212;&#8212;-+     |            |     +&#8212;&#8212;&#8212;-+            |</div>
+</div>
+</div>
+<dl class="docutils">
+<dt>+&#8212;&#8212;&#8212;-&gt;+ I (COPY) +&#8212;-&gt;|  G (AND)   <a href="#id1"><span class="problematic" id="id2">|</span></a>&lt;&#8212;-+ E (COPY) +&lt;&#8212;&#8212;&#8212;&#8211;+</dt>
+<dd><dl class="first last docutils">
+<dt>+&#8212;&#8212;&#8212;-+     |            |     +&#8212;&#8212;&#8212;-+</dt>
+<dd>+&#8212;&#8212;&#8212;&#8211; +</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+</dl>
+<p>Connectivity matrix:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="10%" />
+<col width="10%" />
+<col width="10%" />
+<col width="10%" />
+<col width="10%" />
+<col width="10%" />
+<col width="10%" />
+<col width="10%" />
+<col width="10%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>.</td>
+<td>A</td>
+<td>B</td>
+<td>C</td>
+<td>D</td>
+<td>E</td>
+<td>F</td>
+<td>G</td>
+<td>H</td>
+<td>I</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td>B</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td>C</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td>D</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td>E</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td>F</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td>G</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td>H</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td>I</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>States:</p>
+<blockquote>
+<div><p>In the IIT 3.0 paper example, the past state of the system has only
+the XOR gate on. For the propagation delay network, this corresponds
+to a state of (0, 0, 0, 1, 0, 0, 0, 0, 0).</p>
+<p>The current state of the IIT 3.0 example has only the OR gate on. By
+advancing the propagation delay system two time steps, the current
+state (1, 0, 0, 0, 0, 0, 0, 0, 0) is achieved, with corresponding
+past state (0, 0, 1, 0, 1, 0, 0, 0, 0).</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.examples.macro_network">
+<tt class="descclassname">pyphi.examples.</tt><tt class="descname">macro_network</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.macro_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>A network of micro elements which has greater integrated information
+after coarse graining to a macro scale.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.examples.macro_subsystem">
+<tt class="descclassname">pyphi.examples.</tt><tt class="descname">macro_subsystem</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.macro_subsystem" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="pyphi.examples.fig1a">
 <tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig1a</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig1a" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 1A of the 2014 IIT 3.0 paper.</p>
@@ -805,7 +1016,7 @@ is <strong>ON</strong> 50% of the time, independent of the previous state.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 04, 2015.
+      Last updated on May 08, 2015.
     </p>
   </div>
 

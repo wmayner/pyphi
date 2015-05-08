@@ -46,8 +46,8 @@ Now we use :func:`pyphi.compute.big_phi` function to compute the |big_phi| of
 our subsystem:
 
     >>> phi = pyphi.compute.big_phi(subsystem)
-    >>> round(phi, pyphi.config.PRECISION)
-    2.312495
+    >>> phi
+    2.312496
 
 If we want to take a deeper look at the integrated-information-theoretic
 properties of our network, we can access all the intermediate quantities and

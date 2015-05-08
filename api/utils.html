@@ -34,6 +34,7 @@
   
     <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="validate" href="validate.html"/>
         <link rel="prev" title="db" href="db.html"/> 
 
   
@@ -64,8 +65,10 @@
             <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
 </ul>
@@ -87,6 +90,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
@@ -95,6 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
 </ul>
 </li>
 </ul>
@@ -221,7 +226,11 @@ connections to.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; An array of combinations.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>combinations</strong> &#8211;
+An array of combinations.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></p>
 </td>
 </tr>
 </tbody>
@@ -242,8 +251,15 @@ connections to.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; Indices that give the <span class="math">\(k\)</span>-combinations of <span class="math">\(n\)</span>
-elements.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>combination_indices</strong> &#8211;
+Indices that give the</p>
+<blockquote>
+<div><p><span class="math">\(k\)</span>-combinations of <span class="math">\(n\)</span> elements.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></p>
 </td>
 </tr>
 </tbody>
@@ -273,7 +289,10 @@ elements.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iterable</strong> (<em>Iterable</em>) &#8211; The iterable from which to generate the power set.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">chain</span></tt> &#8211; An chained iterator over the power set.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>chain</strong> &#8211;
+An chained iterator over the power set.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">Iterable</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -297,7 +316,12 @@ possible states for that node).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nodes</strong> (<em>np.ndarray</em>) &#8211; A set of indices of binary nodes.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; The uniform distribution over the set of nodes.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>distribution</strong> &#8211;
+The uniform distribution over the set of<blockquote>
+<div>nodes.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -317,8 +341,15 @@ possible states for that node).</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; A TPM with the same number of dimensions, with the
-node marginalized out.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>tpm</strong> &#8211;
+A TPM with the same number of dimensions, with</p>
+<blockquote>
+<div><p>the node marginalized out.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></p>
 </td>
 </tr>
 </tbody>
@@ -342,8 +373,15 @@ distribution.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; The maximum entropy distribution over the set of
-nodes.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>distribution</strong> &#8211;
+The maximum entropy distribution over</p>
+<blockquote>
+<div><p>the set of nodes.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></p>
 </td>
 </tr>
 </tbody>
@@ -368,7 +406,12 @@ by state, one dimension per node).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> (<em>Iterable</em>) &#8211; The iterable to partition.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt> &#8211; A list of tuples containing each of the two partitions.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition</strong> &#8211;
+A list of tuples containing each<blockquote>
+<div>of the two partitions.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list(tuple(tuple))</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -390,7 +433,12 @@ by state, one dimension per node).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> (<em>Iterable</em>) &#8211; The iterable to partition.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt> &#8211; A list of tuples containing each of the two partitions.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition</strong> &#8211;
+A list of tuples containing each<blockquote>
+<div>of the two partitions.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list(tuple(tuple))</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -413,7 +461,12 @@ bipartitions includes a set of size 1.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> (<em>Iterable</em>) &#8211; The iterable to partition.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt> &#8211; A list of tuples containing each of the two partitions.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition</strong> &#8211;
+A list of tuples containing each<blockquote>
+<div>of the two partitions.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list(tuple(tuple))</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -435,8 +488,12 @@ bipartitions includes a set of size 1.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>N</strong> (<em>int</em>) &#8211; The length of the sequence.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt> &#8211; A list of tuples containing the indices for each of the two
-partitions.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition_indices</strong> &#8211;
+A list of tuples containing the indices<blockquote>
+<div>for each of the two partitions.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -459,8 +516,12 @@ partitions.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>N</strong> (<em>int</em>) &#8211; The length of the sequence.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt> &#8211; A list of tuples containing the indices for each of the two
-partitions.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition_indices</strong> &#8211;
+A list of tuples containing the indices<blockquote>
+<div>for each of the two partitions.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -484,7 +545,10 @@ logical functions.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>network</strong> (<em>Network</em>) &#8211; The network for which to generate the TPM.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; A transition probability matrix.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>tpm</strong> &#8211;
+A transition probability matrix.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -542,6 +606,8 @@ be tested.</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="validate.html" class="btn btn-neutral float-right" title="validate"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+      
       
         <a href="db.html" class="btn btn-neutral" title="db"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
@@ -553,7 +619,7 @@ be tested.</li>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 04, 2015.
+      Last updated on May 08, 2015.
     </p>
   </div>
 

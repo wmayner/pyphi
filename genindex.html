@@ -63,8 +63,10 @@
             <ul>
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Usage and Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/residue.html">Residue Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/xor.html">XOR Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/macro.html">Emergence (Macro/Micro)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/index.html#conventions">Conventions</a></li>
 </ul>
@@ -86,6 +88,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
@@ -94,6 +97,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
 </ul>
 </li>
 </ul>
@@ -199,7 +203,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="api/compute.html#pyphi.compute.all_complexes">all_complexes() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.all_complexes">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.all_complexes">all_complexes() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.all_complexes">[1]</a>
   </dt>
 
       
@@ -227,11 +231,11 @@
   </dt>
 
       
-  <dt><a href="api/compute.html#pyphi.compute.big_mip">big_mip() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.big_mip">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.big_mip">big_mip() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.big_mip">[1]</a>
   </dt>
 
       
-  <dt><a href="api/compute.html#pyphi.compute.big_phi">big_phi() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.big_phi">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.big_phi">big_phi() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.big_phi">[1]</a>
   </dt>
 
       
@@ -285,7 +289,7 @@
   </dt>
 
       
-  <dt><a href="api/subsystem.html#pyphi.subsystem.cause_repertoire">cause_repertoire() (in module pyphi.subsystem)</a>
+  <dt><a href="api/subsystem.html#pyphi.subsystem.Subsystem.cause_repertoire">cause_repertoire() (pyphi.subsystem.Subsystem method)</a>
   </dt>
 
       
@@ -297,7 +301,7 @@
   </dt>
 
       
-  <dt><a href="api/compute.html#pyphi.compute.complexes">complexes() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.complexes">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.complexes">complexes() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.complexes">[1]</a>
   </dt>
 
       
@@ -305,7 +309,7 @@
   </dt>
 
       
-  <dt><a href="api/compute.html#pyphi.compute.concept">concept() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.concept">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.concept">concept() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.concept">[1]</a>
   </dt>
 
       <dd><dl>
@@ -319,11 +323,11 @@
 
       </dl></dd>
       
-  <dt><a href="api/compute.html#pyphi.compute.concept_distance">concept_distance() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.concept_distance">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.concept_distance">concept_distance() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.concept_distance">[1]</a>
   </dt>
 
       
-  <dt><a href="api/compute.html#pyphi.compute.conceptual_information">conceptual_information() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.conceptual_information">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.conceptual_information">conceptual_information() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.conceptual_information">[1]</a>
   </dt>
 
       
@@ -335,13 +339,19 @@
   </dt>
 
       
-  <dt><a href="api/compute.html#pyphi.compute.condensed">condensed() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.condensed">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.condensed">condensed() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.condensed">[1]</a>
   </dt>
 
       
   <dt><a href="api/utils.html#pyphi.utils.condition_tpm">condition_tpm() (in module pyphi.utils)</a>
   </dt>
 
+      
+  <dt><a href="api/validate.html#pyphi.validate.conditionally_independent">conditionally_independent() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.conditionally_independent">[1]</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api/network.html#pyphi.network.Network.connectivity_matrix">connectivity_matrix (pyphi.network.Network attribute)</a>, <a href="api/network.html#pyphi.network.Network.connectivity_matrix">[1]</a>
   </dt>
@@ -352,10 +362,8 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="api/valiate.html#pyphi.validate.connectivity_matrix">connectivity_matrix() (in module pyphi.validate)</a>
+  <dt><a href="api/validate.html#pyphi.validate.connectivity_matrix">connectivity_matrix() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.connectivity_matrix">[1]</a>
   </dt>
 
       
@@ -363,11 +371,11 @@
   </dt>
 
       
-  <dt><a href="api/compute.html#pyphi.compute.constellation">constellation() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.constellation">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.constellation">constellation() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.constellation">[1]</a>
   </dt>
 
       
-  <dt><a href="api/compute.html#pyphi.compute.constellation_distance">constellation_distance() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.constellation_distance">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.constellation_distance">constellation_distance() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.constellation_distance">[1]</a>
   </dt>
 
       
@@ -387,7 +395,7 @@
   </dt>
 
       
-  <dt><a href="api/valiate.html#pyphi.validate.current_state_length">current_state_length() (in module pyphi.validate)</a>
+  <dt><a href="api/validate.html#pyphi.validate.current_state_length">current_state_length() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.current_state_length">[1]</a>
   </dt>
 
       
@@ -469,7 +477,7 @@
 
       </dl></dd>
       
-  <dt><a href="api/valiate.html#pyphi.validate.direction">direction() (in module pyphi.validate)</a>
+  <dt><a href="api/validate.html#pyphi.validate.direction">direction() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.direction">[1]</a>
   </dt>
 
   </dl></td>
@@ -493,7 +501,7 @@
   </dt>
 
       
-  <dt><a href="api/subsystem.html#pyphi.subsystem.effect_repertoire">effect_repertoire() (in module pyphi.subsystem)</a>
+  <dt><a href="api/subsystem.html#pyphi.subsystem.Subsystem.effect_repertoire">effect_repertoire() (pyphi.subsystem.Subsystem method)</a>
   </dt>
 
       
@@ -501,11 +509,19 @@
   </dt>
 
       
-  <dt><a href="api/models.html#pyphi.models.Concept.eq_repertoires">eq_repertoires() (pyphi.models.Concept method)</a>
+  <dt><a href="api/macro.html#pyphi.macro.MacroNetwork.emergence">emergence (pyphi.macro.MacroNetwork attribute)</a>
+  </dt>
+
+      
+  <dt><a href="api/macro.html#pyphi.macro.emergence">emergence() (in module pyphi.macro)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="api/models.html#pyphi.models.Concept.eq_repertoires">eq_repertoires() (pyphi.models.Concept method)</a>
+  </dt>
+
       
   <dt><a href="api/models.html#pyphi.models.Concept.expand_cause_repertoire">expand_cause_repertoire() (pyphi.models.Concept method)</a>
   </dt>
@@ -632,18 +648,22 @@
   <dt><a href="api/utils.html#pyphi.utils.get_inputs_from_cm">get_inputs_from_cm() (in module pyphi.utils)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api/node.html#pyphi.node.Node.get_marbl">get_marbl() (pyphi.node.Node method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api/memory.html#pyphi.memory.DbMemoizedFunc.get_output_key">get_output_key() (pyphi.memory.DbMemoizedFunc method)</a>
   </dt>
 
       
   <dt><a href="api/utils.html#pyphi.utils.get_outputs_from_cm">get_outputs_from_cm() (in module pyphi.utils)</a>
+  </dt>
+
+      
+  <dt><a href="api/macro.html#pyphi.macro.MacroNetwork.grouping">grouping (pyphi.macro.MacroNetwork attribute)</a>
   </dt>
 
   </dl></td>
@@ -751,6 +771,14 @@
   </dt>
 
       
+  <dt><a href="api/macro.html#pyphi.macro.list_all_groupings">list_all_groupings() (in module pyphi.macro)</a>
+  </dt>
+
+      
+  <dt><a href="api/macro.html#pyphi.macro.list_all_partitions">list_all_partitions() (in module pyphi.macro)</a>
+  </dt>
+
+      
   <dt><a href="api/network.html#pyphi.network.list_future_purview">list_future_purview() (in module pyphi.network)</a>
   </dt>
 
@@ -758,12 +786,12 @@
   <dt><a href="api/network.html#pyphi.network.list_past_purview">list_past_purview() (in module pyphi.network)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="configuration.html#pyphi.config.load_config">load_config() (in module pyphi.config)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api/memory.html#pyphi.memory.DbMemoizedFunc.load_output">load_output() (pyphi.memory.DbMemoizedFunc method)</a>
   </dt>
@@ -783,7 +811,31 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="api/compute.html#pyphi.compute.main_complex">main_complex() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.main_complex">[1]</a>
+  <dt><a href="api/examples.html#pyphi.examples.macro_network">macro_network() (in module pyphi.examples)</a>
+  </dt>
+
+      
+  <dt><a href="api/examples.html#pyphi.examples.macro_subsystem">macro_subsystem() (in module pyphi.examples)</a>
+  </dt>
+
+      
+  <dt><a href="api/macro.html#pyphi.macro.MacroNetwork">MacroNetwork (class in pyphi.macro)</a>
+  </dt>
+
+      
+  <dt><a href="compute.html#pyphi.compute.main_complex">main_complex() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.main_complex">[1]</a>
+  </dt>
+
+      
+  <dt><a href="api/macro.html#pyphi.macro.make_macro_network">make_macro_network() (in module pyphi.macro)</a>
+  </dt>
+
+      
+  <dt><a href="api/macro.html#pyphi.macro.make_macro_tpm">make_macro_tpm() (in module pyphi.macro)</a>
+  </dt>
+
+      
+  <dt><a href="api/macro.html#pyphi.macro.make_mapping">make_mapping() (in module pyphi.macro)</a>
   </dt>
 
       
@@ -798,6 +850,8 @@
   <dt><a href="api/utils.html#pyphi.utils.max_entropy_distribution">max_entropy_distribution() (in module pyphi.utils)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api/concept_caching.html#pyphi.concept_caching.NormalizedConcept.mechanism">mechanism (pyphi.concept_caching.NormalizedConcept attribute)</a>
   </dt>
@@ -828,10 +882,16 @@
   <dt><a href="api/utils.html#pyphi.utils.mechanism_split_by_cut">mechanism_split_by_cut() (in module pyphi.utils)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api/models.html#pyphi.models.Mice">Mice (class in pyphi.models)</a>
+  </dt>
+
+      
+  <dt><a href="api/macro.html#pyphi.macro.MacroNetwork.micro_network">micro_network (pyphi.macro.MacroNetwork attribute)</a>
+  </dt>
+
+      
+  <dt><a href="api/macro.html#pyphi.macro.MacroNetwork.micro_phi">micro_phi (pyphi.macro.MacroNetwork attribute)</a>
   </dt>
 
       
@@ -861,17 +921,21 @@
   </dt>
 
       
-  <dt><a href="api/node.html#pyphi.node.Node.network">network (pyphi.node.Node attribute)</a>
+  <dt><a href="api/macro.html#pyphi.macro.MacroNetwork.network">network (pyphi.macro.MacroNetwork attribute)</a>
   </dt>
 
       <dd><dl>
+        
+  <dt><a href="api/node.html#pyphi.node.Node.network">(pyphi.node.Node attribute)</a>
+  </dt>
+
         
   <dt><a href="api/subsystem.html#pyphi.subsystem.Subsystem.network">(pyphi.subsystem.Subsystem attribute)</a>
   </dt>
 
       </dl></dd>
       
-  <dt><a href="api/valiate.html#pyphi.validate.network">network() (in module pyphi.validate)</a>
+  <dt><a href="api/validate.html#pyphi.validate.network">network() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.network">[1]</a>
   </dt>
 
       
@@ -957,7 +1021,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="api/compute.html#pyphi.compute.parallel_constellation">parallel_constellation() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.parallel_constellation">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.parallel_constellation">parallel_constellation() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.parallel_constellation">[1]</a>
   </dt>
 
       
@@ -965,9 +1029,15 @@
   </dt>
 
       
-  <dt><a href="api/models.html#pyphi.models.Mip.partition">partition (pyphi.models.Mip attribute)</a>
+  <dt><a href="api/macro.html#pyphi.macro.MacroNetwork.partition">partition (pyphi.macro.MacroNetwork attribute)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="api/models.html#pyphi.models.Mip.partition">(pyphi.models.Mip attribute)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="api/models.html#pyphi.models.BigMip.partitioned_constellation">partitioned_constellation (pyphi.models.BigMip attribute)</a>
   </dt>
@@ -985,7 +1055,7 @@
   </dt>
 
       
-  <dt><a href="api/valiate.html#pyphi.validate.past_state_length">past_state_length() (in module pyphi.validate)</a>
+  <dt><a href="api/validate.html#pyphi.validate.past_state_length">past_state_length() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.past_state_length">[1]</a>
   </dt>
 
       
@@ -1013,7 +1083,7 @@
 
       </dl></dd>
       
-  <dt><a href="api/valiate.html#pyphi.validate.perturb_vector">perturb_vector() (in module pyphi.validate)</a>
+  <dt><a href="api/validate.html#pyphi.validate.perturb_vector">perturb_vector() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.perturb_vector">[1]</a>
   </dt>
 
       
@@ -1023,6 +1093,10 @@
       <dd><dl>
         
   <dt><a href="api/concept_caching.html#pyphi.concept_caching.NormalizedMice.phi">(pyphi.concept_caching.NormalizedMice attribute)</a>
+  </dt>
+
+        
+  <dt><a href="api/macro.html#pyphi.macro.MacroNetwork.phi">(pyphi.macro.MacroNetwork attribute)</a>
   </dt>
 
         
@@ -1063,15 +1137,15 @@
   </dt>
 
       
-  <dt><a href="api/compute.html#pyphi.compute.possible_complexes">possible_complexes() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.possible_complexes">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.possible_complexes">possible_complexes() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.possible_complexes">[1]</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="api/utils.html#pyphi.utils.powerset">powerset() (in module pyphi.utils)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="configuration.html#pyphi.config.print_config">print_config() (in module pyphi.config)</a>
   </dt>
@@ -1086,6 +1160,10 @@
 
       
   <dt><a href="api/utils.html#pyphi.utils.print_repertoire_horiz">print_repertoire_horiz() (in module pyphi.utils)</a>
+  </dt>
+
+      
+  <dt><a href="api/examples.html#pyphi.examples.propagation_delay_network">propagation_delay_network() (in module pyphi.examples)</a>
   </dt>
 
       
@@ -1107,7 +1185,7 @@
 
       </dl></dd>
       
-  <dt><a href="api/compute.html#module-pyphi.compute">pyphi.compute (module)</a>, <a href="compute.html#module-pyphi.compute">[1]</a>
+  <dt><a href="compute.html#module-pyphi.compute">pyphi.compute (module)</a>, <a href="api/compute.html#module-pyphi.compute">[1]</a>
   </dt>
 
       
@@ -1128,6 +1206,10 @@
 
       
   <dt><a href="api/examples.html#module-pyphi.examples">pyphi.examples (module)</a>
+  </dt>
+
+      
+  <dt><a href="api/macro.html#module-pyphi.macro">pyphi.macro (module)</a>
   </dt>
 
       
@@ -1155,7 +1237,7 @@
   </dt>
 
       
-  <dt><a href="api/valiate.html#module-pyphi.validate">pyphi.validate (module)</a>
+  <dt><a href="api/validate.html#module-pyphi.validate">pyphi.validate (module)</a>, <a href="api/valiate.html#module-pyphi.validate">[1]</a>
   </dt>
 
   </dl></td>
@@ -1185,6 +1267,10 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="api/subsystem.html#pyphi.subsystem.Subsystem.repertoire_cache_info">repertoire_cache_info() (pyphi.subsystem.Subsystem method)</a>
+  </dt>
+
+      
   <dt><a href="api/examples.html#pyphi.examples.residue_network">residue_network() (in module pyphi.examples)</a>
   </dt>
 
@@ -1199,7 +1285,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="api/compute.html#pyphi.compute.sequential_constellation">sequential_constellation() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.sequential_constellation">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.sequential_constellation">sequential_constellation() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.sequential_constellation">[1]</a>
   </dt>
 
       
@@ -1221,7 +1307,7 @@
   </dt>
 
       
-  <dt><a href="api/valiate.html#pyphi.validate.state">state() (in module pyphi.validate)</a>
+  <dt><a href="api/validate.html#pyphi.validate.state">state() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.state">[1]</a>
   </dt>
 
       
@@ -1243,15 +1329,15 @@
   </dt>
 
       
-  <dt><a href="api/valiate.html#pyphi.validate.state_reachable">state_reachable() (in module pyphi.validate)</a>
+  <dt><a href="api/validate.html#pyphi.validate.state_reachable">state_reachable() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.state_reachable">[1]</a>
   </dt>
 
       
-  <dt><a href="api/valiate.html#pyphi.validate.state_reachable_from">state_reachable_from() (in module pyphi.validate)</a>
+  <dt><a href="api/validate.html#pyphi.validate.state_reachable_from">state_reachable_from() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.state_reachable_from">[1]</a>
   </dt>
 
       
-  <dt><a href="api/valiate.html#pyphi.validate.StateUnreachableError">StateUnreachableError</a>
+  <dt><a href="api/validate.html#pyphi.validate.StateUnreachableError">StateUnreachableError</a>, <a href="api/valiate.html#pyphi.validate.StateUnreachableError">[1]</a>
   </dt>
 
       
@@ -1273,7 +1359,7 @@
 
       </dl></dd>
       
-  <dt><a href="api/compute.html#pyphi.compute.subsystems">subsystems() (in module pyphi.compute)</a>, <a href="compute.html#pyphi.compute.subsystems">[1]</a>
+  <dt><a href="compute.html#pyphi.compute.subsystems">subsystems() (in module pyphi.compute)</a>, <a href="api/compute.html#pyphi.compute.subsystems">[1]</a>
   </dt>
 
   </dl></td>
@@ -1303,7 +1389,7 @@
   </dt>
 
       
-  <dt><a href="api/valiate.html#pyphi.validate.tpm">tpm() (in module pyphi.validate)</a>
+  <dt><a href="api/validate.html#pyphi.validate.tpm">tpm() (in module pyphi.validate)</a>, <a href="api/valiate.html#pyphi.validate.tpm">[1]</a>
   </dt>
 
   </dl></td>
@@ -1368,7 +1454,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 04, 2015.
+      Last updated on May 08, 2015.
     </p>
   </div>
 

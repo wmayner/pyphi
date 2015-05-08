@@ -35,7 +35,7 @@
     <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
         <link rel="next" title="examples" href="examples.html"/>
-        <link rel="prev" title="subsystem" href="subsystem.html"/> 
+        <link rel="prev" title="macro" href="macro.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -65,8 +65,10 @@
             <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
 </ul>
@@ -88,6 +90,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
@@ -96,6 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
 </ul>
 </li>
 </ul>
@@ -154,8 +158,12 @@ convention.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>tuple(int)</em>) &#8211; A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of the tuple
 gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">int</span></tt> &#8211; A decimal integer corresponding to a network state under the
-<strong>HOLI</strong> convention.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>holi_index</strong> &#8211;
+A decimal integer corresponding to a network<blockquote>
+<div>state under the <strong>HOLI</strong> convention.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">int</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -181,8 +189,12 @@ convention.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>tuple(int)</em>) &#8211; A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of the tuple
 gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">int</span></tt> &#8211; A decimal integer corresponding to a network state under the
-<strong>LOLI</strong> convention.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>loli_index</strong> &#8211;
+A decimal integer corresponding to a network<blockquote>
+<div>state under the <strong>LOLI</strong> convention.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">int</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -209,8 +221,12 @@ convention.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>i</strong> (<em>int</em>) &#8211; A decimal integer corresponding to a network state under the
 <strong>LOLI</strong> convention.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(int)</span></tt> &#8211; A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of the tuple
-gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>state</strong> &#8211;
+A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of the<blockquote>
+<div>tuple gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(int)</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -239,8 +255,12 @@ convention that high-order bits correspond to low-index nodes.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>i</strong> (<em>int</em>) &#8211; A decimal integer corresponding to a network state under the
 <strong>HOLI</strong> convention.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(int)</span></tt> &#8211; A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of the tuple
-gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>state</strong> &#8211;
+A state-tuple where the <span class="math">\(i^{\textrm{th}}\)</span> element of the<blockquote>
+<div>tuple gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(int)</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -283,8 +303,12 @@ these conventions.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tpm</strong> (<em>list(list) or np.ndarray</em>) &#8211; A square state-by-state TPM with row
 and column indices following the <strong>LOLI</strong> convention.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; A state-by-node TPM, with row indices following the
-<strong>LOLI</strong> convention.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>state_by_node_tpm</strong> &#8211;
+A state-by-node TPM, with row<blockquote>
+<div>indices following the <strong>LOLI</strong> convention.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -332,8 +356,12 @@ resulting state-by-state TPM both follow the <strong>HOLI</strong> convention.</
 following the <strong>LOLI</strong> convention and column indices following the
 <strong>HOLI</strong> convention.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt> &#8211; A state-by-state TPM, with both row and column
-indices following the <strong>HOLI</strong> convention.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>state_by_state_tpm</strong> &#8211;
+A state-by-state TPM, with both<blockquote>
+<div>row and column indices following the <strong>HOLI</strong> convention.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -370,7 +398,7 @@ indices following the <strong>HOLI</strong> convention.</td>
         <a href="examples.html" class="btn btn-neutral float-right" title="examples"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="subsystem.html" class="btn btn-neutral" title="subsystem"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="macro.html" class="btn btn-neutral" title="macro"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -380,7 +408,7 @@ indices following the <strong>HOLI</strong> convention.</td>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 04, 2015.
+      Last updated on May 08, 2015.
     </p>
   </div>
 

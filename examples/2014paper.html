@@ -35,7 +35,7 @@
     <link rel="top" title="v0.6.0 documentation" href="../index.html"/>
         <link rel="up" title="Usage and Examples" href="index.html"/>
         <link rel="next" title="Conventions" href="conventions.html"/>
-        <link rel="prev" title="Conditional Independence Example" href="conditional_independence.html"/> 
+        <link rel="prev" title="Emergence" href="macro.html"/> 
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -67,6 +67,8 @@
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="residue.html">Residue Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html">Emergence</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
 </ul>
@@ -378,7 +380,7 @@ where <span class="math">\(B, C,\)</span> and <span class="math">\(D\)</span> we
 </div>
 <p>And so we have less cause information:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span>
-<span class="go">0.21428400000000067</span>
+<span class="go">0.214284</span>
 </pre></div>
 </div>
 </div>
@@ -428,14 +430,14 @@ mechanism; they only take a purview):</p>
 </div>
 <p>The Earth Mover&#8217;s distance between them gives the cause and effect information:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
-<span class="go">0.33333191666400036</span>
+<span class="go">0.333332</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">effect_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
-<span class="go">0.24999975000000002</span>
+<span class="go">0.25</span>
 </pre></div>
 </div>
 <p>And the minimum of those gives the cause-effect information:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_effect_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
-<span class="go">0.24999975000000002</span>
+<span class="go">0.25</span>
 </pre></div>
 </div>
 </div>
@@ -457,7 +459,7 @@ mechanism; they only take a purview):</p>
 <span class="go">       [[ 0. ,  0. ],</span>
 <span class="go">        [ 0. ,  0.5]]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
-<span class="go">0.9999997500000001</span>
+<span class="go">1.0</span>
 </pre></div>
 </div>
 <p>But because it has no outputs, its effect repertoire no different from the unconstrained effect repertoire, so it has no effect information:</p>
@@ -490,7 +492,7 @@ selective and it has effect information:</p>
 <span class="go">       [[ 0.,  0.],</span>
 <span class="go">        [ 0.,  1.]]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">effect_info</span><span class="p">((</span><span class="n">A</span><span class="p">,),</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
-<span class="go">0.4999996875</span>
+<span class="go">0.5</span>
 </pre></div>
 </div>
 <p>But because it now has no inputs, its cause repertoire is no different from the
@@ -529,11 +531,11 @@ mechanism over a purview:</p>
 <tt class="docutils literal"><span class="pre">phi</span></tt> attributes, and the minimal partitions in their <tt class="docutils literal"><span class="pre">partition</span></tt>
 attributes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_c</span><span class="o">.</span><span class="n">phi</span>
-<span class="go">0.499998999999</span>
+<span class="go">0.499999</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mip_c</span><span class="o">.</span><span class="n">partition</span>
 <span class="go">(Part(mechanism=(n0,), purview=()), Part(mechanism=(n1, n2), purview=(n0, n1, n2)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mip_e</span><span class="o">.</span><span class="n">phi</span>
-<span class="go">0.24999975000000002</span>
+<span class="go">0.25</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mip_e</span><span class="o">.</span><span class="n">partition</span>
 <span class="go">(Part(mechanism=(), purview=(n1,)), Part(mechanism=(n0, n1, n2), purview=(n0, n2)))</span>
 </pre></div>
@@ -647,7 +649,7 @@ an attribute of the subsystem:</p>
 <p>Conceptual information can be computed using the function named, as you might
 expect, <a class="reference internal" href="../compute.html#pyphi.compute.conceptual_information" title="pyphi.compute.conceptual_information"><tt class="xref py py-func docutils literal"><span class="pre">conceptual_information()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">conceptual_information</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
-<span class="go">2.1111091388868752</span>
+<span class="go">2.111109</span>
 </pre></div>
 </div>
 </div>
@@ -670,7 +672,7 @@ the API documentation for <a class="reference internal" href="../api/models.html
 <p>We can verify that the <span class="math">\(\Phi^{\textrm{MIP}}\)</span> value and minimal cut are as
 shown in the figure:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">big_mip</span><span class="o">.</span><span class="n">phi</span>
-<span class="go">1.916662694926084</span>
+<span class="go">1.916663</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">big_mip</span><span class="o">.</span><span class="n">cut</span>
 <span class="go">Cut(severed=(0, 1), intact=(2,))</span>
 </pre></div>
@@ -743,11 +745,11 @@ that there is typo in the figure; <span class="math">\(FG\)</span>&#8216;s <span
 <span class="go">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ABC</span><span class="p">,</span> <span class="n">DE</span><span class="p">,</span> <span class="n">FG</span> <span class="o">=</span> <span class="n">condensed</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">ABC</span><span class="o">.</span><span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">ABC</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
-<span class="go">((n0, n1, n2), 1.916662694926084)</span>
+<span class="go">((n0, n1, n2), 1.916663)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">DE</span><span class="o">.</span><span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">DE</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
-<span class="go">((n5, n6), 0.06944459259257413)</span>
+<span class="go">((n5, n6), 0.069445)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">FG</span><span class="o">.</span><span class="n">subsystem</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">FG</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
-<span class="go">((n3, n4), 0.027777936507761905)</span>
+<span class="go">((n3, n4), 0.027778)</span>
 </pre></div>
 </div>
 <p>There are several other functions available for working with complexes; see the
@@ -767,7 +769,7 @@ documentation for <a class="reference internal" href="../compute.html#pyphi.comp
         <a href="conventions.html" class="btn btn-neutral float-right" title="Conventions"/>Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="conditional_independence.html" class="btn btn-neutral" title="Conditional Independence Example"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="macro.html" class="btn btn-neutral" title="Emergence"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -777,7 +779,7 @@ documentation for <a class="reference internal" href="../compute.html#pyphi.comp
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 04, 2015.
+      Last updated on May 08, 2015.
     </p>
   </div>
 

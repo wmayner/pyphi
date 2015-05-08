@@ -67,6 +67,8 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="">Basic Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="residue.html">Residue Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html">Emergence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
 </ul>
@@ -179,8 +181,8 @@ every node in the network in our subsystem:</p>
 <p>Now we use <a class="reference internal" href="../compute.html#pyphi.compute.big_phi" title="pyphi.compute.big_phi"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_phi()</span></tt></a> function to compute the <span class="math">\(\Phi\)</span> of
 our subsystem:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_phi</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">PRECISION</span><span class="p">)</span>
-<span class="go">2.312495</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span>
+<span class="go">2.312496</span>
 </pre></div>
 </div>
 <p>If we want to take a deeper look at the integrated-information-theoretic
@@ -226,7 +228,7 @@ structures.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 04, 2015.
+      Last updated on May 08, 2015.
     </p>
   </div>
 

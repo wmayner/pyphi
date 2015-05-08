@@ -62,8 +62,10 @@
             <ul>
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Usage and Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/residue.html">Residue Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/conditional_independence.html">Conditional Independence Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/xor.html">XOR Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/macro.html">Emergence (Macro/Micro)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/index.html#conventions">Conventions</a></li>
 </ul>
@@ -85,6 +87,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
@@ -93,6 +96,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api/memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
 </ul>
 </li>
 </ul>
@@ -146,9 +150,16 @@ considered.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">Concept</span></tt> &#8211; The pair of maximally irreducible cause/effect
-repertoires that constitute the concept specified by the given
-mechanism.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>concept</strong> &#8211;
+The pair of maximally</p>
+<blockquote>
+<div><p>irreducible cause/effect repertoires that constitute the concept
+specified by the given mechanism.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="api/models.html#pyphi.models.Concept" title="pyphi.models.Concept"><tt class="xref py py-class docutils literal"><span class="pre">Concept</span></tt></a></p>
 </td>
 </tr>
 </tbody>
@@ -158,8 +169,8 @@ mechanism.</p>
 <p class="last">The output can be persistently cached to avoid recomputation. This may
 be enabled in the configuration file&#8212;however, it is only available if
 the caching backend is a database (not the filesystem). See the
-documentation for <a class="reference internal" href="api/concept_caching.html#module-pyphi.concept_caching" title="pyphi.concept_caching"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.concept_caching</span></tt></a> and
-<tt class="xref py py-mod docutils literal"><span class="pre">pyphi.constants</span></tt>.</p>
+documentation for <a class="reference internal" href="api/concept_caching.html#module-pyphi.concept_caching" title="pyphi.concept_caching"><tt class="xref py py-mod docutils literal"><span class="pre">concept_caching</span></tt></a> and
+<a class="reference internal" href="configuration.html#module-pyphi.config" title="pyphi.config"><tt class="xref py py-mod docutils literal"><span class="pre">config</span></tt></a>.</p>
 </div>
 </dd></dl>
 
@@ -174,7 +185,12 @@ documentation for <a class="reference internal" href="api/concept_caching.html#m
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsystem</strong> (<em>Subsystem</em>) &#8211; The subsystem for which to determine the
 constellation.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(Concept)</span></tt> &#8211; A tuple of all the Concepts in the constellation.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>constellation</strong> &#8211;
+A tuple of all the Concepts in the<blockquote>
+<div>constellation.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(Concept)</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -192,7 +208,12 @@ evaluated in parallel.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsystem</strong> (<em>Subsystem</em>) &#8211; The subsystem for which to determine the
 constellation.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(Concept)</span></tt> &#8211; A tuple of all the Concepts in the constellation.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>constellation</strong> &#8211;
+A tuple of all the Concepts in the<blockquote>
+<div>constellation.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(Concept)</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -209,7 +230,12 @@ constellation.</td>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsystem</strong> (<em>Subsystem</em>) &#8211; The subsystem for which to determine the
 constellation.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(Concept)</span></tt> &#8211; A tuple of all the Concepts in the constellation.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>constellation</strong> &#8211;
+A tuple of all the Concepts in the<blockquote>
+<div>constellation.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">tuple(Concept)</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -229,7 +255,15 @@ constellation.</td>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">float</span></tt> &#8211; The distance between the two concepts in concept-space.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>distance</strong> &#8211;
+The distance between the two concepts in</p>
+<blockquote>
+<div><p>concept-space.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">float</span></tt></p>
 </td>
 </tr>
 </tbody>
@@ -253,8 +287,15 @@ reside.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">float</span></tt> &#8211; The distance between the two constellations in
-concept-space.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>distance</strong> &#8211;
+The distance between the two constellations in</p>
+<blockquote>
+<div><p>concept-space.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">float</span></tt></p>
 </td>
 </tr>
 </tbody>
@@ -272,7 +313,24 @@ concept.</p>
 <dl class="function">
 <dt id="pyphi.compute.big_mip">
 <tt class="descclassname">pyphi.compute.</tt><tt class="descname">big_mip</tt><big>(</big><em>cache_key</em>, <em>subsystem</em><big>)</big><a class="headerlink" href="#pyphi.compute.big_mip" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return the minimal information partition of a subsystem.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsystem</strong> (<em>Subsystem</em>) &#8211; The candidate set of nodes.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>big_mip</strong> &#8211;
+A nested structure containing<blockquote>
+<div>all the data from the intermediate calculations. The top level
+contains the basic MIP information for the given subsystem.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyphi.compute.big_phi">
@@ -297,7 +355,7 @@ at all).</p>
 <dl class="function">
 <dt id="pyphi.compute.possible_complexes">
 <tt class="descclassname">pyphi.compute.</tt><tt class="descname">possible_complexes</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.compute.possible_complexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>&#8220;Return a generator of the subsystems of a network that could be a
+<dd><p>Return a generator of the subsystems of a network that could be a
 complex.</p>
 <p>This is the just powerset of the nodes that have at least one input and
 output (nodes with no inputs or no outputs cannot be part of a main
@@ -334,7 +392,7 @@ subsystem in the past or future, respectively).</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 04, 2015.
+      Last updated on May 08, 2015.
     </p>
   </div>
 
