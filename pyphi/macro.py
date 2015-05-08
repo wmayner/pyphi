@@ -3,7 +3,7 @@
 
 # macro.py
 """
-Methods for coarse graining systems to different levels of spatial analysis.
+Methods for coarse-graining systems to different levels of spatial analysis.
 """
 
 import numpy as np
@@ -31,18 +31,18 @@ class MacroNetwork:
     See the 'macro' example in the documentation for more information.
 
     Attributes:
-        network (Network): The network object of the macro system.
+        network (Network): The network object of the macro-system.
         phi (float): The |big_phi| of the network's main complex.
         micro_network (Network): The network object of the corresponding micro
             system.
         micro_phi (float): The |big_phi| of the main complex of the
-            corresponding micro system.
-        partition (list): The partition which defines macro elements in terms
-            of micro elements.
-        grouping (list(list)): The correspondence between micro states and
-            macro states.
-        emergence (float): The difference between the |big_phi| of the macro
-            and the micro system.
+            corresponding micro-system.
+        partition (list): The partition which defines macro-elements in terms
+            of micro-elements.
+        grouping (list(list)): The correspondence between micro-states and
+            macro-states.
+        emergence (float): The difference between the |big_phi| of the macro-
+            and the micro-system.
     """
     def __init__(self, macro_network, macro_phi, micro_network, micro_phi,
                  partition, grouping):
@@ -62,8 +62,8 @@ def _partitions_list(N):
         N (int): The number of nodes under consideration.
 
     Returns:
-        ``list`` -- A list of lists, where each inner list is the set of micro
-        elements corresponding to a macro element.
+        partition_list (``list``): A list of lists, where each inner list is
+        the set of micro-elements corresponding to a macro-element.
 
     Example:
         >>> from pyphi.macro import _partitions_list
@@ -83,9 +83,10 @@ def list_all_partitions(network):
     Args:
         network (Network): The physical system to act as the 'micro' level.
 
-    Returns: partitions (list(list)): A list of possible partitions. Each
-        element of the list is a list of micro elements which correspong to
-        macro elements.
+    Returns:
+        partitions (``list(list))``): A list of possible partitions. Each
+            element of the list is a list of micro-elements which correspong to
+            macro-elements.
     """
     partitions = _partitions_list(network.size)
     partitions[-1] = [list(range(network.size))]
@@ -98,12 +99,12 @@ def list_all_groupings(partition):
 
     Args:
         network (Network): The physical system on the micro level.
-        partitions (list(list)): The partition of micro elements into macro
+        partitions (list(list)): The partition of micro-elements into macro
             elements.
 
     Returns:
-        groupings (list(list(list(list)))): A list of all possible
-            correspondences between micro states and macro states for the
+        groupings (``list(list(list(list)))``): A list of all possible
+            correspondences between micro-states and macro-states for the
             partition.
     """
     micro_state_groupings = [_partitions_list(len(part) + 1) if len(part) > 1
@@ -114,20 +115,20 @@ def list_all_groupings(partition):
 
 
 def make_mapping(micro_tpm, partition, grouping):
-    """Return a mapping from micro state to the macro states based on the
+    """Return a mapping from micro-state to the macro-states based on the
     partition of elements and grouping of states.
 
     Args:
         micro_tpm (nd.array): The state-by-node TPM of the micro level.
 
-        partition (list(list)): A partition of micro elements into macro
+        partition (list(list)): A partition of micro-elements into macro
             elements.
 
-        grouping (list(list(list))): For each macro element, a list of micro
+        grouping (list(list(list))): For each macro-element, a list of micro
             states which set it to ON or OFF.
 
     Returns:
-        mapping (nd.array): A mapping from micro states to macro states.
+        mapping (``nd.array``): A mapping from micro-states to macro-states.
     """
     num_macro_nodes = len(grouping)
     num_micro_nodes = sum([len(part) for part in partition])
@@ -136,14 +137,14 @@ def make_mapping(micro_tpm, partition, grouping):
                                              num_micro_nodes)
                     for micro_state_index in range(num_micro_states)]
     mapping = np.zeros(num_micro_states)
-    # For every micro state, find the corresponding macro state and add it to
+    # For every micro-state, find the corresponding macro-state and add it to
     # the mapping.
     for micro_state_index, micro_state in enumerate(micro_states):
-        # Sum the number of micro elements that are ON for each macro element.
+        # Sum the number of micro-elements that are ON for each macro-element.
         micro_sum = [sum([micro_state[node] for node in partition[i]])
                      for i in range(num_macro_nodes)]
-        # Check if the number of micro elements that are ON corresponds to the
-        # macro element being ON or OFF.
+        # Check if the number of micro-elements that are ON corresponds to the
+        # macro-element being ON or OFF.
         macro_state = [0 if micro_sum[i] in grouping[i][0] else 1
                        for i in range(num_macro_nodes)]
         # Record the mapping.
@@ -152,22 +153,22 @@ def make_mapping(micro_tpm, partition, grouping):
 
 
 def make_macro_tpm(micro_tpm, mapping):
-    """Create the macro TPM for a given mapping from micro to macro states.
+    """Create the macro TPM for a given mapping from micro to macro-states.
 
     Args:
-        micro_tpm (nd.array): TPM of the micro system.
+        micro_tpm (nd.array): The TPM of the micro-system.
 
-        mapping (nd.array): Mapping from micro states to macro states.
+        mapping (nd.array): A mapping from micro-states to macro-states.
 
     Returns:
-        macro_tpm (nd.array): TPM of the macro system.
+        macro_tpm (``nd.array``): The TPM of the macro-system.
     """
     num_macro_states = max(mapping) + 1
     micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
     num_micro_states = len(micro_tpm)
     macro_tpm = np.zeros((num_macro_states, num_macro_states))
-    # For every possible micro state transition, get the corresponding past and
-    # current macro state using the mapping and add that probability to the
+    # For every possible micro-state transition, get the corresponding past and
+    # current macro-state using the mapping and add that probability to the
     # state-by-state macro TPM.
     micro_state_transitions = itertools.product(range(num_micro_states),
                                                 range(num_micro_states))
@@ -182,18 +183,17 @@ def make_macro_tpm(micro_tpm, mapping):
 
 
 def make_macro_network(network, mapping):
-    """Create the macro network for a given mapping from micro to macro states.
+    """Create the macro-network for a given mapping from micro to macro-states.
 
     Returns ``None`` if the macro TPM does not satisfy the condititional
     independence assumption.
 
     Args:
-        micro_tpm (nd.array): TPM of the micro system.
-
-        mapping (nd.array): Mapping from micro states to macro states.
+        micro_tpm (nd.array): TPM of the micro-system.
+        mapping (nd.array): Mapping from micro-states to macro-states.
 
     Returns:
-        macro_network (Network): Network of the macro system.
+        macro_network (``Network``): Network of the macro-system, or ``None``.
     """
     num_macro_nodes = int(np.log2(max(mapping) + 1))
     macro_tpm = make_macro_tpm(network.tpm, mapping)
@@ -210,15 +210,17 @@ def make_macro_network(network, mapping):
 
 
 def emergence(network):
-    """Check for emergence of a macro system into a macro system. Checks all
-    possible partitions and groupings of the micro system to find the spatial
-    scale with maximum integrated information.
+    """Check for emergence of a macro-system into a macro-system.
+
+    Checks all possible partitions and groupings of the micro-system to find
+    the spatial scale with maximum integrated information.
 
     Args:
-        network (Network): The network of the micro system under investigation.
+        network (Network): The network of the micro-system under investigation.
 
     Returns:
-        macro (Macro): The maximal course graining of the micro system.
+        macro_network (``MacroNetwork``): The maximal coarse-graining of the
+            micro-system.
     """
     micro_phi = compute.main_complex(network).phi
     partitions = list_all_partitions(network)
