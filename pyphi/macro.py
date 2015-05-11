@@ -179,7 +179,7 @@ def make_macro_tpm(micro_tpm, mapping):
     for past_state_index, current_state_index in micro_state_transitions:
         macro_tpm[mapping[past_state_index],
                   mapping[current_state_index]] += \
-            micro_tpm[past_state_index, current_ete_index]
+            micro_tpm[past_state_index, current_state_index]
     # Because we're going from a bigger TPM to a smaller TPM, we have to
     # re-normalize each row.
     return np.array([list(row) if sum(row) == 0 else list(row / sum(row))
