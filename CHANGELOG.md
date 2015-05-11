@@ -2,6 +2,30 @@ Changelog
 =========
 
 
+0.7.0
+------------------
+_2015-05-08_
+
+### API additions
+- `pyphi.macro` provides several functions to analyze networks over different
+  spatial scales.
+- `.convert.conditionally_independent(tpm)` checks if a TPM is conditionally
+  independent.
+
+### API changes
+- Φ and φ values are now rounded to `config.PRECISION` when stored on objects.
+
+### Fixes
+- Tests for `Subsystem_find_mip_parallel` and `Subsystem_find_mip_sequential`.
+- Slow tests for `compute.big_mip`.
+
+### Refactor
+- Subsystem cause and effect repertoire caching.
+
+### Documentation
+- Added XOR and Macro examples.
+
+
 0.6.0
 ------------------
 _2015-04-20_

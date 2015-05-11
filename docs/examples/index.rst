@@ -12,6 +12,8 @@ The relevant functions are listed at the beginning of each example.
     basic
     residue
     conditional_independence
+    xor
+    macro
     2014paper
 
 

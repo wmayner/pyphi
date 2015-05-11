@@ -8,9 +8,7 @@ Conversion functions.
 
 import math
 import numpy as np
-from . import validate
 import logging
-from .constants import EPSILON
 
 
 # Create a logger for this module.
@@ -30,8 +28,8 @@ def state2holi_index(state):
             gives the state of the |ith| node.
 
     Returns:
-        ``int`` -- A decimal integer corresponding to a network state under the
-            **HOLI** convention.
+        holi_index (``int``): A decimal integer corresponding to a network
+            state under the **HOLI** convention.
 
     Examples:
         >>> from pyphi.convert import state2loli_index
@@ -52,8 +50,8 @@ def state2loli_index(state):
             gives the state of the |ith| node.
 
     Returns:
-        ``int`` -- A decimal integer corresponding to a network state under the
-            **LOLI** convention.
+        loli_index (``int``): A decimal integer corresponding to a network
+            state under the **LOLI** convention.
 
     Examples:
         >>> from pyphi.convert import state2loli_index
@@ -69,15 +67,15 @@ def loli_index2state(i, number_of_nodes):
     """Convert a decimal integer to a PyPhi state tuple with the **LOLI**
     convention.
 
-    The output is the reverse of :func:`holi_index2state`.
+    The output is the reverse of |holi_index2state|.
 
     Args:
         i (int): A decimal integer corresponding to a network state under the
             **LOLI** convention.
 
     Returns:
-        ``tuple(int)`` -- A state-tuple where the |ith| element of the tuple
-            gives the state of the |ith| node.
+        state (``tuple(int)``): A state-tuple where the |ith| element of the
+            tuple gives the state of the |ith| node.
 
     Examples:
         >>> from pyphi.convert import loli_index2state
@@ -95,15 +93,15 @@ def holi_index2state(i, number_of_nodes):
     """Convert a decimal integer to a PyPhi state tuple using the **HOLI**
     convention that high-order bits correspond to low-index nodes.
 
-    The output is the reverse of :func:`loli_index2state`.
+    The output is the reverse of |loli_index2state|.
 
     Args:
         i (int): A decimal integer corresponding to a network state under the
             **HOLI** convention.
 
     Returns:
-        ``tuple(int)`` -- A state-tuple where the |ith| element of the tuple
-            gives the state of the |ith| node.
+        state (``tuple(int)``): A state-tuple where the |ith| element of the
+            tuple gives the state of the |ith| node.
 
     Examples:
         >>> from pyphi.convert import holi_index2state
@@ -120,7 +118,7 @@ def holi_index2state(i, number_of_nodes):
 def to_n_dimensional(tpm):
     """Reshape a state-by-node TPM to the N-D form.
 
-    See documentation for :class:`pyphi.network` for more information on TPM
+    See documentation for the |Network| object for more information on TPM
     formats."""
     # Cast to np.array.
     tpm = np.array(tpm)
@@ -140,16 +138,16 @@ def state_by_state2state_by_node(tpm):
         The indices of the rows and columns of the state-by-state TPM are
         assumed to follow the **LOLI** convention. The indices of the rows of
         the resulting state-by-node TPM also follow the **LOLI** convention.
-        See the documentation for :class:`pyphi.examples` for more info on
-        these conventions.
+        See the documentation for the |examples| module for more info on these
+        conventions.
 
     Args:
         tpm (list(list) or np.ndarray): A square state-by-state TPM with row
             and column indices following the **LOLI** convention.
 
     Returns:
-        ``np.ndarray`` -- A state-by-node TPM, with row indices following the
-            **LOLI** convention.
+        state_by_node_tpm (``np.ndarray``): A state-by-node TPM, with row
+            indices following the **LOLI** convention.
 
     Examples:
         >>> from pyphi.convert import state_by_state2state_by_node
@@ -164,8 +162,6 @@ def state_by_state2state_by_node(tpm):
                [[ 1. ,  0. ],
                 [ 0.3,  0.7]]])
     """
-    # Validate the TPM.
-    validate.tpm(tpm)
     # Cast to np.array.
     tpm = np.array(tpm)
     # Get the number of states from the length of one side of the TPM.
@@ -185,11 +181,6 @@ def state_by_state2state_by_node(tpm):
         # i.e., a row of the state-by-node TPM.
         # Assign that row to the ith state in the state-by-node TPM.
         sbn_tpm[state] = [np.sum(on_probabilities[n][i]) for n in range(N)]
-    if not np.all((tpm - state_by_node2state_by_state(sbn_tpm)) < EPSILON):
-        logging.warning(
-            'The TPM is not conditionally independent. See the conditional '
-            'independence example in the documentation for more information '
-            'on how this is handled.')
     return sbn_tpm
 
 
@@ -217,8 +208,8 @@ def state_by_node2state_by_state(tpm):
             **HOLI** convention.
 
     Returns:
-        ``np.ndarray`` -- A state-by-state TPM, with both row and column
-            indices following the **HOLI** convention.
+        state_by_state_tpm (``np.ndarray``): A state-by-state TPM, with both
+            row and column indices following the **HOLI** convention.
 
     >>> from pyphi.convert import state_by_node2state_by_state
     >>> tpm = np.array([[1, 1, 0],
@@ -241,8 +232,6 @@ def state_by_node2state_by_state(tpm):
     """
     # Cast to np.array.
     tpm = np.array(tpm)
-    # Validate the TPM.
-    validate.tpm(tpm)
     # Convert to N-D form.
     tpm = to_n_dimensional(tpm)
     # Get the number of nodes from the last dimension of the TPM.
