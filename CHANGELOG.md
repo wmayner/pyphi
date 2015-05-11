@@ -9,7 +9,7 @@ _2015-05-08_
 ### API additions
 - `pyphi.macro` provides several functions to analyze networks over different
   spatial scales.
-- `.convert.conditionally_independent(tpm)` checks if a TPM is conditionally
+- `convert.conditionally_independent(tpm)` checks if a TPM is conditionally
   independent.
 
 ### API changes
