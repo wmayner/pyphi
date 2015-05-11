@@ -95,7 +95,8 @@ def list_all_partitions(network):
 
     """
     partitions = _partitions_list(network.size)
-    partitions[-1] = [[index for index in range(network.size)]]
+    if (network.size > 0):
+        partitions[-1] = [[index for index in range(network.size)]]
     return partitions
 
 
@@ -115,22 +116,23 @@ def list_all_groupings(partition):
             between micro states and macro states for the partition.
 
     """
+    if not all([len(part) > 0 for part in partition]):
+        raise ValueError('Each set in the partition must have at least one ' \
+                        'element')
     micro_state_groupings = [_partitions_list(len(part)+1) if len(part) > 1
-                             else [[[0], [1]]] for part in partition]
+                             else [[[0], [1]]] if len(part) == 1
+                             else [[]] for part in partition]
     def is_binary(part):
         return np.all(np.array([len(element)  < 3 for element in part]))
     macro_states = [list(tuple) for tuple in itertools.product(*micro_state_groupings)] # Used to be full_system_partition
     return list(filter(is_binary, macro_states))
 
-def make_mapping(micro_tpm, partition, grouping):
+def make_mapping(partition, grouping):
     """ Return a mapping from micro state to the
     macro states based on the partition of elements
     and grouping of states
 
     Args:
-        micro_tpm (nd.array): The state-by-node tpm of the micro
-            level
-
         partition (list(list)): A partition of micro elements into
             macro elements
 
@@ -167,8 +169,13 @@ def make_macro_tpm(micro_tpm, mapping):
     Returns:
         macro_tpm (nd.array): tpm of the macro system
     """
+    # Validate the TPM
+    pyphi.validate.tpm(micro_tpm)
     number_of_macro_states = int(max(mapping)+1)
-    tpm = pyphi.convert.state_by_node2state_by_state(micro_tpm)
+    if (micro_tpm.ndim > 2) or (not micro_tpm.shape[0] == micro_tpm.shape[1]):
+        tpm = pyphi.convert.state_by_node2state_by_state(micro_tpm)
+    else:
+        tpm = micro_tpm
     number_of_micro_states = len(tpm)
     macro_tpm = np.zeros((number_of_macro_states, number_of_macro_states))
     for past_state_index in range(number_of_micro_states):
@@ -181,7 +188,7 @@ def make_macro_tpm(micro_tpm, mapping):
 
 def make_macro_network(network, mapping):
     """ Create the macro network for a given mapping from micro to macro states.
-    Returns false is the macro tpm does not satisfy condititional independence
+    Returns false is the macro tpm does not satisfy conditional independence
     assumption.
 
     Args:
@@ -218,7 +225,7 @@ def emergence(network):
     for partition in partitions:
         groupings = list_all_groupings(partition)
         for grouping in groupings:
-            mapping = make_mapping(network.tpm, partition, grouping)
+            mapping = make_mapping(partition, grouping)
             macro_network = make_macro_network(network, mapping)
             if macro_network:
                 main_complex = pyphi.compute.main_complex(macro_network)
