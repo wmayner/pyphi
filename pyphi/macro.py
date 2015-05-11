@@ -89,7 +89,7 @@ def list_all_partitions(network):
             macro-elements.
     """
     partitions = _partitions_list(network.size)
-    if (network.size > 0):
+    if network.size > 0:
         partitions[-1] = [list(range(network.size))]
     return partitions
 
@@ -109,8 +109,8 @@ def list_all_groupings(partition):
             partition.
     """
     if not all([len(part) > 0 for part in partition]):
-        raise ValueError('Each set in the partition must have at least one ' \
-                        'element')
+        raise ValueError('Each part of the partition must have at least one '
+                         'element.')
     micro_state_groupings = [_partitions_list(len(part) + 1) if len(part) > 1
                              else [[[0], [1]]] for part in partition]
     return [list(grouping) for grouping in
@@ -179,7 +179,7 @@ def make_macro_tpm(micro_tpm, mapping):
     for past_state_index, current_state_index in micro_state_transitions:
         macro_tpm[mapping[past_state_index],
                   mapping[current_state_index]] += \
-            micro_tpm[past_state_index, current_state_index]
+            micro_tpm[past_state_index, current_ete_index]
     # Because we're going from a bigger TPM to a smaller TPM, we have to
     # re-normalize each row.
     return np.array([list(row) if sum(row) == 0 else list(row / sum(row))
