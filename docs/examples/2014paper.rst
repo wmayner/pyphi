@@ -228,7 +228,7 @@ been all on is 1:
     >>> cr[(1, 1, 1)]
     1.0
 
-Now the cause information specified by :math:`A = 1` is 1.5:
+Now the cause information specified by :math:`A = 1` is :math:`1.5`:
 
     >>> subsystem.cause_info((A,), (B, C, D))
     1.5
@@ -258,7 +258,7 @@ where :math:`B, C,` and :math:`D` were all on:
 And so we have less cause information:
 
     >>> subsystem.cause_info((A,), (B, C, D))
-    0.21428400000000067
+    0.214284
 
 Figure 4
 ~~~~~~~~
@@ -308,14 +308,14 @@ mechanism; they only take a purview):
 The Earth Mover's distance between them gives the cause and effect information:
 
     >>> subsystem.cause_info((A,), (A, B, C))
-    0.33333191666400036
+    0.333332
     >>> subsystem.effect_info((A,), (A, B, C))
-    0.24999975000000002
+    0.25
 
 And the minimum of those gives the cause-effect information:
 
     >>> subsystem.cause_effect_info((A,), (A, B, C))
-    0.24999975000000002
+    0.25
 
 
 Figure 5
@@ -338,7 +338,7 @@ Figure 5
            [[ 0. ,  0. ],
             [ 0. ,  0.5]]])
     >>> subsystem.cause_info((A,), (A, B, C))
-    0.9999997500000001
+    1.0
 
 But because it has no outputs, its effect repertoire no different from the unconstrained effect repertoire, so it has no effect information:
 
@@ -370,7 +370,7 @@ selective and it has effect information:
            [[ 0.,  0.],
             [ 0.,  1.]]])
     >>> subsystem.effect_info((A,), (A, B, C))
-    0.4999996875
+    0.5
 
 But because it now has no inputs, its cause repertoire is no different from the
 unconstrained effect repertoire, so it has no cause information:
@@ -408,11 +408,11 @@ These objects contain the :math:`\varphi^{\textrm{MIP}}_{\textrm{cause}}` and
 attributes:
 
     >>> mip_c.phi
-    0.499998999999
+    0.499999
     >>> mip_c.partition
     (Part(mechanism=(n0,), purview=()), Part(mechanism=(n1, n2), purview=(n0, n1, n2)))
     >>> mip_e.phi
-    0.24999975000000002
+    0.25
     >>> mip_e.partition
     (Part(mechanism=(), purview=(n1,)), Part(mechanism=(n0, n1, n2), purview=(n0, n2)))
 
@@ -548,7 +548,7 @@ Conceptual information can be computed using the function named, as you might
 expect, :func:`~pyphi.compute.conceptual_information`:
 
     >>> pyphi.compute.conceptual_information(subsystem)
-    2.1111091388868752
+    2.111109
 
 
 Figure 12
@@ -574,7 +574,7 @@ We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
 shown in the figure:
 
     >>> big_mip.phi
-    1.916662694926084
+    1.916663
     >>> big_mip.cut
     Cut(severed=(0, 1), intact=(2,))
 
@@ -649,18 +649,18 @@ into, use :func:`~pyphi.compute.condensed`:
 We find that there are 3 complexes: the major complex :math:`ABC` with
 :math:`\Phi \approx 1.92`, and the two minor complexes :math:`DE` with
 :math:`\Phi \approx 0.028` and :math:`FG` with :math:`\Phi \approx 0.069` (note
-that there is typo in the figure; :math:`\FG`'s :math:`\Phi` value should be
-:math:`\0.069`).
+that there is typo in the figure; :math:`FG`'s :math:`\Phi` value should be
+:math:`0.069`).
 
     >>> len(condensed)
     3
     >>> ABC, DE, FG = condensed
     >>> (ABC.subsystem.nodes, ABC.phi)
-    ((n0, n1, n2), 1.916662694926084)
+    ((n0, n1, n2), 1.916663)
     >>> (DE.subsystem.nodes, DE.phi)
-    ((n5, n6), 0.06944459259257413)
+    ((n5, n6), 0.069445)
     >>> (FG.subsystem.nodes, FG.phi)
-    ((n3, n4), 0.027777936507761905)
+    ((n3, n4), 0.027778)
 
 There are several other functions available for working with complexes; see the
 documentation for :func:`~pyphi.compute.subsystems`,

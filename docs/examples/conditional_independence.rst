@@ -1,5 +1,5 @@
-Conditional Independence Example
-================================
+Conditional Independence
+========================
 
 * :mod:`pyphi.examples.cond_depend_tpm()`
 * :mod:`pyphi.examples.cond_independ_tpm()`

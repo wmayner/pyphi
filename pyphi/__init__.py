@@ -18,7 +18,7 @@ PyPhi
 
 PyPhi is a Python library for computing integrated information.
 
-See the documentation for :mod:`pyphi.examples` for information on how to use
+See the documentation for the |examples| module for information on how to use
 it.
 
 To report issues, please use the issue tracker on the `GitHub repository
@@ -29,15 +29,15 @@ welcome.
 Usage
 ~~~~~
 
-The :class:`pyphi.network` object is the main object on which computations are
-performed. It represents the network of interest.
+The |Network| object is the main object on which computations are performed. It
+represents the network of interest.
 
-The :class:`pyphi.subsystem` object is the secondary object; it represents a
-subsystem of a network. |big_phi| is defined on subsystems.
+The |Subsystem| object is the secondary object; it represents a subsystem of a
+network. |big_phi| is defined on subsystems.
 
-The :mod:`pyphi.compute` module is the main entry-point for the library. It
-contains methods for calculating concepts, constellations, complexes, etc. See
-its documentation for details.
+The |compute| module is the main entry-point for the library. It contains
+methods for calculating concepts, constellations, complexes, etc. See its
+documentation for details.
 
 
 Configuration (optional)
@@ -52,12 +52,12 @@ the default configuration will be used.
 You can download an example configuration file `here
 <https://raw.githubusercontent.com/wmayner/pyphi/master/pyphi_config.yml>`_.
 
-See the documentation for :mod:`pyphi.constants` for a description of the
-options and their defaults.
+See the documentation for the |config| module for a description of the options
+and their defaults.
 """
 
 __title__ = 'pyphi'
-__version__ = '0.6.0'
+__version__ = '0.7.0'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'
@@ -65,7 +65,8 @@ __author_website__ = 'http://willmayner.com'
 __copyright__ = 'Copyright 2014-2015 Will Mayner'
 
 
-from . import network, subsystem, compute, constants, config, db, examples
+from . import (network, subsystem, compute, constants, config, db, examples,
+               macro)
 
 Network = network.Network
 Subsystem = subsystem.Subsystem

@@ -7,23 +7,23 @@ import numpy as np
 
 from pyphi import constants, config, compute, models, utils, convert, Network
 from pyphi.constants import DIRECTIONS, PAST, FUTURE
+from pyphi.models import Cut
+from pyphi.compute import (constellation, _find_mip_parallel,
+                           _find_mip_sequential, _null_bigmip)
 
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
-
-# Precision for testing.
-PRECISION = 5
 
 
 # Answers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 standard_answer = {
-    'phi': 2.3125,
+    'phi': 2.312496,
     'unpartitioned_small_phis': {
         (1,): 0.25,
         (2,): 0.5,
-        (0, 1): 1/3,
+        (0, 1): 0.333333,
         (0, 1, 2): 0.5
     },
     'len_partitioned_constellation': 1,
@@ -33,69 +33,69 @@ standard_answer = {
 
 
 noised_answer = {
-    'phi': 1.928588,
+    'phi': 1.928594,
     'unpartitioned_small_phis': {
         (0,): 0.0625,
         (1,): 0.2,
         (2,): 0.316326,
-        (0, 1): 0.31904700000000025,
+        (0, 1): 0.319047,
         (0, 2): 0.0125,
-        (1, 2): 0.26384703498300066,
-        (0, 1, 2): 0.34999965000000005
+        (1, 2): 0.263847,
+        (0, 1, 2): 0.35
     },
     'len_partitioned_constellation': 7,
-    'sum_partitioned_small_phis': 0.50491,
+    'sum_partitioned_small_phis': 0.504906,
     'cut': models.Cut(severed=(1, 2), intact=(0,))
 }
 
 
 big_answer = {
-    'phi': 10.729482,
+    'phi': 10.729488,
     'unpartitioned_small_phis': {
-        (0,): 0.24999975000000002,
-        (1,): 0.24999975000000002,
-        (2,): 0.24999975000000002,
-        (3,): 0.24999975000000002,
-        (4,): 0.24999975000000002,
-        (0, 1): 0.19999980000000003,
-        (0, 2): 0.2000000000000017,
-        (0, 3): 0.2000000000000017,
-        (0, 4): 0.19999980000000003,
-        (1, 2): 0.19999980000000003,
-        (1, 3): 0.20000000000000057,
-        (1, 4): 0.2000000000000017,
-        (2, 3): 0.19999980000000003,
-        (2, 4): 0.2000000000000017,
-        (3, 4): 0.19999980000000003,
+        (0,): 0.25,
+        (1,): 0.25,
+        (2,): 0.25,
+        (3,): 0.25,
+        (4,): 0.25,
+        (0, 1): 0.2,
+        (0, 2): 0.2,
+        (0, 3): 0.2,
+        (0, 4): 0.2,
+        (1, 2): 0.2,
+        (1, 3): 0.2,
+        (1, 4): 0.2,
+        (2, 3): 0.2,
+        (2, 4): 0.2,
+        (3, 4): 0.2,
         (0, 1, 2): 0.2,
-        (0, 1, 3): 0.257142871428,
+        (0, 1, 3): 0.257143,
         (0, 1, 4): 0.2,
-        (0, 2, 3): 0.257142871428,
-        (0, 2, 4): 0.257142871428,
+        (0, 2, 3): 0.257143,
+        (0, 2, 4): 0.257143,
         (0, 3, 4): 0.2,
         (1, 2, 3): 0.2,
-        (1, 2, 4): 0.257142871428,
-        (1, 3, 4): 0.257142871428,
+        (1, 2, 4): 0.257143,
+        (1, 3, 4): 0.257143,
         (2, 3, 4): 0.2,
-        (0, 1, 2, 3): 0.18570900000000226,
-        (0, 1, 2, 4): 0.18570900000000112,
-        (0, 1, 3, 4): 0.18570900000000112,
-        (0, 2, 3, 4): 0.18570900000000226,
-        (1, 2, 3, 4): 0.18570900000000112
+        (0, 1, 2, 3): 0.185709,
+        (0, 1, 2, 4): 0.185709,
+        (0, 1, 3, 4): 0.185709,
+        (0, 2, 3, 4): 0.185709,
+        (1, 2, 3, 4): 0.185709
     },
     'len_partitioned_constellation': 17,
-    'sum_partitioned_small_phis': 3.564907,
+    'sum_partitioned_small_phis': 3.564909,
     'cut': models.Cut(severed=(0, 3), intact=(1, 2, 4))
 }
 
 
 big_subsys_0_thru_3_answer = {
-    'phi': 0.3663872111473395,
+    'phi': 0.366389,
     'unpartitioned_small_phis': {
         (0,): 0.166667,
         (1,): 0.166667,
         (2,): 0.166667,
-        (3,): 0.24999975000000002,
+        (3,): 0.25,
         (0, 1): 0.133333,
         (1, 2): 0.133333
     },
@@ -106,22 +106,22 @@ big_subsys_0_thru_3_answer = {
 
 
 rule152_answer = {
-    'phi': 6.9749327784596415,
+    'phi': 6.974947,
     'unpartitioned_small_phis': {
-        (0,): 0.125001874998,
-        (1,): 0.125001874998,
-        (2,): 0.125001874998,
-        (3,): 0.125001874998,
-        (4,): 0.125001874998,
+        (0,): 0.125002,
+        (1,): 0.125002,
+        (2,): 0.125002,
+        (3,): 0.125002,
+        (4,): 0.125002,
         (0, 1): 0.25,
-        (0, 2): 0.18461400000000092,
-        (0, 3): 0.18461400000000092,
+        (0, 2): 0.184614,
+        (0, 3): 0.184614,
         (0, 4): 0.25,
         (1, 2): 0.25,
-        (1, 3): 0.18461400000000092,
-        (1, 4): 0.18461400000000092,
+        (1, 3): 0.184614,
+        (1, 4): 0.184614,
         (2, 3): 0.25,
-        (2, 4): 0.18461400000000092,
+        (2, 4): 0.184614,
         (3, 4): 0.25,
         (0, 1, 2): 0.25,
         (0, 1, 3): 0.316666,
@@ -141,20 +141,20 @@ rule152_answer = {
         (0, 1, 2, 3, 4): 0.25
     },
     'len_partitioned_constellation': 24,
-    'sum_partitioned_small_phis': 4.185364469227005,
-    'cut': models.Cut(severed=(0, 1, 3, 4), intact=(2,))
+    'sum_partitioned_small_phis': 4.185367,
+    'cut': models.Cut(severed=(0, 1, 2, 4), intact=(3,))
 }
 
 
 micro_answer = {
-    'phi': 0.97441,
+    'phi': 0.974411,
     'unpartitioned_small_phis': {
         (0,): 0.175,
         (1,): 0.175,
         (2,): 0.175,
         (3,): 0.175,
-        (0, 1): 0.34811,
-        (2, 3): 0.34811,
+        (0, 1): 0.348114,
+        (2, 3): 0.348114,
     },
     'cuts': [
         models.Cut(severed=(0, 2), intact=(1, 3)),
@@ -184,10 +184,7 @@ macro_answer = {
 def check_unpartitioned_small_phis(small_phis, unpartitioned_constellation):
     assert len(small_phis) == len(unpartitioned_constellation)
     for c in unpartitioned_constellation:
-        np.testing.assert_almost_equal(
-            c.phi,
-            small_phis[convert.nodes2indices(c.mechanism)],
-            PRECISION)
+        assert c.phi == small_phis[convert.nodes2indices(c.mechanism)]
 
 
 def check_partitioned_small_phis(answer, partitioned_constellation):
@@ -195,15 +192,14 @@ def check_partitioned_small_phis(answer, partitioned_constellation):
         assert (answer['len_partitioned_constellation'] ==
                 len(partitioned_constellation))
     if 'sum_partitioned_small_phis' in answer:
-        np.testing.assert_almost_equal(
-            sum(c.phi for c in partitioned_constellation),
-            answer['sum_partitioned_small_phis'],
-            PRECISION)
+        assert (round(sum(c.phi for c in partitioned_constellation),
+                      config.PRECISION) ==
+                answer['sum_partitioned_small_phis'])
 
 
 def check_mip(mip, answer):
     # Check big phi value.
-    np.testing.assert_almost_equal(mip.phi, answer['phi'], PRECISION)
+    assert mip.phi == answer['phi']
     # Check small phis of unpartitioned constellation.
     check_unpartitioned_small_phis(answer['unpartitioned_small_phis'],
                                    mip.unpartitioned_constellation)
@@ -242,8 +238,7 @@ def test_concept_nonexistent(s, flushcache, restore_fs_cache):
 
 def test_conceptual_information(s, flushcache, restore_fs_cache):
     flushcache()
-    np.testing.assert_almost_equal(compute.conceptual_information(s), 2.812497,
-                                   PRECISION)
+    assert compute.conceptual_information(s) == 2.8125
 
 
 def test_big_mip_empty_subsystem(s_empty, flushcache, restore_fs_cache):
@@ -283,47 +278,72 @@ def test_big_mip_single_node(s_single, flushcache, restore_fs_cache):
     config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = initial_option
 
 
-def test_big_mip_standard_example_sequential(s, flushcache, restore_fs_cache):
+def test_find_mip_sequential_standard_example(s, flushcache, restore_fs_cache):
     flushcache()
     initial = config.PARALLEL_CUT_EVALUATION
     config.PARALLEL_CUT_EVALUATION = False
 
-    mip = compute.big_mip(s)
+    unpartitioned_constellation = constellation(s)
+    bipartitions = utils.directed_bipartition(s.node_indices)[1:-1]
+    cuts = [Cut(bipartition[0], bipartition[1])
+            for bipartition in bipartitions]
+    min_mip = _null_bigmip(s)
+    min_mip.phi = float('inf')
+    mip = _find_mip_sequential(s, cuts, unpartitioned_constellation, min_mip)
     check_mip(mip, standard_answer)
 
     config.PARALLEL_CUT_EVALUATION = initial
 
 
-def test_big_mip_standard_example_parallel(s, flushcache, restore_fs_cache):
+def test_find_mip_parallel_standard_example(s, flushcache, restore_fs_cache):
     flushcache()
     initial = (config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES)
     config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = True, -2
 
-    mip = compute.big_mip(s)
+    unpartitioned_constellation = constellation(s)
+    bipartitions = utils.directed_bipartition(s.node_indices)[1:-1]
+    cuts = [Cut(bipartition[0], bipartition[1])
+            for bipartition in bipartitions]
+    min_mip = _null_bigmip(s)
+    min_mip.phi = float('inf')
+    mip = _find_mip_parallel(s, cuts, unpartitioned_constellation, min_mip)
     check_mip(mip, standard_answer)
 
     config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = initial
 
 
-def test_big_mip_noised_example_sequential(s_noised, flushcache,
-                                           restore_fs_cache):
+def test_find_mip_sequential_noised_example(s_noised, flushcache,
+                                            restore_fs_cache):
     flushcache()
     initial = config.PARALLEL_CUT_EVALUATION
     config.PARALLEL_CUT_EVALUATION = False
 
-    mip = compute.big_mip(s_noised)
+    unpartitioned_constellation = constellation(s_noised)
+    bipartitions = utils.directed_bipartition(s_noised.node_indices)[1:-1]
+    cuts = [Cut(bipartition[0], bipartition[1])
+            for bipartition in bipartitions]
+    min_mip = _null_bigmip(s_noised)
+    min_mip.phi = float('inf')
+    mip = _find_mip_sequential(s_noised, cuts, unpartitioned_constellation, min_mip)
+
     check_mip(mip, noised_answer)
 
     config.PARALLEL_CUT_EVALUATION = initial
 
 
-def test_big_mip_noised_example_parallel(s_noised, flushcache,
+def test_find_mip_parallel_noised_example(s_noised, flushcache,
                                          restore_fs_cache):
     flushcache()
     initial = (config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES)
     config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = True, -2
 
-    mip = compute.big_mip(s_noised)
+    unpartitioned_constellation = constellation(s_noised)
+    bipartitions = utils.directed_bipartition(s_noised.node_indices)[1:-1]
+    cuts = [Cut(bipartition[0], bipartition[1])
+            for bipartition in bipartitions]
+    min_mip = _null_bigmip(s_noised)
+    min_mip.phi = float('inf')
+    mip = _find_mip_parallel(s_noised, cuts, unpartitioned_constellation, min_mip)
     check_mip(mip, noised_answer)
 
     config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = initial
@@ -371,7 +391,6 @@ def test_big_mip_big_network(big_subsys_all, flushcache, restore_fs_cache):
     check_mip(mip, big_answer)
 
 
-@pytest.mark.slow
 def test_big_mip_big_network_0_thru_3(big_subsys_0_thru_3, flushcache,
                                       restore_fs_cache):
     flushcache()
@@ -438,25 +457,39 @@ def test_rule152_complexes_no_caching(rule152):
         assert main.cut == result['cut']
 
 
-def test_big_mip_micro_parallel(micro_s, flushcache, restore_fs_cache):
+def test_find_mip_parallel_micro(micro_s, flushcache, restore_fs_cache):
     flushcache()
 
     initial = config.PARALLEL_CUT_EVALUATION
     config.PARALLEL_CUT_EVALUATION = True
 
-    mip = compute.big_mip(micro_s)
+    unpartitioned_constellation = constellation(micro_s)
+    bipartitions = utils.directed_bipartition(micro_s.node_indices)[1:-1]
+    cuts = [Cut(bipartition[0], bipartition[1])
+            for bipartition in bipartitions]
+    min_mip = _null_bigmip(micro_s)
+    min_mip.phi = float('inf')
+    mip = _find_mip_parallel(micro_s, cuts, unpartitioned_constellation,
+                             min_mip)
     check_mip(mip, micro_answer)
 
     config.PARALLEL_CUT_EVALUATION = initial
 
 
-def test_big_mip_micro_sequential(micro_s, flushcache, restore_fs_cache):
+def test_find_mip_sequential_micro(micro_s, flushcache, restore_fs_cache):
     flushcache()
 
     initial = config.PARALLEL_CUT_EVALUATION
     config.PARALLEL_CUT_EVALUATION = False
 
-    mip = compute.big_mip(micro_s)
+    unpartitioned_constellation = constellation(micro_s)
+    bipartitions = utils.directed_bipartition(micro_s.node_indices)[1:-1]
+    cuts = [Cut(bipartition[0], bipartition[1])
+            for bipartition in bipartitions]
+    min_mip = _null_bigmip(micro_s)
+    min_mip.phi = float('inf')
+    mip = _find_mip_sequential(micro_s, cuts, unpartitioned_constellation,
+                               min_mip)
     check_mip(mip, micro_answer)
 
     config.PARALLEL_CUT_EVALUATION = initial

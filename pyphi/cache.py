@@ -80,8 +80,7 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed=False):
     # Build a key from the function arguments.
     make_key = _make_key
 
-    def decorating_function(user_function):
-        hits = misses = 0
+    def decorating_function(user_function, hits=0, misses=0):
         full = False
         # Bound method to look up a key or return None.
         cache_get = cache.get
