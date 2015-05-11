@@ -8,9 +8,9 @@ Methods for validating common types of input.
 
 import numpy as np
 
-from . import constants, config
-from .convert import state_by_state2state_by_node, state_by_node2state_by_state
+from . import constants, config, convert
 from .constants import EPSILON
+
 
 class StateUnreachableError(ValueError):
     """Raised when the current state of a network cannot be reached, either
@@ -48,10 +48,11 @@ def tpm(tpm):
                 'there must be ' '2^N rows and N columns, where N is the '
                 'number of nodes. State-by-state TPM must be square. '
                 '{}'.format(tpm.shape, see_tpm_docs))
-        if ((tpm.shape[0] == tpm.shape[1]) and not conditionally_independent(tpm)):
-            raise ValueError('The TPM is not conditionally independent. See \
-                             the conditional independence example in the \
-                             documentation for more information')
+        if (tpm.shape[0] == tpm.shape[1]
+                and not conditionally_independent(tpm)):
+            raise ValueError('TPM is not conditionally independent. See the '
+                             'conditional independence example in the '
+                             'documentation for more information.')
     elif tpm.ndim == (N + 1):
         if not (tpm.shape == tuple([2] * N + [N])):
             raise ValueError(
@@ -64,9 +65,12 @@ def tpm(tpm):
             'form. {}'.format(see_tpm_docs))
     return True
 
+
 def conditionally_independent(tpm):
     tpm = np.array(tpm)
-    return np.all((tpm - state_by_node2state_by_state(state_by_state2state_by_node(tpm))) < EPSILON)
+    there_and_back_again = convert.state_by_node2state_by_state(
+        convert.state_by_state2state_by_node(tpm))
+    return np.all((tpm - there_and_back_again) < EPSILON)
 
 
 def connectivity_matrix(cm):

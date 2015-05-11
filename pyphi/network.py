@@ -28,7 +28,7 @@ def from_json(filename):
         filename (str): A path to a JSON file representing a network.
 
     Returns:
-       ``Network`` -- The corresponding PyPhi network object.
+       network (``Network``): The corresponding PyPhi network object.
     """
     with open(filename) as f:
         network_dictionary = json.load(f)
@@ -87,7 +87,7 @@ class Network:
             The network's transition probability matrix. It can be provided in
             either state-by-node (either 2-D or N-D) or state-by-state form. In
             either form, row indices must follow the **LOLI** convention (see
-            discussion in :mod:`pyphi.examples`), and in state-by-state form,
+            discussion in the |examples| module), and in state-by-state form,
             so must column indices. If given in state-by-node form, it can be
             either 2-dimensional, so that ``tpm[i]`` gives the probabilities of
             each node being on if the past state is encoded by |i| according to

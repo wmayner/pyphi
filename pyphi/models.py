@@ -381,13 +381,14 @@ class Concept:
             values of the concept's core cause and core effect.
         mechanism (tuple(Node)):
             The mechanism that the concept consists of.
-        cause (Mice):
-            The :class:`Mice` representing the core cause of this concept.
-        effect (Mice):
-            The :class:`Mice` representing the core effect of this concept.
+        cause (|Mice|):
+            The |Mice| representing the core cause of this concept.
+        effect (|Mice|):
+            The |Mice| representing the core effect of this concept.
         subsystem (Subsystem):
-            This Concept's parent subsystem.
-        time (float): The number of seconds it took to calculate.
+            This concept's parent subsystem.
+        time (float):
+            The number of seconds it took to calculate.
     """
 
     def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
@@ -426,7 +427,7 @@ class Concept:
                      self.subsystem))
 
     def __bool__(self):
-        """A Concept is truthy if it is not reducible; i.e. if it has a
+        """A concept is truthy if it is not reducible; i.e. if it has a
         significant amount of |big_phi|."""
         return not utils.phi_eq(self.phi, 0)
 
