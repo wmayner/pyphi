@@ -208,8 +208,7 @@ def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     # Get the concept distances from the concepts in the unpartitioned
     # constellation to the partitioned constellation.
     distances = np.array([
-        [concept_distance(i, j) for j in unique_C2]
-        for i in unique_C1
+        [concept_distance(i, j) for j in unique_C2] for i in unique_C1
     ])
     # Now we make the distance matrix.
     # It has blocks of zeros in the upper left and bottom right to make the
@@ -217,10 +216,14 @@ def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     # the unpartitioned constellation to the partitioned constellation.
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     N, M = len(unique_C1), len(unique_C2)
-    distance_matrix = np.zeros([N + M] * 2)
-    # Top-right block.
+    distance_matrix = np.empty([N + M] * 2)
+    # Initialize the distance matrix with distances that are larger than any of
+    # the pairwise distances between concepts, so that concepts are never moved
+    # around within their own constellation.
+    distance_matrix[:] = np.max(distances) + 1
+    # Initialize top-right block.
     distance_matrix[:N, N:] = distances
-    # Bottom-left block.
+    # Initialize bottom-left block.
     distance_matrix[N:, :N] = distances.T
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Construct the two phi distributions.
