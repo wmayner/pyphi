@@ -13,12 +13,20 @@ state-by-node form.
 
     >>> import pyphi
     >>> import numpy as np
-    >>> tpm = np.array([[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0], [1, 1, 0],
-    ...                 [1, 1, 1], [1, 1, 1], [1, 1, 0]])
+    >>> tpm = np.array([
+    ...     [0, 0, 0],
+    ...     [0, 0, 1],
+    ...     [1, 0, 1],
+    ...     [1, 0, 0],
+    ...     [1, 1, 0],
+    ...     [1, 1, 1],
+    ...     [1, 1, 1],
+    ...     [1, 1, 0]
+    ... ])
 
 The current and past states should be |n|-tuples, where |n| is the number of
-nodes in the network, where the |ith| element is the state of the |ith| node in
-the network.
+nodes in the network, and where the |ith| element is the state of the |ith|
+node in the network.
 
     >>> current_state = (1, 0, 0)
     >>> past_state = (1, 1, 0)
@@ -26,7 +34,11 @@ the network.
 The connectivity matrix is a square matrix such that the |i,jth| entry is 1 if
 there is a connection from node |i| to node |j|, and 0 otherwise.
 
-    >>> cm = np.array([[0, 0, 1], [1, 0, 1], [1, 1, 0]])
+    >>> cm = np.array([
+    ...     [0, 0, 1], 
+    ...     [1, 0, 1], 
+    ...     [1, 1, 0]
+    ... ])
 
 Now we construct the network itself with the arguments we just created:
 
@@ -34,7 +46,7 @@ Now we construct the network itself with the arguments we just created:
     ...                         connectivity_matrix=cm)
 
 The next step is to define a subsystem for which we want to evaluate |big_phi|.
-To make a subsystem, we need the indices of subset of nodes which should be
+To make a subsystem, we need the indices of the subset of nodes which should be
 included in it and the network that the subsystem belongs to.
 
 In this case, we want the |big_phi| of the entire network, so we simply include
