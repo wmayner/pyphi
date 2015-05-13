@@ -462,6 +462,24 @@ def macro_subsystem():
     return Subsystem(range(network.size), network)
 
 
+def rule110_network():
+    """A network of three elements which follows the logic of
+    the Rule 110 cellular automaton with current and past
+    state (0, 0, 0). """
+    tpm = np.array([[0, 0, 0],
+                    [1, 0, 1],
+                    [1, 1, 0],
+                    [1, 1, 1],
+                    [0, 1, 1],
+                    [1, 1, 1],
+                    [1, 1, 1],
+                    [0, 0, 0]])
+
+    current_state = (0, 0, 0)
+    past_state = (0, 0, 0)
+    return Network(tpm, current_state, past_state)
+
+
 def fig1a():
     """The network shown in Figure 1A of the 2014 IIT 3.0 paper."""
     tpm = np.array([
