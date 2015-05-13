@@ -19,7 +19,7 @@ from scipy.sparse import csr_matrix
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 standard_answer = {
-    'phi': 2.312496,
+    'phi': 2.312497,
     'unpartitioned_small_phis': {
         (1,): 0.25,
         (2,): 0.5,
@@ -33,7 +33,7 @@ standard_answer = {
 
 
 noised_answer = {
-    'phi': 1.928594,
+    'phi': 1.928593,
     'unpartitioned_small_phis': {
         (0,): 0.0625,
         (1,): 0.2,
@@ -106,7 +106,7 @@ big_subsys_0_thru_3_answer = {
 
 
 rule152_answer = {
-    'phi': 6.974947,
+    'phi': 6.974952,
     'unpartitioned_small_phis': {
         (0,): 0.125002,
         (1,): 0.125002,
