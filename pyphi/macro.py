@@ -228,7 +228,7 @@ def emergence(network):
     """
     micro_phi = compute.main_complex(network).phi
     partitions = list_all_partitions(network)
-    max_phi = -float('inf')
+    max_phi = float('-inf')
     for partition in partitions:
         groupings = list_all_groupings(partition)
         for grouping in groupings:
