@@ -49,7 +49,6 @@ def s_complete():
 
 def noised(cm=False):
     current_state = (1, 0, 0)
-    past_state = (1, 1, 0)
     tpm = np.array([[0.0, 0.0, 0.0],
                     [0.0, 0.0, 0.8],
                     [0.7, 0.0, 1.0],
@@ -65,7 +64,7 @@ def noised(cm=False):
                        [1, 1, 1]])
 
     cm = cm if use_connectivity_matrices else None
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def s_noised():
@@ -83,7 +82,7 @@ s_just_turned_on = (1, 0, 0)
 s_all_off = (0, 0, 0)
 
 
-def simple(current_state=s_all_off, past_state=s_all_off, cm=False):
+def simple(current_state=s_all_off, cm=False):
     """ Simple 'AND' network.
 
     Diagram:
@@ -126,26 +125,25 @@ def simple(current_state=s_all_off, past_state=s_all_off, cm=False):
                     [0, 0, 0]])
     if cm is False:
         cm = None
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def simple_all_off():
-    return simple(s_all_off, s_all_off)
+    return simple(s_all_off)
 
 
 def simple_a_just_on():
-    return simple(s_just_turned_on, s_about_to_be_on)
+    return simple(s_just_turned_on)
 
 
 def s_subsys_all_off():
-    s = simple(s_all_off, s_all_off)
+    s = simple(s_all_off)
     return Subsystem(range(s.size), s)
 
 
 def s_subsys_all_a_just_on():
-    a_about_to_be_on = (0, 1, 1)
     a_just_turned_on = (1, 0, 0)
-    s = simple(a_just_turned_on, a_about_to_be_on)
+    s = simple(a_just_turned_on)
     return Subsystem(range(s.size), s)
 
 
@@ -186,10 +184,9 @@ def big(cm=False):
     # All on
     current_state = (1,) * 5
     # All on
-    past_state = (1,) * 5
     if cm is False:
         cm = None
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def big_subsys_all():
@@ -214,11 +211,10 @@ def big_subsys_0_thru_3():
 def reducible(cm=False):
     tpm = np.zeros([2] * 2 + [2])
     current_state = (0, 0)
-    past_state = (0, 0)
     if cm is False:
         cm = np.array([[1, 0],
                        [0, 1]])
-    r = Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    r = Network(tpm, current_state, connectivity_matrix=cm)
     # Return the full subsystem
     return Subsystem(range(r.size), r)
 
@@ -266,7 +262,7 @@ def rule30(cm=False):
 
     all_off = (0, 0, 0, 0, 0)
 
-    rule30 = Network(tpm, all_off, all_off, connectivity_matrix=cm)
+    rule30 = Network(tpm, all_off, connectivity_matrix=cm)
 
     return Subsystem(range(rule30.size), rule30)
 
@@ -554,9 +550,8 @@ def eight_node(cm=False):
         )
 
     current_state = tuple([0] * 8)
-    past_state = tuple([0] * 8)
 
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def eights():
@@ -584,9 +579,8 @@ def eight_node_sbs(cm=False):
         )
 
     current_state = tuple([0] * 8)
-    past_state = tuple([0] * 8)
 
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def rule152(cm=False):
@@ -634,9 +628,8 @@ def rule152(cm=False):
         )
 
     current_state = tuple([0] * 5)
-    past_state = tuple([0] * 5)
 
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def rule152_s():
@@ -662,9 +655,8 @@ def macro(cm=False):
             [1, 1]
         ])
     current_state = (0, 0)
-    past_state = (0, 0)
 
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def macro_s():
@@ -699,9 +691,8 @@ def micro(cm=False):
             [1, 1, 1, 1]
         ])
     current_state = tuple([1] * 4)
-    past_state = tuple([1] * 4)
 
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def micro_s():

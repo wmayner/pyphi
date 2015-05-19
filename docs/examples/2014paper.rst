@@ -24,7 +24,7 @@ Figure 1
 
 For the first figure, we'll demonstrate how to set up a network and a candidate
 set. In PyPhi, networks are built by specifying a transition probability
-matrix, a past state, a current state, and (optionally) a connectivity matrix.
+matrix, a current state, and (optionally) a connectivity matrix.
 (If no connectivity matrix is given, full connectivity is assumed.) So, to set
 up the system shown in Figure 1, we'll start by defining its TPM. 
 
@@ -118,7 +118,6 @@ pasting, see note below):
 Now we'll define the current and past state:
 
     >>> current_state = (1, 0, 0, 0, 1, 0)
-    >>> past_state = (1, 1, 0, 0, 0, 0)
 
 Next we'll define the connectivity matrix. In PyPhi, the |i,jth| entry in a
 connectivity matrix indicates whether node |i| is connected to node |j|. Thus,
@@ -137,8 +136,7 @@ Now we can pass the TPM, current and past states, and connectivity matrix as
 arguments to the network constructor (note that the current state is the second
 argument and the past state is the third argument):
 
-    >>> network = pyphi.Network(tpm, current_state, past_state,
-    ...                         connectivity_matrix=cm)
+    >>> network = pyphi.Network(tpm, current_state, connectivity_matrix=cm)
 
 Now the network shown in the figure is stored in a variable called ``network``.
 You can find more information about the network object we just created by
@@ -646,21 +644,20 @@ into, use :func:`~pyphi.compute.condensed`:
 
     >>> condensed = pyphi.compute.condensed(network)
 
-We find that there are 3 complexes: the major complex :math:`ABC` with
-:math:`\Phi \approx 1.92`, and the two minor complexes :math:`DE` with
-:math:`\Phi \approx 0.028` and :math:`FG` with :math:`\Phi \approx 0.069` (note
+We find that there are 2 complexes: the major complex :math:`ABC` with
+:math:`\Phi \approx 1.92`, and a minor complex `FG` with :math:`\Phi \approx 0.069` (note
 that there is typo in the figure; :math:`FG`'s :math:`\Phi` value should be
-:math:`0.069`).
+:math:`0.069`). Furthermore, the program has been updated to only consider background
+conditions of current states, not past states, and as a result the minor complex `DE`
+which exists in the paper no longer exists.
 
     >>> len(condensed)
-    3
-    >>> ABC, DE, FG = condensed
+    2
+    >>> ABC, FG = condensed
     >>> (ABC.subsystem.nodes, ABC.phi)
     ((n0, n1, n2), 1.916663)
-    >>> (DE.subsystem.nodes, DE.phi)
-    ((n5, n6), 0.069445)
     >>> (FG.subsystem.nodes, FG.phi)
-    ((n3, n4), 0.027778)
+    ((n5, n6), 0.069445)
 
 There are several other functions available for working with complexes; see the
 documentation for :func:`~pyphi.compute.subsystems`,

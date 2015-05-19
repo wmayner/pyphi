@@ -24,26 +24,24 @@ state-by-node form.
     ...     [1, 1, 0]
     ... ])
 
-The current and past states should be |n|-tuples, where |n| is the number of
+The current state should be an |n|-tuple, where |n| is the number of
 nodes in the network, and where the |ith| element is the state of the |ith|
 node in the network.
 
     >>> current_state = (1, 0, 0)
-    >>> past_state = (1, 1, 0)
 
 The connectivity matrix is a square matrix such that the |i,jth| entry is 1 if
 there is a connection from node |i| to node |j|, and 0 otherwise.
 
     >>> cm = np.array([
-    ...     [0, 0, 1], 
-    ...     [1, 0, 1], 
+    ...     [0, 0, 1],
+    ...     [1, 0, 1],
     ...     [1, 1, 0]
     ... ])
 
 Now we construct the network itself with the arguments we just created:
 
-    >>> network = pyphi.Network(tpm, current_state, past_state,
-    ...                         connectivity_matrix=cm)
+    >>> network = pyphi.Network(tpm, current_state, connectivity_matrix=cm)
 
 The next step is to define a subsystem for which we want to evaluate |big_phi|.
 To make a subsystem, we need the indices of the subset of nodes which should be

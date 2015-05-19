@@ -204,11 +204,8 @@ def make_macro_network(network, mapping):
     macro_current_state = convert.loli_index2state(
         mapping[convert.state2loli_index(network.current_state)].astype(int),
         num_macro_nodes)
-    macro_past_state = convert.loli_index2state(
-        mapping[convert.state2loli_index(network.past_state)].astype(int),
-        num_macro_nodes)
     if validate.conditionally_independent(macro_tpm):
-        return Network(macro_tpm, macro_current_state, macro_past_state)
+        return Network(macro_tpm, macro_current_state)
     else:
         return None
 

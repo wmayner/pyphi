@@ -46,8 +46,6 @@ class Subsystem:
         perturb_vector (np.array): The vector of perturbation probabilities for
             each node.
         null_cut (Cut): The cut object representing no cut.
-        past_tpm (np.array): The TPM conditioned on the past state of the
-            external nodes (nodes outside the subsystem).
         current_tpm (np.array): The TPM conditioned on the current state of the
             external nodes.
     """
@@ -77,12 +75,8 @@ class Subsystem:
             cut, network.connectivity_matrix)
         # Get the perturbation probabilities for each node in the network
         self.perturb_vector = network.perturb_vector
-        # The TPM conditioned on the past state of the external nodes.
-        self.past_tpm = utils.condition_tpm(
-            self.network.tpm, self.external_indices,
-            self.network.past_state)
         # The TPM conditioned on the current state of the external nodes.
-        self.current_tpm = utils.condition_tpm(
+        self.tpm = utils.condition_tpm(
             self.network.tpm, self.external_indices,
             self.network.current_state)
         # Generate the nodes.
@@ -253,7 +247,7 @@ class Subsystem:
             # We're conditioning on this node's state, so take the probability
             # table for the node being in that state.
             node_state = self.network.current_state[mechanism_node.index]
-            conditioned_tpm = mechanism_node.past_tpm[node_state]
+            conditioned_tpm = mechanism_node.tpm[node_state]
             # Collect the nodes that are not in the purview and have
             # connections to this node.
             non_purview_inputs = inputs - set(purview)
@@ -351,7 +345,7 @@ class Subsystem:
             # TODO extend to nonbinary nodes
             # Rotate the dimensions so the first dimension is the last (the
             # first dimension corresponds to the state of the node)
-            tpm = purview_node.current_tpm
+            tpm = purview_node.tpm
             tpm = tpm.transpose(list(range(tpm.ndim))[1:] + [0])
             # Expand the dimensions so the TPM can be indexed as described
             first_half_shape = list(tpm.shape[:-1])

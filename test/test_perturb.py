@@ -20,9 +20,8 @@ cm = np.array([[0, 1, 1],
 pv = np.array([0.75, 0.75, 0.25])
 
 current_state = (0, 1, 0)
-past_state = (0, 0, 1)
 
-network = pyphi.Network(tpm, current_state, past_state, connectivity_matrix=cm,
+network = pyphi.Network(tpm, current_state, connectivity_matrix=cm,
                         perturb_vector=pv)
 
 subsystem = pyphi.Subsystem(range(network.size), network)

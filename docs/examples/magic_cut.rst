@@ -120,7 +120,7 @@ this circumstance, knowing |A| and |B| do not tell us anything about the state o
 ``past_tpm[1]`` gives us the probability of C being **ON** in the next state, while
 ``past_tpm[0]`` would give us the probability of C being **OFF**.
 
-   >>> C[0].past_tpm[1].flatten()
+   >>> C[0].tpm[1].flatten()
    array([ 0.5 ,  0.75])
 
 This states that A has a 50% chance of being **ON** in the next state if it
