@@ -42,7 +42,7 @@ coarse-graining of micro-elements to form macro-elements. A coarse-graining of
 nodes is any partition of the elements of the micro system. First we'll get a
 list of all possible partitions:
 
-    >>> partitions = pyphi.macro.list_all_partitions(network)
+    >>> partitions = pyphi.macro.list_all_partitions(network.size)
     >>> pprint(partitions)
     (((0, 1, 2), (3,)),
      ((0, 1, 3), (2,)),
@@ -59,7 +59,7 @@ list of all possible partitions:
      ((0,), (1,), (2, 3)),
      ((0, 1, 2, 3),))
 
-Lets start by considering the partition ``[[0, 1, 2], [3]]``:
+Lets start by considering the partition ``((0, 1, 2), (3))``:
 
     >>> partition = partitions[0]
     >>> partition
@@ -158,12 +158,12 @@ coarse-graining of the system:
     >>> pyphi.validate.conditionally_independent(macro_tpm)
     False
 
-In these cases, the object returned :func:`~pyphi.macro.make_macro_network`
-function will have a boolean value of ``False``:
+In these cases, the subsystem object returned by the :func:`~pyphi.Subsystem`
+function will have an empty list of nodes:
 
-    >>> (macro_network, macro_state) = pyphi.macro.make_macro_network(network, state, mapping)
-    >>> bool(macro_network)
-    False
+    >>> macro_subsystem = pyphi.Subsystem(network, state, network.node_indices, output_grouping=partition, state_grouping=grouping)
+    >>> macro_subsystem
+    Subsystem(())
 
 Lets consider a different partition instead.
 
@@ -181,18 +181,18 @@ Lets consider a different partition instead.
     array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,
             2.,  2.,  3.])
 
-    >>> (macro_network, macro_state) = pyphi.macro.make_macro_network(network, state, mapping)
-    >>> bool(macro_network)
-    True
+    >>> macro_subsystem = pyphi.Subsystem(network, state, network.node_indices, output_grouping=partition, state_grouping=grouping)
+    >>> macro_subsystem
+    Subsystem((n0, n1))
 
 We can then consider the integrated information of this macro-network and
 compare it to the micro-network.
 
-    >>> macro_main_complex = pyphi.compute.main_complex(macro_network, macro_state)
-    >>> macro_main_complex.phi
-    0.86905
+    >>> macro_mip = pyphi.compute.big_mip(macro_subsystem)
+    >>> macro_mip.phi
+    0.597213
 
-The integrated information of the macro system (:math:`\Phi = 0.86905`) is
+The integrated information of the macro subsystem (:math:`\Phi = 0.597213`) is
 greater than the integrated information of the micro system (:math:`\Phi =
 0.113889`). We can conclude that a macro-scale is appropriate for this system,
 but to determine which one, we must check all possible partitions and all
@@ -200,12 +200,14 @@ possible groupings to find the maximum of integrated information across all
 scales.
 
     >>> M = pyphi.macro.emergence(network, state)
+    >>> M.emergence
+    0.483324
+    >>> M.system
+    (0, 1, 2, 3)
     >>> M.partition
     ((0, 1), (2, 3))
     >>> M.grouping
     (((0, 1), (2,)), ((0, 1), (2,)))
-    >>> M.emergence
-    0.755161
 
 The analysis determines the partition and grouping which results in the maximum
 value of integrated information, as well as the emergence (increase in
