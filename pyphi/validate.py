@@ -68,9 +68,15 @@ def tpm(tpm):
 def conditionally_independent(tpm):
     """Validate that the TPM is conditionally independent."""
     tpm = np.array(tpm)
-    there_and_back_again = convert.state_by_node2state_by_state(
-        convert.state_by_state2state_by_node(tpm))
-    return np.all((tpm - there_and_back_again) < EPSILON)
+    if tpm.ndim > 1:
+        if tpm.shape[0] == tpm.shape[1] and tpm.ndim == 2:
+            there_and_back_again = convert.state_by_node2state_by_state(
+                convert.state_by_state2state_by_node(tpm))
+        else:        there_and_back_again = convert.state_by_state2state_by_node(
+            convert.state_by_node2state_by_state(tpm))
+        return np.all((tpm - there_and_back_again) < EPSILON)
+    else:
+        return True
 
 
 def connectivity_matrix(cm):
