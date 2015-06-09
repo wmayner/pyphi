@@ -144,7 +144,7 @@ the second macro-element is **OFF**, so that macro-element is **OFF**.
 Using the mapping, we can then create a state-by-state TPM for the macro-system
 corresponding to the selected partition and grouping:
 
-    >>> macro_tpm = pyphi.macro.make_macro_tpm(network.tpm, mapping)
+    >>> macro_tpm = pyphi.utils.make_macro_tpm(network.tpm, mapping)
     >>> macro_tpm
     array([[ 0.5838,  0.0162,  0.3802,  0.0198],
            [ 0.    ,  0.    ,  0.91  ,  0.09  ],
