@@ -44,26 +44,26 @@ list of all possible partitions:
 
     >>> partitions = pyphi.macro.list_all_partitions(network)
     >>> pprint(partitions)
-    [[[0, 1, 2], [3]],
-     [[0, 1, 3], [2]],
-     [[0, 1], [2, 3]],
-     [[0, 1], [2], [3]],
-     [[0, 2, 3], [1]],
-     [[0, 2], [1, 3]],
-     [[0, 2], [1], [3]],
-     [[0, 3], [1, 2]],
-     [[0], [1, 2, 3]],
-     [[0], [1, 2], [3]],
-     [[0, 3], [1], [2]],
-     [[0], [1, 3], [2]],
-     [[0], [1], [2, 3]],
-     [[0, 1, 2, 3]]]
+    (((0, 1, 2), (3,)),
+     ((0, 1, 3), (2,)),
+     ((0, 1), (2, 3)),
+     ((0, 1), (2,), (3,)),
+     ((0, 2, 3), (1,)),
+     ((0, 2), (1, 3)),
+     ((0, 2), (1,), (3,)),
+     ((0, 3), (1, 2)),
+     ((0,), (1, 2, 3)),
+     ((0,), (1, 2), (3,)),
+     ((0, 3), (1,), (2,)),
+     ((0,), (1, 3), (2,)),
+     ((0,), (1,), (2, 3)),
+     ((0, 1, 2, 3),))
 
 Lets start by considering the partition ``[[0, 1, 2], [3]]``:
 
     >>> partition = partitions[0]
     >>> partition
-    [[0, 1, 2], [3]]
+    ((0, 1, 2), (3,))
 
 For this partition there are two macro-elements, one consisting of
 micro-elements ``(0, 1, 2)`` and the other is simply micro-element ``3``.
@@ -85,31 +85,31 @@ To see a list of all possible groupings of micro-states into macro-states:
 
     >>> groupings = pyphi.macro.list_all_groupings(partition)
     >>> pprint(groupings)
-    [[[[0, 1, 2], [3]], [[0], [1]]],
-     [[[0, 1, 3], [2]], [[0], [1]]],
-     [[[0, 1], [2, 3]], [[0], [1]]],
-     [[[0, 2, 3], [1]], [[0], [1]]],
-     [[[0, 2], [1, 3]], [[0], [1]]],
-     [[[0, 3], [1, 2]], [[0], [1]]],
-     [[[0], [1, 2, 3]], [[0], [1]]]]
+    ((((0, 1, 2), (3,)), ((0,), (1,))),
+     (((0, 1, 3), (2,)), ((0,), (1,))),
+     (((0, 1), (2, 3)), ((0,), (1,))),
+     (((0, 2, 3), (1,)), ((0,), (1,))),
+     (((0, 2), (1, 3)), ((0,), (1,))),
+     (((0, 3), (1, 2)), ((0,), (1,))),
+     (((0,), (1, 2, 3)), ((0,), (1,))))
 
 We will focus on the first grouping in the list.
 
     >>> grouping = groupings[0]
     >>> grouping
-    [[[0, 1, 2], [3]], [[0], [1]]]
+    (((0, 1, 2), (3,)), ((0,), (1,)))
 
 The grouping contains two lists, one for each macro-element.
 
     >>> grouping[0]
-    [[0, 1, 2], [3]]
+    ((0, 1, 2), (3,))
 
 For the first macro-element, this grouping means that the element will be
 **OFF** if zero, one or two of its micro-elements are **ON**, and will be
 **ON** if all three micro-elements are **ON**.
 
     >>> grouping[1]
-    [[0], [1]]
+    ((0,), (1,))
 
 For the second macro-element, the grouping means that the element will be
 **OFF** if its micro-element is **OFF**, and **ON** if its micro-element is
@@ -169,12 +169,12 @@ Lets consider a different partition instead.
 
     >>> partition = partitions[2]
     >>> partition
-    [[0, 1], [2, 3]]
+    ((0, 1), (2, 3))
 
     >>> groupings = pyphi.macro.list_all_groupings(partition)
     >>> grouping = groupings[0]
     >>> grouping
-    [[[0, 1], [2]], [[0, 1], [2]]]
+    (((0, 1), (2,)), ((0, 1), (2,)))
 
     >>> mapping = pyphi.macro.make_mapping(partition, grouping)
     >>> mapping
@@ -201,9 +201,9 @@ scales.
 
     >>> M = pyphi.macro.emergence(network, state)
     >>> M.partition
-    [[0, 1], [2, 3]]
+    ((0, 1), (2, 3))
     >>> M.grouping
-    [[[0, 1], [2]], [[0, 1], [2]]]
+    (((0, 1), (2,)), ((0, 1), (2,)))
     >>> M.emergence
     0.755161
 
