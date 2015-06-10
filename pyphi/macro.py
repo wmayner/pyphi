@@ -178,6 +178,29 @@ def emergence(network, state):
                         grouping=max_grouping)
 
 
+def phi_by_grain(network, state):
+    list_of_phi = []
+    systems = utils.powerset(network.node_indices)
+    for system in systems:
+        micro_subsystem = Subsystem(network, state, system)
+        mip = compute.big_mip(micro_subsystem)
+        list_of_phi.append([len(micro_subsystem), mip.phi])
+        index_partitions = list_all_partitions(len(system))
+        partitions = tuple(tuple(tuple(system[i] for i in part)
+                                 for part in partition)
+                           for partition in index_partitions)
+        for partition in partitions:
+            groupings = list_all_groupings(partition)
+            for grouping in groupings:
+                subsystem = Subsystem(network, state, system,
+                                      output_grouping=partition,
+                                      state_grouping=grouping)
+                phi = compute.big_phi(subsystem)
+                list_of_phi.append([len(subsystem), phi, system,
+                                    partition, grouping])
+    return list_of_phi
+
+
 # TODO write tests
 # TODO? give example of doing it for a bunch of coarse-grains in docstring
 # (make all groupings and partitions, make_network for each of them, etc.)
