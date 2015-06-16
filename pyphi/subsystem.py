@@ -111,11 +111,10 @@ class Subsystem:
 
     # TODO write docstring
     def _find_cut_matrix(self, cut):
-        subsystem_indices = convert.nodes2indices(self.nodes)
         cut_matrix = np.zeros((self.network.size, self.network.size))
         list_of_cuts = np.array(list(itertools.product(cut[0], cut[1])))
         cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
-        return cut_matrix[np.ix_(subsystem_indices, subsystem_indices)]
+        return cut_matrix[np.ix_(self.node_indices, self.node_indices)]
 
     def __repr__(self):
         return "Subsystem(" + repr(self.nodes) + ")"
@@ -737,33 +736,32 @@ class Subsystem:
             are maximally different than the unconstrained cause/effect
             repertoires (*i.e.*, those that maximize |small_phi|). Here, we
             return only information corresponding to one direction, |past| or
-            |future|, i.e., we return a core cause or core effect, not the pair of
-            them.
+            |future|, i.e., we return a core cause or core effect, not the pair
+            of them.
         """
         # Return a cached MICE if there's a hit.
         cached_mice = self._get_cached_mice(direction, mechanism)
         if cached_mice:
             return cached_mice
 
-        # Get cached purviews if available.
-        if config.CACHE_POTENTIAL_PURVIEWS:
-            purviews = self.network.purview_cache[
-                (direction, convert.nodes2indices(mechanism))]
-        else:
-            if direction == DIRECTIONS[PAST]:
-                purviews = list_past_purview(self.network,
-                                             convert.nodes2indices(mechanism))
-            elif direction == DIRECTIONS[FUTURE]:
-                purviews = list_future_purview(self.network,
-                                               convert.nodes2indices(mechanism))
+        if purviews is False:
+            # Get cached purviews if available.
+            if config.CACHE_POTENTIAL_PURVIEWS:
+                purviews = self.network.purview_cache[
+                    (direction, convert.nodes2indices(mechanism))]
             else:
-                validate.direction(direction)
-
-        # Filter out purviews that aren't in the subsystem.
-        purviews = [purview for purview in purviews if
-                    set(purview).issubset(convert.nodes2indices(self.nodes))]
-
-        purviews = [self.indices2nodes(purview) for purview in purviews]
+                if direction == DIRECTIONS[PAST]:
+                    purviews = list_past_purview(
+                        self.network, convert.nodes2indices(mechanism))
+                elif direction == DIRECTIONS[FUTURE]:
+                    purviews = list_future_purview(
+                        self.network, convert.nodes2indices(mechanism))
+                else:
+                    validate.direction(direction)
+            # Filter out purviews that aren't in the subsystem and convert to
+            # nodes.
+            purviews = [self.indices2nodes(purview) for purview in purviews if
+                        set(purview).issubset(self.node_indices)]
 
         # Filter out trivially reducible purviews if a cut has been applied.
         def not_trivially_reducible(purview):
