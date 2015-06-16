@@ -40,7 +40,8 @@ CACHE_BIGMIPS: false
 # no effect, and concepts will not be cached.
 CACHE_CONCEPTS: false
 # Controls whether the potential purviews of the mechanisms of a network are
-# cached. Speeds up calculations, but takes up additional memory.
+# cached. Speeds up calculations when the same network is used repeatedly, but
+# takes up additional memory, and makes network initialization slow.
 CACHE_POTENTIAL_PURVIEWS: true
 # Controls whether concepts should be normalized before being cached.
 # Normalization increases the chances that a precomputed concept can be used
