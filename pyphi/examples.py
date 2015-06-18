@@ -664,7 +664,7 @@ def fig3b():
 def fig3c():
     """The network shown in Figure 3C of the 2014 IIT 3.0 paper."""
     net = fig3b()
-    net.past_state, net.current_state = (0, 0, 0, 0), (0, 0, 0, 0)
+    net.current_state = (0, 0, 0, 0)
     return net
 
 
