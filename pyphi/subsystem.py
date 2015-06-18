@@ -46,8 +46,7 @@ class Subsystem:
         perturb_vector (np.array): The vector of perturbation probabilities for
             each node.
         null_cut (Cut): The cut object representing no cut.
-        current_tpm (np.array): The TPM conditioned on the current state of the
-            external nodes.
+        tpm (np.array): The TPM conditioned on the state of the external nodes.
     """
 
     def __init__(self, node_indices, network, cut=None, mice_cache=None,
@@ -75,7 +74,7 @@ class Subsystem:
             cut, network.connectivity_matrix)
         # Get the perturbation probabilities for each node in the network
         self.perturb_vector = network.perturb_vector
-        # The TPM conditioned on the current state of the external nodes.
+        # The TPM conditioned on the state of the external nodes.
         self.tpm = utils.condition_tpm(
             self.network.tpm, self.external_indices,
             self.network.current_state)
