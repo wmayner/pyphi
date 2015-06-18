@@ -13,12 +13,11 @@ from .constants import EPSILON
 
 
 class StateUnreachableError(ValueError):
-    """Raised when the current state of a network cannot be reached, either
-    from any state or from a given past state."""
+    """Raised when the state of a network cannot be reached from any past
+    state."""
 
-    def __init__(self, current_state, past_state, tpm, message):
-        self.current_state = current_state
-        self.past_state = past_state
+    def __init__(self, state, tpm, message):
+        self.state = state
         self.tpm = tpm
         self.message = message
 
@@ -88,15 +87,15 @@ def connectivity_matrix(cm):
 
 
 # TODO test
-def state_reachable(current_state, tpm):
+def state_reachable(state, tpm):
     """Return whether a state can be reached according to the given TPM."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
-    test = tpm - np.array(current_state)
+    test = tpm - np.array(state)
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
         raise StateUnreachableError(
-            current_state, tpm,
+            state, tpm,
             'The current state cannot be reached according to the given TPM.')
 
 
@@ -121,7 +120,7 @@ def perturb_vector(pv, size):
 
 # TODO test
 def network(network):
-    """Validate TPM, connectivity matrix, and current and past state."""
+    """Validate TPM, connectivity matrix and state."""
     tpm(network.tpm)
     current_state_length(network.current_state, network.size)
     connectivity_matrix(network.connectivity_matrix)
