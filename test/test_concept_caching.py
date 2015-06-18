@@ -18,7 +18,7 @@ def test_normalized_mechanism():
 
 def test_different_states(big):
     all_off = Network(big.tpm, tuple([0]*5),
-                     connectivity_matrix=big.connectivity_matrix)
+                      connectivity_matrix=big.connectivity_matrix)
     all_on = Network(big.tpm, tuple([1]*5),
                      connectivity_matrix=big.connectivity_matrix)
     s1 = Subsystem(range(2, 5), all_off)
@@ -75,7 +75,7 @@ def test_unnormalize_concept():
 def check_concept_caching(net, states, flushcache):
     flushcache()
 
-    # Build the networks for each pair of current/past states.
+    # Build the networks for each state.
     networks = {
         s: Network(net.tpm, s, net.connectivity_matrix) for s in states
     }
