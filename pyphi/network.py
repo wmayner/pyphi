@@ -34,9 +34,8 @@ def from_json(filename):
         network_dictionary = json.load(f)
     tpm = network_dictionary['tpm']
     current_state = network_dictionary['currentState']
-    past_state = network_dictionary['pastState']
     cm = network_dictionary['connectivityMatrix']
-    network = Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    network = Network(tpm, current_state, connectivity_matrix=cm)
     return network
 
 
@@ -73,7 +72,6 @@ class Network:
     Args:
         tpm (np.ndarray): See the corresponding attribute.
         current_state (tuple): See the corresponding attribute.
-        past_state (tuple): See the corresponding attribute.
 
     Keyword Args:
         connectivity_matrix (array or sequence): A square binary adjacency
@@ -100,9 +98,6 @@ class Network:
         current_state (tuple):
             The current state of the network. ``current_state[i]`` gives the
             current state of node |i|.
-        past_state (tuple):
-            The past state of the network. ``past_state[i]`` gives the past
-            state of node |i|.
         connectivity_matrix (np.ndarray):
             A square binary adjacency matrix indicating the connections between
             nodes in the network.
@@ -113,18 +108,14 @@ class Network:
     """
 
     # TODO make tpm also optional when implementing logical network definition
-    def __init__(self, tpm, current_state, past_state,
-                 connectivity_matrix=None, perturb_vector=None,
-                 purview_cache=None):
+    def __init__(self, tpm, current_state, connectivity_matrix=None,
+                 perturb_vector=None, purview_cache=None):
         self.tpm = tpm
-
         self._size = self.tpm.shape[-1]
         # TODO extend to nonbinary nodes
         self._num_states = 2 ** self.size
         self._node_indices = tuple(range(self.size))
-
         self._current_state = tuple(current_state)
-        self._past_state = tuple(past_state)
         self.perturb_vector = perturb_vector
         self.connectivity_matrix = connectivity_matrix
         if purview_cache is None:
@@ -161,26 +152,7 @@ class Network:
         current_state = tuple(current_state)
         # Validate it.
         validate.current_state_length(current_state, self.size)
-        if config.VALIDATE_NETWORK_STATE:
-            validate.state_reachable(self.past_state, current_state, self.tpm)
-            validate.state_reachable_from(self.past_state, current_state,
-                                          self.tpm)
         self._current_state = current_state
-
-    @property
-    def past_state(self):
-        return self._past_state
-
-    @past_state.setter
-    def past_state(self, past_state):
-        # Cast past state to a tuple so it can be hashed and properly used
-        # as np.array indices.
-        past_state = tuple(past_state)
-        # Validate it.
-        validate.past_state_length(past_state, self.size)
-        if config.VALIDATE_NETWORK_STATE:
-            validate.state_reachable_from(past_state, self.current_state, self.tpm)
-        self._past_state = past_state
 
     @property
     def tpm(self):
@@ -248,8 +220,7 @@ class Network:
 
     def __repr__(self):
         return ("Network(" + ", ".join([repr(self.tpm),
-                                        repr(self.current_state),
-                                        repr(self.past_state)]) +
+                                        repr(self.current_state)]) +
                 ", connectivity_matrix=" + repr(self.connectivity_matrix) +
                 ", perturb_vector=" + repr(self.perturb_vector) +
                 ")")
@@ -266,7 +237,6 @@ class Network:
         """
         return ((np.array_equal(self.tpm, other.tpm) and
                 np.array_equal(self.current_state, other.current_state) and
-                np.array_equal(self.past_state, other.past_state) and
                 np.array_equal(self.connectivity_matrix,
                                other.connectivity_matrix) and
                 np.array_equal(self.perturb_vector,
@@ -278,14 +248,13 @@ class Network:
 
     def __hash__(self):
         # TODO: hash only once?
-        return hash((self._tpm_hash, self.current_state, self.past_state,
-                     self._cm_hash, self._pv_hash))
+        return hash((self._tpm_hash, self.current_state, self._cm_hash,
+                     self._pv_hash))
 
     def json_dict(self):
         return {
             'tpm': make_encodable(self.tpm),
             'current_state': make_encodable(self.current_state),
-            'past_state': make_encodable(self.past_state),
             'connectivity_matrix':
                 make_encodable(self.connectivity_matrix),
             'size': make_encodable(self.size),

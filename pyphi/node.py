@@ -11,7 +11,6 @@ import functools
 import numpy as np
 from marbl import Marbl
 from . import utils
-from .constants import DIRECTIONS, PAST, FUTURE
 
 
 # TODO extend to nonbinary nodes
@@ -75,12 +74,10 @@ class Node:
         # network state, but its last dimension will be gone, since now there's
         # just a single scalar value (this node's state) rather than a
         # state-vector for all the network nodes.
-        past_tpm_on = self.subsystem.past_tpm[..., self.index]
-        current_tpm_on = self.subsystem.current_tpm[..., self.index]
+        tpm_on = self.subsystem.tpm[..., self.index]
         # Get the TPMs that give the probability of the node being off, rather
         # than on.
-        past_tpm_off = 1 - past_tpm_on
-        current_tpm_off = 1 - current_tpm_on
+        tpm_off = 1 - tpm_on
         # Marginalize-out non-input subsystem nodes and get dimension labels.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # This list will hold the indices of the nodes that correspond to
@@ -114,19 +111,15 @@ class Node:
             # the external nodes have already been dealt with as boundary
             # conditions in the subsystem's TPMs.
             if i not in self._input_indices and i in self.subsystem.node_indices:
-                past_tpm_on = past_tpm_on.sum(i, keepdims=True) / 2
-                past_tpm_off = past_tpm_off.sum(i, keepdims=True) / 2
-                current_tpm_on = current_tpm_on.sum(i, keepdims=True) / 2
-                current_tpm_off = current_tpm_off.sum(i, keepdims=True) / 2
+                tpm_on = tpm_on.sum(i, keepdims=True) / 2
+                tpm_off = tpm_off.sum(i, keepdims=True) / 2
 
         # Combine the on- and off-TPMs.
-        self.past_tpm = np.array([past_tpm_off, past_tpm_on])
-        self.current_tpm = np.array([current_tpm_off, current_tpm_on])
+        self.tpm = np.array([tpm_off, tpm_on])
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Make the TPM immutable (for hashing).
-        self.past_tpm.flags.writeable = False
-        self.current_tpm.flags.writeable = False
+        self.tpm.flags.writeable = False
 
         # Only compute the hash once.
         self._hash = hash((self.index, self.subsystem))
@@ -139,27 +132,21 @@ class Node:
         # defer construction until the properties are needed.
         self._inputs = None
         self._outputs = None
-        self._past_marbl = None
-        self._current_marbl = None
-        self._raw_past_marbl = None
-        self._raw_current_marbl = None
+        self._marbl = None
+        self._raw_marbl = None
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def get_marbl(self, direction, normalize=True):
+    def get_marbl(self, normalize=True):
         """Generate a Marbl for this node, using either the past or current
         TPM."""
-        if direction == DIRECTIONS[PAST]:
-            tpm_name = 'past_tpm'
-        if direction == DIRECTIONS[FUTURE]:
-            tpm_name = 'current_tpm'
         # We take only the part of the TPM giving the probability the node
         # is on.
         # TODO extend to nonbinary nodes
         augmented_child_tpms = [
             [child._dimension_labels[self.index],
-             getattr(child, tpm_name)[1].squeeze()] for child in self.outputs
+             getattr(child, 'tpm')[1].squeeze()] for child in self.outputs
         ]
-        marbl = Marbl(getattr(self, tpm_name)[1], augmented_child_tpms,
+        marbl = Marbl(getattr(self, 'tpm')[1], augmented_child_tpms,
                       normalize=normalize)
         return marbl
 
@@ -184,50 +171,26 @@ class Node:
             return self._outputs
 
     @property
-    def past_marbl(self):
-        """The normalized representation of this node's Markov blanket,
-        conditioned on the fixed state of boundary-condition nodes in the
-        previous timestep."""
-        if self._past_marbl is not None:
-            return self._past_marbl
-        else:
-            self._past_marbl = self.get_marbl(DIRECTIONS[PAST])
-            return self._past_marbl
-
-    @property
-    def current_marbl(self):
+    def marbl(self):
         """The normalized representation of this node's Markov blanket,
         conditioned on the fixed state of boundary-condition nodes in the
         current timestep."""
-        if self._current_marbl is not None:
-            return self._current_marbl
+        if self._marbl is not None:
+            return self._marbl
         else:
-            self._current_marbl = self.get_marbl(DIRECTIONS[FUTURE])
-            return self._current_marbl
+            self._marbl = self.get_marbl()
+            return self._marbl
 
     @property
-    def raw_past_marbl(self):
-        """The un-normalized representation of this node's Markov blanket,
-        conditioned on the fixed state of boundary-condition nodes in the
-        previous timestep."""
-        if self._past_marbl is not None:
-            return self._past_marbl
-        else:
-            self._raw_past_marbl = self.get_marbl(DIRECTIONS[PAST],
-                                                  normalize=False)
-            return self._raw_past_marbl
-
-    @property
-    def raw_current_marbl(self):
+    def raw_marbl(self):
         """The un-normalized representation of this node's Markov blanket,
         conditioned on the fixed state of boundary-condition nodes in the
         current timestep."""
-        if self._raw_current_marbl is not None:
-            return self._raw_current_marbl
+        if self._raw_marbl is not None:
+            return self._raw_marbl
         else:
-            self._raw_current_marbl = self.get_marbl(DIRECTIONS[FUTURE],
-                                                     normalize=False)
-            return self._raw_current_marbl
+            self._raw_marbl = self.get_marbl(normalize=False)
+            return self._raw_marbl
 
     def __repr__(self):
         return (self.label if self.label is not None

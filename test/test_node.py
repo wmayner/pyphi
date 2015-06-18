@@ -26,8 +26,7 @@ def test_node_init_tpm(s):
                     [0.]]]])
     ]
     for node in s.nodes:
-        assert np.array_equal(node.past_tpm, answer[node.index])
-        assert np.array_equal(node.current_tpm, answer[node.index])
+        assert np.array_equal(node.tpm, answer[node.index])
 
 
 def test_node_init_inputs(s):
@@ -49,7 +48,7 @@ def test_node_neq_by_index(s):
 
 
 def test_node_neq_by_context(s):
-    other_network = Network(s.network.tpm, (0, 0, 0), (0, 0, 0))
+    other_network = Network(s.network.tpm, (0, 0, 0))
     other_s = Subsystem(s.node_indices, other_network)
     assert s.nodes[0] != Node(other_network, 0, other_s)
 
