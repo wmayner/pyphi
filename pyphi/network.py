@@ -232,8 +232,8 @@ class Network:
     def __eq__(self, other):
         """Return whether this network equals the other object.
 
-        Two networks are equal if they have the same TPM, current state, and
-        past state.
+        Two networks are equal if they have the same TPM, current state,
+        connectivity matrix, and perturbation vector.
         """
         return ((np.array_equal(self.tpm, other.tpm) and
                 np.array_equal(self.current_state, other.current_state) and
