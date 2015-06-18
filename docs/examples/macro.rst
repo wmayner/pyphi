@@ -19,8 +19,6 @@ All nodes are **OFF** in the current and past state,
 
     >>> network.current_state
     (0, 0, 0, 0)
-    >>> network.past_state
-    (0, 0, 0, 0)
 
 and the connectivity matrix is all-to-all.
 

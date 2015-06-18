@@ -83,9 +83,8 @@ def basic_network():
         [1, 1, 0]
     ])
     current_state = (1, 0, 0)
-    past_state = (1, 1, 0)
 
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def basic_subsystem():
@@ -144,9 +143,8 @@ def residue_network():
     cm[3:, 1] = 1
 
     current_state = (0, 0, 0, 0, 0)
-    past_state = (0, 0, 0, 0, 0)
 
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def residue_subsystem():
@@ -200,8 +198,7 @@ def xor_network():
         [1, 1, 0]
     ])
     current_state = (0, 0, 0)
-    past_state = (0, 0, 0)
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def xor_subsystem():
@@ -424,9 +421,8 @@ def propagation_delay_network():
                    [0, 0, 0, 0, 0, 0, 1, 0, 0]])
 
     current_state = (1, 0, 0, 0, 0, 0, 0, 0, 0)
-    past_state = (0, 0, 1, 0, 1, 0, 0, 0, 0)
 
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def macro_network():
@@ -453,14 +449,77 @@ def macro_network():
                     [1.0, 1.0, 1.0, 1.0]])
 
     current_state = (0, 0, 0, 0)
-    past_state = (0, 0, 0, 0)
-    return Network(tpm, current_state, past_state)
+    return Network(tpm, current_state)
 
 
 def macro_subsystem():
     network = macro_network()
     return Subsystem(range(network.size), network)
 
+
+def rule110_network():
+    """A network of three elements which follows the logic of
+    the Rule 110 cellular automaton with current and past
+    state (0, 0, 0). """
+    tpm = np.array([[0, 0, 0],
+                    [1, 0, 1],
+                    [1, 1, 0],
+                    [1, 1, 1],
+                    [0, 1, 1],
+                    [1, 1, 1],
+                    [1, 1, 1],
+                    [0, 0, 0]])
+
+    current_state = (0, 0, 0)
+    return Network(tpm, current_state)
+
+def rule154_network():
+    """A network of three elements which follows the logic of
+    the Rule 154 cellular automaton with current and past
+    state (1, 0, 0, 0, 0)."""
+    tpm = np.array([
+        [ 0.,  0.,  0.,  0.,  0.],
+        [ 0.,  1.,  0.,  0.,  1.],
+        [ 1.,  0.,  1.,  0.,  0.],
+        [ 1.,  0.,  1.,  0.,  1.],
+        [ 0.,  1.,  0.,  1.,  0.],
+        [ 0.,  0.,  0.,  1.,  1.],
+        [ 1.,  1.,  0.,  1.,  0.],
+        [ 1.,  1.,  0.,  1.,  1.],
+        [ 0.,  0.,  1.,  0.,  1.],
+        [ 0.,  1.,  1.,  0.,  0.],
+        [ 1.,  0.,  0.,  0.,  1.],
+        [ 1.,  0.,  0.,  0.,  0.],
+        [ 0.,  1.,  1.,  0.,  1.],
+        [ 0.,  0.,  1.,  0.,  0.],
+        [ 1.,  1.,  1.,  0.,  1.],
+        [ 1.,  1.,  1.,  0.,  0.],
+        [ 1.,  0.,  0.,  1.,  0.],
+        [ 0.,  1.,  0.,  1.,  1.],
+        [ 0.,  0.,  1.,  1.,  0.],
+        [ 1.,  0.,  1.,  1.,  1.],
+        [ 1.,  1.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.,  1.],
+        [ 0.,  1.,  0.,  0.,  0.],
+        [ 1.,  1.,  0.,  0.,  1.],
+        [ 1.,  0.,  1.,  1.,  0.],
+        [ 0.,  1.,  1.,  1.,  1.],
+        [ 0.,  0.,  0.,  1.,  0.],
+        [ 1.,  0.,  0.,  1.,  1.],
+        [ 1.,  1.,  1.,  1.,  0.],
+        [ 0.,  0.,  1.,  1.,  1.],
+        [ 0.,  1.,  1.,  1.,  0.],
+        [ 1.,  1.,  1.,  1.,  1.]
+    ])
+    cm = np.array([
+        [ 1.,  1.,  0.,  0.,  1.],
+        [ 1.,  1.,  1.,  0.,  0.],
+        [ 0.,  1.,  1.,  1.,  0.],
+        [ 0.,  0.,  1.,  1.,  1.],
+        [ 1.,  0.,  0.,  1.,  1.]
+    ])
+    current_state = (1, 0, 0, 0, 0)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 def fig1a():
     """The network shown in Figure 1A of the 2014 IIT 3.0 paper."""
@@ -539,8 +598,7 @@ def fig1a():
         [0, 0, 0, 0, 0, 0]
     ])
     current_state = (1, 0, 0, 0, 1, 0)
-    past_state = (1, 1, 0, 0, 0, 0)
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def fig3a():
@@ -570,8 +628,7 @@ def fig3a():
         [1, 0, 0, 0]
     ])
     current_state = (1, 0, 0, 0)
-    past_state = (0, 0, 0, 0)
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def fig3b():
@@ -601,14 +658,13 @@ def fig3b():
         [1, 0, 0, 0]
     ])
     current_state = (1, 0, 0, 0)
-    past_state = (0, 1, 1, 1)
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def fig3c():
     """The network shown in Figure 3C of the 2014 IIT 3.0 paper."""
     net = fig3b()
-    net.past_state, net.current_state = (0, 0, 0, 0), (0, 0, 0, 0)
+    net.current_state = (0, 0, 0, 0)
     return net
 
 
@@ -645,8 +701,7 @@ def fig4():
         [1, 1, 0],
     ])
     current_state = (1, 0, 0)
-    past_state = (1, 1, 0)
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def fig5a():
@@ -681,8 +736,7 @@ def fig5a():
         [1, 1, 0]
     ])
     current_state = (1, 1, 1)
-    past_state = (0, 1, 1)
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 def fig5b():
@@ -717,8 +771,7 @@ def fig5b():
         [0, 1, 0]
     ])
     current_state = (1, 0, 0)
-    past_state = (0, 0, 0)
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)
 
 
 # The networks in figures 4, 6 and 8 are the same.
@@ -870,5 +923,4 @@ def fig16():
         [0, 0, 0, 0, 0, 1, 1]
     ])
     current_state = (1, 0, 0, 1, 1, 1, 0)
-    past_state = (0, 0, 1, 1, 0, 1, 0)
-    return Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    return Network(tpm, current_state, connectivity_matrix=cm)

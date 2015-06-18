@@ -9,7 +9,6 @@ from pyphi.constants import EPSILON
 
 micro = example_networks.micro()
 micro.current_state = (0, 0, 0, 0)
-micro.past_state = (0, 0, 0, 0)
 micro_subsystem = Subsystem(range(micro.size), micro)
 mip = big_mip(micro_subsystem)
 

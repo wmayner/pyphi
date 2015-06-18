@@ -193,13 +193,6 @@ Numerical precision
 Miscellaneous
 ~~~~~~~~~~~~~
 
-- Control whether PyPhi checks if the network's current state is possible,
-  given the TPM and the past state. Nodes with no inputs are assumed to be able
-  to have any state, and will not constrain the possible states.
-
-    >>> pyphi.config.VALIDATE_NETWORK_STATE
-    False
-
 - If set to ``True``, this defines the Phi value of subsystems containing only
   a single node with a self-loop to be ``0.5``. If set to False, their
   |big_phi| will be actually be computed (to be zero, in this implementation).
@@ -282,8 +275,6 @@ config = {
     'LOG_CONFIG_ON_IMPORT': True,
     # The number of decimal points to which phi values are considered accurate
     'PRECISION': 6,
-    # Controls whether network states are validated upon network creation.
-    'VALIDATE_NETWORK_STATE': False,
     # In some applications of this library, the user may prefer to define
     # single-node subsystems as having 0.5 Phi.
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,

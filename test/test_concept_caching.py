@@ -17,9 +17,9 @@ def test_normalized_mechanism():
 
 
 def test_different_states(big):
-    all_off = Network(big.tpm, tuple([0]*5), tuple([0]*5),
+    all_off = Network(big.tpm, tuple([0]*5),
                       connectivity_matrix=big.connectivity_matrix)
-    all_on = Network(big.tpm, tuple([1]*5), tuple([1]*5),
+    all_on = Network(big.tpm, tuple([1]*5),
                      connectivity_matrix=big.connectivity_matrix)
     s1 = Subsystem(range(2, 5), all_off)
     s2 = Subsystem(range(2, 5), all_on)
@@ -75,9 +75,9 @@ def test_unnormalize_concept():
 def check_concept_caching(net, states, flushcache):
     flushcache()
 
-    # Build the networks for each pair of current/past states.
+    # Build the networks for each state.
     networks = {
-        s: Network(net.tpm, s[0], s[1], net.connectivity_matrix) for s in states
+        s: Network(net.tpm, s, net.connectivity_matrix) for s in states
     }
 
     # Empty the cache.
@@ -107,29 +107,29 @@ def check_concept_caching(net, states, flushcache):
 @pytest.mark.slow
 def test_standard(standard, flushcache):
     check_concept_caching(standard,
-                          [(standard.current_state, standard.past_state)],
+                          [(standard.current_state)],
                           flushcache)
 
 
 @pytest.mark.slow
 def test_noised(noised, flushcache):
-    check_concept_caching(noised, [(noised.current_state, noised.past_state)],
+    check_concept_caching(noised, [(noised.current_state)],
                           flushcache)
 
 
 @pytest.mark.slow
 def test_big(big, flushcache):
-    check_concept_caching(big, [(big.current_state, big.past_state)],
+    check_concept_caching(big, [(big.current_state)],
                           flushcache)
 
 
 @pytest.mark.veryslow
 def test_rule152(rule152, flushcache):
     states = [
-        ((0, 1, 0, 0, 0), (1, 0, 0, 0, 0)),
-        ((1, 1, 1, 1, 1), (1, 1, 1, 1, 1)),
-        ((1, 1, 0, 1, 0), (1, 1, 1, 0, 0)),
-        ((0, 0, 0, 0, 0), (0, 0, 0, 0, 0)),
-        ((1, 0, 1, 0, 0), (1, 1, 0, 0, 0))
+        (0, 1, 0, 0, 0),
+        (1, 1, 1, 1, 1),
+        (1, 1, 0, 1, 0),
+        (0, 0, 0, 0, 0),
+        (1, 0, 1, 0, 0)
     ]
     check_concept_caching(rule152, states, flushcache)

@@ -420,14 +420,13 @@ def test_rule152_complexes_no_caching(rule152):
     # Don't use concept caching for this test.
     constants.CACHE_CONCEPTS = False
 
-    for k, result in results.items():
-        print(net.current_state, net.past_state)
+    for state, result in results.items():
+        print(net.current_state)
         # Empty the DB.
         _flushdb()
-        # Unpack the current/past state from the results key.
-        current_state, past_state = k
-        # Generate the network with the current and past state we're testing.
-        net = Network(rule152.tpm, current_state, past_state,
+        # Unpack the state from the results key.
+        # Generate the network with the state we're testing.
+        net = Network(rule152.tpm, state,
                       connectivity_matrix=rule152.connectivity_matrix)
         # Comptue all the complexes, leaving out the first (empty) subsystem
         # since Matlab doesn't include it in results.

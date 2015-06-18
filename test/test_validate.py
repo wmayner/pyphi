@@ -49,37 +49,13 @@ def test_validate_cm_not_binary():
 
 def test_validate_network_wrong_cm_size(standard):
     with pytest.raises(ValueError):
-        Network(standard.tpm, standard.current_state, standard.past_state,
+        Network(standard.tpm, standard.current_state,
                 np.ones(16).reshape(4, 4))
 
 
 def test_validate_state_wrong_size(standard):
-    initial_config = config.VALIDATE_NETWORK_STATE
-    config.VALIDATE_NETWORK_STATE = True
     with pytest.raises(ValueError):
-        Network(standard.tpm, (0, 0, 0, 0), standard.past_state)
-    config.VALIDATE_NETWORK_STATE = initial_config
+        Network(standard.tpm, (0, 0, 0, 0))
 
 
-def test_validate_state_not_reachable_at_all(standard):
-    initial_config = config.VALIDATE_NETWORK_STATE
-    config.VALIDATE_NETWORK_STATE = True
-    with pytest.raises(validate.StateUnreachableError):
-        Network(standard.tpm, (0, 1, 1), standard.past_state)
-    config.VALIDATE_NETWORK_STATE = initial_config
 
-
-def test_validate_state_not_reachable_from_given(standard):
-    initial_config = config.VALIDATE_NETWORK_STATE
-    config.VALIDATE_NETWORK_STATE = True
-    with pytest.raises(validate.StateUnreachableError):
-        Network(standard.tpm, (0, 0, 0), (1, 1, 1))
-    config.VALIDATE_NETWORK_STATE = initial_config
-
-
-@pytest.mark.filter
-def test_validate_state_reachable_from_given(micro):
-    initial_config = config.VALIDATE_NETWORK_STATE
-    config.VALIDATE_NETWORK_STATE = True
-    Network(micro.tpm, (0, 0, 1, 1), (1, 1, 0, 0))
-    config.VALIDATE_NETWORK_STATE = initial_config

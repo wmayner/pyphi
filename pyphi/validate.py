@@ -8,17 +8,16 @@ Methods for validating common types of input.
 
 import numpy as np
 
-from . import constants, config, convert
+from . import constants, convert
 from .constants import EPSILON
 
 
 class StateUnreachableError(ValueError):
-    """Raised when the current state of a network cannot be reached, either
-    from any state or from a given past state."""
+    """Raised when the state of a network cannot be reached from any past
+    state."""
 
-    def __init__(self, current_state, past_state, tpm, message):
-        self.current_state = current_state
-        self.past_state = past_state
+    def __init__(self, state, tpm, message):
+        self.state = state
         self.tpm = tpm
         self.message = message
 
@@ -88,54 +87,23 @@ def connectivity_matrix(cm):
 
 
 # TODO test
-def state_reachable(past_state, current_state, tpm):
+def state_reachable(state, tpm):
     """Return whether a state can be reached according to the given TPM."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
-    test = tpm - np.array(current_state)
+    test = tpm - np.array(state)
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
         raise StateUnreachableError(
-            current_state, past_state, tpm,
-            'The current state cannot be reached from the past state '
-            'according to the given TPM.')
-
-
-# TODO test
-def state_reachable_from(past_state, current_state, tpm):
-    """Return whether a state is reachable from the given past state."""
-    test = tpm[tuple(past_state)] - np.array(current_state)
-    if not np.all(np.logical_and(-1 < test, test < 1)):
-        raise StateUnreachableError(
-            current_state, past_state, tpm,
-            "The current state is unreachable according to the given TPM.")
-
-
-def _state_length(name, state, size):
-    if len(state) != size:
-        raise ValueError('Invalid {} state: there must be one entry per '
-                         'node in the network; this state has {} entries, but '
-                         'there are {} nodes.'.format(name, len(state), size))
-    return True
+            state, tpm,
+            'The current state cannot be reached according to the given TPM.')
 
 
 def current_state_length(state, size):
-    return _state_length('current', state, size)
-
-
-def past_state_length(state, size):
-    return _state_length('past', state, size)
-
-
-# TODO test
-def state(network):
-    """Validate a network's current and past state."""
-    current_state_length(network.current_state, network.size)
-    past_state_length(network.past_state, network.size)
-    if config.VALIDATE_NETWORK_STATE:
-        state_reachable(network.past_state, network.current_state, network.tpm)
-        state_reachable_from(network.past_state, network.current_state,
-                             network.tpm)
+    if len(state) != size:
+        raise ValueError('Invalid state: there must be one entry per '
+                         'node in the network; this state has {} entries, but '
+                         'there are {} nodes.'.format(len(state), size))
     return True
 
 
@@ -152,9 +120,9 @@ def perturb_vector(pv, size):
 
 # TODO test
 def network(network):
-    """Validate TPM, connectivity matrix, and current and past state."""
+    """Validate TPM, connectivity matrix and state."""
     tpm(network.tpm)
-    state(network)
+    current_state_length(network.current_state, network.size)
     connectivity_matrix(network.connectivity_matrix)
     perturb_vector(network.perturb_vector, network.size)
     if (network.connectivity_matrix.shape[0] != network.size
