@@ -29,15 +29,18 @@ class Subsystem:
     """A set of nodes in a network.
 
     Args:
-        nodes (tuple(int)): A sequence of indices of the nodes in this
-            subsystem.
         network (Network): The network the subsystem belongs to.
+        state (tuple(int)):
+        node_indices (tuple(int)): A sequence of indices of the nodes in this
+            subsystem.
 
     Attributes:
         nodes (list(Node)): A list of nodes in the subsystem.
         node_indices (tuple(int)): The indices of the nodes in the subsystem.
         size (int): The number of nodes in the subsystem.
         network (Network): The network the subsystem belongs to.
+        state (tuple): The current state of the subsystem. ``state[i]`` gives
+            the state of node |i|.
         cut (Cut): The cut that has been applied to this subsystem.
         connectivity_matrix (np.array): The connectivity matrix after applying
             the cut.
@@ -49,13 +52,17 @@ class Subsystem:
         tpm (np.array): The TPM conditioned on the state of the external nodes.
     """
 
-    def __init__(self, node_indices, network, cut=None, mice_cache=None,
+    def __init__(self, network, state, node_indices, cut=None, mice_cache=None,
                  repertoire_cache=None, cache_info=None):
         # The network this subsystem belongs to.
         self.network = network
+        # The state the network is in.
+        self._state = tuple(state)
         # Remove duplicates, sort, and ensure indices are native Python `int`s
         # (for JSON serialization).
         self.node_indices = tuple(sorted(list(set(map(int, node_indices)))))
+        # Validate.
+        validate.subsystem(self)
         # Get the size of this subsystem.
         self.size = len(self.node_indices)
         # Get the external nodes.
@@ -77,10 +84,9 @@ class Subsystem:
         # The TPM conditioned on the state of the external nodes.
         self.tpm = utils.condition_tpm(
             self.network.tpm, self.external_indices,
-            self.network.current_state)
+            self.state)
         # Generate the nodes.
-        self.nodes = tuple(Node(self.network, i, self) for i in
-                           self.node_indices)
+        self.nodes = tuple(Node(self, i) for i in self.node_indices)
         # The matrix of connections which are severed due to the cut
         self.null_cut_matrix = np.zeros((len(self), len(self)))
         self.cut_matrix = (self._find_cut_matrix(cut) if cut is not None
@@ -95,6 +101,19 @@ class Subsystem:
                                   repertoire_cache)
         self._repertoire_cache_info = ([0, 0] if cache_info is None else
                                        cache_info)
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, state):
+        # Cast state to a tuple so it can be hashed and properly used as
+        # np.array indices.
+        state = tuple(state)
+        self._state = state
+        # Validate.
+        validate.subsystem(self)
 
     def repertoire_cache_info(self):
         """Report repertoire cache statistics."""
@@ -244,7 +263,7 @@ class Subsystem:
             # TODO extend to nonbinary nodes
             # We're conditioning on this node's state, so take the probability
             # table for the node being in that state.
-            node_state = self.network.current_state[mechanism_node.index]
+            node_state = self.state[mechanism_node.index]
             conditioned_tpm = mechanism_node.tpm[node_state]
             # Collect the nodes that are not in the purview and have
             # connections to this node.
@@ -369,7 +388,7 @@ class Subsystem:
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
         accumulated_cjd = utils.condition_tpm(
-            accumulated_cjd, fixed_inputs, self.network.current_state)
+            accumulated_cjd, fixed_inputs, self.state)
         # The distribution still has twice as many dimensions as the network
         # has nodes, with the first half of the shape now all singleton
         # dimensions, so we reshape to eliminate those singleton dimensions
