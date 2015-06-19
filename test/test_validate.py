@@ -50,3 +50,8 @@ def test_validate_cm_not_binary():
 def test_validate_network_wrong_cm_size(standard):
     with pytest.raises(ValueError):
         Network(standard.tpm, np.ones(16).reshape(4, 4))
+
+
+# TODO implement
+def test_validate_state_reachable_ignore_input():
+    pass
