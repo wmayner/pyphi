@@ -87,27 +87,6 @@ def connectivity_matrix(cm):
 
 
 # TODO test
-def state_reachable(state, tpm):
-    """Return whether a state can be reached according to the given TPM."""
-    # If there is a row `r` in the TPM such that all entries of `r - state` are
-    # between -1 and 1, then the given state has a nonzero probability of being
-    # reached from some state.
-    test = tpm - np.array(state)
-    if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
-        raise StateUnreachableError(
-            state, tpm,
-            'The current state cannot be reached according to the given TPM.')
-
-
-def current_state_length(state, size):
-    if len(state) != size:
-        raise ValueError('Invalid state: there must be one entry per '
-                         'node in the network; this state has {} entries, but '
-                         'there are {} nodes.'.format(len(state), size))
-    return True
-
-
-# TODO test
 def perturb_vector(pv, size):
     """Validate a network's pertubation vector."""
     if pv.size != size:
@@ -119,14 +98,43 @@ def perturb_vector(pv, size):
 
 
 # TODO test
-def network(network):
-    """Validate TPM, connectivity matrix and state."""
-    tpm(network.tpm)
-    current_state_length(network.current_state, network.size)
-    connectivity_matrix(network.connectivity_matrix)
-    perturb_vector(network.perturb_vector, network.size)
-    if (network.connectivity_matrix.shape[0] != network.size
-            and not network.connectivity_matrix.size == 0):
+def network(n):
+    """Validate a network's TPM, connectivity matrix, and perturbation
+    vector."""
+    tpm(n.tpm)
+    connectivity_matrix(n.connectivity_matrix)
+    perturb_vector(n.perturb_vector, n.size)
+    if (n.connectivity_matrix.shape[0] != n.size
+            and not n.connectivity_matrix.size == 0):
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")
+    return True
+
+
+def state_length(state, size):
+    if len(state) != size:
+        raise ValueError('Invalid state: there must be one entry per '
+                         'node in the network; this state has {} entries, but '
+                         'there are {} nodes.'.format(len(state), size))
+    return True
+
+
+# TODO test
+def state_reachable(state, tpm):
+    """Return whether a state can be reached according to the given TPM."""
+    # If there is a row `r` in the TPM such that all entries of `r - state` are
+    # between -1 and 1, then the given state has a nonzero probability of being
+    # reached from some state.
+    test = tpm - np.array(state)
+    if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
+        raise StateUnreachableError(
+            state, tpm,
+            'This state cannot be reached according to the given TPM.')
+
+
+# TODO test
+def subsystem(s):
+    """Validate a subsystem's state."""
+    state_length(s.state, s.network.size)
+    state_reachable(s.state, s.network.tpm)
     return True
