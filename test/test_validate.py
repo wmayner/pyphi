@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 
 from pyphi.network import Network
-from pyphi import validate, config
+from pyphi import validate
 
 
 def test_validate_direction():
@@ -49,13 +49,4 @@ def test_validate_cm_not_binary():
 
 def test_validate_network_wrong_cm_size(standard):
     with pytest.raises(ValueError):
-        Network(standard.tpm, standard.current_state,
-                np.ones(16).reshape(4, 4))
-
-
-def test_validate_state_wrong_size(standard):
-    with pytest.raises(ValueError):
-        Network(standard.tpm, (0, 0, 0, 0))
-
-
-
+        Network(standard.tpm, np.ones(16).reshape(4, 4))
