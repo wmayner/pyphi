@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # compute.py
+
 """
 Methods for computing concepts, constellations, and integrated information of
 subsystems.

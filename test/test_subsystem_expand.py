@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# test_subsystem_expand.py
 
 from pyphi import Subsystem
 from pyphi.compute import big_mip

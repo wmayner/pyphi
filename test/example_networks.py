@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# example_networks.py
 
 import numpy as np
 
@@ -11,7 +12,6 @@ from pyphi.subsystem import Subsystem
 # TODO pass just the subsystem (contains a reference to the network)
 
 use_connectivity_matrices = True
-
 
 standard = pyphi.examples.basic_network
 s = pyphi.examples.basic_subsystem

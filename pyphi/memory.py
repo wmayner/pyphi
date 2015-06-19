@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # memory.py
+
 """
 Decorators and objects for memoization.
 """

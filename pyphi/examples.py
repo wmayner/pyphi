@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # examples.py
+
 """
 Example networks and subsystems to go along with the documentation.
 """
