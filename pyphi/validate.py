@@ -135,7 +135,7 @@ def state_reachable(state, network):
     test = network.tpm - np.array(state)
 
     # But we don't care about nodes without inputs, so discard those columns.
-    test.reshape(-1, test.shape[-1])
+    test = test.reshape(-1, test.shape[-1])
     nodes_with_inputs = np.where(np.sum(network.connectivity_matrix, 1) > 0)[0]
     test = test[:, nodes_with_inputs]
 
@@ -151,5 +151,5 @@ def subsystem(s):
     state_length(s.state, s.network.size)
     node_states(s.state)
     if config.VALIDATE_NETWORK_STATE:
-        state_reachable(s.state, s.network.tpm)
+        state_reachable(s.state, s.network)
     return True
