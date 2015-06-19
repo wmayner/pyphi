@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # lru_cache.py
+
 """
 A modification of the builtin *functools.lru_cache* decorator that takes an
 additional keyword argument, *maxmem*, which specifies the maximum percentage

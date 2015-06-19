@@ -21,27 +21,29 @@ class Node:
     """A node in a subsystem.
 
     Attributes:
-        network (network):
-            The network the node belongs to.
-        index (int):
-            The node's index in the network's list of nodes.
         subsystem (Subsystem):
             The subsystem the node belongs to.
+        index (int):
+            The node's index in the network.
+        network (Network):
+            The network the node belongs to.
         label (str):
             An optional label for the node.
+        state (int):
+            The state of this node.
     """
 
-    def __init__(self, network, index, subsystem, label=None):
-        # This node's parent network.
-        self.network = network
-        # This node's index in the network's list of nodes.
-        self.index = index
+    def __init__(self, subsystem, index, label=None):
         # This node's parent subsystem.
         self.subsystem = subsystem
+        # This node's index in the list of nodes.
+        self.index = index
+        # This node's parent network.
+        self.network = subsystem.network
         # Label for display.
         self.label = label
         # State of this node.
-        self.state = self.network.current_state[self.index]
+        self.state = self.subsystem.state[self.index]
         # Get indices of the inputs.
         self._input_indices = utils.get_inputs_from_cm(
             self.index, subsystem.connectivity_matrix)

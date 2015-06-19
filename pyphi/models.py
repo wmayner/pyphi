@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # models.py
+
 """
 Containers for MICE, MIP, cut, partition, and concept data.
 """

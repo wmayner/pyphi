@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# test_perturb.py
 
 import numpy as np
 import pyphi
@@ -19,12 +20,11 @@ cm = np.array([[0, 1, 1],
 
 pv = np.array([0.75, 0.75, 0.25])
 
-current_state = (0, 1, 0)
+state = (0, 1, 0)
 
-network = pyphi.Network(tpm, current_state, connectivity_matrix=cm,
-                        perturb_vector=pv)
+network = pyphi.Network(tpm, connectivity_matrix=cm, perturb_vector=pv)
 
-subsystem = pyphi.Subsystem(range(network.size), network)
+subsystem = pyphi.Subsystem(network, state, range(network.size))
 
 A = (subsystem.nodes[0],)
 B = (subsystem.nodes[1],)

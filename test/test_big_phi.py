@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# test_big_phi.py
 
 import pickle
 import pytest
@@ -349,16 +350,16 @@ def test_find_mip_parallel_noised_example(s_noised, flushcache,
     config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = initial
 
 
-def test_complexes_standard(standard, flushcache, restore_fs_cache):
+def test_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
-    complexes = list(compute.complexes(standard))
+    complexes = list(compute.complexes(s.network, s.state))
     check_mip(complexes[2], standard_answer)
 
 
 # TODO!! add more assertions for the smaller subsystems
-def test_all_complexes_standard(standard, flushcache, restore_fs_cache):
+def test_all_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
-    complexes = list(compute.all_complexes(standard))
+    complexes = list(compute.all_complexes(s.network, s.state))
     check_mip(complexes[7], standard_answer)
 
 
@@ -405,6 +406,7 @@ def test_big_mip_rule152(rule152_s, flushcache, restore_fs_cache):
     check_mip(mip, rule152_answer)
 
 
+# TODO fix this horribly outdated mess that never worked in the first place :P
 @pytest.mark.veryslow
 def test_rule152_complexes_no_caching(rule152):
     net = rule152
@@ -421,7 +423,6 @@ def test_rule152_complexes_no_caching(rule152):
     constants.CACHE_CONCEPTS = False
 
     for state, result in results.items():
-        print(net.current_state)
         # Empty the DB.
         _flushdb()
         # Unpack the state from the results key.

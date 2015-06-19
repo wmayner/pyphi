@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # examples.py
+
 """
 Example networks and subsystems to go along with the documentation.
 """
@@ -12,7 +12,7 @@ from .network import Network
 from .subsystem import Subsystem
 
 
-def basic_network():
+def basic_network(cm=False):
     """A simple 3-node network with roughly two bits of |big_phi|.
 
     Diagram::
@@ -77,21 +77,23 @@ def basic_network():
         [1, 1, 1],
         [1, 1, 0]
     ])
-    cm = np.array([
-        [0, 0, 1],
-        [1, 0, 1],
-        [1, 1, 0]
-    ])
-    current_state = (1, 0, 0)
-
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    if cm is False:
+        cm = np.array([
+            [0, 0, 1],
+            [1, 0, 1],
+            [1, 1, 0]
+        ])
+    else:
+        cm = None
+    return Network(tpm, connectivity_matrix=cm)
 
 
 def basic_subsystem():
     """A subsystem containing all the nodes of the
     :func:`~pyphi.examples.basic_network`."""
     net = basic_network()
-    return Subsystem(range(net.size), net)
+    state = (1, 0, 0)
+    return Subsystem(net, state, range(net.size))
 
 
 def residue_network():
@@ -142,16 +144,16 @@ def residue_network():
     cm[2:4, 0] = 1
     cm[3:, 1] = 1
 
-    current_state = (0, 0, 0, 0, 0)
-
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    return Network(tpm, connectivity_matrix=cm)
 
 
 def residue_subsystem():
     """The subsystem containing all the nodes of the
     :func:`~pyphi.examples.residue_network`."""
     net = residue_network()
-    return Subsystem(range(net.size), net)
+    state = (0, 0, 0, 0, 0)
+
+    return Subsystem(net, state, range(net.size))
 
 
 def xor_network():
@@ -197,15 +199,15 @@ def xor_network():
         [1, 0, 1],
         [1, 1, 0]
     ])
-    current_state = (0, 0, 0)
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    return Network(tpm, connectivity_matrix=cm)
 
 
 def xor_subsystem():
     """The subsystem containing all the nodes of the
     :func:`~pyphi.examples.xor_network`."""
     net = xor_network()
-    return Subsystem(range(net.size), net)
+    state = (0, 0, 0)
+    return Subsystem(net, state, range(net.size))
 
 
 def cond_depend_tpm():
@@ -420,17 +422,12 @@ def propagation_delay_network():
                    [1, 0, 0, 0, 0, 0, 0, 0, 0],
                    [0, 0, 0, 0, 0, 0, 1, 0, 0]])
 
-    current_state = (1, 0, 0, 0, 0, 0, 0, 0, 0)
-
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    return Network(tpm, connectivity_matrix=cm)
 
 
 def macro_network():
-    """ A network of micro elements which has greater integrated information
-    after coarse graining to a macro scale.
-
-    """
-
+    """A network of micro elements which has greater integrated information
+    after coarse graining to a macro scale."""
     tpm = np.array([[0.3, 0.3, 0.3, 0.3],
                     [0.3, 0.3, 0.3, 0.3],
                     [0.3, 0.3, 0.3, 0.3],
@@ -447,14 +444,13 @@ def macro_network():
                     [1.0, 1.0, 0.3, 0.3],
                     [1.0, 1.0, 0.3, 0.3],
                     [1.0, 1.0, 1.0, 1.0]])
-
-    current_state = (0, 0, 0, 0)
-    return Network(tpm, current_state)
+    return Network(tpm)
 
 
 def macro_subsystem():
-    network = macro_network()
-    return Subsystem(range(network.size), network)
+    net = macro_network()
+    state = (0, 0, 0, 0)
+    return Subsystem(net, state, range(net.size))
 
 
 def rule110_network():
@@ -469,57 +465,55 @@ def rule110_network():
                     [1, 1, 1],
                     [1, 1, 1],
                     [0, 0, 0]])
+    return Network(tpm)
 
-    current_state = (0, 0, 0)
-    return Network(tpm, current_state)
 
 def rule154_network():
-    """A network of three elements which follows the logic of
-    the Rule 154 cellular automaton with current and past
-    state (1, 0, 0, 0, 0)."""
+    """A network of three elements which follows the logic of the Rule 154
+    cellular automaton."""
     tpm = np.array([
-        [ 0.,  0.,  0.,  0.,  0.],
-        [ 0.,  1.,  0.,  0.,  1.],
-        [ 1.,  0.,  1.,  0.,  0.],
-        [ 1.,  0.,  1.,  0.,  1.],
-        [ 0.,  1.,  0.,  1.,  0.],
-        [ 0.,  0.,  0.,  1.,  1.],
-        [ 1.,  1.,  0.,  1.,  0.],
-        [ 1.,  1.,  0.,  1.,  1.],
-        [ 0.,  0.,  1.,  0.,  1.],
-        [ 0.,  1.,  1.,  0.,  0.],
-        [ 1.,  0.,  0.,  0.,  1.],
-        [ 1.,  0.,  0.,  0.,  0.],
-        [ 0.,  1.,  1.,  0.,  1.],
-        [ 0.,  0.,  1.,  0.,  0.],
-        [ 1.,  1.,  1.,  0.,  1.],
-        [ 1.,  1.,  1.,  0.,  0.],
-        [ 1.,  0.,  0.,  1.,  0.],
-        [ 0.,  1.,  0.,  1.,  1.],
-        [ 0.,  0.,  1.,  1.,  0.],
-        [ 1.,  0.,  1.,  1.,  1.],
-        [ 1.,  1.,  0.,  0.,  0.],
-        [ 0.,  0.,  0.,  0.,  1.],
-        [ 0.,  1.,  0.,  0.,  0.],
-        [ 1.,  1.,  0.,  0.,  1.],
-        [ 1.,  0.,  1.,  1.,  0.],
-        [ 0.,  1.,  1.,  1.,  1.],
-        [ 0.,  0.,  0.,  1.,  0.],
-        [ 1.,  0.,  0.,  1.,  1.],
-        [ 1.,  1.,  1.,  1.,  0.],
-        [ 0.,  0.,  1.,  1.,  1.],
-        [ 0.,  1.,  1.,  1.,  0.],
-        [ 1.,  1.,  1.,  1.,  1.]
+        [0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 1],
+        [1, 0, 1, 0, 0],
+        [1, 0, 1, 0, 1],
+        [0, 1, 0, 1, 0],
+        [0, 0, 0, 1, 1],
+        [1, 1, 0, 1, 0],
+        [1, 1, 0, 1, 1],
+        [0, 0, 1, 0, 1],
+        [0, 1, 1, 0, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0],
+        [0, 1, 1, 0, 1],
+        [0, 0, 1, 0, 0],
+        [1, 1, 1, 0, 1],
+        [1, 1, 1, 0, 0],
+        [1, 0, 0, 1, 0],
+        [0, 1, 0, 1, 1],
+        [0, 0, 1, 1, 0],
+        [1, 0, 1, 1, 1],
+        [1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 1],
+        [0, 1, 0, 0, 0],
+        [1, 1, 0, 0, 1],
+        [1, 0, 1, 1, 0],
+        [0, 1, 1, 1, 1],
+        [0, 0, 0, 1, 0],
+        [1, 0, 0, 1, 1],
+        [1, 1, 1, 1, 0],
+        [0, 0, 1, 1, 1],
+        [0, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1]
     ])
     cm = np.array([
-        [ 1.,  1.,  0.,  0.,  1.],
-        [ 1.,  1.,  1.,  0.,  0.],
-        [ 0.,  1.,  1.,  1.,  0.],
-        [ 0.,  0.,  1.,  1.,  1.],
-        [ 1.,  0.,  0.,  1.,  1.]
+        [1, 1, 0, 0, 1],
+        [1, 1, 1, 0, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 1, 1, 1],
+        [1, 0, 0, 1, 1]
     ])
-    current_state = (1, 0, 0, 0, 0)
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    return Network(tpm, connectivity_matrix=cm)
+
 
 def fig1a():
     """The network shown in Figure 1A of the 2014 IIT 3.0 paper."""
@@ -598,7 +592,7 @@ def fig1a():
         [0, 0, 0, 0, 0, 0]
     ])
     current_state = (1, 0, 0, 0, 1, 0)
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    return Network(tpm, connectivity_matrix=cm)
 
 
 def fig3a():
@@ -628,7 +622,7 @@ def fig3a():
         [1, 0, 0, 0]
     ])
     current_state = (1, 0, 0, 0)
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    return Network(tpm, connectivity_matrix=cm)
 
 
 def fig3b():
@@ -658,14 +652,7 @@ def fig3b():
         [1, 0, 0, 0]
     ])
     current_state = (1, 0, 0, 0)
-    return Network(tpm, current_state, connectivity_matrix=cm)
-
-
-def fig3c():
-    """The network shown in Figure 3C of the 2014 IIT 3.0 paper."""
-    net = fig3b()
-    net.current_state = (0, 0, 0, 0)
-    return net
+    return Network(tpm, connectivity_matrix=cm)
 
 
 def fig4():
@@ -701,7 +688,7 @@ def fig4():
         [1, 1, 0],
     ])
     current_state = (1, 0, 0)
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    return Network(tpm, connectivity_matrix=cm)
 
 
 def fig5a():
@@ -736,7 +723,7 @@ def fig5a():
         [1, 1, 0]
     ])
     current_state = (1, 1, 1)
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    return Network(tpm, connectivity_matrix=cm)
 
 
 def fig5b():
@@ -771,7 +758,7 @@ def fig5b():
         [0, 1, 0]
     ])
     current_state = (1, 0, 0)
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    return Network(tpm, connectivity_matrix=cm)
 
 
 # The networks in figures 4, 6 and 8 are the same.
@@ -922,5 +909,4 @@ def fig16():
         [0, 0, 0, 0, 0, 1, 1],
         [0, 0, 0, 0, 0, 1, 1]
     ])
-    current_state = (1, 0, 0, 1, 1, 1, 0)
-    return Network(tpm, current_state, connectivity_matrix=cm)
+    return Network(tpm, connectivity_matrix=cm)
