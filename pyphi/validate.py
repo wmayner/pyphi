@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # validate.py
+
 """
 Methods for validating common types of input.
 """
@@ -111,6 +111,13 @@ def network(n):
     return True
 
 
+def node_states(state):
+    """Check that a state contains only zeros and ones."""
+    if not all([n in (0, 1) for n in state]):
+        raise ValueError(
+            'Invalid state: states must consist of only zeros and ones.')
+
+
 def state_length(state, size):
     if len(state) != size:
         raise ValueError('Invalid state: there must be one entry per '
@@ -136,5 +143,6 @@ def state_reachable(state, tpm):
 def subsystem(s):
     """Validate a subsystem's state."""
     state_length(s.state, s.network.size)
+    node_states(s.state)
     state_reachable(s.state, s.network.tpm)
     return True
