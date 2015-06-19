@@ -533,8 +533,8 @@ def possible_complexes(network, state):
     output (nodes with no inputs or no outputs cannot be part of a main
     complex, because they do not have a causal link with the rest of the
     subsystem in the past or future, respectively)."""
-    inputs = np.sum(network.connectivity_matrix, 1)
-    outputs = np.sum(network.connectivity_matrix, 0)
+    inputs = np.sum(network.connectivity_matrix, 0)
+    outputs = np.sum(network.connectivity_matrix, 1)
     nodes_have_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
     causally_significant_nodes = np.where(nodes_have_inputs_and_outputs)[0]
     for subset in utils.powerset(causally_significant_nodes):

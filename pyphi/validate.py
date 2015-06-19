@@ -136,7 +136,7 @@ def state_reachable(state, network):
 
     # But we don't care about nodes without inputs, so discard those columns.
     test = test.reshape(-1, test.shape[-1])
-    nodes_with_inputs = np.where(np.sum(network.connectivity_matrix, 1) > 0)[0]
+    nodes_with_inputs = np.where(np.sum(network.connectivity_matrix, 0) > 0)[0]
     test = test[:, nodes_with_inputs]
 
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
