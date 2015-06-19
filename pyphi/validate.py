@@ -127,12 +127,18 @@ def state_length(state, size):
 
 
 # TODO test
-def state_reachable(state, tpm):
+def state_reachable(state, network):
     """Return whether a state can be reached according to the given TPM."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
-    test = tpm - np.array(state)
+    test = network.tpm - np.array(state)
+
+    # But we don't care about nodes without inputs, so discard those columns.
+    test.reshape(-1, test.shape[-1])
+    nodes_with_inputs = np.where(np.sum(network.connectivity_matrix, 1) > 0)[0]
+    test = test[:, nodes_with_inputs]
+
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
         raise StateUnreachableError(
             state, tpm,
