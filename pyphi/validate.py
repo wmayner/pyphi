@@ -8,7 +8,7 @@ Methods for validating common types of input.
 
 import numpy as np
 
-from . import constants, convert
+from . import constants, convert, config
 from .constants import EPSILON
 
 
@@ -144,5 +144,6 @@ def subsystem(s):
     """Validate a subsystem's state."""
     state_length(s.state, s.network.size)
     node_states(s.state)
-    state_reachable(s.state, s.network.tpm)
+    if config.VALIDATE_NETWORK_STATE:
+        state_reachable(s.state, s.network.tpm)
     return True
