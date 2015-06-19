@@ -18,12 +18,10 @@ def test_normalized_mechanism():
 
 
 def test_different_states(big):
-    all_off = Network(big.tpm, tuple([0]*5),
-                      connectivity_matrix=big.connectivity_matrix)
-    all_on = Network(big.tpm, tuple([1]*5),
-                     connectivity_matrix=big.connectivity_matrix)
-    s1 = Subsystem(range(2, 5), all_off)
-    s2 = Subsystem(range(2, 5), all_on)
+    all_off = [0] * 5
+    all_on = [1] * 5
+    s1 = Subsystem(big, all_off, range(2, 5))
+    s2 = Subsystem(big, all_on, range(2, 5))
     a = s1.nodes[2:]
     b = s2.nodes[2:]
     x = cc.NormalizedMechanism(a, s1)
@@ -78,7 +76,7 @@ def check_concept_caching(net, states, flushcache):
 
     # Build the networks for each state.
     networks = {
-        s: Network(net.tpm, s, net.connectivity_matrix) for s in states
+        s: Network(net.tpm, net.connectivity_matrix) for s in states
     }
 
     # Empty the cache.
@@ -88,7 +86,7 @@ def check_concept_caching(net, states, flushcache):
     constants.CACHE_CONCEPTS = False
     no_caching_results = []
     for s in states:
-        no_caching_results.append(list(compute.complexes(networks[s])))
+        no_caching_results.append(list(compute.complexes(networks[s], s)))
 
     # Empty the cache.
     flushcache()
@@ -97,7 +95,7 @@ def check_concept_caching(net, states, flushcache):
     constants.CACHE_CONCEPTS = True
     caching_results = []
     for s in states:
-        caching_results.append(list(compute.complexes(networks[s])))
+        caching_results.append(list(compute.complexes(networks[s], s)))
 
     assert caching_results == no_caching_results
 
@@ -105,22 +103,17 @@ def check_concept_caching(net, states, flushcache):
 # End-to-end tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-@pytest.mark.slow
-def test_standard(standard, flushcache):
-    check_concept_caching(standard,
-                          [(standard.current_state)],
-                          flushcache)
+def test_standard(s, flushcache):
+    check_concept_caching(s.network, [(s.state)], flushcache)
+
+
+def test_noised(s_noised, flushcache):
+    check_concept_caching(s_noised.network, [(s_noised.state)], flushcache)
 
 
 @pytest.mark.slow
-def test_noised(noised, flushcache):
-    check_concept_caching(noised, [(noised.current_state)],
-                          flushcache)
-
-
-@pytest.mark.slow
-def test_big(big, flushcache):
-    check_concept_caching(big, [(big.current_state)],
+def test_big(big_subsys_all, flushcache):
+    check_concept_caching(big_subsys_all.network, [(big_subsys_all.state)],
                           flushcache)
 
 
