@@ -655,13 +655,6 @@ def fig3b():
     return Network(tpm, connectivity_matrix=cm)
 
 
-def fig3c():
-    """The network shown in Figure 3C of the 2014 IIT 3.0 paper."""
-    net = fig3b()
-    net.current_state = (0, 0, 0, 0)
-    return net
-
-
 def fig4():
     """The network shown in Figure 4 of the 2014 IIT 3.0 paper.
 
@@ -916,5 +909,4 @@ def fig16():
         [0, 0, 0, 0, 0, 1, 1],
         [0, 0, 0, 0, 0, 1, 1]
     ])
-    current_state = (1, 0, 0, 1, 1, 1, 0)
     return Network(tpm, connectivity_matrix=cm)
