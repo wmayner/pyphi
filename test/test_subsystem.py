@@ -7,6 +7,7 @@ import example_networks
 
 from pyphi.subsystem import Subsystem
 from pyphi.models import Cut
+from pyphi import config
 import numpy as np
 
 
@@ -18,9 +19,12 @@ def test_subsystem_validation(s):
     with pytest.raises(ValueError):
         s = Subsystem(s.network, [2, 0, 0], s.node_indices)
     # Unreachable state.
+    initial_option = config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
+    config.VALIDATE_NETWORK_STATE = True
     with pytest.raises(ValueError):
         net = example_networks.simple()
         s = Subsystem(net, [1, 1, 1], s.node_indices)
+    config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = initial_option
 
 
 def test_empty_init(s):
