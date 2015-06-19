@@ -16,30 +16,32 @@ use_connectivity_matrices = True
 standard = pyphi.examples.basic_network
 s = pyphi.examples.basic_subsystem
 
+s_state = s().state
+
 
 def s_empty():
     net = standard()
-    return Subsystem((), s.state, net)
+    return Subsystem(net, s_state, ())
 
 
 def s_single():
     net = standard()
-    return Subsystem(net, s.state, (0,))
+    return Subsystem(net, s_state, (0,))
 
 
 def subsys_n0n2():
     net = standard()
-    return Subsystem(net, s.state, (0, 2))
+    return Subsystem(net, s_state, (0, 2))
 
 
 def subsys_n1n2():
     net = standard()
-    return Subsystem(net, s.state, (1, 2))
+    return Subsystem(net, s_state, (1, 2))
 
 
 def s_complete():
     net = standard(cm=None)
-    return Subsystem(net, s.state, range(net.size))
+    return Subsystem(net, s_state, range(net.size))
 
 
 def noised(cm=False):
@@ -71,7 +73,8 @@ def s_noised():
 
 def s_noised_complete():
     n = noised(cm=None)
-    return Subsystem(range(n.size), n)
+    state = (1, 0, 0)
+    return Subsystem(n, state, range(n.size))
 
 
 s_about_to_be_on = (0, 1, 1)
