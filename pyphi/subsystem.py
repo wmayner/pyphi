@@ -775,14 +775,13 @@ class Subsystem:
             purviews = [self.indices2nodes(purview) for purview in purviews if
                         set(purview).issubset(self.node_indices)]
 
-        # Filter out trivially reducible purviews if a cut has been applied.
+        # Filter out trivially reducible purviews.
         def not_trivially_reducible(purview):
             if direction == DIRECTIONS[PAST]:
                 return self._test_connections(purview, mechanism)
             elif direction == DIRECTIONS[FUTURE]:
                 return self._test_connections(mechanism, purview)
-        if not self.cut == self.null_cut:
-            purviews = tuple(filter(not_trivially_reducible, purviews))
+        purviews = tuple(filter(not_trivially_reducible, purviews))
 
         # Find the maximal MIP over the remaining purviews.
         if not purviews:
