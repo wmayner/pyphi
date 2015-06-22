@@ -313,7 +313,6 @@ def bipartition(a):
         >>> bipartition((1,2,3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
-
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
@@ -380,7 +379,7 @@ def directed_bipartition_indices(N):
     # Return on empty input
     if N <= 0:
         return result
-    for i in range(2 ** N):
+    for i in range(2**N):
         part = [[], []]
         for n in range(N):
             bit = (i >> n) & 1
