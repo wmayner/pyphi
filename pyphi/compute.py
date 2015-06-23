@@ -80,13 +80,14 @@ def sequential_constellation(subsystem, mechanism_indices_to_check=False,
         constellation (``tuple(Concept)``): A tuple of all the Concepts in the
             constellation.
     """
+    if purview_indices_to_check:
+        purviews = map(subsystem.indices2nodes, purview_indices_to_check)
     if mechanism_indices_to_check is False:
-        concepts = [concept(subsystem, mechanism,
-                            purviews=purview_indices_to_check)
+        concepts = [concept(subsystem, mechanism, purviews=purviews)
                     for mechanism in utils.powerset(subsystem.nodes)]
     else:
         concepts = [concept(subsystem, subsystem.indices2nodes(indices),
-                            purviews=purview_indices_to_check)
+                            purviews=purviews)
                     for indices in mechanism_indices_to_check]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
