@@ -121,7 +121,9 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=False,
     purviews = (map(subsystem.indices2nodes, purview_indices_to_check)
                 if purview_indices_to_check else False)
     if mechanism_indices_to_check is False:
-        mechanism_indices_to_check = utils.powerset(subsystem.node_indices)
+        mechanisms = utils.powerset(subsystem.nodes)
+    else:
+        mechanisms = map(subsystem.indices2nodes, mechanism_indices_to_check)
     if config.NUMBER_OF_CORES < 0:
         number_of_processes = (multiprocessing.cpu_count() +
                                config.NUMBER_OF_CORES + 1)
@@ -137,15 +139,15 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=False,
     # process.
     in_queue = multiprocessing.Queue()
     out_queue = multiprocessing.Queue()
-    for i, index in enumerate(mechanism_indices_to_check):
-        in_queue.put((i, subsystem.indices2nodes(index)))
+    for i, mechanism in enumerate(mechanisms):
+        in_queue.put((i, mechanism))
     for i in range(number_of_processes):
         in_queue.put((None, None))
     # Initialize the processes and start them.
     processes = [
         multiprocessing.Process(target=_concept_wrapper,
                                 args=(in_queue, out_queue, subsystem,
-                                      purview_indices_to_check))
+                                      purviews))
         for i in range(number_of_processes)
     ]
     for i in range(number_of_processes):
