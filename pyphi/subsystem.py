@@ -861,13 +861,13 @@ class Subsystem:
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
                        subsystem=self)
 
-    def concept(self, mechanism):
+    def concept(self, mechanism, purviews=False):
         """Calculate a concept."""
         # TODO refactor to pass indices around, not nodes, throughout Subsystem
         # Calculate the maximally irreducible cause repertoire.
-        cause = self.core_cause(mechanism)
+        cause = self.core_cause(mechanism, purviews=purviews)
         # Calculate the maximally irreducible effect repertoire.
-        effect = self.core_effect(mechanism)
+        effect = self.core_effect(mechanism, purviews=purviews)
         # Get the minimal phi between them.
         phi = min(cause.phi, effect.phi)
         # NOTE: Make sure to expand the repertoires to the size of the

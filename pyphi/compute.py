@@ -26,7 +26,7 @@ from .subsystem import Subsystem
 log = logging.getLogger(__name__)
 
 
-def concept(subsystem, mechanism):
+def concept(subsystem, mechanism, purviews=False):
     """Return the concept specified by a mechanism within a subsytem.
 
     Args:
@@ -62,12 +62,14 @@ def concept(subsystem, mechanism):
     # Concept caching is only available if the caching backend is a database.
     if (config.CACHE_CONCEPTS and
             config.CACHING_BACKEND == constants.DATABASE):
-        return time_annotated(_concept(subsystem, mechanism))
+        return time_annotated(_concept(subsystem, mechanism,
+                                       purviews=purviews))
     else:
-        return time_annotated(subsystem.concept(mechanism))
+        return time_annotated(subsystem.concept(mechanism, purviews=purviews))
 
 
-def sequential_constellation(subsystem, mechanism_indices_to_check=None):
+def sequential_constellation(subsystem, mechanism_indices_to_check=False,
+                             purview_indices_to_check=False):
     """Return the conceptual structure of this subsystem.
 
     Args:
@@ -78,29 +80,32 @@ def sequential_constellation(subsystem, mechanism_indices_to_check=None):
         constellation (``tuple(Concept)``): A tuple of all the Concepts in the
             constellation.
     """
-    if not mechanism_indices_to_check:
-        concepts = [concept(subsystem, mechanism) for mechanism in
-                    utils.powerset(subsystem.nodes)]
+    if mechanism_indices_to_check is False:
+        concepts = [concept(subsystem, mechanism,
+                            purviews=purview_indices_to_check)
+                    for mechanism in utils.powerset(subsystem.nodes)]
     else:
-        concepts = [concept(subsystem, subsystem.indices2nodes(indices))
+        concepts = [concept(subsystem, subsystem.indices2nodes(indices),
+                            purviews=purview_indices_to_check)
                     for indices in mechanism_indices_to_check]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
 
-def _concept_wrapper(in_queue, out_queue, subsystem):
+def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False):
     """Wrapper for parallel evaluation of concepts."""
     while True:
         (index, mechanism) = in_queue.get()
         if mechanism is None:
             break
-        new_concept = concept(subsystem, mechanism)
+        new_concept = concept(subsystem, mechanism, purviews=purviews)
         if new_concept.phi > 0:
             out_queue.put(new_concept)
     out_queue.put(None)
 
 
-def parallel_constellation(subsystem, mechanism_indices_to_check=None):
+def parallel_constellation(subsystem, mechanism_indices_to_check=False,
+                           purview_indices_to_check=False):
     """Return the conceptual structure of this subsystem. Concepts are
     evaluated in parallel.
 
@@ -112,7 +117,7 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
         constellation (``tuple(Concept)``): A tuple of all the Concepts in the
             constellation.
     """
-    if not mechanism_indices_to_check:
+    if mechanism_indices_to_check is False:
         mechanism_indices_to_check = utils.powerset(subsystem.node_indices)
     if config.NUMBER_OF_CORES < 0:
         number_of_processes = (multiprocessing.cpu_count() +
@@ -136,7 +141,8 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
     # Initialize the processes and start them.
     processes = [
         multiprocessing.Process(target=_concept_wrapper,
-                                args=(in_queue, out_queue, subsystem))
+                                args=(in_queue, out_queue, subsystem,
+                                      purview_indices_to_check))
         for i in range(number_of_processes)
     ]
     for i in range(number_of_processes):

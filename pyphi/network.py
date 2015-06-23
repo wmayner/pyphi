@@ -38,14 +38,6 @@ def from_json(filename):
     return network
 
 
-def list_past_purview(self, mechanism):
-    return _build_purview_list(self, mechanism, 'past')
-
-
-def list_future_purview(self, mechanism):
-    return _build_purview_list(self, mechanism, 'future')
-
-
 def _build_purview_list(self, mechanism, direction):
     if direction == DIRECTIONS[PAST]:
         return [purview for purview in utils.powerset(self._node_indices)
@@ -55,6 +47,14 @@ def _build_purview_list(self, mechanism, direction):
         return [purview for purview in utils.powerset(self._node_indices)
                 if utils.not_block_reducible(self.connectivity_matrix,
                                              mechanism, purview)]
+
+
+def list_past_purview(self, mechanism):
+    return _build_purview_list(self, mechanism, 'past')
+
+
+def list_future_purview(self, mechanism):
+    return _build_purview_list(self, mechanism, 'future')
 
 
 class Network:
