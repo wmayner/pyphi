@@ -26,13 +26,22 @@ from .subsystem import Subsystem
 log = logging.getLogger(__name__)
 
 
-def concept(subsystem, mechanism, purviews=False):
+def concept(subsystem, mechanism, purviews=False, past_purviews=False,
+            future_purviews=False):
     """Return the concept specified by a mechanism within a subsytem.
 
     Args:
         subsystem (Subsytem): The context in which the mechanism should be
             considered.
         mechanism (tuple(Node)): The candidate set of nodes.
+
+    Keyword Args:
+        purviews (tuple(tuple(Node))): Restrict the possible purviews to those
+            in this list.
+        past_purviews (tuple(tuple(Node))): Restrict the possible cause
+            purviews to those in this list. Takes precedence over ``purviews``.
+        future_purviews (tuple(tuple(Node))): Restrict the possible effect
+            purviews to those in this list. Takes precedence over ``purviews``.
 
     Returns:
         concept (|Concept|): The pair of maximally irreducible cause/effect
@@ -62,68 +71,64 @@ def concept(subsystem, mechanism, purviews=False):
     # Concept caching is only available if the caching backend is a database.
     if (config.CACHE_CONCEPTS and
             config.CACHING_BACKEND == constants.DATABASE):
-        return time_annotated(_concept(subsystem, mechanism,
-                                       purviews=purviews))
+        return time_annotated(_concept(
+            subsystem, mechanism, purviews=purviews,
+            past_purviews=past_purviews, future_purviews=future_purviews))
     else:
-        return time_annotated(subsystem.concept(mechanism, purviews=purviews))
+        return time_annotated(subsystem.concept(
+            mechanism, purviews=purviews, past_purviews=past_purviews,
+            future_purviews=future_purviews))
 
 
-def sequential_constellation(subsystem, mechanism_indices_to_check=False,
-                             purview_indices_to_check=False):
-    """Return the conceptual structure of this subsystem.
-
-    Args:
-        subsystem (Subsystem): The subsystem for which to determine the
-            constellation.
-
-    Returns:
-        constellation (``tuple(Concept)``): A tuple of all the Concepts in the
-            constellation.
-    """
-    purviews = (map(subsystem.indices2nodes, purview_indices_to_check)
-                if purview_indices_to_check else False)
-    if mechanism_indices_to_check is False:
-        concepts = [concept(subsystem, mechanism, purviews=purviews)
+def _sequential_constellation(subsystem, mechanisms=False, purviews=False,
+                              past_purviews=False, future_purviews=False):
+    purviews = (map(subsystem.indices2nodes, purviews)
+                if purviews else False)
+    past_purviews = (map(subsystem.indices2nodes, past_purviews)
+                     if past_purviews else False)
+    future_purviews = (map(subsystem.indices2nodes, future_purviews)
+                       if future_purviews else False)
+    if mechanisms is False:
+        concepts = [concept(subsystem, mechanism, purviews=purviews,
+                            past_purviews=past_purviews,
+                            future_purviews=future_purviews)
                     for mechanism in utils.powerset(subsystem.nodes)]
     else:
         concepts = [concept(subsystem, subsystem.indices2nodes(indices),
-                            purviews=purviews)
-                    for indices in mechanism_indices_to_check]
+                            purviews=purviews, past_purviews=past_purviews,
+                            future_purviews=future_purviews)
+                    for indices in mechanisms]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
 
-def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False):
+def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False,
+                     past_purviews=False, future_purviews=False):
     """Wrapper for parallel evaluation of concepts."""
     while True:
         (index, mechanism) = in_queue.get()
         if mechanism is None:
             break
-        new_concept = concept(subsystem, mechanism, purviews=purviews)
+        new_concept = concept(subsystem, mechanism, purviews=purviews,
+                              past_purviews=past_purviews,
+                              future_purviews=future_purviews)
         if new_concept.phi > 0:
             out_queue.put(new_concept)
     out_queue.put(None)
 
 
-def parallel_constellation(subsystem, mechanism_indices_to_check=False,
-                           purview_indices_to_check=False):
-    """Return the conceptual structure of this subsystem. Concepts are
-    evaluated in parallel.
-
-    Args:
-        subsystem (Subsystem): The subsystem for which to determine the
-            constellation.
-
-    Returns:
-        constellation (``tuple(Concept)``): A tuple of all the Concepts in the
-            constellation.
-    """
-    purviews = (map(subsystem.indices2nodes, purview_indices_to_check)
-                if purview_indices_to_check else False)
-    if mechanism_indices_to_check is False:
+def _parallel_constellation(subsystem, mechanisms=False, purviews=False,
+                            past_purviews=False, future_purviews=False):
+    purviews = (map(subsystem.indices2nodes, purviews)
+                if purviews else False)
+    past_purviews = (map(subsystem.indices2nodes, past_purviews)
+                     if past_purviews else False)
+    future_purviews = (map(subsystem.indices2nodes, future_purviews)
+                       if future_purviews else False)
+    if mechanisms is False:
         mechanisms = utils.powerset(subsystem.nodes)
     else:
-        mechanisms = map(subsystem.indices2nodes, mechanism_indices_to_check)
+        mechanisms = map(subsystem.indices2nodes, mechanisms)
     if config.NUMBER_OF_CORES < 0:
         number_of_processes = (multiprocessing.cpu_count() +
                                config.NUMBER_OF_CORES + 1)
@@ -146,8 +151,8 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=False,
     # Initialize the processes and start them.
     processes = [
         multiprocessing.Process(target=_concept_wrapper,
-                                args=(in_queue, out_queue, subsystem,
-                                      purviews))
+                                args=(in_queue, out_queue, subsystem, purviews,
+                                      past_purviews, future_purviews))
         for i in range(number_of_processes)
     ]
     for i in range(number_of_processes):
@@ -166,12 +171,45 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=False,
     return concepts
 
 
+_constellation_doc = \
+    """Return the conceptual structure of this subsystem, optionally restricted
+    to concepts with the mechanisms and purviews given in keyword arguments.
+
+    If you will not be using the full constellation, restricting the possible
+    mechanisms and purviews can make this function much faster.
+
+    Args:
+        subsystem (Subsystem): The subsystem for which to determine the
+            constellation.
+
+    Keyword Args:
+        mechanisms (tuple(tuple(int))): A list of mechanisms, as node indices,
+            to be considered as possible mechanisms for the concepts in the
+            constellation.
+        purviews (tuple(tuple(int))): A list of purviews, as node indices, to
+            be considered as possible purviews for the concepts in the
+            constellation.
+        past_purviews (tuple(tuple(int))): A list of purviews, as node indices,
+            to be considered as possible *cause* purviews for the concepts in
+            the constellation. This takes precedence over the more general
+            ``purviews`` option.
+        future_purviews (tuple(tuple(int))): A list of purviews, as node
+            indices, to be considered as possible *effect* purviews for the
+            concepts in the constellation. This takes precedence over the more
+            general ``purviews`` option.
+
+    Returns:
+        constellation (``tuple(Concept)``): A tuple of all the Concepts in the
+            constellation.
+    """
+_sequential_constellation.__doc__ = _constellation_doc
+_parallel_constellation.__doc__ = _constellation_doc
 # TODO fix and release in version 0.7.0
 # if config.PARALLEL_CONCEPT_EVALUATION:
-#     constellation = parallel_constellation
+#     constellation = _parallel_constellation
 # else:
-#     constellation = sequential_constellation
-constellation = sequential_constellation
+#     constellation = _sequential_constellation
+constellation = _sequential_constellation
 
 
 def concept_distance(c1, c2):
@@ -318,16 +356,15 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
                               cut=cut,
                               mice_cache=uncut_subsystem._mice_cache)
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanism_indices_to_check = set(
+        mechanisms = set(
             map(nodes2indices,
                 [c.mechanism for c in unpartitioned_constellation]))
     else:
-        mechanism_indices_to_check = set(
+        mechanisms = set(
             tuple(map(nodes2indices,
                       [c.mechanism for c in unpartitioned_constellation])) +
             utils.cut_mechanism_indices(uncut_subsystem, cut))
-    partitioned_constellation = constellation(cut_subsystem,
-                                              mechanism_indices_to_check)
+    partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
     log.debug("Finished evaluating cut {}.".format(cut))
 
