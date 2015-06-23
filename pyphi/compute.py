@@ -118,6 +118,8 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=False,
         constellation (``tuple(Concept)``): A tuple of all the Concepts in the
             constellation.
     """
+    if purview_indices_to_check:
+        purviews = map(subsystem.indices2nodes, purview_indices_to_check)
     if mechanism_indices_to_check is False:
         mechanism_indices_to_check = utils.powerset(subsystem.node_indices)
     if config.NUMBER_OF_CORES < 0:
