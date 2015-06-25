@@ -110,8 +110,8 @@ class Network:
         # TODO extend to nonbinary nodes
         self._num_states = 2 ** self.size
         self._node_indices = tuple(range(self.size))
-        self.perturb_vector = perturb_vector
         self.connectivity_matrix = connectivity_matrix
+        self.perturb_vector = perturb_vector
         if purview_cache is None:
             purview_cache = dict()
         self.purview_cache = purview_cache
@@ -202,8 +202,8 @@ class Network:
     def __repr__(self):
         return ('Network({}, connectivity_matrix={}, '
                 'perturb_vector={})'.format(repr(self.tpm),
-                                            repr(self.perturb_vector),
-                                            repr(self.connectivity_matrix)))
+                                            repr(self.connectivity_matrix),
+                                            repr(self.perturb_vector)))
 
     def __str__(self):
         return 'Network({}, connectivity_matrix={})'.format(
