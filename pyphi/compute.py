@@ -82,22 +82,19 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
 
 def _sequential_constellation(subsystem, mechanisms=False, purviews=False,
                               past_purviews=False, future_purviews=False):
-    purviews = (map(subsystem.indices2nodes, purviews)
+    purviews = (tuple(map(subsystem.indices2nodes, purviews))
                 if purviews else False)
-    past_purviews = (map(subsystem.indices2nodes, past_purviews)
+    past_purviews = (tuple(map(subsystem.indices2nodes, past_purviews))
                      if past_purviews else False)
-    future_purviews = (map(subsystem.indices2nodes, future_purviews)
+    future_purviews = (tuple(map(subsystem.indices2nodes, future_purviews))
                        if future_purviews else False)
-    if mechanisms is False:
-        concepts = [concept(subsystem, mechanism, purviews=purviews,
-                            past_purviews=past_purviews,
-                            future_purviews=future_purviews)
-                    for mechanism in utils.powerset(subsystem.nodes)]
-    else:
-        concepts = [concept(subsystem, subsystem.indices2nodes(indices),
-                            purviews=purviews, past_purviews=past_purviews,
-                            future_purviews=future_purviews)
-                    for indices in mechanisms]
+    mechanisms = (tuple(map(subsystem.indices2nodes, mechanisms))
+                  if mechanisms is not False else
+                  utils.powerset(subsystem.nodes))
+    concepts = [concept(subsystem, mechanism, purviews=purviews,
+                        past_purviews=past_purviews,
+                        future_purviews=future_purviews)
+                for mechanism in mechanisms]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
@@ -119,16 +116,15 @@ def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False,
 
 def _parallel_constellation(subsystem, mechanisms=False, purviews=False,
                             past_purviews=False, future_purviews=False):
-    purviews = (map(subsystem.indices2nodes, purviews)
+    purviews = (tuple(map(subsystem.indices2nodes, purviews))
                 if purviews else False)
-    past_purviews = (map(subsystem.indices2nodes, past_purviews)
+    past_purviews = (tuple(map(subsystem.indices2nodes, past_purviews))
                      if past_purviews else False)
-    future_purviews = (map(subsystem.indices2nodes, future_purviews)
+    future_purviews = (tuple(map(subsystem.indices2nodes, future_purviews))
                        if future_purviews else False)
-    if mechanisms is False:
-        mechanisms = utils.powerset(subsystem.nodes)
-    else:
-        mechanisms = map(subsystem.indices2nodes, mechanisms)
+    mechanisms = (tuple(map(subsystem.indices2nodes, mechanisms))
+                  if mechanisms is not False else
+                  utils.powerset(subsystem.nodes))
     if config.NUMBER_OF_CORES < 0:
         number_of_processes = (multiprocessing.cpu_count() +
                                config.NUMBER_OF_CORES + 1)
