@@ -178,7 +178,7 @@ class Subsystem:
         if indices and not set(indices).issubset(set(self.node_indices)):
             raise ValueError("Indices must be a subset of subsystem indices.")
         return () if not indices else tuple(
-            n for n in self.nodes if n.index in indices else)
+            n for n in self.nodes if n.index in indices)
 
     def _make_repertoire_key(self, direction, mechanism, purview):
         """Make a key for looking up repertoires in the cache."""
