@@ -16,7 +16,7 @@ class StateUnreachableError(ValueError):
     """Raised when the state of a network cannot be reached from any past
     state."""
 
-    def __init__(self, state, tpm, message):
+    def __init__(self, state, message):
         self.state = state
         self.message = message
 
@@ -140,8 +140,7 @@ def state_reachable(state, network):
 
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
         raise StateUnreachableError(
-            state, tpm,
-            'This state cannot be reached according to the given TPM.')
+            state, 'This state cannot be reached according to the given TPM.')
 
 
 # TODO test
