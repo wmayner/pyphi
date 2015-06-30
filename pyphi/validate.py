@@ -18,7 +18,6 @@ class StateUnreachableError(ValueError):
 
     def __init__(self, state, tpm, message):
         self.state = state
-        self.tpm = tpm
         self.message = message
 
     def __str__(self):
