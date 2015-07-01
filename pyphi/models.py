@@ -9,7 +9,7 @@ Containers for MICE, MIP, cut, partition, and concept data.
 from collections import namedtuple, Iterable
 import numpy as np
 
-from . import utils, convert, json
+from . import utils, json
 
 # TODO use properties to avoid data duplication
 
@@ -279,12 +279,6 @@ class Mice:
     def __init__(self, mip, relevant_connections=None):
         self._mip = mip
         self._relevant_connections = relevant_connections
-        # TODO remove?
-        if (self.repertoire is not None and
-            any(self.repertoire.shape[i] != 2 for i in
-                convert.nodes2indices(self.purview))):
-            raise Exception('Attempted to create MICE with mismatched purview '
-                            'and repertoire.')
 
     @property
     def phi(self):
