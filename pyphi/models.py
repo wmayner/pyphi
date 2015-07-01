@@ -414,7 +414,20 @@ class Concept:
             return (self.cause, self.effect)
 
     def __eq__(self, other):
-        return _general_eq(self, other, _concept_attributes)
+        return (utils.phi_eq(self.phi, other.phi)
+                and ([n.index for n in self.mechanism] ==
+                     [n.index for n in other.mechanism])
+                and ([n.state for n in self.mechanism] ==
+                     [n.state for n in self.mechanism])
+                and ([n.index for n in self.cause.purview] ==
+                     [n.index for n in other.cause.purview])
+                and ([n.index for n in self.effect.purview] ==
+                     [n.index for n in other.effect.purview])
+                and ([n.state for n in self.cause.purview] ==
+                     [n.state for n in other.cause.purview])
+                and ([n.state for n in self.effect.purview] ==
+                     [n.state for n in other.effect.purview])
+                and self.eq_repertoires(other))
 
     def __hash__(self):
         return hash((self.phi, self.mechanism, self.cause, self.effect,
