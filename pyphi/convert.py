@@ -19,6 +19,10 @@ def nodes2indices(nodes):
     return tuple(n.index for n in nodes) if nodes else ()
 
 
+def nodes2state(nodes):
+    return tuple(n.state for n in nodes) if nodes else ()
+
+
 def state2holi_index(state):
     """Convert a PyPhi state-tuple to a decimal index according to the **HOLI**
     convention.
