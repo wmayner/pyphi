@@ -126,17 +126,27 @@ def state_length(state, size):
 
 
 # TODO test
-def state_reachable(state, network):
-    """Return whether a state can be reached according to the given TPM."""
+def state_reachable(state, network, constrained_nodes=False):
+    """Return whether a state can be reached according to the given network's
+    TPM.
+
+    If ``constrained_nodes`` is provided, then nodes not in
+    `constrained_nodes`` will be left free (their state will not considered
+    restricted by the TPM). Otherwise, any nodes without inputs will be left
+    free."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
     test = network.tpm - np.array(state)
 
-    # But we don't care about nodes without inputs, so discard those columns.
+    # But we don't care about unconstrained nodes, so discard those columns.
     test = test.reshape(-1, test.shape[-1])
-    nodes_with_inputs = np.where(np.sum(network.connectivity_matrix, 0) > 0)[0]
-    test = test[:, nodes_with_inputs]
+    if constrained_nodes is False:
+        # Default to only constraining nodes that have inputs.
+        constrained_nodes = np.where(
+            network.connectivity_matrix.sum(axis=0) > 0
+        )[0]
+    test = test[:, constrained_nodes]
 
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
         raise StateUnreachableError(
