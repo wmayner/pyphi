@@ -414,7 +414,9 @@ class Concept:
             return (self.cause, self.effect)
 
     def __eq__(self, other):
-        return (utils.phi_eq(self.phi, other.phi)
+        # TODO don't use phi_eq now that all phi values should be rounded
+        # (check that)
+        return (self.phi == other.phi
                 and ([n.index for n in self.mechanism] ==
                      [n.index for n in other.mechanism])
                 and ([n.state for n in self.mechanism] ==
@@ -423,15 +425,16 @@ class Concept:
                      [n.index for n in other.cause.purview])
                 and ([n.index for n in self.effect.purview] ==
                      [n.index for n in other.effect.purview])
-                and ([n.state for n in self.cause.purview] ==
-                     [n.state for n in other.cause.purview])
-                and ([n.state for n in self.effect.purview] ==
-                     [n.state for n in other.effect.purview])
                 and self.eq_repertoires(other))
 
     def __hash__(self):
-        return hash((self.phi, self.mechanism, self.cause, self.effect,
-                     self.subsystem))
+        return hash((self.phi,
+                     tuple(n.index for n in self.mechanism),
+                     tuple(n.state for n in self.mechanism),
+                     tuple(n.index for n in self.cause.purview),
+                     tuple(n.index for n in self.effect.purview),
+                     utils.np_hash(self.cause.repertoire),
+                     utils.np_hash(self.effect.repertoire)))
 
     def __bool__(self):
         """A concept is truthy if it is not reducible; i.e. if it has a
