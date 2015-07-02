@@ -139,9 +139,10 @@ class Subsystem:
 
         Two subsystems are equal if their sets of nodes, networks, and cuts are
         equal."""
-        return (set(self.node_indices) == set(other.node_indices) and
-                self.network == other.network and
-                self.cut == other.cut)
+        return (set(self.node_indices) == set(other.node_indices)
+                and self.state == other.state
+                and self.network == other.network
+                and self.cut == other.cut)
 
     def __bool__(self):
         """Return false if the subsystem has no nodes, true otherwise."""
