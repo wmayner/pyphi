@@ -232,7 +232,7 @@ def marginalize_out(index, tpm, perturb_value=0.5):
         tpm (``np.ndarray``): A TPM with the same number of dimensions, with
             the node marginalized out.
     """
-    if (perturb_value == 0.5):
+    if perturb_value == 0.5:
         return tpm.sum(index, keepdims=True) / tpm.shape[index]
     else:
         tpm = np.average(tpm, index, weights=[1 - perturb_value, perturb_value])

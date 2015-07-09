@@ -307,10 +307,10 @@ class Subsystem:
 
         Args:
             mechanism (tuple(Node)): The mechanism for which to calculate the
-            effect repertoire.
+                effect repertoire.
 
             purview (tuple(Node)): The purview over which to calculate the
-            effect repertoire.
+                effect repertoire.
 
         Returns:
             effect_repertoire (``np.ndarray``): The effect repertoire of the
