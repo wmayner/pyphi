@@ -206,8 +206,8 @@ def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     distances = np.array([
         [concept_distance(i, j) for j in unique_C2] for i in unique_C1
     ])
-    # We need distances from all concepts - in both the unpartitioned and
-    # partitioned constellations - to the null concept, because:
+    # We need distances from all concepts---in both the unpartitioned and
+    # partitioned constellations---to the null concept, because:
     # - often a concept in the unpartitioned constellation is destroyed by a
     #   cut (and needs to be moved to the null concept); and
     # - in certain cases, the partitioned system will have *greater* sum of
@@ -220,7 +220,7 @@ def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Now we make the distance matrix, which will look like this:
     #
-    #        C1       C2     N
+    #        C1       C2     0
     #    +~~~~~~~~+~~~~~~~~+~~~+
     #    |        |        |   |
     # C1 |   X    |    D   |   |
@@ -230,7 +230,7 @@ def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     # C2 |   D'   |    X   |   |
     #    |        |        |   |
     #    +~~~~~~~~+~~~~~~~~+~~~|
-    #  N |        Dn'      | 0 |
+    #  0 |        Dn'      | X |
     #    +~~~~~~~~~~~~~~~~~~~~~+
     #
     # The diagonal blocks marked with an X are set to a value larger than any
@@ -254,11 +254,11 @@ def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     distance_matrix[:-1, -1] = distances_to_null.T
     distance_matrix[-1, -1] = 0
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Construct the two phi distributions.
+    # Construct the two phi distributions, with an entry at the end for the
+    # null concept.
     d1 = [c.phi for c in unique_C1] + [0] * M + [0]
     d2 = [0] * N + [c.phi for c in unique_C2] + [0]
-    # Calculate how much phi disappeared and assign it to the null concept (the
-    # null concept is the last element in the second distribution).
+    # Calculate how much phi disappeared and assign it to the null concept.
     d2[-1] = sum(d1) - sum(d2)
     # The sum of the two signatures should be the same.
     assert utils.phi_eq(sum(d1), sum(d2))
