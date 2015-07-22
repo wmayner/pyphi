@@ -246,33 +246,64 @@ def _constellation_distance_simple(C1, C2, subsystem):
 def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     """Return the distance between two constellations in concept-space,
     using the generalized EMD."""
-    # We need the null concept to be the partitioned constellation, in case a
-    # concept is destroyed by a cut (and needs to be moved to the null
-    # concept).
-    unique_C2 = unique_C2 + [subsystem.null_concept]
-    # Get the concept distances from the concepts in the unpartitioned
-    # constellation to the partitioned constellation.
+    # Get the pairwise distances between the concepts in the unpartitioned and
+    # partitioned constellations.
     distances = np.array([
-        [concept_distance(i, j) for j in unique_C2]
-        for i in unique_C1
+        [concept_distance(i, j) for j in unique_C2] for i in unique_C1
     ])
-    # Now we make the distance matrix.
-    # It has blocks of zeros in the upper left and bottom right to make the
-    # distance matrix square, and to ensure that we're only moving mass from
-    # the unpartitioned constellation to the partitioned constellation.
+    # We need distances from all concepts---in both the unpartitioned and
+    # partitioned constellations---to the null concept, because:
+    # - often a concept in the unpartitioned constellation is destroyed by a
+    #   cut (and needs to be moved to the null concept); and
+    # - in certain cases, the partitioned system will have *greater* sum of
+    #   small-phi, even though it has less big-phi, which means that some
+    #   partitioned-constellation concepts will be moved to the null concept.
+    distances_to_null = np.array([
+        concept_distance(c, subsystem.null_concept)
+        for constellation in (unique_C1, unique_C2) for c in constellation
+    ])
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Now we make the distance matrix, which will look like this:
+    #
+    #        C1       C2     0
+    #    +~~~~~~~~+~~~~~~~~+~~~+
+    #    |        |        |   |
+    # C1 |   X    |    D   |   |
+    #    |        |        |   |
+    #    +~~~~~~~~+~~~~~~~~+ D |
+    #    |        |        | n |
+    # C2 |   D'   |    X   |   |
+    #    |        |        |   |
+    #    +~~~~~~~~+~~~~~~~~+~~~|
+    #  0 |        Dn'      | X |
+    #    +~~~~~~~~~~~~~~~~~~~~~+
+    #
+    # The diagonal blocks marked with an X are set to a value larger than any
+    # pairwise distance between concepts. This ensures that concepts are never
+    # moved to another concept within their own constellation; they must always
+    # go either from one constellation to another, or to the null concept N.
+    # The D block is filled with the pairwise distances between the two
+    # constellations, and Dn is filled with the distances from each concept to
+    # the null concept.
     N, M = len(unique_C1), len(unique_C2)
-    distance_matrix = np.zeros([N + M] * 2)
-    # Top-right block.
-    distance_matrix[:N, N:] = distances
-    # Bottom-left block.
-    distance_matrix[N:, :N] = distances.T
+    # Add one to the side length for the null concept distances.
+    distance_matrix = np.empty([N + M + 1] * 2)
+    # Ensure that concepts are never moved within their own constellation.
+    distance_matrix[:] = np.max(distances) + 1
+    # Set the top-right block to the pairwise constellation distances.
+    distance_matrix[:N, N:-1] = distances
+    # Set the bottom-left block to the same, but transposed.
+    distance_matrix[N:-1, :N] = distances.T
+    # Do the same for the distances to the null concept.
+    distance_matrix[-1, :-1] = distances_to_null
+    distance_matrix[:-1, -1] = distances_to_null.T
+    distance_matrix[-1, -1] = 0
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Construct the two phi distributions.
-    d1 = [c.phi for c in unique_C1] + [0] * M
-    d2 = [0] * N + [c.phi for c in unique_C2]
-    # Calculate how much phi disappeared and assign it to the null concept (the
-    # null concept is the last element in the second distribution).
+    # Construct the two phi distributions, with an entry at the end for the
+    # null concept.
+    d1 = [c.phi for c in unique_C1] + [0] * M + [0]
+    d2 = [0] * N + [c.phi for c in unique_C2] + [0]
+    # Calculate how much phi disappeared and assign it to the null concept.
     d2[-1] = sum(d1) - sum(d2)
     # The sum of the two signatures should be the same.
     assert utils.phi_eq(sum(d1), sum(d2))
