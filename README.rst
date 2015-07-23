@@ -10,9 +10,9 @@
     :target: https://coveralls.io/r/wmayner/pyphi?branch=master
     :alt: Coveralls.io
 
-*************************
-PyPhi: |phi| for Python 3
-*************************
+***********************
+PyPhi: |phi| for Python
+***********************
 
 PyPhi is a Python 3 library for computing integrated information (|phi|), and
 the associated quantities and objects.
