@@ -2,6 +2,12 @@ Changelog
 =========
 
 
+0.7.3
+------------------
+_2015-09-08_
+- Refactored the `pyphi.json` module and renamed it to `pyphi.jsonify`.
+
+
 0.7.0
 ------------------
 _2015-05-08_
