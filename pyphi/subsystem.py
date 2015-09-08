@@ -58,6 +58,7 @@ class Subsystem:
         self.network = network
         # The state the network is in.
         self._state = tuple(state)
+        # TODO don't need map to ints anymore?
         # Remove duplicates, sort, and ensure indices are native Python `int`s
         # (for JSON serialization).
         self.node_indices = tuple(sorted(list(set(map(int, node_indices)))))
@@ -169,10 +170,10 @@ class Subsystem:
     def __hash__(self):
         return self._hash
 
-    def json_dict(self):
+    def to_json(self):
         return {
-            'node_indices': json.make_encodable(self.node_indices),
-            'cut': json.make_encodable(self.cut),
+            'node_indices': jsonify(self.node_indices),
+            'cut': jsonify(self.cut),
         }
 
     def indices2nodes(self, indices):

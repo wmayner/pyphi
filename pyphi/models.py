@@ -9,7 +9,8 @@ Containers for MICE, MIP, cut, partition, and concept data.
 from collections import namedtuple, Iterable
 import numpy as np
 
-from . import utils, json
+from . import utils
+from .jsonify import jsonify
 
 # TODO use properties to avoid data duplication
 
@@ -26,11 +27,10 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
             Connections to this group of nodes from those in ``severed`` are
             severed.
     """
-    def json_dict(self):
-        return {
-            'severed': json.make_encodable(self.severed),
-            'intact': json.make_encodable(self.intact)
-        }
+    # This allows accessing the namedtuple's ``__dict__``; see
+    # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
+    __slots__ = ()
+    pass
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
@@ -53,11 +53,8 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
 
         This class represents one term in the above product.
     """
-    def json_dict(self):
-        return {
-            'mechanism': json.make_encodable(self.mechanism),
-            'purview': json.make_encodable(self.purview)
-        }
+    __slots__ = ()
+    pass
 
 
 # Phi-ordering methods
@@ -208,6 +205,7 @@ class Mip(namedtuple('Mip', _mip_attributes)):
             The partitioned repertoire of the mechanism. This is the product of
             the repertoires of each part of the partition.
     """
+    __slots__ = ()
 
     def __eq__(self, other):
         # We don't count the partition and partitioned repertoire in checking
@@ -234,11 +232,14 @@ class Mip(namedtuple('Mip', _mip_attributes)):
         return hash((self.phi, self.direction, self.mechanism, self.purview,
                      utils.np_hash(self.unpartitioned_repertoire)))
 
-    def json_dict(self):
-        return {
-            attr: json.make_encodable(getattr(self, attr))
-            for attr in _mip_attributes
-        }
+    def to_json(self):
+        d = {attr: jsonify(getattr(self, attr)) for attr in _mip_attributes}
+        # Flatten the repertoires.
+        d['partitioned_repertoire'] = jsonify(
+            self.partitioned_repertoire.flatten())
+        d['unpartitioned_repertoire'] = jsonify(
+            self.partitioned_repertoire.flatten())
+        return d
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -338,10 +339,8 @@ class Mice:
     def __hash__(self):
         return hash(('Mice', self._mip))
 
-    def json_dict(self):
-        return {
-            "mip": json.make_encodable(self._mip)
-        }
+    def to_json(self):
+        return {"mip": jsonify(self._mip)}
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -488,19 +487,19 @@ class Concept:
             self.effect.purview,
             self.effect.mip.partitioned_repertoire)
 
-    def json_dict(self):
+    def to_json(self):
         d = {
-            attr: json.make_encodable(getattr(self, attr))
+            attr: jsonify(getattr(self, attr))
             for attr in ['phi', 'mechanism', 'cause', 'effect', 'time']
         }
         # Expand the repertoires.
-        d['cause']['repertoire'] = json.make_encodable(
+        d['cause']['repertoire'] = jsonify(
             self.expand_cause_repertoire().flatten())
-        d['effect']['repertoire'] = json.make_encodable(
+        d['effect']['repertoire'] = jsonify(
             self.expand_effect_repertoire().flatten())
-        d['cause']['partitioned_repertoire'] = json.make_encodable(
+        d['cause']['partitioned_repertoire'] = jsonify(
             self.expand_partitioned_cause_repertoire().flatten())
-        d['effect']['partitioned_repertoire'] = json.make_encodable(
+        d['effect']['partitioned_repertoire'] = jsonify(
             self.expand_partitioned_effect_repertoire().flatten())
         return d
 
@@ -608,8 +607,8 @@ class BigMip:
         return (self.__gt__(other) or
                 _phi_eq(self, other))
 
-    def json_dict(self):
+    def to_json(self):
         return {
-            attr: json.make_encodable(getattr(self, attr))
+            attr: jsonify(getattr(self, attr))
             for attr in _bigmip_attributes + ['time', 'small_phi_time']
         }

@@ -10,16 +10,15 @@ context of all |small_phi| and |big_phi| computation.
 import json
 import numpy as np
 from . import validate, utils, convert, config
-from .json import make_encodable
+from .jsonify import jsonify 
 from .constants import DIRECTIONS, PAST, FUTURE
+
 
 # TODO!!! raise error if user tries to change TPM or CM, double-check and
 # document that states can be changed
 
-
 # Methods to compute reducible purviews for any mechanism, so they do not have
 # to be checked in concept calculation.
-
 
 def from_json(filename):
     """Convert a JSON representation of a network to a PyPhi network.
@@ -229,10 +228,9 @@ class Network:
         # TODO: hash only once?
         return hash((self._tpm_hash, self._cm_hash, self._pv_hash))
 
-    def json_dict(self):
+    def to_json(self):
         return {
-            'tpm': make_encodable(self.tpm),
-            'connectivity_matrix':
-                make_encodable(self.connectivity_matrix),
-            'size': make_encodable(self.size),
+            'tpm': jsonify(self.tpm),
+            'connectivity_matrix': jsonify(self.connectivity_matrix),
+            'size': jsonify(self.size)
         }

@@ -203,5 +203,5 @@ class Node:
         return self._hash
 
     # TODO do we need more than the index?
-    def json_dict(self):
+    def to_json(self):
         return self.index
