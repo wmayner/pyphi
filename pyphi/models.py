@@ -235,12 +235,10 @@ class Mip(namedtuple('Mip', _mip_attributes)):
                      utils.np_hash(self.unpartitioned_repertoire)))
 
     def to_json(self):
-        d = {attr: jsonify(getattr(self, attr)) for attr in _mip_attributes}
+        d = self.__dict__
         # Flatten the repertoires.
-        d['partitioned_repertoire'] = jsonify(
-            self.partitioned_repertoire.flatten())
-        d['unpartitioned_repertoire'] = jsonify(
-            self.partitioned_repertoire.flatten())
+        d['partitioned_repertoire'] = self.partitioned_repertoire.flatten()
+        d['unpartitioned_repertoire'] = self.partitioned_repertoire.flatten()
         return d
 
     # Order by phi value, then by mechanism size
@@ -342,7 +340,7 @@ class Mice:
         return hash(('Mice', self._mip))
 
     def to_json(self):
-        return {"mip": jsonify(self._mip)}
+        return {'mip': self._mip}
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -490,19 +488,14 @@ class Concept:
             self.effect.mip.partitioned_repertoire)
 
     def to_json(self):
-        d = {
-            attr: jsonify(getattr(self, attr))
-            for attr in ['phi', 'mechanism', 'cause', 'effect', 'time']
-        }
-        # Expand the repertoires.
-        d['cause']['repertoire'] = jsonify(
-            self.expand_cause_repertoire().flatten())
-        d['effect']['repertoire'] = jsonify(
-            self.expand_effect_repertoire().flatten())
-        d['cause']['partitioned_repertoire'] = jsonify(
-            self.expand_partitioned_cause_repertoire().flatten())
-        d['effect']['partitioned_repertoire'] = jsonify(
-            self.expand_partitioned_effect_repertoire().flatten())
+        d = jsonify(self.__dict__)
+        # Attach the expanded repertoires to the jsonified MICEs.
+        d['cause']['repertoire'] = self.expand_cause_repertoire().flatten()
+        d['effect']['repertoire'] = self.expand_effect_repertoire().flatten()
+        d['cause']['partitioned_repertoire'] = \
+            self.expand_partitioned_cause_repertoire().flatten()
+        d['effect']['partitioned_repertoire'] = \
+            self.expand_partitioned_effect_repertoire().flatten()
         return d
 
     # Order by phi value, then by mechanism size
@@ -602,15 +595,7 @@ class BigMip:
             return _phi_gt(self, other)
 
     def __le__(self, other):
-        return (self.__lt__(other) or
-                _phi_eq(self, other))
+        return (self.__lt__(other) or _phi_eq(self, other))
 
     def __ge__(self, other):
-        return (self.__gt__(other) or
-                _phi_eq(self, other))
-
-    def to_json(self):
-        return {
-            attr: jsonify(getattr(self, attr))
-            for attr in _bigmip_attributes + ['time', 'small_phi_time']
-        }
+        return (self.__gt__(other) or _phi_eq(self, other))
