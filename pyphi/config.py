@@ -224,11 +224,11 @@ Miscellaneous
 -------------------------------------------------------------------------------
 """
 
-import pprint
 import os
+import pprint
 import sys
-import yaml
 
+import yaml
 
 # TODO: document mongo config
 # Defaults for configurable constants.

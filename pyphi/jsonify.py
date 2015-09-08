@@ -6,9 +6,10 @@
 PyPhi- and NumPy-aware JSON serialization.
 """
 
-from collections import Iterable
-import numpy as np
 import json
+from collections import Iterable
+
+import numpy as np
 
 
 def jsonify(obj):

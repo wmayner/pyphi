@@ -8,8 +8,10 @@ in the network's list of nodes.
 """
 
 import functools
+
 import numpy as np
 from marbl import Marbl
+
 from . import utils
 
 

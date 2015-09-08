@@ -7,11 +7,12 @@ Interface to MongoDB that exposes it as a key-value store.
 """
 
 import pickle
+from collections import Iterable
+
 import pymongo
 from bson.binary import Binary
-from collections import Iterable
-from . import constants, config
 
+from . import config, constants
 
 KEY_FIELD = 'k'
 VALUE_FIELD = 'v'

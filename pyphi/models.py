@@ -6,11 +6,13 @@
 Containers for MICE, MIP, cut, partition, and concept data.
 """
 
-from collections import namedtuple, Iterable
+from collections import Iterable, namedtuple
+
 import numpy as np
 
 from . import utils
 from .jsonify import jsonify
+
 
 # TODO use properties to avoid data duplication
 

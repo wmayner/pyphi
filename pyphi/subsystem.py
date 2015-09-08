@@ -6,19 +6,21 @@
 Represents a candidate set for |small_phi| calculation.
 """
 
-import os
-import psutil
-import numpy as np
-from .constants import DIRECTIONS, PAST, FUTURE
-from . import constants, config, validate, utils, convert, json
-from .config import PRECISION
-from .models import Cut, Mip, Part, Mice, Concept
-from .node import Node
 import itertools
-from .network import list_past_purview, list_future_purview
-
-
+import os
 from collections import namedtuple
+
+import numpy as np
+import psutil
+
+from . import config, constants, convert, utils, validate
+from .config import PRECISION
+from .constants import DIRECTIONS, FUTURE, PAST
+from .jsonify import jsonify
+from .models import Concept, Cut, Mice, Mip, Part
+from .network import list_future_purview, list_past_purview
+from .node import Node
+
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "size"])
 HITS, MISSES = 0, 1
 

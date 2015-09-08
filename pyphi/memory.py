@@ -7,8 +7,10 @@ Decorators and objects for memoization.
 """
 
 import functools
+
 import joblib.func_inspect
-from . import db, constants, config
+
+from . import config, constants, db
 
 
 def cache(ignore=[]):

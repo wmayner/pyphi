@@ -8,11 +8,12 @@ concepts.
 """
 
 from collections import namedtuple
+
 import numpy as np
 from marbl import MarblSet
 
-from . import models, db, config, convert
-from .constants import DIRECTIONS, PAST, FUTURE
+from . import config, convert, db, models
+from .constants import DIRECTIONS, FUTURE, PAST
 
 
 class NormalizedMechanism:

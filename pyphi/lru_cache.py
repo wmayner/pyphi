@@ -13,8 +13,9 @@ Uses the *psutil* module to get the percentage of available memory.
 """
 
 import os
+from functools import RLock, namedtuple, update_wrapper
+
 import psutil
-from functools import RLock, update_wrapper, namedtuple
 
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "maxsize", "currsize"])
 

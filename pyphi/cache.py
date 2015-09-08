@@ -7,10 +7,11 @@ A memory-limited cache decorator.
 """
 
 import os
-import psutil
-from functools import update_wrapper, namedtuple
-from . import config
+from functools import namedtuple, update_wrapper
 
+import psutil
+
+from . import config
 
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
 

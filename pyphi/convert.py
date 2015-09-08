@@ -6,10 +6,10 @@
 Conversion functions.
 """
 
-import math
-import numpy as np
 import logging
+import math
 
+import numpy as np
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)

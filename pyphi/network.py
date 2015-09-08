@@ -8,10 +8,12 @@ context of all |small_phi| and |big_phi| computation.
 """
 
 import json
+
 import numpy as np
-from . import validate, utils, convert, config
-from .jsonify import jsonify 
-from .constants import DIRECTIONS, PAST, FUTURE
+
+from . import config, convert, utils, validate
+from .constants import DIRECTIONS, FUTURE, PAST
+from .jsonify import jsonify
 
 
 # TODO!!! raise error if user tries to change TPM or CM, double-check and

@@ -7,18 +7,20 @@ Methods for computing concepts, constellations, and integrated information of
 subsystems.
 """
 
-import logging
 import functools
-from time import time
-import numpy as np
+import logging
 import multiprocessing
-from scipy.sparse.csgraph import connected_components
+from time import time
+
+import numpy as np
 from scipy.sparse import csr_matrix
-from . import utils, constants, config, memory
+from scipy.sparse.csgraph import connected_components
+
+from . import config, constants, memory, utils
+from .concept_caching import concept as _concept
 from .config import PRECISION
 from .convert import nodes2indices
-from .concept_caching import concept as _concept
-from .models import Cut, BigMip
+from .models import BigMip, Cut
 from .network import Network
 from .subsystem import Subsystem
 

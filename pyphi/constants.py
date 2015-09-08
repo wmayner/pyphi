@@ -7,10 +7,10 @@ Package-wide constants.
 """
 
 import pickle
+
 import joblib
 
 from . import config
-
 
 # The threshold below which we consider differences in phi values to be
 # zero.
