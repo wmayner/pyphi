@@ -12,28 +12,34 @@ from collections import Iterable
 import numpy as np
 
 
+def _jsonify_dict(dct):
+    return {key: jsonify(value) for key, value in dct.items()}
+
+
 def jsonify(obj):
     """Return a JSON-encodable representation of an object, recursively using
     any available ``to_json`` methods, converting NumPy arrays and datatypes to
     native lists and types along the way."""
     try:
         # Call the `to_json` method if available.
-        return obj.to_json()
-    except:
+        return jsonify(obj.to_json())
+    except AttributeError:
         # If we have a numpy array, convert it to a list.
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         # If we have NumPy datatypes, convert them to native types.
-        if isinstance(obj, np.int32) or isinstance(obj, np.int64):
+        if isinstance(obj, (np.int32, np.int64)):
             return int(obj)
         if isinstance(obj, np.float64):
             return float(obj)
-        # Recursively jsonify the object dictionary, if available.
+        # Recurse over dictionaries.
+        if isinstance(obj, dict):
+            return _jsonify_dict(obj)
+        # Recurse over object dictionaries.
         if hasattr(obj, '__dict__'):
-            return {key: jsonify(value) for key, value in obj.__dict__.items()}
-        # If we have an iterable, recurse on the items (but not for strings,
-        # which will recurse forver).
-        if isinstance(obj, Iterable) and not isinstance(obj, str):
+            return _jsonify_dict(obj.__dict__)
+        # Recurse over lists and tuples.
+        if isinstance(obj, (list, tuple)):
             return [jsonify(item) for item in obj]
         # Otherwise, give up and hope it's serializable.
         return obj
