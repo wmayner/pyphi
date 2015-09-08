@@ -19,6 +19,7 @@ import psutil
 
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "maxsize", "currsize"])
 
+
 class _HashedSeq(list):
     """ This class guarantees that hash() will be called no more than once
         per element.  This is important because the lru_cache() will hash
@@ -35,10 +36,11 @@ class _HashedSeq(list):
     def __hash__(self):
         return self.hashvalue
 
+
 def _make_key(args, kwds, typed,
-             kwd_mark = (object(),),
-             fasttypes = {int, str, frozenset, type(None)},
-             sorted=sorted, tuple=tuple, type=type, len=len):
+              kwd_mark=(object(),),
+              fasttypes={int, str, frozenset, type(None)},
+              sorted=sorted, tuple=tuple, type=type, len=len):
     """Make a cache key from optionally typed positional and keyword arguments
 
     The key is constructed in a way that is flat as possible rather than
@@ -62,6 +64,7 @@ def _make_key(args, kwds, typed,
     elif len(key) == 1 and type(key[0]) in fasttypes:
         return key[0]
     return _HashedSeq(key)
+
 
 def lru_cache(cache={}, maxsize=128, typed=False, maxmem=False):
     """Least-recently-used cache decorator.
@@ -91,7 +94,7 @@ def lru_cache(cache={}, maxsize=128, typed=False, maxmem=False):
     """
     # Disable maxsize if maxmem is set
     if maxmem:
-        maxsize=None
+        maxsize = None
 
     # Users should only access the lru_cache through its public API:
     #       cache_info, cache_clear, and f.__wrapped__
@@ -133,9 +136,9 @@ def lru_cache(cache={}, maxsize=128, typed=False, maxmem=False):
                 result = user_function(*args, **kwds)
                 with lock:
                     if key in cache:
-                        # Getting here means that this same key was added to the
-                        # cache while the lock was released.  Since the link
-                        # update is already done, we need only return the
+                        # Getting here means that this same key was added to
+                        # the cache while the lock was released.  Since the
+                        # link update is already done, we need only return the
                         # computed result and update the count of misses.
                         pass
                     elif full:
@@ -145,10 +148,10 @@ def lru_cache(cache={}, maxsize=128, typed=False, maxmem=False):
                         oldroot[RESULT] = result
                         # Empty the oldest link and make it the new root.
                         # Keep a reference to the old key and old result to
-                        # prevent their ref counts from going to zero during the
-                        # update. That will prevent potentially arbitrary object
-                        # clean-up code (i.e. __del__) from running while we're
-                        # still adjusting the links.
+                        # prevent their ref counts from going to zero during
+                        # the update. That will prevent potentially arbitrary
+                        # object clean-up code (i.e. __del__) from running
+                        # while we're still adjusting the links.
                         root = oldroot[NEXT]
                         oldkey = root[KEY]
                         oldresult = root[RESULT]
@@ -174,7 +177,7 @@ def lru_cache(cache={}, maxsize=128, typed=False, maxmem=False):
         elif maxsize == 0:
 
             def wrapper(*args, **kwds):
-                # No caching -- just a statistics update after a successful call
+                # No caching, just a statistics update after a successful call
                 nonlocal misses
                 result = user_function(*args, **kwds)
                 misses += 1
@@ -217,9 +220,9 @@ def lru_cache(cache={}, maxsize=128, typed=False, maxmem=False):
                 result = user_function(*args, **kwds)
                 with lock:
                     if key in cache:
-                        # Getting here means that this same key was added to the
-                        # cache while the lock was released.  Since the link
-                        # update is already done, we need only return the
+                        # Getting here means that this same key was added to
+                        # the cache while the lock was released.  Since the
+                        # link update is already done, we need only return the
                         # computed result and update the count of misses.
                         pass
                     elif full:
@@ -229,10 +232,10 @@ def lru_cache(cache={}, maxsize=128, typed=False, maxmem=False):
                         oldroot[RESULT] = result
                         # Empty the oldest link and make it the new root.
                         # Keep a reference to the old key and old result to
-                        # prevent their ref counts from going to zero during the
-                        # update. That will prevent potentially arbitrary object
-                        # clean-up code (i.e. __del__) from running while we're
-                        # still adjusting the links.
+                        # prevent their ref counts from going to zero during
+                        # the update. That will prevent potentially arbitrary
+                        # object clean-up code (i.e. __del__) from running
+                        # while we're still adjusting the links.
                         root = oldroot[NEXT]
                         oldkey = root[KEY]
                         oldresult = root[RESULT]

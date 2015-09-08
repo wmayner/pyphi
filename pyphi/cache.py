@@ -32,8 +32,8 @@ class _HashedSeq(list):
 
 
 def _make_key(args, kwds, typed,
-              kwd_mark = (object(),),
-              fasttypes = {int, str, frozenset, type(None)},
+              kwd_mark=(object(),),
+              fasttypes={int, str, frozenset, type(None)},
               sorted=sorted, tuple=tuple, type=type, len=len):
     """Make a cache key from optionally typed positional and keyword arguments.
 
@@ -59,7 +59,8 @@ def _make_key(args, kwds, typed,
     return _HashedSeq(key)
 
 
-def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed=False):
+def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
+          typed=False):
     """Memory-limited cache decorator.
 
     *maxmem* is a float between 0 and 100, inclusive, specifying the maximum

@@ -24,7 +24,7 @@ client, database, collection = None, None, None
 if config.CACHING_BACKEND == 'db':
     # TODO!!! use reconnect proxy
     client = pymongo.MongoClient(config.MONGODB_CONFIG['host'],
-                                config.MONGODB_CONFIG['port'])
+                                 config.MONGODB_CONFIG['port'])
     database = client[config.MONGODB_CONFIG['database_name']]
     collection = database[config.MONGODB_CONFIG['collection_name']]
     # Index documents by their keys. Enforce that the keys be unique.

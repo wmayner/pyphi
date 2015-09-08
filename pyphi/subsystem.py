@@ -390,7 +390,8 @@ class Subsystem:
         # Collect all nodes with inputs to any purview node.
         inputs_to_purview = set.union(*[set(node.inputs) for node in purview])
         # Collect mechanism nodes with inputs to any purview node.
-        fixed_inputs = convert.nodes2indices(inputs_to_purview & set(mechanism))
+        fixed_inputs = convert.nodes2indices(inputs_to_purview &
+                                             set(mechanism))
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
         accumulated_cjd = utils.condition_tpm(
@@ -873,9 +874,11 @@ class Subsystem:
         information."""
         # TODO refactor to pass indices around, not nodes, throughout Subsystem
         # Calculate the maximally irreducible cause repertoire.
-        cause = self.core_cause(mechanism, purviews=(past_purviews or purviews))
+        cause = self.core_cause(mechanism,
+                                purviews=(past_purviews or purviews))
         # Calculate the maximally irreducible effect repertoire.
-        effect = self.core_effect(mechanism, purviews=(future_purviews or purviews))
+        effect = self.core_effect(mechanism,
+                                  purviews=(future_purviews or purviews))
         # Get the minimal phi between them.
         phi = min(cause.phi, effect.phi)
         # NOTE: Make sure to expand the repertoires to the size of the

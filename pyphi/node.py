@@ -193,7 +193,8 @@ class Node:
         Labels are for display only, so two equal nodes may have different
         labels.
         """
-        return (self.index == other.index and self.subsystem == other.subsystem)
+        return (self.index == other.index and
+                self.subsystem == other.subsystem)
 
     def __ne__(self, other):
         return not self.__eq__(other)
