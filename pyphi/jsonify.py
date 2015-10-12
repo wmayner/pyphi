@@ -7,7 +7,6 @@ PyPhi- and NumPy-aware JSON serialization.
 """
 
 import json
-from collections import Iterable
 
 import numpy as np
 
@@ -46,6 +45,7 @@ def jsonify(obj):
 
 
 class PyPhiJSONEncoder(json.JSONEncoder):
+
     """Extension of the default JSONEncoder that allows for serializing PyPhi
     objects with ``jsonify``."""
 
@@ -57,7 +57,6 @@ class PyPhiJSONEncoder(json.JSONEncoder):
 def dumps(obj, **user_kwargs):
     """Serialize ``obj`` as JSON-formatted stream."""
     kwargs = {'separators': (',', ':'),
-              'sort_keys': True,
               'cls': PyPhiJSONEncoder}
     kwargs.update(user_kwargs)
     return json.dumps(obj, **kwargs)
@@ -67,7 +66,6 @@ def dump(obj, fp, **user_kwargs):
     """Serialize ``obj`` as a JSON-formatted stream and write to ``fp`` (a
     ``.write()``-supporting file-like object."""
     kwargs = {'separators': (',', ':'),
-              'sort_keys': True,
               'cls': PyPhiJSONEncoder}
     kwargs.update(user_kwargs)
     return json.dump(obj, fp, **kwargs)
