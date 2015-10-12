@@ -76,7 +76,8 @@ class Subsystem:
         # The unidirectional cut applied for phi evaluation within the
         self.cut = cut if cut is not None else self.null_cut
         # Only compute hash once.
-        self._hash = hash((self.node_indices, self.cut, self.network))
+        self._hash = hash((self.network, self.node_indices, self.state,
+                           self.cut))
         # Get the subsystem's connectivity matrix. This is the network's
         # connectivity matrix, but with the cut applied, and with all
         # connections to/from external nodes severed.
