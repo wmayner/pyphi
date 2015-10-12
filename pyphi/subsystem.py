@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # subsystem.py
+
 """
 Represents a candidate set for |small_phi| calculation.
 """
