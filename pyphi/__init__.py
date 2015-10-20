@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# __init__.py
 
 #    _______
 #   |__   __|
@@ -57,7 +58,7 @@ and their defaults.
 """
 
 __title__ = 'pyphi'
-__version__ = '0.7.0'
+__version__ = '0.7.4'
 __description__ = 'Python library for computing integrated information.',
 __author__ = 'Will Mayner'
 __author_email__ = 'wmayner@gmail.com'

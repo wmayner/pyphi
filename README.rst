@@ -2,17 +2,17 @@
     :target: http://dx.doi.org/10.5281/zenodo.15787
     :alt: Zenodo DOI
 
-.. image:: https://travis-ci.org/wmayner/pyphi.svg?branch=develop
+.. image:: https://travis-ci.org/wmayner/pyphi.svg?branch=master
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build
 
-.. image:: https://coveralls.io/repos/wmayner/pyphi/badge.png?branch=develop
-    :target: https://coveralls.io/r/wmayner/pyphi?branch=develop
+.. image:: https://coveralls.io/repos/wmayner/pyphi/badge.png?branch=master
+    :target: https://coveralls.io/r/wmayner/pyphi?branch=master
     :alt: Coveralls.io
 
-*************************
-PyPhi: |phi| for Python 3
-*************************
+***********************
+PyPhi: |phi| for Python
+***********************
 
 PyPhi is a Python 3 library for computing integrated information (|phi|), and
 the associated quantities and objects.

@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # macro.py
+
 """
 Methods for coarse-graining systems to different levels of spatial analysis.
 """
 
-import numpy as np
 import itertools
 import logging
-from . import constants, validate, compute, convert
+import os
+
+import numpy as np
+
+from . import compute, constants, convert, validate
 from .network import Network
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
 # Load precomputed partition lists.
-import os
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 _NUM_PRECOMPUTED_PARTITION_LISTS = 10
 _partition_lists = [

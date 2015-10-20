@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # subsystem.py
+
 """
 Represents a candidate set for |small_phi| calculation.
 """
 
-import os
-import psutil
-import numpy as np
-from .constants import DIRECTIONS, PAST, FUTURE
-from . import constants, config, validate, utils, convert, json
-from .config import PRECISION
-from .models import Cut, Mip, Part, Mice, Concept
-from .node import Node
 import itertools
-from .network import list_past_purview, list_future_purview
-
-
+import os
 from collections import namedtuple
+
+import numpy as np
+import psutil
+
+from . import config, constants, convert, utils, validate
+from .config import PRECISION
+from .constants import DIRECTIONS, FUTURE, PAST
+from .jsonify import jsonify
+from .models import Concept, Cut, Mice, Mip, Part
+from .network import list_future_purview, list_past_purview
+from .node import Node
+
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "size"])
 HITS, MISSES = 0, 1
 
@@ -29,15 +31,18 @@ class Subsystem:
     """A set of nodes in a network.
 
     Args:
-        nodes (tuple(int)): A sequence of indices of the nodes in this
-            subsystem.
         network (Network): The network the subsystem belongs to.
+        state (tuple(int)):
+        node_indices (tuple(int)): A sequence of indices of the nodes in this
+            subsystem.
 
     Attributes:
         nodes (list(Node)): A list of nodes in the subsystem.
         node_indices (tuple(int)): The indices of the nodes in the subsystem.
         size (int): The number of nodes in the subsystem.
         network (Network): The network the subsystem belongs to.
+        state (tuple): The current state of the subsystem. ``state[i]`` gives
+            the state of node |i|.
         cut (Cut): The cut that has been applied to this subsystem.
         connectivity_matrix (np.array): The connectivity matrix after applying
             the cut.
@@ -46,17 +51,21 @@ class Subsystem:
         perturb_vector (np.array): The vector of perturbation probabilities for
             each node.
         null_cut (Cut): The cut object representing no cut.
-        current_tpm (np.array): The TPM conditioned on the current state of the
-            external nodes.
+        tpm (np.array): The TPM conditioned on the state of the external nodes.
     """
 
-    def __init__(self, node_indices, network, cut=None, mice_cache=None,
+    def __init__(self, network, state, node_indices, cut=None, mice_cache=None,
                  repertoire_cache=None, cache_info=None):
         # The network this subsystem belongs to.
         self.network = network
+        # The state the network is in.
+        self._state = tuple(state)
+        # TODO don't need map to ints anymore?
         # Remove duplicates, sort, and ensure indices are native Python `int`s
         # (for JSON serialization).
         self.node_indices = tuple(sorted(list(set(map(int, node_indices)))))
+        # Validate.
+        validate.subsystem(self)
         # Get the size of this subsystem.
         self.size = len(self.node_indices)
         # Get the external nodes.
@@ -67,7 +76,8 @@ class Subsystem:
         # The unidirectional cut applied for phi evaluation within the
         self.cut = cut if cut is not None else self.null_cut
         # Only compute hash once.
-        self._hash = hash((self.node_indices, self.cut, self.network))
+        self._hash = hash((self.network, self.node_indices, self.state,
+                           self.cut))
         # Get the subsystem's connectivity matrix. This is the network's
         # connectivity matrix, but with the cut applied, and with all
         # connections to/from external nodes severed.
@@ -75,13 +85,12 @@ class Subsystem:
             cut, network.connectivity_matrix)
         # Get the perturbation probabilities for each node in the network
         self.perturb_vector = network.perturb_vector
-        # The TPM conditioned on the current state of the external nodes.
+        # The TPM conditioned on the state of the external nodes.
         self.tpm = utils.condition_tpm(
             self.network.tpm, self.external_indices,
-            self.network.current_state)
+            self.state)
         # Generate the nodes.
-        self.nodes = tuple(Node(self.network, i, self) for i in
-                           self.node_indices)
+        self.nodes = tuple(Node(self, i) for i in self.node_indices)
         # The matrix of connections which are severed due to the cut
         self.null_cut_matrix = np.zeros((len(self), len(self)))
         self.cut_matrix = (self._find_cut_matrix(cut) if cut is not None
@@ -97,6 +106,19 @@ class Subsystem:
         self._repertoire_cache_info = ([0, 0] if cache_info is None else
                                        cache_info)
 
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, state):
+        # Cast state to a tuple so it can be hashed and properly used as
+        # np.array indices.
+        state = tuple(state)
+        self._state = state
+        # Validate.
+        validate.subsystem(self)
+
     def repertoire_cache_info(self):
         """Report repertoire cache statistics."""
         return _CacheInfo(self._repertoire_cache_info[HITS],
@@ -105,11 +127,10 @@ class Subsystem:
 
     # TODO write docstring
     def _find_cut_matrix(self, cut):
-        subsystem_indices = convert.nodes2indices(self.nodes)
         cut_matrix = np.zeros((self.network.size, self.network.size))
         list_of_cuts = np.array(list(itertools.product(cut[0], cut[1])))
         cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
-        return cut_matrix[np.ix_(subsystem_indices, subsystem_indices)]
+        return cut_matrix[np.ix_(self.node_indices, self.node_indices)]
 
     def __repr__(self):
         return "Subsystem(" + repr(self.nodes) + ")"
@@ -122,9 +143,10 @@ class Subsystem:
 
         Two subsystems are equal if their sets of nodes, networks, and cuts are
         equal."""
-        return (set(self.node_indices) == set(other.node_indices) and
-                self.network == other.network and
-                self.cut == other.cut)
+        return (set(self.node_indices) == set(other.node_indices)
+                and self.state == other.state
+                and self.network == other.network
+                and self.cut == other.cut)
 
     def __bool__(self):
         """Return false if the subsystem has no nodes, true otherwise."""
@@ -151,13 +173,15 @@ class Subsystem:
     def __hash__(self):
         return self._hash
 
-    def json_dict(self):
+    def to_json(self):
         return {
-            'node_indices': json.make_encodable(self.node_indices),
-            'cut': json.make_encodable(self.cut),
+            'node_indices': jsonify(self.node_indices),
+            'cut': jsonify(self.cut),
         }
 
     def indices2nodes(self, indices):
+        if indices and not set(indices).issubset(set(self.node_indices)):
+            raise ValueError("Indices must be a subset of subsystem indices.")
         return () if not indices else tuple(
             n for n in self.nodes if n.index in indices)
 
@@ -246,7 +270,7 @@ class Subsystem:
             # TODO extend to nonbinary nodes
             # We're conditioning on this node's state, so take the probability
             # table for the node being in that state.
-            node_state = self.network.current_state[mechanism_node.index]
+            node_state = self.state[mechanism_node.index]
             conditioned_tpm = mechanism_node.tpm[node_state]
             # Collect the nodes that are not in the purview and have
             # connections to this node.
@@ -287,10 +311,10 @@ class Subsystem:
 
         Args:
             mechanism (tuple(Node)): The mechanism for which to calculate the
-            effect repertoire.
+                effect repertoire.
 
             purview (tuple(Node)): The purview over which to calculate the
-            effect repertoire.
+                effect repertoire.
 
         Returns:
             effect_repertoire (``np.ndarray``): The effect repertoire of the
@@ -367,11 +391,12 @@ class Subsystem:
         # Collect all nodes with inputs to any purview node.
         inputs_to_purview = set.union(*[set(node.inputs) for node in purview])
         # Collect mechanism nodes with inputs to any purview node.
-        fixed_inputs = convert.nodes2indices(inputs_to_purview & set(mechanism))
+        fixed_inputs = convert.nodes2indices(inputs_to_purview &
+                                             set(mechanism))
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
         accumulated_cjd = utils.condition_tpm(
-            accumulated_cjd, fixed_inputs, self.network.current_state)
+            accumulated_cjd, fixed_inputs, self.state)
         # The distribution still has twice as many dimensions as the network
         # has nodes, with the first half of the shape now all singleton
         # dimensions, so we reshape to eliminate those singleton dimensions
@@ -731,42 +756,40 @@ class Subsystem:
             are maximally different than the unconstrained cause/effect
             repertoires (*i.e.*, those that maximize |small_phi|). Here, we
             return only information corresponding to one direction, |past| or
-            |future|, i.e., we return a core cause or core effect, not the pair of
-            them.
+            |future|, i.e., we return a core cause or core effect, not the pair
+            of them.
         """
         # Return a cached MICE if there's a hit.
         cached_mice = self._get_cached_mice(direction, mechanism)
         if cached_mice:
             return cached_mice
 
-        # Get cached purviews if available.
-        if config.CACHE_POTENTIAL_PURVIEWS:
-            purviews = self.network.purview_cache[
-                (direction, convert.nodes2indices(mechanism))]
-        else:
-            if direction == DIRECTIONS[PAST]:
-                purviews = list_past_purview(self.network,
-                                             convert.nodes2indices(mechanism))
-            elif direction == DIRECTIONS[FUTURE]:
-                purviews = list_future_purview(self.network,
-                                               convert.nodes2indices(mechanism))
+        if purviews is False:
+            # Get cached purviews if available.
+            if config.CACHE_POTENTIAL_PURVIEWS:
+                purviews = self.network.purview_cache[
+                    (direction, convert.nodes2indices(mechanism))]
             else:
-                validate.direction(direction)
+                if direction == DIRECTIONS[PAST]:
+                    purviews = list_past_purview(
+                        self.network, convert.nodes2indices(mechanism))
+                elif direction == DIRECTIONS[FUTURE]:
+                    purviews = list_future_purview(
+                        self.network, convert.nodes2indices(mechanism))
+                else:
+                    validate.direction(direction)
+            # Filter out purviews that aren't in the subsystem and convert to
+            # nodes.
+            purviews = [self.indices2nodes(purview) for purview in purviews if
+                        set(purview).issubset(self.node_indices)]
 
-        # Filter out purviews that aren't in the subsystem.
-        purviews = [purview for purview in purviews if
-                    set(purview).issubset(convert.nodes2indices(self.nodes))]
-
-        purviews = [self.indices2nodes(purview) for purview in purviews]
-
-        # Filter out trivially reducible purviews if a cut has been applied.
+        # Filter out trivially reducible purviews.
         def not_trivially_reducible(purview):
             if direction == DIRECTIONS[PAST]:
                 return self._test_connections(purview, mechanism)
             elif direction == DIRECTIONS[FUTURE]:
                 return self._test_connections(mechanism, purview)
-        if not self.cut == self.null_cut:
-            purviews = tuple(filter(not_trivially_reducible, purviews))
+        purviews = tuple(filter(not_trivially_reducible, purviews))
 
         # Find the maximal MIP over the remaining purviews.
         if not purviews:
@@ -846,13 +869,17 @@ class Subsystem:
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
                        subsystem=self)
 
-    def concept(self, mechanism):
-        """Calculate a concept."""
+    def concept(self, mechanism, purviews=False, past_purviews=False,
+                future_purviews=False):
+        """Calculates a concept. See :func:`compute.concept` for more
+        information."""
         # TODO refactor to pass indices around, not nodes, throughout Subsystem
         # Calculate the maximally irreducible cause repertoire.
-        cause = self.core_cause(mechanism)
+        cause = self.core_cause(mechanism,
+                                purviews=(past_purviews or purviews))
         # Calculate the maximally irreducible effect repertoire.
-        effect = self.core_effect(mechanism)
+        effect = self.core_effect(mechanism,
+                                  purviews=(future_purviews or purviews))
         # Get the minimal phi between them.
         phi = min(cause.phi, effect.phi)
         # NOTE: Make sure to expand the repertoires to the size of the

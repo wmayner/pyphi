@@ -7,17 +7,20 @@ XOR Network
 This example describes a system of three fully connected **XOR** nodes, |n0|,
 |n1| and |n2| (no self-connections).
 
-First let's create the XOR network, with all nodes **OFF** in both the current
-and past states.
+First let's create the XOR network:
 
     >>> import pyphi
     >>> network = pyphi.examples.xor_network()
+
+We'll consider the state with all nodes **OFF**.
+
+    >>> state = (0, 0, 0)
 
 Existence is a top-down process; the whole is more important than its parts.
 The first step is to confirm the existence of the whole, by finding the main
 complex of the network:
 
-    >>> main_complex = pyphi.compute.main_complex(network)
+    >>> main_complex = pyphi.compute.main_complex(network, state)
 
 The main complex exists (|big_phi > 0|),
 

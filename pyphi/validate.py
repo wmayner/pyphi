@@ -1,25 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # validate.py
+
 """
 Methods for validating common types of input.
 """
 
 import numpy as np
 
-from . import constants, convert
+from . import constants, convert, config
 from .constants import EPSILON
 
 
 class StateUnreachableError(ValueError):
-    """Raised when the current state of a network cannot be reached, either
-    from any state or from a given past state."""
+    """Raised when the state of a network cannot be reached from any past
+    state."""
 
-    def __init__(self, current_state, past_state, tpm, message):
-        self.current_state = current_state
-        self.past_state = past_state
-        self.tpm = tpm
+    def __init__(self, state, message):
+        self.state = state
         self.message = message
 
     def __str__(self):
@@ -88,27 +86,6 @@ def connectivity_matrix(cm):
 
 
 # TODO test
-def state_reachable(current_state, tpm):
-    """Return whether a state can be reached according to the given TPM."""
-    # If there is a row `r` in the TPM such that all entries of `r - state` are
-    # between -1 and 1, then the given state has a nonzero probability of being
-    # reached from some state.
-    test = tpm - np.array(current_state)
-    if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
-        raise StateUnreachableError(
-            current_state, tpm,
-            'The current state cannot be reached according to the given TPM.')
-
-
-def current_state_length(state, size):
-    if len(state) != size:
-        raise ValueError('Invalid state: there must be one entry per '
-                         'node in the network; this state has {} entries, but '
-                         'there are {} nodes.'.format(len(state), size))
-    return True
-
-
-# TODO test
 def perturb_vector(pv, size):
     """Validate a network's pertubation vector."""
     if pv.size != size:
@@ -120,14 +97,67 @@ def perturb_vector(pv, size):
 
 
 # TODO test
-def network(network):
-    """Validate TPM, connectivity matrix, and current and past state."""
-    tpm(network.tpm)
-    current_state_length(network.current_state, network.size)
-    connectivity_matrix(network.connectivity_matrix)
-    perturb_vector(network.perturb_vector, network.size)
-    if (network.connectivity_matrix.shape[0] != network.size
-            and not network.connectivity_matrix.size == 0):
+def network(n):
+    """Validate a network's TPM, connectivity matrix, and perturbation
+    vector."""
+    tpm(n.tpm)
+    connectivity_matrix(n.connectivity_matrix)
+    perturb_vector(n.perturb_vector, n.size)
+    if (n.connectivity_matrix.shape[0] != n.size
+            and not n.connectivity_matrix.size == 0):
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")
+    return True
+
+
+def node_states(state):
+    """Check that a state contains only zeros and ones."""
+    if not all([n in (0, 1) for n in state]):
+        raise ValueError(
+            'Invalid state: states must consist of only zeros and ones.')
+
+
+def state_length(state, size):
+    if len(state) != size:
+        raise ValueError('Invalid state: there must be one entry per '
+                         'node in the network; this state has {} entries, but '
+                         'there are {} nodes.'.format(len(state), size))
+    return True
+
+
+# TODO test
+def state_reachable(state, network, constrained_nodes=False):
+    """Return whether a state can be reached according to the given network's
+    TPM.
+
+    If ``constrained_nodes`` is provided, then nodes not in
+    `constrained_nodes`` will be left free (their state will not considered
+    restricted by the TPM). Otherwise, any nodes without inputs will be left
+    free."""
+    # If there is a row `r` in the TPM such that all entries of `r - state` are
+    # between -1 and 1, then the given state has a nonzero probability of being
+    # reached from some state.
+    test = network.tpm - np.array(state)
+
+    # But we don't care about unconstrained nodes, so discard those columns.
+    test = test.reshape(-1, test.shape[-1])
+    if constrained_nodes is False:
+        # Default to only constraining nodes that have inputs.
+        constrained_nodes = np.where(
+            network.connectivity_matrix.sum(axis=0) > 0
+        )[0]
+    test = test[:, constrained_nodes]
+
+    if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
+        raise StateUnreachableError(
+            state, 'This state cannot be reached according to the given TPM.')
+
+
+# TODO test
+def subsystem(s):
+    """Validate a subsystem's state."""
+    state_length(s.state, s.network.size)
+    node_states(s.state)
+    if config.VALIDATE_NETWORK_STATE:
+        state_reachable(s.state, s.network)
     return True

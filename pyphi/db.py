@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # db.py
+
 """
 Interface to MongoDB that exposes it as a key-value store.
 """
 
 import pickle
+from collections import Iterable
+
 import pymongo
 from bson.binary import Binary
-from collections import Iterable
-from . import constants, config
 
+from . import config, constants
 
 KEY_FIELD = 'k'
 VALUE_FIELD = 'v'
@@ -23,7 +24,7 @@ client, database, collection = None, None, None
 if config.CACHING_BACKEND == 'db':
     # TODO!!! use reconnect proxy
     client = pymongo.MongoClient(config.MONGODB_CONFIG['host'],
-                                config.MONGODB_CONFIG['port'])
+                                 config.MONGODB_CONFIG['port'])
     database = client[config.MONGODB_CONFIG['database_name']]
     collection = database[config.MONGODB_CONFIG['collection_name']]
     # Index documents by their keys. Enforce that the keys be unique.

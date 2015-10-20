@@ -23,10 +23,10 @@ Figure 1
 **Existence: Mechanisms in a state having causal power.**
 
 For the first figure, we'll demonstrate how to set up a network and a candidate
-set. In PyPhi, networks are built by specifying a transition probability
-matrix, a current state, and (optionally) a connectivity matrix.
-(If no connectivity matrix is given, full connectivity is assumed.) So, to set
-up the system shown in Figure 1, we'll start by defining its TPM. 
+set. In PyPhi, networks are built by specifying a transition probability matrix
+and (optionally) a connectivity matrix. (If no connectivity matrix is given,
+full connectivity is assumed.) So, to set up the system shown in Figure 1,
+we'll start by defining its TPM. 
 
 .. note::
     The TPM in the figure is given in **state-by-state** form; there is a row
@@ -115,10 +115,6 @@ pasting, see note below):
     :mod:`pyphi.examples` module with ``network = pyphi.examples.fig1a()``. The
     TPM can then be accessed with ``network.tpm``.
 
-Now we'll define the current and past state:
-
-    >>> current_state = (1, 0, 0, 0, 1, 0)
-
 Next we'll define the connectivity matrix. In PyPhi, the |i,jth| entry in a
 connectivity matrix indicates whether node |i| is connected to node |j|. Thus,
 this network's connectivity matrix is
@@ -132,11 +128,10 @@ this network's connectivity matrix is
     ...     [0, 0, 0, 0, 0, 0]
     ... ])
 
-Now we can pass the TPM, current and past states, and connectivity matrix as
-arguments to the network constructor (note that the current state is the second
-argument and the past state is the third argument):
+Now we can pass the TPM and connectivity matrix as arguments to the network
+constructor:
 
-    >>> network = pyphi.Network(tpm, current_state, connectivity_matrix=cm)
+    >>> network = pyphi.Network(tpm, connectivity_matrix=cm)
 
 Now the network shown in the figure is stored in a variable called ``network``.
 You can find more information about the network object we just created by
@@ -147,18 +142,20 @@ documentation for :class:`~pyphi.network.Network`.
 The next step is to define the candidate set shown in the figure, consisting of
 nodes :math:`A, B` and :math:`C`. In PyPhi, a candidate set for |big_phi|
 evaluation is represented by the :class:`~pyphi.subsystem.Subsystem` class.
-Subsystems are built by giving the indices of the nodes in the subsystem and
-the network it is a part of. So, we define our candidate set like so:
+Subsystems are built by giving the network it is a part of, the state of the
+network, and indices of the nodes to be included in the subsystem. So, we
+define our candidate set like so:
 
-    >>> ABC = pyphi.Subsystem([0, 1, 2], network)
+    >>> state = (1, 0, 0, 0, 1, 0)
+    >>> ABC = pyphi.Subsystem(network, state, [0, 1, 2])
 
 For more information on the subsystem object, see the API documentation for
 :class:`~pyphi.subsystem.Subsystem`.
 
 That covers the basic workflow with PyPhi and introduces the two types of
 objects we use to represent and analyze networks. First you define the network
-of interest with a TPM, current/past state, and connectivity matrix, then
-you define a candidate set you want to analyze.
+of interest with a TPM and connectivity matrix, then you define a candidate set
+you want to analyze.
 
 
 Figure 3
@@ -173,9 +170,8 @@ We'll start by setting up the subsytem depicted in the figure and labeling the
 nodes. In this case, the subsystem is just the entire network.
 
     >>> network = pyphi.examples.fig3a()
-    >>> network.current_state
-    (1, 0, 0, 0)
-    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> state = (1, 0, 0, 0)
+    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C, D = subsystem.nodes
 
 Since the connections are noisy, we see that :math:`A = 1` is unselective; all
@@ -200,7 +196,7 @@ And this gives us zero cause information:
 The same as (A) but without noisy connections:
 
     >>> network = pyphi.examples.fig3b()
-    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C, D = subsystem.nodes
 
 Now, :math:`A`'s cause repertoire is maximally selective.
@@ -237,10 +233,8 @@ Now the cause information specified by :math:`A = 1` is :math:`1.5`:
 
 The same as (B) but with :math:`A = 0`:
 
-    >>> network = pyphi.examples.fig3c()
-    >>> network.current_state
-    (0, 0, 0, 0)
-    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> state = (0, 0, 0, 0)
+    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C, D = subsystem.nodes
 
 And here the cause repertoire is minimally selective, only ruling out the state
@@ -258,6 +252,7 @@ And so we have less cause information:
     >>> subsystem.cause_info((A,), (B, C, D))
     0.214284
 
+
 Figure 4
 ~~~~~~~~
 
@@ -268,7 +263,8 @@ First we'll get the network from the examples module, set up a subsystem, and
 label the nodes, as usual:
 
     >>> network = pyphi.examples.fig4()
-    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> state = (1, 0, 0)
+    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C = subsystem.nodes
 
 Then we'll compute the cause and effect repertoires of mechanism :math:`A` over
@@ -324,7 +320,8 @@ Figure 5
 (A)
 ```
     >>> network = pyphi.examples.fig5a()
-    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> state = (1, 1, 1)
+    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C = subsystem.nodes
 
 :math:`A` has inputs, so its cause repertoire is selective and it has cause information:
@@ -355,7 +352,8 @@ And thus its cause effect information is zero.
 ```
 
     >>> network = pyphi.examples.fig5b()
-    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> state = (1, 0, 0)
+    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C = subsystem.nodes
 
 Symmetrically, :math:`A` now has outputs, so its effect repertoire is
@@ -391,7 +389,8 @@ Figure 6
 irreducible to the information generated by its parts.**
 
     >>> network = pyphi.examples.fig6()
-    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> state = (1, 0, 0)
+    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> ABC = subsystem.nodes
 
 Here we demonstrate the functions that find the minimum information partition a
@@ -473,7 +472,8 @@ Figure 8
 the “core cause” specified by a mechanism.**
 
     >>> network = pyphi.examples.fig8()
-    >>> subsystem = pyphi.Subsystem(range(network.size), network)
+    >>> state = (1, 0, 0)
+    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C = subsystem.nodes
 
 To find the core cause of a mechanism over all purviews, we just use the
@@ -600,11 +600,12 @@ Figure 14
 **A complex: A local maximum of integrated conceptual information Φ.**
 
     >>> network = pyphi.examples.fig14()
+    >>> state = (1, 0, 0, 0, 1, 0)
 
 To find the subsystem within a network that is the main complex, we use the
 function of that name, which returns a :class:`~pyphi.models.BigMip` object:
 
-    >>> main_complex = pyphi.compute.main_complex(network)
+    >>> main_complex = pyphi.compute.main_complex(network, state)
 
 And we see that the nodes in the complex are indeed :math:`A, B,` and
 :math:`C`:
@@ -638,11 +639,12 @@ of the full 12-node network is very large, and the point can be illustrated
 without them.
 
     >>> network = pyphi.examples.fig16()
+    >>> state = (1, 0, 0, 1, 1, 1, 0)
 
 To find the maximal set of non-overlapping complexes that a network condenses
 into, use :func:`~pyphi.compute.condensed`:
 
-    >>> condensed = pyphi.compute.condensed(network)
+    >>> condensed = pyphi.compute.condensed(network, state)
 
 We find that there are 2 complexes: the major complex :math:`ABC` with
 :math:`\Phi \approx 1.92`, and a minor complex `FG` with :math:`\Phi \approx 0.069` (note

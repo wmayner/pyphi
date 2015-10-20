@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # utils.py
+
 """
 Functions used by more than one PyPhi module or class, or that might be of
 external use.
@@ -106,9 +106,7 @@ def get_outputs_from_cm(index, connectivity_matrix):
 
 
 def np_hash(a):
-    """Return a hash of a NumPy array.
-
-    This is much faster than ``np.toString`` for large arrays."""
+    """Return a hash of a NumPy array."""
     if a is None:
         return hash(None)
     # Ensure that hashes are equal whatever the ordering in memory (C or
@@ -234,7 +232,7 @@ def marginalize_out(index, tpm, perturb_value=0.5):
         tpm (``np.ndarray``): A TPM with the same number of dimensions, with
             the node marginalized out.
     """
-    if (perturb_value == 0.5):
+    if perturb_value == 0.5:
         return tpm.sum(index, keepdims=True) / tpm.shape[index]
     else:
         tpm = np.average(tpm, index, weights=[1 - perturb_value, perturb_value])
@@ -313,7 +311,6 @@ def bipartition(a):
         >>> bipartition((1,2,3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
-
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
@@ -380,7 +377,7 @@ def directed_bipartition_indices(N):
     # Return on empty input
     if N <= 0:
         return result
-    for i in range(2 ** N):
+    for i in range(2**N):
         part = [[], []]
         for n in range(N):
             bit = (i >> n) & 1

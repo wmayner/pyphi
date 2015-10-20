@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # compute.py
+
 """
 Methods for computing concepts, constellations, and integrated information of
 subsystems.
 """
 
-import logging
 import functools
-from time import time
-import numpy as np
+import logging
 import multiprocessing
-from scipy.sparse.csgraph import connected_components
+from time import time
+
+import numpy as np
 from scipy.sparse import csr_matrix
-from . import utils, constants, config, memory
+from scipy.sparse.csgraph import connected_components
+
+from . import config, constants, memory, utils
+from .concept_caching import concept as _concept
 from .config import PRECISION
 from .convert import nodes2indices
-from .concept_caching import concept as _concept
-from .models import Cut, BigMip
+from .models import BigMip, Cut
 from .network import Network
 from .subsystem import Subsystem
 
@@ -26,13 +28,22 @@ from .subsystem import Subsystem
 log = logging.getLogger(__name__)
 
 
-def concept(subsystem, mechanism):
+def concept(subsystem, mechanism, purviews=False, past_purviews=False,
+            future_purviews=False):
     """Return the concept specified by a mechanism within a subsytem.
 
     Args:
         subsystem (Subsytem): The context in which the mechanism should be
             considered.
         mechanism (tuple(Node)): The candidate set of nodes.
+
+    Keyword Args:
+        purviews (tuple(tuple(Node))): Restrict the possible purviews to those
+            in this list.
+        past_purviews (tuple(tuple(Node))): Restrict the possible cause
+            purviews to those in this list. Takes precedence over ``purviews``.
+        future_purviews (tuple(tuple(Node))): Restrict the possible effect
+            purviews to those in this list. Takes precedence over ``purviews``.
 
     Returns:
         concept (|Concept|): The pair of maximally irreducible cause/effect
@@ -62,58 +73,60 @@ def concept(subsystem, mechanism):
     # Concept caching is only available if the caching backend is a database.
     if (config.CACHE_CONCEPTS and
             config.CACHING_BACKEND == constants.DATABASE):
-        return time_annotated(_concept(subsystem, mechanism))
+        return time_annotated(_concept(
+            subsystem, mechanism, purviews=purviews,
+            past_purviews=past_purviews, future_purviews=future_purviews))
     else:
-        return time_annotated(subsystem.concept(mechanism))
+        return time_annotated(subsystem.concept(
+            mechanism, purviews=purviews, past_purviews=past_purviews,
+            future_purviews=future_purviews))
 
 
-def sequential_constellation(subsystem, mechanism_indices_to_check=None):
-    """Return the conceptual structure of this subsystem.
-
-    Args:
-        subsystem (Subsystem): The subsystem for which to determine the
-            constellation.
-
-    Returns:
-        constellation (``tuple(Concept)``): A tuple of all the Concepts in the
-            constellation.
-    """
-    if not mechanism_indices_to_check:
-        concepts = [concept(subsystem, mechanism) for mechanism in
-                    utils.powerset(subsystem.nodes)]
-    else:
-        concepts = [concept(subsystem, subsystem.indices2nodes(indices))
-                    for indices in mechanism_indices_to_check]
+def _sequential_constellation(subsystem, mechanisms=False, purviews=False,
+                              past_purviews=False, future_purviews=False):
+    purviews = (tuple(map(subsystem.indices2nodes, purviews))
+                if purviews else False)
+    past_purviews = (tuple(map(subsystem.indices2nodes, past_purviews))
+                     if past_purviews else False)
+    future_purviews = (tuple(map(subsystem.indices2nodes, future_purviews))
+                       if future_purviews else False)
+    mechanisms = (tuple(map(subsystem.indices2nodes, mechanisms))
+                  if mechanisms is not False else
+                  utils.powerset(subsystem.nodes))
+    concepts = [concept(subsystem, mechanism, purviews=purviews,
+                        past_purviews=past_purviews,
+                        future_purviews=future_purviews)
+                for mechanism in mechanisms]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
     return tuple(filter(None, concepts))
 
 
-def _concept_wrapper(in_queue, out_queue, subsystem):
+def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False,
+                     past_purviews=False, future_purviews=False):
     """Wrapper for parallel evaluation of concepts."""
     while True:
         (index, mechanism) = in_queue.get()
         if mechanism is None:
             break
-        new_concept = concept(subsystem, mechanism)
+        new_concept = concept(subsystem, mechanism, purviews=purviews,
+                              past_purviews=past_purviews,
+                              future_purviews=future_purviews)
         if new_concept.phi > 0:
             out_queue.put(new_concept)
     out_queue.put(None)
 
 
-def parallel_constellation(subsystem, mechanism_indices_to_check=None):
-    """Return the conceptual structure of this subsystem. Concepts are
-    evaluated in parallel.
-
-    Args:
-        subsystem (Subsystem): The subsystem for which to determine the
-            constellation.
-
-    Returns:
-        constellation (``tuple(Concept)``): A tuple of all the Concepts in the
-            constellation.
-    """
-    if not mechanism_indices_to_check:
-        mechanism_indices_to_check = utils.powerset(subsystem.node_indices)
+def _parallel_constellation(subsystem, mechanisms=False, purviews=False,
+                            past_purviews=False, future_purviews=False):
+    purviews = (tuple(map(subsystem.indices2nodes, purviews))
+                if purviews else False)
+    past_purviews = (tuple(map(subsystem.indices2nodes, past_purviews))
+                     if past_purviews else False)
+    future_purviews = (tuple(map(subsystem.indices2nodes, future_purviews))
+                       if future_purviews else False)
+    mechanisms = (tuple(map(subsystem.indices2nodes, mechanisms))
+                  if mechanisms is not False else
+                  utils.powerset(subsystem.nodes))
     if config.NUMBER_OF_CORES < 0:
         number_of_processes = (multiprocessing.cpu_count() +
                                config.NUMBER_OF_CORES + 1)
@@ -129,14 +142,15 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
     # process.
     in_queue = multiprocessing.Queue()
     out_queue = multiprocessing.Queue()
-    for i, index in enumerate(mechanism_indices_to_check):
-        in_queue.put((i, subsystem.indices2nodes(index)))
+    for i, mechanism in enumerate(mechanisms):
+        in_queue.put((i, mechanism))
     for i in range(number_of_processes):
         in_queue.put((None, None))
     # Initialize the processes and start them.
     processes = [
         multiprocessing.Process(target=_concept_wrapper,
-                                args=(in_queue, out_queue, subsystem))
+                                args=(in_queue, out_queue, subsystem, purviews,
+                                      past_purviews, future_purviews))
         for i in range(number_of_processes)
     ]
     for i in range(number_of_processes):
@@ -155,12 +169,45 @@ def parallel_constellation(subsystem, mechanism_indices_to_check=None):
     return concepts
 
 
+_constellation_doc = \
+    """Return the conceptual structure of this subsystem, optionally restricted
+    to concepts with the mechanisms and purviews given in keyword arguments.
+
+    If you will not be using the full constellation, restricting the possible
+    mechanisms and purviews can make this function much faster.
+
+    Args:
+        subsystem (Subsystem): The subsystem for which to determine the
+            constellation.
+
+    Keyword Args:
+        mechanisms (tuple(tuple(int))): A list of mechanisms, as node indices,
+            to be considered as possible mechanisms for the concepts in the
+            constellation.
+        purviews (tuple(tuple(int))): A list of purviews, as node indices, to
+            be considered as possible purviews for the concepts in the
+            constellation.
+        past_purviews (tuple(tuple(int))): A list of purviews, as node indices,
+            to be considered as possible *cause* purviews for the concepts in
+            the constellation. This takes precedence over the more general
+            ``purviews`` option.
+        future_purviews (tuple(tuple(int))): A list of purviews, as node
+            indices, to be considered as possible *effect* purviews for the
+            concepts in the constellation. This takes precedence over the more
+            general ``purviews`` option.
+
+    Returns:
+        constellation (``tuple(Concept)``): A tuple of all the Concepts in the
+            constellation.
+    """
+_sequential_constellation.__doc__ = _constellation_doc
+_parallel_constellation.__doc__ = _constellation_doc
 # TODO fix and release in version 0.7.0
 # if config.PARALLEL_CONCEPT_EVALUATION:
-#     constellation = parallel_constellation
+#     constellation = _parallel_constellation
 # else:
-#     constellation = sequential_constellation
-constellation = sequential_constellation
+#     constellation = _sequential_constellation
+constellation = _sequential_constellation
 
 
 def concept_distance(c1, c2):
@@ -201,33 +248,64 @@ def _constellation_distance_simple(C1, C2, subsystem):
 def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     """Return the distance between two constellations in concept-space,
     using the generalized EMD."""
-    # We need the null concept to be the partitioned constellation, in case a
-    # concept is destroyed by a cut (and needs to be moved to the null
-    # concept).
-    unique_C2 = unique_C2 + [subsystem.null_concept]
-    # Get the concept distances from the concepts in the unpartitioned
-    # constellation to the partitioned constellation.
+    # Get the pairwise distances between the concepts in the unpartitioned and
+    # partitioned constellations.
     distances = np.array([
-        [concept_distance(i, j) for j in unique_C2]
-        for i in unique_C1
+        [concept_distance(i, j) for j in unique_C2] for i in unique_C1
     ])
-    # Now we make the distance matrix.
-    # It has blocks of zeros in the upper left and bottom right to make the
-    # distance matrix square, and to ensure that we're only moving mass from
-    # the unpartitioned constellation to the partitioned constellation.
+    # We need distances from all concepts---in both the unpartitioned and
+    # partitioned constellations---to the null concept, because:
+    # - often a concept in the unpartitioned constellation is destroyed by a
+    #   cut (and needs to be moved to the null concept); and
+    # - in certain cases, the partitioned system will have *greater* sum of
+    #   small-phi, even though it has less big-phi, which means that some
+    #   partitioned-constellation concepts will be moved to the null concept.
+    distances_to_null = np.array([
+        concept_distance(c, subsystem.null_concept)
+        for constellation in (unique_C1, unique_C2) for c in constellation
+    ])
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Now we make the distance matrix, which will look like this:
+    #
+    #        C1       C2     0
+    #    +~~~~~~~~+~~~~~~~~+~~~+
+    #    |        |        |   |
+    # C1 |   X    |    D   |   |
+    #    |        |        |   |
+    #    +~~~~~~~~+~~~~~~~~+ D |
+    #    |        |        | n |
+    # C2 |   D'   |    X   |   |
+    #    |        |        |   |
+    #    +~~~~~~~~+~~~~~~~~+~~~|
+    #  0 |        Dn'      | X |
+    #    +~~~~~~~~~~~~~~~~~~~~~+
+    #
+    # The diagonal blocks marked with an X are set to a value larger than any
+    # pairwise distance between concepts. This ensures that concepts are never
+    # moved to another concept within their own constellation; they must always
+    # go either from one constellation to another, or to the null concept N.
+    # The D block is filled with the pairwise distances between the two
+    # constellations, and Dn is filled with the distances from each concept to
+    # the null concept.
     N, M = len(unique_C1), len(unique_C2)
-    distance_matrix = np.zeros([N + M] * 2)
-    # Top-right block.
-    distance_matrix[:N, N:] = distances
-    # Bottom-left block.
-    distance_matrix[N:, :N] = distances.T
+    # Add one to the side length for the null concept distances.
+    distance_matrix = np.empty([N + M + 1] * 2)
+    # Ensure that concepts are never moved within their own constellation.
+    distance_matrix[:] = np.max(distances) + 1
+    # Set the top-right block to the pairwise constellation distances.
+    distance_matrix[:N, N:-1] = distances
+    # Set the bottom-left block to the same, but transposed.
+    distance_matrix[N:-1, :N] = distances.T
+    # Do the same for the distances to the null concept.
+    distance_matrix[-1, :-1] = distances_to_null
+    distance_matrix[:-1, -1] = distances_to_null.T
+    distance_matrix[-1, -1] = 0
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Construct the two phi distributions.
-    d1 = [c.phi for c in unique_C1] + [0] * M
-    d2 = [0] * N + [c.phi for c in unique_C2]
-    # Calculate how much phi disappeared and assign it to the null concept (the
-    # null concept is the last element in the second distribution).
+    # Construct the two phi distributions, with an entry at the end for the
+    # null concept.
+    d1 = [c.phi for c in unique_C1] + [0] * M + [0]
+    d2 = [0] * N + [c.phi for c in unique_C2] + [0]
+    # Calculate how much phi disappeared and assign it to the null concept.
     d2[-1] = sum(d1) - sum(d2)
     # The sum of the two signatures should be the same.
     assert utils.phi_eq(sum(d1), sum(d2))
@@ -301,21 +379,21 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     """Find the ``BigMip`` for a given cut."""
     log.debug("Evaluating cut {}...".format(cut))
 
-    cut_subsystem = Subsystem(uncut_subsystem.node_indices,
-                              uncut_subsystem.network,
+    cut_subsystem = Subsystem(uncut_subsystem.network,
+                              uncut_subsystem.state,
+                              uncut_subsystem.node_indices,
                               cut=cut,
                               mice_cache=uncut_subsystem._mice_cache)
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanism_indices_to_check = set(
+        mechanisms = set(
             map(nodes2indices,
                 [c.mechanism for c in unpartitioned_constellation]))
     else:
-        mechanism_indices_to_check = set(
+        mechanisms = set(
             tuple(map(nodes2indices,
                       [c.mechanism for c in unpartitioned_constellation])) +
             utils.cut_mechanism_indices(uncut_subsystem, cut))
-    partitioned_constellation = constellation(cut_subsystem,
-                                              mechanism_indices_to_check)
+    partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
     log.debug("Finished evaluating cut {}.".format(cut))
 
@@ -507,13 +585,13 @@ def big_phi(subsystem):
     return big_mip(subsystem).phi
 
 
-def subsystems(network):
+def subsystems(network, state):
     """Return a generator of all possible subsystems of a network."""
     for subset in utils.powerset(network.node_indices):
-        yield Subsystem(subset, network)
+        yield Subsystem(network, state, subset)
 
 
-def all_complexes(network):
+def all_complexes(network, state):
     """Return a generator for all complexes of the network, including
     reducible, zero-phi complexes (which are not, strictly speaking, complexes
     at all)."""
@@ -521,10 +599,10 @@ def all_complexes(network):
         raise ValueError(
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
-    return (big_mip(subsystem) for subsystem in subsystems(network))
+    return (big_mip(subsystem) for subsystem in subsystems(network, state))
 
 
-def possible_complexes(network):
+def possible_complexes(network, state):
     """Return a generator of the subsystems of a network that could be a
     complex.
 
@@ -532,50 +610,48 @@ def possible_complexes(network):
     output (nodes with no inputs or no outputs cannot be part of a main
     complex, because they do not have a causal link with the rest of the
     subsystem in the past or future, respectively)."""
-    inputs = np.sum(network.connectivity_matrix, 1)
-    outputs = np.sum(network.connectivity_matrix, 0)
+    inputs = np.sum(network.connectivity_matrix, 0)
+    outputs = np.sum(network.connectivity_matrix, 1)
     nodes_have_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
     causally_significant_nodes = np.where(nodes_have_inputs_and_outputs)[0]
     for subset in utils.powerset(causally_significant_nodes):
-        yield Subsystem(subset, network)
+        yield Subsystem(network, state, subset)
 
 
-def complexes(network):
+def complexes(network, state):
     """Return a generator for all irreducible complexes of the network."""
     if not isinstance(network, Network):
         raise ValueError(
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
     return tuple(filter(None, (big_mip(subsystem) for subsystem in
-                               possible_complexes(network))))
+                               possible_complexes(network, state))))
 
 
-def main_complex(network):
+def main_complex(network, state):
     """Return the main complex of the network."""
     if not isinstance(network, Network):
         raise ValueError(
             """Input must be a Network (perhaps you passed a Subsystem
             instead?)""")
-    log.info("Calculating main complex for {}...".format(network))
-    result = complexes(network)
+    log.info("Calculating main complex...")
+    result = complexes(network, state)
     if result:
         result = max(result)
     else:
-        empty_subsystem = Subsystem((), network)
+        empty_subsystem = Subsystem(network, state, ())
         result = _null_bigmip(empty_subsystem)
-    log.info("Finished calculating main complex for {}.".format(network))
+    log.info("Finished calculating main complex.")
     log.debug("RESULT: \n" + str(result))
     return result
 
 
-def condensed(network):
+def condensed(network, state):
     """Return the set of maximal non-overlapping complexes."""
     condensed = []
     covered_nodes = set()
-    log.info("Condensing {}...".format(network))
-    for c in reversed(sorted(complexes(network))):
+    for c in reversed(sorted(complexes(network, state))):
         if not any(n in covered_nodes for n in c.subsystem.node_indices):
             condensed.append(c)
             covered_nodes = covered_nodes | set(c.subsystem.node_indices)
-    log.info("Finished condensing {}.".format(network))
     return condensed

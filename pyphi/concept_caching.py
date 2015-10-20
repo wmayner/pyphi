@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # concept_caching.py
+
 """
 Objects and functions for managing the normalization, caching, and retrieval of
 concepts.
 """
 
 from collections import namedtuple
+
 import numpy as np
 from marbl import MarblSet
 
-from . import models, db, config, convert
-from .constants import DIRECTIONS, PAST, FUTURE
+from . import config, convert, db, models
+from .constants import DIRECTIONS, FUTURE, PAST
 
 
 class NormalizedMechanism:
@@ -64,7 +65,8 @@ class NormalizedMechanism:
         # Record the state of the mechanism.
         self.state = tuple(n.state for n in mechanism)
         # Grab the marbls from the mechanism nodes.
-        marbls = [(n.marbl if normalize_tpms else n.raw_marbl) for n in mechanism]
+        marbls = [(n.marbl if normalize_tpms else n.raw_marbl)
+                  for n in mechanism]
         self.marblset = MarblSet(marbls)
         self.permutation = self.marblset.permutation
         M = range(len(mechanism))
@@ -107,16 +109,17 @@ class NormalizedMechanism:
                     # Increment the counter so the next label is different.
                     counter += 1
         # Get the inverse mappings.
-        self.unnormalized_indices = {v: k for k, v in self.normalized_indices.items()}
+        self.unnormalized_indices = {v: k for k, v in
+                                     self.normalized_indices.items()}
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Get the states of the input and output nodes.
-        self.io_state = tuple(subsystem.network.current_state[i] for i in
+        self.io_state = tuple(subsystem.state[i] for i in
                               self.normalized_indices.keys())
         # Associate each marbl with its normally-labeled inputs.
         # This captures the interrelationships between the mechanism nodes in a
         # stable way.
-        self.outputs = tuple( tuple(self.normalized_indices[n.index] for n in
-                                    io[m]) for m in M)
+        self.outputs = tuple(
+            tuple(self.normalized_indices[n.index] for n in io[m]) for m in M)
 
     # TODO!!!: make hash independent of python
     def __hash__(self):

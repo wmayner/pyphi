@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# test_subsystem_expand.py
 
-from pyphi.compute import big_mip
 from pyphi import Subsystem
+from pyphi.compute import big_mip
+from pyphi.constants import EPSILON
 import numpy as np
 import example_networks
-from pyphi.constants import EPSILON
 
 micro = example_networks.micro()
-micro.current_state = (0, 0, 0, 0)
-micro.past_state = (0, 0, 0, 0)
-micro_subsystem = Subsystem(range(micro.size), micro)
+micro_subsystem = Subsystem(micro, (0, 0, 0, 0), range(micro.size))
 mip = big_mip(micro_subsystem)
 
 CD = micro_subsystem.nodes[2:4]

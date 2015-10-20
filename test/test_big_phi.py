@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# test_big_phi.py
 
 import pickle
 import pytest
@@ -19,7 +20,7 @@ from scipy.sparse import csr_matrix
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 standard_answer = {
-    'phi': 2.312496,
+    'phi': 2.312497,
     'unpartitioned_small_phis': {
         (1,): 0.25,
         (2,): 0.5,
@@ -106,7 +107,7 @@ big_subsys_0_thru_3_answer = {
 
 
 rule152_answer = {
-    'phi': 6.974947,
+    'phi': 6.974952,
     'unpartitioned_small_phis': {
         (0,): 0.125002,
         (1,): 0.125002,
@@ -349,16 +350,16 @@ def test_find_mip_parallel_noised_example(s_noised, flushcache,
     config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = initial
 
 
-def test_complexes_standard(standard, flushcache, restore_fs_cache):
+def test_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
-    complexes = list(compute.complexes(standard))
+    complexes = list(compute.complexes(s.network, s.state))
     check_mip(complexes[2], standard_answer)
 
 
 # TODO!! add more assertions for the smaller subsystems
-def test_all_complexes_standard(standard, flushcache, restore_fs_cache):
+def test_all_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
-    complexes = list(compute.all_complexes(standard))
+    complexes = list(compute.all_complexes(s.network, s.state))
     check_mip(complexes[7], standard_answer)
 
 
@@ -405,6 +406,7 @@ def test_big_mip_rule152(rule152_s, flushcache, restore_fs_cache):
     check_mip(mip, rule152_answer)
 
 
+# TODO fix this horribly outdated mess that never worked in the first place :P
 @pytest.mark.veryslow
 def test_rule152_complexes_no_caching(rule152):
     net = rule152
@@ -420,14 +422,12 @@ def test_rule152_complexes_no_caching(rule152):
     # Don't use concept caching for this test.
     constants.CACHE_CONCEPTS = False
 
-    for k, result in results.items():
-        print(net.current_state, net.past_state)
+    for state, result in results.items():
         # Empty the DB.
         _flushdb()
-        # Unpack the current/past state from the results key.
-        current_state, past_state = k
-        # Generate the network with the current and past state we're testing.
-        net = Network(rule152.tpm, current_state, past_state,
+        # Unpack the state from the results key.
+        # Generate the network with the state we're testing.
+        net = Network(rule152.tpm, state,
                       connectivity_matrix=rule152.connectivity_matrix)
         # Comptue all the complexes, leaving out the first (empty) subsystem
         # since Matlab doesn't include it in results.

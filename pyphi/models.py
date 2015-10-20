@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # models.py
+
 """
 Containers for MICE, MIP, cut, partition, and concept data.
 """
 
-from collections import namedtuple, Iterable
+from collections import Iterable, namedtuple
+
 import numpy as np
 
-from . import utils, convert, json
+from . import utils
+from .jsonify import jsonify
+
 
 # TODO use properties to avoid data duplication
 
@@ -26,11 +29,10 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
             Connections to this group of nodes from those in ``severed`` are
             severed.
     """
-    def json_dict(self):
-        return {
-            'severed': json.make_encodable(self.severed),
-            'intact': json.make_encodable(self.intact)
-        }
+    # This allows accessing the namedtuple's ``__dict__``; see
+    # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
+    __slots__ = ()
+    pass
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
@@ -53,11 +55,8 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
 
         This class represents one term in the above product.
     """
-    def json_dict(self):
-        return {
-            'mechanism': json.make_encodable(self.mechanism),
-            'purview': json.make_encodable(self.purview)
-        }
+    __slots__ = ()
+    pass
 
 
 # Phi-ordering methods
@@ -208,6 +207,7 @@ class Mip(namedtuple('Mip', _mip_attributes)):
             The partitioned repertoire of the mechanism. This is the product of
             the repertoires of each part of the partition.
     """
+    __slots__ = ()
 
     def __eq__(self, other):
         # We don't count the partition and partitioned repertoire in checking
@@ -234,11 +234,12 @@ class Mip(namedtuple('Mip', _mip_attributes)):
         return hash((self.phi, self.direction, self.mechanism, self.purview,
                      utils.np_hash(self.unpartitioned_repertoire)))
 
-    def json_dict(self):
-        return {
-            attr: json.make_encodable(getattr(self, attr))
-            for attr in _mip_attributes
-        }
+    def to_json(self):
+        d = self.__dict__
+        # Flatten the repertoires.
+        d['partitioned_repertoire'] = self.partitioned_repertoire.flatten()
+        d['unpartitioned_repertoire'] = self.partitioned_repertoire.flatten()
+        return d
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -279,12 +280,6 @@ class Mice:
     def __init__(self, mip, relevant_connections=None):
         self._mip = mip
         self._relevant_connections = relevant_connections
-        # TODO remove?
-        if (self.repertoire is not None and
-            any(self.repertoire.shape[i] != 2 for i in
-                convert.nodes2indices(self.purview))):
-            raise Exception('Attempted to create MICE with mismatched purview '
-                            'and repertoire.')
 
     @property
     def phi(self):
@@ -344,10 +339,8 @@ class Mice:
     def __hash__(self):
         return hash(('Mice', self._mip))
 
-    def json_dict(self):
-        return {
-            "mip": json.make_encodable(self._mip)
-        }
+    def to_json(self):
+        return {'mip': self._mip}
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -420,11 +413,27 @@ class Concept:
             return (self.cause, self.effect)
 
     def __eq__(self, other):
-        return _general_eq(self, other, _concept_attributes)
+        # TODO don't use phi_eq now that all phi values should be rounded
+        # (check that)
+        return (self.phi == other.phi
+                and ([n.index for n in self.mechanism] ==
+                     [n.index for n in other.mechanism])
+                and ([n.state for n in self.mechanism] ==
+                     [n.state for n in self.mechanism])
+                and ([n.index for n in self.cause.purview] ==
+                     [n.index for n in other.cause.purview])
+                and ([n.index for n in self.effect.purview] ==
+                     [n.index for n in other.effect.purview])
+                and self.eq_repertoires(other))
 
     def __hash__(self):
-        return hash((self.phi, self.mechanism, self.cause, self.effect,
-                     self.subsystem))
+        return hash((self.phi,
+                     tuple(n.index for n in self.mechanism),
+                     tuple(n.state for n in self.mechanism),
+                     tuple(n.index for n in self.cause.purview),
+                     tuple(n.index for n in self.effect.purview),
+                     utils.np_hash(self.cause.repertoire),
+                     utils.np_hash(self.effect.repertoire)))
 
     def __bool__(self):
         """A concept is truthy if it is not reducible; i.e. if it has a
@@ -478,20 +487,15 @@ class Concept:
             self.effect.purview,
             self.effect.mip.partitioned_repertoire)
 
-    def json_dict(self):
-        d = {
-            attr: json.make_encodable(getattr(self, attr))
-            for attr in ['phi', 'mechanism', 'cause', 'effect', 'time']
-        }
-        # Expand the repertoires.
-        d['cause']['repertoire'] = json.make_encodable(
-            self.expand_cause_repertoire().flatten())
-        d['effect']['repertoire'] = json.make_encodable(
-            self.expand_effect_repertoire().flatten())
-        d['cause']['partitioned_repertoire'] = json.make_encodable(
-            self.expand_partitioned_cause_repertoire().flatten())
-        d['effect']['partitioned_repertoire'] = json.make_encodable(
-            self.expand_partitioned_effect_repertoire().flatten())
+    def to_json(self):
+        d = jsonify(self.__dict__)
+        # Attach the expanded repertoires to the jsonified MICEs.
+        d['cause']['repertoire'] = self.expand_cause_repertoire().flatten()
+        d['effect']['repertoire'] = self.expand_effect_repertoire().flatten()
+        d['cause']['partitioned_repertoire'] = \
+            self.expand_partitioned_cause_repertoire().flatten()
+        d['effect']['partitioned_repertoire'] = \
+            self.expand_partitioned_effect_repertoire().flatten()
         return d
 
     # Order by phi value, then by mechanism size
@@ -591,15 +595,7 @@ class BigMip:
             return _phi_gt(self, other)
 
     def __le__(self, other):
-        return (self.__lt__(other) or
-                _phi_eq(self, other))
+        return (self.__lt__(other) or _phi_eq(self, other))
 
     def __ge__(self, other):
-        return (self.__gt__(other) or
-                _phi_eq(self, other))
-
-    def json_dict(self):
-        return {
-            attr: json.make_encodable(getattr(self, attr))
-            for attr in _bigmip_attributes + ['time', 'small_phi_time']
-        }
+        return (self.__gt__(other) or _phi_eq(self, other))

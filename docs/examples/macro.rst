@@ -15,12 +15,7 @@ network, available from the :mod:`~pyphi.examples` module.
     >>> import pyphi
     >>> network = pyphi.examples.macro_network()
 
-All nodes are **OFF** in the current and past state,
-
-    >>> network.current_state
-    (0, 0, 0, 0)
-
-and the connectivity matrix is all-to-all.
+The connectivity matrix is all-to-all:
 
     >>> network.connectivity_matrix
     array([[ 1.,  1.,  1.,  1.],
@@ -28,10 +23,14 @@ and the connectivity matrix is all-to-all.
            [ 1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.]])
 
+We'll set the state so that nodes are **OFF**.
+
+    >>> state = (0, 0, 0, 0)
+
 At the “micro” spatial scale, we can compute the main complex, and determine
 the |big_phi| value:
 
-    >>> main_complex = pyphi.compute.main_complex(network)
+    >>> main_complex = pyphi.compute.main_complex(network, state)
     >>> main_complex.phi
     0.113889
 

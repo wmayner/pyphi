@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # config.py
+
 """
 The configuration is loaded upon import from a YAML file in the directory where
 PyPhi is run: ``pyphi_config.yml``. If no file is found, the default
 configuration is used.
 
-The various options are listed here with their defaults.
+The various options are listed here with their defaults
+
+    >>> import pyphi
+    >>> defaults = pyphi.config.DEFAULTS
 
 
 Theoretical approximations
@@ -16,13 +19,13 @@ Theoretical approximations
 This section with deals assumptions that speed up computation at the cost of
 theoretical accuracy.
 
-- In certain cases, making a cut can actually cause a previously reducible
+- ``pyphi.config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS``:
+  In certain cases, making a cut can actually cause a previously reducible
   concept to become a proper, irreducible concept. Assuming this can never
   happen can increase performance significantly, however the obtained results
   are not strictly accurate.
 
-    >>> import pyphi
-    >>> pyphi.config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS
+    >>> defaults['ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS']
     False
 
 
@@ -35,33 +38,34 @@ machine, so **please check these settings before running anything**. Otherwise,
 there is a risk that simulations might crash (potentially after running for a
 long time!), resulting in data loss.
 
-- Control whether system cuts are evaluated in parallel, which requires more
-  memory. If cuts are evaluated sequentially, only two |BigMip| instances need
-  to be in memory at once.
+- ``pyphi.config.PARALLEL_CUT_EVALUATION``: Control whether system cuts are
+  evaluated in parallel, which requires more memory. If cuts are evaluated
+  sequentially, only two |BigMip| instances need to be in memory at once.
 
-    >>> pyphi.config.PARALLEL_CUT_EVALUATION
+    >>> defaults['PARALLEL_CUT_EVALUATION']
     True
 
-- Control the number of CPU cores to evaluate unidirectional cuts. Negative
-  numbers count backwards from the total number of available cores, with ``-1``
-  meaning "use all available cores".
+- ``pyphi.config.NUMBER_OF_CORES``: Control the number of CPU cores to evaluate
+  unidirectional cuts. Negative numbers count backwards from the total number
+  of available cores, with ``-1`` meaning "use all available cores".
 
-    >>> pyphi.config.NUMBER_OF_CORES
+    >>> defaults['NUMBER_OF_CORES']
     -1
 
-- If parallel computation is enabled, it will have its own, separate messages,
-  which are always sent to standard output. This setting controls their
-  verbosity, an integer from 0 to 100.
+- ``pyphi.config.PARALLEL_VERBOSITY``:If parallel computation is enabled, it
+  will have its own, separate messages, which are always sent to standard
+  output. This setting controls their verbosity, an integer from 0 to 100.
 
-    >>> pyphi.config.PARALLEL_VERBOSITY
+    >>> defaults['PARALLEL_VERBOSITY']
     0
 
-- PyPhi employs several in-memory caches to speed up computation. However,
-  these can quickly use a lot of memory for large networks or large numbers of
-  them; to avoid thrashing, this options limits the percentage of a system's
-  RAM that the caches can collectively use.
+- ``pyphi.config.MAXIMUM_CACHE_MEMORY_PERCENTAGE``: PyPhi employs several
+  in-memory caches to speed up computation. However, these can quickly use a
+  lot of memory for large networks or large numbers of them; to avoid
+  thrashing, this options limits the percentage of a system's RAM that the
+  caches can collectively use.
 
-    >>> pyphi.config.MAXIMUM_CACHE_MEMORY_PERCENTAGE
+    >>> defaults['MAXIMUM_CACHE_MEMORY_PERCENTAGE']
     50
 
 Caching
@@ -74,63 +78,66 @@ program, or to accumulate results with minimal effort. For larger projects,
 however, it is recommended that you manage the results explicitly, rather than
 relying on the cache. For this reason it is disabled by default.
 
-- Control whether |BigMip| objects are cached and automatically retreived.
+- ``pyphi.config.CACHE_BIGMIPS``: Control whether |BigMip| objects are cached
+  and automatically retreived.
 
-    >>> pyphi.config.CACHE_BIGMIPS
+    >>> defaults['CACHE_BIGMIPS']
     False
 
-- Control whether |Concept| objects are cached and automatically retrieved.
+- ``pyphi.config.CACHE_CONCEPTS``: Control whether |Concept| objects are cached
+  and automatically retrieved.
 
-    >>> pyphi.config.CACHE_CONCEPTS
+    >>> defaults['CACHE_CONCEPTS']
     False
 
 .. note::
     Concept caching only has an effect when a database is used as the the
     caching backend.
 
-- Control whether TPMs should be normalized as part of concept normalization.
-  TPM normalization increases the chances that a precomputed concept can be
-  used again, but is expensive.
+- ``pyphi.config.NORMALIZE_TPMS``: Control whether TPMs should be normalized as
+  part of concept normalization. TPM normalization increases the chances that a
+  precomputed concept can be used again, but is expensive.
 
-    >>> pyphi.config.NORMALIZE_TPMS
+    >>> defaults['NORMALIZE_TPMS']
     True
 
-- Control whether precomputed results are stored and read from a database or
-  from a local filesystem-based cache in the current directory. Set this to
-  'fs' for the filesystem, 'db' for the database. Caching results on the
-  filesystem is the easiest to use but least robust caching system. Caching
-  results in a database is more robust and allows for caching individual
-  concepts, but requires installing MongoDB.
+- ``pyphi.config.CACHING_BACKEND``: Control whether precomputed results are
+  stored and read from a database or from a local filesystem-based cache in the
+  current directory. Set this to 'fs' for the filesystem, 'db' for the
+  database. Caching results on the filesystem is the easiest to use but least
+  robust caching system. Caching results in a database is more robust and
+  allows for caching individual concepts, but requires installing MongoDB.
 
-    >>> pyphi.config.CACHING_BACKEND
+    >>> defaults['CACHING_BACKEND']
     'fs'
 
-- Control how much caching information is printed. Takes a value between 0 and
-  11. Note that printing during a loop iteration can slow down the loop
-  considerably.
+- ``pyphi.config.FS_CACHE_VERBOSITY``: Control how much caching information is
+  printed. Takes a value between 0 and 11. Note that printing during a loop
+  iteration can slow down the loop considerably.
 
-    >>> pyphi.config.FS_CACHE_VERBOSITY
+    >>> defaults['FS_CACHE_VERBOSITY']
     0
 
-- If the caching backend is set to use the filesystem, the cache will be stored
-  in this directory. This directory can be copied and moved around if you want
-  to reuse results _e.g._ on a another computer, but it must be in the same
-  directory from which PyPhi is being run.
+- ``pyphi.config.FS_CACHE_DIRECTORY``: If the caching backend is set to use the
+  filesystem, the cache will be stored in this directory. This directory can be
+  copied and moved around if you want to reuse results _e.g._ on a another
+  computer, but it must be in the same directory from which PyPhi is being run.
 
-    >>> pyphi.config.FS_CACHE_DIRECTORY
+    >>> defaults['FS_CACHE_DIRECTORY']
     '__pyphi_cache__'
 
-- Set the configuration for the MongoDB database backend. This only has an
-  effect if the caching backend is set to use the database.
+- ``pyphi.config.MONGODB_CONFIG``: Set the configuration for the MongoDB
+  database backend. This only has an effect if the caching backend is set to
+  use the database.
 
-    >>> pyphi.config.MONGODB_CONFIG['host']
+    >>> defaults['MONGODB_CONFIG']['host']
     'localhost'
-    >>> pyphi.config.MONGODB_CONFIG['port']
+    >>> defaults['MONGODB_CONFIG']['port']
     27017
-    >>> pyphi.config.MONGODB_CONFIG['database_name']
+    >>> defaults['MONGODB_CONFIG']['database_name']
     'pyphi'
-    >>> pyphi.config.MONGODB_CONFIG['collection_name']
-    'test'
+    >>> defaults['MONGODB_CONFIG']['collection_name']
+    'cache'
 
 
 Logging
@@ -141,77 +148,91 @@ logs and the name of the log file. Logs can be written to standard output, a
 file, both, or none. See the `documentation on Python's logger
 <https://docs.python.org/3.4/library/logging.html>`_ for more information.
 
-- Control whether logs are written to a file.
+- ``pyphi.config.LOGGING_CONFIG['file']['enabled']``: Control whether logs are
+  written to a file.
 
-    >>> pyphi.config.LOGGING_CONFIG['file']['enabled']
+    >>> defaults['LOGGING_CONFIG']['file']['enabled']
     True
 
-- Control the name of the logfile.
+- ``pyphi.config.LOGGING_CONFIG['file']['filename']``: Control the name of the
+  logfile.
 
-    >>> pyphi.config.LOGGING_CONFIG['file']['filename']
+    >>> defaults['LOGGING_CONFIG']['file']['filename']
     'pyphi.log'
 
-- Control the concern level of file logging. Can be one of ``'DEBUG'``,
-  ``'INFO'``, ``'WARNING'``, ``'ERROR'``, or ``'CRITICAL'``.
+- ``pyphi.config.LOGGING_CONFIG['file']['level']``: Control the concern level
+  of file logging. Can be one of ``'DEBUG'``, ``'INFO'``, ``'WARNING'``,
+  ``'ERROR'``, or ``'CRITICAL'``.
 
-    >>> pyphi.config.LOGGING_CONFIG['file']['level']
+    >>> defaults['LOGGING_CONFIG']['file']['level']
     'INFO'
 
-- Control whether logs are written to standard output.
+- ``pyphi.config.LOGGING_CONFIG['stdout']['enabled']``: Control whether logs
+  are written to standard output.
 
-    >>> pyphi.config.LOGGING_CONFIG['stdout']['enabled']
+    >>> defaults['LOGGING_CONFIG']['stdout']['enabled']
     True
 
-- Control the concern level of standard output logging. Same possible values as
-  file logging.
+- ``pyphi.config.LOGGING_CONFIG['stdout']['level']``: Control the concern level
+  of standard output logging. Same possible values as file logging.
 
-    >>> pyphi.config.LOGGING_CONFIG['stdout']['level']
+    >>> defaults['LOGGING_CONFIG']['stdout']['level']
     'INFO'
 
-- Controls whether the current configuration is printed when PyPhi is imported.
+- ``pyphi.config.LOG_CONFIG_ON_IMPORT``: Controls whether the current
+  configuration is printed when PyPhi is imported.
 
-    >>> pyphi.config.LOG_CONFIG_ON_IMPORT
+    >>> defaults['LOG_CONFIG_ON_IMPORT']
     True
 
 
 Numerical precision
 ~~~~~~~~~~~~~~~~~~~
 
-- Computations in PyPhi rely on finding the Earth Mover's Distance. This is
-  done via an external C++ library that uses flow-optimization to find a good
-  approximation of the EMD. Consequently, systems with zero |big_phi| will
-  sometimes be computed to have a small but non-zero amount. This setting
-  controls the number of decimal places to which PyPhi will consider EMD
-  calculations accurate. Values of |big_phi| lower than ``10e-PRECISION`` will
-  be considered insignificant and treated as zero. The default value is about
-  as accurate as the EMD computations get.
+- ``pyphi.config.PRECISION``: Computations in PyPhi rely on finding the Earth
+  Mover's Distance. This is done via an external C++ library that uses
+  flow-optimization to find a good approximation of the EMD. Consequently,
+  systems with zero |big_phi| will sometimes be computed to have a small but
+  non-zero amount. This setting controls the number of decimal places to which
+  PyPhi will consider EMD calculations accurate. Values of |big_phi| lower than
+  ``10e-PRECISION`` will be considered insignificant and treated as zero. The
+  default value is about as accurate as the EMD computations get.
 
-    >>> pyphi.config.PRECISION
+    >>> defaults['PRECISION']
     6
 
 
 Miscellaneous
 ~~~~~~~~~~~~~
 
-- If set to ``True``, this defines the Phi value of subsystems containing only
-  a single node with a self-loop to be ``0.5``. If set to False, their
-  |big_phi| will be actually be computed (to be zero, in this implementation).
+- ``pyphi.config.VALIDATE_NETWORK_STATE``: Control whether PyPhi checks if the
+  network's current state is reachable from some past state, given the TPM.
+  Nodes with no inputs are assumed to be able have any state, and will not
+  constrain the possible states.
 
-    >>> pyphi.config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
+    >>> defaults['VALIDATE_NETWORK_STATE']
+    False
+
+- ``pyphi.config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI``: If set to ``True``,
+  this defines the Phi value of subsystems containing only a single node with a
+  self-loop to be ``0.5``. If set to False, their |big_phi| will be actually be
+  computed (to be zero, in this implementation).
+
+    >>> defaults['SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI']
     False
 
 -------------------------------------------------------------------------------
 """
 
-import pprint
 import os
+import pprint
 import sys
-import yaml
 
+import yaml
 
 # TODO: document mongo config
 # Defaults for configurable constants.
-config = {
+DEFAULTS = {
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Assumptions that speed up computation at the cost of theoretical
     # accuracy.
@@ -228,7 +249,7 @@ config = {
     'NUMBER_OF_CORES': -1,
     # The verbosity of parallel computation (integer from 0 to 100). See
     # documentation for `joblib.Parallel`.
-    'PARALLEL_VERBOSITY': 20,
+    'PARALLEL_VERBOSITY': 0,
     # The maximum percentage of RAM that PyPhi should use for caching.
     'MAXIMUM_CACHE_MEMORY_PERCENTAGE': 50,
     # Controls whether BigMips are cached and retreived.
@@ -275,11 +296,15 @@ config = {
     'LOG_CONFIG_ON_IMPORT': True,
     # The number of decimal points to which phi values are considered accurate
     'PRECISION': 6,
+    # Controls whether network states are validated upon subsystem creation.
+    'VALIDATE_NETWORK_STATE': False,
     # In some applications of this library, the user may prefer to define
     # single-node subsystems as having 0.5 Phi.
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
 }
 
+# The current configuration.
+config = dict(**DEFAULTS)
 
 # Get a reference to this module's dictionary..
 this_module = sys.modules[__name__]
@@ -309,6 +334,5 @@ if os.path.exists(PYPHI_CONFIG_FILENAME):
     with open(PYPHI_CONFIG_FILENAME) as f:
         config.update(yaml.load(f))
         file_loaded = True
-
 # Load the configuration.
 load_config(config)

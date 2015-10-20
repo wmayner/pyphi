@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # constants.py
+
 """
 Package-wide constants.
 """
 
 import pickle
+
 import joblib
 
 from . import config
-
 
 # The threshold below which we consider differences in phi values to be
 # zero.
