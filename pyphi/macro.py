@@ -188,7 +188,7 @@ def make_macro_tpm(micro_tpm, mapping):
                      for row in macro_tpm])
 
 
-def make_macro_network(network, mapping):
+def make_macro_network(network, state, mapping):
     """Create the macro-network for a given mapping from micro to macro-states.
 
     Returns ``None`` if the macro TPM does not satisfy the conditional
@@ -203,16 +203,16 @@ def make_macro_network(network, mapping):
     """
     num_macro_nodes = int(np.log2(max(mapping) + 1))
     macro_tpm = make_macro_tpm(network.tpm, mapping)
-    macro_current_state = convert.loli_index2state(
-        mapping[convert.state2loli_index(network.current_state)].astype(int),
+    macro_state = convert.loli_index2state(
+        mapping[convert.state2loli_index(state)].astype(int),
         num_macro_nodes)
     if validate.conditionally_independent(macro_tpm):
-        return Network(macro_tpm, macro_current_state)
+        return (Network(macro_tpm), macro_state)
     else:
-        return None
+        return (None, None)
 
 
-def emergence(network):
+def emergence(network, state):
     """Check for emergence of a macro-system into a macro-system.
 
     Checks all possible partitions and groupings of the micro-system to find
@@ -225,16 +225,16 @@ def emergence(network):
         macro_network (``MacroNetwork``): The maximal coarse-graining of the
             micro-system.
     """
-    micro_phi = compute.main_complex(network).phi
+    micro_phi = compute.main_complex(network, state).phi
     partitions = list_all_partitions(network)
     max_phi = float('-inf')
     for partition in partitions:
         groupings = list_all_groupings(partition)
         for grouping in groupings:
             mapping = make_mapping(partition, grouping)
-            macro_network = make_macro_network(network, mapping)
+            (macro_network, macro_state) = make_macro_network(network, state, mapping)
             if macro_network:
-                main_complex = compute.main_complex(macro_network)
+                main_complex = compute.main_complex(macro_network, macro_state)
                 if (main_complex.phi - max_phi) > constants.EPSILON:
                     max_phi = main_complex.phi
                     max_partition = partition

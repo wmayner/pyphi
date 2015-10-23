@@ -159,7 +159,7 @@ coarse-graining of the system:
 In these cases, the object returned :func:`~pyphi.macro.make_macro_network`
 function will have a boolean value of ``False``:
 
-    >>> macro_network = pyphi.macro.make_macro_network(network, mapping)
+    >>> (macro_network, macro_state) = pyphi.macro.make_macro_network(network, state, mapping)
     >>> bool(macro_network)
     False
 
@@ -179,14 +179,14 @@ Lets consider a different partition instead.
     array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,
             2.,  2.,  3.])
 
-    >>> macro_network = pyphi.macro.make_macro_network(network, mapping)
+    >>> (macro_network, macro_state) = pyphi.macro.make_macro_network(network, state, mapping)
     >>> bool(macro_network)
     True
 
 We can then consider the integrated information of this macro-network and
 compare it to the micro-network.
 
-    >>> macro_main_complex = pyphi.compute.main_complex(macro_network)
+    >>> macro_main_complex = pyphi.compute.main_complex(macro_network, macro_state)
     >>> macro_main_complex.phi
     0.86905
 
@@ -197,7 +197,7 @@ but to determine which one, we must check all possible partitions and all
 possible groupings to find the maximum of integrated information across all
 scales.
 
-    >>> M = pyphi.macro.emergence(network)
+    >>> M = pyphi.macro.emergence(network, state)
     >>> M.partition
     [[0, 1], [2, 3]]
     >>> M.grouping
