@@ -41,8 +41,8 @@ effect of the **MIP**.
 
    >>> constellation = main_complex.unpartitioned_constellation
 
-There two equalivalent cuts for this system, for concreteness we sever all
-connections from elements |A| and |B| to |C|,
+There two equalivalent cuts for this system; for concreteness we sever all
+connections from elements |A| and |B| to |C|.
 
    >>> cut = pyphi.models.Cut(severed = (0, 1), intact = (2,))
    >>> cut_subsystem = pyphi.Subsystem(network, state, range(network.size), cut)
@@ -210,15 +210,5 @@ constellation.
 
 Although situations described above are rare, they do occur, so one must be
 careful when analyzing the integrated information of physical systems not to
-dismiss the possibility of partitions creating new concepts, or increasing the
-amount of |small_phi|, otherwise this may result in an incorrect main complex
-being identified.
-
-
-
-
-
-
-
-
-
+dismiss the possibility of partitions creating new concepts or increasing the
+amount of |small_phi|; otherwise, an incorrect main complex may be identified.
