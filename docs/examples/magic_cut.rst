@@ -11,14 +11,15 @@ the minimum information partition of a system can result in new concepts
 being created.
 
 First let's create the the Rule 110 network, with all nodes **OFF** in the current
-and past states.
+state.
 
    >>> import pyphi
    >>> network = pyphi.examples.rule110_network()
+   >>> state = (0, 0, 0)
 
 Next, we want to identify the spatial scale and main complex of the network:
 
-   >>> macro = pyphi.macro.emergence(network)
+   >>> macro = pyphi.macro.emergence(network, state)
    >>> macro.emergence
    -1.35708
 
@@ -26,7 +27,7 @@ Since the emergence value is negative, there is no macro scale which has
 greater integrated information than the original micro scale. We can now
 analyze the micro scale to determine the main complex of the system:
 
-   >>> main_complex = pyphi.compute.main_complex(network)
+   >>> main_complex = pyphi.compute.main_complex(network, state)
    >>> subsystem = main_complex.subsystem
    >>> subsystem
    Subsystem((n0, n1, n2))
@@ -39,9 +40,13 @@ main complex of the system, we can explore its conceptual structure and the
 effect of the **MIP**.
 
    >>> constellation = main_complex.unpartitioned_constellation
-   >>> main_complex.cut
-   Cut(severed=(0, 1), intact=(2,))
-   >>> cut_constellation = main_complex.partitioned_constellation
+
+There two equalivalent cuts for this system, for concreteness we sever all
+connections from elements |A| and |B| to |C|,
+
+   >>> cut = pyphi.models.Cut(severed = (0, 1), intact = (2,))
+   >>> cut_subsystem = pyphi.Subsystem(network, state, range(network.size), cut)
+   >>> cut_constellation = pyphi.compute.constellation(cut_subsystem)
 
 Lets investigate the concepts in the unpartitioned constellation,
 
@@ -55,9 +60,9 @@ Lets investigate the concepts in the unpartitioned constellation,
 and also the concepts of the partitioned constellation.
 
    >>> [concept.mechanism for concept in cut_constellation]
-   [(n0, n1), (n1, n2), (n0,), (n1,), (n0, n1, n2), (n2,)]
+   [(n0,), (n1,), (n2,), (n0, n1), (n1, n2), (n0, n1, n2)]
    >>> [concept.phi for concept in cut_constellation]
-   [0.499999, 0.266666, 0.125, 0.125, 0.333333, 0.125]
+   [0.125, 0.125, 0.125, 0.499999, 0.266666, 0.333333]
    >>> sum(_)
    1.4749980000000003
 
@@ -109,7 +114,6 @@ for any purview, so the cause information is reducible.
 Next, lets look at the cut subsystem to understand how the new concept
 comes into existence.
 
-   >>> cut_subsystem = main_complex.cut_subsystem
    >>> ABC = cut_subsystem.nodes
    >>> C = (cut_subsystem.nodes[2],)
    >>> AB = cut_subsystem.nodes[0:2]
@@ -158,18 +162,19 @@ Next we will look at an example of system whoes **MIP** increases the amount of
 logic of the Rule 154 cellular automaton. Lets first load the network,
 
    >>> network = pyphi.examples.rule154_network()
+   >>> state = (1, 0, 0, 0, 0)
 
 For this example, it is the subsystem consisting of |n0, n1, n4| that we
 explore. This is not the main concept of the system, but it serves as a proof
 of principle regardless.
 
-   >>> subsystem = pyphi.Subsystem((0, 1, 4), network)
+   >>> subsystem = pyphi.Subsystem(network, state, (0, 1, 4))
 
 Calculating the **MIP** of the system,
 
    >>> mip = pyphi.compute.big_mip(subsystem)
    >>> mip.phi
-   0.15533
+   0.217829
    >>> mip.cut
    Cut(severed=(0, 4), intact=(1,))
 

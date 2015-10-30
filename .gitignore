@@ -9,6 +9,7 @@ node_modules
 **/*.egg-info
 **/*.log
 **/*.BACKUP
+pyphi/data/hamming_matrices/10.npy
 
 __pyphi_cache__
 dist
