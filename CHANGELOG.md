@@ -1,11 +1,89 @@
 Changelog
 =========
 
+0.7.5
+------------------
+_2015-11-02_
+
+### API changes
+- Subsystem states are now validated rather than network states. Previously,
+  network states were validated, but in some cases there can be a
+  globally-impossible network state that is locally possible for a subsystem
+  (or vice versa) when considering the subsystem's TPM, which is conditioned
+  on the external nodes (i.e., background conditions). It is now impossible to
+  create a subsystem in an impossible state (a `StateUnreachableError` is
+  thrown), and accordingly no 𝚽 values are calculated for such subsystems; this
+  may change results from older versions, since in some cases the calculated
+  main complex was in fact in an impossible. This functionality is enabled by
+  default but can be disabled via the `VALIDATE_SUBSYSTEM_STATES` option.
+
+
+0.7.4
+------------------
+_2015-10-12_
+
+### Fixes
+- Fixed a caching bug where the subsystem's state was not included in its hash
+  value, leading to collisions.
+
 
 0.7.3
 ------------------
 _2015-09-08_
-- Refactored the `pyphi.json` module and renamed it to `pyphi.jsonify`.
+
+### API changes
+- Heavily refactored the `pyphi.json` module and renamed it to `pyphi.jsonify`.
+
+
+0.7.2
+------------------
+_2015-07-01_
+
+### API additions
+- Added `convert.nodes2state` function.
+- Added `constrained_nodes` keyword argument to `validate.state_reachable`.
+
+### API changes
+- Concept equality is now more permissive. For two concepts to be considered
+  equal, they must only have the same φ, the same mechanism and purviews (in
+  the same state), and the same repertoires.
+
+
+0.7.1
+------------------
+_2015-06-30_
+
+### API additions
+- Added `purviews`, `past_purviews`, `future_purviews` keyword arguments to
+  various concept-calculating methods. With these, the purviews that are
+  considered in the concept calculation can be restricted.
+
+### API changes
+- States are now associated with subsystems rather than networks. Functions in
+  the `compute` module that operate on networks now also take a state.
+
+### Fixes
+- Fixed a bug in `compute._constellation_distance_emd` where partitioned
+  concepts were unable to be moved to the null concept for the EMD calculation.
+  In some cases, the partitioned system has *greater* ∑φ than the unpartitioned
+  system; therefore it must be possible for the φ of partitioned-constellation
+  concepts to be moved to the null concept, not just vice versa.
+- Fixed a bug in `compute._constellation_distance_emd` where it was possible to
+  move concepts around within their own constellation; the distance matrix now
+  disallows any such intraconstellation paths. This is important because in
+  some cases paths from a concept in one constellation to a concept the other
+  can actually be shorter if a detour is taken through a different concept in
+  the same constellation. 
+- Fixed a bug in `validate.state_reachable` where network states were
+  incorrectly validated.
+- `macro.emergence` now always returns a macro-network, even when 𝚽 = 0.
+- Fixed a bug in `repr(Network)` where the perturbation vector and connectivity
+  matrix were switched.
+
+### Documentation
+- Added example describing “magic cuts” that, counterintuitively, can create
+  more concepts.
+- Updated existing documentation to the new subsystem-state association.
 
 
 0.7.0
