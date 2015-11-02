@@ -205,6 +205,16 @@ Numerical precision
 Miscellaneous
 ~~~~~~~~~~~~~
 
+- ``pyphi.config.VALIDATE_SUBSYSTEM_STATES``: Control whether PyPhi checks if
+  the subsystems's state is possible (reachable from some past state), given
+  the subsystem's TPM (**conditioned on background conditions**). If this is
+  turned off, then **calculated |big_phi| values may not be valid**, since they
+  may be associated with a subsystem that could never be in the given state.
+
+    >>> defaults['VALIDATE_SUBSYSTEM_STATES']
+    True
+
+
 - ``pyphi.config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI``: If set to ``True``,
   this defines the Phi value of subsystems containing only a single node with a
   self-loop to be ``0.5``. If set to False, their |big_phi| will be actually be
@@ -288,8 +298,9 @@ DEFAULTS = {
     'LOG_CONFIG_ON_IMPORT': True,
     # The number of decimal points to which phi values are considered accurate
     'PRECISION': 6,
-    # Controls whether network states are validated upon subsystem creation.
-    'VALIDATE_NETWORK_STATE': False,
+    # Controls whether a subsystem's state is validated when the subsystem is
+    # created.
+    'VALIDATE_SUBSYSTEM_STATES': False,
     # In some applications of this library, the user may prefer to define
     # single-node subsystems as having 0.5 Phi.
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,

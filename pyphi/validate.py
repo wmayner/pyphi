@@ -8,7 +8,7 @@ Methods for validating common types of input.
 
 import numpy as np
 
-from . import constants, convert
+from . import constants, convert, config
 from .constants import EPSILON
 
 
@@ -125,7 +125,6 @@ def state_length(state, size):
     return True
 
 
-# TODO test
 def state_reachable(subsystem):
     """Return whether a state can be reached according to the given network's
     TPM.
@@ -148,10 +147,10 @@ def state_reachable(subsystem):
                              'given TPM.')
 
 
-# TODO test
 def subsystem(s):
     """Validate a subsystem's state."""
     state_length(s.state, s.network.size)
     node_states(s.state)
-    state_reachable(s)
+    if config.VALIDATE_SUBSYSTEM_STATES:
+        state_reachable(s)
     return True
