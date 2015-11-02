@@ -26,7 +26,7 @@ def s_empty():
 
 def s_single():
     net = standard()
-    return Subsystem(net, s_state, (0,))
+    return Subsystem(net, s_state, (1,))
 
 
 def subsys_n0n2():

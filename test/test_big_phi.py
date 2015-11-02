@@ -360,7 +360,7 @@ def test_complexes_standard(s, flushcache, restore_fs_cache):
 def test_all_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
     complexes = list(compute.all_complexes(s.network, s.state))
-    check_mip(complexes[7], standard_answer)
+    check_mip(complexes[-1], standard_answer)
 
 
 def test_big_mip_complete_graph_standard_example(s_complete):
