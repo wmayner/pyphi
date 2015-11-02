@@ -89,8 +89,6 @@ PRECISION: 6
 
 # Miscellaneous
 # ~~~~~~~~~~~~~
-# Controls whether network states are validated upon subsystem creation.		
-VALIDATE_NETWORK_STATE: false
 # In some applications of this library, you may prefer to define single-nodes
 # with a self-loop as having 0.5 Phi, a priori.
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false

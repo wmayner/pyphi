@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import pytest
 import numpy as np
+import pytest
 
-from pyphi.network import Network
-from pyphi import validate
+from pyphi import Network, Subsystem, validate
 
 
 def test_validate_direction():
@@ -52,6 +51,38 @@ def test_validate_network_wrong_cm_size(standard):
         Network(standard.tpm, np.ones(16).reshape(4, 4))
 
 
-# TODO implement
-def test_validate_state_reachable_ignore_input():
-    pass
+def test_validate_state_no_error_1(s, standard):
+    validate.state_reachable(s)
+
+
+def test_validate_state_error(s, standard):
+    with pytest.raises(validate.StateUnreachableError):
+        state = (0, 1, 0)
+        Subsystem(standard, state, range(standard.size))
+
+
+def test_validate_state_no_error_2(s, standard):
+    tpm = np.array([
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+    ])
+    net = Network(tpm)
+    # Globally impossible state.
+    state = (1, 1, 0, 0)
+    # But locally possible for first two nodes.
+    subsystem = Subsystem(net, state, (0, 1))
+    validate.state_reachable(subsystem)

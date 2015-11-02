@@ -205,14 +205,6 @@ Numerical precision
 Miscellaneous
 ~~~~~~~~~~~~~
 
-- ``pyphi.config.VALIDATE_NETWORK_STATE``: Control whether PyPhi checks if the
-  network's current state is reachable from some past state, given the TPM.
-  Nodes with no inputs are assumed to be able have any state, and will not
-  constrain the possible states.
-
-    >>> defaults['VALIDATE_NETWORK_STATE']
-    False
-
 - ``pyphi.config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI``: If set to ``True``,
   this defines the Phi value of subsystems containing only a single node with a
   self-loop to be ``0.5``. If set to False, their |big_phi| will be actually be

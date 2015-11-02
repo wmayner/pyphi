@@ -64,13 +64,17 @@ class Subsystem:
         # Remove duplicates, sort, and ensure indices are native Python `int`s
         # (for JSON serialization).
         self.node_indices = tuple(sorted(list(set(map(int, node_indices)))))
-        # Validate.
-        validate.subsystem(self)
         # Get the size of this subsystem.
         self.size = len(self.node_indices)
         # Get the external nodes.
         self.external_indices = tuple(
             set(range(network.size)) - set(self.node_indices))
+        # The TPM conditioned on the state of the external nodes.
+        self.tpm = utils.condition_tpm(
+            self.network.tpm, self.external_indices,
+            self.state)
+        # Validate.
+        validate.subsystem(self)
         # The null cut (that leaves the system intact).
         self.null_cut = Cut((), self.node_indices)
         # The unidirectional cut applied for phi evaluation within the
@@ -85,10 +89,6 @@ class Subsystem:
             cut, network.connectivity_matrix)
         # Get the perturbation probabilities for each node in the network
         self.perturb_vector = network.perturb_vector
-        # The TPM conditioned on the state of the external nodes.
-        self.tpm = utils.condition_tpm(
-            self.network.tpm, self.external_indices,
-            self.state)
         # Generate the nodes.
         self.nodes = tuple(Node(self, i) for i in self.node_indices)
         # The matrix of connections which are severed due to the cut

@@ -8,7 +8,7 @@ Methods for validating common types of input.
 
 import numpy as np
 
-from . import constants, convert, config
+from . import constants, convert
 from .constants import EPSILON
 
 
@@ -126,7 +126,7 @@ def state_length(state, size):
 
 
 # TODO test
-def state_reachable(state, network, constrained_nodes=False):
+def state_reachable(subsystem):
     """Return whether a state can be reached according to the given network's
     TPM.
 
@@ -137,20 +137,15 @@ def state_reachable(state, network, constrained_nodes=False):
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
-    test = network.tpm - np.array(state)
-
-    # But we don't care about unconstrained nodes, so discard those columns.
-    test = test.reshape(-1, test.shape[-1])
-    if constrained_nodes is False:
-        # Default to only constraining nodes that have inputs.
-        constrained_nodes = np.where(
-            network.connectivity_matrix.sum(axis=0) > 0
-        )[0]
-    test = test[:, constrained_nodes]
-
+    # First we take the submatrix of the conditioned TPM that corresponds to
+    # the nodes that are actually in the subsystem...
+    tpm = subsystem.tpm[..., subsystem.node_indices]
+    # Then we do the subtraction and test.
+    test = tpm - np.array(subsystem.state)[list(subsystem.node_indices)]
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
         raise StateUnreachableError(
-            state, 'This state cannot be reached according to the given TPM.')
+            subsystem.state, 'This state cannot be reached according to the '
+                             'given TPM.')
 
 
 # TODO test
@@ -158,6 +153,5 @@ def subsystem(s):
     """Validate a subsystem's state."""
     state_length(s.state, s.network.size)
     node_states(s.state)
-    if config.VALIDATE_NETWORK_STATE:
-        state_reachable(s.state, s.network)
+    state_reachable(s)
     return True

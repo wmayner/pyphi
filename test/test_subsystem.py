@@ -2,28 +2,28 @@
 # -*- coding: utf-8 -*-
 # test_subsystem.py
 
-import pytest
-import example_networks
-
-from pyphi.subsystem import Subsystem
-from pyphi.models import Cut
-from pyphi import config
 import numpy as np
+import pytest
+
+import example_networks
+from pyphi import config, validate
+from pyphi.models import Cut
+from pyphi.subsystem import Subsystem
 
 
 def test_subsystem_validation(s):
     # Wrong state length.
     with pytest.raises(ValueError):
-        s = Subsystem(s.network, [0, 0], s.node_indices)
+        s = Subsystem(s.network, (0, 0), s.node_indices)
     # Wrong state values.
     with pytest.raises(ValueError):
-        s = Subsystem(s.network, [2, 0, 0], s.node_indices)
-    # Unreachable state.
+        s = Subsystem(s.network, (2, 0, 0), s.node_indices)
+    # Disallow impossible states at subsystem level (we don't want to return a
+    # phi-value associated with an impossible state).
     initial_option = config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
-    config.VALIDATE_NETWORK_STATE = True
-    with pytest.raises(ValueError):
-        net = example_networks.simple()
-        s = Subsystem(net, [1, 1, 1], s.node_indices)
+    net = example_networks.simple()
+    with pytest.raises(validate.StateUnreachableError):
+        s = Subsystem(net, (0, 1, 0), s.node_indices)
     config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = initial_option
 
 
