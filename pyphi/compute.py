@@ -16,7 +16,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components
 
-from . import config, constants, memory, utils
+from . import config, constants, memory, utils, validate
 from .concept_caching import concept as _concept
 from .config import PRECISION
 from .convert import nodes2indices
@@ -586,9 +586,14 @@ def big_phi(subsystem):
 
 
 def subsystems(network, state):
-    """Return a generator of all possible subsystems of a network."""
+    """Return a generator of all **possible** subsystems of a network.
+
+    Does not return subsystems that are in an impossible state."""
     for subset in utils.powerset(network.node_indices):
-        yield Subsystem(network, state, subset)
+        try:
+            yield Subsystem(network, state, subset)
+        except validate.StateUnreachableError:
+            pass
 
 
 def all_complexes(network, state):
@@ -609,13 +614,19 @@ def possible_complexes(network, state):
     This is the just powerset of the nodes that have at least one input and
     output (nodes with no inputs or no outputs cannot be part of a main
     complex, because they do not have a causal link with the rest of the
-    subsystem in the past or future, respectively)."""
+    subsystem in the past or future, respectively).
+
+    Does not include subsystems in an impossible state."""
     inputs = np.sum(network.connectivity_matrix, 0)
     outputs = np.sum(network.connectivity_matrix, 1)
     nodes_have_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
     causally_significant_nodes = np.where(nodes_have_inputs_and_outputs)[0]
     for subset in utils.powerset(causally_significant_nodes):
-        yield Subsystem(network, state, subset)
+        # Don't return subsystems that are in an impossible state.
+        try:
+            yield Subsystem(network, state, subset)
+        except validate.StateUnreachableError:
+            pass
 
 
 def complexes(network, state):
