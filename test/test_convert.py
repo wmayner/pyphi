@@ -72,6 +72,27 @@ def test_state_by_state2state_by_node():
     assert np.array_equal(result, expected)
 
 
+def test_state_by_node2state_by_state():
+    sbn_tpm = np.array([
+        [0, 0],
+        [1, 0],
+        [0, 1],
+        [1, 1]
+    ])
+    expected = np.array([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ]).astype(float)
+    result = convert.state_by_node2state_by_state(sbn_tpm)
+    print("Result:")
+    print(result)
+    print("Expected:")
+    print(expected)
+    assert np.array_equal(result, expected)
+
+
 def test_nondet_state_by_node2state_by_state():
     # Test for nondeterministic TPM.
     result = convert.state_by_node2state_by_state(state_by_node_nondet)
