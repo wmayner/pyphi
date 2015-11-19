@@ -24,6 +24,17 @@ def test_validate_tpm_nonbinary_nodes():
         assert validate.tpm(tpm)
 
 
+def test_validate_tpm_conditional_independence():
+    tpm = np.array([
+        [1,  0,  0,  0],
+        [0, .5, .5,  0],
+        [0, .5, .5,  0],
+        [0,  0,  0,  1],
+    ])
+    with pytest.raises(ValueError):
+        validate.tpm(tpm)
+
+
 def test_validate_cm_valid(s):
     assert validate.connectivity_matrix(s.network.connectivity_matrix)
 
