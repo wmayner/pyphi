@@ -89,7 +89,6 @@ def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
     return cm
 
 
-# TODO test
 def get_inputs_from_cm(index, connectivity_matrix):
     """Returns a tuple of node indices that have connections to the node with
     the given index."""
@@ -97,7 +96,6 @@ def get_inputs_from_cm(index, connectivity_matrix):
                  connectivity_matrix[i][index])
 
 
-# TODO test
 def get_outputs_from_cm(index, connectivity_matrix):
     """Returns a tuple of node indices that the node with the given index has
     connections to."""
