@@ -78,3 +78,17 @@ def test_find_cut_matrix(s, big_subsys_0_thru_3):
     ])
     assert np.array_equal(cut_s.cut_matrix, answer_s)
     assert np.array_equal(cut_big.cut_matrix, answer_big)
+
+
+def test_indices2nodes(s):
+    subsys = s  # 3-node subsystem
+    assert subsys.indices2nodes(()) == ()
+    assert subsys.indices2nodes((1,)) == (subsys.nodes[1],)
+    assert subsys.indices2nodes((0, 2)) == (subsys.nodes[0], subsys.nodes[2])
+
+
+def test_indices2nodes_with_bad_indices(subsys_n1n2):
+    with pytest.raises(ValueError):
+        subsys_n1n2.indices2nodes((3, 4))  # indices not in network
+    with pytest.raises(ValueError):
+        subsys_n1n2.indices2nodes((0,))  # index n0 in network but not subsytem
