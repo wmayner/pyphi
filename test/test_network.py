@@ -26,6 +26,13 @@ def test_network_init_validation(network):
         Network(tpm)
 
 
+def test_network_creates_fully_connected_cm_by_default():
+    tpm = np.zeros((2*2*2, 3))
+    network = Network(tpm, connectivity_matrix=None)
+    target_cm = np.ones((3, 3))
+    assert np.array_equal(network.connectivity_matrix, target_cm)
+    
+
 def test_repr(standard):
     print(repr(standard))
 
