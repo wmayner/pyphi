@@ -26,6 +26,7 @@ HITS, MISSES = 0, 1
 
 
 # TODO! go through docs and make sure to say when things can be None
+# TODO: validate that purview and mechanism args are explicitly *tuples*?
 class Subsystem:
 
     """A set of nodes in a network.
@@ -186,15 +187,15 @@ class Subsystem:
         """
         if not indices:
             return ()
-        if not set(indices).issubset(set(self.node_indices)):
-            raise ValueError("Indices must be a subset of subsystem indices.")
+        non_subsys_indices = set(indices) - set(self.node_indices)
+        if non_subsys_indices:
+            raise ValueError("Invalid indices {}. Indices must be a subset "
+                             "of subsystem indices.".format(non_subsys_indices))
         return tuple(n for n in self.nodes if n.index in indices)
 
     def _make_repertoire_key(self, direction, mechanism, purview):
         """Make a key for looking up repertoires in the cache."""
-        mechanism_indices = convert.nodes2indices(mechanism)
-        purview_indices = convert.nodes2indices(purview)
-        return (direction, mechanism_indices, purview_indices)
+        return (direction, mechanism, purview)
 
     def _get_cached_repertoire(self, direction, mechanism, purview):
         """Return a cached repertoire if there is one, ``False`` otherwise."""
@@ -217,9 +218,9 @@ class Subsystem:
         """Return the cause repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (tuple(Node)): The mechanism for which to calculate the
+            mechanism (tuple(int)): The mechanism for which to calculate the
                 cause repertoire.
-            purview (tuple(Node)): The purview over which to calculate the
+            purview (tuple(int)): The purview over which to calculate the
                 cause repertoire.
         Returns:
             cause_repertoire (``np.ndarray``): The cause repertoire of the
@@ -239,10 +240,8 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_num_node_distribution``
         # ``cjd`` is ``numerator_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # If the mechanism is empty, nothing is specified about the past state
-        # of the purview, so just return the purview's maximum entropy
-        # distribution.
-        purview_indices = convert.nodes2indices(purview)
+        purview_nodes = self.indices2nodes(purview)
+        mechanism_nodes = self.indices2nodes(mechanism)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -250,19 +249,21 @@ class Subsystem:
             self._set_cached_repertoire(DIRECTIONS[PAST], mechanism, purview,
                                         cjd)
             return cjd
-        # Calculate the maximum entropy distribution. If there is no mechanism,
-        # return it.
+        # Calculate the maximum entropy distribution.
+        # If the mechanism is empty, nothing is specified about the past state
+        # of the purview, so just return the purview's maximum entropy
+        # distribution.
         max_entropy_dist = utils.max_entropy_distribution(
-            purview_indices,
+            purview,
             self.network.size,
-            tuple(self.perturb_vector[i] for i in purview_indices))
+            tuple(self.perturb_vector[i] for i in purview))
         if not mechanism:
             self._set_cached_repertoire(DIRECTIONS[PAST], mechanism, purview,
                                         max_entropy_dist)
             return max_entropy_dist
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
-        cjd = np.ones(tuple(2 if i in purview_indices else
+        cjd = np.ones(tuple(2 if i in purview else
                             1 for i in self.network.node_indices))
         # Loop over all nodes in this mechanism, successively taking the
         # product (with expansion/broadcasting of singleton dimensions) of each
@@ -270,8 +271,7 @@ class Subsystem:
         # get the conditional joint distribution for the whole mechanism
         # (conditioned on the whole mechanism's state). After normalization,
         # this is the cause repertoire. Normalization happens after this loop.
-        for mechanism_node in mechanism:
-            inputs = set(mechanism_node.inputs)
+        for mechanism_node in mechanism_nodes:
             # TODO extend to nonbinary nodes
             # We're conditioning on this node's state, so take the probability
             # table for the node being in that state.
@@ -279,7 +279,9 @@ class Subsystem:
             conditioned_tpm = mechanism_node.tpm[node_state]
             # Collect the nodes that are not in the purview and have
             # connections to this node.
-            non_purview_inputs = inputs - set(purview)
+            # TODO: use straight indices for this.
+            non_purview_inputs = (set(mechanism_node.inputs) -  # inputs
+                                  set(purview_nodes))
             # Marginalize-out the non-purview inputs.
             for node in non_purview_inputs:
                 conditioned_tpm = utils.marginalize_out(
@@ -339,7 +341,8 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_denom_node_distribution``
         # ``accumulated_cjd`` is ``denom_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        purview_indices = convert.nodes2indices(purview)
+        purview_nodes = self.indices2nodes(purview)
+        mechanism_nodes = self.indices2nodes(mechanism)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -350,7 +353,7 @@ class Subsystem:
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
-            [1] * self.network.size + [2 if i in purview_indices else
+            [1] * self.network.size + [2 if i in purview else
                                        1 for i in self.network.node_indices])
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
@@ -358,7 +361,7 @@ class Subsystem:
         # whole purview. After conditioning on the mechanism's state and that
         # of external nodes, this will be the effect repertoire as a
         # distribution over the purview.
-        for purview_node in purview:
+        for purview_node in purview_nodes:
             # Unlike in calculating the cause repertoire, here the TPM is not
             # conditioned yet. `tpm` is an array with twice as many dimensions
             # as the network has nodes. For example, in a network with three
@@ -370,7 +373,6 @@ class Subsystem:
             # the shape is the CPT indexed by network state, so that the
             # overall CPT can be broadcast over the `accumulated_cjd` and then
             # later conditioned by indexing.
-            inputs = set(purview_node.inputs)
             # TODO extend to nonbinary nodes
             # Rotate the dimensions so the first dimension is the last (the
             # first dimension corresponds to the state of the node)
@@ -382,7 +384,7 @@ class Subsystem:
             second_half_shape[purview_node.index] = 2
             tpm = tpm.reshape(first_half_shape + second_half_shape)
             # Marginalize-out non-mechanism purview inputs.
-            non_mechanism_inputs = inputs - set(mechanism)
+            non_mechanism_inputs = set(purview_node.inputs) - set(mechanism_nodes)
             for node in non_mechanism_inputs:
                 tpm = utils.marginalize_out(node.index, tpm,
                                             self.perturb_vector[node.index])
@@ -394,10 +396,10 @@ class Subsystem:
         # CJD onto those states):
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Collect all nodes with inputs to any purview node.
-        inputs_to_purview = set.union(*[set(node.inputs) for node in purview])
+        inputs_to_purview = set.union(*[set(node.inputs) for node in purview_nodes])
         # Collect mechanism nodes with inputs to any purview node.
         fixed_inputs = convert.nodes2indices(inputs_to_purview &
-                                             set(mechanism))
+                                             set(mechanism_nodes))
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
         accumulated_cjd = utils.condition_tpm(
