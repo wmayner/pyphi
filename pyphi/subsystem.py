@@ -628,6 +628,7 @@ class Subsystem:
                            unpartitioned_repertoire=unpartitioned_repertoire,
                            partitioned_repertoire=partitioned_repertoire,
                            phi=0.0)
+
             # Update MIP if it's more minimal. We take the bigger purview if
             # the the phi values are indistinguishable.
             if ((phi_min - phi) > constants.EPSILON or (
@@ -678,10 +679,7 @@ class Subsystem:
         the MIP cause repertoire.
         """
         mip = self.mip_future(mechanism, purview)
-        if mip:
-            return mip.phi
-        else:
-            return 0
+        return mip.phi if mip else 0
 
     def phi(self, mechanism, purview):
         """Return the |small_phi| value of a mechanism over a purview."""

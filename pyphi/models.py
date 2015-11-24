@@ -40,9 +40,9 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
     """Represents one part of a bipartition.
 
     Attributes:
-        mechanism (tuple(Node)):
+        mechanism (tuple(int)):
             The nodes in the mechanism for this part.
-        purview (tuple(Node)):
+        purview (tuple(int)):
             The nodes in the mechanism for this part.
 
     Example:
@@ -193,9 +193,9 @@ class Mip(namedtuple('Mip', _mip_attributes)):
         direction (str):
             The temporal direction specifiying whether this MIP should be
             calculated with cause or effect repertoires.
-        mechanism (list(Node)):
+        mechanism (tuple(int)):
             The mechanism over which to evaluate the MIP.
-        purview (list(Node)):
+        purview (tuple(int)):
             The purview over which the unpartitioned repertoire differs the
             least from the partitioned repertoire.
         partition (tuple(Part, Part)):
