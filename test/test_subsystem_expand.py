@@ -8,13 +8,14 @@ from pyphi.constants import EPSILON
 import numpy as np
 import example_networks
 
+
 micro = example_networks.micro()
 micro_subsystem = Subsystem(micro, (0, 0, 0, 0), range(micro.size))
 mip = big_mip(micro_subsystem)
 
-CD = micro_subsystem.nodes[2:4]
-BCD = micro_subsystem.nodes[1:4]
-ABCD = micro_subsystem.nodes[0:4]
+CD = (2, 3)
+BCD = (1, 2, 3)
+ABCD = (1, 2, 3, 4)
 
 A = mip.unpartitioned_constellation[0]
 
@@ -47,3 +48,10 @@ def test_expand_effect_repertoire():
                   .02480625, .02244375, .02244375, .02030625])) < EPSILON)
     assert np.all(abs(A.expand_effect_repertoire(ABCD) -
                       A.expand_effect_repertoire()) < EPSILON)
+
+
+def test_expand_repertoire_purview_can_be_None(s):
+    mechanism = (0, 1)
+    purview = None
+    cause_repertoire = s.cause_repertoire(mechanism, purview)
+    s.expand_repertoire('past', purview, cause_repertoire)

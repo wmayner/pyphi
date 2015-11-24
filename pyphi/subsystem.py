@@ -461,27 +461,38 @@ class Subsystem:
 
     def expand_repertoire(self, direction, purview, repertoire,
                           new_purview=None):
-        """Return the unconstrained cause or effect repertoire based on a
-        direction."""
-        # If not specified, the new purview is the entire network
-        if (new_purview is None):
-            new_purview = self.nodes
-        elif not (set([node.index for node in purview])
-                  .issubset([node.index for node in new_purview])):
+        """Expand a partial repertoire over a purview to a distribution
+        over a new state space.
+
+        TODO: can the purview be extrapolated from the repertoire?
+
+        Args:
+            direction (str): Either |past| or |future|
+            purview (tuple(int) or None): The purview over which the repertoire 
+                was calculated
+            repertoire (``np.ndarray``): A repertoire computed over ``purview``
+
+        Keyword Args:
+            new_purview (tuple(int)): The purview to expand the repertoire over.
+                Defaults to the entire subsystem.
+
+        Returns:
+            ``np.ndarray``: The expanded repertoire
+        """
+        if purview is None:
+            purview = ()
+        if new_purview is None:
+            new_purview = self.node_indices  # full subsystem
+        if not set(purview).issubset(new_purview):
             raise ValueError("Expanded purview must contain original purview.")
+
         # Get the unconstrained repertoire over the other nodes in the network.
-        if not purview:
-            non_purview_nodes = tuple(
-                frozenset([node.index for node in new_purview]))
-        else:
-            non_purview_nodes = tuple(
-                frozenset([node.index for node in new_purview])
-                - frozenset([node.index for node in purview]))
-        uc = self._unconstrained_repertoire(
-            direction, self.indices2nodes(non_purview_nodes))
+        non_purview_indices = tuple(set(new_purview) - set(purview))
+        uc = self._unconstrained_repertoire(direction, non_purview_indices)
         # Multiply the given repertoire by the unconstrained one to get a
         # distribution over all the nodes in the network.
         expanded_repertoire = repertoire * uc
+
         # Renormalize
         if (np.sum(expanded_repertoire > 0)):
             return expanded_repertoire / np.sum(expanded_repertoire)
