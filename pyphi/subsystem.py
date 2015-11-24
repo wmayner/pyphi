@@ -536,14 +536,21 @@ class Subsystem:
     # MIP methods
     # =========================================================================
 
-    # TODO? something clever here so we don't do the full iteration
     @staticmethod
     def _mip_bipartition(mechanism, purview):
+        """Return all bipartitions of a mechanism over a purview.
+
+        Returns:
+            list((Part, Part))
+
+        TODO: use ``itertools.product``??
+        """
         purview_bipartitions = utils.bipartition(purview)
+        # Also consider reverse or each parition, eg:
+        #   [((A), (BC)), ...] -> [((BC), (A)), ...]
+        reverse_bipartitions = [x[::-1] for x in purview_bipartitions]
         result = []
-        for denominators in (purview_bipartitions +
-                             list(map(lambda x: x[::-1],
-                                      purview_bipartitions))):
+        for denominators in purview_bipartitions + reverse_bipartitions:
             for numerators in utils.bipartition(mechanism):
                 # For the MIP, we only consider the bipartitions in which each
                 # node appears exactly once, e.g. for AB/ABC, (A/B) * (C/[]) is
