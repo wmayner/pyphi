@@ -102,3 +102,18 @@ def test_mip_bipartition():
         (Part((), (1, 2)), Part((0,), ())),
     ]
     assert set(Subsystem._mip_bipartition(mechanism, purview)) == set(answer)
+
+
+def test_fully_connected(s):
+    """
+    Connectivity matrix looks like
+    [[0, 0, 1],
+     [1, 0, 1],
+     [1, 1, 0]]
+    """
+    assert not s._fully_connected((0,), (0, 1, 2))
+    assert not s._fully_connected((2,), (2,))
+    assert not s._fully_connected((0, 1), (1, 2))
+    assert s._fully_connected((0, 1), (0, 2))
+    assert s._fully_connected((1, 2), (1, 2))
+    assert s._fully_connected((0, 1, 2), (0, 1, 2))
