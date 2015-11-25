@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # test_subsystem_expand.py
 
+import pytest
 from pyphi import Subsystem
 from pyphi.compute import big_mip
 from pyphi.constants import EPSILON
@@ -15,7 +16,7 @@ mip = big_mip(micro_subsystem)
 
 CD = (2, 3)
 BCD = (1, 2, 3)
-ABCD = (1, 2, 3, 4)
+ABCD = (0, 1, 2, 3)
 
 A = mip.unpartitioned_constellation[0]
 
@@ -54,4 +55,17 @@ def test_expand_repertoire_purview_can_be_None(s):
     mechanism = (0, 1)
     purview = None
     cause_repertoire = s.cause_repertoire(mechanism, purview)
-    s.expand_repertoire('past', purview, cause_repertoire)
+    # None purview gives same results as '()' purview
+    assert np.array_equal(
+        s.expand_repertoire('past', purview, cause_repertoire),
+        s.expand_repertoire('past', (), cause_repertoire))
+
+
+def test_expand_repertoire_purview_must_be_subset_of_new_purview(s):
+    mechanism = (0, 1)
+    purview = (0, 1)
+    new_purview = (1,)
+    cause_repertoire = s.cause_repertoire(mechanism, purview)
+    with pytest.raises(ValueError):
+        s.expand_repertoire('past', purview, cause_repertoire, new_purview)
+

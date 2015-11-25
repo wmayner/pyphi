@@ -185,7 +185,7 @@ macro_answer = {
 def check_unpartitioned_small_phis(small_phis, unpartitioned_constellation):
     assert len(small_phis) == len(unpartitioned_constellation)
     for c in unpartitioned_constellation:
-        assert c.phi == small_phis[convert.nodes2indices(c.mechanism)]
+        assert c.phi == small_phis[c.mechanism]
 
 
 def check_partitioned_small_phis(answer, partitioned_constellation):
@@ -234,7 +234,7 @@ def test_null_concept(s, flushcache, restore_fs_cache):
 
 def test_concept_nonexistent(s, flushcache, restore_fs_cache):
     flushcache()
-    assert not compute.concept(s, (s.nodes[0], s.nodes[2]))
+    assert not compute.concept(s, (0, 2))
 
 
 def test_conceptual_information(s, flushcache, restore_fs_cache):
