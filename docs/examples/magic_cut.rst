@@ -51,7 +51,7 @@ connections from elements |A| and |B| to |C|.
 Lets investigate the concepts in the unpartitioned constellation,
 
    >>> [concept.mechanism for concept in constellation]
-   [(n0,), (n1,), (n2,), (n0, n1), (n0, n2), (n1, n2)]
+   [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
    >>> [concept.phi for concept in constellation]
    [0.125, 0.125, 0.125, 0.499999, 0.499999, 0.499999]
    >>> sum(_)
@@ -60,7 +60,7 @@ Lets investigate the concepts in the unpartitioned constellation,
 and also the concepts of the partitioned constellation.
 
    >>> [concept.mechanism for concept in cut_constellation]
-   [(n0,), (n1,), (n2,), (n0, n1), (n1, n2), (n0, n1, n2)]
+   [(0,), (1,), (2,), (0, 1), (1, 2), (0, 1, 2)]
    >>> [concept.phi for concept in cut_constellation]
    [0.125, 0.125, 0.125, 0.499999, 0.266666, 0.333333]
    >>> sum(_)
@@ -81,7 +81,7 @@ in the unpartitioned constellation and what changed in the partitioned
 constellation.
 
    >>> subsystem = main_complex.subsystem
-   >>> ABC = subsystem.nodes
+   >>> ABC = subsystem.node_indices
    >>> subsystem.cause_info(ABC, ABC)
    0.749999
    >>> subsystem.effect_info(ABC, ABC)
@@ -104,8 +104,8 @@ know that the third element must also be **OFF**, and thus the third element can
 always be cut from the concept without a loss of information. This will be true
 for any purview, so the cause information is reducible.
 
-   >>> BC = subsystem.nodes[1:3]
-   >>> A = (subsystem.nodes[0],)
+   >>> BC = (1, 2)
+   >>> A = (0,)
    >>> repertoire = subsystem.cause_repertoire(ABC, ABC)
    >>> cut_repertoire = subsystem.cause_repertoire(BC, ABC) * subsystem.cause_repertoire(A, ())
    >>> pyphi.utils.hamming_emd(repertoire, cut_repertoire)
@@ -114,9 +114,9 @@ for any purview, so the cause information is reducible.
 Next, lets look at the cut subsystem to understand how the new concept
 comes into existence.
 
-   >>> ABC = cut_subsystem.nodes
-   >>> C = (cut_subsystem.nodes[2],)
-   >>> AB = cut_subsystem.nodes[0:2]
+   >>> ABC = (0, 1, 2)
+   >>> C = (2,)
+   >>> AB = (0, 1)
    
 The cut applied to the subsystem severs the connections from |A| and |B| to |C|. In
 this circumstance, knowing |A| and |B| do not tell us anything about the state of
@@ -124,7 +124,8 @@ this circumstance, knowing |A| and |B| do not tell us anything about the state o
 ``past_tpm[1]`` gives us the probability of C being **ON** in the next state, while
 ``past_tpm[0]`` would give us the probability of C being **OFF**.
 
-   >>> C[0].tpm[1].flatten()
+   >>> C_node = cut_subsystem.indices2nodes(C)[0]
+   >>> C_node.tpm[1].flatten()
    array([ 0.5 ,  0.75])
 
 This states that A has a 50% chance of being **ON** in the next state if it
@@ -141,7 +142,7 @@ With this partition, the integrated information is :math:`\varphi = 0.5`, but
 we must check all possible partitions to find the MIP.
 
    >>> cut_subsystem.core_cause(ABC).purview
-   (n0, n1, n2)
+   (0, 1, 2)
    >>> cut_subsystem.core_cause(ABC).phi
    0.333333
 
@@ -184,7 +185,7 @@ partitioned and unpartitioned constellations,
 
    >>> unpartitioned_constellation = mip.unpartitioned_constellation
    >>> [concept.mechanism for concept in unpartitioned_constellation]
-   [(n0,), (n1,), (n0, n1)]
+   [(0,), (1,), (0, 1)]
    >>> [concept.phi for concept in unpartitioned_constellation]
    [0.25, 0.166667, 0.178572]
    >>> sum([concept.phi for concept in unpartitioned_constellation])
@@ -195,7 +196,7 @@ The unpartitioned constellation has mechanisms |n0|, |n1| and |n0, n1| with
 
    >>> partitioned_constellation = mip.partitioned_constellation
    >>> [concept.mechanism for concept in partitioned_constellation]
-   [(n0, n1), (n0,), (n1,)]
+   [(0, 1), (0,), (1,)]
    >>> [concept.phi for concept in partitioned_constellation]
    [0.214286, 0.25, 0.166667]
    >>> sum([concept.phi for concept in partitioned_constellation])

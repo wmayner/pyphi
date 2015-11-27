@@ -407,11 +407,11 @@ attributes:
     >>> mip_c.phi
     0.499999
     >>> mip_c.partition
-    (Part(mechanism=(n0,), purview=()), Part(mechanism=(n1, n2), purview=(n0, n1, n2)))
+    (Part(mechanism=(0,), purview=()), Part(mechanism=(1, 2), purview=(0, 1, 2)))
     >>> mip_e.phi
     0.25
     >>> mip_e.partition
-    (Part(mechanism=(), purview=(n1,)), Part(mechanism=(n0, n1, n2), purview=(n0, n2)))
+    (Part(mechanism=(), purview=(1,)), Part(mechanism=(0, 1, 2), purview=(0, 2)))
 
 For more information on these objects, see the API documentation for the
 :class:`~pyphi.models.Mip` class, or use ``help(mip_c)``. 
@@ -572,7 +572,7 @@ We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
 shown in the figure:
 
     >>> big_mip.phi
-    1.916663
+    1.916665
     >>> big_mip.cut
     Cut(severed=(0, 1), intact=(2,))
 
@@ -657,7 +657,7 @@ which exists in the paper no longer exists.
     2
     >>> ABC, FG = condensed
     >>> (ABC.subsystem.nodes, ABC.phi)
-    ((n0, n1, n2), 1.916663)
+    ((n0, n1, n2), 1.916665)
     >>> (FG.subsystem.nodes, FG.phi)
     ((n5, n6), 0.069445)
 

@@ -50,14 +50,14 @@ network, the results will be similar for the other second order mechanisms.
 
     >>> concept = constellation[0]
     >>> concept.mechanism
-    (n0, n1)
+    (0, 1)
     >>> concept.phi
     0.5
 
 The concept has :math:`\varphi = \frac{1}{2}`.
 
     >>> concept.cause.purview
-    (n0, n1, n2)
+    (0, 1, 2)
     >>> concept.cause.repertoire
     array([[[ 0.5,  0. ],
             [ 0. ,  0. ]],
@@ -83,7 +83,7 @@ elements in the purview (either all **ON** or all **OFF**), but we would lose
 the information about the elements outside the purview.
 
     >>> concept.effect.purview
-    (n2,)
+    (2,)
     >>> concept.effect.repertoire
     array([[[ 1.,  0.]]])
 
@@ -176,7 +176,7 @@ system—but is it irreducible?
    >>> mip.phi
    0.0
    >>> mip.partition
-   (Part(mechanism=(n0,), purview=()), Part(mechanism=(n1, n2), purview=(n0, n1, n2)))
+   (Part(mechanism=(0,), purview=()), Part(mechanism=(1, 2), purview=(0, 1, 2)))
 
 The mechanism has :math:`ci = 0.75`, but it is completely reducible
 (:math:`\varphi = 0`) to the partition 
