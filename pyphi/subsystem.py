@@ -26,6 +26,7 @@ HITS, MISSES = 0, 1
 
 
 # TODO! go through docs and make sure to say when things can be None
+# TODO: validate that purview and mechanism args are explicitly *tuples*?
 class Subsystem:
 
     """A set of nodes in a network.
@@ -186,15 +187,15 @@ class Subsystem:
         """
         if not indices:
             return ()
-        if not set(indices).issubset(set(self.node_indices)):
-            raise ValueError("Indices must be a subset of subsystem indices.")
+        non_subsys_indices = set(indices) - set(self.node_indices)
+        if non_subsys_indices:
+            raise ValueError("Invalid indices {}. Indices must be a subset "
+                             "of subsystem indices.".format(non_subsys_indices))
         return tuple(n for n in self.nodes if n.index in indices)
 
     def _make_repertoire_key(self, direction, mechanism, purview):
         """Make a key for looking up repertoires in the cache."""
-        mechanism_indices = convert.nodes2indices(mechanism)
-        purview_indices = convert.nodes2indices(purview)
-        return (direction, mechanism_indices, purview_indices)
+        return (direction, mechanism, purview)
 
     def _get_cached_repertoire(self, direction, mechanism, purview):
         """Return a cached repertoire if there is one, ``False`` otherwise."""
@@ -217,9 +218,9 @@ class Subsystem:
         """Return the cause repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (tuple(Node)): The mechanism for which to calculate the
+            mechanism (tuple(int)): The mechanism for which to calculate the
                 cause repertoire.
-            purview (tuple(Node)): The purview over which to calculate the
+            purview (tuple(int)): The purview over which to calculate the
                 cause repertoire.
         Returns:
             cause_repertoire (``np.ndarray``): The cause repertoire of the
@@ -239,10 +240,8 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_num_node_distribution``
         # ``cjd`` is ``numerator_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # If the mechanism is empty, nothing is specified about the past state
-        # of the purview, so just return the purview's maximum entropy
-        # distribution.
-        purview_indices = convert.nodes2indices(purview)
+        purview_nodes = self.indices2nodes(purview)
+        mechanism_nodes = self.indices2nodes(mechanism)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -250,19 +249,21 @@ class Subsystem:
             self._set_cached_repertoire(DIRECTIONS[PAST], mechanism, purview,
                                         cjd)
             return cjd
-        # Calculate the maximum entropy distribution. If there is no mechanism,
-        # return it.
+        # Calculate the maximum entropy distribution.
+        # If the mechanism is empty, nothing is specified about the past state
+        # of the purview, so just return the purview's maximum entropy
+        # distribution.
         max_entropy_dist = utils.max_entropy_distribution(
-            purview_indices,
+            purview,
             self.network.size,
-            tuple(self.perturb_vector[i] for i in purview_indices))
+            tuple(self.perturb_vector[i] for i in purview))
         if not mechanism:
             self._set_cached_repertoire(DIRECTIONS[PAST], mechanism, purview,
                                         max_entropy_dist)
             return max_entropy_dist
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
-        cjd = np.ones(tuple(2 if i in purview_indices else
+        cjd = np.ones(tuple(2 if i in purview else
                             1 for i in self.network.node_indices))
         # Loop over all nodes in this mechanism, successively taking the
         # product (with expansion/broadcasting of singleton dimensions) of each
@@ -270,8 +271,7 @@ class Subsystem:
         # get the conditional joint distribution for the whole mechanism
         # (conditioned on the whole mechanism's state). After normalization,
         # this is the cause repertoire. Normalization happens after this loop.
-        for mechanism_node in mechanism:
-            inputs = set(mechanism_node.inputs)
+        for mechanism_node in mechanism_nodes:
             # TODO extend to nonbinary nodes
             # We're conditioning on this node's state, so take the probability
             # table for the node being in that state.
@@ -279,7 +279,9 @@ class Subsystem:
             conditioned_tpm = mechanism_node.tpm[node_state]
             # Collect the nodes that are not in the purview and have
             # connections to this node.
-            non_purview_inputs = inputs - set(purview)
+            # TODO: use straight indices for this.
+            non_purview_inputs = (set(mechanism_node.inputs) -  # inputs
+                                  set(purview_nodes))
             # Marginalize-out the non-purview inputs.
             for node in non_purview_inputs:
                 conditioned_tpm = utils.marginalize_out(
@@ -315,10 +317,10 @@ class Subsystem:
         """Return the effect repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (tuple(Node)): The mechanism for which to calculate the
+            mechanism (tuple(int)): The mechanism for which to calculate the
                 effect repertoire.
 
-            purview (tuple(Node)): The purview over which to calculate the
+            purview (tuple(int)): The purview over which to calculate the
                 effect repertoire.
 
         Returns:
@@ -339,7 +341,8 @@ class Subsystem:
         # ``conditioned_tpm`` is ``next_denom_node_distribution``
         # ``accumulated_cjd`` is ``denom_conditional_joint``
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        purview_indices = convert.nodes2indices(purview)
+        purview_nodes = self.indices2nodes(purview)
+        mechanism_nodes = self.indices2nodes(mechanism)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -350,7 +353,7 @@ class Subsystem:
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
-            [1] * self.network.size + [2 if i in purview_indices else
+            [1] * self.network.size + [2 if i in purview else
                                        1 for i in self.network.node_indices])
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
@@ -358,7 +361,7 @@ class Subsystem:
         # whole purview. After conditioning on the mechanism's state and that
         # of external nodes, this will be the effect repertoire as a
         # distribution over the purview.
-        for purview_node in purview:
+        for purview_node in purview_nodes:
             # Unlike in calculating the cause repertoire, here the TPM is not
             # conditioned yet. `tpm` is an array with twice as many dimensions
             # as the network has nodes. For example, in a network with three
@@ -370,7 +373,6 @@ class Subsystem:
             # the shape is the CPT indexed by network state, so that the
             # overall CPT can be broadcast over the `accumulated_cjd` and then
             # later conditioned by indexing.
-            inputs = set(purview_node.inputs)
             # TODO extend to nonbinary nodes
             # Rotate the dimensions so the first dimension is the last (the
             # first dimension corresponds to the state of the node)
@@ -382,7 +384,7 @@ class Subsystem:
             second_half_shape[purview_node.index] = 2
             tpm = tpm.reshape(first_half_shape + second_half_shape)
             # Marginalize-out non-mechanism purview inputs.
-            non_mechanism_inputs = inputs - set(mechanism)
+            non_mechanism_inputs = set(purview_node.inputs) - set(mechanism_nodes)
             for node in non_mechanism_inputs:
                 tpm = utils.marginalize_out(node.index, tpm,
                                             self.perturb_vector[node.index])
@@ -394,10 +396,10 @@ class Subsystem:
         # CJD onto those states):
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Collect all nodes with inputs to any purview node.
-        inputs_to_purview = set.union(*[set(node.inputs) for node in purview])
+        inputs_to_purview = set.union(*[set(node.inputs) for node in purview_nodes])
         # Collect mechanism nodes with inputs to any purview node.
         fixed_inputs = convert.nodes2indices(inputs_to_purview &
-                                             set(mechanism))
+                                             set(mechanism_nodes))
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
         accumulated_cjd = utils.condition_tpm(
@@ -459,27 +461,38 @@ class Subsystem:
 
     def expand_repertoire(self, direction, purview, repertoire,
                           new_purview=None):
-        """Return the unconstrained cause or effect repertoire based on a
-        direction."""
-        # If not specified, the new purview is the entire network
-        if (new_purview is None):
-            new_purview = self.nodes
-        elif not (set([node.index for node in purview])
-                  .issubset([node.index for node in new_purview])):
+        """Expand a partial repertoire over a purview to a distribution
+        over a new state space.
+
+        TODO: can the purview be extrapolated from the repertoire?
+
+        Args:
+            direction (str): Either |past| or |future|
+            purview (tuple(int) or None): The purview over which the repertoire 
+                was calculated
+            repertoire (``np.ndarray``): A repertoire computed over ``purview``
+
+        Keyword Args:
+            new_purview (tuple(int)): The purview to expand the repertoire over.
+                Defaults to the entire subsystem.
+
+        Returns:
+            ``np.ndarray``: The expanded repertoire
+        """
+        if purview is None:
+            purview = ()
+        if new_purview is None:
+            new_purview = self.node_indices  # full subsystem
+        if not set(purview).issubset(new_purview):
             raise ValueError("Expanded purview must contain original purview.")
+
         # Get the unconstrained repertoire over the other nodes in the network.
-        if not purview:
-            non_purview_nodes = tuple(
-                frozenset([node.index for node in new_purview]))
-        else:
-            non_purview_nodes = tuple(
-                frozenset([node.index for node in new_purview])
-                - frozenset([node.index for node in purview]))
-        uc = self._unconstrained_repertoire(
-            direction, self.indices2nodes(non_purview_nodes))
+        non_purview_indices = tuple(set(new_purview) - set(purview))
+        uc = self._unconstrained_repertoire(direction, non_purview_indices)
         # Multiply the given repertoire by the unconstrained one to get a
         # distribution over all the nodes in the network.
         expanded_repertoire = repertoire * uc
+
         # Renormalize
         if (np.sum(expanded_repertoire > 0)):
             return expanded_repertoire / np.sum(expanded_repertoire)
@@ -523,14 +536,21 @@ class Subsystem:
     # MIP methods
     # =========================================================================
 
-    # TODO? something clever here so we don't do the full iteration
     @staticmethod
     def _mip_bipartition(mechanism, purview):
+        """Return all bipartitions of a mechanism over a purview.
+
+        Returns:
+            list((Part, Part))
+
+        TODO: use ``itertools.product``??
+        """
         purview_bipartitions = utils.bipartition(purview)
+        # Also consider reverse or each parition, eg:
+        #   [((A), (BC)), ...] -> [((BC), (A)), ...]
+        reverse_bipartitions = [x[::-1] for x in purview_bipartitions]
         result = []
-        for denominators in (purview_bipartitions +
-                             list(map(lambda x: x[::-1],
-                                      purview_bipartitions))):
+        for denominators in purview_bipartitions + reverse_bipartitions:
             for numerators in utils.bipartition(mechanism):
                 # For the MIP, we only consider the bipartitions in which each
                 # node appears exactly once, e.g. for AB/ABC, (A/B) * (C/[]) is
@@ -566,8 +586,8 @@ class Subsystem:
 
         Args:
             direction (str): Either |past| or |future|.
-            mechanism (tuple(Node)): The nodes in the mechanism.
-            purview (tuple(Node)): The nodes in the purview.
+            mechanism (tuple(int)): The nodes in the mechanism.
+            purview (tuple(int)): The nodes in the purview.
 
         Returns:
             mip (|Mip|): The mininum-information partition in one temporal
@@ -608,6 +628,7 @@ class Subsystem:
                            unpartitioned_repertoire=unpartitioned_repertoire,
                            partitioned_repertoire=partitioned_repertoire,
                            phi=0.0)
+
             # Update MIP if it's more minimal. We take the bigger purview if
             # the the phi values are indistinguishable.
             if ((phi_min - phi) > constants.EPSILON or (
@@ -658,10 +679,7 @@ class Subsystem:
         the MIP cause repertoire.
         """
         mip = self.mip_future(mechanism, purview)
-        if mip:
-            return mip.phi
-        else:
-            return 0
+        return mip.phi if mip else 0
 
     def phi(self, mechanism, purview):
         """Return the |small_phi| value of a mechanism over a purview."""
@@ -671,20 +689,20 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    def _test_connections(self, nodes1, nodes2):
+    def _fully_connected(self, nodes1, nodes2):
         """Tests connectivity of one set of nodes to another.
 
         Args:
-            submatrix (np.array): If this is ``0``, the sum will be taken over
-                the columns; in this case returning ``True`` means “all nodes
-                in the second list have an input from some node in the first
-                list.” If this is ``1``, the sum will be taken over the rows,
-                and returning ``True`` means “all nodes in the first list have
-                a connection to some node in the second list.”
-            nodes1 (tuple(Node)): The nodes whose outputs to ``nodes2`` will be
+            nodes1 (tuple(int)): The nodes whose outputs to ``nodes2`` will be
                 tested.
-            nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
+            nodes2 (tuple(int)): The nodes whose inputs from ``nodes1`` will
                 be tested.
+
+        Returns:
+            bool: Returns True if all elements in ``nodes1`` output to
+                some element in ``nodes2`` AND all elements in ``nodes2``
+                have an input from some element in ``nodes1``. Otherwise
+                return False. Return True if either set of nodes is empty.
         """
         # If either set of nodes is empty, return (vacuously) True.
         if not nodes1 or not nodes2:
@@ -693,8 +711,7 @@ class Subsystem:
         cm = utils.apply_cut(self.cut, self.network.connectivity_matrix)
         # Get the connectivity matrix representing the connections from the
         # first node list to the second.
-        submatrix_indices = np.ix_([node.index for node in nodes1],
-                                   [node.index for node in nodes2])
+        submatrix_indices = np.ix_(nodes1, nodes2)
         cm = cm[submatrix_indices]
         # Check that all nodes have at least one connection by summing over
         # rows of connectivity submatrix.
@@ -708,21 +725,18 @@ class Subsystem:
         concept."""
         # Get an empty square matrix the size of the network.
         cm = np.zeros((self.network.size, self.network.size))
-        # Get mechanism and purview node indices.
-        mechanism_indices = convert.nodes2indices(mip.mechanism)
-        purview_indices = convert.nodes2indices(mip.purview)
         direction = mip.direction
         if direction == DIRECTIONS[FUTURE]:
             # Set `i, j` to 1 if `i` is a mechanism node and `j` is an effect
             # purview node.
             connections = np.array(
-                list(itertools.product(mechanism_indices, purview_indices)))
+                list(itertools.product(mip.mechanism, mip.purview)))
             cm[connections[:, 0], connections[:, 1]] = 1
         elif direction == DIRECTIONS[PAST]:
             # Set `i, j` to 1 if `i` is a cause purview node and `j` is a
             # mechanism node.
             connections = np.array(
-                list(itertools.product(purview_indices, mechanism_indices)))
+                list(itertools.product(mip.purview, mip.mechanism)))
             cm[connections[:, 0], connections[:, 1]] = 1
         # Return only the submatrix that corresponds to this subsystem's nodes.
         return cm[np.ix_(self.node_indices, self.node_indices)]
@@ -730,10 +744,9 @@ class Subsystem:
     def _get_cached_mice(self, direction, mechanism):
         """Return a cached MICE if there is one and the cut doesn't affect it.
         Return False otherwise."""
-        mechanism_indices = convert.nodes2indices(mechanism)
-        if (direction, mechanism_indices) in self._mice_cache:
-            cached = self._mice_cache[(direction, mechanism_indices)]
-            if (not utils.mechanism_split_by_cut(mechanism_indices, self.cut)
+        if (direction, mechanism) in self._mice_cache:
+            cached = self._mice_cache[(direction, mechanism)]
+            if (not utils.mechanism_split_by_cut(mechanism, self.cut)
                     and not utils.cut_mice(cached, self.cut_matrix)):
                 return cached
         return False
@@ -744,11 +757,11 @@ class Subsystem:
         Args:
             direction (str): The temporal direction, specifying cause or
                 effect.
-            mechanism (tuple(Node)): The mechanism to be tested for
+            mechanism (tuple(int)): The mechanism to be tested for
                 irreducibility.
 
         Keyword Args:
-            purviews (tuple(Node)): Optionally restrict the possible purviews
+            purviews (tuple(int)): Optionally restrict the possible purviews
                 to a subset of the subsystem. This may be useful for _e.g._
                 finding only concepts that are "about" a certain subset of
                 nodes.
@@ -772,28 +785,25 @@ class Subsystem:
         if purviews is False:
             # Get cached purviews if available.
             if config.CACHE_POTENTIAL_PURVIEWS:
-                purviews = self.network.purview_cache[
-                    (direction, convert.nodes2indices(mechanism))]
+                purviews = self.network.purview_cache[(direction, mechanism)]
             else:
                 if direction == DIRECTIONS[PAST]:
-                    purviews = list_past_purview(
-                        self.network, convert.nodes2indices(mechanism))
+                    purviews = list_past_purview(self.network, mechanism)
                 elif direction == DIRECTIONS[FUTURE]:
-                    purviews = list_future_purview(
-                        self.network, convert.nodes2indices(mechanism))
+                    purviews = list_future_purview(self.network, mechanism)
                 else:
                     validate.direction(direction)
             # Filter out purviews that aren't in the subsystem and convert to
             # nodes.
-            purviews = [self.indices2nodes(purview) for purview in purviews if
+            purviews = [purview for purview in purviews if
                         set(purview).issubset(self.node_indices)]
 
         # Filter out trivially reducible purviews.
         def not_trivially_reducible(purview):
             if direction == DIRECTIONS[PAST]:
-                return self._test_connections(purview, mechanism)
+                return self._fully_connected(purview, mechanism)
             elif direction == DIRECTIONS[FUTURE]:
-                return self._test_connections(mechanism, purview)
+                return self._fully_connected(mechanism, purview)
         purviews = tuple(filter(not_trivially_reducible, purviews))
 
         # Find the maximal MIP over the remaining purviews.
@@ -813,7 +823,7 @@ class Subsystem:
         mice = Mice(maximal_mip, relevant_connections)
         # Store the MICE if there was no cut, since some future cuts won't
         # effect it and it can be reused.
-        key = (direction, convert.nodes2indices(mechanism))
+        key = (direction, mechanism)
         current_process = psutil.Process(os.getpid())
         not_full = (current_process.memory_percent() <
                     config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)

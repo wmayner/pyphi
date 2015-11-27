@@ -7,7 +7,7 @@ import pytest
 
 import example_networks
 from pyphi import config, validate
-from pyphi.models import Cut
+from pyphi.models import Cut, Part
 from pyphi.subsystem import Subsystem
 
 
@@ -92,3 +92,28 @@ def test_indices2nodes_with_bad_indices(subsys_n1n2):
         subsys_n1n2.indices2nodes((3, 4))  # indices not in network
     with pytest.raises(ValueError):
         subsys_n1n2.indices2nodes((0,))  # index n0 in network but not subsytem
+
+
+def test_mip_bipartition():
+    mechanism, purview = (0,), (1, 2)
+    answer = [
+        (Part((), (2,)), Part((0,), (1,))),
+        (Part((), (1,)), Part((0,), (2,))),
+        (Part((), (1, 2)), Part((0,), ())),
+    ]
+    assert set(Subsystem._mip_bipartition(mechanism, purview)) == set(answer)
+
+
+def test_fully_connected(s):
+    """
+    Connectivity matrix looks like
+    [[0, 0, 1],
+     [1, 0, 1],
+     [1, 1, 0]]
+    """
+    assert not s._fully_connected((0,), (0, 1, 2))
+    assert not s._fully_connected((2,), (2,))
+    assert not s._fully_connected((0, 1), (1, 2))
+    assert s._fully_connected((0, 1), (0, 2))
+    assert s._fully_connected((1, 2), (1, 2))
+    assert s._fully_connected((0, 1, 2), (0, 1, 2))

@@ -20,7 +20,7 @@ from scipy.sparse import csr_matrix
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 standard_answer = {
-    'phi': 2.312497,
+    'phi': 2.3125,
     'unpartitioned_small_phis': {
         (1,): 0.25,
         (2,): 0.5,
@@ -34,7 +34,7 @@ standard_answer = {
 
 
 noised_answer = {
-    'phi': 1.928594,
+    'phi': 1.928592,
     'unpartitioned_small_phis': {
         (0,): 0.0625,
         (1,): 0.2,
@@ -107,7 +107,7 @@ big_subsys_0_thru_3_answer = {
 
 
 rule152_answer = {
-    'phi': 6.974952,
+    'phi': 6.974953,
     'unpartitioned_small_phis': {
         (0,): 0.125002,
         (1,): 0.125002,
@@ -185,7 +185,7 @@ macro_answer = {
 def check_unpartitioned_small_phis(small_phis, unpartitioned_constellation):
     assert len(small_phis) == len(unpartitioned_constellation)
     for c in unpartitioned_constellation:
-        assert c.phi == small_phis[convert.nodes2indices(c.mechanism)]
+        assert c.phi == small_phis[c.mechanism]
 
 
 def check_partitioned_small_phis(answer, partitioned_constellation):
@@ -234,7 +234,7 @@ def test_null_concept(s, flushcache, restore_fs_cache):
 
 def test_concept_nonexistent(s, flushcache, restore_fs_cache):
     flushcache()
-    assert not compute.concept(s, (s.nodes[0], s.nodes[2]))
+    assert not compute.concept(s, (0, 2))
 
 
 def test_conceptual_information(s, flushcache, restore_fs_cache):

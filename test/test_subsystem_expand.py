@@ -2,19 +2,21 @@
 # -*- coding: utf-8 -*-
 # test_subsystem_expand.py
 
+import pytest
 from pyphi import Subsystem
 from pyphi.compute import big_mip
 from pyphi.constants import EPSILON
 import numpy as np
 import example_networks
 
+
 micro = example_networks.micro()
 micro_subsystem = Subsystem(micro, (0, 0, 0, 0), range(micro.size))
 mip = big_mip(micro_subsystem)
 
-CD = micro_subsystem.nodes[2:4]
-BCD = micro_subsystem.nodes[1:4]
-ABCD = micro_subsystem.nodes[0:4]
+CD = (2, 3)
+BCD = (1, 2, 3)
+ABCD = (0, 1, 2, 3)
 
 A = mip.unpartitioned_constellation[0]
 
@@ -47,3 +49,23 @@ def test_expand_effect_repertoire():
                   .02480625, .02244375, .02244375, .02030625])) < EPSILON)
     assert np.all(abs(A.expand_effect_repertoire(ABCD) -
                       A.expand_effect_repertoire()) < EPSILON)
+
+
+def test_expand_repertoire_purview_can_be_None(s):
+    mechanism = (0, 1)
+    purview = None
+    cause_repertoire = s.cause_repertoire(mechanism, purview)
+    # None purview gives same results as '()' purview
+    assert np.array_equal(
+        s.expand_repertoire('past', purview, cause_repertoire),
+        s.expand_repertoire('past', (), cause_repertoire))
+
+
+def test_expand_repertoire_purview_must_be_subset_of_new_purview(s):
+    mechanism = (0, 1)
+    purview = (0, 1)
+    new_purview = (1,)
+    cause_repertoire = s.cause_repertoire(mechanism, purview)
+    with pytest.raises(ValueError):
+        s.expand_repertoire('past', purview, cause_repertoire, new_purview)
+

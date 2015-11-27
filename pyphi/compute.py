@@ -19,7 +19,6 @@ from scipy.sparse.csgraph import connected_components
 from . import config, constants, memory, utils, validate
 from .concept_caching import concept as _concept
 from .config import PRECISION
-from .convert import nodes2indices
 from .models import BigMip, Cut
 from .network import Network
 from .subsystem import Subsystem
@@ -35,14 +34,14 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
     Args:
         subsystem (Subsytem): The context in which the mechanism should be
             considered.
-        mechanism (tuple(Node)): The candidate set of nodes.
+        mechanism (tuple(int)): The candidate set of nodes.
 
     Keyword Args:
-        purviews (tuple(tuple(Node))): Restrict the possible purviews to those
+        purviews (tuple(tuple(int))): Restrict the possible purviews to those
             in this list.
-        past_purviews (tuple(tuple(Node))): Restrict the possible cause
+        past_purviews (tuple(tuple(int))): Restrict the possible cause
             purviews to those in this list. Takes precedence over ``purviews``.
-        future_purviews (tuple(tuple(Node))): Restrict the possible effect
+        future_purviews (tuple(tuple(int))): Restrict the possible effect
             purviews to those in this list. Takes precedence over ``purviews``.
 
     Returns:
@@ -84,15 +83,8 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
 
 def _sequential_constellation(subsystem, mechanisms=False, purviews=False,
                               past_purviews=False, future_purviews=False):
-    purviews = (tuple(map(subsystem.indices2nodes, purviews))
-                if purviews else False)
-    past_purviews = (tuple(map(subsystem.indices2nodes, past_purviews))
-                     if past_purviews else False)
-    future_purviews = (tuple(map(subsystem.indices2nodes, future_purviews))
-                       if future_purviews else False)
-    mechanisms = (tuple(map(subsystem.indices2nodes, mechanisms))
-                  if mechanisms is not False else
-                  utils.powerset(subsystem.nodes))
+    if mechanisms is False:
+        mechanisms = utils.powerset(subsystem.node_indices)
     concepts = [concept(subsystem, mechanism, purviews=purviews,
                         past_purviews=past_purviews,
                         future_purviews=future_purviews)
@@ -118,15 +110,8 @@ def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False,
 
 def _parallel_constellation(subsystem, mechanisms=False, purviews=False,
                             past_purviews=False, future_purviews=False):
-    purviews = (tuple(map(subsystem.indices2nodes, purviews))
-                if purviews else False)
-    past_purviews = (tuple(map(subsystem.indices2nodes, past_purviews))
-                     if past_purviews else False)
-    future_purviews = (tuple(map(subsystem.indices2nodes, future_purviews))
-                       if future_purviews else False)
-    mechanisms = (tuple(map(subsystem.indices2nodes, mechanisms))
-                  if mechanisms is not False else
-                  utils.powerset(subsystem.nodes))
+    if mechanisms is False:
+        mechanisms = utils.powerset(subsystem.node_indices)
     if config.NUMBER_OF_CORES < 0:
         number_of_processes = (multiprocessing.cpu_count() +
                                config.NUMBER_OF_CORES + 1)
@@ -352,7 +337,7 @@ def conceptual_information(subsystem):
 
 # TODO document
 def _null_bigmip(subsystem):
-    """Returns a |BigMip with zero |big_phi| and empty constellations.
+    """Returns a |BigMip| with zero |big_phi| and empty constellations.
 
     This is the MIP associated with a reducible subsystem."""
     return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=0.0,
@@ -360,7 +345,7 @@ def _null_bigmip(subsystem):
 
 
 def _single_node_mip(subsystem):
-    """Returns a the ``BigMip`` of a single-node with a selfloop.
+    """Returns a |BigMip| of a single-node with a selfloop.
 
     Whether these have a nonzero |Phi| value depends on the PyPhi constants."""
     if config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
@@ -376,7 +361,7 @@ def _single_node_mip(subsystem):
 
 
 def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
-    """Find the ``BigMip`` for a given cut."""
+    """Find the |BigMip| for a given cut."""
     log.debug("Evaluating cut {}...".format(cut))
 
     cut_subsystem = Subsystem(uncut_subsystem.network,
@@ -385,14 +370,10 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
                               cut=cut,
                               mice_cache=uncut_subsystem._mice_cache)
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanisms = set(
-            map(nodes2indices,
-                [c.mechanism for c in unpartitioned_constellation]))
+        mechanisms = set([c.mechanism for c in unpartitioned_constellation])
     else:
-        mechanisms = set(
-            tuple(map(nodes2indices,
-                      [c.mechanism for c in unpartitioned_constellation])) +
-            utils.cut_mechanism_indices(uncut_subsystem, cut))
+        mechanisms = set([c.mechanism for c in unpartitioned_constellation] +
+                         list(utils.cut_mechanism_indices(uncut_subsystem, cut)))
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
     log.debug("Finished evaluating cut {}.".format(cut))

@@ -40,9 +40,9 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
     """Represents one part of a bipartition.
 
     Attributes:
-        mechanism (tuple(Node)):
+        mechanism (tuple(int)):
             The nodes in the mechanism for this part.
-        purview (tuple(Node)):
+        purview (tuple(int)):
             The nodes in the mechanism for this part.
 
     Example:
@@ -193,9 +193,9 @@ class Mip(namedtuple('Mip', _mip_attributes)):
         direction (str):
             The temporal direction specifiying whether this MIP should be
             calculated with cause or effect repertoires.
-        mechanism (list(Node)):
+        mechanism (tuple(int)):
             The mechanism over which to evaluate the MIP.
-        purview (list(Node)):
+        purview (tuple(int)):
             The purview over which the unpartitioned repertoire differs the
             least from the partitioned repertoire.
         partition (tuple(Part, Part)):
@@ -300,14 +300,14 @@ class Mice:
     @property
     def mechanism(self):
         """
-        ``list(Node)`` -- The mechanism for which the MICE is evaluated.
+        ``list(int)`` -- The mechanism for which the MICE is evaluated.
         """
         return self._mip.mechanism
 
     @property
     def purview(self):
         """
-        ``list(Node)`` -- The purview over which this mechanism's |small_phi|
+        ``list(int)`` -- The purview over which this mechanism's |small_phi|
         is maximal.
         """
         return self._mip.purview
@@ -372,7 +372,7 @@ class Concept:
         phi (float):
             The size of the concept. This is the minimum of the |small_phi|
             values of the concept's core cause and core effect.
-        mechanism (tuple(Node)):
+        mechanism (tuple(int)):
             The mechanism that the concept consists of.
         cause (|Mice|):
             The |Mice| representing the core cause of this concept.
@@ -413,20 +413,29 @@ class Concept:
             return (self.cause, self.effect)
 
     def __eq__(self, other):
-        # TODO don't use phi_eq now that all phi values should be rounded
-        # (check that)
+        # TODO: this was required by the nodes->indices refactoring
+        # since subsystem is an optional arg, and mechanism is now
+        # passed with indices instead of Node objects. Is this needed?
+        # This should only matter when comparing nodes from different
+        # subsystems so checking subsystem/state equality may be sufficient.
+        if self.subsystem is not None:
+            state_eq = ([n.state for n in self.subsystem.indices2nodes(self.mechanism)] ==
+                        [n.state for n in other.subsystem.indices2nodes(other.mechanism)])
+        else:
+            state_eq = True  # maybe?
+
+        # TODO: handle cause and effect purviews when they are None
+        # TODO: don't use phi_eq now that all phi values should be rounded
+        # (check that)??
         return (self.phi == other.phi
-                and ([n.index for n in self.mechanism] ==
-                     [n.index for n in other.mechanism])
-                and ([n.state for n in self.mechanism] ==
-                     [n.state for n in self.mechanism])
-                and ([n.index for n in self.cause.purview] ==
-                     [n.index for n in other.cause.purview])
-                and ([n.index for n in self.effect.purview] ==
-                     [n.index for n in other.effect.purview])
+                and self.mechanism == other.mechanism
+                and state_eq
+                and self.cause.purview == other.cause.purview
+                and self.effect.purview == other.effect.purview
                 and self.eq_repertoires(other))
 
     def __hash__(self):
+        # TODO: test and handle for nodes->indices conversion
         return hash((self.phi,
                      tuple(n.index for n in self.mechanism),
                      tuple(n.state for n in self.mechanism),

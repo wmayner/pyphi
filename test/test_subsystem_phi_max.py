@@ -55,8 +55,7 @@ expected_purview_indices = {
 expected_purviews = {
     cut: {
         direction: {
-            subsystem[cut].indices2nodes(mechanism):
-                subsystem[cut].indices2nodes(purview)
+            mechanism: purview
             for mechanism, purview in
             expected_purview_indices[cut][direction].items()
         } for direction in directions
