@@ -39,7 +39,7 @@ of concepts within the complex.
     >>> len(constellation)
     3
     >>> [concept.mechanism for concept in constellation]
-    [(n0, n1), (n0, n2), (n1, n2)]
+    [(0, 1), (0, 2), (1, 2)]
 
 There are three concepts in the constellation. They are all the possible
 second order mechanisms: |n0, n1|, |n0, n2| and |n1, n2|.
@@ -135,8 +135,8 @@ To see this, again due to symmetry of the system, we will focus only on the
 mechanism |n0|.
 
    >>> subsystem = pyphi.examples.xor_subsystem()
-   >>> n0 = (subsystem.nodes[0],)
-   >>> n0n1n2 = subsystem.nodes
+   >>> n0 = (0,)
+   >>> n0n1n2 = (0, 1, 2)
 
 In order to exist, a mechanism must have irreducible cause and effect power
 within the system.

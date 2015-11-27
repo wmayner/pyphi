@@ -13,17 +13,17 @@ nodes off in the current and past states.
     >>> import pyphi
     >>> subsystem = pyphi.examples.residue_subsystem()
 
-Next, we can define the mechanisms of interest:
+Next, we can define the mechanisms of interest. Mechanisms and purviews are represented by tuples of node indices in the network:
 
-    >>> A = subsystem.indices2nodes((0,))
-    >>> B = subsystem.indices2nodes((1,))
-    >>> AB = subsystem.indices2nodes((0, 1))
+    >>> A = (0,)
+    >>> B = (1,)
+    >>> AB = (0, 1)
 
 And the possible past purviews that we're interested in:
 
-    >>> CD = subsystem.indices2nodes((2, 3))
-    >>> DE = subsystem.indices2nodes((3, 4))
-    >>> CDE = subsystem.indices2nodes((2, 3, 4))
+    >>> CD = (2, 3)
+    >>> DE = (3, 4)
+    >>> CDE = (2, 3, 4)
 
 We can then evaluate the cause information for each of the mechanisms over the
 past purview |CDE|.

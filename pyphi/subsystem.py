@@ -317,10 +317,10 @@ class Subsystem:
         """Return the effect repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (tuple(Node)): The mechanism for which to calculate the
+            mechanism (tuple(int)): The mechanism for which to calculate the
                 effect repertoire.
 
-            purview (tuple(Node)): The purview over which to calculate the
+            purview (tuple(int)): The purview over which to calculate the
                 effect repertoire.
 
         Returns:
@@ -586,8 +586,8 @@ class Subsystem:
 
         Args:
             direction (str): Either |past| or |future|.
-            mechanism (tuple(Node)): The nodes in the mechanism.
-            purview (tuple(Node)): The nodes in the purview.
+            mechanism (tuple(int)): The nodes in the mechanism.
+            purview (tuple(int)): The nodes in the purview.
 
         Returns:
             mip (|Mip|): The mininum-information partition in one temporal

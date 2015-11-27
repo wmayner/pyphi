@@ -34,14 +34,14 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
     Args:
         subsystem (Subsytem): The context in which the mechanism should be
             considered.
-        mechanism (tuple(Node)): The candidate set of nodes.
+        mechanism (tuple(int)): The candidate set of nodes.
 
     Keyword Args:
-        purviews (tuple(tuple(Node))): Restrict the possible purviews to those
+        purviews (tuple(tuple(int))): Restrict the possible purviews to those
             in this list.
-        past_purviews (tuple(tuple(Node))): Restrict the possible cause
+        past_purviews (tuple(tuple(int))): Restrict the possible cause
             purviews to those in this list. Takes precedence over ``purviews``.
-        future_purviews (tuple(tuple(Node))): Restrict the possible effect
+        future_purviews (tuple(tuple(int))): Restrict the possible effect
             purviews to those in this list. Takes precedence over ``purviews``.
 
     Returns:
