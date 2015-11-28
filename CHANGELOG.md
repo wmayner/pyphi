@@ -1,6 +1,19 @@
 Changelog
 =========
 
+Next Release
+-------
+### API changes
+- Mechanisms and purviews are now passed to all functions and methods in node
+  index form (e.g. `(0, 1, 3)`). Previously, many functions took these arguments
+  as `Node` objects. Since nodes belong to a specific ``Subsystem`` it was
+  possible to pass nodes from one subsystem to another subsystem's methods,
+  leading to incorrect results.
+
+### Documentation
+- Updated documentation and examples to reflect node-to-index conversion.
+
+
 0.7.5
 ------------------
 _2015-11-02_
