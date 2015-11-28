@@ -147,10 +147,11 @@ we must check all possible partitions to find the MIP.
    0.333333
 
 It turns out that the MIP is
+
 .. math::
    \frac{AB}{[\,]} \times \frac{C}{ABC}
 
-and the integrated information of ABC is :math:`\var_phi = 1/3`.
+and the integrated information of ABC is :math:`\varphi = 1/3`.
 
 Note: In order for a new concept to be created by a cut, there must be a within
 mechanism connection severed by the cut.
