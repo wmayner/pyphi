@@ -238,7 +238,7 @@ class Mip(namedtuple('Mip', _mip_attributes)):
         d = self.__dict__
         # Flatten the repertoires.
         d['partitioned_repertoire'] = self.partitioned_repertoire.flatten()
-        d['unpartitioned_repertoire'] = self.partitioned_repertoire.flatten()
+        d['unpartitioned_repertoire'] = self.unpartitioned_repertoire.flatten()
         return d
 
     # Order by phi value, then by mechanism size
