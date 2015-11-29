@@ -148,7 +148,8 @@ def test_mip_equality():
 def test_mip_repr_str():
     mip = models.Mip(direction=None, mechanism=(), purview=(),
                      unpartitioned_repertoire=None,
-                     partitioned_repertoire=None, phi=0.0, partition=())
+                     partitioned_repertoire=None, phi=0.0,
+                     partition=(models.Part((), ()), models.Part((), ())))
     print(repr(mip))
     print(str(mip))
 
@@ -217,7 +218,7 @@ def test_mice_repr_str():
     mice = models.Mice(models.Mip(
         direction=None, mechanism=(), purview=(),
         unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=0.0, partition=()))
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
     print(repr(mice))
     print(str(mice))
 
@@ -275,9 +276,12 @@ def test_concept_equality():
 
 
 def test_concept_repr_str():
-    r = namedtuple('object_with_repertoire', ['repertoire'])
+    mice = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
     concept = models.Concept(
-        mechanism=(), cause=r('a_repertoire'), effect=r('a_repertoire'),
+        mechanism=(), cause=mice, effect=mice,
         subsystem=None, phi=0.0)
     print(repr(concept))
     print(str(concept))
@@ -343,15 +347,25 @@ def test_bigmip_equality(s):
     assert bigmip != not_quite
 
 
-def test_bigmip_repr_str():
+def test_bigmip_repr_str(s):
     bigmip = models.BigMip(
         unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=(), cut_subsystem=(), phi=1.0)
+        subsystem=s, cut_subsystem=s, phi=1.0)
     print(repr(bigmip))
     print(str(bigmip))
 
 
 # }}}
+
+
+# Test model __str__ and __reprs__
+
+def test_indent():
+    s = ("line1\n"
+         "line2")
+    answer = ("  line1\n"
+              "  line2")
+    assert models.indent(s) == answer
 
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :
