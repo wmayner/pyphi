@@ -5,6 +5,7 @@
 import pickle
 import pytest
 import numpy as np
+from unittest.mock import patch
 
 from pyphi import constants, config, compute, models, utils, convert, Network
 from pyphi.constants import DIRECTIONS, PAST, FUTURE
@@ -235,6 +236,38 @@ def test_null_concept(s, flushcache, restore_fs_cache):
 def test_concept_nonexistent(s, flushcache, restore_fs_cache):
     flushcache()
     assert not compute.concept(s, (0, 2))
+
+
+@patch('pyphi.compute._constellation_distance_simple')
+@patch('pyphi.compute._constellation_distance_emd')
+def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
+                                                   mock_simple_distance, s):
+    """Quick check that we use the correct constellation distance function.
+
+    If the two constellations differ only in that some concepts have
+    moved to the null concept and all other concepts are the same then
+    we use the simple constellation distance. Otherwise, use the EMD.
+    """
+    make_mice = lambda: models.Mice(models.Mip(
+        phi=None, direction=None, mechanism=None,
+        purview=None, partition=None,
+        unpartitioned_repertoire=None,
+        partitioned_repertoire=None))
+
+    lone_concept = models.Concept(cause=make_mice(), effect=make_mice(),
+                                  mechanism=(0, 1))
+    # lone concept -> null concept
+    compute.constellation_distance((lone_concept,), (), s)
+    assert mock_emd_distance.called is False
+    assert mock_simple_distance.called is True
+    mock_simple_distance.reset_mock()
+
+    other_concept = models.Concept(cause=make_mice(), effect=make_mice(),
+                                   mechanism=(0, 1, 2))
+    # different concepts in constellation
+    compute.constellation_distance((lone_concept,), (other_concept,), s)
+    assert mock_emd_distance.called is True
+    assert mock_simple_distance.called is False
 
 
 def test_conceptual_information(s, flushcache, restore_fs_cache):
