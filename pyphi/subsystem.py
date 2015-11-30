@@ -33,7 +33,7 @@ class Subsystem:
 
     Args:
         network (Network): The network the subsystem belongs to.
-        state (tuple(int)):
+        state (tuple(int)): The state of the network.
         node_indices (tuple(int)): A sequence of indices of the nodes in this
             subsystem.
 
@@ -428,8 +428,8 @@ class Subsystem:
         direction.
 
         Args:
-            direction (str): The temporal direction, specifiying the cause or
-                effect repertoire.
+            direction (str): The temporal direction (|past| or |future|)
+                specifiying the cause or effect repertoire.
 
         Returns:
             repertoire_function (``function``): The cause or effect repertoire
@@ -546,17 +546,14 @@ class Subsystem:
         TODO: use ``itertools.product``??
         """
         purview_bipartitions = utils.bipartition(purview)
-        # Also consider reverse or each parition, eg:
+        # Also consider reverse or each partition, eg:
         #   [((A), (BC)), ...] -> [((BC), (A)), ...]
         reverse_bipartitions = [x[::-1] for x in purview_bipartitions]
         result = []
         for denominators in purview_bipartitions + reverse_bipartitions:
             for numerators in utils.bipartition(mechanism):
-                # For the MIP, we only consider the bipartitions in which each
-                # node appears exactly once, e.g. for AB/ABC, (A/B) * (C/[]) is
-                # valid but (AB/BC) * ([]/A) is not (since B appears in both
-                # numerator and denominator), and exclude partitions whose
-                # numerator and denominator are both empty.
+                # Exclude partitions whose numerator and
+                # denominator are both empty.
                 valid_partition = (
                     len(numerators[0]) + len(denominators[0]) > 0 and
                     len(numerators[1]) + len(denominators[1]) > 0)
@@ -755,8 +752,8 @@ class Subsystem:
         """Return the maximally irreducible cause or effect for a mechanism.
 
         Args:
-            direction (str): The temporal direction, specifying cause or
-                effect.
+            direction (str): The temporal direction (|past| or |future|)
+                specifying cause or effect.
             mechanism (tuple(int)): The mechanism to be tested for
                 irreducibility.
 
@@ -861,9 +858,11 @@ class Subsystem:
         # correspond to the subsystem's state space."""
     @property
     def null_concept(self):
-        """Return the null concept of this subsystem, a point in concept space
-        identified with the unconstrained cause and effect repertoire of this
-        subsystem."""
+        """Return the null concept of this subsystem.
+
+        The null concept is a point in concept space identified with
+        the unconstrained cause and effect repertoire of this subsystem.
+        """
         # Unconstrained cause repertoire.
         cause_repertoire = self.cause_repertoire((), ())
         # Unconstrained effect repertoire.
@@ -886,9 +885,10 @@ class Subsystem:
 
     def concept(self, mechanism, purviews=False, past_purviews=False,
                 future_purviews=False):
-        """Calculates a concept. See :func:`compute.concept` for more
-        information."""
-        # TODO refactor to pass indices around, not nodes, throughout Subsystem
+        """Calculate a concept.
+        
+        See :func:`pyphi.compute.concept` for more information.
+        """
         # Calculate the maximally irreducible cause repertoire.
         cause = self.core_cause(mechanism,
                                 purviews=(past_purviews or purviews))

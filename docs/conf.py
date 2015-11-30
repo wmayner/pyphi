@@ -172,8 +172,8 @@ rst_prolog = """
 .. |Concept| replace:: :class:`~pyphi.models.Concept`
 .. |Mip| replace:: :class:`~pyphi.models.Mip`
 .. |Mice| replace:: :class:`~pyphi.models.Mice`
-.. |find_mip| :func:`~pyphi.subsystem.find_mip`
-.. |find_mice| :func:`~pyphi.subsystem.find_mice`
+.. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
+.. |find_mice| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
 .. |loli_index2state| replace:: :class:`~pyphi.convert.loli_index2state`
 .. |holi_index2state| replace:: :class:`~pyphi.convert.holi_index2state`
 .. |big_phi > 0| replace:: :math:`\\Phi > 0`

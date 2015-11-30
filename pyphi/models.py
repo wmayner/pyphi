@@ -191,8 +191,9 @@ class Mip(namedtuple('Mip', _mip_attributes)):
             This is the difference between the mechanism's unpartitioned and
             partitioned repertoires.
         direction (str):
-            The temporal direction specifiying whether this MIP should be
-            calculated with cause or effect repertoires.
+            Either |past| or |future|. The temporal direction specifiying
+            whether this MIP should be calculated with cause or effect
+            repertoires.
         mechanism (tuple(int)):
             The mechanism over which to evaluate the MIP.
         purview (tuple(int)):
@@ -292,7 +293,7 @@ class Mice:
     @property
     def direction(self):
         """
-        ``str`` -- Either 'past' or 'future'. If 'past' ('future'), this
+        ``str`` -- Either |past| or |future|. If |past| (|future|), this
         represents a maximally irreducible cause (effect).
         """
         return self._mip.direction
