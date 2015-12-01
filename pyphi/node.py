@@ -16,7 +16,6 @@ from . import utils
 
 
 # TODO extend to nonbinary nodes
-# TODO? refactor to use purely indexes for nodes
 @functools.total_ordering
 class Node:
 

@@ -96,15 +96,13 @@ def perturb_vector(pv, size):
     return True
 
 
-# TODO test
 def network(n):
     """Validate a network's TPM, connectivity matrix, and perturbation
     vector."""
     tpm(n.tpm)
     connectivity_matrix(n.connectivity_matrix)
     perturb_vector(n.perturb_vector, n.size)
-    if (n.connectivity_matrix.shape[0] != n.size
-            and not n.connectivity_matrix.size == 0):
+    if n.connectivity_matrix.shape[0] != n.size:
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")
     return True

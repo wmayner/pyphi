@@ -26,13 +26,13 @@ network = pyphi.Network(tpm, connectivity_matrix=cm, perturb_vector=pv)
 
 subsystem = pyphi.Subsystem(network, state, range(network.size))
 
-A = (subsystem.nodes[0],)
-B = (subsystem.nodes[1],)
-C = (subsystem.nodes[2],)
-AB = subsystem.nodes[0:2]
-AC = subsystem.indices2nodes([0, 2])
-BC = subsystem.nodes[1:3]
-ABC = subsystem.nodes[:]
+A = (0,)
+B = (1,)
+C = (2,)
+AB = (0, 1)
+AC = (0, 2)
+BC = (1, 2)
+ABC = (0, 1, 2)
 
 
 def test_perturb_unconstrained_cause_repertoire():

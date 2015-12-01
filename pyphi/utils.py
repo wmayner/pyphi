@@ -89,7 +89,6 @@ def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
     return cm
 
 
-# TODO test
 def get_inputs_from_cm(index, connectivity_matrix):
     """Returns a tuple of node indices that have connections to the node with
     the given index."""
@@ -97,7 +96,6 @@ def get_inputs_from_cm(index, connectivity_matrix):
                  connectivity_matrix[i][index])
 
 
-# TODO test
 def get_outputs_from_cm(index, connectivity_matrix):
     """Returns a tuple of node indices that the node with the given index has
     connections to."""
@@ -243,16 +241,16 @@ def marginalize_out(index, tpm, perturb_value=0.5):
 @cache(cache={}, maxmem=None)
 def max_entropy_distribution(node_indices, number_of_nodes,
                              perturb_vector=None):
-    """
-    Return the maximum entropy distribution over a set of nodes.
+    """Return the maximum entropy distribution over a set of nodes.
 
     This is different from the network's uniform distribution because nodes
-    outside the are fixed and treated as if they have only 1 state.
+    outside ``node_indices`` are fixed and treated as if they have only 1
+    state.
 
     Args:
-        nodes (tuple(Nodes)): The set of nodes over which to take the
-            distribution.
-        network (Network): The network the nodes belong to.
+        node_indices (tuple(int)): The set of node indices over which to take
+            the distribution.
+        number_of_nodes (int): The total number of nodes in the network.
 
     Returns:
         distribution (``np.ndarray``): The maximum entropy distribution over
@@ -515,9 +513,9 @@ def not_block_reducible(cm, nodes1, nodes2):
 
     Args:
         cm (np.ndarray): The network's connectivity matrix.
-        nodes1 (tuple(Node)): The nodes whose outputs to ``nodes2`` will be
+        nodes1 (tuple(int)): The nodes whose outputs to ``nodes2`` will be
             tested.
-        nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
+        nodes2 (tuple(int)): The nodes whose inputs from ``nodes1`` will
             be tested.
     """
     # If either set of nodes is empty, return (vacuously) True.

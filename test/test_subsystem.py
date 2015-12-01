@@ -7,10 +7,11 @@ import pytest
 
 import example_networks
 from pyphi import config, validate
-from pyphi.models import Cut
+from pyphi.models import Cut, Part
 from pyphi.subsystem import Subsystem
 
 
+@config.override(VALIDATE_SUBSYSTEM_STATES=True)
 def test_subsystem_validation(s):
     # Wrong state length.
     with pytest.raises(ValueError):
@@ -20,11 +21,9 @@ def test_subsystem_validation(s):
         s = Subsystem(s.network, (2, 0, 0), s.node_indices)
     # Disallow impossible states at subsystem level (we don't want to return a
     # phi-value associated with an impossible state).
-    initial_option = config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
     net = example_networks.simple()
     with pytest.raises(validate.StateUnreachableError):
         s = Subsystem(net, (0, 1, 0), s.node_indices)
-    config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = initial_option
 
 
 def test_empty_init(s):
@@ -78,3 +77,42 @@ def test_find_cut_matrix(s, big_subsys_0_thru_3):
     ])
     assert np.array_equal(cut_s.cut_matrix, answer_s)
     assert np.array_equal(cut_big.cut_matrix, answer_big)
+
+
+def test_indices2nodes(s):
+    subsys = s  # 3-node subsystem
+    assert subsys.indices2nodes(()) == ()
+    assert subsys.indices2nodes((1,)) == (subsys.nodes[1],)
+    assert subsys.indices2nodes((0, 2)) == (subsys.nodes[0], subsys.nodes[2])
+
+
+def test_indices2nodes_with_bad_indices(subsys_n1n2):
+    with pytest.raises(ValueError):
+        subsys_n1n2.indices2nodes((3, 4))  # indices not in network
+    with pytest.raises(ValueError):
+        subsys_n1n2.indices2nodes((0,))  # index n0 in network but not subsytem
+
+
+def test_mip_bipartition():
+    mechanism, purview = (0,), (1, 2)
+    answer = [
+        (Part((), (2,)), Part((0,), (1,))),
+        (Part((), (1,)), Part((0,), (2,))),
+        (Part((), (1, 2)), Part((0,), ())),
+    ]
+    assert set(Subsystem._mip_bipartition(mechanism, purview)) == set(answer)
+
+
+def test_fully_connected(s):
+    """
+    Connectivity matrix looks like
+    [[0, 0, 1],
+     [1, 0, 1],
+     [1, 1, 0]]
+    """
+    assert not s._fully_connected((0,), (0, 1, 2))
+    assert not s._fully_connected((2,), (2,))
+    assert not s._fully_connected((0, 1), (1, 2))
+    assert s._fully_connected((0, 1), (0, 2))
+    assert s._fully_connected((1, 2), (1, 2))
+    assert s._fully_connected((0, 1, 2), (0, 1, 2))

@@ -13,17 +13,17 @@ nodes off in the current and past states.
     >>> import pyphi
     >>> subsystem = pyphi.examples.residue_subsystem()
 
-Next, we can define the mechanisms of interest:
+Next, we can define the mechanisms of interest. Mechanisms and purviews are represented by tuples of node indices in the network:
 
-    >>> A = subsystem.indices2nodes((0,))
-    >>> B = subsystem.indices2nodes((1,))
-    >>> AB = subsystem.indices2nodes((0, 1))
+    >>> A = (0,)
+    >>> B = (1,)
+    >>> AB = (0, 1)
 
 And the possible past purviews that we're interested in:
 
-    >>> CD = subsystem.indices2nodes((2, 3))
-    >>> DE = subsystem.indices2nodes((3, 4))
-    >>> CDE = subsystem.indices2nodes((2, 3, 4))
+    >>> CD = (2, 3)
+    >>> DE = (3, 4)
+    >>> CDE = (2, 3, 4)
 
 We can then evaluate the cause information for each of the mechanisms over the
 past purview |CDE|.
@@ -54,7 +54,7 @@ To calculate the MIP structure of mechanism |AB|:
 We can then determine what the specific partition is.
 
     >>> mip_AB.partition
-    (Part(mechanism=(), purview=(n2,)), Part(mechanism=(n0, n1), purview=(n3, n4)))
+    (Part(mechanism=(), purview=(2,)), Part(mechanism=(0, 1), purview=(3, 4)))
 
 The labels ``(n0, n1, n2, n3, n4)`` correspond to nodes :math:`A, B, C, D, E`
 respectively. Thus the MIP is |(AB / DE) x ([] / C)|, where :math:`[\,]`
@@ -85,7 +85,7 @@ The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
     >>> subsystem.mip_past(A, CDE).phi
     0.0
     >>> subsystem.mip_past(A, CDE).partition
-    (Part(mechanism=(), purview=(n4,)), Part(mechanism=(n0,), purview=(n2, n3)))
+    (Part(mechanism=(), purview=(4,)), Part(mechanism=(0,), purview=(2, 3)))
 
 Instead, we should evaluate |A| over the purview |CD|.
 
@@ -94,7 +94,7 @@ Instead, we should evaluate |A| over the purview |CD|.
 In this case, there is a well defined MIP
 
     >>> mip_A.partition
-    (Part(mechanism=(), purview=(n2,)), Part(mechanism=(n0,), purview=(n3,)))
+    (Part(mechanism=(), purview=(2,)), Part(mechanism=(0,), purview=(3,)))
 
 which is |([] / C) x (A / D)|. It has partitioned repertoire
 

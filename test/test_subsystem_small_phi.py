@@ -44,8 +44,8 @@ scenarios = [
     (
         'past',
         s, None,
-        [0],
-        [0],
+        (0,),
+        (0,),
         {'partitions': {
             (Part(mechanism=(), purview=(0,)),
              Part(mechanism=(0,), purview=())):
@@ -61,8 +61,8 @@ scenarios = [
     (
         'past',
         s, (0, (1, 2)),
-        [1],
-        [2],
+        (1,),
+        (2,),
         {'partitions': {
             (Part(mechanism=(), purview=(2,)),
              Part(mechanism=(1,), purview=())):
@@ -81,8 +81,8 @@ scenarios = [
     (
         'future',
         s, None,
-        [0, 1, 2],
-        [0, 1, 2],
+        (0, 1, 2),
+        (0, 1, 2),
         {'partitions': {
             # Any of these partitions is valid; there is no well-defined way of
             # breaking ties
@@ -134,8 +134,8 @@ scenarios = [
     (
         'future',
         s, ((1, 2), 0),
-        [2],
-        [1],
+        (2,),
+        (1,),
         {'partitions': {
             (Part(mechanism=(), purview=(1,)),
              Part(mechanism=(2,), purview=())):
@@ -147,8 +147,8 @@ scenarios = [
     ), (
         'future',
         s, ((0, 2), 1),
-        [2],
-        [0],
+        (2,),
+        (0,),
         {'partitions': {
             (Part(mechanism=(), purview=(0,)),
              Part(mechanism=(2,), purview=())):
@@ -160,8 +160,8 @@ scenarios = [
     ), (
         'future',
         s, ((0, 2), 1),
-        [0, 1, 2],
-        [0, 2],
+        (0, 1, 2),
+        (0, 2),
         {'partitions': {
             # Any of these partitions is valid; there is no well-defined way of
             # breaking ties
@@ -187,8 +187,8 @@ scenarios = [
     ), (
         'future',
         s, ((0, 1), 2),
-        [1],
-        [0],
+        (1,),
+        (0,),
         {'partitions': {
             (Part(mechanism=(), purview=(0,)),
              Part(mechanism=(1,), purview=())):
@@ -207,9 +207,6 @@ parameter_string = "direction,subsystem,cut,mechanism,purview,expected"
 @pytest.mark.parametrize(parameter_string, scenarios)
 def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     # Set up testing parameters from scenario
-    mechanism = tuple(subsystem.nodes[index] for index in mechanism)
-    purview = tuple(subsystem.nodes[index] for index in purview)
-
     result = subsystem.find_mip(direction, mechanism, purview)
 
     # IMPORTANT: Since several different ways of partitioning the system can
@@ -222,16 +219,7 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
         # Construct expected list of possible MIPs
         expected = [
             Mip(direction=direction,
-                partition=(
-                    Part(mechanism=tuple(subsystem.nodes[i] for i in
-                                         expected_partition[0].mechanism),
-                         purview=tuple(subsystem.nodes[i] for i in
-                                       expected_partition[0].purview)),
-                    Part(mechanism=tuple(subsystem.nodes[i] for i in
-                                         expected_partition[1].mechanism),
-                         purview=tuple(subsystem.nodes[i] for i in
-                                       expected_partition[1].purview))
-                ),
+                partition=expected_partition,
                 mechanism=mechanism,
                 purview=purview,
                 unpartitioned_repertoire=expected['unpartitioned_repertoire'],
@@ -262,47 +250,48 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
 
 
 def test_mip_past(s):
-    mechanism = s.nodes
-    purview = s.nodes
+    mechanism = s.node_indices
+    purview = s.node_indices
     mip_past = s.find_mip('past', mechanism, purview)
     assert mip_past == s.mip_past(mechanism, purview)
 
 
 def test_mip_future(s):
-    mechanism = s.nodes
-    purview = s.nodes
+    mechanism = s.node_indices
+    purview = s.node_indices
     mip_future = s.find_mip('future', mechanism, purview)
     assert mip_future == s.mip_future(mechanism, purview)
 
 
 def test_phi_mip_past(s):
-    mechanism = s.nodes
-    purview = s.nodes
+    mechanism = s.node_indices
+    purview = s.node_indices
     assert (s.phi_mip_past(mechanism, purview) ==
             s.mip_past(mechanism, purview).phi)
 
 
 def test_phi_mip_past_reducible(s):
-    mechanism = (s.nodes[1], )
-    purview = (s.nodes[0], )
+    mechanism = (1,)
+    purview = (0,)
     assert (0 == s.phi_mip_past(mechanism, purview))
 
 
 def test_phi_mip_future(s):
-    mechanism = s.nodes
-    purview = s.nodes
+    mechanism = s.node_indices
+    purview = s.node_indices
     assert (s.phi_mip_future(mechanism, purview) ==
             s.mip_future(mechanism, purview).phi)
 
+
 def test_phi_mip_future_reducible(s):
-    mechanism = s.nodes[0:2]
-    purview = (s.nodes[1], )
+    mechanism = (0, 1)
+    purview = (1, )
     assert (0 == s.phi_mip_future(mechanism, purview))
 
 
 def test_phi(s):
-    mechanism = s.nodes
-    purview = s.nodes
+    mechanism = s.node_indices
+    purview = s.node_indices
     assert abs(0.5 - s.phi(mechanism, purview)) < constants.EPSILON
 
 # }}}

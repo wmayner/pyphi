@@ -14,6 +14,7 @@ The relevant functions are listed at the beginning of each example.
     conditional_independence
     xor
     macro
+    magic_cut
     2014paper
 
 

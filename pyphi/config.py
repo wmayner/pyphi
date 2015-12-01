@@ -229,6 +229,7 @@ Miscellaneous
 import os
 import pprint
 import sys
+import functools
 
 import yaml
 
@@ -326,6 +327,41 @@ def get_config_string():
 def print_config():
     """Print the current configuration."""
     print('Current PyPhi configuration:\n', get_config_string())
+
+
+def override(**new_configs):
+    """Decorator to override config values within the wrapped function.
+
+    The initial configs are reset after the function returns, even
+    if the function raises an exception. This is intended to be used
+    by testcases which require specific configuration values.
+
+    Example:
+        >>> from pyphi import config
+        >>> @config.override(PRECISION=20000)
+        ... def test_something():
+        ...     return config.PRECISION
+        ...
+        >>> test_something()
+        20000
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # Remember initial config values
+            initial = {opt_name: this_module.__dict__[opt_name]
+                       for opt_name in new_configs}
+            # Override
+            this_module.__dict__.update(new_configs)
+
+            try:
+                return func(*args, **kwargs)
+            except Exception:
+                raise
+            finally:  # Always reset config to initial values
+                this_module.__dict__.update(initial)
+        return wrapper
+    return decorator
 
 
 # The name of the file to load configuration data from.

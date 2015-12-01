@@ -20,7 +20,7 @@ from scipy.sparse import csr_matrix
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 standard_answer = {
-    'phi': 2.312497,
+    'phi': 2.3125,
     'unpartitioned_small_phis': {
         (1,): 0.25,
         (2,): 0.5,
@@ -34,7 +34,7 @@ standard_answer = {
 
 
 noised_answer = {
-    'phi': 1.928594,
+    'phi': 1.928592,
     'unpartitioned_small_phis': {
         (0,): 0.0625,
         (1,): 0.2,
@@ -107,7 +107,7 @@ big_subsys_0_thru_3_answer = {
 
 
 rule152_answer = {
-    'phi': 6.974952,
+    'phi': 6.974953,
     'unpartitioned_small_phis': {
         (0,): 0.125002,
         (1,): 0.125002,
@@ -185,7 +185,7 @@ macro_answer = {
 def check_unpartitioned_small_phis(small_phis, unpartitioned_constellation):
     assert len(small_phis) == len(unpartitioned_constellation)
     for c in unpartitioned_constellation:
-        assert c.phi == small_phis[convert.nodes2indices(c.mechanism)]
+        assert c.phi == small_phis[c.mechanism]
 
 
 def check_partitioned_small_phis(answer, partitioned_constellation):
@@ -234,7 +234,7 @@ def test_null_concept(s, flushcache, restore_fs_cache):
 
 def test_concept_nonexistent(s, flushcache, restore_fs_cache):
     flushcache()
-    assert not compute.concept(s, (s.nodes[0], s.nodes[2]))
+    assert not compute.concept(s, (0, 2))
 
 
 def test_conceptual_information(s, flushcache, restore_fs_cache):
@@ -269,21 +269,23 @@ def test_big_mip_wrappers(reducible, flushcache, restore_fs_cache):
     assert compute.big_phi(reducible) == 0.0
 
 
-def test_big_mip_single_node(s_single, flushcache, restore_fs_cache):
+@config.override(SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
+def test_big_mip_single_node_selfloops_have_phi(s_single, flushcache,
+                                                restore_fs_cache):
     flushcache()
-    initial_option = config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
-    config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = True
     assert compute.big_mip(s_single).phi == 0.5
-    config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = False
+
+
+@config.override(SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI=False)
+def test_big_mip_single_node_selfloops_dont_have_phi(s_single, flushcache,
+                                                     restore_fs_cache):
+    flushcache()
     assert compute.big_mip(s_single).phi == 0.0
-    config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI = initial_option
 
 
+@config.override(PARALLEL_CUT_EVALUATION=False)
 def test_find_mip_sequential_standard_example(s, flushcache, restore_fs_cache):
     flushcache()
-    initial = config.PARALLEL_CUT_EVALUATION
-    config.PARALLEL_CUT_EVALUATION = False
-
     unpartitioned_constellation = constellation(s)
     bipartitions = utils.directed_bipartition(s.node_indices)[1:-1]
     cuts = [Cut(bipartition[0], bipartition[1])
@@ -293,14 +295,10 @@ def test_find_mip_sequential_standard_example(s, flushcache, restore_fs_cache):
     mip = _find_mip_sequential(s, cuts, unpartitioned_constellation, min_mip)
     check_mip(mip, standard_answer)
 
-    config.PARALLEL_CUT_EVALUATION = initial
 
-
+@config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
 def test_find_mip_parallel_standard_example(s, flushcache, restore_fs_cache):
     flushcache()
-    initial = (config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES)
-    config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = True, -2
-
     unpartitioned_constellation = constellation(s)
     bipartitions = utils.directed_bipartition(s.node_indices)[1:-1]
     cuts = [Cut(bipartition[0], bipartition[1])
@@ -310,15 +308,11 @@ def test_find_mip_parallel_standard_example(s, flushcache, restore_fs_cache):
     mip = _find_mip_parallel(s, cuts, unpartitioned_constellation, min_mip)
     check_mip(mip, standard_answer)
 
-    config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = initial
 
-
+@config.override(PARALLEL_CUT_EVALUATION=False)
 def test_find_mip_sequential_noised_example(s_noised, flushcache,
                                             restore_fs_cache):
     flushcache()
-    initial = config.PARALLEL_CUT_EVALUATION
-    config.PARALLEL_CUT_EVALUATION = False
-
     unpartitioned_constellation = constellation(s_noised)
     bipartitions = utils.directed_bipartition(s_noised.node_indices)[1:-1]
     cuts = [Cut(bipartition[0], bipartition[1])
@@ -329,15 +323,11 @@ def test_find_mip_sequential_noised_example(s_noised, flushcache,
 
     check_mip(mip, noised_answer)
 
-    config.PARALLEL_CUT_EVALUATION = initial
 
-
+@config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
 def test_find_mip_parallel_noised_example(s_noised, flushcache,
-                                         restore_fs_cache):
+                                          restore_fs_cache):
     flushcache()
-    initial = (config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES)
-    config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = True, -2
-
     unpartitioned_constellation = constellation(s_noised)
     bipartitions = utils.directed_bipartition(s_noised.node_indices)[1:-1]
     cuts = [Cut(bipartition[0], bipartition[1])
@@ -346,8 +336,6 @@ def test_find_mip_parallel_noised_example(s_noised, flushcache,
     min_mip.phi = float('inf')
     mip = _find_mip_parallel(s_noised, cuts, unpartitioned_constellation, min_mip)
     check_mip(mip, noised_answer)
-
-    config.PARALLEL_CUT_EVALUATION, config.NUMBER_OF_CORES = initial
 
 
 def test_complexes_standard(s, flushcache, restore_fs_cache):
@@ -457,11 +445,9 @@ def test_rule152_complexes_no_caching(rule152):
         assert main.cut == result['cut']
 
 
+@config.override(PARALLEL_CUT_EVALUATION=True)
 def test_find_mip_parallel_micro(micro_s, flushcache, restore_fs_cache):
     flushcache()
-
-    initial = config.PARALLEL_CUT_EVALUATION
-    config.PARALLEL_CUT_EVALUATION = True
 
     unpartitioned_constellation = constellation(micro_s)
     bipartitions = utils.directed_bipartition(micro_s.node_indices)[1:-1]
@@ -473,14 +459,10 @@ def test_find_mip_parallel_micro(micro_s, flushcache, restore_fs_cache):
                              min_mip)
     check_mip(mip, micro_answer)
 
-    config.PARALLEL_CUT_EVALUATION = initial
 
-
+@config.override(PARALLEL_CUT_EVALUATION=False)
 def test_find_mip_sequential_micro(micro_s, flushcache, restore_fs_cache):
     flushcache()
-
-    initial = config.PARALLEL_CUT_EVALUATION
-    config.PARALLEL_CUT_EVALUATION = False
 
     unpartitioned_constellation = constellation(micro_s)
     bipartitions = utils.directed_bipartition(micro_s.node_indices)[1:-1]
@@ -491,8 +473,6 @@ def test_find_mip_sequential_micro(micro_s, flushcache, restore_fs_cache):
     mip = _find_mip_sequential(micro_s, cuts, unpartitioned_constellation,
                                min_mip)
     check_mip(mip, micro_answer)
-
-    config.PARALLEL_CUT_EVALUATION = initial
 
 
 @pytest.mark.filter

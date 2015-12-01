@@ -153,3 +153,24 @@ def test_block_cm():
 def test_cut_mechanism_indices():
     assert ((0, 1), (0, 2), (0, 1, 2)) == utils.cut_mechanism_indices(sub, cut)
 
+
+def test_get_inputs_from_cm():
+    cm = np.array([
+        [0, 1, 0],
+        [1, 1, 1],
+        [0, 0, 0],
+    ])
+    assert utils.get_inputs_from_cm(0, cm) == (1,)
+    assert utils.get_inputs_from_cm(1, cm) == (0, 1)
+    assert utils.get_inputs_from_cm(2, cm) == (1,)
+
+
+def test_get_outputs_from_cm():
+    cm = np.array([
+        [0, 1, 0],
+        [1, 1, 1],
+        [0, 0, 0],
+    ])
+    assert utils.get_outputs_from_cm(0, cm) == (1,)
+    assert utils.get_outputs_from_cm(1, cm) == (0, 1, 2)
+    assert utils.get_outputs_from_cm(2, cm) == tuple()

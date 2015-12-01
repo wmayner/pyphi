@@ -343,8 +343,8 @@ def test_cause_and_effect_repertoire(function, subsystem, mechanism, purview,
 
     # Set up testing parameters from scenario
     compute_repertoire = getattr(subsystem, function)
-    mechanism = subsystem.indices2nodes(mechanism)
-    purview = subsystem.indices2nodes(purview)
+    mechanism = tuple(mechanism)
+    purview = tuple(purview)
 
     result = compute_repertoire(mechanism, purview)
 
