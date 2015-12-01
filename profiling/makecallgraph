@@ -1,0 +1,3 @@
+#!/bin/sh
+
+gprof2dot -f pstats profile.pstats | dot -Tsvg -o callgraph.svg
