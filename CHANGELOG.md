@@ -9,6 +9,8 @@ Next Release
   as `Node` objects. Since nodes belong to a specific ``Subsystem`` it was
   possible to pass nodes from one subsystem to another subsystem's methods,
   leading to incorrect results.
+- `constellation_distance` no longer takes a `subsystem` argument because
+  concepts in a constellation already reference their subsystems.
 
 ### Documentation
 - Updated documentation and examples to reflect node-to-index conversion.

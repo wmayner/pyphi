@@ -257,7 +257,7 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     lone_concept = models.Concept(cause=make_mice(), effect=make_mice(),
                                   mechanism=(0, 1))
     # lone concept -> null concept
-    compute.constellation_distance((lone_concept,), (), s)
+    compute.constellation_distance((lone_concept,), ())
     assert mock_emd_distance.called is False
     assert mock_simple_distance.called is True
     mock_simple_distance.reset_mock()
@@ -265,7 +265,7 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     other_concept = models.Concept(cause=make_mice(), effect=make_mice(),
                                    mechanism=(0, 1, 2))
     # different concepts in constellation
-    compute.constellation_distance((lone_concept,), (other_concept,), s)
+    compute.constellation_distance((lone_concept,), (other_concept,))
     assert mock_emd_distance.called is True
     assert mock_simple_distance.called is False
 

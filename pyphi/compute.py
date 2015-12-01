@@ -218,7 +218,7 @@ def concept_distance(c1, c2):
                           c2.expand_effect_repertoire(effect_purview))])
 
 
-def _constellation_distance_simple(C1, C2, subsystem):
+def _constellation_distance_simple(C1, C2):
     """Return the distance between two constellations in concept-space,
     assuming the only difference between them is that some concepts have
     disappeared."""
@@ -226,11 +226,11 @@ def _constellation_distance_simple(C1, C2, subsystem):
     if len(C2) > len(C1):
         C1, C2 = C2, C1
     destroyed = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
-    return sum(c.phi * concept_distance(c, subsystem.null_concept)
+    return sum(c.phi * concept_distance(c, c.subsystem.null_concept)
                for c in destroyed)
 
 
-def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
+def _constellation_distance_emd(unique_C1, unique_C2):
     """Return the distance between two constellations in concept-space,
     using the generalized EMD."""
     # Get the pairwise distances between the concepts in the unpartitioned and
@@ -246,7 +246,7 @@ def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     #   small-phi, even though it has less big-phi, which means that some
     #   partitioned-constellation concepts will be moved to the null concept.
     distances_to_null = np.array([
-        concept_distance(c, subsystem.null_concept)
+        concept_distance(c, c.subsystem.null_concept)
         for constellation in (unique_C1, unique_C2) for c in constellation
     ])
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -298,15 +298,12 @@ def _constellation_distance_emd(unique_C1, unique_C2, subsystem):
     return utils.emd(np.array(d1), np.array(d2), distance_matrix)
 
 
-def constellation_distance(C1, C2, subsystem):
+def constellation_distance(C1, C2):
     """Return the distance between two constellations in concept-space.
 
     Args:
         C1 (tuple(Concept)): The first constellation.
         C2 (tuple(Concept)): The second constellation.
-        null_concept (Concept): The null concept of a candidate set, *i.e* the
-            "origin" of the concept space in which the given constellations
-            reside.
 
     Returns:
         distance (``float``): The distance between the two constellations in
@@ -319,11 +316,10 @@ def constellation_distance(C1, C2, subsystem):
     # If the only difference in the constellations is that some concepts
     # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:
-        return _constellation_distance_simple(C1, C2, subsystem)
+        return _constellation_distance_simple(C1, C2)
     else:
         return _constellation_distance_emd(concepts_only_in_C1,
-                                           concepts_only_in_C2,
-                                           subsystem)
+                                           concepts_only_in_C2)
 
 
 def conceptual_information(subsystem):
@@ -331,7 +327,7 @@ def conceptual_information(subsystem):
 
     This is the distance from the subsystem's constellation to the null
     concept."""
-    ci = constellation_distance(constellation(subsystem), (), subsystem)
+    ci = constellation_distance(constellation(subsystem), ())
     return round(ci, PRECISION)
 
 
@@ -379,8 +375,8 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     log.debug("Finished evaluating cut {}.".format(cut))
 
     phi = constellation_distance(unpartitioned_constellation,
-                                 partitioned_constellation,
-                                 uncut_subsystem)
+                                 partitioned_constellation)
+
     return BigMip(
         phi=round(phi, PRECISION),
         unpartitioned_constellation=unpartitioned_constellation,
