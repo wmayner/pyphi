@@ -7,7 +7,7 @@ A memory-limited cache decorator.
 """
 
 import os
-from functools import namedtuple, update_wrapper
+from functools import namedtuple, update_wrapper, wraps
 
 import psutil
 
@@ -138,3 +138,67 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
         return update_wrapper(wrapper, user_function)
 
     return decorating_function
+
+
+class DictCache():
+    """A generic dictionary-based cache.
+
+    Intended to be used as an object-level cache of method results.
+    TODO: subclass dict (UserDict)?
+    """
+    def __init__(self):
+        self.cache = {}
+        self.hits = 0
+        self.misses = 0
+
+    def clear(self):
+        raise NotImplemented
+
+    def info(self):
+        """Return info about cache hits, misses, and size"""
+        return _CacheInfo(self.hits, self.misses, len(self.cache))
+
+    def get(self, key):
+        """Get a value out of the cache.
+
+        Returns None if the key is not in the cache. Updates cache
+        statistics.
+        """
+        if key in self.cache:
+            self.hits += 1
+            return self.cache[key]
+        self.misses += 1
+        return None
+
+    def set(self, key, value):
+        """Set a value in the cache"""
+        self.cache[key] = value
+
+
+def method_cache(cache_name, *key_constants):
+    """Caching decorator for object-level method caches.
+
+    Args:
+        cache_name (str): The name of the (already-instantiated) cache
+            on the decorated object which should be used to store results
+            of this method.
+        *key_constants: Any constants which should be used as cache keys
+            in addition to the method arguments.
+
+    The cache key is (*key_constants, *method_args).
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(obj, *args):
+            cache = getattr(obj, cache_name)
+            key = tuple(key_constants + args)
+
+            # Get cached value, or compute
+            value = cache.get(key)
+            if value is None:  # miss
+                value = func(obj, *args)
+                cache.set(key, value)
+            return value
+
+        return wrapper
+    return decorator
