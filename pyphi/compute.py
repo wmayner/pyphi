@@ -369,7 +369,7 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
         mechanisms = set([c.mechanism for c in unpartitioned_constellation])
     else:
         mechanisms = set([c.mechanism for c in unpartitioned_constellation] +
-                         list(utils.cut_mechanism_indices(uncut_subsystem, cut)))
+                         list(cut.all_cut_mechanisms(uncut_subsystem.node_indices)))
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
     log.debug("Finished evaluating cut {}.".format(cut))

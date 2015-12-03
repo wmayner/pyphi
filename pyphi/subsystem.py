@@ -743,7 +743,7 @@ class Subsystem:
         Return False otherwise."""
         if (direction, mechanism) in self._mice_cache:
             cached = self._mice_cache[(direction, mechanism)]
-            if (not utils.mechanism_split_by_cut(mechanism, self.cut)
+            if (not self.cut.splits_mechanism(mechanism)
                     and not utils.cut_mice(cached, self.cut_matrix)):
                 return cached
         return False

@@ -150,10 +150,6 @@ def test_block_cm():
     assert not utils.block_cm(cm4)
 
 
-def test_cut_mechanism_indices():
-    assert ((0, 1), (0, 2), (0, 1, 2)) == utils.cut_mechanism_indices(sub, cut)
-
-
 def test_get_inputs_from_cm():
     cm = np.array([
         [0, 1, 0],

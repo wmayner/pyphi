@@ -103,6 +103,22 @@ def test_general_eq_different_mechanism_and_purview_order():
 
 # }}}
 
+# Test Cut
+# ========
+
+def test_cut_splits_mechanism():
+    cut = models.Cut((0,), (1, 2))
+    assert cut.splits_mechanism((0, 1))
+    assert not cut.splits_mechanism((0,))
+    assert not cut.splits_mechanism((1, 2))
+
+
+def test_cut_all_cut_mechanisms():
+    cut = models.Cut((0,), (1, 2))
+    assert cut.all_cut_mechanisms((0, 1, 2)) == ((0, 1), (0, 2), (0, 1, 2))
+    assert cut.all_cut_mechanisms((0, 1)) == ((0, 1),)
+
+
 # Test MIP {{{
 # ============
 

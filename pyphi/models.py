@@ -32,7 +32,30 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
     # This allows accessing the namedtuple's ``__dict__``; see
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
     __slots__ = ()
-    pass
+
+    def splits_mechanism(self, mechanism):
+        """Check if this cut splits a mechanism.
+
+        Args:
+            mechanism (tuple(int)): The mechanism in question
+        Returns:
+            (bool): True if `mechanism` has elements on both sides
+                of the cut, otherwise False.
+        """
+        return ((set(mechanism) & set(self[0])) and
+                (set(mechanism) & set(self[1])))
+
+    def all_cut_mechanisms(self, candidate_indices):
+        """Returns all mechanisms with elements on both sides of this cut.
+
+        Args:
+            candidate_indices (tuple(int)): The node indices to consider as
+               as parts of mechanisms.
+        Returns:
+            (tuple(tuple(int)))
+        """
+        is_split = lambda mechanism: self.splits_mechanism(mechanism)
+        return tuple(filter(is_split, utils.powerset(candidate_indices)))
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):

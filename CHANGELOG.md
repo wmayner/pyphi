@@ -11,6 +11,10 @@ Next Release
   leading to incorrect results.
 - `constellation_distance` no longer takes a `subsystem` argument because
   concepts in a constellation already reference their subsystems.
+- Moved 'utils.cut_mechanism_indices` and `utils.mechanism_split_by_cut` to
+  methods on the `Cut` object:`Cut.all_cut_mechanisms` and
+  `Cut.splits_mechanism`, respectively.
+
 
 ### Documentation
 - Updated documentation and examples to reflect node-to-index conversion.

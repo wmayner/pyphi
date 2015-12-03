@@ -25,20 +25,6 @@ log = logging.getLogger(__name__)
 # Methods to evaluate the effect of a Cut
 # ============================================================================
 
-def cut_mechanism_indices(subsystem, cut):
-    """Returns a tuple of indices of mechanisms that have nodes on both sides
-    of the given cut."""
-    def split_by_cut(indices):
-        return ((set(indices) & set(cut[0])) and
-                (set(indices) & set(cut[1])))
-    return tuple(filter(split_by_cut, powerset(subsystem.node_indices)))
-
-
-def mechanism_split_by_cut(mechanism_indices, cut):
-    return ((set(mechanism_indices) & set(cut[0])) and
-            (set(mechanism_indices) & set(cut[1])))
-
-
 def cut_mice(mice, cut_matrix):
     return np.any(mice._relevant_connections * cut_matrix == 1)
 
