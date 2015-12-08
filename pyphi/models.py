@@ -10,21 +10,34 @@ from collections import Iterable, namedtuple
 
 import numpy as np
 
-from . import utils
+from . import utils, config
 from .constants import DIRECTIONS, PAST, FUTURE
 from .jsonify import jsonify
 
 # TODO use properties to avoid data duplication
 
 
-READABLE_REPRS = True
-
-
 def make_repr(self, attrs):
+    """Construct a repr string.
+
+    If `config.READABLE_REPRS` is True, this function calls out
+    to the object's __str__ method. Although this breaks the convention
+    that __repr__ should return a string which can reconstruct the object,
+    readable reprs are invaluable since the Python interpreter calls
+    `repr` to represent all objects in the shell. Since PyPhi is often
+    used in the interpreted we want to have meaningful and useful
+    representations.
+
+    Args:
+        self (obj): The object in question
+        attrs (iterable(str)): Attributes to include in the repr
+    Returns:
+        (str)
+    """
     # TODO: change this to a closure so we can do
     # __repr__ = make_repr(attrs) ???
 
-    if READABLE_REPRS:
+    if config.READABLE_REPRS:
         return self.__str__()
 
     return "{}({})".format(
@@ -434,8 +447,10 @@ class Concept:
                 "subsystem: {self.subsystem}\n"
                 "normalized: {self.normalized}\n".format(
                     self=self,
-                    cause=fmt_mip(self.cause.mip) if self.cause else "",
-                    effect=fmt_mip(self.effect.mip) if self.effect else ""))
+                    cause=("\n" + indent(fmt_mip(self.cause.mip))
+                            if self.cause else ""),
+                    effect=("\n" + indent(fmt_mip(self.effect.mip))
+                            if self.effect else "")))
 
     @property
     def location(self):
