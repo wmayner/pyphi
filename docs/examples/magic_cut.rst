@@ -178,7 +178,7 @@ Calculating the **MIP** of the system,
    >>> mip.phi
    0.217829
    >>> mip.cut
-   Cut(severed=(0, 4), intact=(1,))
+   Cut (0, 4) --//--> (1,)
 
 This subsystem has a |big_phi| value of 0.15533, and the **MIP** cuts the
 connections from |n0, n4| to |n1|. Investigating the concepts in both the
