@@ -9,7 +9,9 @@ Next Release
   as `Node` objects. Since nodes belong to a specific ``Subsystem`` it was
   possible to pass nodes from one subsystem to another subsystem's methods,
   leading to incorrect results.
-
+- Added `config.READABLE_REPRS to control whether __reprs__ of PyPhi models
+  default to using pretty string formatting.
+	
 ### Documentation
 - Updated documentation and examples to reflect node-to-index conversion.
 
