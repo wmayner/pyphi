@@ -25,7 +25,7 @@ def make_repr(self, attrs):
     that __repr__ should return a string which can reconstruct the object,
     readable reprs are invaluable since the Python interpreter calls
     `repr` to represent all objects in the shell. Since PyPhi is often
-    used in the interpreted we want to have meaningful and useful
+    used in the interpreter we want to have meaningful and useful
     representations.
 
     Args:
@@ -279,7 +279,7 @@ class Mip(namedtuple('Mip', _mip_attributes)):
         return make_repr(self, _mip_attributes)
 
     def __str__(self):
-        return "Mip(\n{})".format(indent(fmt_mip(self)))
+        return "Mip\n" + indent(fmt_mip(self))
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
@@ -438,19 +438,18 @@ class Concept:
         return make_repr(self, _concept_attributes)
 
     def __str__(self):
-        return ("Concept\n"
-                "-------\n"
-                "phi: {self.phi}\n"
-                "mechanism: {self.mechanism}\n"
-                "cause: {cause}\n"
-                "effect: {effect}\n"
-                "subsystem: {self.subsystem}\n"
-                "normalized: {self.normalized}\n".format(
-                    self=self,
-                    cause=("\n" + indent(fmt_mip(self.cause.mip))
-                            if self.cause else ""),
-                    effect=("\n" + indent(fmt_mip(self.effect.mip))
-                            if self.effect else "")))
+        return (
+            "Concept\n"
+            "-------\n"
+            "phi: {self.phi}\n"
+            "mechanism: {self.mechanism}\n"
+            "cause: {cause}\n"
+            "effect: {effect}\n".format(
+                self=self,
+                cause=("\n" + indent(fmt_mip(self.cause.mip, verbose=False))
+                       if self.cause else ""),
+                effect=("\n" + indent(fmt_mip(self.effect.mip, verbose=False))
+                        if self.effect else "")))
 
     @property
     def location(self):
@@ -611,17 +610,18 @@ class BigMip:
         return make_repr(self, _bigmip_attributes)
 
     def __str__(self):
-        return ("\n"
-                "BigMip\n"
-                "======\n"
-                "phi: {self.phi}\n"
-                "subsystem: {self.subsystem}\n"
-                "cut: {self.cut}\n"
-                "unpartitioned_constellation: {unpart_const}"
-                "partitioned_constellation: {part_const}".format(
-                    self=self,
-                    unpart_const=fmt_const(self.unpartitioned_constellation),
-                    part_const=fmt_const(self.partitioned_constellation)))
+        return (
+            "\n"
+            "BigMip\n"
+            "======\n"
+            "phi: {self.phi}\n"
+            "subsystem: {self.subsystem}\n"
+            "cut: {self.cut}\n"
+            "unpartitioned_constellation: {unpart_const}"
+            "partitioned_constellation: {part_const}".format(
+                self=self,
+                unpart_const=fmt_constellation(self.unpartitioned_constellation),
+                part_const=fmt_constellation(self.partitioned_constellation)))
 
     @property
     def cut(self):
@@ -691,7 +691,7 @@ def indent(lines, amount=2, chr=' '):
     return padding + ('\n' + padding).join(lines.split('\n'))
 
 
-def fmt_const(c):
+def fmt_constellation(c):
     """Format a constellation."""
     if not c:
         return "()\n"
@@ -727,21 +727,24 @@ def fmt_partition(partition):
                 numer1=numer1, denom1=denom1, width1=width1, div1='-' * width1)
 
 
-def fmt_mip(mip):
+def fmt_mip(mip, verbose=True):
     """Helper function to format a nice Mip string"""
-
-    if not mip:
+    if mip is False or mip is None:
         return ""
 
+    mechanism = "mechanism: {mip.mechanism}\n" if verbose else ""
+    direction = "direction: {mip.direction}" if verbose else ""
     return (
         "phi: {mip.phi}\n"
-        "mechanism: {mip.mechanism}\n"
+        "{mechanism}"
         "purview: {mip.purview}\n"
         "partition:\n{partition}\n"
+        "{direction}"
         "unpartitioned_repertoire:\n{unpart_rep}\n"
-        "partitioned_repertoire:\n{part_rep}\n"
-        "direction: {mip.direction}".format(
+        "partitioned_repertoire:\n{part_rep}").format(
             mip=mip,
+            mechanism=mechanism,
+            direction=direction,
             partition=indent(fmt_partition(mip.partition)),
             unpart_rep=indent(mip.unpartitioned_repertoire),
-            part_rep=indent(mip.partitioned_repertoire)))
+            part_rep=indent(mip.partitioned_repertoire))
