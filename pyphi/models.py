@@ -438,18 +438,7 @@ class Concept:
         return make_repr(self, _concept_attributes)
 
     def __str__(self):
-        return (
-            "Concept\n"
-            "-------\n"
-            "phi: {self.phi}\n"
-            "mechanism: {self.mechanism}\n"
-            "cause: {cause}\n"
-            "effect: {effect}\n".format(
-                self=self,
-                cause=("\n" + indent(fmt_mip(self.cause.mip, verbose=False))
-                       if self.cause else ""),
-                effect=("\n" + indent(fmt_mip(self.effect.mip, verbose=False))
-                        if self.effect else "")))
+        return "Concept\n""-------\n" + fmt_concept(self)
 
     @property
     def location(self):
@@ -610,18 +599,7 @@ class BigMip:
         return make_repr(self, _bigmip_attributes)
 
     def __str__(self):
-        return (
-            "\n"
-            "BigMip\n"
-            "======\n"
-            "phi: {self.phi}\n"
-            "subsystem: {self.subsystem}\n"
-            "cut: {self.cut}\n"
-            "unpartitioned_constellation: {unpart_const}"
-            "partitioned_constellation: {part_const}".format(
-                self=self,
-                unpart_const=fmt_constellation(self.unpartitioned_constellation),
-                part_const=fmt_constellation(self.partitioned_constellation)))
+        return "\nBigMip\n======\n" + fmt_big_mip(self)
 
     @property
     def cut(self):
@@ -727,13 +705,28 @@ def fmt_partition(partition):
                 numer1=numer1, denom1=denom1, width1=width1, div1='-' * width1)
 
 
+def fmt_concept(concept):
+    """Format a Concept string"""
+    return (
+        "phi: {concept.phi}\n"
+        "mechanism: {concept.mechanism}\n"
+        "cause: {cause}\n"
+        "effect: {effect}\n".format(
+            concept=concept,
+            cause=("\n" + indent(fmt_mip(concept.cause.mip, verbose=False))
+                   if concept.cause else ""),
+            effect=("\n" + indent(fmt_mip(concept.effect.mip, verbose=False))
+                    if concept.effect else "")))
+
+
 def fmt_mip(mip, verbose=True):
     """Helper function to format a nice Mip string"""
-    if mip is False or mip is None:
+
+    if mip is False or mip is None:  # mips can be Falsy
         return ""
 
-    mechanism = "mechanism: {mip.mechanism}\n" if verbose else ""
-    direction = "direction: {mip.direction}" if verbose else ""
+    mechanism = "mechanism: {}\n".format(mip.mechanism) if verbose else ""
+    direction = "direction: {}\n".format(mip.direction) if verbose else ""
     return (
         "phi: {mip.phi}\n"
         "{mechanism}"
@@ -742,9 +735,22 @@ def fmt_mip(mip, verbose=True):
         "{direction}"
         "unpartitioned_repertoire:\n{unpart_rep}\n"
         "partitioned_repertoire:\n{part_rep}").format(
-            mip=mip,
             mechanism=mechanism,
             direction=direction,
+            mip=mip,
             partition=indent(fmt_partition(mip.partition)),
             unpart_rep=indent(mip.unpartitioned_repertoire),
             part_rep=indent(mip.partitioned_repertoire))
+
+
+def fmt_big_mip(big_mip):
+    """Format a BigMip"""
+    return (
+        "phi: {big_mip.phi}\n"
+        "subsystem: {big_mip.subsystem}\n"
+        "cut: {big_mip.cut}\n"
+        "unpartitioned_constellation: {unpart_const}"
+        "partitioned_constellation: {part_const}".format(
+            big_mip=big_mip,
+            unpart_const=fmt_constellation(big_mip.unpartitioned_constellation),
+            part_const=fmt_constellation(big_mip.partitioned_constellation)))
