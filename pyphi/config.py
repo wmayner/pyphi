@@ -223,6 +223,18 @@ Miscellaneous
     >>> defaults['SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI']
     False
 
+
+- ``pyphi.config.READABLE_REPRS``: If set to ``True``, this causes ``repr``
+  calls on PyPhi objects to return pretty-formatted and legible strings.
+  Although this breaks the convention that ``__repr__`` methods should return a
+  representation which can reconstruct the object, readable reprs are
+  invaluable since the Python interpreter calls ``repr`` to represent all
+  objects in the shell and PyPhi is often used in the interpreter.
+  If set to ``False``, ``repr`` returns more traditional object representations.
+
+    >>> defaults['READABLE_REPRS']
+    True
+
 -------------------------------------------------------------------------------
 """
 
@@ -305,6 +317,8 @@ DEFAULTS = {
     # In some applications of this library, the user may prefer to define
     # single-node subsystems as having 0.5 Phi.
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
+    # Use prettier __str__-like formatting in repr calls
+    'READABLE_REPRS': True,
 }
 
 # The current configuration.

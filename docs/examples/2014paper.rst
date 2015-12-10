@@ -532,8 +532,8 @@ places):
 The null concept (the small black cross shown in concept-space) is available as
 an attribute of the subsystem:
 
-    >>> subsystem.null_concept
-    Concept(phi=0, mechanism=(), cause=Mice(Mip(phi=0, direction='past', mechanism=(), purview=(), partition=None, unpartitioned_repertoire=array([ 1.]), partitioned_repertoire=None)), effect=Mice(Mip(phi=0, direction='future', mechanism=(), purview=(), partition=None, unpartitioned_repertoire=array([ 1.]), partitioned_repertoire=None)), subsystem=Subsystem((n0, n1, n2)), normalized=False)
+    >>> subsystem.null_concept.phi
+    0
 
 
 Figure 11
@@ -574,7 +574,7 @@ shown in the figure:
     >>> big_mip.phi
     1.916665
     >>> big_mip.cut
-    Cut(severed=(0, 1), intact=(2,))
+    Cut (0, 1) --//--> (2,)
 
 .. note:: 
 
