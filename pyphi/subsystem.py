@@ -565,18 +565,6 @@ class Subsystem:
                     result.append((part0, part1))
         return result
 
-    @staticmethod
-    def _null_mip(direction, mechanism, purview):
-        # TODO Use properties here to infer mechanism and purview from
-        # partition yet access them with .mechanism and .partition
-        return Mip(direction=direction,
-                   mechanism=mechanism,
-                   purview=purview,
-                   partition=None,
-                   unpartitioned_repertoire=None,
-                   partitioned_repertoire=None,
-                   phi=0.0)
-
     def find_mip(self, direction, mechanism, purview):
         """Return the minimum information partition for a mechanism over a
         purview.
@@ -593,8 +581,7 @@ class Subsystem:
         repertoire = self._get_repertoire(direction)
 
         # We default to the null MIP (the MIP of a reducible mechanism)
-        null_mip = self._null_mip(direction, mechanism, purview)
-        mip = null_mip
+        mip = Mip._null_mip(direction, mechanism, purview)
 
         if not purview:
             return mip
@@ -805,7 +792,7 @@ class Subsystem:
 
         # Find the maximal MIP over the remaining purviews.
         if not purviews:
-            maximal_mip = self._null_mip(direction, mechanism, None)
+            maximal_mip = Mip._null_mip(direction, mechanism, None)
         else:
             maximal_mip = max(self.find_mip(direction, mechanism, purview) for
                               purview in purviews)

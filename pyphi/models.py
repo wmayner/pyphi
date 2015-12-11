@@ -306,6 +306,19 @@ class Mip(namedtuple('Mip', _mip_attributes)):
     def __str__(self):
         return "Mip\n" + indent(fmt_mip(self))
 
+    @staticmethod
+    def _null_mip(direction, mechanism, purview):
+        """The null mip (of a reducible mechanism)."""
+        # TODO Use properties here to infer mechanism and purview from
+        # partition yet access them with .mechanism and .partition
+        return Mip(direction=direction,
+                   mechanism=mechanism,
+                   purview=purview,
+                   partition=None,
+                   unpartitioned_repertoire=None,
+                   partitioned_repertoire=None,
+                   phi=0.0)
+
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
     __gt__ = _phi_then_mechanism_size_gt

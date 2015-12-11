@@ -160,6 +160,20 @@ def test_mip_equality():
     assert mip != not_quite
 
 
+def test_null_mip():
+    direction = 'past'
+    mechanism = (0,)
+    purview = (1,)
+    null_mip = models.Mip._null_mip(direction, mechanism, purview)
+    assert null_mip.direction == direction
+    assert null_mip.mechanism == mechanism
+    assert null_mip.purview == purview
+    assert null_mip.partition is None
+    assert null_mip.unpartitioned_repertoire is None
+    assert null_mip.partitioned_repertoire is None
+    assert null_mip.phi == 0
+
+
 def test_mip_repr_str():
     mip = models.Mip(direction=None, mechanism=(), purview=(),
                      unpartitioned_repertoire=None,
