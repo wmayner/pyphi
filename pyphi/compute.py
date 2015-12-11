@@ -19,7 +19,7 @@ from scipy.sparse.csgraph import connected_components
 from . import config, constants, memory, utils, validate
 from .concept_caching import concept as _concept
 from .config import PRECISION
-from .models import BigMip, Cut
+from .models import BigMip, Cut, Constellation
 from .network import Network
 from .subsystem import Subsystem
 
@@ -90,7 +90,7 @@ def _sequential_constellation(subsystem, mechanisms=False, purviews=False,
                         future_purviews=future_purviews)
                 for mechanism in mechanisms]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
-    return tuple(filter(None, concepts))
+    return Constellation(filter(None, concepts))
 
 
 def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False,
@@ -151,7 +151,7 @@ def _parallel_constellation(subsystem, mechanisms=False, purviews=False,
                 break
         else:
             concepts.append(new_concept)
-    return concepts
+    return Constellation(concepts)
 
 
 _constellation_doc = \
@@ -182,7 +182,7 @@ _constellation_doc = \
             general ``purviews`` option.
 
     Returns:
-        constellation (``tuple(Concept)``): A tuple of all the Concepts in the
+        constellation (Constellation): A tuple of all the Concepts in the
             constellation.
     """
 _sequential_constellation.__doc__ = _constellation_doc
@@ -302,8 +302,8 @@ def constellation_distance(C1, C2):
     """Return the distance between two constellations in concept-space.
 
     Args:
-        C1 (tuple(Concept)): The first constellation.
-        C2 (tuple(Concept)): The second constellation.
+        C1 (Constellation): The first constellation.
+        C2 (Constellation): The second constellation.
 
     Returns:
         distance (``float``): The distance between the two constellations in

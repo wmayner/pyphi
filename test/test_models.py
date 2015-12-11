@@ -318,6 +318,21 @@ def test_concept_repr_str():
 
 # }}}
 
+
+# Test Constellation
+# ==================
+
+def test_constellation_is_still_a_tuple():
+    c = models.Constellation([models.Concept()])
+    assert len(c) == 1
+
+
+@config.override(READABLE_REPRS=False)
+def test_constellation_repr():
+    c = models.Constellation()
+    assert repr(c) == "Constellation(())"
+
+
 # Test BigMip {{{
 # ===============
 

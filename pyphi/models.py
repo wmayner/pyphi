@@ -32,7 +32,7 @@ def make_repr(self, attrs):
         self (obj): The object in question
         attrs (iterable(str)): Attributes to include in the repr
     Returns:
-        (str)
+        (str): the `repr`esentation of the object
     """
     # TODO: change this to a closure so we can do
     # __repr__ = make_repr(attrs) ???
@@ -591,6 +591,24 @@ class Concept:
     __ge__ = _phi_then_mechanism_size_ge
 
 
+class Constellation(tuple):
+    """A constellation of concepts.
+
+    This is a wrapper around a tuple to provide a nice string
+    representation and place to put constellation methods. Previously,
+    constellations were represented as `tuple(Concept)`; this usage still
+    works in all functions.
+    """
+
+    def __repr__(self):
+        if config.READABLE_REPRS:
+            return self.__str__()
+        return "Constellation({})".format(super(Constellation, self).__repr__())
+
+    def __str__(self):
+        return "\nConstellation\n*************" + fmt_constellation(self)
+
+
 # =============================================================================
 
 _bigmip_attributes = ['phi', 'unpartitioned_constellation',
@@ -611,9 +629,9 @@ class BigMip:
         phi (float): The |big_phi| value for the subsystem when taken against
             this MIP, *i.e.* the difference between the unpartitioned
             constellation and this MIP's partitioned constellation.
-        unpartitioned_constellation (tuple(Concept)): The constellation of the
+        unpartitioned_constellation (Constellation): The constellation of the
             whole subsystem.
-        partitioned_constellation (tuple(Concept)): The constellation when the
+        partitioned_constellation (Constellation): The constellation when the
             subsystem is cut.
         subsystem (Subsystem): The subsystem this MIP was calculated for.
         cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
