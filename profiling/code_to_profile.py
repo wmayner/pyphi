@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-After running this code, either
-- Use `python -m pstats [file.pstats]` for an interactive pstats prompt.
-- Use the `makecallgraph` script to visualize the call graph.
+Profiling tool for PyPhi.
 """
 
 import logging
@@ -115,7 +113,10 @@ if __name__ == "__main__":
         "After running this code, either\n"
         " - Use `python -m pstats [file.pstats]` for an interactive "
         "pstats prompt.\n"
-        " - Use the `makecallgraph` script to visualize the call graph. "),
+        " - Use `loadprofile.sh [file.pstats] && print_stats.py` to print "
+        "the most offensive functions.\n"
+        " - Use the `makecallgraph` script to visualize the call graph.\n\n"
+        "For most descriptive results, disable any parallelization in PyPhi."),
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('network_file', nargs='*', help=(
         "The networks to profile, e.g. '5-AND-circle'. "
