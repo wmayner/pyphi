@@ -13,6 +13,7 @@ import sys
 import json
 import pickle
 import cProfile
+import argparse
 from time import time
 pyphidir = os.path.abspath('..')
 if pyphidir not in sys.path:
@@ -27,9 +28,11 @@ formatter = logging.Formatter(
 PSTATS = 'pstats'
 LOGS = 'logs'
 RESULTS = 'results'
+NETWORKS = 'networks'
 
 
 def json2pyphi(network):
+    """Load a network from a json file"""
     tpm = network['tpm']
     current_state = network['currentState']
     cm = network['connectivityMatrix']
@@ -37,20 +40,28 @@ def json2pyphi(network):
     return (network, current_state)
 
 
-network_types = [
-    'AND-circle',
-    'MAJ-specialized',
-    'MAJ-complete',
-    'iit-3.0-modular'
-]
-network_sizes = range(5, 9)
-network_files = []
-for n in network_sizes:
-    for t in network_types:
-        network_files.append('{}-{}'.format(n, t))
+def all_network_files():
+    """All network files"""
+    # TODO: list explicitly since some are missing?
+    network_types = [
+        'AND-circle',
+        'MAJ-specialized',
+        'MAJ-complete',
+        'iit-3.0-modular'
+    ]
+    network_sizes = range(5, 8)
+    network_files = []
+    for n in network_sizes:
+        for t in network_types:
+            network_files.append('{}-{}'.format(n, t))
+    return network_files
 
 
 def profile_network(filename):
+    """Profile a network.
+
+    Saves PyPhi results, pstats, and logs to respective directories
+    """
     log = logging.getLogger(filename)
     handler = logging.FileHandler(LOGS + '/' + filename + '.log')
     handler.setFormatter(formatter)
@@ -58,7 +69,7 @@ def profile_network(filename):
     log.setLevel(logging.INFO)
 
     try:
-        with open('networks/' + filename + '.json') as f:
+        with open(NETWORKS + '/' + filename + '.json') as f:
 
             (network, state) = json2pyphi(json.load(f))
 
@@ -93,9 +104,30 @@ def ensure_dir(dirname):
 
 
 if __name__ == "__main__":
+    # Setup directories
     ensure_dir(PSTATS)
     ensure_dir(LOGS)
     ensure_dir(RESULTS)
 
+    # Parse arguments
+    parser = argparse.ArgumentParser(description=(
+        "Program to profile PyPhi on sample networks. \n\n"
+        "After running this code, either\n"
+        " - Use `python -m pstats [file.pstats]` for an interactive "
+        "pstats prompt.\n"
+        " - Use the `makecallgraph` script to visualize the call graph. "),
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('network_file', nargs='*', help=(
+        "The networks to profile, e.g. '5-AND-circle'. "
+        "Defaults to all networks."))
+    args = parser.parse_args()
+
+    # Networks to profile
+    if args.network_file:
+        network_files = args.network_file
+    else:
+        network_files = all_network_files()
+
+    # Do it
     Parallel(n_jobs=(-5), verbose=20)(
         delayed(profile_network)(filename) for filename in network_files)
