@@ -203,21 +203,13 @@ class Subsystem:
             cause_repertoire (``np.ndarray``): The cause repertoire of the
                 mechanism over the purview.
         """
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # NOTE: In the Matlab version's terminology,
-        #
-        # "Cause repertoire" is "backward repertoire"
-        # "Mechanism" is "numerator"
-        # "Purview" is "denominator"
-        # ``conditioned_tpm`` is ``next_num_node_distribution``
-        # ``cjd`` is ``numerator_conditional_joint``
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         purview_nodes = self.indices2nodes(purview)
         mechanism_nodes = self.indices2nodes(mechanism)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
             return np.array([1.0])
+
         # Calculate the maximum entropy distribution.
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
@@ -294,21 +286,13 @@ class Subsystem:
             effect_repertoire (``np.ndarray``): The effect repertoire of the
                 mechanism over the purview.
         """
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # NOTE: In the Matlab version's terminology,
-        #
-        # "Effect repertoire" is "forward repertoire"
-        # "Mechanism" is "numerator"
-        # "Purview" is "denominator"
-        # ``conditioned_tpm`` is ``next_denom_node_distribution``
-        # ``accumulated_cjd`` is ``denom_conditional_joint``
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         purview_nodes = self.indices2nodes(purview)
         mechanism_nodes = self.indices2nodes(mechanism)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
             return np.array([1.0])
+
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
