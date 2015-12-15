@@ -10,7 +10,8 @@ TODO: take the pstats file as command line arg.
 
 FILE = "profile.pstats"
 
-p = pstats.Stats(FILE)
-p.strip_dirs()
-p.sort_stats('tottime', 'calls', 'name')
-p.print_stats(25)
+if __name__ == "__main__":
+    p = pstats.Stats(FILE)
+    p.strip_dirs()
+    p.sort_stats('tottime', 'calls', 'name')
+    p.print_stats(25)
