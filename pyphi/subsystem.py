@@ -673,37 +673,6 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    def _fully_connected(self, nodes1, nodes2):
-        """Tests connectivity of one set of nodes to another.
-
-        Args:
-            nodes1 (tuple(int)): The nodes whose outputs to ``nodes2`` will be
-                tested.
-            nodes2 (tuple(int)): The nodes whose inputs from ``nodes1`` will
-                be tested.
-
-        Returns:
-            bool: Returns True if all elements in ``nodes1`` output to
-                some element in ``nodes2`` AND all elements in ``nodes2``
-                have an input from some element in ``nodes1``. Otherwise
-                return False. Return True if either set of nodes is empty.
-        """
-        # If either set of nodes is empty, return (vacuously) True.
-        if not nodes1 or not nodes2:
-            return True
-        # Apply the cut to the network's connectivity matrix.
-        cm = utils.apply_cut(self.cut, self.network.connectivity_matrix)
-        # Get the connectivity matrix representing the connections from the
-        # first node list to the second.
-        submatrix_indices = np.ix_(nodes1, nodes2)
-        cm = cm[submatrix_indices]
-        # Check that all nodes have at least one connection by summing over
-        # rows of connectivity submatrix.
-        if len(nodes1) == 1:
-            return cm.sum(0).all()
-        else:
-            return cm.sum(0).all() and cm.sum(1).all()
-
     def _connections_relevant_for_mice(self, mip):
         """Return a matrix that identifies connections that “matter” to this
         concept."""
@@ -785,9 +754,11 @@ class Subsystem:
         # Filter out trivially reducible purviews.
         def not_trivially_reducible(purview):
             if direction == DIRECTIONS[PAST]:
-                return self._fully_connected(purview, mechanism)
+                return utils.fully_connected(self.connectivity_matrix,
+                                             purview, mechanism)
             elif direction == DIRECTIONS[FUTURE]:
-                return self._fully_connected(mechanism, purview)
+                return utils.fully_connected(self.connectivity_matrix,
+                                             mechanism, purview)
         purviews = tuple(filter(not_trivially_reducible, purviews))
 
         # Find the maximal MIP over the remaining purviews.

@@ -30,6 +30,20 @@ def test_apply_cut():
     assert np.array_equal(utils.apply_cut(cut, cm), cut_cm)
 
 
+def test_fully_connected():
+    cm = np.array([
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 1, 0]
+    ])
+    assert not utils.fully_connected(cm, (0,), (0, 1, 2))
+    assert not utils.fully_connected(cm, (2,), (2,))
+    assert not utils.fully_connected(cm, (0, 1), (1, 2))
+    assert utils.fully_connected(cm, (0, 1), (0, 2))
+    assert utils.fully_connected(cm, (1, 2), (1, 2))
+    assert utils.fully_connected(cm, (0, 1, 2), (0, 1, 2))
+
+
 def test_phi_eq():
     phi = 0.5
     close_enough = phi - constants.EPSILON/2
