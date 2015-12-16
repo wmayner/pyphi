@@ -12,10 +12,11 @@ Next Release
 - `constellation_distance` no longer takes a `subsystem` argument because
   concepts in a constellation already reference their subsystems.
 - Moved 'utils.cut_mechanism_indices` and `utils.mechanism_split_by_cut` to
-  methods on the `Cut` object:`Cut.all_cut_mechanisms` and
+  methods on the `Cut` object: `Cut.all_cut_mechanisms` and
   `Cut.splits_mechanism`, respectively.
 - Added `config.READABLE_REPRS to control whether __reprs__ of PyPhi models
   default to using pretty string formatting.
+- Added a `Constellation` object.
 
 ### Documentation
 - Updated documentation and examples to reflect node-to-index conversion.
