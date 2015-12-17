@@ -123,6 +123,10 @@ class Subsystem:
         # Validate.
         validate.subsystem(self)
 
+    def is_cut(self):
+        """Is this subsystem cut?"""
+        return self.cut != self.null_cut
+
     def repertoire_cache_info(self):
         """Report repertoire cache statistics."""
         return self._repertoire_cache.info()

@@ -229,8 +229,8 @@ class MiceCache(DictCache):
           - |phi| > 0. Why?? presumably because the computation is
             already quick(er)?
         """
-        if (self.subsystem.cut == self.subsystem.null_cut  # uncut
-                and value.phi > 0 and not memory_full()):
+        if (not self.subsystem.is_cut() and value.phi > 0
+                and not memory_full()):
             self.cache[key] = value
 
 
