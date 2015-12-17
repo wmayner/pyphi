@@ -26,9 +26,13 @@ from .node import Node
 # have an accesible object-level cache. Just use a simple memoizer
 cache_repertoire = functools.partial(cache.method_cache, '_repertoire_cache')
 
+# Cache decorator for `Subsytem.find_mice`
+cache_mice = cache.method_cache('_mice_cache')
+
 
 # TODO! go through docs and make sure to say when things can be None
-# TODO: validate that purview and mechanism args are explicitly *tuples*?
+# TODO: Subsystem.cut() method? Returns a cut subsystem?
+# TODO: Subsystem.is_cut() method? Returns true if null cut?
 class Subsystem:
 
     """A set of nodes in a network.
@@ -98,11 +102,11 @@ class Subsystem:
         self.null_cut_matrix = np.zeros((len(self), len(self)))
         self.cut_matrix = (self._find_cut_matrix(cut) if cut is not None
                            else self.null_cut_matrix)
+
         # A cache for keeping core causes and effects that can be reused later
         # in the event that a cut doesn't effect them.
-        if mice_cache is None:
-            mice_cache = dict()
-        self._mice_cache = mice_cache
+        self._mice_cache = cache.MiceCache(self, mice_cache)
+
         # Set up cause/effect repertoire cache.
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
@@ -613,9 +617,12 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
+    # TODO: refactor to Mice.relevant_connections? Mv to utils?
+    # TODO: test!!
     def _connections_relevant_for_mice(self, mip):
         """Return a matrix that identifies connections that “matter” to this
-        concept."""
+        concept.
+        """
         # Get an empty square matrix the size of the network.
         cm = np.zeros((self.network.size, self.network.size))
         direction = mip.direction
@@ -634,16 +641,7 @@ class Subsystem:
         # Return only the submatrix that corresponds to this subsystem's nodes.
         return cm[np.ix_(self.node_indices, self.node_indices)]
 
-    def _get_cached_mice(self, direction, mechanism):
-        """Return a cached MICE if there is one and the cut doesn't affect it.
-        Return False otherwise."""
-        if (direction, mechanism) in self._mice_cache:
-            cached = self._mice_cache[(direction, mechanism)]
-            if (not self.cut.splits_mechanism(mechanism)
-                    and not utils.cut_mice(cached, self.cut_matrix)):
-                return cached
-        return False
-
+    @cache_mice
     def find_mice(self, direction, mechanism, purviews=False):
         """Return the maximally irreducible cause or effect for a mechanism.
 
@@ -670,12 +668,8 @@ class Subsystem:
             |future|, i.e., we return a core cause or core effect, not the pair
             of them.
         """
-        # Return a cached MICE if there's a hit.
-        cached_mice = self._get_cached_mice(direction, mechanism)
-        if cached_mice:
-            return cached_mice
-
         if purviews is False:
+            # TODO: mv this to Network; cache directly on Network.
             # Get cached purviews if available.
             if config.CACHE_POTENTIAL_PURVIEWS:
                 purviews = self.network.purview_cache[(direction, mechanism)]
@@ -714,20 +708,8 @@ class Subsystem:
                 self._connections_relevant_for_mice(maximal_mip)
         else:
             relevant_connections = None
-        # Construct the corresponding MICE.
-        mice = Mice(maximal_mip, relevant_connections)
-        # Store the MICE if there was no cut, since some future cuts won't
-        # effect it and it can be reused.
-        key = (direction, mechanism)
-        current_process = psutil.Process(os.getpid())
-        not_full = (current_process.memory_percent() <
-                    config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-        if (self.cut == self.null_cut
-                and key not in self._mice_cache
-                and not_full
-                and not utils.phi_eq(mice.phi, 0)):
-            self._mice_cache[key] = mice
-        return mice
+
+        return Mice(maximal_mip, relevant_connections)
 
     def core_cause(self, mechanism, purviews=False):
         """Returns the core cause repertoire of a mechanism.

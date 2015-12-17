@@ -1,5 +1,5 @@
 
-from pyphi import cache
+from pyphi import cache, models, Subsystem
 
 
 def test_cache():
@@ -36,3 +36,56 @@ def test_cache_decorator():
     # generated from the key prefix and method arguments
     expected_key = ('key_prefix', 1)
     assert expected_key in o.my_cache.cache
+
+
+# Test MICE caching
+# ========================
+
+
+def test_mice_cache(s):
+    mechanism = (1,)  # has a core cause
+    mice = s.find_mice('past', mechanism)
+    assert s._mice_cache.get(('past', mechanism)) == mice
+
+
+def test_do_not_cache_phi_zero_mice(s):
+    mechanism = ()  # zero phi
+    mice = s.find_mice('past', mechanism)
+    assert mice.phi == 0
+    # don't cache anything because mice.phi == 0
+    assert len(s._mice_cache.cache) == 0
+
+
+def test_only_cache_uncut_subsystem_mices(standard):
+    s = Subsystem(standard, (1, 0, 0), range(standard.size),
+                  cut=models.Cut((1,), (0, 2)))
+    mechanism = (1,)  # has a core cause
+    s.find_mice('past', mechanism)
+    # don't cache anything because subsystem is cut
+    assert len(s._mice_cache.cache) == 0
+
+
+def test_inherited_mice_cache_does_not_return_split_mice(s):
+    # If mechanism is split, then cached mice are not usable
+    mechanism = (0, 1, 2)
+    cut = models.Cut((1,), (0, 2))  # splits mechanism
+    mice = s.find_mice('past', mechanism)
+    assert mice.phi > 0  # gets cached
+    cut_s = Subsystem(s.network, s.state, s.node_indices,
+                      cut=cut, mice_cache=s._mice_cache)
+    assert cut_s._mice_cache.get(('past', mechanism)) is None
+
+
+def test_inherited_mice_cache_does_not_contain_cut_mice(s):
+    # If relevant connections are cut, cached mice are not usable
+    mechanism = (1,)
+    mice = s.find_mice('past', mechanism)
+    assert mice.phi > 0  # gets cached
+    assert mice.purview == (2,)
+    cut = models.Cut((0, 2), (1,))  # cuts connection from 0 -> 1
+    cut_s = Subsystem(s.network, s.state, s.node_indices,
+                      cut=cut, mice_cache=s._mice_cache)
+    assert cut_s._mice_cache.get(('past', mechanism)) is None
+
+# TODO: test behavior when memory is full
+# TODO: test purview=False cache behavior
