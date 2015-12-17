@@ -1,5 +1,6 @@
 
 from unittest import mock
+import pytest
 from pyphi import cache, config, models, Subsystem
 
 
@@ -87,6 +88,13 @@ def test_inherited_mice_cache_does_not_contain_cut_mice(s):
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=cut, mice_cache=s._mice_cache)
     assert cut_s._mice_cache.get(('past', mechanism)) is None
+
+
+def test_inherited_cache_must_come_from_uncut_subsystem(s):
+    cut_s = Subsystem(s.network, s.state, s.node_indices,
+                      cut=models.Cut((0, 2), (1,)))
+    with pytest.raises(ValueError):
+        cache.MiceCache(s, cut_s._mice_cache)
 
 
 @config.override(MAXIMUM_CACHE_MEMORY_PERCENTAGE=0)
