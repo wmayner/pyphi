@@ -13,6 +13,7 @@ def test_cache():
     assert c.hits == 0
     assert c.misses == 1
     assert c.info() == (0, 1, 0)
+    assert c.size() == 0
 
     c.set(key, value)
 
@@ -20,6 +21,7 @@ def test_cache():
     assert c.hits == 1
     assert c.misses == 1
     assert c.info() == (1, 1, 1)
+    assert c.size() == 1
 
 
 class TestObject:
@@ -55,7 +57,7 @@ def test_do_not_cache_phi_zero_mice(s):
     mice = s.find_mice('past', mechanism)
     assert mice.phi == 0
     # don't cache anything because mice.phi == 0
-    assert len(s._mice_cache.cache) == 0
+    assert s._mice_cache.size() == 0
 
 
 def test_only_cache_uncut_subsystem_mices(standard):
@@ -64,7 +66,7 @@ def test_only_cache_uncut_subsystem_mices(standard):
     mechanism = (1,)  # has a core cause
     s.find_mice('past', mechanism)
     # don't cache anything because subsystem is cut
-    assert len(s._mice_cache.cache) == 0
+    assert s._mice_cache.size() == 0
 
 
 def test_inherited_mice_cache_does_not_return_split_mice(s):
@@ -102,7 +104,7 @@ def test_mice_cache_respects_cache_memory_limits(s):
     c = cache.MiceCache(s)
     mice = mock.Mock(phi=1)  # dummy Mice
     c.set(('past', ()), mice)
-    assert len(c.cache) == 0
+    assert c.size() == 0
 
 
 # TODO: test purview=False cache behavior

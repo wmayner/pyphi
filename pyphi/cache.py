@@ -161,9 +161,13 @@ class DictCache():
     def clear(self):
         raise NotImplemented
 
+    def size(self):
+        """Number of items in cache"""
+        return len(self.cache)
+
     def info(self):
         """Return info about cache hits, misses, and size"""
-        return _CacheInfo(self.hits, self.misses, len(self.cache))
+        return _CacheInfo(self.hits, self.misses, self.size())
 
     def get(self, key):
         """Get a value out of the cache.
