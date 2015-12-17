@@ -16,6 +16,13 @@ from . import config
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
 
 
+def memory_full():
+    """Check if the memory is too full for further caching."""
+    current_process = psutil.Process(os.getpid())
+    return (current_process.memory_percent() >
+            config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+
+
 class _HashedSeq(list):
     """This class guarantees that hash() will be called no more than once
     per element.  This is important because the lru_cache() will hash
@@ -223,7 +230,7 @@ class MiceCache(DictCache):
             already quick(er)?
         """
         if (self.subsystem.cut == self.subsystem.null_cut  # uncut
-                and value.phi > 0):
+                and value.phi > 0 and not memory_full()):
             self.cache[key] = value
 
 

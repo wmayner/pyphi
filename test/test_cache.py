@@ -1,5 +1,6 @@
 
-from pyphi import cache, models, Subsystem
+from unittest import mock
+from pyphi import cache, config, models, Subsystem
 
 
 def test_cache():
@@ -87,5 +88,13 @@ def test_inherited_mice_cache_does_not_contain_cut_mice(s):
                       cut=cut, mice_cache=s._mice_cache)
     assert cut_s._mice_cache.get(('past', mechanism)) is None
 
-# TODO: test behavior when memory is full
+
+@config.override(MAXIMUM_CACHE_MEMORY_PERCENTAGE=0)
+def test_mice_cache_respects_cache_memory_limits(s):
+    c = cache.MiceCache(s)
+    mice = mock.Mock(phi=1)  # dummy Mice
+    c.set(('past', ()), mice)
+    assert len(c.cache) == 0
+
+
 # TODO: test purview=False cache behavior
