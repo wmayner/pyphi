@@ -413,7 +413,7 @@ class Subsystem:
 
         Args:
             direction (str): Either |past| or |future|
-            purview (tuple(int) or None): The purview over which the repertoire 
+            purview (tuple(int) or None): The purview over which the repertoire
                 was calculated
             repertoire (``np.ndarray``): A repertoire computed over ``purview``
 
@@ -481,34 +481,6 @@ class Subsystem:
     # MIP methods
     # =========================================================================
 
-    @staticmethod
-    def _mip_bipartition(mechanism, purview):
-        """Return all bipartitions of a mechanism over a purview.
-
-        Returns:
-            list((Part, Part))
-
-        TODO: use ``itertools.product``??
-        """
-        purview_bipartitions = utils.bipartition(purview)
-        # Also consider reverse or each partition, eg:
-        #   [((A), (BC)), ...] -> [((BC), (A)), ...]
-        reverse_bipartitions = [x[::-1] for x in purview_bipartitions]
-        result = []
-        for denominators in purview_bipartitions + reverse_bipartitions:
-            for numerators in utils.bipartition(mechanism):
-                # Exclude partitions whose numerator and
-                # denominator are both empty.
-                valid_partition = (
-                    len(numerators[0]) + len(denominators[0]) > 0 and
-                    len(numerators[1]) + len(denominators[1]) > 0)
-                if valid_partition:
-                    part0 = Part(mechanism=numerators[0],
-                                 purview=denominators[0])
-                    part1 = Part(mechanism=numerators[1],
-                                 purview=denominators[1])
-                    result.append((part0, part1))
-        return result
 
     def find_mip(self, direction, mechanism, purview):
         """Return the minimum information partition for a mechanism over a
@@ -537,7 +509,7 @@ class Subsystem:
         unpartitioned_repertoire = repertoire(mechanism, purview)
 
         # Loop over possible MIP bipartitions
-        for part0, part1 in self._mip_bipartition(mechanism, purview):
+        for part0, part1 in mip_bipartitions(mechanism, purview):
             # Find the distance between the unpartitioned repertoire and
             # the product of the repertoires of the two parts, e.g.
             #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
@@ -767,7 +739,7 @@ class Subsystem:
     def concept(self, mechanism, purviews=False, past_purviews=False,
                 future_purviews=False):
         """Calculate a concept.
-        
+
         See :func:`pyphi.compute.concept` for more information.
         """
         # Calculate the maximally irreducible cause repertoire.
@@ -783,3 +755,35 @@ class Subsystem:
         # remain un-expanded so the concept doesn't depend on the subsystem.
         return Concept(mechanism=mechanism, phi=phi, cause=cause,
                        effect=effect, subsystem=self)
+
+
+def mip_bipartitions(mechanism, purview):
+    """Return all |small_phi| bipartitions of a mechanism over a purview.
+
+    Excludes all bipartitions where one half is entirely empty, e.g:
+
+         A    []                     A    []
+        --- X -- is not valid,  but --- X --- is.
+         B    []                    []     B
+
+    Args:
+        mechanism (tuple(int)): The mechanism to partition
+        purview (tuple(int)): The purview to partition
+    Returns:
+        bipartitions (list(tuple((Part, Part)))): Where each partition is
+
+            bipart[0].mechanism   bipart[1].mechanism
+            ------------------- X -------------------
+             bipart[0].purview     bipart[1].purview
+    """
+    purview_bipartitions = utils.bipartition(purview)
+    # Also consider reverse of each purview, eg:
+    #   [((A), (BC)), ...] -> [((BC), (A)), ...]
+    reverse_bipartitions = [x[::-1] for x in purview_bipartitions]
+
+    numerators = utils.bipartition(mechanism)
+    denominators = purview_bipartitions + reverse_bipartitions
+
+    return [(Part(n[0], d[0]), Part(n[1], d[1]))
+            for (n, d) in itertools.product(numerators, denominators)
+            if len(n[0]) + len(d[0]) > 0 and len(n[1]) + len(d[1]) > 0]

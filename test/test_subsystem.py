@@ -8,7 +8,7 @@ import pytest
 import example_networks
 from pyphi import config, validate
 from pyphi.models import Cut, Part
-from pyphi.subsystem import Subsystem
+from pyphi.subsystem import Subsystem, mip_bipartitions
 
 
 @config.override(VALIDATE_SUBSYSTEM_STATES=True)
@@ -100,11 +100,10 @@ def test_mip_bipartition():
         (Part((), (1,)), Part((0,), (2,))),
         (Part((), (1, 2)), Part((0,), ())),
     ]
-    assert set(Subsystem._mip_bipartition(mechanism, purview)) == set(answer)
+    assert set(mip_bipartitions(mechanism, purview)) == set(answer)
 
 
 def test_is_cut(s):
     assert s.is_cut() is False
     s = Subsystem(s.network, s.state, s.node_indices, cut=Cut((0,), (1, 2)))
     assert s.is_cut() is True
-
