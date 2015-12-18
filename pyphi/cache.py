@@ -151,7 +151,6 @@ class DictCache():
     """A generic dictionary-based cache.
 
     Intended to be used as an object-level cache of method results.
-    TODO: subclass dict (UserDict)?
     """
     def __init__(self):
         self.cache = {}

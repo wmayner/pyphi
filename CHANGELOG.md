@@ -18,6 +18,9 @@ Next Release
   default to using pretty string formatting.
 - Added a `Constellation` object.
 
+### Refactor
+- Subsystem cause/effect repertoire and Mice caching
+
 ### Documentation
 - Updated documentation and examples to reflect node-to-index conversion.
 

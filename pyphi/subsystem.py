@@ -7,11 +7,9 @@ Represents a candidate set for |small_phi| calculation.
 """
 
 import itertools
-import os
 import functools
 
 import numpy as np
-import psutil
 
 from . import config, constants, convert, utils, validate, cache
 from .config import PRECISION
@@ -32,7 +30,6 @@ cache_mice = cache.method_cache('_mice_cache')
 
 # TODO! go through docs and make sure to say when things can be None
 # TODO: Subsystem.cut() method? Returns a cut subsystem?
-# TODO: Subsystem.is_cut() method? Returns true if null cut?
 class Subsystem:
 
     """A set of nodes in a network.
