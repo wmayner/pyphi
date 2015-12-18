@@ -39,25 +39,6 @@ def from_json(filename):
     return network
 
 
-def _build_purview_list(self, mechanism, direction):
-    if direction == DIRECTIONS[PAST]:
-        return [purview for purview in utils.powerset(self._node_indices)
-                if utils.not_block_reducible(self.connectivity_matrix, purview,
-                                             mechanism)]
-    elif direction == DIRECTIONS[FUTURE]:
-        return [purview for purview in utils.powerset(self._node_indices)
-                if utils.not_block_reducible(self.connectivity_matrix,
-                                             mechanism, purview)]
-
-
-def list_past_purview(self, mechanism):
-    return _build_purview_list(self, mechanism, 'past')
-
-
-def list_future_purview(self, mechanism):
-    return _build_purview_list(self, mechanism, 'future')
-
-
 class Network:
 
     """A network of nodes.
@@ -197,8 +178,19 @@ class Network:
         for index in utils.powerset(self._node_indices):
             for direction in DIRECTIONS:
                 key = (direction, index)
-                self.purview_cache[key] = _build_purview_list(self, index,
-                                                              direction)
+                self.purview_cache[key] = (
+                    self._potential_purviews(direction, index))
+
+    def _potential_purviews(self, direction, mechanism):
+        """All purviews which are not clearly reducible for mechanism."""
+        if direction == DIRECTIONS[PAST]:
+            return [purview for purview in utils.powerset(self._node_indices)
+                    if utils.not_block_reducible(self.connectivity_matrix,
+                                                 purview, mechanism)]
+        elif direction == DIRECTIONS[FUTURE]:
+            return [purview for purview in utils.powerset(self._node_indices)
+                    if utils.not_block_reducible(self.connectivity_matrix,
+                                                 mechanism, purview)]
 
     def __repr__(self):
         return ('Network({}, connectivity_matrix={}, '

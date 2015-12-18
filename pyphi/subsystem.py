@@ -16,7 +16,6 @@ from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
 from .models import Concept, Cut, Mice, Mip, Part
-from .network import list_future_purview, list_past_purview
 from .node import Node
 
 # Cache decorator for Subsystem repertoire methods
@@ -614,6 +613,43 @@ class Subsystem:
         # Return only the submatrix that corresponds to this subsystem's nodes.
         return cm[np.ix_(self.node_indices, self.node_indices)]
 
+    def _potential_purviews(self, direction, mechanism, purviews=False):
+        """All purviews which could be the core cause/effect
+
+        Filters out all trivially reducible purviews.
+
+        Args:
+            direction ('str'): Either |past| or |future|
+            mechanism (tuple(int)): The mechanism of interest
+        Kwargs:
+            purviews (tuple(int)): Optional subset of purviews of
+                interest.
+        """
+        # TODO: combine fully_connected and block_cm somehow?
+
+        if purviews is False:
+            # TODO: mv this to Network; cache directly on Network.
+            # Get cached purviews if available.
+            if config.CACHE_POTENTIAL_PURVIEWS:
+                purviews = self.network.purview_cache[(direction, mechanism)]
+            else:
+                purviews = self.network._potential_purviews(
+                    direction, mechanism)
+
+            # Filter out purviews that aren't in the subsystem
+            purviews = [purview for purview in purviews if
+                        set(purview).issubset(self.node_indices)]
+
+        # Filter out trivially reducible purviews
+        def not_trivially_reducible(purview):
+            if direction == DIRECTIONS[PAST]:
+                return utils.fully_connected(self.connectivity_matrix,
+                                             purview, mechanism)
+            elif direction == DIRECTIONS[FUTURE]:
+                return utils.fully_connected(self.connectivity_matrix,
+                                             mechanism, purview)
+        return tuple(filter(not_trivially_reducible, purviews))
+
     @cache_mice
     def find_mice(self, direction, mechanism, purviews=False):
         """Return the maximally irreducible cause or effect for a mechanism.
@@ -623,7 +659,6 @@ class Subsystem:
                 specifying cause or effect.
             mechanism (tuple(int)): The mechanism to be tested for
                 irreducibility.
-
         Keyword Args:
             purviews (tuple(int)): Optionally restrict the possible purviews
                 to a subset of the subsystem. This may be useful for _e.g._
@@ -641,48 +676,22 @@ class Subsystem:
             |future|, i.e., we return a core cause or core effect, not the pair
             of them.
         """
-        if purviews is False:
-            # TODO: mv this to Network; cache directly on Network.
-            # Get cached purviews if available.
-            if config.CACHE_POTENTIAL_PURVIEWS:
-                purviews = self.network.purview_cache[(direction, mechanism)]
-            else:
-                if direction == DIRECTIONS[PAST]:
-                    purviews = list_past_purview(self.network, mechanism)
-                elif direction == DIRECTIONS[FUTURE]:
-                    purviews = list_future_purview(self.network, mechanism)
-                else:
-                    validate.direction(direction)
-            # Filter out purviews that aren't in the subsystem and convert to
-            # nodes.
-            purviews = [purview for purview in purviews if
-                        set(purview).issubset(self.node_indices)]
+        purviews = self._potential_purviews(direction, mechanism, purviews)
 
-        # Filter out trivially reducible purviews.
-        def not_trivially_reducible(purview):
-            if direction == DIRECTIONS[PAST]:
-                return utils.fully_connected(self.connectivity_matrix,
-                                             purview, mechanism)
-            elif direction == DIRECTIONS[FUTURE]:
-                return utils.fully_connected(self.connectivity_matrix,
-                                             mechanism, purview)
-        purviews = tuple(filter(not_trivially_reducible, purviews))
-
-        # Find the maximal MIP over the remaining purviews.
         if not purviews:
-            maximal_mip = Mip._null_mip(direction, mechanism, None)
+            max_mip = Mip._null_mip(direction, mechanism, None)
         else:
-            maximal_mip = max(self.find_mip(direction, mechanism, purview) for
-                              purview in purviews)
+            max_mip = max(self.find_mip(direction, mechanism, purview)
+                            for purview in purviews)
 
         # Identify the relevant connections for the MICE.
-        if not utils.phi_eq(maximal_mip.phi, 0):
+        if not utils.phi_eq(max_mip.phi, 0):
             relevant_connections = \
-                self._connections_relevant_for_mice(maximal_mip)
+                self._connections_relevant_for_mice(max_mip)
         else:
             relevant_connections = None
 
-        return Mice(maximal_mip, relevant_connections)
+        return Mice(max_mip, relevant_connections)
 
     def core_cause(self, mechanism, purviews=False):
         """Returns the core cause repertoire of a mechanism.
@@ -707,8 +716,6 @@ class Subsystem:
     # =========================================================================
 
     # TODO add `concept-space` section to the docs:
-        # The first dimension corresponds to the direction, past or future; the
-        # correspond to the subsystem's state space."""
     @property
     def null_concept(self):
         """Return the null concept of this subsystem.
