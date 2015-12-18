@@ -79,29 +79,52 @@ def test_only_cache_uncut_subsystem_mices(standard):
     assert s._mice_cache.size() == 0
 
 
-def test_inherited_mice_cache_does_not_return_split_mice(s):
-    # If mechanism is split, then cached mice are not usable
-    mechanism = (0, 1, 2)
-    cut = models.Cut((1,), (0, 2))  # splits mechanism
+def test_split_mechanism_mice_is_not_reusable(s):
+    """If mechanism is split, then cached mice are not usable
+    when a cache is built from a parent cache."""
+    mechanism = (0, 1)
     mice = s.find_mice('past', mechanism)
-    assert mice.phi > 0  # gets cached
+    assert s._mice_cache.size() == 1  # cached
+    assert mice.purview == (1, 2)
+
+    # Splits mechanism, but not relevant connections:
+    cut = models.Cut((0,), (1, 2))
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=cut, mice_cache=s._mice_cache)
     key = cut_s._mice_cache.key('past', mechanism)
     assert cut_s._mice_cache.get(key) is None
 
 
-def test_inherited_mice_cache_does_not_contain_cut_mice(s):
-    # If relevant connections are cut, cached mice are not usable
+def test_cut_relevant_connections_mice_is_not_reusable(s):
+    """If relevant connections are cut, cached mice are not usable
+    when a cache is built from a parent cache."""
     mechanism = (1,)
     mice = s.find_mice('past', mechanism)
-    assert mice.phi > 0  # gets cached
+    assert s._mice_cache.size() == 1  # cached
     assert mice.purview == (2,)
-    cut = models.Cut((0, 2), (1,))  # cuts connection from 0 -> 1
+
+    # Cuts connections from 2 -> 1
+    cut = models.Cut((0, 2), (1,))
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=cut, mice_cache=s._mice_cache)
     key = cut_s._mice_cache.key('past', mechanism)
     assert cut_s._mice_cache.get(key) is None
+
+
+def test_inherited_mice_cache_keeps_unaffected_mice(s):
+    """Cached Mice are saved from the parent cache if both
+    the mechanism and the relevant connections are not cut."""
+    mechanism = (1,)
+    mice = s.find_mice('past', mechanism)
+    assert s._mice_cache.size() == 1  # cached
+    assert mice.purview == (2,)
+
+    # Does not cut from 0 -> 1 or split mechanism
+    cut = models.Cut((0, 1), (2,))
+    cut_s = Subsystem(s.network, s.state, s.node_indices,
+                      cut=cut, mice_cache=s._mice_cache)
+    key = cut_s._mice_cache.key('past', mechanism)
+    assert cut_s._mice_cache.get(key) is mice
 
 
 def test_inherited_cache_must_come_from_uncut_subsystem(s):
