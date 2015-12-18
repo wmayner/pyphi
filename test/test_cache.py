@@ -42,14 +42,24 @@ def test_cache_decorator():
     assert expected_key in o.my_cache.cache
 
 
+def test_cache_key_generation():
+    c = cache.DictCache()
+    assert c.key('arg', _prefix='CONSTANT') == ('CONSTANT', 'arg')
+
+
 # Test MICE caching
 # ========================
+
+def test_mice_cache_key(s):
+    c = cache.MiceCache(s)
+    assert c.key('past', (0,), purviews=(0, 1)) == (None, 'past', (0,), (0, 1))
 
 
 def test_mice_cache(s):
     mechanism = (1,)  # has a core cause
     mice = s.find_mice('past', mechanism)
-    assert s._mice_cache.get(('past', mechanism)) == mice
+    key = s._mice_cache.key('past', mechanism)
+    assert s._mice_cache.get(key) == mice
 
 
 def test_do_not_cache_phi_zero_mice(s):
@@ -77,7 +87,8 @@ def test_inherited_mice_cache_does_not_return_split_mice(s):
     assert mice.phi > 0  # gets cached
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=cut, mice_cache=s._mice_cache)
-    assert cut_s._mice_cache.get(('past', mechanism)) is None
+    key = cut_s._mice_cache.key('past', mechanism)
+    assert cut_s._mice_cache.get(key) is None
 
 
 def test_inherited_mice_cache_does_not_contain_cut_mice(s):
@@ -89,7 +100,8 @@ def test_inherited_mice_cache_does_not_contain_cut_mice(s):
     cut = models.Cut((0, 2), (1,))  # cuts connection from 0 -> 1
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=cut, mice_cache=s._mice_cache)
-    assert cut_s._mice_cache.get(('past', mechanism)) is None
+    key = cut_s._mice_cache.key('past', mechanism)
+    assert cut_s._mice_cache.get(key) is None
 
 
 def test_inherited_cache_must_come_from_uncut_subsystem(s):
@@ -103,8 +115,6 @@ def test_inherited_cache_must_come_from_uncut_subsystem(s):
 def test_mice_cache_respects_cache_memory_limits(s):
     c = cache.MiceCache(s)
     mice = mock.Mock(phi=1)  # dummy Mice
-    c.set(('past', ()), mice)
+    c.set(c.key('past', ()), mice)
     assert c.size() == 0
 
-
-# TODO: test purview=False cache behavior

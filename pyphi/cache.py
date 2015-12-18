@@ -185,6 +185,19 @@ class DictCache():
         """Set a value in the cache"""
         self.cache[key] = value
 
+    # TODO: handle **kwarg keys if needed
+    # See joblib.func_inspect.filter_args
+    def key(self, *args, _prefix=None, **kwargs):
+        """Get the cache key for the given function args.
+
+        Kwargs:
+           prefix: A constant to prefix to the key.
+        """
+        if kwargs:
+            raise NotImplementedError(
+                'kwarg cache keys not implemented')
+        return (_prefix,) + tuple(args)
+
 
 class MiceCache(DictCache):
     """A subsystem-local cache for |Mice| objects.
@@ -221,7 +234,7 @@ class MiceCache(DictCache):
         from pyphi import utils
 
         for key, mice in parent_cache.cache.items():
-            (direction, mechanism) = key
+            (_, _, mechanism, _) = key
             if (not self.subsystem.cut.splits_mechanism(mechanism)
                     and not utils.cut_mice(mice, self.subsystem.cut_matrix)):
                 self.cache[key] = mice
@@ -240,29 +253,35 @@ class MiceCache(DictCache):
                 and not memory_full()):
             self.cache[key] = value
 
+    def key(self, direction, mechanism, purviews=False, _prefix=None):
+        """Cache key. This is the call signature of |find_mice|"""
+        return (_prefix, direction, mechanism, purviews)
 
-def method_cache(cache_name, *key_constants):
+
+def method_cache(cache_name, key_prefix=None):
     """Caching decorator for object-level method caches.
+
+    Cache key generation is delegated to the cache.
 
     Args:
         cache_name (str): The name of the (already-instantiated) cache
             on the decorated object which should be used to store results
             of this method.
-        *key_constants: Any constants which should be used as cache keys
-            in addition to the method arguments.
-
-    The cache key is (*key_constants, *method_args).
+        *key_prefix: A constant to use as part of the cache key in addition
+            to the method arguments.
     """
     def decorator(func):
         @wraps(func)
-        def wrapper(obj, *args):
+        def wrapper(obj, *args, **kwargs):
             cache = getattr(obj, cache_name)
-            key = tuple(key_constants + args)
+
+            # Delegate key generation
+            key = cache.key(*args, _prefix=key_prefix, **kwargs)
 
             # Get cached value, or compute
             value = cache.get(key)
             if value is None:  # miss
-                value = func(obj, *args)
+                value = func(obj, *args, **kwargs)
                 cache.set(key, value)
             return value
 
