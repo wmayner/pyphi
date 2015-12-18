@@ -61,6 +61,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
     __slots__ = ()
 
+    # TODO: cast to bool
     def splits_mechanism(self, mechanism):
         """Check if this cut splits a mechanism.
 

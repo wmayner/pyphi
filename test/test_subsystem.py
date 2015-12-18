@@ -101,3 +101,10 @@ def test_mip_bipartition():
         (Part((), (1, 2)), Part((0,), ())),
     ]
     assert set(Subsystem._mip_bipartition(mechanism, purview)) == set(answer)
+
+
+def test_is_cut(s):
+    assert s.is_cut() is False
+    s = Subsystem(s.network, s.state, s.node_indices, cut=Cut((0,), (1, 2)))
+    assert s.is_cut() is True
+

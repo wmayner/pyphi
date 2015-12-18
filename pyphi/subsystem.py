@@ -7,13 +7,11 @@ Represents a candidate set for |small_phi| calculation.
 """
 
 import itertools
-import os
-from collections import namedtuple
+import functools
 
 import numpy as np
-import psutil
 
-from . import config, constants, convert, utils, validate
+from . import config, constants, convert, utils, validate, cache
 from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
@@ -21,12 +19,17 @@ from .models import Concept, Cut, Mice, Mip, Part
 from .network import list_future_purview, list_past_purview
 from .node import Node
 
-_CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "size"])
-HITS, MISSES = 0, 1
+# Cache decorator for Subsystem repertoire methods
+# TODO: if repertoire caches are never reused, there's no reason to
+# have an accesible object-level cache. Just use a simple memoizer
+cache_repertoire = functools.partial(cache.method_cache, '_repertoire_cache')
+
+# Cache decorator for `Subsytem.find_mice`
+cache_mice = cache.method_cache('_mice_cache')
 
 
 # TODO! go through docs and make sure to say when things can be None
-# TODO: validate that purview and mechanism args are explicitly *tuples*?
+# TODO: Subsystem.cut() method? Returns a cut subsystem?
 class Subsystem:
 
     """A set of nodes in a network.
@@ -96,16 +99,13 @@ class Subsystem:
         self.null_cut_matrix = np.zeros((len(self), len(self)))
         self.cut_matrix = (self._find_cut_matrix(cut) if cut is not None
                            else self.null_cut_matrix)
+
         # A cache for keeping core causes and effects that can be reused later
         # in the event that a cut doesn't effect them.
-        if mice_cache is None:
-            mice_cache = dict()
-        self._mice_cache = mice_cache
+        self._mice_cache = cache.MiceCache(self, mice_cache)
+
         # Set up cause/effect repertoire cache.
-        self._repertoire_cache = (dict() if repertoire_cache is None else
-                                  repertoire_cache)
-        self._repertoire_cache_info = ([0, 0] if cache_info is None else
-                                       cache_info)
+        self._repertoire_cache = repertoire_cache or cache.DictCache()
 
     @property
     def state(self):
@@ -120,11 +120,13 @@ class Subsystem:
         # Validate.
         validate.subsystem(self)
 
+    def is_cut(self):
+        """Is this subsystem cut?"""
+        return self.cut != self.null_cut
+
     def repertoire_cache_info(self):
         """Report repertoire cache statistics."""
-        return _CacheInfo(self._repertoire_cache_info[HITS],
-                          self._repertoire_cache_info[MISSES],
-                          len(self._repertoire_cache))
+        return self._repertoire_cache.info()
 
     # TODO write docstring
     def _find_cut_matrix(self, cut):
@@ -193,27 +195,7 @@ class Subsystem:
                              "of subsystem indices.".format(non_subsys_indices))
         return tuple(n for n in self.nodes if n.index in indices)
 
-    def _make_repertoire_key(self, direction, mechanism, purview):
-        """Make a key for looking up repertoires in the cache."""
-        return (direction, mechanism, purview)
-
-    def _get_cached_repertoire(self, direction, mechanism, purview):
-        """Return a cached repertoire if there is one, ``False`` otherwise."""
-        key = self._make_repertoire_key(direction, mechanism, purview)
-        if key in self._repertoire_cache:
-            cached = self._repertoire_cache[key]
-            self._repertoire_cache_info[HITS] += 1
-            return cached
-        self._repertoire_cache_info[MISSES] += 1
-        return None
-
-    def _set_cached_repertoire(self, direction, mechanism, purview,
-                               repertoire):
-        """Store a repertoire in the cache."""
-        key = self._make_repertoire_key(direction, mechanism, purview)
-        if key not in self._repertoire_cache:
-            self._repertoire_cache[key] = repertoire
-
+    @cache_repertoire(DIRECTIONS[PAST])
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -226,29 +208,13 @@ class Subsystem:
             cause_repertoire (``np.ndarray``): The cause repertoire of the
                 mechanism over the purview.
         """
-        # Return a cached repertoire if there is one.
-        cached_repertoire = self._get_cached_repertoire(
-            DIRECTIONS[PAST], mechanism, purview)
-        if cached_repertoire is not None:
-            return cached_repertoire
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # NOTE: In the Matlab version's terminology,
-        #
-        # "Cause repertoire" is "backward repertoire"
-        # "Mechanism" is "numerator"
-        # "Purview" is "denominator"
-        # ``conditioned_tpm`` is ``next_num_node_distribution``
-        # ``cjd`` is ``numerator_conditional_joint``
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         purview_nodes = self.indices2nodes(purview)
         mechanism_nodes = self.indices2nodes(mechanism)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
-            cjd = np.array([1.0])
-            self._set_cached_repertoire(DIRECTIONS[PAST], mechanism, purview,
-                                        cjd)
-            return cjd
+            return np.array([1.0])
+
         # Calculate the maximum entropy distribution.
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview, so just return the purview's maximum entropy
@@ -258,8 +224,6 @@ class Subsystem:
             self.network.size,
             tuple(self.perturb_vector[i] for i in purview))
         if not mechanism:
-            self._set_cached_repertoire(DIRECTIONS[PAST], mechanism, purview,
-                                        max_entropy_dist)
             return max_entropy_dist
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
@@ -310,9 +274,9 @@ class Subsystem:
         # repertoires, which are distributions over the whole network; we need
         # only compare the purview-repertoires with each other, since cut vs.
         # whole comparisons are only ever done over the same purview.
-        self._set_cached_repertoire(DIRECTIONS[PAST], mechanism, purview, cjd)
         return cjd
 
+    @cache_repertoire(DIRECTIONS[FUTURE])
     def effect_repertoire(self, mechanism, purview):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -327,29 +291,13 @@ class Subsystem:
             effect_repertoire (``np.ndarray``): The effect repertoire of the
                 mechanism over the purview.
         """
-        # Return a repertoire if there's a hit.
-        cached_repertoire = self._get_cached_repertoire(DIRECTIONS[FUTURE],
-                                                        mechanism, purview)
-        if cached_repertoire is not None:
-            return cached_repertoire
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # NOTE: In the Matlab version's terminology,
-        #
-        # "Effect repertoire" is "forward repertoire"
-        # "Mechanism" is "numerator"
-        # "Purview" is "denominator"
-        # ``conditioned_tpm`` is ``next_denom_node_distribution``
-        # ``accumulated_cjd`` is ``denom_conditional_joint``
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         purview_nodes = self.indices2nodes(purview)
         mechanism_nodes = self.indices2nodes(mechanism)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
-            accumulated_cjd = np.array([1.0])
-            self._set_cached_repertoire(
-                DIRECTIONS[FUTURE], mechanism, purview, accumulated_cjd)
-            return accumulated_cjd
+            return np.array([1.0])
+
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
@@ -418,11 +366,8 @@ class Subsystem:
         # repertoires, which are distributions over the whole network; we need
         # only compare the purview-repertoires with each other, since cut vs.
         # whole comparisons are only ever done over the same purview.
-        self._set_cached_repertoire(
-            DIRECTIONS[FUTURE], mechanism, purview, accumulated_cjd)
         return accumulated_cjd
 
-    # TODO check if the cache is faster
     def _get_repertoire(self, direction):
         """Returns the cause or effect repertoire function based on a
         direction.
@@ -673,9 +618,12 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
+    # TODO: refactor to Mice.relevant_connections? Mv to utils?
+    # TODO: test!!
     def _connections_relevant_for_mice(self, mip):
         """Return a matrix that identifies connections that “matter” to this
-        concept."""
+        concept.
+        """
         # Get an empty square matrix the size of the network.
         cm = np.zeros((self.network.size, self.network.size))
         direction = mip.direction
@@ -694,16 +642,7 @@ class Subsystem:
         # Return only the submatrix that corresponds to this subsystem's nodes.
         return cm[np.ix_(self.node_indices, self.node_indices)]
 
-    def _get_cached_mice(self, direction, mechanism):
-        """Return a cached MICE if there is one and the cut doesn't affect it.
-        Return False otherwise."""
-        if (direction, mechanism) in self._mice_cache:
-            cached = self._mice_cache[(direction, mechanism)]
-            if (not self.cut.splits_mechanism(mechanism)
-                    and not utils.cut_mice(cached, self.cut_matrix)):
-                return cached
-        return False
-
+    @cache_mice
     def find_mice(self, direction, mechanism, purviews=False):
         """Return the maximally irreducible cause or effect for a mechanism.
 
@@ -730,12 +669,8 @@ class Subsystem:
             |future|, i.e., we return a core cause or core effect, not the pair
             of them.
         """
-        # Return a cached MICE if there's a hit.
-        cached_mice = self._get_cached_mice(direction, mechanism)
-        if cached_mice:
-            return cached_mice
-
         if purviews is False:
+            # TODO: mv this to Network; cache directly on Network.
             # Get cached purviews if available.
             if config.CACHE_POTENTIAL_PURVIEWS:
                 purviews = self.network.purview_cache[(direction, mechanism)]
@@ -774,20 +709,8 @@ class Subsystem:
                 self._connections_relevant_for_mice(maximal_mip)
         else:
             relevant_connections = None
-        # Construct the corresponding MICE.
-        mice = Mice(maximal_mip, relevant_connections)
-        # Store the MICE if there was no cut, since some future cuts won't
-        # effect it and it can be reused.
-        key = (direction, mechanism)
-        current_process = psutil.Process(os.getpid())
-        not_full = (current_process.memory_percent() <
-                    config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
-        if (self.cut == self.null_cut
-                and key not in self._mice_cache
-                and not_full
-                and not utils.phi_eq(mice.phi, 0)):
-            self._mice_cache[key] = mice
-        return mice
+
+        return Mice(maximal_mip, relevant_connections)
 
     def core_cause(self, mechanism, purviews=False):
         """Returns the core cause repertoire of a mechanism.
