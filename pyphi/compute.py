@@ -508,10 +508,9 @@ def _big_mip(cache_key, subsystem):
         log.info('Subsystem {} is empty; returning null MIP '
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))
-    # Get the connectivity of just the subsystem nodes.
-    submatrix_indices = np.ix_(subsystem.node_indices, subsystem.node_indices)
-    cm = subsystem.network.connectivity_matrix[submatrix_indices]
+
     # Get the number of strongly connected components.
+    cm = subsystem.connectivity_matrix
     num_components, _ = connected_components(csr_matrix(cm),
                                              connection='strong')
     if num_components > 1:

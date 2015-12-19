@@ -132,7 +132,7 @@ class Subsystem:
         cut_matrix = np.zeros((self.network.size, self.network.size))
         list_of_cuts = np.array(list(itertools.product(cut[0], cut[1])))
         cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
-        return cut_matrix[np.ix_(self.node_indices, self.node_indices)]
+        return utils.submatrix(cut_matrix, self.node_indices, self.node_indices)
 
     def __repr__(self):
         return "Subsystem(" + repr(self.nodes) + ")"
@@ -610,8 +610,9 @@ class Subsystem:
             connections = np.array(
                 list(itertools.product(mip.purview, mip.mechanism)))
             cm[connections[:, 0], connections[:, 1]] = 1
-        # Return only the submatrix that corresponds to this subsystem's nodes.
-        return cm[np.ix_(self.node_indices, self.node_indices)]
+
+        # Submatrix for this subsystem's nodes
+        return utils.submatrix(cm, self.node_indices, self.node_indices)
 
     def _potential_purviews(self, direction, mechanism, purviews=False):
         """All purviews which could be the core cause/effect
