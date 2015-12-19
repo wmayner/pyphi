@@ -84,10 +84,7 @@ def fully_connected(connectivity_matrix, nodes1, nodes2):
     cm = submatrix(connectivity_matrix, nodes1, nodes2)
 
     # Do all nodes have at least one connection?
-    if len(nodes1) == 1:
-        return cm.sum(0).all()
-    else:
-        return cm.sum(0).all() and cm.sum(1).all()
+    return cm.sum(0).all() and cm.sum(1).all()
 
 
 def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
