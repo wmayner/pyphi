@@ -164,6 +164,30 @@ def test_block_cm():
     assert not utils.block_cm(cm4)
 
 
+def test_block_reducible():
+    cm1 = np.array([
+         [1, 0, 0, 1, 1, 0],
+         [1, 0, 1, 0, 0, 1],
+         [0, 0, 0, 1, 0, 0],
+         [0, 1, 0, 0, 0, 0],
+         [1, 1, 0, 0, 0, 1],
+         [0, 0, 0, 0, 0, 0],
+    ])
+    cm2 = np.array([
+         [1, 0, 0],
+         [0, 1, 1],
+         [0, 1, 1]
+    ])
+    cm3 = np.array([
+         [1, 1, 0, 0, 0],
+         [0, 0, 1, 1, 1]
+    ])
+    assert not utils.block_reducible(cm1, tuple(range(cm1.shape[0] - 1)),
+        tuple(range(cm1.shape[1])))
+    assert utils.block_reducible(cm2, (0, 1, 2), (0, 1, 2))
+    assert utils.block_reducible(cm3, (0, 1), (0, 1, 2, 3, 4))
+
+
 def test_get_inputs_from_cm():
     cm = np.array([
         [0, 1, 0],
@@ -184,3 +208,16 @@ def test_get_outputs_from_cm():
     assert utils.get_outputs_from_cm(0, cm) == (1,)
     assert utils.get_outputs_from_cm(1, cm) == (0, 1, 2)
     assert utils.get_outputs_from_cm(2, cm) == tuple()
+
+
+def test_submatrix():
+    cm = np.array([
+        [0, 1, 0],
+        [1, 1, 1],
+        [0, 0, 0],
+    ])
+    assert np.array_equal(utils.submatrix(cm, (0,), (0, 1)),
+                          np.array([[0, 1]]))
+    assert np.array_equal(utils.submatrix(cm, (0, 1), (1, 2)),
+                          np.array([[1, 0], [1, 1]]))
+    assert np.array_equal(utils.submatrix(cm, (0, 1, 2), (0, 1, 2)), cm)

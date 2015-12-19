@@ -181,11 +181,11 @@ class Network:
 
         if direction == DIRECTIONS[PAST]:
             return [purview for purview in all_purviews
-                    if utils.not_block_reducible(self.connectivity_matrix,
+                    if not utils.block_reducible(self.connectivity_matrix,
                                                  purview, mechanism)]
         elif direction == DIRECTIONS[FUTURE]:
             return [purview for purview in all_purviews
-                    if utils.not_block_reducible(self.connectivity_matrix,
+                    if not utils.block_reducible(self.connectivity_matrix,
                                                  mechanism, purview)]
 
     def __repr__(self):
