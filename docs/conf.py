@@ -143,6 +143,7 @@ rst_prolog = """
 .. |r| replace:: :math:`r`
 .. |n| replace:: :math:`n`
 .. |N| replace:: :math:`N`
+.. |n x n| replace:: :math:`N \\times N`
 .. |2^n x 2^n| replace:: :math:`2^N \\times 2^N`
 .. |i| replace:: :math:`i`
 .. |j| replace:: :math:`j`

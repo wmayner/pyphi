@@ -221,3 +221,17 @@ def test_submatrix():
     assert np.array_equal(utils.submatrix(cm, (0, 1), (1, 2)),
                           np.array([[1, 0], [1, 1]]))
     assert np.array_equal(utils.submatrix(cm, (0, 1, 2), (0, 1, 2)), cm)
+
+
+def test_relevant_connections():
+    cm = utils.relevant_connections(2, (0, 1), (1,))
+    assert np.array_equal(cm, [
+        [0, 1],
+        [0, 1],
+    ])
+    cm = utils.relevant_connections(3, (0, 1), (0, 2))
+    assert np.array_equal(cm, [
+        [1, 0, 1],
+        [1, 0, 1],
+        [0, 0, 0],
+    ])

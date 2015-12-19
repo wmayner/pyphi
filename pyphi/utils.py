@@ -11,7 +11,7 @@ import re
 import logging
 import hashlib
 import numpy as np
-from itertools import chain, combinations
+from itertools import chain, combinations, product
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
@@ -500,6 +500,23 @@ def submatrix(cm, nodes1, nodes2):
     """
     submatrix_indices = np.ix_(nodes1, nodes2)
     return cm[submatrix_indices]
+
+
+#TODO: better name?
+def relevant_connections(n, _from, to):
+    """Construct a connectivity matrix.
+
+    Returns an |n x n| connectivity matrix with the |i,jth| entry
+    set to `1` if |i| is in `_from` and |j| is in `to`.
+
+    Args:
+        n (int): The dimensions of the matrix
+        _from (tuple(int)): Nodes with outgoing connections to `to`
+        to (tuple(int)): Nodes with incoming connections from `_from`
+    """
+    cm = np.zeros((n, n))
+    cm[np.ix_(_from, to)] = 1
+    return cm
 
 
 def block_cm(cm):

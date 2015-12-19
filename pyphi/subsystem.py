@@ -589,28 +589,29 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    # TODO: refactor to Mice.relevant_connections? Mv to utils?
-    # TODO: test!!
+    # TODO: refactor to Mice.relevant_connections? Mv to utils
+    # This can't be a method directly on Mice because Mice don't
+    # hold references to their Subsystem
     def _connections_relevant_for_mice(self, mip):
-        """Return a matrix that identifies connections that “matter” to this
-        concept.
-        """
-        # Get an empty square matrix the size of the network.
-        cm = np.zeros((self.network.size, self.network.size))
-        direction = mip.direction
-        if direction == DIRECTIONS[FUTURE]:
-            # Set `i, j` to 1 if `i` is a mechanism node and `j` is an effect
-            # purview node.
-            connections = np.array(
-                list(itertools.product(mip.mechanism, mip.purview)))
-            cm[connections[:, 0], connections[:, 1]] = 1
-        elif direction == DIRECTIONS[PAST]:
-            # Set `i, j` to 1 if `i` is a cause purview node and `j` is a
-            # mechanism node.
-            connections = np.array(
-                list(itertools.product(mip.purview, mip.mechanism)))
-            cm[connections[:, 0], connections[:, 1]] = 1
+        """Identify connections that “matter” to this concept.
 
+        For a core cause, the important connections are those
+        which connect the purview to the mechanism; for a core
+        effect they are the connections from the mechanism to the
+        purview.
+
+        Args:
+            mip (|Mip|): The |Mip| in question
+        Returns:
+            cm (np.ndarray): A |n x n| matrix of connections, where
+                `n` is the size of the subsystem.
+        """
+        if mip.direction == DIRECTIONS[PAST]:
+            _from, to = mip.purview, mip.mechanism
+        elif mip.direction == DIRECTIONS[FUTURE]:
+            _from, to = mip.mechanism, mip.purview
+
+        cm = utils.relevant_connections(self.network.size, _from, to)
         # Submatrix for this subsystem's nodes
         return utils.submatrix(cm, self.node_indices, self.node_indices)
 

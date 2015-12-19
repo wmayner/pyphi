@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # test_subsystem.py
 
+from unittest import mock
+
 import numpy as np
 import pytest
 
@@ -107,3 +109,20 @@ def test_is_cut(s):
     assert s.is_cut() is False
     s = Subsystem(s.network, s.state, s.node_indices, cut=Cut((0,), (1, 2)))
     assert s.is_cut() is True
+
+
+def test_connections_relevant_to_mice(s, subsys_n1n2):
+    mip = mock.Mock(mechanism=(0,), purview=(1,), direction='past')
+    answer = np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 0, 0],
+    ])
+    assert np.array_equal(s._connections_relevant_for_mice(mip), answer)
+
+    mip = mock.Mock(mechanism=(1,), purview=(1, 2), direction='future')
+    answer = np.array([
+        [1, 1],
+        [0, 0],
+    ])
+    assert np.array_equal(subsys_n1n2._connections_relevant_for_mice(mip), answer)
