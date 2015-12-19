@@ -625,29 +625,27 @@ class Subsystem:
             purviews (tuple(int)): Optional subset of purviews of
                 interest.
         """
-        # TODO: combine fully_connected and block_cm somehow?
-
         if purviews is False:
-            # TODO: mv this to Network; cache directly on Network.
-            # Get cached purviews if available.
-            if config.CACHE_POTENTIAL_PURVIEWS:
-                purviews = self.network.purview_cache[(direction, mechanism)]
-            else:
-                purviews = self.network._potential_purviews(
-                    direction, mechanism)
-
+            purviews = self.network._potential_purviews(direction, mechanism)
             # Filter out purviews that aren't in the subsystem
             purviews = [purview for purview in purviews if
                         set(purview).issubset(self.node_indices)]
 
         # Filter out trivially reducible purviews
+        # (This is already done in network._potential_purviews to the
+        # full connectivity matrix. However, since the cm is cut/
+        # smaller we check again here.
+        # TODO: how efficient is `block_reducible?` Can we use it again?
+        # TODO: combine `fully_connected` and `block_reducible`
+        # TODO: benchmark and verify reducibility tests increase speed.
         def not_trivially_reducible(purview):
             if direction == DIRECTIONS[PAST]:
-                return utils.fully_connected(self.connectivity_matrix,
-                                             purview, mechanism)
+                _from, to = purview, mechanism
             elif direction == DIRECTIONS[FUTURE]:
-                return utils.fully_connected(self.connectivity_matrix,
-                                             mechanism, purview)
+                _from, to = mechanism, purview
+            return utils.fully_connected(self.connectivity_matrix,
+                                            _from, to)
+
         return tuple(filter(not_trivially_reducible, purviews))
 
     @cache_mice

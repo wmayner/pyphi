@@ -257,6 +257,15 @@ class MiceCache(DictCache):
         return (_prefix, direction, mechanism, purviews)
 
 
+class PurviewCache(DictCache):
+    """A network-level cache for possible purviews."""
+
+    def set(self, key, value):
+        """Only set if purview caching is enabled"""
+        if config.CACHE_POTENTIAL_PURVIEWS:
+            self.cache[key] = value
+
+
 def method_cache(cache_name, key_prefix=None):
     """Caching decorator for object-level method caches.
 

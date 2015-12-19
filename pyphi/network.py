@@ -11,16 +11,12 @@ import json
 
 import numpy as np
 
-from . import config, convert, utils, validate
+from . import cache, config, convert, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
 
-
 # TODO!!! raise error if user tries to change TPM or CM, double-check and
 # document that states can be changed
-
-# Methods to compute reducible purviews for any mechanism, so they do not have
-# to be checked in concept calculation.
 
 def from_json(filename):
     """Convert a JSON representation of a network to a PyPhi network.
@@ -94,14 +90,7 @@ class Network:
         self._node_indices = tuple(range(self.size))
         self.connectivity_matrix = connectivity_matrix
         self.perturb_vector = perturb_vector
-        if purview_cache is None:
-            purview_cache = dict()
-        self.purview_cache = purview_cache
-        # If CACHE_POTENTIAL_PURVIEWS is set to True then pre-compute the list
-        # for each mechanism. This will save time if results are desired for
-        # more than one subsystem of the network.
-        if config.CACHE_POTENTIAL_PURVIEWS:
-            self.build_purview_cache()
+        self.purview_cache = purview_cache or cache.PurviewCache()
         # Validate the entire network.
         validate.network(self)
 
@@ -174,21 +163,28 @@ class Network:
         # Update hash.
         self._pv_hash = utils.np_hash(self.perturb_vector)
 
-    def build_purview_cache(self):
-        for index in utils.powerset(self._node_indices):
-            for direction in DIRECTIONS:
-                key = (direction, index)
-                self.purview_cache[key] = (
-                    self._potential_purviews(direction, index))
-
+    # TODO: this should really be a Subsystem method, but we're
+    # interested in caching at the Network-level...
+    @cache.method_cache('purview_cache')
     def _potential_purviews(self, direction, mechanism):
-        """All purviews which are not clearly reducible for mechanism."""
+        """All purviews which are not clearly reducible for mechanism.
+
+        Args:
+            direction (str): |past| or |future|
+            mechanism (tuple(int)): The mechanism which all purviews
+                are checked for reducibility over.
+        Returns:
+            purviews (list(tuple(int))): All purviews which are
+                irreducible over `mechanism`.
+        """
+        all_purviews = utils.powerset(self._node_indices)
+
         if direction == DIRECTIONS[PAST]:
-            return [purview for purview in utils.powerset(self._node_indices)
+            return [purview for purview in all_purviews
                     if utils.not_block_reducible(self.connectivity_matrix,
                                                  purview, mechanism)]
         elif direction == DIRECTIONS[FUTURE]:
-            return [purview for purview in utils.powerset(self._node_indices)
+            return [purview for purview in all_purviews
                     if utils.not_block_reducible(self.connectivity_matrix,
                                                  mechanism, purview)]
 
