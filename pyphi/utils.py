@@ -476,20 +476,6 @@ def _hamming_matrix(N):
         return cdist(possible_states, possible_states, 'hamming') * N
 
 
-# TODO? implement this
-def connectivity_matrix_to_tpm(network):
-    """Generate a TPM from a connectivity matrix and nodes that implement
-    logical functions.
-
-    Args:
-        network (Network): The network for which to generate the TPM.
-
-    Returns:
-        tpm (``np.ndarray``): A transition probability matrix.
-    """
-    pass
-
-
 def submatrix(cm, nodes1, nodes2):
     """Return the submatrix of connections from nodes1 to nodes2
 
