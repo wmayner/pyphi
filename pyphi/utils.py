@@ -512,13 +512,21 @@ def block_cm(cm):
     Technically, only square matrices are "block diagonal", but the
     notion of connectivity carries over.
 
+    We test for block connectivity by trying to grow a block of
+    nodes such that:
+        * 'source' nodes only input to nodes in the block
+        * 'sink' nodes only receive inputs from source nodes
+            in the block
+
     For example: the following cm represents connections from
     `nodes1 = A,B,C` to `nodes2 = D,E,F,G` (without loss of generality--
-    note that `nodes1` may actually be a subset of `nodes2`.)
+    note `nodes1` and `nodes2` may share elements.)
+
            D  E  F  G
         A [1, 1, 0, 0]
         B [1, 1, 0, 0]
         C [0, 0, 1, 1]
+
     Since nodes `AB` only connect to nodes `DE`, and node `C` only
     connects to nodes `FG`, the subgraph is reducible:
             AB   C
@@ -542,8 +550,8 @@ def block_cm(cm):
     while True:
         if np.all(sink_inputs == sources):
             # sources exclusively connect to sinks.
-            # There are no other nodes which connect sink nodes
-            # Hence set(sources) + set(sinks) form a component
+            # There are no other nodes which connect sink nodes,
+            # hence set(sources) + set(sinks) form a component
             # which is not connected to the rest of the graph
             break
 
@@ -559,6 +567,7 @@ def block_cm(cm):
 
 
 # TODO: simplify the conditional validation here and in block_cm
+# TODO: combine with fully_connected
 def block_reducible(cm, nodes1, nodes2):
     """Is the cm reducible from nodes1 to nodes2?
 
