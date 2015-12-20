@@ -11,7 +11,7 @@ import re
 import logging
 import hashlib
 import numpy as np
-from itertools import chain, combinations
+from itertools import chain, combinations, product
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
@@ -81,15 +81,10 @@ def fully_connected(connectivity_matrix, nodes1, nodes2):
     if not nodes1 or not nodes2:
         return True
 
-    # Submatrix of connections from nodes1 to nodes2
-    submatrix_indices = np.ix_(nodes1, nodes2)
-    cm = connectivity_matrix[submatrix_indices]
+    cm = submatrix(connectivity_matrix, nodes1, nodes2)
 
     # Do all nodes have at least one connection?
-    if len(nodes1) == 1:
-        return cm.sum(0).all()
-    else:
-        return cm.sum(0).all() and cm.sum(1).all()
+    return cm.sum(0).all() and cm.sum(1).all()
 
 
 def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
@@ -481,74 +476,120 @@ def _hamming_matrix(N):
         return cdist(possible_states, possible_states, 'hamming') * N
 
 
-# TODO? implement this
-def connectivity_matrix_to_tpm(network):
-    """Generate a TPM from a connectivity matrix and nodes that implement
-    logical functions.
+def submatrix(cm, nodes1, nodes2):
+    """Return the submatrix of connections from nodes1 to nodes2
 
     Args:
-        network (Network): The network for which to generate the TPM.
-
-    Returns:
-        tpm (``np.ndarray``): A transition probability matrix.
+        cm (np.ndarray): The matrix
+        nodes1 (tuple(int)): Source nodes
+        nodes2 (tuple(int)): Sink nodes
     """
-    pass
+    submatrix_indices = np.ix_(nodes1, nodes2)
+    return cm[submatrix_indices]
+
+
+#TODO: better name?
+def relevant_connections(n, _from, to):
+    """Construct a connectivity matrix.
+
+    Returns an |n x n| connectivity matrix with the |i,jth| entry
+    set to `1` if |i| is in `_from` and |j| is in `to`.
+
+    Args:
+        n (int): The dimensions of the matrix
+        _from (tuple(int)): Nodes with outgoing connections to `to`
+        to (tuple(int)): Nodes with incoming connections from `_from`
+    """
+    cm = np.zeros((n, n))
+    cm[np.ix_(_from, to)] = 1
+    return cm
 
 
 def block_cm(cm):
-    """Determining if a given connectivity matrix be rearranged as a block
-    connectivity matrix.
+    """Can the cm be arranged as a block connectivity matrix?
 
     If so, the corresponding mechanism/purview is trivially reducible.
+    Technically, only square matrices are "block diagonal", but the
+    notion of connectivity carries over.
+
+    We test for block connectivity by trying to grow a block of
+    nodes such that:
+        * 'source' nodes only input to nodes in the block
+        * 'sink' nodes only receive inputs from source nodes
+            in the block
+
+    For example: the following cm represents connections from
+    `nodes1 = A,B,C` to `nodes2 = D,E,F,G` (without loss of generality--
+    note `nodes1` and `nodes2` may share elements.)
+
+           D  E  F  G
+        A [1, 1, 0, 0]
+        B [1, 1, 0, 0]
+        C [0, 0, 1, 1]
+
+    Since nodes `AB` only connect to nodes `DE`, and node `C` only
+    connects to nodes `FG`, the subgraph is reducible:
+            AB   C
+    the cut -- X --  does not change the structure of the graph.
+            DE   FG
     """
-    # Validate the connectivity matrix.
-    num_inputs = cm.shape[1]
     if np.any(np.sum(cm, 1) == 0):
         return True
     if np.all(np.sum(cm > 0, 1) == 1):
         return True
-    m_ind = np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]
-    p_ind = np.where(cm[m_ind, :] > 0)[0]
-    temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
-    while 1:
-        if np.all(temp == m_ind):
+
+    outputs = list(range(cm.shape[1]))
+
+    # Start: source node with most outputs
+    sources = np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]
+    # All nodes which sources connect to
+    sinks = np.where(cm[sources, :] > 0)[0]
+    # All nodes with connections to sink nodes
+    sink_inputs = np.where(np.sum(cm[:, sinks], 1) > 0)[0]
+
+    while True:
+        if np.all(sink_inputs == sources):
+            # sources exclusively connect to sinks.
+            # There are no other nodes which connect sink nodes,
+            # hence set(sources) + set(sinks) form a component
+            # which is not connected to the rest of the graph
             break
-        else:
-            m_ind = temp
-            p_ind = np.where(np.sum(cm[m_ind, :], 0) > 0)[0]
-            temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
-            if np.all(p_ind == [i for i in range(num_inputs)]):
-                return False
+
+        # Recompute sources, sinks, and sink_inputs
+        sources = sink_inputs
+        sinks = np.where(np.sum(cm[sources, :], 0) > 0)[0]
+        sink_inputs = np.where(np.sum(cm[:, sinks], 1) > 0)[0]
+
+        # Considering all output nodes?
+        if np.all(sinks == outputs):
+            return False
     return True
 
 
-# TODO test phi max helpers
-def not_block_reducible(cm, nodes1, nodes2):
-    """Tests connectivity of one set of nodes to another.
+# TODO: simplify the conditional validation here and in block_cm
+# TODO: combine with fully_connected
+def block_reducible(cm, nodes1, nodes2):
+    """Is the cm reducible from nodes1 to nodes2?
+
+    Checks whether the connections from `nodes1` to `nodes2`
+    are reducible
 
     Args:
         cm (np.ndarray): The network's connectivity matrix.
-        nodes1 (tuple(int)): The nodes whose outputs to ``nodes2`` will be
-            tested.
-        nodes2 (tuple(int)): The nodes whose inputs from ``nodes1`` will
-            be tested.
+        nodes1 (tuple(int)): Source nodes
+        nodes2 (tuple(int)): Sink nodes
     """
-    # If either set of nodes is empty, return (vacuously) True.
     if not nodes1 or not nodes2:
-        return False
-    # Get the connectivity matrix representing the connections from the
-    # first node list to the second.
-    submatrix_indices = np.ix_([node for node in nodes1],
-                               [node for node in nodes2])
-    cm = cm[submatrix_indices]
-    # Check that all nodes have at least one connection by summing over
-    # rows of connectivity submatrix.
+        return True  # trivially
+
+    cm = submatrix(cm, nodes1, nodes2)
+
+    # Validate the connectivity matrix.
     if not cm.sum(0).all() or not cm.sum(1).all():
-        return False
-    elif len(nodes1) > 1 and len(nodes2) > 1:
-        return not block_cm(cm)
-    else:
         return True
+    if len(nodes1) > 1 and len(nodes2) > 1:
+        return block_cm(cm)
+    return False
 
 
 # Custom printing methods

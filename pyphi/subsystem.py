@@ -16,7 +16,6 @@ from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
 from .models import Concept, Cut, Mice, Mip, Part
-from .network import list_future_purview, list_past_purview
 from .node import Node
 
 # Cache decorator for Subsystem repertoire methods
@@ -133,7 +132,7 @@ class Subsystem:
         cut_matrix = np.zeros((self.network.size, self.network.size))
         list_of_cuts = np.array(list(itertools.product(cut[0], cut[1])))
         cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
-        return cut_matrix[np.ix_(self.node_indices, self.node_indices)]
+        return utils.submatrix(cut_matrix, self.node_indices, self.node_indices)
 
     def __repr__(self):
         return "Subsystem(" + repr(self.nodes) + ")"
@@ -590,29 +589,66 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    # TODO: refactor to Mice.relevant_connections? Mv to utils?
-    # TODO: test!!
+    # TODO: refactor to Mice.relevant_connections? Mv to utils
+    # This can't be a method directly on Mice because Mice don't
+    # hold references to their Subsystem
     def _connections_relevant_for_mice(self, mip):
-        """Return a matrix that identifies connections that “matter” to this
-        concept.
+        """Identify connections that “matter” to this concept.
+
+        For a core cause, the important connections are those
+        which connect the purview to the mechanism; for a core
+        effect they are the connections from the mechanism to the
+        purview.
+
+        Args:
+            mip (|Mip|): The |Mip| in question
+        Returns:
+            cm (np.ndarray): A |n x n| matrix of connections, where
+                `n` is the size of the subsystem.
         """
-        # Get an empty square matrix the size of the network.
-        cm = np.zeros((self.network.size, self.network.size))
-        direction = mip.direction
-        if direction == DIRECTIONS[FUTURE]:
-            # Set `i, j` to 1 if `i` is a mechanism node and `j` is an effect
-            # purview node.
-            connections = np.array(
-                list(itertools.product(mip.mechanism, mip.purview)))
-            cm[connections[:, 0], connections[:, 1]] = 1
-        elif direction == DIRECTIONS[PAST]:
-            # Set `i, j` to 1 if `i` is a cause purview node and `j` is a
-            # mechanism node.
-            connections = np.array(
-                list(itertools.product(mip.purview, mip.mechanism)))
-            cm[connections[:, 0], connections[:, 1]] = 1
-        # Return only the submatrix that corresponds to this subsystem's nodes.
-        return cm[np.ix_(self.node_indices, self.node_indices)]
+        if mip.direction == DIRECTIONS[PAST]:
+            _from, to = mip.purview, mip.mechanism
+        elif mip.direction == DIRECTIONS[FUTURE]:
+            _from, to = mip.mechanism, mip.purview
+
+        cm = utils.relevant_connections(self.network.size, _from, to)
+        # Submatrix for this subsystem's nodes
+        return utils.submatrix(cm, self.node_indices, self.node_indices)
+
+    def _potential_purviews(self, direction, mechanism, purviews=False):
+        """All purviews which could be the core cause/effect
+
+        Filters out all trivially reducible purviews.
+
+        Args:
+            direction ('str'): Either |past| or |future|
+            mechanism (tuple(int)): The mechanism of interest
+        Kwargs:
+            purviews (tuple(int)): Optional subset of purviews of
+                interest.
+        """
+        if purviews is False:
+            purviews = self.network._potential_purviews(direction, mechanism)
+            # Filter out purviews that aren't in the subsystem
+            purviews = [purview for purview in purviews if
+                        set(purview).issubset(self.node_indices)]
+
+        # Filter out trivially reducible purviews
+        # (This is already done in network._potential_purviews to the
+        # full connectivity matrix. However, since the cm is cut/
+        # smaller we check again here.
+        # TODO: how efficient is `block_reducible?` Can we use it again?
+        # TODO: combine `fully_connected` and `block_reducible`
+        # TODO: benchmark and verify reducibility tests increase speed.
+        def not_trivially_reducible(purview):
+            if direction == DIRECTIONS[PAST]:
+                _from, to = purview, mechanism
+            elif direction == DIRECTIONS[FUTURE]:
+                _from, to = mechanism, purview
+            return utils.fully_connected(self.connectivity_matrix,
+                                            _from, to)
+
+        return tuple(filter(not_trivially_reducible, purviews))
 
     @cache_mice
     def find_mice(self, direction, mechanism, purviews=False):
@@ -623,7 +659,6 @@ class Subsystem:
                 specifying cause or effect.
             mechanism (tuple(int)): The mechanism to be tested for
                 irreducibility.
-
         Keyword Args:
             purviews (tuple(int)): Optionally restrict the possible purviews
                 to a subset of the subsystem. This may be useful for _e.g._
@@ -641,48 +676,22 @@ class Subsystem:
             |future|, i.e., we return a core cause or core effect, not the pair
             of them.
         """
-        if purviews is False:
-            # TODO: mv this to Network; cache directly on Network.
-            # Get cached purviews if available.
-            if config.CACHE_POTENTIAL_PURVIEWS:
-                purviews = self.network.purview_cache[(direction, mechanism)]
-            else:
-                if direction == DIRECTIONS[PAST]:
-                    purviews = list_past_purview(self.network, mechanism)
-                elif direction == DIRECTIONS[FUTURE]:
-                    purviews = list_future_purview(self.network, mechanism)
-                else:
-                    validate.direction(direction)
-            # Filter out purviews that aren't in the subsystem and convert to
-            # nodes.
-            purviews = [purview for purview in purviews if
-                        set(purview).issubset(self.node_indices)]
+        purviews = self._potential_purviews(direction, mechanism, purviews)
 
-        # Filter out trivially reducible purviews.
-        def not_trivially_reducible(purview):
-            if direction == DIRECTIONS[PAST]:
-                return utils.fully_connected(self.connectivity_matrix,
-                                             purview, mechanism)
-            elif direction == DIRECTIONS[FUTURE]:
-                return utils.fully_connected(self.connectivity_matrix,
-                                             mechanism, purview)
-        purviews = tuple(filter(not_trivially_reducible, purviews))
-
-        # Find the maximal MIP over the remaining purviews.
         if not purviews:
-            maximal_mip = Mip._null_mip(direction, mechanism, None)
+            max_mip = Mip._null_mip(direction, mechanism, None)
         else:
-            maximal_mip = max(self.find_mip(direction, mechanism, purview) for
-                              purview in purviews)
+            max_mip = max(self.find_mip(direction, mechanism, purview)
+                            for purview in purviews)
 
         # Identify the relevant connections for the MICE.
-        if not utils.phi_eq(maximal_mip.phi, 0):
+        if not utils.phi_eq(max_mip.phi, 0):
             relevant_connections = \
-                self._connections_relevant_for_mice(maximal_mip)
+                self._connections_relevant_for_mice(max_mip)
         else:
             relevant_connections = None
 
-        return Mice(maximal_mip, relevant_connections)
+        return Mice(max_mip, relevant_connections)
 
     def core_cause(self, mechanism, purviews=False):
         """Returns the core cause repertoire of a mechanism.
@@ -707,8 +716,6 @@ class Subsystem:
     # =========================================================================
 
     # TODO add `concept-space` section to the docs:
-        # The first dimension corresponds to the direction, past or future; the
-        # correspond to the subsystem's state space."""
     @property
     def null_concept(self):
         """Return the null concept of this subsystem.

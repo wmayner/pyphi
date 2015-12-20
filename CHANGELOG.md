@@ -14,12 +14,17 @@ Next Release
 - Moved 'utils.cut_mechanism_indices` and `utils.mechanism_split_by_cut` to
   methods on the `Cut` object: `Cut.all_cut_mechanisms` and
   `Cut.splits_mechanism`, respectively.
+
+### API Additions
 - Added `config.READABLE_REPRS to control whether __reprs__ of PyPhi models
   default to using pretty string formatting.
 - Added a `Constellation` object.
+- Added `utils.submatrix` and `utils.relevant_connections` functions.
 
 ### Refactor
-- Subsystem cause/effect repertoire and Mice caching
+- Subsystem Mice and cause/effect repertoire caches; Network purview caches.
+  Cache logic is now handled by decorators and custom cache objects.
+- Block reducibility tests and Mice connection computations.
 
 ### Documentation
 - Updated documentation and examples to reflect node-to-index conversion.
@@ -97,7 +102,7 @@ _2015-06-30_
   disallows any such intraconstellation paths. This is important because in
   some cases paths from a concept in one constellation to a concept the other
   can actually be shorter if a detour is taken through a different concept in
-  the same constellation. 
+  the same constellation.
 - Fixed a bug in `validate.state_reachable` where network states were
   incorrectly validated.
 - `macro.emergence` now always returns a macro-network, even when 𝚽 = 0.

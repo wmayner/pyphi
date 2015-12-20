@@ -141,3 +141,19 @@ def test_mice_cache_respects_cache_memory_limits(s):
     c.set(c.key('past', ()), mice)
     assert c.size() == 0
 
+
+# Test purview cache
+# ==================
+
+@config.override(CACHE_POTENTIAL_PURVIEWS=True)
+def test_purview_cache(standard):
+    purviews = standard._potential_purviews('future', (0,))
+    assert standard.purview_cache.size() == 1
+    assert purviews in standard.purview_cache.cache.values()
+
+
+@config.override(CACHE_POTENTIAL_PURVIEWS=False)
+def test_only_cache_purviews_if_configured():
+    c = cache.PurviewCache()
+    c.set(c.key('past', (0,)), ('some purview'))
+    assert c.size() == 0
