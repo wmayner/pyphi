@@ -381,17 +381,8 @@ def directed_bipartition_indices(N):
         >>> directed_bipartition_indices(N)
         [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
     """
-    result = []
-    # Return on empty input
-    if N <= 0:
-        return result
-    for i in range(2**N):
-        part = [[], []]
-        for n in range(N):
-            bit = (i >> n) & 1
-            part[bit].append(n)
-        result.append((tuple(part[1]), tuple(part[0])))
-    return result
+    indices = bipartition_indices(N)
+    return indices + [idx[::-1] for idx in indices[::-1]]
 
 
 @cache(cache={}, maxmem=None)
@@ -412,9 +403,9 @@ def bipartition_indices(N):
         [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
     """
     result = []
-    # Return on empty input
     if N <= 0:
         return result
+
     for i in range(2 ** (N-1)):
         part = [[], []]
         for n in range(N):

@@ -782,14 +782,16 @@ def mip_bipartitions(mechanism, purview):
             bipart[0].mechanism   bipart[1].mechanism
             ------------------- X -------------------
              bipart[0].purview     bipart[1].purview
-    """
-    purview_bipartitions = utils.bipartition(purview)
-    # Also consider reverse of each purview, eg:
-    #   [((A), (BC)), ...] -> [((BC), (A)), ...]
-    reverse_bipartitions = [x[::-1] for x in purview_bipartitions]
 
+    Example:
+        >>> from pyphi.subsystem import mip_bipartitions
+        >>> mechanism = (0,)
+        >>> purview = (2, 3)
+        >>> mip_bipartitions(mechanism, purview)
+        [(Part(mechanism=(), purview=(2,)), Part(mechanism=(0,), purview=(3,))), (Part(mechanism=(), purview=(3,)), Part(mechanism=(0,), purview=(2,))), (Part(mechanism=(), purview=(2, 3)), Part(mechanism=(0,), purview=()))]
+    """
     numerators = utils.bipartition(mechanism)
-    denominators = purview_bipartitions + reverse_bipartitions
+    denominators = utils.directed_bipartition(purview)
 
     return [(Part(n[0], d[0]), Part(n[1], d[1]))
             for (n, d) in itertools.product(numerators, denominators)
