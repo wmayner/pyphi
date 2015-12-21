@@ -220,11 +220,11 @@ def _numpy_aware_eq(a, b):
 def _general_eq(a, b, attributes):
     """Return whether two objects are equal up to the given attributes.
 
-    If an attribute is called ``'phi'``, it is compared up to |PRECISION|. All
-    other attributes are compared with :func:`_numpy_aware_eq`.
-
-    If an attribute is called ``'mechanism'`` or ``'purview'``, it is compared
-    using set equality."""
+    If an attribute is called ``'phi'``, it is compared up to |PRECISION|.
+    If an attribute is called ``'mechanism'`` or ``'purview'``, it is
+    compared using set equality.  All other attributes are compared with
+    :func:`_numpy_aware_eq`.
+    """
     try:
         for attr in attributes:
             _a, _b = getattr(a, attr), getattr(b, attr)
@@ -234,9 +234,7 @@ def _general_eq(a, b, attributes):
             elif (attr == 'mechanism' or attr == 'purview'):
                 if _a is None or _b is None and not _a == _b:
                     return False
-                # Don't use `set` because hashes may be different (contexts are
-                # included in node hashes); we want to use Node.__eq__.
-                elif not (all(n in _b for n in _a) and len(_a) == len(_b)):
+                elif not set(_a) == set(_b):
                     return False
             else:
                 if not _numpy_aware_eq(_a, _b):
