@@ -122,6 +122,26 @@ def test_cut_all_cut_mechanisms():
     assert cut.all_cut_mechanisms((0, 1)) == ((0, 1),)
 
 
+def test_cut_matrix():
+    cut = models.Cut((0,), (1,))
+    matrix = np.array([
+        [0, 1],
+        [0, 0],
+    ])
+    assert np.array_equal(cut.cut_matrix(), matrix)
+
+    cut = models.Cut((0, 2), (1, 2))
+    matrix = np.array([
+        [0, 1, 1],
+        [0, 0, 0],
+        [0, 1, 1],
+    ])
+    assert np.array_equal(cut.cut_matrix(), matrix)
+
+    cut = models.Cut((), ())
+    assert np.array_equal(cut.cut_matrix(), np.array([]))
+
+
 # Test MIP {{{
 # ============
 

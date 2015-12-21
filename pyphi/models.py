@@ -86,6 +86,24 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         is_split = lambda mechanism: self.splits_mechanism(mechanism)
         return tuple(filter(is_split, utils.powerset(candidate_indices)))
 
+    # TODO: pass in `size` arg and keep expanded to full network??
+    def cut_matrix(self):
+        """Compute the cut matrix for this cut.
+
+        The cut matrix is a square matrix which represents connections
+        severed by the cut. The matrix is shrunk to the size of the cut
+        subsystem--not necessarily the size of the entire network.
+        """
+        cut_indices = tuple(set(self[0] + self[1]))
+        if not cut_indices:  # empty cut
+            return np.array([])
+
+        # Construct a cut matrix large enough for all indices
+        # in the cut, then extract the relevant submatrix
+        n = max(cut_indices) + 1
+        matrix = utils.relevant_connections(n, self[0], self[1])
+        return utils.submatrix(matrix, cut_indices, cut_indices)
+
     def __repr__(self):
         return make_repr(self, ['severed', 'intact'])
 

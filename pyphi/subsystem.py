@@ -87,7 +87,7 @@ class Subsystem:
         self.cut = cut if cut is not None else self.null_cut
 
         # The matrix of connections which are severed due to the cut
-        self.cut_matrix = self._find_cut_matrix(self.cut)
+        self.cut_matrix = self.cut.cut_matrix()
 
         # The network's connectivity matrix with cut applied
         self.connectivity_matrix = utils.apply_cut(
@@ -136,16 +136,6 @@ class Subsystem:
     def repertoire_cache_info(self):
         """Report repertoire cache statistics."""
         return self._repertoire_cache.info()
-
-    # TODO: mv to method of Cut
-    def _find_cut_matrix(self, cut):
-        """Compute the cut matrix of this subsystem."""
-        cut_matrix = np.zeros((self.network.size, self.network.size))
-        list_of_cuts = np.array(list(itertools.product(cut[0], cut[1])))
-        if len(list_of_cuts) > 0:
-            cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
-        # else, null cut matrix
-        return utils.submatrix(cut_matrix, self.node_indices, self.node_indices)
 
     def __repr__(self):
         return "Subsystem(" + repr(self.nodes) + ")"
