@@ -229,16 +229,11 @@ class MiceCache(DictCache):
         A Mice is affected if either the cut splits the mechanism
         or splits the connections between the purview and mechanism
         """
-        # Avoid circular import
-        from pyphi import utils
-
         for key, mice in parent_cache.cache.items():
-            (_, _, mechanism, _) = key
-            if (not self.subsystem.cut.splits_mechanism(mechanism)
-                    and not utils.cut_mice(mice, self.subsystem.cut_matrix)):
+            if not mice.damaged_by_cut(self.subsystem):
                 self.cache[key] = mice
 
-    def set(self, key, value):
+    def set(self, key, mice):
         """Set a value in the cache.
 
         Only cache if:
@@ -247,10 +242,11 @@ class MiceCache(DictCache):
             subsystems.)
           - |phi| > 0. Why?? presumably because the computation is
             already quick(er)?
+          - Memory is not too full.
         """
-        if (not self.subsystem.is_cut() and value.phi > 0
+        if (not self.subsystem.is_cut() and mice.phi > 0
                 and not memory_full()):
-            self.cache[key] = value
+            self.cache[key] = mice
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):
         """Cache key. This is the call signature of |find_mice|"""

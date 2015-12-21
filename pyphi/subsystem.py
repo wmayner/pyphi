@@ -28,7 +28,8 @@ cache_mice = cache.method_cache('_mice_cache')
 
 
 # TODO! go through docs and make sure to say when things can be None
-# TODO: Subsystem.cut() method? Returns a cut subsystem?
+# TODO: Subsystem.cut() method, to return a cut version of Subsystem?
+# TODO: validate that set(cut.intact + cut.severed) == node_indices
 class Subsystem:
 
     """A set of nodes in a network.
@@ -589,9 +590,9 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    # TODO: refactor to Mice.relevant_connections? Mv to utils
+    # TODO: refactor to Mice.relevant_connections? Mv to utils?
     # This can't be a method directly on Mice because Mice don't
-    # hold references to their Subsystem
+    # hold references to their Subsystem; pass subsystem to Mice?
     def _connections_relevant_for_mice(self, mip):
         """Identify connections that “matter” to this concept.
 

@@ -22,14 +22,8 @@ from . import constants
 log = logging.getLogger(__name__)
 
 
-# Methods to evaluate the effect of a Cut
+# TPM and Connectivity Matrix utils
 # ============================================================================
-
-def cut_mice(mice, cut_matrix):
-    return np.any(mice._relevant_connections * cut_matrix == 1)
-
-# ============================================================================
-
 
 def condition_tpm(tpm, fixed_nodes, state):
     """Return a TPM conditioned on the given fixed node indices, whose states
@@ -367,6 +361,8 @@ def directed_bipartition_of_one(a):
 @cache(cache={}, maxmem=None)
 def directed_bipartition_indices(N):
     """Returns indices for directed bipartitions of a sequence.
+
+    The directed bipartion
 
     Args:
         N (int): The length of the sequence.

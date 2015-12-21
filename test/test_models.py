@@ -2,10 +2,14 @@
 # -*- coding: utf-8 -*-
 # test_models.py
 
+from unittest import mock
 from collections import namedtuple
 import numpy as np
 
-from pyphi import models, constants, config
+from pyphi import models, constants, config, Subsystem
+
+
+# TODO: better way to build test objects than Mock?
 
 
 nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
@@ -251,6 +255,31 @@ def test_mice_repr_str():
     print(repr(mice))
     print(str(mice))
 
+
+def test_damaged(s):
+    # Build cut subsystem from s
+    cut = models.Cut((0,), (1, 2))
+    subsys = Subsystem(s.network, s.state, s.node_indices, cut=cut)
+
+    # Cut splits mechanism:
+    mip = mock.MagicMock(mechanism=(0, 1), purview=(1, 2), direction='future')
+    mice = models.Mice(mip, relevant_connections=np.array([
+        [0, 1, 1],
+        [0, 1, 1],
+        [0, 0, 0],
+    ]))
+    assert mice.damaged_by_cut(subsys)
+    assert not mice.damaged_by_cut(s)
+
+    # Cut splits mechanism & purview (but not *only* mechanism)
+    mip = mock.MagicMock(mechanism=(0,), purview=(1, 2), direction='future')
+    mice = models.Mice(mip, relevant_connections=np.array([
+        [0, 1, 1],
+        [0, 0, 0],
+        [0, 0, 0],
+    ]))
+    assert mice.damaged_by_cut(subsys)
+    assert not mice.damaged_by_cut(s)
 
 # }}}
 

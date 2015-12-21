@@ -329,7 +329,10 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
 # =============================================================================
 
-
+# TODO: Mice is a "lazy class", only handling relevant connection logic.
+# Can we do away with it and only use a Mip? The way that Mice are stored
+# on Concepts already specifies that it is the "core" cause or effect;
+# would we lose clarity by storing a Mip instead?
 class Mice:
 
     """A maximally irreducible cause or effect (i.e., “core cause” or “core
@@ -356,6 +359,8 @@ class Mice:
     principle).
     """
 
+    # TODO: pass `subsystem` to init and compute relevant
+    # connections internally?
     def __init__(self, mip, relevant_connections=None):
         self._mip = mip
         self._relevant_connections = relevant_connections
@@ -420,6 +425,26 @@ class Mice:
 
     def to_json(self):
         return {'mip': self._mip}
+
+    # TODO: pass in `cut` and `cut_matrix` instead?
+    # OR compute relevant conections from this subsystem. We only
+    # need the size of the network and the Mice's subsystem node-
+    # indices which should be same for this subsystem.
+    # The cut_matrix is only used for this check so we could also
+    # expand the cut matrix to be the size of the entire network,
+    # infer the size from it, and not need node indices.
+    # This would nicely decouple Mice and Subsystem.
+    # Or, we can do away with the cut matrix entirely, infer
+    # the subsystem indices from the cut iself, validate, and check.
+    def damaged_by_cut(self, subsystem):
+        """Return True if this |Mice| is affected by the subsystem's cut.
+
+        The cut affects the |Mice| if it either splits the |Mice|'s
+        mechanism or splits the connections between the purview and
+        mechanism.
+        """
+        return (subsystem.cut.splits_mechanism(self.mechanism) or
+                np.any(self._relevant_connections * subsystem.cut_matrix == 1))
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt
