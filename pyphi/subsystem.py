@@ -11,7 +11,7 @@ import functools
 
 import numpy as np
 
-from . import config, constants, convert, utils, validate, cache
+from . import constants, convert, utils, validate, cache
 from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
@@ -26,10 +26,8 @@ cache_repertoire = functools.partial(cache.method_cache, '_repertoire_cache')
 # Cache decorator for `Subsytem.find_mice`
 cache_mice = cache.method_cache('_mice_cache')
 
-
 # TODO! go through docs and make sure to say when things can be None
 # TODO: Subsystem.cut() method, to return a cut version of Subsystem?
-# TODO: validate that set(cut.intact + cut.severed) == node_indices
 class Subsystem:
 
     """A set of nodes in a network.
@@ -39,6 +37,9 @@ class Subsystem:
         state (tuple(int)): The state of the network.
         node_indices (tuple(int)): A sequence of indices of the nodes in this
             subsystem.
+
+    Keyword Args:
+        cut (Cut): The unidirectional |Cut| to apply to this subsystem.
 
     Attributes:
         nodes (list(Node)): A list of nodes in the subsystem.
@@ -58,54 +59,57 @@ class Subsystem:
         tpm (np.array): The TPM conditioned on the state of the external nodes.
     """
 
-    def __init__(self, network, state, node_indices, cut=None, mice_cache=None,
-                 repertoire_cache=None, cache_info=None):
+    def __init__(self, network, state, node_indices, cut=None,
+                 mice_cache=None, repertoire_cache=None):
         # The network this subsystem belongs to.
         self.network = network
+
         # The state the network is in.
         self._state = tuple(state)
-        # TODO don't need map to ints anymore?
-        # Remove duplicates, sort, and ensure indices are native Python `int`s
+
+        # Remove duplicates, sort, and ensure native Python `int`s
         # (for JSON serialization).
-        self.node_indices = tuple(sorted(list(set(map(int, node_indices)))))
-        # Get the size of this subsystem.
-        self.size = len(self.node_indices)
-        # Get the external nodes.
+        self.node_indices = tuple(sorted(set(map(int, node_indices))))
+
+        # Get the external node indices.
+        # TODO: don't expose this as an attribute?
         self.external_indices = tuple(
-            set(range(network.size)) - set(self.node_indices))
+            set(network.node_indices) - set(self.node_indices))
+
         # The TPM conditioned on the state of the external nodes.
         self.tpm = utils.condition_tpm(
-            self.network.tpm, self.external_indices,
-            self.state)
-        # Validate.
-        validate.subsystem(self)
-        # The null cut (that leaves the system intact).
+            self.network.tpm, self.external_indices, self.state)
+
+        # The null cut (that leaves the system intact)
         self.null_cut = Cut((), self.node_indices)
-        # The unidirectional cut applied for phi evaluation within the
+
+        # The unidirectional cut applied for phi evaluation
         self.cut = cut if cut is not None else self.null_cut
+
+        # The matrix of connections which are severed due to the cut
+        self.cut_matrix = self._find_cut_matrix(self.cut)
+
+        # The network's connectivity matrix with cut applied
+        self.connectivity_matrix = utils.apply_cut(
+            cut, network.connectivity_matrix)
+
+        # The perturbation probabilities for each node in the network
+        self.perturb_vector = network.perturb_vector
+
+        # Reusable cache for core causes & effects
+        self._mice_cache = cache.MiceCache(self, mice_cache)
+
+        # Cause & effect repertoire cache
+        self._repertoire_cache = repertoire_cache or cache.DictCache()
+
         # Only compute hash once.
         self._hash = hash((self.network, self.node_indices, self.state,
                            self.cut))
-        # Get the subsystem's connectivity matrix. This is the network's
-        # connectivity matrix, but with the cut applied, and with all
-        # connections to/from external nodes severed.
-        self.connectivity_matrix = utils.apply_cut(
-            cut, network.connectivity_matrix)
-        # Get the perturbation probabilities for each node in the network
-        self.perturb_vector = network.perturb_vector
-        # Generate the nodes.
+
+        validate.subsystem(self)
+
+        # The nodes of the subsystem
         self.nodes = tuple(Node(self, i) for i in self.node_indices)
-        # The matrix of connections which are severed due to the cut
-        self.null_cut_matrix = np.zeros((len(self), len(self)))
-        self.cut_matrix = (self._find_cut_matrix(cut) if cut is not None
-                           else self.null_cut_matrix)
-
-        # A cache for keeping core causes and effects that can be reused later
-        # in the event that a cut doesn't effect them.
-        self._mice_cache = cache.MiceCache(self, mice_cache)
-
-        # Set up cause/effect repertoire cache.
-        self._repertoire_cache = repertoire_cache or cache.DictCache()
 
     @property
     def state(self):
@@ -120,6 +124,11 @@ class Subsystem:
         # Validate.
         validate.subsystem(self)
 
+    @property
+    def size(self):
+        """Returns the size of this subsystem."""
+        return len(self.node_indices)
+
     def is_cut(self):
         """Is this subsystem cut?"""
         return self.cut != self.null_cut
@@ -128,11 +137,14 @@ class Subsystem:
         """Report repertoire cache statistics."""
         return self._repertoire_cache.info()
 
-    # TODO write docstring
+    # TODO: mv to method of Cut
     def _find_cut_matrix(self, cut):
+        """Compute the cut matrix of this subsystem."""
         cut_matrix = np.zeros((self.network.size, self.network.size))
         list_of_cuts = np.array(list(itertools.product(cut[0], cut[1])))
-        cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
+        if len(list_of_cuts) > 0:
+            cut_matrix[list_of_cuts[:, 0], list_of_cuts[:, 1]] = 1
+        # else, null cut matrix
         return utils.submatrix(cut_matrix, self.node_indices, self.node_indices)
 
     def __repr__(self):
@@ -171,7 +183,7 @@ class Subsystem:
         return len(self.nodes) < len(other.nodes)
 
     def __len__(self):
-        return len(self.nodes)
+        return len(self.node_indices)
 
     def __hash__(self):
         return self._hash
@@ -183,16 +195,23 @@ class Subsystem:
         }
 
     def indices2nodes(self, indices):
-        """Return a tuple of Nodes for these indices.
+        """Return nodes for these indices.
 
-        Raises a ValueError if the requested indices are not in the subsystem.
+        Args:
+            indices (iterable(int)):
+        Returns:
+            nodes (tuple(Node)): The |Node| objects corresponding to
+                these indices.
+        Raises:
+            ValueError: If requested indices are not in the subsystem.
         """
         if not indices:
             return ()
-        non_subsys_indices = set(indices) - set(self.node_indices)
-        if non_subsys_indices:
-            raise ValueError("Invalid indices {}. Indices must be a subset "
-                             "of subsystem indices.".format(non_subsys_indices))
+
+        if set(indices) - set(self.node_indices):
+            raise ValueError(
+                "'indices' must be a subset of subsystem indices.")
+
         return tuple(n for n in self.nodes if n.index in indices)
 
     @cache_repertoire(DIRECTIONS[PAST])
@@ -480,7 +499,6 @@ class Subsystem:
 
     # MIP methods
     # =========================================================================
-
 
     def find_mip(self, direction, mechanism, purview):
         """Return the minimum information partition for a mechanism over a

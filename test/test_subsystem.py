@@ -28,6 +28,21 @@ def test_subsystem_validation(s):
         s = Subsystem(net, (0, 1, 0), s.node_indices)
 
 
+def test_validate_cut_nodes_equal_subsystem_nodes(s):
+    assert s.node_indices == (0, 1, 2)
+
+    cut = Cut((0,), (1, 2))  # A-ok
+    Subsystem(s.network, s.state, s.node_indices, cut=cut)
+
+    cut = Cut((0,), (1,))  # missing node 2 in cut
+    with pytest.raises(ValueError):
+        Subsystem(s.network, s.state, s.node_indices, cut=cut)
+
+    cut = Cut((0,), (1, 2))  # missing node 2 in subsystem
+    with pytest.raises(ValueError):
+        Subsystem(s.network, s.state, (0, 1), cut=cut)
+
+
 def test_empty_init(s):
     # Empty mechanism
     s = Subsystem(s.network, s.state, ())
@@ -56,29 +71,45 @@ def test_len(s, big_subsys_0_thru_3, big_subsys_all):
     assert len(big_subsys_all) == 5
 
 
+def test_size(s, big_subsys_0_thru_3, big_subsys_all):
+    assert s.size == 3
+    assert big_subsys_0_thru_3.size == 4
+    assert big_subsys_all.size == 5
+
+
 def test_hash(s):
     print(hash(s))
 
 
 def test_find_cut_matrix(s, big_subsys_0_thru_3):
     cut = Cut((0, ), (1, 2))
-    cut_s = Subsystem(
-        s.network, s.state, s.node_indices, cut=cut, mice_cache=s._mice_cache)
-    answer_s = np.array([[0, 1, 1], [0, 0, 0], [0, 0, 0]])
+    cut_s = Subsystem(s.network, s.state, s.node_indices, cut=cut)
+    answer_s = np.array([
+        [0, 1, 1],
+        [0, 0, 0],
+        [0, 0, 0]
+    ])
+    assert np.array_equal(cut_s.cut_matrix, answer_s)
+
     cut = Cut((0, 1), (2, 3))
     cut_big = Subsystem(big_subsys_0_thru_3.network,
                         big_subsys_0_thru_3.state,
                         big_subsys_0_thru_3.node_indices,
-                        cut=cut,
-                        mice_cache=big_subsys_0_thru_3._mice_cache)
+                        cut=cut)
     answer_big = np.array([
         [0, 0, 1, 1],
         [0, 0, 1, 1],
         [0, 0, 0, 0],
         [0, 0, 0, 0]
     ])
-    assert np.array_equal(cut_s.cut_matrix, answer_s)
     assert np.array_equal(cut_big.cut_matrix, answer_big)
+
+    null_cut_matrix = np.array([
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ])
+    assert np.array_equal(s.cut_matrix, null_cut_matrix)
 
 
 def test_indices2nodes(s):

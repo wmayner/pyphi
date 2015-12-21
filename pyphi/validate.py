@@ -145,10 +145,19 @@ def state_reachable(subsystem):
                              'given TPM.')
 
 
+def cut(cut, node_indices):
+    """Validate that the cut is for only these nodes"""
+    if set(cut[0] + cut[1]) != set(node_indices):
+        raise ValueError(
+            "{} nodes are not equal to subsystem nodes {}".format(
+                cut, node_indices))
+
+
 def subsystem(s):
     """Validate a subsystem's state."""
     state_length(s.state, s.network.size)
     node_states(s.state)
+    cut(s.cut, s.node_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)
     return True
