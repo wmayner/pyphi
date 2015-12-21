@@ -532,26 +532,16 @@ class Concept:
             return (self.cause, self.effect)
 
     def __eq__(self, other):
-        # TODO: this was required by the nodes->indices refactoring
-        # since subsystem is an optional arg, and mechanism is now
-        # passed with indices instead of Node objects. Is this needed?
-        # This should only matter when comparing nodes from different
-        # subsystems so checking subsystem/state equality may be sufficient.
-        if self.subsystem is not None:
-            state_eq = ([n.state for n in self.subsystem.indices2nodes(self.mechanism)] ==
-                        [n.state for n in other.subsystem.indices2nodes(other.mechanism)])
-        else:
-            state_eq = True  # maybe?
-
-        # TODO: handle cause and effect purviews when they are None
-        # TODO: don't use phi_eq now that all phi values should be rounded
-        # (check that)??
         return (self.phi == other.phi
                 and self.mechanism == other.mechanism
-                and state_eq
-                and self.cause.purview == other.cause.purview
-                and self.effect.purview == other.effect.purview
-                and self.eq_repertoires(other))
+                and self.subsystem == other.subsystem
+                and (getattr(self.cause, 'purview', None) ==
+                     getattr(other.cause, 'purview', None))
+                and (getattr(self.effect, 'purview', None) ==
+                     getattr(other.effect, 'purview', None))
+                and (self.eq_repertoires(other)
+                     if self.cause is not None and self.effect is not None
+                     else self.cause == self.effect))
 
     def __hash__(self):
         # TODO: test and handle for nodes->indices conversion

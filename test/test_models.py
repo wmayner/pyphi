@@ -341,16 +341,10 @@ def test_concept_odering_by_mechanism():
 def test_concept_equality():
     phi = 1.0
     concept = models.Concept(
-        mechanism=(), cause=None, effect=None, subsystem=None,
-        phi=phi)
-    close_enough = models.Concept(
-        mechanism=(), cause=None, effect=None, subsystem=None,
-        phi=(phi - constants.EPSILON/2))
-    not_quite = models.Concept(
-        mechanism=(), cause=None, effect=None, subsystem=None,
-        phi=(phi - constants.EPSILON*2))
-    assert concept == close_enough
-    assert concept != not_quite
+        mechanism=(), cause=None, effect=None, subsystem=None, phi=phi)
+    another = models.Concept(
+        mechanism=(), cause=None, effect=None, subsystem=None, phi=phi)
+    assert concept == another
 
 
 def test_concept_repr_str():
