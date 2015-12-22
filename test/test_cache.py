@@ -23,6 +23,11 @@ def test_cache():
     assert c.info() == (1, 1, 1)
     assert c.size() == 1
 
+    c.clear()
+    assert c.size() == 0
+    assert c.hits == 0
+    assert c.misses == 0
+
 
 class TestObject:
     """Object for testing cache decorator"""

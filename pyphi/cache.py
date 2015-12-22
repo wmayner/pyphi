@@ -158,7 +158,9 @@ class DictCache():
         self.misses = 0
 
     def clear(self):
-        raise NotImplemented
+        self.cache = {}
+        self.hits = 0
+        self.misses = 0
 
     def size(self):
         """Number of items in cache"""
