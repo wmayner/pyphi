@@ -405,9 +405,9 @@ These objects contain the :math:`\varphi^{\textrm{MIP}}_{\textrm{cause}}` and
 attributes:
 
     >>> mip_c.phi
-    0.499999
+    0.5
     >>> mip_c.partition
-    (Part(mechanism=(0,), purview=()), Part(mechanism=(1, 2), purview=(0, 1, 2)))
+    (Part(mechanism=(), purview=(2,)), Part(mechanism=(0, 1, 2), purview=(0, 1)))
     >>> mip_e.phi
     0.25
     >>> mip_e.partition
@@ -546,7 +546,7 @@ Conceptual information can be computed using the function named, as you might
 expect, :func:`~pyphi.compute.conceptual_information`:
 
     >>> pyphi.compute.conceptual_information(subsystem)
-    2.111109
+    2.111111
 
 
 Figure 12
@@ -572,7 +572,7 @@ We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
 shown in the figure:
 
     >>> big_mip.phi
-    1.916665
+    1.916667
     >>> big_mip.cut
     Cut (0, 1) --//--> (2,)
 
