@@ -1,5 +1,7 @@
 language: python
 
+sudo: false
+
 # Provide a mongod process on port 27017 (default)
 services: mongodb
 
@@ -16,8 +18,8 @@ before_install:
   - conda update --yes conda
   # The next couple lines fix a crash with multiprocessing on Travis and are
   # not specific to using Miniconda
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
+  # - sudo rm -rf /dev/shm
+  # - sudo ln -s /run/shm /dev/shm
 
 # Install packages
 install:
