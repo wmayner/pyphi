@@ -520,21 +520,21 @@ def block_cm(cm):
     the cut -- X --  does not change the structure of the graph.
             DE   FG
     """
-    if np.any(np.sum(cm, 1) == 0):
+    if np.any(cm.sum(1) == 0):
         return True
-    if np.all(np.sum(cm > 0, 1) == 1):
+    if np.all(cm.sum(1) == 1):
         return True
 
     outputs = list(range(cm.shape[1]))
 
     # CM helpers:
     # All nodes that `nodes` connect (output) to
-    outputs_of = lambda nodes: np.where(np.sum(cm[nodes, :], 0) > 0)[0]
+    outputs_of = lambda nodes: np.where(cm[nodes, :].sum(0))[0]
     # All nodes which connect (input) to `nodes`
-    inputs_to = lambda nodes: np.where(np.sum(cm[:, nodes], 1) > 0)[0]
+    inputs_to = lambda nodes: np.where(cm[:, nodes].sum(1))[0]
 
     # Start: source node with most outputs
-    sources = [np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]]
+    sources = [np.argmax(cm.sum(1))]
     sinks = outputs_of(sources)
     sink_inputs = inputs_to(sinks)
 
