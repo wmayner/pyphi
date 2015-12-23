@@ -19,3 +19,5 @@ github-docs
 .coverage
 htmlcov
 results
+html
+env
