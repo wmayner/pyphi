@@ -134,58 +134,70 @@ def test_uniform_distribution():
     assert np.array_equal(utils.uniform_distribution(3),
                           (np.ones(8)/8).reshape([2]*3))
 
+
 def test_block_cm():
     cm1 = np.array([
-         [1, 0, 0, 1, 1, 0],
-         [1, 0, 1, 0, 0, 1],
-         [0, 0, 0, 1, 0, 0],
-         [0, 1, 0, 0, 0, 0],
-         [1, 1, 0, 0, 0, 1]
+        [1, 0, 0, 1, 1, 0],
+        [1, 0, 1, 0, 0, 1],
+        [0, 0, 0, 1, 0, 0],
+        [0, 1, 0, 0, 0, 0],
+        [1, 1, 0, 0, 0, 1]
     ])
     cm2 = np.array([
-         [1, 0, 0],
-         [0, 1, 1],
-         [0, 1, 1]
+        [1, 0, 0],
+        [0, 1, 1],
+        [0, 1, 1]
     ])
     cm3 = np.array([
-         [1, 1, 0, 0, 0],
-         [0, 0, 1, 1, 1]
+        [1, 1, 0, 0, 0],
+        [0, 0, 1, 1, 1]
     ])
     cm4 = np.array([
-         [1, 1, 0, 0, 0],
-         [0, 1, 1, 0, 0],
-         [0, 0, 1, 1, 0],
-         [0, 0, 0, 1, 1],
-         [1, 0, 0, 0, 0]
+        [1, 1, 0, 0, 0],
+        [0, 1, 1, 0, 0],
+        [0, 0, 1, 1, 0],
+        [0, 0, 0, 1, 1],
+        [1, 0, 0, 0, 0]
+    ])
+    cm5 = np.array([
+        [1, 1],
+        [0, 1]
     ])
     assert not utils.block_cm(cm1)
     assert utils.block_cm(cm2)
     assert utils.block_cm(cm3)
     assert not utils.block_cm(cm4)
+    assert not utils.block_cm(cm5)
 
 
 def test_block_reducible():
     cm1 = np.array([
-         [1, 0, 0, 1, 1, 0],
-         [1, 0, 1, 0, 0, 1],
-         [0, 0, 0, 1, 0, 0],
-         [0, 1, 0, 0, 0, 0],
-         [1, 1, 0, 0, 0, 1],
-         [0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 1, 1, 0],
+        [1, 0, 1, 0, 0, 1],
+        [0, 0, 0, 1, 0, 0],
+        [0, 1, 0, 0, 0, 0],
+        [1, 1, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0],
     ])
     cm2 = np.array([
-         [1, 0, 0],
-         [0, 1, 1],
-         [0, 1, 1]
+        [1, 0, 0],
+        [0, 1, 1],
+        [0, 1, 1]
     ])
     cm3 = np.array([
-         [1, 1, 0, 0, 0],
-         [0, 0, 1, 1, 1]
+        [1, 1, 0, 0, 0],
+        [0, 0, 1, 1, 1]
+    ])
+    cm4 = np.array([
+        [0, 1, 1],
+        [1, 0, 1],
+        [1, 1, 0]
     ])
     assert not utils.block_reducible(cm1, tuple(range(cm1.shape[0] - 1)),
-        tuple(range(cm1.shape[1])))
+                                     tuple(range(cm1.shape[1])))
     assert utils.block_reducible(cm2, (0, 1, 2), (0, 1, 2))
     assert utils.block_reducible(cm3, (0, 1), (0, 1, 2, 3, 4))
+    assert not utils.block_reducible(cm4, (0, 1), (1, 2))
 
 
 def test_get_inputs_from_cm():
