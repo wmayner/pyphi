@@ -534,7 +534,7 @@ def block_cm(cm):
     inputs_to = lambda nodes: np.where(np.sum(cm[:, nodes], 1) > 0)[0]
 
     # Start: source node with most outputs
-    sources = np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]
+    sources = [np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]]
     sinks = outputs_of(sources)
     sink_inputs = inputs_to(sinks)
 
