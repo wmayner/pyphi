@@ -21,7 +21,7 @@ Next, we want to identify the spatial scale and main complex of the network:
 
    >>> macro = pyphi.macro.emergence(network, state)
    >>> macro.emergence
-   -1.357081
+   -1.35708
 
 Since the emergence value is negative, there is no macro scale which has
 greater integrated information than the original micro scale. We can now
@@ -32,10 +32,10 @@ analyze the micro scale to determine the main complex of the system:
    >>> subsystem
    Subsystem((n0, n1, n2))
    >>> main_complex.phi
-   1.357081
+   1.35708
 
 The main complex of the system contains all three nodes of the system, and it
-has integrated information :math:`\Phi = 1.357081`. Now that we have identified the
+has integrated information :math:`\Phi = 1.35708`. Now that we have identified the
 main complex of the system, we can explore its conceptual structure and the
 effect of the **MIP**.
 
@@ -53,18 +53,18 @@ Lets investigate the concepts in the unpartitioned constellation,
    >>> [concept.mechanism for concept in constellation]
    [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
    >>> [concept.phi for concept in constellation]
-   [0.125, 0.125, 0.125, 0.5, 0.5, 0.5]
+   [0.125, 0.125, 0.125, 0.499999, 0.499999, 0.499999]
    >>> sum(_)
-   1.875
+   1.8749970000000002
 
 and also the concepts of the partitioned constellation.
 
    >>> [concept.mechanism for concept in cut_constellation]
    [(0,), (1,), (2,), (0, 1), (1, 2), (0, 1, 2)]
    >>> [concept.phi for concept in cut_constellation]
-   [0.125, 0.125, 0.125, 0.5, 0.266666, 0.333333]
+   [0.125, 0.125, 0.125, 0.499999, 0.266666, 0.333333]
    >>> sum(_)
-   1.474999
+   1.4749980000000003
 
 The unpartitioned constellation includes all possible first and second order
 concepts, but there is no third order concept. After applying the cut, and
