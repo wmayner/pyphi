@@ -1,14 +1,14 @@
 .. image:: https://zenodo.org/badge/4651/wmayner/pyphi.png
     :target: http://dx.doi.org/10.5281/zenodo.15787
-    :alt: Zenodo DOI
+    :alt: Zenodo DOI badge
 
 .. image:: https://travis-ci.org/wmayner/pyphi.svg?branch=master
     :target: https://travis-ci.org/wmayner/pyphi
-    :alt: Travis build
+    :alt: Travis build badge
 
-.. image:: https://coveralls.io/repos/wmayner/pyphi/badge.png?branch=master
+.. image:: https://coveralls.io/repos/wmayner/pyphi/badge.svg?branch=master&service=github
     :target: https://coveralls.io/r/wmayner/pyphi?branch=master
-    :alt: Coveralls.io
+    :alt: Coveralls.io badge
 
 ***********************
 PyPhi: |phi| for Python
