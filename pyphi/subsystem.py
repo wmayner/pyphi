@@ -527,9 +527,10 @@ class Subsystem:
 
             phi = utils.hamming_emd(unpartitioned_repertoire,
                                     partitioned_repertoire)
+            phi = round(phi, PRECISION)
 
             # Return immediately if mechanism is reducible.
-            if utils.phi_eq(phi, 0):
+            if phi == 0:
                 return Mip(direction=direction,
                            mechanism=mechanism,
                            purview=purview,
@@ -538,11 +539,8 @@ class Subsystem:
                            partitioned_repertoire=partitioned_repertoire,
                            phi=0.0)
 
-            # Update MIP if it's more minimal. We take the bigger purview if
-            # the the phi values are indistinguishable.
-            if ((phi_min - phi) > constants.EPSILON or (
-                    utils.phi_eq(phi_min, phi) and
-                    len(purview) > len(mip.purview))):
+            # Update MIP if it's more minimal
+            if phi < phi_min:
                 phi_min = phi
                 # TODO Use properties here to infer mechanism and purview from
                 # partition yet access them with .mechanism and .purview
@@ -552,7 +550,7 @@ class Subsystem:
                           partition=(part0, part1),
                           unpartitioned_repertoire=unpartitioned_repertoire,
                           partitioned_repertoire=partitioned_repertoire,
-                          phi=round(phi, PRECISION))
+                          phi=phi)
         return mip
 
     # TODO Don't use these internally
