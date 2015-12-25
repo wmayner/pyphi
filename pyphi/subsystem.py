@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # subsystem.py
 
-"""
-Represents a candidate set for |small_phi| calculation.
-"""
+"""Represents a candidate system for |small_phi| and |big_phi| evaluation."""
 
-import itertools
 import functools
+import itertools
 
 import numpy as np
 
-from . import constants, convert, utils, validate, cache
+from . import cache, convert, utils, validate
 from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
@@ -26,10 +24,10 @@ cache_repertoire = functools.partial(cache.method_cache, '_repertoire_cache')
 # Cache decorator for `Subsytem.find_mice`
 cache_mice = cache.method_cache('_mice_cache')
 
-# TODO! go through docs and make sure to say when things can be None
-# TODO: Subsystem.cut() method, to return a cut version of Subsystem?
-class Subsystem:
 
+class Subsystem:
+    # TODO! go through docs and make sure to say when things can be None
+    # TODO: Subsystem.cut() method, to return a cut version of Subsystem?
     """A set of nodes in a network.
 
     Args:
@@ -61,6 +59,7 @@ class Subsystem:
 
     def __init__(self, network, state, node_indices, cut=None,
                  mice_cache=None, repertoire_cache=None):
+        """Construct a Subsystem."""
         # The network this subsystem belongs to.
         self.network = network
 
@@ -113,6 +112,7 @@ class Subsystem:
 
     @property
     def state(self):
+        """The state the Network this Subsystem belongs to."""
         return self._state
 
     @state.setter
@@ -126,11 +126,11 @@ class Subsystem:
 
     @property
     def size(self):
-        """Returns the size of this subsystem."""
+        """The size of this Subsystem."""
         return len(self.node_indices)
 
     def is_cut(self):
-        """Is this subsystem cut?"""
+        """Return whether this Subsystem has a cut applied to it."""
         return self.cut != self.null_cut
 
     def repertoire_cache_info(self):
@@ -138,47 +138,58 @@ class Subsystem:
         return self._repertoire_cache.info()
 
     def __repr__(self):
+        """Return a representation of this Subsystem."""
         return "Subsystem(" + repr(self.nodes) + ")"
 
     def __str__(self):
+        """Return this Subsystem as a string."""
         return repr(self)
 
     def __eq__(self, other):
-        """Return whether this subsystem is equal to the other object.
+        """Return whether this Subsystem is equal to the other object.
 
-        Two subsystems are equal if their sets of nodes, networks, and cuts are
-        equal."""
+        Two Subsystems are equal if their sets of nodes, networks, and cuts are
+        equal.
+        """
         return (set(self.node_indices) == set(other.node_indices)
                 and self.state == other.state
                 and self.network == other.network
                 and self.cut == other.cut)
 
     def __bool__(self):
-        """Return false if the subsystem has no nodes, true otherwise."""
+        """Return false if the Subsystem has no nodes, true otherwise."""
         return bool(self.nodes)
 
     def __ne__(self, other):
+        """Return whether this Subsystem is not equal to the other object."""
         return not self.__eq__(other)
 
     def __ge__(self, other):
+        """Return whether this Subsystem >= the other object."""
         return len(self.nodes) >= len(other.nodes)
 
     def __le__(self, other):
+        """Return whether this Subsystem <= the other object."""
         return len(self.nodes) <= len(other.nodes)
 
     def __gt__(self, other):
+        """Return whether this Subsystem > the other object."""
         return len(self.nodes) > len(other.nodes)
 
     def __lt__(self, other):
+        """Return whether this Subsystem < the other object."""
         return len(self.nodes) < len(other.nodes)
 
     def __len__(self):
+        """Return the number of nodes in this Subsystem."""
         return len(self.node_indices)
 
     def __hash__(self):
+        """Return the hash value of this Subsystem."""
         return self._hash
 
     def to_json(self):
+        """Return this Subsystem as a JSON object."""
         return {
             'node_indices': jsonify(self.node_indices),
             'cut': jsonify(self.cut),
@@ -200,7 +211,7 @@ class Subsystem:
 
         if set(indices) - set(self.node_indices):
             raise ValueError(
-                "'indices' must be a subset of subsystem indices.")
+                "`indices` must be a subset of the Subsystem's indices.")
 
         return tuple(n for n in self.nodes if n.index in indices)
 
@@ -341,7 +352,8 @@ class Subsystem:
             second_half_shape[purview_node.index] = 2
             tpm = tpm.reshape(first_half_shape + second_half_shape)
             # Marginalize-out non-mechanism purview inputs.
-            non_mechanism_inputs = set(purview_node.inputs) - set(mechanism_nodes)
+            non_mechanism_inputs = (set(purview_node.inputs) -
+                                    set(mechanism_nodes))
             for node in non_mechanism_inputs:
                 tpm = utils.marginalize_out(node.index, tpm,
                                             self.perturb_vector[node.index])
@@ -353,7 +365,8 @@ class Subsystem:
         # CJD onto those states):
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Collect all nodes with inputs to any purview node.
-        inputs_to_purview = set.union(*[set(node.inputs) for node in purview_nodes])
+        inputs_to_purview = set.union(*[set(node.inputs)
+                                        for node in purview_nodes])
         # Collect mechanism nodes with inputs to any purview node.
         fixed_inputs = convert.nodes2indices(inputs_to_purview &
                                              set(mechanism_nodes))
@@ -378,8 +391,7 @@ class Subsystem:
         return accumulated_cjd
 
     def _get_repertoire(self, direction):
-        """Returns the cause or effect repertoire function based on a
-        direction.
+        """Return the cause or effect repertoire function based on a direction.
 
         Args:
             direction (str): The temporal direction (|past| or |future|)
@@ -395,8 +407,7 @@ class Subsystem:
             return self.effect_repertoire
 
     def _unconstrained_repertoire(self, direction, purview):
-        """Return the unconstrained cause or effect repertoire over a
-        purview."""
+        """Return the unconstrained cause/effect repertoire over a purview."""
         return self._get_repertoire(direction)((), purview)
 
     def unconstrained_cause_repertoire(self, purview):
@@ -413,25 +424,25 @@ class Subsystem:
         """
         return self._unconstrained_repertoire(DIRECTIONS[FUTURE], purview)
 
+    # TODO: can the purview be extrapolated from the repertoire?
     def expand_repertoire(self, direction, purview, repertoire,
                           new_purview=None):
-        """Expand a partial repertoire over a purview to a distribution
-        over a new state space.
-
-        TODO: can the purview be extrapolated from the repertoire?
+        """Expand a partial repertoire over a purview to a distribution over a
+        new state space.
 
         Args:
-            direction (str): Either |past| or |future|
+            direction (str): Either |past| or |future|.
             purview (tuple(int) or None): The purview over which the repertoire
-                was calculated
-            repertoire (``np.ndarray``): A repertoire computed over ``purview``
+                was calculated.
+            repertoire (``np.ndarray``): A repertoire computed over
+                ``purview``.
 
         Keyword Args:
-            new_purview (tuple(int)): The purview to expand the repertoire over.
-                Defaults to the entire subsystem.
+            new_purview (tuple(int)): The purview to expand the repertoire
+                over. Defaults to the entire subsystem.
 
         Returns:
-            ``np.ndarray``: The expanded repertoire
+            ``np.ndarray``: The expanded repertoire.
         """
         if purview is None:
             purview = ()
@@ -455,13 +466,15 @@ class Subsystem:
 
     def expand_cause_repertoire(self, purview, repertoire, new_purview=None):
         """Expand a partial cause repertoire over a purview to a distribution
-        over the entire subsystem's state space."""
+        over the entire subsystem's state space.
+        """
         return self.expand_repertoire(DIRECTIONS[PAST], purview, repertoire,
                                       new_purview)
 
     def expand_effect_repertoire(self, purview, repertoire, new_purview=None):
         """Expand a partial effect repertoire over a purview to a distribution
-        over the entire subsystem's state space."""
+        over the entire subsystem's state space.
+        """
         return self.expand_repertoire(DIRECTIONS[FUTURE], purview, repertoire,
                                       new_purview)
 
@@ -480,10 +493,10 @@ class Subsystem:
             PRECISION)
 
     def cause_effect_info(self, mechanism, purview):
-        """Return the cause-effect information for a mechanism over a
-        purview.
+        """Return the cause-effect information for a mechanism over a purview.
 
-        This is the minimum of the cause and effect information."""
+        This is the minimum of the cause and effect information.
+        """
         return min(self.cause_info(mechanism, purview),
                    self.effect_info(mechanism, purview))
 
@@ -539,11 +552,11 @@ class Subsystem:
                            partitioned_repertoire=partitioned_repertoire,
                            phi=0.0)
 
-            # Update MIP if it's more minimal
+            # Update MIP if it's more minimal.
             if phi < phi_min:
                 phi_min = phi
-                # TODO Use properties here to infer mechanism and purview from
-                # partition yet access them with .mechanism and .purview
+                # TODO: Use properties here to infer mechanism and purview from
+                # partition yet access them with `.mechanism` and `.purview`.
                 mip = Mip(direction=direction,
                           mechanism=mechanism,
                           purview=purview,
@@ -553,7 +566,7 @@ class Subsystem:
                           phi=phi)
         return mip
 
-    # TODO Don't use these internally
+    # TODO Don't use these internally to avoid function call overhead
     def mip_past(self, mechanism, purview):
         """Return the past minimum information partition.
 
@@ -600,18 +613,17 @@ class Subsystem:
     # This can't be a method directly on Mice because Mice don't
     # hold references to their Subsystem; pass subsystem to Mice?
     def _connections_relevant_for_mice(self, mip):
-        """Identify connections that “matter” to this concept.
+        u"""Identify connections that “matter” to this concept.
 
-        For a core cause, the important connections are those
-        which connect the purview to the mechanism; for a core
-        effect they are the connections from the mechanism to the
-        purview.
+        For a core cause, the important connections are those which connect the
+        purview to the mechanism; for a core effect they are the connections
+        from the mechanism to the purview.
 
         Args:
-            mip (|Mip|): The |Mip| in question
+            mip (|Mip|): The |Mip| in question.
         Returns:
-            cm (np.ndarray): A |n x n| matrix of connections, where
-                `n` is the size of the subsystem.
+            cm (np.ndarray): A |n x n| matrix of connections, where `n` is the
+                size of the subsystem.
         """
         if mip.direction == DIRECTIONS[PAST]:
             _from, to = mip.purview, mip.mechanism
@@ -623,16 +635,15 @@ class Subsystem:
         return utils.submatrix(cm, self.node_indices, self.node_indices)
 
     def _potential_purviews(self, direction, mechanism, purviews=False):
-        """All purviews which could be the core cause/effect
+        """Return all purviews that could belong to the core cause/effect.
 
-        Filters out all trivially reducible purviews.
+        Filters out trivially-reducible purviews.
 
         Args:
-            direction ('str'): Either |past| or |future|
-            mechanism (tuple(int)): The mechanism of interest
+            direction ('str'): Either |past| or |future|.
+            mechanism (tuple(int)): The mechanism of interest.
         Kwargs:
-            purviews (tuple(int)): Optional subset of purviews of
-                interest.
+            purviews (tuple(int)): Optional subset of purviews of interest.
         """
         if purviews is False:
             purviews = self.network._potential_purviews(direction, mechanism)
@@ -652,8 +663,7 @@ class Subsystem:
                 _from, to = purview, mechanism
             elif direction == DIRECTIONS[FUTURE]:
                 _from, to = mechanism, purview
-            return utils.fully_connected(self.connectivity_matrix,
-                                            _from, to)
+            return utils.fully_connected(self.connectivity_matrix, _from, to)
 
         return tuple(filter(not_trivially_reducible, purviews))
 
@@ -689,7 +699,7 @@ class Subsystem:
             max_mip = Mip._null_mip(direction, mechanism, None)
         else:
             max_mip = max(self.find_mip(direction, mechanism, purview)
-                            for purview in purviews)
+                          for purview in purviews)
 
         # Identify the relevant connections for the MICE.
         if not utils.phi_eq(max_mip.phi, 0):
@@ -701,21 +711,24 @@ class Subsystem:
         return Mice(max_mip, relevant_connections)
 
     def core_cause(self, mechanism, purviews=False):
-        """Returns the core cause repertoire of a mechanism.
+        """Return the core cause repertoire of a mechanism.
 
-        Alias for |find_mice| with ``direction`` set to |past|."""
+        Alias for |find_mice| with ``direction`` set to |past|.
+        """
         return self.find_mice('past', mechanism, purviews=purviews)
 
     def core_effect(self, mechanism, purviews=False):
-        """Returns the core effect repertoire of a mechanism.
+        """Return the core effect repertoire of a mechanism.
 
-        Alias for |find_mice| with ``direction`` set to |past|."""
+        Alias for |find_mice| with ``direction`` set to |past|.
+        """
         return self.find_mice('future', mechanism, purviews=purviews)
 
     def phi_max(self, mechanism):
         """Return the |small_phi_max| of a mechanism.
 
-        This is the maximum of |small_phi| taken over all possible purviews."""
+        This is the maximum of |small_phi| taken over all possible purviews.
+        """
         return min(self.core_cause(mechanism).phi,
                    self.core_effect(mechanism).phi)
 
