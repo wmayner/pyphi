@@ -228,8 +228,6 @@ class Subsystem:
             cause_repertoire (``np.ndarray``): The cause repertoire of the
                 mechanism over the purview.
         """
-        purview_nodes = self.indices2nodes(purview)
-        mechanism_nodes = self.indices2nodes(mechanism)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -255,23 +253,22 @@ class Subsystem:
         # get the conditional joint distribution for the whole mechanism
         # (conditioned on the whole mechanism's state). After normalization,
         # this is the cause repertoire. Normalization happens after this loop.
-        for mechanism_node in mechanism_nodes:
+        for mechanism_node in self.indices2nodes(mechanism):
             # TODO extend to nonbinary nodes
             # We're conditioning on this node's state, so take the probability
             # table for the node being in that state.
-            node_state = self.state[mechanism_node.index]
-            conditioned_tpm = mechanism_node.tpm[node_state]
+            conditioned_tpm = mechanism_node.tpm[mechanism_node.state]
             # Collect the nodes that are not in the purview and have
             # connections to this node.
             # TODO: use straight indices for this.
-            non_purview_inputs = (set(mechanism_node.inputs) -  # inputs
-                                  set(purview_nodes))
+            non_purview_inputs = (set(mechanism_node.input_indices) -
+                                  set(purview))
             # Marginalize-out the non-purview inputs.
-            for node in non_purview_inputs:
+            for index in non_purview_inputs:
                 conditioned_tpm = utils.marginalize_out(
-                    node.index,
+                    index,
                     conditioned_tpm,
-                    self.perturb_vector[node.index])
+                    self.perturb_vector[index])
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
             # broadcasting, which spreads the singleton probabilities in the
@@ -312,7 +309,6 @@ class Subsystem:
                 mechanism over the purview.
         """
         purview_nodes = self.indices2nodes(purview)
-        mechanism_nodes = self.indices2nodes(mechanism)
         # If the purview is empty, the distribution is empty, so return the
         # multiplicative identity.
         if not purview:
@@ -352,11 +348,11 @@ class Subsystem:
             second_half_shape[purview_node.index] = 2
             tpm = tpm.reshape(first_half_shape + second_half_shape)
             # Marginalize-out non-mechanism purview inputs.
-            non_mechanism_inputs = (set(purview_node.inputs) -
-                                    set(mechanism_nodes))
-            for node in non_mechanism_inputs:
-                tpm = utils.marginalize_out(node.index, tpm,
-                                            self.perturb_vector[node.index])
+            non_mechanism_inputs = (set(purview_node.input_indices) -
+                                    set(mechanism))
+            for index in non_mechanism_inputs:
+                tpm = utils.marginalize_out(index, tpm,
+                                            self.perturb_vector[index])
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution by taking the product (with singleton
             # broadcasting).
@@ -365,11 +361,10 @@ class Subsystem:
         # CJD onto those states):
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Collect all nodes with inputs to any purview node.
-        inputs_to_purview = set.union(*[set(node.inputs)
+        inputs_to_purview = set.union(*[set(node.input_indices)
                                         for node in purview_nodes])
         # Collect mechanism nodes with inputs to any purview node.
-        fixed_inputs = convert.nodes2indices(inputs_to_purview &
-                                             set(mechanism_nodes))
+        fixed_inputs = inputs_to_purview & set(mechanism)
         # Initialize the conditioning indices, taking the slices as singleton
         # lists-of-lists for later flattening with `chain`.
         accumulated_cjd = utils.condition_tpm(

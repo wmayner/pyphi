@@ -134,6 +134,11 @@ class Node:
         return marbl
 
     @property
+    def input_indices(self):
+        """The indices of nodes in this network which input to this node."""
+        return self._input_indices
+
+    @property
     def inputs(self):
         """The set of nodes with connections to this node."""
         if self._inputs is not None:
