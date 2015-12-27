@@ -135,8 +135,13 @@ class Node:
 
     @property
     def input_indices(self):
-        """The indices of nodes in this network which input to this node."""
+        """The indices of nodes which connect to this node."""
         return self._input_indices
+
+    @property
+    def output_indices(self):
+        """The indices of nodes that this node connects to."""
+        return self._output_indices
 
     @property
     def inputs(self):
