@@ -605,31 +605,6 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    # TODO: refactor to Mice.relevant_connections? Mv to utils?
-    # This can't be a method directly on Mice because Mice don't
-    # hold references to their Subsystem; pass subsystem to Mice?
-    def _connections_relevant_for_mice(self, mip):
-        """Identify connections that “matter” to this concept.
-
-        For a core cause, the important connections are those which connect the
-        purview to the mechanism; for a core effect they are the connections
-        from the mechanism to the purview.
-
-        Args:
-            mip (|Mip|): The |Mip| in question.
-        Returns:
-            cm (np.ndarray): A |n x n| matrix of connections, where `n` is the
-                size of the subsystem.
-        """
-        if mip.direction == DIRECTIONS[PAST]:
-            _from, to = mip.purview, mip.mechanism
-        elif mip.direction == DIRECTIONS[FUTURE]:
-            _from, to = mip.mechanism, mip.purview
-
-        cm = utils.relevant_connections(self.network.size, _from, to)
-        # Submatrix for this subsystem's nodes
-        return utils.submatrix(cm, self.node_indices, self.node_indices)
-
     def _potential_purviews(self, direction, mechanism, purviews=False):
         """Return all purviews that could belong to the core cause/effect.
 
@@ -697,14 +672,7 @@ class Subsystem:
             max_mip = max(self.find_mip(direction, mechanism, purview)
                           for purview in purviews)
 
-        # Identify the relevant connections for the MICE.
-        if not utils.phi_eq(max_mip.phi, 0):
-            relevant_connections = \
-                self._connections_relevant_for_mice(max_mip)
-        else:
-            relevant_connections = None
-
-        return Mice(max_mip, relevant_connections)
+        return Mice(max_mip)
 
     def core_cause(self, mechanism, purviews=False):
         """Return the core cause repertoire of a mechanism.

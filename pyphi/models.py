@@ -87,6 +87,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         return tuple(filter(is_split, utils.powerset(candidate_indices)))
 
     # TODO: pass in `size` arg and keep expanded to full network??
+    # TODO: memoize?
     def cut_matrix(self):
         """Compute the cut matrix for this cut.
 
@@ -345,29 +346,10 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 
 # =============================================================================
 
-# TODO: Mice is a "lazy class", only handling relevant connection logic.
-# Can we do away with it and only use a Mip? The way that Mice are stored
-# on Concepts already specifies that it is the "core" cause or effect;
-# would we lose clarity by storing a Mip instead?
 class Mice:
 
     """A maximally irreducible cause or effect (i.e., “core cause” or “core
     effect”).
-
-    relevant_connections (np.array):
-        An ``N x N`` matrix, where ``N`` is the number of nodes in this
-        corresponding subsystem, that identifies connections that “matter” to
-        this MICE.
-
-        ``direction == 'past'``:
-            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
-            cause purview and node ``j`` is in the mechanism (and ``0``
-            otherwise).
-
-        ``direction == 'future'``:
-            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
-            mechanism and node ``j`` is in the effect purview (and ``0``
-            otherwise).
 
     MICEs may be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, ``phi`` values are compared. Then, if these are equal
@@ -377,9 +359,8 @@ class Mice:
 
     # TODO: pass `subsystem` to init and compute relevant
     # connections internally?
-    def __init__(self, mip, relevant_connections=None):
+    def __init__(self, mip):
         self._mip = mip
-        self._relevant_connections = relevant_connections
 
     @property
     def phi(self):
@@ -442,16 +423,48 @@ class Mice:
     def to_json(self):
         return {'mip': self._mip}
 
-    # TODO: pass in `cut` and `cut_matrix` instead?
-    # OR compute relevant conections from this subsystem. We only
-    # need the size of the network and the Mice's subsystem node-
-    # indices which should be same for this subsystem.
-    # The cut_matrix is only used for this check so we could also
-    # expand the cut matrix to be the size of the entire network,
-    # infer the size from it, and not need node indices.
-    # This would nicely decouple Mice and Subsystem.
-    # Or, we can do away with the cut matrix entirely, infer
-    # the subsystem indices from the cut iself, validate, and check.
+    # TODO: benchmark and memoize?
+    # TODO: pass in subsystem indices only?
+    def _relevant_connections(self, subsystem):
+        """Identify connections that “matter” to this concept.
+
+        For a core cause, the important connections are those which connect the
+        purview to the mechanism; for a core effect they are the connections
+        from the mechanism to the purview.
+
+        Returns an |n x n| matrix, where `n` is the number of nodes in this
+        corresponding subsystem, that identifies connections that “matter” to
+        this MICE:
+
+        ``direction == 'past'``:
+            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
+            cause purview and node ``j`` is in the mechanism (and ``0``
+            otherwise).
+
+        ``direction == 'future'``:
+            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
+            mechanism and node ``j`` is in the effect purview (and ``0``
+            otherwise).
+
+        Args:
+            subsystem (Subsystem): The subsystem of this mice
+
+        Returns:
+            cm (np.ndarray): A |n x n| matrix of connections, where `n` is the
+                size of the subsystem.
+        """
+        if self.direction == DIRECTIONS[PAST]:
+            _from, to = self.purview, self.mechanism
+        elif self.direction == DIRECTIONS[FUTURE]:
+            _from, to = self.mechanism, self.purview
+
+        cm = utils.relevant_connections(subsystem.network.size, _from, to)
+        # Submatrix for this subsystem's nodes
+        idxs = subsystem.node_indices
+        return utils.submatrix(cm, idxs, idxs)
+
+    # TODO: pass in `cut` instead? We can infer
+    # subsystem indices from the cut itself, validate, and check.
     def damaged_by_cut(self, subsystem):
         """Return True if this |Mice| is affected by the subsystem's cut.
 
@@ -460,7 +473,8 @@ class Mice:
         mechanism.
         """
         return (subsystem.cut.splits_mechanism(self.mechanism) or
-                np.any(self._relevant_connections * subsystem.cut_matrix == 1))
+                np.any(self._relevant_connections(subsystem) *
+                       subsystem.cut_matrix == 1))
 
     # Order by phi value, then by mechanism size
     __lt__ = _phi_then_mechanism_size_lt

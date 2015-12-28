@@ -276,6 +276,25 @@ def test_mice_repr_str():
     print(str(mice))
 
 
+def test_relevant_connections(s, subsys_n1n2):
+    mip = mock.Mock(mechanism=(0,), purview=(1,), direction='past')
+    mice = models.Mice(mip)
+    answer = np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 0, 0],
+    ])
+    assert np.array_equal(mice._relevant_connections(s), answer)
+
+    mip = mock.Mock(mechanism=(1,), purview=(1, 2), direction='future')
+    mice = models.Mice(mip)
+    answer = np.array([
+        [1, 1],
+        [0, 0],
+    ])
+    assert np.array_equal(mice._relevant_connections(subsys_n1n2), answer)
+
+
 def test_damaged(s):
     # Build cut subsystem from s
     cut = models.Cut((0,), (1, 2))
@@ -283,21 +302,13 @@ def test_damaged(s):
 
     # Cut splits mechanism:
     mip = mock.MagicMock(mechanism=(0, 1), purview=(1, 2), direction='future')
-    mice = models.Mice(mip, relevant_connections=np.array([
-        [0, 1, 1],
-        [0, 1, 1],
-        [0, 0, 0],
-    ]))
+    mice = models.Mice(mip)
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 
     # Cut splits mechanism & purview (but not *only* mechanism)
     mip = mock.MagicMock(mechanism=(0,), purview=(1, 2), direction='future')
-    mice = models.Mice(mip, relevant_connections=np.array([
-        [0, 1, 1],
-        [0, 0, 0],
-        [0, 0, 0],
-    ]))
+    mice = models.Mice(mip)
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 
