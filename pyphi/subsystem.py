@@ -455,8 +455,8 @@ class Subsystem:
         expanded_repertoire = repertoire * uc
 
         # Renormalize
-        if (np.sum(expanded_repertoire > 0)):
-            return expanded_repertoire / np.sum(expanded_repertoire)
+        if expanded_repertoire.sum() > 0:
+            return expanded_repertoire / expanded_repertoire.sum()
         else:
             return expanded_repertoire
 
