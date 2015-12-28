@@ -56,3 +56,13 @@ important to keep in mind when setting up networks.
     :maxdepth: 2
 
     conventions
+
+
+API Reference
+~~~~~~~~~~~~~
+
+.. toctree::
+    :glob:
+    :maxdepth: 2
+
+    api/index
