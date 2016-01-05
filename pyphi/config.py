@@ -45,9 +45,9 @@ long time!), resulting in data loss.
     >>> defaults['PARALLEL_CUT_EVALUATION']
     True
 
-- ``pyphi.config.NUMBER_OF_CORES``: Control the number of CPU cores to evaluate
-  unidirectional cuts. Negative numbers count backwards from the total number
-  of available cores, with ``-1`` meaning "use all available cores".
+- ``pyphi.config.NUMBER_OF_CORES``: Control the number of CPU cores used to
+  evaluate unidirectional cuts. Negative numbers count backwards from the total
+  number of available cores, with ``-1`` meaning "use all available cores."
 
     >>> defaults['NUMBER_OF_CORES']
     -1
@@ -207,9 +207,10 @@ Miscellaneous
 
 - ``pyphi.config.VALIDATE_SUBSYSTEM_STATES``: Control whether PyPhi checks if
   the subsystems's state is possible (reachable from some past state), given
-  the subsystem's TPM (**conditioned on background conditions**). If this is
-  turned off, then **calculated |big_phi| values may not be valid**, since they
-  may be associated with a subsystem that could never be in the given state.
+  the subsystem's TPM (**which is conditioned on background conditions**). If
+  this is turned off, then **calculated** |big_phi| **values may not be
+  valid**, since they may be associated with a subsystem that could never be in
+  the given state.
 
     >>> defaults['VALIDATE_SUBSYSTEM_STATES']
     True
@@ -227,10 +228,10 @@ Miscellaneous
 - ``pyphi.config.READABLE_REPRS``: If set to ``True``, this causes ``repr``
   calls on PyPhi objects to return pretty-formatted and legible strings.
   Although this breaks the convention that ``__repr__`` methods should return a
-  representation which can reconstruct the object, readable reprs are
-  invaluable since the Python interpreter calls ``repr`` to represent all
-  objects in the shell and PyPhi is often used in the interpreter.
-  If set to ``False``, ``repr`` returns more traditional object representations.
+  representation which can reconstruct the object, readable representations are
+  convenient since the Python REPL calls ``repr`` to represent all objects in
+  the shell and PyPhi is often used interactively with the REPL. If set to
+  ``False``, ``repr`` returns more traditional object representations.
 
     >>> defaults['READABLE_REPRS']
     True
