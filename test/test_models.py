@@ -370,6 +370,15 @@ def test_concept_repr_str():
     print(str(concept))
 
 
+def test_concept_hashing():
+    mice = models.Mice(models.Mip(
+        direction=None, mechanism=(0, 1, 2), purview=(0, 1, 2),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    concept = models.Concept(
+        mechanism=(0, 1, 2), cause=mice, effect=mice, subsystem=None, phi=0.0)
+    hash(concept)
+
 # }}}
 
 
