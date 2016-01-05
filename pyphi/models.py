@@ -563,9 +563,9 @@ class Concept:
     def __hash__(self):
         return hash((self.phi,
                      self.mechanism,
-                     self.mechanism,
                      self.cause.purview,
                      self.effect.purview,
+                     self.subsystem,
                      utils.np_hash(self.cause.repertoire),
                      utils.np_hash(self.effect.repertoire)))
 
