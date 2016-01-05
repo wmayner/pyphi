@@ -13,8 +13,7 @@ from .constants import EPSILON
 
 
 class StateUnreachableError(ValueError):
-    """Raised when the state of a network cannot be reached from any past
-    state."""
+    """Raised when a current state cannot be reached from any past state."""
 
     def __init__(self, state, message):
         self.state = state
@@ -146,7 +145,7 @@ def state_reachable(subsystem):
 
 
 def cut(cut, node_indices):
-    """Validate that the cut is for only these nodes"""
+    """Validate that the cut is for only these nodes."""
     if set(cut[0] + cut[1]) != set(node_indices):
         raise ValueError(
             "{} nodes are not equal to subsystem nodes {}".format(
