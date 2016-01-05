@@ -308,7 +308,10 @@ class Mip(namedtuple('Mip', _mip_attributes)):
         return not utils.phi_eq(self.phi, 0)
 
     def __hash__(self):
-        return hash((self.phi, self.direction, self.mechanism, self.purview,
+        return hash((self.phi,
+                     self.direction,
+                     self.mechanism,
+                     self.purview,
                      utils.np_hash(self.unpartitioned_repertoire)))
 
     def to_json(self):
@@ -558,12 +561,11 @@ class Concept:
                      else self.cause == self.effect))
 
     def __hash__(self):
-        # TODO: test and handle for nodes->indices conversion
         return hash((self.phi,
-                     tuple(n.index for n in self.mechanism),
-                     tuple(n.state for n in self.mechanism),
-                     tuple(n.index for n in self.cause.purview),
-                     tuple(n.index for n in self.effect.purview),
+                     self.mechanism,
+                     self.mechanism,
+                     self.cause.purview,
+                     self.effect.purview,
                      utils.np_hash(self.cause.repertoire),
                      utils.np_hash(self.effect.repertoire)))
 
@@ -718,8 +720,10 @@ class BigMip:
         return not utils.phi_eq(self.phi, 0)
 
     def __hash__(self):
-        return hash((self.phi, self.unpartitioned_constellation,
-                     self.partitioned_constellation, self.subsystem,
+        return hash((self.phi,
+                     self.unpartitioned_constellation,
+                     self.partitioned_constellation,
+                     self.subsystem,
                      self.cut_subsystem))
 
     # First compare phi, then subsystem size
