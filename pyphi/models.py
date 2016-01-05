@@ -757,14 +757,16 @@ class BigMip:
 def indent(lines, amount=2, chr=' '):
     """Indent a string.
 
-    Prepends whitespace to every line in the passed string.
-    (Lines are separated by '\n')
+    Prepends whitespace to every line in the passed string. (Lines are
+    separated by ``\n``)
 
     Args:
-        lines (str): The string to indent
-    Kwargs:
-        amount (int): The number of columns to indent by
-        chr (char): The character to to use as the indentation
+        lines (str): The string to indent.
+    Keyword Args:
+        amount (int): The number of columns to indent by.
+        chr (char): The character to to use as the indentation.
+    Returns:
+        str: The indented string.
     """
     lines = str(lines)
     padding = amount * chr
@@ -784,7 +786,7 @@ def fmt_partition(partition):
     Args:
         partition (tuple(Part, Part)): The partition in question.
     Returns:
-        (str): A string representation that looks like
+        str: A string representation that looks like
             0,1   []
             --- X ---
              2    0,1
