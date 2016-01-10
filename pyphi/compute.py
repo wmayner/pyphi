@@ -470,12 +470,6 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
     return min_mip
 
 
-if config.PARALLEL_CUT_EVALUATION:
-    _find_mip = _find_mip_parallel
-else:
-    _find_mip = _find_mip_sequential
-
-
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
@@ -491,6 +485,13 @@ def _big_mip(cache_key, subsystem):
     """
     log.info("Calculating big-phi data for {}...".format(subsystem))
     start = time()
+
+
+    if config.PARALLEL_CUT_EVALUATION:
+        _find_mip = _find_mip_parallel
+    else:
+        _find_mip = _find_mip_sequential
+
 
     # Annote a BigMip with the total elapsed calculation time, and optionally
     # also with the time taken to calculate the unpartitioned constellation.
