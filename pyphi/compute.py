@@ -108,20 +108,35 @@ def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False,
     out_queue.put(None)
 
 
+# TODO: can return a negative number if NUMBER_OF_CORES
+# is too negative. Handle this
+def get_num_processes():
+    """Return the number of processes to use in parallel."""
+    cpu_count = multiprocessing.cpu_count()
+
+    if config.NUMBER_OF_CORES == 0:
+        raise ValueError(
+            'Invalid NUMBER_OF_CORES; value may not be 0.')
+
+    if config.NUMBER_OF_CORES > cpu_count:
+        raise ValueError(
+            'Invalid NUMBER_OF_CORES; value must be less than or '
+            'equal to the available number of cores ({} for this '
+            'system).'.format(cpu_count))
+
+    if config.NUMBER_OF_CORES < 0:
+        return cpu_count + config.NUMBER_OF_CORES + 1
+
+    return config.NUMBER_OF_CORES
+
+
 def _parallel_constellation(subsystem, mechanisms=False, purviews=False,
                             past_purviews=False, future_purviews=False):
     if mechanisms is False:
         mechanisms = utils.powerset(subsystem.node_indices)
-    if config.NUMBER_OF_CORES < 0:
-        number_of_processes = (multiprocessing.cpu_count() +
-                               config.NUMBER_OF_CORES + 1)
-    elif config.NUMBER_OF_CORES <= multiprocessing.cpu_count():
-        number_of_processes = config.NUMBER_OF_CORES
-    else:
-        raise ValueError(
-            'Invalid number of cores; value may not be 0, and must be less '
-            'than or equal to than the available number of cores ({} for this '
-            'system).'.format(multiprocessing.cpu_count()))
+
+    number_of_processes = get_num_processes()
+
     # Define input and output queues.
     # Load the input queue with all possible cuts and a 'poison pill' for each
     # process.
@@ -399,16 +414,9 @@ def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
 def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
     """Find the MIP for a subsystem with a parallel loop over all cuts,
     using the specified number of cores."""
-    if config.NUMBER_OF_CORES < 0:
-        number_of_processes = (multiprocessing.cpu_count() +
-                               config.NUMBER_OF_CORES + 1)
-    elif config.NUMBER_OF_CORES <= multiprocessing.cpu_count():
-        number_of_processes = config.NUMBER_OF_CORES
-    else:
-        raise ValueError(
-            'Invalid number of cores; value may not be 0, and must be less'
-            'than the number of cores ({} for this '
-            'system).'.format(multiprocessing.cpu_count()))
+
+    number_of_processes = get_num_processes()
+
     # Define input and output queues to allow short-circuit if a cut if found
     # with zero Phi. Load the input queue with all possible cuts and a 'poison
     # pill' for each process.
@@ -462,12 +470,6 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
     return min_mip
 
 
-if config.PARALLEL_CUT_EVALUATION:
-    _find_mip = _find_mip_parallel
-else:
-    _find_mip = _find_mip_sequential
-
-
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
@@ -483,6 +485,13 @@ def _big_mip(cache_key, subsystem):
     """
     log.info("Calculating big-phi data for {}...".format(subsystem))
     start = time()
+
+
+    if config.PARALLEL_CUT_EVALUATION:
+        _find_mip = _find_mip_parallel
+    else:
+        _find_mip = _find_mip_sequential
+
 
     # Annote a BigMip with the total elapsed calculation time, and optionally
     # also with the time taken to calculate the unpartitioned constellation.
