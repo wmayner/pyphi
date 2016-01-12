@@ -274,7 +274,7 @@ of the cut, otherwise False.</td>
 <dl class="method">
 <dt id="pyphi.models.Cut.all_cut_mechanisms">
 <code class="descname">all_cut_mechanisms</code><span class="sig-paren">(</span><em>candidate_indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.Cut.all_cut_mechanisms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns all mechanisms with elements on both sides of this cut.</p>
+<dd><p>Return all mechanisms with elements on both sides of this cut.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -337,46 +337,63 @@ system in the following way:</p>
 <dt id="pyphi.models.Mip">
 <em class="property">class </em><code class="descclassname">pyphi.models.</code><code class="descname">Mip</code><a class="headerlink" href="#pyphi.models.Mip" title="Permalink to this definition">¶</a></dt>
 <dd><p>A minimum information partition for <span class="math">\(\varphi\)</span> calculation.</p>
-<blockquote>
-<div>MIPs may be compared with the built-in Python comparison operators
-(<code class="docutils literal"><span class="pre">&lt;</span></code>, <code class="docutils literal"><span class="pre">&gt;</span></code>, etc.). First, <code class="docutils literal"><span class="pre">phi</span></code> values are compared. Then, if these
-are equal up to <code class="xref py py-const docutils literal"><span class="pre">constants.PRECISION</span></code>, the size of the mechanism is</div></blockquote>
-<dl class="docutils">
-<dt>compared</dt>
-<dd><p class="first">(exclusion principle).</p>
-<dl class="last docutils">
-<dt>Attributes:</dt>
-<dd><dl class="first last docutils">
-<dt>phi (float):</dt>
-<dd>This is the difference between the mechanism&#8217;s unpartitioned and
-partitioned repertoires.</dd>
-<dt>direction (str):</dt>
-<dd>Either <code class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></code> or <code class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[FUTURE]</span></code>. The temporal direction specifiying
+<p>MIPs may be compared with the built-in Python comparison operators (<code class="docutils literal"><span class="pre">&lt;</span></code>,
+<code class="docutils literal"><span class="pre">&gt;</span></code>, etc.). First, <code class="docutils literal"><span class="pre">phi</span></code> values are compared. Then, if these are equal
+up to <code class="xref py py-const docutils literal"><span class="pre">constants.PRECISION</span></code>, the size of the mechanism is compared (exclusion
+principle).</p>
+<dl class="attribute">
+<dt id="pyphi.models.Mip.phi">
+<code class="descname">phi</code><a class="headerlink" href="#pyphi.models.Mip.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; This is the difference between the mechanism&#8217;s unpartitioned and
+partitioned repertoires.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.Mip.direction">
+<code class="descname">direction</code><a class="headerlink" href="#pyphi.models.Mip.direction" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> &#8211; Either <code class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></code> or <code class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[FUTURE]</span></code>. The temporal direction specifiying
 whether this MIP should be calculated with cause or effect
-repertoires.</dd>
-<dt>mechanism (tuple(int)):</dt>
-<dd>The mechanism over which to evaluate the MIP.</dd>
-<dt>purview (tuple(int)):</dt>
-<dd>The purview over which the unpartitioned repertoire differs the
-least from the partitioned repertoire.</dd>
-<dt>partition (tuple(Part, Part)):</dt>
-<dd>The partition that makes the least difference to the mechanism&#8217;s
-repertoire.</dd>
-<dt>unpartitioned_repertoire (np.ndarray):</dt>
-<dd>The unpartitioned repertoire of the mechanism.</dd>
-<dt>partitioned_repertoire (np.ndarray):</dt>
-<dd>The partitioned repertoire of the mechanism. This is the product of
-the repertoires of each part of the partition.</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-</dl>
+repertoires.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.Mip.mechanism">
+<code class="descname">mechanism</code><a class="headerlink" href="#pyphi.models.Mip.mechanism" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(int</em> &#8211; The mechanism over which to evaluate the MIP.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.Mip.purview">
+<code class="descname">purview</code><a class="headerlink" href="#pyphi.models.Mip.purview" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(int</em> &#8211; The purview over which the unpartitioned repertoire differs the
+least from the partitioned repertoire.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.Mip.partition">
+<code class="descname">partition</code><a class="headerlink" href="#pyphi.models.Mip.partition" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(Part, Part</em> &#8211; The partition that makes the least difference to the mechanism&#8217;s
+repertoire.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.Mip.unpartitioned_repertoire">
+<code class="descname">unpartitioned_repertoire</code><a class="headerlink" href="#pyphi.models.Mip.unpartitioned_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.ndarray</em> &#8211; The unpartitioned repertoire of the mechanism.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.Mip.partitioned_repertoire">
+<code class="descname">partitioned_repertoire</code><a class="headerlink" href="#pyphi.models.Mip.partitioned_repertoire" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.ndarray</em> &#8211; The partitioned repertoire of the mechanism. This is the product of
+the repertoires of each part of the partition.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="pyphi.models.Mip.__bool__">
 <code class="descname">__bool__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.Mip.__bool__" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Mip is truthy if it is not reducible; i.e. if it has a significant
-amount of <span class="math">\(\varphi\)</span>.</p>
+<dd><p>A Mip is truthy if it is not reducible.</p>
+<p>(That is, if it has a significant amount of <span class="math">\(\varphi\)</span>.)</p>
 </dd></dl>
 
 <dl class="method">
@@ -398,8 +415,8 @@ principle).</p>
 <dl class="attribute">
 <dt id="pyphi.models.Mice.phi">
 <code class="descname">phi</code><a class="headerlink" href="#pyphi.models.Mice.phi" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal"><span class="pre">float</span></code> &#8211; The difference between the mechanism&#8217;s unpartitioned and
-partitioned repertoires.</p>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code> &#8211; The difference between the mechanism&#8217;s unpartitioned
+and partitioned repertoires.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -507,8 +524,8 @@ two elements of the tuple are the cause and effect repertoires.</p>
 <dl class="method">
 <dt id="pyphi.models.Concept.__bool__">
 <code class="descname">__bool__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.Concept.__bool__" title="Permalink to this definition">¶</a></dt>
-<dd><p>A concept is truthy if it is not reducible; i.e. if it has a
-significant amount of <span class="math">\(\Phi\)</span>.</p>
+<dd><p>A concept is truthy if it is not reducible.</p>
+<p>(That is, if it has a significant amount of <span class="math">\(\Phi\)</span>.)</p>
 </dd></dl>
 
 <dl class="method">
@@ -534,28 +551,28 @@ EMD calculation.</p>
 <dl class="method">
 <dt id="pyphi.models.Concept.expand_cause_repertoire">
 <code class="descname">expand_cause_repertoire</code><span class="sig-paren">(</span><em>new_purview=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.Concept.expand_cause_repertoire" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expands a cause repertoire to be a distribution over an entire
+<dd><p>Expand a cause repertoire into a distribution over an entire
 network.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyphi.models.Concept.expand_effect_repertoire">
 <code class="descname">expand_effect_repertoire</code><span class="sig-paren">(</span><em>new_purview=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.Concept.expand_effect_repertoire" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expands an effect repertoire to be a distribution over an entire
+<dd><p>Expand an effect repertoire into a distribution over an entire
 network.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyphi.models.Concept.expand_partitioned_cause_repertoire">
 <code class="descname">expand_partitioned_cause_repertoire</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.Concept.expand_partitioned_cause_repertoire" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expands a partitioned cause repertoire to be a distribution over an
+<dd><p>Expand a partitioned cause repertoire into a distribution over an
 entire network.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyphi.models.Concept.expand_partitioned_effect_repertoire">
 <code class="descname">expand_partitioned_effect_repertoire</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.Concept.expand_partitioned_effect_repertoire" title="Permalink to this definition">¶</a></dt>
-<dd><p>Expands a partitioned effect repertoire to be a distribution over an
+<dd><p>Expand a partitioned effect repertoire into a distribution over an
 entire network.</p>
 </dd></dl>
 
@@ -570,17 +587,16 @@ entire network.</p>
 <dt id="pyphi.models.Constellation">
 <em class="property">class </em><code class="descclassname">pyphi.models.</code><code class="descname">Constellation</code><a class="headerlink" href="#pyphi.models.Constellation" title="Permalink to this definition">¶</a></dt>
 <dd><p>A constellation of concepts.</p>
-<p>This is a wrapper around a tuple to provide a nice string
-representation and place to put constellation methods. Previously,
-constellations were represented as <cite>tuple(Concept)</cite>; this usage still
-works in all functions.</p>
+<p>This is a wrapper around a tuple to provide a nice string representation
+and place to put constellation methods. Previously, constellations were
+represented as <code class="docutils literal"><span class="pre">tuple(Concept)</span></code>; this usage still works in all functions.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyphi.models.BigMip">
 <em class="property">class </em><code class="descclassname">pyphi.models.</code><code class="descname">BigMip</code><span class="sig-paren">(</span><em>phi=None</em>, <em>unpartitioned_constellation=None</em>, <em>partitioned_constellation=None</em>, <em>subsystem=None</em>, <em>cut_subsystem=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.BigMip" title="Permalink to this definition">¶</a></dt>
 <dd><p>A minimum information partition for <span class="math">\(\Phi\)</span> calculation.</p>
-<p>BigMIPs may be compared with the built-in Python comparison operators
+<p>BigMips may be compared with the built-in Python comparison operators
 (<code class="docutils literal"><span class="pre">&lt;</span></code>, <code class="docutils literal"><span class="pre">&gt;</span></code>, etc.). First, <code class="docutils literal"><span class="pre">phi</span></code> values are compared. Then, if these
 are equal up to <code class="xref py py-const docutils literal"><span class="pre">constants.PRECISION</span></code>, the size of the mechanism is compared
 (exclusion principle).</p>
@@ -641,8 +657,8 @@ subsystem.</p>
 <dl class="method">
 <dt id="pyphi.models.BigMip.__bool__">
 <code class="descname">__bool__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.BigMip.__bool__" title="Permalink to this definition">¶</a></dt>
-<dd><p>A BigMip is truthy if it is not reducible; i.e. if it has a
-significant amount of <span class="math">\(\Phi\)</span>.</p>
+<dd><p>A BigMip is truthy if it is not reducible.</p>
+<p>(That is, if it has a significant amount of <span class="math">\(\Phi\)</span>.)</p>
 </dd></dl>
 
 </dd></dl>
@@ -651,21 +667,30 @@ significant amount of <span class="math">\(\Phi\)</span>.</p>
 <dt id="pyphi.models.indent">
 <code class="descclassname">pyphi.models.</code><code class="descname">indent</code><span class="sig-paren">(</span><em>lines</em>, <em>amount=2</em>, <em>chr=' '</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.indent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Indent a string.</p>
-<blockquote>
-<div>Prepends whitespace to every line in the passed string. (Lines are
-separated by ``</div></blockquote>
-<p><a href="#id3"><span class="problematic" id="id4">``</span></a>)</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>Args:</dt>
-<dd>lines (str): The string to indent.</dd>
-<dt>Keyword Args:</dt>
-<dd>amount (int): The number of columns to indent by.
-chr (char): The character to to use as the indentation.</dd>
-<dt>Returns:</dt>
-<dd>str: The indented string.</dd>
-</dl>
-</div></blockquote>
+<p>Prepends whitespace to every line in the passed string. (Lines are
+separated by newline characters.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>lines</strong> (<em>str</em>) &#8211; The string to indent.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first simple">
+<li><strong>amount</strong> (<em>int</em>) &#8211; The number of columns to indent by.</li>
+<li><strong>chr</strong> (<em>char</em>) &#8211; The character to to use as the indentation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The indented string.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -677,18 +702,20 @@ chr (char): The character to to use as the indentation.</dd>
 <dl class="function">
 <dt id="pyphi.models.fmt_partition">
 <code class="descclassname">pyphi.models.</code><code class="descname">fmt_partition</code><span class="sig-paren">(</span><em>partition</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.fmt_partition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Format a partition</p>
+<dd><p>Format a partition.</p>
+<p>The returned string looks like:</p>
+<div class="highlight-python"><div class="highlight"><pre>0,1   []
+--- X ---
+ 2    0,1
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>partition</strong> (<em>tuple(Part, Part</em>) &#8211; The partition in question.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A string representation that looks like
-0,1   []
-&#8212; X &#8212;<blockquote>
-<div>2    0,1</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A human-readable string representation of the partition.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
 </tr>
@@ -699,19 +726,19 @@ chr (char): The character to to use as the indentation.</dd>
 <dl class="function">
 <dt id="pyphi.models.fmt_concept">
 <code class="descclassname">pyphi.models.</code><code class="descname">fmt_concept</code><span class="sig-paren">(</span><em>concept</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.fmt_concept" title="Permalink to this definition">¶</a></dt>
-<dd><p>Format a Concept string</p>
+<dd><p>Format a <a class="reference internal" href="#pyphi.models.Concept" title="pyphi.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.models.fmt_mip">
 <code class="descclassname">pyphi.models.</code><code class="descname">fmt_mip</code><span class="sig-paren">(</span><em>mip</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.fmt_mip" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to format a nice Mip string</p>
+<dd><p>Format a <a class="reference internal" href="#pyphi.models.Mip" title="pyphi.models.Mip"><code class="xref py py-class docutils literal"><span class="pre">Mip</span></code></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.models.fmt_big_mip">
 <code class="descclassname">pyphi.models.</code><code class="descname">fmt_big_mip</code><span class="sig-paren">(</span><em>big_mip</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.fmt_big_mip" title="Permalink to this definition">¶</a></dt>
-<dd><p>Format a BigMip</p>
+<dd><p>Format a <a class="reference internal" href="#pyphi.models.BigMip" title="pyphi.models.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a>.</p>
 </dd></dl>
 
 </div>

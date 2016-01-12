@@ -387,16 +387,15 @@ information for the given subsystem.</td>
 <dl class="function">
 <dt id="pyphi.compute.all_complexes">
 <code class="descclassname">pyphi.compute.</code><code class="descname">all_complexes</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.all_complexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a generator for all complexes of the network, including
-reducible, zero-phi complexes (which are not, strictly speaking, complexes
-at all).</p>
+<dd><p>Return a generator for all complexes of the network.</p>
+<p>Includes reducible, zero-phi complexes (which are not, strictly speaking,
+complexes at all).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.compute.possible_complexes">
 <code class="descclassname">pyphi.compute.</code><code class="descname">possible_complexes</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.possible_complexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a generator of the subsystems of a network that could be a
-complex.</p>
+<dd><p>Return a generator of subsystems of a network that could be a complex.</p>
 <p>This is the just powerset of the nodes that have at least one input and
 output (nodes with no inputs or no outputs cannot be part of a main
 complex, because they do not have a causal link with the rest of the

@@ -1,3 +1,5 @@
+.. _macro-micro:
+
 Emergence (Macro/Micro)
 =======================
 

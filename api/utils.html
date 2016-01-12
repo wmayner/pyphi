@@ -218,14 +218,14 @@ same as the unconditioned TPM.</p>
 <dl class="function">
 <dt id="pyphi.utils.apply_cut">
 <code class="descclassname">pyphi.utils.</code><code class="descname">apply_cut</code><span class="sig-paren">(</span><em>cut</em>, <em>connectivity_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.apply_cut" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a modified connectivity matrix where the connections from one
-set of nodes to the other are destroyed.</p>
+<dd><p>Return a modified connectivity matrix where the connections from one set
+of nodes to the other are destroyed.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.fully_connected">
 <code class="descclassname">pyphi.utils.</code><code class="descname">fully_connected</code><span class="sig-paren">(</span><em>connectivity_matrix</em>, <em>nodes1</em>, <em>nodes2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.fully_connected" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tests connectivity of one set of nodes to another.</p>
+<dd><p>Test connectivity of one set of nodes to another.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -255,21 +255,21 @@ return False. Return True if either set of nodes is empty.</p>
 <dl class="function">
 <dt id="pyphi.utils.apply_boundary_conditions_to_cm">
 <code class="descclassname">pyphi.utils.</code><code class="descname">apply_boundary_conditions_to_cm</code><span class="sig-paren">(</span><em>external_indices</em>, <em>connectivity_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.apply_boundary_conditions_to_cm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a connectivity matrix with all connections to or from external
+<dd><p>Return a connectivity matrix with all connections to or from external
 nodes removed.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.get_inputs_from_cm">
 <code class="descclassname">pyphi.utils.</code><code class="descname">get_inputs_from_cm</code><span class="sig-paren">(</span><em>index</em>, <em>connectivity_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.get_inputs_from_cm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a tuple of node indices that have connections to the node with
+<dd><p>Return a tuple of node indices that have connections to the node with
 the given index.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.get_outputs_from_cm">
 <code class="descclassname">pyphi.utils.</code><code class="descname">get_outputs_from_cm</code><span class="sig-paren">(</span><em>index</em>, <em>connectivity_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.get_outputs_from_cm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a tuple of node indices that the node with the given index has
+<dd><p>Return a tuple of node indices that the node with the given index has
 connections to.</p>
 </dd></dl>
 
@@ -534,7 +534,7 @@ of the two partitions.</td>
 <dl class="function">
 <dt id="pyphi.utils.directed_bipartition_indices">
 <code class="descclassname">pyphi.utils.</code><code class="descname">directed_bipartition_indices</code><span class="sig-paren">(</span><em>N</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.directed_bipartition_indices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns indices for directed bipartitions of a sequence.</p>
+<dd><p>Return indices for directed bipartitions of a sequence.</p>
 <p>The directed bipartion</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -561,7 +561,7 @@ for each of the two partitions.</td>
 <dl class="function">
 <dt id="pyphi.utils.bipartition_indices">
 <code class="descclassname">pyphi.utils.</code><code class="descname">bipartition_indices</code><span class="sig-paren">(</span><em>N</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.bipartition_indices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns indices for bipartitions of a sequence.</p>
+<dd><p>Return indices for bipartitions of a sequence.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -678,17 +678,14 @@ DE   FG
 <dl class="function">
 <dt id="pyphi.utils.print_repertoire">
 <code class="descclassname">pyphi.utils.</code><code class="descname">print_repertoire</code><span class="sig-paren">(</span><em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.print_repertoire" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Print a vertical, human-readable cause/effect repertoire.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.print_repertoire_horiz">
 <code class="descclassname">pyphi.utils.</code><code class="descname">print_repertoire_horiz</code><span class="sig-paren">(</span><em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.print_repertoire_horiz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pyphi.utils.print_partition">
-<code class="descclassname">pyphi.utils.</code><code class="descname">print_partition</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.print_partition" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Print a horizontal, human-readable cause/effect repertoire.</p>
+</dd></dl>
 
 </div>
 
