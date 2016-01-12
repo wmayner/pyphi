@@ -118,6 +118,8 @@ rst_prolog = """
 .. |E| replace:: :math:`E`
 .. |AB| replace:: :math:`AB`
 .. |CD| replace:: :math:`CD`
+.. |DE| replace:: :math:`DE`
+.. |FG| replace:: :math:`FG`
 .. |ABC| replace:: :math:`ABC`
 .. |CDE| replace:: :math:`CDE`
 .. |n0| replace:: :math:`n_{0}`
