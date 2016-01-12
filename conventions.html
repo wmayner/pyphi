@@ -1,0 +1,381 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Conventions &mdash; v0.7.5 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="v0.7.5 documentation" href="index.html"/>
+        <link rel="next" title="API Reference" href="api/index.html"/>
+        <link rel="prev" title="Configuration" href="configuration.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/basic.html">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/macro.html">Emergence (Macro/Micro)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/magic_cut.html">Magic Cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/xor.html">XOR Network</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#system-resources">System resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#caching">Caching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/config.html"><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/config.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/config.html#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/config.html#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/config.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/config.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/config.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/valiate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">PyPhi v0.7.5</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Conventions</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/conventions.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="conventions">
+<h1>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="connectivity-matrices">
+<h2>Connectivity Matrices<a class="headerlink" href="#connectivity-matrices" title="Permalink to this headline">¶</a></h2>
+<p>Throughout PyPhi, if <code class="docutils literal"><span class="pre">CM</span></code> is a connectivity matrix, then <span class="math">\(CM_{i,j} = 1\)</span> means
+that node <span class="math">\(i\)</span> is connected to node <span class="math">\(j\)</span>.</p>
+</div>
+<div class="section" id="loli-low-order-bits-correspond-to-low-index-nodes">
+<span id="loli-convention"></span><h2>LOLI: Low-Order bits correspond to Low-Index nodes<a class="headerlink" href="#loli-low-order-bits-correspond-to-low-index-nodes" title="Permalink to this headline">¶</a></h2>
+<p>There are several ways to write down a TPM. With both state-by-state and
+state-by-node TPMs, one is confronted with a choice about which rows correspond
+to which states. In state-by-state TPMs, this choice must also be made for the
+columns.</p>
+<p>Either the first node changes state every other row (<strong>LOLI</strong>):</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="31%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">A, B</th>
+<th class="head">A</th>
+<th class="head">B</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0, 0</td>
+<td>0.1</td>
+<td>0.2</td>
+</tr>
+<tr class="row-odd"><td>1, 0</td>
+<td>0.3</td>
+<td>0.4</td>
+</tr>
+<tr class="row-even"><td>0, 1</td>
+<td>0.5</td>
+<td>0.6</td>
+</tr>
+<tr class="row-odd"><td>1, 1</td>
+<td>0.7</td>
+<td>0.8</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Or the last node does (<strong>HOLI</strong>):</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="31%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">A, B</th>
+<th class="head">A</th>
+<th class="head">B</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0, 0</td>
+<td>0.1</td>
+<td>0.2</td>
+</tr>
+<tr class="row-odd"><td>0, 1</td>
+<td>0.5</td>
+<td>0.6</td>
+</tr>
+<tr class="row-even"><td>1, 0</td>
+<td>0.3</td>
+<td>0.4</td>
+</tr>
+<tr class="row-odd"><td>1, 1</td>
+<td>0.7</td>
+<td>0.8</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Note that the index <span class="math">\(i\)</span> of a row in a TPM encodes a network state: convert the
+index to binary, and each bit gives the state of a node. The question is, which
+node?</p>
+<p><strong>Throughout PyPhi, we always choose the first convention—the state of the
+first node (the one with the lowest index) varies the fastest.</strong> So, the
+lowest-order bit—the one&#8217;s place—gives the state of the lowest-index node.</p>
+<p>We call this convention the <strong>LOLI convention</strong>: Low Order bits correspond to
+Low Index nodes. The other convention, where the highest-index node varies the
+fastest, is similarly called <strong>HOLI</strong>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The rationale for this choice of convention is that the <strong>LOLI</strong> mapping is
+stable under changes in the number of nodes, in the sense that the same bit
+always corresponds to the same node index. The <strong>HOLI</strong> mapping does not
+have this property.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This applies to only situations where decimal indices are encoding states.
+Whenever a network state is represented as a list or tuple, we use the only
+sensible convention: the <span class="math">\(i^{\textrm{th}}\)</span> element gives the state of the <span class="math">\(i^{\textrm{th}}\)</span> node.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There are various conversion functions available for converting between
+TPMs, states, and indices using different conventions: see the
+<a class="reference internal" href="api/convert.html#module-pyphi.convert" title="pyphi.convert"><code class="xref py py-mod docutils literal"><span class="pre">pyphi.convert</span></code></a> module.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="configuration.html" class="btn btn-neutral" title="Configuration" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Jan 12, 2016.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'v0.7.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

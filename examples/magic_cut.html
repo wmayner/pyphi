@@ -1,0 +1,480 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Magic Cuts &mdash; v0.7.5 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="v0.7.5 documentation" href="../index.html"/>
+        <link rel="up" title="Usage and Examples" href="index.html"/>
+        <link rel="next" title="Residue" href="residue.html"/>
+        <link rel="prev" title="Emergence (Macro/Micro)" href="macro.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="../index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="../_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Usage and Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html">Emergence (Macro/Micro)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Magic Cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#system-resources">System resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#caching">Caching</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/config.html"><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/valiate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi v0.7.5</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Usage and Examples</a> &raquo;</li>
+      
+    <li>Magic Cuts</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/examples/magic_cut.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="magic-cuts">
+<h1>Magic Cuts<a class="headerlink" href="#magic-cuts" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.rule110_network" title="pyphi.examples.rule110_network"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.rule110_network()</span></code></a></li>
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.rule154_network" title="pyphi.examples.rule154_network"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.rule154_network()</span></code></a></li>
+</ul>
+<p>This example explores a system of three fully connected elements <span class="math">\(A\)</span>, <span class="math">\(B\)</span> and
+<span class="math">\(C\)</span>, which follow the logic of the Rule 110 cellular automaton. The point of
+this example is to highlight an unexpected behaviour of system cuts, that
+the minimum information partition of a system can result in new concepts
+being created.</p>
+<p>First let&#8217;s create the the Rule 110 network, with all nodes <strong>OFF</strong> in the current
+state.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyphi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">rule110_network</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, we want to identify the spatial scale and main complex of the network:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">emergence</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">macro</span><span class="o">.</span><span class="n">emergence</span>
+<span class="go">-1.35708</span>
+</pre></div>
+</div>
+<p>Since the emergence value is negative, there is no macro scale which has
+greater integrated information than the original micro scale. We can now
+analyze the micro scale to determine the main complex of the system:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">main_complex</span><span class="o">.</span><span class="n">subsystem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span>
+<span class="go">Subsystem((n0, n1, n2))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">1.35708</span>
+</pre></div>
+</div>
+<p>The main complex of the system contains all three nodes of the system, and it
+has integrated information <span class="math">\(\Phi = 1.35708\)</span>. Now that we have identified the
+main complex of the system, we can explore its conceptual structure and the
+effect of the <strong>MIP</strong>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">constellation</span> <span class="o">=</span> <span class="n">main_complex</span><span class="o">.</span><span class="n">unpartitioned_constellation</span>
+</pre></div>
+</div>
+<p>There two equalivalent cuts for this system; for concreteness we sever all
+connections from elements <span class="math">\(A\)</span> and <span class="math">\(B\)</span> to <span class="math">\(C\)</span>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cut</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Cut</span><span class="p">(</span><span class="n">severed</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">intact</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cut_subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">cut</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cut_constellation</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">constellation</span><span class="p">(</span><span class="n">cut_subsystem</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Lets investigate the concepts in the unpartitioned constellation,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">concept</span><span class="o">.</span><span class="n">mechanism</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">constellation</span><span class="p">]</span>
+<span class="go">[(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">concept</span><span class="o">.</span><span class="n">phi</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">constellation</span><span class="p">]</span>
+<span class="go">[0.125, 0.125, 0.125, 0.499999, 0.499999, 0.499999]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sum</span><span class="p">(</span><span class="n">_</span><span class="p">)</span>
+<span class="go">1.8749970000000002</span>
+</pre></div>
+</div>
+<p>and also the concepts of the partitioned constellation.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">concept</span><span class="o">.</span><span class="n">mechanism</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">cut_constellation</span><span class="p">]</span>
+<span class="go">[(0,), (1,), (2,), (0, 1), (1, 2), (0, 1, 2)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">concept</span><span class="o">.</span><span class="n">phi</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">cut_constellation</span><span class="p">]</span>
+<span class="go">[0.125, 0.125, 0.125, 0.499999, 0.266666, 0.333333]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sum</span><span class="p">(</span><span class="n">_</span><span class="p">)</span>
+<span class="go">1.4749980000000003</span>
+</pre></div>
+</div>
+<p>The unpartitioned constellation includes all possible first and second order
+concepts, but there is no third order concept. After applying the cut, and
+severing the connections from <span class="math">\(A\)</span> and <span class="math">\(B\)</span> to <span class="math">\(C\)</span>, a third order concept
+is created in the partitioned constellation. A new concept is created as a
+result of the cut, but there is also a concept destroyed <a href="#id1"><span class="problematic" id="id2">|A,B|</span></a> and the
+overall amount of <span class="math">\(\varphi\)</span> in the system decreases from <span class="math">\(1.875\)</span> to
+<span class="math">\(1.475\)</span>.</p>
+<p>Lets explore the concept which was created to determine why it does not exist
+in the unpartitioned constellation and what changed in the partitioned
+constellation.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">main_complex</span><span class="o">.</span><span class="n">subsystem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ABC</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">node_indices</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">cause_info</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">ABC</span><span class="p">)</span>
+<span class="go">0.749999</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">effect_info</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">ABC</span><span class="p">)</span>
+<span class="go">1.875</span>
+</pre></div>
+</div>
+<p>The mechanism has cause and effect power over the system, so it must be that
+this power is reducible.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mice_cause</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">core_cause</span><span class="p">(</span><span class="n">ABC</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mice_cause</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mice_effect</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">core_effect</span><span class="p">(</span><span class="n">ABC</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mice_effect</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.624999</span>
+</pre></div>
+</div>
+<p>The reason ABC does not exist as a concept is that its cause is reducible.
+Looking at the TPM of the system, there are no possible states with two of the
+elements set to <strong>OFF</strong>. This means that knowing two elements are <strong>OFF</strong> is enough to
+know that the third element must also be <strong>OFF</strong>, and thus the third element can
+always be cut from the concept without a loss of information. This will be true
+for any purview, so the cause information is reducible.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">BC</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">repertoire</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">ABC</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cut_repertoire</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">(</span><span class="n">BC</span><span class="p">,</span> <span class="n">ABC</span><span class="p">)</span> <span class="o">*</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">hamming_emd</span><span class="p">(</span><span class="n">repertoire</span><span class="p">,</span> <span class="n">cut_repertoire</span><span class="p">)</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>Next, lets look at the cut subsystem to understand how the new concept
+comes into existence.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ABC</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">AB</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The cut applied to the subsystem severs the connections from <span class="math">\(A\)</span> and <span class="math">\(B\)</span> to <span class="math">\(C\)</span>. In
+this circumstance, knowing <span class="math">\(A\)</span> and <span class="math">\(B\)</span> do not tell us anything about the state of
+<span class="math">\(C\)</span>, only the past state of <span class="math">\(C\)</span> can tell us about the future state of <span class="math">\(C\)</span>. Here,
+<code class="docutils literal"><span class="pre">past_tpm[1]</span></code> gives us the probability of C being <strong>ON</strong> in the next state, while
+<code class="docutils literal"><span class="pre">past_tpm[0]</span></code> would give us the probability of C being <strong>OFF</strong>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">C_node</span> <span class="o">=</span> <span class="n">cut_subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">(</span><span class="n">C</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">C_node</span><span class="o">.</span><span class="n">tpm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span class="go">array([ 0.5 ,  0.75])</span>
+</pre></div>
+</div>
+<p>This states that A has a 50% chance of being <strong>ON</strong> in the next state if it
+currently <strong>OFF</strong>, but a 75% chance of being <strong>ON</strong> in the next state  if it is
+currently <strong>ON</strong>. Thus unlike the unpartitioned case, knowing the current state
+of C gives us additional information over and above knowing A and B.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">repertoire</span> <span class="o">=</span> <span class="n">cut_subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">ABC</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cut_repertoire</span> <span class="o">=</span> <span class="n">cut_subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">(</span><span class="n">AB</span><span class="p">,</span> <span class="n">ABC</span><span class="p">)</span> <span class="o">*</span> <span class="n">cut_subsystem</span><span class="o">.</span><span class="n">cause_repertoire</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">hamming_emd</span><span class="p">(</span><span class="n">repertoire</span><span class="p">,</span> <span class="n">cut_repertoire</span><span class="p">)</span>
+<span class="go">0.500001</span>
+</pre></div>
+</div>
+<p>With this partition, the integrated information is <span class="math">\(\varphi = 0.5\)</span>, but
+we must check all possible partitions to find the MIP.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cut_subsystem</span><span class="o">.</span><span class="n">core_cause</span><span class="p">(</span><span class="n">ABC</span><span class="p">)</span><span class="o">.</span><span class="n">purview</span>
+<span class="go">(0, 1, 2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cut_subsystem</span><span class="o">.</span><span class="n">core_cause</span><span class="p">(</span><span class="n">ABC</span><span class="p">)</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.333333</span>
+</pre></div>
+</div>
+<p>It turns out that the MIP is</p>
+<div class="math">
+\[\frac{AB}{[\,]} \times \frac{C}{ABC}\]</div>
+<p>and the integrated information of ABC is <span class="math">\(\varphi = 1/3\)</span>.</p>
+<p>Note: In order for a new concept to be created by a cut, there must be a within
+mechanism connection severed by the cut.</p>
+<p>In the previous example, the <strong>MIP</strong> created a new concept, but the amount of
+<span class="math">\(\varphi\)</span> in the constellation still decreased. This is not always the case.
+Next we will look at an example of system whoes <strong>MIP</strong> increases the amount of
+<span class="math">\(\varphi\)</span>. This example is based on a five node network which follows the
+logic of the Rule 154 cellular automaton. Lets first load the network,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">rule154_network</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For this example, it is the subsystem consisting of <a href="#id3"><span class="problematic" id="id4">|n0, n1, n4|</span></a> that we
+explore. This is not the main concept of the system, but it serves as a proof
+of principle regardless.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Calculating the <strong>MIP</strong> of the system,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_mip</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mip</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.217829</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mip</span><span class="o">.</span><span class="n">cut</span>
+<span class="go">Cut (0, 4) --//--&gt; (1,)</span>
+</pre></div>
+</div>
+<p>This subsystem has a <span class="math">\(\Phi\)</span> value of 0.15533, and the <strong>MIP</strong> cuts the
+connections from <a href="#id5"><span class="problematic" id="id6">|n0, n4|</span></a> to <span class="math">\(n_{1}\)</span>. Investigating the concepts in both the
+partitioned and unpartitioned constellations,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">unpartitioned_constellation</span> <span class="o">=</span> <span class="n">mip</span><span class="o">.</span><span class="n">unpartitioned_constellation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">concept</span><span class="o">.</span><span class="n">mechanism</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">unpartitioned_constellation</span><span class="p">]</span>
+<span class="go">[(0,), (1,), (0, 1)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">concept</span><span class="o">.</span><span class="n">phi</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">unpartitioned_constellation</span><span class="p">]</span>
+<span class="go">[0.25, 0.166667, 0.178572]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sum</span><span class="p">([</span><span class="n">concept</span><span class="o">.</span><span class="n">phi</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">unpartitioned_constellation</span><span class="p">])</span>
+<span class="go">0.5952390000000001</span>
+</pre></div>
+</div>
+<p>The unpartitioned constellation has mechanisms <span class="math">\(n_{0}\)</span>, <span class="math">\(n_{1}\)</span> and <span class="math">\(n_{0}n_{1}\)</span> with
+<span class="math">\(\sum\varphi = 0.595239\)</span>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partitioned_constellation</span> <span class="o">=</span> <span class="n">mip</span><span class="o">.</span><span class="n">partitioned_constellation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">concept</span><span class="o">.</span><span class="n">mechanism</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">partitioned_constellation</span><span class="p">]</span>
+<span class="go">[(0, 1), (0,), (1,)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">concept</span><span class="o">.</span><span class="n">phi</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">partitioned_constellation</span><span class="p">]</span>
+<span class="go">[0.214286, 0.25, 0.166667]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sum</span><span class="p">([</span><span class="n">concept</span><span class="o">.</span><span class="n">phi</span> <span class="k">for</span> <span class="n">concept</span> <span class="ow">in</span> <span class="n">partitioned_constellation</span><span class="p">])</span>
+<span class="go">0.630953</span>
+</pre></div>
+</div>
+<p>The unpartitioned constellation has mechanisms <span class="math">\(n_{0}\)</span>, <span class="math">\(n_{1}\)</span> and <span class="math">\(n_{0}n_{1}\)</span> with
+<span class="math">\(\sum\varphi = 0.630953\)</span>. There are the same number of concepts in both
+constellations, over the same mechanisms; however, the partitioned
+constellation has a greater <span class="math">\(\varphi\)</span> value for the concept <span class="math">\(n_{0}n_{1}\)</span>,
+resulting in an overall greater <span class="math">\(\sum\varphi\)</span> for the <strong>MIP</strong>
+constellation.</p>
+<p>Although situations described above are rare, they do occur, so one must be
+careful when analyzing the integrated information of physical systems not to
+dismiss the possibility of partitions creating new concepts or increasing the
+amount of <span class="math">\(\varphi\)</span>; otherwise, an incorrect main complex may be identified.</p>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="residue.html" class="btn btn-neutral float-right" title="Residue" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="macro.html" class="btn btn-neutral" title="Emergence (Macro/Micro)" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Jan 12, 2016.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.7.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
