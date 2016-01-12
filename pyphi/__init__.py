@@ -107,10 +107,13 @@ logging.config.dictConfig({
 
 log = logging.getLogger(__name__)
 
-# Log the currently loaded configuration.
+# Log the currently loaded version and configuration.
 if config.LOG_CONFIG_ON_IMPORT:
+    log.info('PyPhi version {}'.format(__version__))
     if config.file_loaded:
-        log.info('Loaded configuration from ' + config.PYPHI_CONFIG_FILENAME)
+        log.info('Loaded configuration from '
+                 '`./{}`'.format(config.PYPHI_CONFIG_FILENAME))
     else:
-        log.info("Using default configuration (no config file provided)")
-    log.info('Current PyPhi configuration:\n' + config.get_config_string())
+        log.info('Using default configuration (no config file provided)')
+    log.info('Current PyPhi configuration:\n'
+             '{}'.format(config.get_config_string()))
