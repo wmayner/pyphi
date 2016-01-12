@@ -73,12 +73,7 @@ class BenchmarkMainComplex():
         # Save config
         self.default_config = copy.copy(config.__dict__)
 
-    def teardown(self, mode, network):
-        # Revert config
-        config.__dict__.update(self.default_config)
-
-    def time_main_complex(self, mode, network):
-
+        # Execution mode
         if mode == 'parallel':
             config.PARALLEL_CUT_EVALUATION = True
         elif mode == 'sequential':
@@ -88,4 +83,10 @@ class BenchmarkMainComplex():
 
         config.CACHE_BIGMIPS = False
 
+    def teardown(self, mode, network):
+        # Revert config
+        config.__dict__.update(self.default_config)
+
+    def time_main_complex(self, mode, network):
+        # Do it!
         compute.main_complex(self.network, self.state)
