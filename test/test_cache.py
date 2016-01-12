@@ -29,7 +29,7 @@ def test_cache():
     assert c.misses == 0
 
 
-class TestObject:
+class SomeObject:
     """Object for testing cache decorator"""
     def __init__(self):
         self.my_cache = cache.DictCache()
@@ -40,7 +40,7 @@ class TestObject:
 
 
 def test_cache_decorator():
-    o = TestObject()
+    o = SomeObject()
     assert o.cached_method(1) == 'expensive computation'
     # generated from the key prefix and method arguments
     expected_key = ('key_prefix', 1)
