@@ -11,9 +11,10 @@ import json
 
 import numpy as np
 
-from . import cache, config, convert, utils, validate
+from . import cache, convert, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
+
 
 # TODO!!! raise error if user tries to change TPM or CM, double-check and
 # document that states can be changed
@@ -36,7 +37,6 @@ def from_json(filename):
 
 
 class Network:
-
     """A network of nodes.
 
     Represents the network we're analyzing and holds auxilary data about it.

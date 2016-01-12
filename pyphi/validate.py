@@ -8,7 +8,7 @@ Methods for validating common types of input.
 
 import numpy as np
 
-from . import constants, convert, config
+from . import config, constants, convert
 from .constants import EPSILON
 
 
@@ -100,7 +100,7 @@ def perturb_vector(pv, size):
 
 
 def network(n):
-    """Validate a :class:`~pyphi.network.Network`.
+    """Validate a |Network|.
 
     Checks the TPM, connectivity matrix, and perturbation vector.
     """
@@ -159,7 +159,7 @@ def cut(cut, node_indices):
 
 
 def subsystem(s):
-    """Validate a :class:`~pyphi.subsystem.Subsystem`.
+    """Validate a |Subsystem|.
 
     Checks its state and cut.
     """

@@ -21,10 +21,9 @@ _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "maxsize", "currsize"])
 
 
 class _HashedSeq(list):
-    """ This class guarantees that hash() will be called no more than once
-        per element.  This is important because the lru_cache() will hash
-        the key multiple times on a cache miss.
-
+    """This class guarantees that hash() will be called no more than once per
+    element.  This is important because the lru_cache() will hash the key
+    multiple times on a cache miss.
     """
 
     __slots__ = 'hashvalue'

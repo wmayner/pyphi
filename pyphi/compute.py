@@ -19,7 +19,7 @@ from scipy.sparse.csgraph import connected_components
 from . import config, constants, memory, utils, validate
 from .concept_caching import concept as _concept
 from .config import PRECISION
-from .models import BigMip, Cut, Constellation
+from .models import BigMip, Constellation, Cut
 from .network import Network
 from .subsystem import Subsystem
 
@@ -234,9 +234,11 @@ def concept_distance(c1, c2):
 
 
 def _constellation_distance_simple(C1, C2):
-    """Return the distance between two constellations in concept-space,
-    assuming the only difference between them is that some concepts have
-    disappeared."""
+    """Return the distance between two constellations in concept-space.
+
+    Assumes the only difference between them is that some concepts have
+    disappeared.
+    """
     # Make C1 refer to the bigger constellation.
     if len(C2) > len(C1):
         C1, C2 = C2, C1
@@ -246,8 +248,10 @@ def _constellation_distance_simple(C1, C2):
 
 
 def _constellation_distance_emd(unique_C1, unique_C2):
-    """Return the distance between two constellations in concept-space,
-    using the generalized EMD."""
+    """Return the distance between two constellations in concept-space.
+
+    Uses the generalized EMD.
+    """
     # Get the pairwise distances between the concepts in the unpartitioned and
     # partitioned constellations.
     distances = np.array([
@@ -341,24 +345,27 @@ def conceptual_information(subsystem):
     """Return the conceptual information for a subsystem.
 
     This is the distance from the subsystem's constellation to the null
-    concept."""
+    concept.
+    """
     ci = constellation_distance(constellation(subsystem), ())
     return round(ci, PRECISION)
 
 
 # TODO document
 def _null_bigmip(subsystem):
-    """Returns a |BigMip| with zero |big_phi| and empty constellations.
+    """Return a |BigMip| with zero |big_phi| and empty constellations.
 
-    This is the MIP associated with a reducible subsystem."""
+    This is the MIP associated with a reducible subsystem.
+    """
     return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=0.0,
                   unpartitioned_constellation=(), partitioned_constellation=())
 
 
 def _single_node_mip(subsystem):
-    """Returns a |BigMip| of a single-node with a selfloop.
+    """Return a |BigMip| of a single-node with a selfloop.
 
-    Whether these have a nonzero |Phi| value depends on the PyPhi constants."""
+    Whether these have a nonzero |Phi| value depends on the PyPhi constants.
+    """
     if config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
         # TODO return the actual concept
         return BigMip(
@@ -383,8 +390,9 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
         mechanisms = set([c.mechanism for c in unpartitioned_constellation])
     else:
-        mechanisms = set([c.mechanism for c in unpartitioned_constellation] +
-                         list(cut.all_cut_mechanisms(uncut_subsystem.node_indices)))
+        mechanisms = set(
+            [c.mechanism for c in unpartitioned_constellation] +
+            list(cut.all_cut_mechanisms(uncut_subsystem.node_indices)))
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
     log.debug("Finished evaluating cut {}.".format(cut))
@@ -412,11 +420,11 @@ def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
 
 
 def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
-    """Find the MIP for a subsystem with a parallel loop over all cuts,
-    using the specified number of cores."""
+    """Find the MIP for a subsystem with a parallel loop over all cuts.
 
+    Uses the specified number of cores.
+    """
     number_of_processes = get_num_processes()
-
     # Define input and output queues to allow short-circuit if a cut if found
     # with zero Phi. Load the input queue with all possible cuts and a 'poison
     # pill' for each process.
@@ -456,8 +464,10 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
 
 def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
                          min_mip):
-    """Find the minimal cut for a subsystem by sequentially loop over all cuts,
-    holding only two ``BigMip``s in memory at once."""
+    """Find the minimal cut for a subsystem by sequentially loop over all cuts.
+
+    Holds only two |BigMip|s in memory at once.
+    """
     for i, cut in enumerate(cuts):
         new_mip = _evaluate_cut(subsystem, cut, unpartitioned_constellation)
         log.debug("Finished {} of {} cuts.".format(
@@ -486,12 +496,10 @@ def _big_mip(cache_key, subsystem):
     log.info("Calculating big-phi data for {}...".format(subsystem))
     start = time()
 
-
     if config.PARALLEL_CUT_EVALUATION:
         _find_mip = _find_mip_parallel
     else:
         _find_mip = _find_mip_sequential
-
 
     # Annote a BigMip with the total elapsed calculation time, and optionally
     # also with the time taken to calculate the unpartitioned constellation.
@@ -529,7 +537,8 @@ def _big_mip(cache_key, subsystem):
         return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
     if config.CUT_ONE_APPROXIMATION:
-        bipartitions = utils.directed_bipartition_of_one(subsystem.node_indices)
+        bipartitions = \
+            utils.directed_bipartition_of_one(subsystem.node_indices)
     else:
         # The first and last bipartitions are the null cut (trivial
         # bipartition), so skip them.
@@ -574,7 +583,8 @@ def big_phi(subsystem):
 def subsystems(network, state):
     """Return a generator of all **possible** subsystems of a network.
 
-    Does not return subsystems that are in an impossible state."""
+    Does not return subsystems that are in an impossible state.
+    """
     for subset in utils.powerset(network.node_indices):
         try:
             yield Subsystem(network, state, subset)
@@ -583,9 +593,11 @@ def subsystems(network, state):
 
 
 def all_complexes(network, state):
-    """Return a generator for all complexes of the network, including
-    reducible, zero-phi complexes (which are not, strictly speaking, complexes
-    at all)."""
+    """Return a generator for all complexes of the network.
+
+    Includes reducible, zero-phi complexes (which are not, strictly speaking,
+    complexes at all).
+    """
     if not isinstance(network, Network):
         raise ValueError(
             """Input must be a Network (perhaps you passed a Subsystem
@@ -594,15 +606,15 @@ def all_complexes(network, state):
 
 
 def possible_complexes(network, state):
-    """Return a generator of the subsystems of a network that could be a
-    complex.
+    """Return a generator of subsystems of a network that could be a complex.
 
     This is the just powerset of the nodes that have at least one input and
     output (nodes with no inputs or no outputs cannot be part of a main
     complex, because they do not have a causal link with the rest of the
     subsystem in the past or future, respectively).
 
-    Does not include subsystems in an impossible state."""
+    Does not include subsystems in an impossible state.
+    """
     inputs = np.sum(network.connectivity_matrix, 0)
     outputs = np.sum(network.connectivity_matrix, 1)
     nodes_have_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)

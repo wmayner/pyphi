@@ -123,7 +123,8 @@ def to_n_dimensional(tpm):
     """Reshape a state-by-node TPM to the N-D form.
 
     See documentation for the |Network| object for more information on TPM
-    formats."""
+    formats.
+    """
     # Cast to np.array.
     tpm = np.array(tpm)
     # Get the number of nodes.

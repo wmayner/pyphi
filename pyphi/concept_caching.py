@@ -17,7 +17,6 @@ from .constants import DIRECTIONS, FUTURE, PAST
 
 
 class NormalizedMechanism:
-
     """A mechanism rendered into a normal form, suitable for use as a cache key
     in concept memoization.
 
@@ -55,6 +54,7 @@ class NormalizedMechanism:
             the values are the permutations that maps mechanism nodes to the
             position of their marbl in the marblset for that direction.
     """
+
     # NOTE: We use lists and indices throughout, instead of dictionaries (which
     # would perhaps be more elegant), to avoid repeatedly computing the hash of
     # the marbls.

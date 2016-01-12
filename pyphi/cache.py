@@ -28,6 +28,7 @@ class _HashedSeq(list):
     per element.  This is important because the lru_cache() will hash
     the key multiple times on a cache miss.
     """
+
     __slots__ = 'hashvalue'
 
     def __init__(self, tup, hash=hash):
@@ -130,11 +131,11 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
                 return result
 
         def cache_info():
-            """Report cache statistics"""
+            """Report cache statistics."""
             return _CacheInfo(hits, misses, len(cache))
 
         def cache_clear():
-            """Clear the cache and cache statistics"""
+            """Clear the cache and cache statistics."""
             nonlocal hits, misses, full
             cache.clear()
             hits = misses = 0

@@ -10,9 +10,10 @@ from collections import Iterable, namedtuple
 
 import numpy as np
 
-from . import utils, config
-from .constants import DIRECTIONS, PAST, FUTURE
+from . import config, utils
+from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
+
 
 # TODO use properties to avoid data duplication
 
@@ -46,7 +47,6 @@ def make_repr(self, attrs):
 
 
 class Cut(namedtuple('Cut', ['severed', 'intact'])):
-
     """Represents a unidirectional cut.
 
     Attributes:
@@ -57,6 +57,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
             Connections to this group of nodes from those in ``severed`` are
             severed.
     """
+
     # This allows accessing the namedtuple's ``__dict__``; see
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
     __slots__ = ()
@@ -75,7 +76,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
                 (set(mechanism) & set(self[1])))
 
     def all_cut_mechanisms(self, candidate_indices):
-        """Returns all mechanisms with elements on both sides of this cut.
+        """Return all mechanisms with elements on both sides of this cut.
 
         Args:
             candidate_indices (tuple(int)): The node indices to consider as
@@ -119,7 +120,6 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
-
     """Represents one part of a bipartition.
 
     Attributes:
@@ -138,6 +138,7 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
 
         This class represents one term in the above product.
     """
+
     __slots__ = ()
     pass
 
@@ -213,7 +214,8 @@ def _phi_then_mechanism_size_ge(self, other):
 # TODO use builtin numpy methods here
 def _numpy_aware_eq(a, b):
     """Return whether two objects are equal via recursion, using
-    :func:`numpy.array_equal` for comparing numpy arays."""
+    :func:`numpy.array_equal` for comparing numpy arays.
+    """
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
         return np.array_equal(a, b)
     if ((isinstance(a, Iterable) and isinstance(b, Iterable))
@@ -259,14 +261,12 @@ _mip_attributes_for_eq = ['phi', 'direction', 'mechanism',
 
 
 class Mip(namedtuple('Mip', _mip_attributes)):
-
     """A minimum information partition for |small_phi| calculation.
 
-    MIPs may be compared with the built-in Python comparison operators
-    (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
-    are equal up to |PRECISION|, the size of the mechanism is
- compared
-    (exclusion principle).
+    MIPs may be compared with the built-in Python comparison operators (``<``,
+    ``>``, etc.). First, ``phi`` values are compared. Then, if these are equal
+    up to |PRECISION|, the size of the mechanism is compared (exclusion
+    principle).
 
     Attributes:
         phi (float):
@@ -290,6 +290,7 @@ class Mip(namedtuple('Mip', _mip_attributes)):
             The partitioned repertoire of the mechanism. This is the product of
             the repertoires of each part of the partition.
     """
+
     __slots__ = ()
 
     def __eq__(self, other):
@@ -309,8 +310,10 @@ class Mip(namedtuple('Mip', _mip_attributes)):
                     len(self.purview) == len(other.purview))
 
     def __bool__(self):
-        """A Mip is truthy if it is not reducible; i.e. if it has a significant
-        amount of |small_phi|."""
+        """A Mip is truthy if it is not reducible.
+
+        (That is, if it has a significant amount of |small_phi|.)
+        """
         return not utils.phi_eq(self.phi, 0)
 
     def __hash__(self):
@@ -356,7 +359,6 @@ class Mip(namedtuple('Mip', _mip_attributes)):
 # =============================================================================
 
 class Mice:
-
     """A maximally irreducible cause or effect (i.e., “core cause” or “core
     effect”).
 
@@ -373,48 +375,40 @@ class Mice:
 
     @property
     def phi(self):
-        """
-        ``float`` -- The difference between the mechanism's unpartitioned and
-        partitioned repertoires.
+        """``float`` -- The difference between the mechanism's unpartitioned
+        and partitioned repertoires.
         """
         return self._mip.phi
 
     @property
     def direction(self):
-        """
-        ``str`` -- Either |past| or |future|. If |past| (|future|), this
+        """``str`` -- Either |past| or |future|. If |past| (|future|), this
         represents a maximally irreducible cause (effect).
         """
         return self._mip.direction
 
     @property
     def mechanism(self):
-        """
-        ``list(int)`` -- The mechanism for which the MICE is evaluated.
-        """
+        """``list(int)`` -- The mechanism for which the MICE is evaluated."""
         return self._mip.mechanism
 
     @property
     def purview(self):
-        """
-        ``list(int)`` -- The purview over which this mechanism's |small_phi|
+        """``list(int)`` -- The purview over which this mechanism's |small_phi|
         is maximal.
         """
         return self._mip.purview
 
     @property
     def repertoire(self):
-        """
-        ``np.ndarray`` -- The unpartitioned repertoire of the mechanism over
+        """``np.ndarray`` -- The unpartitioned repertoire of the mechanism over
         the purview.
         """
         return self._mip.unpartitioned_repertoire
 
     @property
     def mip(self):
-        """
-        ``Mip`` -- The minimum information partition for this mechanism.
-        """
+        """``Mip`` -- The minimum information partition for this mechanism."""
         return self._mip
 
     def __repr__(self):
@@ -501,7 +495,6 @@ _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
 # TODO: make mechanism a property
 # TODO: make phi a property
 class Concept:
-
     """A star in concept-space.
 
     The ``phi`` attribute is the |small_phi_max| value. ``cause`` and
@@ -576,8 +569,10 @@ class Concept:
                      utils.np_hash(self.effect.repertoire)))
 
     def __bool__(self):
-        """A concept is truthy if it is not reducible; i.e. if it has a
-        significant amount of |big_phi|."""
+        """A concept is truthy if it is not reducible.
+
+        (That is, if it has a significant amount of |big_phi|.)
+        """
         return not utils.phi_eq(self.phi, 0)
 
     def eq_repertoires(self, other):
@@ -595,34 +590,39 @@ class Concept:
 
     def emd_eq(self, other):
         """Return whether this concept is equal to another in the context of an
-        EMD calculation."""
+        EMD calculation.
+        """
         return self.mechanism == other.mechanism and self.eq_repertoires(other)
 
     # TODO Rename to expanded_cause_repertoire, etc
     def expand_cause_repertoire(self, new_purview=None):
-        """Expands a cause repertoire to be a distribution over an entire
-        network."""
+        """Expand a cause repertoire into a distribution over an entire
+        network.
+        """
         return self.subsystem.expand_cause_repertoire(self.cause.purview,
                                                       self.cause.repertoire,
                                                       new_purview)
 
     def expand_effect_repertoire(self, new_purview=None):
-        """Expands an effect repertoire to be a distribution over an entire
-        network."""
+        """Expand an effect repertoire into a distribution over an entire
+        network.
+        """
         return self.subsystem.expand_effect_repertoire(self.effect.purview,
                                                        self.effect.repertoire,
                                                        new_purview)
 
     def expand_partitioned_cause_repertoire(self):
-        """Expands a partitioned cause repertoire to be a distribution over an
-        entire network."""
+        """Expand a partitioned cause repertoire into a distribution over an
+        entire network.
+        """
         return self.subsystem.expand_cause_repertoire(
             self.cause.purview,
             self.cause.mip.partitioned_repertoire)
 
     def expand_partitioned_effect_repertoire(self):
-        """Expands a partitioned effect repertoire to be a distribution over an
-        entire network."""
+        """Expand a partitioned effect repertoire into a distribution over an
+        entire network.
+        """
         return self.subsystem.expand_effect_repertoire(
             self.effect.purview,
             self.effect.mip.partitioned_repertoire)
@@ -648,16 +648,16 @@ class Concept:
 class Constellation(tuple):
     """A constellation of concepts.
 
-    This is a wrapper around a tuple to provide a nice string
-    representation and place to put constellation methods. Previously,
-    constellations were represented as `tuple(Concept)`; this usage still
-    works in all functions.
+    This is a wrapper around a tuple to provide a nice string representation
+    and place to put constellation methods. Previously, constellations were
+    represented as ``tuple(Concept)``; this usage still works in all functions.
     """
 
     def __repr__(self):
         if config.READABLE_REPRS:
             return self.__str__()
-        return "Constellation({})".format(super(Constellation, self).__repr__())
+        return "Constellation({})".format(
+            super(Constellation, self).__repr__())
 
     def __str__(self):
         return "\nConstellation\n*************" + fmt_constellation(self)
@@ -671,10 +671,9 @@ _bigmip_attributes = ['phi', 'unpartitioned_constellation',
 
 
 class BigMip:
-
     """A minimum information partition for |big_phi| calculation.
 
-    BigMIPs may be compared with the built-in Python comparison operators
+    BigMips may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
     are equal up to |PRECISION|, the size of the mechanism is compared
     (exclusion principle).
@@ -714,15 +713,18 @@ class BigMip:
     @property
     def cut(self):
         """The unidirectional cut that makes the least difference to the
-        subsystem."""
+        subsystem.
+        """
         return self.cut_subsystem.cut
 
     def __eq__(self, other):
         return _general_eq(self, other, _bigmip_attributes)
 
     def __bool__(self):
-        """A BigMip is truthy if it is not reducible; i.e. if it has a
-        significant amount of |big_phi|."""
+        """A BigMip is truthy if it is not reducible.
+
+        (That is, if it has a significant amount of |big_phi|.)
+        """
         return not utils.phi_eq(self.phi, 0)
 
     def __hash__(self):
@@ -768,7 +770,7 @@ def indent(lines, amount=2, chr=' '):
     """Indent a string.
 
     Prepends whitespace to every line in the passed string. (Lines are
-    separated by ``\n``)
+    separated by newline characters.)
 
     Args:
         lines (str): The string to indent.
@@ -791,15 +793,18 @@ def fmt_constellation(c):
 
 
 def fmt_partition(partition):
-    """Format a partition
+    """Format a partition.
+
+    The returned string looks like::
+
+        0,1   []
+        --- X ---
+         2    0,1
 
     Args:
         partition (tuple(Part, Part)): The partition in question.
     Returns:
-        str: A string representation that looks like
-            0,1   []
-            --- X ---
-             2    0,1
+        str: A human-readable string representation of the partition.
     """
     if not partition:
         return ""
@@ -820,7 +825,7 @@ def fmt_partition(partition):
 
 
 def fmt_concept(concept):
-    """Format a Concept string"""
+    """Format a |Concept|."""
     return (
         "phi: {concept.phi}\n"
         "mechanism: {concept.mechanism}\n"
@@ -834,8 +839,7 @@ def fmt_concept(concept):
 
 
 def fmt_mip(mip, verbose=True):
-    """Helper function to format a nice Mip string"""
-
+    """Format a |Mip|."""
     if mip is False or mip is None:  # mips can be Falsy
         return ""
 
@@ -858,7 +862,7 @@ def fmt_mip(mip, verbose=True):
 
 
 def fmt_big_mip(big_mip):
-    """Format a BigMip"""
+    """Format a |BigMip|."""
     return (
         "phi: {big_mip.phi}\n"
         "subsystem: {big_mip.subsystem}\n"

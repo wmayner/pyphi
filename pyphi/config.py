@@ -239,10 +239,10 @@ Miscellaneous
 -------------------------------------------------------------------------------
 """
 
+import functools
 import os
 import pprint
 import sys
-import functools
 
 import yaml
 
@@ -308,9 +308,9 @@ DEFAULTS = {
             'level': 'INFO'
         }
     },
-    # Controls whether the current configuration is printed upon import.
+    # Controls whether the current configuration is logged upon import.
     'LOG_CONFIG_ON_IMPORT': True,
-    # The number of decimal points to which phi values are considered accurate
+    # The number of decimal points to which phi values are considered accurate.
     'PRECISION': 6,
     # Controls whether a subsystem's state is validated when the subsystem is
     # created.
@@ -318,7 +318,7 @@ DEFAULTS = {
     # In some applications of this library, the user may prefer to define
     # single-node subsystems as having 0.5 Phi.
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
-    # Use prettier __str__-like formatting in repr calls
+    # Use prettier __str__-like formatting in `repr` calls.
     'READABLE_REPRS': True,
 }
 

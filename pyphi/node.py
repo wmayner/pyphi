@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # node.py
+
 """
 Represents a node in a subsystem. Each node has a unique index, its position
 in the network's list of nodes.
@@ -18,7 +18,6 @@ from . import utils
 # TODO extend to nonbinary nodes
 @functools.total_ordering
 class Node:
-
     """A node in a subsystem.
 
     Attributes:

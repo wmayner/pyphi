@@ -11,7 +11,7 @@ import re
 import logging
 import hashlib
 import numpy as np
-from itertools import chain, combinations, product
+from itertools import chain, combinations
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from pyemd import emd
@@ -32,7 +32,8 @@ def condition_tpm(tpm, fixed_nodes, state):
     The dimensions of the new TPM that correspond to the fixed nodes are
     collapsed onto their state, making those dimensions singletons suitable for
     broadcasting. The number of dimensions of the conditioned TPM will be the
-    same as the unconditioned TPM."""
+    same as the unconditioned TPM.
+    """
     conditioning_indices = [[slice(None)]] * len(state)
     for i in fixed_nodes:
         # Preserve singleton dimensions with `np.newaxis`
@@ -45,8 +46,9 @@ def condition_tpm(tpm, fixed_nodes, state):
 
 
 def apply_cut(cut, connectivity_matrix):
-    """Returns a modified connectivity matrix where the connections from one
-    set of nodes to the other are destroyed."""
+    """Return a modified connectivity matrix where the connections from one set
+    of nodes to the other are destroyed.
+    """
     if cut is None:
         return connectivity_matrix
     cm = connectivity_matrix.copy()
@@ -57,7 +59,7 @@ def apply_cut(cut, connectivity_matrix):
 
 
 def fully_connected(connectivity_matrix, nodes1, nodes2):
-    """Tests connectivity of one set of nodes to another.
+    """Test connectivity of one set of nodes to another.
 
     Args:
         connectivity_matrix (``np.ndarrray``): The connectivity matrix
@@ -82,8 +84,9 @@ def fully_connected(connectivity_matrix, nodes1, nodes2):
 
 
 def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
-    """Returns a connectivity matrix with all connections to or from external
-    nodes removed."""
+    """Return a connectivity matrix with all connections to or from external
+    nodes removed.
+    """
     cm = connectivity_matrix.copy()
     for i in external_indices:
         # Zero-out row
@@ -94,15 +97,17 @@ def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
 
 
 def get_inputs_from_cm(index, connectivity_matrix):
-    """Returns a tuple of node indices that have connections to the node with
-    the given index."""
+    """Return a tuple of node indices that have connections to the node with
+    the given index.
+    """
     return tuple(i for i in range(connectivity_matrix.shape[0]) if
                  connectivity_matrix[i][index])
 
 
 def get_outputs_from_cm(index, connectivity_matrix):
-    """Returns a tuple of node indices that the node with the given index has
-    connections to."""
+    """Return a tuple of node indices that the node with the given index has
+    connections to.
+    """
     return tuple(i for i in range(connectivity_matrix.shape[0]) if
                  connectivity_matrix[index][i])
 
@@ -237,7 +242,8 @@ def marginalize_out(index, tpm, perturb_value=0.5):
     if perturb_value == 0.5:
         return tpm.sum(index, keepdims=True) / tpm.shape[index]
     else:
-        tpm = np.average(tpm, index, weights=[1 - perturb_value, perturb_value])
+        tpm = np.average(tpm, index,
+                         weights=[1 - perturb_value, perturb_value])
         return tpm.reshape([i for i in tpm.shape[0:index]] +
                            [1] + [i for i in tpm.shape[index:]])
 
@@ -299,7 +305,7 @@ def hamming_emd(d1, d2):
 
 
 def bipartition(a):
-    """ Return a list of bipartitions for a sequence.
+    """Return a list of bipartitions for a sequence.
 
     Args:
         a (Iterable): The iterable to partition.
@@ -360,7 +366,7 @@ def directed_bipartition_of_one(a):
 
 @cache(cache={}, maxmem=None)
 def directed_bipartition_indices(N):
-    """Returns indices for directed bipartitions of a sequence.
+    """Return indices for directed bipartitions of a sequence.
 
     The directed bipartion
 
@@ -383,7 +389,7 @@ def directed_bipartition_indices(N):
 
 @cache(cache={}, maxmem=None)
 def bipartition_indices(N):
-    """Returns indices for bipartitions of a sequence.
+    """Return indices for bipartitions of a sequence.
 
     Args:
         N (int): The length of the sequence.
@@ -475,7 +481,7 @@ def submatrix(cm, nodes1, nodes2):
     return cm[submatrix_indices]
 
 
-#TODO: better name?
+# TODO: better name?
 def relevant_connections(n, _from, to):
     """Construct a connectivity matrix.
 
@@ -593,6 +599,7 @@ def block_reducible(cm, nodes1, nodes2):
 
 
 def print_repertoire(r):
+    """Print a vertical, human-readable cause/effect repertoire."""
     print('\n', '-' * 80)
     for i in range(r.size):
         strindex = bin(i)[2:].zfill(r.ndim)
@@ -602,6 +609,7 @@ def print_repertoire(r):
 
 
 def print_repertoire_horiz(r):
+    """Print a horizontal, human-readable cause/effect repertoire."""
     r = np.squeeze(r)
     colwidth = 11
     print('\n' + '-' * 70 + '\n')
