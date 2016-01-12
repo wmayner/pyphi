@@ -20,7 +20,7 @@ Next Release
   default to using pretty string formatting.
 - Added a `Constellation` object.
 - Added `utils.submatrix` and `utils.relevant_connections` functions.
-- Added `macro.effective_info` function.
+- Added the `macro.effective_info` function.
 
 ### Refactor
 - Subsystem Mice and cause/effect repertoire caches; Network purview caches.

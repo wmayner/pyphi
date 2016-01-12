@@ -289,7 +289,6 @@ def effective_info(network):
         except validate.StateUnreachableError:
             continue
     return np.array([
-        subsystem.effect_info(
-            network.node_indices, network.node_indices)
+        subsystem.effect_info(network.node_indices, network.node_indices)
         for subsystem in subsystems
     ]).mean()
