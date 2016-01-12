@@ -7,16 +7,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Basic Usage &mdash; v0.7.0 documentation</title>
+  <title>Basic Usage &mdash; v0.7.5 documentation</title>
   
 
   
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -32,13 +32,15 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.7.0 documentation" href="../index.html"/>
-        <link rel="up" title="Usage and Examples" href="index.html"/>
-        <link rel="next" title="Residue" href="residue.html"/>
-        <link rel="prev" title="Usage and Examples" href="index.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+    <link rel="top" title="v0.7.5 documentation" href="../index.html"/>
+        <link rel="up" title="Usage and Examples" href="index.html"/>
+        <link rel="next" title="Conditional Independence" href="conditional_independence.html"/>
+        <link rel="prev" title="IIT 3.0 Paper (2014)" href="2014paper.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -49,28 +51,69 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.7.0</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+        
+
+        
+          <a href="../index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="../_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-        
-            <ul class="current">
+          
+          
+              <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Usage and Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="residue.html">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
 <li class="toctree-l2"><a class="reference internal" href="macro.html">Emergence (Macro/Micro)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="magic_cut.html">Magic Cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
 </ul>
 </li>
 </ul>
@@ -86,25 +129,42 @@
 </li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../api/config.html"><tt class="docutils literal"><span class="pre">config</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/config.html"><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/valiate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
 </ul>
 </li>
 </ul>
 
+          
         
       </div>
       &nbsp;
@@ -115,7 +175,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.7.0</a>
+        <a href="../index.html">PyPhi v0.7.5</a>
       </nav>
 
 
@@ -131,25 +191,26 @@
     <li>Basic Usage</li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/examples/basic.txt" rel="nofollow"> View page source</a>
+          
+            <a href="../_sources/examples/basic.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
+          <div role="main" class="document">
             
   <div class="section" id="basic-usage">
 <h1>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference internal" href="../api/examples.html#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_network()</span></tt></a></li>
-<li><a class="reference internal" href="../api/examples.html#pyphi.examples.basic_subsystem" title="pyphi.examples.basic_subsystem"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_subsystem()</span></tt></a></li>
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_network()</span></code></a></li>
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.basic_subsystem" title="pyphi.examples.basic_subsystem"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_subsystem()</span></code></a></li>
 </ul>
 <p>Let&#8217;s make a simple 3-node network and compute its <span class="math">\(\Phi\)</span>.</p>
-<p>To make a network, we need a TPM, current state, past state, and optionally a
-connectivity matrix. The TPM can be in more than one form; see the
-documentation for <a class="reference internal" href="../api/network.html#module-pyphi.network" title="pyphi.network"><tt class="xref py py-class docutils literal"><span class="pre">pyphi.network</span></tt></a>. Here we&#8217;ll use the 2-dimensional
-state-by-node form.</p>
+<p>To make a network, we need a TPM and (optionally) a connectivity matrix. The
+TPM can be in more than one form; see the documentation for
+<a class="reference internal" href="../api/network.html#module-pyphi.network" title="pyphi.network"><code class="xref py py-class docutils literal"><span class="pre">pyphi.network</span></code></a>. Here we&#8217;ll use the 2-dimensional state-by-node form.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyphi</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tpm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
@@ -164,13 +225,6 @@ state-by-node form.</p>
 <span class="gp">... </span><span class="p">])</span>
 </pre></div>
 </div>
-<p>The current and past states should be <span class="math">\(n\)</span>-tuples, where <span class="math">\(n\)</span> is the number of
-nodes in the network, and where the <span class="math">\(i^{\textrm{th}}\)</span> element is the state of the <span class="math">\(i^{\textrm{th}}\)</span>
-node in the network.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">current_state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">past_state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-</pre></div>
-</div>
 <p>The connectivity matrix is a square matrix such that the <span class="math">\(i,j^{\textrm{th}}\)</span> entry is 1 if
 there is a connection from node <span class="math">\(i\)</span> to node <span class="math">\(j\)</span>, and 0 otherwise.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
@@ -181,30 +235,35 @@ there is a connection from node <span class="math">\(i\)</span> to node <span cl
 </pre></div>
 </div>
 <p>Now we construct the network itself with the arguments we just created:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">tpm</span><span class="p">,</span> <span class="n">current_state</span><span class="p">,</span> <span class="n">past_state</span><span class="p">,</span>
-<span class="gp">... </span>                        <span class="n">connectivity_matrix</span><span class="o">=</span><span class="n">cm</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">tpm</span><span class="p">,</span> <span class="n">connectivity_matrix</span><span class="o">=</span><span class="n">cm</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The next step is to define a subsystem for which we want to evaluate <span class="math">\(\Phi\)</span>.
-To make a subsystem, we need the indices of the subset of nodes which should be
-included in it and the network that the subsystem belongs to.</p>
-<p>In this case, we want the <span class="math">\(\Phi\)</span> of the entire network, so we simply include
-every node in the network in our subsystem:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">network</span><span class="p">)</span>
+To make a subsystem, we need the network that it belongs to, the state of that
+network, and the indices of the subset of nodes which should be included.</p>
+<p>The state should be an <span class="math">\(n\)</span>-tuple, where <span class="math">\(n\)</span> is the number of nodes in the
+network, and where the <span class="math">\(i^{\textrm{th}}\)</span> element is the state of the <span class="math">\(i^{\textrm{th}}\)</span> node in the
+network.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Now we use <a class="reference internal" href="../compute.html#pyphi.compute.big_phi" title="pyphi.compute.big_phi"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_phi()</span></tt></a> function to compute the <span class="math">\(\Phi\)</span> of
+<p>In this case, we want the <span class="math">\(\Phi\)</span> of the entire network, so we simply include
+every node in the network in our subsystem:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Now we use <a class="reference internal" href="../compute.html#pyphi.compute.big_phi" title="pyphi.compute.big_phi"><code class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_phi()</span></code></a> function to compute the <span class="math">\(\Phi\)</span> of
 our subsystem:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_phi</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span>
-<span class="go">2.312496</span>
+<span class="go">2.3125</span>
 </pre></div>
 </div>
 <p>If we want to take a deeper look at the integrated-information-theoretic
 properties of our network, we can access all the intermediate quantities and
 structures that are calculated in the course of arriving at a final <span class="math">\(\Phi\)</span>
-value by using <a class="reference internal" href="../compute.html#pyphi.compute.big_mip" title="pyphi.compute.big_mip"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_mip()</span></tt></a>. This returns a deeply nested
-object, <a class="reference internal" href="../api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a>, that contains data about the subsystem&#8217;s constellation of
+value by using <a class="reference internal" href="../compute.html#pyphi.compute.big_mip" title="pyphi.compute.big_mip"><code class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_mip()</span></code></a>. This returns a deeply nested
+object, <a class="reference internal" href="../api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a>, that contains data about the subsystem&#8217;s constellation of
 concepts, cause and effect repertoires, etc.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_mip</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
 </pre></div>
@@ -214,13 +273,13 @@ concepts, cause and effect repertoires, etc.</p>
 <span class="go">4</span>
 </pre></div>
 </div>
-<p>The documentation for <a class="reference internal" href="../api/models.html#module-pyphi.models" title="pyphi.models"><tt class="xref py py-mod docutils literal"><span class="pre">pyphi.models</span></tt></a> contains description of these
+<p>The documentation for <a class="reference internal" href="../api/models.html#module-pyphi.models" title="pyphi.models"><code class="xref py py-mod docutils literal"><span class="pre">pyphi.models</span></code></a> contains description of these
 structures.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The network and subsystem discussed here are returned by the
-<a class="reference internal" href="../api/examples.html#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_network()</span></tt></a> and
-<a class="reference internal" href="../api/examples.html#pyphi.examples.basic_subsystem" title="pyphi.examples.basic_subsystem"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_subsystem()</span></tt></a> functions.</p>
+<a class="reference internal" href="../api/examples.html#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_network()</span></code></a> and
+<a class="reference internal" href="../api/examples.html#pyphi.examples.basic_subsystem" title="pyphi.examples.basic_subsystem"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_subsystem()</span></code></a> functions.</p>
 </div>
 </div>
 
@@ -230,10 +289,10 @@ structures.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="residue.html" class="btn btn-neutral float-right" title="Residue"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="conditional_independence.html" class="btn btn-neutral float-right" title="Conditional Independence" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Usage and Examples"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="2014paper.html" class="btn btn-neutral" title="IIT 3.0 Paper (2014)" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -243,12 +302,13 @@ structures.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 12, 2015.
+      Last updated on Jan 12, 2016.
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
+
         </div>
       </div>
 
@@ -263,7 +323,7 @@ structures.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.7.0',
+            VERSION:'v0.7.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -272,7 +332,7 @@ structures.</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

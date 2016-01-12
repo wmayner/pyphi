@@ -15,14 +15,7 @@ network, available from the :mod:`~pyphi.examples` module.
     >>> import pyphi
     >>> network = pyphi.examples.macro_network()
 
-All nodes are **OFF** in the current and past state,
-
-    >>> network.current_state
-    (0, 0, 0, 0)
-    >>> network.past_state
-    (0, 0, 0, 0)
-
-and the connectivity matrix is all-to-all.
+The connectivity matrix is all-to-all:
 
     >>> network.connectivity_matrix
     array([[ 1.,  1.,  1.,  1.],
@@ -30,10 +23,14 @@ and the connectivity matrix is all-to-all.
            [ 1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.]])
 
+We'll set the state so that nodes are **OFF**.
+
+    >>> state = (0, 0, 0, 0)
+
 At the “micro” spatial scale, we can compute the main complex, and determine
 the |big_phi| value:
 
-    >>> main_complex = pyphi.compute.main_complex(network)
+    >>> main_complex = pyphi.compute.main_complex(network, state)
     >>> main_complex.phi
     0.113889
 
@@ -162,7 +159,7 @@ coarse-graining of the system:
 In these cases, the object returned :func:`~pyphi.macro.make_macro_network`
 function will have a boolean value of ``False``:
 
-    >>> macro_network = pyphi.macro.make_macro_network(network, mapping)
+    >>> (macro_network, macro_state) = pyphi.macro.make_macro_network(network, state, mapping)
     >>> bool(macro_network)
     False
 
@@ -182,14 +179,14 @@ Lets consider a different partition instead.
     array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,
             2.,  2.,  3.])
 
-    >>> macro_network = pyphi.macro.make_macro_network(network, mapping)
+    >>> (macro_network, macro_state) = pyphi.macro.make_macro_network(network, state, mapping)
     >>> bool(macro_network)
     True
 
 We can then consider the integrated information of this macro-network and
 compare it to the micro-network.
 
-    >>> macro_main_complex = pyphi.compute.main_complex(macro_network)
+    >>> macro_main_complex = pyphi.compute.main_complex(macro_network, macro_state)
     >>> macro_main_complex.phi
     0.86905
 
@@ -200,7 +197,7 @@ but to determine which one, we must check all possible partitions and all
 possible groupings to find the maximum of integrated information across all
 scales.
 
-    >>> M = pyphi.macro.emergence(network)
+    >>> M = pyphi.macro.emergence(network, state)
     >>> M.partition
     [[0, 1], [2, 3]]
     >>> M.grouping

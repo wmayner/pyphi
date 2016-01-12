@@ -7,16 +7,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>db &mdash; v0.7.0 documentation</title>
+  <title>db &mdash; v0.7.5 documentation</title>
   
 
   
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -32,13 +32,15 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.7.0 documentation" href="../index.html"/>
-        <link rel="up" title="API Reference" href="index.html"/>
-        <link rel="next" title="utils" href="utils.html"/>
-        <link rel="prev" title="memory" href="memory.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+    <link rel="top" title="v0.7.5 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="examples" href="examples.html"/>
+        <link rel="prev" title="convert" href="convert.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -49,28 +51,69 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.7.0</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+        
+
+        
+          <a href="../index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="../_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-        
-            <ul>
+          
+          
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/magic_cut.html">Magic Cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 </ul>
 </li>
 </ul>
@@ -85,26 +128,43 @@
 </ul>
 </li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="config.html"><tt class="docutils literal"><span class="pre">config</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="valiate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
 </ul>
 </li>
 </ul>
 
+          
         
       </div>
       &nbsp;
@@ -115,7 +175,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.7.0</a>
+        <a href="../index.html">PyPhi v0.7.5</a>
       </nav>
 
 
@@ -128,37 +188,39 @@
       
           <li><a href="index.html">API Reference</a> &raquo;</li>
       
-    <li><tt class="docutils literal"><span class="pre">db</span></tt></li>
+    <li><code class="docutils literal"><span class="pre">db</span></code></li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/api/db.txt" rel="nofollow"> View page source</a>
+          
+            <a href="../_sources/api/db.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
+          <div role="main" class="document">
             
   <div class="section" id="module-pyphi.db">
-<span id="db"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">db</span></tt><a class="headerlink" href="#module-pyphi.db" title="Permalink to this headline">¶</a></h1>
+<span id="db"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">db</span></code><a class="headerlink" href="#module-pyphi.db" title="Permalink to this headline">¶</a></h1>
 <p>Interface to MongoDB that exposes it as a key-value store.</p>
 <dl class="function">
 <dt id="pyphi.db.find">
-<tt class="descclassname">pyphi.db.</tt><tt class="descname">find</tt><big>(</big><em>key</em><big>)</big><a class="headerlink" href="#pyphi.db.find" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.db.</code><code class="descname">find</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.db.find" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the value associated with a key.</p>
-<p>If there is no value with the given key, returns <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+<p>If there is no value with the given key, returns <code class="docutils literal"><span class="pre">None</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.db.insert">
-<tt class="descclassname">pyphi.db.</tt><tt class="descname">insert</tt><big>(</big><em>key</em>, <em>value</em><big>)</big><a class="headerlink" href="#pyphi.db.insert" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.db.</code><code class="descname">insert</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.db.insert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Store a value with a key.</p>
 <p>If the key is already present in the database, this does nothing.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.db.generate_key">
-<tt class="descclassname">pyphi.db.</tt><tt class="descname">generate_key</tt><big>(</big><em>filtered_args</em><big>)</big><a class="headerlink" href="#pyphi.db.generate_key" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.db.</code><code class="descname">generate_key</code><span class="sig-paren">(</span><em>filtered_args</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.db.generate_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a key from some input.</p>
 <p>This function should be used whenever a key is needed, to keep keys
 consistent.</p>
@@ -172,10 +234,10 @@ consistent.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="utils.html" class="btn btn-neutral float-right" title="utils"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="examples" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="memory.html" class="btn btn-neutral" title="memory"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="convert.html" class="btn btn-neutral" title="convert" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -185,12 +247,13 @@ consistent.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 11, 2015.
+      Last updated on Jan 12, 2016.
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
+
         </div>
       </div>
 
@@ -205,7 +268,7 @@ consistent.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.7.0',
+            VERSION:'v0.7.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -214,7 +277,7 @@ consistent.</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

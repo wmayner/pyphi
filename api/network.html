@@ -7,16 +7,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>network &mdash; v0.7.0 documentation</title>
+  <title>network &mdash; v0.7.5 documentation</title>
   
 
   
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -32,13 +32,15 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.7.0 documentation" href="../index.html"/>
-        <link rel="up" title="API Reference" href="index.html"/>
-        <link rel="next" title="subsystem" href="subsystem.html"/>
-        <link rel="prev" title="compute" href="compute.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+    <link rel="top" title="v0.7.5 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="node" href="node.html"/>
+        <link rel="prev" title="models" href="models.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -49,28 +51,69 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.7.0</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+        
+
+        
+          <a href="../index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="../_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-        
-            <ul>
+          
+          
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/magic_cut.html">Magic Cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 </ul>
 </li>
 </ul>
@@ -85,26 +128,43 @@
 </ul>
 </li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="config.html"><tt class="docutils literal"><span class="pre">config</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="valiate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
 </ul>
 </li>
 </ul>
 
+          
         
       </div>
       &nbsp;
@@ -115,7 +175,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.7.0</a>
+        <a href="../index.html">PyPhi v0.7.5</a>
       </nav>
 
 
@@ -128,24 +188,26 @@
       
           <li><a href="index.html">API Reference</a> &raquo;</li>
       
-    <li><tt class="docutils literal"><span class="pre">network</span></tt></li>
+    <li><code class="docutils literal"><span class="pre">network</span></code></li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/api/network.txt" rel="nofollow"> View page source</a>
+          
+            <a href="../_sources/api/network.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
+          <div role="main" class="document">
             
   <div class="section" id="module-pyphi.network">
-<span id="network"></span><span id="pyphi-network"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">network</span></tt><a class="headerlink" href="#module-pyphi.network" title="Permalink to this headline">¶</a></h1>
+<span id="network"></span><span id="pyphi-network"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">network</span></code><a class="headerlink" href="#module-pyphi.network" title="Permalink to this headline">¶</a></h1>
 <p>Represents the network of interest. This is the primary object of PyPhi and the
 context of all <span class="math">\(\varphi\)</span> and <span class="math">\(\Phi\)</span> computation.</p>
 <dl class="function">
 <dt id="pyphi.network.from_json">
-<tt class="descclassname">pyphi.network.</tt><tt class="descname">from_json</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pyphi.network.from_json" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.network.</code><code class="descname">from_json</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.from_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a JSON representation of a network to a PyPhi network.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -153,168 +215,115 @@ context of all <span class="math">\(\varphi\)</span> and <span class="math">\(\P
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; A path to a JSON file representing a network.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>network</strong> &#8211;
-The corresponding PyPhi network object.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>network</strong> &#8211; The corresponding PyPhi network object.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">Network</span></tt></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">Network</span></code></td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="pyphi.network.list_past_purview">
-<tt class="descclassname">pyphi.network.</tt><tt class="descname">list_past_purview</tt><big>(</big><em>self</em>, <em>mechanism</em><big>)</big><a class="headerlink" href="#pyphi.network.list_past_purview" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pyphi.network.list_future_purview">
-<tt class="descclassname">pyphi.network.</tt><tt class="descname">list_future_purview</tt><big>(</big><em>self</em>, <em>mechanism</em><big>)</big><a class="headerlink" href="#pyphi.network.list_future_purview" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="class">
 <dt id="pyphi.network.Network">
-<em class="property">class </em><tt class="descclassname">pyphi.network.</tt><tt class="descname">Network</tt><big>(</big><em>tpm</em>, <em>current_state</em>, <em>past_state</em>, <em>connectivity_matrix=None</em>, <em>perturb_vector=None</em>, <em>purview_cache=None</em><big>)</big><a class="headerlink" href="#pyphi.network.Network" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyphi.network.</code><code class="descname">Network</code><span class="sig-paren">(</span><em>tpm</em>, <em>connectivity_matrix=None</em>, <em>perturb_vector=None</em>, <em>purview_cache=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.Network" title="Permalink to this definition">¶</a></dt>
 <dd><p>A network of nodes.</p>
 <p>Represents the network we&#8217;re analyzing and holds auxilary data about it.</p>
 <p class="rubric">Example</p>
-<p>In a 3-node network, <tt class="docutils literal"><span class="pre">a_network.tpm[(0,</span> <span class="pre">0,</span> <span class="pre">1)]</span></tt> gives the transition
+<p>In a 3-node network, <code class="docutils literal"><span class="pre">a_network.tpm[(0,</span> <span class="pre">0,</span> <span class="pre">1)]</span></code> gives the transition
 probabilities for each node at <span class="math">\(t_0\)</span> given that state at <span class="math">\(t_{-1}\)</span> was
 <span class="math">\(\{N_0 = 0, N_1 = 0, N_2 = 1\}\)</span>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tpm</strong> (<em>np.ndarray</em>) &#8211; See the corresponding attribute.</li>
-<li><strong>current_state</strong> (<em>tuple</em>) &#8211; See the corresponding attribute.</li>
-<li><strong>past_state</strong> (<em>tuple</em>) &#8211; See the corresponding attribute.</li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tpm</strong> (<em>np.ndarray</em>) &#8211; See the corresponding attribute.</td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first last"><strong>connectivity_matrix</strong> (<em>array or sequence</em>) &#8211;
-A square binary adjacency
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><strong>connectivity_matrix</strong> (<em>array or sequence</em>) &#8211; A square binary adjacency
 matrix indicating the connections between nodes in the network.
-<tt class="docutils literal"><span class="pre">connectivity_matrix[i][j]</span> <span class="pre">==</span> <span class="pre">1</span></tt> means that node <span class="math">\(i\)</span> is connected
+<code class="docutils literal"><span class="pre">connectivity_matrix[i][j]</span> <span class="pre">==</span> <span class="pre">1</span></code> means that node <span class="math">\(i\)</span> is connected
 to node <span class="math">\(j\)</span>. If no connectivity matrix is given, every node is
-connected to every node <strong>(including itself)</strong>.</p>
-</td>
+connected to every node <strong>(including itself)</strong>.</td>
 </tr>
 </tbody>
 </table>
 <dl class="attribute">
 <dt id="pyphi.network.Network.tpm">
-<tt class="descname">tpm</tt><a class="headerlink" href="#pyphi.network.Network.tpm" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.ndarray</em></p>
-<p>The network&#8217;s transition probability matrix. It can be provided in
+<code class="descname">tpm</code><a class="headerlink" href="#pyphi.network.Network.tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.ndarray</em> &#8211; The network&#8217;s transition probability matrix. It can be provided in
 either state-by-node (either 2-D or N-D) or state-by-state form. In
 either form, row indices must follow the <strong>LOLI</strong> convention (see
-discussion in the <a class="reference internal" href="examples.html#module-pyphi.examples" title="pyphi.examples"><tt class="xref py py-mod docutils literal"><span class="pre">examples</span></tt></a> module), and in state-by-state form,
+discussion in the <a class="reference internal" href="examples.html#module-pyphi.examples" title="pyphi.examples"><code class="xref py py-mod docutils literal"><span class="pre">examples</span></code></a> module), and in state-by-state form,
 so must column indices. If given in state-by-node form, it can be
-either 2-dimensional, so that <tt class="docutils literal"><span class="pre">tpm[i]</span></tt> gives the probabilities of
+either 2-dimensional, so that <code class="docutils literal"><span class="pre">tpm[i]</span></code> gives the probabilities of
 each node being on if the past state is encoded by <span class="math">\(i\)</span> according to
-<strong>LOLI</strong>, or in N-D form, so that <tt class="docutils literal"><span class="pre">tpm[(0,</span> <span class="pre">0,</span> <span class="pre">1)]</span></tt> gives the
+<strong>LOLI</strong>, or in N-D form, so that <code class="docutils literal"><span class="pre">tpm[(0,</span> <span class="pre">0,</span> <span class="pre">1)]</span></code> gives the
 probabilities of each node being on if the past state is <span class="math">\(\{N_0 = 0, N_1 = 0, N_2 = 1\}\)</span>. The shape of the 2-dimensional form of a
-state-by-node TPM must be <tt class="docutils literal"><span class="pre">(S,</span> <span class="pre">N)</span></tt>, and the shape of the N-D form
-of the TPM must be <tt class="docutils literal"><span class="pre">[2]</span> <span class="pre">*</span> <span class="pre">N</span> <span class="pre">+</span> <span class="pre">[N]</span></tt>, where <tt class="docutils literal"><span class="pre">S</span></tt> is the number of
-states and <tt class="docutils literal"><span class="pre">N</span></tt> is the number of nodes in the network.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyphi.network.Network.current_state">
-<tt class="descname">current_state</tt><a class="headerlink" href="#pyphi.network.Network.current_state" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>tuple</em></p>
-<p>The current state of the network. <tt class="docutils literal"><span class="pre">current_state[i]</span></tt> gives the
-current state of node <span class="math">\(i\)</span>.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyphi.network.Network.past_state">
-<tt class="descname">past_state</tt><a class="headerlink" href="#pyphi.network.Network.past_state" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>tuple</em></p>
-<p>The past state of the network. <tt class="docutils literal"><span class="pre">past_state[i]</span></tt> gives the past
-state of node <span class="math">\(i\)</span>.</p>
+state-by-node TPM must be <code class="docutils literal"><span class="pre">(S,</span> <span class="pre">N)</span></code>, and the shape of the N-D form
+of the TPM must be <code class="docutils literal"><span class="pre">[2]</span> <span class="pre">*</span> <span class="pre">N</span> <span class="pre">+</span> <span class="pre">[N]</span></code>, where <code class="docutils literal"><span class="pre">S</span></code> is the number of
+states and <code class="docutils literal"><span class="pre">N</span></code> is the number of nodes in the network.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.network.Network.connectivity_matrix">
-<tt class="descname">connectivity_matrix</tt><a class="headerlink" href="#pyphi.network.Network.connectivity_matrix" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.ndarray</em></p>
-<p>A square binary adjacency matrix indicating the connections between
+<code class="descname">connectivity_matrix</code><a class="headerlink" href="#pyphi.network.Network.connectivity_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>np.ndarray</em> &#8211; A square binary adjacency matrix indicating the connections between
 nodes in the network.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.network.Network.size">
-<tt class="descname">size</tt><a class="headerlink" href="#pyphi.network.Network.size" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em></p>
-<p>The number of nodes in the network.</p>
+<code class="descname">size</code><a class="headerlink" href="#pyphi.network.Network.size" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; The number of nodes in the network.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.network.Network.num_states">
-<tt class="descname">num_states</tt><a class="headerlink" href="#pyphi.network.Network.num_states" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em></p>
-<p>The number of possible states of the network.</p>
+<code class="descname">num_states</code><a class="headerlink" href="#pyphi.network.Network.num_states" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; The number of possible states of the network.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt>
-<tt class="descname">size</tt></dt>
+<code class="descname">size</code></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt>
-<tt class="descname">num_states</tt></dt>
+<code class="descname">num_states</code></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.network.Network.node_indices">
-<tt class="descname">node_indices</tt><a class="headerlink" href="#pyphi.network.Network.node_indices" title="Permalink to this definition">¶</a></dt>
+<code class="descname">node_indices</code><a class="headerlink" href="#pyphi.network.Network.node_indices" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt>
-<tt class="descname">current_state</tt></dt>
+<code class="descname">tpm</code></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt>
-<tt class="descname">past_state</tt></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt>
-<tt class="descname">tpm</tt></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt>
-<tt class="descname">connectivity_matrix</tt></dt>
+<code class="descname">connectivity_matrix</code></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.network.Network.perturb_vector">
-<tt class="descname">perturb_vector</tt><a class="headerlink" href="#pyphi.network.Network.perturb_vector" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pyphi.network.Network.build_purview_cache">
-<tt class="descname">build_purview_cache</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.network.Network.build_purview_cache" title="Permalink to this definition">¶</a></dt>
+<code class="descname">perturb_vector</code><a class="headerlink" href="#pyphi.network.Network.perturb_vector" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pyphi.network.Network.__eq__">
-<tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyphi.network.Network.__eq__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.Network.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether this network equals the other object.</p>
-<p>Two networks are equal if they have the same TPM, current state, and
-past state.</p>
+<p>Two networks are equal if they have the same TPM, connectivity matrix,
+and perturbation vector.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="pyphi.network.Network.json_dict">
-<tt class="descname">json_dict</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.network.Network.json_dict" title="Permalink to this definition">¶</a></dt>
+<dt id="pyphi.network.Network.to_json">
+<code class="descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.Network.to_json" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -327,10 +336,10 @@ past state.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="subsystem.html" class="btn btn-neutral float-right" title="subsystem"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="node.html" class="btn btn-neutral float-right" title="node" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="compute.html" class="btn btn-neutral" title="compute"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="models.html" class="btn btn-neutral" title="models" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -340,12 +349,13 @@ past state.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 11, 2015.
+      Last updated on Jan 12, 2016.
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
+
         </div>
       </div>
 
@@ -360,7 +370,7 @@ past state.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.7.0',
+            VERSION:'v0.7.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -369,7 +379,7 @@ past state.</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

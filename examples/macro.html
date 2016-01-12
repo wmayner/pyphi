@@ -7,16 +7,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Emergence (Macro/Micro) &mdash; v0.7.0 documentation</title>
+  <title>Emergence (Macro/Micro) &mdash; v0.7.5 documentation</title>
   
 
   
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -32,13 +32,15 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.7.0 documentation" href="../index.html"/>
-        <link rel="up" title="Usage and Examples" href="index.html"/>
-        <link rel="next" title="IIT 3.0 Paper (2014)" href="2014paper.html"/>
-        <link rel="prev" title="XOR Network" href="xor.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+    <link rel="top" title="v0.7.5 documentation" href="../index.html"/>
+        <link rel="up" title="Usage and Examples" href="index.html"/>
+        <link rel="next" title="Magic Cuts" href="magic_cut.html"/>
+        <link rel="prev" title="Conditional Independence" href="conditional_independence.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -49,28 +51,69 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.7.0</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+        
+
+        
+          <a href="../index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="../_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-        
-            <ul class="current">
+          
+          
+              <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Usage and Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="residue.html">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">Emergence (Macro/Micro)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="magic_cut.html">Magic Cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
 </ul>
 </li>
 </ul>
@@ -86,25 +129,42 @@
 </li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../api/config.html"><tt class="docutils literal"><span class="pre">config</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/config.html"><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/valiate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
 </ul>
 </li>
 </ul>
 
+          
         
       </div>
       &nbsp;
@@ -115,7 +175,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.7.0</a>
+        <a href="../index.html">PyPhi v0.7.5</a>
       </nav>
 
 
@@ -131,39 +191,34 @@
     <li>Emergence (Macro/Micro)</li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/examples/macro.txt" rel="nofollow"> View page source</a>
+          
+            <a href="../_sources/examples/macro.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
+          <div role="main" class="document">
             
   <div class="section" id="emergence-macro-micro">
 <h1>Emergence (Macro/Micro)<a class="headerlink" href="#emergence-macro-micro" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference internal" href="../api/examples.html#pyphi.examples.macro_network" title="pyphi.examples.macro_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.macro_network()</span></tt></a></li>
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.macro_network" title="pyphi.examples.macro_network"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.macro_network()</span></code></a></li>
 </ul>
-<p>For this example, we will use the <tt class="docutils literal"><span class="pre">pprint</span></tt> module to display lists in a way
+<p>For this example, we will use the <code class="docutils literal"><span class="pre">pprint</span></code> module to display lists in a way
 which makes them easer to read.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
 </pre></div>
 </div>
-<p>We&#8217;ll use the <a class="reference internal" href="../api/macro.html#module-pyphi.macro" title="pyphi.macro"><tt class="xref py py-mod docutils literal"><span class="pre">macro</span></tt></a> module to explore alternate spatial scales of
+<p>We&#8217;ll use the <a class="reference internal" href="../api/macro.html#module-pyphi.macro" title="pyphi.macro"><code class="xref py py-mod docutils literal"><span class="pre">macro</span></code></a> module to explore alternate spatial scales of
 a network. The network under consideration is a 4-node non-deterministic
-network, available from the <a class="reference internal" href="../api/examples.html#module-pyphi.examples" title="pyphi.examples"><tt class="xref py py-mod docutils literal"><span class="pre">examples</span></tt></a> module.</p>
+network, available from the <a class="reference internal" href="../api/examples.html#module-pyphi.examples" title="pyphi.examples"><code class="xref py py-mod docutils literal"><span class="pre">examples</span></code></a> module.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyphi</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">macro_network</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>All nodes are <strong>OFF</strong> in the current and past state,</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span><span class="o">.</span><span class="n">current_state</span>
-<span class="go">(0, 0, 0, 0)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span><span class="o">.</span><span class="n">past_state</span>
-<span class="go">(0, 0, 0, 0)</span>
-</pre></div>
-</div>
-<p>and the connectivity matrix is all-to-all.</p>
+<p>The connectivity matrix is all-to-all:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">network</span><span class="o">.</span><span class="n">connectivity_matrix</span>
 <span class="go">array([[ 1.,  1.,  1.,  1.],</span>
 <span class="go">       [ 1.,  1.,  1.,  1.],</span>
@@ -171,9 +226,13 @@ network, available from the <a class="reference internal" href="../api/examples.
 <span class="go">       [ 1.,  1.,  1.,  1.]])</span>
 </pre></div>
 </div>
+<p>We&#8217;ll set the state so that nodes are <strong>OFF</strong>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>At the “micro” spatial scale, we can compute the main complex, and determine
 the <span class="math">\(\Phi\)</span> value:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span><span class="o">.</span><span class="n">phi</span>
 <span class="go">0.113889</span>
 </pre></div>
@@ -201,24 +260,24 @@ list of all possible partitions:</p>
 <span class="go"> [[0, 1, 2, 3]]]</span>
 </pre></div>
 </div>
-<p>Lets start by considering the partition <tt class="docutils literal"><span class="pre">[[0,</span> <span class="pre">1,</span> <span class="pre">2],</span> <span class="pre">[3]]</span></tt>:</p>
+<p>Lets start by considering the partition <code class="docutils literal"><span class="pre">[[0,</span> <span class="pre">1,</span> <span class="pre">2],</span> <span class="pre">[3]]</span></code>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span> <span class="o">=</span> <span class="n">partitions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span>
 <span class="go">[[0, 1, 2], [3]]</span>
 </pre></div>
 </div>
 <p>For this partition there are two macro-elements, one consisting of
-micro-elements <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></tt> and the other is simply micro-element <tt class="docutils literal"><span class="pre">3</span></tt>.</p>
+micro-elements <code class="docutils literal"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></code> and the other is simply micro-element <code class="docutils literal"><span class="pre">3</span></code>.</p>
 <p>We must then determine the relationship between micro-elements and
 macro-elements. An assumption when coarse-graining the system, is that the
 resulting macro-elements do not differentiate the different micro-elements.
 Thus any correspondence between states must be stated soley in terms of the
 number of micro-elements which are on, and not depend on which micro-element
 are on.</p>
-<p>For example, consider the macro-element <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></tt>. We may say that the
+<p>For example, consider the macro-element <code class="docutils literal"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></code>. We may say that the
 macro-element is <strong>ON</strong> if at least one micro-element is on, or if all
 micro-elements are on; however, we may not say that the macro-element is <strong>ON</strong>
-if micro-element <tt class="docutils literal"><span class="pre">1</span></tt> is on, because this relationship involves identifying
+if micro-element <code class="docutils literal"><span class="pre">1</span></code> is on, because this relationship involves identifying
 specific micro-elements.</p>
 <p>To see a list of all possible groupings of micro-states into macro-states:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">groupings</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">list_all_groupings</span><span class="p">(</span><span class="n">partition</span><span class="p">)</span>
@@ -262,7 +321,7 @@ mapping between micro-states and macro-states:</p>
 </pre></div>
 </div>
 <p>The interpretation of the mapping uses the <strong>LOLI</strong> convention of indexing (see
-<a class="reference internal" href="conventions.html#loli-convention"><em>LOLI: Low-Order bits correspond to Low-Index nodes</em></a>).</p>
+<a class="reference internal" href="../conventions.html#loli-convention"><span>LOLI: Low-Order bits correspond to Low-Index nodes</span></a>).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
 <span class="go">1.0</span>
 </pre></div>
@@ -296,9 +355,9 @@ coarse-graining of the system:</p>
 <span class="go">False</span>
 </pre></div>
 </div>
-<p>In these cases, the object returned <a class="reference internal" href="../api/macro.html#pyphi.macro.make_macro_network" title="pyphi.macro.make_macro_network"><tt class="xref py py-func docutils literal"><span class="pre">make_macro_network()</span></tt></a>
-function will have a boolean value of <tt class="docutils literal"><span class="pre">False</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_macro_network</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+<p>In these cases, the object returned <a class="reference internal" href="../api/macro.html#pyphi.macro.make_macro_network" title="pyphi.macro.make_macro_network"><code class="xref py py-func docutils literal"><span class="pre">make_macro_network()</span></code></a>
+function will have a boolean value of <code class="docutils literal"><span class="pre">False</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">macro_network</span><span class="p">,</span> <span class="n">macro_state</span><span class="p">)</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_macro_network</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">macro_network</span><span class="p">)</span>
 <span class="go">False</span>
 </pre></div>
@@ -321,14 +380,14 @@ function will have a boolean value of <tt class="docutils literal"><span class="
 <span class="go">        2.,  2.,  3.])</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_macro_network</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">macro_network</span><span class="p">,</span> <span class="n">macro_state</span><span class="p">)</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_macro_network</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">macro_network</span><span class="p">)</span>
 <span class="go">True</span>
 </pre></div>
 </div>
 <p>We can then consider the integrated information of this macro-network and
 compare it to the micro-network.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">macro_network</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">macro_network</span><span class="p">,</span> <span class="n">macro_state</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">macro_main_complex</span><span class="o">.</span><span class="n">phi</span>
 <span class="go">0.86905</span>
 </pre></div>
@@ -339,7 +398,7 @@ greater than the integrated information of the micro system (<span class="math">
 but to determine which one, we must check all possible partitions and all
 possible groupings to find the maximum of integrated information across all
 scales.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">M</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">emergence</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">M</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">emergence</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">partition</span>
 <span class="go">[[0, 1], [2, 3]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">grouping</span>
@@ -359,10 +418,10 @@ value of integrated information, as well as the emergence (increase in
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="2014paper.html" class="btn btn-neutral float-right" title="IIT 3.0 Paper (2014)"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="magic_cut.html" class="btn btn-neutral float-right" title="Magic Cuts" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="xor.html" class="btn btn-neutral" title="XOR Network"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="conditional_independence.html" class="btn btn-neutral" title="Conditional Independence" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -372,12 +431,13 @@ value of integrated information, as well as the emergence (increase in
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 11, 2015.
+      Last updated on Jan 12, 2016.
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
+
         </div>
       </div>
 
@@ -392,7 +452,7 @@ value of integrated information, as well as the emergence (increase in
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.7.0',
+            VERSION:'v0.7.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -401,7 +461,7 @@ value of integrated information, as well as the emergence (increase in
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

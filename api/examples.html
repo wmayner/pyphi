@@ -7,16 +7,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>examples &mdash; v0.7.0 documentation</title>
+  <title>examples &mdash; v0.7.5 documentation</title>
   
 
   
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -32,13 +32,15 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.7.0 documentation" href="../index.html"/>
-        <link rel="up" title="API Reference" href="index.html"/>
-        <link rel="next" title="models" href="models.html"/>
-        <link rel="prev" title="convert" href="convert.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+    <link rel="top" title="v0.7.5 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="macro" href="macro.html"/>
+        <link rel="prev" title="db" href="db.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -49,28 +51,69 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.7.0</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+        
+
+        
+          <a href="../index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="../_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-        
-            <ul>
+          
+          
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/magic_cut.html">Magic Cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 </ul>
 </li>
 </ul>
@@ -85,26 +128,43 @@
 </ul>
 </li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="config.html"><tt class="docutils literal"><span class="pre">config</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="valiate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
 </ul>
 </li>
 </ul>
 
+          
         
       </div>
       &nbsp;
@@ -115,7 +175,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.7.0</a>
+        <a href="../index.html">PyPhi v0.7.5</a>
       </nav>
 
 
@@ -128,23 +188,25 @@
       
           <li><a href="index.html">API Reference</a> &raquo;</li>
       
-    <li><tt class="docutils literal"><span class="pre">examples</span></tt></li>
+    <li><code class="docutils literal"><span class="pre">examples</span></code></li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/api/examples.txt" rel="nofollow"> View page source</a>
+          
+            <a href="../_sources/api/examples.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
+          <div role="main" class="document">
             
   <div class="section" id="module-pyphi.examples">
-<span id="examples"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">examples</span></tt><a class="headerlink" href="#module-pyphi.examples" title="Permalink to this headline">¶</a></h1>
+<span id="examples"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">examples</span></code><a class="headerlink" href="#module-pyphi.examples" title="Permalink to this headline">¶</a></h1>
 <p>Example networks and subsystems to go along with the documentation.</p>
 <dl class="function">
 <dt id="pyphi.examples.basic_network">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">basic_network</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.basic_network" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">basic_network</code><span class="sig-paren">(</span><em>cm=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.basic_network" title="Permalink to this definition">¶</a></dt>
 <dd><p>A simple 3-node network with roughly two bits of <span class="math">\(\Phi\)</span>.</p>
 <p>Diagram:</p>
 <div class="highlight-python"><div class="highlight"><pre>        +~~~~~~~~+
@@ -239,14 +301,14 @@
 
 <dl class="function">
 <dt id="pyphi.examples.basic_subsystem">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">basic_subsystem</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.basic_subsystem" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">basic_subsystem</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.basic_subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>A subsystem containing all the nodes of the
-<a class="reference internal" href="#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><tt class="xref py py-func docutils literal"><span class="pre">basic_network()</span></tt></a>.</p>
+<a class="reference internal" href="#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><code class="xref py py-func docutils literal"><span class="pre">basic_network()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.examples.residue_network">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">residue_network</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.residue_network" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">residue_network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.residue_network" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network for the residue example.</p>
 <p>Current and past state are all nodes off.</p>
 <p>Diagram:</p>
@@ -323,15 +385,15 @@
 
 <dl class="function">
 <dt id="pyphi.examples.residue_subsystem">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">residue_subsystem</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.residue_subsystem" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">residue_subsystem</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.residue_subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>The subsystem containing all the nodes of the
-<a class="reference internal" href="#pyphi.examples.residue_network" title="pyphi.examples.residue_network"><tt class="xref py py-func docutils literal"><span class="pre">residue_network()</span></tt></a>.</p>
+<a class="reference internal" href="#pyphi.examples.residue_network" title="pyphi.examples.residue_network"><code class="xref py py-func docutils literal"><span class="pre">residue_network()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.examples.xor_network">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">xor_network</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.xor_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>A fully connected system of three XOR gates. In the state <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></tt>,
+<code class="descclassname">pyphi.examples.</code><code class="descname">xor_network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.xor_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>A fully connected system of three XOR gates. In the state <code class="docutils literal"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0)</span></code>,
 none of the elementary mechanisms exist.</p>
 <p>Diagram:</p>
 <div class="highlight-python"><div class="highlight"><pre>+~~~~~~~+       +~~~~~~~+
@@ -380,14 +442,14 @@ none of the elementary mechanisms exist.</p>
 
 <dl class="function">
 <dt id="pyphi.examples.xor_subsystem">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">xor_subsystem</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.xor_subsystem" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">xor_subsystem</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.xor_subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>The subsystem containing all the nodes of the
-<a class="reference internal" href="#pyphi.examples.xor_network" title="pyphi.examples.xor_network"><tt class="xref py py-func docutils literal"><span class="pre">xor_network()</span></tt></a>.</p>
+<a class="reference internal" href="#pyphi.examples.xor_network" title="pyphi.examples.xor_network"><code class="xref py py-func docutils literal"><span class="pre">xor_network()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.examples.cond_depend_tpm">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">cond_depend_tpm</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.cond_depend_tpm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">cond_depend_tpm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.cond_depend_tpm" title="Permalink to this definition">¶</a></dt>
 <dd><p>A system of two general logic gates A and B such if they are in the same
 state they stay the same, but if they are in different states, they flip
 with probability 50%.</p>
@@ -466,7 +528,7 @@ with probability 50%.</p>
 
 <dl class="function">
 <dt id="pyphi.examples.cond_independ_tpm">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">cond_independ_tpm</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.cond_independ_tpm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">cond_independ_tpm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.cond_independ_tpm" title="Permalink to this definition">¶</a></dt>
 <dd><p>A system of three general logic gates A, B and C such that: if A and B
 are in the same state then they stay the same; if they are in different
 states, they flip if C is <strong>ON</strong> and stay the same if C is <strong>OFF</strong>; and C
@@ -624,7 +686,7 @@ is <strong>ON</strong> 50% of the time, independent of the previous state.</p>
 
 <dl class="function">
 <dt id="pyphi.examples.propagation_delay_network">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">propagation_delay_network</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.propagation_delay_network" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">propagation_delay_network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.propagation_delay_network" title="Permalink to this definition">¶</a></dt>
 <dd><p>A version of the primary example from the IIT 3.0 paper with
 deterministic COPY gates on each connection. These copy gates essentially
 function as propagation delays on the signal between OR, AND and XOR gates
@@ -632,25 +694,25 @@ from the original system.</p>
 <p>The current and past states of the network are also selected to mimic the
 corresponding states from the IIT 3.0 paper.</p>
 <p>Diagram:</p>
-<div class="highlight-python"><div class="highlight"><pre>                                  +----------+
-            +---------------------+ C (COPY) +&lt;---------------------+
-            V                     +----------+                      |
-+----------+--+                                                 +--+----------+
-|             |                  +----------+                   |             |
-|   A (OR)    +-----------------&gt;+ B (COPY) +------------------&gt;+   D (XOR)   |
-|             |                  +----------+                   |             |
-+--+-------+--+                                                 +--+-------+--+
-    |       ^                                                       ^       |
-    |       |                                                       |       |
-    |       |   +----------+                        +----------+    |       |
-    |       +---+ H (COPY) +&lt;-------+      +-------&gt;+ F (COPY) +----+       |
-    |           +----------+        |      |        +----------+            |
-    |                               |      |                                |
-    |                            +--+------+--+                             |
-    |           +----------+     |            |     +----------+            |
-    +----------&gt;+ I (COPY) +----&gt;|  G (AND)   |&lt;----+ E (COPY) +&lt;-----------+
-                +----------+     |            |     +----------+
-                                +----------- +
+<div class="highlight-python"><div class="highlight"><pre>                           +----------+
+        +------------------+ C (COPY) +&lt;----------------+
+        v                  +----------+                 |
++-------+-+                                           +-+-------+
+|         |                +----------+               |         |
+| A (OR)  +---------------&gt;+ B (COPY) +--------------&gt;+ D (XOR) |
+|         |                +----------+               |         |
++-+-----+-+                                           +-+-----+-+
+  |     ^                                               ^     |
+  |     |                                               |     |
+  |     |   +----------+                 +----------+   |     |
+  |     +---+ H (COPY) +&lt;----+     +----&gt;+ F (COPY) +---+     |
+  |         +----------+     |     |     +----------+         |
+  |                          |     |                          |
+  |                        +-+-----+-+                        |
+  |         +----------+   |         |   +----------+         |
+  +--------&gt;+ I (COPY) +--&gt;| G (AND) |&lt;--+ E (COPY) +&lt;--------+
+            +----------+   |         |   +----------+
+                           +---------+
 </pre></div>
 </div>
 <p>Connectivity matrix:</p>
@@ -783,52 +845,61 @@ corresponding states from the IIT 3.0 paper.</p>
 <p>States:</p>
 <p>In the IIT 3.0 paper example, the past state of the system has only the XOR
 gate on. For the propagation delay network, this corresponds to a state of
-<tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0)</span></tt>.</p>
+<code class="docutils literal"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0)</span></code>.</p>
 <p>The current state of the IIT 3.0 example has only the OR gate on. By
 advancing the propagation delay system two time steps, the current state
-<tt class="docutils literal"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0)</span></tt> is achieved, with corresponding past state
-<tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0)</span></tt>.</p>
+<code class="docutils literal"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0)</span></code> is achieved, with corresponding past state
+<code class="docutils literal"><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0)</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.examples.macro_network">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">macro_network</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.macro_network" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">macro_network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.macro_network" title="Permalink to this definition">¶</a></dt>
 <dd><p>A network of micro elements which has greater integrated information
 after coarse graining to a macro scale.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.examples.macro_subsystem">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">macro_subsystem</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.macro_subsystem" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">macro_subsystem</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.macro_subsystem" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="pyphi.examples.rule110_network">
+<code class="descclassname">pyphi.examples.</code><code class="descname">rule110_network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.rule110_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>A network of three elements which follows the logic of
+the Rule 110 cellular automaton with current and past
+state (0, 0, 0).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.examples.rule154_network">
+<code class="descclassname">pyphi.examples.</code><code class="descname">rule154_network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.rule154_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>A network of three elements which follows the logic of the Rule 154
+cellular automaton.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyphi.examples.fig1a">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig1a</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig1a" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig1a</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig1a" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 1A of the 2014 IIT 3.0 paper.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.examples.fig3a">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig3a</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig3a" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig3a</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig3a" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 3A of the 2014 IIT 3.0 paper.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.examples.fig3b">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig3b</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig3b" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig3b</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig3b" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 3B of the 2014 IIT 3.0 paper.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="pyphi.examples.fig3c">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig3c</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig3c" title="Permalink to this definition">¶</a></dt>
-<dd><p>The network shown in Figure 3C of the 2014 IIT 3.0 paper.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="pyphi.examples.fig4">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig4</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig4" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig4</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig4" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 4 of the 2014 IIT 3.0 paper.</p>
 <p>Diagram:</p>
 <div class="highlight-python"><div class="highlight"><pre>        +~~~~~~~+
@@ -847,7 +918,7 @@ after coarse graining to a macro scale.</p>
 
 <dl class="function">
 <dt id="pyphi.examples.fig5a">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig5a</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig5a" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig5a</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig5a" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 5A of the 2014 IIT 3.0 paper.</p>
 <p>Diagram:</p>
 <div class="highlight-python"><div class="highlight"><pre>         +~~~~~~~+
@@ -865,7 +936,7 @@ after coarse graining to a macro scale.</p>
 
 <dl class="function">
 <dt id="pyphi.examples.fig5b">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig5b</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig5b" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig5b</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig5b" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 5B of the 2014 IIT 3.0 paper.</p>
 <p>Diagram:</p>
 <div class="highlight-python"><div class="highlight"><pre>         +~~~~~~~+
@@ -883,19 +954,19 @@ after coarse graining to a macro scale.</p>
 
 <dl class="function">
 <dt id="pyphi.examples.fig14">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig14</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig14" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig14</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig14" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 1A of the 2014 IIT 3.0 paper.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.examples.fig16">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig16</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig16" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig16</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig16" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 5B of the 2014 IIT 3.0 paper.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.examples.fig10">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig10</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig10" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig10</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig10" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 4 of the 2014 IIT 3.0 paper.</p>
 <p>Diagram:</p>
 <div class="highlight-python"><div class="highlight"><pre>        +~~~~~~~+
@@ -914,7 +985,7 @@ after coarse graining to a macro scale.</p>
 
 <dl class="function">
 <dt id="pyphi.examples.fig6">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig6</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig6" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig6</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig6" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 4 of the 2014 IIT 3.0 paper.</p>
 <p>Diagram:</p>
 <div class="highlight-python"><div class="highlight"><pre>        +~~~~~~~+
@@ -933,7 +1004,7 @@ after coarse graining to a macro scale.</p>
 
 <dl class="function">
 <dt id="pyphi.examples.fig8">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig8</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig8" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig8</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig8" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 4 of the 2014 IIT 3.0 paper.</p>
 <p>Diagram:</p>
 <div class="highlight-python"><div class="highlight"><pre>        +~~~~~~~+
@@ -952,7 +1023,7 @@ after coarse graining to a macro scale.</p>
 
 <dl class="function">
 <dt id="pyphi.examples.fig9">
-<tt class="descclassname">pyphi.examples.</tt><tt class="descname">fig9</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.examples.fig9" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.examples.</code><code class="descname">fig9</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.fig9" title="Permalink to this definition">¶</a></dt>
 <dd><p>The network shown in Figure 4 of the 2014 IIT 3.0 paper.</p>
 <p>Diagram:</p>
 <div class="highlight-python"><div class="highlight"><pre>        +~~~~~~~+
@@ -977,10 +1048,10 @@ after coarse graining to a macro scale.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="models.html" class="btn btn-neutral float-right" title="models"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="macro.html" class="btn btn-neutral float-right" title="macro" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="convert.html" class="btn btn-neutral" title="convert"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="db.html" class="btn btn-neutral" title="db" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -990,12 +1061,13 @@ after coarse graining to a macro scale.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 11, 2015.
+      Last updated on Jan 12, 2016.
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
+
         </div>
       </div>
 
@@ -1010,7 +1082,7 @@ after coarse graining to a macro scale.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.7.0',
+            VERSION:'v0.7.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -1019,7 +1091,7 @@ after coarse graining to a macro scale.</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

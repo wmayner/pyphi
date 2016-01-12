@@ -7,16 +7,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>config &mdash; v0.7.0 documentation</title>
+  <title>config &mdash; v0.7.5 documentation</title>
   
 
   
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -32,13 +32,15 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.7.0 documentation" href="../index.html"/>
-        <link rel="up" title="API Reference" href="index.html"/>
-        <link rel="next" title="compute" href="compute.html"/>
-        <link rel="prev" title="API Reference" href="index.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+    <link rel="top" title="v0.7.5 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="convert" href="convert.html"/>
+        <link rel="prev" title="concept_caching" href="concept_caching.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -49,28 +51,69 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.7.0</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+        
+
+        
+          <a href="../index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="../_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-        
-            <ul>
+          
+          
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/magic_cut.html">Magic Cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 </ul>
 </li>
 </ul>
@@ -85,26 +128,42 @@
 </ul>
 </li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">config</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
 </ul>
 </li>
 </ul>
 
+          
         
       </div>
       &nbsp;
@@ -115,7 +174,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.7.0</a>
+        <a href="../index.html">PyPhi v0.7.5</a>
       </nav>
 
 
@@ -128,34 +187,40 @@
       
           <li><a href="index.html">API Reference</a> &raquo;</li>
       
-    <li><tt class="docutils literal"><span class="pre">config</span></tt></li>
+    <li><code class="docutils literal"><span class="pre">config</span></code></li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/api/config.txt" rel="nofollow"> View page source</a>
+          
+            <a href="../_sources/api/config.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
+          <div role="main" class="document">
             
   <div class="section" id="module-pyphi.config">
-<span id="config"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">config</span></tt><a class="headerlink" href="#module-pyphi.config" title="Permalink to this headline">¶</a></h1>
+<span id="config"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">config</span></code><a class="headerlink" href="#module-pyphi.config" title="Permalink to this headline">¶</a></h1>
 <p>The configuration is loaded upon import from a YAML file in the directory where
-PyPhi is run: <tt class="docutils literal"><span class="pre">pyphi_config.yml</span></tt>. If no file is found, the default
+PyPhi is run: <code class="docutils literal"><span class="pre">pyphi_config.yml</span></code>. If no file is found, the default
 configuration is used.</p>
-<p>The various options are listed here with their defaults.</p>
+<p>The various options are listed here with their defaults</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyphi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">DEFAULTS</span>
+</pre></div>
+</div>
 <div class="section" id="theoretical-approximations">
 <h2>Theoretical approximations<a class="headerlink" href="#theoretical-approximations" title="Permalink to this headline">¶</a></h2>
 <p>This section with deals assumptions that speed up computation at the cost of
 theoretical accuracy.</p>
 <ul>
-<li><p class="first">In certain cases, making a cut can actually cause a previously reducible
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS</span></code>:
+In certain cases, making a cut can actually cause a previously reducible
 concept to become a proper, irreducible concept. Assuming this can never
 happen can increase performance significantly, however the obtained results
 are not strictly accurate.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyphi</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS&#39;</span><span class="p">]</span>
 <span class="go">False</span>
 </pre></div>
 </div>
@@ -170,35 +235,36 @@ machine, so <strong>please check these settings before running anything</strong>
 there is a risk that simulations might crash (potentially after running for a
 long time!), resulting in data loss.</p>
 <ul>
-<li><p class="first">Control whether system cuts are evaluated in parallel, which requires more
-memory. If cuts are evaluated sequentially, only two <a class="reference internal" href="models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a> instances need
-to be in memory at once.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">PARALLEL_CUT_EVALUATION</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.PARALLEL_CUT_EVALUATION</span></code>: Control whether system cuts are
+evaluated in parallel, which requires more memory. If cuts are evaluated
+sequentially, only two <a class="reference internal" href="models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a> instances need to be in memory at once.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;PARALLEL_CUT_EVALUATION&#39;</span><span class="p">]</span>
 <span class="go">True</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Control the number of CPU cores to evaluate unidirectional cuts. Negative
-numbers count backwards from the total number of available cores, with <tt class="docutils literal"><span class="pre">-1</span></tt>
-meaning &#8220;use all available cores&#8221;.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">NUMBER_OF_CORES</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.NUMBER_OF_CORES</span></code>: Control the number of CPU cores used to
+evaluate unidirectional cuts. Negative numbers count backwards from the total
+number of available cores, with <code class="docutils literal"><span class="pre">-1</span></code> meaning &#8220;use all available cores.&#8221;</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;NUMBER_OF_CORES&#39;</span><span class="p">]</span>
 <span class="go">-1</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">If parallel computation is enabled, it will have its own, separate messages,
-which are always sent to standard output. This setting controls their
-verbosity, an integer from 0 to 100.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">PARALLEL_VERBOSITY</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.PARALLEL_VERBOSITY</span></code>:If parallel computation is enabled, it
+will have its own, separate messages, which are always sent to standard
+output. This setting controls their verbosity, an integer from 0 to 100.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;PARALLEL_VERBOSITY&#39;</span><span class="p">]</span>
 <span class="go">0</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">PyPhi employs several in-memory caches to speed up computation. However,
-these can quickly use a lot of memory for large networks or large numbers of
-them; to avoid thrashing, this options limits the percentage of a system&#8217;s
-RAM that the caches can collectively use.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">MAXIMUM_CACHE_MEMORY_PERCENTAGE</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.MAXIMUM_CACHE_MEMORY_PERCENTAGE</span></code>: PyPhi employs several
+in-memory caches to speed up computation. However, these can quickly use a
+lot of memory for large networks or large numbers of them; to avoid
+thrashing, this options limits the percentage of a system&#8217;s RAM that the
+caches can collectively use.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;MAXIMUM_CACHE_MEMORY_PERCENTAGE&#39;</span><span class="p">]</span>
 <span class="go">50</span>
 </pre></div>
 </div>
@@ -207,21 +273,23 @@ RAM that the caches can collectively use.</p>
 </div>
 <div class="section" id="caching">
 <h2>Caching<a class="headerlink" href="#caching" title="Permalink to this headline">¶</a></h2>
-<p>PyPhi is equipped with a transparent caching system for the <a class="reference internal" href="models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a> and
-<a class="reference internal" href="models.html#pyphi.models.Concept" title="pyphi.models.Concept"><tt class="xref py py-class docutils literal"><span class="pre">Concept</span></tt></a> objects, which stores them as they are computed to avoid having to
+<p>PyPhi is equipped with a transparent caching system for the <a class="reference internal" href="models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a> and
+<a class="reference internal" href="models.html#pyphi.models.Concept" title="pyphi.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a> objects, which stores them as they are computed to avoid having to
 recompute them later. This makes it easy to play around interactively with the
 program, or to accumulate results with minimal effort. For larger projects,
 however, it is recommended that you manage the results explicitly, rather than
 relying on the cache. For this reason it is disabled by default.</p>
 <ul>
-<li><p class="first">Control whether <a class="reference internal" href="models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><tt class="xref py py-class docutils literal"><span class="pre">BigMip</span></tt></a> objects are cached and automatically retreived.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">CACHE_BIGMIPS</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.CACHE_BIGMIPS</span></code>: Control whether <a class="reference internal" href="models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a> objects are cached
+and automatically retreived.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;CACHE_BIGMIPS&#39;</span><span class="p">]</span>
 <span class="go">False</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Control whether <a class="reference internal" href="models.html#pyphi.models.Concept" title="pyphi.models.Concept"><tt class="xref py py-class docutils literal"><span class="pre">Concept</span></tt></a> objects are cached and automatically retrieved.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">CACHE_CONCEPTS</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.CACHE_CONCEPTS</span></code>: Control whether <a class="reference internal" href="models.html#pyphi.models.Concept" title="pyphi.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a> objects are cached
+and automatically retrieved.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;CACHE_CONCEPTS&#39;</span><span class="p">]</span>
 <span class="go">False</span>
 </pre></div>
 </div>
@@ -233,52 +301,53 @@ relying on the cache. For this reason it is disabled by default.</p>
 caching backend.</p>
 </div>
 <ul>
-<li><p class="first">Control whether TPMs should be normalized as part of concept normalization.
-TPM normalization increases the chances that a precomputed concept can be
-used again, but is expensive.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">NORMALIZE_TPMS</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.NORMALIZE_TPMS</span></code>: Control whether TPMs should be normalized as
+part of concept normalization. TPM normalization increases the chances that a
+precomputed concept can be used again, but is expensive.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;NORMALIZE_TPMS&#39;</span><span class="p">]</span>
 <span class="go">True</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Control whether precomputed results are stored and read from a database or
-from a local filesystem-based cache in the current directory. Set this to
-&#8216;fs&#8217; for the filesystem, &#8216;db&#8217; for the database. Caching results on the
-filesystem is the easiest to use but least robust caching system. Caching
-results in a database is more robust and allows for caching individual
-concepts, but requires installing MongoDB.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">CACHING_BACKEND</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.CACHING_BACKEND</span></code>: Control whether precomputed results are
+stored and read from a database or from a local filesystem-based cache in the
+current directory. Set this to &#8216;fs&#8217; for the filesystem, &#8216;db&#8217; for the
+database. Caching results on the filesystem is the easiest to use but least
+robust caching system. Caching results in a database is more robust and
+allows for caching individual concepts, but requires installing MongoDB.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;CACHING_BACKEND&#39;</span><span class="p">]</span>
 <span class="go">&#39;fs&#39;</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Control how much caching information is printed. Takes a value between 0 and
-11. Note that printing during a loop iteration can slow down the loop
-considerably.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">FS_CACHE_VERBOSITY</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.FS_CACHE_VERBOSITY</span></code>: Control how much caching information is
+printed. Takes a value between 0 and 11. Note that printing during a loop
+iteration can slow down the loop considerably.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;FS_CACHE_VERBOSITY&#39;</span><span class="p">]</span>
 <span class="go">0</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">If the caching backend is set to use the filesystem, the cache will be stored
-in this directory. This directory can be copied and moved around if you want
-to reuse results _e.g._ on a another computer, but it must be in the same
-directory from which PyPhi is being run.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">FS_CACHE_DIRECTORY</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.FS_CACHE_DIRECTORY</span></code>: If the caching backend is set to use the
+filesystem, the cache will be stored in this directory. This directory can be
+copied and moved around if you want to reuse results _e.g._ on a another
+computer, but it must be in the same directory from which PyPhi is being run.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;FS_CACHE_DIRECTORY&#39;</span><span class="p">]</span>
 <span class="go">&#39;__pyphi_cache__&#39;</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Set the configuration for the MongoDB database backend. This only has an
-effect if the caching backend is set to use the database.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">MONGODB_CONFIG</span><span class="p">[</span><span class="s">&#39;host&#39;</span><span class="p">]</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.MONGODB_CONFIG</span></code>: Set the configuration for the MongoDB
+database backend. This only has an effect if the caching backend is set to
+use the database.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;MONGODB_CONFIG&#39;</span><span class="p">][</span><span class="s">&#39;host&#39;</span><span class="p">]</span>
 <span class="go">&#39;localhost&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">MONGODB_CONFIG</span><span class="p">[</span><span class="s">&#39;port&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;MONGODB_CONFIG&#39;</span><span class="p">][</span><span class="s">&#39;port&#39;</span><span class="p">]</span>
 <span class="go">27017</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">MONGODB_CONFIG</span><span class="p">[</span><span class="s">&#39;database_name&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;MONGODB_CONFIG&#39;</span><span class="p">][</span><span class="s">&#39;database_name&#39;</span><span class="p">]</span>
 <span class="go">&#39;pyphi&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">MONGODB_CONFIG</span><span class="p">[</span><span class="s">&#39;collection_name&#39;</span><span class="p">]</span>
-<span class="go">&#39;test&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;MONGODB_CONFIG&#39;</span><span class="p">][</span><span class="s">&#39;collection_name&#39;</span><span class="p">]</span>
+<span class="go">&#39;cache&#39;</span>
 </pre></div>
 </div>
 </li>
@@ -290,40 +359,45 @@ effect if the caching backend is set to use the database.</p>
 logs and the name of the log file. Logs can be written to standard output, a
 file, both, or none. See the <a class="reference external" href="https://docs.python.org/3.4/library/logging.html">documentation on Python&#8217;s logger</a> for more information.</p>
 <ul>
-<li><p class="first">Control whether logs are written to a file.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">LOGGING_CONFIG</span><span class="p">[</span><span class="s">&#39;file&#39;</span><span class="p">][</span><span class="s">&#39;enabled&#39;</span><span class="p">]</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.LOGGING_CONFIG['file']['enabled']</span></code>: Control whether logs are
+written to a file.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;LOGGING_CONFIG&#39;</span><span class="p">][</span><span class="s">&#39;file&#39;</span><span class="p">][</span><span class="s">&#39;enabled&#39;</span><span class="p">]</span>
 <span class="go">True</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Control the name of the logfile.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">LOGGING_CONFIG</span><span class="p">[</span><span class="s">&#39;file&#39;</span><span class="p">][</span><span class="s">&#39;filename&#39;</span><span class="p">]</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.LOGGING_CONFIG['file']['filename']</span></code>: Control the name of the
+logfile.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;LOGGING_CONFIG&#39;</span><span class="p">][</span><span class="s">&#39;file&#39;</span><span class="p">][</span><span class="s">&#39;filename&#39;</span><span class="p">]</span>
 <span class="go">&#39;pyphi.log&#39;</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Control the concern level of file logging. Can be one of <tt class="docutils literal"><span class="pre">'DEBUG'</span></tt>,
-<tt class="docutils literal"><span class="pre">'INFO'</span></tt>, <tt class="docutils literal"><span class="pre">'WARNING'</span></tt>, <tt class="docutils literal"><span class="pre">'ERROR'</span></tt>, or <tt class="docutils literal"><span class="pre">'CRITICAL'</span></tt>.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">LOGGING_CONFIG</span><span class="p">[</span><span class="s">&#39;file&#39;</span><span class="p">][</span><span class="s">&#39;level&#39;</span><span class="p">]</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.LOGGING_CONFIG['file']['level']</span></code>: Control the concern level
+of file logging. Can be one of <code class="docutils literal"><span class="pre">'DEBUG'</span></code>, <code class="docutils literal"><span class="pre">'INFO'</span></code>, <code class="docutils literal"><span class="pre">'WARNING'</span></code>,
+<code class="docutils literal"><span class="pre">'ERROR'</span></code>, or <code class="docutils literal"><span class="pre">'CRITICAL'</span></code>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;LOGGING_CONFIG&#39;</span><span class="p">][</span><span class="s">&#39;file&#39;</span><span class="p">][</span><span class="s">&#39;level&#39;</span><span class="p">]</span>
 <span class="go">&#39;INFO&#39;</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Control whether logs are written to standard output.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">LOGGING_CONFIG</span><span class="p">[</span><span class="s">&#39;stdout&#39;</span><span class="p">][</span><span class="s">&#39;enabled&#39;</span><span class="p">]</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.LOGGING_CONFIG['stdout']['enabled']</span></code>: Control whether logs
+are written to standard output.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;LOGGING_CONFIG&#39;</span><span class="p">][</span><span class="s">&#39;stdout&#39;</span><span class="p">][</span><span class="s">&#39;enabled&#39;</span><span class="p">]</span>
 <span class="go">True</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Control the concern level of standard output logging. Same possible values as
-file logging.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">LOGGING_CONFIG</span><span class="p">[</span><span class="s">&#39;stdout&#39;</span><span class="p">][</span><span class="s">&#39;level&#39;</span><span class="p">]</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.LOGGING_CONFIG['stdout']['level']</span></code>: Control the concern level
+of standard output logging. Same possible values as file logging.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;LOGGING_CONFIG&#39;</span><span class="p">][</span><span class="s">&#39;stdout&#39;</span><span class="p">][</span><span class="s">&#39;level&#39;</span><span class="p">]</span>
 <span class="go">&#39;INFO&#39;</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Controls whether the current configuration is printed when PyPhi is imported.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">LOG_CONFIG_ON_IMPORT</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.LOG_CONFIG_ON_IMPORT</span></code>: Controls whether the current
+configuration is printed when PyPhi is imported.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;LOG_CONFIG_ON_IMPORT&#39;</span><span class="p">]</span>
 <span class="go">True</span>
 </pre></div>
 </div>
@@ -333,15 +407,15 @@ file logging.</p>
 <div class="section" id="numerical-precision">
 <h2>Numerical precision<a class="headerlink" href="#numerical-precision" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p class="first">Computations in PyPhi rely on finding the Earth Mover&#8217;s Distance. This is
-done via an external C++ library that uses flow-optimization to find a good
-approximation of the EMD. Consequently, systems with zero <span class="math">\(\Phi\)</span> will
-sometimes be computed to have a small but non-zero amount. This setting
-controls the number of decimal places to which PyPhi will consider EMD
-calculations accurate. Values of <span class="math">\(\Phi\)</span> lower than <tt class="docutils literal"><span class="pre">10e-PRECISION</span></tt> will
-be considered insignificant and treated as zero. The default value is about
-as accurate as the EMD computations get.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">PRECISION</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.PRECISION</span></code>: Computations in PyPhi rely on finding the Earth
+Mover&#8217;s Distance. This is done via an external C++ library that uses
+flow-optimization to find a good approximation of the EMD. Consequently,
+systems with zero <span class="math">\(\Phi\)</span> will sometimes be computed to have a small but
+non-zero amount. This setting controls the number of decimal places to which
+PyPhi will consider EMD calculations accurate. Values of <span class="math">\(\Phi\)</span> lower than
+<code class="docutils literal"><span class="pre">10e-PRECISION</span></code> will be considered insignificant and treated as zero. The
+default value is about as accurate as the EMD computations get.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;PRECISION&#39;</span><span class="p">]</span>
 <span class="go">6</span>
 </pre></div>
 </div>
@@ -351,19 +425,35 @@ as accurate as the EMD computations get.</p>
 <div class="section" id="miscellaneous">
 <h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h2>
 <ul>
-<li><p class="first">Control whether PyPhi checks if the network&#8217;s current state is possible,
-given the TPM and the past state. Nodes with no inputs are assumed to be able
-to have any state, and will not constrain the possible states.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">VALIDATE_NETWORK_STATE</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.VALIDATE_SUBSYSTEM_STATES</span></code>: Control whether PyPhi checks if
+the subsystems&#8217;s state is possible (reachable from some past state), given
+the subsystem&#8217;s TPM (<strong>which is conditioned on background conditions</strong>). If
+this is turned off, then <strong>calculated</strong> <span class="math">\(\Phi\)</span> <strong>values may not be
+valid</strong>, since they may be associated with a subsystem that could never be in
+the given state.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;VALIDATE_SUBSYSTEM_STATES&#39;</span><span class="p">]</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI</span></code>: If set to <code class="docutils literal"><span class="pre">True</span></code>,
+this defines the Phi value of subsystems containing only a single node with a
+self-loop to be <code class="docutils literal"><span class="pre">0.5</span></code>. If set to False, their <span class="math">\(\Phi\)</span> will be actually be
+computed (to be zero, in this implementation).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI&#39;</span><span class="p">]</span>
 <span class="go">False</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">If set to <tt class="docutils literal"><span class="pre">True</span></tt>, this defines the Phi value of subsystems containing only
-a single node with a self-loop to be <tt class="docutils literal"><span class="pre">0.5</span></tt>. If set to False, their
-<span class="math">\(\Phi\)</span> will be actually be computed (to be zero, in this implementation).</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI</span>
-<span class="go">False</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.READABLE_REPRS</span></code>: If set to <code class="docutils literal"><span class="pre">True</span></code>, this causes <code class="docutils literal"><span class="pre">repr</span></code>
+calls on PyPhi objects to return pretty-formatted and legible strings.
+Although this breaks the convention that <code class="docutils literal"><span class="pre">__repr__</span></code> methods should return a
+representation which can reconstruct the object, readable representations are
+convenient since the Python REPL calls <code class="docutils literal"><span class="pre">repr</span></code> to represent all objects in
+the shell and PyPhi is often used interactively with the REPL. If set to
+<code class="docutils literal"><span class="pre">False</span></code>, <code class="docutils literal"><span class="pre">repr</span></code> returns more traditional object representations.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s">&#39;READABLE_REPRS&#39;</span><span class="p">]</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </li>
@@ -371,20 +461,39 @@ a single node with a self-loop to be <tt class="docutils literal"><span class="p
 <hr class="docutils" />
 <dl class="function">
 <dt id="pyphi.config.load_config">
-<tt class="descclassname">pyphi.config.</tt><tt class="descname">load_config</tt><big>(</big><em>config</em><big>)</big><a class="headerlink" href="#pyphi.config.load_config" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.config.</code><code class="descname">load_config</code><span class="sig-paren">(</span><em>config</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.config.load_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a configuration.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.config.get_config_string">
-<tt class="descclassname">pyphi.config.</tt><tt class="descname">get_config_string</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.config.get_config_string" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.config.</code><code class="descname">get_config_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.config.get_config_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a string representation of the currently loaded configuration.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.config.print_config">
-<tt class="descclassname">pyphi.config.</tt><tt class="descname">print_config</tt><big>(</big><big>)</big><a class="headerlink" href="#pyphi.config.print_config" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.config.</code><code class="descname">print_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.config.print_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the current configuration.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.config.override">
+<code class="descclassname">pyphi.config.</code><code class="descname">override</code><span class="sig-paren">(</span><em>**new_configs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.config.override" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to override config values within the wrapped function.</p>
+<p>The initial configs are reset after the function returns, even
+if the function raises an exception. This is intended to be used
+by testcases which require specific configuration values.</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pyphi</span> <span class="kn">import</span> <span class="n">config</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@config.override</span><span class="p">(</span><span class="n">PRECISION</span><span class="o">=</span><span class="mi">20000</span><span class="p">)</span>
+<span class="gp">... </span><span class="k">def</span> <span class="nf">test_something</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">PRECISION</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_something</span><span class="p">()</span>
+<span class="go">20000</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -396,10 +505,10 @@ a single node with a self-loop to be <tt class="docutils literal"><span class="p
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="compute.html" class="btn btn-neutral float-right" title="compute"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="convert.html" class="btn btn-neutral float-right" title="convert" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="API Reference"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="concept_caching.html" class="btn btn-neutral" title="concept_caching" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -409,12 +518,13 @@ a single node with a self-loop to be <tt class="docutils literal"><span class="p
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 11, 2015.
+      Last updated on Jan 12, 2016.
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
+
         </div>
       </div>
 
@@ -429,7 +539,7 @@ a single node with a self-loop to be <tt class="docutils literal"><span class="p
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.7.0',
+            VERSION:'v0.7.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -438,7 +548,7 @@ a single node with a self-loop to be <tt class="docutils literal"><span class="p
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

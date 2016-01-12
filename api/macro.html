@@ -7,16 +7,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>macro &mdash; v0.7.0 documentation</title>
+  <title>macro &mdash; v0.7.5 documentation</title>
   
 
   
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -32,13 +32,15 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.7.0 documentation" href="../index.html"/>
-        <link rel="up" title="API Reference" href="index.html"/>
-        <link rel="next" title="convert" href="convert.html"/>
-        <link rel="prev" title="subsystem" href="subsystem.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+    <link rel="top" title="v0.7.5 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="memory" href="memory.html"/>
+        <link rel="prev" title="examples" href="examples.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -49,28 +51,69 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.7.0</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+        
+
+        
+          <a href="../index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="../_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-        
-            <ul>
+          
+          
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/magic_cut.html">Magic Cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 </ul>
 </li>
 </ul>
@@ -85,26 +128,43 @@
 </ul>
 </li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="config.html"><tt class="docutils literal"><span class="pre">config</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="valiate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
 </ul>
 </li>
 </ul>
 
+          
         
       </div>
       &nbsp;
@@ -115,7 +175,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.7.0</a>
+        <a href="../index.html">PyPhi v0.7.5</a>
       </nav>
 
 
@@ -128,76 +188,71 @@
       
           <li><a href="index.html">API Reference</a> &raquo;</li>
       
-    <li><tt class="docutils literal"><span class="pre">macro</span></tt></li>
+    <li><code class="docutils literal"><span class="pre">macro</span></code></li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/api/macro.txt" rel="nofollow"> View page source</a>
+          
+            <a href="../_sources/api/macro.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
+          <div role="main" class="document">
             
   <div class="section" id="module-pyphi.macro">
-<span id="macro"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">macro</span></tt><a class="headerlink" href="#module-pyphi.macro" title="Permalink to this headline">¶</a></h1>
+<span id="macro"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">macro</span></code><a class="headerlink" href="#module-pyphi.macro" title="Permalink to this headline">¶</a></h1>
 <p>Methods for coarse-graining systems to different levels of spatial analysis.</p>
 <dl class="class">
 <dt id="pyphi.macro.MacroNetwork">
-<em class="property">class </em><tt class="descclassname">pyphi.macro.</tt><tt class="descname">MacroNetwork</tt><big>(</big><em>macro_network</em>, <em>macro_phi</em>, <em>micro_network</em>, <em>micro_phi</em>, <em>partition</em>, <em>grouping</em><big>)</big><a class="headerlink" href="#pyphi.macro.MacroNetwork" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyphi.macro.</code><code class="descname">MacroNetwork</code><span class="sig-paren">(</span><em>macro_network</em>, <em>macro_phi</em>, <em>micro_network</em>, <em>micro_phi</em>, <em>partition</em>, <em>grouping</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.MacroNetwork" title="Permalink to this definition">¶</a></dt>
 <dd><p>A coarse-grained network of nodes.</p>
 <p>See the &#8216;macro&#8217; example in the documentation for more information.</p>
 <dl class="attribute">
 <dt id="pyphi.macro.MacroNetwork.network">
-<tt class="descname">network</tt><a class="headerlink" href="#pyphi.macro.MacroNetwork.network" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Network</em></p>
-<p>The network object of the macro-system.</p>
+<code class="descname">network</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.network" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Network</em> &#8211; The network object of the macro-system.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.macro.MacroNetwork.phi">
-<tt class="descname">phi</tt><a class="headerlink" href="#pyphi.macro.MacroNetwork.phi" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em></p>
-<p>The <span class="math">\(\Phi\)</span> of the network&#8217;s main complex.</p>
+<code class="descname">phi</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; The <span class="math">\(\Phi\)</span> of the network&#8217;s main complex.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.macro.MacroNetwork.micro_network">
-<tt class="descname">micro_network</tt><a class="headerlink" href="#pyphi.macro.MacroNetwork.micro_network" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Network</em></p>
-<p>The network object of the corresponding micro
+<code class="descname">micro_network</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.micro_network" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Network</em> &#8211; The network object of the corresponding micro
 system.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.macro.MacroNetwork.micro_phi">
-<tt class="descname">micro_phi</tt><a class="headerlink" href="#pyphi.macro.MacroNetwork.micro_phi" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em></p>
-<p>The <span class="math">\(\Phi\)</span> of the main complex of the
+<code class="descname">micro_phi</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.micro_phi" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; The <span class="math">\(\Phi\)</span> of the main complex of the
 corresponding micro-system.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.macro.MacroNetwork.partition">
-<tt class="descname">partition</tt><a class="headerlink" href="#pyphi.macro.MacroNetwork.partition" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>list</em></p>
-<p>The partition which defines macro-elements in terms
+<code class="descname">partition</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.partition" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list</em> &#8211; The partition which defines macro-elements in terms
 of micro-elements.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.macro.MacroNetwork.grouping">
-<tt class="descname">grouping</tt><a class="headerlink" href="#pyphi.macro.MacroNetwork.grouping" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>list(list)</em></p>
-<p>The correspondence between micro-states and
+<code class="descname">grouping</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.grouping" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list(list</em> &#8211; The correspondence between micro-states and
 macro-states.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyphi.macro.MacroNetwork.emergence">
-<tt class="descname">emergence</tt><a class="headerlink" href="#pyphi.macro.MacroNetwork.emergence" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>float</em></p>
-<p>The difference between the <span class="math">\(\Phi\)</span> of the macro-
+<code class="descname">emergence</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.emergence" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; The difference between the <span class="math">\(\Phi\)</span> of the macro-
 and the micro-system.</p>
 </dd></dl>
 
@@ -205,21 +260,19 @@ and the micro-system.</p>
 
 <dl class="function">
 <dt id="pyphi.macro.list_all_partitions">
-<tt class="descclassname">pyphi.macro.</tt><tt class="descname">list_all_partitions</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.macro.list_all_partitions" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.macro.</code><code class="descname">list_all_partitions</code><span class="sig-paren">(</span><em>network</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.list_all_partitions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of all possible coarse grains of a network.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>network</strong> (<em>Network</em>) &#8211; The physical system to act as the &#8216;micro&#8217; level.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>network</strong> (<a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><em>Network</em></a>) &#8211; The physical system to act as the &#8216;micro&#8217; level.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>partitions</strong> &#8211;
-A list of possible partitions. Each<blockquote>
-<div>element of the list is a list of micro-elements which correspong to
-macro-elements.</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>partitions</strong> &#8211; A list of possible partitions. Each
+element of the list is a list of micro-elements which correspong to
+macro-elements.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list(list))</span></tt></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a href="#id1"><span class="problematic" id="id2">``</span></a>list(list</td>
 </tr>
 </tbody>
 </table>
@@ -227,7 +280,7 @@ macro-elements.</div></blockquote>
 
 <dl class="function">
 <dt id="pyphi.macro.list_all_groupings">
-<tt class="descclassname">pyphi.macro.</tt><tt class="descname">list_all_groupings</tt><big>(</big><em>partition</em><big>)</big><a class="headerlink" href="#pyphi.macro.list_all_groupings" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.macro.</code><code class="descname">list_all_groupings</code><span class="sig-paren">(</span><em>partition</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.list_all_groupings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of all possible groupings of states, for a particular
 coarse graining (partition) of a network.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -235,22 +288,18 @@ coarse graining (partition) of a network.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>network</strong> (<em>Network</em>) &#8211; The physical system on the micro level.</li>
-<li><strong>partitions</strong> (<em>list(list)</em>) &#8211; The partition of micro-elements into macro
+<li><strong>network</strong> (<a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><em>Network</em></a>) &#8211; The physical system on the micro level.</li>
+<li><strong>partitions</strong> (<em>list(list</em>) &#8211; The partition of micro-elements into macro
 elements.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>groupings</strong> &#8211;
-A list of all possible</p>
-<blockquote>
-<div><p>correspondences between micro-states and macro-states for the
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>groupings</strong> &#8211; A list of all possible
+correspondences between micro-states and macro-states for the
 partition.</p>
-</div></blockquote>
-</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">list(list(list(list)))</span></tt></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a href="#id3"><span class="problematic" id="id4">``</span></a>list(list(list(list</p>
 </td>
 </tr>
 </tbody>
@@ -259,7 +308,7 @@ partition.</p>
 
 <dl class="function">
 <dt id="pyphi.macro.make_mapping">
-<tt class="descclassname">pyphi.macro.</tt><tt class="descname">make_mapping</tt><big>(</big><em>partition</em>, <em>grouping</em><big>)</big><a class="headerlink" href="#pyphi.macro.make_mapping" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.macro.</code><code class="descname">make_mapping</code><span class="sig-paren">(</span><em>partition</em>, <em>grouping</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.make_mapping" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a mapping from micro-state to the macro-states based on the
 partition of elements and grouping of states.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -267,18 +316,17 @@ partition of elements and grouping of states.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>partition</strong> (<em>list(list)</em>) &#8211; A partition of micro-elements into macro
+<li><strong>partition</strong> (<em>list(list</em>) &#8211; A partition of micro-elements into macro
 elements.</li>
-<li><strong>grouping</strong> (<em>list(list(list))</em>) &#8211; For each macro-element, a list of micro
+<li><strong>grouping</strong> (<em>list(list(list</em>) &#8211; For each macro-element, a list of micro
 states which set it to ON or OFF.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mapping</strong> &#8211;
-A mapping from micro-states to macro-states.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mapping</strong> &#8211; A mapping from micro-states to macro-states.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">nd.array</span></tt></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">nd.array</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -287,7 +335,7 @@ A mapping from micro-states to macro-states.</p>
 
 <dl class="function">
 <dt id="pyphi.macro.make_macro_tpm">
-<tt class="descclassname">pyphi.macro.</tt><tt class="descname">make_macro_tpm</tt><big>(</big><em>micro_tpm</em>, <em>mapping</em><big>)</big><a class="headerlink" href="#pyphi.macro.make_macro_tpm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.macro.</code><code class="descname">make_macro_tpm</code><span class="sig-paren">(</span><em>micro_tpm</em>, <em>mapping</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.make_macro_tpm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create the macro TPM for a given mapping from micro to macro-states.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -299,11 +347,10 @@ A mapping from micro-states to macro-states.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>macro_tpm</strong> &#8211;
-The TPM of the macro-system.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>macro_tpm</strong> &#8211; The TPM of the macro-system.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">nd.array</span></tt></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">nd.array</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -312,9 +359,9 @@ The TPM of the macro-system.</p>
 
 <dl class="function">
 <dt id="pyphi.macro.make_macro_network">
-<tt class="descclassname">pyphi.macro.</tt><tt class="descname">make_macro_network</tt><big>(</big><em>network</em>, <em>mapping</em><big>)</big><a class="headerlink" href="#pyphi.macro.make_macro_network" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.macro.</code><code class="descname">make_macro_network</code><span class="sig-paren">(</span><em>network</em>, <em>state</em>, <em>mapping</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.make_macro_network" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create the macro-network for a given mapping from micro to macro-states.</p>
-<p>Returns <tt class="docutils literal"><span class="pre">None</span></tt> if the macro TPM does not satisfy the conditional
+<p>Returns <code class="docutils literal"><span class="pre">None</span></code> if the macro TPM does not satisfy the conditional
 independence assumption.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -326,11 +373,7 @@ independence assumption.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>macro_network</strong> &#8211;
-Network of the macro-system, or <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">Network</span></tt></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">macro_network (<code class="docutils literal"><span class="pre">Network</span></code>): Network of the macro-system, or <code class="docutils literal"><span class="pre">None</span></code>.</p>
 </td>
 </tr>
 </tbody>
@@ -339,7 +382,7 @@ Network of the macro-system, or <tt class="docutils literal"><span class="pre">N
 
 <dl class="function">
 <dt id="pyphi.macro.emergence">
-<tt class="descclassname">pyphi.macro.</tt><tt class="descname">emergence</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.macro.emergence" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.macro.</code><code class="descname">emergence</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.emergence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check for emergence of a macro-system into a macro-system.</p>
 <p>Checks all possible partitions and groupings of the micro-system to find
 the spatial scale with maximum integrated information.</p>
@@ -347,17 +390,40 @@ the spatial scale with maximum integrated information.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>network</strong> (<em>Network</em>) &#8211; The network of the micro-system under investigation.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>network</strong> (<a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><em>Network</em></a>) &#8211; The network of the micro-system under investigation.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>macro_network</strong> &#8211;
-The maximal coarse-graining of the<blockquote>
-<div>micro-system.</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>macro_network</strong> &#8211; The maximal coarse-graining of the
+micro-system.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">MacroNetwork</span></tt></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">MacroNetwork</span></code></td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.macro.effective_info">
+<code class="descclassname">pyphi.macro.</code><code class="descname">effective_info</code><span class="sig-paren">(</span><em>network</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.effective_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the effective information of the given network.</p>
+<p>This is equivalent to the average of the
+<a class="reference internal" href="subsystem.html#pyphi.subsystem.Subsystem.effect_info" title="pyphi.subsystem.Subsystem.effect_info"><code class="xref py py-func docutils literal"><span class="pre">effect_info()</span></code></a> (with the entire network as
+the mechanism and purview) over all posisble states of the network. It can
+be interpreted as the “noise in the network&#8217;s TPM,” weighted by the size of
+its state space.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If <code class="docutils literal"><span class="pre">config.VALIDATE_SUBSYSTEM_STATES</span></code> is enabled, then unreachable
+states are omitted from the average.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>For details, see:</p>
+<p>Hoel, Erik P., Larissa Albantakis, and Giulio Tononi.
+“Quantifying causal emergence shows that macro can beat micro.”
+Proceedings of the
+National Academy of Sciences 110.49 (2013): 19790-19795.</p>
+<p class="last">Available online: <a class="reference external" href="http://www.pnas.org/content/110/49/19790.abstract">doi: 10.1073/pnas.1314922110</a>.</p>
+</div>
 </dd></dl>
 
 </div>
@@ -368,10 +434,10 @@ The maximal coarse-graining of the<blockquote>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="convert.html" class="btn btn-neutral float-right" title="convert"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="memory.html" class="btn btn-neutral float-right" title="memory" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="subsystem.html" class="btn btn-neutral" title="subsystem"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral" title="examples" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -381,12 +447,13 @@ The maximal coarse-graining of the<blockquote>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 11, 2015.
+      Last updated on Jan 12, 2016.
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
+
         </div>
       </div>
 
@@ -401,7 +468,7 @@ The maximal coarse-graining of the<blockquote>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.7.0',
+            VERSION:'v0.7.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -410,7 +477,7 @@ The maximal coarse-graining of the<blockquote>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

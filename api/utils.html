@@ -7,16 +7,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>utils &mdash; v0.7.0 documentation</title>
+  <title>utils &mdash; v0.7.5 documentation</title>
   
 
   
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -32,13 +32,15 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.7.0 documentation" href="../index.html"/>
-        <link rel="up" title="API Reference" href="index.html"/>
-        <link rel="next" title="validate" href="validate.html"/>
-        <link rel="prev" title="db" href="db.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+    <link rel="top" title="v0.7.5 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="validate" href="valiate.html"/>
+        <link rel="prev" title="subsystem" href="subsystem.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -49,28 +51,69 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.7.0</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+        
+
+        
+          <a href="../index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="../_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-        
-            <ul>
+          
+          
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../examples/2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/basic.html">Basic Usage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/conditional_independence.html">Conditional Independence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/macro.html">Emergence (Macro/Micro)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/2014paper.html">IIT 3.0 Paper (2014)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#conventions">Conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/magic_cut.html">Magic Cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/residue.html">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/xor.html">XOR Network</a></li>
 </ul>
 </li>
 </ul>
@@ -85,26 +128,43 @@
 </ul>
 </li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="config.html"><tt class="docutils literal"><span class="pre">config</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href=""><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="config.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="valiate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
 </ul>
 </li>
 </ul>
 
+          
         
       </div>
       &nbsp;
@@ -115,7 +175,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.7.0</a>
+        <a href="../index.html">PyPhi v0.7.5</a>
       </nav>
 
 
@@ -128,41 +188,26 @@
       
           <li><a href="index.html">API Reference</a> &raquo;</li>
       
-    <li><tt class="docutils literal"><span class="pre">utils</span></tt></li>
+    <li><code class="docutils literal"><span class="pre">utils</span></code></li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/api/utils.txt" rel="nofollow"> View page source</a>
+          
+            <a href="../_sources/api/utils.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
+          <div role="main" class="document">
             
   <div class="section" id="module-pyphi.utils">
-<span id="utils"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">utils</span></tt><a class="headerlink" href="#module-pyphi.utils" title="Permalink to this headline">¶</a></h1>
+<span id="utils"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">utils</span></code><a class="headerlink" href="#module-pyphi.utils" title="Permalink to this headline">¶</a></h1>
 <p>Functions used by more than one PyPhi module or class, or that might be of
 external use.</p>
 <dl class="function">
-<dt id="pyphi.utils.cut_mechanism_indices">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">cut_mechanism_indices</tt><big>(</big><em>subsystem</em>, <em>cut</em><big>)</big><a class="headerlink" href="#pyphi.utils.cut_mechanism_indices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a tuple of indices of mechanisms that have nodes on both sides
-of the given cut.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pyphi.utils.mechanism_split_by_cut">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">mechanism_split_by_cut</tt><big>(</big><em>mechanism_indices</em>, <em>cut</em><big>)</big><a class="headerlink" href="#pyphi.utils.mechanism_split_by_cut" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pyphi.utils.cut_mice">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">cut_mice</tt><big>(</big><em>mice</em>, <em>cut_matrix</em><big>)</big><a class="headerlink" href="#pyphi.utils.cut_mice" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="pyphi.utils.condition_tpm">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">condition_tpm</tt><big>(</big><em>tpm</em>, <em>fixed_nodes</em>, <em>state</em><big>)</big><a class="headerlink" href="#pyphi.utils.condition_tpm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">condition_tpm</code><span class="sig-paren">(</span><em>tpm</em>, <em>fixed_nodes</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.condition_tpm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a TPM conditioned on the given fixed node indices, whose states
 are fixed according to the given state-tuple.</p>
 <p>The dimensions of the new TPM that correspond to the fixed nodes are
@@ -173,50 +218,79 @@ same as the unconditioned TPM.</p>
 
 <dl class="function">
 <dt id="pyphi.utils.apply_cut">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">apply_cut</tt><big>(</big><em>cut</em>, <em>connectivity_matrix</em><big>)</big><a class="headerlink" href="#pyphi.utils.apply_cut" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">apply_cut</code><span class="sig-paren">(</span><em>cut</em>, <em>connectivity_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.apply_cut" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a modified connectivity matrix where the connections from one
 set of nodes to the other are destroyed.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pyphi.utils.fully_connected">
+<code class="descclassname">pyphi.utils.</code><code class="descname">fully_connected</code><span class="sig-paren">(</span><em>connectivity_matrix</em>, <em>nodes1</em>, <em>nodes2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.fully_connected" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests connectivity of one set of nodes to another.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>connectivity_matrix</strong> (<code class="docutils literal"><span class="pre">np.ndarrray</span></code>) &#8211; The connectivity matrix</li>
+<li><strong>nodes1</strong> (<em>tuple(int</em>) &#8211; The nodes whose outputs to <code class="docutils literal"><span class="pre">nodes2</span></code> will be
+tested.</li>
+<li><strong>nodes2</strong> (<em>tuple(int</em>) &#8211; The nodes whose inputs from <code class="docutils literal"><span class="pre">nodes1</span></code> will
+be tested.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Returns True if all elements in <code class="docutils literal"><span class="pre">nodes1</span></code> output to
+some element in <code class="docutils literal"><span class="pre">nodes2</span></code> AND all elements in <code class="docutils literal"><span class="pre">nodes2</span></code>
+have an input from some element in <code class="docutils literal"><span class="pre">nodes1</span></code>. Otherwise
+return False. Return True if either set of nodes is empty.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyphi.utils.apply_boundary_conditions_to_cm">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">apply_boundary_conditions_to_cm</tt><big>(</big><em>external_indices</em>, <em>connectivity_matrix</em><big>)</big><a class="headerlink" href="#pyphi.utils.apply_boundary_conditions_to_cm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">apply_boundary_conditions_to_cm</code><span class="sig-paren">(</span><em>external_indices</em>, <em>connectivity_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.apply_boundary_conditions_to_cm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a connectivity matrix with all connections to or from external
 nodes removed.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.get_inputs_from_cm">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">get_inputs_from_cm</tt><big>(</big><em>index</em>, <em>connectivity_matrix</em><big>)</big><a class="headerlink" href="#pyphi.utils.get_inputs_from_cm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">get_inputs_from_cm</code><span class="sig-paren">(</span><em>index</em>, <em>connectivity_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.get_inputs_from_cm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a tuple of node indices that have connections to the node with
 the given index.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.get_outputs_from_cm">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">get_outputs_from_cm</tt><big>(</big><em>index</em>, <em>connectivity_matrix</em><big>)</big><a class="headerlink" href="#pyphi.utils.get_outputs_from_cm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">get_outputs_from_cm</code><span class="sig-paren">(</span><em>index</em>, <em>connectivity_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.get_outputs_from_cm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a tuple of node indices that the node with the given index has
 connections to.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.np_hash">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">np_hash</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#pyphi.utils.np_hash" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">np_hash</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.np_hash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a hash of a NumPy array.</p>
-<p>This is much faster than <tt class="docutils literal"><span class="pre">np.toString</span></tt> for large arrays.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.phi_eq">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">phi_eq</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#pyphi.utils.phi_eq" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compare two phi values up to <tt class="xref py py-const docutils literal"><span class="pre">constants.PRECISION</span></tt>.</p>
+<code class="descclassname">pyphi.utils.</code><code class="descname">phi_eq</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.phi_eq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare two phi values up to <code class="xref py py-const docutils literal"><span class="pre">constants.PRECISION</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.combs">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">combs</tt><big>(</big><em>a</em>, <em>r</em><big>)</big><a class="headerlink" href="#pyphi.utils.combs" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">combs</code><span class="sig-paren">(</span><em>a</em>, <em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.combs" title="Permalink to this definition">¶</a></dt>
 <dd><p>NumPy implementation of itertools.combinations.</p>
-<p>Return successive <span class="math">\(r\)</span>-length combinations of elements in the array <tt class="docutils literal"><span class="pre">a</span></tt>.</p>
+<p>Return successive <span class="math">\(r\)</span>-length combinations of elements in the array <code class="docutils literal"><span class="pre">a</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -227,11 +301,10 @@ connections to.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>combinations</strong> &#8211;
-An array of combinations.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>combinations</strong> &#8211; An array of combinations.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">np.ndarray</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -240,7 +313,7 @@ An array of combinations.</p>
 
 <dl class="function">
 <dt id="pyphi.utils.comb_indices">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">comb_indices</tt><big>(</big><em>n</em>, <em>k</em><big>)</big><a class="headerlink" href="#pyphi.utils.comb_indices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">comb_indices</code><span class="sig-paren">(</span><em>n</em>, <em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.comb_indices" title="Permalink to this definition">¶</a></dt>
 <dd><p>N-D version of itertools.combinations.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -252,15 +325,11 @@ An array of combinations.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>combination_indices</strong> &#8211;
-Indices that give the</p>
-<blockquote>
-<div><p><span class="math">\(k\)</span>-combinations of <span class="math">\(n\)</span> elements.</p>
-</div></blockquote>
-</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>combination_indices</strong> &#8211; Indices that give the
+<span class="math">\(k\)</span>-combinations of <span class="math">\(n\)</span> elements.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">np.ndarray</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -282,7 +351,7 @@ Indices that give the</p>
 
 <dl class="function">
 <dt id="pyphi.utils.powerset">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">powerset</tt><big>(</big><em>iterable</em><big>)</big><a class="headerlink" href="#pyphi.utils.powerset" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">powerset</code><span class="sig-paren">(</span><em>iterable</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.powerset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the power set of an iterable (see <a class="reference external" href="http://docs.python.org/2/library/itertools.html#recipes">itertools recipes</a>).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -290,10 +359,9 @@ Indices that give the</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>iterable</strong> (<em>Iterable</em>) &#8211; The iterable from which to generate the power set.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>chain</strong> &#8211;
-An chained iterator over the power set.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>chain</strong> &#8211; An chained iterator over the power set.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">Iterable</span></tt></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">Iterable</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -307,7 +375,7 @@ An chained iterator over the power set.</td>
 
 <dl class="function">
 <dt id="pyphi.utils.uniform_distribution">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">uniform_distribution</tt><big>(</big><em>number_of_nodes</em><big>)</big><a class="headerlink" href="#pyphi.utils.uniform_distribution" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">uniform_distribution</code><span class="sig-paren">(</span><em>number_of_nodes</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.uniform_distribution" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the uniform distribution for a set of binary nodes, indexed by state
 (so there is one dimension per node, the size of which is the number of
 possible states for that node).</p>
@@ -317,12 +385,10 @@ possible states for that node).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nodes</strong> (<em>np.ndarray</em>) &#8211; A set of indices of binary nodes.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>distribution</strong> &#8211;
-The uniform distribution over the set of<blockquote>
-<div>nodes.</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>distribution</strong> &#8211; The uniform distribution over the set of
+nodes.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">np.ndarray</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -330,7 +396,7 @@ The uniform distribution over the set of<blockquote>
 
 <dl class="function">
 <dt id="pyphi.utils.marginalize_out">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">marginalize_out</tt><big>(</big><em>index</em>, <em>tpm</em>, <em>perturb_value=0.5</em><big>)</big><a class="headerlink" href="#pyphi.utils.marginalize_out" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">marginalize_out</code><span class="sig-paren">(</span><em>index</em>, <em>tpm</em>, <em>perturb_value=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.marginalize_out" title="Permalink to this definition">¶</a></dt>
 <dd><p>Marginalize out a node from a TPM.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -342,15 +408,11 @@ The uniform distribution over the set of<blockquote>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>tpm</strong> &#8211;
-A TPM with the same number of dimensions, with</p>
-<blockquote>
-<div><p>the node marginalized out.</p>
-</div></blockquote>
-</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>tpm</strong> &#8211; A TPM with the same number of dimensions, with
+the node marginalized out.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">np.ndarray</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -359,30 +421,27 @@ A TPM with the same number of dimensions, with</p>
 
 <dl class="function">
 <dt id="pyphi.utils.max_entropy_distribution">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">max_entropy_distribution</tt><big>(</big><em>node_indices</em>, <em>number_of_nodes</em>, <em>perturb_vector=None</em><big>)</big><a class="headerlink" href="#pyphi.utils.max_entropy_distribution" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">max_entropy_distribution</code><span class="sig-paren">(</span><em>node_indices</em>, <em>number_of_nodes</em>, <em>perturb_vector=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.max_entropy_distribution" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the maximum entropy distribution over a set of nodes.</p>
 <p>This is different from the network&#8217;s uniform distribution because nodes
-outside the are fixed and treated as if they have only 1 state.</p>
+outside <code class="docutils literal"><span class="pre">node_indices</span></code> are fixed and treated as if they have only 1
+state.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>nodes</strong> (<em>tuple(Nodes)</em>) &#8211; The set of nodes over which to take the
-distribution.</li>
-<li><strong>network</strong> (<em>Network</em>) &#8211; The network the nodes belong to.</li>
+<li><strong>node_indices</strong> (<em>tuple(int</em>) &#8211; The set of node indices over which to take
+the distribution.</li>
+<li><strong>number_of_nodes</strong> (<em>int</em>) &#8211; The total number of nodes in the network.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>distribution</strong> &#8211;
-The maximum entropy distribution over</p>
-<blockquote>
-<div><p>the set of nodes.</p>
-</div></blockquote>
-</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>distribution</strong> &#8211; The maximum entropy distribution over
+the set of nodes.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">np.ndarray</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -391,7 +450,7 @@ The maximum entropy distribution over</p>
 
 <dl class="function">
 <dt id="pyphi.utils.hamming_emd">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">hamming_emd</tt><big>(</big><em>d1</em>, <em>d2</em><big>)</big><a class="headerlink" href="#pyphi.utils.hamming_emd" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">hamming_emd</code><span class="sig-paren">(</span><em>d1</em>, <em>d2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.hamming_emd" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the Earth Mover&#8217;s Distance between two distributions (indexed
 by state, one dimension per node).</p>
 <p>Singleton dimensions are sqeezed out.</p>
@@ -399,7 +458,7 @@ by state, one dimension per node).</p>
 
 <dl class="function">
 <dt id="pyphi.utils.bipartition">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">bipartition</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#pyphi.utils.bipartition" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">bipartition</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.bipartition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of bipartitions for a sequence.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -407,12 +466,10 @@ by state, one dimension per node).</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> (<em>Iterable</em>) &#8211; The iterable to partition.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition</strong> &#8211;
-A list of tuples containing each<blockquote>
-<div>of the two partitions.</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition</strong> &#8211; A list of tuples containing each
+of the two partitions.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list(tuple(tuple))</span></tt></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a href="#id1"><span class="problematic" id="id2">``</span></a>list(tuple(tuple</td>
 </tr>
 </tbody>
 </table>
@@ -426,7 +483,7 @@ A list of tuples containing each<blockquote>
 
 <dl class="function">
 <dt id="pyphi.utils.directed_bipartition">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">directed_bipartition</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#pyphi.utils.directed_bipartition" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">directed_bipartition</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.directed_bipartition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of directed bipartitions for a sequence.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -434,12 +491,10 @@ A list of tuples containing each<blockquote>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> (<em>Iterable</em>) &#8211; The iterable to partition.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition</strong> &#8211;
-A list of tuples containing each<blockquote>
-<div>of the two partitions.</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition</strong> &#8211; A list of tuples containing each
+of the two partitions.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list(tuple(tuple))</span></tt></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a href="#id3"><span class="problematic" id="id4">``</span></a>list(tuple(tuple</td>
 </tr>
 </tbody>
 </table>
@@ -453,7 +508,7 @@ A list of tuples containing each<blockquote>
 
 <dl class="function">
 <dt id="pyphi.utils.directed_bipartition_of_one">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">directed_bipartition_of_one</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#pyphi.utils.directed_bipartition_of_one" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">directed_bipartition_of_one</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.directed_bipartition_of_one" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of directed bipartitions for a sequence where each
 bipartitions includes a set of size 1.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -462,12 +517,10 @@ bipartitions includes a set of size 1.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> (<em>Iterable</em>) &#8211; The iterable to partition.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition</strong> &#8211;
-A list of tuples containing each<blockquote>
-<div>of the two partitions.</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition</strong> &#8211; A list of tuples containing each
+of the two partitions.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list(tuple(tuple))</span></tt></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a href="#id5"><span class="problematic" id="id6">``</span></a>list(tuple(tuple</td>
 </tr>
 </tbody>
 </table>
@@ -481,20 +534,19 @@ A list of tuples containing each<blockquote>
 
 <dl class="function">
 <dt id="pyphi.utils.directed_bipartition_indices">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">directed_bipartition_indices</tt><big>(</big><em>N</em><big>)</big><a class="headerlink" href="#pyphi.utils.directed_bipartition_indices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">directed_bipartition_indices</code><span class="sig-paren">(</span><em>N</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.directed_bipartition_indices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns indices for directed bipartitions of a sequence.</p>
+<p>The directed bipartion</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>N</strong> (<em>int</em>) &#8211; The length of the sequence.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition_indices</strong> &#8211;
-A list of tuples containing the indices<blockquote>
-<div>for each of the two partitions.</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition_indices</strong> &#8211; A list of tuples containing the indices
+for each of the two partitions.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">list</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -509,7 +561,7 @@ A list of tuples containing the indices<blockquote>
 
 <dl class="function">
 <dt id="pyphi.utils.bipartition_indices">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">bipartition_indices</tt><big>(</big><em>N</em><big>)</big><a class="headerlink" href="#pyphi.utils.bipartition_indices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">bipartition_indices</code><span class="sig-paren">(</span><em>N</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.bipartition_indices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns indices for bipartitions of a sequence.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -517,12 +569,10 @@ A list of tuples containing the indices<blockquote>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>N</strong> (<em>int</em>) &#8211; The length of the sequence.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition_indices</strong> &#8211;
-A list of tuples containing the indices<blockquote>
-<div>for each of the two partitions.</div></blockquote>
-</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>bipartition_indices</strong> &#8211; A list of tuples containing the indices
+for each of the two partitions.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">list</span></tt></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">list</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -536,20 +586,40 @@ A list of tuples containing the indices<blockquote>
 </dd></dl>
 
 <dl class="function">
-<dt id="pyphi.utils.connectivity_matrix_to_tpm">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">connectivity_matrix_to_tpm</tt><big>(</big><em>network</em><big>)</big><a class="headerlink" href="#pyphi.utils.connectivity_matrix_to_tpm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a TPM from a connectivity matrix and nodes that implement
-logical functions.</p>
+<dt id="pyphi.utils.submatrix">
+<code class="descclassname">pyphi.utils.</code><code class="descname">submatrix</code><span class="sig-paren">(</span><em>cm</em>, <em>nodes1</em>, <em>nodes2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.submatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the submatrix of connections from <code class="docutils literal"><span class="pre">nodes1</span></code> to <code class="docutils literal"><span class="pre">nodes2</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>network</strong> (<em>Network</em>) &#8211; The network for which to generate the TPM.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cm</strong> (<em>np.ndarray</em>) &#8211; The matrix</li>
+<li><strong>nodes1</strong> (<em>tuple(int</em>) &#8211; Source nodes</li>
+<li><strong>nodes2</strong> (<em>tuple(int</em>) &#8211; Sink nodes</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>tpm</strong> &#8211;
-A transition probability matrix.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><tt class="docutils literal"><span class="pre">np.ndarray</span></tt></td>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.relevant_connections">
+<code class="descclassname">pyphi.utils.</code><code class="descname">relevant_connections</code><span class="sig-paren">(</span><em>n</em>, <em>_from</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.relevant_connections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a connectivity matrix.</p>
+<p>Returns an <span class="math">\(N \times N\)</span> connectivity matrix with the <span class="math">\(i,j^{\textrm{th}}\)</span> entry
+set to <code class="docutils literal"><span class="pre">1</span></code> if <span class="math">\(i\)</span> is in <code class="docutils literal"><span class="pre">_from</span></code> and <span class="math">\(j\)</span> is in <code class="docutils literal"><span class="pre">to</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>n</strong> (<em>int</em>) &#8211; The dimensions of the matrix</li>
+<li><strong>_from</strong> (<em>tuple(int</em>) &#8211; Nodes with outgoing connections to <code class="docutils literal"><span class="pre">to</span></code></li>
+<li><strong>to</strong> (<em>tuple(int</em>) &#8211; Nodes with incoming connections from <code class="docutils literal"><span class="pre">_from</span></code></li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -557,26 +627,48 @@ A transition probability matrix.</td>
 
 <dl class="function">
 <dt id="pyphi.utils.block_cm">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">block_cm</tt><big>(</big><em>cm</em><big>)</big><a class="headerlink" href="#pyphi.utils.block_cm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determining if a given connectivity matrix be rearranged as a block
-connectivity matrix.</p>
-<p>If so, the corresponding mechanism/purview is trivially reducible.</p>
+<code class="descclassname">pyphi.utils.</code><code class="descname">block_cm</code><span class="sig-paren">(</span><em>cm</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.block_cm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether <code class="docutils literal"><span class="pre">cm</span></code> can be arranged as a block connectivity matrix.</p>
+<p>If so, the corresponding mechanism/purview is trivially reducible.
+Technically, only square matrices are &#8220;block diagonal&#8221;, but the notion of
+connectivity carries over.</p>
+<p>We test for block connectivity by trying to grow a block of nodes such
+that:</p>
+<ul class="simple">
+<li>&#8216;source&#8217; nodes only input to nodes in the block</li>
+<li>&#8216;sink&#8217; nodes only receive inputs from source nodes in the block</li>
+</ul>
+<p>For example, the following connectivity matrix represents connections from
+<code class="docutils literal"><span class="pre">nodes1</span> <span class="pre">=</span> <span class="pre">A,</span> <span class="pre">B,</span> <span class="pre">C</span></code> to <code class="docutils literal"><span class="pre">nodes2</span> <span class="pre">=</span> <span class="pre">D,</span> <span class="pre">E,</span> <span class="pre">F,</span> <span class="pre">G</span></code> (without loss of
+generality—note that <code class="docutils literal"><span class="pre">nodes1</span></code> and <code class="docutils literal"><span class="pre">nodes2</span></code> may share elements):</p>
+<div class="highlight-python"><div class="highlight"><pre>   D  E  F  G
+A [1, 1, 0, 0]
+B [1, 1, 0, 0]
+C [0, 0, 1, 1]
+</pre></div>
+</div>
+<p>Since nodes <span class="math">\(AB\)</span> only connect to nodes <span class="math">\(DE\)</span>, and node <span class="math">\(C\)</span> only connects to
+nodes <span class="math">\(FG\)</span>, the subgraph is reducible; the cut</p>
+<div class="highlight-python"><div class="highlight"><pre>AB   C
+-- X --
+DE   FG
+</pre></div>
+</div>
+<p>does not change the structure of the graph.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="pyphi.utils.not_block_reducible">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">not_block_reducible</tt><big>(</big><em>cm</em>, <em>nodes1</em>, <em>nodes2</em><big>)</big><a class="headerlink" href="#pyphi.utils.not_block_reducible" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tests connectivity of one set of nodes to another.</p>
+<dt id="pyphi.utils.block_reducible">
+<code class="descclassname">pyphi.utils.</code><code class="descname">block_reducible</code><span class="sig-paren">(</span><em>cm</em>, <em>nodes1</em>, <em>nodes2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.block_reducible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether connections from <code class="docutils literal"><span class="pre">nodes1</span></code> to <code class="docutils literal"><span class="pre">nodes2</span></code> are reducible.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>cm</strong> (<em>np.ndarray</em>) &#8211; The network&#8217;s connectivity matrix.</li>
-<li><strong>nodes1</strong> (<em>tuple(Node)</em>) &#8211; The nodes whose outputs to <tt class="docutils literal"><span class="pre">nodes2</span></tt> will be
-tested.</li>
-<li><strong>nodes2</strong> (<em>tuple(Node)</em>) &#8211; The nodes whose inputs from <tt class="docutils literal"><span class="pre">nodes1</span></tt> will
-be tested.</li>
+<li><strong>nodes1</strong> (<em>tuple(int</em>) &#8211; Source nodes</li>
+<li><strong>nodes2</strong> (<em>tuple(int</em>) &#8211; Sink nodes</li>
 </ul>
 </td>
 </tr>
@@ -586,17 +678,17 @@ be tested.</li>
 
 <dl class="function">
 <dt id="pyphi.utils.print_repertoire">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">print_repertoire</tt><big>(</big><em>r</em><big>)</big><a class="headerlink" href="#pyphi.utils.print_repertoire" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">print_repertoire</code><span class="sig-paren">(</span><em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.print_repertoire" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.print_repertoire_horiz">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">print_repertoire_horiz</tt><big>(</big><em>r</em><big>)</big><a class="headerlink" href="#pyphi.utils.print_repertoire_horiz" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">print_repertoire_horiz</code><span class="sig-paren">(</span><em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.print_repertoire_horiz" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyphi.utils.print_partition">
-<tt class="descclassname">pyphi.utils.</tt><tt class="descname">print_partition</tt><big>(</big><em>p</em><big>)</big><a class="headerlink" href="#pyphi.utils.print_partition" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyphi.utils.</code><code class="descname">print_partition</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.print_partition" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -607,10 +699,10 @@ be tested.</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="validate.html" class="btn btn-neutral float-right" title="validate"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="valiate.html" class="btn btn-neutral float-right" title="validate" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="db.html" class="btn btn-neutral" title="db"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="subsystem.html" class="btn btn-neutral" title="subsystem" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -620,12 +712,13 @@ be tested.</li>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 11, 2015.
+      Last updated on Jan 12, 2016.
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
+
         </div>
       </div>
 
@@ -640,7 +733,7 @@ be tested.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.7.0',
+            VERSION:'v0.7.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -649,7 +742,7 @@ be tested.</li>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

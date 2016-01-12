@@ -7,16 +7,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Residue &mdash; v0.7.0 documentation</title>
+  <title>Residue &mdash; v0.7.5 documentation</title>
   
 
   
   
 
   
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   
   
@@ -32,13 +32,15 @@
   
     <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
-    <link rel="top" title="v0.7.0 documentation" href="../index.html"/>
-        <link rel="up" title="Usage and Examples" href="index.html"/>
-        <link rel="next" title="Conditional Independence" href="conditional_independence.html"/>
-        <link rel="prev" title="Basic Usage" href="basic.html"/> 
 
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+    <link rel="top" title="v0.7.5 documentation" href="../index.html"/>
+        <link rel="up" title="Usage and Examples" href="index.html"/>
+        <link rel="next" title="XOR Network" href="xor.html"/>
+        <link rel="prev" title="Magic Cuts" href="magic_cut.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -49,28 +51,69 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="fa fa-home"> PyPhi v0.7.0</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+        
+
+        
+          <a href="../index.html" class="icon icon-home"> PyPhi v0.7.5
+        
+
+        
+          
+          <img src="../_static/phi.png" class="logo" />
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
+
+        
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
         
-        
-            <ul class="current">
+          
+          
+              <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Usage and Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-1">Figure 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-3">Figure 3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#a">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#b">(B)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#c">(C)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-4">Figure 4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-5">Figure 5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#id1">(A)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="2014paper.html#id2">(B)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-6">Figure 6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-7">Figure 7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-8">Figure 8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-9">Figure 9</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-10">Figure 10</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-11">Figure 11</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-12">Figure 12</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-13">Figure 13</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-14">Figure 14</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-15">Figure 15</a></li>
+<li class="toctree-l3"><a class="reference internal" href="2014paper.html#figure-16">Figure 16</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Usage</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence</a></li>
-<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
 <li class="toctree-l2"><a class="reference internal" href="macro.html">Emergence (Macro/Micro)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2014paper.html">IIT 3.0 Paper (2014)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#conventions">Conventions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="magic_cut.html">Magic Cuts</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Residue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
 </ul>
 </li>
 </ul>
@@ -86,25 +129,42 @@
 </li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#connectivity-matrices">Connectivity Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conventions.html#loli-low-order-bits-correspond-to-low-index-nodes">LOLI: Low-Order bits correspond to Low-Index nodes</a></li>
+</ul>
+</li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../api/config.html"><tt class="docutils literal"><span class="pre">config</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/compute.html"><tt class="docutils literal"><span class="pre">compute</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/network.html"><tt class="docutils literal"><span class="pre">network</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/subsystem.html"><tt class="docutils literal"><span class="pre">subsystem</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/macro.html"><tt class="docutils literal"><span class="pre">macro</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/convert.html"><tt class="docutils literal"><span class="pre">convert</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/examples.html"><tt class="docutils literal"><span class="pre">examples</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/models.html"><tt class="docutils literal"><span class="pre">models</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/node.html"><tt class="docutils literal"><span class="pre">node</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/concept_caching.html"><tt class="docutils literal"><span class="pre">concept_caching</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/memory.html"><tt class="docutils literal"><span class="pre">memory</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/db.html"><tt class="docutils literal"><span class="pre">db</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/utils.html"><tt class="docutils literal"><span class="pre">utils</span></tt></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/validate.html"><tt class="docutils literal"><span class="pre">validate</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/config.html"><code class="docutils literal"><span class="pre">config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#theoretical-approximations">Theoretical approximations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#system-resources">System resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#caching">Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#numerical-precision">Numerical precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/config.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api/convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/valiate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
 </ul>
 </li>
 </ul>
 
+          
         
       </div>
       &nbsp;
@@ -115,7 +175,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.7.0</a>
+        <a href="../index.html">PyPhi v0.7.5</a>
       </nav>
 
 
@@ -131,19 +191,21 @@
     <li>Residue</li>
       <li class="wy-breadcrumbs-aside">
         
-          <a href="../_sources/examples/residue.txt" rel="nofollow"> View page source</a>
+          
+            <a href="../_sources/examples/residue.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
   </ul>
   <hr/>
 </div>
-          <div role="main">
+          <div role="main" class="document">
             
   <div class="section" id="residue">
 <h1>Residue<a class="headerlink" href="#residue" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference internal" href="../api/examples.html#pyphi.examples.residue_network" title="pyphi.examples.residue_network"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.residue_network()</span></tt></a></li>
-<li><a class="reference internal" href="../api/examples.html#pyphi.examples.residue_subsystem" title="pyphi.examples.residue_subsystem"><tt class="xref py py-func docutils literal"><span class="pre">pyphi.examples.residue_subsystem()</span></tt></a></li>
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.residue_network" title="pyphi.examples.residue_network"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.residue_network()</span></code></a></li>
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.residue_subsystem" title="pyphi.examples.residue_subsystem"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.residue_subsystem()</span></code></a></li>
 </ul>
 <p>This example describes a system containing two <strong>AND</strong> nodes, <span class="math">\(A\)</span> and <span class="math">\(B\)</span>, with
 a single overlapping input node.</p>
@@ -153,16 +215,16 @@ nodes off in the current and past states.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">residue_subsystem</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Next, we can define the mechanisms of interest:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">0</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">1</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">AB</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<p>Next, we can define the mechanisms of interest. Mechanisms and purviews are represented by tuples of node indices in the network:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">B</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">AB</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>And the possible past purviews that we&#8217;re interested in:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">CD</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">DE</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">CDE</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">indices2nodes</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">CD</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">DE</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">CDE</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We can then evaluate the cause information for each of the mechanisms over the
@@ -185,7 +247,7 @@ minimally in this system.</p>
 <p>Instead, we can quantify existence as the irreducible cause information of a
 mechanism. The <strong>MIP</strong> of a mechanism is the partition of mechanism and purview
 which makes the least difference to the cause repertoire (see the documentation
-for the <a class="reference internal" href="../api/models.html#pyphi.models.Mip" title="pyphi.models.Mip"><tt class="xref py py-class docutils literal"><span class="pre">Mip</span></tt></a> object). The irreducible cause information
+for the <a class="reference internal" href="../api/models.html#pyphi.models.Mip" title="pyphi.models.Mip"><code class="xref py py-class docutils literal"><span class="pre">Mip</span></code></a> object). The irreducible cause information
 is the distance between the unpartitioned and partitioned repertoires.</p>
 <p>To calculate the MIP structure of mechanism <span class="math">\(AB\)</span>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_AB</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">AB</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span>
@@ -193,10 +255,10 @@ is the distance between the unpartitioned and partitioned repertoires.</p>
 </div>
 <p>We can then determine what the specific partition is.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_AB</span><span class="o">.</span><span class="n">partition</span>
-<span class="go">(Part(mechanism=(), purview=(n2,)), Part(mechanism=(n0, n1), purview=(n3, n4)))</span>
+<span class="go">(Part(mechanism=(), purview=(2,)), Part(mechanism=(0, 1), purview=(3, 4)))</span>
 </pre></div>
 </div>
-<p>The labels <tt class="docutils literal"><span class="pre">(n0,</span> <span class="pre">n1,</span> <span class="pre">n2,</span> <span class="pre">n3,</span> <span class="pre">n4)</span></tt> correspond to nodes <span class="math">\(A, B, C, D, E\)</span>
+<p>The labels <code class="docutils literal"><span class="pre">(n0,</span> <span class="pre">n1,</span> <span class="pre">n2,</span> <span class="pre">n3,</span> <span class="pre">n4)</span></code> correspond to nodes <span class="math">\(A, B, C, D, E\)</span>
 respectively. Thus the MIP is <span class="math">\(\frac{AB}{DE} \times \frac{\left[\;\right]}{C}\)</span>, where <span class="math">\([\,]\)</span>
 denotes the empty mechanism.</p>
 <p>The partitioned repertoire of the MIP can also be retrieved:</p>
@@ -221,7 +283,7 @@ irreducible cause information of the mechanisms <span class="math">\(A\)</span> 
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span><span class="o">.</span><span class="n">phi</span>
 <span class="go">0.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span><span class="o">.</span><span class="n">mip_past</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CDE</span><span class="p">)</span><span class="o">.</span><span class="n">partition</span>
-<span class="go">(Part(mechanism=(), purview=(n4,)), Part(mechanism=(n0,), purview=(n2, n3)))</span>
+<span class="go">(Part(mechanism=(), purview=(4,)), Part(mechanism=(0,), purview=(2, 3)))</span>
 </pre></div>
 </div>
 <p>Instead, we should evaluate <span class="math">\(A\)</span> over the purview <span class="math">\(CD\)</span>.</p>
@@ -230,7 +292,7 @@ irreducible cause information of the mechanisms <span class="math">\(A\)</span> 
 </div>
 <p>In this case, there is a well defined MIP</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip_A</span><span class="o">.</span><span class="n">partition</span>
-<span class="go">(Part(mechanism=(), purview=(n2,)), Part(mechanism=(n0,), purview=(n3,)))</span>
+<span class="go">(Part(mechanism=(), purview=(2,)), Part(mechanism=(0,), purview=(3,)))</span>
 </pre></div>
 </div>
 <p>which is <span class="math">\(\frac{\left[\;\right]}{C} \times \frac{A}{D}\)</span>. It has partitioned repertoire</p>
@@ -258,10 +320,10 @@ residual of causes, at a level of <span class="math">\(\varphi = \frac{1}{10}\)<
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="conditional_independence.html" class="btn btn-neutral float-right" title="Conditional Independence"/>Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="xor.html" class="btn btn-neutral float-right" title="XOR Network" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="basic.html" class="btn btn-neutral" title="Basic Usage"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="magic_cut.html" class="btn btn-neutral" title="Magic Cuts" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -271,12 +333,13 @@ residual of causes, at a level of <span class="math">\(\varphi = \frac{1}{10}\)<
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on May 12, 2015.
+      Last updated on Jan 12, 2016.
     </p>
   </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
 </footer>
+
         </div>
       </div>
 
@@ -291,7 +354,7 @@ residual of causes, at a level of <span class="math">\(\varphi = \frac{1}{10}\)<
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.7.0',
+            VERSION:'v0.7.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
@@ -300,7 +363,7 @@ residual of causes, at a level of <span class="math">\(\varphi = \frac{1}{10}\)<
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
