@@ -242,8 +242,11 @@ class MiceCache(DictCache):
           - The subsystem is uncut (caches are only inherited from
             uncut subsystems so there is no reason to cache on cut
             subsystems.)
-          - |phi| > 0. Why?? presumably because the computation is
-            already quick(er)?
+          - |phi| > 0. Ideally we would cache all mice, but the size
+            of the cache grows way too large, making parallel computations
+            incredibly inefficient because the caches have to be passed
+            between process. This will be changed once global caches are
+            implemented.
           - Memory is not too full.
         """
         if (not self.subsystem.is_cut() and mice.phi > 0
