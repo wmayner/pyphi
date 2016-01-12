@@ -488,6 +488,12 @@ def relevant_connections(n, _from, to):
         to (tuple(int)): Nodes with incoming connections from ``_from``
     """
     cm = np.zeros((n, n))
+
+    # Don't try and index with empty arrays. Older versions of NumPy
+    # (at least up to 1.9.3) break with empty array indices.
+    if not _from or not to:
+        return cm
+
     cm[np.ix_(_from, to)] = 1
     return cm
 
