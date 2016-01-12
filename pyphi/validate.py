@@ -13,7 +13,7 @@ from .constants import EPSILON
 
 
 class StateUnreachableError(ValueError):
-    """Raised when a current state cannot be reached from any past state."""
+    """Raised when the current state cannot be reached from any past state."""
 
     def __init__(self, state, message):
         self.state = state
@@ -24,8 +24,10 @@ class StateUnreachableError(ValueError):
 
 
 def direction(direction):
+    """Validate that the given direction is one of the allowed constants."""
     if direction not in constants.DIRECTIONS:
-        raise ValueError("Direction must be either 'past' or 'future'.")
+        raise ValueError('Direction must be one of '
+                         '{}.'.format(constants.DIRECTIONS))
     return True
 
 
@@ -64,6 +66,7 @@ def tpm(tpm):
 
 
 def conditionally_independent(tpm):
+    """Validate that the TPM is conditionally independent."""
     tpm = np.array(tpm)
     there_and_back_again = convert.state_by_node2state_by_state(
         convert.state_by_state2state_by_node(tpm))
@@ -71,6 +74,7 @@ def conditionally_independent(tpm):
 
 
 def connectivity_matrix(cm):
+    """Validate the given connectivity matrix."""
     # Special case for empty matrices.
     if cm.size == 0:
         return True
@@ -96,8 +100,10 @@ def perturb_vector(pv, size):
 
 
 def network(n):
-    """Validate a network's TPM, connectivity matrix, and perturbation
-    vector."""
+    """Validate a :class:`~pyphi.network.Network`.
+
+    Checks the TPM, connectivity matrix, and perturbation vector.
+    """
     tpm(n.tpm)
     connectivity_matrix(n.connectivity_matrix)
     perturb_vector(n.perturb_vector, n.size)
@@ -108,13 +114,14 @@ def network(n):
 
 
 def node_states(state):
-    """Check that a state contains only zeros and ones."""
+    """Check that the state contains only zeros and ones."""
     if not all([n in (0, 1) for n in state]):
         raise ValueError(
             'Invalid state: states must consist of only zeros and ones.')
 
 
 def state_length(state, size):
+    """Check that the state is the given size."""
     if len(state) != size:
         raise ValueError('Invalid state: there must be one entry per '
                          'node in the network; this state has {} entries, but '
@@ -123,13 +130,13 @@ def state_length(state, size):
 
 
 def state_reachable(subsystem):
-    """Return whether a state can be reached according to the given network's
-    TPM.
+    """Return whether a state can be reached according to the network's TPM.
 
     If ``constrained_nodes`` is provided, then nodes not in
-    `constrained_nodes`` will be left free (their state will not considered
+    ``constrained_nodes`` will be left free (their state will not considered
     restricted by the TPM). Otherwise, any nodes without inputs will be left
-    free."""
+    free.
+    """
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
@@ -145,15 +152,17 @@ def state_reachable(subsystem):
 
 
 def cut(cut, node_indices):
-    """Validate that the cut is for only these nodes."""
+    """Check that the cut is for only the given nodes."""
     if set(cut[0] + cut[1]) != set(node_indices):
-        raise ValueError(
-            "{} nodes are not equal to subsystem nodes {}".format(
-                cut, node_indices))
+        raise ValueError('{} nodes are not equal to subsystem nodes '
+                         '{}'.format(cut, node_indices))
 
 
 def subsystem(s):
-    """Validate a subsystem's state."""
+    """Validate a :class:`~pyphi.subsystem.Subsystem`.
+
+    Checks its state and cut.
+    """
     state_length(s.state, s.network.size)
     node_states(s.state)
     cut(s.cut, s.node_indices)
