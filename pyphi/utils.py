@@ -613,10 +613,3 @@ def print_repertoire_horiz(r):
     print(' state:  ', '|'.join(label.center(colwidth) for label in
                                 index_labels))
     print('\n' + '-' * 70 + '\n')
-
-
-def print_partition(p):
-    print('\nPart 1: \n\n', p[0].mechanism, '\n-----------------\n',
-          p[0].purview)
-    print('\nPart 2: \n\n', p[1].mechanism, '\n-----------------\n',
-          p[1].purview, '\n')
