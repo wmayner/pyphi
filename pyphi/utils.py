@@ -464,7 +464,7 @@ def _hamming_matrix(N):
 
 
 def submatrix(cm, nodes1, nodes2):
-    """Return the submatrix of connections from nodes1 to nodes2
+    """Return the submatrix of connections from ``nodes1`` to ``nodes2``.
 
     Args:
         cm (np.ndarray): The matrix
@@ -480,12 +480,12 @@ def relevant_connections(n, _from, to):
     """Construct a connectivity matrix.
 
     Returns an |n x n| connectivity matrix with the |i,jth| entry
-    set to `1` if |i| is in `_from` and |j| is in `to`.
+    set to ``1`` if |i| is in ``_from`` and |j| is in ``to``.
 
     Args:
         n (int): The dimensions of the matrix
-        _from (tuple(int)): Nodes with outgoing connections to `to`
-        to (tuple(int)): Nodes with incoming connections from `_from`
+        _from (tuple(int)): Nodes with outgoing connections to ``to``
+        to (tuple(int)): Nodes with incoming connections from ``_from``
     """
     cm = np.zeros((n, n))
     cm[np.ix_(_from, to)] = 1
@@ -493,32 +493,35 @@ def relevant_connections(n, _from, to):
 
 
 def block_cm(cm):
-    """Can the cm be arranged as a block connectivity matrix?
+    """Return whether ``cm`` can be arranged as a block connectivity matrix.
 
     If so, the corresponding mechanism/purview is trivially reducible.
-    Technically, only square matrices are "block diagonal", but the
-    notion of connectivity carries over.
+    Technically, only square matrices are "block diagonal", but the notion of
+    connectivity carries over.
 
-    We test for block connectivity by trying to grow a block of
-    nodes such that:
-        * 'source' nodes only input to nodes in the block
-        * 'sink' nodes only receive inputs from source nodes
-            in the block
+    We test for block connectivity by trying to grow a block of nodes such
+    that:
 
-    For example: the following cm represents connections from
-    `nodes1 = A,B,C` to `nodes2 = D,E,F,G` (without loss of generality--
-    note `nodes1` and `nodes2` may share elements.)
+    * 'source' nodes only input to nodes in the block
+    * 'sink' nodes only receive inputs from source nodes in the block
 
-           D  E  F  G
-        A [1, 1, 0, 0]
-        B [1, 1, 0, 0]
-        C [0, 0, 1, 1]
+    For example, the following connectivity matrix represents connections from
+    ``nodes1 = A, B, C`` to ``nodes2 = D, E, F, G`` (without loss of
+    generality—note that ``nodes1`` and ``nodes2`` may share elements)::
 
-    Since nodes `AB` only connect to nodes `DE`, and node `C` only
-    connects to nodes `FG`, the subgraph is reducible:
-            AB   C
-    the cut -- X --  does not change the structure of the graph.
-            DE   FG
+         D  E  F  G
+      A [1, 1, 0, 0]
+      B [1, 1, 0, 0]
+      C [0, 0, 1, 1]
+
+    Since nodes |AB| only connect to nodes |DE|, and node |C| only connects to
+    nodes |FG|, the subgraph is reducible; the cut ::
+
+      AB   C
+      -- X --
+      DE   FG
+
+    does not change the structure of the graph.
     """
     if np.any(cm.sum(1) == 0):
         return True
@@ -559,10 +562,7 @@ def block_cm(cm):
 # TODO: simplify the conditional validation here and in block_cm
 # TODO: combine with fully_connected
 def block_reducible(cm, nodes1, nodes2):
-    """Is the cm reducible from nodes1 to nodes2?
-
-    Checks whether the connections from `nodes1` to `nodes2`
-    are reducible
+    """Return whether connections from ``nodes1`` to ``nodes2`` are reducible.
 
     Args:
         cm (np.ndarray): The network's connectivity matrix.
