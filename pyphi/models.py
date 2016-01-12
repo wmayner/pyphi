@@ -94,6 +94,12 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         The cut matrix is a square matrix which represents connections
         severed by the cut. The matrix is shrunk to the size of the cut
         subsystem--not necessarily the size of the entire network.
+
+        Example:
+            >>> cut = Cut((1,), (2,))
+            >>> cut.cut_matrix()
+            array([[ 0.,  1.],
+                   [ 0.,  0.]])
         """
         cut_indices = tuple(set(self[0] + self[1]))
         if not cut_indices:  # empty cut

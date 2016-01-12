@@ -86,6 +86,9 @@ class Subsystem:
         self.cut = cut if cut is not None else self.null_cut
 
         # The matrix of connections which are severed due to the cut
+        # Note: this matrix is N x N, where N is the number of elements in
+        # the subsystem, *not* the number of elements in the network.
+        # TODO: save/memoize on the cut so we just say self.cut.matrix()?
         self.cut_matrix = self.cut.cut_matrix()
 
         # The network's connectivity matrix with cut applied
