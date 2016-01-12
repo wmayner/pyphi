@@ -14,6 +14,7 @@ import numpy as np
 
 from . import compute, constants, convert, validate
 from .network import Network
+from .subsystem import Subsystem
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -232,7 +233,8 @@ def emergence(network, state):
         groupings = list_all_groupings(partition)
         for grouping in groupings:
             mapping = make_mapping(partition, grouping)
-            (macro_network, macro_state) = make_macro_network(network, state, mapping)
+            (macro_network, macro_state) = make_macro_network(network, state,
+                                                              mapping)
             if macro_network:
                 main_complex = compute.main_complex(macro_network, macro_state)
                 if (main_complex.phi - max_phi) > constants.EPSILON:
@@ -246,3 +248,48 @@ def emergence(network, state):
                         micro_phi=micro_phi,
                         partition=max_partition,
                         grouping=max_grouping)
+
+
+# TODO write tests
+# TODO? give example of doing it for a bunch of coarse-grains in docstring
+# (make all groupings and partitions, make_network for each of them, etc.)
+def effective_info(network):
+    """
+    Return the effective information of the given network.
+
+    This is equivalent to the average of the
+    :func:`~pyphi.subsystem.Subsystem.effect_info` (with the entire network as
+    the mechanism and purview) over all posisble states of the network. It can
+    be interpreted as the “noise in the network's TPM,” weighted by the size of
+    its state space.
+
+    .. warning::
+
+        If ``config.VALIDATE_SUBSYSTEM_STATES`` is enabled, then unreachable
+        states are omitted from the average.
+
+    .. note::
+
+        For details, see:
+
+        Hoel, Erik P., Larissa Albantakis, and Giulio Tononi.
+        “Quantifying causal emergence shows that macro can beat micro.”
+        Proceedings of the
+        National Academy of Sciences 110.49 (2013): 19790-19795.
+
+        Available online: `doi: 10.1073/pnas.1314922110
+        <http://www.pnas.org/content/110/49/19790.abstract>`_.
+    """
+    # TODO? move to utils
+    states = itertools.product(*((0, 1),)*network.size)
+    subsystems = []
+    for state in states:
+        try:
+            subsystems.append(Subsystem(network, state, network.node_indices))
+        except validate.StateUnreachableError:
+            continue
+    return np.array([
+        subsystem.effect_info(
+            network.node_indices, network.node_indices)
+        for subsystem in subsystems
+    ]).mean()
