@@ -31,7 +31,8 @@ _partition_lists = [
 class MacroNetwork:
     """A coarse-grained network of nodes.
 
-    See the 'macro' example in the documentation for more information.
+    See the :ref:`macro-micro` example in the documentation for more
+    information.
 
     Attributes:
         network (Network): The network object of the macro-system.
