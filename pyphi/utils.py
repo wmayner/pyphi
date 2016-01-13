@@ -543,10 +543,13 @@ def block_cm(cm):
     outputs = list(range(cm.shape[1]))
 
     # CM helpers:
-    # All nodes that `nodes` connect (output) to
-    outputs_of = lambda nodes: np.where(cm[nodes, :].sum(0))[0]
-    # All nodes which connect (input) to `nodes`
-    inputs_to = lambda nodes: np.where(cm[:, nodes].sum(1))[0]
+    def outputs_of(nodes):
+        # All nodes that `nodes` connect to (output to)
+        return np.where(cm[nodes, :].sum(0))[0]
+
+    def inputs_to(nodes):
+        # All nodes which connect to (input to) `nodes`
+        return np.where(cm[:, nodes].sum(1))[0]
 
     # Start: source node with most outputs
     sources = [np.argmax(cm.sum(1))]
