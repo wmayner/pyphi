@@ -22,7 +22,8 @@ install_requires = [
     'psutil >= 2.1.1, <3.0.0',
     'marbl-python >=2.0.0, <3.0.0',
     'pymongo >=2.7.1, <3.0.0',
-    'pyyaml>=3.11, < 4.0'
+    'pyyaml >=3.11, <4.0',
+    'redis >=2.10.5, <3.0.0'
 ]
 
 test_require = [
