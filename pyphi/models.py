@@ -103,7 +103,9 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
                    [ 0.,  0.]])
         """
         cut_indices = tuple(set(self[0] + self[1]))
-        if not cut_indices:  # empty cut
+
+        # Don't pass an empty tuple to `max`
+        if not cut_indices:
             return np.array([])
 
         # Construct a cut matrix large enough for all indices
