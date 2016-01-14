@@ -106,7 +106,7 @@ class Subsystem:
         self.perturb_vector = network.perturb_vector
 
         # Reusable cache for core causes & effects
-        self._mice_cache = cache.MiceCache(self, mice_cache)
+        self._mice_cache = cache.RedisMiceCache(self, mice_cache)
 
         # Cause & effect repertoire cache
         self._repertoire_cache = repertoire_cache or cache.DictCache()

@@ -7,11 +7,13 @@ A memory-limited cache decorator.
 """
 
 import os
+import pickle
 from functools import namedtuple, update_wrapper, wraps
 
 import psutil
+import redis
 
-from . import config
+from . import config, constants
 
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
 
@@ -199,6 +201,54 @@ class DictCache():
             raise NotImplementedError(
                 'kwarg cache keys not implemented')
         return (_prefix,) + tuple(args)
+
+
+# TODO: pull server host/port from pyphi_config
+try:
+    redis_conn = redis.StrictRedis(host='localhost', port=6379)
+    redis_conn.flushall()
+except redis.exceptions.ConnectionError as e:
+    raise Exception('Could not connect to Redis') from e
+
+
+# TODO: use a cache prefix?
+# TODO: key schema for easy access/queries
+class RedisCache():
+
+    def clear(self):
+        raise NotImplementedError
+
+    def size(self):
+        raise NotImplementedError
+
+    def info(self):
+        raise NotImplementedError
+
+    def get(self, key):
+        value = redis_conn.get(key)
+
+        if value is not None:
+            value = pickle.loads(value)
+
+        return value
+
+    def set(self, key, value):
+        value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
+        redis_conn.set(key, value)
+
+    def key(self):
+        raise NotImplementedError
+
+
+# TODO: load parent cache
+class RedisMiceCache(RedisCache):
+    def __init__(self, subsystem, parent_cache):
+        super().__init__()
+        self.subsystem = subsystem
+
+    def key(self, direction, mechanism, purviews=False, _prefix=None):
+        """Cache key. This is the call signature of |find_mice|"""
+        return (hash(self.subsystem), _prefix, direction, mechanism, purviews)
 
 
 class MiceCache(DictCache):
