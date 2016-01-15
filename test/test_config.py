@@ -37,3 +37,14 @@ def test_override_config_cleans_up_after_exception():
 
     # and reset original config value
     assert config.TEST_CONFIG == 1
+
+
+def test_override_config_is_a_context_manager():
+    config.TEST_CONFIG = 1
+
+    with config.override(TEST_CONFIG=1000):
+        # Overriden
+        assert config.TEST_CONFIG == 1000
+        
+    # Reverts original value
+    assert config.TEST_CONFIG == 1
