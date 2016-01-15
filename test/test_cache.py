@@ -60,6 +60,8 @@ def test_cache_key_generation():
 pytest fixture because they must be constructed with the correct cache config.
 """
 
+# TODO: clean up all this messy test support!
+
 try:
     redis_available = cache.RedisConn().ping()
 except redis.exceptions.ConnectionError:
@@ -67,14 +69,17 @@ except redis.exceptions.ConnectionError:
 
 require_redis = pytest.mark.skipif(not redis_available,
                                    reason="requires a running Redis server")
-redis_cache = require_redis(config.override(REDIS_CACHE=True))
 local_cache = config.override(REDIS_CACHE=False)
+redis_cache = lambda f: config.override(REDIS_CACHE=True)(require_redis(f))
 
 
 @pytest.fixture
 def flush_redis():
     if config.REDIS_CACHE:
-        cache.RedisConn().flushall()
+        try:
+            cache.RedisConn().flushall()
+        except redis.exceptions.ConnectionError:
+            pass
 
 
 def all_caches(test_func):
