@@ -255,20 +255,74 @@ class RedisCache():
         raise NotImplementedError
 
 
-# TODO: load parent cache
+def validate_parent_cache(parent_cache):
+    # TODO: also validate that subsystem is a
+    # cut version of parent_cache.subsystem?
+    # Do we need to check this at all?
+
+    if parent_cache.subsystem.is_cut():
+        raise ValueError("parent_cache must be from an uncut subsystem")
+
+
 class RedisMiceCache(RedisCache):
     def __init__(self, subsystem, parent_cache=None):
         super().__init__()
         self.subsystem = subsystem
 
+        if parent_cache is not None:
+            validate_parent_cache(parent_cache)
+            # Store the key pattern of the parent cache. We don't store the
+            # parent cache object directly because we would then also be
+            # storing a reference to the parent cache's subsystem.
+            self._parent_key_prefix = parent_cache._key_prefix()
+        else:
+            self._parent_key_prefix = None
+
+    def _key_prefix(self):
+        return "subsys:{}:".format(hash(self.subsystem))
+
     def size(self):
         """Hacky implementation of size.
 
-        .. warning:: ``redis.keys()`` can cause the db to hang in production.
+        .. warning::
+
+            ``redis.keys()`` can cause the db to hang in production. Use
+            ``redis.scan_iter`` if ``size`` will be called anywhere other
+            than in tests.
         """
         conn = RedisConn()
-        key_pattern = 'subsys:{}:*'.format(hash(self.subsystem))
-        return len(conn.keys(key_pattern))
+        return len(conn.keys(self._key_prefix() + "*"))
+
+    # TODO: if the value is found in the parent cache, store it in this
+    # cache so we don't have to call `damaged_by_cut` over and over?
+    def get(self, key):
+        """Get a value from the cache.
+
+        If the Mice cannot be found in this cache, try and find it in the
+        parent cache.
+        """
+        mice = super().get(key)
+
+        if mice is not None:  # Hit
+            return mice
+
+        # Try and get the key from the parent cache.
+        if self._parent_key_prefix:
+            parent_key = key.replace(self._key_prefix(), self._parent_key_prefix, 1)
+            mice = super().get(parent_key)
+
+            if mice is not None and not mice.damaged_by_cut(self.subsystem):
+                return mice
+
+        return None
+
+    def set(self, key, value):
+        """Only need to set if the subsystem is uncut.
+
+        Caches are only inherited from uncut subsystems.
+        """
+        if not self.subsystem.is_cut():
+            super().set(key, value)
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):
         """Cache key. This is the call signature of |find_mice|"""
@@ -303,13 +357,8 @@ class DictMiceCache(DictCache):
         super().__init__()
         self.subsystem = subsystem
 
-        if parent_cache:
-            # TODO: also validate that subsystem is a
-            # cut version of parent_cache.subsystem?
-            # Do we need to check this at all?
-            if parent_cache.subsystem.is_cut():
-                raise ValueError(
-                    "parent_cache must be from an uncut subsystem")
+        if parent_cache is not None:
+            validate_parent_cache(parent_cache)
             self._build(parent_cache)
 
     def _build(self, parent_cache):

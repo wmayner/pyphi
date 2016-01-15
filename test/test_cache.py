@@ -203,7 +203,7 @@ def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, flush_redis):
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=cut, mice_cache=s._mice_cache)
     key = cut_s._mice_cache.key('past', mechanism)
-    assert cut_s._mice_cache.get(key) is mice
+    assert cut_s._mice_cache.get(key) == mice
 
 
 @all_caches
