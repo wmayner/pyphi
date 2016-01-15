@@ -55,6 +55,13 @@ def test_cache_key_generation():
 # Test MICE caching
 # ========================
 
+# TODO: only run redis tests if there is a running server
+
+def test_redis_singleton_connection():
+    conn = cache.RedisConn()
+    assert conn.ping() is True
+
+
 def all_caches(test_func):
     """Decorator to run a test function with local and Redis caches"""
     @pytest.mark.parametrize("redis_cache", [

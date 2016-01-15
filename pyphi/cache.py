@@ -203,12 +203,27 @@ class DictCache():
         return (_prefix,) + tuple(args)
 
 
-# TODO: pull server host/port from pyphi_config
-try:
-    redis_conn = redis.StrictRedis(host='localhost', port=6379)
-    redis_conn.flushall()
-except redis.exceptions.ConnectionError as e:
-    raise Exception('Could not connect to Redis') from e
+# TODO: pull connection info from pyphi_config
+# TODO: confirm that a global connection/pool makes sense, esp for multiprocesssing
+class RedisConn:
+    """Singleton redis connection object.
+
+    Expose the StrictRedis api, but only maintain one connection pool.
+
+    Raises:
+        redis.exceptions.ConnectionError: If the Redis server is not available.
+    """
+    instance = None
+
+    def __init__(self):
+        if RedisConn.instance is None:
+            conn = redis.StrictRedis(host='localhost', port=6379, db=0)
+            conn.flushall()
+            RedisConn.instance = conn
+
+    def __getattr__(self, name):
+        """Delegate lookup to ``StrictRedis``"""
+        return getattr(self.instance, name)
 
 
 # TODO: use a cache prefix?
@@ -225,7 +240,7 @@ class RedisCache():
         raise NotImplementedError
 
     def get(self, key):
-        value = redis_conn.get(key)
+        value = RedisConn().get(key)
 
         if value is not None:
             value = pickle.loads(value)
@@ -234,7 +249,7 @@ class RedisCache():
 
     def set(self, key, value):
         value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
-        redis_conn.set(key, value)
+        RedisConn().set(key, value)
 
     def key(self):
         raise NotImplementedError
