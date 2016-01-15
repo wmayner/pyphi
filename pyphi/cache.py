@@ -261,6 +261,15 @@ class RedisMiceCache(RedisCache):
         super().__init__()
         self.subsystem = subsystem
 
+    def size(self):
+        """Hacky implementation of size.
+
+        .. warning:: ``redis.keys()`` can cause the db to hang in production.
+        """
+        conn = RedisConn()
+        key_pattern = 'subsys:{}:*'.format(hash(self.subsystem))
+        return len(conn.keys(key_pattern))
+
     def key(self, direction, mechanism, purviews=False, _prefix=None):
         """Cache key. This is the call signature of |find_mice|"""
         return "subsys:{}:{}:{}:{}:{}".format(
