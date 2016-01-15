@@ -62,6 +62,9 @@ MONGODB_CONFIG:
     port: 27017
     database_name: "pyphi"
     collection_name: "test"
+    
+# Use a Redis server as a shared cache
+REDIS_CACHE: true
 
 # Logging
 # ~~~~~~~

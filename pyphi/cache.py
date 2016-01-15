@@ -242,16 +242,29 @@ class RedisCache():
 
 # TODO: load parent cache
 class RedisMiceCache(RedisCache):
-    def __init__(self, subsystem, parent_cache):
+    def __init__(self, subsystem, parent_cache=None):
         super().__init__()
         self.subsystem = subsystem
 
+    # TODO: make more Redis-y: subsys:hash(subsys):...
     def key(self, direction, mechanism, purviews=False, _prefix=None):
         """Cache key. This is the call signature of |find_mice|"""
         return (hash(self.subsystem), _prefix, direction, mechanism, purviews)
 
 
-class MiceCache(DictCache):
+def MiceCache(subsystem, parent_cache=None):
+    """Construct a Mice cache.
+
+    Uses either a Redis-backed cache or a local dict cache on the object.
+    """
+    if config.REDIS_CACHE:
+        cls = RedisMiceCache
+    else:
+        cls = DictMiceCache
+    return cls(subsystem, parent_cache=parent_cache)
+
+
+class DictMiceCache(DictCache):
     """A subsystem-local cache for |Mice| objects.
 
     Args:
@@ -263,7 +276,7 @@ class MiceCache(DictCache):
             the cache is initialized empty.
     """
     def __init__(self, subsystem, parent_cache=None):
-        super(MiceCache, self).__init__()
+        super().__init__()
         self.subsystem = subsystem
 
         if parent_cache:
