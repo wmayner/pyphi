@@ -1,7 +1,8 @@
 import functools
 from unittest import mock
 import pytest
-from pyphi import cache, config, models, Subsystem
+import redis
+from pyphi import cache, config, examples, models, Subsystem
 
 
 def test_cache():
@@ -55,26 +56,44 @@ def test_cache_key_generation():
 # Test MICE caching
 # ========================
 
-# TODO: only run redis tests if there is a running server
+"""Note: all subsystems are loaded from `examples` internally instead of by
+pytest fixture because they must be constructed with the correct cache config.
+"""
 
-def test_redis_singleton_connection():
-    conn = cache.RedisConn()
-    assert conn.ping() is True
+try:
+    redis_available = cache.RedisConn().ping()
+except redis.exceptions.ConnectionError:
+    redis_available = False
+
+require_redis = pytest.mark.skipif(not redis_available,
+                                   reason="requires a running Redis server")
+redis_cache = require_redis(config.override(REDIS_CACHE=True))
+local_cache = config.override(REDIS_CACHE=False)
+
+
+@pytest.fixture
+def flush_redis():
+    if config.REDIS_CACHE:
+        cache.RedisConn().flushall()
 
 
 def all_caches(test_func):
     """Decorator to run a test function with local and Redis caches"""
-    @pytest.mark.parametrize("redis_cache", [
-        (True,), (False,),
+    @pytest.mark.parametrize("redis_cache,", [
+        require_redis((True,)),
+        (False,),
     ])
     def wrapper(redis_cache, *args, **kwargs):
-        override = config.override(REDIS_CACHE=redis_cache)
-        return override(test_func)(redis_cache, *args, **kwargs)
+        with config.override(REDIS_CACHE=redis_cache[0]):
+            return test_func(redis_cache, *args, **kwargs)
 
     return functools.wraps(test_func)(wrapper)
 
-redis_cache = config.override(REDIS_CACHE=True)
-local_cache = config.override(REDIS_CACHE=False)
+
+@require_redis
+def test_redis_singleton_connection():
+    conn = cache.RedisConn()
+    assert conn.ping() is True
 
 
 @redis_cache
@@ -99,7 +118,8 @@ def test_mice_cache_keys(s):
 
 
 @all_caches
-def test_mice_cache(redis_cache, s):
+def test_mice_cache(redis_cache, flush_redis):
+    s = examples.basic_subsystem()
     mechanism = (1,)  # has a core cause
     mice = s.find_mice('past', mechanism)
     key = s._mice_cache.key('past', mechanism)
@@ -107,7 +127,8 @@ def test_mice_cache(redis_cache, s):
 
 
 @local_cache
-def test_do_not_cache_phi_zero_mice(s):
+def test_do_not_cache_phi_zero_mice():
+    s = examples.basic_subsystem()
     mechanism = ()  # zero phi
     mice = s.find_mice('past', mechanism)
     assert mice.phi == 0
@@ -116,7 +137,7 @@ def test_do_not_cache_phi_zero_mice(s):
 
 
 @all_caches
-def test_only_cache_uncut_subsystem_mices(redis_cache, standard):
+def test_only_cache_uncut_subsystem_mices(redis_cache, flush_redis, standard):
     s = Subsystem(standard, (1, 0, 0), range(standard.size),
                   cut=models.Cut((1,), (0, 2)))
     mechanism = (1,)  # has a core cause
@@ -126,9 +147,10 @@ def test_only_cache_uncut_subsystem_mices(redis_cache, standard):
 
 
 @all_caches
-def test_split_mechanism_mice_is_not_reusable(redis_cache, s):
+def test_split_mechanism_mice_is_not_reusable(redis_cache, flush_redis):
     """If mechanism is split, then cached mice are not usable
     when a cache is built from a parent cache."""
+    s = examples.basic_subsystem()
     mechanism = (0, 1)
     mice = s.find_mice('past', mechanism)
     assert s._mice_cache.size() == 1  # cached
@@ -143,9 +165,10 @@ def test_split_mechanism_mice_is_not_reusable(redis_cache, s):
 
 
 @all_caches
-def test_cut_relevant_connections_mice_is_not_reusable(redis_cache, s):
+def test_cut_relevant_connections_mice_is_not_reusable(redis_cache, flush_redis):
     """If relevant connections are cut, cached mice are not usable
     when a cache is built from a parent cache."""
+    s = examples.basic_subsystem()
     mechanism = (1,)
     mice = s.find_mice('past', mechanism)
     assert s._mice_cache.size() == 1  # cached
@@ -160,9 +183,11 @@ def test_cut_relevant_connections_mice_is_not_reusable(redis_cache, s):
 
 
 @all_caches
-def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, s):
+def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, flush_redis):
+
     """Cached Mice are saved from the parent cache if both
     the mechanism and the relevant connections are not cut."""
+    s = examples.basic_subsystem()
     mechanism = (1,)
     mice = s.find_mice('past', mechanism)
     assert s._mice_cache.size() == 1  # cached
@@ -177,7 +202,8 @@ def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, s):
 
 
 @all_caches
-def test_inherited_cache_must_come_from_uncut_subsystem(redis_cache, s):
+def test_inherited_cache_must_come_from_uncut_subsystem(redis_cache, flush_redis):
+    s = examples.basic_subsystem()
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=models.Cut((0, 2), (1,)))
     with pytest.raises(ValueError):
@@ -186,7 +212,8 @@ def test_inherited_cache_must_come_from_uncut_subsystem(redis_cache, s):
 
 @local_cache
 @config.override(MAXIMUM_CACHE_MEMORY_PERCENTAGE=0)
-def test_mice_cache_respects_cache_memory_limits(s):
+def test_mice_cache_respects_cache_memory_limits():
+    s = examples.basic_subsystem()
     c = cache.MiceCache(s)
     mice = mock.Mock(phi=1)  # dummy Mice
     c.set(c.key('past', ()), mice)
