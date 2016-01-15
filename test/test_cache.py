@@ -82,10 +82,13 @@ def test_use_dict_mice_cache(s):
     assert isinstance(c, cache.DictMiceCache)
 
 
-@local_cache
-def test_mice_cache_key(s):
-    c = cache.MiceCache(s)
+def test_mice_cache_keys(s):
+    c = cache.DictMiceCache(s)
     assert c.key('past', (0,), purviews=(0, 1)) == (None, 'past', (0,), (0, 1))
+
+    c = cache.RedisMiceCache(s)
+    answer = 'subsys:{}:None:past:(0,):(0, 1)'.format(hash(s))
+    assert c.key('past', (0,), purviews=(0, 1)) == answer
 
 
 @all_caches

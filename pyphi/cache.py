@@ -246,10 +246,10 @@ class RedisMiceCache(RedisCache):
         super().__init__()
         self.subsystem = subsystem
 
-    # TODO: make more Redis-y: subsys:hash(subsys):...
     def key(self, direction, mechanism, purviews=False, _prefix=None):
         """Cache key. This is the call signature of |find_mice|"""
-        return (hash(self.subsystem), _prefix, direction, mechanism, purviews)
+        return "subsys:{}:{}:{}:{}:{}".format(
+            hash(self.subsystem), _prefix, direction, mechanism, purviews)
 
 
 def MiceCache(subsystem, parent_cache=None):
