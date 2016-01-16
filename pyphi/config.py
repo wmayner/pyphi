@@ -284,6 +284,7 @@ DEFAULTS = {
         'database_name': 'pyphi',
         'collection_name': 'cache'
     },
+    'REDIS_CACHE': False,
     # These are the settings for PyPhi logging.
     'LOGGING_CONFIG': {
         'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s',
@@ -332,7 +333,6 @@ def get_config_string():
 def print_config():
     """Print the current configuration."""
     print('Current PyPhi configuration:\n', get_config_string())
-
 
 
 class override(contextlib.ContextDecorator):
