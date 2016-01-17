@@ -52,13 +52,6 @@ long time!), resulting in data loss.
     >>> defaults['NUMBER_OF_CORES']
     -1
 
-- ``pyphi.config.PARALLEL_VERBOSITY``:If parallel computation is enabled, it
-  will have its own, separate messages, which are always sent to standard
-  output. This setting controls their verbosity, an integer from 0 to 100.
-
-    >>> defaults['PARALLEL_VERBOSITY']
-    0
-
 - ``pyphi.config.MAXIMUM_CACHE_MEMORY_PERCENTAGE``: PyPhi employs several
   in-memory caches to speed up computation. However, these can quickly use a
   lot of memory for large networks or large numbers of them; to avoid
@@ -263,9 +256,6 @@ DEFAULTS = {
     # The number of CPU cores to use in parallel cut evaluation. -1 means all
     # available cores, -2 means all but one available cores, etc.
     'NUMBER_OF_CORES': -1,
-    # The verbosity of parallel computation (integer from 0 to 100). See
-    # documentation for `joblib.Parallel`.
-    'PARALLEL_VERBOSITY': 0,
     # The maximum percentage of RAM that PyPhi should use for caching.
     'MAXIMUM_CACHE_MEMORY_PERCENTAGE': 50,
     # Controls whether BigMips are cached and retreived.
