@@ -2,7 +2,7 @@
 import timeit
 import copy
 
-from pyphi import compute, config, constants, examples, Subsystem
+from pyphi import cache as _cache, compute, config, constants, examples, Subsystem
 from .subsystem import clear_subsystem_caches
 
 
@@ -41,9 +41,10 @@ class BenchmarkMainComplex():
 
     params = [
         ['parallel', 'sequential'],
-        ['basic', 'rule154', 'fig16']
+        ['basic', 'rule154', 'fig16'],
+        ['local', 'redis']
     ]
-    param_names = ['mode', 'network']
+    param_names = ['mode', 'network', 'cache']
 
     # Use `default_timer` (clock time) instead of process time because
     # parallel execution spawns separate processes which are not counted
@@ -56,7 +57,7 @@ class BenchmarkMainComplex():
     repeat = 1
     timeout = 10000
 
-    def setup(self, mode, network):
+    def setup(self, mode, network, cache):
 
         if network == 'basic':
             self.network = examples.basic_network()
@@ -81,12 +82,23 @@ class BenchmarkMainComplex():
         else:
             raise
 
+        # Cache mode
+        if cache == 'local':
+            config.REDIS_CACHE = False
+        elif cache == 'redis':
+            config.REDIS_CACHE = True
+            if _cache.RedisConn().ping() is False:
+                # No server running
+                raise NotImplementedError
+        else:
+            raise
+
         config.CACHE_BIGMIPS = False
 
-    def teardown(self, mode, network):
+    def teardown(self, mode, network, cache):
         # Revert config
         config.__dict__.update(self.default_config)
 
-    def time_main_complex(self, mode, network):
+    def time_main_complex(self, mode, network, cache):
         # Do it!
         compute.main_complex(self.network, self.state)
