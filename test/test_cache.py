@@ -75,11 +75,10 @@ redis_cache = lambda f: config.override(REDIS_CACHE=True)(require_redis(f))
 
 @pytest.fixture
 def flush_redis():
-    if config.REDIS_CACHE:
-        try:
-            cache.RedisConn().flushall()
-        except redis.exceptions.ConnectionError:
-            pass
+    try:
+        cache.RedisConn().flushall()
+    except redis.exceptions.ConnectionError:
+        pass
 
 
 def all_caches(test_func):
