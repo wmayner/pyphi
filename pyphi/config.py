@@ -284,7 +284,12 @@ DEFAULTS = {
         'database_name': 'pyphi',
         'collection_name': 'cache'
     },
+    # TODO: document
     'REDIS_CACHE': False,
+    'REDIS_CONFIG': {
+        'host': 'localhost',
+        'port': 6379,
+    },
     # These are the settings for PyPhi logging.
     'LOGGING_CONFIG': {
         'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s',

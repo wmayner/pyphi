@@ -205,6 +205,8 @@ class DictCache():
 
 # TODO: pull connection info from pyphi_config
 # TODO: confirm that a global connection/pool makes sense, esp for multiprocesssing
+# TODO: maybe just expose the connction `if REDIS_CACHE`, instead of with this
+# singleton business
 class RedisConn:
     """Singleton redis connection object.
 
@@ -217,7 +219,11 @@ class RedisConn:
 
     def __init__(self):
         if RedisConn.instance is None:
-            conn = redis.StrictRedis(host='localhost', port=6379, db=0)
+            conn = redis.StrictRedis(host=config.REDIS_CONFIG['host'],
+                                     port=config.REDIS_CONFIG['port'],
+                                     db=0)
+            # TODO: we probably don't want to flush all, huh?
+            # Will we ever have stale/incorrect results in the cache?
             conn.flushall()
             RedisConn.instance = conn
 
