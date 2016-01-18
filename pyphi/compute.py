@@ -13,8 +13,6 @@ import multiprocessing
 from time import time
 
 import numpy as np
-from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import connected_components
 
 from . import config, constants, memory, utils, validate
 from .concept_caching import concept as _concept
@@ -526,12 +524,8 @@ def _big_mip(cache_key, subsystem):
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))
 
-    # Get the number of strongly connected components.
-    idxs = subsystem.node_indices
-    cm = utils.submatrix(subsystem.connectivity_matrix, idxs, idxs)
-    num_components, _ = connected_components(csr_matrix(cm),
-                                             connection='strong')
-    if num_components > 1:
+    if not utils.strongly_connected(subsystem.connectivity_matrix,
+                                    subsystem.node_indices):
         log.info('{} is not strongly connected; returning null MIP '
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))

@@ -247,3 +247,26 @@ def test_relevant_connections():
         [1, 0, 1],
         [0, 0, 0],
     ])
+
+
+def test_strongly_connected():
+    cm = np.array([
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 0, 0],
+    ])
+    assert utils.strongly_connected(cm)
+
+    cm = np.array([
+        [0, 1, 0],
+        [0, 0, 1],
+        [0, 0, 0],
+    ])
+    assert not utils.strongly_connected(cm)
+
+    cm = np.array([
+        [0, 1, 0],
+        [1, 0, 0],
+        [0, 0, 0],
+    ])
+    assert utils.strongly_connected(cm, (0, 1))

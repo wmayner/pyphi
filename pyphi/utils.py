@@ -14,6 +14,7 @@ import numpy as np
 from itertools import chain, combinations
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
+from scipy.sparse.csgraph import connected_components
 from pyemd import emd
 from .cache import cache
 from . import constants
@@ -595,6 +596,22 @@ def block_reducible(cm, nodes1, nodes2):
     if len(nodes1) > 1 and len(nodes2) > 1:
         return block_cm(cm)
     return False
+
+
+def strongly_connected(cm, nodes=None):
+    """Return whether the connectivity matrix is strongly connected.
+
+    Args:
+        cm (np.ndarray): A square connectivity matrix.
+    Keywork Args:
+        nodes (tuple(int)): An optional subset of node indices to test strong
+            connectivity over.
+    """
+    if nodes is not None:
+        cm = submatrix(cm, nodes, nodes)
+
+    num_components, _ = connected_components(cm, connection='strong')
+    return num_components < 2
 
 
 # Custom printing methods
