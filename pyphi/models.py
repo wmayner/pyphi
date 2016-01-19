@@ -664,6 +664,9 @@ class Constellation(tuple):
     def __str__(self):
         return "\nConstellation\n*************" + fmt_constellation(self)
 
+    def to_json(self):
+        return list(self)
+
 
 # =============================================================================
 
@@ -762,6 +765,12 @@ class BigMip:
 
     def __ge__(self, other):
         return (self.__gt__(other) or _phi_eq(self, other))
+
+    def to_json(self):
+        return {
+            attr: jsonify(getattr(self, attr))
+            for attr in _bigmip_attributes + ['time', 'small_phi_time']
+        }
 
 
 # Formatting functions for __str__ and __repr__
