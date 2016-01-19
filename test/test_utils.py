@@ -250,23 +250,26 @@ def test_relevant_connections():
 
 
 def test_strongly_connected():
-    cm = np.array([
-        [0, 1, 0],
-        [0, 0, 1],
-        [1, 0, 0],
-    ])
+    # Strongly connected
+    cm = np.array([[0, 1, 0],
+                   [0, 0, 1],
+                   [1, 0, 0]])
     assert utils.strongly_connected(cm)
 
-    cm = np.array([
-        [0, 1, 0],
-        [0, 0, 1],
-        [0, 0, 0],
-    ])
+    # Disconnected
+    cm = np.array([[0, 0, 1],
+                   [0, 1, 0],
+                   [1, 0, 0]])
     assert not utils.strongly_connected(cm)
 
-    cm = np.array([
-        [0, 1, 0],
-        [1, 0, 0],
-        [0, 0, 0],
-    ])
+    # Weakly connected
+    cm = np.array([[0, 1, 0],
+                   [0, 0, 1],
+                   [0, 1, 0]])
+    assert not utils.strongly_connected(cm)
+
+    # Nodes (0, 1) are strongly connected
+    cm = np.array([[0, 1, 0],
+                   [1, 0, 0],
+                   [0, 0, 0]])
     assert utils.strongly_connected(cm, (0, 1))

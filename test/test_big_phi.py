@@ -513,21 +513,3 @@ def test_big_mip_macro(macro_s, flushcache, restore_fs_cache):
     flushcache()
     mip = compute.big_mip(macro_s)
     check_mip(mip, macro_answer)
-
-
-def test_strongly_connected():
-    # A disconnected matrix.
-    cm1 = np.array([[0, 0, 1],
-                    [0, 1, 0],
-                    [1, 0, 0]])
-    # A strongly connected matrix.
-    cm2 = np.array([[0, 1, 0],
-                    [0, 0, 1],
-                    [1, 0, 0]])
-    # A weakly connected matrix.
-    cm3 = np.array([[0, 1, 0],
-                    [0, 0, 1],
-                    [0, 1, 0]])
-    assert connected_components(csr_matrix(cm1), connection='strong')[0] > 1
-    assert connected_components(csr_matrix(cm2), connection='strong')[0] == 1
-    assert connected_components(csr_matrix(cm3), connection='strong')[0] > 1
