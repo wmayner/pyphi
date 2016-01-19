@@ -449,14 +449,13 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
             number_of_processes -= 1
             if number_of_processes == 0:
                 break
-        elif utils.phi_eq(new_mip.phi, 0):
+        elif new_mip.phi == 0:
             min_mip = new_mip
             for process in processes:
                 process.terminate()
             break
-        else:
-            if new_mip < min_mip:
-                min_mip = new_mip
+        elif new_mip < min_mip:
+            min_mip = new_mip
     return min_mip
 
 
@@ -468,12 +467,11 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
     """
     for i, cut in enumerate(cuts):
         new_mip = _evaluate_cut(subsystem, cut, unpartitioned_constellation)
-        log.debug("Finished {} of {} cuts.".format(
-            i + 1, len(cuts)))
+        log.debug("Finished {} of {} cuts.".format(i + 1, len(cuts)))
         if new_mip < min_mip:
             min_mip = new_mip
         # Short-circuit as soon as we find a MIP with effectively 0 phi.
-        if not min_mip:
+        if min_mip.phi == 0:
             break
     return min_mip
 
