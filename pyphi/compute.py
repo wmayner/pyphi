@@ -478,6 +478,26 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
     return min_mip
 
 
+def big_mip_bipartitions(nodes):
+    """Return all |big_phi| cuts for the given nodes.
+
+    This value changes based on `config.CUT_ONE_APPROXIMATION`.
+
+    Args:
+        nodes tuple(int): The node indices to partition.
+    Returns:
+        list(Cut): All unidirectional partitions.
+    """
+    if config.CUT_ONE_APPROXIMATION:
+        bipartitions = utils.directed_bipartition_of_one(nodes)
+    else:
+        # Skip the first and last (trivial, null cut) bipartitions
+        bipartitions = utils.directed_bipartition(nodes)[1:-1]
+
+    return [Cut(bipartition[0], bipartition[1])
+            for bipartition in bipartitions]
+
+
 # TODO document big_mip
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
@@ -530,26 +550,19 @@ def _big_mip(cache_key, subsystem):
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
-    if config.CUT_ONE_APPROXIMATION:
-        bipartitions = \
-            utils.directed_bipartition_of_one(subsystem.node_indices)
-    else:
-        # The first and last bipartitions are the null cut (trivial
-        # bipartition), so skip them.
-        bipartitions = utils.directed_bipartition(subsystem.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
 
     log.debug("Finding unpartitioned constellation...")
     small_phi_start = time()
     unpartitioned_constellation = constellation(subsystem)
     small_phi_time = time() - small_phi_start
     log.debug("Found unpartitioned constellation.")
+
     if not unpartitioned_constellation:
         # Short-circuit if there are no concepts in the unpartitioned
         # constellation.
         result = time_annotated(_null_bigmip(subsystem))
     else:
+        cuts = big_mip_bipartitions(subsystem.node_indices)
         min_mip = _null_bigmip(subsystem)
         min_mip.phi = float('inf')
         min_mip = _find_mip(subsystem, cuts, unpartitioned_constellation,
