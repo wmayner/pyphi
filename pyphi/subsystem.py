@@ -44,8 +44,11 @@ class Subsystem:
         node_indices (tuple(int)): The indices of the nodes in the subsystem.
         size (int): The number of nodes in the subsystem.
         network (Network): The network the subsystem belongs to.
-        state (tuple): The current state of the subsystem. ``state[i]`` gives
-            the state of node |i|.
+        state (tuple(int)): The state of the subsystem's network. ``state[i]``
+            gives the state of node |i|.
+        proper_state (tuple(int)): The state of the subsystem.
+            ``proper_state[i]`` gives the |ith| node in the subsystem. Note
+            that this is **not** the state of node |i|.
         cut (Cut): The cut that has been applied to this subsystem.
         connectivity_matrix (np.array): The connectivity matrix after applying
             the cut.
@@ -63,12 +66,14 @@ class Subsystem:
         # The network this subsystem belongs to.
         self.network = network
 
-        # The state the network is in.
-        self._state = tuple(state)
-
         # Remove duplicates, sort, and ensure native Python `int`s
         # (for JSON serialization).
         self.node_indices = tuple(sorted(set(map(int, node_indices))))
+
+        # The state of the network.
+        self._state = tuple(state)
+        # The state of the subsystem.
+        self._proper_state = utils.state_of(self.node_indices, self.state)
 
         # Get the external node indices.
         # TODO: don't expose this as an attribute?
@@ -122,8 +127,23 @@ class Subsystem:
     def state(self, state):
         # Cast state to a tuple so it can be hashed and properly used as
         # np.array indices.
-        state = tuple(state)
-        self._state = state
+        self._state = tuple(state)
+        # Validate.
+        validate.subsystem(self)
+
+    @property
+    def proper_state(self):
+        """The state the Network this Subsystem belongs to."""
+        return self._state
+
+    @proper_state.setter
+    def proper_state(self, proper_state):
+        # Cast state to a tuple so it can be hashed and properly used as
+        # np.array indices.
+        self._proper_state = tuple(proper_state)
+        # Update the network's state.
+        self.state = tuple(proper_state[n] if n in self.node_indices else
+                           self.state[n] for n in self.network.node_indices)
         # Validate.
         validate.subsystem(self)
 

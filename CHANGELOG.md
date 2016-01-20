@@ -22,6 +22,8 @@ Next Release
 - Added `utils.submatrix` and `utils.relevant_connections` functions.
 - Added the `macro.effective_info` function.
 - Added the `utils.state_of` function.
+- Added the `Subsystem.proper_state` attribute. This is the state of the
+  subsystem's nodes, rather than the entire network state.
 
 ### Refactor
 - Subsystem Mice and cause/effect repertoire caches; Network purview caches.
