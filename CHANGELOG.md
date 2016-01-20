@@ -5,9 +5,9 @@ Next Release
 -------
 ### API changes
 - Mechanisms and purviews are now passed to all functions and methods in node
-  index form (e.g. `(0, 1, 3)`). Previously, many functions took these arguments
-  as `Node` objects. Since nodes belong to a specific ``Subsystem`` it was
-  possible to pass nodes from one subsystem to another subsystem's methods,
+  index form (e.g. `(0, 1, 3)`). Previously, many functions took these
+  arguments as `Node` objects. Since nodes belong to a specific `Subsystem` it
+  was possible to pass nodes from one subsystem to another subsystem's methods,
   leading to incorrect results.
 - `constellation_distance` no longer takes a `subsystem` argument because
   concepts in a constellation already reference their subsystems.
@@ -16,7 +16,7 @@ Next Release
   moved `utils.cut_mice` to `Mice.damaged_by_cut`.
 
 ### API Additions
-- Added `config.READABLE_REPRS to control whether __reprs__ of PyPhi models
+- Added `config.READABLE_REPRS` to control whether `__reprs__` of PyPhi models
   default to using pretty string formatting.
 - Added a `Constellation` object.
 - Added `utils.submatrix` and `utils.relevant_connections` functions.
