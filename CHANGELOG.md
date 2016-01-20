@@ -21,6 +21,7 @@ Next Release
 - Added a `Constellation` object.
 - Added `utils.submatrix` and `utils.relevant_connections` functions.
 - Added the `macro.effective_info` function.
+- Added the `utils.state_of` function.
 
 ### Refactor
 - Subsystem Mice and cause/effect repertoire caches; Network purview caches.

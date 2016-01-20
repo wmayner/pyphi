@@ -23,6 +23,11 @@ from . import constants
 log = logging.getLogger(__name__)
 
 
+def state_of(nodes, network_state):
+    """Return the state-tuple of the given nodes."""
+    return tuple(network_state[n] for n in nodes) if nodes else ()
+
+
 # TPM and Connectivity Matrix utils
 # ============================================================================
 
