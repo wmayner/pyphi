@@ -232,3 +232,8 @@ def micro():
 @pytest.fixture()
 def micro_s():
     return example_networks.micro_s()
+
+
+@pytest.fixture()
+def micro_s_all_off():
+    return example_networks.micro_s_all_off()

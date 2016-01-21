@@ -698,3 +698,9 @@ def micro_s():
     net = micro()
     state = [1] * 4
     return Subsystem(net, state, range(net.size))
+
+
+def micro_s_all_off():
+    net = micro()
+    state = [0] * 4
+    return Subsystem(net, state, range(net.size))

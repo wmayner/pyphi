@@ -3,28 +3,20 @@
 # test_subsystem_expand.py
 
 import pytest
-from pyphi import Subsystem
 from pyphi.compute import big_mip
 from pyphi.constants import EPSILON
 import numpy as np
-import example_networks
-
-
-micro = example_networks.micro()
-micro_subsystem = Subsystem(micro, (0, 0, 0, 0), range(micro.size))
-mip = big_mip(micro_subsystem)
 
 CD = (2, 3)
 BCD = (1, 2, 3)
 ABCD = (0, 1, 2, 3)
 
-A = mip.unpartitioned_constellation[0]
 
-cause = A.cause.mip.unpartitioned_repertoire
-effect = A.effect.mip.unpartitioned_repertoire
+def test_expand_cause_repertoire(micro_s_all_off):
+    mip = big_mip(micro_s_all_off)
+    A = mip.unpartitioned_constellation[0]
+    cause = A.cause.mip.unpartitioned_repertoire
 
-
-def test_expand_cause_repertoire():
     assert np.all(abs(A.expand_cause_repertoire(CD) - cause) < EPSILON)
     assert np.all(abs(
         A.expand_cause_repertoire(BCD).flatten(order='F') -
@@ -36,7 +28,11 @@ def test_expand_cause_repertoire():
                       A.expand_cause_repertoire()) < EPSILON)
 
 
-def test_expand_effect_repertoire():
+def test_expand_effect_repertoire(micro_s_all_off):
+    mip = big_mip(micro_s_all_off)
+    A = mip.unpartitioned_constellation[0]
+    effect = A.effect.mip.unpartitioned_repertoire
+
     assert np.all(abs(A.expand_effect_repertoire(CD) - effect) < EPSILON)
     assert np.all(abs(A.expand_effect_repertoire(BCD).flatten(order='F') -
                       np.array([.25725, .23275, .11025, .09975,
@@ -68,4 +64,3 @@ def test_expand_repertoire_purview_must_be_subset_of_new_purview(s):
     cause_repertoire = s.cause_repertoire(mechanism, purview)
     with pytest.raises(ValueError):
         s.expand_repertoire('past', purview, cause_repertoire, new_purview)
-
