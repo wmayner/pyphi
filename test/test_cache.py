@@ -76,7 +76,9 @@ redis_cache = lambda f: config.override(REDIS_CACHE=True)(require_redis(f))
 @pytest.fixture
 def flush_redis():
     try:
-        cache.RedisConn().flushall()
+        conn = cache.RedisConn()
+        conn.flushall()
+        conn.config_resetstat()
     except redis.exceptions.ConnectionError:
         pass
 
@@ -98,6 +100,18 @@ def all_caches(test_func):
 def test_redis_singleton_connection():
     conn = cache.RedisConn()
     assert conn.ping() is True
+
+
+@require_redis
+def test_redis_cache_info(flush_redis):
+    c = cache.RedisCache()
+    assert c.info() == (0, 0, 0)
+    key = 'key'
+    c.get(key)  # miss
+    c.set(key, 'value')
+    c.get(key)  # hit
+    assert c.size() == 1
+    assert c.info() == (1, 1, 1)
 
 
 @redis_cache

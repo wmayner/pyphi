@@ -240,10 +240,21 @@ class RedisCache():
         raise NotImplementedError
 
     def size(self):
-        raise NotImplementedError
+        """Size of the Redis cache.
+
+        .. note:: This is the size of the entire Redis database.
+        """
+        return RedisConn().dbsize()
 
     def info(self):
-        raise NotImplementedError
+        """Return cache information.
+
+        .. note:: This is not the cache info for the entire Redis key space.
+        """
+        info = RedisConn().info()
+        return _CacheInfo(info['keyspace_hits'],
+                          info['keyspace_misses'],
+                          self.size())
 
     def get(self, key):
         value = RedisConn().get(key)
@@ -286,18 +297,6 @@ class RedisMiceCache(RedisCache):
 
     def _key_prefix(self):
         return "subsys:{}:".format(hash(self.subsystem))
-
-    def size(self):
-        """Hacky implementation of size.
-
-        .. warning::
-
-            ``redis.keys()`` can cause the db to hang in production. Use
-            ``redis.scan_iter`` if ``size`` will be called anywhere other
-            than in tests.
-        """
-        conn = RedisConn()
-        return len(conn.keys(self._key_prefix() + "*"))
 
     # TODO: if the value is found in the parent cache, store it in this
     # cache so we don't have to call `damaged_by_cut` over and over?
