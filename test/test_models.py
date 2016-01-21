@@ -443,7 +443,7 @@ def test_concept_equality_network(s, simple_subsys_all_off):
     assert concept != another
 
 
-def test_concept_one_subsystem_is_subset_of_another(s, subsys_n1n2):
+def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     phi = 1.0
     mice = models.Mice(models.Mip(
         direction=None, mechanism=(), purview=(1, 2),
@@ -468,14 +468,28 @@ def test_concept_repr_str():
     print(str(concept))
 
 
-def test_concept_hashing():
+def test_concept_hashing(s):
     mice = models.Mice(models.Mip(
         direction=None, mechanism=(0, 1, 2), purview=(0, 1, 2),
         unpartitioned_repertoire=None, partitioned_repertoire=None,
         phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
     concept = models.Concept(
-        mechanism=(0, 1, 2), cause=mice, effect=mice, subsystem=None, phi=0.0)
+        mechanism=(0, 1, 2), cause=mice, effect=mice, subsystem=s, phi=0.0)
     hash(concept)
+
+
+def test_concept_hashing_one_subsystem_is_subset_of_another(s, subsys_n1n2):
+    phi = 1.0
+    mice = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(1, 2),
+        unpartitioned_repertoire=(), partitioned_repertoire=(),
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    concept = models.Concept(mechanism=(2,), cause=mice, effect=mice,
+                             subsystem=s, phi=phi)
+    another = models.Concept(mechanism=(2,), cause=mice, effect=mice,
+                             subsystem=subsys_n1n2, phi=phi)
+    assert hash(concept) == hash(another)
+    assert(len(set([concept, another])) == 1)
 
 
 # }}}
