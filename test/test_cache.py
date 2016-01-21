@@ -60,31 +60,27 @@ def test_cache_key_generation():
 pytest fixture because they must be constructed with the correct cache config.
 """
 
-# TODO: clean up all this messy test support!
-
 try:
     redis_available = cache.RedisConn().ping()
 except redis.exceptions.ConnectionError:
     redis_available = False
 
+# Decorator to skip a test if Redis is not available
 require_redis = pytest.mark.skipif(not redis_available,
                                    reason="requires a running Redis server")
+
+# Decorator to force a test to use the local cache
 local_cache = config.override(REDIS_CACHE=False)
+
+# Decorator to force a test to use Redis cache; skip test if Redis is not available
 redis_cache = lambda f: config.override(REDIS_CACHE=True)(require_redis(f))
 
 
-@pytest.fixture
-def flush_redis():
-    try:
-        conn = cache.RedisConn()
-        conn.flushall()
-        conn.config_resetstat()
-    except redis.exceptions.ConnectionError:
-        pass
-
-
 def all_caches(test_func):
-    """Decorator to run a test function with local and Redis caches"""
+    """Decorator to run a test twice: once with the local cache and once with Redis.
+
+    Any decorated test must add a `redis_cache` argument.
+    """
     @pytest.mark.parametrize("redis_cache,", [
         require_redis((True,)),
         (False,),
@@ -94,6 +90,17 @@ def all_caches(test_func):
             return test_func(redis_cache, *args, **kwargs)
 
     return functools.wraps(test_func)(wrapper)
+
+
+@pytest.fixture
+def flush_redis():
+    """Fixture to flush and reset the Redis cache."""
+    try:
+        conn = cache.RedisConn()
+        conn.flushall()
+        conn.config_resetstat()
+    except redis.exceptions.ConnectionError:
+        pass
 
 
 @require_redis
