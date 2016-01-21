@@ -19,7 +19,7 @@ Next Release
   follows:
     - Same φ
     - Same mechanism node indices cause/effect purview node indices
-    - Same state for all those nodes
+    - Same mechanism state
     - Same cause/effect repertoires
     - Same networks
   This allows two concepts to be equal when _e.g._ the only difference between

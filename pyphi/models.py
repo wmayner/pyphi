@@ -560,12 +560,8 @@ class Concept:
                 and self.mechanism == other.mechanism
                 and (utils.state_of(self.mechanism, self_state) ==
                      utils.state_of(self.mechanism, other_state))
-                and self_cause_purview == self_effect_purview
-                and (utils.state_of(self_cause_purview, self_state) ==
-                     utils.state_of(other_cause_purview, other_state))
-                and self_effect_purview == self_effect_purview
-                and (utils.state_of(self_effect_purview, self_state) ==
-                     utils.state_of(other_effect_purview, other_state))
+                and self_cause_purview == other_cause_purview
+                and self_effect_purview == other_effect_purview
                 and self.eq_repertoires(other)
                 and self.subsystem.network == other.subsystem.network)
 
@@ -574,9 +570,7 @@ class Concept:
                      self.mechanism,
                      utils.state_of(self.mechanism, self.subsystem.state),
                      self.cause.purview,
-                     utils.state_of(self.cause.purview, self.subsystem.state),
                      self.effect.purview,
-                     utils.state_of(self.effect.purview, self.subsystem.state),
                      utils.np_hash(self.cause.repertoire),
                      utils.np_hash(self.effect.repertoire),
                      self.subsystem.network))
