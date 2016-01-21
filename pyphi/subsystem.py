@@ -70,6 +70,8 @@ class Subsystem:
         # (for JSON serialization).
         self.node_indices = tuple(sorted(set(map(int, node_indices))))
 
+        validate.state_length(state, self.network.size)
+
         # The state of the network.
         self._state = tuple(state)
         # The state of the subsystem.

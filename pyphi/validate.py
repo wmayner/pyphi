@@ -163,7 +163,6 @@ def subsystem(s):
 
     Checks its state and cut.
     """
-    state_length(s.state, s.network.size)
     node_states(s.state)
     cut(s.cut, s.node_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
