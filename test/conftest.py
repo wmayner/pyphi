@@ -134,13 +134,13 @@ def simple():
 
 
 @pytest.fixture()
-def s_subsys_all_off():
-    return example_networks.s_subsys_all_off()
+def simple_subsys_all_off():
+    return example_networks.simple_subsys_all_off()
 
 
 @pytest.fixture()
-def s_subsys_all_a_just_on():
-    return example_networks.s_subsys_all_a_just_on()
+def simple_subsys_all_a_just_on():
+    return example_networks.simple_subsys_all_a_just_on()
 
 
 # Big network and subsystems
