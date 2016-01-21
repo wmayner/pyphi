@@ -25,6 +25,10 @@ Next Release
 - Added the `Subsystem.proper_state` attribute. This is the state of the
   subsystem's nodes, rather than the entire network state.
 
+### Fixes
+- `Concept.eq_repertoires` no longer fails when the concept has no cause or
+  effect.
+
 ### Refactor
 - Subsystem Mice and cause/effect repertoire caches; Network purview caches.
   Cache logic is now handled by decorators and custom cache objects.

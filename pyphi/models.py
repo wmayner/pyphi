@@ -586,9 +586,12 @@ class Concept:
             arrays; mechanisms, purviews, or even the nodes that node indices
             refer to, might be different.
         """
-        return (
-            np.array_equal(self.cause.repertoire, other.cause.repertoire) and
-            np.array_equal(self.effect.repertoire, other.effect.repertoire))
+        this_cr = getattr(self.cause, 'repertoire', None)
+        this_er = getattr(self.effect, 'repertoire', None)
+        other_cr = getattr(other.cause, 'repertoire', None)
+        other_er = getattr(other.effect, 'repertoire', None)
+        return (np.array_equal(this_cr, other_cr) and
+                np.array_equal(this_er, other_er))
 
     def emd_eq(self, other):
         """Return whether this concept is equal to another in the context of an
