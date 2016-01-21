@@ -554,12 +554,10 @@ class Concept:
         other_cause_purview = getattr(other.cause, 'purview', None)
         self_effect_purview = getattr(self.effect, 'purview', None)
         other_effect_purview = getattr(other.effect, 'purview', None)
-        self_state = self.subsystem.state
-        other_state = other.subsystem.state
         return (self.phi == other.phi
                 and self.mechanism == other.mechanism
-                and (utils.state_of(self.mechanism, self_state) ==
-                     utils.state_of(self.mechanism, other_state))
+                and (utils.state_of(self.mechanism, self.subsystem.state) ==
+                     utils.state_of(self.mechanism, other.subsystem.state))
                 and self_cause_purview == other_cause_purview
                 and self_effect_purview == other_effect_purview
                 and self.eq_repertoires(other)
