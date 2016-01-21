@@ -294,18 +294,16 @@ class RedisMiceCache(RedisCache):
     def __init__(self, subsystem, parent_cache=None):
         super().__init__()
         self.subsystem = subsystem
+        self.subsystem_hash = hash(subsystem)
 
         if parent_cache is not None:
             validate_parent_cache(parent_cache)
-            # Store the key pattern of the parent cache. We don't store the
-            # parent cache object directly because we would then also be
-            # storing a reference to the parent cache's subsystem.
-            self._parent_key_prefix = parent_cache._key_prefix()
+            # Store the hash of the parent subsystem. We don't want to store the
+            # parent subsystem explicitly so that it does not need to be passed
+            # between processes.
+            self.parent_subsystem_hash = parent_cache.subsystem_hash
         else:
-            self._parent_key_prefix = None
-
-    def _key_prefix(self):
-        return "subsys:{}:".format(hash(self.subsystem))
+            self.parent_subsystem_hash = None
 
     # TODO: if the value is found in the parent cache, store it in this
     # cache so we don't have to call `damaged_by_cut` over and over?
@@ -321,8 +319,9 @@ class RedisMiceCache(RedisCache):
             return mice
 
         # Try and get the key from the parent cache.
-        if self._parent_key_prefix:
-            parent_key = key.replace(self._key_prefix(), self._parent_key_prefix, 1)
+        if self.parent_subsystem_hash:
+            parent_key = key.replace(str(self.subsystem_hash),
+                                     str(self.parent_subsystem_hash), 1)
             mice = super().get(parent_key)
 
             if mice is not None and not mice.damaged_by_cut(self.subsystem):
@@ -341,7 +340,7 @@ class RedisMiceCache(RedisCache):
     def key(self, direction, mechanism, purviews=False, _prefix=None):
         """Cache key. This is the call signature of |find_mice|"""
         return "subsys:{}:{}:{}:{}:{}".format(
-            hash(self.subsystem), _prefix, direction, mechanism, purviews)
+            self.subsystem_hash, _prefix, direction, mechanism, purviews)
 
 
 class DictMiceCache(DictCache):

@@ -105,15 +105,15 @@ class Subsystem:
         # The perturbation probabilities for each node in the network
         self.perturb_vector = network.perturb_vector
 
+        # Only compute hash once.
+        self._hash = hash((self.network, self.node_indices, self.state,
+                           self.cut))
+
         # Reusable cache for core causes & effects
         self._mice_cache = cache.MiceCache(self, mice_cache)
 
         # Cause & effect repertoire cache
         self._repertoire_cache = repertoire_cache or cache.DictCache()
-
-        # Only compute hash once.
-        self._hash = hash((self.network, self.node_indices, self.state,
-                           self.cut))
 
         validate.subsystem(self)
 
