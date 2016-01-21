@@ -109,6 +109,7 @@ def test_standard(s, flushcache):
     check_concept_caching(s.network, [(s.state)], flushcache)
 
 
+@pytest.mark.xfail
 def test_noised(s_noised, flushcache):
     check_concept_caching(s_noised.network, [(s_noised.state)], flushcache)
 
