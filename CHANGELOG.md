@@ -14,6 +14,15 @@ Next Release
 - Moved `utils.cut_mechanism_indices` and `utils.mechanism_split_by_cut` to
   to `Cut.all_cut_mechanisms` and `Cut.splits_mechanism`, respectively;
   moved `utils.cut_mice` to `Mice.damaged_by_cut`.
+- When comparing concepts for equality, we no longer directly check equality of
+  their subsystems. Concept equality is now defined as follows:
+    - Same φ
+    - Same mechanism node indices cause/effect purview node indices
+    - Same state for all those nodes
+    - Same cause/effect repertoires
+    - Same networks
+  This allows two concepts to be equal when _e.g._ the only difference between
+  them is that one's subsystem is a superset of the other's subsystem.
 
 ### API Additions
 - Added `config.READABLE_REPRS` to control whether `__reprs__` of PyPhi models

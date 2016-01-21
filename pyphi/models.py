@@ -550,16 +550,24 @@ class Concept:
             return (self.cause, self.effect)
 
     def __eq__(self, other):
+        self_cause_purview = getattr(self.cause, 'purview', None)
+        other_cause_purview = getattr(other.cause, 'purview', None)
+        self_effect_purview = getattr(self.effect, 'purview', None)
+        other_effect_purview = getattr(other.effect, 'purview', None)
+        self_state = self.subsystem.state
+        other_state = other.subsystem.state
         return (self.phi == other.phi
                 and self.mechanism == other.mechanism
-                and self.subsystem == other.subsystem
-                and (getattr(self.cause, 'purview', None) ==
-                     getattr(other.cause, 'purview', None))
-                and (getattr(self.effect, 'purview', None) ==
-                     getattr(other.effect, 'purview', None))
-                and (self.eq_repertoires(other)
-                     if self.cause is not None and self.effect is not None
-                     else self.cause == self.effect))
+                and (utils.state_of(self.mechanism, self_state) ==
+                     utils.state_of(self.mechanism, other_state))
+                and self_cause_purview == self_effect_purview
+                and (utils.state_of(self_cause_purview, self_state) ==
+                     utils.state_of(other_cause_purview, other_state))
+                and self_effect_purview == self_effect_purview
+                and (utils.state_of(self_effect_purview, self_state) ==
+                     utils.state_of(other_effect_purview, other_state))
+                and self.eq_repertoires(other)
+                and self.subsystem.network == other.subsystem.network)
 
     def __hash__(self):
         return hash((self.phi,
