@@ -106,8 +106,8 @@ def test_general_eq_different_mechanism_and_purview_order():
 
 # }}}
 
-# Test Cut
-# ========
+# Test Cut {{{
+# ============
 
 def test_cut_splits_mechanism():
     cut = models.Cut((0,), (1, 2))
@@ -146,6 +146,8 @@ def test_cut_matrix():
     cut = models.Cut((), ())
     assert np.array_equal(cut.cut_matrix(), np.array([]))
 
+
+# }}}
 
 # Test MIP {{{
 # ============
@@ -317,20 +319,21 @@ def test_damaged(s):
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 
+
 # }}}
 
 # Test Concept {{{
 # ================
 
-def test_concept_ordering():
+def test_concept_ordering(s):
     phi1 = models.Concept(
-        mechanism=(0, 1), cause=1, effect=None, subsystem=None,
+        mechanism=(0, 1), cause=1, effect=None, subsystem=s,
         phi=1.0)
     different_phi1 = models.Concept(
-        mechanism=(), cause='different', effect=None, subsystem=None,
+        mechanism=(), cause='different', effect=None, subsystem=s,
         phi=1.0)
     phi2 = models.Concept(
-        mechanism=0, cause='stilldifferent', effect=None, subsystem=None,
+        mechanism=0, cause='stilldifferent', effect=None, subsystem=s,
         phi=1.0 + constants.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
@@ -340,12 +343,12 @@ def test_concept_ordering():
     assert phi1 >= different_phi1
 
 
-def test_concept_odering_by_mechanism():
+def test_concept_odering_by_mechanism(s):
     small = models.Concept(
-        mechanism=(0, 1), cause=None, effect=None, subsystem=None,
+        mechanism=(0, 1), cause=None, effect=None, subsystem=s,
         phi=1.0)
     big = models.Concept(
-        mechanism=(0, 1, 3), cause=None, effect=None, subsystem=None,
+        mechanism=(0, 1, 3), cause=None, effect=None, subsystem=s,
         phi=1.0)
     assert small < big
     assert small <= big
@@ -354,12 +357,102 @@ def test_concept_odering_by_mechanism():
     assert big != small
 
 
-def test_concept_equality():
+def test_concept_equality(s):
     phi = 1.0
-    concept = models.Concept(
-        mechanism=(), cause=None, effect=None, subsystem=None, phi=phi)
-    another = models.Concept(
-        mechanism=(), cause=None, effect=None, subsystem=None, phi=phi)
+    concept = models.Concept(mechanism=(), cause=None, effect=None,
+                             subsystem=s, phi=phi)
+    another = models.Concept(mechanism=(), cause=None, effect=None,
+                             subsystem=s, phi=phi)
+    assert concept == another
+
+
+def test_concept_equality_phi(s):
+    concept = models.Concept(mechanism=(), cause=None, effect=None,
+                             subsystem=s, phi=1.0)
+    another = models.Concept(mechanism=(), cause=None, effect=None,
+                             subsystem=s, phi=0.0)
+    assert concept != another
+
+
+def test_concept_equality_mechanism(s):
+    phi = 1.0
+    concept = models.Concept(mechanism=(1,), cause=None, effect=None,
+                             subsystem=s, phi=phi)
+    another = models.Concept(mechanism=(), cause=None, effect=None,
+                             subsystem=s, phi=phi)
+    assert concept != another
+
+
+def test_concept_equality_cause_purview_nodes(s):
+    phi = 1.0
+    mice1 = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(1, 2),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    mice2 = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(1,),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    concept = models.Concept(mechanism=(), cause=mice1, effect=None,
+                             subsystem=s, phi=phi)
+    another = models.Concept(mechanism=(), cause=mice2, effect=None,
+                             subsystem=s, phi=phi)
+    assert concept != another
+
+
+def test_concept_equality_effect_purview_nodes(s):
+    phi = 1.0
+    mice1 = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(1, 2),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    mice2 = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(1,),
+        unpartitioned_repertoire=None, partitioned_repertoire=None,
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    concept = models.Concept(mechanism=(), cause=None, effect=mice1,
+                             subsystem=s, phi=phi)
+    another = models.Concept(mechanism=(), cause=None, effect=mice2,
+                             subsystem=s, phi=phi)
+    assert concept != another
+
+
+def test_concept_equality_repertoires(s):
+    phi = 1.0
+    mice1 = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(),
+        unpartitioned_repertoire=np.array([1, 2]), partitioned_repertoire=(),
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    mice2 = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(),
+        unpartitioned_repertoire=np.array([0, 0]), partitioned_repertoire=None,
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    concept = models.Concept(mechanism=(), cause=mice1, effect=mice2,
+                             subsystem=s, phi=phi)
+    another = models.Concept(mechanism=(), cause=mice2, effect=mice1,
+                             subsystem=s, phi=phi)
+    assert concept != another
+
+
+def test_concept_equality_network(s, simple_subsys_all_off):
+    phi = 1.0
+    concept = models.Concept(mechanism=(), cause=None, effect=None,
+                             subsystem=simple_subsys_all_off, phi=phi)
+    another = models.Concept(mechanism=(), cause=None, effect=None,
+                             subsystem=s, phi=phi)
+    assert concept != another
+
+
+def test_concept_one_subsystem_is_subset_of_another(s, subsys_n1n2):
+    phi = 1.0
+    mice = models.Mice(models.Mip(
+        direction=None, mechanism=(), purview=(1, 2),
+        unpartitioned_repertoire=(), partitioned_repertoire=(),
+        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    concept = models.Concept(mechanism=(2,), cause=mice, effect=mice,
+                             subsystem=s, phi=phi)
+    another = models.Concept(mechanism=(2,), cause=mice, effect=mice,
+                             subsystem=subsys_n1n2, phi=phi)
     assert concept == another
 
 
@@ -384,11 +477,11 @@ def test_concept_hashing():
         mechanism=(0, 1, 2), cause=mice, effect=mice, subsystem=None, phi=0.0)
     hash(concept)
 
+
 # }}}
 
-
-# Test Constellation
-# ==================
+# Test Constellation {{{
+# ======================
 
 def test_constellation_is_still_a_tuple():
     c = models.Constellation([models.Concept()])
@@ -400,6 +493,8 @@ def test_constellation_repr():
     c = models.Constellation()
     assert repr(c) == "Constellation(())"
 
+
+# }}}
 
 # Test BigMip {{{
 # ===============
@@ -469,8 +564,8 @@ def test_bigmip_repr_str(s):
 
 # }}}
 
-
-# Test model __str__ and __reprs__
+# Test model __str__ and __reprs__ {{{
+# ====================================
 
 def test_indent():
     s = ("line1\n"
@@ -500,5 +595,6 @@ def test_make_reprs_uses___repr__():
 def test_make_reprs_calls_out_to_string():
     assert repr(ReadableReprClass()) == "A nice fat explicit string"
 
+# }}}
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :
