@@ -132,6 +132,18 @@ relying on the cache. For this reason it is disabled by default.
     >>> defaults['MONGODB_CONFIG']['collection_name']
     'cache'
 
+- ``pyphi.config.REDIS_CACHE``: Specifies whether to use Redis to cache Mice.
+
+    >>> defaults['REDIS_CACHE']
+    False
+
+- ``pyphi.config.REDIS_CONFIG``: Configure the Redis database backend. These
+    are the defaults in the provided ``redis.conf`` file.
+
+    >>> defaults['REDIS_CONFIG']['host']
+    'localhost'
+    >>> defaults['REDIS_CONFIG']['port']
+    6379
 
 Logging
 ~~~~~~~
@@ -284,8 +296,9 @@ DEFAULTS = {
         'database_name': 'pyphi',
         'collection_name': 'cache'
     },
-    # TODO: document
+    # Use Redis to cache Mice
     'REDIS_CACHE': False,
+    # Redis configuration
     'REDIS_CONFIG': {
         'host': 'localhost',
         'port': 6379,
