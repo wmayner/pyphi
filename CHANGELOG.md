@@ -23,6 +23,8 @@ Next Release
     - Same networks
   This allows two concepts to be equal when _e.g._ the only difference between
   them is that one's subsystem is a superset of the other's subsystem.
+- The above notion of concept equality is also implemented for concept hashing,
+  so two concepts that differ only in that way will have the same hash value.
 
 ### API Additions
 - Added `config.READABLE_REPRS` to control whether `__reprs__` of PyPhi models

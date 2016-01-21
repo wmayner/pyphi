@@ -572,11 +572,14 @@ class Concept:
     def __hash__(self):
         return hash((self.phi,
                      self.mechanism,
+                     utils.state_of(self.mechanism, self.subsystem.state),
                      self.cause.purview,
+                     utils.state_of(self.cause.purview, self.subsystem.state),
                      self.effect.purview,
-                     self.subsystem,
+                     utils.state_of(self.effect.purview, self.subsystem.state),
                      utils.np_hash(self.cause.repertoire),
-                     utils.np_hash(self.effect.repertoire)))
+                     utils.np_hash(self.effect.repertoire),
+                     self.subsystem.network))
 
     def __bool__(self):
         """A concept is truthy if it is not reducible.
