@@ -95,7 +95,7 @@ def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False,
                      past_purviews=False, future_purviews=False):
     """Wrapper for parallel evaluation of concepts."""
     while True:
-        (index, mechanism) = in_queue.get()
+        mechanism = in_queue.get()
         if mechanism is None:
             break
         new_concept = concept(subsystem, mechanism, purviews=purviews,
@@ -135,24 +135,22 @@ def _parallel_constellation(subsystem, mechanisms=False, purviews=False,
 
     number_of_processes = get_num_processes()
 
-    # Define input and output queues.
-    # Load the input queue with all possible cuts and a 'poison pill' for each
-    # process.
+    # Define input and output queues and load the input queue with all possible
+    # cuts and a 'poison pill' for each process.
     in_queue = multiprocessing.Queue()
     out_queue = multiprocessing.Queue()
-    for i, mechanism in enumerate(mechanisms):
-        in_queue.put((i, mechanism))
+    for mechanism in mechanisms:
+        in_queue.put(mechanism)
     for i in range(number_of_processes):
-        in_queue.put((None, None))
+        in_queue.put(None)
+
     # Initialize the processes and start them.
-    processes = [
-        multiprocessing.Process(target=_concept_wrapper,
-                                args=(in_queue, out_queue, subsystem, purviews,
-                                      past_purviews, future_purviews))
-        for i in range(number_of_processes)
-    ]
     for i in range(number_of_processes):
-        processes[i].start()
+        args = (in_queue, out_queue, subsystem, purviews,
+                past_purviews, future_purviews)
+        process = multiprocessing.Process(target=_concept_wrapper, args=args)
+        process.start()
+
     # Continue to process output queue until all processes have completed, or a
     # 'poison pill' has been returned.
     concepts = []
@@ -167,7 +165,8 @@ def _parallel_constellation(subsystem, mechanisms=False, purviews=False,
     return Constellation(concepts)
 
 
-_constellation_doc = \
+def constellation(subsystem, mechanisms=False, purviews=False,
+                  past_purviews=False, future_purviews=False):
     """Return the conceptual structure of this subsystem, optionally restricted
     to concepts with the mechanisms and purviews given in keyword arguments.
 
@@ -198,14 +197,14 @@ _constellation_doc = \
         constellation (Constellation): A tuple of all the Concepts in the
             constellation.
     """
-_sequential_constellation.__doc__ = _constellation_doc
-_parallel_constellation.__doc__ = _constellation_doc
-# TODO fix and release in version 0.7.0
-# if config.PARALLEL_CONCEPT_EVALUATION:
-#     constellation = _parallel_constellation
-# else:
-#     constellation = _sequential_constellation
-constellation = _sequential_constellation
+
+    if config.PARALLEL_CONCEPT_EVALUATION:
+        constellation = _parallel_constellation
+    else:
+        constellation = _sequential_constellation
+
+    return constellation(subsystem, mechanisms, purviews, past_purviews,
+                         future_purviews)
 
 
 def concept_distance(c1, c2):

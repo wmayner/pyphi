@@ -38,7 +38,8 @@ Next Release
 - Added the `Subsystem.proper_state` attribute. This is the state of the
   subsystem's nodes, rather than the entire network state.
 - Added an optional Redis-backed cache for Mice objects. This is enabled with
-  `config.REDIS_CACHE` and configured with `config.REDIS_CONFIG`. 
+  `config.REDIS_CACHE` and configured with `config.REDIS_CONFIG`.
+- Enabled parallel concept evaluation with `config.PARALLEL_CONCEPT_EVALUATION`.
 
 ### Fixes
 - `Concept.eq_repertoires` no longer fails when the concept has no cause or

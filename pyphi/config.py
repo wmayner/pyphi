@@ -38,6 +38,12 @@ machine, so **please check these settings before running anything**. Otherwise,
 there is a risk that simulations might crash (potentially after running for a
 long time!), resulting in data loss.
 
+- ``pyphi.config.PARALLEL_CONCEPT_EVALUATION``: Control whether concepts are
+  evaluated in parallel when computing constellations.
+
+    >>> defaults['PARALLEL_CONCEPT_EVALUATION']
+    False
+
 - ``pyphi.config.PARALLEL_CUT_EVALUATION``: Control whether system cuts are
   evaluated in parallel, which requires more memory. If cuts are evaluated
   sequentially, only two |BigMip| instances need to be in memory at once.
@@ -261,6 +267,8 @@ DEFAULTS = {
     # Only check single nodes cuts for the MIP. 2**n cuts instead of n.
     'CUT_ONE_APPROXIMATION': False,
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Controls whether concepts are evaluated in parallel.
+    'PARALLEL_CONCEPT_EVALUATION': False,
     # Controls whether cuts are evaluated in parallel, which requires more
     # memory. If cuts are evaluated sequentially, only two BigMips need to be
     # in memory at a time.

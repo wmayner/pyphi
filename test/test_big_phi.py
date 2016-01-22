@@ -513,3 +513,15 @@ def test_big_mip_macro(macro_s, flushcache, restore_fs_cache):
     flushcache()
     mip = compute.big_mip(macro_s)
     check_mip(mip, macro_answer)
+
+
+def test_parallel_and_sequential_constellations_are_equal(s, micro_s, macro_s):
+    with config.override(PARALLEL_CONCEPT_EVALUATION=False):
+        c = compute.constellation(s)
+        c_micro = compute.constellation(micro_s)
+        c_macro = compute.constellation(macro_s)
+
+    with config.override(PARALLEL_CONCEPT_EVALUATION=True):
+        assert set(c) == set(compute.constellation(s))
+        assert set(c_micro) == set(compute.constellation(micro_s))
+        assert set(c_macro) == set(compute.constellation(macro_s))
