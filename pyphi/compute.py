@@ -46,37 +46,19 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
         concept (|Concept|): The pair of maximally irreducible cause/effect
             repertoires that constitute the concept specified by the given
             mechanism.
-
-    .. note::
-        The output can be persistently cached to avoid recomputation. This may
-        be enabled in the configuration file---however, it is only available if
-        the caching backend is a database (not the filesystem). See the
-        documentation for the |concept_caching| and |config| modules.
     """
     start = time()
 
-    def time_annotated(concept):
-        concept.time = time() - start
-        return concept
-
-    # Pre-checks:
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # If the mechanism is empty, there is no concept.
     if not mechanism:
-        return time_annotated(subsystem.null_concept)
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    # Passed prechecks; pass it over to the concept caching logic if enabled.
-    # Concept caching is only available if the caching backend is a database.
-    if (config.CACHE_CONCEPTS and
-            config.CACHING_BACKEND == constants.DATABASE):
-        return time_annotated(_concept(
-            subsystem, mechanism, purviews=purviews,
-            past_purviews=past_purviews, future_purviews=future_purviews))
+        concept = subsystem.null_concept
     else:
-        return time_annotated(subsystem.concept(
+        concept = subsystem.concept(
             mechanism, purviews=purviews, past_purviews=past_purviews,
-            future_purviews=future_purviews))
+            future_purviews=future_purviews)
+
+    concept.time = time() - start
+    return concept
 
 
 def _sequential_constellation(subsystem, mechanisms=False, purviews=False,

@@ -35,10 +35,6 @@ MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 # ~~~~~~~
 # Controls whether BigMips are cached and retreived.
 CACHE_BIGMIPS: false
-# Controls whether concepts are cached. Note that concept caching is only
-# available if the caching backend is a database; otherwise, this setting has
-# no effect, and concepts will not be cached.
-CACHE_CONCEPTS: false
 # Controls whether the potential purviews of the mechanisms of a network are
 # cached. Speeds up calculations when the same network is used repeatedly, but
 # takes up additional memory, and makes network initialization slow.

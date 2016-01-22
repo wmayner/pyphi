@@ -83,12 +83,6 @@ relying on the cache. For this reason it is disabled by default.
     >>> defaults['CACHE_BIGMIPS']
     False
 
-- ``pyphi.config.CACHE_CONCEPTS``: Control whether |Concept| objects are cached
-  and automatically retrieved.
-
-    >>> defaults['CACHE_CONCEPTS']
-    False
-
 .. note::
     Concept caching only has an effect when a database is used as the the
     caching backend.
@@ -280,8 +274,6 @@ DEFAULTS = {
     'MAXIMUM_CACHE_MEMORY_PERCENTAGE': 50,
     # Controls whether BigMips are cached and retreived.
     'CACHE_BIGMIPS': False,
-    # Controls whether the concept caching system is used.
-    'CACHE_CONCEPTS': False,
     # Controls whether the potential purviews of the mechanisms of a network
     # are cached. Speeds up calculations, but takes up additional memory.
     'CACHE_POTENTIAL_PURVIEWS': True,

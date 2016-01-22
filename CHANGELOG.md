@@ -27,6 +27,7 @@ Next Release
 - `Concept.__hash__`: the above notion of concept equality is also implemented
   for concept hashing, so two concepts that differ only in that way will have
   the same hash value.
+- Disabled concept caching; removed the `config.CACHE_CONCEPTS` option.
 
 ### API Additions
 - Added `config.READABLE_REPRS` to control whether `__reprs__` of PyPhi models
