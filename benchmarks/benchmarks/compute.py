@@ -32,14 +32,14 @@ class BenchmarkConstellation:
             state = (0,) * 7
             self.subsys = Subsystem(network, state, network.node_indices)
         else:
-            raise
+            raise ValueError(network)
 
         if mode == 'parallel':
             config.PARALLEL_CONCEPT_EVALUATION = True
         elif mode == 'sequential':
             config.PARALLEL_CONCEPT_EVALUATION = False
         else:
-            raise
+            raise ValueError(mode)
 
     def time_constellation(self, mode, network):
         clear_subsystem_caches(self.subsys)
@@ -79,7 +79,7 @@ class BenchmarkMainComplex():
             self.network = examples.fig16()
             self.state = (1, 0, 0, 1, 1, 1, 0)
         else:
-            raise
+            raise ValueError(network)
 
         # Save config
         self.default_config = copy.copy(config.__dict__)
@@ -90,7 +90,7 @@ class BenchmarkMainComplex():
         elif mode == 'sequential':
             config.PARALLEL_CUT_EVALUATION = False
         else:
-            raise
+            raise ValueError(mode)
 
         # Cache mode
         if cache == 'local':
@@ -101,7 +101,7 @@ class BenchmarkMainComplex():
                 # No server running
                 raise NotImplementedError
         else:
-            raise
+            raise ValueError(cache)
 
         config.CACHE_BIGMIPS = False
 
