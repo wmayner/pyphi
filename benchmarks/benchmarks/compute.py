@@ -12,26 +12,36 @@ def _clear_joblib_cache():
 
 class BenchmarkConstellation:
 
-    params = ['basic', 'rule154', 'fig16']
+    params = [
+        ['parallel', 'sequential'],
+        ['basic', 'rule154', 'fig16']
+    ]
+    param_names = ['mode', 'network']
+    number = 1
+    repeat = 1
 
-    def setup(self, network):
+    def setup(self, mode, network):
         if network == 'basic':
             self.subsys = examples.basic_subsystem()
-
         elif network == 'rule154':
             network = examples.rule154_network()
             state = (1,) * 5
             self.subsys = Subsystem(network, state, network.node_indices)
-
         elif network == 'fig16':
             network = examples.fig16()
             state = (0,) * 7
             self.subsys = Subsystem(network, state, network.node_indices)
-
         else:
             raise
 
-    def time_constellation(self, network):
+        if mode == 'parallel':
+            config.PARALLEL_CONCEPT_EVALUATION = True
+        elif mode == 'sequential':
+            config.PARALLEL_CONCEPT_EVALUATION = False
+        else:
+            raise
+
+    def time_constellation(self, mode, network):
         clear_subsystem_caches(self.subsys)
         # network purview caches are left intact
         compute.constellation(self.subsys)
