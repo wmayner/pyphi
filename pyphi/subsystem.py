@@ -636,29 +636,28 @@ class Subsystem:
         Args:
             direction ('str'): Either |past| or |future|.
             mechanism (tuple(int)): The mechanism of interest.
+
         Kwargs:
             purviews (tuple(int)): Optional subset of purviews of interest.
         """
         if purviews is False:
             purviews = self.network._potential_purviews(direction, mechanism)
             # Filter out purviews that aren't in the subsystem
-            purviews = [purview for purview in purviews if
-                        set(purview).issubset(self.node_indices)]
+            purviews = [purview for purview in purviews
+                        if set(purview).issubset(self.node_indices)]
 
-        # Filter out trivially reducible purviews
-        # (This is already done in network._potential_purviews to the
-        # full connectivity matrix. However, since the cm is cut/
-        # smaller we check again here.
-        # TODO: combine `fully_connected` and `block_reducible`
-        # TODO: benchmark and verify reducibility tests increase speed.
-        def not_trivially_reducible(purview):
+        def reducible(purview):
+            # Returns True if purview is trivially reducible.
+            # (Purviews are already filtered in network._potential_purviews
+            # over the full network connectivity matrix. However, since the cm
+            # is cut/smaller we check again here.)
             if direction == DIRECTIONS[PAST]:
                 _from, to = purview, mechanism
             elif direction == DIRECTIONS[FUTURE]:
                 _from, to = mechanism, purview
-            return not utils.block_reducible(self.connectivity_matrix, _from, to)
+            return utils.block_reducible(self.connectivity_matrix, _from, to)
 
-        return tuple(filter(not_trivially_reducible, purviews))
+        return [purview for purview in purviews if not reducible(purview)]
 
     @cache_mice
     def find_mice(self, direction, mechanism, purviews=False):
