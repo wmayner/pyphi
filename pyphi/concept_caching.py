@@ -5,6 +5,10 @@
 """
 Objects and functions for managing the normalization, caching, and retrieval of
 concepts.
+
+.. warning::
+
+    Concept caching is disabled and likely broken. Use at your own risk!
 """
 
 from collections import namedtuple
