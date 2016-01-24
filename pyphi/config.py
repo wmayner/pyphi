@@ -51,6 +51,14 @@ long time!), resulting in data loss.
     >>> defaults['PARALLEL_CUT_EVALUATION']
     True
 
+  .. warning::
+
+    ``PARALLEL_CONCEPT_EVALUATION`` and ``PARALLEL_CUT_EVALUATION`` should not
+    both be set to ``True``. Enabling both parallelization modes will slow down
+    computations. If you are doing |big_phi|-computations (with ``big_mip``,
+    ``main_complex``, etc.) ``PARALLEL_CUT_EVALUATION`` will be fastest. Use
+    ``PARALLEL_CONCEPT_EVALUATION`` if you are only computing constellations.
+
 - ``pyphi.config.NUMBER_OF_CORES``: Control the number of CPU cores used to
   evaluate unidirectional cuts. Negative numbers count backwards from the total
   number of available cores, with ``-1`` meaning "use all available cores."
