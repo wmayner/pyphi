@@ -388,11 +388,11 @@ class override(contextlib.ContextDecorator):
         """Save original config values; override with new ones."""
         self.initial_conf = {opt_name: this_module.__dict__[opt_name]
                              for opt_name in self.new_conf}
-        this_module.__dict__.update(self.new_conf)
+        load_config(self.new_conf)
 
     def __exit__(self, *exc):
         """Reset config to initial values; reraise any exceptions."""
-        this_module.__dict__.update(self.initial_conf)
+        load_config(self.initial_conf)
         return False
 
 
