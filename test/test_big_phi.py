@@ -10,9 +10,9 @@ from unittest.mock import patch
 from pyphi import constants, config, compute, models, utils, convert, Network
 from pyphi.constants import DIRECTIONS, PAST, FUTURE
 from pyphi.models import Cut
-from pyphi.compute import (constellation, _find_mip_parallel,
-                           _find_mip_sequential, _null_bigmip)
-
+from pyphi.concept import constellation
+from pyphi.big_phi import (_find_mip_parallel, _find_mip_sequential,
+                                   _null_bigmip)
 from scipy.sparse.csgraph import connected_components
 from scipy.sparse import csr_matrix
 
@@ -238,8 +238,8 @@ def test_concept_nonexistent(s, flushcache, restore_fs_cache):
     assert not compute.concept(s, (0, 2))
 
 
-@patch('pyphi.compute._constellation_distance_simple')
-@patch('pyphi.compute._constellation_distance_emd')
+@patch('pyphi.concept._constellation_distance_simple')
+@patch('pyphi.concept._constellation_distance_emd')
 def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
                                                    mock_simple_distance, s):
     """Quick check that we use the correct constellation distance function.

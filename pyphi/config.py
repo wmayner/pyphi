@@ -256,6 +256,7 @@ import contextlib
 import os
 import pprint
 import sys
+import multiprocessing
 
 import yaml
 
