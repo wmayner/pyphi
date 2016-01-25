@@ -195,7 +195,7 @@ def test_null_mip():
     direction = 'past'
     mechanism = (0,)
     purview = (1,)
-    null_mip = models.Mip._null_mip(direction, mechanism, purview)
+    null_mip = models._null_mip(direction, mechanism, purview)
     assert null_mip.direction == direction
     assert null_mip.mechanism == mechanism
     assert null_mip.purview == purview

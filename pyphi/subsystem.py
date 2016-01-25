@@ -13,7 +13,7 @@ from . import cache, utils, validate
 from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
-from .models import Concept, Cut, Mice, Mip, Part
+from .models import Concept, Cut, Mice, Mip, _null_mip, Part
 from .node import Node
 
 # Cache decorator for Subsystem repertoire methods
@@ -542,7 +542,7 @@ class Subsystem:
         repertoire = self._get_repertoire(direction)
 
         # We default to the null MIP (the MIP of a reducible mechanism)
-        mip = Mip._null_mip(direction, mechanism, purview)
+        mip = _null_mip(direction, mechanism, purview)
 
         if not purview:
             return mip
@@ -676,7 +676,7 @@ class Subsystem:
                 to a subset of the subsystem. This may be useful for _e.g._
                 finding only concepts that are "about" a certain subset of
                 nodes.
-                
+
         Returns:
             mice (|Mice|): The maximally-irreducible cause or effect.
 
@@ -692,7 +692,7 @@ class Subsystem:
         purviews = self._potential_purviews(direction, mechanism, purviews)
 
         if not purviews:
-            max_mip = Mip._null_mip(direction, mechanism, None)
+            max_mip = _null_mip(direction, mechanism, None)
         else:
             max_mip = max(self.find_mip(direction, mechanism, purview)
                           for purview in purviews)
