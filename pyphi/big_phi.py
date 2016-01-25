@@ -15,40 +15,13 @@ from time import time
 import numpy as np
 
 from . import config, memory, parallel, utils, validate
-from .models import BigMip, Cut
+from .models import BigMip, Cut, _null_bigmip, _single_node_bigmip
 from .network import Network
 from .subsystem import Subsystem
 from .concept import constellation, constellation_distance
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
-
-
-# TODO document
-def _null_bigmip(subsystem):
-    """Return a |BigMip| with zero |big_phi| and empty constellations.
-
-    This is the MIP associated with a reducible subsystem.
-    """
-    return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=0.0,
-                  unpartitioned_constellation=(), partitioned_constellation=())
-
-
-def _single_node_mip(subsystem):
-    """Return a |BigMip| of a single-node with a selfloop.
-
-    Whether these have a nonzero |Phi| value depends on the PyPhi constants.
-    """
-    if config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
-        # TODO return the actual concept
-        return BigMip(
-            phi=0.5,
-            unpartitioned_constellation=(),
-            partitioned_constellation=(),
-            subsystem=subsystem,
-            cut_subsystem=subsystem)
-    else:
-        return _null_bigmip(subsystem)
 
 
 def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
@@ -203,7 +176,7 @@ def _big_mip(cache_key, subsystem):
     if len(subsystem) == 1:
         log.info('Single-node {}; returning the hard-coded single-node MIP '
                  'immediately.'.format(subsystem))
-        return time_annotated(_single_node_mip(subsystem))
+        return time_annotated(_single_node_bigmip(subsystem))
 
     # Check for degenerate cases
     # =========================================================================

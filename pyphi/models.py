@@ -782,6 +782,33 @@ class BigMip:
         }
 
 
+# TODO document
+def _null_bigmip(subsystem):
+    """Return a |BigMip| with zero |big_phi| and empty constellations.
+
+    This is the MIP associated with a reducible subsystem.
+    """
+    return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=0.0,
+                  unpartitioned_constellation=(), partitioned_constellation=())
+
+
+def _single_node_bigmip(subsystem):
+    """Return a |BigMip| of a single-node with a selfloop.
+
+    Whether these have a nonzero |Phi| value depends on the PyPhi constants.
+    """
+    if config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
+        # TODO return the actual concept
+        return BigMip(
+            phi=0.5,
+            unpartitioned_constellation=(),
+            partitioned_constellation=(),
+            subsystem=subsystem,
+            cut_subsystem=subsystem)
+    else:
+        return _null_bigmip(subsystem)
+
+
 # Formatting functions for __str__ and __repr__
 # TODO: probably move this to utils.py, or maybe fmt.py??
 
@@ -825,7 +852,7 @@ def fmt_partition(partition):
 
     Args:
         partition (tuple(Part, Part)): The partition in question.
-        
+
     Returns:
         str: A human-readable string representation of the partition.
     """

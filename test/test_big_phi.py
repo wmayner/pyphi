@@ -8,10 +8,10 @@ from unittest.mock import patch
 
 from pyphi import constants, config, compute, models, utils, Network
 from pyphi.constants import DIRECTIONS, PAST, FUTURE
-from pyphi.models import Cut
+from pyphi.models import Cut, _null_bigmip
 from pyphi.concept import constellation
 from pyphi.big_phi import (_find_mip_parallel, _find_mip_sequential,
-                           _null_bigmip, big_mip_bipartitions)
+                           big_mip_bipartitions)
 
 # TODO: split these into `concept` and `big_phi` tests
 
