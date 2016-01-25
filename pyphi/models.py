@@ -32,6 +32,7 @@ def make_repr(self, attrs):
     Args:
         self (obj): The object in question
         attrs (iterable(str)): Attributes to include in the repr
+
     Returns:
         (str): the `repr`esentation of the object
     """
@@ -68,6 +69,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
 
         Args:
             mechanism (tuple(int)): The mechanism in question
+
         Returns:
             (bool): True if `mechanism` has elements on both sides
                 of the cut, otherwise False.
@@ -81,6 +83,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         Args:
             candidate_indices (tuple(int)): The node indices to consider as
                as parts of mechanisms.
+
         Returns:
             (tuple(tuple(int)))
         """
@@ -791,9 +794,11 @@ def indent(lines, amount=2, chr=' '):
 
     Args:
         lines (str): The string to indent.
+
     Keyword Args:
         amount (int): The number of columns to indent by.
         chr (char): The character to to use as the indentation.
+
     Returns:
         str: The indented string.
     """
@@ -820,6 +825,7 @@ def fmt_partition(partition):
 
     Args:
         partition (tuple(Part, Part)): The partition in question.
+        
     Returns:
         str: A human-readable string representation of the partition.
     """

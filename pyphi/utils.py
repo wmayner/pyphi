@@ -608,7 +608,8 @@ def strongly_connected(cm, nodes=None):
 
     Args:
         cm (np.ndarray): A square connectivity matrix.
-    Keywork Args:
+
+    Keyword Args:
         nodes (tuple(int)): An optional subset of node indices to test strong
             connectivity over.
     """

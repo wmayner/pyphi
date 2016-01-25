@@ -225,9 +225,11 @@ class Subsystem:
 
         Args:
             indices (iterable(int)):
+
         Returns:
             nodes (tuple(Node)): The |Node| objects corresponding to
                 these indices.
+
         Raises:
             ValueError: If requested indices are not in the subsystem.
         """
@@ -668,11 +670,13 @@ class Subsystem:
                 specifying cause or effect.
             mechanism (tuple(int)): The mechanism to be tested for
                 irreducibility.
+
         Keyword Args:
             purviews (tuple(int)): Optionally restrict the possible purviews
                 to a subset of the subsystem. This may be useful for _e.g._
                 finding only concepts that are "about" a certain subset of
                 nodes.
+                
         Returns:
             mice (|Mice|): The maximally-irreducible cause or effect.
 
@@ -781,6 +785,7 @@ def mip_bipartitions(mechanism, purview):
     Args:
         mechanism (tuple(int)): The mechanism to partition
         purview (tuple(int)): The purview to partition
+
     Returns:
         bipartitions (list(tuple((Part, Part)))): Where each partition is
 
