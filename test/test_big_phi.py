@@ -4,18 +4,16 @@
 
 import pickle
 import pytest
-import numpy as np
 from unittest.mock import patch
 
-from pyphi import constants, config, compute, models, utils, convert, Network
+from pyphi import constants, config, compute, models, utils, Network
 from pyphi.constants import DIRECTIONS, PAST, FUTURE
 from pyphi.models import Cut
 from pyphi.concept import constellation
 from pyphi.big_phi import (_find_mip_parallel, _find_mip_sequential,
-                                   _null_bigmip)
-from scipy.sparse.csgraph import connected_components
-from scipy.sparse import csr_matrix
+                           _null_bigmip, big_mip_bipartitions)
 
+# TODO: split these into `concept` and `big_phi` tests
 
 # Answers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -525,3 +523,33 @@ def test_parallel_and_sequential_constellations_are_equal(s, micro_s, macro_s):
         assert set(c) == set(compute.constellation(s))
         assert set(c_micro) == set(compute.constellation(micro_s))
         assert set(c_macro) == set(compute.constellation(macro_s))
+
+
+def test_big_mip_bipartitions():
+    with config.override(CUT_ONE_APPROXIMATION=False):
+        answer = [models.Cut((1,), (2, 3, 4)),
+                  models.Cut((2,), (1, 3, 4)),
+                  models.Cut((1, 2), (3, 4)),
+                  models.Cut((3,), (1, 2, 4)),
+                  models.Cut((1, 3), (2, 4)),
+                  models.Cut((2, 3), (1, 4)),
+                  models.Cut((1, 2, 3), (4,)),
+                  models.Cut((4,), (1, 2, 3)),
+                  models.Cut((1, 4), (2, 3)),
+                  models.Cut((2, 4), (1, 3)),
+                  models.Cut((1, 2, 4), (3,)),
+                  models.Cut((3, 4), (1, 2)),
+                  models.Cut((1, 3, 4), (2,)),
+                  models.Cut((2, 3, 4), (1,))]
+        assert big_mip_bipartitions((1, 2, 3, 4)) == answer
+
+    with config.override(CUT_ONE_APPROXIMATION=True):
+        answer = [models.Cut((1,), (2, 3, 4)),
+                  models.Cut((2,), (1, 3, 4)),
+                  models.Cut((3,), (1, 2, 4)),
+                  models.Cut((1, 2, 3), (4,)),
+                  models.Cut((4,), (1, 2, 3)),
+                  models.Cut((1, 2, 4), (3,)),
+                  models.Cut((1, 3, 4), (2,)),
+                  models.Cut((2, 3, 4), (1,))]
+        assert big_mip_bipartitions((1, 2, 3, 4)) == answer
