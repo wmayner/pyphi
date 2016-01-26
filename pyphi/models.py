@@ -175,14 +175,17 @@ class _Ordering:
     The ``_order_by`` method returns a list of attributes which are compared
     to implement the ordering.
 
-    If two objects are compared using ``<=`` or ``>=``, because we fall back
-    on ``phi_eq`` instead of using the native ``__eq__`` implementation, it is
-    possible for ``a != b``, ```a <= b`` and ``a >= b`` all to be true. I'm
-    not convinced that this makes sense, but it seems necessary to conform to
-    legacy behavior.
-
-    TODO: resolve this...
+    Subclasses can optionally set a value for `_unorderable_unless_eq`. This
+    attribute controls whether objects are orderable: if all attributes listed
+    in `_unorderable_unless_eq` are not equal then the objects are not
+    orderable with respect to one another and a TypeError is raised. For
+    example: it doesn't make sense to compare ``Concepts`` unless they are
+    from the same ``Subsystem`` or compare ``Mips`` with different directions.
     """
+
+    # The object is not orderable unless these attributes are all equal
+    _unorderable_unless_eq = []
+
     def _order_by(self):
         """Return a list of values to compare for ordering.
 
@@ -193,11 +196,15 @@ class _Ordering:
 
     @sametype
     def __lt__(self, other):
+        if not _general_eq(self, other, self._unorderable_unless_eq):
+            raise TypeError(
+                'Unorderable: the following attrs must be equal: {}'.format(
+                    self._unorderable_unless_eq))
         return self._order_by() < other._order_by()
 
     @sametype
     def __le__(self, other):
-        return self < other or utils.phi_eq(self.phi, other.phi)
+        return self < other or self == other
 
     @sametype
     def __gt__(self, other):
@@ -205,7 +212,7 @@ class _Ordering:
 
     @sametype
     def __ge__(self, other):
-        return other < self or utils.phi_eq(self.phi, other.phi)
+        return other < self or self == other
 
     @sametype
     def __eq__(self, other):
@@ -214,27 +221,6 @@ class _Ordering:
     @sametype
     def __ne__(self, other):
         return not self == other
-
-
-class _PhiMechanismOrdering(_Ordering):
-    """Order an object first by phi-value then by mechanism size."""
-
-    def _order_by(self):
-        return [self.phi, len(self.mechanism)]
-
-
-class _PhiMechanismPurviewOrdering(_Ordering):
-    """Order an object by phi-value, mechanism size, then purview size."""
-
-    def _order_by(self):
-        return [self.phi, len(self.mechanism), len(self.purview)]
-
-
-class _PhiSubsystemOrdering(_Ordering):
-    """Order an object by phi-value then by subsystem size."""
-
-    def _order_by(self):
-        return [self.phi, len(self.subsystem)]
 
 
 # Equality helpers
@@ -287,7 +273,7 @@ _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
 
 
-class Mip(_PhiMechanismPurviewOrdering, namedtuple('Mip', _mip_attributes)):
+class Mip(_Ordering, namedtuple('Mip', _mip_attributes)):
     """A minimum information partition for |small_phi| calculation.
 
     MIPs may be compared with the built-in Python comparison operators (``<``,
@@ -319,6 +305,11 @@ class Mip(_PhiMechanismPurviewOrdering, namedtuple('Mip', _mip_attributes)):
     """
 
     __slots__ = ()
+
+    _unorderable_unless_eq = ['direction']
+
+    def _order_by(self):
+        return [self.phi, len(self.mechanism), len(self.purview)]
 
     def __eq__(self, other):
         # We don't count the partition and partitioned repertoire in checking
@@ -382,7 +373,7 @@ def _null_mip(direction, mechanism, purview):
 
 # =============================================================================
 
-class Mice(_PhiMechanismPurviewOrdering):
+class Mice(_Ordering):
     """A maximally irreducible cause or effect (i.e., “core cause” or “core
     effect”).
 
@@ -440,6 +431,11 @@ class Mice(_PhiMechanismPurviewOrdering):
 
     def __str__(self):
         return "Mice\n" + indent(fmt_mip(self.mip))
+
+    _unorderable_unless_eq = Mip._unorderable_unless_eq
+
+    def _order_by(self):
+        return self.mip._order_by()
 
     def __eq__(self, other):
         return self.mip == other.mip
@@ -512,7 +508,7 @@ _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept(_PhiMechanismOrdering):
+class Concept(_Ordering):
     """A star in concept-space.
 
     The ``phi`` attribute is the |small_phi_max| value. ``cause`` and
@@ -564,6 +560,11 @@ class Concept(_PhiMechanismOrdering):
             return (self.cause.repertoire, self.effect.repertoire)
         else:
             return (self.cause, self.effect)
+
+    _unorderable_unless_eq = ['subsystem']
+
+    def _order_by(self):
+        return [self.phi, len(self.mechanism)]
 
     def __eq__(self, other):
         self_cause_purview = getattr(self.cause, 'purview', None)
@@ -691,7 +692,7 @@ _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'cut_subsystem']
 
 
-class BigMip(_PhiSubsystemOrdering):
+class BigMip(_Ordering):
     """A minimum information partition for |big_phi| calculation.
 
     BigMips may be compared with the built-in Python comparison operators
@@ -737,6 +738,16 @@ class BigMip(_PhiSubsystemOrdering):
         subsystem.
         """
         return self.cut_subsystem.cut
+
+    @property
+    def network(self):
+        """The network this |BigMip| belongs to."""
+        return self.subsystem.network
+
+    _unorderable_unless_eq = ['network']
+
+    def _order_by(self):
+        return [self.phi, len(self.subsystem)]
 
     def __eq__(self, other):
         return _general_eq(self, other, _bigmip_attributes)

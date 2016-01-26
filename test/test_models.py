@@ -24,10 +24,16 @@ a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
 
 def test_phi_mechanism_ordering():
 
-    class PhiThing(models._PhiMechanismOrdering):
+    class PhiThing(models._Ordering):
         def __init__(self, phi, mechanism):
             self.phi = phi
             self.mechanism = mechanism
+
+        def _order_by(self):
+            return [self.phi, self.mechanism]
+            
+        def __eq__(self, other):
+            return self.phi == other.phi and self.mechanism == other.mechanism
 
     # assert PhiThing(1.0, (1,)) == PhiThing(1.0, (1,))
     # assert PhiThing(1.0, (1,)) == PhiThing(1.0, (1, 2))
@@ -195,10 +201,11 @@ def test_mip_ordering_and_equality():
     # Different purviews w/ same length are "equal"
     assert mip(purv=(1, 2)) == mip(purv=(3, 4))
 
-    # Yes, this is weird...
-    assert mip(dir='past') <= mip(dir='future')
-    assert mip(dir='past') >= mip(dir='future')
-    assert mip(dir='past') != mip(dir='future')
+    with pytest.raises(TypeError):
+        mip(dir='past') < mip(dir='future')
+
+    with pytest.raises(TypeError):
+        mip(dir='past') >= mip(dir='future')
 
 
 def test_null_mip():
@@ -237,10 +244,12 @@ def test_mice_ordering_by_phi():
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
-    # This is strange behavior, yes
-    assert phi1 <= different_phi1
-    assert phi1 >= different_phi1
-    assert phi1 != different_phi1
+
+    with pytest.raises(TypeError):
+        phi1 <= different_phi1
+
+    with pytest.raises(TypeError):
+        phi1 >= different_phi1
 
 
 def test_mice_odering_by_mechanism():
@@ -321,12 +330,12 @@ def test_damaged(s):
 # Test Concept {{{
 # ================
 
-def test_concept_ordering(s):
+def test_concept_ordering(s, micro_s):
     phi1 = models.Concept(
         mechanism=(0, 1), cause=1, effect=None, subsystem=s,
         phi=1.0)
     different_phi1 = models.Concept(
-        mechanism=(), cause='different', effect=None, subsystem=s,
+        mechanism=(0, 1), cause='different', effect=None, subsystem=micro_s,
         phi=1.0)
     phi2 = models.Concept(
         mechanism=(0,), cause='stilldifferent', effect=None, subsystem=s,
@@ -335,8 +344,11 @@ def test_concept_ordering(s):
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
-    assert phi1 <= different_phi1
-    assert phi1 >= different_phi1
+
+    with pytest.raises(TypeError):
+        phi1 <= different_phi1
+    with pytest.raises(TypeError):
+        phi1 > different_phi1
 
 
 def test_concept_odering_by_mechanism(s):
@@ -509,35 +521,37 @@ def test_constellation_repr():
 # Test BigMip {{{
 # ===============
 
-def test_bigmip_ordering():
+def test_bigmip_ordering(s, s_noised):
     phi1 = models.BigMip(
         unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=(), cut_subsystem=(),
+        subsystem=s, cut_subsystem=(),
         phi=1.0)
     different_phi1 = models.BigMip(
         unpartitioned_constellation=0, partitioned_constellation=None,
-        subsystem=(), cut_subsystem=(),
+        subsystem=s_noised, cut_subsystem=(),
         phi=1.0)
     phi2 = models.BigMip(
         unpartitioned_constellation='stilldifferent',
-        partitioned_constellation=None, subsystem=(), cut_subsystem=(),
+        partitioned_constellation=None, subsystem=s, cut_subsystem=(),
         phi=1.0 + constants.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
-    assert phi1 <= different_phi1
-    assert phi1 >= different_phi1
+    with pytest.raises(TypeError):
+        phi1 <= different_phi1
+    with pytest.raises(TypeError):
+        phi1 >= different_phi1
 
 
-def test_bigmip_odering_by_subsystem_size():
+def test_bigmip_ordering_by_subsystem_size(s, s_single):
     small = models.BigMip(
         unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=[1], cut_subsystem=(),
+        partitioned_constellation=None, subsystem=s_single, cut_subsystem=(),
         phi=1.0)
     big = models.BigMip(
         unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=[1, 2], cut_subsystem=(),
+        partitioned_constellation=None, subsystem=s, cut_subsystem=(),
         phi=1.0)
     assert small < big
     assert small <= big
