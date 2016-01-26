@@ -348,7 +348,7 @@ def test_concept_ordering(s):
         mechanism=(), cause='different', effect=None, subsystem=s,
         phi=1.0)
     phi2 = models.Concept(
-        mechanism=0, cause='stilldifferent', effect=None, subsystem=s,
+        mechanism=(0,), cause='stilldifferent', effect=None, subsystem=s,
         phi=1.0 + constants.EPSILON*2)
     assert phi1 < phi2
     assert phi2 > phi1

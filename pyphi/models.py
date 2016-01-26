@@ -547,7 +547,7 @@ _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept:
+class Concept(PhiMechanismOrdering):
     """A star in concept-space.
 
     The ``phi`` attribute is the |small_phi_max| value. ``cause`` and
@@ -696,12 +696,6 @@ class Concept:
         d['effect']['partitioned_repertoire'] = \
             self.expand_partitioned_effect_repertoire().flatten()
         return d
-
-    # Order by phi value, then by mechanism size
-    __lt__ = _phi_then_mechanism_size_lt
-    __gt__ = _phi_then_mechanism_size_gt
-    __le__ = _phi_then_mechanism_size_le
-    __ge__ = _phi_then_mechanism_size_ge
 
 
 class Constellation(tuple):
