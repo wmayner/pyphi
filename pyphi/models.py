@@ -168,7 +168,7 @@ def sametype(func):
     return wrapper
 
 
-class Ordering:
+class _Ordering:
     """Note: the way comparisons are currently set up (so the == and ordering
     are disconncted) makes it possible for `a != b`, `a <= b` and `a >= b`
     to all be true. How can we fix this?
@@ -203,21 +203,21 @@ class Ordering:
         return not self == other
 
 
-class PhiMechanismOrdering(Ordering):
+class _PhiMechanismOrdering(_Ordering):
     """Order an object first by phi-value then by mechanism size."""
 
     def _order_by(self):
         return [self.phi, len(self.mechanism)]
 
 
-class PhiMechanismPurviewOrdering(Ordering):
+class _PhiMechanismPurviewOrdering(_Ordering):
     """Order an object by phi-value, mechanism size, then purview size."""
 
     def _order_by(self):
         return [self.phi, len(self.mechanism), len(self.purview)]
 
 
-class PhiSubsystemOrdering(Ordering):
+class _PhiSubsystemOrdering(_Ordering):
     """Order an object by phi-value then by subsystem size."""
 
     def _order_by(self):
@@ -274,7 +274,7 @@ _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
 
 
-class Mip(PhiMechanismPurviewOrdering, namedtuple('Mip', _mip_attributes)):
+class Mip(_PhiMechanismPurviewOrdering, namedtuple('Mip', _mip_attributes)):
     """A minimum information partition for |small_phi| calculation.
 
     MIPs may be compared with the built-in Python comparison operators (``<``,
@@ -369,7 +369,7 @@ def _null_mip(direction, mechanism, purview):
 
 # =============================================================================
 
-class Mice(PhiMechanismPurviewOrdering):
+class Mice(_PhiMechanismPurviewOrdering):
     """A maximally irreducible cause or effect (i.e., “core cause” or “core
     effect”).
 
@@ -499,7 +499,7 @@ _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept(PhiMechanismOrdering):
+class Concept(_PhiMechanismOrdering):
     """A star in concept-space.
 
     The ``phi`` attribute is the |small_phi_max| value. ``cause`` and
@@ -678,7 +678,7 @@ _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'cut_subsystem']
 
 
-class BigMip(PhiSubsystemOrdering):
+class BigMip(_PhiSubsystemOrdering):
     """A minimum information partition for |big_phi| calculation.
 
     BigMips may be compared with the built-in Python comparison operators
