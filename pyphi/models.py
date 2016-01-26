@@ -7,6 +7,7 @@ Containers for MICE, MIP, cut, partition, and concept data.
 """
 
 from collections import Iterable, namedtuple
+import functools
 
 import numpy as np
 
@@ -187,6 +188,64 @@ def _phi_ge(self, other):
     return _phi_gt(self, other) or _phi_eq(self, other)
 
 
+def sametype(func):
+    @functools.wraps(func)
+    def wrapper(self, other):
+        if type(other) is not type(self):
+            return NotImplemented
+        return func(self, other)
+    return wrapper
+
+
+class Ordering:
+    """Note: the way comparisons are currently set up (so the == and ordering
+    are disconncted) makes it possible for `a != b`, `a <= b` and `a >= b`
+    to all be true. How can we fix this?
+
+    This assumes that all models want to implemenent a unique `__eq__` method.
+    """
+    def _order_by(self):
+        raise NotImplementedError
+
+    @sametype
+    def __lt__(self, other):
+        return self._order_by() < other._order_by()
+
+    @sametype
+    def __le__(self, other):
+        return self < other or utils.phi_eq(self.phi, other.phi)
+
+    @sametype
+    def __gt__(self, other):
+        return other < self
+
+    @sametype
+    def __ge__(self, other):
+        return other < self or utils.phi_eq(self.phi, other.phi)
+
+    @sametype
+    def __eq__(self, other):
+        raise NotImplementedError
+
+    @sametype
+    def __ne__(self, other):
+        return not self == other
+
+
+class PhiMechanismOrdering(Ordering):
+    """Order an object first by phi-value then by mechanism size."""
+
+    def _order_by(self):
+        return [self.phi, len(self.mechanism)]
+
+
+class PhiMechanismPurviewOrdering(Ordering):
+    """Order an object by phi-value, mechanism size, then purview size."""
+
+    def _order_by(self):
+        return [self.phi, len(self.mechanism), len(self.purview)]
+
+
 # First compare phi, then mechanism size
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -261,11 +320,9 @@ def _general_eq(a, b, attributes):
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
-_mip_attributes_for_eq = ['phi', 'direction', 'mechanism',
-                          'unpartitioned_repertoire']
 
 
-class Mip(namedtuple('Mip', _mip_attributes)):
+class Mip(PhiMechanismPurviewOrdering, namedtuple('Mip', _mip_attributes)):
     """A minimum information partition for |small_phi| calculation.
 
     MIPs may be compared with the built-in Python comparison operators (``<``,
@@ -306,13 +363,16 @@ class Mip(namedtuple('Mip', _mip_attributes)):
         # TODO!!! clarify the reason for that
         # We do however check whether the size of the mechanism or purview is
         # the same, since that matters (for the exclusion principle).
-        if not self.purview or not other.purview:
-            return (_general_eq(self, other, _mip_attributes_for_eq) and
-                    len(self.mechanism) == len(other.mechanism))
-        else:
-            return (_general_eq(self, other, _mip_attributes_for_eq) and
-                    len(self.mechanism) == len(other.mechanism) and
-                    len(self.purview) == len(other.purview))
+        # TODO: it seems like perhaps we should compare everything here.
+        # The *orderings* can exclude some attributes, but maybe equality
+        # should consider the purview as well?
+
+        attrs = ['phi', 'direction', 'mechanism', 'unpartitioned_repertoire']
+
+        if self.purview and other.purview:
+            return (_general_eq(self, other, attrs)
+                    and len(self.purview) == len(other.purview))
+        return _general_eq(self, other, attrs)
 
     def __bool__(self):
         """A Mip is truthy if it is not reducible.
@@ -341,12 +401,6 @@ class Mip(namedtuple('Mip', _mip_attributes)):
     def __str__(self):
         return "Mip\n" + indent(fmt_mip(self))
 
-    # Order by phi value, then by mechanism size
-    __lt__ = _phi_then_mechanism_size_lt
-    __gt__ = _phi_then_mechanism_size_gt
-    __le__ = _phi_then_mechanism_size_le
-    __ge__ = _phi_then_mechanism_size_ge
-
 
 def _null_mip(direction, mechanism, purview):
     """The null mip (of a reducible mechanism)."""
@@ -363,7 +417,7 @@ def _null_mip(direction, mechanism, purview):
 
 # =============================================================================
 
-class Mice:
+class Mice(PhiMechanismPurviewOrdering):
     """A maximally irreducible cause or effect (i.e., “core cause” or “core
     effect”).
 
@@ -483,12 +537,6 @@ class Mice:
         return (subsystem.cut.splits_mechanism(self.mechanism) or
                 np.any(self._relevant_connections(subsystem) *
                        subsystem.cut_matrix == 1))
-
-    # Order by phi value, then by mechanism size
-    __lt__ = _phi_then_mechanism_size_lt
-    __gt__ = _phi_then_mechanism_size_gt
-    __le__ = _phi_then_mechanism_size_le
-    __ge__ = _phi_then_mechanism_size_ge
 
 
 # =============================================================================

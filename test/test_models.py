@@ -5,6 +5,7 @@
 from unittest import mock
 from collections import namedtuple
 import numpy as np
+import pytest
 
 from pyphi import models, constants, config, Subsystem
 
@@ -20,6 +21,43 @@ a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
 
 # Test equality helpers {{{
 # =========================
+
+def test_phi_mechanism_ordering():
+
+    class PhiThing(models.PhiMechanismOrdering):
+        def __init__(self, phi, mechanism):
+            self.phi = phi
+            self.mechanism = mechanism
+
+    # assert PhiThing(1.0, (1,)) == PhiThing(1.0, (1,))
+    # assert PhiThing(1.0, (1,)) == PhiThing(1.0, (1, 2))
+    # assert PhiThing(1.0, (1,)) != PhiThing(2.0, (1, 2))
+    assert PhiThing(1.0, (1,)) < PhiThing(2.0, (1,))
+    assert PhiThing(1.0, (1,)) <= PhiThing(1.0, (1, 2))  # Smaller mechanism
+    assert PhiThing(1.0, (1,)) <= PhiThing(2.0, (1,))
+    assert PhiThing(2.0, (1,)) > PhiThing(1.0, (1,))
+    assert PhiThing(2.0, (1,)) > PhiThing(1.0, (1, 2))  # Larger phi
+    assert PhiThing(1.0, (1,)) >= PhiThing(1.0, (1,))
+    assert PhiThing(1.0, (1, 2)) >= PhiThing(1.0, (1,))
+
+    class PhiLikeThing(PhiThing):
+        pass
+
+    # Compared objects must be of the same class
+    with pytest.raises(TypeError):  # TypeError: unorderable types
+        PhiThing(1.0, (1, 2)) <= PhiLikeThing(1.0, (1, 2))
+
+    class PhiThang(PhiThing):
+        def __init__(self, phi, mechanism, purview):
+            super().__init__(phi, mechanism)
+            self.purview = purview
+
+        def __eq__(self, other):
+            return self.purview == other.purview
+
+    assert PhiThang(1.0, (1,), (1,)) == PhiThang(2.0, (3,), (1,))
+    assert PhiThang(1.0, (1,), (1,)) < PhiThang(2.0, (1,), (2,))
+
 
 def test_phi_comparisons():
 
@@ -149,46 +187,37 @@ def test_cut_matrix():
 
 # }}}
 
+def mip(phi=1.0, dir=None, mech=(), purv=(), partition=None,
+        unpartitioned_repertoire=None, partitioned_repertoire=None):
+    return models.Mip(phi=phi, direction=dir, mechanism=mech,
+                      purview=purv, partition=partition,
+                      unpartitioned_repertoire=unpartitioned_repertoire,
+                      partitioned_repertoire=partitioned_repertoire)
+
+
 # Test MIP {{{
 # ============
 
-def test_mip_ordering():
-    phi1 = models.Mip(
-        direction=None, mechanism=(), purview=(), partition=None,
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=1.0)
-    different_phi1 = models.Mip(
-        direction='different', mechanism=(), purview=(), partition=0,
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=1.0)
-    phi2 = models.Mip(
-        direction=0, mechanism=(), purview=(), partition='stilldifferent',
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=1.0 + constants.EPSILON*2)
-    assert phi1 < phi2
-    assert phi2 > phi1
-    assert phi1 <= phi2
-    assert phi2 >= phi1
-    assert phi1 <= different_phi1
-    assert phi1 >= different_phi1
+def test_mip_ordering_and_equality():
+    assert mip(phi=1.0) < mip(phi=2.0)
+    assert mip(phi=2.0) > mip(phi=1.0)
+    assert mip(phi=1.0, mech=(1,)) < mip(phi=1.0, mech=(1, 2))
+    assert mip(phi=1.0, mech=(1, 2)) >= mip(phi=1.0, mech=(1,))
+    assert mip(phi=1.0, mech=(1,), purv=(1,)) < mip(phi=1.0, mech=(1,), purv=(1, 2))
+    assert mip(phi=1.0, mech=(1,), purv=(1, 2)) >= mip(phi=1.0, mech=(1,), purv=(1,))
 
+    assert mip(phi=1.0) == mip(phi=1.0)
+    assert mip(phi=1.0) == mip(phi=(1.0 - constants.EPSILON/2))
+    assert mip(phi=1.0) != mip(phi=(1.0 - constants.EPSILON * 2))
+    assert mip(dir='past') != mip(dir='future')
+    assert mip(mech=(1,)) != mip(mech=(1, 2))
+    # Different purviews w/ same length are "equal"
+    assert mip(purv=(1, 2)) == mip(purv=(3, 4))
 
-def test_mip_equality():
-    phi = 1.0
-    mip = models.Mip(
-        direction=None, mechanism=(), purview=(), partition=None,
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=phi)
-    close_enough = models.Mip(
-        direction=None, mechanism=(), purview=(), partition=None,
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=(phi - constants.EPSILON/2))
-    not_quite = models.Mip(
-        direction=None, mechanism=(), purview=(), partition=None,
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=(phi - constants.EPSILON*2))
-    assert mip == close_enough
-    assert mip != not_quite
+    # Yes, this is weird...
+    assert mip(dir='past') <= mip(dir='future')
+    assert mip(dir='past') >= mip(dir='future')
+    assert mip(dir='past') != mip(dir='future')
 
 
 def test_null_mip():
@@ -220,35 +249,22 @@ def test_mip_repr_str():
 # =============
 
 def test_mice_ordering_by_phi():
-    phi1 = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=1.0, partition=()))
-    different_phi1 = models.Mice(models.Mip(
-        direction='different', mechanism=(), purview=(),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=1.0, partition=()))
-    phi2 = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=(1.0 + constants.EPSILON*2), partition=()))
+    phi1 = models.Mice(mip())
+    different_phi1 = models.Mice(mip(dir='different'))
+    phi2 = models.Mice(mip(phi=(1.0 + constants.EPSILON * 2), partition=()))
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
+    # This is strange behavior, yes
     assert phi1 <= different_phi1
     assert phi1 >= different_phi1
+    assert phi1 != different_phi1
 
 
 def test_mice_odering_by_mechanism():
-    small = models.Mice(models.Mip(
-        direction=None, mechanism=(1, 2), purview=(),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=1.0, partition=()))
-    big = models.Mice(models.Mip(
-        direction=None, mechanism=(1, 2, 3), purview=(),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=1.0, partition=()))
+    small = models.Mice(mip(mech=(1,)))
+    big = models.Mice(mip(mech=(1, 2, 3)))
     assert small < big
     assert small <= big
     assert big > small
@@ -256,20 +272,19 @@ def test_mice_odering_by_mechanism():
     assert big != small
 
 
+def test_mice_ordering_by_purview():
+    small = models.Mice(mip(purv=(1, 2)))
+    big = models.Mice(mip(purv=(1, 2, 3)))
+    assert small < big
+    assert small <= big
+    assert big > small
+    assert big >= small
+
+
 def test_mice_equality():
-    phi = 1.0
-    mice = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=phi, partition=()))
-    close_enough = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=(phi - constants.EPSILON/2), partition=()))
-    not_quite = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=(phi - constants.EPSILON*2), partition=()))
+    mice = models.Mice(mip(phi=1.0))
+    close_enough = models.Mice(mip(phi=(1.0 - constants.EPSILON / 2)))
+    not_quite = models.Mice(mip(phi=(1.0 - constants.EPSILON * 2)))
     assert mice == close_enough
     assert mice != not_quite
 
