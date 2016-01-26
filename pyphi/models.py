@@ -168,7 +168,7 @@ def sametype(func):
     return wrapper
 
 
-class _Ordering:
+class _Orderable:
     """Base mixin for implementing rich object comparisons on phi-objects.
 
     Both ``__eq__`` and `_order_by`` need to be implemented on the subclass.
@@ -273,7 +273,7 @@ _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
 
 
-class Mip(_Ordering, namedtuple('Mip', _mip_attributes)):
+class Mip(_Orderable, namedtuple('Mip', _mip_attributes)):
     """A minimum information partition for |small_phi| calculation.
 
     MIPs may be compared with the built-in Python comparison operators (``<``,
@@ -373,7 +373,7 @@ def _null_mip(direction, mechanism, purview):
 
 # =============================================================================
 
-class Mice(_Ordering):
+class Mice(_Orderable):
     """A maximally irreducible cause or effect (i.e., “core cause” or “core
     effect”).
 
@@ -508,7 +508,7 @@ _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept(_Ordering):
+class Concept(_Orderable):
     """A star in concept-space.
 
     The ``phi`` attribute is the |small_phi_max| value. ``cause`` and
@@ -692,7 +692,7 @@ _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'cut_subsystem']
 
 
-class BigMip(_Ordering):
+class BigMip(_Orderable):
     """A minimum information partition for |big_phi| calculation.
 
     BigMips may be compared with the built-in Python comparison operators

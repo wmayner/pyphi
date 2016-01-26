@@ -24,14 +24,14 @@ a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
 
 def test_phi_mechanism_ordering():
 
-    class PhiThing(models._Ordering):
+    class PhiThing(models._Orderable):
         def __init__(self, phi, mechanism):
             self.phi = phi
             self.mechanism = mechanism
 
         def _order_by(self):
             return [self.phi, self.mechanism]
-            
+
         def __eq__(self, other):
             return self.phi == other.phi and self.mechanism == other.mechanism
 
