@@ -169,13 +169,26 @@ def sametype(func):
 
 
 class _Ordering:
-    """Note: the way comparisons are currently set up (so the == and ordering
-    are disconncted) makes it possible for `a != b`, `a <= b` and `a >= b`
-    to all be true. How can we fix this?
+    """Base mixin for implementing rich object comparisons on phi-objects.
 
-    This assumes that all models want to implemenent a unique `__eq__` method.
+    Both ``__eq__`` and `_order_by`` need to be implemented on the subclass.
+    The ``_order_by`` method returns a list of attributes which are compared
+    to implement the ordering.
+
+    If two objects are compared using ``<=`` or ``>=``, because we fall back
+    on ``phi_eq`` instead of using the native ``__eq__`` implementation, it is
+    possible for ``a != b``, ```a <= b`` and ``a >= b`` all to be true. I'm
+    not convinced that this makes sense, but it seems necessary to conform to
+    legacy behavior.
+
+    TODO: resolve this...
     """
     def _order_by(self):
+        """Return a list of values to compare for ordering.
+
+        The first value in the list has the greatest priority; if the first
+        objects are equal the second object is compared, etc.
+        """
         raise NotImplementedError
 
     @sametype
