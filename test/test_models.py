@@ -549,7 +549,7 @@ def test_bigmip_ordering():
     assert phi1 >= different_phi1
 
 
-def test_bigmip_odering_by_mechanism():
+def test_bigmip_odering_by_subsystem_size():
     small = models.BigMip(
         unpartitioned_constellation=None,
         partitioned_constellation=None, subsystem=[1], cut_subsystem=(),

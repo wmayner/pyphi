@@ -246,6 +246,13 @@ class PhiMechanismPurviewOrdering(Ordering):
         return [self.phi, len(self.mechanism), len(self.purview)]
 
 
+class PhiSubsystemOrdering(Ordering):
+    """Order an object by phi-value then by subsystem size."""
+
+    def _order_by(self):
+        return [self.phi, len(self.subsystem)]
+
+
 # First compare phi, then mechanism size
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -726,12 +733,12 @@ _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'cut_subsystem']
 
 
-class BigMip:
+class BigMip(PhiSubsystemOrdering):
     """A minimum information partition for |big_phi| calculation.
 
     BigMips may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
-    are equal up to |PRECISION|, the size of the mechanism is compared
+    are equal up to |PRECISION|, the size of the subsystem is compared
     (exclusion principle).
 
     Attributes:
@@ -789,33 +796,6 @@ class BigMip:
                      self.partitioned_constellation,
                      self.subsystem,
                      self.cut_subsystem))
-
-    # First compare phi, then subsystem size
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def __lt__(self, other):
-        if _phi_eq(self, other):
-            if len(self.subsystem) == len(other.subsystem):
-                return False
-            else:
-                return len(self.subsystem) < len(other.subsystem)
-        else:
-            return _phi_lt(self, other)
-
-    def __gt__(self, other):
-        if _phi_eq(self, other):
-            if len(self.subsystem) == len(other.subsystem):
-                return False
-            else:
-                return len(self.subsystem) > len(other.subsystem)
-        else:
-            return _phi_gt(self, other)
-
-    def __le__(self, other):
-        return (self.__lt__(other) or _phi_eq(self, other))
-
-    def __ge__(self, other):
-        return (self.__gt__(other) or _phi_eq(self, other))
 
     def to_json(self):
         return {
