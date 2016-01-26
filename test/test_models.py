@@ -69,35 +69,6 @@ def test_sametype_decorator():
     assert Thing().do_it(object()) == NotImplemented
 
 
-def test_phi_comparisons():
-
-    class PhiThing:
-        def __init__(self, phi):
-            self.phi = phi
-    small = PhiThing(0.0)
-    large = PhiThing(2.0)
-
-    assert models._phi_lt(small, large)
-    assert not models._phi_lt(large, small)
-    assert not models._phi_lt(small, small)
-    assert not models._phi_lt(small, 'attr_error')
-
-    assert models._phi_le(small, large)
-    assert not models._phi_le(large, small)
-    assert models._phi_le(small, small)
-    assert not models._phi_le(small, 'attr_error')
-
-    assert models._phi_gt(large, small)
-    assert not models._phi_gt(small, large)
-    assert not models._phi_gt(large, large)
-    assert not models._phi_gt(small, 'attr_error')
-
-    assert models._phi_ge(large, small)
-    assert not models._phi_ge(small, large)
-    assert models._phi_ge(large, large)
-    assert not models._phi_ge(small, 'attr_error')
-
-
 def test_numpy_aware_eq_noniterable():
     b = 1
     assert not models._numpy_aware_eq(a, b)

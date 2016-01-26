@@ -149,44 +149,8 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
     pass
 
 
-# Phi-ordering methods
+# Rich comparison (ordering) helpers
 # =============================================================================
-
-# Compare phi
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-def _phi_eq(self, other):
-    try:
-        return utils.phi_eq(self.phi, other.phi)
-    except AttributeError:
-        return False
-
-
-def _phi_lt(self, other):
-    try:
-        if not utils.phi_eq(self.phi, other.phi):
-            return self.phi < other.phi
-        return False
-    except AttributeError:
-        return False
-
-
-def _phi_gt(self, other):
-    try:
-        if not utils.phi_eq(self.phi, other.phi):
-            return self.phi > other.phi
-        return False
-    except AttributeError:
-        return False
-
-
-def _phi_le(self, other):
-    return _phi_lt(self, other) or _phi_eq(self, other)
-
-
-def _phi_ge(self, other):
-    return _phi_gt(self, other) or _phi_eq(self, other)
-
 
 def sametype(func):
     """Method decorator to return ``NotImplemented`` if the args of the wrapped
@@ -258,32 +222,6 @@ class PhiSubsystemOrdering(Ordering):
 
     def _order_by(self):
         return [self.phi, len(self.subsystem)]
-
-
-# First compare phi, then mechanism size
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-def _phi_then_mechanism_size_lt(self, other):
-    if _phi_eq(self, other):
-        return (len(self.mechanism) < len(other.mechanism)
-                if hasattr(other, 'mechanism') else False)
-    else:
-        return _phi_lt(self, other)
-
-
-def _phi_then_mechanism_size_gt(self, other):
-    return (not _phi_then_mechanism_size_lt(self, other) and
-            not self == other)
-
-
-def _phi_then_mechanism_size_le(self, other):
-    return (_phi_then_mechanism_size_lt(self, other) or
-            _phi_eq(self, other))
-
-
-def _phi_then_mechanism_size_ge(self, other):
-    return (_phi_then_mechanism_size_gt(self, other) or
-            _phi_eq(self, other))
 
 
 # Equality helpers
