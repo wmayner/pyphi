@@ -4,7 +4,6 @@
 
 """Represents a candidate system for |small_phi| and |big_phi| evaluation."""
 
-import functools
 import itertools
 
 import numpy as np
@@ -15,14 +14,6 @@ from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
 from .models import Concept, Cut, Mice, Mip, _null_mip, Part
 from .node import Node
-
-# Cache decorator for Subsystem repertoire methods
-# TODO: if repertoire caches are never reused, there's no reason to
-# have an accesible object-level cache. Just use a simple memoizer
-cache_repertoire = functools.partial(cache.method_cache, '_repertoire_cache')
-
-# Cache decorator for `Subsytem.find_mice`
-cache_mice = cache.method_cache('_mice_cache')
 
 
 class Subsystem:
@@ -113,6 +104,8 @@ class Subsystem:
         self._mice_cache = cache.MiceCache(self, mice_cache)
 
         # Cause & effect repertoire cache
+        # TODO: if repertoire caches are never reused, there's no reason to
+        # have an accesible object-level cache. Just use a simple memoizer
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
         validate.subsystem(self)
@@ -242,7 +235,7 @@ class Subsystem:
 
         return tuple(n for n in self.nodes if n.index in indices)
 
-    @cache_repertoire(DIRECTIONS[PAST])
+    @cache.method_cache('_repertoire_cache', DIRECTIONS[PAST])
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -320,7 +313,7 @@ class Subsystem:
 
         return cjd
 
-    @cache_repertoire(DIRECTIONS[FUTURE])
+    @cache.method_cache('_repertoire_cache', DIRECTIONS[FUTURE])
     def effect_repertoire(self, mechanism, purview):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -661,7 +654,7 @@ class Subsystem:
 
         return [purview for purview in purviews if not reducible(purview)]
 
-    @cache_mice
+    @cache.method_cache('_mice_cache')
     def find_mice(self, direction, mechanism, purviews=False):
         """Return the maximally irreducible cause or effect for a mechanism.
 
