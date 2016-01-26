@@ -189,6 +189,13 @@ def _phi_ge(self, other):
 
 
 def sametype(func):
+    """Method decorator to return ``NotImplemented`` if the args of the wrapped
+    method are of different types.
+
+    When wrapping a rich model comparison method this will delegate (reflect)
+    the comparison to the right-hand-side object, or fallback by passing it up
+    the inheritance tree.
+    """
     @functools.wraps(func)
     def wrapper(self, other):
         if type(other) is not type(self):

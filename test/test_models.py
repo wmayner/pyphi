@@ -59,6 +59,16 @@ def test_phi_mechanism_ordering():
     assert PhiThang(1.0, (1,), (1,)) < PhiThang(2.0, (1,), (2,))
 
 
+def test_sametype_decorator():
+
+    class Thing:
+        @models.sametype
+        def do_it(self, other):
+            return True
+
+    assert Thing().do_it(object()) == NotImplemented
+
+
 def test_phi_comparisons():
 
     class PhiThing:
