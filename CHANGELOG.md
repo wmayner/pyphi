@@ -50,6 +50,7 @@ Next Release
 - Subsystem Mice and cause/effect repertoire caches; Network purview caches.
   Cache logic is now handled by decorators and custom cache objects.
 - Block reducibility tests and Mice connection computations.
+- Rich object comparisons on phi-objects.
 
 ### Documentation
 - Updated documentation and examples to reflect node-to-index conversion.
