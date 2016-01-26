@@ -35,7 +35,7 @@ class SomeObject:
     def __init__(self):
         self.my_cache = cache.DictCache()
 
-    @cache.method_cache('my_cache', 'key_prefix')
+    @cache.method('my_cache', 'key_prefix')
     def cached_method(self, some_arg):
         return 'expensive computation'
 

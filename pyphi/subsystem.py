@@ -235,7 +235,7 @@ class Subsystem:
 
         return tuple(n for n in self.nodes if n.index in indices)
 
-    @cache.method_cache('_repertoire_cache', DIRECTIONS[PAST])
+    @cache.method('_repertoire_cache', DIRECTIONS[PAST])
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -313,7 +313,7 @@ class Subsystem:
 
         return cjd
 
-    @cache.method_cache('_repertoire_cache', DIRECTIONS[FUTURE])
+    @cache.method('_repertoire_cache', DIRECTIONS[FUTURE])
     def effect_repertoire(self, mechanism, purview):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -654,7 +654,7 @@ class Subsystem:
 
         return [purview for purview in purviews if not reducible(purview)]
 
-    @cache.method_cache('_mice_cache')
+    @cache.method('_mice_cache')
     def find_mice(self, direction, mechanism, purviews=False):
         """Return the maximally irreducible cause or effect for a mechanism.
 

@@ -420,7 +420,7 @@ class PurviewCache(DictCache):
             self.cache[key] = value
 
 
-def method_cache(cache_name, key_prefix=None):
+def method(cache_name, key_prefix=None):
     """Caching decorator for object-level method caches.
 
     Cache key generation is delegated to the cache.
