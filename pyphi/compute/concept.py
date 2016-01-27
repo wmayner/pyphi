@@ -7,8 +7,8 @@ from time import time
 
 import numpy as np
 
-from . import config, parallel, utils
-from .models import Constellation
+from . import parallel
+from .. import config, models, utils
 
 
 def concept(subsystem, mechanism, purviews=False, past_purviews=False,
@@ -56,7 +56,7 @@ def _sequential_constellation(subsystem, mechanisms=False, purviews=False,
                         future_purviews=future_purviews)
                 for mechanism in mechanisms]
     # Filter out falsy concepts, i.e. those with effectively zero Phi.
-    return Constellation(filter(None, concepts))
+    return models.Constellation(filter(None, concepts))
 
 
 def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False,
@@ -108,7 +108,7 @@ def _parallel_constellation(subsystem, mechanisms=False, purviews=False,
                 break
         else:
             concepts.append(new_concept)
-    return Constellation(concepts)
+    return models.Constellation(concepts)
 
 
 def constellation(subsystem, mechanisms=False, purviews=False,

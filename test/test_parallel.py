@@ -5,7 +5,8 @@
 import pytest
 from unittest.mock import patch
 
-from pyphi import config, parallel
+from pyphi import config
+from pyphi.compute import parallel
 
 
 @config.override(NUMBER_OF_CORES=0)

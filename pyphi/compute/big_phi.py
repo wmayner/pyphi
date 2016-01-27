@@ -14,11 +14,12 @@ from time import time
 
 import numpy as np
 
-from . import config, memory, parallel, utils, validate
-from .models import BigMip, Cut, _null_bigmip, _single_node_bigmip
-from .network import Network
-from .subsystem import Subsystem
+from . import parallel
 from .concept import constellation, constellation_distance
+from .. import config, memory, utils, validate
+from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
+from ..network import Network
+from ..subsystem import Subsystem
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)

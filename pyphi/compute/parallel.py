@@ -4,7 +4,7 @@
 
 import multiprocessing
 
-from . import config
+from .. import config
 
 
 # TODO: can return a negative number if NUMBER_OF_CORES
