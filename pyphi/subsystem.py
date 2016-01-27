@@ -685,7 +685,7 @@ class Subsystem:
         purviews = self._potential_purviews(direction, mechanism, purviews)
 
         if not purviews:
-            max_mip = _null_mip(direction, mechanism, None)
+            max_mip = _null_mip(direction, mechanism, ())
         else:
             max_mip = max(self.find_mip(direction, mechanism, purview)
                           for purview in purviews)

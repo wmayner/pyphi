@@ -41,14 +41,14 @@ expected_purview_indices = {
         'past': {
             (1,): (2,),
             (2,): (0, 1),
-            (0, 1): None,
-            (0, 1, 2): None,
+            (0, 1): (),
+            (0, 1, 2): (),
         },
         'future': {
             (1,): (2,),
             (2,): (1,),
             (0, 1): (2,),
-            (0, 1, 2): None,
+            (0, 1, 2): (),
         }
     }
 }
@@ -103,7 +103,7 @@ def test_find_mice(cut, direction, expected):
 
 
 def test_find_mice_empty(s):
-    expected = [Mice(_null_mip(direction, (), s.nodes)) for direction in
+    expected = [Mice(_null_mip(direction, (), ())) for direction in
                 directions]
     assert all(s.find_mice(mice.direction, mice.mechanism) == mice
                for mice in expected)

@@ -24,7 +24,7 @@ a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
 
 def test_phi_mechanism_ordering():
 
-    class PhiThing(models._Orderable):
+    class PhiThing(models.cmp._Orderable):
         def __init__(self, phi, mechanism):
             self.phi = phi
             self.mechanism = mechanism
@@ -68,7 +68,7 @@ def test_phi_mechanism_ordering():
 def test_sametype_decorator():
 
     class Thing:
-        @models.sametype
+        @models.cmp.sametype
         def do_it(self, other):
             return True
 
@@ -77,56 +77,56 @@ def test_sametype_decorator():
 
 def test_numpy_aware_eq_noniterable():
     b = 1
-    assert not models._numpy_aware_eq(a, b)
+    assert not models.cmp._numpy_aware_eq(a, b)
 
 
 def test_numpy_aware_eq_nparray():
     b = np.arange(3)
-    assert not models._numpy_aware_eq(a, b)
+    assert not models.cmp._numpy_aware_eq(a, b)
 
 
 def test_numpy_aware_eq_tuple_nparrays():
     b = (np.arange(3), np.arange(3))
-    assert not models._numpy_aware_eq(a, b)
+    assert not models.cmp._numpy_aware_eq(a, b)
 
 
 def test_numpy_aware_eq_identical():
     b = a
-    assert models._numpy_aware_eq(a, b)
+    assert models.cmp._numpy_aware_eq(a, b)
 
 
 def test_general_eq_different_attributes():
     similar_nt = namedtuple('nt', nt_attributes + ['supbro'])
     b = similar_nt(a.this, a.that, a.phi, a.mechanism, a.purview,
                    supbro="nothin' much")
-    assert models._general_eq(a, b, nt_attributes)
+    assert models.cmp._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_true():
     b = nt(a.this, a.that, (a.phi - constants.EPSILON/2), a.mechanism,
            a.purview)
-    assert models._general_eq(a, b, nt_attributes)
+    assert models.cmp._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_false():
     b = nt(a.this, a.that, (a.phi - constants.EPSILON*2), a.mechanism,
            a.purview)
-    assert not models._general_eq(a, b, nt_attributes)
+    assert not models.cmp._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_different_mechanism_order():
     b = nt(a.this, a.that, a.phi, a.mechanism[::-1], a.purview)
-    assert models._general_eq(a, b, nt_attributes)
+    assert models.cmp._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_different_purview_order():
     b = nt(a.this, a.that, a.phi, a.mechanism, a.purview[::-1])
-    assert models._general_eq(a, b, nt_attributes)
+    assert models.cmp._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_different_mechanism_and_purview_order():
     b = nt(a.this, a.that, a.phi, a.mechanism[::-1], a.purview[::-1])
-    assert models._general_eq(a, b, nt_attributes)
+    assert models.cmp._general_eq(a, b, nt_attributes)
 
 
 # }}}
@@ -198,8 +198,6 @@ def test_mip_ordering_and_equality():
     assert mip(phi=1.0) != mip(phi=(1.0 - constants.EPSILON * 2))
     assert mip(dir='past') != mip(dir='future')
     assert mip(mech=(1,)) != mip(mech=(1, 2))
-    # Different purviews w/ same length are "equal"
-    assert mip(purv=(1, 2)) == mip(purv=(3, 4))
 
     with pytest.raises(TypeError):
         mip(dir='past') < mip(dir='future')
@@ -596,7 +594,7 @@ def test_indent():
          "line2")
     answer = ("  line1\n"
               "  line2")
-    assert models.indent(s) == answer
+    assert models.fmt.indent(s) == answer
 
 
 class ReadableReprClass:
@@ -604,7 +602,7 @@ class ReadableReprClass:
     some_attr = 3.14
 
     def __repr__(self):
-        return models.make_repr(self, ['some_attr'])
+        return models.fmt.make_repr(self, ['some_attr'])
 
     def __str__(self):
         return "A nice fat explicit string"
