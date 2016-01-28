@@ -36,4 +36,9 @@ script: coverage run --source=pyphi -m py.test
 after_success: coveralls
 
 notifications:
-  - email: false
+  email: false
+  slack:
+    rooms:
+         secure: "C6PSvK/FEmyD+S71VVzS29NZpD9CFI/f3UMjc6i08xYHjFNMZUplfHyUqNLNqgVVBsKR1En4B8ryuriEnM8wwZzCVdxjh7HDsx8aNE2z1XG5tkqoRP4ppNfqNaYRoMcSZFW89DfVNbIVDM11wKXL7/YnRCmlJy0p1NtKzlncXCM="
+    on_sucess: change
+    on_failure: always
