@@ -33,11 +33,11 @@ def test_network_creates_fully_connected_cm_by_default():
     assert np.array_equal(network.connectivity_matrix, target_cm)
 
 
-def test_potential_purviews(standard):
+def test_potential_purviews(s):
     mechanism = (0,)
-    assert (standard._potential_purviews('past', mechanism) ==
+    assert (s.network._potential_purviews('past', mechanism) ==
         [(1,), (2,), (1, 2)])
-    assert (standard._potential_purviews('future', mechanism) ==
+    assert (s.network._potential_purviews('future', mechanism) ==
         [(2,)])
 
 

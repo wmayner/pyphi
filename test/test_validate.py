@@ -57,22 +57,22 @@ def test_validate_cm_not_binary():
         assert validate.connectivity_matrix(cm)
 
 
-def test_validate_network_wrong_cm_size(standard):
+def test_validate_network_wrong_cm_size(s):
     with pytest.raises(ValueError):
-        Network(standard.tpm, np.ones(16).reshape(4, 4))
+        Network(s.network.tpm, np.ones(16).reshape(4, 4))
 
 
-def test_validate_state_no_error_1(s, standard):
+def test_validate_state_no_error_1(s):
     validate.state_reachable(s)
 
 
-def test_validate_state_error(s, standard):
+def test_validate_state_error(s):
     with pytest.raises(validate.StateUnreachableError):
         state = (0, 1, 0)
-        Subsystem(standard, state, range(standard.size))
+        Subsystem(s.network, state, s.node_indices)
 
 
-def test_validate_state_no_error_2(s, standard):
+def test_validate_state_no_error_2():
     tpm = np.array([
         [1, 1, 1, 1],
         [1, 1, 1, 1],

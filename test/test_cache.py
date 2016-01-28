@@ -162,8 +162,8 @@ def test_do_not_cache_phi_zero_mice():
 
 
 @all_caches
-def test_only_cache_uncut_subsystem_mices(redis_cache, flush_redis, standard):
-    s = Subsystem(standard, (1, 0, 0), range(standard.size),
+def test_only_cache_uncut_subsystem_mices(redis_cache, flush_redis, s):
+    s = Subsystem(s.network, (1, 0, 0), s.node_indices,
                   cut=models.Cut((1,), (0, 2)))
     mechanism = (1,)  # has a core cause
     s.find_mice('past', mechanism)
