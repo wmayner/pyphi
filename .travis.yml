@@ -31,7 +31,7 @@ install:
   - pip freeze
 
 # Run tests
-script: coverage run --source=pyphi -m py.test
+script: coverage run --source=pyphi -m py.test --slow
 
 after_success: coveralls
 
