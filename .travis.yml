@@ -2,8 +2,10 @@ language: python
 
 sudo: false
 
-# Provide a mongod process on port 27017 (default)
-services: mongodb
+# Setup databases
+services:
+  - mongodb  # port 27017 (default)
+  - redis-server  # port 6379 (default)
 
 python:
   - "3.4"
