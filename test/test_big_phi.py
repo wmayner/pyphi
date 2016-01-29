@@ -50,7 +50,7 @@ noised_answer = {
 
 
 big_answer = {
-    'phi': 10.729488,
+    'phi': 10.729491,
     'unpartitioned_small_phis': {
         (0,): 0.25,
         (1,): 0.25,
@@ -85,7 +85,7 @@ big_answer = {
     },
     'len_partitioned_constellation': 17,
     'sum_partitioned_small_phis': 3.564909,
-    'cut': models.Cut(severed=(0, 3), intact=(1, 2, 4))
+    'cut': models.Cut(severed=(2, 4), intact=(0, 1, 3))
 }
 
 
@@ -142,7 +142,7 @@ rule152_answer = {
     },
     'len_partitioned_constellation': 24,
     'sum_partitioned_small_phis': 4.185367,
-    'cut': models.Cut(severed=(0, 1, 2, 4), intact=(3,))
+    'cut': models.Cut(severed=(0, 2, 3, 4), intact=(1,))
 }
 
 
