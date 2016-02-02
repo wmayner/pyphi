@@ -256,7 +256,6 @@ import contextlib
 import os
 import pprint
 import sys
-import multiprocessing
 
 import yaml
 
@@ -348,8 +347,23 @@ this_module = sys.modules[__name__]
 
 
 def load_config(config):
-    """Load a configuration."""
+    """Load configuration values.
+
+    Args:
+        config (dict): The dict of config to load.
+    """
     this_module.__dict__.update(config)
+
+
+def load_config_file(filename):
+    """Load config from a YAML file."""
+    with open(filename) as f:
+        load_config(yaml.load(f))
+
+
+def load_config_default():
+    """Load default config values."""
+    load_config(DEFAULTS)
 
 
 def get_config_string():
@@ -401,10 +415,8 @@ class override(contextlib.ContextDecorator):
 PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
 
 # Try to load the config file, falling back to the default configuration.
+load_config_default()
 file_loaded = False
 if os.path.exists(PYPHI_CONFIG_FILENAME):
-    with open(PYPHI_CONFIG_FILENAME) as f:
-        config.update(yaml.load(f))
-        file_loaded = True
-# Load the configuration.
-load_config(config)
+    load_config_file(PYPHI_CONFIG_FILENAME)
+    file_loaded = True

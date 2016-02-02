@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # test_config.py
 
+import os
+
 from pyphi import config
 
 
@@ -45,6 +47,17 @@ def test_override_config_is_a_context_manager():
     with config.override(TEST_CONFIG=1000):
         # Overriden
         assert config.TEST_CONFIG == 1000
-        
+
     # Reverts original value
     assert config.TEST_CONFIG == 1
+
+
+EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   'example_config.yml')
+
+
+def test_load_config_file():
+    assert config.PRECISION == 6
+    config.load_config_file(EXAMPLE_CONFIG_FILE)
+    assert config.PRECISION == 100
+    assert config.SOME_OTHER_CONFIG == 'loaded'
