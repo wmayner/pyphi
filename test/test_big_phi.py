@@ -142,7 +142,12 @@ rule152_answer = {
     },
     'len_partitioned_constellation': 24,
     'sum_partitioned_small_phis': 4.185367,
-    'cut': models.Cut(severed=(0, 2, 3, 4), intact=(1,))
+    'cuts': [
+        models.Cut(severed=(0, 1, 2, 4), intact=(3,)),
+        models.Cut(severed=(0, 2, 3, 4), intact=(1,)),
+        models.Cut(severed=(1, 2, 3, 4), intact=(0,)),
+        # TODO: are there other possible cuts?
+    ]
 }
 
 
