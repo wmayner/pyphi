@@ -19,7 +19,7 @@ script:
 
 Or load a dictionary of configuration values:
 
-    >>> pyphi.config.load_config({'PRECISION': 7})
+    >>> pyphi.config.load_config_dict({'PRECISION': 7})
 
 
 Theoretical approximations
@@ -355,7 +355,7 @@ config = dict(**DEFAULTS)
 this_module = sys.modules[__name__]
 
 
-def load_config(config):
+def load_config_dict(config):
     """Load configuration values.
 
     Args:
@@ -367,12 +367,12 @@ def load_config(config):
 def load_config_file(filename):
     """Load config from a YAML file."""
     with open(filename) as f:
-        load_config(yaml.load(f))
+        load_config_dict(yaml.load(f))
 
 
 def load_config_default():
     """Load default config values."""
-    load_config(DEFAULTS)
+    load_config_dict(DEFAULTS)
 
 
 def get_config_string():
@@ -412,11 +412,11 @@ class override(contextlib.ContextDecorator):
         """Save original config values; override with new ones."""
         self.initial_conf = {opt_name: this_module.__dict__[opt_name]
                              for opt_name in self.new_conf}
-        load_config(self.new_conf)
+        load_config_dict(self.new_conf)
 
     def __exit__(self, *exc):
         """Reset config to initial values; reraise any exceptions."""
-        load_config(self.initial_conf)
+        load_config_dict(self.initial_conf)
         return False
 
 
