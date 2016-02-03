@@ -12,6 +12,15 @@ The various options are listed here with their defaults
     >>> import pyphi
     >>> defaults = pyphi.config.DEFAULTS
 
+It is also possible to manually load a YAML configuration file within your
+script:
+
+    >>> pyphi.config.load_config_file('pyphi_config.yml')
+
+Or load a dictionary of configuration values:
+
+    >>> pyphi.config.load_config({'PRECISION': 7})
+
 
 Theoretical approximations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
