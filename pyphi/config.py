@@ -348,10 +348,8 @@ DEFAULTS = {
     'READABLE_REPRS': True,
 }
 
-# The current configuration.
-config = dict(**DEFAULTS)
-
-# Get a reference to this module's dictionary..
+# Get a reference to this module's dictionary so we can set the configuration
+# directly in the `pyphi.config` namespace
 this_module = sys.modules[__name__]
 
 
@@ -377,6 +375,7 @@ def load_config_default():
 
 def get_config_string():
     """Return a string representation of the currently loaded configuration."""
+    config = {key: this_module.__dict__[key] for key in DEFAULTS.keys()}
     return pprint.pformat(config, indent=2)
 
 
