@@ -19,7 +19,7 @@ script:
 
 Or load a dictionary of configuration values:
 
-    >>> pyphi.config.load_config_dict({'PRECISION': 7})
+    >>> pyphi.config.load_config_dict({'SOME_CONFIG': 'value'})
 
 
 Theoretical approximations
