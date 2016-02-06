@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 # test_json.py
 
+import tempfile
+
 import numpy as np
 
-from pyphi import compute, jsonify
+from pyphi import compute, jsonify, network
 
 
 def test_jsonify_native():
@@ -44,6 +46,13 @@ def test_jsonify_network(s):
     assert np.array_equal(loaded['tpm'], s.network.tpm)
     assert np.array_equal(loaded['cm'], s.network.connectivity_matrix)
     assert loaded['size'] == s.network.size
+
+
+def test_network_from_json(s):
+    f = tempfile.NamedTemporaryFile(mode='wt')
+    jsonify.dump(s.network, f)
+    f.seek(0)
+    assert network.from_json(f.name) == s.network
 
 
 # TODO: these tests need to be fleshed out, they don't do much
