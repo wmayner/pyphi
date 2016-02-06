@@ -4,7 +4,7 @@
 
 import numpy as np
 
-import pyphi
+from pyphi import compute, jsonify
 
 
 def test_jsonify_native():
@@ -20,7 +20,7 @@ def test_jsonify_native():
         'bool': [True, False],
         'null': None
     }
-    assert answer == pyphi.jsonify.loads(pyphi.jsonify.dumps(x))
+    assert answer == jsonify.loads(jsonify.dumps(x))
 
 
 def test_jsonify_numpy():
@@ -36,7 +36,7 @@ def test_jsonify_numpy():
         'np.int64': 2,
         'np.float64': 3.0,
     }
-    assert answer == pyphi.jsonify.loads(pyphi.jsonify.dumps(x))
+    assert answer == jsonify.loads(jsonify.dumps(x))
 
 
 # TODO: these tests need to be fleshed out, they don't do much
@@ -44,10 +44,10 @@ def test_jsonify_numpy():
 
 def test_jsonify_big_mip(s, flushcache, restore_fs_cache):
     flushcache()
-    pyphi.jsonify.loads(pyphi.jsonify.dumps(pyphi.compute.big_mip(s)))
+    jsonify.loads(jsonify.dumps(compute.big_mip(s)))
 
 
 def test_jsonify_complexes(s, flushcache, restore_fs_cache):
     flushcache()
-    complexes = pyphi.compute.complexes(s.network, s.state)
-    pyphi.jsonify.loads(pyphi.jsonify.dumps(complexes))
+    complexes = compute.complexes(s.network, s.state)
+    jsonify.loads(jsonify.dumps(complexes))
