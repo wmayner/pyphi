@@ -1,8 +1,10 @@
 Changelog
 =========
 
-Next Release
--------
+0.8.0
+------------------
+_2016-01-06_
+
 ### API changes
 - Mechanisms and purviews are now passed to all functions and methods in node
   index form (e.g. `(0, 1, 3)`). Previously, many functions took these
