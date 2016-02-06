@@ -199,7 +199,7 @@ file, both, or none. See the `documentation on Python's logger
   of standard output logging. Same possible values as file logging.
 
     >>> defaults['LOGGING_CONFIG']['stdout']['level']
-    'INFO'
+    'WARNING'
 
 - ``pyphi.config.LOG_CONFIG_ON_IMPORT``: Controls whether the current
   configuration is printed when PyPhi is imported.
@@ -331,7 +331,7 @@ DEFAULTS = {
         },
         'stdout': {
             'enabled': True,
-            'level': 'INFO'
+            'level': 'WARNING'
         }
     },
     # Controls whether the current configuration is logged upon import.
