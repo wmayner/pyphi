@@ -39,8 +39,14 @@ def test_jsonify_numpy():
     assert answer == jsonify.loads(jsonify.dumps(x))
 
 
-# TODO: these tests need to be fleshed out, they don't do much
+def test_jsonify_network(s):
+    loaded = jsonify.loads(jsonify.dumps(s.network))
+    assert np.array_equal(loaded['tpm'], s.network.tpm)
+    assert np.array_equal(loaded['cm'], s.network.connectivity_matrix)
+    assert loaded['size'] == s.network.size
 
+
+# TODO: these tests need to be fleshed out, they don't do much
 
 def test_jsonify_big_mip(s, flushcache, restore_fs_cache):
     flushcache()

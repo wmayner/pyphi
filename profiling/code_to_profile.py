@@ -33,7 +33,7 @@ def json2pyphi(network):
     """Load a network from a json file"""
     tpm = network['tpm']
     current_state = network['currentState']
-    cm = network['connectivityMatrix']
+    cm = network['cm']
     network = pyphi.Network(tpm, connectivity_matrix=cm)
     return (network, current_state)
 

@@ -453,12 +453,12 @@ network. You can then import the file into Python with the ``json`` module:
         network_dictionary = json.load(json_file)
 
 The TPM and connectivity matrix can then be looked up with the keys ``'tpm'``
-and ``'connectivityMatrix'``:
+and ``'cm'``:
 
 .. code-block:: python
 
     tpm = network_dictionary['tpm']
-    cm = network_dictionary['connectivityMatrix']
+    cm = network_dictionary['cm']
 
 For your convenience, there is a function that does this for you:
 :func:`pyphi.network.from_json()` that takes a path the a JSON file and returns
