@@ -46,7 +46,8 @@ setup(
     test_suite='test',
     packages=['pyphi'],
     package_data={'pyphi': ['data/**/*'],
-                  '': ['README.rst', 'LICENSE.md', 'pyphi_config.yml']},
+                  '': ['README.rst', 'LICENSE.md', 'pyphi_config.yml',
+                       'redis.conf']},
     license='GNU General Public License v3.0',
     zip_safe=False,
     classifiers=[
