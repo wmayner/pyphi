@@ -140,3 +140,11 @@ def test_is_cut(s):
     assert s.is_cut() is False
     s = Subsystem(s.network, s.state, s.node_indices, cut=Cut((0,), (1, 2)))
     assert s.is_cut() is True
+
+
+def test_proper_state(s, subsys_n0n2):
+    # subsys_n0n2.state == (1, 0, 0)
+    assert subsys_n0n2.proper_state == (1, 0)
+    subsys_n0n2.proper_state = (0, 1)
+    assert subsys_n0n2.proper_state == (0, 1)
+    assert subsys_n0n2.state == (0, 0, 1)

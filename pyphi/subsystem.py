@@ -115,7 +115,7 @@ class Subsystem:
 
     @property
     def state(self):
-        """The state the Network this Subsystem belongs to."""
+        """The state of the Network this Subsystem belongs to."""
         return self._state
 
     @state.setter
@@ -128,8 +128,8 @@ class Subsystem:
 
     @property
     def proper_state(self):
-        """The state the Network this Subsystem belongs to."""
-        return self._state
+        """The state of the nodes in this Subsystem."""
+        return self._proper_state
 
     @proper_state.setter
     def proper_state(self, proper_state):
@@ -137,8 +137,9 @@ class Subsystem:
         # np.array indices.
         self._proper_state = tuple(proper_state)
         # Update the network's state.
-        self.state = tuple(proper_state[n] if n in self.node_indices else
-                           self.state[n] for n in self.network.node_indices)
+        self.state = tuple(proper_state[self.node_indices.index(n)]
+                           if n in self.node_indices else self.state[n]
+                           for n in self.network.node_indices)
         # Validate.
         validate.subsystem(self)
 
