@@ -1,7 +1,11 @@
 language: python
 
-# Provide a mongod process on port 27017 (default)
-services: mongodb
+sudo: false
+
+# Setup databases
+services:
+  - mongodb  # port 27017 (default)
+  - redis-server  # port 6379 (default)
 
 python:
   - "3.4"
@@ -16,8 +20,8 @@ before_install:
   - conda update --yes conda
   # The next couple lines fix a crash with multiprocessing on Travis and are
   # not specific to using Miniconda
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
+  # - sudo rm -rf /dev/shm
+  # - sudo ln -s /run/shm /dev/shm
 
 # Install packages
 install:
@@ -27,9 +31,14 @@ install:
   - pip freeze
 
 # Run tests
-script: coverage run --source=pyphi -m py.test
+script: coverage run --source=pyphi -m py.test --slow
 
 after_success: coveralls
 
 notifications:
-  - email: false
+  email: false
+  slack:
+    rooms:
+         secure: "C6PSvK/FEmyD+S71VVzS29NZpD9CFI/f3UMjc6i08xYHjFNMZUplfHyUqNLNqgVVBsKR1En4B8ryuriEnM8wwZzCVdxjh7HDsx8aNE2z1XG5tkqoRP4ppNfqNaYRoMcSZFW89DfVNbIVDM11wKXL7/YnRCmlJy0p1NtKzlncXCM="
+    on_success: never
+    on_failure: always

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # convert.py
+
 """
 Conversion functions.
 """
 
-import math
-import numpy as np
 import logging
+import math
 
+import numpy as np
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -17,6 +17,10 @@ log = logging.getLogger(__name__)
 
 def nodes2indices(nodes):
     return tuple(n.index for n in nodes) if nodes else ()
+
+
+def nodes2state(nodes):
+    return tuple(n.state for n in nodes) if nodes else ()
 
 
 def state2holi_index(state):
@@ -119,7 +123,8 @@ def to_n_dimensional(tpm):
     """Reshape a state-by-node TPM to the N-D form.
 
     See documentation for the |Network| object for more information on TPM
-    formats."""
+    formats.
+    """
     # Cast to np.array.
     tpm = np.array(tpm)
     # Get the number of nodes.

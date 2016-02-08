@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # macro.py
+
 """
 Methods for coarse-graining systems to different levels of spatial analysis.
 """
 
-import numpy as np
 import itertools
 import logging
-from . import constants, validate, compute, convert
+import os
+
+import numpy as np
+
+from . import compute, constants, convert, validate
 from .network import Network
+from .subsystem import Subsystem
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
 # Load precomputed partition lists.
-import os
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 _NUM_PRECOMPUTED_PARTITION_LISTS = 10
 _partition_lists = [
@@ -28,7 +31,8 @@ _partition_lists = [
 class MacroNetwork:
     """A coarse-grained network of nodes.
 
-    See the 'macro' example in the documentation for more information.
+    See the :ref:`macro-micro` example in the documentation for more
+    information.
 
     Attributes:
         network (Network): The network object of the macro-system.
@@ -44,6 +48,7 @@ class MacroNetwork:
         emergence (float): The difference between the |big_phi| of the macro-
             and the micro-system.
     """
+
     def __init__(self, macro_network, macro_phi, micro_network, micro_phi,
                  partition, grouping):
         self.network = macro_network
@@ -95,8 +100,8 @@ def list_all_partitions(network):
 
 
 def list_all_groupings(partition):
-    """Return a list of all possible groupings of states, for a particular
-    coarse graining (partition) of a network.
+    """Return all possible groupings of states for a particular coarse graining
+    (partition) of a network.
 
     Args:
         network (Network): The physical system on the micro level.
@@ -186,7 +191,7 @@ def make_macro_tpm(micro_tpm, mapping):
                      for row in macro_tpm])
 
 
-def make_macro_network(network, mapping):
+def make_macro_network(network, state, mapping):
     """Create the macro-network for a given mapping from micro to macro-states.
 
     Returns ``None`` if the macro TPM does not satisfy the conditional
@@ -201,19 +206,16 @@ def make_macro_network(network, mapping):
     """
     num_macro_nodes = int(np.log2(max(mapping) + 1))
     macro_tpm = make_macro_tpm(network.tpm, mapping)
-    macro_current_state = convert.loli_index2state(
-        mapping[convert.state2loli_index(network.current_state)].astype(int),
-        num_macro_nodes)
-    macro_past_state = convert.loli_index2state(
-        mapping[convert.state2loli_index(network.past_state)].astype(int),
+    macro_state = convert.loli_index2state(
+        mapping[convert.state2loli_index(state)].astype(int),
         num_macro_nodes)
     if validate.conditionally_independent(macro_tpm):
-        return Network(macro_tpm, macro_current_state, macro_past_state)
+        return (Network(macro_tpm), macro_state)
     else:
-        return None
+        return (None, None)
 
 
-def emergence(network):
+def emergence(network, state):
     """Check for emergence of a macro-system into a macro-system.
 
     Checks all possible partitions and groupings of the micro-system to find
@@ -226,16 +228,17 @@ def emergence(network):
         macro_network (``MacroNetwork``): The maximal coarse-graining of the
             micro-system.
     """
-    micro_phi = compute.main_complex(network).phi
+    micro_phi = compute.main_complex(network, state).phi
     partitions = list_all_partitions(network)
     max_phi = float('-inf')
     for partition in partitions:
         groupings = list_all_groupings(partition)
         for grouping in groupings:
             mapping = make_mapping(partition, grouping)
-            macro_network = make_macro_network(network, mapping)
+            (macro_network, macro_state) = make_macro_network(network, state,
+                                                              mapping)
             if macro_network:
-                main_complex = compute.main_complex(macro_network)
+                main_complex = compute.main_complex(macro_network, macro_state)
                 if (main_complex.phi - max_phi) > constants.EPSILON:
                     max_phi = main_complex.phi
                     max_partition = partition
@@ -247,3 +250,46 @@ def emergence(network):
                         micro_phi=micro_phi,
                         partition=max_partition,
                         grouping=max_grouping)
+
+
+# TODO write tests
+# TODO? give example of doing it for a bunch of coarse-grains in docstring
+# (make all groupings and partitions, make_network for each of them, etc.)
+def effective_info(network):
+    """Return the effective information of the given network.
+
+    This is equivalent to the average of the
+    :func:`~pyphi.subsystem.Subsystem.effect_info` (with the entire network as
+    the mechanism and purview) over all posisble states of the network. It can
+    be interpreted as the “noise in the network's TPM,” weighted by the size of
+    its state space.
+
+    .. warning::
+
+        If ``config.VALIDATE_SUBSYSTEM_STATES`` is enabled, then unreachable
+        states are omitted from the average.
+
+    .. note::
+
+        For details, see:
+
+        Hoel, Erik P., Larissa Albantakis, and Giulio Tononi.
+        “Quantifying causal emergence shows that macro can beat micro.”
+        Proceedings of the
+        National Academy of Sciences 110.49 (2013): 19790-19795.
+
+        Available online: `doi: 10.1073/pnas.1314922110
+        <http://www.pnas.org/content/110/49/19790.abstract>`_.
+    """
+    # TODO? move to utils
+    states = itertools.product(*((0, 1),)*network.size)
+    subsystems = []
+    for state in states:
+        try:
+            subsystems.append(Subsystem(network, state, network.node_indices))
+        except validate.StateUnreachableError:
+            continue
+    return np.array([
+        subsystem.effect_info(network.node_indices, network.node_indices)
+        for subsystem in subsystems
+    ]).mean()

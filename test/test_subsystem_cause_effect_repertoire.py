@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# test_subsystem_cause_and_effect_repertoire.py
 
 import pytest
 import numpy as np
@@ -12,10 +13,14 @@ import example_networks
 
 # Get example networks
 standard = example_networks.standard()
-simple_a_just_on = example_networks.simple_a_just_on()
-simple_all_off = example_networks.simple_all_off()
 
-full = tuple(range(3))
+# Get example subsystems
+standard_subsystem = example_networks.s()
+simple_all_off = example_networks.simple_subsys_all_off()
+simple_a_just_on = example_networks.simple_subsys_all_a_just_on()
+
+
+full = tuple(range(standard.size))
 
 
 # Set up test scenarios
@@ -37,37 +42,37 @@ scenarios = [
         # ------------------------
     (
         'cause_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [0],
         [0],
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
     ), (
         'cause_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [0],
         [0],
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
     ), (
         'cause_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [0, 1],
         [0, 2],
         np.array([0.5, 0.5, 0.0, 0.0]).reshape(2, 1, 2, order="F")
     ), (
         'cause_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [1],
         [2],
         np.array([1.0, 0.0]).reshape(1, 1, 2, order="F")
     ), (
         'cause_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
     ), (
         'cause_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [1],
         [],
         np.array([1])
@@ -77,7 +82,8 @@ scenarios = [
         # --------------------------
     (
         'cause_repertoire',
-        Subsystem(full, standard, cut=Cut((2,), (0, 1))),
+        Subsystem(standard, standard_subsystem.state, full,
+                  cut=Cut((2,), (0, 1))),
         [0],
         [1],
         np.array([1/3, 2/3]).reshape(1, 2, 1, order="F")
@@ -87,19 +93,22 @@ scenarios = [
         # --------------------
     (
         'cause_repertoire',
-        Subsystem((1, 2), standard, cut=Cut((1,), (2,))),
+        Subsystem(standard, standard_subsystem.state, (1, 2),
+                  cut=Cut((1,), (2,))),
         [2],
         [1, 2],
         np.array([0.25, 0.25, 0.25, 0.25]).reshape(1, 2, 2, order="F")
     ), (
         'cause_repertoire',
-        Subsystem((1, 2), standard, cut=Cut((1,), (2,))),
+        Subsystem(standard, standard_subsystem.state, (1, 2),
+                  cut=Cut((1,), (2,))),
         [2],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
     ), (
         'cause_repertoire',
-        Subsystem((0, 2), standard, cut=Cut((0,), (2,))),
+        Subsystem(standard, standard_subsystem.state, (0, 2),
+                  cut=Cut((0,), (2,))),
         [2],
         [0],
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
@@ -112,7 +121,7 @@ scenarios = [
         # -----------------------------
     (
         'cause_repertoire',
-        Subsystem(full, simple_a_just_on, cut=None),
+        simple_a_just_on,
         [0],
         [0],
         # Cause repertoire is maximally selective; the past state must have
@@ -121,7 +130,7 @@ scenarios = [
         np.array([1.0, 0.0]).reshape(2, 1, 1, order="F")
     ), (
         'cause_repertoire',
-        Subsystem(full, simple_a_just_on, cut=None),
+        simple_a_just_on,
         [],
         [0],
         # No matter the state of the purview (m0), the probability it will be
@@ -129,13 +138,13 @@ scenarios = [
         np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
     ), (
         'cause_repertoire',
-        Subsystem(full, simple_a_just_on, cut=None),
+        simple_a_just_on,
         [1],
         [0, 1, 2],
         np.ones((2, 2, 2)) / 8
     ), (
         'cause_repertoire',
-        Subsystem(full, simple_a_just_on, cut=None),
+        simple_a_just_on,
         [0, 1],
         [0, 2],
         np.array([0.0, 0.0, 1.0, 0.0]).reshape(2, 1, 2, order="F")
@@ -145,13 +154,13 @@ scenarios = [
         # ------------------------
     (
         'cause_repertoire',
-        Subsystem(full, simple_all_off, cut=None),
+        simple_all_off,
         [0],
         [0],
         np.array([(3 / 7), (4 / 7)]).reshape(2, 1, 1, order="F")
     ), (
         'cause_repertoire',
-        Subsystem(full, simple_all_off, cut=None),
+        simple_all_off,
         [0],
         [0, 1, 2],
         # Cause repertoire is minimally selective; only {0,1,1} is ruled out,
@@ -171,55 +180,55 @@ scenarios = [
 
     (
         'effect_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [0],
         [0],
         np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [0, 1],
         [0, 2],
         np.array([0.0, 0.0, 0.5, 0.5]).reshape(2, 1, 2, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [1],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [],
         [1],
         np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [2],
         [],
         np.array([1])
     ), (
         'effect_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [],
         [0],
         np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [0],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [1, 2],
         [0],
         np.array([1.0, 0.0]).reshape(2, 1, 1, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, standard, cut=None),
+        standard_subsystem,
         [1],
         [],
         np.array([1])
@@ -229,13 +238,15 @@ scenarios = [
         # --------------------------
     (
         'effect_repertoire',
-        Subsystem(full, standard, cut=Cut((0, 2), (1,))),
+        Subsystem(standard, standard_subsystem.state, full,
+                  cut=Cut((0, 2), (1,))),
         [0],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, standard, cut=Cut((0, 2), (1,))),
+        Subsystem(standard, standard_subsystem.state, full,
+                  cut=Cut((0, 2), (1,))),
         [0, 1, 2],
         [0, 2],
         np.array([0.0, 0.0, 1.0, 0.0]).reshape(2, 1, 2, order="F")
@@ -245,19 +256,22 @@ scenarios = [
         # --------------------
     (
         'effect_repertoire',
-        Subsystem((1, 2), standard, cut=Cut((1,), (2,))),
+        Subsystem(standard, standard_subsystem.state, (1, 2),
+                  cut=Cut((1,), (2,))),
         [1],
         [1, 2],
         np.array([0.25, 0.25, 0.25, 0.25]).reshape(1, 2, 2, order="F")
     ), (
         'effect_repertoire',
-        Subsystem((1, 2), standard, cut=Cut((1,), (2,))),
+        Subsystem(standard, standard_subsystem.state, (1, 2),
+                  cut=Cut((1,), (2,))),
         [],
         [1],
         np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
     ), (
         'effect_repertoire',
-        Subsystem((1, 2), standard, cut=Cut((1,), (2,))),
+        Subsystem(standard, standard_subsystem.state, (1, 2),
+                  cut=Cut((1,), (2,))),
         [1],
         [2],
         np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
@@ -270,13 +284,13 @@ scenarios = [
         # -----------------------------
     (
         'effect_repertoire',
-        Subsystem(full, simple_a_just_on, cut=None),
+        simple_a_just_on,
         [0],
         [0],
         np.array([1.0, 0.0]).reshape(2, 1, 1, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, simple_a_just_on, cut=None),
+        simple_a_just_on,
         [],
         [0],
         # No matter the state of the purview {m0}, the probability it will
@@ -284,13 +298,13 @@ scenarios = [
         np.array([0.875, 0.125]).reshape(2, 1, 1, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, simple_a_just_on, cut=None),
+        simple_a_just_on,
         [1],
         [0, 1, 2],
         np.array([1., 0., 0., 0., 0., 0., 0., 0.]).reshape(2,2,2)
     ), (
         'effect_repertoire',
-        Subsystem(full, simple_a_just_on, cut=None),
+        simple_a_just_on,
         [1],
         [0, 2],
         np.array([1.0, 0.0, 0.0, 0.0]).reshape(2, 1, 2, order="F")
@@ -300,13 +314,13 @@ scenarios = [
         # ------------------------
     (
         'effect_repertoire',
-        Subsystem(full, simple_all_off, cut=None),
+        simple_all_off,
         [0],
         [0],
         np.array([0.75, 0.25]).reshape(2, 1, 1, order="F")
     ), (
         'effect_repertoire',
-        Subsystem(full, simple_all_off, cut=None),
+        simple_all_off,
         [0],
         [0, 1, 2],
         np.array([0.75, 0., 0., 0., 0.25, 0., 0., 0.]).reshape(2,2,2)
@@ -329,17 +343,17 @@ def test_cause_and_effect_repertoire(function, subsystem, mechanism, purview,
 
     # Set up testing parameters from scenario
     compute_repertoire = getattr(subsystem, function)
-    mechanism = subsystem.indices2nodes(mechanism)
-    purview = subsystem.indices2nodes(purview)
+    mechanism = tuple(mechanism)
+    purview = tuple(purview)
 
     result = compute_repertoire(mechanism, purview)
 
     print("\nMechanism:".rjust(12), mechanism, "\nPurview:".rjust(12), purview,
           "\nCut:".rjust(12), subsystem.cut, "\n")
 
-    print('-'*40, "Result:", result, "\nResult Shape:", result.shape,
-            '-'*40, "Expected:", expected, "\nExpected Shape:",
-            expected.shape, '-'*40, sep="\n")
+    print('-'*40, "Result:", result, "\nResult Shape:", result.shape, '-'*40,
+          "Expected:", expected, "\nExpected Shape:", expected.shape, '-'*40,
+          sep="\n")
 
     assert np.array_equal(result, expected)
 

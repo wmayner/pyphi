@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # memory.py
+
 """
 Decorators and objects for memoization.
 """
 
 import functools
+
 import joblib.func_inspect
-from . import db, constants, config
+
+from . import config, constants, db
 
 
 def cache(ignore=[]):
@@ -66,8 +68,8 @@ class DbMemoizedFunc:
 
     # TODO make this easier to use
     def get_output_key(self, args, kwargs):
-        """Return the key that the output should be cached with,
-        given arguments, keyword arguments, and a list of arguments to ignore."""
+        """Return the key that the output should be cached with, given
+        arguments, keyword arguments, and a list of arguments to ignore."""
         # Get a dictionary mapping argument names to argument values where
         # ignored arguments are omitted.
         filtered_args = joblib.func_inspect.filter_args(

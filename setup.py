@@ -3,16 +3,17 @@
 
 # setup.py
 
-
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
-
 with open('README.rst') as f:
     readme = f.read()
 
+about = {}
+with open('./pyphi/__about__.py') as f:
+    exec(f.read(), about)
 
 install_requires = [
     'numpy >=1.8.1, <2.0.0',
@@ -22,7 +23,8 @@ install_requires = [
     'psutil >= 2.1.1, <3.0.0',
     'marbl-python >=2.0.0, <3.0.0',
     'pymongo >=2.7.1, <3.0.0',
-    'pyyaml>=3.11, < 4.0'
+    'pyyaml >=3.11, <4.0',
+    'redis >=2.10.5, <3.0.0'
 ]
 
 test_require = [
@@ -31,13 +33,14 @@ test_require = [
     'sphinx_rtd_theme'
 ]
 
-
 setup(
-    name='pyphi',
-    version='0.7.1',
-    description='A Python library for computing integrated information.',
-    author='Will Mayner',
-    author_email='wmayner@gmail.com',
+    name=about['__title__'],
+    version=about['__version__'],
+    description=about['__description__'],
+    author=about['__author__'],
+    author_email=about['__author_email__'],
+    url=about['__url__'],
+    license=about['__license__'],
     long_description=readme,
     include_package_data=True,
     install_requires=install_requires,
@@ -45,8 +48,8 @@ setup(
     test_suite='test',
     packages=['pyphi'],
     package_data={'pyphi': ['data/**/*'],
-                  '': ['README.rst', 'LICENSE.md', 'pyphi_config.yml']},
-    license='GNU General Public License v3.0',
+                  '': ['README.rst', 'LICENSE.md', 'pyphi_config.yml',
+                       'redis.conf']},
     zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -57,6 +60,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Topic :: Scientific/Engineering',
     ]
 )

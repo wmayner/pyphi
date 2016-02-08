@@ -7,23 +7,7 @@ module, so you can follow along with a Python REPL.
 The relevant functions are listed at the beginning of each example.
 
 .. toctree::
+    :glob:
     :maxdepth: 2
 
-    basic
-    residue
-    conditional_independence
-    xor
-    macro
-    2014paper
-
-
-Conventions
-~~~~~~~~~~~
-
-PyPhi uses some conventions for TPM and connectivity matrix formats. These are
-important to keep in mind when setting up networks.
-
-.. toctree::
-    :maxdepth: 1
-
-    conventions
+    *

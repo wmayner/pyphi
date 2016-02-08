@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # utils.py
+
 """
 Functions used by more than one PyPhi module or class, or that might be of
 external use.
@@ -14,6 +14,7 @@ import numpy as np
 from itertools import chain, combinations
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
+from scipy.sparse.csgraph import connected_components
 from pyemd import emd
 from .cache import cache
 from . import constants
@@ -22,28 +23,13 @@ from . import constants
 log = logging.getLogger(__name__)
 
 
-# Methods to evaluate the effect of a Cut
+def state_of(nodes, network_state):
+    """Return the state-tuple of the given nodes."""
+    return tuple(network_state[n] for n in nodes) if nodes else ()
+
+
+# TPM and Connectivity Matrix utils
 # ============================================================================
-
-def cut_mechanism_indices(subsystem, cut):
-    """Returns a tuple of indices of mechanisms that have nodes on both sides
-    of the given cut."""
-    def split_by_cut(indices):
-        return ((set(indices) & set(cut[0])) and
-                (set(indices) & set(cut[1])))
-    return tuple(filter(split_by_cut, powerset(subsystem.node_indices)))
-
-
-def mechanism_split_by_cut(mechanism_indices, cut):
-    return ((set(mechanism_indices) & set(cut[0])) and
-            (set(mechanism_indices) & set(cut[1])))
-
-
-def cut_mice(mice, cut_matrix):
-    return np.any(mice._relevant_connections * cut_matrix == 1)
-
-# ============================================================================
-
 
 def condition_tpm(tpm, fixed_nodes, state):
     """Return a TPM conditioned on the given fixed node indices, whose states
@@ -52,7 +38,8 @@ def condition_tpm(tpm, fixed_nodes, state):
     The dimensions of the new TPM that correspond to the fixed nodes are
     collapsed onto their state, making those dimensions singletons suitable for
     broadcasting. The number of dimensions of the conditioned TPM will be the
-    same as the unconditioned TPM."""
+    same as the unconditioned TPM.
+    """
     conditioning_indices = [[slice(None)]] * len(state)
     for i in fixed_nodes:
         # Preserve singleton dimensions with `np.newaxis`
@@ -64,10 +51,10 @@ def condition_tpm(tpm, fixed_nodes, state):
     return tpm[conditioning_indices]
 
 
-# TODO test
 def apply_cut(cut, connectivity_matrix):
-    """Returns a modified connectivity matrix where the connections from one
-    set of nodes to the other are destroyed."""
+    """Return a modified connectivity matrix where the connections from one set
+    of nodes to the other are destroyed.
+    """
     if cut is None:
         return connectivity_matrix
     cm = connectivity_matrix.copy()
@@ -77,9 +64,35 @@ def apply_cut(cut, connectivity_matrix):
     return cm
 
 
+def fully_connected(connectivity_matrix, nodes1, nodes2):
+    """Test connectivity of one set of nodes to another.
+
+    Args:
+        connectivity_matrix (``np.ndarrray``): The connectivity matrix
+        nodes1 (tuple(int)): The nodes whose outputs to ``nodes2`` will be
+            tested.
+        nodes2 (tuple(int)): The nodes whose inputs from ``nodes1`` will
+            be tested.
+
+    Returns:
+        bool: Returns True if all elements in ``nodes1`` output to
+            some element in ``nodes2`` AND all elements in ``nodes2``
+            have an input from some element in ``nodes1``. Otherwise
+            return False. Return True if either set of nodes is empty.
+    """
+    if not nodes1 or not nodes2:
+        return True
+
+    cm = submatrix(connectivity_matrix, nodes1, nodes2)
+
+    # Do all nodes have at least one connection?
+    return cm.sum(0).all() and cm.sum(1).all()
+
+
 def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
-    """Returns a connectivity matrix with all connections to or from external
-    nodes removed."""
+    """Return a connectivity matrix with all connections to or from external
+    nodes removed.
+    """
     cm = connectivity_matrix.copy()
     for i in external_indices:
         # Zero-out row
@@ -89,26 +102,24 @@ def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
     return cm
 
 
-# TODO test
 def get_inputs_from_cm(index, connectivity_matrix):
-    """Returns a tuple of node indices that have connections to the node with
-    the given index."""
+    """Return a tuple of node indices that have connections to the node with
+    the given index.
+    """
     return tuple(i for i in range(connectivity_matrix.shape[0]) if
                  connectivity_matrix[i][index])
 
 
-# TODO test
 def get_outputs_from_cm(index, connectivity_matrix):
-    """Returns a tuple of node indices that the node with the given index has
-    connections to."""
+    """Return a tuple of node indices that the node with the given index has
+    connections to.
+    """
     return tuple(i for i in range(connectivity_matrix.shape[0]) if
                  connectivity_matrix[index][i])
 
 
 def np_hash(a):
-    """Return a hash of a NumPy array.
-
-    This is much faster than ``np.toString`` for large arrays."""
+    """Return a hash of a NumPy array."""
     if a is None:
         return hash(None)
     # Ensure that hashes are equal whatever the ordering in memory (C or
@@ -234,10 +245,11 @@ def marginalize_out(index, tpm, perturb_value=0.5):
         tpm (``np.ndarray``): A TPM with the same number of dimensions, with
             the node marginalized out.
     """
-    if (perturb_value == 0.5):
+    if perturb_value == 0.5:
         return tpm.sum(index, keepdims=True) / tpm.shape[index]
     else:
-        tpm = np.average(tpm, index, weights=[1 - perturb_value, perturb_value])
+        tpm = np.average(tpm, index,
+                         weights=[1 - perturb_value, perturb_value])
         return tpm.reshape([i for i in tpm.shape[0:index]] +
                            [1] + [i for i in tpm.shape[index:]])
 
@@ -245,16 +257,16 @@ def marginalize_out(index, tpm, perturb_value=0.5):
 @cache(cache={}, maxmem=None)
 def max_entropy_distribution(node_indices, number_of_nodes,
                              perturb_vector=None):
-    """
-    Return the maximum entropy distribution over a set of nodes.
+    """Return the maximum entropy distribution over a set of nodes.
 
     This is different from the network's uniform distribution because nodes
-    outside the are fixed and treated as if they have only 1 state.
+    outside ``node_indices`` are fixed and treated as if they have only 1
+    state.
 
     Args:
-        nodes (tuple(Nodes)): The set of nodes over which to take the
-            distribution.
-        network (Network): The network the nodes belong to.
+        node_indices (tuple(int)): The set of node indices over which to take
+            the distribution.
+        number_of_nodes (int): The total number of nodes in the network.
 
     Returns:
         distribution (``np.ndarray``): The maximum entropy distribution over
@@ -299,7 +311,7 @@ def hamming_emd(d1, d2):
 
 
 def bipartition(a):
-    """ Return a list of bipartitions for a sequence.
+    """Return a list of bipartitions for a sequence.
 
     Args:
         a (Iterable): The iterable to partition.
@@ -313,7 +325,6 @@ def bipartition(a):
         >>> bipartition((1,2,3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
-
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
             for part0_idx, part1_idx in bipartition_indices(len(a))]
 
@@ -361,7 +372,9 @@ def directed_bipartition_of_one(a):
 
 @cache(cache={}, maxmem=None)
 def directed_bipartition_indices(N):
-    """Returns indices for directed bipartitions of a sequence.
+    """Return indices for directed bipartitions of a sequence.
+
+    The directed bipartion
 
     Args:
         N (int): The length of the sequence.
@@ -376,22 +389,13 @@ def directed_bipartition_indices(N):
         >>> directed_bipartition_indices(N)
         [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
     """
-    result = []
-    # Return on empty input
-    if N <= 0:
-        return result
-    for i in range(2 ** N):
-        part = [[], []]
-        for n in range(N):
-            bit = (i >> n) & 1
-            part[bit].append(n)
-        result.append((tuple(part[1]), tuple(part[0])))
-    return result
+    indices = bipartition_indices(N)
+    return indices + [idx[::-1] for idx in indices[::-1]]
 
 
 @cache(cache={}, maxmem=None)
 def bipartition_indices(N):
-    """Returns indices for bipartitions of a sequence.
+    """Return indices for bipartitions of a sequence.
 
     Args:
         N (int): The length of the sequence.
@@ -407,9 +411,9 @@ def bipartition_indices(N):
         [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
     """
     result = []
-    # Return on empty input
     if N <= 0:
         return result
+
     for i in range(2 ** (N-1)):
         part = [[], []]
         for n in range(N):
@@ -471,74 +475,149 @@ def _hamming_matrix(N):
         return cdist(possible_states, possible_states, 'hamming') * N
 
 
-# TODO? implement this
-def connectivity_matrix_to_tpm(network):
-    """Generate a TPM from a connectivity matrix and nodes that implement
-    logical functions.
+def submatrix(cm, nodes1, nodes2):
+    """Return the submatrix of connections from ``nodes1`` to ``nodes2``.
 
     Args:
-        network (Network): The network for which to generate the TPM.
-
-    Returns:
-        tpm (``np.ndarray``): A transition probability matrix.
+        cm (np.ndarray): The matrix
+        nodes1 (tuple(int)): Source nodes
+        nodes2 (tuple(int)): Sink nodes
     """
-    pass
+    submatrix_indices = np.ix_(nodes1, nodes2)
+    return cm[submatrix_indices]
+
+
+# TODO: better name?
+def relevant_connections(n, _from, to):
+    """Construct a connectivity matrix.
+
+    Returns an |n x n| connectivity matrix with the |i,jth| entry
+    set to ``1`` if |i| is in ``_from`` and |j| is in ``to``.
+
+    Args:
+        n (int): The dimensions of the matrix
+        _from (tuple(int)): Nodes with outgoing connections to ``to``
+        to (tuple(int)): Nodes with incoming connections from ``_from``
+    """
+    cm = np.zeros((n, n))
+
+    # Don't try and index with empty arrays. Older versions of NumPy
+    # (at least up to 1.9.3) break with empty array indices.
+    if not _from or not to:
+        return cm
+
+    cm[np.ix_(_from, to)] = 1
+    return cm
 
 
 def block_cm(cm):
-    """Determining if a given connectivity matrix be rearranged as a block
-    connectivity matrix.
+    """Return whether ``cm`` can be arranged as a block connectivity matrix.
 
     If so, the corresponding mechanism/purview is trivially reducible.
+    Technically, only square matrices are "block diagonal", but the notion of
+    connectivity carries over.
+
+    We test for block connectivity by trying to grow a block of nodes such
+    that:
+
+    * 'source' nodes only input to nodes in the block
+    * 'sink' nodes only receive inputs from source nodes in the block
+
+    For example, the following connectivity matrix represents connections from
+    ``nodes1 = A, B, C`` to ``nodes2 = D, E, F, G`` (without loss of
+    generality—note that ``nodes1`` and ``nodes2`` may share elements)::
+
+         D  E  F  G
+      A [1, 1, 0, 0]
+      B [1, 1, 0, 0]
+      C [0, 0, 1, 1]
+
+    Since nodes |AB| only connect to nodes |DE|, and node |C| only connects to
+    nodes |FG|, the subgraph is reducible; the cut ::
+
+      AB   C
+      -- X --
+      DE   FG
+
+    does not change the structure of the graph.
     """
-    # Validate the connectivity matrix.
-    num_inputs = cm.shape[1]
-    if np.any(np.sum(cm, 1) == 0):
+    if np.any(cm.sum(1) == 0):
         return True
-    if np.all(np.sum(cm > 0, 1) == 1):
+    if np.all(cm.sum(1) == 1):
         return True
-    m_ind = np.where(np.sum(cm > 0, 1) == np.max(np.sum(cm > 0, 1)))[0][0]
-    p_ind = np.where(cm[m_ind, :] > 0)[0]
-    temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
-    while 1:
-        if np.all(temp == m_ind):
-            break
-        else:
-            m_ind = temp
-            p_ind = np.where(np.sum(cm[m_ind, :], 0) > 0)[0]
-            temp = np.where(np.sum(cm[:, p_ind], 1) > 0)[0]
-            if np.all(p_ind == [i for i in range(num_inputs)]):
-                return False
-    return True
+
+    outputs = list(range(cm.shape[1]))
+
+    # CM helpers:
+    def outputs_of(nodes):
+        # All nodes that `nodes` connect to (output to)
+        return np.where(cm[nodes, :].sum(0))[0]
+
+    def inputs_to(nodes):
+        # All nodes which connect to (input to) `nodes`
+        return np.where(cm[:, nodes].sum(1))[0]
+
+    # Start: source node with most outputs
+    sources = [np.argmax(cm.sum(1))]
+    sinks = outputs_of(sources)
+    sink_inputs = inputs_to(sinks)
+
+    while True:
+        if np.all(sink_inputs == sources):
+            # sources exclusively connect to sinks.
+            # There are no other nodes which connect sink nodes,
+            # hence set(sources) + set(sinks) form a component
+            # which is not connected to the rest of the graph
+            return True
+
+        # Recompute sources, sinks, and sink_inputs
+        sources = sink_inputs
+        sinks = outputs_of(sources)
+        sink_inputs = inputs_to(sinks)
+
+        # Considering all output nodes?
+        if np.all(sinks == outputs):
+            return False
 
 
-# TODO test phi max helpers
-def not_block_reducible(cm, nodes1, nodes2):
-    """Tests connectivity of one set of nodes to another.
+# TODO: simplify the conditional validation here and in block_cm
+# TODO: combine with fully_connected
+def block_reducible(cm, nodes1, nodes2):
+    """Return whether connections from ``nodes1`` to ``nodes2`` are reducible.
 
     Args:
         cm (np.ndarray): The network's connectivity matrix.
-        nodes1 (tuple(Node)): The nodes whose outputs to ``nodes2`` will be
-            tested.
-        nodes2 (tuple(Node)): The nodes whose inputs from ``nodes1`` will
-            be tested.
+        nodes1 (tuple(int)): Source nodes
+        nodes2 (tuple(int)): Sink nodes
     """
-    # If either set of nodes is empty, return (vacuously) True.
     if not nodes1 or not nodes2:
-        return False
-    # Get the connectivity matrix representing the connections from the
-    # first node list to the second.
-    submatrix_indices = np.ix_([node for node in nodes1],
-                               [node for node in nodes2])
-    cm = cm[submatrix_indices]
-    # Check that all nodes have at least one connection by summing over
-    # rows of connectivity submatrix.
+        return True  # trivially
+
+    cm = submatrix(cm, nodes1, nodes2)
+
+    # Validate the connectivity matrix.
     if not cm.sum(0).all() or not cm.sum(1).all():
-        return False
-    elif len(nodes1) > 1 and len(nodes2) > 1:
-        return not block_cm(cm)
-    else:
         return True
+    if len(nodes1) > 1 and len(nodes2) > 1:
+        return block_cm(cm)
+    return False
+
+
+def strongly_connected(cm, nodes=None):
+    """Return whether the connectivity matrix is strongly connected.
+
+    Args:
+        cm (np.ndarray): A square connectivity matrix.
+
+    Keyword Args:
+        nodes (tuple(int)): An optional subset of node indices to test strong
+            connectivity over.
+    """
+    if nodes is not None:
+        cm = submatrix(cm, nodes, nodes)
+
+    num_components, _ = connected_components(cm, connection='strong')
+    return num_components < 2
 
 
 # Custom printing methods
@@ -546,6 +625,7 @@ def not_block_reducible(cm, nodes1, nodes2):
 
 
 def print_repertoire(r):
+    """Print a vertical, human-readable cause/effect repertoire."""
     print('\n', '-' * 80)
     for i in range(r.size):
         strindex = bin(i)[2:].zfill(r.ndim)
@@ -555,6 +635,7 @@ def print_repertoire(r):
 
 
 def print_repertoire_horiz(r):
+    """Print a horizontal, human-readable cause/effect repertoire."""
     r = np.squeeze(r)
     colwidth = 11
     print('\n' + '-' * 70 + '\n')
@@ -566,10 +647,3 @@ def print_repertoire_horiz(r):
     print(' state:  ', '|'.join(label.center(colwidth) for label in
                                 index_labels))
     print('\n' + '-' * 70 + '\n')
-
-
-def print_partition(p):
-    print('\nPart 1: \n\n', p[0].mechanism, '\n-----------------\n',
-          p[0].purview)
-    print('\nPart 2: \n\n', p[1].mechanism, '\n-----------------\n',
-          p[1].purview, '\n')

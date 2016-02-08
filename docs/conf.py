@@ -40,7 +40,7 @@ extensions = [
     'sphinxcontrib.napoleon'
 ]
 
-mathjax_path = '//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
+mathjax_path = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -118,6 +118,8 @@ rst_prolog = """
 .. |E| replace:: :math:`E`
 .. |AB| replace:: :math:`AB`
 .. |CD| replace:: :math:`CD`
+.. |DE| replace:: :math:`DE`
+.. |FG| replace:: :math:`FG`
 .. |ABC| replace:: :math:`ABC`
 .. |CDE| replace:: :math:`CDE`
 .. |n0| replace:: :math:`n_{0}`
@@ -143,6 +145,7 @@ rst_prolog = """
 .. |r| replace:: :math:`r`
 .. |n| replace:: :math:`n`
 .. |N| replace:: :math:`N`
+.. |n x n| replace:: :math:`N \\times N`
 .. |2^n x 2^n| replace:: :math:`2^N \\times 2^N`
 .. |i| replace:: :math:`i`
 .. |j| replace:: :math:`j`
@@ -170,10 +173,12 @@ rst_prolog = """
 .. |Network| replace:: :class:`~pyphi.network.Network`
 .. |BigMip| replace:: :class:`~pyphi.models.BigMip`
 .. |Concept| replace:: :class:`~pyphi.models.Concept`
+.. |Cut| replace:: :class:`~pyphi.models.Cut`
 .. |Mip| replace:: :class:`~pyphi.models.Mip`
 .. |Mice| replace:: :class:`~pyphi.models.Mice`
-.. |find_mip| :func:`~pyphi.subsystem.find_mip`
-.. |find_mice| :func:`~pyphi.subsystem.find_mice`
+.. |Node| replace:: :class:`~pyphi.node.Node`
+.. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
+.. |find_mice| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
 .. |loli_index2state| replace:: :class:`~pyphi.convert.loli_index2state`
 .. |holi_index2state| replace:: :class:`~pyphi.convert.holi_index2state`
 .. |big_phi > 0| replace:: :math:`\\Phi > 0`

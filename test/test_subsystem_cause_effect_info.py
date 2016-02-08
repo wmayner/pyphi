@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# test_subsystem_cause_effect_info.py
 
 from pyphi.utils import hamming_emd
 
 
 def test_cause_info(s):
-    mechanism = (s.nodes[0], s.nodes[1])
-    purview = (s.nodes[0], s.nodes[2])
+    mechanism = (0, 1)
+    purview = (0, 2)
     answer = hamming_emd(
         s.cause_repertoire(mechanism, purview),
         s.unconstrained_cause_repertoire(purview))
@@ -14,8 +15,8 @@ def test_cause_info(s):
 
 
 def test_effect_info(s):
-    mechanism = (s.nodes[0], s.nodes[1])
-    purview = (s.nodes[0], s.nodes[2])
+    mechanism = (0, 1)
+    purview = (0, 2)
     answer = hamming_emd(
         s.effect_repertoire(mechanism, purview),
         s.unconstrained_effect_repertoire(purview))
@@ -23,8 +24,8 @@ def test_effect_info(s):
 
 
 def test_cause_effect_info(s):
-    mechanism = (s.nodes[0], s.nodes[1])
-    purview = (s.nodes[0], s.nodes[2])
+    mechanism = (0, 1)
+    purview = (0, 2)
     answer = min(s.cause_info(mechanism, purview),
                  s.effect_info(mechanism, purview))
     assert (s.cause_effect_info(mechanism, purview) == answer)

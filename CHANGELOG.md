@@ -1,6 +1,148 @@
 Changelog
 =========
 
+0.8.0
+------------------
+_2016-02-06_
+
+### API changes
+- Mechanisms and purviews are now passed to all functions and methods in node
+  index form (e.g. `(0, 1, 3)`). Previously, many functions took these
+  arguments as `Node` objects. Since nodes belong to a specific `Subsystem` it
+  was possible to pass nodes from one subsystem to another subsystem's methods,
+  leading to incorrect results.
+- `constellation_distance` no longer takes a `subsystem` argument because
+  concepts in a constellation already reference their subsystems.
+- Moved `utils.cut_mechanism_indices` and `utils.mechanism_split_by_cut` to
+  to `Cut.all_cut_mechanisms` and `Cut.splits_mechanism`, respectively;
+  moved `utils.cut_mice` to `Mice.damaged_by_cut`.
+- `Concept.__eq__`: when comparing concepts for equality, we no longer directly
+  check equality of their subsystems. Concept equality is now defined as
+  follows:
+    - Same φ
+    - Same mechanism node indices cause/effect purview node indices
+    - Same mechanism state
+    - Same cause/effect repertoires
+    - Same networks
+  This allows two concepts to be equal when _e.g._ the only difference between
+  them is that one's subsystem is a superset of the other's subsystem.
+- `Concept.__hash__`: the above notion of concept equality is also implemented
+  for concept hashing, so two concepts that differ only in that way will have
+  the same hash value.
+- Disabled concept caching; removed the `config.CACHE_CONCEPTS` option.
+
+### API Additions
+- Added `config.READABLE_REPRS` to control whether `__reprs__` of PyPhi models
+  default to using pretty string formatting.
+- Added a `Constellation` object.
+- Added `utils.submatrix` and `utils.relevant_connections` functions.
+- Added the `macro.effective_info` function.
+- Added the `utils.state_of` function.
+- Added the `Subsystem.proper_state` attribute. This is the state of the
+  subsystem's nodes, rather than the entire network state.
+- Added an optional Redis-backed cache for Mice objects. This is enabled with
+  `config.REDIS_CACHE` and configured with `config.REDIS_CONFIG`.
+- Enabled parallel concept evaluation with `config.PARALLEL_CONCEPT_EVALUATION`.
+
+### Fixes
+- `Concept.eq_repertoires` no longer fails when the concept has no cause or
+  effect.
+- Fixed the `Subsystem.proper_state` attribute.
+
+### Refactor
+- Subsystem Mice and cause/effect repertoire caches; Network purview caches.
+  Cache logic is now handled by decorators and custom cache objects.
+- Block reducibility tests and Mice connection computations.
+- Rich object comparisons on phi-objects.
+
+### Documentation
+- Updated documentation and examples to reflect node-to-index conversion.
+
+
+0.7.5
+------------------
+_2015-11-02_
+
+### API changes
+- Subsystem states are now validated rather than network states. Previously,
+  network states were validated, but in some cases there can be a
+  globally-impossible network state that is locally possible for a subsystem
+  (or vice versa) when considering the subsystem's TPM, which is conditioned
+  on the external nodes (i.e., background conditions). It is now impossible to
+  create a subsystem in an impossible state (a `StateUnreachableError` is
+  thrown), and accordingly no 𝚽 values are calculated for such subsystems; this
+  may change results from older versions, since in some cases the calculated
+  main complex was in fact in an impossible. This functionality is enabled by
+  default but can be disabled via the `VALIDATE_SUBSYSTEM_STATES` option.
+
+
+0.7.4
+------------------
+_2015-10-12_
+
+### Fixes
+- Fixed a caching bug where the subsystem's state was not included in its hash
+  value, leading to collisions.
+
+
+0.7.3
+------------------
+_2015-09-08_
+
+### API changes
+- Heavily refactored the `pyphi.json` module and renamed it to `pyphi.jsonify`.
+
+
+0.7.2
+------------------
+_2015-07-01_
+
+### API additions
+- Added `convert.nodes2state` function.
+- Added `constrained_nodes` keyword argument to `validate.state_reachable`.
+
+### API changes
+- Concept equality is now more permissive. For two concepts to be considered
+  equal, they must only have the same φ, the same mechanism and purviews (in
+  the same state), and the same repertoires.
+
+
+0.7.1
+------------------
+_2015-06-30_
+
+### API additions
+- Added `purviews`, `past_purviews`, `future_purviews` keyword arguments to
+  various concept-calculating methods. With these, the purviews that are
+  considered in the concept calculation can be restricted.
+
+### API changes
+- States are now associated with subsystems rather than networks. Functions in
+  the `compute` module that operate on networks now also take a state.
+
+### Fixes
+- Fixed a bug in `compute._constellation_distance_emd` where partitioned
+  concepts were unable to be moved to the null concept for the EMD calculation.
+  In some cases, the partitioned system has *greater* ∑φ than the unpartitioned
+  system; therefore it must be possible for the φ of partitioned-constellation
+  concepts to be moved to the null concept, not just vice versa.
+- Fixed a bug in `compute._constellation_distance_emd` where it was possible to
+  move concepts around within their own constellation; the distance matrix now
+  disallows any such intraconstellation paths. This is important because in
+  some cases paths from a concept in one constellation to a concept the other
+  can actually be shorter if a detour is taken through a different concept in
+  the same constellation.
+- Fixed a bug in `validate.state_reachable` where network states were
+  incorrectly validated.
+- `macro.emergence` now always returns a macro-network, even when 𝚽 = 0.
+- Fixed a bug in `repr(Network)` where the perturbation vector and connectivity
+  matrix were switched.
+
+### Documentation
+- Added example describing “magic cuts” that, counterintuitively, can create
+  more concepts.
+- Updated existing documentation to the new subsystem-state association.
+
 
 0.7.0
 ------------------
@@ -9,7 +151,7 @@ _2015-05-08_
 ### API additions
 - `pyphi.macro` provides several functions to analyze networks over different
   spatial scales.
-- `.convert.conditionally_independent(tpm)` checks if a TPM is conditionally
+- `convert.conditionally_independent(tpm)` checks if a TPM is conditionally
   independent.
 
 ### API changes

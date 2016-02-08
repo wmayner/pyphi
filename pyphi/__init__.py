@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# __init__.py
 
 #    _______
 #   |__   __|
@@ -56,20 +57,15 @@ See the documentation for the |config| module for a description of the options
 and their defaults.
 """
 
-__title__ = 'pyphi'
-__version__ = '0.7.1'
-__description__ = 'Python library for computing integrated information.',
-__author__ = 'Will Mayner'
-__author_email__ = 'wmayner@gmail.com'
-__author_website__ = 'http://willmayner.com'
-__copyright__ = 'Copyright 2014-2015 Will Mayner'
+from .__about__ import *
+from . import (config, constants, convert, db, examples, jsonify, macro,
+               models, network, node, subsystem, utils, validate)
+from .network import Network
+from .subsystem import Subsystem
 
-
-from . import (network, subsystem, compute, constants, config, db, examples,
-               macro)
-
-Network = network.Network
-Subsystem = subsystem.Subsystem
+__all__ = ['Network', 'Subsystem', 'config', 'constants', 'convert', 'db',
+           'examples', 'jsonify', 'macro', 'models', 'network', 'node',
+           'subsystem', 'utils', 'validate']
 
 import logging
 import logging.config
@@ -106,10 +102,13 @@ logging.config.dictConfig({
 
 log = logging.getLogger(__name__)
 
-# Log the currently loaded configuration.
+# Log the currently loaded version and configuration.
 if config.LOG_CONFIG_ON_IMPORT:
+    log.info('PyPhi version {}'.format(__version__))
     if config.file_loaded:
-        log.info('Loaded configuration from ' + config.PYPHI_CONFIG_FILENAME)
+        log.info('Loaded configuration from '
+                 '`./{}`'.format(config.PYPHI_CONFIG_FILENAME))
     else:
-        log.info("Using default configuration (no config file provided)")
-    log.info('Current PyPhi configuration:\n' + config.get_config_string())
+        log.info('Using default configuration (no config file provided)')
+    log.info('Current PyPhi configuration:\n'
+             '{}'.format(config.get_config_string()))

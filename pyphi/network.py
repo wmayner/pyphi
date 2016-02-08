@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # network.py
+
 """
 Represents the network of interest. This is the primary object of PyPhi and the
 context of all |small_phi| and |big_phi| computation.
 """
 
 import json
+
 import numpy as np
-from . import validate, utils, convert, config
-from .json import make_encodable
-from .constants import DIRECTIONS, PAST, FUTURE
+
+from . import cache, convert, utils, validate
+from .constants import DIRECTIONS, FUTURE, PAST
+
 
 # TODO!!! raise error if user tries to change TPM or CM, double-check and
 # document that states can be changed
-
-
-# Methods to compute reducible purviews for any mechanism, so they do not have
-# to be checked in concept calculation.
-
 
 def from_json(filename):
     """Convert a JSON representation of a network to a PyPhi network.
@@ -33,34 +30,12 @@ def from_json(filename):
     with open(filename) as f:
         network_dictionary = json.load(f)
     tpm = network_dictionary['tpm']
-    current_state = network_dictionary['currentState']
-    past_state = network_dictionary['pastState']
-    cm = network_dictionary['connectivityMatrix']
-    network = Network(tpm, current_state, past_state, connectivity_matrix=cm)
+    cm = network_dictionary['cm']
+    network = Network(tpm, connectivity_matrix=cm)
     return network
 
 
-def list_past_purview(self, mechanism):
-    return _build_purview_list(self, mechanism, 'past')
-
-
-def list_future_purview(self, mechanism):
-    return _build_purview_list(self, mechanism, 'future')
-
-
-def _build_purview_list(self, mechanism, direction):
-    if direction == DIRECTIONS[PAST]:
-        return [purview for purview in utils.powerset(self._node_indices)
-                if utils.not_block_reducible(self.connectivity_matrix, purview,
-                                             mechanism)]
-    elif direction == DIRECTIONS[FUTURE]:
-        return [purview for purview in utils.powerset(self._node_indices)
-                if utils.not_block_reducible(self.connectivity_matrix,
-                                             mechanism, purview)]
-
-
 class Network:
-
     """A network of nodes.
 
     Represents the network we're analyzing and holds auxilary data about it.
@@ -72,8 +47,6 @@ class Network:
 
     Args:
         tpm (np.ndarray): See the corresponding attribute.
-        current_state (tuple): See the corresponding attribute.
-        past_state (tuple): See the corresponding attribute.
 
     Keyword Args:
         connectivity_matrix (array or sequence): A square binary adjacency
@@ -97,12 +70,6 @@ class Network:
             state-by-node TPM must be ``(S, N)``, and the shape of the N-D form
             of the TPM must be ``[2] * N + [N]``, where ``S`` is the number of
             states and ``N`` is the number of nodes in the network.
-        current_state (tuple):
-            The current state of the network. ``current_state[i]`` gives the
-            current state of node |i|.
-        past_state (tuple):
-            The past state of the network. ``past_state[i]`` gives the past
-            state of node |i|.
         connectivity_matrix (np.ndarray):
             A square binary adjacency matrix indicating the connections between
             nodes in the network.
@@ -113,28 +80,16 @@ class Network:
     """
 
     # TODO make tpm also optional when implementing logical network definition
-    def __init__(self, tpm, current_state, past_state,
-                 connectivity_matrix=None, perturb_vector=None,
-                 purview_cache=None):
+    def __init__(self, tpm, connectivity_matrix=None,
+                 perturb_vector=None, purview_cache=None):
         self.tpm = tpm
-
         self._size = self.tpm.shape[-1]
         # TODO extend to nonbinary nodes
         self._num_states = 2 ** self.size
         self._node_indices = tuple(range(self.size))
-
-        self._current_state = tuple(current_state)
-        self._past_state = tuple(past_state)
-        self.perturb_vector = perturb_vector
         self.connectivity_matrix = connectivity_matrix
-        if purview_cache is None:
-            purview_cache = dict()
-        self.purview_cache = purview_cache
-        # If CACHE_POTENTIAL_PURVIEWS is set to True then pre-compute the list
-        # for each mechanism. This will save time if results are desired for
-        # more than one subsystem of the network.
-        if config.CACHE_POTENTIAL_PURVIEWS:
-            self.build_purview_cache()
+        self.perturb_vector = perturb_vector
+        self.purview_cache = purview_cache or cache.PurviewCache()
         # Validate the entire network.
         validate.network(self)
 
@@ -149,38 +104,6 @@ class Network:
     @property
     def node_indices(self):
         return self._node_indices
-
-    @property
-    def current_state(self):
-        return self._current_state
-
-    @current_state.setter
-    def current_state(self, current_state):
-        # Cast current state to a tuple so it can be hashed and properly used
-        # as np.array indices.
-        current_state = tuple(current_state)
-        # Validate it.
-        validate.current_state_length(current_state, self.size)
-        if config.VALIDATE_NETWORK_STATE:
-            validate.state_reachable(self.past_state, current_state, self.tpm)
-            validate.state_reachable_from(self.past_state, current_state,
-                                          self.tpm)
-        self._current_state = current_state
-
-    @property
-    def past_state(self):
-        return self._past_state
-
-    @past_state.setter
-    def past_state(self, past_state):
-        # Cast past state to a tuple so it can be hashed and properly used
-        # as np.array indices.
-        past_state = tuple(past_state)
-        # Validate it.
-        validate.past_state_length(past_state, self.size)
-        if config.VALIDATE_NETWORK_STATE:
-            validate.state_reachable_from(past_state, self.current_state, self.tpm)
-        self._past_state = past_state
 
     @property
     def tpm(self):
@@ -239,38 +162,51 @@ class Network:
         # Update hash.
         self._pv_hash = utils.np_hash(self.perturb_vector)
 
-    def build_purview_cache(self):
-        for index in utils.powerset(self._node_indices):
-            for direction in DIRECTIONS:
-                key = (direction, index)
-                self.purview_cache[key] = _build_purview_list(self, index,
-                                                              direction)
+    # TODO: this should really be a Subsystem method, but we're
+    # interested in caching at the Network-level...
+    @cache.method('purview_cache')
+    def _potential_purviews(self, direction, mechanism):
+        """All purviews which are not clearly reducible for mechanism.
+
+        Args:
+            direction (str): |past| or |future|
+            mechanism (tuple(int)): The mechanism which all purviews
+                are checked for reducibility over.
+        Returns:
+            purviews (list(tuple(int))): All purviews which are
+                irreducible over `mechanism`.
+        """
+        all_purviews = utils.powerset(self._node_indices)
+
+        if direction == DIRECTIONS[PAST]:
+            return [purview for purview in all_purviews
+                    if not utils.block_reducible(self.connectivity_matrix,
+                                                 purview, mechanism)]
+        elif direction == DIRECTIONS[FUTURE]:
+            return [purview for purview in all_purviews
+                    if not utils.block_reducible(self.connectivity_matrix,
+                                                 mechanism, purview)]
 
     def __repr__(self):
-        return ("Network(" + ", ".join([repr(self.tpm),
-                                        repr(self.current_state),
-                                        repr(self.past_state)]) +
-                ", connectivity_matrix=" + repr(self.connectivity_matrix) +
-                ", perturb_vector=" + repr(self.perturb_vector) +
-                ")")
+        return ('Network({}, connectivity_matrix={}, '
+                'perturb_vector={})'.format(repr(self.tpm),
+                                            repr(self.connectivity_matrix),
+                                            repr(self.perturb_vector)))
 
     def __str__(self):
-        return ("Network(" + str(self.tpm) + ", connectivity_matrix=" +
-                str(self.connectivity_matrix) + ")")
+        return 'Network({}, connectivity_matrix={})'.format(
+            self.tpm, self.connectivity_matrix)
 
     def __eq__(self, other):
         """Return whether this network equals the other object.
 
-        Two networks are equal if they have the same TPM, current state, and
-        past state.
+        Two networks are equal if they have the same TPM, connectivity matrix,
+        and perturbation vector.
         """
-        return ((np.array_equal(self.tpm, other.tpm) and
-                np.array_equal(self.current_state, other.current_state) and
-                np.array_equal(self.past_state, other.past_state) and
-                np.array_equal(self.connectivity_matrix,
-                               other.connectivity_matrix) and
-                np.array_equal(self.perturb_vector,
-                               other.perturb_vector))
+        return (np.array_equal(self.tpm, other.tpm)
+                and np.array_equal(self.connectivity_matrix,
+                                   other.connectivity_matrix)
+                and np.array_equal(self.perturb_vector, other.perturb_vector)
                 if isinstance(other, type(self)) else False)
 
     def __ne__(self, other):
@@ -278,15 +214,11 @@ class Network:
 
     def __hash__(self):
         # TODO: hash only once?
-        return hash((self._tpm_hash, self.current_state, self.past_state,
-                     self._cm_hash, self._pv_hash))
+        return hash((self._tpm_hash, self._cm_hash, self._pv_hash))
 
-    def json_dict(self):
+    def to_json(self):
         return {
-            'tpm': make_encodable(self.tpm),
-            'current_state': make_encodable(self.current_state),
-            'past_state': make_encodable(self.past_state),
-            'connectivity_matrix':
-                make_encodable(self.connectivity_matrix),
-            'size': make_encodable(self.size),
+            'tpm': self.tpm,
+            'cm': self.connectivity_matrix,
+            'size': self.size
         }

@@ -1,29 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# test_subsystem_expand.py
 
+import pytest
 from pyphi.compute import big_mip
-from pyphi import Subsystem
-import numpy as np
-import example_networks
 from pyphi.constants import EPSILON
+import numpy as np
 
-micro = example_networks.micro()
-micro.current_state = (0, 0, 0, 0)
-micro.past_state = (0, 0, 0, 0)
-micro_subsystem = Subsystem(range(micro.size), micro)
-mip = big_mip(micro_subsystem)
-
-CD = micro_subsystem.nodes[2:4]
-BCD = micro_subsystem.nodes[1:4]
-ABCD = micro_subsystem.nodes[0:4]
-
-A = mip.unpartitioned_constellation[0]
-
-cause = A.cause.mip.unpartitioned_repertoire
-effect = A.effect.mip.unpartitioned_repertoire
+CD = (2, 3)
+BCD = (1, 2, 3)
+ABCD = (0, 1, 2, 3)
 
 
-def test_expand_cause_repertoire():
+def test_expand_cause_repertoire(micro_s_all_off):
+    mip = big_mip(micro_s_all_off)
+    A = mip.unpartitioned_constellation[0]
+    cause = A.cause.mip.unpartitioned_repertoire
+
     assert np.all(abs(A.expand_cause_repertoire(CD) - cause) < EPSILON)
     assert np.all(abs(
         A.expand_cause_repertoire(BCD).flatten(order='F') -
@@ -35,7 +28,11 @@ def test_expand_cause_repertoire():
                       A.expand_cause_repertoire()) < EPSILON)
 
 
-def test_expand_effect_repertoire():
+def test_expand_effect_repertoire(micro_s_all_off):
+    mip = big_mip(micro_s_all_off)
+    A = mip.unpartitioned_constellation[0]
+    effect = A.effect.mip.unpartitioned_repertoire
+
     assert np.all(abs(A.expand_effect_repertoire(CD) - effect) < EPSILON)
     assert np.all(abs(A.expand_effect_repertoire(BCD).flatten(order='F') -
                       np.array([.25725, .23275, .11025, .09975,
@@ -48,3 +45,22 @@ def test_expand_effect_repertoire():
                   .02480625, .02244375, .02244375, .02030625])) < EPSILON)
     assert np.all(abs(A.expand_effect_repertoire(ABCD) -
                       A.expand_effect_repertoire()) < EPSILON)
+
+
+def test_expand_repertoire_purview_can_be_None(s):
+    mechanism = (0, 1)
+    purview = None
+    cause_repertoire = s.cause_repertoire(mechanism, purview)
+    # None purview gives same results as '()' purview
+    assert np.array_equal(
+        s.expand_repertoire('past', purview, cause_repertoire),
+        s.expand_repertoire('past', (), cause_repertoire))
+
+
+def test_expand_repertoire_purview_must_be_subset_of_new_purview(s):
+    mechanism = (0, 1)
+    purview = (0, 1)
+    new_purview = (1,)
+    cause_repertoire = s.cause_repertoire(mechanism, purview)
+    with pytest.raises(ValueError):
+        s.expand_repertoire('past', purview, cause_repertoire, new_purview)

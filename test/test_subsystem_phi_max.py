@@ -5,7 +5,7 @@ import pytest
 from itertools import chain
 
 from pyphi import Subsystem
-from pyphi.models import Mice, Cut
+from pyphi.models import Mice, Cut, _null_mip
 from pyphi.utils import phi_eq
 
 import example_networks
@@ -18,7 +18,7 @@ s = example_networks.s()
 directions = ('past', 'future')
 cuts = (None, Cut((1, 2), (0,)))
 subsystem = {
-    cut: Subsystem(s.node_indices, s.network, cut=cut)
+    cut: Subsystem(s.network, s.state, s.node_indices, cut=cut)
     for cut in cuts
 }
 
@@ -41,22 +41,21 @@ expected_purview_indices = {
         'past': {
             (1,): (2,),
             (2,): (0, 1),
-            (0, 1): None,
-            (0, 1, 2): None,
+            (0, 1): (),
+            (0, 1, 2): (),
         },
         'future': {
             (1,): (2,),
             (2,): (1,),
             (0, 1): (2,),
-            (0, 1, 2): None,
+            (0, 1, 2): (),
         }
     }
 }
 expected_purviews = {
     cut: {
         direction: {
-            subsystem[cut].indices2nodes(mechanism):
-                subsystem[cut].indices2nodes(purview)
+            mechanism: purview
             for mechanism, purview in
             expected_purview_indices[cut][direction].items()
         } for direction in directions
@@ -104,7 +103,7 @@ def test_find_mice(cut, direction, expected):
 
 
 def test_find_mice_empty(s):
-    expected = [Mice(s._null_mip(direction, (), s.nodes)) for direction in
+    expected = [Mice(_null_mip(direction, (), ())) for direction in
                 directions]
     assert all(s.find_mice(mice.direction, mice.mechanism) == mice
                for mice in expected)

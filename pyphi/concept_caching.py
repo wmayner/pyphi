@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # concept_caching.py
+
 """
 Objects and functions for managing the normalization, caching, and retrieval of
 concepts.
+
+.. warning::
+
+    Concept caching is disabled and likely broken. Use at your own risk!
 """
 
 from collections import namedtuple
+
 import numpy as np
 from marbl import MarblSet
 
-from . import utils, models, db, constants, config, convert
-from .constants import DIRECTIONS, PAST, FUTURE
+from . import config, convert, db, models
+from .constants import DIRECTIONS, FUTURE, PAST
 
 
 class NormalizedMechanism:
-
     """A mechanism rendered into a normal form, suitable for use as a cache key
     in concept memoization.
 
@@ -54,6 +58,7 @@ class NormalizedMechanism:
             the values are the permutations that maps mechanism nodes to the
             position of their marbl in the marblset for that direction.
     """
+
     # NOTE: We use lists and indices throughout, instead of dictionaries (which
     # would perhaps be more elegant), to avoid repeatedly computing the hash of
     # the marbls.
@@ -64,39 +69,20 @@ class NormalizedMechanism:
         # Record the state of the mechanism.
         self.state = tuple(n.state for n in mechanism)
         # Grab the marbls from the mechanism nodes.
-        marbls = {
-            DIRECTIONS[PAST]: [(n.past_marbl if normalize_tpms else
-                                n.raw_past_marbl) for n in mechanism],
-            DIRECTIONS[FUTURE]: [(n.current_marbl if normalize_tpms else
-                                  n.raw_current_marbl) for n in mechanism]
-        }
-        self.marblset = {
-            direction: MarblSet(marbls[direction]) for direction in DIRECTIONS
-        }
-        self.permutation = {
-            direction: self.marblset[direction].permutation
-            for direction in DIRECTIONS
-        }
+        marbls = [(n.marbl if normalize_tpms else n.raw_marbl)
+                  for n in mechanism]
+        self.marblset = MarblSet(marbls)
+        self.permutation = self.marblset.permutation
         M = range(len(mechanism))
         # Associate marbls in the marblset to the mechanism nodes they were
         # generated from.
-        marbl_preimage = {
-            direction: [
-                # The ith marbl corresponds to the jth node in the mechanism,
-                # where j is the image of i under the marblset's permutation.
-                mechanism[self.permutation[direction][i]]
-                for i, marbl in enumerate(self.marblset[direction])
-            ] for direction in DIRECTIONS
-        }
+        # The ith marbl corresponds to the jth node in the mechanism,
+        # where j is the image of i under the marblset's permutation.
+        marbl_preimage = [mechanism[self.permutation[i]]
+                          for i, marbl in enumerate(self.marblset)
+                          ]
         # Associate each marbl to the inputs of its preimage node.
-        io = {
-            # Inputs
-            DIRECTIONS[PAST]: [
-                marbl_preimage[DIRECTIONS[PAST]][m].inputs for m in M],
-            # Outputs
-            DIRECTIONS[FUTURE]: [
-                marbl_preimage[DIRECTIONS[FUTURE]][m].outputs for m in M]
-        }
+        io = [marbl_preimage[m].inputs for m in M]
         # Now, we generate the normalized index of each node that inputs
         # (outputs) to at least one mechanism node. Also record the reverse
         # mapping, that sends normalized indices to the original indices.
@@ -113,57 +99,38 @@ class NormalizedMechanism:
         # This will hold a mapping from the indices of the nodes of the inputs
         # to the mechanism that the NormalizedMechanism was initialized with to
         # their normalized indices.
-        self.normalized_indices = {
-            DIRECTIONS[PAST]: {},
-            DIRECTIONS[FUTURE]: {}
-        }
+        self.normalized_indices = {}
         # This will be used to label newly-encountered inputs/outpus.
-        counter = {DIRECTIONS[PAST]: 0, DIRECTIONS[FUTURE]: 0}
-        for d in DIRECTIONS:
-            for m in M:
-                # Assign each of the marbl's inputs (outputs) a label if it
-                # hasn't been labeled already.
-                for node in io[d][m]:
-                    if node.index not in self.normalized_indices[d]:
-                        normal_index = counter[d]
-                        # Assign the next unused integer as the label.
-                        self.normalized_indices[d][node.index] = normal_index
-                        # Increment the counter so the next label is different.
-                        counter[d] += 1
+        counter = 0
+        for m in M:
+            # Assign each of the marbl's inputs (outputs) a label if it
+            # hasn't been labeled already.
+            for node in io[m]:
+                if node.index not in self.normalized_indices:
+                    normal_index = counter
+                    # Assign the next unused integer as the label.
+                    self.normalized_indices[node.index] = normal_index
+                    # Increment the counter so the next label is different.
+                    counter += 1
         # Get the inverse mappings.
-        self.unnormalized_indices = {
-            DIRECTIONS[PAST]: {
-                v: k for k, v in
-                self.normalized_indices[DIRECTIONS[PAST]].items()},
-            DIRECTIONS[FUTURE]: {
-                v: k for k, v in
-                self.normalized_indices[DIRECTIONS[FUTURE]].items()} }
+        self.unnormalized_indices = {v: k for k, v in
+                                     self.normalized_indices.items()}
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
         # Get the states of the input and output nodes.
-        self.io_state = tuple(
-            tuple(subsystem.network.current_state[i] for i in
-                  self.normalized_indices[d].keys())
-            for d in DIRECTIONS
-        )
+        self.io_state = tuple(subsystem.state[i] for i in
+                              self.normalized_indices.keys())
         # Associate each marbl with its normally-labeled inputs.
         # This captures the interrelationships between the mechanism nodes in a
         # stable way.
-        self.inputs = tuple(
-            tuple(self.normalized_indices[DIRECTIONS[PAST]][n.index]
-                  for n in io[DIRECTIONS[PAST]][m])
-            for m in M)
         self.outputs = tuple(
-            tuple(self.normalized_indices[DIRECTIONS[FUTURE]][n.index]
-                  for n in io[DIRECTIONS[FUTURE]][m])
-            for m in M)
+            tuple(self.normalized_indices[n.index] for n in io[m]) for m in M)
 
     # TODO!!!: make hash independent of python
     def __hash__(self):
-        return hash((self.marblset[DIRECTIONS[PAST]],
-                     self.marblset[DIRECTIONS[FUTURE]],
-                     self.inputs, self.outputs,
-                     self.state, self.io_state))
+        return hash((self.marblset,
+                     self.outputs,
+                     self.state,
+                     self.io_state))
 
     def __eq__(self, other):
         return hash(self) == hash(other)

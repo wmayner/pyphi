@@ -22,11 +22,11 @@ CUT_ONE_APPROXIMATION: false
 # memory. If cuts are evaluated sequentially, only two BigMips need to be
 # in memory at a time.
 PARALLEL_CUT_EVALUATION: true
+# Controls whether concepts are evaluated in parallel.
+PARALLEL_CONCEPT_EVALUATION: false
 # The number of CPU cores to use in parallel cut evaluation. -1 means all
 # available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
-# The verbosity of parallel computation (integer from 0 to 100).
-PARALLEL_VERBOSITY: 0
 # Some functions are memoized using an in-memory cache. This is the maximum
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
@@ -35,12 +35,9 @@ MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 # ~~~~~~~
 # Controls whether BigMips are cached and retreived.
 CACHE_BIGMIPS: false
-# Controls whether concepts are cached. Note that concept caching is only
-# available if the caching backend is a database; otherwise, this setting has
-# no effect, and concepts will not be cached.
-CACHE_CONCEPTS: false
 # Controls whether the potential purviews of the mechanisms of a network are
-# cached. Speeds up calculations, but takes up additional memory.
+# cached. Speeds up calculations when the same network is used repeatedly, but
+# takes up additional memory, and makes network initialization slow.
 CACHE_POTENTIAL_PURVIEWS: true
 # Controls whether concepts should be normalized before being cached.
 # Normalization increases the chances that a precomputed concept can be used
@@ -64,6 +61,13 @@ MONGODB_CONFIG:
     database_name: "pyphi"
     collection_name: "test"
 
+# Use a Redis server as a Mice cache
+REDIS_CACHE: false
+# Redis connection configuration
+REDIS_CONFIG:
+    host: "localhost"
+    port: 6379
+
 # Logging
 # ~~~~~~~
 # These are the settings for PyPhi logging.
@@ -76,7 +80,7 @@ LOGGING_CONFIG:
         filename: "pyphi.log"
     stdout:
         enabled: true
-        level: "INFO"
+        level: "WARNING"
 # Log the current configuration when PyPhi is imported. This is useful for
 # checking what settings were used for a previous calculation.
 LOG_CONFIG_ON_IMPORT: true
@@ -88,8 +92,11 @@ PRECISION: 6
 
 # Miscellaneous
 # ~~~~~~~~~~~~~
-# Controls whether network states are validated upon network creation.
-VALIDATE_NETWORK_STATE: false
+# Controls whether a subsystem's state is validated when the subsystem is
+# created.
+VALIDATE_SUBSYSTEM_STATES: true
 # In some applications of this library, you may prefer to define single-nodes
 # with a self-loop as having 0.5 Phi, a priori.
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
+# Use pretty __str__-like formatting in repr calls
+READABLE_REPRS: true
