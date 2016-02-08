@@ -27,7 +27,7 @@ install_requires = [
     'redis >=2.10.5, <3.0.0'
 ]
 
-test_require = [
+tests_require = [
     'pytest',
     'coverage',
     'sphinx_rtd_theme'
@@ -44,7 +44,7 @@ setup(
     long_description=readme,
     include_package_data=True,
     install_requires=install_requires,
-    tests_require=test_require,
+    tests_require=tests_require,
     test_suite='test',
     packages=['pyphi'],
     package_data={'pyphi': ['data/**/*'],
