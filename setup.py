@@ -3,16 +3,17 @@
 
 # setup.py
 
-
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
-
 with open('README.rst') as f:
     readme = f.read()
 
+about = {}
+with open('./pyphi/__about__.py') as f:
+    exec(f.read(), about)
 
 install_requires = [
     'numpy >=1.8.1, <2.0.0',
@@ -31,10 +32,6 @@ test_require = [
     'coverage',
     'sphinx_rtd_theme'
 ]
-
-about = {}
-with open('./pyphi/__about__.py') as f:
-    exec(f.read(), about)
 
 setup(
     name=about['__title__'],
