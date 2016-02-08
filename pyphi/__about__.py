@@ -12,7 +12,8 @@ __author_email__ = 'wmayner@gmail.com'
 __author_website__ = 'http://willmayner.com'
 __copyright__ = 'Copyright 2014-2016 Will Mayner'
 __license__ = 'GNU General Public License v3.0'
+__url__ = 'http://github.com/wmayner/pyphi'
 
 __all__ = ['__title__', '__version__', '__description__', '__author__',
            '__author_email__', '__author_website__', '__copyright__',
-           '__license__']
+           '__license__', '__url__']

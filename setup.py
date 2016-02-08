@@ -39,6 +39,7 @@ setup(
     description=about['__description__'],
     author=about['__author__'],
     author_email=about['__author_email__'],
+    url=about['__url__'],
     license=about['__license__'],
     long_description=readme,
     include_package_data=True,
