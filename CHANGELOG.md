@@ -1,9 +1,16 @@
 Changelog
 =========
 
+0.8.1
+------------------
+_2016-02-08_
+
+### Fixes
+- Fixed the `Subsystem.proper_state` attribute.
+
 0.8.0
 ------------------
-_2016-01-06_
+_2016-02-06_
 
 ### API changes
 - Mechanisms and purviews are now passed to all functions and methods in node
