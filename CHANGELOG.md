@@ -1,13 +1,6 @@
 Changelog
 =========
 
-0.8.1
-------------------
-_2016-02-08_
-
-### Fixes
-- Fixed the `Subsystem.proper_state` attribute.
-
 0.8.0
 ------------------
 _2016-02-06_
@@ -54,6 +47,7 @@ _2016-02-06_
 ### Fixes
 - `Concept.eq_repertoires` no longer fails when the concept has no cause or
   effect.
+- Fixed the `Subsystem.proper_state` attribute.
 
 ### Refactor
 - Subsystem Mice and cause/effect repertoire caches; Network purview caches.
