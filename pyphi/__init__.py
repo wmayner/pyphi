@@ -57,14 +57,7 @@ See the documentation for the |config| module for a description of the options
 and their defaults.
 """
 
-__title__ = 'pyphi'
-__version__ = '0.8.1'
-__description__ = 'Python library for computing integrated information.',
-__author__ = 'Will Mayner'
-__author_email__ = 'wmayner@gmail.com'
-__author_website__ = 'http://willmayner.com'
-__copyright__ = 'Copyright 2014-2015 Will Mayner'
-
+from .__about__ import *
 from . import (config, constants, convert, db, examples, jsonify, macro,
                models, network, node, subsystem, utils, validate)
 from .network import Network

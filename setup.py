@@ -32,13 +32,17 @@ test_require = [
     'sphinx_rtd_theme'
 ]
 
+about = {}
+with open('./pyphi/__about__.py') as f:
+    exec(f.read(), about)
 
 setup(
-    name='pyphi',
-    version='0.8.1',
-    description='A Python library for computing integrated information.',
-    author='Will Mayner',
-    author_email='wmayner@gmail.com',
+    name=about['__title__'],
+    version=about['__version__'],
+    description=about['__description__'],
+    author=about['__author__'],
+    author_email=about['__author_email__'],
+    license=about['__license__'],
     long_description=readme,
     include_package_data=True,
     install_requires=install_requires,
@@ -48,7 +52,6 @@ setup(
     package_data={'pyphi': ['data/**/*'],
                   '': ['README.rst', 'LICENSE.md', 'pyphi_config.yml',
                        'redis.conf']},
-    license='GNU General Public License v3.0',
     zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',
