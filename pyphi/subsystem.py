@@ -65,8 +65,6 @@ class Subsystem:
 
         # The state of the network.
         self._state = tuple(state)
-        # The state of the subsystem.
-        self._proper_state = utils.state_of(self.node_indices, self.state)
 
         # Get the external node indices.
         # TODO: don't expose this as an attribute?
@@ -129,13 +127,10 @@ class Subsystem:
     @property
     def proper_state(self):
         """The state of the nodes in this Subsystem."""
-        return self._proper_state
+        return utils.state_of(self.node_indices, self.state)
 
     @proper_state.setter
     def proper_state(self, proper_state):
-        # Cast state to a tuple so it can be hashed and properly used as
-        # np.array indices.
-        self._proper_state = tuple(proper_state)
         # Update the network's state.
         self.state = tuple(proper_state[self.node_indices.index(n)]
                            if n in self.node_indices else self.state[n]
