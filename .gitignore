@@ -20,3 +20,5 @@ htmlcov
 results
 html
 env
+benchmarks/pyphi_config.yml
+profiling/pyphi_config.yml
