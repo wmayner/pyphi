@@ -4,6 +4,8 @@
     :width: 380px
     :align: center
 
+----
+
 .. image:: https://zenodo.org/badge/4651/wmayner/pyphi.svg
     :target: https://zenodo.org/badge/latestdoi/4651/wmayner/pyphi
     :alt: Zenodo DOI badge
