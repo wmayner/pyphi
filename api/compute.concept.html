@@ -1,0 +1,377 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute.concept &mdash; v0.8.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="v0.8.1 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="concept_caching" href="concept_caching.html"/>
+        <link rel="prev" title="compute.big_phi" href="compute.big_phi.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyPhi
+          
+
+          
+            
+            <img src="../_static/phi.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v0.8.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+      
+    <li><code class="docutils literal"><span class="pre">compute.concept</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/compute.concept.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pyphi.compute.concept">
+<span id="compute-concept"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">compute.concept</span></code><a class="headerlink" href="#module-pyphi.compute.concept" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pyphi.compute.concept.concept">
+<code class="descclassname">pyphi.compute.concept.</code><code class="descname">concept</code><span class="sig-paren">(</span><em>subsystem</em>, <em>mechanism</em>, <em>purviews=False</em>, <em>past_purviews=False</em>, <em>future_purviews=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.concept.concept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the concept specified by a mechanism within a subsytem.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>subsystem</strong> (<em>Subsytem</em>) &#8211; The context in which the mechanism should be
+considered.</li>
+<li><strong>mechanism</strong> (<em>tuple(int</em>) &#8211; The candidate set of nodes.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first simple">
+<li><strong>purviews</strong> (<em>tuple(tuple(int</em>) &#8211; Restrict the possible purviews to those
+in this list.</li>
+<li><strong>past_purviews</strong> (<em>tuple(tuple(int</em>) &#8211; Restrict the possible cause
+purviews to those in this list. Takes precedence over <code class="docutils literal"><span class="pre">purviews</span></code>.</li>
+<li><strong>future_purviews</strong> (<em>tuple(tuple(int</em>) &#8211; Restrict the possible effect
+purviews to those in this list. Takes precedence over <code class="docutils literal"><span class="pre">purviews</span></code>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The pair of maximally irreducible cause/effect repertoires
+that constitute the concept specified by the given mechanism.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.concept.constellation">
+<code class="descclassname">pyphi.compute.concept.</code><code class="descname">constellation</code><span class="sig-paren">(</span><em>subsystem</em>, <em>mechanisms=False</em>, <em>purviews=False</em>, <em>past_purviews=False</em>, <em>future_purviews=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.concept.constellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the conceptual structure of this subsystem, optionally restricted
+to concepts with the mechanisms and purviews given in keyword arguments.</p>
+<p>If you will not be using the full constellation, restricting the possible
+mechanisms and purviews can make this function much faster.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>subsystem</strong> (<a class="reference internal" href="subsystem.html#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><em>Subsystem</em></a>) &#8211; The subsystem for which to determine the
+constellation.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first simple">
+<li><strong>mechanisms</strong> (<em>tuple(tuple(int</em>) &#8211; A list of mechanisms, as node indices,
+to be considered as possible mechanisms for the concepts in the
+constellation.</li>
+<li><strong>purviews</strong> (<em>tuple(tuple(int</em>) &#8211; A list of purviews, as node indices, to
+be considered as possible purviews for the concepts in the
+constellation.</li>
+<li><strong>past_purviews</strong> (<em>tuple(tuple(int</em>) &#8211; A list of purviews, as node indices,
+to be considered as possible <em>cause</em> purviews for the concepts in
+the constellation. This takes precedence over the more general
+<code class="docutils literal"><span class="pre">purviews</span></code> option.</li>
+<li><strong>future_purviews</strong> (<em>tuple(tuple(int</em>) &#8211; A list of purviews, as node
+indices, to be considered as possible <em>effect</em> purviews for the
+concepts in the constellation. This takes precedence over the more
+general <code class="docutils literal"><span class="pre">purviews</span></code> option.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A tuple of all the <a href="#id1"><span class="problematic" id="id2">|</span></a>Concept|s in the constellation.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">Constellation</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.concept.concept_distance">
+<code class="descclassname">pyphi.compute.concept.</code><code class="descname">concept_distance</code><span class="sig-paren">(</span><em>c1</em>, <em>c2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.concept.concept_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the distance between two concepts in concept-space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>c1</strong> (<em>Mice</em>) &#8211; The first concept.</li>
+<li><strong>c2</strong> (<em>Mice</em>) &#8211; The second concept.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The distance between the two concepts in concept-space.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.concept.constellation_distance">
+<code class="descclassname">pyphi.compute.concept.</code><code class="descname">constellation_distance</code><span class="sig-paren">(</span><em>C1</em>, <em>C2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.concept.constellation_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the distance between two constellations in concept-space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>C1</strong> (<em>Constellation</em>) &#8211; The first constellation.</li>
+<li><strong>C2</strong> (<em>Constellation</em>) &#8211; The second constellation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The distance between the two constellations in concept-space.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.concept.conceptual_information">
+<code class="descclassname">pyphi.compute.concept.</code><code class="descname">conceptual_information</code><span class="sig-paren">(</span><em>subsystem</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.concept.conceptual_information" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the conceptual information for a subsystem.</p>
+<p>This is the distance from the subsystem&#8217;s constellation to the null
+concept.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="concept_caching.html" class="btn btn-neutral float-right" title="concept_caching" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="compute.big_phi.html" class="btn btn-neutral" title="compute.big_phi" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Feb 12, 2016.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.8.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

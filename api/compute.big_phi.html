@@ -1,0 +1,357 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute.big_phi &mdash; v0.8.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="v0.8.1 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="compute.concept" href="compute.concept.html"/>
+        <link rel="prev" title="compute" href="compute.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyPhi
+          
+
+          
+            
+            <img src="../_static/phi.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v0.8.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+      
+    <li><code class="docutils literal"><span class="pre">compute.big_phi</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/compute.big_phi.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pyphi.compute.big_phi">
+<span id="compute-big-phi"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">compute.big_phi</span></code><a class="headerlink" href="#module-pyphi.compute.big_phi" title="Permalink to this headline">¶</a></h1>
+<p>Methods for computing concepts, constellations, and integrated information of
+subsystems.</p>
+<dl class="function">
+<dt id="pyphi.compute.big_phi.evaluate_cut">
+<code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">evaluate_cut</code><span class="sig-paren">(</span><em>uncut_subsystem</em>, <em>cut</em>, <em>unpartitioned_constellation</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.evaluate_cut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the <code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code> for a given cut.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>uncut_subsystem</strong> (<a class="reference internal" href="subsystem.html#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><em>Subsystem</em></a>) &#8211; The subsystem without the cut applied.</li>
+<li><strong>cut</strong> (<em>Cut</em>) &#8211; The cut to evaluate.</li>
+<li><strong>unpartitioned_constellation</strong> (<em>Constellation</em>) &#8211; The constellation of the
+uncut subsystem.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The <code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code> for that cut.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.big_phi.big_mip_bipartitions">
+<code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">big_mip_bipartitions</code><span class="sig-paren">(</span><em>nodes</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.big_mip_bipartitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all <span class="math">\(\Phi\)</span> cuts for the given nodes.</p>
+<p>This value changes based on <cite>config.CUT_ONE_APPROXIMATION</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tuple</strong> (<a class="reference internal" href="subsystem.html#pyphi.subsystem.Subsystem.nodes" title="pyphi.subsystem.Subsystem.nodes"><em>nodes</em></a>) &#8211; The node indices to partition.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>list</strong> &#8211; All unidirectional partitions.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Cut</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.big_phi.big_mip">
+<code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">big_mip</code><span class="sig-paren">(</span><em>cache_key</em>, <em>subsystem</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.big_mip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the minimal information partition of a subsystem.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>subsystem</strong> (<a class="reference internal" href="subsystem.html#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><em>Subsystem</em></a>) &#8211; The candidate set of nodes.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A nested structure containing all the data from the
+intermediate calculations. The top level contains the basic MIP
+information for the given subsystem.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.big_phi.big_phi">
+<code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">big_phi</code><span class="sig-paren">(</span><em>subsystem</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.big_phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <span class="math">\(\Phi\)</span> value of a subsystem.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.big_phi.subsystems">
+<code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">subsystems</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.subsystems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a generator of all <strong>possible</strong> subsystems of a network.</p>
+<p>Does not return subsystems that are in an impossible state.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.big_phi.all_complexes">
+<code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">all_complexes</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.all_complexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a generator for all complexes of the network.</p>
+<p>Includes reducible, zero-phi complexes (which are not, strictly speaking,
+complexes at all).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.big_phi.possible_complexes">
+<code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">possible_complexes</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.possible_complexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a generator of subsystems of a network that could be a complex.</p>
+<p>This is the just powerset of the nodes that have at least one input and
+output (nodes with no inputs or no outputs cannot be part of a main
+complex, because they do not have a causal link with the rest of the
+subsystem in the past or future, respectively).</p>
+<p>Does not include subsystems in an impossible state.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.big_phi.complexes">
+<code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">complexes</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.complexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a generator for all irreducible complexes of the network.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.big_phi.main_complex">
+<code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">main_complex</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.main_complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the main complex of the network.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.compute.big_phi.condensed">
+<code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">condensed</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.condensed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the set of maximal non-overlapping complexes.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="compute.concept.html" class="btn btn-neutral float-right" title="compute.concept" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="compute.html" class="btn btn-neutral" title="compute" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Feb 12, 2016.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.8.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
