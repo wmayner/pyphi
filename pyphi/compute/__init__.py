@@ -4,8 +4,7 @@
 
 """Maintains backwards compatability with the old ``compute`` API.
 
-See :mod:`~pyphi.compute.concept` and :mod:`~pyphi.compute.big_phi` for
-documentation.
+See |compute.concept| and |compute.big_phi| for documentation.
 
 Attributes:
     concept: Alias for :func:`concept.concept`.
