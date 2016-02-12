@@ -55,7 +55,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> PyPhi v0.8.1
+            <a href="../index.html" class="icon icon-home"> PyPhi
           
 
           
@@ -122,7 +122,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.8.1</a>
+        <a href="../index.html">PyPhi</a>
       </nav>
 
 
@@ -206,7 +206,7 @@ every node in the network in our subsystem:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>Now we use <code class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_phi()</span></code> function to compute the <span class="math">\(\Phi\)</span> of
+<p>Now we use <a class="reference internal" href="../api/compute.big_phi.html#module-pyphi.compute.big_phi" title="pyphi.compute.big_phi"><code class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_phi()</span></code></a> function to compute the <span class="math">\(\Phi\)</span> of
 our subsystem:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_phi</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">phi</span>
@@ -216,7 +216,7 @@ our subsystem:</p>
 <p>If we want to take a deeper look at the integrated-information-theoretic
 properties of our network, we can access all the intermediate quantities and
 structures that are calculated in the course of arriving at a final <span class="math">\(\Phi\)</span>
-value by using <code class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_mip()</span></code>. This returns a deeply nested
+value by using <a class="reference internal" href="../api/compute.html#pyphi.compute.big_mip" title="pyphi.compute.big_mip"><code class="xref py py-func docutils literal"><span class="pre">pyphi.compute.big_mip()</span></code></a>. This returns a deeply nested
 object, <code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code>, that contains data about the subsystem&#8217;s constellation of
 concepts, cause and effect repertoires, etc.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mip</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_mip</span><span class="p">(</span><span class="n">subsystem</span><span class="p">)</span>
@@ -257,7 +257,7 @@ structures.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 11, 2016.
+      Last updated on Feb 12, 2016.
 
     </p>
   </div>

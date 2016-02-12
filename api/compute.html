@@ -36,7 +36,7 @@
   
     <link rel="top" title="v0.8.1 documentation" href="../index.html"/>
         <link rel="up" title="API Reference" href="index.html"/>
-        <link rel="next" title="concept_caching" href="concept_caching.html"/>
+        <link rel="next" title="compute.big_phi" href="compute.big_phi.html"/>
         <link rel="prev" title="API Reference" href="index.html"/> 
 
   
@@ -55,7 +55,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> PyPhi v0.8.1
+            <a href="../index.html" class="icon icon-home"> PyPhi
           
 
           
@@ -101,13 +101,14 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="memory.html"><code class="docutils literal"><span class="pre">memory</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
@@ -129,7 +130,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">PyPhi v0.8.1</a>
+        <a href="../index.html">PyPhi</a>
       </nav>
 
 
@@ -164,7 +165,92 @@
             
   <div class="section" id="module-pyphi.compute">
 <span id="compute"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">compute</span></code><a class="headerlink" href="#module-pyphi.compute" title="Permalink to this headline">¶</a></h1>
-<p>Maintains backwards compatability with the old compute API.</p>
+<p>Maintains backwards compatability with the old <code class="docutils literal"><span class="pre">compute</span></code> API.</p>
+<p>See <a class="reference internal" href="compute.big_phi.html#module-pyphi.compute.big_phi" title="pyphi.compute.big_phi"><code class="xref py py-mod docutils literal"><span class="pre">big_phi</span></code></a> and <a class="reference internal" href="compute.concept.html#module-pyphi.compute.concept" title="pyphi.compute.concept"><code class="xref py py-mod docutils literal"><span class="pre">concept</span></code></a> for documentation.</p>
+<dl class="attribute">
+<dt id="pyphi.compute.concept">
+<code class="descclassname">pyphi.compute.</code><code class="descname">concept</code><a class="headerlink" href="#pyphi.compute.concept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.concept.html#pyphi.compute.concept.concept" title="pyphi.compute.concept.concept"><code class="xref py py-func docutils literal"><span class="pre">concept.concept()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.concept_distance">
+<code class="descclassname">pyphi.compute.</code><code class="descname">concept_distance</code><a class="headerlink" href="#pyphi.compute.concept_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.concept.html#pyphi.compute.concept.concept_distance" title="pyphi.compute.concept.concept_distance"><code class="xref py py-func docutils literal"><span class="pre">concept.concept_distance()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.conceptual_information">
+<code class="descclassname">pyphi.compute.</code><code class="descname">conceptual_information</code><a class="headerlink" href="#pyphi.compute.conceptual_information" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.concept.html#pyphi.compute.concept.conceptual_information" title="pyphi.compute.concept.conceptual_information"><code class="xref py py-func docutils literal"><span class="pre">concept.conceptual_information()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.constellation">
+<code class="descclassname">pyphi.compute.</code><code class="descname">constellation</code><a class="headerlink" href="#pyphi.compute.constellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.concept.html#pyphi.compute.concept.constellation" title="pyphi.compute.concept.constellation"><code class="xref py py-func docutils literal"><span class="pre">concept.constellation()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.constellation_distance">
+<code class="descclassname">pyphi.compute.</code><code class="descname">constellation_distance</code><a class="headerlink" href="#pyphi.compute.constellation_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.concept.html#pyphi.compute.concept.constellation_distance" title="pyphi.compute.concept.constellation_distance"><code class="xref py py-func docutils literal"><span class="pre">concept.constellation_distance()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.all_complexes">
+<code class="descclassname">pyphi.compute.</code><code class="descname">all_complexes</code><a class="headerlink" href="#pyphi.compute.all_complexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.big_phi.html#pyphi.compute.big_phi.all_complexes" title="pyphi.compute.big_phi.all_complexes"><code class="xref py py-func docutils literal"><span class="pre">big_phi.all_complexes()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.big_mip">
+<code class="descclassname">pyphi.compute.</code><code class="descname">big_mip</code><a class="headerlink" href="#pyphi.compute.big_mip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.big_phi.html#pyphi.compute.big_phi.big_mip" title="pyphi.compute.big_phi.big_mip"><code class="xref py py-func docutils literal"><span class="pre">big_phi.big_mip()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.big_phi">
+<code class="descclassname">pyphi.compute.</code><code class="descname">big_phi</code><a class="headerlink" href="#pyphi.compute.big_phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.big_phi.html#pyphi.compute.big_phi.big_phi" title="pyphi.compute.big_phi.big_phi"><code class="xref py py-func docutils literal"><span class="pre">big_phi.big_phi()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.complexes">
+<code class="descclassname">pyphi.compute.</code><code class="descname">complexes</code><a class="headerlink" href="#pyphi.compute.complexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.big_phi.html#pyphi.compute.big_phi.complexes" title="pyphi.compute.big_phi.complexes"><code class="xref py py-func docutils literal"><span class="pre">big_phi.complexes()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.condensed">
+<code class="descclassname">pyphi.compute.</code><code class="descname">condensed</code><a class="headerlink" href="#pyphi.compute.condensed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.big_phi.html#pyphi.compute.big_phi.condensed" title="pyphi.compute.big_phi.condensed"><code class="xref py py-func docutils literal"><span class="pre">big_phi.condensed()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.evaluate_cut">
+<code class="descclassname">pyphi.compute.</code><code class="descname">evaluate_cut</code><a class="headerlink" href="#pyphi.compute.evaluate_cut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.big_phi.html#pyphi.compute.big_phi.evaluate_cut" title="pyphi.compute.big_phi.evaluate_cut"><code class="xref py py-func docutils literal"><span class="pre">big_phi.evaluate_cut()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.main_complex">
+<code class="descclassname">pyphi.compute.</code><code class="descname">main_complex</code><a class="headerlink" href="#pyphi.compute.main_complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.big_phi.html#pyphi.compute.big_phi.main_complex" title="pyphi.compute.big_phi.main_complex"><code class="xref py py-func docutils literal"><span class="pre">big_phi.main_complex()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.possible_complexes">
+<code class="descclassname">pyphi.compute.</code><code class="descname">possible_complexes</code><a class="headerlink" href="#pyphi.compute.possible_complexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.big_phi.html#pyphi.compute.big_phi.possible_complexes" title="pyphi.compute.big_phi.possible_complexes"><code class="xref py py-func docutils literal"><span class="pre">big_phi.possible_complexes()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.compute.subsystems">
+<code class="descclassname">pyphi.compute.</code><code class="descname">subsystems</code><a class="headerlink" href="#pyphi.compute.subsystems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <a class="reference internal" href="compute.big_phi.html#pyphi.compute.big_phi.subsystems" title="pyphi.compute.big_phi.subsystems"><code class="xref py py-func docutils literal"><span class="pre">big_phi.subsystems()</span></code></a>.</p>
+</dd></dl>
+
 </div>
 
 
@@ -174,7 +260,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="concept_caching.html" class="btn btn-neutral float-right" title="concept_caching" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="compute.big_phi.html" class="btn btn-neutral float-right" title="compute.big_phi" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral" title="API Reference" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -187,7 +273,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 11, 2016.
+      Last updated on Feb 12, 2016.
 
     </p>
   </div>
