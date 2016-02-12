@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# cuts.py
+# models/cuts.py
 
 from collections import namedtuple
 
