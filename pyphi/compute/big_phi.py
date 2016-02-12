@@ -36,7 +36,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
             uncut subsystem.
 
     Returns:
-        bigmip (BigMip): The |BigMip| for that cut.
+        |BigMip|: The |BigMip| for that cut.
     """
     log.debug("Evaluating cut {}...".format(cut))
 
@@ -144,7 +144,7 @@ def big_mip_bipartitions(nodes):
     Args:
         nodes tuple(int): The node indices to partition.
     Returns:
-        list(Cut): All unidirectional partitions.
+        list(|Cut|): All unidirectional partitions.
     """
     if config.CUT_ONE_APPROXIMATION:
         bipartitions = utils.directed_bipartition_of_one(nodes)
@@ -165,9 +165,9 @@ def _big_mip(cache_key, subsystem):
         subsystem (Subsystem): The candidate set of nodes.
 
     Returns:
-        big_mip (|BigMip|): A nested structure containing all the data from the
-            intermediate calculations. The top level contains the basic MIP
-            information for the given subsystem.
+        |BigMip|: A nested structure containing all the data from the
+        intermediate calculations. The top level contains the basic MIP
+        information for the given subsystem.
     """
     log.info("Calculating big-phi data for {}...".format(subsystem))
     start = time()

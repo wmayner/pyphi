@@ -395,7 +395,8 @@ class Constellation(tuple):
 
     This is a wrapper around a tuple to provide a nice string representation
     and place to put constellation methods. Previously, constellations were
-    represented as ``tuple(Concept)``; this usage still works in all functions.
+    represented as ``tuple(|Concept|)``; this usage still works in all
+    functions.
     """
 
     def __repr__(self):

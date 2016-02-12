@@ -29,9 +29,8 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
             purviews to those in this list. Takes precedence over ``purviews``.
 
     Returns:
-        concept (|Concept|): The pair of maximally irreducible cause/effect
-            repertoires that constitute the concept specified by the given
-            mechanism.
+        |Concept|: The pair of maximally irreducible cause/effect repertoires
+        that constitute the concept specified by the given mechanism.
     """
     start = time()
 
@@ -140,8 +139,7 @@ def constellation(subsystem, mechanisms=False, purviews=False,
             general ``purviews`` option.
 
     Returns:
-        constellation (Constellation): A tuple of all the Concepts in the
-            constellation.
+        |Constellation|: A tuple of all the |Concept|s in the constellation.
     """
 
     if config.PARALLEL_CONCEPT_EVALUATION:
@@ -161,8 +159,7 @@ def concept_distance(c1, c2):
         c2 (Mice): The second concept.
 
     Returns:
-        distance (``float``): The distance between the two concepts in
-            concept-space.
+        float: The distance between the two concepts in concept-space.
     """
     # Calculate the sum of the past and future EMDs, expanding the repertoires
     # to the combined purview of the two concepts, so that the EMD signatures
@@ -268,8 +265,7 @@ def constellation_distance(C1, C2):
         C2 (Constellation): The second constellation.
 
     Returns:
-        distance (``float``): The distance between the two constellations in
-            concept-space.
+        float: The distance between the two constellations in concept-space.
     """
     concepts_only_in_C1 = [
         c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
