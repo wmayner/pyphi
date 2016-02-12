@@ -1,5 +1,3 @@
-# TODO: freeze dependencies
-
--r install_requirements.txt
+-e .
 -r test_requirements.txt
 -r dev_requirements.txt
