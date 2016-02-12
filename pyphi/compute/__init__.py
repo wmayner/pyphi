@@ -4,7 +4,8 @@
 
 """Maintains backwards compatability with the old compute API."""
 
-from .concept import (concept, constellation, concept_distance,
-                      constellation_distance, conceptual_information)
-from .big_phi import (big_mip, big_phi, subsystems, all_complexes,
-                      possible_complexes, complexes, main_complex, condensed)
+from .concept import (concept, concept_distance, conceptual_information,
+                      constellation, constellation_distance)
+from .big_phi import (all_complexes, big_mip, big_phi, complexes, condensed,
+                      evaluate_cut, main_complex, possible_complexes,
+                      subsystems)

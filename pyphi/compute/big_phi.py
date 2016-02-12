@@ -25,8 +25,19 @@ from ..subsystem import Subsystem
 log = logging.getLogger(__name__)
 
 
-def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
-    """Find the |BigMip| for a given cut."""
+# Expose `compute.evaluate_cut` to public API
+def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
+    """Find the |BigMip| for a given cut.
+
+    Args:
+        uncut_subsystem (Subsystem): The subsystem without the cut applied.
+        cut (Cut): The cut to evaluate.
+        unpartitioned_constellation (Constellation): The constellation of the
+            uncut subsystem.
+
+    Returns:
+        bigmip (BigMip): The |BigMip| for that cut.
+    """
     log.debug("Evaluating cut {}...".format(cut))
 
     cut_subsystem = Subsystem(uncut_subsystem.network,
@@ -55,13 +66,13 @@ def _evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
         cut_subsystem=cut_subsystem)
 
 
-# Wrapper for _evaluate_cut for parallel processing.
+# Wrapper for `evaluate_cut` for parallel processing.
 def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
     while True:
         cut = in_queue.get()
         if cut is None:
             break
-        new_mip = _evaluate_cut(subsystem, cut, unpartitioned_constellation)
+        new_mip = evaluate_cut(subsystem, cut, unpartitioned_constellation)
         out_queue.put(new_mip)
     out_queue.put(None)
 
@@ -115,7 +126,7 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
     Holds only two |BigMip|s in memory at once.
     """
     for i, cut in enumerate(cuts):
-        new_mip = _evaluate_cut(subsystem, cut, unpartitioned_constellation)
+        new_mip = evaluate_cut(subsystem, cut, unpartitioned_constellation)
         log.debug("Finished {} of {} cuts.".format(i + 1, len(cuts)))
         if new_mip < min_mip:
             min_mip = new_mip
