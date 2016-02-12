@@ -1,4 +1,4 @@
-.. image:: http://wmayner.github.io/pyphi/_static/pyphi-icon-and-text-380x90.png
+.. image:: http://wmayner.github.io/pyphi/_static/pyphi-icon-and-text-760x180.png
     :target: http://wmayner.github.io/pyphi/
     :alt: PyPhi logo
     :width: 380px
