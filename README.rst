@@ -1,26 +1,47 @@
-.. image:: https://zenodo.org/badge/4651/wmayner/pyphi.png
-    :target: http://dx.doi.org/10.5281/zenodo.15787
+.. image:: http://wmayner.github.io/pyphi/_static/pyphi-icon-and-text-380x90.png
+    :target: http://wmayner.github.io/pyphi/
+    :alt: PyPhi logo
+    :width: 380px
+    :align: center
+
+.. image:: https://zenodo.org/badge/4651/wmayner/pyphi.svg
+    :target: https://zenodo.org/badge/latestdoi/4651/wmayner/pyphi
     :alt: Zenodo DOI badge
 
 .. image:: https://travis-ci.org/wmayner/pyphi.svg?branch=master
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build badge
 
-.. image:: https://coveralls.io/repos/wmayner/pyphi/badge.svg?branch=master&service=github
-    :target: https://coveralls.io/r/wmayner/pyphi?branch=master
+.. image:: https://coveralls.io/repos/wmayner/pyphi/badge.svg?branch=master
+    :target: https://coveralls.io/github/wmayner/pyphi
     :alt: Coveralls.io badge
 
-***********************
-PyPhi: |phi| for Python
-***********************
+PyPhi is a Python library for computing integrated information (|phi|), and the
+associated quantities and objects.
 
-PyPhi is a Python 3 library for computing integrated information (|phi|), and
-the associated quantities and objects.
+If you use this code, please cite both this repository and the `IIT 3.0 paper
+<http://dx.doi.org/10.1371/journal.pcbi.1003588>`_.
 
-If you use this code, please cite both this repository (DOI
-`10.5281/zenodo.12194 <http://dx.doi.org/10.5281/zenodo.12194>`_) and the IIT
-3.0 paper (DOI `10.1371/journal.pcbi.1003588
-<http://dx.doi.org/10.1371/journal.pcbi.1003588>`_).
+To cite this code, use the Zenodo DOI for the verison you used. The latest one
+is `available here <https://zenodo.org/badge/latestdoi/4651/wmayner/pyphi>`_.
+For example::
+
+    Will Mayner et al.. (2015). pyphi: 0.7.0. Zenodo. 10.5281/zenodo.17498
+
+Or in BibTeX::
+
+    @misc{will_mayner_2015_17498,
+      author       = {Will Mayner and
+                      William Marshall},
+      title        = {pyphi: 0.7.0},
+      month        = May,
+      year         = 2015,
+      doi          = {10.5281/zenodo.17498},
+      url          = {http://dx.doi.org/10.5281/zenodo.17498}
+    }
+
+(Just make sure to use the version number and DOI for the version you actually
+used.)
 
 
 Usage, Examples, and API documentation
@@ -93,8 +114,8 @@ Optional: caching with Redis
 PyPhi can also use Redis as a fast in-memory global LRU cache to store Mice
 objects, reducing the memory load on PyPhi processes.
 
-`Install Redis <http://redis.io/download>`_. The `redis.conf` file provided with
-PyPhi includes the minimum settings needed to run Redis as an LRU cache:
+`Install Redis <http://redis.io/download>`_. The `redis.conf` file provided
+with PyPhi includes the minimum settings needed to run Redis as an LRU cache:
 
 .. code:: bash
 
@@ -103,7 +124,7 @@ PyPhi includes the minimum settings needed to run Redis as an LRU cache:
 Once the server is running you can enable Redis caching by setting
 ``REDIS_CACHE: true`` in your ``pyphi_config.yml``.
 
-**Note:** PyPhi currently flushes the connected Redis database at the start of 
+**Note:** PyPhi currently flushes the connected Redis database at the start of
 every execution. If you are running Redis for another application be sure PyPhi
 connects to its own Redis server.
 
