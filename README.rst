@@ -16,6 +16,8 @@
     :target: https://coveralls.io/github/wmayner/pyphi
     :alt: Coveralls.io badge
 
+|
+
 PyPhi is a Python library for computing integrated information (|phi|), and the
 associated quantities and objects.
 
