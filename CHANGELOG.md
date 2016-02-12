@@ -1,6 +1,15 @@
 Changelog
 =========
 
+
+0.8.1
+------------------
+_2016-02-11_
+
+### Fixes
+- Fixed a bug in `setup.py` that prevented installation.
+
+
 0.8.0
 ------------------
 _2016-02-06_
