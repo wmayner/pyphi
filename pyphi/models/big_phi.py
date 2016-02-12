@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# big_phi.py
+# models/big_phi.py
 
 
 from .. import utils, config, jsonify

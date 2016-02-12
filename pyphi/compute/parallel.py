@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# parallel.py
+# compute/parallel.py
 
 import multiprocessing
 

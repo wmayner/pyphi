@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# big_phi.py
+# compute/big_phi.py
 
 """
 Methods for computing concepts, constellations, and integrated information of

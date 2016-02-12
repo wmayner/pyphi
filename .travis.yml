@@ -2,6 +2,11 @@ language: python
 
 sudo: false
 
+branches:
+  only:
+      - master
+      - develop
+
 # Setup databases
 services:
   - mongodb  # port 27017 (default)

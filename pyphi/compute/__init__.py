@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __init__.py
+# compute/__init__.py
 
 """Maintains backwards compatability with the old compute API."""
 

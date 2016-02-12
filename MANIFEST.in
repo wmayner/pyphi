@@ -1,1 +1,4 @@
-include README.rst LICENSE.md requirements.txt pyphi_config.yml redis.conf
+include README.rst 
+include LICENSE.md 
+include pyphi_config.yml 
+include redis.conf

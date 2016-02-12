@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# concept.py
+# models/concept.py
 
 from collections import namedtuple
 

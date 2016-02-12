@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 # setup.py
 
 try:
@@ -18,19 +17,13 @@ with open('./pyphi/__about__.py') as f:
 install_requires = [
     'numpy >=1.8.1, <2.0.0',
     'scipy >=0.13.3, <1.0.0',
-    'pyemd >=0.0.7, <1.0.0',
+    'pyemd >=0.2.0, <1.0.0',
     'joblib >=0.8.0a3, <1.0.0',
-    'psutil >= 2.1.1, <3.0.0',
+    'psutil >=2.1.1, <3.0.0',
     'marbl-python >=2.0.0, <3.0.0',
     'pymongo >=2.7.1, <3.0.0',
     'pyyaml >=3.11, <4.0',
     'redis >=2.10.5, <3.0.0'
-]
-
-test_require = [
-    'pytest',
-    'coverage',
-    'sphinx_rtd_theme'
 ]
 
 setup(
@@ -44,9 +37,7 @@ setup(
     long_description=readme,
     include_package_data=True,
     install_requires=install_requires,
-    tests_require=test_require,
-    test_suite='test',
-    packages=['pyphi'],
+    packages=['pyphi', 'pyphi.compute', 'pyphi.models'],
     package_data={'pyphi': ['data/**/*'],
                   '': ['README.rst', 'LICENSE.md', 'pyphi_config.yml',
                        'redis.conf']},
