@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import example_networks
-from pyphi import config, validate
+from pyphi import config, utils, validate
 from pyphi.models import Cut, Part
 from pyphi.subsystem import Subsystem, mip_bipartitions
 
@@ -148,3 +148,14 @@ def test_proper_state(s, subsys_n0n2):
     subsys_n0n2.proper_state = (0, 1)
     assert subsys_n0n2.proper_state == (0, 1)
     assert subsys_n0n2.state == (0, 0, 1)
+
+
+def test_apply_cut(s):
+    cut = Cut((0, 1), (2,))
+    cut_s = s.apply_cut(cut)
+    assert s.network == cut_s.network
+    assert s.state == cut_s.state
+    assert s.node_indices == cut_s.node_indices
+    assert np.array_equal(cut_s.tpm, s.tpm)
+    assert np.array_equal(cut_s.connectivity_matrix,
+                          utils.apply_cut(cut, s.connectivity_matrix))

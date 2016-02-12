@@ -214,6 +214,18 @@ class Subsystem:
             'cut': jsonify(self.cut),
         }
 
+    def apply_cut(self, cut):
+        """Return a cut version of this |Subsystem|.
+
+        Args:
+            cut (Cut): The cut to apply to this |Subsystem|.
+
+        Returns:
+            subsystem (Subsystem)
+        """
+        return Subsystem(self.network, self.state, self.node_indices,
+                         cut=cut, mice_cache=self._mice_cache)
+
     def indices2nodes(self, indices):
         """Return nodes for these indices.
 
