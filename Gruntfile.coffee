@@ -17,6 +17,7 @@ module.exports = (grunt) ->
       buildDocs:
         command: [
           "cd docs"
+          "rm -r _build"
           "make html"
           "cp _static/* _build/html/_static"
         ].join "&&"
