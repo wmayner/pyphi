@@ -159,6 +159,9 @@ rst_prolog = """
 .. |compute| replace:: :mod:`~pyphi.compute`
 .. |compute.concept| replace:: :mod:`~pyphi.compute.big_phi`
 .. |compute.big_phi| replace:: :mod:`~pyphi.compute.concept`
+.. |models.big_phi| replace:: :mod:`~pyphi.models.big_phi`
+.. |models.concept| replace:: :mod:`~pyphi.models.concept`
+.. |models.cuts| replace:: :mod:`~pyphi.models.cuts`
 .. |network| replace:: :mod:`~pyphi.network`
 .. |subsystem| replace:: :mod:`~pyphi.subsystem`
 .. |macro| replace:: :mod:`~pyphi.macro`
