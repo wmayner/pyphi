@@ -55,7 +55,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'PyPhi v' + __version__
+project = 'PyPhi'
 copyright = '2014 ' + __author__
 
 # The version info for the project you're documenting, acts as replacement for
