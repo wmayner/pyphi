@@ -46,7 +46,7 @@ setup(
     install_requires=install_requires,
     tests_require=tests_require,
     test_suite='test',
-    packages=['pyphi'],
+    packages=['pyphi', 'pyphi.compute', 'pyphi.models'],
     package_data={'pyphi': ['data/**/*'],
                   '': ['README.rst', 'LICENSE.md', 'pyphi_config.yml',
                        'redis.conf']},
