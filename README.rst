@@ -32,14 +32,14 @@ For example::
 
 Or in BibTeX::
 
-    @misc{will_mayner_2015_17498,
-      author       = {Will Mayner and
-                      William Marshall},
-      title        = {pyphi: 0.7.0},
-      month        = May,
-      year         = 2015,
-      doi          = {10.5281/zenodo.17498},
-      url          = {http://dx.doi.org/10.5281/zenodo.17498}
+    @misc{pyphi
+      author = {Will Mayner and
+                William Marshall},
+      title  = {pyphi: 0.7.0},
+      month  = May,
+      year   = 2015,
+      doi    = {10.5281/zenodo.17498},
+      url    = {http://dx.doi.org/10.5281/zenodo.17498}
     }
 
 (Just make sure to use the version number and DOI for the version you actually
