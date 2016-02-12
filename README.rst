@@ -42,8 +42,8 @@ Or in BibTeX::
       url    = {http://dx.doi.org/10.5281/zenodo.17498}
     }
 
-(Just make sure to use the version number and DOI for the version you actually
-used.)
+(Just make sure to use the version number, DOI, and URL for the version you
+actually used.)
 
 
 Usage, Examples, and API documentation
