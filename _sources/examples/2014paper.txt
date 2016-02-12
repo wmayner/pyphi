@@ -26,7 +26,7 @@ For the first figure, we'll demonstrate how to set up a network and a candidate
 set. In PyPhi, networks are built by specifying a transition probability matrix
 and (optionally) a connectivity matrix. (If no connectivity matrix is given,
 full connectivity is assumed.) So, to set up the system shown in Figure 1,
-we'll start by defining its TPM. 
+we'll start by defining its TPM.
 
 .. note::
     The TPM in the figure is given in **state-by-state** form; there is a row
@@ -414,13 +414,13 @@ attributes:
     (Part(mechanism=(), purview=(1,)), Part(mechanism=(0, 1, 2), purview=(0, 2)))
 
 For more information on these objects, see the API documentation for the
-:class:`~pyphi.models.Mip` class, or use ``help(mip_c)``. 
+:class:`~pyphi.models.Mip` class, or use ``help(mip_c)``.
 
 Note that the minimal partition found for the past is
 
 .. math::
     \frac{A^{c}}{\left[\right]} \times \frac{BC^{c}}{ABC^{p}},
-    
+
 rather than the one shown in the figure. However, both partitions result in a
 difference of :math:`0.5` between the unpartitioned and partitioned cause
 repertoires. So we see that in small networks like this, there can be multiple
@@ -453,12 +453,12 @@ network. You can then import the file into Python with the ``json`` module:
         network_dictionary = json.load(json_file)
 
 The TPM and connectivity matrix can then be looked up with the keys ``'tpm'``
-and ``'connectivityMatrix'``:
+and ``'cm'``:
 
-.. code-block:: python 
+.. code-block:: python
 
     tpm = network_dictionary['tpm']
-    cm = network_dictionary['connectivityMatrix']
+    cm = network_dictionary['cm']
 
 For your convenience, there is a function that does this for you:
 :func:`pyphi.network.from_json()` that takes a path the a JSON file and returns
@@ -478,7 +478,7 @@ the “core cause” specified by a mechanism.**
 
 To find the core cause of a mechanism over all purviews, we just use the
 subsystem method of that name:
-    
+
     >>> core_cause = subsystem.core_cause((B, C))
     >>> core_cause.phi
     0.333334
@@ -502,7 +502,7 @@ PyPhi, this is represented by the :class:`~pyphi.models.Concept` object.
 Concepts are computed using the :meth:`~pyphi.subsystem.Subsystem.concept`
 method of a subsystem:
 
-    >>> concept_A = subsystem.concept((A,))            
+    >>> concept_A = subsystem.concept((A,))
     >>> concept_A.phi
     0.166667
 
@@ -576,7 +576,7 @@ shown in the figure:
     >>> big_mip.cut
     Cut (0, 1) --//--> (2,)
 
-.. note:: 
+.. note::
 
     A note on how to interpret the :class:`~pyphi.models.Cut` object: it has
     two attributes, ``severed`` and ``intact``. The connections going from the
@@ -647,11 +647,11 @@ into, use :func:`~pyphi.compute.condensed`:
     >>> condensed = pyphi.compute.condensed(network, state)
 
 We find that there are 2 complexes: the major complex :math:`ABC` with
-:math:`\Phi \approx 1.92`, and a minor complex `FG` with :math:`\Phi \approx 0.069` (note
-that there is typo in the figure; :math:`FG`'s :math:`\Phi` value should be
-:math:`0.069`). Furthermore, the program has been updated to only consider background
-conditions of current states, not past states, and as a result the minor complex `DE`
-which exists in the paper no longer exists.
+:math:`\Phi \approx 1.92`, and a minor complex `FG` with
+:math:`\Phi \approx 0.069` (note that there is typo in the figure: :math:`FG`'s
+:math:`\Phi` value should be :math:`0.069`). Furthermore, the program has been
+updated to only consider background conditions of current states, not past
+states; as a result the minor complex `DE` shown in the paper no longer exists.
 
     >>> len(condensed)
     2
