@@ -1,10 +1,6 @@
 .. image:: http://wmayner.github.io/pyphi/_static/pyphi-icon-and-text-padded-640x100.png
     :target: http://wmayner.github.io/pyphi/
     :alt: PyPhi logo
-    :width: 380px
-    :align: center
-
-----
 
 .. image:: https://zenodo.org/badge/4651/wmayner/pyphi.svg
     :target: https://zenodo.org/badge/latestdoi/4651/wmayner/pyphi
