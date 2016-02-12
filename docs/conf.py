@@ -175,6 +175,7 @@ rst_prolog = """
 .. |Network| replace:: :class:`~pyphi.network.Network`
 .. |BigMip| replace:: :class:`~pyphi.models.big_phi.BigMip`
 .. |Concept| replace:: :class:`~pyphi.models.concept.Concept`
+.. |Constellation| replace:: :class:`~pyphi.models.concept.Constellation`
 .. |Cut| replace:: :class:`~pyphi.models.cuts.Cut`
 .. |Mip| replace:: :class:`~pyphi.models.concept.Mip`
 .. |Mice| replace:: :class:`~pyphi.models.concept.Mice`
