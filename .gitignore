@@ -15,7 +15,6 @@ __pyphi_cache__
 dist
 build
 docs/_build
-github-docs
 .coverage
 htmlcov
 results
