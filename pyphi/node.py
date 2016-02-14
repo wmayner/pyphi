@@ -33,7 +33,7 @@ class Node:
             The state of this node.
     """
 
-    def __init__(self, subsystem, index, label=None):
+    def __init__(self, subsystem, index, indices=None, label=None):
         # This node's parent subsystem.
         self.subsystem = subsystem
         # This node's index in the list of nodes.
@@ -74,7 +74,12 @@ class Node:
         current_non_singleton_dim_index = 0
         # Iterate over all the nodes in the network, since we need to keep
         # track of all singleton dimensions.
-        for i in range(self.network.size):
+
+        # Subsystem indices to generate TPM from
+        if indices is None:
+            indices = self.subsystem.micro_indices
+
+        for i in indices:
             # Input nodes that are within the subsystem will correspond to a
             # dimension in this node's squeezed TPM, so we map it to the index
             # of the corresponding dimension and increment the corresponding
@@ -92,8 +97,7 @@ class Node:
             # Marginalize out non-input nodes that are in the subsystem, since
             # the external nodes have already been dealt with as boundary
             # conditions in the subsystem's TPM.
-            if (i not in self._input_indices
-                    and i in self.subsystem.node_indices):
+            if i not in self._input_indices:
                 tpm_on = tpm_on.sum(i, keepdims=True) / 2
                 tpm_off = tpm_off.sum(i, keepdims=True) / 2
 
