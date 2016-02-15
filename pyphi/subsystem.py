@@ -151,7 +151,9 @@ class Subsystem:
 
         # Create the TPM and CM for the defined time scale
         # ================================================
+        validate.time_scale(time_scale)
         self.time_scale = time_scale
+
         # TODO(billy) This is a blackboxed time. Coarse grain time not yet implemented.
         if internal_indices and time_scale > 1:
             self.tpm = utils.run_tpm(self.tpm, time_scale)

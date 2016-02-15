@@ -174,3 +174,9 @@ def subsystem(s):
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)
     return True
+
+
+def time_scale(time_scale):
+    """Validate a macro temporal time scale."""
+    if time_scale <= 0 or isinstance(time_scale, float):
+        raise ValueError('time scale must be a positive integer')

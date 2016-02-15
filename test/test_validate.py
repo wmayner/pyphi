@@ -97,3 +97,15 @@ def test_validate_state_no_error_2():
     # But locally possible for first two nodes.
     subsystem = Subsystem(net, state, (0, 1))
     validate.state_reachable(subsystem)
+
+
+def test_validate_time_scale():
+    with pytest.raises(ValueError):
+        validate.time_scale(1.3)
+    with pytest.raises(ValueError):
+        validate.time_scale(-1)
+    with pytest.raises(ValueError):
+        validate.time_scale(0)
+    validate.time_scale(1)
+    validate.time_scale(2)
+    # ... etc
