@@ -14,6 +14,7 @@ import numpy as np
 
 from . import compute, constants, convert, utils, validate
 from .network import Network
+from .node import Node
 from .subsystem import Subsystem
 
 # Create a logger for this module.
@@ -23,6 +24,167 @@ log = logging.getLogger(__name__)
 _NUM_PRECOMPUTED_PARTITION_LISTS = 10
 _partition_lists = utils.load_data('partition_lists',
                                    _NUM_PRECOMPUTED_PARTITION_LISTS)
+
+
+class MacroSubsystem(Subsystem):
+    """A subclass of |Subsystem| implementing macro computations."""
+
+    def __init__(self, network, state, node_indices, cut=None,
+                 mice_cache=None, time_scale=1, hidden_indices=None,
+                 output_grouping=None, state_grouping=None):
+        super().__init__(network, state, node_indices, cut, mice_cache)
+
+        # TODO: move back to property
+        self.size = len(self.node_indices)
+
+        self.independent = True
+
+        # Indices internal to the micro subsystem
+        self.internal_indices = internal_indices = node_indices
+
+        # Don't squeeze out the final dim ension (which contains the
+        # probability) for networks of size one
+        if self.network.size > 1:
+            self.tpm = np.squeeze(self.tpm)[..., self.internal_indices]
+
+        # Re-index the subsystem nodes with the external nodes removed
+        self.micro_size = len(self.internal_indices)
+        self.micro_indices = tuple(range(self.micro_size))
+
+        # A variable to tell if a system is a pure micro without blackboxing or
+        # coarse-grain.
+        self.micro = (output_grouping is None and hidden_indices is None)
+
+        # Get the subsystem's connectivity matrix. This is the network's
+        # connectivity matrix, but with the cut applied, and with all
+        # connections to/from external nodes severed.
+        if self.internal_indices:
+            self.micro_connectivity_matrix = utils.apply_cut(
+                cut, network.connectivity_matrix)[np.ix_(self.internal_indices,
+                                                         self.internal_indices)]
+            self.connectivity_matrix = self.micro_connectivity_matrix
+        #else:
+        #    self.micro_connectivity_matrix = np.array([[]])
+        #    self.connectivity_matrix = self.micro_connectivity_matrix
+
+        # Calculate the nodes for all internal indices
+        # ============================================
+        self.nodes = tuple(Node(self, i, indices=self.micro_indices)
+                           for i in self.micro_indices)
+        # Re-calcuate the tpm based on the results of the cut
+        self.tpm = np.rollaxis(
+            np.array([
+                node.expand_tpm(self.micro_indices) for node in self.nodes
+            ]), 0, self.micro_size + 1)
+
+        # Create the TPM and CM for the defined time scale
+        # ================================================
+        validate.time_scale(time_scale)
+        self.time_scale = time_scale
+
+        # TODO(billy) This is a blackboxed time. Coarse grain time not yet implemented.
+        if internal_indices and time_scale > 1:
+            self.tpm = utils.run_tpm(self.tpm, time_scale)
+            self.connectivity_matrix = utils.run_cm(
+                self.micro_connectivity_matrix, time_scale)
+
+        # Generate the TPM and CM after blackboxing
+        # =========================================
+        # Set the elements for blackboxing
+        if hidden_indices is None:
+            hidden_indices = ()
+
+        # Using network-based indexing.
+        self.micro_hidden_indices = hidden_indices
+        # Using indexing of subsystem internal elements.
+        self.hidden_indices = tuple(
+            i for i in self.micro_indices
+            if self.internal_indices[i] in hidden_indices)
+        # Blackbox output indices using the subsystem's internal indexing.
+        self.output_indices = tuple(
+            i for i in self.micro_indices
+            if self.internal_indices[i] not in hidden_indices)
+        # Koan of the Black Box:
+        #   "Blackbox indices are the blackbox indices using the blackbox
+        #    indexing."
+        #        - The Blackbox Master
+        self.blackbox_indices = tuple(range(len(self.output_indices)))
+
+        # The TPM conditioned on the current value of the hidden nodes.
+        if self.hidden_indices:
+            self.tpm = utils.condition_tpm(self.tpm,
+                                           self.hidden_indices,
+                                           self.proper_state)
+            self.tpm = np.squeeze(self.tpm)
+            self.tpm = self.tpm[..., self.output_indices]
+            self.connectivity_matrix = np.array([
+                [1 if np.sum(self.connectivity_matrix[
+                    np.ix_([self.output_indices[cause_index]],
+                           [self.output_indices[effect_index]])])
+                    > 0 else 0
+                    for effect_index in range(len(self.output_indices))]
+                for cause_index in range(len(self.output_indices))])
+            self.state = tuple(self.proper_state[index]
+                               for index in self.output_indices)
+
+        # Generate the TPM and CM after coarse-graining
+        # =============================================
+        # Set the elements for coarse-graining
+        if output_grouping is not None:
+            # TODO(billy) validate.macro(output_grouping, state_grouping)
+            self.micro_output_grouping = output_grouping
+            self.output_grouping = tuple(
+                tuple(i for i in self.blackbox_indices if
+                      self.internal_indices[self.output_indices[i]] in group)
+                for group in output_grouping)
+            self.state_grouping = state_grouping
+            self.mapping = utils.make_mapping(self.output_grouping,
+                                              self.state_grouping)
+            self.size = len(self.output_grouping)
+            self.subsystem_indices = tuple(range(self.size))
+            state = np.array(self.state)
+            self.state = tuple(0 if sum(state[list(self.output_grouping[0])])
+                               in state_grouping[i][0] else 1 for i in self.subsystem_indices)
+        else:
+            self.micro_output_grouping = None
+            self.output_grouping = ()
+            self.state_grouping = None
+            self.mapping = None
+            self.size = len(self.output_indices)
+            self.subsystem_indices = tuple(range(self.size))
+
+        # Coarse-grain the remaining nodes into the appropriate groups
+        if output_grouping:
+            self.tpm = utils.make_macro_tpm(self.tpm, self.mapping)
+            if cut is None:
+                self.independent = validate.conditionally_independent(self.tpm)
+            self.tpm = convert.state_by_state2state_by_node(self.tpm)
+            self.connectivity_matrix = np.array([
+                [np.max(self.connectivity_matrix[
+                    np.ix_(self.output_grouping[row],
+                           self.output_grouping[col])])
+                 for col in range(self.size)]
+                for row in range(self.size)])
+
+        if self.independent:
+            self.nodes = tuple(Node(self, i, indices=self.subsystem_indices)
+                               for i in self.subsystem_indices)
+        else:
+            self.nodes = ()
+
+        # Hash the final subsystem and nodes
+        # Only compute hash once.
+        self._hash = hash((self.internal_indices,
+                           self.hidden_indices,
+                           self.output_grouping,
+                           self.state_grouping,
+                           self.cut,
+                           self.network))
+        for node in self.nodes:
+            node._hash = hash((node.index, node.subsystem))
+
+        # TODO: combine subsystem_indices and node_indices
+        self.node_indices = self.subsystem_indices
 
 
 class MacroNetwork:
@@ -136,9 +298,9 @@ def coarse_grain(network, state, internal_indices):
     for partition in partitions:
         groupings = list_all_groupings(partition)
         for grouping in groupings:
-            subsystem = Subsystem(network, state, internal_indices,
-                                  output_grouping=partition,
-                                  state_grouping=grouping)
+            subsystem = MacroSubsystem(network, state, internal_indices,
+                                       output_grouping=partition,
+                                       state_grouping=grouping)
             phi = compute.big_phi(subsystem)
             if (phi - max_phi) > constants.EPSILON:
                 max_phi = phi
@@ -192,9 +354,9 @@ def phi_by_grain(network, state):
         for partition in partitions:
             groupings = list_all_groupings(partition)
             for grouping in groupings:
-                subsystem = Subsystem(network, state, system,
-                                      output_grouping=partition,
-                                      state_grouping=grouping)
+                subsystem = MacroSubsystem(network, state, system,
+                                           output_grouping=partition,
+                                           state_grouping=grouping)
                 phi = compute.big_phi(subsystem)
                 list_of_phi.append([len(subsystem), phi, system,
                                     partition, grouping])

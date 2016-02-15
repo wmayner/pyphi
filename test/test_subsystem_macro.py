@@ -3,7 +3,7 @@
 
 import numpy as np
 import pyphi
-from pyphi import convert, utils, Subsystem
+from pyphi import convert, macro, utils
 from pyphi.convert import (state_by_node2state_by_state as sbn2sbs,
                            state_by_state2state_by_node as sbs2sbn)
 
@@ -35,22 +35,22 @@ network = pyphi.Network(tpm, connectivity_matrix=cm)
 output_grouping = ((0, 1), (2, 3))
 state_grouping = (((0, 1), (2,)), ((0, 1), (2,)))
 
-subsystem = pyphi.Subsystem(network, state, network.node_indices,
-                            output_grouping=output_grouping,
-                            state_grouping=state_grouping)
+subsystem = macro.MacroSubsystem(network, state, network.node_indices,
+                                 output_grouping=output_grouping,
+                                 state_grouping=state_grouping)
 
 cut = pyphi.models.Cut((0,), (1, 2, 3))
 
-cut_subsystem = pyphi.Subsystem(network, state, network.node_indices,
-                                cut=cut,
-                                output_grouping=output_grouping,
-                                state_grouping=state_grouping)
+cut_subsystem = macro.MacroSubsystem(network, state, network.node_indices,
+                                     cut=cut,
+                                     output_grouping=output_grouping,
+                                     state_grouping=state_grouping)
 
 
 def test_macro_subsystem():
-    subsystem = pyphi.Subsystem(network, state, network.node_indices,
-                                output_grouping=output_grouping,
-                                state_grouping=state_grouping)
+    subsystem = macro.MacroSubsystem(network, state, network.node_indices,
+                                     output_grouping=output_grouping,
+                                     state_grouping=state_grouping)
     answer_tpm = np.array([
         [0.09, 0.09],
         [0.09, 1.],
@@ -65,10 +65,10 @@ def test_macro_subsystem():
 
 def test_macro_cut_subsystem():
     cut = pyphi.models.Cut((0,), (1, 2, 3))
-    cut_subsystem = pyphi.Subsystem(network, state, network.node_indices,
-                                    cut=cut,
-                                    output_grouping=output_grouping,
-                                    state_grouping=state_grouping)
+    cut_subsystem = macro.MacroSubsystem(network, state, network.node_indices,
+                                         cut=cut,
+                                         output_grouping=output_grouping,
+                                         state_grouping=state_grouping)
     answer_tpm = np.array([
         [0.09, 0.20083333],
         [0.09, 0.4225],
@@ -180,7 +180,8 @@ def test_run_tpm():
 
 
 def test_init_subsystem_in_time(s):
-    time_subsys = Subsystem(s.network, s.state, s.node_indices, time_scale=2)
+    time_subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+                                       time_scale=2)
     answer_tpm = convert.to_n_dimensional(np.array([
         [0, 0, 0],
         [1, 1, 0],

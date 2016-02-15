@@ -3,6 +3,7 @@
 
 import numpy as np
 import pyphi
+from pyphi import macro
 
 pyphi.config.CACHE_POTENTIAL_PURVIEWS = False
 
@@ -14,50 +15,50 @@ network = pyphi.Network(tpm)
 
 
 # No external, blackbox, or coarse grain
-subsystem1 = pyphi.Subsystem(network, state, network.node_indices)
+subsystem1 = macro.MacroSubsystem(network, state, network.node_indices)
 
 # External elements
-subsystem2 = pyphi.Subsystem(network, state, (0, 2, 4, 5))
+subsystem2 = macro.MacroSubsystem(network, state, (0, 2, 4, 5))
 
 # Hidden elements, no External
 hidden_indices = (3, 4)
-subsystem3 = pyphi.Subsystem(network, state, network.node_indices,
-                             hidden_indices=hidden_indices)
+subsystem3 = macro.MacroSubsystem(network, state, network.node_indices,
+                                  hidden_indices=hidden_indices)
 
 # Hidden and External elements
 hidden_indices = np.array([1, 3])
-subsystem4 = pyphi.Subsystem(network, state, (0, 1, 3, 5),
-                             hidden_indices=hidden_indices)
+subsystem4 = macro.MacroSubsystem(network, state, (0, 1, 3, 5),
+                                  hidden_indices=hidden_indices)
 
 # Only macro
 output_grouping = ((0, 1, 2), (3, 4, 5))
 state_grouping = (((0, 1), (2, 3)), ((0,), (1, 2, 3)))
-subsystem5 = pyphi.Subsystem(network, state, network.node_indices,
-                             output_grouping=output_grouping,
-                             state_grouping=state_grouping)
+subsystem5 = macro.MacroSubsystem(network, state, network.node_indices,
+                                  output_grouping=output_grouping,
+                                  state_grouping=state_grouping)
 # Macro and External
 output_grouping = ((1, 3), (2, 5))
 state_grouping = (((0, 1), (2,)), ((0,), (1, 2)))
-subsystem6 = pyphi.Subsystem(network, state, (1, 2, 3, 5),
-                             output_grouping=output_grouping,
-                             state_grouping=state_grouping)
+subsystem6 = macro.MacroSubsystem(network, state, (1, 2, 3, 5),
+                                  output_grouping=output_grouping,
+                                  state_grouping=state_grouping)
 
 # Macro and Hidden
 output_grouping = ((0, 5), (1, 2))
 hidden_indices = (3, 4)
-subsystem7 = pyphi.Subsystem(network, state, network.node_indices,
-                             hidden_indices=hidden_indices,
-                             output_grouping=output_grouping,
-                             state_grouping=state_grouping)
+subsystem7 = macro.MacroSubsystem(network, state, network.node_indices,
+                                  hidden_indices=hidden_indices,
+                                  output_grouping=output_grouping,
+                                  state_grouping=state_grouping)
 
 # External, Macro and Hidden
 hidden_indices = (4,)
 output_grouping = ((1,), (2,), (3, 5))
 state_grouping = (((0,), (1,)), ((0,), (1,)), ((0,), (1, 2)))
-subsystem8 = pyphi.Subsystem(network, state, (1, 2, 3, 4, 5),
-                             hidden_indices=hidden_indices,
-                             output_grouping=output_grouping,
-                             state_grouping=state_grouping)
+subsystem8 = macro.MacroSubsystem(network, state, (1, 2, 3, 4, 5),
+                                  hidden_indices=hidden_indices,
+                                  output_grouping=output_grouping,
+                                  state_grouping=state_grouping)
 
 
 pyphi.config.CACHE_POTENTIAL_PURVIEWS = True
