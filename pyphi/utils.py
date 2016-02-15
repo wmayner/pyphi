@@ -14,14 +14,15 @@ import logging
 import hashlib
 import numpy as np
 from itertools import chain, combinations
+
+from pyemd import emd
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from scipy.sparse import csc_matrix
 from scipy.sparse.csgraph import connected_components
-from pyemd import emd
-from .cache import cache
+
 from . import constants, convert, validate
-from .constants import DIRECTIONS, PAST, FUTURE
+from .cache import cache
 
 
 # Create a logger for this module.
