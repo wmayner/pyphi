@@ -303,7 +303,8 @@ class Subsystem:
         # np.array indices.
         self._state = tuple(state)
         # Validate.
-        validate.subsystem(self)
+        # TODO: renable
+        # validate.subsystem(self)
 
     @property
     def proper_state(self):
