@@ -35,7 +35,7 @@ class MacroSubsystem(Subsystem):
         super().__init__(network, state, node_indices, cut, mice_cache)
 
         # TODO: move back to property
-        self.size = len(self.node_indices)
+        self._size = len(self.node_indices)
 
         self.independent = True
 
@@ -140,8 +140,8 @@ class MacroSubsystem(Subsystem):
             self.state_grouping = state_grouping
             self.mapping = utils.make_mapping(self.output_grouping,
                                               self.state_grouping)
-            self.size = len(self.output_grouping)
-            self.subsystem_indices = tuple(range(self.size))
+            self._size = len(self.output_grouping)
+            self.subsystem_indices = tuple(range(self._size))
             state = np.array(self.state)
             self.state = tuple(0 if sum(state[list(self.output_grouping[0])])
                                in state_grouping[i][0] else 1 for i in self.subsystem_indices)
@@ -150,8 +150,8 @@ class MacroSubsystem(Subsystem):
             self.output_grouping = ()
             self.state_grouping = None
             self.mapping = None
-            self.size = len(self.output_indices)
-            self.subsystem_indices = tuple(range(self.size))
+            self._size = len(self.output_indices)
+            self.subsystem_indices = tuple(range(self._size))
 
         # Coarse-grain the remaining nodes into the appropriate groups
         if output_grouping:
@@ -163,8 +163,8 @@ class MacroSubsystem(Subsystem):
                 [np.max(self.connectivity_matrix[
                     np.ix_(self.output_grouping[row],
                            self.output_grouping[col])])
-                 for col in range(self.size)]
-                for row in range(self.size)])
+                 for col in range(self._size)]
+                for row in range(self._size)])
 
         if self.independent:
             self.nodes = tuple(Node(self, i, indices=self.subsystem_indices)
@@ -185,6 +185,14 @@ class MacroSubsystem(Subsystem):
 
         # TODO: combine subsystem_indices and node_indices
         self.node_indices = self.subsystem_indices
+
+        # HACK HACK share size in cause/effect repertoire methods
+        self.network_size = self._size
+
+    @property
+    def size(self):
+        """Override `Subsystem.size`."""
+        return self._size
 
 
 class MacroNetwork:

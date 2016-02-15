@@ -63,7 +63,7 @@ class Node:
 
         # Subsystem indices to generate TPM from
         if indices is None:
-            indices = self.subsystem.micro_indices
+            indices = subsystem.node_indices
 
         for i in indices:
             # TODO extend to nonbinary nodes

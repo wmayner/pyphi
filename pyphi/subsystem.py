@@ -107,6 +107,12 @@ class Subsystem:
         # have an accesible object-level cache. Just use a simple memoizer
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
+        self.nodes = tuple(Node(self, i) for i in self.node_indices)
+
+        # HACK HACK
+        self.subsystem_indices = self.network.node_indices
+        self.network_size = self.network.size
+
         validate.subsystem(self)
 
     @property
@@ -137,11 +143,10 @@ class Subsystem:
         # Validate.
         validate.subsystem(self)
 
-    # TODO: renable
-    #@property
-    #def size(self):
-    #    """The size of this Subsystem."""
-    #    return len(self.node_indices)
+    @property
+    def size(self):
+        """The size of this Subsystem."""
+        return len(self.node_indices)
 
     def is_cut(self):
         """Return whether this Subsystem has a cut applied to it."""
@@ -365,7 +370,7 @@ class Subsystem:
 
             # Expand the dimensions so the TPM can be indexed as described
             first_half_shape = list(tpm.shape[:-1])
-            second_half_shape = [1] * self.size
+            second_half_shape = [1] * self.network_size
             second_half_shape[purview_node.index] = 2
             tpm = tpm.reshape(first_half_shape + second_half_shape)
 
@@ -393,7 +398,7 @@ class Subsystem:
         # (the second half of the shape may also contain singleton dimensions,
         # depending on how many nodes are in the purview).
         accumulated_cjd = accumulated_cjd.reshape(
-            accumulated_cjd.shape[self.size:])
+            accumulated_cjd.shape[self.network_size:])
 
         return accumulated_cjd
 
