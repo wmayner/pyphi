@@ -110,6 +110,9 @@
 <li class="toctree-l2"><a class="reference internal" href="examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.big_phi.html"><code class="docutils literal"><span class="pre">models.big_phi</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.concept.html"><code class="docutils literal"><span class="pre">models.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.cuts.html"><code class="docutils literal"><span class="pre">models.cuts</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
@@ -170,23 +173,23 @@ subsystems.</p>
 <dl class="function">
 <dt id="pyphi.compute.big_phi.evaluate_cut">
 <code class="descclassname">pyphi.compute.big_phi.</code><code class="descname">evaluate_cut</code><span class="sig-paren">(</span><em>uncut_subsystem</em>, <em>cut</em>, <em>unpartitioned_constellation</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.compute.big_phi.evaluate_cut" title="Permalink to this definition">¶</a></dt>
-<dd><p>Find the <code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code> for a given cut.</p>
+<dd><p>Find the <a class="reference internal" href="models.big_phi.html#pyphi.models.big_phi.BigMip" title="pyphi.models.big_phi.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a> for a given cut.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>uncut_subsystem</strong> (<a class="reference internal" href="subsystem.html#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><em>Subsystem</em></a>) &#8211; The subsystem without the cut applied.</li>
-<li><strong>cut</strong> (<em>Cut</em>) &#8211; The cut to evaluate.</li>
-<li><strong>unpartitioned_constellation</strong> (<em>Constellation</em>) &#8211; The constellation of the
+<li><strong>cut</strong> (<a class="reference internal" href="models.cuts.html#pyphi.models.cuts.Cut" title="pyphi.models.cuts.Cut"><em>Cut</em></a>) &#8211; The cut to evaluate.</li>
+<li><strong>unpartitioned_constellation</strong> (<a class="reference internal" href="models.concept.html#pyphi.models.concept.Constellation" title="pyphi.models.concept.Constellation"><em>Constellation</em></a>) &#8211; The constellation of the
 uncut subsystem.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The <code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code> for that cut.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The <a class="reference internal" href="models.big_phi.html#pyphi.models.big_phi.BigMip" title="pyphi.models.big_phi.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a> for that cut.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.big_phi.html#pyphi.models.big_phi.BigMip" title="pyphi.models.big_phi.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -206,7 +209,7 @@ uncut subsystem.</li>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>list</strong> &#8211; All unidirectional partitions.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Cut</span></code></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="models.cuts.html#pyphi.models.cuts.Cut" title="pyphi.models.cuts.Cut"><code class="xref py py-class docutils literal"><span class="pre">Cut</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -226,7 +229,7 @@ uncut subsystem.</li>
 intermediate calculations. The top level contains the basic MIP
 information for the given subsystem.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="models.big_phi.html#pyphi.models.big_phi.BigMip" title="pyphi.models.big_phi.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -304,7 +307,7 @@ subsystem in the past or future, respectively).</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 12, 2016.
+      Last updated on Feb 15, 2016.
 
     </p>
   </div>

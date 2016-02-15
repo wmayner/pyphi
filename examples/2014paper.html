@@ -582,7 +582,7 @@ attributes:</p>
 </pre></div>
 </div>
 <p>For more information on these objects, see the API documentation for the
-<code class="xref py py-class docutils literal"><span class="pre">Mip</span></code> class, or use <code class="docutils literal"><span class="pre">help(mip_c)</span></code>.</p>
+<a class="reference internal" href="../api/models.html#pyphi.models.Mip" title="pyphi.models.Mip"><code class="xref py py-class docutils literal"><span class="pre">Mip</span></code></a> class, or use <code class="docutils literal"><span class="pre">help(mip_c)</span></code>.</p>
 <p>Note that the minimal partition found for the past is</p>
 <div class="math">
 \[\frac{A^{c}}{\left[\right]} \times \frac{BC^{c}}{ABC^{p}},\]</div>
@@ -641,7 +641,7 @@ subsystem method of that name:</p>
 <p>For a detailed description of the objects returned by the
 <a class="reference internal" href="../api/subsystem.html#pyphi.subsystem.Subsystem.core_cause" title="pyphi.subsystem.Subsystem.core_cause"><code class="xref py py-meth docutils literal"><span class="pre">core_cause()</span></code></a> and
 <a class="reference internal" href="../api/subsystem.html#pyphi.subsystem.Subsystem.core_effect" title="pyphi.subsystem.Subsystem.core_effect"><code class="xref py py-meth docutils literal"><span class="pre">core_effect()</span></code></a> methods, see the API
-documentation for <code class="xref py py-class docutils literal"><span class="pre">Mice</span></code> or use <code class="docutils literal"><span class="pre">help(core_cause)</span></code>.</p>
+documentation for <a class="reference internal" href="../api/models.html#pyphi.models.Mice" title="pyphi.models.Mice"><code class="xref py py-class docutils literal"><span class="pre">Mice</span></code></a> or use <code class="docutils literal"><span class="pre">help(core_cause)</span></code>.</p>
 </div>
 <div class="section" id="figure-9">
 <h2>Figure 9<a class="headerlink" href="#figure-9" title="Permalink to this headline">¶</a></h2>
@@ -649,7 +649,7 @@ documentation for <code class="xref py py-class docutils literal"><span class="p
 <p>This figure and the next few use the same network as in Figure 8, so we don&#8217;t
 need to reassign the <code class="docutils literal"><span class="pre">network</span></code> and <code class="docutils literal"><span class="pre">subsystem</span></code> variables.</p>
 <p>Together, the core cause and core effect of a mechanism specify a “concept.” In
-PyPhi, this is represented by the <code class="xref py py-class docutils literal"><span class="pre">Concept</span></code> object.
+PyPhi, this is represented by the <a class="reference internal" href="../api/models.html#pyphi.models.Concept" title="pyphi.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a> object.
 Concepts are computed using the <a class="reference internal" href="../api/subsystem.html#pyphi.subsystem.Subsystem.concept" title="pyphi.subsystem.Subsystem.concept"><code class="xref py py-meth docutils literal"><span class="pre">concept()</span></code></a>
 method of a subsystem:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">concept_A</span> <span class="o">=</span> <span class="n">subsystem</span><span class="o">.</span><span class="n">concept</span><span class="p">((</span><span class="n">A</span><span class="p">,))</span>
@@ -658,7 +658,7 @@ method of a subsystem:</p>
 </pre></div>
 </div>
 <p>As usual, please consult the API documentation or use <code class="docutils literal"><span class="pre">help(concept_A)</span></code> for a
-detailed description of the <code class="xref py py-class docutils literal"><span class="pre">Concept</span></code> object.</p>
+detailed description of the <a class="reference internal" href="../api/models.html#pyphi.models.Concept" title="pyphi.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a> object.</p>
 </div>
 <div class="section" id="figure-10">
 <h2>Figure 10<a class="headerlink" href="#figure-10" title="Permalink to this headline">¶</a></h2>
@@ -709,7 +709,7 @@ of the partitioned set <span class="math">\(C_{\rightarrow}^{\textrm{MIP}}\)</sp
 calculation time, the calculation time for just the unpartitioned
 constellation, a reference to the subsystem that was analyzed, and a reference
 to the subsystem with the minimal unidirectional cut applied. For details see
-the API documentation for <code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code> or use
+the API documentation for <a class="reference internal" href="../api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a> or use
 <code class="docutils literal"><span class="pre">help(big_mip)</span></code>.</p>
 <p>We can verify that the <span class="math">\(\Phi^{\textrm{MIP}}\)</span> value and minimal cut are as
 shown in the figure:</p>
@@ -721,7 +721,7 @@ shown in the figure:</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">A note on how to interpret the <code class="xref py py-class docutils literal"><span class="pre">Cut</span></code> object: it has
+<p class="last">A note on how to interpret the <a class="reference internal" href="../api/models.html#pyphi.models.Cut" title="pyphi.models.Cut"><code class="xref py py-class docutils literal"><span class="pre">Cut</span></code></a> object: it has
 two attributes, <code class="docutils literal"><span class="pre">severed</span></code> and <code class="docutils literal"><span class="pre">intact</span></code>. The connections going from the
 nodes in the <code class="docutils literal"><span class="pre">severed</span></code> set to those in the <code class="docutils literal"><span class="pre">intact</span></code> set are the
 connections removed by the cut.</p>
@@ -742,7 +742,7 @@ shown, only <strong>(B)</strong> has <span class="math">\(\Phi &gt; 0\)</span>.<
 </pre></div>
 </div>
 <p>To find the subsystem within a network that is the main complex, we use the
-function of that name, which returns a <code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code> object:</p>
+function of that name, which returns a <a class="reference internal" href="../api/models.html#pyphi.models.BigMip" title="pyphi.models.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a> object:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -823,7 +823,7 @@ documentation for <a class="reference internal" href="../api/compute.html#pyphi.
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 12, 2016.
+      Last updated on Feb 15, 2016.
 
     </p>
   </div>
