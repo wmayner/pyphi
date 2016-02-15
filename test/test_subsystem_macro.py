@@ -3,6 +3,10 @@
 
 import numpy as np
 import pyphi
+from pyphi import convert, utils, Subsystem
+from pyphi.convert import (state_by_node2state_by_state as sbn2sbs,
+                           state_by_state2state_by_node as sbs2sbn)
+
 
 tpm = np.zeros((16, 4)) + 0.3
 
@@ -74,3 +78,123 @@ def test_macro_cut_subsystem():
     assert np.array_equal(cut_subsystem.connectivity_matrix, answer_cm)
     assert np.all(cut_subsystem.tpm.reshape([4]+[2], order='F') - answer_tpm
                   < pyphi.constants.EPSILON)
+
+
+# Tests for purely temporal blackboxing
+# =====================================
+
+tpm_noise = np.array([
+    [0.25, 0.25, 0.25, 0.25],
+    [0.25, 0.25, 0.25, 0.25],
+    [0.25, 0.25, 0.25, 0.25],
+    [0.25, 0.25, 0.25, 0.25]
+])
+
+tpm_copy = sbn2sbs(np.array([
+    [0, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+    [0, 1, 1],
+    [1, 0, 0],
+    [1, 1, 0],
+    [1, 0, 1],
+    [1, 1, 1]
+]))
+
+tpm_copy2 = sbn2sbs(np.array([
+    [0, 0, 0],
+    [0, 0, 1],
+    [1, 0, 0],
+    [1, 0, 1],
+    [0, 1, 0],
+    [0, 1, 1],
+    [1, 1, 0],
+    [1, 1, 1]
+]))
+
+tpm_copy3 = sbn2sbs(np.array([
+    [0, 0, 0],
+    [1, 0, 0],
+    [0, 1, 0],
+    [1, 1, 0],
+    [0, 0, 1],
+    [1, 0, 1],
+    [0, 1, 1],
+    [1, 1, 1]
+]))
+
+tpm_huge = np.array([[1 if i == j+1 else 0
+                      for i in range(1000)]
+                     for j in range(1000)])
+tpm_huge[999, 0] = 1
+
+
+def test_sparse_blackbox():
+    assert np.array_equal(utils.sparse_time(tpm_huge, 1001), tpm_huge)
+
+
+def test_dense_blackbox():
+    assert np.array_equal(utils.dense_time(tpm_noise, 2), tpm_noise)
+    assert np.array_equal(utils.dense_time(tpm_noise, 3), tpm_noise)
+
+
+def test_cycle_blackbox():
+    assert np.array_equal(utils.sparse_time(tpm_copy, 2), tpm_copy2)
+    assert np.array_equal(utils.sparse_time(tpm_copy, 3), tpm_copy3)
+    assert np.array_equal(utils.dense_time(tpm_copy, 2), tpm_copy2)
+    assert np.array_equal(utils.dense_time(tpm_copy, 3), tpm_copy3)
+
+
+def test_run_tpm():
+    tpm = sbs2sbn(np.array([
+        [0, 1],
+        [1, 0],
+    ]))
+    answer = sbs2sbn(np.array([
+        [1, 0],
+        [0, 1],
+    ]))
+    assert np.array_equal(utils.run_tpm(tpm, 2), answer)
+
+    tpm = np.array([
+        [0, 0, 0],
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 0, 0],
+        [1, 1, 0],
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 0],
+    ])
+    answer = convert.to_n_dimensional(np.array([
+        [0, 0, 0],
+        [1, 1, 0],
+        [1, 1, 1],
+        [0, 0, 1],
+        [1, 0, 0],
+        [1, 1, 0],
+        [1, 1, 0],
+        [1, 0, 0],
+    ]))
+    assert np.array_equal(utils.run_tpm(tpm, 2), answer)
+
+
+def test_init_subsystem_in_time(s):
+    time_subsys = Subsystem(s.network, s.state, s.node_indices, time_scale=2)
+    answer_tpm = convert.to_n_dimensional(np.array([
+        [0, 0, 0],
+        [1, 1, 0],
+        [1, 1, 1],
+        [0, 0, 1],
+        [1, 0, 0],
+        [1, 1, 0],
+        [1, 1, 0],
+        [1, 0, 0],
+    ]))
+    answer_cm = np.array([
+        [1, 1, 0],
+        [1, 1, 1],
+        [1, 0, 1],
+    ])
+    assert np.array_equal(time_subsys.tpm, answer_tpm)
+    assert np.array_equal(time_subsys.connectivity_matrix, answer_cm)
