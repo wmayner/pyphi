@@ -1,0 +1,325 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>models.big_phi &mdash; v0.8.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="v0.8.1 documentation" href="../index.html"/>
+        <link rel="up" title="API Reference" href="index.html"/>
+        <link rel="next" title="models.concept" href="models.concept.html"/>
+        <link rel="prev" title="models" href="models.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> PyPhi
+          
+
+          
+            
+            <img src="../_static/phi.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                v0.8.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Usage and Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../conventions.html">Conventions</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="db.html"><code class="docutils literal"><span class="pre">db</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html"><code class="docutils literal"><span class="pre">examples</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html"><code class="docutils literal"><span class="pre">macro</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html"><code class="docutils literal"><span class="pre">models</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">models.big_phi</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.concept.html"><code class="docutils literal"><span class="pre">models.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.cuts.html"><code class="docutils literal"><span class="pre">models.cuts</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="network.html"><code class="docutils literal"><span class="pre">network</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node.html"><code class="docutils literal"><span class="pre">node</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="subsystem.html"><code class="docutils literal"><span class="pre">subsystem</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html"><code class="docutils literal"><span class="pre">utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="validate.html"><code class="docutils literal"><span class="pre">validate</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">PyPhi</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">API Reference</a> &raquo;</li>
+      
+    <li><code class="docutils literal"><span class="pre">models.big_phi</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/models.big_phi.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="models-big-phi">
+<h1><code class="xref py py-mod docutils literal"><span class="pre">models.big_phi</span></code><a class="headerlink" href="#models-big-phi" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-pyphi.models.big_phi"></span><dl class="class">
+<dt id="pyphi.models.big_phi.BigMip">
+<em class="property">class </em><code class="descclassname">pyphi.models.big_phi.</code><code class="descname">BigMip</code><span class="sig-paren">(</span><em>phi=None</em>, <em>unpartitioned_constellation=None</em>, <em>partitioned_constellation=None</em>, <em>subsystem=None</em>, <em>cut_subsystem=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.big_phi.BigMip" title="Permalink to this definition">¶</a></dt>
+<dd><p>A minimum information partition for <span class="math">\(\Phi\)</span> calculation.</p>
+<p>BigMips may be compared with the built-in Python comparison operators
+(<code class="docutils literal"><span class="pre">&lt;</span></code>, <code class="docutils literal"><span class="pre">&gt;</span></code>, etc.). First, <code class="docutils literal"><span class="pre">phi</span></code> values are compared. Then, if these
+are equal up to <code class="xref py py-const docutils literal"><span class="pre">constants.PRECISION</span></code>, the size of the subsystem is compared
+(exclusion principle).</p>
+<dl class="attribute">
+<dt id="pyphi.models.big_phi.BigMip.phi">
+<code class="descname">phi</code><a class="headerlink" href="#pyphi.models.big_phi.BigMip.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; The <span class="math">\(\Phi\)</span> value for the subsystem when taken against
+this MIP, <em>i.e.</em> the difference between the unpartitioned
+constellation and this MIP&#8217;s partitioned constellation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.big_phi.BigMip.unpartitioned_constellation">
+<code class="descname">unpartitioned_constellation</code><a class="headerlink" href="#pyphi.models.big_phi.BigMip.unpartitioned_constellation" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Constellation</em> &#8211; The constellation of the
+whole subsystem.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.big_phi.BigMip.partitioned_constellation">
+<code class="descname">partitioned_constellation</code><a class="headerlink" href="#pyphi.models.big_phi.BigMip.partitioned_constellation" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Constellation</em> &#8211; The constellation when the
+subsystem is cut.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.big_phi.BigMip.subsystem">
+<code class="descname">subsystem</code><a class="headerlink" href="#pyphi.models.big_phi.BigMip.subsystem" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Subsystem</em> &#8211; The subsystem this MIP was calculated for.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.big_phi.BigMip.cut_subsystem">
+<code class="descname">cut_subsystem</code><a class="headerlink" href="#pyphi.models.big_phi.BigMip.cut_subsystem" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Subsystem</em> &#8211; The subsystem with the minimal cut applied.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.big_phi.BigMip.time">
+<code class="descname">time</code><a class="headerlink" href="#pyphi.models.big_phi.BigMip.time" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; The number of seconds it took to calculate.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.big_phi.BigMip.small_phi_time">
+<code class="descname">small_phi_time</code><a class="headerlink" href="#pyphi.models.big_phi.BigMip.small_phi_time" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; The number of seconds it took to calculate the
+unpartitioned constellation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.big_phi.BigMip.cut">
+<code class="descname">cut</code><a class="headerlink" href="#pyphi.models.big_phi.BigMip.cut" title="Permalink to this definition">¶</a></dt>
+<dd><p>The unidirectional cut that makes the least difference to the
+subsystem.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.models.big_phi.BigMip.network">
+<code class="descname">network</code><a class="headerlink" href="#pyphi.models.big_phi.BigMip.network" title="Permalink to this definition">¶</a></dt>
+<dd><p>The network this <a class="reference internal" href="#pyphi.models.big_phi.BigMip" title="pyphi.models.big_phi.BigMip"><code class="xref py py-class docutils literal"><span class="pre">BigMip</span></code></a> belongs to.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.models.big_phi.BigMip.__bool__">
+<code class="descname">__bool__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.big_phi.BigMip.__bool__" title="Permalink to this definition">¶</a></dt>
+<dd><p>A BigMip is truthy if it is not reducible.</p>
+<p>(That is, if it has a significant amount of <span class="math">\(\Phi\)</span>.)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.models.big_phi.BigMip.to_json">
+<code class="descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.big_phi.BigMip.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="models.concept.html" class="btn btn-neutral float-right" title="models.concept" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="models.html" class="btn btn-neutral" title="models" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014 Will Mayner.
+      Last updated on Feb 15, 2016.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.8.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
