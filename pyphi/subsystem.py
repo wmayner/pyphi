@@ -126,6 +126,10 @@ class Subsystem:
         self.micro_size = len(self.internal_indices)
         self.micro_indices = tuple(range(self.micro_size))
 
+        # A variable to tell if a system is a pure micro without blackboxing or
+        # coarse-grain.
+        self.micro = (output_grouping is None and hidden_indices is None)
+
         # Get the subsystem's connectivity matrix. This is the network's
         # connectivity matrix, but with the cut applied, and with all
         # connections to/from external nodes severed.
@@ -163,31 +167,24 @@ class Subsystem:
         # Generate the TPM and CM after blackboxing
         # =========================================
         # Set the elements for blackboxing
-        if hidden_indices is not None:
-            # Within-blackbox elements, using the network-based indexing.
-            self.micro_hidden_indices = hidden_indices
-            # Within-blackbox elements, using the indexing of the subsystem's
-            # internal elements.
-            self.hidden_indices = tuple(
-                i for i in self.micro_indices
-                if self.internal_indices[i] in hidden_indices)
-            # Blackbox output indices using the subsystem's internal indexing.
-            self.output_indices = tuple(
-                i for i in self.micro_indices
-                if self.internal_indices[i] not in hidden_indices)
-            self.output_size = len(self.output_indices)
-            # Koan of the Black Box:
-            #   "Blackbox indices are the blackbox indices using the blackbox
-            #    indexing."
-            #        - The Blackbox Master
-            self.blackbox_indices = tuple(range(self.output_size))
-        else:
-            self.micro_hidden_indices = None
-            self.hidden_indices = ()
-            self.output_indices = tuple(self.micro_indices[i]
-                                        for i in range(self.micro_size))
-            self.output_size = len(self.output_indices)
-            self.blackbox_indices = tuple(range(self.output_size))
+        if hidden_indices is None:
+            hidden_indices = ()
+
+        # Using network-based indexing.
+        self.micro_hidden_indices = hidden_indices
+        # Using indexing of subsystem internal elements.
+        self.hidden_indices = tuple(
+            i for i in self.micro_indices
+            if self.internal_indices[i] in hidden_indices)
+        # Blackbox output indices using the subsystem's internal indexing.
+        self.output_indices = tuple(
+            i for i in self.micro_indices
+            if self.internal_indices[i] not in hidden_indices)
+        # Koan of the Black Box:
+        #   "Blackbox indices are the blackbox indices using the blackbox
+        #    indexing."
+        #        - The Blackbox Master
+        self.blackbox_indices = tuple(range(len(self.output_indices)))
 
         # The TPM conditioned on the current value of the hidden nodes.
         if self.hidden_indices:
@@ -229,7 +226,7 @@ class Subsystem:
             self.output_grouping = ()
             self.state_grouping = None
             self.mapping = None
-            self.size = self.output_size
+            self.size = len(self.output_indices)
             self.subsystem_indices = tuple(range(self.size))
 
         # Coarse-grain the remaining nodes into the appropriate groups
@@ -251,10 +248,6 @@ class Subsystem:
         else:
             self.nodes = ()
 
-        # A variable to tell if a system is a pure micro without blackboxing or
-        # coarse-grain.
-        self.micro = (self.micro_output_grouping is None
-                      and self.micro_hidden_indices is None)
         # Hash the final subsystem and nodes
         # Only compute hash once.
         self._hash = hash((self.internal_indices,
