@@ -153,18 +153,10 @@ class Subsystem:
         # ================================================
         self.time_scale = time_scale
         # TODO(billy) This is a blackboxed time. Coarse grain time not yet implemented.
-        if internal_indices:
-            if time_scale > 1:
-                sbs_tpm = convert.state_by_node2state_by_state(self.tpm)
-                if utils.sparse(self.tpm):
-                    self.tpm = utils.sparse_time(sbs_tpm, time_scale)
-                else:
-                    self.tpm = utils.dense_time(sbs_tpm, time_scale)
-                self.tpm = convert.state_by_state2state_by_node(self.tpm)
-                self.connectivity_matrix = matrix_power(
-                    self.micro_connectivity_matrix, time_scale)
-            elif time_scale == 1:
-                self.connectivity_matrix = self.micro_connectivity_matrix
+        if internal_indices and time_scale > 1:
+            self.tpm = utils.run_tpm(self.tpm, time_scale)
+            self.connectivity_matrix = utils.run_cm(
+                self.micro_connectivity_matrix, time_scale)
 
         # Generate the TPM and CM after blackboxing
         # =========================================
