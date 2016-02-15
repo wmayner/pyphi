@@ -60,3 +60,15 @@ def test_repr(s):
 
 def test_str(s):
     print(str(s.nodes[0]))
+
+
+def test_expand_tpm(s):
+    # `B` is the COPY gate -- on whenever `C` is on
+    B = s.nodes[1]
+    answer = np.array([
+        [[ 0., 1.],
+         [ 0., 1.]],
+        [[ 0., 1.],
+         [ 0., 1.]]
+    ])
+    assert np.array_equal(B.expand_tpm(s.node_indices), answer)

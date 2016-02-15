@@ -149,9 +149,8 @@ class Subsystem:
         # Re-calcuate the tpm based on the results of the cut
         self.tpm = np.rollaxis(
             np.array([
-                self.expand_node_tpm(node.inputs, node.tpm[1])
-                for node in self.nodes]
-            ), 0, self.micro_size + 1)
+                node.expand_tpm(self.micro_indices) for node in self.nodes
+            ]), 0, self.micro_size + 1)
 
         # Create the TPM and CM for the defined time scale
         # ================================================
@@ -261,23 +260,6 @@ class Subsystem:
 
         # TODO: combine subsystem_indices and node_indices
         self.node_indices = self.subsystem_indices
-
-    def expand_node_tpm(self, inputs, tpm):
-        """Expand a node tpm to be over all subsystem nodes instead of just its
-        inputs."""
-        # Get the unconstrained repertoire over the other nodes in the network.
-        if not inputs:
-            non_input_nodes = tuple(
-                frozenset([node.index for node in self.nodes]))
-        else:
-            non_input_nodes = tuple(
-                frozenset([node.index for node in self.nodes])
-                - frozenset([node.index for node in inputs]))
-        uc = np.ones([2 if index in non_input_nodes else 1 for index in
-                      range(self.micro_size)])
-        # Multiply the given repertoire by an array of ones to broadcast
-        # the distribution to the correct shape.
-        return tpm * uc
 
     @property
     def state(self):

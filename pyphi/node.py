@@ -166,6 +166,29 @@ class Node:
                              node.index in self._output_indices]
             return self._outputs
 
+    # TODO: confirm that this works in all cases
+    def expand_tpm(self, node_indices):
+        """Expand this node's tpm over the specified nodes, broadcasting over
+        singleton dimensions.
+
+        The expanded TPM gives the probability that this node will be ON.
+
+        Args:
+            node_indices (tuple(int)): The nodes of the system over which to
+                expand the tpm.
+
+        Returns:
+            np.ndarray: The expanded distribution.
+        """
+        non_input_nodes = tuple(set(node_indices) - set(self.input_indices))
+
+        # Unconstrained distribution
+        uc = np.ones([2 if index in non_input_nodes else 1
+                      for index in node_indices])
+
+        # Broadcast the distribution to the correct shape
+        return self.tpm[1] * uc
+
     @property
     def marbl(self):
         """The normalized representation of this node's Markov blanket,
