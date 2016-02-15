@@ -106,22 +106,18 @@ class Node:
     @property
     def inputs(self):
         """The set of nodes with connections to this node."""
-        if self._inputs is not None:
-            return self._inputs
-        else:
+        if self._inputs is None:
             self._inputs = [node for node in self.subsystem.nodes if
                             node.index in self._input_indices]
-            return self._inputs
+        return self._inputs
 
     @property
     def outputs(self):
         """The set of nodes this node has connections to."""
-        if self._outputs is not None:
-            return self._outputs
-        else:
+        if self._outputs is None:
             self._outputs = [node for node in self.subsystem.nodes if
                              node.index in self._output_indices]
-            return self._outputs
+        return self._outputs
 
     # TODO: confirm that this works in all cases
     def expand_tpm(self, node_indices):
