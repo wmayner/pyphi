@@ -209,8 +209,8 @@ class Subsystem:
                     > 0 else 0
                     for effect_index in range(len(self.output_indices))]
                 for cause_index in range(len(self.output_indices))])
-            self.proper_state = tuple(self.proper_state[index]
-                                       for index in self.output_indices)
+            self.state = tuple(self.proper_state[index]
+                               for index in self.output_indices)
 
         # Generate the TPM and CM after coarse-graining
         # =============================================
@@ -227,9 +227,9 @@ class Subsystem:
                                               self.state_grouping)
             self.size = len(self.output_grouping)
             self.subsystem_indices = tuple(range(self.size))
-            state = np.array(self.proper_state)
-            self.proper_state = tuple(0 if sum(state[list(self.output_grouping[0])])
-                                       in state_grouping[i][0] else 1 for i in self.subsystem_indices)
+            state = np.array(self.state)
+            self.state = tuple(0 if sum(state[list(self.output_grouping[0])])
+                               in state_grouping[i][0] else 1 for i in self.subsystem_indices)
         else:
             self.micro_output_grouping = None
             self.output_grouping = ()
