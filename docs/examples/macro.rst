@@ -158,12 +158,12 @@ coarse-graining of the system:
     >>> pyphi.validate.conditionally_independent(macro_tpm)
     False
 
-In these cases, the subsystem object returned by the :func:`~pyphi.Subsystem`
+In these cases, the subsystem object returned by the :func:`~pyphi.macro.MacroSubsystem`
 function will have an empty list of nodes:
 
-    >>> macro_subsystem = pyphi.Subsystem(network, state, network.node_indices, output_grouping=partition, state_grouping=grouping)
+    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, output_grouping=partition, state_grouping=grouping)
     >>> macro_subsystem
-    Subsystem(())
+    MacroSubsystem(())
 
 Lets consider a different partition instead.
 
@@ -181,18 +181,18 @@ Lets consider a different partition instead.
     array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,
             2.,  2.,  3.])
 
-    >>> macro_subsystem = pyphi.Subsystem(network, state, network.node_indices, output_grouping=partition, state_grouping=grouping)
+    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, output_grouping=partition, state_grouping=grouping)
     >>> macro_subsystem
-    Subsystem((n0, n1))
+    MacroSubsystem((n0, n1))
 
 We can then consider the integrated information of this macro-network and
 compare it to the micro-network.
 
     >>> macro_mip = pyphi.compute.big_mip(macro_subsystem)
     >>> macro_mip.phi
-    0.597213
+    0.597212
 
-The integrated information of the macro subsystem (:math:`\Phi = 0.597213`) is
+The integrated information of the macro subsystem (:math:`\Phi = 0.597212`) is
 greater than the integrated information of the micro system (:math:`\Phi =
 0.113889`). We can conclude that a macro-scale is appropriate for this system,
 but to determine which one, we must check all possible partitions and all
