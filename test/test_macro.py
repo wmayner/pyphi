@@ -4,7 +4,7 @@
 
 import numpy as np
 import pyphi
-from pyphi import macro, utils
+from pyphi import macro
 
 
 def test_list_all_partitions():
@@ -48,16 +48,16 @@ def test_list_all_groupings():
 def test_make_mapping():
     partition = ((0, 1), (2, 3))
     grouping = (((0, 1), (2,)), ((0, 1), (2,)))
-    mapping = utils.make_mapping(partition, grouping)
+    mapping = macro.make_mapping(partition, grouping)
     assert np.array_equal(mapping, np.array(
         (0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 1., 2., 2., 2., 3.)))
     partition = ((0, 1), (2,))
     grouping = (((0, 2), (1,)), ((0,), (1,)))
-    mapping = utils.make_mapping(partition, grouping)
+    mapping = macro.make_mapping(partition, grouping)
     assert np.array_equal(mapping, np.array((0., 1., 1., 0., 2., 3., 3., 2.)))
     partition = ((0, 1, 2),)
     grouping = (((0, 3), (1, 2)),)
-    mapping = utils.make_mapping(partition, grouping)
+    mapping = macro.make_mapping(partition, grouping)
     assert np.array_equal(mapping, np.array((0., 1., 1., 1., 1., 1., 1., 0.)))
 
 
@@ -70,8 +70,8 @@ def test_make_macro_tpm():
     ])
     mapping = np.array([0., 0., 0., 1., 2., 2., 2., 3.])
     micro_tpm = np.zeros((8, 3)) + 0.5
-    macro_tpm = utils.make_macro_tpm(micro_tpm, mapping)
+    macro_tpm = macro.make_macro_tpm(micro_tpm, mapping)
     assert np.array_equal(answer_tpm, macro_tpm)
     micro_tpm = np.zeros((8, 8)) + 0.125
-    macro_tpm = utils.make_macro_tpm(micro_tpm, mapping)
+    macro_tpm = macro.make_macro_tpm(micro_tpm, mapping)
     assert np.array_equal(answer_tpm, macro_tpm)
