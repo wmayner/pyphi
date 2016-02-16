@@ -3,7 +3,7 @@
 
 import numpy as np
 import pyphi
-from pyphi import convert, macro, utils
+from pyphi import convert, macro, models, utils
 from pyphi.convert import (state_by_node2state_by_state as sbn2sbs,
                            state_by_state2state_by_node as sbs2sbn)
 
@@ -65,10 +65,7 @@ def test_macro_subsystem():
 
 def test_macro_cut_subsystem():
     cut = pyphi.models.Cut((0,), (1, 2, 3))
-    cut_subsystem = macro.MacroSubsystem(network, state, network.node_indices,
-                                         cut=cut,
-                                         output_grouping=output_grouping,
-                                         state_grouping=state_grouping)
+    cut_subsystem = subsystem.apply_cut(cut)
     answer_tpm = np.array([
         [0.09, 0.20083333],
         [0.09, 0.4225],

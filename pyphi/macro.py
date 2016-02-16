@@ -37,6 +37,13 @@ class MacroSubsystem(Subsystem):
         # TODO: move back to property
         self._size = len(self.node_indices)
 
+        # HACk: Remember original values to use in `apply_cut`
+        self._network_state = state
+        self._node_indices = node_indices
+        self._hidden_indices = hidden_indices
+        self._output_grouping = output_grouping
+        self._state_grouping = state_grouping
+
         self.independent = True
 
         # Indices internal to the micro subsystem
@@ -193,6 +200,24 @@ class MacroSubsystem(Subsystem):
     def size(self):
         """Override `Subsystem.size`."""
         return self._size
+
+    def apply_cut(self, cut):
+        """Return a cut version of this `MacroSubsystem`
+
+        Args:
+            cut (Cut): The cut to apply to this `MacroSubsystem`.
+
+        Returns:
+            subsystem (MacroSubsystem)
+        """
+        return MacroSubsystem(self.network, self._network_state,
+                              self._node_indices, cut=cut,
+                              time_scale=self.time_scale,
+                              hidden_indices=self._hidden_indices,
+                              output_grouping=self._output_grouping,
+                              state_grouping=self._state_grouping)
+                              # TODO: is the MICE cache reusable?
+                              # mice_cache=self._mice_cache)
 
 
 class MacroNetwork:
