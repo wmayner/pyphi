@@ -45,10 +45,8 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
     return concept
 
 
-def _sequential_constellation(subsystem, mechanisms=False, purviews=False,
+def _sequential_constellation(subsystem, mechanisms, purviews=False,
                               past_purviews=False, future_purviews=False):
-    if mechanisms is False:
-        mechanisms = utils.powerset(subsystem.node_indices)
     concepts = [concept(subsystem, mechanism, purviews=purviews,
                         past_purviews=past_purviews,
                         future_purviews=future_purviews)
@@ -72,10 +70,8 @@ def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False,
     out_queue.put(None)
 
 
-def _parallel_constellation(subsystem, mechanisms=False, purviews=False,
+def _parallel_constellation(subsystem, mechanisms, purviews=False,
                             past_purviews=False, future_purviews=False):
-    if mechanisms is False:
-        mechanisms = utils.powerset(subsystem.node_indices)
 
     number_of_processes = parallel.get_num_processes()
 
@@ -145,6 +141,9 @@ def constellation(subsystem, mechanisms=False, purviews=False,
         constellation = _parallel_constellation
     else:
         constellation = _sequential_constellation
+
+    if mechanisms is False:
+        mechanisms = utils.powerset(subsystem.node_indices)
 
     return constellation(subsystem, mechanisms, purviews, past_purviews,
                          future_purviews)
