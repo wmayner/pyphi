@@ -109,9 +109,10 @@ class Subsystem:
 
         self.nodes = tuple(Node(self, i) for i in self.node_indices)
 
-        # HACK HACK
+        # HACK HACK - support MacroSubsystem
         self.subsystem_indices = self.network.node_indices
         self.network_size = self.network.size
+        self._node_indices = self.node_indices
 
         validate.subsystem(self)
 
