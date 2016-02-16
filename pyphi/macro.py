@@ -235,6 +235,12 @@ class MacroSubsystem(Subsystem):
 
         return [purview for purview in all_purviews if not reducible(purview)]
 
+    def __repr__(self):
+        return "MacroSubsystem(" + repr(self.nodes) + ")"
+
+    def __str__(self):
+        return repr(self)
+
 
 class MacroNetwork:
     """A coarse-grained network of nodes.
