@@ -109,7 +109,8 @@ class Subsystem:
 
         self.nodes = tuple(Node(self, i) for i in self.node_indices)
 
-        # HACK HACK - support MacroSubsystem
+        # HACK HACK - support MacroSubsystem, specifically in cause/effects
+        # repertoire methods
         self.subsystem_indices = self.network.node_indices
         self.network_size = self.network.size
         self._node_indices = self.node_indices
@@ -279,7 +280,7 @@ class Subsystem:
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview -- return the purview's maximum entropy distribution.
         max_entropy_dist = utils.max_entropy_distribution(
-            purview, self.size,
+            purview, self.network.size,
             tuple(self.perturb_vector[i] for i in purview))
         if not mechanism:
             return max_entropy_dist
@@ -355,8 +356,8 @@ class Subsystem:
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
-            [1] * self.size + [2 if i in purview else
-                               1 for i in self.subsystem_indices])
+            [1] * self.network_size + [2 if i in purview else
+                                       1 for i in self.subsystem_indices])
 
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
