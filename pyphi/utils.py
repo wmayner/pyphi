@@ -376,9 +376,16 @@ def hamming_emd(d1, d2):
     Singleton dimensions are sqeezed out.
     """
     d1, d2 = d1.squeeze(), d2.squeeze()
-    # Compute the EMD with Hamming distance between states as the
+    N = d1.ndim
+    d1, d2 = d1.ravel(), d2.ravel()
+
+    # Sanity check that distributions are the same size.
+    # TODO: should this be bubbled up into PyEmd?
+    assert len(d1) == len(d2)
+
+    # Compute EMD using the Hamming distance between states as the
     # transportation cost function.
-    return emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
+    return emd(d1, d2, _hamming_matrix(N))
 
 
 def l1(d1, d2):
