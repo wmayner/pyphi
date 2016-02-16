@@ -1,9 +1,11 @@
 
 import numpy as np
+import pytest
 
 from pyphi import compute, macro, models, Network
 
 
+@pytest.mark.slow
 def test_standard_blackbox(s):
     # Create basic network with propagation delay.
     # COPY gates on each of the connections in the original network.
