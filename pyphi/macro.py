@@ -13,6 +13,7 @@ import os
 import numpy as np
 
 from . import compute, constants, convert, utils, validate
+from .constants import DIRECTIONS, PAST, FUTURE
 from .network import Network
 from .node import Node
 from .subsystem import Subsystem
@@ -218,6 +219,21 @@ class MacroSubsystem(Subsystem):
                               state_grouping=self._state_grouping)
                               # TODO: is the MICE cache reusable?
                               # mice_cache=self._mice_cache)
+
+    def _potential_purviews(self, direction, mechanism, purviews=False):
+        """Override Subsystem implementation which depends on Network-level
+        indices."""
+        all_purviews = utils.powerset(self.node_indices)
+
+        def reducible(purview):
+            # Returns True if purview is trivially reducible.
+            if direction == DIRECTIONS[PAST]:
+                _from, to = purview, mechanism
+            elif direction == DIRECTIONS[FUTURE]:
+                _from, to = mechanism, purview
+            return utils.block_reducible(self.connectivity_matrix, _from, to)
+
+        return [purview for purview in all_purviews if not reducible(purview)]
 
 
 class MacroNetwork:
