@@ -280,7 +280,7 @@ class Subsystem:
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview -- return the purview's maximum entropy distribution.
         max_entropy_dist = utils.max_entropy_distribution(
-            purview, self.network.size,
+            purview, self.network_size,
             tuple(self.perturb_vector[i] for i in purview))
         if not mechanism:
             return max_entropy_dist
@@ -539,6 +539,7 @@ class Subsystem:
                 direction.
         """
         repertoire = self._get_repertoire(direction)
+
 
         # We default to the null MIP (the MIP of a reducible mechanism)
         mip = _null_mip(direction, mechanism, purview)
