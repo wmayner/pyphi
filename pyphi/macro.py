@@ -194,8 +194,12 @@ class MacroSubsystem(Subsystem):
         # TODO: combine subsystem_indices and node_indices
         self.node_indices = self.subsystem_indices
 
-        # HACK HACK share size in cause/effect repertoire methods
-        self.network_size = self._size
+        # The nodes represented in computed repertoires.
+        self._dist_indices = self.subsystem_indices
+
+        # Nodes to cut for big-phi computations. For macro computations the cut
+        # is applied to the underlying micro network.
+        self._cut_indices = self._node_indices
 
     @property
     def size(self):
