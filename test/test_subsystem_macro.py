@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import pytest
+
 import pyphi
 from pyphi import convert, macro, models, utils
 from pyphi.convert import (state_by_node2state_by_state as sbn2sbs,
@@ -196,3 +198,9 @@ def test_init_subsystem_in_time(s):
     ])
     assert np.array_equal(time_subsys.tpm, answer_tpm)
     assert np.array_equal(time_subsys.connectivity_matrix, answer_cm)
+
+
+def test_macro_cut_is_for_micro_indices(s):
+    with pytest.raises(ValueError):
+        macro.MacroSubsystem(s.network, s.state, s.node_indices,
+                             hidden_indices=(2,), cut=models.Cut((0,), (1,)))

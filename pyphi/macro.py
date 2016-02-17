@@ -201,6 +201,8 @@ class MacroSubsystem(Subsystem):
         # is applied to the underlying micro network.
         self._cut_indices = self._node_indices
 
+        validate.subsystem(self)
+
     @property
     def size(self):
         """Override `Subsystem.size`."""
