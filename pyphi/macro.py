@@ -12,7 +12,7 @@ import os
 
 import numpy as np
 
-from . import compute, constants, convert, utils, validate
+from . import compute, config, constants, convert, utils, validate
 from .constants import DIRECTIONS, PAST, FUTURE
 from .network import Network
 from .node import Node
@@ -270,7 +270,7 @@ class MacroNetwork:
         self.micro_phi = micro_phi
         self.partition = partition
         self.grouping = grouping
-        self.emergence = self.phi - self.micro_phi
+        self.emergence = round(self.phi - self.micro_phi, config.PRECISION)
 
 
 def _partitions_list(N):

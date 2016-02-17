@@ -19,6 +19,7 @@ network, available from the :mod:`~pyphi.examples` module.
 
 The connectivity matrix is all-to-all:
 
+
     >>> network.connectivity_matrix
     array([[ 1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.],
@@ -201,7 +202,7 @@ scales.
 
     >>> M = pyphi.macro.emergence(network, state)
     >>> M.emergence
-    0.483324
+    0.483323
     >>> M.system
     (0, 1, 2, 3)
     >>> M.partition
