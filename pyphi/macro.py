@@ -169,8 +169,7 @@ class MacroSubsystem(Subsystem):
         else:
             self.nodes = ()
 
-        # Hash the final subsystem and nodes
-        # Only compute hash once.
+        # Hash the final subsystem - only compute hash once.
         self._hash = hash((self.network,
                            self.cut,
                            self._network_state,
@@ -178,8 +177,6 @@ class MacroSubsystem(Subsystem):
                            self._hidden_indices,
                            self._output_grouping,
                            self._state_grouping))
-        for node in self.nodes:
-            node._hash = hash((node.index, node.subsystem))
 
         # The nodes represented in computed repertoires.
         self._dist_indices = self.node_indices
