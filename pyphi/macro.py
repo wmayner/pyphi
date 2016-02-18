@@ -138,17 +138,17 @@ class MacroSubsystem(Subsystem):
             self.mapping = make_mapping(self.output_grouping,
                                               self.state_grouping)
             self._size = len(self.output_grouping)
-            self.subsystem_indices = tuple(range(self._size))
+            self.node_indices = tuple(range(self._size))
             state = np.array(self.state)
             self._state = tuple(0 if sum(state[list(self.output_grouping[0])])
-                               in state_grouping[i][0] else 1 for i in self.subsystem_indices)
+                               in state_grouping[i][0] else 1 for i in self.node_indices)
         else:
             self.micro_output_grouping = None
             self.output_grouping = ()
             self.state_grouping = None
             self.mapping = None
             self._size = len(self.output_indices)
-            self.subsystem_indices = tuple(range(self._size))
+            self.node_indices = tuple(range(self._size))
 
         # Coarse-grain the remaining nodes into the appropriate groups
         if output_grouping:
@@ -164,8 +164,8 @@ class MacroSubsystem(Subsystem):
                 for row in range(self._size)])
 
         if self.independent:
-            self.nodes = tuple(Node(self, i, indices=self.subsystem_indices)
-                               for i in self.subsystem_indices)
+            self.nodes = tuple(Node(self, i, indices=self.node_indices)
+                               for i in self.node_indices)
         else:
             self.nodes = ()
 
@@ -180,11 +180,8 @@ class MacroSubsystem(Subsystem):
         for node in self.nodes:
             node._hash = hash((node.index, node.subsystem))
 
-        # TODO: combine subsystem_indices and node_indices
-        self.node_indices = self.subsystem_indices
-
         # The nodes represented in computed repertoires.
-        self._dist_indices = self.subsystem_indices
+        self._dist_indices = self.node_indices
 
         # Nodes to cut for big-phi computations. For macro computations the cut
         # is applied to the underlying micro network.

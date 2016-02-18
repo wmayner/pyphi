@@ -152,15 +152,15 @@ def test_grouping_indices():
     assert subsystem8.output_grouping == ((0,), (1,), (2, 3))
 
 
-def test_subsystem_indices():
-    assert subsystem1.subsystem_indices == (0, 1, 2, 3, 4, 5)
-    assert subsystem2.subsystem_indices == (0, 1, 2, 3)
-    assert subsystem3.subsystem_indices == (0, 1, 2, 3)
-    assert subsystem4.subsystem_indices == (0, 1)
-    assert subsystem5.subsystem_indices == (0, 1)
-    assert subsystem6.subsystem_indices == (0, 1)
-    assert subsystem7.subsystem_indices == (0, 1)
-    assert subsystem8.subsystem_indices == (0, 1, 2)
+def test_node_indices():
+    assert subsystem1.node_indices == (0, 1, 2, 3, 4, 5)
+    assert subsystem2.node_indices == (0, 1, 2, 3)
+    assert subsystem3.node_indices == (0, 1, 2, 3)
+    assert subsystem4.node_indices == (0, 1)
+    assert subsystem5.node_indices == (0, 1)
+    assert subsystem6.node_indices == (0, 1)
+    assert subsystem7.node_indices == (0, 1)
+    assert subsystem8.node_indices == (0, 1, 2)
 
 
 def test_subsystem_micro():
