@@ -26,7 +26,7 @@ subsystem3 = macro.MacroSubsystem(network, state, network.node_indices,
                                   hidden_indices=hidden_indices)
 
 # Hidden and External elements
-hidden_indices = np.array([1, 3])
+hidden_indices = (1, 3)
 subsystem4 = macro.MacroSubsystem(network, state, (0, 1, 3, 5),
                                   hidden_indices=hidden_indices)
 
@@ -161,6 +161,17 @@ def test_node_indices():
     assert subsystem6.node_indices == (0, 1)
     assert subsystem7.node_indices == (0, 1)
     assert subsystem8.node_indices == (0, 1, 2)
+
+
+def test_size():
+    assert subsystem1.size == 6
+    assert subsystem2.size == 4
+    assert subsystem3.size == 4
+    assert subsystem4.size == 2
+    assert subsystem5.size == 2
+    assert subsystem6.size == 2
+    assert subsystem7.size == 2
+    assert subsystem8.size == 3
 
 
 def test_subsystem_micro():

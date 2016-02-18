@@ -35,9 +35,6 @@ class MacroSubsystem(Subsystem):
                  output_grouping=None, state_grouping=None):
         super().__init__(network, state, node_indices, cut, mice_cache)
 
-        # TODO: move back to property
-        self._size = len(self.node_indices)
-
         # HACk: Remember original values to use in `apply_cut`
         self._network_state = state
         self._node_indices = node_indices
@@ -137,8 +134,7 @@ class MacroSubsystem(Subsystem):
             self.state_grouping = state_grouping
             self.mapping = make_mapping(self.output_grouping,
                                               self.state_grouping)
-            self._size = len(self.output_grouping)
-            self.node_indices = tuple(range(self._size))
+            self.node_indices = tuple(range(len(self.output_grouping)))
             state = np.array(self.state)
             self._state = tuple(0 if sum(state[list(self.output_grouping[0])])
                                in state_grouping[i][0] else 1 for i in self.node_indices)
@@ -147,8 +143,7 @@ class MacroSubsystem(Subsystem):
             self.output_grouping = ()
             self.state_grouping = None
             self.mapping = None
-            self._size = len(self.output_indices)
-            self.node_indices = tuple(range(self._size))
+            self.node_indices = tuple(range(len(self.output_indices)))
 
         # Coarse-grain the remaining nodes into the appropriate groups
         if output_grouping:
@@ -160,8 +155,8 @@ class MacroSubsystem(Subsystem):
                 [np.max(self.connectivity_matrix[
                     np.ix_(self.output_grouping[row],
                            self.output_grouping[col])])
-                 for col in range(self._size)]
-                for row in range(self._size)])
+                 for col in range(self.size)]
+                for row in range(self.size)])
 
         if self.independent:
             self.nodes = tuple(Node(self, i, indices=self.node_indices)
@@ -186,11 +181,6 @@ class MacroSubsystem(Subsystem):
         self._cut_indices = self._node_indices
 
         validate.subsystem(self)
-
-    @property
-    def size(self):
-        """Override `Subsystem.size`."""
-        return self._size
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
