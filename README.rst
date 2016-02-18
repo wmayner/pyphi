@@ -17,7 +17,7 @@
     :alt: Coveralls.io badge
 
 .. image:: http://img.shields.io/badge/Python%203%20-compatible-brightgreen.svg
-    :target: https://www.python.org/download/releases/3.0/
+    :target: https://wiki.python.org/moin/Python2orPython3
     :alt: Python 3 compatible
 
 |
