@@ -25,10 +25,13 @@ cm = np.array([
     [1, 1, 0, 0]
 ])
 
-answer_cm = np.array([
-    [0, 1],
-    [1, 0]
-])
+#answer_cm = np.array([
+#    [0, 1],
+#    [1, 0]
+#])
+# TODO: using universal connectivity until we clarify how to handle
+# connectivity for hidden and coarse-grained elements.
+answer_cm = np.ones((2, 2))
 
 state = (0, 0, 0, 0)
 

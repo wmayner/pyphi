@@ -183,3 +183,7 @@ def test_subsystem_micro():
     assert not subsystem6.micro
     assert not subsystem7.micro
     assert not subsystem8.micro
+
+
+def test_subsystem_cm():
+    assert np.array_equal(subsystem3.connectivity_matrix, np.ones((4, 4)))

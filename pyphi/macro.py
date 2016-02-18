@@ -114,8 +114,11 @@ class MacroSubsystem(Subsystem):
                                            self.proper_state)
             self.tpm = np.squeeze(self.tpm)
             self.tpm = self.tpm[..., self.output_indices]
-            self.connectivity_matrix = self.connectivity_matrix[np.ix_(
-                self.output_indices, self.output_indices)]
+
+            # Universal connectivity, for now.
+            n = len(self.output_indices)
+            self.connectivity_matrix = np.ones((n, n))
+
             self._state = tuple(self.proper_state[index]
                                for index in self.output_indices)
 
@@ -149,12 +152,9 @@ class MacroSubsystem(Subsystem):
             if cut is None:
                 self.independent = validate.conditionally_independent(self.tpm)
             self.tpm = convert.state_by_state2state_by_node(self.tpm)
-            self.connectivity_matrix = np.array([
-                [np.max(self.connectivity_matrix[
-                    np.ix_(self.output_grouping[row],
-                           self.output_grouping[col])])
-                 for col in range(self.size)]
-                for row in range(self.size)])
+
+            # Universal connectivity, for now.
+            self.connectivity_matrix = np.ones((self.size, self.size))
 
         if self.independent:
             self.nodes = tuple(Node(self, i, indices=self.node_indices)
