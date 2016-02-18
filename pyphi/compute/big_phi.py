@@ -45,12 +45,9 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
                               uncut_subsystem.node_indices,
                               cut=cut,
                               mice_cache=uncut_subsystem._mice_cache)
-    if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanisms = set([c.mechanism for c in unpartitioned_constellation])
-    else:
-        mechanisms = set(
-            [c.mechanism for c in unpartitioned_constellation] +
-            list(cut.all_cut_mechanisms(uncut_subsystem.node_indices)))
+    mechanisms = {c.mechanism for c in unpartitioned_constellation}
+    if not config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
+        mechanisms |= set(cut.all_cut_mechanisms(uncut_subsystem.node_indices))
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
     log.debug("Finished evaluating cut {}.".format(cut))
