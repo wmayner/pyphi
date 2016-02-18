@@ -46,7 +46,7 @@ class MacroSubsystem(Subsystem):
         self.independent = True
 
         # Indices internal to the micro subsystem
-        self.internal_indices = internal_indices = node_indices
+        self.internal_indices = node_indices
 
         # Re-index the subsystem nodes with the external nodes removed
         self.micro_size = len(self.internal_indices)
@@ -83,9 +83,9 @@ class MacroSubsystem(Subsystem):
         self.time_scale = time_scale
 
         # TODO(billy) This is a blackboxed time. Coarse grain time not yet implemented.
-        if internal_indices and time_scale > 1:
+        if self.internal_indices and time_scale > 1:
             self.tpm = utils.run_tpm(self.tpm, time_scale)
-            self.connectivity_matrix = connectivity_matrix = utils.run_cm(
+            self.connectivity_matrix = utils.run_cm(
                 self.connectivity_matrix, time_scale)
 
         # Generate the TPM and CM after blackboxing
