@@ -113,7 +113,7 @@ def list_all_groupings(partition):
             correspondences between micro-states and macro-states for the
             partition.
     """
-    if not all([len(part) > 0 for part in partition]):
+    if not all(len(part) > 0 for part in partition):
         raise ValueError('Each part of the partition must have at least one '
                          'element.')
     micro_state_groupings = [_partitions_list(len(part) + 1) if len(part) > 1

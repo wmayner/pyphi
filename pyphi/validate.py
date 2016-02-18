@@ -115,7 +115,7 @@ def network(n):
 
 def node_states(state):
     """Check that the state contains only zeros and ones."""
-    if not all([n in (0, 1) for n in state]):
+    if not all(n in (0, 1) for n in state):
         raise ValueError(
             'Invalid state: states must consist of only zeros and ones.')
 
