@@ -45,6 +45,7 @@ class MacroSubsystem(Subsystem):
         self._output_grouping = output_grouping
         self._state_grouping = state_grouping
 
+        #
         self.independent = True
 
         # Indices internal to the micro subsystem
@@ -63,17 +64,11 @@ class MacroSubsystem(Subsystem):
         # coarse-grain.
         self.micro = (output_grouping is None and hidden_indices is None)
 
-        # Get the subsystem's connectivity matrix. This is the network's
-        # connectivity matrix, but with the cut applied, and with all
-        # connections to/from external nodes severed.
-        if self.internal_indices:
-            self.micro_connectivity_matrix = utils.apply_cut(
-                cut, network.connectivity_matrix)[np.ix_(self.internal_indices,
-                                                         self.internal_indices)]
-            self.connectivity_matrix = self.micro_connectivity_matrix
-        #else:
-        #    self.micro_connectivity_matrix = np.array([[]])
-        #    self.connectivity_matrix = self.micro_connectivity_matrix
+        # The connectivity matrix is the network's connectivity matrix, with
+        # cut applied, with all connections to/from external nodes severed,
+        # shrunk to the size of the internal nodes.
+        self.connectivity_matrix = self.connectivity_matrix[np.ix_(
+            self.internal_indices, self.internal_indices)]
 
         # Calculate the nodes for all internal indices
         # ============================================
@@ -94,7 +89,7 @@ class MacroSubsystem(Subsystem):
         if internal_indices and time_scale > 1:
             self.tpm = utils.run_tpm(self.tpm, time_scale)
             self.connectivity_matrix = utils.run_cm(
-                self.micro_connectivity_matrix, time_scale)
+                self.connectivity_matrix, time_scale)
 
         # Generate the TPM and CM after blackboxing
         # =========================================
