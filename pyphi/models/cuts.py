@@ -50,8 +50,8 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         Returns:
             (tuple(tuple(int)))
         """
-        is_split = lambda mechanism: self.splits_mechanism(mechanism)
-        return tuple(filter(is_split, utils.powerset(candidate_indices)))
+        return (m for m in utils.powerset(candidate_indices)
+                if self.splits_mechanism(m))
 
     # TODO: pass in `size` arg and keep expanded to full network??
     # TODO: memoize?

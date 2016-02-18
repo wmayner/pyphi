@@ -143,8 +143,9 @@ def test_cut_splits_mechanism():
 
 def test_cut_all_cut_mechanisms():
     cut = models.Cut((0,), (1, 2))
-    assert cut.all_cut_mechanisms((0, 1, 2)) == ((0, 1), (0, 2), (0, 1, 2))
-    assert cut.all_cut_mechanisms((0, 1)) == ((0, 1),)
+    assert (tuple(cut.all_cut_mechanisms((0, 1, 2))) ==
+            ((0, 1), (0, 2), (0, 1, 2)))
+    assert tuple(cut.all_cut_mechanisms((0, 1))) == ((0, 1),)
 
 
 def test_cut_matrix():
