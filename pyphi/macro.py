@@ -94,8 +94,6 @@ class MacroSubsystem(Subsystem):
         if hidden_indices is None:
             hidden_indices = ()
 
-        # Using network-based indexing.
-        self.micro_hidden_indices = hidden_indices
         # Using indexing of subsystem internal elements.
         self.hidden_indices = tuple(
             i for i in self.micro_indices
