@@ -16,6 +16,10 @@
     :target: https://coveralls.io/github/wmayner/pyphi
     :alt: Coveralls.io badge
 
+.. image:: http://img.shields.io/badge/Python%203%20-compatible-brightgreen.svg
+    :target: https://www.python.org/download/releases/3.0/
+    :alt: Python 3 compatible
+
 |
 
 PyPhi is a Python library for computing integrated information (|phi|), and the
