@@ -171,12 +171,13 @@ class MacroSubsystem(Subsystem):
 
         # Hash the final subsystem and nodes
         # Only compute hash once.
-        self._hash = hash((self.internal_indices,
-                           self.hidden_indices,
-                           self.output_grouping,
-                           self.state_grouping,
+        self._hash = hash((self.network,
                            self.cut,
-                           self.network))
+                           self._network_state,
+                           self._node_indices,
+                           self._hidden_indices,
+                           self._output_grouping,
+                           self._state_grouping))
         for node in self.nodes:
             node._hash = hash((node.index, node.subsystem))
 
