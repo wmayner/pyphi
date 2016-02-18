@@ -45,16 +45,11 @@ class MacroSubsystem(Subsystem):
         self._output_grouping = output_grouping
         self._state_grouping = state_grouping
 
-        #
+        # Is the Macro system conditionally independent?
         self.independent = True
 
         # Indices internal to the micro subsystem
         self.internal_indices = internal_indices = node_indices
-
-        # Don't squeeze out the final dim ension (which contains the
-        # probability) for networks of size one
-        if self.network.size > 1:
-            self.tpm = np.squeeze(self.tpm)[..., self.internal_indices]
 
         # Re-index the subsystem nodes with the external nodes removed
         self.micro_size = len(self.internal_indices)
@@ -70,8 +65,13 @@ class MacroSubsystem(Subsystem):
         self.connectivity_matrix = self.connectivity_matrix[np.ix_(
             self.internal_indices, self.internal_indices)]
 
-        # Calculate the nodes for all internal indices
-        # ============================================
+        # Compute the TPM and Nodes for the internal indices
+        # ==================================================
+        # Don't squeeze out the final dimension (which contains the
+        # probability) for networks of size one
+        if self.network.size > 1:
+            self.tpm = np.squeeze(self.tpm)[..., self.internal_indices]
+
         self.nodes = tuple(Node(self, i, indices=self.micro_indices)
                            for i in self.micro_indices)
         # Re-calcuate the tpm based on the results of the cut
@@ -88,7 +88,7 @@ class MacroSubsystem(Subsystem):
         # TODO(billy) This is a blackboxed time. Coarse grain time not yet implemented.
         if internal_indices and time_scale > 1:
             self.tpm = utils.run_tpm(self.tpm, time_scale)
-            self.connectivity_matrix = utils.run_cm(
+            self.connectivity_matrix = connectivity_matrix = utils.run_cm(
                 self.connectivity_matrix, time_scale)
 
         # Generate the TPM and CM after blackboxing
@@ -104,9 +104,8 @@ class MacroSubsystem(Subsystem):
             i for i in self.micro_indices
             if self.internal_indices[i] in hidden_indices)
         # Blackbox output indices using the subsystem's internal indexing.
-        self.output_indices = tuple(
-            i for i in self.micro_indices
-            if self.internal_indices[i] not in hidden_indices)
+        self.output_indices = tuple(set(self.micro_indices) -
+                                    set(self.hidden_indices))
         # Koan of the Black Box:
         #   "Blackbox indices are the blackbox indices using the blackbox
         #    indexing."
@@ -120,13 +119,8 @@ class MacroSubsystem(Subsystem):
                                            self.proper_state)
             self.tpm = np.squeeze(self.tpm)
             self.tpm = self.tpm[..., self.output_indices]
-            self.connectivity_matrix = np.array([
-                [1 if np.sum(self.connectivity_matrix[
-                    np.ix_([self.output_indices[cause_index]],
-                           [self.output_indices[effect_index]])])
-                    > 0 else 0
-                    for effect_index in range(len(self.output_indices))]
-                for cause_index in range(len(self.output_indices))])
+            self.connectivity_matrix = self.connectivity_matrix[np.ix_(
+                self.output_indices, self.output_indices)]
             self._state = tuple(self.proper_state[index]
                                for index in self.output_indices)
 
