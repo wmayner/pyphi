@@ -77,16 +77,10 @@ class MacroSubsystem(Subsystem):
                 node.expand_tpm(self.micro_indices) for node in self.nodes
             ]), 0, self.micro_size + 1)
 
-        # Create the TPM and CM for the defined time scale
-        # ================================================
+        # Blackbox TPM and CM over time
         validate.time_scale(time_scale)
         self.time_scale = time_scale
-
-        # TODO(billy) This is a blackboxed time. Coarse grain time not yet implemented.
-        if self.internal_indices and time_scale > 1:
-            self.tpm = utils.run_tpm(self.tpm, time_scale)
-            self.connectivity_matrix = utils.run_cm(
-                self.connectivity_matrix, time_scale)
+        self._blackbox_time(time_scale)
 
         # Generate the TPM and CM after blackboxing
         # =========================================
@@ -179,6 +173,19 @@ class MacroSubsystem(Subsystem):
         self._cut_indices = self._node_indices
 
         validate.subsystem(self)
+
+    def _blackbox_time(self, time_scale):
+        """Black box the CM and TPM over the given time_scale.
+
+        TODO(billy): This is a blackboxed time. Coarse grain time is not yet
+        implemented.
+        """
+        if time_scale == 1:
+            return
+
+        self.tpm = utils.run_tpm(self.tpm, time_scale)
+        self.connectivity_matrix = utils.run_cm(self.connectivity_matrix,
+                                                time_scale)
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
