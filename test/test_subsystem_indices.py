@@ -130,17 +130,6 @@ def test_output_indices():
     assert subsystem8.output_indices == (0, 1, 2, 4)
 
 
-def test_blackbox_indices():
-    assert subsystem1.blackbox_indices == (0, 1, 2, 3, 4, 5)
-    assert subsystem2.blackbox_indices == (0, 1, 2, 3)
-    assert subsystem3.blackbox_indices == (0, 1, 2, 3)
-    assert subsystem4.blackbox_indices == (0, 1)
-    assert subsystem5.blackbox_indices == (0, 1, 2, 3, 4, 5)
-    assert subsystem6.blackbox_indices == (0, 1, 2, 3)
-    assert subsystem7.blackbox_indices == (0, 1, 2, 3)
-    assert subsystem8.blackbox_indices == (0, 1, 2, 3)
-
-
 def test_grouping_indices():
     assert subsystem1.output_grouping == ()
     assert subsystem2.output_grouping == ()

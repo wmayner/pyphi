@@ -97,46 +97,29 @@ class MacroSubsystem(Subsystem):
                                     set(self.hidden_indices))
 
         self._blackbox_space(self.hidden_indices, self.output_indices)
+        # Normalize indices to size of new TPM
+        self.node_indices = tuple(range(len(self.output_indices)))
 
-        # Koan of the Black Box:
-        #   "Blackbox indices are the blackbox indices using the blackbox
-        #    indexing."
-        #        - The Blackbox Master
-        self.blackbox_indices = tuple(range(len(self.output_indices)))
-
-        # Generate the TPM and CM after coarse-graining
-        # =============================================
+        # Coarse-grain in space
+        # =====================
         # Set the elements for coarse-graining
         if output_grouping is not None:
             # TODO(billy) validate.macro(output_grouping, state_grouping)
-            self.micro_output_grouping = output_grouping
             self.output_grouping = tuple(
-                tuple(i for i in self.blackbox_indices if
+                tuple(i for i in self.node_indices if
                       self.internal_indices[self.output_indices[i]] in group)
                 for group in output_grouping)
             self.state_grouping = state_grouping
             self.mapping = make_mapping(self.output_grouping,
-                                              self.state_grouping)
+                                        self.state_grouping)
             self.node_indices = tuple(range(len(self.output_grouping)))
-            state = np.array(self.state)
-            self._state = tuple(0 if sum(state[list(self.output_grouping[0])])
-                               in state_grouping[i][0] else 1 for i in self.node_indices)
+
+            self._coarsegrain_space(self.output_grouping,
+                                    self.state_grouping, self.mapping)
         else:
-            self.micro_output_grouping = None
             self.output_grouping = ()
             self.state_grouping = None
             self.mapping = None
-            self.node_indices = tuple(range(len(self.output_indices)))
-
-        # Coarse-grain the remaining nodes into the appropriate groups
-        if output_grouping:
-            self.tpm = make_macro_tpm(self.tpm, self.mapping)
-            if cut is None:
-                self.independent = validate.conditionally_independent(self.tpm)
-            self.tpm = convert.state_by_state2state_by_node(self.tpm)
-
-            # Universal connectivity, for now.
-            self.connectivity_matrix = np.ones((self.size, self.size))
 
         if self.independent:
             self.nodes = tuple(Node(self, i, indices=self.node_indices)
@@ -200,6 +183,25 @@ class MacroSubsystem(Subsystem):
 
         self._state = tuple(self.proper_state[index]
                             for index in output_indices)
+
+    def _coarsegrain_space(self, output_grouping, state_grouping, mapping):
+        """Spatially coarse-grain the TPM and CM."""
+        if not output_grouping:
+            return
+
+        # Coarse-grain the remaining nodes into the appropriate groups
+        self.tpm = make_macro_tpm(self.tpm, mapping)
+        if not self.is_cut():
+            self.independent = validate.conditionally_independent(self.tpm)
+        self.tpm = convert.state_by_state2state_by_node(self.tpm)
+
+        # Universal connectivity, for now.
+        self.connectivity_matrix = np.ones((self.size, self.size))
+
+        state = np.array(self.state)
+        self._state = tuple(0 if sum(state[list(output_grouping[0])])
+                           in state_grouping[i][0] else 1
+                           for i in self.node_indices)
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
