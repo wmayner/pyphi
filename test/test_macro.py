@@ -3,15 +3,12 @@
 # test_macro.py
 
 import numpy as np
-import pyphi
 from pyphi import macro
 
 
 def test_list_all_partitions():
-    empty_net = pyphi.Network(np.array([]), (), ())
-    net = pyphi.examples.macro_network()
-    assert macro.list_all_partitions(empty_net.size) == ()
-    assert macro.list_all_partitions(net.size) == (
+    assert macro.list_all_partitions(0) == ()
+    assert macro.list_all_partitions(4) == (
         ((0, 1, 2), (3,)),
         ((0, 1, 3), (2,)),
         ((0, 1), (2, 3)),
