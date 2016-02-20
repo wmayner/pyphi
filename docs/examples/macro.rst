@@ -159,12 +159,13 @@ coarse-graining of the system:
     >>> pyphi.validate.conditionally_independent(macro_tpm)
     False
 
-In these cases, the subsystem object returned by the :func:`~pyphi.macro.MacroSubsystem`
-function will have an empty list of nodes:
+In these cases :class:`~pyphi.macro.MacroSubsystem` will raise a
+:exception:`~pyphi.macro.ConditionallyDependentError`:
 
     >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, output_grouping=partition, state_grouping=grouping)
-    >>> macro_subsystem
-    MacroSubsystem(())
+    Traceback (most recent call last):
+        ...
+    pyphi.macro.ConditionallyDependentError
 
 Lets consider a different partition instead.
 
