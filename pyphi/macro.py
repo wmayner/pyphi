@@ -77,44 +77,32 @@ class MacroSubsystem(Subsystem):
                 node.expand_tpm(self.micro_indices) for node in self.nodes
             ]), 0, self.micro_size + 1)
 
-        # Blackbox TPM and CM over time
+        # Blackbox over time
+        # ==================
         validate.time_scale(time_scale)
         self.time_scale = time_scale
         self._blackbox_time(time_scale)
 
-        # Generate the TPM and CM after blackboxing
-        # =========================================
+        # Blackbox in space
+        # =================
         # Set the elements for blackboxing
         if hidden_indices is None:
             hidden_indices = ()
 
-        # Using indexing of subsystem internal elements.
+        # Compute hidden and output indices using shrunken subsystem indexing
         self.hidden_indices = tuple(
             i for i in self.micro_indices
             if self.internal_indices[i] in hidden_indices)
-        # Blackbox output indices using the subsystem's internal indexing.
         self.output_indices = tuple(set(self.micro_indices) -
                                     set(self.hidden_indices))
+
+        self._blackbox_space(self.hidden_indices, self.output_indices)
+
         # Koan of the Black Box:
         #   "Blackbox indices are the blackbox indices using the blackbox
         #    indexing."
         #        - The Blackbox Master
         self.blackbox_indices = tuple(range(len(self.output_indices)))
-
-        # The TPM conditioned on the current value of the hidden nodes.
-        if self.hidden_indices:
-            self.tpm = utils.condition_tpm(self.tpm,
-                                           self.hidden_indices,
-                                           self.proper_state)
-            self.tpm = np.squeeze(self.tpm)
-            self.tpm = self.tpm[..., self.output_indices]
-
-            # Universal connectivity, for now.
-            n = len(self.output_indices)
-            self.connectivity_matrix = np.ones((n, n))
-
-            self._state = tuple(self.proper_state[index]
-                               for index in self.output_indices)
 
         # Generate the TPM and CM after coarse-graining
         # =============================================
@@ -186,6 +174,32 @@ class MacroSubsystem(Subsystem):
         self.tpm = utils.run_tpm(self.tpm, time_scale)
         self.connectivity_matrix = utils.run_cm(self.connectivity_matrix,
                                                 time_scale)
+
+    def _blackbox_space(self, hidden_indices, output_indices):
+        """Blackbox the TPM and CM in space.
+
+        Conditions the TPM on the current value of the hidden nodes. The CM is
+        set to universal connectivity.
+        TODO: ^^ change this.
+
+        This shrinks the size of the TPM by the number of hidden indices; now
+        there is only `len(output_indices)` dimensions in the TPM and in the
+        state of the subsystem.
+        """
+        if not hidden_indices:
+            return
+
+        self.tpm = utils.condition_tpm(self.tpm, hidden_indices,
+                                       self.proper_state)
+        self.tpm = np.squeeze(self.tpm)
+        self.tpm = self.tpm[..., output_indices]
+
+        # Universal connectivity, for now.
+        n = len(output_indices)
+        self.connectivity_matrix = np.ones((n, n))
+
+        self._state = tuple(self.proper_state[index]
+                            for index in output_indices)
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
