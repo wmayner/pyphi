@@ -301,12 +301,11 @@ def list_all_partitions(size):
     """Return a list of all possible coarse grains of a network.
 
     Args:
-        network (Network): The physical system to act as the 'micro' level.
+        size (int): The number of micro indices to partition.
 
     Returns:
-        partitions (``list(list))``): A list of possible partitions. Each
-            element of the list is a list of micro-elements which correspong to
-            macro-elements.
+        tuple(tuple): A tuple of possible partitions. Each element of the tuple
+            is a tuple of micro-elements which correspond to macro-elements.
     """
     partitions = _partitions_list(size)
     if size > 0:
@@ -321,14 +320,12 @@ def list_all_groupings(partition):
     (partition) of a network.
 
     Args:
-        network (Network): The physical system on the micro level.
-        partitions (list(list)): The partition of micro-elements into macro
+        partition (tuple(tuple))): A partition of micro-elements into macro
             elements.
 
     Returns:
-        groupings (``list(list(list(list)))``): A list of all possible
-            correspondences between micro-states and macro-states for the
-            partition.
+        tuple(tuple(tuple(tuple))): A tuple of all possible correspondences
+            between micro-states and macro-states for the partition.
     """
     if not all(len(part) > 0 for part in partition):
         raise ValueError('Each part of the partition must have at least one '
@@ -348,7 +345,6 @@ def make_macro_tpm(micro_tpm, mapping):
 
     Args:
         micro_tpm (nd.array): The TPM of the micro-system.
-
         mapping (nd.array): A mapping from micro-states to macro-states.
 
     Returns:
@@ -381,13 +377,13 @@ def make_mapping(partition, grouping):
     partition of elements and grouping of states.
 
     Args:
-        partition (list(list)): A partition of micro-elements into macro
+        partition (tuple(tuple)): A partition of micro-elements into macro
             elements.
-        grouping (list(list(list))): For each macro-element, a list of micro
+        grouping (tuple(tuple(tuple))): For each macro-element, a list of micro
             states which set it to ON or OFF.
 
     Returns:
-        mapping (``nd.array``): A mapping from micro-states to macro-states.
+        (nd.ndarray): A mapping from micro-states to macro-states.
     """
     num_macro_nodes = len(grouping)
     num_micro_nodes = sum([len(part) for part in partition])
