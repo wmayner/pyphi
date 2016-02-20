@@ -49,8 +49,7 @@ class MacroSubsystem(Subsystem):
         self.internal_indices = node_indices
 
         # Re-index the subsystem nodes with the external nodes removed
-        self.micro_size = len(self.internal_indices)
-        self.micro_indices = tuple(range(self.micro_size))
+        self.micro_indices = tuple(range(len(self.internal_indices)))
 
         # A variable to tell if a system is a pure micro without blackboxing or
         # coarse-grain.
@@ -75,7 +74,7 @@ class MacroSubsystem(Subsystem):
         self.tpm = np.rollaxis(
             np.array([
                 node.expand_tpm(self.micro_indices) for node in self.nodes
-            ]), 0, self.micro_size + 1)
+            ]), 0, len(self.micro_indices) + 1)
 
         # Blackbox over time
         # ==================
@@ -109,16 +108,13 @@ class MacroSubsystem(Subsystem):
                 tuple(i for i in self.node_indices if
                       self.internal_indices[self.output_indices[i]] in group)
                 for group in output_grouping)
-            self.state_grouping = state_grouping
-            self.mapping = make_mapping(self.output_grouping,
-                                        self.state_grouping)
+            self.mapping = make_mapping(self.output_grouping, state_grouping)
             self.node_indices = tuple(range(len(self.output_grouping)))
 
-            self._coarsegrain_space(self.output_grouping,
-                                    self.state_grouping, self.mapping)
+            self._coarsegrain_space(self.output_grouping, state_grouping,
+                                    self.mapping)
         else:
             self.output_grouping = ()
-            self.state_grouping = None
             self.mapping = None
 
         if self.independent:
