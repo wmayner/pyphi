@@ -72,8 +72,9 @@ def conditionally_independent(tpm):
         if tpm.shape[0] == tpm.shape[1] and tpm.ndim == 2:
             there_and_back_again = convert.state_by_node2state_by_state(
                 convert.state_by_state2state_by_node(tpm))
-        else:        there_and_back_again = convert.state_by_state2state_by_node(
-            convert.state_by_node2state_by_state(tpm))
+        else:
+            there_and_back_again = convert.state_by_state2state_by_node(
+                convert.state_by_node2state_by_state(tpm))
         return np.all((tpm - there_and_back_again) < EPSILON)
     else:
         return True
