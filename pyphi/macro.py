@@ -6,6 +6,7 @@
 Methods for coarse-graining systems to different levels of spatial analysis.
 """
 
+from collections import namedtuple
 import itertools
 import logging
 import os
@@ -41,22 +42,22 @@ class MacroSubsystem(Subsystem):
 
     def __init__(self, network, state, node_indices, cut=None,
                  mice_cache=None, time_scale=1, hidden_indices=None,
-                 output_grouping=None, state_grouping=None):
+                 coarse_grain=None):
         super().__init__(network, state, node_indices, cut, mice_cache)
 
         # HACk: Remember original values to use in `apply_cut`
         self._network_state = state
         self._node_indices = node_indices
         self._hidden_indices = hidden_indices
-        self._output_grouping = output_grouping
-        self._state_grouping = state_grouping
+        self._coarse_grain = coarse_grain
 
         # Indices internal to the micro subsystem
         self.internal_indices = node_indices
 
         # A variable to tell if a system is a pure micro without blackboxing or
         # coarse-grain.
-        self.micro = (output_grouping is None and hidden_indices is None)
+        # TODO: remove or refactor to property
+        self.micro = (coarse_grain is None and hidden_indices is None)
 
         # Compute the TPM and Nodes for the internal indices
         # ==================================================
@@ -108,19 +109,23 @@ class MacroSubsystem(Subsystem):
         # Coarse-grain in space
         # =====================
         # Set the elements for coarse-graining
-        if output_grouping is not None:
-            # TODO(billy) validate.macro(output_grouping, state_grouping)
-            self.output_grouping = tuple(
+        if coarse_grain is not None:
+            # TODO(billy) validate.macro(coarse_grain)
+            # Reindex the coarse graining
+            # TODO: refactor to CoarseGrain object
+            output_grouping = tuple(
                 tuple(i for i in self.node_indices if
                       self.internal_indices[self.output_indices[i]] in group)
-                for group in output_grouping)
-            self.mapping = make_mapping(self.output_grouping, state_grouping)
-            self.node_indices = reindex(self.output_grouping)
+                for group in coarse_grain.output_grouping)
+            self.coarse_grain = CoarseGrain(output_grouping,
+                                            coarse_grain.state_grouping)
+            self.mapping = make_mapping(output_grouping,
+                                        coarse_grain.state_grouping)
+            self.node_indices = reindex(output_grouping)
 
-            self._coarsegrain_space(self.output_grouping, state_grouping,
-                                    self.mapping)
+            self._coarsegrain_space(self.coarse_grain, self.mapping)
         else:
-            self.output_grouping = ()
+            self.coarse_grain = CoarseGrain((), ())
             self.mapping = None
 
         self.nodes = tuple(Node(self, i, indices=self.node_indices)
@@ -132,8 +137,7 @@ class MacroSubsystem(Subsystem):
                            self._network_state,
                            self._node_indices,
                            self._hidden_indices,
-                           self._output_grouping,
-                           self._state_grouping))
+                           self._coarse_grain))
 
         # The nodes represented in computed repertoires.
         self._dist_indices = self.node_indices
@@ -184,9 +188,9 @@ class MacroSubsystem(Subsystem):
         self._state = tuple(self.proper_state[index]
                             for index in output_indices)
 
-    def _coarsegrain_space(self, output_grouping, state_grouping, mapping):
+    def _coarsegrain_space(self, coarse_grain, mapping):
         """Spatially coarse-grain the TPM and CM."""
-        if not output_grouping:
+        if not coarse_grain:
             return
 
         # Coarse-grain the remaining nodes into the appropriate groups
@@ -200,9 +204,10 @@ class MacroSubsystem(Subsystem):
         self.connectivity_matrix = np.ones((self.size, self.size))
 
         state = np.array(self.state)
-        self._state = tuple(0 if sum(state[list(output_grouping[0])])
-                           in state_grouping[i][0] else 1
-                           for i in self.node_indices)
+        self._state = tuple(
+            0 if sum(state[list(coarse_grain.output_grouping[0])])
+            in coarse_grain.state_grouping[i][0] else 1
+            for i in self.node_indices)
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
@@ -217,8 +222,7 @@ class MacroSubsystem(Subsystem):
                               self._node_indices, cut=cut,
                               time_scale=self.time_scale,
                               hidden_indices=self._hidden_indices,
-                              output_grouping=self._output_grouping,
-                              state_grouping=self._state_grouping)
+                              coarse_grain=self._coarse_grain)
                               # TODO: is the MICE cache reusable?
                               # mice_cache=self._mice_cache)
 
@@ -256,8 +260,7 @@ class MacroSubsystem(Subsystem):
         return (super().__eq__(other) and
                 self.time_scale == other.time_scale and
                 self._hidden_indices == other._hidden_indices and
-                self._output_grouping == other._output_grouping and
-                self._state_grouping == other._state_grouping)
+                self._coarse_grain == other.coarse_grain)
 
     def __hash__(self):
         return self._hash
@@ -292,6 +295,14 @@ class MacroNetwork:
         self.partition = partition
         self.grouping = grouping
         self.emergence = round(self.phi - self.micro_phi, config.PRECISION)
+
+
+class CoarseGrain(namedtuple('CoarseGrain',
+                             ['output_grouping', 'state_grouping'])):
+    """Represents a coarse graining of a collection of nodes."""
+    pass
+
+    # TODO: validate grouping size
 
 
 def _partitions_list(N):
@@ -434,10 +445,10 @@ def coarse_grain(network, state, internal_indices):
     max_grouping = ()
     for partition in list_all_partitions(internal_indices):
         for grouping in list_all_groupings(partition):
+            coarse_grain = CoarseGrain(partition, grouping)
             try:
                 subsystem = MacroSubsystem(network, state, internal_indices,
-                                           output_grouping=partition,
-                                           state_grouping=grouping)
+                                           coarse_grain=coarse_grain)
             except ConditionallyDependentError:
                 continue
             phi = compute.big_phi(subsystem)
@@ -488,10 +499,10 @@ def phi_by_grain(network, state):
         list_of_phi.append([len(micro_subsystem), mip.phi])
         for partition in list_all_partitions(system):
             for grouping in list_all_groupings(partition):
+                coarse_grain = CoarseGrain(partition, grouping)
                 try:
                     subsystem = MacroSubsystem(network, state, system,
-                                               output_grouping=partition,
-                                               state_grouping=grouping)
+                                               coarse_grain=coarse_grain)
                 except ConditionallyDependentError:
                     continue
                 phi = compute.big_phi(subsystem)

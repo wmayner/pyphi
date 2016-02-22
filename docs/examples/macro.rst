@@ -162,7 +162,8 @@ coarse-graining of the system:
 In these cases :class:`~pyphi.macro.MacroSubsystem` will raise a
 :exception:`~pyphi.macro.ConditionallyDependentError`:
 
-    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, output_grouping=partition, state_grouping=grouping)
+    >>> coarse_grain = pyphi.macro.CoarseGrain(partition, grouping)
+    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
     Traceback (most recent call last):
         ...
     pyphi.macro.ConditionallyDependentError
@@ -183,7 +184,8 @@ Lets consider a different partition instead.
     array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,
             2.,  2.,  3.])
 
-    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, output_grouping=partition, state_grouping=grouping)
+    >>> coarse_grain = pyphi.macro.CoarseGrain(partition, grouping)
+    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
     >>> macro_subsystem
     MacroSubsystem((n0, n1))
 

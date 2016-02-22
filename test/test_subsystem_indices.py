@@ -33,32 +33,33 @@ subsystem4 = macro.MacroSubsystem(network, state, (0, 1, 3, 5),
 # Only macro
 output_grouping = ((0, 1, 2), (3, 4, 5))
 state_grouping = (((0, 1), (2, 3)), ((0,), (1, 2, 3)))
+coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
 subsystem5 = macro.MacroSubsystem(network, state, network.node_indices,
-                                  output_grouping=output_grouping,
-                                  state_grouping=state_grouping)
+                                  coarse_grain=coarse_grain)
 # Macro and External
 output_grouping = ((1, 3), (2, 5))
 state_grouping = (((0, 1), (2,)), ((0,), (1, 2)))
+coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
 subsystem6 = macro.MacroSubsystem(network, state, (1, 2, 3, 5),
-                                  output_grouping=output_grouping,
-                                  state_grouping=state_grouping)
+                                  coarse_grain=coarse_grain)
 
 # Macro and Hidden
-output_grouping = ((0, 5), (1, 2))
 hidden_indices = (3, 4)
+output_grouping = ((0, 5), (1, 2))
+state_grouping = (((0, 1), (2,)), ((0,), (1, 2)))
+coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
 subsystem7 = macro.MacroSubsystem(network, state, network.node_indices,
                                   hidden_indices=hidden_indices,
-                                  output_grouping=output_grouping,
-                                  state_grouping=state_grouping)
+                                  coarse_grain=coarse_grain)
 
 # External, Macro and Hidden
 hidden_indices = (4,)
 output_grouping = ((1,), (2,), (3, 5))
 state_grouping = (((0,), (1,)), ((0,), (1,)), ((0,), (1, 2)))
+coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
 subsystem8 = macro.MacroSubsystem(network, state, (1, 2, 3, 4, 5),
                                   hidden_indices=hidden_indices,
-                                  output_grouping=output_grouping,
-                                  state_grouping=state_grouping)
+                                  coarse_grain=coarse_grain)
 
 
 pyphi.config.CACHE_POTENTIAL_PURVIEWS = True
@@ -131,14 +132,14 @@ def test_output_indices():
 
 
 def test_grouping_indices():
-    assert subsystem1.output_grouping == ()
-    assert subsystem2.output_grouping == ()
-    assert subsystem3.output_grouping == ()
-    assert subsystem4.output_grouping == ()
-    assert subsystem5.output_grouping == ((0, 1, 2), (3, 4, 5))
-    assert subsystem6.output_grouping == ((0, 2), (1, 3))
-    assert subsystem7.output_grouping == ((0, 3), (1, 2))
-    assert subsystem8.output_grouping == ((0,), (1,), (2, 3))
+    assert subsystem1.coarse_grain.output_grouping == ()
+    assert subsystem2.coarse_grain.output_grouping == ()
+    assert subsystem3.coarse_grain.output_grouping == ()
+    assert subsystem4.coarse_grain.output_grouping == ()
+    assert subsystem5.coarse_grain.output_grouping == ((0, 1, 2), (3, 4, 5))
+    assert subsystem6.coarse_grain.output_grouping == ((0, 2), (1, 3))
+    assert subsystem7.coarse_grain.output_grouping == ((0, 3), (1, 2))
+    assert subsystem8.coarse_grain.output_grouping == ((0,), (1,), (2, 3))
 
 
 def test_node_indices():

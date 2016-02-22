@@ -39,23 +39,18 @@ network = pyphi.Network(tpm, connectivity_matrix=cm)
 
 output_grouping = ((0, 1), (2, 3))
 state_grouping = (((0, 1), (2,)), ((0, 1), (2,)))
-
+coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
 subsystem = macro.MacroSubsystem(network, state, network.node_indices,
-                                 output_grouping=output_grouping,
-                                 state_grouping=state_grouping)
+                                 coarse_grain=coarse_grain)
 
 cut = pyphi.models.Cut((0,), (1, 2, 3))
-
 cut_subsystem = macro.MacroSubsystem(network, state, network.node_indices,
-                                     cut=cut,
-                                     output_grouping=output_grouping,
-                                     state_grouping=state_grouping)
+                                     cut=cut, coarse_grain=coarse_grain)
 
 
 def test_macro_subsystem():
     subsystem = macro.MacroSubsystem(network, state, network.node_indices,
-                                     output_grouping=output_grouping,
-                                     state_grouping=state_grouping)
+                                     coarse_grain=coarse_grain)
     answer_tpm = np.array([
         [0.09, 0.09],
         [0.09, 1.],
@@ -221,7 +216,7 @@ def test_subsystem_equality(s):
                                           hidden_indices=(0,))
     assert macro_subsys != macro_subsys_h
 
+    coarse_grain = macro.CoarseGrain(((0, 1), (2,)), (((0, 1), (2,)), ((0,), (1,))))
     macro_subsys_c = macro.MacroSubsystem(s.network, s.state, s.node_indices,
-                                          output_grouping=((0, 1), (2,)),
-                                          state_grouping=(((0, 1), (2,)), ((0,), (1,))))
+                                          coarse_grain=coarse_grain)
     assert macro_subsys != macro_subsys_c
