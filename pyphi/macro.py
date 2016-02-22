@@ -425,6 +425,13 @@ def list_all_groupings(partition):
                  for group in groupings)
 
 
+def list_all_coarse_grainings(indices):
+    """Returns all possible ``CoarseGrains`` over these indices. """
+    for partition in list_all_partitions(indices):
+        for grouping in list_all_groupings(partition):
+            yield CoarseGrain(partition, grouping)
+
+
 def make_macro_tpm(micro_tpm, mapping):
     """Create the macro TPM for a given mapping from micro to macro-states.
 
@@ -494,22 +501,19 @@ def make_mapping(partition, grouping):
 
 def coarse_grain(network, state, internal_indices):
     max_phi = float('-inf')
-    max_partition = ()
-    max_grouping = ()
-    for partition in list_all_partitions(internal_indices):
-        for grouping in list_all_groupings(partition):
-            coarse_grain = CoarseGrain(partition, grouping)
-            try:
-                subsystem = MacroSubsystem(network, state, internal_indices,
-                                           coarse_grain=coarse_grain)
-            except ConditionallyDependentError:
-                continue
-            phi = compute.big_phi(subsystem)
-            if (phi - max_phi) > constants.EPSILON:
-                max_phi = phi
-                max_partition = partition
-                max_grouping = grouping
-    return (max_phi, max_partition, max_grouping)
+    max_coarse_grain = CoarseGrain((), ())
+    for coarse_grain in list_all_coarse_grainings(internal_indices):
+        try:
+            subsystem = MacroSubsystem(network, state, internal_indices,
+                                       coarse_grain=coarse_grain)
+        except ConditionallyDependentError:
+            continue
+        phi = compute.big_phi(subsystem)
+        if (phi - max_phi) > constants.EPSILON:
+            max_phi = phi
+            max_coarse_grain = coarse_grain
+    return (max_phi, max_coarse_grain.output_grouping,
+            max_coarse_grain.state_grouping)
 
 
 def emergence(network, state):
@@ -550,17 +554,15 @@ def phi_by_grain(network, state):
         micro_subsystem = Subsystem(network, state, system)
         mip = compute.big_mip(micro_subsystem)
         list_of_phi.append([len(micro_subsystem), mip.phi])
-        for partition in list_all_partitions(system):
-            for grouping in list_all_groupings(partition):
-                coarse_grain = CoarseGrain(partition, grouping)
-                try:
-                    subsystem = MacroSubsystem(network, state, system,
-                                               coarse_grain=coarse_grain)
-                except ConditionallyDependentError:
-                    continue
-                phi = compute.big_phi(subsystem)
-                list_of_phi.append([len(subsystem), phi, system,
-                                    partition, grouping])
+        for coarse_grain in list_all_coarse_grainings(system):
+            try:
+                subsystem = MacroSubsystem(network, state, system,
+                                           coarse_grain=coarse_grain)
+            except ConditionallyDependentError:
+                continue
+            phi = compute.big_phi(subsystem)
+            list_of_phi.append([len(subsystem), phi, system,
+                                partition, grouping])
     return list_of_phi
 
 

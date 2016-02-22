@@ -42,6 +42,11 @@ def test_list_all_groupings():
     )
 
 
+def test_all_coarse_grainings():
+    assert tuple(macro.list_all_coarse_grainings((1,))) == (
+        macro.CoarseGrain(output_grouping=((1,),),
+                          state_grouping=(((0,), (1,)),)),)
+
 def test_make_mapping():
     partition = ((0, 1), (2, 3))
     grouping = (((0, 1), (2,)), ((0, 1), (2,)))
