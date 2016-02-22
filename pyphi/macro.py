@@ -195,7 +195,7 @@ class MacroSubsystem(Subsystem):
 
         state = np.array(self.state)
         self._state = tuple(
-            0 if sum(state[list(coarse_grain.output_grouping[0])])
+            0 if sum(state[list(coarse_grain.output_grouping[i])])
             in coarse_grain.state_grouping[i][0] else 1
             for i in self.node_indices)
 
