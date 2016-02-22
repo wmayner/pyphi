@@ -181,3 +181,16 @@ def time_scale(time_scale):
     """Validate a macro temporal time scale."""
     if time_scale <= 0 or isinstance(time_scale, float):
         raise ValueError('time scale must be a positive integer')
+
+
+def coarse_grain(cg):
+    """Validate a macro coarse-graining."""
+    if len(cg.output_grouping) != len(cg.state_grouping):
+        raise ValueError('output and state groupings must be the same size')
+
+    for og, sg in zip(cg.output_grouping, cg.state_grouping):
+        if set(range(len(og) + 1)) != set(sg[0] + sg[1]):
+            # Check that every possible number of elements in og is in one of
+            # the two state groupings
+            raise ValueError('elements in output grouping {0} do not match '
+                             'elements in state grouping {1}'.format(og, sg))

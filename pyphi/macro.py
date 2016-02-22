@@ -117,7 +117,7 @@ class MacroSubsystem(Subsystem):
         # =====================
         # Set the elements for coarse-graining
         if coarse_grain is not None:
-            # TODO(billy) validate.macro(coarse_grain)
+            validate.coarse_grain(coarse_grain)
             # TODO: don't store re-indexed coarse_grain attribute?
             # Reindex the coarse graining
             self.coarse_grain = coarse_grain.reindex()

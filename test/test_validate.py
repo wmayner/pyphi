@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from pyphi import Network, Subsystem, validate
+from pyphi import macro, Network, Subsystem, validate
 
 
 def test_validate_direction():
@@ -109,3 +109,19 @@ def test_validate_time_scale():
     validate.time_scale(1)
     validate.time_scale(2)
     # ... etc
+
+
+def test_validate_coarse_grain():
+    # Good:
+    cg = macro.CoarseGrain(((2,), (3,)), (((0,), (1,)), (((0,), (1,)))))
+    validate.coarse_grain(cg)
+
+    # Mismatched output and state lengths
+    cg = macro.CoarseGrain(((2,),), (((0,), (1,)), (((0,), (1,)))))
+    with pytest.raises(ValueError):
+        validate.coarse_grain(cg)
+
+    # Missing 1-node-on specification in second state grouping
+    cg = macro.CoarseGrain(((2,), (3,)), (((0,), (1,)), (((0,), ()))))
+    with pytest.raises(ValueError):
+        validate.coarse_grain(cg)
