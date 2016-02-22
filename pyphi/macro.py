@@ -54,18 +54,9 @@ class MacroSubsystem(Subsystem):
         # Indices internal to the micro subsystem
         self.internal_indices = node_indices
 
-        # Re-index the subsystem nodes with the external nodes removed
-        self.micro_indices = reindex(self.internal_indices)
-
         # A variable to tell if a system is a pure micro without blackboxing or
         # coarse-grain.
         self.micro = (output_grouping is None and hidden_indices is None)
-
-        # The connectivity matrix is the network's connectivity matrix, with
-        # cut applied, with all connections to/from external nodes severed,
-        # shrunk to the size of the internal nodes.
-        self.connectivity_matrix = self.connectivity_matrix[np.ix_(
-            self.internal_indices, self.internal_indices)]
 
         # Compute the TPM and Nodes for the internal indices
         # ==================================================
@@ -74,6 +65,9 @@ class MacroSubsystem(Subsystem):
         if self.network.size > 1:
             self.tpm = np.squeeze(self.tpm)[..., self.internal_indices]
 
+        # Re-index the subsystem nodes with the external nodes removed
+        self.micro_indices = reindex(self.internal_indices)
+
         self.nodes = tuple(Node(self, i, indices=self.micro_indices)
                            for i in self.micro_indices)
         # Re-calcuate the tpm based on the results of the cut
@@ -81,6 +75,12 @@ class MacroSubsystem(Subsystem):
             np.array([
                 node.expand_tpm(self.micro_indices) for node in self.nodes
             ]), 0, len(self.micro_indices) + 1)
+
+        # The connectivity matrix is the network's connectivity matrix, with
+        # cut applied, with all connections to/from external nodes severed,
+        # shrunk to the size of the internal nodes.
+        self.connectivity_matrix = self.connectivity_matrix[np.ix_(
+            self.internal_indices, self.internal_indices)]
 
         # Blackbox over time
         # ==================
