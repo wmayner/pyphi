@@ -72,3 +72,12 @@ def test_make_macro_tpm():
     micro_tpm = np.zeros((8, 8)) + 0.125
     macro_tpm = macro.make_macro_tpm(micro_tpm, mapping)
     assert np.array_equal(answer_tpm, macro_tpm)
+
+
+def test_coarse_grain_indices():
+    output_grouping = ((1, 2),)  # Node 0 not in system
+    state_grouping = (((0,), (1, 2)))
+    cg = macro.CoarseGrain(output_grouping, state_grouping)
+    assert cg.micro_indices == (1, 2)
+    assert cg.macro_indices == (0,)
+    assert cg.reindex() == macro.CoarseGrain(((0, 1),), state_grouping)

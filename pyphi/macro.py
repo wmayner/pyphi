@@ -112,15 +112,8 @@ class MacroSubsystem(Subsystem):
         if coarse_grain is not None:
             # TODO(billy) validate.macro(coarse_grain)
             # Reindex the coarse graining
-            # TODO: refactor to CoarseGrain object
-            output_grouping = tuple(
-                tuple(i for i in self.node_indices if
-                      self.internal_indices[self.output_indices[i]] in group)
-                for group in coarse_grain.output_grouping)
-            self.coarse_grain = CoarseGrain(output_grouping,
-                                            coarse_grain.state_grouping)
-            self.node_indices = reindex(output_grouping)
-
+            self.coarse_grain = coarse_grain.reindex()
+            self.node_indices = self.coarse_grain.macro_indices
             self._coarsegrain_space(self.coarse_grain)
         else:
             self.coarse_grain = CoarseGrain((), ())
@@ -306,6 +299,39 @@ class CoarseGrain(namedtuple('CoarseGrain',
 
     def make_macro_tpm(self, tpm):
         return make_macro_tpm(tpm, self.make_mapping())
+
+    @property
+    def micro_indices(self):
+        return tuple(set([index for group in self.output_grouping
+                          for index in group]))
+
+    @property
+    def macro_indices(self):
+        return tuple(range(len(self.output_grouping)))
+
+    def reindex(self):
+        """Re-index this coarse graining to use squeezed indices.
+
+        The output grouping is translated to use indices `0..n`, where `n` is
+        the number of micro indices in the coarse-graining. Reindexing does not
+        affect the state grouping, which is already index-independent.
+
+        Returns:
+            CoarseGrain: A new CoarseGrain object, reindexed from `0..n`
+
+        Example:
+            >>> output_grouping = ((1, 2),)
+            >>> state_grouping = (((0,), (1, 2)),)
+            >>> coarse_grain = CoarseGrain(output_grouping, state_grouping)
+            >>> coarse_grain.reindex()
+            CoarseGrain(output_grouping=((0, 1),), state_grouping=(((0,), (1, 2)),))
+        """
+        _map = dict(zip(self.micro_indices, reindex(self.micro_indices)))
+        output_grouping = tuple(
+            tuple(_map[index] for index in group)
+            for group in self.output_grouping
+        )
+        return CoarseGrain(output_grouping, self.state_grouping)
 
 
 def _partitions_list(N):
