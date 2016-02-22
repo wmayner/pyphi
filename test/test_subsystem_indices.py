@@ -10,7 +10,7 @@ pyphi.config.CACHE_POTENTIAL_PURVIEWS = False
 Nodes = 6
 
 tpm = np.zeros((2 ** Nodes, Nodes))
-state = tuple(0 for i in range(Nodes))
+state = (0, 0, 0, 0, 0, 0)
 network = pyphi.Network(tpm)
 
 
@@ -32,13 +32,13 @@ subsystem4 = macro.MacroSubsystem(network, state, (0, 1, 3, 5),
 
 # Only macro
 output_grouping = ((0, 1, 2), (3, 4, 5))
-state_grouping = (((0, 1), (2, 3)), ((0,), (1, 2, 3)))
+state_grouping = (((1,), (0, 2, 3)), ((0,), (1, 2, 3)))
 coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
 subsystem5 = macro.MacroSubsystem(network, state, network.node_indices,
                                   coarse_grain=coarse_grain)
 # Macro and External
 output_grouping = ((1, 3), (2, 5))
-state_grouping = (((0, 1), (2,)), ((0,), (1, 2)))
+state_grouping = (((0, 1), (2,)), ((1,), (0, 2)))
 coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
 subsystem6 = macro.MacroSubsystem(network, state, (1, 2, 3, 5),
                                   coarse_grain=coarse_grain)
@@ -46,7 +46,7 @@ subsystem6 = macro.MacroSubsystem(network, state, (1, 2, 3, 5),
 # Macro and Hidden
 hidden_indices = (3, 4)
 output_grouping = ((0, 5), (1, 2))
-state_grouping = (((0, 1), (2,)), ((0,), (1, 2)))
+state_grouping = (((1,), (0, 2)), ((0,), (1, 2)))
 coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
 subsystem7 = macro.MacroSubsystem(network, state, network.node_indices,
                                   hidden_indices=hidden_indices,
@@ -55,7 +55,7 @@ subsystem7 = macro.MacroSubsystem(network, state, network.node_indices,
 # External, Macro and Hidden
 hidden_indices = (4,)
 output_grouping = ((1,), (2,), (3, 5))
-state_grouping = (((0,), (1,)), ((0,), (1,)), ((0,), (1, 2)))
+state_grouping = (((0,), (1,)), ((1,), (0,)), ((0,), (1, 2)))
 coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
 subsystem8 = macro.MacroSubsystem(network, state, (1, 2, 3, 4, 5),
                                   hidden_indices=hidden_indices,
@@ -177,3 +177,14 @@ def test_subsystem_micro():
 
 def test_subsystem_cm():
     assert np.array_equal(subsystem3.connectivity_matrix, np.ones((4, 4)))
+
+
+def test_state():
+    assert subsystem1.state == (0, 0, 0, 0, 0, 0)
+    assert subsystem2.state == (0, 0, 0, 0)
+    assert subsystem3.state == (0, 0, 0, 0)
+    assert subsystem4.state == (0, 0)
+    assert subsystem5.state == (1, 0)
+    assert subsystem6.state == (0, 1)
+    assert subsystem7.state == (1, 0)
+    assert subsystem8.state == (0, 1, 0)

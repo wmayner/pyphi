@@ -38,7 +38,11 @@ def reindex(indices):
 
 
 class MacroSubsystem(Subsystem):
-    """A subclass of |Subsystem| implementing macro computations."""
+    """A subclass of |Subsystem| implementing macro computations.
+
+    We maintain the following invariant after each macro update:
+    `tpm.shape == [2] * len(state) + [len(state)]`.
+     """
 
     def __init__(self, network, state, node_indices, cut=None,
                  mice_cache=None, time_scale=1, hidden_indices=None,
@@ -82,6 +86,9 @@ class MacroSubsystem(Subsystem):
         # shrunk to the size of the internal nodes.
         self.connectivity_matrix = self.connectivity_matrix[np.ix_(
             self.internal_indices, self.internal_indices)]
+
+        self._state = self.proper_state
+        self.node_indices = self.micro_indices
 
         # Blackbox over time
         # ==================
@@ -166,8 +173,7 @@ class MacroSubsystem(Subsystem):
             return
 
         # TODO: validate conditional independence?
-        self.tpm = utils.condition_tpm(self.tpm, hidden_indices,
-                                       self.proper_state)
+        self.tpm = utils.condition_tpm(self.tpm, hidden_indices, self.state)
         self.tpm = np.squeeze(self.tpm)
         self.tpm = self.tpm[..., output_indices]
 
@@ -175,8 +181,7 @@ class MacroSubsystem(Subsystem):
         n = len(output_indices)
         self.connectivity_matrix = np.ones((n, n))
 
-        self._state = tuple(self.proper_state[index]
-                            for index in output_indices)
+        self._state = tuple(self.state[index] for index in output_indices)
 
     def _coarsegrain_space(self, coarse_grain):
         """Spatially coarse-grain the TPM and CM."""
@@ -193,8 +198,7 @@ class MacroSubsystem(Subsystem):
         # Universal connectivity, for now.
         self.connectivity_matrix = np.ones((self.size, self.size))
 
-        # Use the original, not re-indexed coarse-graining
-        self._state = self._coarse_grain.macro_state(self.state)
+        self._state = self.coarse_grain.macro_state(self.state)
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
