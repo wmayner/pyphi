@@ -76,8 +76,24 @@ def test_make_macro_tpm():
 
 def test_coarse_grain_indices():
     output_grouping = ((1, 2),)  # Node 0 not in system
-    state_grouping = (((0,), (1, 2)))
+    state_grouping = (((0,), (1, 2)),)
     cg = macro.CoarseGrain(output_grouping, state_grouping)
     assert cg.micro_indices == (1, 2)
     assert cg.macro_indices == (0,)
     assert cg.reindex() == macro.CoarseGrain(((0, 1),), state_grouping)
+
+
+def test_coarse_grain_state():
+    output_grouping = ((1, 2),)
+    state_grouping = (((0,), (1, 2)),)
+    cg = macro.CoarseGrain(output_grouping, state_grouping)
+    assert cg.macro_state((1, 0, 0)) == (0,)
+    assert cg.macro_state((0, 0, 1)) == (1,)
+    assert cg.macro_state((0, 1, 1)) == (1,)
+    assert cg.macro_state((1, 1, 0)) == (1,)
+
+    output_grouping = ((1,), (2,))
+    state_grouping = (((0,), (1,)), ((1,), (0,)))
+    cg = macro.CoarseGrain(output_grouping, state_grouping)
+    assert cg.macro_state((1, 0, 1)) == (0, 0)
+    assert cg.macro_state((0, 1, 1)) == (1, 0)

@@ -193,11 +193,8 @@ class MacroSubsystem(Subsystem):
         # Universal connectivity, for now.
         self.connectivity_matrix = np.ones((self.size, self.size))
 
-        state = np.array(self.state)
-        self._state = tuple(
-            0 if sum(state[list(coarse_grain.output_grouping[i])])
-            in coarse_grain.state_grouping[i][0] else 1
-            for i in self.node_indices)
+        # Use the original, not re-indexed coarse-graining
+        self._state = self._coarse_grain.macro_state(self.state)
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
@@ -332,6 +329,28 @@ class CoarseGrain(namedtuple('CoarseGrain',
             for group in self.output_grouping
         )
         return CoarseGrain(output_grouping, self.state_grouping)
+
+    def macro_state(self, micro_state):
+        """Translate a micro state to a macro state
+
+        .. warning::
+
+            This will return incorrect results if this CoarseGrain has been
+            re-indexed unless the `micro_state` has also been re-indexed
+            (shrunk to `len(self.micro_indices)`, containing only the state of
+            `self.micro_indices`.)
+
+        Args:
+            micro_state (tuple(int)): The state of the micro system.
+
+        Returns:
+            tuple(int): The state of the macro system, translated as specified
+                by this coarse-graining.
+        """
+        micro_state = np.array(micro_state)
+        return tuple(0 if sum(micro_state[list(self.output_grouping[i])])
+                     in self.state_grouping[i][0] else 1
+                     for i in self.macro_indices)
 
 
 def _partitions_list(N):
