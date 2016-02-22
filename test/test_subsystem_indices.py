@@ -153,17 +153,6 @@ def test_node_indices():
     assert subsystem8.node_indices == (0, 1, 2)
 
 
-def test_size():
-    assert subsystem1.size == 6
-    assert subsystem2.size == 4
-    assert subsystem3.size == 4
-    assert subsystem4.size == 2
-    assert subsystem5.size == 2
-    assert subsystem6.size == 2
-    assert subsystem7.size == 2
-    assert subsystem8.size == 3
-
-
 def test_subsystem_micro():
     assert subsystem1.micro
     assert subsystem2.micro
