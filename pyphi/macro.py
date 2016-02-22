@@ -119,14 +119,11 @@ class MacroSubsystem(Subsystem):
                 for group in coarse_grain.output_grouping)
             self.coarse_grain = CoarseGrain(output_grouping,
                                             coarse_grain.state_grouping)
-            self.mapping = make_mapping(output_grouping,
-                                        coarse_grain.state_grouping)
             self.node_indices = reindex(output_grouping)
 
-            self._coarsegrain_space(self.coarse_grain, self.mapping)
+            self._coarsegrain_space(self.coarse_grain)
         else:
             self.coarse_grain = CoarseGrain((), ())
-            self.mapping = None
 
         self.nodes = tuple(Node(self, i, indices=self.node_indices)
                            for i in self.node_indices)
@@ -188,17 +185,17 @@ class MacroSubsystem(Subsystem):
         self._state = tuple(self.proper_state[index]
                             for index in output_indices)
 
-    def _coarsegrain_space(self, coarse_grain, mapping):
+    def _coarsegrain_space(self, coarse_grain):
         """Spatially coarse-grain the TPM and CM."""
         if not coarse_grain:
             return
 
         # Coarse-grain the remaining nodes into the appropriate groups
-        self.tpm = make_macro_tpm(self.tpm, mapping)
+        tpm = coarse_grain.make_macro_tpm(self.tpm)
         if not self.is_cut():
-            if not validate.conditionally_independent(self.tpm):
+            if not validate.conditionally_independent(tpm):
                 raise ConditionallyDependentError
-        self.tpm = convert.state_by_state2state_by_node(self.tpm)
+        self.tpm = convert.state_by_state2state_by_node(tpm)
 
         # Universal connectivity, for now.
         self.connectivity_matrix = np.ones((self.size, self.size))
@@ -300,9 +297,15 @@ class MacroNetwork:
 class CoarseGrain(namedtuple('CoarseGrain',
                              ['output_grouping', 'state_grouping'])):
     """Represents a coarse graining of a collection of nodes."""
-    pass
 
     # TODO: validate grouping size
+
+    def make_mapping(self):
+        # TODO: move `make_mapping` function to here entirely
+        return make_mapping(self.output_grouping, self.state_grouping)
+
+    def make_macro_tpm(self, tpm):
+        return make_macro_tpm(tpm, self.make_mapping())
 
 
 def _partitions_list(N):
