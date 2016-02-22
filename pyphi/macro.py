@@ -118,6 +118,7 @@ class MacroSubsystem(Subsystem):
         # Set the elements for coarse-graining
         if coarse_grain is not None:
             # TODO(billy) validate.macro(coarse_grain)
+            # TODO: don't store re-indexed coarse_grain attribute?
             # Reindex the coarse graining
             self.coarse_grain = coarse_grain.reindex()
             self.node_indices = self.coarse_grain.macro_indices
@@ -185,8 +186,6 @@ class MacroSubsystem(Subsystem):
 
     def _coarsegrain_space(self, coarse_grain):
         """Spatially coarse-grain the TPM and CM."""
-        if not coarse_grain:
-            return
 
         # Coarse-grain the remaining nodes into the appropriate groups
         tpm = coarse_grain.make_macro_tpm(self.tpm)
@@ -198,7 +197,7 @@ class MacroSubsystem(Subsystem):
         # Universal connectivity, for now.
         self.connectivity_matrix = np.ones((self.size, self.size))
 
-        self._state = self.coarse_grain.macro_state(self.state)
+        self._state = coarse_grain.macro_state(self.state)
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
