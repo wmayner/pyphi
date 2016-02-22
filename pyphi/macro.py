@@ -302,22 +302,24 @@ class CoarseGrain(namedtuple('CoarseGrain',
 
     @property
     def micro_indices(self):
-        return tuple(set([index for group in self.output_grouping
-                          for index in group]))
+        """Indices of micro elements represented in this coarse-graining."""
+        return tuple({index for group in self.output_grouping
+                      for index in group})
 
     @property
     def macro_indices(self):
+        """Indices of macro elements of this coarse-graining."""
         return tuple(range(len(self.output_grouping)))
 
     def reindex(self):
         """Re-index this coarse graining to use squeezed indices.
 
         The output grouping is translated to use indices `0..n`, where `n` is
-        the number of micro indices in the coarse-graining. Reindexing does not
-        affect the state grouping, which is already index-independent.
+        the number of micro indices in the coarse-graining. Re-indexing does
+        not effect the state grouping, which is already index-independent.
 
         Returns:
-            CoarseGrain: A new CoarseGrain object, reindexed from `0..n`
+            CoarseGrain: A new CoarseGrain object, indexed from `0..n`
 
         Example:
             >>> output_grouping = ((1, 2),)
