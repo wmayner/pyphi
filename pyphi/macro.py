@@ -243,6 +243,25 @@ class MacroSubsystem(Subsystem):
     def __str__(self):
         return repr(self)
 
+    def __eq__(self, other):
+        """Two macro systems are equal if the underlying |Subsystems| are equal
+        and all macro attributes are equal.
+
+        TODO: handle cases where a MacroSubsystem is identical to a micro
+        Subsystem, e.g. the macro has no timescale, hidden indices, etc.
+        """
+        if type(self) != type(other):
+            return False
+
+        return (super().__eq__(other) and
+                self.time_scale == other.time_scale and
+                self._hidden_indices == other._hidden_indices and
+                self._output_grouping == other._output_grouping and
+                self._state_grouping == other._state_grouping)
+
+    def __hash__(self):
+        return self._hash
+
 
 class MacroNetwork:
     """A coarse-grained network of nodes.

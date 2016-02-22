@@ -207,3 +207,21 @@ def test_macro_cut_is_for_micro_indices(s):
     with pytest.raises(ValueError):
         macro.MacroSubsystem(s.network, s.state, s.node_indices,
                              hidden_indices=(2,), cut=models.Cut((0,), (1,)))
+
+
+def test_subsystem_equality(s):
+    macro_subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices)
+    assert s != macro_subsys  # Although, should they be?
+
+    macro_subsys_t = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+                                          time_scale=2)
+    assert macro_subsys != macro_subsys_t
+
+    macro_subsys_h = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+                                          hidden_indices=(0,))
+    assert macro_subsys != macro_subsys_h
+
+    macro_subsys_c = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+                                          output_grouping=((0, 1), (2,)),
+                                          state_grouping=(((0, 1), (2,)), ((0,), (1,))))
+    assert macro_subsys != macro_subsys_c
