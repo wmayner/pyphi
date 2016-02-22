@@ -317,20 +317,21 @@ def _partitions_list(N):
             'nodes or more'.format(_NUM_PRECOMPUTED_PARTITION_LISTS))
 
 
-def list_all_partitions(size):
+def list_all_partitions(indices):
     """Return a list of all possible coarse grains of a network.
 
     Args:
-        size (int): The number of micro indices to partition.
+        indices (tuple(int)): The micro indices to partition.
 
     Returns:
         tuple(tuple): A tuple of possible partitions. Each element of the tuple
             is a tuple of micro-elements which correspond to macro-elements.
     """
-    partitions = _partitions_list(size)
-    if size > 0:
-        partitions[-1] = [list(range(size))]
-    return tuple(tuple(tuple(part)
+    n = len(indices)
+    partitions = _partitions_list(n)
+    if n > 0:
+        partitions[-1] = [list(range(n))]
+    return tuple(tuple(tuple(indices[i] for i in part)
                        for part in partition)
                  for partition in partitions)
 
@@ -428,16 +429,11 @@ def make_mapping(partition, grouping):
 
 
 def coarse_grain(network, state, internal_indices):
-    index_partitions = list_all_partitions(len(internal_indices))
-    partitions = tuple(tuple(tuple(internal_indices[i] for i in part)
-                             for part in partition)
-                       for partition in index_partitions)
     max_phi = float('-inf')
     max_partition = ()
     max_grouping = ()
-    for partition in partitions:
-        groupings = list_all_groupings(partition)
-        for grouping in groupings:
+    for partition in list_all_partitions(internal_indices):
+        for grouping in list_all_groupings(partition):
             try:
                 subsystem = MacroSubsystem(network, state, internal_indices,
                                            output_grouping=partition,
@@ -490,13 +486,8 @@ def phi_by_grain(network, state):
         micro_subsystem = Subsystem(network, state, system)
         mip = compute.big_mip(micro_subsystem)
         list_of_phi.append([len(micro_subsystem), mip.phi])
-        index_partitions = list_all_partitions(len(system))
-        partitions = tuple(tuple(tuple(system[i] for i in part)
-                                 for part in partition)
-                           for partition in index_partitions)
-        for partition in partitions:
-            groupings = list_all_groupings(partition)
-            for grouping in groupings:
+        for partition in list_all_partitions(system):
+            for grouping in list_all_groupings(partition):
                 try:
                     subsystem = MacroSubsystem(network, state, system,
                                                output_grouping=partition,

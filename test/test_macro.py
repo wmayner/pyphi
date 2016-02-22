@@ -7,8 +7,8 @@ from pyphi import macro
 
 
 def test_list_all_partitions():
-    assert macro.list_all_partitions(0) == ()
-    assert macro.list_all_partitions(4) == (
+    assert macro.list_all_partitions(()) == ()
+    assert macro.list_all_partitions((0, 1, 2, 3)) == (
         ((0, 1, 2), (3,)),
         ((0, 1, 3), (2,)),
         ((0, 1), (2, 3)),
