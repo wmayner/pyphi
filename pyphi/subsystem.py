@@ -541,7 +541,6 @@ class Subsystem:
         """
         repertoire = self._get_repertoire(direction)
 
-
         # We default to the null MIP (the MIP of a reducible mechanism)
         mip = _null_mip(direction, mechanism, purview)
 
