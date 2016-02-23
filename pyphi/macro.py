@@ -58,11 +58,6 @@ class MacroSubsystem(Subsystem):
         # Indices internal to the micro subsystem
         self.internal_indices = node_indices
 
-        # A variable to tell if a system is a pure micro without blackboxing or
-        # coarse-grain.
-        # TODO: remove or refactor to property
-        self.micro = (coarse_grain is None and hidden_indices is None)
-
         # Compute the TPM and Nodes for the internal indices
         # ==================================================
         # Don't squeeze out the final dimension (which contains the
@@ -198,6 +193,13 @@ class MacroSubsystem(Subsystem):
         self.connectivity_matrix = np.ones((self.size, self.size))
 
         self._state = coarse_grain.macro_state(self.state)
+
+    @property
+    def is_micro(self):
+        """True if the system is pure micro without blackboxing of coarse-
+        graining."""
+        # TODO: do we need this?
+        return self._coarse_grain is None and self._hidden_indices is None
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`

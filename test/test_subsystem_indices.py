@@ -154,14 +154,14 @@ def test_node_indices():
 
 
 def test_subsystem_micro():
-    assert subsystem1.micro
-    assert subsystem2.micro
-    assert not subsystem3.micro
-    assert not subsystem4.micro
-    assert not subsystem5.micro
-    assert not subsystem6.micro
-    assert not subsystem7.micro
-    assert not subsystem8.micro
+    assert subsystem1.is_micro
+    assert subsystem2.is_micro
+    assert not subsystem3.is_micro
+    assert not subsystem4.is_micro
+    assert not subsystem5.is_micro
+    assert not subsystem6.is_micro
+    assert not subsystem7.is_micro
+    assert not subsystem8.is_micro
 
 
 def test_subsystem_cm():
