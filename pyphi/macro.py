@@ -553,20 +553,22 @@ def emergence(network, state):
 
 def phi_by_grain(network, state):
     list_of_phi = []
+
     systems = utils.powerset(network.node_indices)
     for system in systems:
         micro_subsystem = Subsystem(network, state, system)
-        mip = compute.big_mip(micro_subsystem)
-        list_of_phi.append([len(micro_subsystem), mip.phi])
+        phi = compute.big_phi(micro_subsystem)
+        list_of_phi.append([len(micro_subsystem), phi, system, None])
+
         for coarse_grain in list_all_coarse_grainings(system):
             try:
                 subsystem = MacroSubsystem(network, state, system,
                                            coarse_grain=coarse_grain)
             except ConditionallyDependentError:
                 continue
+
             phi = compute.big_phi(subsystem)
-            list_of_phi.append([len(subsystem), phi, system,
-                                partition, grouping])
+            list_of_phi.append([len(subsystem), phi, system, coarse_grain])
     return list_of_phi
 
 
