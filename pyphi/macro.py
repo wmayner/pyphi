@@ -491,6 +491,13 @@ def make_mapping(partition, grouping):
 
 
 def coarse_grain(network, state, internal_indices):
+    """Find the maximal coarse-graining of a micro-system.
+
+    Args:
+        network (Network): The network in question.
+        state (tuple(int)): The state of the network.
+        internal_indices (tuple(indices)): Nodes in the micro-system.
+    """
     max_phi = float('-inf')
     max_coarse_grain = CoarseGrain((), ())
     for coarse_grain in list_all_coarse_grainings(internal_indices):
@@ -508,17 +515,17 @@ def coarse_grain(network, state, internal_indices):
 
 
 def emergence(network, state):
-    """Check for emergence of a macro-system into a macro-system.
+    """Check for emergence of a micro-system into a macro-system.
 
     Checks all possible partitions and groupings of the micro-system to find
     the spatial scale with maximum integrated information.
 
     Args:
         network (Network): The network of the micro-system under investigation.
+        state (tuple(int)): The state of the network.
 
     Returns:
-        macro_network (``MacroNetwork``): The maximal coarse-graining of the
-            micro-system.
+        MacroNetwork: The maximal coarse-graining of the micro-system.
     """
     micro_phi = compute.main_complex(network, state).phi
     systems = utils.powerset(network.node_indices)
