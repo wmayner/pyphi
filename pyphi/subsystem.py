@@ -13,6 +13,7 @@ from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
 from .models import Concept, Cut, Mice, Mip, _null_mip, Part
+from .network import irreducible_purviews
 from .node import Node
 
 
@@ -665,18 +666,11 @@ class Subsystem:
             purviews = [purview for purview in purviews
                         if set(purview).issubset(self.node_indices)]
 
-        def reducible(purview):
-            # Returns True if purview is trivially reducible.
-            # (Purviews are already filtered in network._potential_purviews
-            # over the full network connectivity matrix. However, since the cm
-            # is cut/smaller we check again here.)
-            if direction == DIRECTIONS[PAST]:
-                _from, to = purview, mechanism
-            elif direction == DIRECTIONS[FUTURE]:
-                _from, to = mechanism, purview
-            return utils.block_reducible(self.connectivity_matrix, _from, to)
-
-        return [purview for purview in purviews if not reducible(purview)]
+        # Purviews are already filtered in network._potential_purviews
+        # over the full network connectivity matrix. However, since the cm
+        # is cut/smaller we check again here.
+        return irreducible_purviews(self.connectivity_matrix,
+                                    direction, mechanism, purviews)
 
     @cache.method('_mice_cache')
     def find_mice(self, direction, mechanism, purviews=False):

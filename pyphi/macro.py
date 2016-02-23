@@ -15,7 +15,7 @@ import numpy as np
 
 from . import compute, config, constants, convert, utils, validate
 from .constants import DIRECTIONS, PAST, FUTURE
-from .network import Network
+from .network import irreducible_purviews, Network
 from .node import Node
 from .subsystem import Subsystem
 
@@ -217,19 +217,10 @@ class MacroSubsystem(Subsystem):
                               # mice_cache=self._mice_cache)
 
     def _potential_purviews(self, direction, mechanism, purviews=False):
-        """Override Subsystem implementation which depends on Network-level
-        indices."""
+        """Override Subsystem implementation using Network-level indices."""
         all_purviews = utils.powerset(self.node_indices)
-
-        def reducible(purview):
-            # Returns True if purview is trivially reducible.
-            if direction == DIRECTIONS[PAST]:
-                _from, to = purview, mechanism
-            elif direction == DIRECTIONS[FUTURE]:
-                _from, to = mechanism, purview
-            return utils.block_reducible(self.connectivity_matrix, _from, to)
-
-        return [purview for purview in all_purviews if not reducible(purview)]
+        return irreducible_purviews(self.connectivity_matrix,
+                                    direction, mechanism, all_purviews)
 
     def __repr__(self):
         return "MacroSubsystem(" + repr(self.nodes) + ")"

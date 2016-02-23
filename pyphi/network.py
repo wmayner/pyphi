@@ -35,6 +35,30 @@ def from_json(filename):
     return network
 
 
+def irreducible_purviews(cm, direction, mechanism, purviews):
+    """Returns all purview which are irreducible for the mechanism.
+
+    Args:
+        cm (np.ndarray): A |N x N| connectivity matrix.
+        direction (str): |past| or |future|.
+        purviews (list(tuple(int))): The purviews to check.
+        mechanism (tuple(int)): The mechanism in question.
+
+    Returns:
+        list(tuple(int)): All purviews in ``purviews`` which are not reducible
+            over ``mechanism``.
+    """
+    def reducible(purview):
+        # Returns True if purview is trivially reducible.
+        if direction == DIRECTIONS[PAST]:
+            _from, to = purview, mechanism
+        elif direction == DIRECTIONS[FUTURE]:
+            _from, to = mechanism, purview
+        return utils.block_reducible(cm, _from, to)
+
+    return [purview for purview in purviews if not reducible(purview)]
+
+
 class Network:
     """A network of nodes.
 
@@ -170,22 +194,16 @@ class Network:
 
         Args:
             direction (str): |past| or |future|
-            mechanism (tuple(int)): The mechanism which all purviews
-                are checked for reducibility over.
+            mechanism (tuple(int)): The mechanism which all purviews are
+                checked for reducibility over.
+
         Returns:
-            purviews (list(tuple(int))): All purviews which are
-                irreducible over `mechanism`.
+            list(tuple(int)): All purviews which are irreducible over
+                ``mechanism``.
         """
         all_purviews = utils.powerset(self._node_indices)
-
-        if direction == DIRECTIONS[PAST]:
-            return [purview for purview in all_purviews
-                    if not utils.block_reducible(self.connectivity_matrix,
-                                                 purview, mechanism)]
-        elif direction == DIRECTIONS[FUTURE]:
-            return [purview for purview in all_purviews
-                    if not utils.block_reducible(self.connectivity_matrix,
-                                                 mechanism, purview)]
+        return irreducible_purviews(self.connectivity_matrix,
+                                    direction, mechanism, all_purviews)
 
     def __repr__(self):
         return ('Network({}, connectivity_matrix={}, '
