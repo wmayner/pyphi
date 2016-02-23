@@ -147,6 +147,15 @@ class Subsystem:
         validate.subsystem(self)
 
     @property
+    def cm(self):
+        """Alias for ``connectivity_matrix`` attribute."""
+        return self.connectivity_matrix
+
+    @cm.setter
+    def cm(self, cm):
+        self.connectivity_matrix = cm
+
+    @property
     def size(self):
         """The size of this Subsystem."""
         return len(self.node_indices)
