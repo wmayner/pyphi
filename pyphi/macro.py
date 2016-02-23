@@ -104,9 +104,8 @@ class MacroSubsystem(Subsystem):
         self.output_indices = tuple(set(self.micro_indices) -
                                     set(self.hidden_indices))
 
-        self._blackbox_space(self.hidden_indices, self.output_indices)
-        # Normalize indices to size of new TPM
-        self.node_indices = reindex(self.output_indices)
+        self.tpm, self.cm, self.node_indices, self._state = (
+            self._blackbox_space(self.hidden_indices, self.output_indices))
 
         # Coarse-grain in space
         # =====================
@@ -116,8 +115,8 @@ class MacroSubsystem(Subsystem):
             # TODO: don't store re-indexed coarse_grain attribute?
             # Reindex the coarse graining
             self.coarse_grain = coarse_grain.reindex()
-            self.node_indices = self.coarse_grain.macro_indices
-            self._coarsegrain_space(self.coarse_grain)
+            self.tpm, self.cm, self.node_indices, self._state = (
+                self._coarsegrain_space(self.coarse_grain))
         else:
             self.coarse_grain = CoarseGrain((), ())
 
@@ -165,19 +164,18 @@ class MacroSubsystem(Subsystem):
         there is only `len(output_indices)` dimensions in the TPM and in the
         state of the subsystem.
         """
-        if not hidden_indices:
-            return
-
         # TODO: validate conditional independence?
-        self.tpm = utils.condition_tpm(self.tpm, hidden_indices, self.state)
-        self.tpm = np.squeeze(self.tpm)
-        self.tpm = self.tpm[..., output_indices]
+        tpm = utils.condition_tpm(self.tpm, hidden_indices, self.state)
+        tpm = np.squeeze(tpm)[..., output_indices]
 
         # Universal connectivity, for now.
         n = len(output_indices)
-        self.connectivity_matrix = np.ones((n, n))
+        cm = np.ones((n, n))
 
-        self._state = tuple(self.state[index] for index in output_indices)
+        state = tuple(self.state[index] for index in output_indices)
+        node_indices = reindex(output_indices)
+
+        return (tpm, cm, node_indices, state)
 
     def _coarsegrain_space(self, coarse_grain):
         """Spatially coarse-grain the TPM and CM."""
@@ -187,12 +185,16 @@ class MacroSubsystem(Subsystem):
         if not self.is_cut():
             if not validate.conditionally_independent(tpm):
                 raise ConditionallyDependentError
-        self.tpm = convert.state_by_state2state_by_node(tpm)
+        tpm = convert.state_by_state2state_by_node(tpm)
+
+        node_indices = coarse_grain.macro_indices
+        state = coarse_grain.macro_state(self.state)
 
         # Universal connectivity, for now.
-        self.connectivity_matrix = np.ones((self.size, self.size))
+        n = len(node_indices)
+        cm = np.ones((n, n))
 
-        self._state = coarse_grain.macro_state(self.state)
+        return (tpm, cm, node_indices, state)
 
     @property
     def is_micro(self):
