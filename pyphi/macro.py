@@ -497,21 +497,26 @@ def coarse_grain(network, state, internal_indices):
         network (Network): The network in question.
         state (tuple(int)): The state of the network.
         internal_indices (tuple(indices)): Nodes in the micro-system.
+
+    Returns:
+        tuple(int, CoarseGrain): The phi-value of the maximal CoarseGrain.
     """
     max_phi = float('-inf')
     max_coarse_grain = CoarseGrain((), ())
+
     for coarse_grain in list_all_coarse_grainings(internal_indices):
         try:
             subsystem = MacroSubsystem(network, state, internal_indices,
                                        coarse_grain=coarse_grain)
         except ConditionallyDependentError:
             continue
+
         phi = compute.big_phi(subsystem)
         if (phi - max_phi) > constants.EPSILON:
             max_phi = phi
             max_coarse_grain = coarse_grain
-    return (max_phi, max_coarse_grain.output_grouping,
-            max_coarse_grain.state_grouping)
+
+    return (max_phi, max_coarse_grain)
 
 
 def emergence(network, state):
@@ -528,21 +533,22 @@ def emergence(network, state):
         MacroNetwork: The maximal coarse-graining of the micro-system.
     """
     micro_phi = compute.main_complex(network, state).phi
-    systems = utils.powerset(network.node_indices)
     max_phi = float('-inf')
+
+    systems = utils.powerset(network.node_indices)
     for system in systems:
-        (phi, partition, grouping) = coarse_grain(network, state, system)
+        (phi, coarse_grain) = coarse_grain(network, state, system)
         if (phi - max_phi) > constants.EPSILON:
             max_phi = phi
-            max_partition = partition
-            max_grouping = grouping
+            max_coarse_grain = coarse_grain
             max_system = system
+
     return MacroNetwork(network=network,
                         system=max_system,
                         macro_phi=max_phi,
                         micro_phi=micro_phi,
-                        partition=max_partition,
-                        grouping=max_grouping)
+                        partition=coarse_grain.output_grouping,
+                        grouping=coarse_grain.state_grouping)
 
 
 def phi_by_grain(network, state):
