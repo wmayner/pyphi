@@ -49,76 +49,70 @@ class MacroSubsystem(Subsystem):
                  coarse_grain=None):
         super().__init__(network, state, node_indices, cut, mice_cache)
 
-        # HACk: Remember original values to use in `apply_cut`
+        # Store original arguments to use in `apply_cut`
         self._network_state = state
         self._node_indices = node_indices
+        self._time_scale = time_scale
         self._hidden_indices = hidden_indices
         self._coarse_grain = coarse_grain
 
         # Indices internal to the micro subsystem
-        self.internal_indices = node_indices
+        internal_indices = node_indices
 
         # Compute the TPM and Nodes for the internal indices
         # ==================================================
         # Don't squeeze out the final dimension (which contains the
         # probability) for networks of size one
         if self.network.size > 1:
-            self.tpm = np.squeeze(self.tpm)[..., self.internal_indices]
+            self.tpm = np.squeeze(self.tpm)[..., internal_indices]
 
         # Re-index the subsystem nodes with the external nodes removed
-        self.micro_indices = reindex(self.internal_indices)
+        self.node_indices = reindex(internal_indices)
 
-        self.nodes = tuple(Node(self, i, indices=self.micro_indices)
-                           for i in self.micro_indices)
+        self.nodes = tuple(Node(self, i, indices=self.node_indices)
+                           for i in self.node_indices)
         # Re-calcuate the tpm based on the results of the cut
         self.tpm = np.rollaxis(
             np.array([
-                node.expand_tpm(self.micro_indices) for node in self.nodes
-            ]), 0, len(self.micro_indices) + 1)
+                node.expand_tpm(self.node_indices) for node in self.nodes
+            ]), 0, len(self.node_indices) + 1)
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
         # shrunk to the size of the internal nodes.
         self.connectivity_matrix = self.connectivity_matrix[np.ix_(
-            self.internal_indices, self.internal_indices)]
+            internal_indices, internal_indices)]
 
-        self._state = self.proper_state
-        self.node_indices = self.micro_indices
+        self._state = tuple(self.state[i] for i in internal_indices)
 
         # Blackbox over time
         # ==================
-        validate.time_scale(time_scale)
-        self.time_scale = time_scale
-        self._blackbox_time(time_scale)
+        if time_scale != 1:
+            validate.time_scale(time_scale)
+            self.tpm, self.cm = self._blackbox_time(time_scale)
 
         # Blackbox in space
         # =================
-        # Set the elements for blackboxing
-        if hidden_indices is None:
-            hidden_indices = ()
+        if hidden_indices is not None:
+            # Compute hidden and output indices from node_indices, which are
+            # now reindexed from 0..n
+            hidden_indices = tuple(
+                i for i in self.node_indices
+                if internal_indices[i] in hidden_indices)
+            output_indices = tuple(set(self.node_indices) -
+                                   set(hidden_indices))
 
-        # Compute hidden and output indices using shrunken subsystem indexing
-        self.hidden_indices = tuple(
-            i for i in self.micro_indices
-            if self.internal_indices[i] in hidden_indices)
-        self.output_indices = tuple(set(self.micro_indices) -
-                                    set(self.hidden_indices))
-
-        self.tpm, self.cm, self.node_indices, self._state = (
-            self._blackbox_space(self.hidden_indices, self.output_indices))
+            self.tpm, self.cm, self.node_indices, self._state = (
+                self._blackbox_space(hidden_indices, output_indices))
 
         # Coarse-grain in space
         # =====================
-        # Set the elements for coarse-graining
         if coarse_grain is not None:
             validate.coarse_grain(coarse_grain)
-            # TODO: don't store re-indexed coarse_grain attribute?
             # Reindex the coarse graining
-            self.coarse_grain = coarse_grain.reindex()
+            coarse_grain = coarse_grain.reindex()
             self.tpm, self.cm, self.node_indices, self._state = (
-                self._coarsegrain_space(self.coarse_grain))
-        else:
-            self.coarse_grain = CoarseGrain((), ())
+                self._coarsegrain_space(coarse_grain))
 
         self.nodes = tuple(Node(self, i, indices=self.node_indices)
                            for i in self.node_indices)
@@ -146,12 +140,10 @@ class MacroSubsystem(Subsystem):
         TODO(billy): This is a blackboxed time. Coarse grain time is not yet
         implemented.
         """
-        if time_scale == 1:
-            return
+        tpm = utils.run_tpm(self.tpm, time_scale)
+        cm = utils.run_cm(self.connectivity_matrix, time_scale)
 
-        self.tpm = utils.run_tpm(self.tpm, time_scale)
-        self.connectivity_matrix = utils.run_cm(self.connectivity_matrix,
-                                                time_scale)
+        return (tpm, cm)
 
     def _blackbox_space(self, hidden_indices, output_indices):
         """Blackbox the TPM and CM in space.
@@ -214,7 +206,7 @@ class MacroSubsystem(Subsystem):
         """
         return MacroSubsystem(self.network, self._network_state,
                               self._node_indices, cut=cut,
-                              time_scale=self.time_scale,
+                              time_scale=self._time_scale,
                               hidden_indices=self._hidden_indices,
                               coarse_grain=self._coarse_grain)
                               # TODO: is the MICE cache reusable?
@@ -243,7 +235,7 @@ class MacroSubsystem(Subsystem):
             return False
 
         return (super().__eq__(other) and
-                self.time_scale == other.time_scale and
+                self._time_scale == other._time_scale and
                 self._hidden_indices == other._hidden_indices and
                 self._coarse_grain == other.coarse_grain)
 
