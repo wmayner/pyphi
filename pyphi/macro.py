@@ -72,13 +72,14 @@ class MacroSubsystem(Subsystem):
         # Blackbox in space
         # =================
         if hidden_indices is not None:
-            # Compute hidden and output indices from node_indices, which are
-            # now reindexed from 0..n
-            hidden_indices = tuple(
-                i for i in self.node_indices
-                if internal_indices[i] in hidden_indices)
-            output_indices = tuple(set(self.node_indices) -
-                                   set(hidden_indices))
+            output_indices = tuple(sorted(
+                set(internal_indices) - set(hidden_indices)))
+
+            # Reindex hidden and output indices to line up with
+            # self.node_indices which are now indexed from 0..n
+            _map = dict(zip(internal_indices, self.node_indices))
+            hidden_indices = tuple(_map[i] for i in hidden_indices)
+            output_indices = tuple(_map[i] for i in output_indices)
 
             self.tpm, self.cm, self.node_indices, self._state = (
                 self._blackbox_space(hidden_indices, output_indices))
