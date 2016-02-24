@@ -14,8 +14,7 @@ import os
 import numpy as np
 
 from . import compute, config, constants, convert, utils, validate
-from .constants import DIRECTIONS, PAST, FUTURE
-from .network import irreducible_purviews, Network
+from .network import irreducible_purviews
 from .node import Node
 from .subsystem import Subsystem
 
