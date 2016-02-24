@@ -58,31 +58,10 @@ class MacroSubsystem(Subsystem):
         # Indices internal to the micro subsystem
         internal_indices = node_indices
 
-        # Compute the TPM and Nodes for the internal indices
-        # ==================================================
-        # Don't squeeze out the final dimension (which contains the
-        # probability) for networks of size one
-        if self.network.size > 1:
-            self.tpm = np.squeeze(self.tpm)[..., internal_indices]
-
-        # Re-index the subsystem nodes with the external nodes removed
-        self.node_indices = reindex(internal_indices)
-
-        self.nodes = tuple(Node(self, i, indices=self.node_indices)
-                           for i in self.node_indices)
-        # Re-calcuate the tpm based on the results of the cut
-        self.tpm = np.rollaxis(
-            np.array([
-                node.expand_tpm(self.node_indices) for node in self.nodes
-            ]), 0, len(self.node_indices) + 1)
-
-        # The connectivity matrix is the network's connectivity matrix, with
-        # cut applied, with all connections to/from external nodes severed,
-        # shrunk to the size of the internal nodes.
-        self.connectivity_matrix = self.connectivity_matrix[np.ix_(
-            internal_indices, internal_indices)]
-
-        self._state = tuple(self.state[i] for i in internal_indices)
+        # Shrink TPM to size of internal indices
+        # ======================================
+        self.tpm, self.cm, self.node_indices, self._state = (
+            self._squeeze(internal_indices))
 
         # Blackbox over time
         # ==================
@@ -113,6 +92,8 @@ class MacroSubsystem(Subsystem):
             self.tpm, self.cm, self.node_indices, self._state = (
                 self._coarsegrain_space(coarse_grain))
 
+        # Regenerate nodes
+        # ================
         self.nodes = tuple(Node(self, i, indices=self.node_indices)
                            for i in self.node_indices)
 
@@ -132,6 +113,38 @@ class MacroSubsystem(Subsystem):
         self._cut_indices = self._node_indices
 
         validate.subsystem(self)
+
+    def _squeeze(self, internal_indices):
+        """Squeeze out all singleton dimensions in the Subsystem.
+
+        Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
+        the number of internal indices in the system.
+        """
+        # Don't squeeze out the final dimension (which contains the
+        # probability) for networks of size one
+        if self.network.size > 1:
+            self.tpm = np.squeeze(self.tpm)[..., internal_indices]
+
+        # Re-index the subsystem nodes with the external nodes removed
+        node_indices = reindex(internal_indices)
+        nodes = tuple(Node(self, i, indices=node_indices)
+                      for i in node_indices)
+
+        # Re-calcuate the tpm based on the results of the cut
+        tpm = np.rollaxis(
+            np.array([
+                node.expand_tpm(node_indices) for node in nodes
+            ]), 0, len(node_indices) + 1)
+
+        # The connectivity matrix is the network's connectivity matrix, with
+        # cut applied, with all connections to/from external nodes severed,
+        # shrunk to the size of the internal nodes.
+        cm = self.cm[np.ix_(internal_indices, internal_indices)]
+
+        # State of the internal indices
+        state = tuple(self.state[i] for i in internal_indices)
+
+        return (tpm, cm, node_indices, state)
 
     def _blackbox_time(self, time_scale):
         """Black box the CM and TPM over the given time_scale.
