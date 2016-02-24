@@ -153,7 +153,7 @@ class MacroSubsystem(Subsystem):
         implemented.
         """
         tpm = utils.run_tpm(self.tpm, time_scale)
-        cm = utils.run_cm(self.connectivity_matrix, time_scale)
+        cm = utils.run_cm(self.cm, time_scale)
 
         return (tpm, cm)
 
@@ -227,8 +227,8 @@ class MacroSubsystem(Subsystem):
     def _potential_purviews(self, direction, mechanism, purviews=False):
         """Override Subsystem implementation using Network-level indices."""
         all_purviews = utils.powerset(self.node_indices)
-        return irreducible_purviews(self.connectivity_matrix,
-                                    direction, mechanism, all_purviews)
+        return irreducible_purviews(self.cm, direction,
+                                    mechanism, all_purviews)
 
     def __repr__(self):
         return "MacroSubsystem(" + repr(self.nodes) + ")"
