@@ -249,7 +249,7 @@ class MacroSubsystem(Subsystem):
         return (super().__eq__(other) and
                 self._time_scale == other._time_scale and
                 self._hidden_indices == other._hidden_indices and
-                self._coarse_grain == other.coarse_grain)
+                self._coarse_grain == other._coarse_grain)
 
     def __hash__(self):
         return self._hash
