@@ -9,21 +9,34 @@ from pyphi import convert, macro, models, utils
 from pyphi.convert import (state_by_node2state_by_state as sbn2sbs,
                            state_by_state2state_by_node as sbs2sbn)
 
+@pytest.fixture()
+def macro_subsystem():
 
-tpm = np.zeros((16, 4)) + 0.3
+    tpm = np.zeros((16, 4)) + 0.3
+    tpm[12:, 0:2] = 1
+    tpm[3, 2:4] = 1
+    tpm[7, 2:4] = 1
+    tpm[11, 2:4] = 1
+    tpm[15, 2:4] = 1
 
-tpm[12:, 0:2] = 1
-tpm[3, 2:4] = 1
-tpm[7, 2:4] = 1
-tpm[11, 2:4] = 1
-tpm[15, 2:4] = 1
+    cm = np.array([
+        [0, 0, 1, 1],
+        [0, 0, 1, 1],
+        [1, 1, 0, 0],
+        [1, 1, 0, 0]
+    ])
 
-cm = np.array([
-    [0, 0, 1, 1],
-    [0, 0, 1, 1],
-    [1, 1, 0, 0],
-    [1, 1, 0, 0]
-])
+    state = (0, 0, 0, 0)
+
+    network = pyphi.Network(tpm, connectivity_matrix=cm)
+
+    output_grouping = ((0, 1), (2, 3))
+    state_grouping = (((0, 1), (2,)), ((0, 1), (2,)))
+    coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
+
+    return macro.MacroSubsystem(network, state, network.node_indices,
+                                     coarse_grain=coarse_grain)
+
 
 #answer_cm = np.array([
 #    [0, 1],
@@ -33,39 +46,22 @@ cm = np.array([
 # connectivity for hidden and coarse-grained elements.
 answer_cm = np.ones((2, 2))
 
-state = (0, 0, 0, 0)
 
-network = pyphi.Network(tpm, connectivity_matrix=cm)
-
-output_grouping = ((0, 1), (2, 3))
-state_grouping = (((0, 1), (2,)), ((0, 1), (2,)))
-coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
-subsystem = macro.MacroSubsystem(network, state, network.node_indices,
-                                 coarse_grain=coarse_grain)
-
-cut = pyphi.models.Cut((0,), (1, 2, 3))
-cut_subsystem = macro.MacroSubsystem(network, state, network.node_indices,
-                                     cut=cut, coarse_grain=coarse_grain)
-
-
-def test_macro_subsystem():
-    subsystem = macro.MacroSubsystem(network, state, network.node_indices,
-                                     coarse_grain=coarse_grain)
+def test_macro_subsystem(macro_subsystem):
     answer_tpm = np.array([
         [0.09, 0.09],
         [0.09, 1.],
         [1., 0.09],
         [1., 1.]
     ])
-
-    assert np.array_equal(subsystem.connectivity_matrix, answer_cm)
-    assert np.all(subsystem.tpm.reshape([4]+[2], order='F') - answer_tpm
+    assert np.array_equal(macro_subsystem.connectivity_matrix, answer_cm)
+    assert np.all(macro_subsystem.tpm.reshape([4]+[2], order='F') - answer_tpm
                   < pyphi.constants.EPSILON)
 
 
-def test_macro_cut_subsystem():
+def test_macro_cut_subsystem(macro_subsystem):
     cut = pyphi.models.Cut((0,), (1, 2, 3))
-    cut_subsystem = subsystem.apply_cut(cut)
+    cut_subsystem = macro_subsystem.apply_cut(cut)
     answer_tpm = np.array([
         [0.09, 0.20083333],
         [0.09, 0.4225],
