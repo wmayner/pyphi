@@ -303,8 +303,8 @@ class CoarseGrain(namedtuple('CoarseGrain',
     @property
     def micro_indices(self):
         """Indices of micro elements represented in this coarse-graining."""
-        return tuple({index for group in self.output_grouping
-                      for index in group})
+        return tuple(sorted(index for group in self.output_grouping
+                            for index in group))
 
     @property
     def macro_indices(self):
