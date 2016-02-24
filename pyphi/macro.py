@@ -533,18 +533,18 @@ def emergence(network, state):
 
     systems = utils.powerset(network.node_indices)
     for system in systems:
-        (phi, coarse_grain) = coarse_grain(network, state, system)
+        (phi, _coarse_grain) = coarse_grain(network, state, system)
         if (phi - max_phi) > constants.EPSILON:
             max_phi = phi
-            max_coarse_grain = coarse_grain
+            max_coarse_grain = _coarse_grain
             max_system = system
 
     return MacroNetwork(network=network,
                         system=max_system,
                         macro_phi=max_phi,
                         micro_phi=micro_phi,
-                        partition=coarse_grain.output_grouping,
-                        grouping=coarse_grain.state_grouping)
+                        partition=max_coarse_grain.output_grouping,
+                        grouping=max_coarse_grain.state_grouping)
 
 
 def phi_by_grain(network, state):
