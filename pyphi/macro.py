@@ -257,11 +257,17 @@ class MacroSubsystem(Subsystem):
         return self._hash
 
 
-class CoarseGrain(namedtuple('CoarseGrain',
-                             ['partition', 'grouping'])):
-    """Represents a coarse graining of a collection of nodes."""
+class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
+    """Represents a coarse graining of a collection of nodes.
 
-    # TODO: validate grouping size
+    Attributes:
+        partition (tuple(tuple)): The partition of micro-elements into
+            macro-elements.
+        grouping (tuple(tuple(tuple))): The grouping of micro-states into
+            macro-states.
+    """
+    # TODO: validate? Currently implemented in validate.coarse_grain, but
+    # should be moved here if this ever has an __init__ method
 
     def make_mapping(self):
         # TODO: move `make_mapping` function to here entirely
