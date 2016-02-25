@@ -534,6 +534,10 @@ class MacroNetwork:
         self.hidden_indices = hidden_indices
         self.emergence = round(self.phi - self.micro_phi, config.PRECISION)
 
+    def __str__(self):
+        return "MacroNetwork(phi={0}, emergence={1})".format(
+            self.phi, self.emergence)
+
 
 def coarse_grain(network, state, internal_indices):
     """Find the maximal coarse-graining of a micro-system.
