@@ -5,11 +5,6 @@ Emergence (Macro/Micro)
 
 * :func:`pyphi.examples.macro_network`
 
-For this example, we will use the ``pprint`` module to display lists in a way
-which makes them easer to read.
-
-    >>> from pprint import pprint
-
 We'll use the :mod:`~pyphi.macro` module to explore alternate spatial scales of
 a network. The network under consideration is a 4-node non-deterministic
 network, available from the :mod:`~pyphi.examples` module.
@@ -18,7 +13,6 @@ network, available from the :mod:`~pyphi.examples` module.
     >>> network = pyphi.examples.macro_network()
 
 The connectivity matrix is all-to-all:
-
 
     >>> network.connectivity_matrix
     array([[ 1.,  1.,  1.,  1.],
@@ -41,39 +35,31 @@ The question is whether there are other spatial scales which have greater
 values of |big_phi|. This is accomplished by considering all possible
 coarse-graining of micro-elements to form macro-elements. A coarse-graining of
 nodes is any partition of the elements of the micro system. First we'll get a
-list of all possible partitions:
+list of all possible coarse-grainings:
 
-    >>> partitions = pyphi.macro.list_all_partitions(network.node_indices)
-    >>> pprint(partitions)
-    (((0, 1, 2), (3,)),
-     ((0, 1, 3), (2,)),
-     ((0, 1), (2, 3)),
-     ((0, 1), (2,), (3,)),
-     ((0, 2, 3), (1,)),
-     ((0, 2), (1, 3)),
-     ((0, 2), (1,), (3,)),
-     ((0, 3), (1, 2)),
-     ((0,), (1, 2, 3)),
-     ((0,), (1, 2), (3,)),
-     ((0, 3), (1,), (2,)),
-     ((0,), (1, 3), (2,)),
-     ((0,), (1,), (2, 3)),
-     ((0, 1, 2, 3),))
+    >>> grains = list(pyphi.macro.list_all_coarse_grainings(network.node_indices))
 
-Lets start by considering the partition ``((0, 1, 2), (3))``:
+We start by considering the first coarse grain:
 
-    >>> partition = partitions[0]
-    >>> partition
+    >>> coarse_grain = grains[0]
+    >>> coarse_grain
+    CoarseGrain(partition=((0, 1, 2), (3,)), grouping=(((0, 1, 2), (3,)), ((0,), (1,))))
+
+Each ``CoarseGrain`` specifies two fields: the ``partition`` of states into
+macro elements, and the ``grouping`` of micro-states into macro-states. Let's
+first look at the partition:
+
+    >>> coarse_grain.partition
     ((0, 1, 2), (3,))
 
-For this partition there are two macro-elements, one consisting of
+There are two macro-elements in this partiion: one consists of
 micro-elements ``(0, 1, 2)`` and the other is simply micro-element ``3``.
 
 We must then determine the relationship between micro-elements and
-macro-elements. An assumption when coarse-graining the system, is that the
+macro-elements. When coarse-graining the system we assume that the
 resulting macro-elements do not differentiate the different micro-elements.
-Thus any correspondence between states must be stated soley in terms of the
-number of micro-elements which are on, and not depend on which micro-element
+Thus any correspondence between states must be stated solely in terms of the
+number of micro-elements which are on, and not depend on which micro-elements
 are on.
 
 For example, consider the macro-element ``(0, 1, 2)``. We may say that the
@@ -82,25 +68,14 @@ micro-elements are on; however, we may not say that the macro-element is **ON**
 if micro-element ``1`` is on, because this relationship involves identifying
 specific micro-elements.
 
-To see a list of all possible groupings of micro-states into macro-states:
+The ``grouping`` attribute of the ``CoarseGrain`` describes how the state of
+micro-elements describes the state of macro-elements:
 
-    >>> groupings = pyphi.macro.list_all_groupings(partition)
-    >>> pprint(groupings)
-    ((((0, 1, 2), (3,)), ((0,), (1,))),
-     (((0, 1, 3), (2,)), ((0,), (1,))),
-     (((0, 1), (2, 3)), ((0,), (1,))),
-     (((0, 2, 3), (1,)), ((0,), (1,))),
-     (((0, 2), (1, 3)), ((0,), (1,))),
-     (((0, 3), (1, 2)), ((0,), (1,))),
-     (((0,), (1, 2, 3)), ((0,), (1,))))
-
-We will focus on the first grouping in the list.
-
-    >>> grouping = groupings[0]
+    >>> grouping = coarse_grain.grouping
     >>> grouping
     (((0, 1, 2), (3,)), ((0,), (1,)))
 
-The grouping contains two lists, one for each macro-element.
+The grouping consists of two lists, one for each macro-element:
 
     >>> grouping[0]
     ((0, 1, 2), (3,))
@@ -119,7 +94,7 @@ For the second macro-element, the grouping means that the element will be
 One we have selected a partition and grouping for analysis, we can create a
 mapping between micro-states and macro-states:
 
-    >>> mapping = pyphi.macro.make_mapping(partition, grouping)
+    >>> mapping = coarse_grain.make_mapping()
     >>> mapping
     array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  2.,  2.,  2.,  2.,  2.,
             2.,  2.,  3.])
@@ -162,29 +137,24 @@ coarse-graining of the system:
 In these cases :class:`~pyphi.macro.MacroSubsystem` will raise a
 :exception:`~pyphi.macro.ConditionallyDependentError`:
 
-    >>> coarse_grain = pyphi.macro.CoarseGrain(partition, grouping)
     >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
     Traceback (most recent call last):
         ...
     pyphi.macro.ConditionallyDependentError
 
-Lets consider a different partition instead.
+Lets consider a different coarse-graining instead.
 
-    >>> partition = partitions[2]
-    >>> partition
+    >>> coarse_grain = grains[14]
+    >>> coarse_grain.partition
     ((0, 1), (2, 3))
-
-    >>> groupings = pyphi.macro.list_all_groupings(partition)
-    >>> grouping = groupings[0]
-    >>> grouping
+    >>> coarse_grain.grouping
     (((0, 1), (2,)), ((0, 1), (2,)))
 
-    >>> mapping = pyphi.macro.make_mapping(partition, grouping)
+    >>> mapping = coarse_grain.make_mapping()
     >>> mapping
     array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,
             2.,  2.,  3.])
 
-    >>> coarse_grain = pyphi.macro.CoarseGrain(partition, grouping)
     >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
     >>> macro_subsystem
     MacroSubsystem((n0, n1))
