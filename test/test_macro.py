@@ -28,10 +28,10 @@ def test_list_all_partitions():
     )
 
 
-def test_list_all_groupings():
-    assert macro.list_all_groupings(()) == (tuple(),)
+def test_all_groupings():
+    assert list(macro.all_groupings(())) == [()]
     partition = ((0, 1), (2, 3))
-    assert macro.list_all_groupings(partition) == (
+    assert list(macro.all_groupings(partition)) == [
         (((0, 1), (2,)), ((0, 1), (2,))),
         (((0, 1), (2,)), ((0, 2), (1,))),
         (((0, 1), (2,)), ((0,), (1, 2))),
@@ -41,7 +41,7 @@ def test_list_all_groupings():
         (((0,), (1, 2)), ((0, 1), (2,))),
         (((0,), (1, 2)), ((0, 2), (1,))),
         (((0,), (1, 2)), ((0,), (1, 2)))
-    )
+    ]
 
 
 def test_all_coarse_grainings():

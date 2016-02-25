@@ -406,7 +406,7 @@ def list_all_partitions(indices):
                  for partition in partitions)
 
 
-def list_all_groupings(partition):
+def all_groupings(partition):
     """Return all possible groupings of states for a particular coarse graining
     (partition) of a network.
 
@@ -414,21 +414,31 @@ def list_all_groupings(partition):
         partition (tuple(tuple))): A partition of micro-elements into macro
             elements.
 
-    Returns:
-        tuple(tuple(tuple(tuple))): A tuple of all possible correspondences
-            between micro-states and macro-states for the partition.
+    Yields:
+        tuple(tuple(tuple)): A grouping of micro-states into macro states of
+            system.
+
+    TODO: document exactly how to interpret the grouping.
     """
     if not all(len(part) > 0 for part in partition):
         raise ValueError('Each part of the partition must have at least one '
                          'element.')
+
     micro_groupings = [_partitions_list(len(part) + 1) if len(part) > 1
-                             else [[[0], [1]]] for part in partition]
-    groupings = [list(grouping) for grouping in
-                 itertools.product(*micro_groupings) if
-                 np.all(np.array([len(element) < 3 for element in grouping]))]
-    return tuple(tuple(tuple(tuple(state) for state in states)
-                       for states in group)
-                 for group in groupings)
+                       else [[[0], [1]]] for part in partition]
+
+    for grouping in itertools.product(*micro_groupings):
+        if all(len(element) < 3 for element in grouping):
+            yield tuple(tuple(tuple(tuple(state) for state in states)
+                        for states in grouping))
+
+
+def list_all_groupings(partition):
+    """Cast ``all_groupings`` to a list.
+
+    TODO: remove this alias.
+    """
+    return list(all_groupings(partition))
 
 
 def all_coarse_grains(indices):
@@ -441,7 +451,7 @@ def all_coarse_grains(indices):
         CoarseGrain: The next coarse-grain for ``indices``.
     """
     for partition in list_all_partitions(indices):
-        for grouping in list_all_groupings(partition):
+        for grouping in all_groupings(partition):
             yield CoarseGrain(partition, grouping)
 
 
