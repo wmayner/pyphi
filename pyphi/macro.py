@@ -387,23 +387,32 @@ def _partitions_list(N):
             'nodes or more'.format(_NUM_PRECOMPUTED_PARTITION_LISTS))
 
 
-def list_all_partitions(indices):
+def all_partitions(indices):
     """Return a list of all possible coarse grains of a network.
 
     Args:
         indices (tuple(int)): The micro indices to partition.
 
-    Returns:
-        tuple(tuple): A tuple of possible partitions. Each element of the tuple
+    Yields:
+        tuple(tuple): A possible partition. Each element of the tuple
             is a tuple of micro-elements which correspond to macro-elements.
     """
     n = len(indices)
     partitions = _partitions_list(n)
     if n > 0:
         partitions[-1] = [list(range(n))]
-    return tuple(tuple(tuple(indices[i] for i in part)
-                       for part in partition)
-                 for partition in partitions)
+
+    for partition in partitions:
+        yield tuple(tuple(indices[i] for i in part)
+                    for part in partition)
+
+
+def list_all_partitions(indices):
+    """Cast ``all_partitions`` to a list.
+
+    TODO: remove this alias.
+    """
+    list(all_groupings(indices))
 
 
 def all_groupings(partition):
@@ -450,7 +459,7 @@ def all_coarse_grains(indices):
     Yields:
         CoarseGrain: The next coarse-grain for ``indices``.
     """
-    for partition in list_all_partitions(indices):
+    for partition in all_partitions(indices):
         for grouping in all_groupings(partition):
             yield CoarseGrain(partition, grouping)
 

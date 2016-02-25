@@ -8,9 +8,9 @@ import numpy as np
 from pyphi import macro
 
 
-def test_list_all_partitions():
-    assert macro.list_all_partitions(()) == ()
-    assert macro.list_all_partitions((0, 1, 2, 3)) == (
+def test_all_partitions():
+    assert list(macro.all_partitions(())) == []
+    assert list(macro.all_partitions((0, 1, 2, 3))) == [
         ((0, 1, 2), (3,)),
         ((0, 1, 3), (2,)),
         ((0, 1), (2, 3)),
@@ -25,7 +25,7 @@ def test_list_all_partitions():
         ((0,), (1, 3), (2,)),
         ((0,), (1,), (2, 3)),
         ((0, 1, 2, 3),)
-    )
+    ]
 
 
 def test_all_groupings():
