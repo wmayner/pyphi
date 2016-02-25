@@ -178,9 +178,9 @@ scales.
     0.483323
     >>> M.system
     (0, 1, 2, 3)
-    >>> M.partition
+    >>> M.coarse_grain.partition
     ((0, 1), (2, 3))
-    >>> M.grouping
+    >>> M.coarse_grain.grouping
     (((0, 1), (2,)), ((0, 1), (2,)))
 
 The analysis determines the partition and grouping which results in the maximum

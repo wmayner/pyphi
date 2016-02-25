@@ -270,21 +270,18 @@ class MacroNetwork:
             system.
         micro_phi (float): The |big_phi| of the main complex of the
             corresponding micro-system.
-        partition (list): The partition which defines macro-elements in terms
-            of micro-elements.
-        grouping (list(list)): The correspondence between micro-states and
-            macro-states.
+        coarse_grain (CoarseGrain): The coarse-graining of micro-elements into
+            macro-elements.
         emergence (float): The difference between the |big_phi| of the macro-
             and the micro-system.
     """
-    def __init__(self, network, system, macro_phi, micro_phi,
-                 partition, grouping):
+    def __init__(self, network, system, macro_phi, micro_phi, coarse_grain):
+
         self.network = network
         self.system = system
         self.phi = macro_phi
         self.micro_phi = micro_phi
-        self.partition = partition
-        self.grouping = grouping
+        self.coarse_grain = coarse_grain
         self.emergence = round(self.phi - self.micro_phi, config.PRECISION)
 
 
@@ -590,8 +587,7 @@ def emergence(network, state):
                         system=max_system,
                         macro_phi=max_phi,
                         micro_phi=micro_phi,
-                        partition=max_coarse_grain.partition,
-                        grouping=max_coarse_grain.grouping)
+                        coarse_grain=max_coarse_grain)
 
 
 def blackbox_emergence(network, state, time_scales=None):
@@ -613,7 +609,6 @@ def blackbox_emergence(network, state, time_scales=None):
         for time_scale in time_scales:
             for hidden_indices in utils.powerset(system):
                 output_indices = tuple(sorted(set(system) - set(hidden_indices)))
-
                 for coarse_grain in all_coarse_grains(output_indices):
                     try:
                         subsystem = MacroSubsystem(network, state, system,
