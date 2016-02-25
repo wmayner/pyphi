@@ -517,16 +517,21 @@ class MacroNetwork:
             corresponding micro-system.
         coarse_grain (CoarseGrain): The coarse-graining of micro-elements into
             macro-elements.
+        time_scale (int): The time scale the macro-network run over.
+        hidden_indices (tuple(int)): Indices which are hidden by blackboxing.
         emergence (float): The difference between the |big_phi| of the macro-
             and the micro-system.
     """
-    def __init__(self, network, system, macro_phi, micro_phi, coarse_grain):
+    def __init__(self, network, system, macro_phi, micro_phi, coarse_grain,
+                 time_scale=1, hidden_indices=None):
 
         self.network = network
         self.system = system
         self.phi = macro_phi
         self.micro_phi = micro_phi
+        self.time_scale = time_scale
         self.coarse_grain = coarse_grain
+        self.hidden_indices = hidden_indices
         self.emergence = round(self.phi - self.micro_phi, config.PRECISION)
 
 
@@ -601,9 +606,7 @@ def blackbox_emergence(network, state, time_scales=None):
     micro_phi = compute.main_complex(network, state).phi
 
     max_phi = float('-inf')
-    max_blackbox = None
-    max_time_scale = None
-    max_coarse_grain = None
+    max_network = None
 
     for system in utils.powerset(network.node_indices):
         for time_scale in time_scales:
@@ -611,10 +614,11 @@ def blackbox_emergence(network, state, time_scales=None):
                 output_indices = tuple(sorted(set(system) - set(hidden_indices)))
                 for coarse_grain in all_coarse_grains(output_indices):
                     try:
-                        subsystem = MacroSubsystem(network, state, system,
-                                                   time_scale=time_scale,
-                                                   hidden_indices=hidden_indices,
-                                                   coarse_grain=coarse_grain)
+                        subsystem = MacroSubsystem(
+                            network, state, system,
+                            time_scale=time_scale,
+                            hidden_indices=hidden_indices,
+                            coarse_grain=coarse_grain)
                     except (validate.StateUnreachableError,
                             ConditionallyDependentError):
                         continue
@@ -623,11 +627,16 @@ def blackbox_emergence(network, state, time_scales=None):
 
                     if (phi - max_phi) > constants.EPSILON:
                         max_phi = phi
-                        max_blackbox = hidden_indices
-                        max_time_scale = time_scale
-                        max_coarse_grain = coarse_grain
+                        max_network = MacroNetwork(
+                            network=network,
+                            macro_phi=phi,
+                            micro_phi=micro_phi,
+                            system=system,
+                            time_scale=time_scale,
+                            hidden_indices=hidden_indices,
+                            coarse_grain=coarse_grain)
 
-    return (max_phi, max_blackbox, max_time_scale, max_coarse_grain)
+    return max_network
 
 
 def phi_by_grain(network, state):
