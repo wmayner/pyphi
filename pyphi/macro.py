@@ -257,34 +257,6 @@ class MacroSubsystem(Subsystem):
         return self._hash
 
 
-class MacroNetwork:
-    """A coarse-grained network of nodes.
-
-    See the :ref:`macro-micro` example in the documentation for more
-    information.
-
-    Attributes:
-        network (Network): The network object of the macro-system.
-        phi (float): The |big_phi| of the network's main complex.
-        micro_network (Network): The network object of the corresponding micro
-            system.
-        micro_phi (float): The |big_phi| of the main complex of the
-            corresponding micro-system.
-        coarse_grain (CoarseGrain): The coarse-graining of micro-elements into
-            macro-elements.
-        emergence (float): The difference between the |big_phi| of the macro-
-            and the micro-system.
-    """
-    def __init__(self, network, system, macro_phi, micro_phi, coarse_grain):
-
-        self.network = network
-        self.system = system
-        self.phi = macro_phi
-        self.micro_phi = micro_phi
-        self.coarse_grain = coarse_grain
-        self.emergence = round(self.phi - self.micro_phi, config.PRECISION)
-
-
 class CoarseGrain(namedtuple('CoarseGrain',
                              ['partition', 'grouping'])):
     """Represents a coarse graining of a collection of nodes."""
@@ -528,6 +500,34 @@ def make_mapping(partition, grouping):
         # Record the mapping.
         mapping[micro_state_index] = convert.state2loli_index(macro_state)
     return mapping
+
+
+class MacroNetwork:
+    """A coarse-grained network of nodes.
+
+    See the :ref:`macro-micro` example in the documentation for more
+    information.
+
+    Attributes:
+        network (Network): The network object of the macro-system.
+        phi (float): The |big_phi| of the network's main complex.
+        micro_network (Network): The network object of the corresponding micro
+            system.
+        micro_phi (float): The |big_phi| of the main complex of the
+            corresponding micro-system.
+        coarse_grain (CoarseGrain): The coarse-graining of micro-elements into
+            macro-elements.
+        emergence (float): The difference between the |big_phi| of the macro-
+            and the micro-system.
+    """
+    def __init__(self, network, system, macro_phi, micro_phi, coarse_grain):
+
+        self.network = network
+        self.system = system
+        self.phi = macro_phi
+        self.micro_phi = micro_phi
+        self.coarse_grain = coarse_grain
+        self.emergence = round(self.phi - self.micro_phi, config.PRECISION)
 
 
 def coarse_grain(network, state, internal_indices):
