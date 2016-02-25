@@ -287,14 +287,14 @@ class MacroNetwork:
 
 
 class CoarseGrain(namedtuple('CoarseGrain',
-                             ['output_grouping', 'state_grouping'])):
+                             ['partition', 'grouping'])):
     """Represents a coarse graining of a collection of nodes."""
 
     # TODO: validate grouping size
 
     def make_mapping(self):
         # TODO: move `make_mapping` function to here entirely
-        return make_mapping(self.output_grouping, self.state_grouping)
+        return make_mapping(self.partition, self.grouping)
 
     def make_macro_tpm(self, tpm):
         return make_macro_tpm(tpm, self.make_mapping())
@@ -302,13 +302,13 @@ class CoarseGrain(namedtuple('CoarseGrain',
     @property
     def micro_indices(self):
         """Indices of micro elements represented in this coarse-graining."""
-        return tuple(sorted(index for group in self.output_grouping
+        return tuple(sorted(index for group in self.partition
                             for index in group))
 
     @property
     def macro_indices(self):
         """Indices of macro elements of this coarse-graining."""
-        return tuple(range(len(self.output_grouping)))
+        return tuple(range(len(self.partition)))
 
     def reindex(self):
         """Re-index this coarse graining to use squeezed indices.
@@ -321,18 +321,18 @@ class CoarseGrain(namedtuple('CoarseGrain',
             CoarseGrain: A new CoarseGrain object, indexed from `0..n`
 
         Example:
-            >>> output_grouping = ((1, 2),)
-            >>> state_grouping = (((0,), (1, 2)),)
-            >>> coarse_grain = CoarseGrain(output_grouping, state_grouping)
+            >>> partition = ((1, 2),)
+            >>> grouping = (((0,), (1, 2)),)
+            >>> coarse_grain = CoarseGrain(partition, grouping)
             >>> coarse_grain.reindex()
-            CoarseGrain(output_grouping=((0, 1),), state_grouping=(((0,), (1, 2)),))
+            CoarseGrain(partition=((0, 1),), grouping=(((0,), (1, 2)),))
         """
         _map = dict(zip(self.micro_indices, reindex(self.micro_indices)))
-        output_grouping = tuple(
+        partition = tuple(
             tuple(_map[index] for index in group)
-            for group in self.output_grouping
+            for group in self.partition
         )
-        return CoarseGrain(output_grouping, self.state_grouping)
+        return CoarseGrain(partition, self.grouping)
 
     def macro_state(self, micro_state):
         """Translate a micro state to a macro state
@@ -359,8 +359,8 @@ class CoarseGrain(namedtuple('CoarseGrain',
         reindexed = self.reindex()
 
         micro_state = np.array(micro_state)
-        return tuple(0 if sum(micro_state[list(reindexed.output_grouping[i])])
-                     in self.state_grouping[i][0] else 1
+        return tuple(0 if sum(micro_state[list(reindexed.partition[i])])
+                     in self.grouping[i][0] else 1
                      for i in self.macro_indices)
 
 
@@ -421,10 +421,10 @@ def list_all_groupings(partition):
     if not all(len(part) > 0 for part in partition):
         raise ValueError('Each part of the partition must have at least one '
                          'element.')
-    micro_state_groupings = [_partitions_list(len(part) + 1) if len(part) > 1
+    micro_groupings = [_partitions_list(len(part) + 1) if len(part) > 1
                              else [[[0], [1]]] for part in partition]
     groupings = [list(grouping) for grouping in
-                 itertools.product(*micro_state_groupings) if
+                 itertools.product(*micro_groupings) if
                  np.all(np.array([len(element) < 3 for element in grouping]))]
     return tuple(tuple(tuple(tuple(state) for state in states)
                        for states in group)
@@ -562,8 +562,8 @@ def emergence(network, state):
                         system=max_system,
                         macro_phi=max_phi,
                         micro_phi=micro_phi,
-                        partition=max_coarse_grain.output_grouping,
-                        grouping=max_coarse_grain.state_grouping)
+                        partition=max_coarse_grain.partition,
+                        grouping=max_coarse_grain.grouping)
 
 
 def phi_by_grain(network, state):

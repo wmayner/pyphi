@@ -54,7 +54,7 @@ class Subsystem:
 
     def __init__(self, network, state, node_indices, cut=None,
                  mice_cache=None, repertoire_cache=None, hidden_indices=None,
-                 output_grouping=None, state_grouping=None, time_scale=1):
+                 partition=None, grouping=None, time_scale=1):
         """Construct a Subsystem."""
         # The network this subsystem belongs to.
         self.network = network

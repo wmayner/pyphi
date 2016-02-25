@@ -185,10 +185,10 @@ def time_scale(time_scale):
 
 def coarse_grain(cg):
     """Validate a macro coarse-graining."""
-    if len(cg.output_grouping) != len(cg.state_grouping):
+    if len(cg.partition) != len(cg.grouping):
         raise ValueError('output and state groupings must be the same size')
 
-    for og, sg in zip(cg.output_grouping, cg.state_grouping):
+    for og, sg in zip(cg.partition, cg.grouping):
         if set(range(len(og) + 1)) != set(sg[0] + sg[1]):
             # Check that every possible number of elements in og is in one of
             # the two state groupings

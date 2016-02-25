@@ -46,8 +46,8 @@ def test_list_all_groupings():
 
 def test_all_coarse_grainings():
     assert tuple(macro.list_all_coarse_grainings((1,))) == (
-        macro.CoarseGrain(output_grouping=((1,),),
-                          state_grouping=(((0,), (1,)),)),)
+        macro.CoarseGrain(partition=((1,),),
+                          grouping=(((0,), (1,)),)),)
 
 def test_make_mapping():
     partition = ((0, 1), (2, 3))
@@ -82,18 +82,18 @@ def test_make_macro_tpm():
 
 
 def test_coarse_grain_indices():
-    output_grouping = ((1, 2),)  # Node 0 not in system
-    state_grouping = (((0,), (1, 2)),)
-    cg = macro.CoarseGrain(output_grouping, state_grouping)
+    partition = ((1, 2),)  # Node 0 not in system
+    grouping = (((0,), (1, 2)),)
+    cg = macro.CoarseGrain(partition, grouping)
     assert cg.micro_indices == (1, 2)
     assert cg.macro_indices == (0,)
-    assert cg.reindex() == macro.CoarseGrain(((0, 1),), state_grouping)
+    assert cg.reindex() == macro.CoarseGrain(((0, 1),), grouping)
 
 
 def test_coarse_grain_state():
-    output_grouping = ((0, 1),)
-    state_grouping = (((0,), (1, 2)),)
-    cg = macro.CoarseGrain(output_grouping, state_grouping)
+    partition = ((0, 1),)
+    grouping = (((0,), (1, 2)),)
+    cg = macro.CoarseGrain(partition, grouping)
     with pytest.raises(AssertionError):
         assert cg.macro_state((1, 1, 0)) == (1,)
 
@@ -101,8 +101,8 @@ def test_coarse_grain_state():
     assert cg.macro_state((0, 1)) == (1,)
     assert cg.macro_state((1, 1)) == (1,)
 
-    output_grouping = ((1,), (2,))
-    state_grouping = (((0,), (1,)), ((1,), (0,)))
-    cg = macro.CoarseGrain(output_grouping, state_grouping)
+    partition = ((1,), (2,))
+    grouping = (((0,), (1,)), ((1,), (0,)))
+    cg = macro.CoarseGrain(partition, grouping)
     assert cg.macro_state((0, 1)) == (0, 0)
     assert cg.macro_state((1, 1)) == (1, 0)

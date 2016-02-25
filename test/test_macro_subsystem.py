@@ -30,9 +30,9 @@ def macro_subsystem():
 
     network = pyphi.Network(tpm, connectivity_matrix=cm)
 
-    output_grouping = ((0, 1), (2, 3))
-    state_grouping = (((0, 1), (2,)), ((0, 1), (2,)))
-    coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
+    partition = ((0, 1), (2, 3))
+    grouping = (((0, 1), (2,)), ((0, 1), (2,)))
+    coarse_grain = macro.CoarseGrain(partition, grouping)
 
     return macro.MacroSubsystem(network, state, network.node_indices,
                                      coarse_grain=coarse_grain)
@@ -245,8 +245,8 @@ def test_blackbox_external(s):
 
 
 def test_coarse_grain(s):
-    coarse_grain = macro.CoarseGrain(output_grouping=((0, 1), (2,)),
-                                     state_grouping=((((0, 1), (2,)), ((0,), (1,)))))
+    coarse_grain = macro.CoarseGrain(partition=((0, 1), (2,)),
+                                     grouping=((((0, 1), (2,)), ((0,), (1,)))))
     ms = macro.MacroSubsystem(s.network, s.state, s.node_indices,
                               coarse_grain=coarse_grain)
     answer_tpm = np.array(
@@ -261,8 +261,8 @@ def test_coarse_grain(s):
 
 
 def test_blackbox_and_coarse_grain(s):
-    coarse_grain = macro.CoarseGrain(output_grouping=((0, 2),),
-                                     state_grouping=((((0, 1), (2,)),)))
+    coarse_grain = macro.CoarseGrain(partition=((0, 2),),
+                                     grouping=((((0, 1), (2,)),)))
     ms = macro.MacroSubsystem(s.network, s.state, s.node_indices,
                               hidden_indices=(1,), coarse_grain=coarse_grain)
     assert np.array_equal(ms.tpm, np.array([[0], [1]]))
@@ -279,9 +279,9 @@ def test_blackbox_and_coarse_grain_external(s):
     state = (0, 0, 0, 0, 0, 0)
 
     hidden_indices = (4,)
-    output_grouping = ((1,), (2,), (3, 5))
-    state_grouping = (((0,), (1,)), ((1,), (0,)), ((0,), (1, 2)))
-    coarse_grain = macro.CoarseGrain(output_grouping, state_grouping)
+    partition = ((1,), (2,), (3, 5))
+    grouping = (((0,), (1,)), ((1,), (0,)), ((0,), (1, 2)))
+    coarse_grain = macro.CoarseGrain(partition, grouping)
     ms = macro.MacroSubsystem(network, state, (1, 2, 3, 4, 5),
                               hidden_indices=hidden_indices,
                               coarse_grain=coarse_grain)
