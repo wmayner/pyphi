@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # test_macro.py
 
+import pytest
+
 import numpy as np
 from pyphi import macro
 
@@ -89,16 +91,18 @@ def test_coarse_grain_indices():
 
 
 def test_coarse_grain_state():
-    output_grouping = ((1, 2),)
+    output_grouping = ((0, 1),)
     state_grouping = (((0,), (1, 2)),)
     cg = macro.CoarseGrain(output_grouping, state_grouping)
-    assert cg.macro_state((1, 0, 0)) == (0,)
-    assert cg.macro_state((0, 0, 1)) == (1,)
-    assert cg.macro_state((0, 1, 1)) == (1,)
-    assert cg.macro_state((1, 1, 0)) == (1,)
+    with pytest.raises(AssertionError):
+        assert cg.macro_state((1, 1, 0)) == (1,)
+
+    assert cg.macro_state((0, 0)) == (0,)
+    assert cg.macro_state((0, 1)) == (1,)
+    assert cg.macro_state((1, 1)) == (1,)
 
     output_grouping = ((1,), (2,))
     state_grouping = (((0,), (1,)), ((1,), (0,)))
     cg = macro.CoarseGrain(output_grouping, state_grouping)
-    assert cg.macro_state((1, 0, 1)) == (0, 0)
-    assert cg.macro_state((0, 1, 1)) == (1, 0)
+    assert cg.macro_state((0, 1)) == (0, 0)
+    assert cg.macro_state((1, 1)) == (1, 0)

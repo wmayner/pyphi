@@ -338,22 +338,29 @@ class CoarseGrain(namedtuple('CoarseGrain',
     def macro_state(self, micro_state):
         """Translate a micro state to a macro state
 
-        .. warning::
-
-            This will return incorrect results if this CoarseGrain has been
-            re-indexed unless the `micro_state` has also been re-indexed
-            (shrunk to `len(self.micro_indices)`, containing only the state of
-            `self.micro_indices`.)
-
         Args:
-            micro_state (tuple(int)): The state of the micro system.
+            micro_state (tuple(int)): The state of the micro nodes in this
+                coarse-graining.
 
         Returns:
             tuple(int): The state of the macro system, translated as specified
                 by this coarse-graining.
+
+        Example:
+            >>> coarse_grain = CoarseGrain(((1, 2),), (((0,), (1, 2)),))
+            >>> coarse_grain.macro_state((0, 0))
+            (0,)
+            >>> coarse_grain.macro_state((1, 0))
+            (1,)
+            >>> coarse_grain.macro_state((1, 1))
+            (1,)
         """
+        assert len(micro_state) == len(self.micro_indices)
+
+        reindexed = self.reindex()
+
         micro_state = np.array(micro_state)
-        return tuple(0 if sum(micro_state[list(self.output_grouping[i])])
+        return tuple(0 if sum(micro_state[list(reindexed.output_grouping[i])])
                      in self.state_grouping[i][0] else 1
                      for i in self.macro_indices)
 
