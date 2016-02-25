@@ -37,7 +37,7 @@ coarse-graining of micro-elements to form macro-elements. A coarse-graining of
 nodes is any partition of the elements of the micro system. First we'll get a
 list of all possible coarse-grainings:
 
-    >>> grains = list(pyphi.macro.list_all_coarse_grainings(network.node_indices))
+    >>> grains = list(pyphi.macro.all_coarse_grains(network.node_indices))
 
 We start by considering the first coarse grain:
 

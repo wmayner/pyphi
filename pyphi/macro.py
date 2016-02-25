@@ -431,8 +431,15 @@ def list_all_groupings(partition):
                  for group in groupings)
 
 
-def list_all_coarse_grainings(indices):
-    """Returns all possible ``CoarseGrains`` over these indices. """
+def all_coarse_grains(indices):
+    """Generator over all possible ``CoarseGrains`` of these indices.
+
+    Args:
+        indices (tuple(int)): Node indices to coarse grain.
+
+    Yields:
+        CoarseGrain: The next coarse-grain for ``indices``.
+    """
     for partition in list_all_partitions(indices):
         for grouping in list_all_groupings(partition):
             yield CoarseGrain(partition, grouping)
@@ -519,7 +526,7 @@ def coarse_grain(network, state, internal_indices):
     max_phi = float('-inf')
     max_coarse_grain = CoarseGrain((), ())
 
-    for coarse_grain in list_all_coarse_grainings(internal_indices):
+    for coarse_grain in all_coarse_grains(internal_indices):
         try:
             subsystem = MacroSubsystem(network, state, internal_indices,
                                        coarse_grain=coarse_grain)
@@ -575,7 +582,7 @@ def phi_by_grain(network, state):
         phi = compute.big_phi(micro_subsystem)
         list_of_phi.append([len(micro_subsystem), phi, system, None])
 
-        for coarse_grain in list_all_coarse_grainings(system):
+        for coarse_grain in all_coarse_grains(system):
             try:
                 subsystem = MacroSubsystem(network, state, system,
                                            coarse_grain=coarse_grain)
