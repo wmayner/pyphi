@@ -142,8 +142,7 @@ class MacroSubsystem(Subsystem):
         # shrunk to the size of the internal nodes.
         cm = self.cm[np.ix_(internal_indices, internal_indices)]
 
-        # State of the internal indices
-        state = tuple(self.state[i] for i in internal_indices)
+        state = utils.state_of(internal_indices, self.state)
 
         return (tpm, cm, node_indices, state)
 
@@ -177,7 +176,7 @@ class MacroSubsystem(Subsystem):
         n = len(output_indices)
         cm = np.ones((n, n))
 
-        state = tuple(self.state[index] for index in output_indices)
+        state = utils.state_of(output_indices, self.state)
         node_indices = reindex(output_indices)
 
         return (tpm, cm, node_indices, state)
