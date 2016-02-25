@@ -304,4 +304,6 @@ def test_blackbox_and_coarse_grain_external(s):
 def test_blackbox_emergence():
     network = pyphi.examples.macro_network
     state = (0, 0, 0, 0)
-    macro.blackbox_emergence(network(), state, time_scales=[1, 2])
+    result = macro.blackbox_emergence(network(), state, time_scales=[1, 2])
+    assert result.phi == 0.713678
+    assert result.emergence == 0.599789
