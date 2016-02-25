@@ -170,7 +170,9 @@ class MacroSubsystem(Subsystem):
         """
         # TODO: validate conditional independence?
         tpm = utils.condition_tpm(self.tpm, hidden_indices, self.state)
-        tpm = np.squeeze(tpm)[..., output_indices]
+
+        if len(self.node_indices) > 1:
+            tpm = np.squeeze(tpm)[..., output_indices]
 
         # Universal connectivity, for now.
         n = len(output_indices)
@@ -590,6 +592,47 @@ def emergence(network, state):
                         micro_phi=micro_phi,
                         partition=max_coarse_grain.partition,
                         grouping=max_coarse_grain.grouping)
+
+
+def blackbox_emergence(network, state, time_scales=None):
+    """Check for the emergence of a micro-system into a macro-system, using
+    blackboxing and coarse-graining.
+    """
+
+    if time_scales is None:
+        time_scales = [1]
+
+    micro_phi = compute.main_complex(network, state).phi
+
+    max_phi = float('-inf')
+    max_blackbox = None
+    max_time_scale = None
+    max_coarse_grain = None
+
+    for system in utils.powerset(network.node_indices):
+        for time_scale in time_scales:
+            for hidden_indices in utils.powerset(system):
+                output_indices = tuple(sorted(set(system) - set(hidden_indices)))
+
+                for coarse_grain in all_coarse_grains(output_indices):
+                    try:
+                        subsystem = MacroSubsystem(network, state, system,
+                                                   time_scale=time_scale,
+                                                   hidden_indices=hidden_indices,
+                                                   coarse_grain=coarse_grain)
+                    except (validate.StateUnreachableError,
+                            ConditionallyDependentError):
+                        continue
+
+                    phi = compute.big_phi(subsystem)
+
+                    if (phi - max_phi) > constants.EPSILON:
+                        max_phi = phi
+                        max_blackbox = hidden_indices
+                        max_time_scale = time_scale
+                        max_coarse_grain = coarse_grain
+
+    return (max_phi, max_blackbox, max_time_scale, max_coarse_grain)
 
 
 def phi_by_grain(network, state):

@@ -299,3 +299,9 @@ def test_blackbox_and_coarse_grain_external(s):
     assert ms.node_indices == (0, 1, 2)
     assert ms.size == 3
     assert ms.state == (0, 1, 0)
+
+
+def test_blackbox_emergence():
+    network = pyphi.examples.macro_network
+    state = (0, 0, 0, 0)
+    macro.blackbox_emergence(network(), state, time_scales=[1, 2])
