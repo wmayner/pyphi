@@ -116,3 +116,8 @@ def test_coarse_grain_state():
     cg = macro.CoarseGrain(partition, grouping)
     assert cg.macro_state((0, 1)) == (0, 0)
     assert cg.macro_state((1, 1)) == (1, 0)
+
+
+def test_blackbox_indices():
+    bb = macro.Blackbox((1,), (3, 4))
+    assert bb.reindex() == macro.Blackbox((0,), (1, 2))

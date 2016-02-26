@@ -72,17 +72,10 @@ class MacroSubsystem(Subsystem):
         # Blackbox in space
         # =================
         if blackbox is not None:
-            hidden_indices = blackbox.hidden_indices
-            output_indices = blackbox.output_indices
-
-            # Reindex hidden and output indices to line up with
-            # self.node_indices which are now indexed from 0..n
-            _map = dict(zip(internal_indices, self.node_indices))
-            hidden_indices = tuple(_map[i] for i in hidden_indices)
-            output_indices = tuple(_map[i] for i in output_indices)
-
+            blackbox = blackbox.reindex()
             self.tpm, self.cm, self.node_indices, self._state = (
-                self._blackbox_space(hidden_indices, output_indices))
+                self._blackbox_space(blackbox.hidden_indices,
+                                     blackbox.output_indices))
 
         # Coarse-grain in space
         # =====================
@@ -348,7 +341,23 @@ class Blackbox(namedtuple('Blackbox', ['hidden_indices', 'output_indices'])):
         hidden_indices (tuple(int)): Nodes which are hidden inside blackboxes.
         output_indices (tuple(int)): Outputs of the blackboxes.
     """
-    pass
+
+    def reindex(self):
+        """Squeeze the indices of this blackboxing to ``0..n``.
+
+        Returns:
+            Blackbox: a new, reindexed ``Blackbox``.
+        """
+        internal_indices = tuple(sorted(self.hidden_indices +
+                                        self.output_indices))
+        macro_indices = reindex(internal_indices)
+
+        # Reindex hidden and output indices to line up with
+        _map = dict(zip(internal_indices, macro_indices))
+        hidden_indices = tuple(_map[i] for i in self.hidden_indices)
+        output_indices = tuple(_map[i] for i in self.output_indices)
+
+        return Blackbox(hidden_indices, output_indices)
 
 
 def _partitions_list(N):
