@@ -81,7 +81,6 @@ class MacroSubsystem(Subsystem):
         # =====================
         if coarse_grain is not None:
             validate.coarse_grain(coarse_grain)
-            # Reindex the coarse graining
             coarse_grain = coarse_grain.reindex()
             self.tpm, self.cm, self.node_indices, self._state = (
                 self._coarsegrain_space(coarse_grain))
