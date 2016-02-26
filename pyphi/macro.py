@@ -612,8 +612,18 @@ def emergence(network, state):
 def blackbox_emergence(network, state, time_scales=None):
     """Check for the emergence of a micro-system into a macro-system, using
     blackboxing and coarse-graining.
-    """
 
+    Args:
+        network (Network): The network of the micro-system under investigation.
+        state (tuple(int)): The state of the network.
+        time_scales (list(int)): List of all time steps to check for emergence.
+
+    Returns:
+        MacroNetwork: The maximal coarse-graining of the micro-system.
+
+    TODO: refactor this to ``emergence``; parameterize so that you can choose
+    blackboxing, coarse-graining, or both.
+    """
     if time_scales is None:
         time_scales = [1]
 
