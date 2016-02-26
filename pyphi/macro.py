@@ -75,6 +75,7 @@ class MacroSubsystem(Subsystem):
         # Blackbox in space
         # =================
         if blackbox is not None:
+            validate.blackbox(blackbox)
             blackbox = blackbox.reindex()
             self.tpm, self.cm, self.node_indices, self._state = (
                 self._blackbox_space(blackbox))

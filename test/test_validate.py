@@ -125,3 +125,11 @@ def test_validate_coarse_grain():
     cg = macro.CoarseGrain(((2,), (3,)), (((0,), (1,)), (((0,), ()))))
     with pytest.raises(ValueError):
         validate.coarse_grain(cg)
+
+
+def test_validate_blackbox():
+    validate.blackbox(macro.Blackbox((0,), (1,)))
+
+    # Repeated nodes
+    with pytest.raises(ValueError):
+        validate.blackbox(macro.Blackbox((0, 1), (1, 2)))

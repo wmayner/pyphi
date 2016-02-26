@@ -194,3 +194,11 @@ def coarse_grain(cg):
             # the two state groupings
             raise ValueError('elements in output grouping {0} do not match '
                              'elements in state grouping {1}'.format(og, sg))
+
+
+def blackbox(blackbox):
+    """Validate a macro blackboxing."""
+    if set(blackbox.hidden_indices) & set(blackbox.output_indices):
+        raise ValueError(
+            'Hidden {0} and output {1} indices must be disjoint.'.format(
+                blackbox.hidden_indices, blackbox.output_indices))
