@@ -341,6 +341,17 @@ class Blackbox(namedtuple('Blackbox', ['hidden_indices', 'output_indices'])):
         hidden_indices (tuple(int)): Nodes which are hidden inside blackboxes.
         output_indices (tuple(int)): Outputs of the blackboxes.
     """
+    # TODO: validate!
+
+    @property
+    def micro_indices(self):
+        """Indices of micro-elements in this blackboxing."""
+        return tuple(sorted(self.hidden_indices + self.output_indices))
+
+    @property
+    def macro_indices(self):
+        """Fresh indices of macro-elements of the blackboxing."""
+        return reindex(self.output_indices)
 
     def reindex(self):
         """Squeeze the indices of this blackboxing to ``0..n``.
@@ -348,12 +359,7 @@ class Blackbox(namedtuple('Blackbox', ['hidden_indices', 'output_indices'])):
         Returns:
             Blackbox: a new, reindexed ``Blackbox``.
         """
-        internal_indices = tuple(sorted(self.hidden_indices +
-                                        self.output_indices))
-        macro_indices = reindex(internal_indices)
-
-        # Reindex hidden and output indices to line up with
-        _map = dict(zip(internal_indices, macro_indices))
+        _map = dict(zip(self.micro_indices, reindex(self.micro_indices)))
         hidden_indices = tuple(_map[i] for i in self.hidden_indices)
         output_indices = tuple(_map[i] for i in self.output_indices)
 

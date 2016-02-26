@@ -120,4 +120,6 @@ def test_coarse_grain_state():
 
 def test_blackbox_indices():
     bb = macro.Blackbox((1,), (3, 4))
+    assert bb.micro_indices == (1, 3, 4)
+    assert bb.macro_indices == (0, 1)
     assert bb.reindex() == macro.Blackbox((0,), (1, 2))
