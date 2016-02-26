@@ -303,6 +303,7 @@ def test_blackbox_and_coarse_grain_external(s):
     assert ms.state == (0, 1, 0)
 
 
+@pytest.mark.slow
 def test_blackbox_emergence():
     network = pyphi.examples.macro_network
     state = (0, 0, 0, 0)
