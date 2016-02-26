@@ -49,6 +49,16 @@ def test_all_coarse_grainings():
         macro.CoarseGrain(partition=((1,),),
                           grouping=(((0,), (1,)),)),)
 
+
+def test_all_blackboxes():
+    assert list(macro.all_blackboxes((1, 2))) == [
+        macro.Blackbox((), (1, 2)),
+        macro.Blackbox((1,), (2,)),
+        macro.Blackbox((2,), (1,)),
+        macro.Blackbox((1, 2), ()),
+    ]
+
+
 def test_make_mapping():
     partition = ((0, 1), (2, 3))
     grouping = (((0, 1), (2,)), ((0, 1), (2,)))

@@ -451,6 +451,19 @@ def all_coarse_grains(indices):
             yield CoarseGrain(partition, grouping)
 
 
+def all_blackboxes(indices):
+    """Generator over all possible blackboxings of these indices.
+
+    Args:
+        indices (tuple(int)): Nodes to blackbox.
+
+    Yields:
+        Blackbox: The next blackbox of ``indices``.
+    """
+    for hidden_indices, output_indices in utils.directed_bipartition(indices):
+        yield Blackbox(hidden_indices, output_indices)
+
+
 def make_macro_tpm(micro_tpm, mapping):
     """Create the macro TPM for a given mapping from micro to macro-states.
 
@@ -644,10 +657,8 @@ def blackbox_emergence(network, state, time_scales=None):
 
     for system in utils.powerset(network.node_indices):
         for time_scale in time_scales:
-            for hidden_indices in utils.powerset(system):
-                output_indices = tuple(sorted(set(system) - set(hidden_indices)))
-                blackbox = Blackbox(hidden_indices, output_indices)
-                for coarse_grain in all_coarse_grains(output_indices):
+            for blackbox in all_blackboxes(system):
+                for coarse_grain in all_coarse_grains(blackbox.output_indices):
                     try:
                         subsystem = MacroSubsystem(
                             network, state, system,
@@ -668,7 +679,7 @@ def blackbox_emergence(network, state, time_scales=None):
                             micro_phi=micro_phi,
                             system=system,
                             time_scale=time_scale,
-                            hidden_indices=hidden_indices,
+                            hidden_indices=blackbox.hidden_indices,
                             coarse_grain=coarse_grain)
 
     return max_network
