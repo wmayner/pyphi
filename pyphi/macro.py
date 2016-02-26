@@ -53,18 +53,15 @@ class MacroSubsystem(Subsystem):
 
         # Store original arguments to use in `apply_cut`
         self._network_state = state
-        self._node_indices = node_indices
+        self._node_indices = node_indices  # Internal nodes
         self._time_scale = time_scale
         self._blackbox = blackbox
         self._coarse_grain = coarse_grain
 
-        # Indices internal to the micro subsystem
-        internal_indices = node_indices
-
         # Shrink TPM to size of internal indices
         # ======================================
         self.tpm, self.cm, self.node_indices, self._state = (
-            self._squeeze(internal_indices))
+            self._squeeze(node_indices))
 
         # Blackbox over time
         # ==================
