@@ -42,6 +42,9 @@ class MacroSubsystem(Subsystem):
     We maintain the following invariant after each macro update:
     `tpm.shape == [2] * len(state) + [len(state)]`.
      """
+     # TODO refactor the _blackbox_space, _coarsegrain_space methods to methods
+     # on their respective Blackbox and CoarseGrain objects? This would nicely
+     # abstract the logic into a discrete, disconnected transformation.
 
     def __init__(self, network, state, node_indices, cut=None,
                  mice_cache=None, time_scale=1, blackbox=None,
@@ -74,8 +77,7 @@ class MacroSubsystem(Subsystem):
         if blackbox is not None:
             blackbox = blackbox.reindex()
             self.tpm, self.cm, self.node_indices, self._state = (
-                self._blackbox_space(blackbox.hidden_indices,
-                                     blackbox.output_indices))
+                self._blackbox_space(blackbox))
 
         # Coarse-grain in space
         # =====================
@@ -150,7 +152,7 @@ class MacroSubsystem(Subsystem):
 
         return (tpm, cm)
 
-    def _blackbox_space(self, hidden_indices, output_indices):
+    def _blackbox_space(self, blackbox):
         """Blackbox the TPM and CM in space.
 
         Conditions the TPM on the current value of the hidden nodes. The CM is
@@ -162,17 +164,18 @@ class MacroSubsystem(Subsystem):
         state of the subsystem.
         """
         # TODO: validate conditional independence?
-        tpm = utils.condition_tpm(self.tpm, hidden_indices, self.state)
+        tpm = utils.condition_tpm(self.tpm, blackbox.hidden_indices,
+                                  self.state)
 
         if len(self.node_indices) > 1:
-            tpm = np.squeeze(tpm)[..., output_indices]
+            tpm = np.squeeze(tpm)[..., blackbox.output_indices]
 
         # Universal connectivity, for now.
-        n = len(output_indices)
+        n = len(blackbox.output_indices)
         cm = np.ones((n, n))
 
-        state = utils.state_of(output_indices, self.state)
-        node_indices = reindex(output_indices)
+        state = utils.state_of(blackbox.output_indices, self.state)
+        node_indices = blackbox.macro_indices
 
         return (tpm, cm, node_indices, state)
 
