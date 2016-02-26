@@ -198,7 +198,8 @@ def test_init_subsystem_in_time(s):
 def test_macro_cut_is_for_micro_indices(s):
     with pytest.raises(ValueError):
         macro.MacroSubsystem(s.network, s.state, s.node_indices,
-                             hidden_indices=(2,), cut=models.Cut((0,), (1,)))
+                             blackbox=macro.Blackbox((2,), (0, 1)),
+                             cut=models.Cut((0,), (1,)))
 
 
 def test_subsystem_equality(s):
@@ -210,7 +211,7 @@ def test_subsystem_equality(s):
     assert macro_subsys != macro_subsys_t
 
     macro_subsys_h = macro.MacroSubsystem(s.network, s.state, s.node_indices,
-                                          hidden_indices=(0,))
+                                          blackbox=macro.Blackbox((0,), (1, 2)))
     assert macro_subsys != macro_subsys_h
 
     coarse_grain = macro.CoarseGrain(((0, 1), (2,)), (((0, 1), (2,)), ((0,), (1,))))
@@ -224,7 +225,7 @@ def test_subsystem_equality(s):
 
 def test_blackbox(s):
     ms = macro.MacroSubsystem(s.network, s.state, s.node_indices,
-                              hidden_indices=(0, 2))
+                              blackbox=macro.Blackbox((0, 2), (1,)))
     # Conditioned on hidden indices and squeezed
     assert np.array_equal(ms.tpm, np.array([[0], [0]]))
     # Universal connectivity
@@ -237,7 +238,8 @@ def test_blackbox(s):
 
 def test_blackbox_external(s):
     # Which is the same if one of these indices is external
-    ms = macro.MacroSubsystem(s.network, s.state, (1, 2), hidden_indices=(2,))
+    ms = macro.MacroSubsystem(s.network, s.state, (1, 2),
+                              blackbox=macro.Blackbox((2,), (1,)))
     assert np.array_equal(ms.tpm, np.array([[0], [0]]))
     assert np.array_equal(ms.cm, np.array([[1]]))
     assert ms.node_indices == (0,)
@@ -261,10 +263,11 @@ def test_coarse_grain(s):
 
 
 def test_blackbox_and_coarse_grain(s):
+    blackbox = macro.Blackbox((1,), (0, 2))
     coarse_grain = macro.CoarseGrain(partition=((0, 2),),
                                      grouping=((((0, 1), (2,)),)))
     ms = macro.MacroSubsystem(s.network, s.state, s.node_indices,
-                              hidden_indices=(1,), coarse_grain=coarse_grain)
+                              blackbox=blackbox, coarse_grain=coarse_grain)
     assert np.array_equal(ms.tpm, np.array([[0], [1]]))
     assert np.array_equal(ms.cm, [[1]])
     assert ms.node_indices == (0,)
@@ -278,13 +281,12 @@ def test_blackbox_and_coarse_grain_external(s):
     network = pyphi.Network(tpm)
     state = (0, 0, 0, 0, 0, 0)
 
-    hidden_indices = (4,)
+    blackbox = macro.Blackbox((4,), (1, 2, 3, 5))
     partition = ((1,), (2,), (3, 5))
     grouping = (((0,), (1,)), ((1,), (0,)), ((0,), (1, 2)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
     ms = macro.MacroSubsystem(network, state, (1, 2, 3, 4, 5),
-                              hidden_indices=hidden_indices,
-                              coarse_grain=coarse_grain)
+                              blackbox=blackbox, coarse_grain=coarse_grain)
     answer_tpm = np.array(
         [[[[0, 1, 0],
            [0, 1, 0]],

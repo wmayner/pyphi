@@ -44,7 +44,7 @@ class MacroSubsystem(Subsystem):
      """
 
     def __init__(self, network, state, node_indices, cut=None,
-                 mice_cache=None, time_scale=1, hidden_indices=None,
+                 mice_cache=None, time_scale=1, blackbox=None,
                  coarse_grain=None):
         super().__init__(network, state, node_indices, cut, mice_cache)
 
@@ -52,7 +52,7 @@ class MacroSubsystem(Subsystem):
         self._network_state = state
         self._node_indices = node_indices
         self._time_scale = time_scale
-        self._hidden_indices = hidden_indices
+        self._blackbox = blackbox
         self._coarse_grain = coarse_grain
 
         # Indices internal to the micro subsystem
@@ -71,9 +71,9 @@ class MacroSubsystem(Subsystem):
 
         # Blackbox in space
         # =================
-        if hidden_indices is not None:
-            output_indices = tuple(sorted(
-                set(internal_indices) - set(hidden_indices)))
+        if blackbox is not None:
+            hidden_indices = blackbox.hidden_indices
+            output_indices = blackbox.output_indices
 
             # Reindex hidden and output indices to line up with
             # self.node_indices which are now indexed from 0..n
@@ -103,7 +103,7 @@ class MacroSubsystem(Subsystem):
                            self.cut,
                            self._network_state,
                            self._node_indices,
-                           self._hidden_indices,
+                           self._blackbox,
                            self._coarse_grain))
 
         # The nodes represented in computed repertoires.
@@ -207,7 +207,7 @@ class MacroSubsystem(Subsystem):
         """True if the system is pure micro without blackboxing of coarse-
         graining."""
         # TODO: do we need this?
-        return self._coarse_grain is None and self._hidden_indices is None
+        return self._coarse_grain is None and self._blackbox is None
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
@@ -221,7 +221,7 @@ class MacroSubsystem(Subsystem):
         return MacroSubsystem(self.network, self._network_state,
                               self._node_indices, cut=cut,
                               time_scale=self._time_scale,
-                              hidden_indices=self._hidden_indices,
+                              blackbox=self._blackbox,
                               coarse_grain=self._coarse_grain)
                               # TODO: is the MICE cache reusable?
                               # mice_cache=self._mice_cache)
@@ -250,7 +250,7 @@ class MacroSubsystem(Subsystem):
 
         return (super().__eq__(other) and
                 self._time_scale == other._time_scale and
-                self._hidden_indices == other._hidden_indices and
+                self._blackbox == other._blackbox and
                 self._coarse_grain == other._coarse_grain)
 
     def __hash__(self):
@@ -339,6 +339,16 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         return tuple(0 if sum(micro_state[list(reindexed.partition[i])])
                      in self.grouping[i][0] else 1
                      for i in self.macro_indices)
+
+
+class Blackbox(namedtuple('Blackbox', ['hidden_indices', 'output_indices'])):
+    """Class representing a blackboxing of a system.
+
+    Attributes:
+        hidden_indices (tuple(int)): Nodes which are hidden inside blackboxes.
+        output_indices (tuple(int)): Outputs of the blackboxes.
+    """
+    pass
 
 
 def _partitions_list(N):
@@ -636,12 +646,13 @@ def blackbox_emergence(network, state, time_scales=None):
         for time_scale in time_scales:
             for hidden_indices in utils.powerset(system):
                 output_indices = tuple(sorted(set(system) - set(hidden_indices)))
+                blackbox = Blackbox(hidden_indices, output_indices)
                 for coarse_grain in all_coarse_grains(output_indices):
                     try:
                         subsystem = MacroSubsystem(
                             network, state, system,
                             time_scale=time_scale,
-                            hidden_indices=hidden_indices,
+                            blackbox=blackbox,
                             coarse_grain=coarse_grain)
                     except (validate.StateUnreachableError,
                             ConditionallyDependentError):
