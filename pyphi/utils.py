@@ -156,8 +156,8 @@ def combs(a, r):
     Return successive |r|-length combinations of elements in the array ``a``.
 
     Args:
-      a (np.ndarray): The array from which to get combinations.
-      r (int): The length of the combinations.
+        a (np.ndarray): The array from which to get combinations.
+        r (int): The length of the combinations.
 
     Returns:
         combinations (``np.ndarray``): An array of combinations.
