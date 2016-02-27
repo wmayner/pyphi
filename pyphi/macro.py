@@ -39,12 +39,22 @@ def reindex(indices):
 class MacroSubsystem(Subsystem):
     """A subclass of |Subsystem| implementing macro computations.
 
-    We maintain the following invariant after each macro update:
-    `tpm.shape == [2] * len(state) + [len(state)]`.
-     """
-     # TODO refactor the _blackbox_space, _coarsegrain_space methods to methods
-     # on their respective Blackbox and CoarseGrain objects? This would nicely
-     # abstract the logic into a discrete, disconnected transformation.
+    This subsystem performs blackboxing and coarse-graining of elements.
+
+    Unlike |Subsystem|, whose TPM has dimensionality equal to that of the
+    subsystem's network and represents nodes external to the system using
+    singleton dimensions, ``MacroSubsystem`` squeezes the TPM to remove these
+    singletons. As a result, the node indices of the system are also squeezed
+    to ``0..n`` so they properly index the TPM, and the state-tuple is
+    reduced to the size of the system.
+
+    After each macro update (temporal blackboxing, spatial blackboxing, and
+    spatial coarse-graining) the TPM, CM, nodes, and state are updated so that
+    they correctly represent the updated system.
+    """
+    # TODO refactor the _blackbox_space, _coarsegrain_space methods to methods
+    # on their respective Blackbox and CoarseGrain objects? This would nicely
+    # abstract the logic into a discrete, disconnected transformation.
 
     def __init__(self, network, state, node_indices, cut=None,
                  mice_cache=None, time_scale=1, blackbox=None,
