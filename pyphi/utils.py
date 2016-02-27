@@ -134,6 +134,21 @@ def phi_eq(x, y):
     return abs(x - y) <= constants.EPSILON
 
 
+def normalize(x):
+    """Normalize an array.
+
+    Args:
+        x (np.ndarray): The array to normalize.
+
+    Returns:
+        np.ndarray: ``x`` normalized so that the sum of its entries is 1.
+    """
+    sum_x = x.sum()
+    if sum_x == 0:
+        return x
+    return x / sum_x
+
+
 # see http://stackoverflow.com/questions/16003217
 def combs(a, r):
     """NumPy implementation of itertools.combinations.

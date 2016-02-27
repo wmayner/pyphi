@@ -302,12 +302,7 @@ class Subsystem:
         if not np.all(self.perturb_vector == 0.5):
             cjd *= max_entropy_dist
 
-        # Normalize conditional joint distribution.
-        cjd_sum = np.sum(cjd)
-        if cjd_sum != 0:  # Don't divide by zero
-            cjd /= cjd_sum
-
-        return cjd
+        return utils.normalize(cjd)
 
     @cache.method('_repertoire_cache', DIRECTIONS[FUTURE])
     def effect_repertoire(self, mechanism, purview):
@@ -470,11 +465,7 @@ class Subsystem:
         # distribution over all the nodes in the network.
         expanded_repertoire = repertoire * uc
 
-        # Renormalize
-        if expanded_repertoire.sum() > 0:
-            return expanded_repertoire / expanded_repertoire.sum()
-        else:
-            return expanded_repertoire
+        return utils.normalize(expanded_repertoire)
 
     def expand_cause_repertoire(self, purview, repertoire, new_purview=None):
         """Expand a partial cause repertoire over a purview to a distribution

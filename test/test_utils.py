@@ -265,3 +265,12 @@ def test_strongly_connected():
                    [1, 0, 0],
                    [0, 0, 0]])
     assert utils.strongly_connected(cm, (0, 1))
+
+
+def test_normalize():
+    x = np.array([2, 4, 2])
+    assert np.array_equal(utils.normalize(x), np.array([.25, .5, .25]))
+    x = np.array([[0, 4], [2, 2]])
+    assert np.array_equal(utils.normalize(x), np.array([[0, .5], [.25, .25]]))
+    x = np.array([0, 0])
+    assert np.array_equal(utils.normalize(x), np.array([0, 0]))
