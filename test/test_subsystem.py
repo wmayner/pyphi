@@ -159,3 +159,8 @@ def test_apply_cut(s):
     assert np.array_equal(cut_s.tpm, s.tpm)
     assert np.array_equal(cut_s.connectivity_matrix,
                           utils.apply_cut(cut, s.connectivity_matrix))
+
+
+def test_cut_indices(s, subsys_n1n2):
+    assert s.cut_indices == (0, 1, 2)
+    assert subsys_n1n2.cut_indices == (1, 2)

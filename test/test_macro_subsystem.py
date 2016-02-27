@@ -38,6 +38,11 @@ def macro_subsystem():
                                      coarse_grain=coarse_grain)
 
 
+def test_cut_indices(macro_subsystem, s):
+    assert macro_subsystem.cut_indices == (0, 1, 2, 3)
+    micro = macro.MacroSubsystem(s.network, s.state, s.node_indices)
+    assert micro.cut_indices == (0, 1, 2)
+
 #answer_cm = np.array([
 #    [0, 1],
 #    [1, 0]

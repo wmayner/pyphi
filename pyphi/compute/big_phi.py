@@ -218,7 +218,7 @@ def _big_mip(cache_key, subsystem):
         # constellation.
         result = time_annotated(_null_bigmip(subsystem))
     else:
-        cuts = big_mip_bipartitions(subsystem._cut_indices)
+        cuts = big_mip_bipartitions(subsystem.cut_indices)
         min_mip = _null_bigmip(subsystem)
         min_mip.phi = float('inf')
         min_mip = _find_mip(subsystem, cuts, unpartitioned_constellation,

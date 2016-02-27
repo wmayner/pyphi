@@ -49,7 +49,6 @@ class MacroSubsystem(Subsystem):
     def __init__(self, network, state, node_indices, cut=None,
                  mice_cache=None, time_scale=1, blackbox=None,
                  coarse_grain=None):
-        super().__init__(network, state, node_indices, cut, mice_cache)
 
         # Store original arguments to use in `apply_cut`
         self._network_state = state
@@ -57,6 +56,8 @@ class MacroSubsystem(Subsystem):
         self._time_scale = time_scale
         self._blackbox = blackbox
         self._coarse_grain = coarse_grain
+
+        super().__init__(network, state, node_indices, cut, mice_cache)
 
         # Shrink TPM to size of internal indices
         # ======================================
@@ -100,10 +101,6 @@ class MacroSubsystem(Subsystem):
 
         # The nodes represented in computed repertoires.
         self._dist_indices = self.node_indices
-
-        # Nodes to cut for big-phi computations. For macro computations the cut
-        # is applied to the underlying micro network.
-        self._cut_indices = self._node_indices
 
         validate.subsystem(self)
 
@@ -194,6 +191,15 @@ class MacroSubsystem(Subsystem):
         cm = np.ones((n, n))
 
         return (tpm, cm, node_indices, state)
+
+    @property
+    def cut_indices(self):
+        """The indices of this system to be cut for |big_phi| computations.
+
+        For macro computations the cut is applied to the underlying
+        micro-system.
+        """
+        return self._node_indices
 
     @property
     def is_micro(self):

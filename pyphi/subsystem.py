@@ -48,6 +48,8 @@ class Subsystem:
             by the cut.
         perturb_vector (np.array): The vector of perturbation probabilities for
             each node.
+        cut_indices (tuple(int)): The nodes of the subsystem cut by a |big_phi|
+            cut.
         null_cut (Cut): The cut object representing no cut.
         tpm (np.array): The TPM conditioned on the state of the external nodes.
     """
@@ -78,7 +80,7 @@ class Subsystem:
             self.network.tpm, self.external_indices, self.state)
 
         # The null cut (that leaves the system intact)
-        self.null_cut = Cut((), self.node_indices)
+        self.null_cut = Cut((), self.cut_indices)
 
         # The unidirectional cut applied for phi evaluation
         self.cut = cut if cut is not None else self.null_cut
@@ -113,9 +115,6 @@ class Subsystem:
         # The nodes represented in computed repertoire distributions. This
         # supports `MacroSubsystem`'s alternate TPM representation.
         self._dist_indices = self.network.node_indices
-
-        # Nodes to cut for big-phi computations
-        self._cut_indices = self.node_indices
 
         validate.subsystem(self)
 
@@ -163,6 +162,15 @@ class Subsystem:
     def is_cut(self):
         """Return whether this Subsystem has a cut applied to it."""
         return self.cut != self.null_cut
+
+    @property
+    def cut_indices(self):
+        """The indices of this system to be cut for |big_phi| computations.
+
+        This was added to support ``MacroSubsystem``, which cuts indices other
+        than ``self.node_indices``.
+        """
+        return self.node_indices
 
     def repertoire_cache_info(self):
         """Report repertoire cache statistics."""
