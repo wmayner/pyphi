@@ -183,17 +183,18 @@ def time_scale(time_scale):
         raise ValueError('time scale must be a positive integer')
 
 
-def coarse_grain(cg):
+def coarse_grain(coarse_grain):
     """Validate a macro coarse-graining."""
-    if len(cg.partition) != len(cg.grouping):
+    if len(coarse_grain.partition) != len(coarse_grain.grouping):
         raise ValueError('output and state groupings must be the same size')
 
-    for og, sg in zip(cg.partition, cg.grouping):
-        if set(range(len(og) + 1)) != set(sg[0] + sg[1]):
-            # Check that every possible number of elements in og is in one of
-            # the two state groupings
+    for part, group in zip(coarse_grain.partition, coarse_grain.grouping):
+        if set(range(len(part) + 1)) != set(group[0] + group[1]):
+            # Check that all elements in the partition are in one of the two
+            # state groupings
             raise ValueError('elements in output grouping {0} do not match '
-                             'elements in state grouping {1}'.format(og, sg))
+                             'elements in state grouping {1}'.format(
+                                 part, group))
 
 
 def blackbox(blackbox):
