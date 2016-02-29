@@ -198,6 +198,7 @@ def test_init_subsystem_in_time(s):
     ])
     assert np.array_equal(time_subsys.tpm, answer_tpm)
     assert np.array_equal(time_subsys.connectivity_matrix, answer_cm)
+    assert not time_subsys.is_micro
 
 
 def test_macro_cut_is_for_micro_indices(s):

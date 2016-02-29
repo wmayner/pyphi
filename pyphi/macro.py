@@ -216,7 +216,8 @@ class MacroSubsystem(Subsystem):
         """True if the system is pure micro without blackboxing of coarse-
         graining."""
         # TODO: do we need this?
-        return self._coarse_grain is None and self._blackbox is None
+        return (self._coarse_grain is None and self._blackbox is None
+                and self._time_scale == 1)
 
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
