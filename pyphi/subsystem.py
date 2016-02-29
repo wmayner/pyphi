@@ -19,7 +19,6 @@ from .node import Node
 
 class Subsystem:
     # TODO! go through docs and make sure to say when things can be None
-    # TODO: Subsystem.cut() method, to return a cut version of Subsystem?
     """A set of nodes in a network.
 
     Args:
