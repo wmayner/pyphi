@@ -2,6 +2,16 @@ Changelog
 =========
 
 
+Next Release
+------------------
+
+### API Additions
+- Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to
+  approximate the Earth-Movers Distance in MIP computations. If the mechanism
+  is found to be irreducible over the purview, φ is recalculated using the
+  proper EMD. 
+
+
 0.8.1
 ------------------
 _2016-02-11_
