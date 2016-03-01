@@ -122,6 +122,12 @@ def test_emd_same_distributions():
     assert utils.hamming_emd(a, b) == 0.0
 
 
+def test_l1_distance():
+    a = np.array([0, 1, 2])
+    b = np.array([2, 2, 4.5])
+    assert utils.l1(a, b) == 5.5
+
+
 def test_uniform_distribution():
     assert np.array_equal(utils.uniform_distribution(3),
                           (np.ones(8)/8).reshape([2]*3))

@@ -37,6 +37,13 @@ theoretical accuracy.
     >>> defaults['ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS']
     False
 
+- ``pyphi.config.L1_DISTANCE_APPROXIMATION``: If enabled, the ``L1`` distance
+  will be used instead of the EMD when computing MIPs. If a mechanism and
+  purview are found to be irreducible, the |small_phi| value of the MIP is
+  recalculated using the EMD.
+
+    >>> defaults['L1_DISTANCE_APPROXIMATION']
+    False
 
 System resources
 ~~~~~~~~~~~~~~~~
@@ -277,6 +284,8 @@ DEFAULTS = {
     'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
     # Only check single nodes cuts for the MIP. 2**n cuts instead of n.
     'CUT_ONE_APPROXIMATION': False,
+    # Use L1 distance to approximate the EMD when computing MIPs.
+    'L1_DISTANCE_APPROXIMATION': False,
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Controls whether concepts are evaluated in parallel.
     'PARALLEL_CONCEPT_EVALUATION': False,

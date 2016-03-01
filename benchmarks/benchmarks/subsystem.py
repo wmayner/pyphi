@@ -1,5 +1,6 @@
+import copy
 
-from pyphi import examples, config, Subsystem
+from pyphi import compute, config, examples, Subsystem
 
 """
 PyPhi performance benchmarks
@@ -97,3 +98,34 @@ class BenchmarkSubsystem():
         config.CACHE_POTENTIAL_PURVIEWS = True
         self._do_potential_purviews()
         config.CACHE_POTENTIAL_PURVIEWS = default
+
+
+class BenchmarkEmdApproximation:
+
+    params = ['emd', 'l1']
+
+    number = 1
+    repeat = 1
+    timeout = 10000
+
+    def setup(self, distance):
+        self.network = examples.fig16()
+        self.state = (1, 0, 0, 1, 1, 1, 0)
+
+        self.default_config = copy.copy(config.__dict__)
+
+        if distance == 'emd':
+            config.L1_DISTANCE_APPROXIMATION = False
+        elif distance == 'l1':
+            config.L1_DISTANCE_APPROXIMATION = True
+        else:
+            raise ValueError(distance)
+
+        config.PARALLEL_CONCEPT_EVALUATION = False
+        config.PARALLEL_CUT_EVALUATION = False
+
+    def time_L1_approximation(self, distance):
+        compute.main_complex(self.network, self.state)
+
+    def teardown(self, distance):
+        config.__dict__.update(self.default_config)
