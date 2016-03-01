@@ -375,6 +375,13 @@ class Blackbox(namedtuple('Blackbox', ['hidden_indices', 'output_indices'])):
 
         Returns:
             Blackbox: a new, reindexed ``Blackbox``.
+
+        Example:
+            >>> hidden_indices = (2, 4)
+            >>> output_indices = (3,)
+            >>> blackbox = Blackbox(hidden_indices, output_indices)
+            >>> blackbox.reindex()
+            Blackbox(hidden_indices=(0, 2), output_indices=(1,))
         """
         _map = dict(zip(self.micro_indices, reindex(self.micro_indices)))
         hidden_indices = tuple(_map[i] for i in self.hidden_indices)
