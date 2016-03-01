@@ -8,7 +8,7 @@ import itertools
 
 import numpy as np
 
-from . import cache, utils, validate
+from . import cache, config, utils, validate
 from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
@@ -541,8 +541,12 @@ class Subsystem:
             part2rep = repertoire(part1.mechanism, part1.purview)
             partitioned_repertoire = part1rep * part2rep
 
-            phi = utils.hamming_emd(unpartitioned_repertoire,
-                                    partitioned_repertoire)
+            if config.L1_DISTANCE_APPROXIMATION:
+                phi = utils.l1(unpartitioned_repertoire,
+                               partitioned_repertoire)
+            else:
+                phi = utils.hamming_emd(unpartitioned_repertoire,
+                                        partitioned_repertoire)
             phi = round(phi, PRECISION)
 
             # Return immediately if mechanism is reducible.
@@ -567,6 +571,19 @@ class Subsystem:
                           unpartitioned_repertoire=unpartitioned_repertoire,
                           partitioned_repertoire=partitioned_repertoire,
                           phi=phi)
+
+        # Recompute distance for minimal MIP using the EMD
+        if config.L1_DISTANCE_APPROXIMATION:
+            phi = utils.hamming_emd(mip.unpartitioned_repertoire,
+                                    mip.partitioned_repertoire)
+            mip = Mip(phi=round(phi, PRECISION),
+                      direction=mip.direction,
+                      mechanism=mip.mechanism,
+                      purview=mip.purview,
+                      partition=mip.partition,
+                      unpartitioned_repertoire=mip.unpartitioned_repertoire,
+                      partitioned_repertoire=mip.partitioned_repertoire)
+
         return mip
 
     # TODO Don't use these internally to avoid function call overhead

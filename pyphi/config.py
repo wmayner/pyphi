@@ -277,6 +277,8 @@ DEFAULTS = {
     'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
     # Only check single nodes cuts for the MIP. 2**n cuts instead of n.
     'CUT_ONE_APPROXIMATION': False,
+    # Use L1 distance to approximate the EMD when computing MIPs.
+    'L1_DISTANCE_APPROXIMATION': False,
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Controls whether concepts are evaluated in parallel.
     'PARALLEL_CONCEPT_EVALUATION': False,
