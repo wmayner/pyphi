@@ -325,6 +325,19 @@ def hamming_emd(d1, d2):
     return emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
 
 
+def l1(d1, d2):
+    """Return the L1 distance between two distributions.
+
+    Args:
+        d1 (np.ndarray): The first distribution.
+        d2 (np.ndarray): The second distribution.
+
+    Returns:
+        float: The sum of absolute differences of ``d1`` and ``d2``.
+    """
+    return np.absolute(d1 - d2).sum()
+
+
 def bipartition(a):
     """Return a list of bipartitions for a sequence.
 
