@@ -37,6 +37,13 @@ theoretical accuracy.
     >>> defaults['ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS']
     False
 
+- ``pyphi.config.L1_DISTANCE_APPROXIMATION``: If enabled, the ``L1`` distance
+  will be used instead of the EMD when computing MIPs. If a mechanism and
+  purview are found to be irreducible, the |small_phi| value of the MIP is
+  recalculated using the EMD.
+
+    >>> defaults['L1_DISTANCE_APPROXIMATION']
+    False
 
 System resources
 ~~~~~~~~~~~~~~~~
