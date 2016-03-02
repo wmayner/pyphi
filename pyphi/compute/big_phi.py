@@ -277,6 +277,13 @@ def possible_complexes(network, state):
     subsystem in the past or future, respectively).
 
     Does not include subsystems in an impossible state.
+
+    Args:
+        network (Network): The network for which to return possible complexes.
+        state (tuple(int)): The state of the network.
+
+    Yields:
+        (Subsystem): The next subsystem which could be a complex.
     """
     inputs = np.sum(network.connectivity_matrix, 0)
     outputs = np.sum(network.connectivity_matrix, 1)
