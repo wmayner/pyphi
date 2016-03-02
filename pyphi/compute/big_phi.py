@@ -15,7 +15,8 @@ from time import time
 import numpy as np
 
 from . import parallel
-from .concept import constellation, constellation_distance
+from .concept import constellation
+from .distance import constellation_distance
 from .. import config, memory, utils, validate
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
 from ..network import Network
