@@ -5,11 +5,14 @@ Changelog
 Next Release
 ------------------
 
+### API Changes
+- `compute.possible_complexes` no longer includes the empty subsystem.
+
 ### API Additions
 - Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to
   approximate the Earth-Movers Distance in MIP computations. If the mechanism
   is found to be irreducible over the purview, φ is recalculated using the
-  proper EMD. 
+  proper EMD.
 
 
 0.8.1
