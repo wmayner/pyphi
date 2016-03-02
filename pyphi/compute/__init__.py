@@ -23,8 +23,8 @@ Attributes:
     subsystems: Alias for :func:`big_phi.subsystems`.
 """
 
-from .concept import concept, conceptual_information, constellation
 from .big_phi import (all_complexes, big_mip, big_phi, complexes, condensed,
                       evaluate_cut, main_complex, possible_complexes,
                       subsystems)
+from .concept import concept, conceptual_information, constellation
 from .distance import concept_distance, constellation_distance
