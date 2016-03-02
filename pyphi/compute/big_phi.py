@@ -282,7 +282,12 @@ def possible_complexes(network, state):
     outputs = np.sum(network.connectivity_matrix, 1)
     nodes_have_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
     causally_significant_nodes = np.where(nodes_have_inputs_and_outputs)[0]
+
     for subset in utils.powerset(causally_significant_nodes):
+        # Don't return empty system
+        if len(subset) == 0:
+            continue
+
         # Don't return subsystems that are in an impossible state.
         try:
             yield Subsystem(network, state, subset)

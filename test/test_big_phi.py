@@ -6,7 +6,7 @@ import pickle
 import pytest
 from unittest.mock import patch
 
-from pyphi import constants, config, compute, models, utils, Network
+from pyphi import constants, config, compute, models, utils, Network, Subsystem
 from pyphi.constants import DIRECTIONS, PAST, FUTURE
 from pyphi.models import Cut, _null_bigmip
 from pyphi.compute import constellation
@@ -372,6 +372,16 @@ def test_find_mip_parallel_noised_example(s_noised, flushcache,
     min_mip.phi = float('inf')
     mip = _find_mip_parallel(s_noised, cuts, unpartitioned_constellation, min_mip)
     check_mip(mip, noised_answer)
+
+
+def test_possible_complexes(s):
+    assert list(compute.possible_complexes(s.network, s.state)) == [
+        Subsystem(s.network, s.state, (1,)),
+        Subsystem(s.network, s.state, (0, 1)),
+        Subsystem(s.network, s.state, (0, 2)),
+        Subsystem(s.network, s.state, (1, 2)),
+        Subsystem(s.network, s.state, (0, 1, 2)),
+    ]
 
 
 def test_complexes_standard(s, flushcache, restore_fs_cache):
