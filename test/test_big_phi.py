@@ -241,10 +241,8 @@ def test_concept_nonexistent(s, flushcache, restore_fs_cache):
     assert not compute.concept(s, (0, 2))
 
 
-# TODO: fix this!
-@pytest.mark.xfail(reason="Mock import paths are messed up by `concept`")
-@patch('pyphi.compute.concept._constellation_distance_simple')
-@patch('pyphi.compute.concept._constellation_distance_emd')
+@patch('pyphi.compute.distance._constellation_distance_simple')
+@patch('pyphi.compute.distance._constellation_distance_emd')
 def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
                                                    mock_simple_distance, s):
     """Quick check that we use the correct constellation distance function.
