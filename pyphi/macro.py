@@ -178,7 +178,7 @@ class MacroSubsystem(Subsystem):
         n = len(blackbox.output_indices)
         cm = np.ones((n, n))
 
-        state = utils.state_of(blackbox.output_indices, self.state)
+        state = blackbox.macro_state(self.state)
         node_indices = blackbox.macro_indices
 
         return (tpm, cm, node_indices, state)
@@ -388,6 +388,23 @@ class Blackbox(namedtuple('Blackbox', ['hidden_indices', 'output_indices'])):
         output_indices = tuple(_map[i] for i in self.output_indices)
 
         return Blackbox(hidden_indices, output_indices)
+
+    def macro_state(self, micro_state):
+        """Compute the macro-state of this blackbox.
+
+        This is just the state of the blackbox's output indices.
+
+        Args:
+            micro_state (tuple(int)): The state of the micro-elements in the
+                blackbox.
+
+        Returns:
+            tuple(int): The state of the output indices.
+        """
+        assert len(micro_state) == len(self.micro_indices)
+
+        reindexed = self.reindex()
+        return utils.state_of(reindexed.output_indices, micro_state)
 
 
 def _partitions_list(N):

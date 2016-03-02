@@ -123,3 +123,11 @@ def test_blackbox_indices():
     assert bb.micro_indices == (1, 3, 4)
     assert bb.macro_indices == (0, 1)
     assert bb.reindex() == macro.Blackbox((0,), (1, 2))
+
+
+def test_blackbox_state():
+    bb = macro.Blackbox((3,), (1, 4))
+    with pytest.raises(AssertionError):
+        bb.macro_state((0, 1, 1, 1))
+    assert bb.macro_state((0, 1, 0)) == (0, 0)
+    assert bb.macro_state((1, 0, 0)) == (1, 0)
