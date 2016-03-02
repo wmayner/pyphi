@@ -11,8 +11,8 @@ def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
     Args:
-        c1 (Mice): The first concept.
-        c2 (Mice): The second concept.
+        c1 (Concept): The first concept.
+        c2 (Concept): The second concept.
 
     Returns:
         float: The distance between the two concepts in concept-space.
