@@ -292,7 +292,7 @@ def possible_complexes(network, state):
         try:
             yield Subsystem(network, state, subset)
         except validate.StateUnreachableError:
-            pass
+            continue
 
 
 def complexes(network, state):
