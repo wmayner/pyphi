@@ -5,7 +5,7 @@
 import pytest
 
 import numpy as np
-from pyphi import macro
+from pyphi import convert, macro
 
 
 def test_all_partitions():
@@ -81,18 +81,23 @@ def test_make_mapping():
 
 
 def test_make_macro_tpm():
-    answer_tpm = np.array([
-        [.375, .125, .375, .125],
-        [.375, .125, .375, .125],
-        [.375, .125, .375, .125],
-        [.375, .125, .375, .125]
-    ])
-    mapping = np.array([0., 0., 0., 1., 2., 2., 2., 3.])
+    answer_tpm = convert.state_by_state2state_by_node(np.array([
+        [0.375,  0.375,  0.125,  0.125],
+        [0.375,  0.375,  0.125,  0.125],
+        [0.375,  0.375,  0.125,  0.125],
+        [0.375,  0.375,  0.125,  0.125],
+    ]))
+    partition = ((0,), (1, 2))
+    grouping = (((0,), (1,)), ((0, 1), (2,)))
+    coarse_grain = macro.CoarseGrain(partition, grouping)
+    assert np.array_equal(coarse_grain.make_mapping(), [0, 1, 0, 1, 0, 1, 2, 3])
+
     micro_tpm = np.zeros((8, 3)) + 0.5
-    macro_tpm = macro.make_macro_tpm(micro_tpm, mapping)
+    macro_tpm = coarse_grain.macro_tpm(micro_tpm)
     assert np.array_equal(answer_tpm, macro_tpm)
+
     micro_tpm = np.zeros((8, 8)) + 0.125
-    macro_tpm = macro.make_macro_tpm(micro_tpm, mapping)
+    macro_tpm = coarse_grain.macro_tpm(micro_tpm)
     assert np.array_equal(answer_tpm, macro_tpm)
 
 
