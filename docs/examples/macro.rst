@@ -116,10 +116,11 @@ In micro-state 7, all three elements corresponding to the first macro-element
 are **ON**, so that macro-element is **ON**. The micro-element corresponding to
 the second macro-element is **OFF**, so that macro-element is **OFF**.
 
-Using the mapping, we can then create a state-by-state TPM for the macro-system
-corresponding to the selected partition and grouping:
+The ``CoarseGrain`` object uses the mapping internally to create a
+state-by-state TPM for the macro-system corresponding to the selected partition
+and grouping:
 
-    >>> macro_tpm = pyphi.macro.make_macro_tpm(network.tpm, mapping)
+    >>> macro_tpm = coarse_grain.make_macro_tpm(network.tpm)
     >>> macro_tpm
     array([[ 0.5838,  0.0162,  0.3802,  0.0198],
            [ 0.    ,  0.    ,  0.91  ,  0.09  ],
