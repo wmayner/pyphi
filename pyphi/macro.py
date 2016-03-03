@@ -186,12 +186,8 @@ class MacroSubsystem(Subsystem):
     def _coarsegrain_space(self, coarse_grain):
         """Spatially coarse-grain the TPM and CM."""
 
-        # Coarse-grain the remaining nodes into the appropriate groups
-        tpm = coarse_grain.make_macro_tpm(self.tpm)
-        if not self.is_cut():
-            if not validate.conditionally_independent(tpm):
-                raise ConditionallyDependentError
-        tpm = convert.state_by_state2state_by_node(tpm)
+        tpm = coarse_grain.macro_tpm(
+            self.tpm, check_independence=(not self.is_cut()))
 
         node_indices = coarse_grain.macro_indices
         state = coarse_grain.macro_state(self.state)
@@ -283,8 +279,14 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         # TODO: move `make_mapping` function to here entirely
         return make_mapping(self.partition, self.grouping)
 
-    def make_macro_tpm(self, tpm):
-        return make_macro_tpm(tpm, self.make_mapping())
+    def macro_tpm(self, tpm, check_independence=True):
+        """Construct the coarse-grained macro tpm."""
+        tpm = make_macro_tpm(tpm, self.make_mapping())
+
+        if check_independence and not validate.conditionally_independent(tpm):
+            raise ConditionallyDependentError
+
+        return convert.state_by_state2state_by_node(tpm)
 
     @property
     def micro_indices(self):
