@@ -34,6 +34,23 @@ def state_of(nodes, network_state):
     return tuple(network_state[n] for n in nodes) if nodes else ()
 
 
+def all_states(n):
+    """Return all binary states for a system.
+
+    Args:
+        n (int): The number of elements in the system.
+
+    Yields:
+        tuple(int): The next state of an ``n``-element system, in LOLI order.
+    """
+    if n == 0:
+        return
+
+    num_states = 2 ** n
+    for state_index in range(num_states):
+        yield(convert.loli_index2state(state_index, n))
+
+
 # Methods for converting the time scale of the tpm
 # ================================================
 

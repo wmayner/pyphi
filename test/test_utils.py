@@ -280,3 +280,18 @@ def test_normalize():
     assert np.array_equal(utils.normalize(x), np.array([[0, .5], [.25, .25]]))
     x = np.array([0, 0])
     assert np.array_equal(utils.normalize(x), np.array([0, 0]))
+
+
+def test_all_states():
+    assert list(utils.all_states(0)) == []
+    assert list(utils.all_states(1)) == [(0,), (1,)]
+    assert list(utils.all_states(3)) == [
+        (0, 0, 0),
+        (1, 0, 0),
+        (0, 1, 0),
+        (1, 1, 0),
+        (0, 0, 1),
+        (1, 0, 1),
+        (0, 1, 1),
+        (1, 1, 1),
+    ]
