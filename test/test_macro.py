@@ -62,16 +62,21 @@ def test_all_blackboxes():
 def test_make_mapping():
     partition = ((0, 1), (2, 3))
     grouping = (((0, 1), (2,)), ((0, 1), (2,)))
-    mapping = macro.make_mapping(partition, grouping)
+    coarse_grain = macro.CoarseGrain(partition, grouping)
+    mapping = coarse_grain.make_mapping()
     assert np.array_equal(mapping, np.array(
         (0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 1., 2., 2., 2., 3.)))
+
     partition = ((0, 1), (2,))
     grouping = (((0, 2), (1,)), ((0,), (1,)))
-    mapping = macro.make_mapping(partition, grouping)
+    coarse_grain = macro.CoarseGrain(partition, grouping)
+    mapping = coarse_grain.make_mapping()
     assert np.array_equal(mapping, np.array((0., 1., 1., 0., 2., 3., 3., 2.)))
+
     partition = ((0, 1, 2),)
     grouping = (((0, 3), (1, 2)),)
-    mapping = macro.make_mapping(partition, grouping)
+    coarse_grain = macro.CoarseGrain(partition, grouping)
+    mapping = coarse_grain.make_mapping()
     assert np.array_equal(mapping, np.array((0., 1., 1., 1., 1., 1., 1., 0.)))
 
 
