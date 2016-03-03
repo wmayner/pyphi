@@ -96,14 +96,13 @@ mapping between micro-states and macro-states:
 
     >>> mapping = coarse_grain.make_mapping()
     >>> mapping
-    array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  2.,  2.,  2.,  2.,  2.,
-            2.,  2.,  3.])
+    array([0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3])
 
 The interpretation of the mapping uses the **LOLI** convention of indexing (see
 :ref:`loli-convention`).
 
     >>> mapping[7]
-    1.0
+    1
 
 This says that micro-state 7 corresponds to macro-state 1:
 
@@ -152,8 +151,7 @@ Lets consider a different coarse-graining instead.
 
     >>> mapping = coarse_grain.make_mapping()
     >>> mapping
-    array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,
-            2.,  2.,  3.])
+    array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 3])
 
     >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
     >>> macro_subsystem
