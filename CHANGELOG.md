@@ -9,6 +9,7 @@ Next Release
 - Renamed `macro.list_all_partitions` and `macro.list_all_groupings` to
   `all_partitions` and `all_groupings`. Both are now generators and return
   nested tuples instead of lists.
+- Moved `macro.make_mapping` to `CoarseGrain.make_mapping`.
 
 ### API Additions
 - Added `macro.MacroSubsystem`. This subclass of `Subsystem` is used to performs
@@ -20,6 +21,7 @@ Next Release
 - Added `macro.all_coarse_grains` and `macro.all_blackboxes` generators.
 - Added `Subsystem.cut_indices` property.
 - Added `Subsystem.cm` connectivity matrix alias
+- Added `utils.all_states`, a generator over all states of an n-element system.
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
