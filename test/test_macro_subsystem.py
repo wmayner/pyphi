@@ -43,6 +43,12 @@ def test_cut_indices(macro_subsystem, s):
     micro = macro.MacroSubsystem(s.network, s.state, s.node_indices)
     assert micro.cut_indices == (0, 1, 2)
 
+
+def test_pass_node_indices_as_a_range(s):
+    # Test that node_indices can be a `range`
+    macro.MacroSubsystem(s.network, s.state, range(s.size))
+
+
 #answer_cm = np.array([
 #    [0, 1],
 #    [1, 0]

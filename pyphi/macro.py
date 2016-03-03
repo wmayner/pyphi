@@ -60,6 +60,9 @@ class MacroSubsystem(Subsystem):
                  mice_cache=None, time_scale=1, blackbox=None,
                  coarse_grain=None):
 
+        # Ensure indices are not a `range`
+        node_indices = tuple(node_indices)
+
         # Store original arguments to use in `apply_cut`
         self._network_state = state
         self._node_indices = node_indices  # Internal nodes
