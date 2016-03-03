@@ -277,37 +277,25 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
 
     def make_mapping(self):
         """Return a mapping from micro-state to the macro-states based on the
-        partition of elements and grouping of states.
+        partition and state grouping of this coarse-grain.
 
-        Args:
-            partition (tuple(tuple)): A partition of micro-elements into macro
-                elements.
-            grouping (tuple(tuple(tuple))): For each macro-element, a list of micro
-                states which set it to ON or OFF.
-
-        Returns:
-            (nd.ndarray): A mapping from micro-states to macro-states.
+        Return:
+            (nd.ndarray): A mapping from micro-states to macro-states. The
+            |ith| entry in the mapping is the macro-state corresponding to the
+            |ith| micro-state.
         """
-        num_macro_nodes = len(self.grouping)
-        num_micro_nodes = sum([len(part) for part in self.partition])
-        num_micro_states = 2**num_micro_nodes
+        num_micro_nodes = len(self.micro_indices)
+        num_micro_states = 2 ** num_micro_nodes
         micro_states = [convert.loli_index2state(micro_state_index,
                                                  num_micro_nodes)
                         for micro_state_index in range(num_micro_states)]
-        mapping = np.zeros(num_micro_states)
-        # For every micro-state, find the corresponding macro-state and add it to
-        # the mapping.
-        for micro_state_index, micro_state in enumerate(micro_states):
-            # Sum the number of micro-elements that are ON for each macro-element.
-            micro_sum = [sum([micro_state[node] for node in self.partition[i]])
-                         for i in range(num_macro_nodes)]
-            # Check if the number of micro-elements that are ON corresponds to the
-            # macro-element being ON or OFF.
-            macro_state = [0 if micro_sum[i] in self.grouping[i][0] else 1
-                           for i in range(num_macro_nodes)]
-            # Record the mapping.
-            mapping[micro_state_index] = convert.state2loli_index(macro_state)
-        return mapping
+
+        # Find the corresponding macro-state for each micro-state.
+        # The i-th entry in the mapping is the macro-state corresponding to the
+        # i-th micro-state.
+        mapping = [convert.state2loli_index(self.macro_state(micro_state))
+                   for micro_state in micro_states]
+        return np.array(mapping)
 
     def macro_tpm(self, tpm, check_independence=True):
         """Construct the coarse-grained macro tpm."""
@@ -375,6 +363,9 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         """
         assert len(micro_state) == len(self.micro_indices)
 
+        # TODO: only reindex if this coarse grain is not already from 0..n?
+        # make_mapping calls this in a tight loop so it might be more efficient
+        # to reindex conditionally.
         reindexed = self.reindex()
 
         micro_state = np.array(micro_state)
