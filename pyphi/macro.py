@@ -452,14 +452,6 @@ def all_partitions(indices):
                     for part in partition)
 
 
-def list_all_partitions(indices):
-    """Cast ``all_partitions`` to a list.
-
-    TODO: remove this alias.
-    """
-    list(all_groupings(indices))
-
-
 def all_groupings(partition):
     """Return all possible groupings of states for a particular coarse graining
     (partition) of a network.
@@ -485,14 +477,6 @@ def all_groupings(partition):
         if all(len(element) < 3 for element in grouping):
             yield tuple(tuple(tuple(tuple(state) for state in states)
                         for states in grouping))
-
-
-def list_all_groupings(partition):
-    """Cast ``all_groupings`` to a list.
-
-    TODO: remove this alias.
-    """
-    return list(all_groupings(partition))
 
 
 def all_coarse_grains(indices):
