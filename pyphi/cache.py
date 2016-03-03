@@ -282,7 +282,7 @@ def validate_parent_cache(parent_cache):
     # cut version of parent_cache.subsystem?
     # Do we need to check this at all?
 
-    if parent_cache.subsystem.is_cut():
+    if parent_cache.subsystem.is_cut:
         raise ValueError("parent_cache must be from an uncut subsystem")
 
 
@@ -334,7 +334,7 @@ class RedisMiceCache(RedisCache):
 
         Caches are only inherited from uncut subsystems.
         """
-        if not self.subsystem.is_cut():
+        if not self.subsystem.is_cut:
             super().set(key, value)
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):
@@ -381,7 +381,7 @@ class DictMiceCache(DictCache):
             implemented.
           - Memory is not too full.
         """
-        if (not self.subsystem.is_cut() and mice.phi > 0
+        if (not self.subsystem.is_cut and mice.phi > 0
                 and not memory_full()):
             self.cache[key] = mice
 

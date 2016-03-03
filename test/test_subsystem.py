@@ -137,9 +137,9 @@ def test_mip_bipartition():
 
 
 def test_is_cut(s):
-    assert s.is_cut() is False
+    assert s.is_cut is False
     s = Subsystem(s.network, s.state, s.node_indices, cut=Cut((0,), (1, 2)))
-    assert s.is_cut() is True
+    assert s.is_cut is True
 
 
 def test_proper_state(s, subsys_n0n2):

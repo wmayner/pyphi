@@ -158,6 +158,7 @@ class Subsystem:
         """The size of this Subsystem."""
         return len(self.node_indices)
 
+    @property
     def is_cut(self):
         """Return whether this Subsystem has a cut applied to it."""
         return self.cut != self.null_cut

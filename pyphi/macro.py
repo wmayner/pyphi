@@ -187,7 +187,7 @@ class MacroSubsystem(Subsystem):
         """Spatially coarse-grain the TPM and CM."""
 
         tpm = coarse_grain.macro_tpm(
-            self.tpm, check_independence=(not self.is_cut()))
+            self.tpm, check_independence=(not self.is_cut))
 
         node_indices = coarse_grain.macro_indices
         state = coarse_grain.macro_state(self.state)
