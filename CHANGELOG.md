@@ -1,6 +1,32 @@
 Changelog
 =========
 
+Next Release
+------------------
+
+### API changes:
+- Made `is_cut` a property.
+- Renamed `macro.list_all_partitions` and `macro.list_all_groupings` to
+  `all_partitions` and `all_groupings`. Both are now generators and return
+  nested tuples instead of lists.
+
+### API Additions
+- Added `macro.MacroSubsystem`. This subclass of `Subsystem` is used to performs
+  macro computations.
+- Added `macro.CoarseGrain` to represent coarse-grainings of a system.
+- Added `macro.Blackbox` to represent system blackboxes.
+- Added `validate.blackbox` and `validate.coarse_grain`.
+- Added `macro.blackbox_emergence` to compute system emergence.
+- Added `macro.all_coarse_grains` and `macro.all_blackboxes` generators.
+- Added `Subsystem.cut_indices` property.
+- Added `Subsystem.cm` connectivity matrix alias
+
+### Refactor
+- Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
+
+### Documentation
+- Updated docs and examples to reflect changes made to the macro API and usage.
+
 
 Next Release
 ------------------
