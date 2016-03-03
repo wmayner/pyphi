@@ -284,11 +284,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
             |ith| entry in the mapping is the macro-state corresponding to the
             |ith| micro-state.
         """
-        num_micro_nodes = len(self.micro_indices)
-        num_micro_states = 2 ** num_micro_nodes
-        micro_states = [convert.loli_index2state(micro_state_index,
-                                                 num_micro_nodes)
-                        for micro_state_index in range(num_micro_states)]
+        micro_states = utils.all_states(len(self.micro_indices))
 
         # Find the corresponding macro-state for each micro-state.
         # The i-th entry in the mapping is the macro-state corresponding to the
