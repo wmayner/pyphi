@@ -204,7 +204,6 @@ def test_init_subsystem_in_time(s):
     ])
     assert np.array_equal(time_subsys.tpm, answer_tpm)
     assert np.array_equal(time_subsys.connectivity_matrix, answer_cm)
-    assert not time_subsys.is_micro
 
 
 def test_macro_cut_is_for_micro_indices(s):
@@ -245,7 +244,6 @@ def test_blackbox(s):
     # Reindexed
     assert ms.node_indices == (0,)
     assert ms.state == (0,)
-    assert not ms.is_micro
 
 
 def test_blackbox_external(s):

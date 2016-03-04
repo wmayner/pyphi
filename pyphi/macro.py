@@ -210,14 +210,6 @@ class MacroSubsystem(Subsystem):
         """
         return self._node_indices
 
-    @property
-    def is_micro(self):
-        """True if the system is pure micro without blackboxing of coarse-
-        graining."""
-        # TODO: do we need this?
-        return (self._coarse_grain is None and self._blackbox is None
-                and self._time_scale == 1)
-
     def apply_cut(self, cut):
         """Return a cut version of this `MacroSubsystem`
 
@@ -379,7 +371,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
 
         validate.tpm(micro_tpm)
 
-        # TODO: only accept a state-by-node TPM? argument?
+        # TODO: only accept a state-by-node TPM argument?
         if (micro_tpm.ndim > 2) or (not micro_tpm.shape[0] == micro_tpm.shape[1]):
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
