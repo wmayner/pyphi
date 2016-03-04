@@ -296,10 +296,23 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
                    for micro_state in micro_states]
         return np.array(mapping)
 
-    def make_macro_tpm(self, micro_tpm):
+    def macro_tpm(self, micro_tpm, check_independence=False):
+        """Create a coarse-grained macro TPM.
+
+        Args:
+            micro_tpm (nd.array): The TPM of the micro-system.
+            check_independence (boolean): If True, the method will raise a
+                ``ConditionallyDependentError`` if the macro tpm is not
+                conditionally independent.
+
+        Returns:
+            (np.ndarray): The state-by-node TPM of the macro-system.
+        """
         mapping = self.make_mapping()
 
         validate.tpm(micro_tpm)
+
+        # TODO: only accept a state-by-node TPM? argument?
         if (micro_tpm.ndim > 2) or (not micro_tpm.shape[0] == micro_tpm.shape[1]):
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
@@ -322,22 +335,6 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         # TODO: use utils.normalize when rebased onto develop
         macro_tpm = np.array([list(row) if sum(row) == 0 else list(row / sum(row))
                        for row in macro_tpm])
-
-        return macro_tpm
-
-
-    def macro_tpm(self, micro_tpm, check_independence=False):
-        """Construct the coarse-grained macro tpm."""
-        """Create the macro TPM for a given mapping from micro to macro-states.
-
-        Args:
-            micro_tpm (nd.array): The TPM of the micro-system.
-            mapping (nd.array): A mapping from micro-states to macro-states.
-
-        Returns:
-            macro_tpm (``nd.array``): The TPM of the macro-system.
-        """
-        macro_tpm = self.make_macro_tpm(micro_tpm)
 
         if (check_independence and
                 not validate.conditionally_independent(macro_tpm)):
