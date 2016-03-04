@@ -118,29 +118,18 @@ the second macro-element is **OFF**, so that macro-element is **OFF**.
 
 The ``CoarseGrain`` object uses the mapping internally to create a
 state-by-state TPM for the macro-system corresponding to the selected partition
-and grouping:
+and grouping
 
-    >>> macro_tpm = coarse_grain.make_macro_tpm(network.tpm)
-    >>> macro_tpm
-    array([[ 0.5838,  0.0162,  0.3802,  0.0198],
-           [ 0.    ,  0.    ,  0.91  ,  0.09  ],
-           [ 0.5019,  0.0981,  0.3451,  0.0549],
-           [ 0.    ,  0.    ,  0.    ,  1.    ]])
-
-This macro-TPM does not satisfy the conditional independence assumption, so
-this particular partition and grouping combination is not a valid
-coarse-graining of the system:
-
-    >>> pyphi.validate.conditionally_independent(macro_tpm)
-    False
-
-In these cases :class:`~pyphi.macro.MacroSubsystem` will raise a
-:exception:`~pyphi.macro.ConditionallyDependentError`:
-
-    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
+    >>> coarse_grain.macro_tpm(network.tpm)
     Traceback (most recent call last):
         ...
     pyphi.macro.ConditionallyDependentError
+
+However, this macro-TPM does not satisfy the conditional independence
+assumption, so this particular partition and grouping combination is not a valid
+coarse-graining of the system. Constructing a :class:`~pyphi.macro.MacroSubsystem`
+with this coarse-graining will also raise a
+:exception:`~pyphi.macro.ConditionallyDependentError`:
 
 Lets consider a different coarse-graining instead.
 
@@ -153,6 +142,15 @@ Lets consider a different coarse-graining instead.
     >>> mapping = coarse_grain.make_mapping()
     >>> mapping
     array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 3])
+
+    >>> coarse_grain.macro_tpm(network.tpm)
+    array([[[ 0.09,  0.09],
+            [ 1.  ,  0.09]],
+    <BLANKLINE>
+           [[ 0.09,  1.  ],
+            [ 1.  ,  1.  ]]])
+
+We can now construct a ``MacroSubsystem``:
 
     >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
     >>> macro_subsystem
