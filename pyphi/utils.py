@@ -500,7 +500,7 @@ def _hamming_matrix(N):
                [ 1.,  2.,  0.,  1.],
                [ 2.,  1.,  1.,  0.]])
     """
-    if N < 10:
+    if N < _NUM_PRECOMPUTED_HAMMING_MATRICES:
         return _hamming_matrices[N]
     else:
         log.warn(
