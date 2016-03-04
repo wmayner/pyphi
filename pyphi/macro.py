@@ -12,7 +12,7 @@ import os
 
 import numpy as np
 
-from . import compute, constants, convert, validate
+from . import compute, constants, convert, utils, validate
 from .network import Network
 from .subsystem import Subsystem
 
@@ -20,12 +20,9 @@ from .subsystem import Subsystem
 log = logging.getLogger(__name__)
 
 # Load precomputed partition lists.
-_ROOT = os.path.abspath(os.path.dirname(__file__))
 _NUM_PRECOMPUTED_PARTITION_LISTS = 10
-_partition_lists = [
-    np.load(os.path.join(_ROOT, 'data', 'partition_lists', str(i) + '.npy'))
-    for i in range(_NUM_PRECOMPUTED_PARTITION_LISTS)
-]
+_partition_lists = utils.load_data('partition_lists',
+                                   _NUM_PRECOMPUTED_PARTITION_LISTS)
 
 
 class MacroNetwork:

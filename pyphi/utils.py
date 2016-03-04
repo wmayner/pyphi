@@ -7,6 +7,7 @@ Functions used by more than one PyPhi module or class, or that might be of
 external use.
 """
 
+import os
 import re
 import logging
 import hashlib
@@ -454,14 +455,29 @@ def bipartition_indices(N):
 # Internal helper methods
 # =============================================================================
 
+def load_data(dir, num):
+    """Load numpy data from the data directory.
+
+    The files should stored in ``data/{dir}`` and named
+    ``0.npy, 1.npy, ... {num - 1}.npy``.
+
+    Returns
+        list: A list of loaded data, such that ``list[i]`` contains the
+        the contents of ``i.npy``.
+    """
+
+    root = os.path.abspath(os.path.dirname(__file__))
+
+    def get_path(i):
+        return os.path.join(root, 'data', dir, str(i) + '.npy')
+
+    return [np.load(get_path(i)) for i in range(num)]
+
+
 # Load precomputed hamming matrices.
-import os
-_ROOT = os.path.abspath(os.path.dirname(__file__))
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
-_hamming_matrices = [
-    np.load(os.path.join(_ROOT, 'data', 'hamming_matrices', str(i) + '.npy'))
-    for i in range(_NUM_PRECOMPUTED_HAMMING_MATRICES)
-]
+_hamming_matrices = load_data('hamming_matrices',
+                              _NUM_PRECOMPUTED_HAMMING_MATRICES)
 
 
 # TODO extend to nonbinary nodes
