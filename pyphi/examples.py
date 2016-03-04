@@ -12,6 +12,7 @@ from pyphi.convert import loli_index2state
 
 from .network import Network
 from .subsystem import Subsystem
+from .utils import all_states
 
 
 def basic_network(cm=False):
@@ -429,7 +430,8 @@ def propagation_delay_network():
 
 def macro_network():
     """A network of micro elements which has greater integrated information
-    after coarse graining to a macro scale."""
+    after coarse graining to a macro scale.
+    """
     tpm = np.array([[0.3, 0.3, 0.3, 0.3],
                     [0.3, 0.3, 0.3, 0.3],
                     [0.3, 0.3, 0.3, 0.3],
@@ -453,6 +455,79 @@ def macro_subsystem():
     net = macro_network()
     state = (0, 0, 0, 0)
     return Subsystem(net, state, range(net.size))
+
+
+def blackbox_network():
+    """A micro-network to demonstrate blackboxing.
+
+    Diagram:
+
+                            +----------+
+      +-------------------->+ A (COPY) + <---------------+
+      |                     +----------+                 |
+      |                 +----------+                     |
+      |     +-----------+ B (COPY) + <-------------+     |
+      v     v           +----------+               |     |
+    +-+-----+-+                                  +-+-----+-+
+    |         |                                  |         |
+    | C (AND) |                                  | F (AND) |
+    |         |                                  |         |
+    +-+-----+-+                                  +-+-----+-+
+      |     |                                      ^     ^
+      |     |           +----------+               |     |
+      |     +---------> + D (COPY) +---------------+     |
+      |                 +----------+                     |
+      |                     +----------+                 |
+      +-------------------> + E (COPY) +-----------------+
+                            +----------+
+
+    Connectivity Matrix:
+
+        +---+---+---+---+---+---+---+
+        | . | A | B | C | D | E | F |
+        +---+---+---+---+---+---+---+
+        | A | 0 | 1 | 0 | 0 | 0 | 0 |
+        +---+---+---+---+---+---+---+
+        | B | 0 | 0 | 0 | 1 | 0 | 0 |
+        +---+---+---+---+---+---+---+
+        | C | 1 | 0 | 0 | 0 | 0 | 0 |
+        +---+---+---+---+---+---+---+
+        | D | 0 | 0 | 1 | 0 | 1 | 0 |
+        +---+---+---+---+---+---+---+
+        | E | 0 | 0 | 0 | 0 | 0 | 0 |
+        +---+---+---+---+---+---+---+
+
+
+    In the documentation example, the state is (0, 0, 0, 0, 0, 0).
+    """
+    num_nodes = 6
+    num_states = 2 ** num_nodes
+    tpm = np.zeros((num_states, num_nodes))
+
+    for index, past_state in enumerate(all_states(num_nodes)):
+        current_state = [0 for i in range(num_nodes)]
+        if (past_state[5] == 1):
+            current_state[0] = 1
+            current_state[1] = 1
+        if (past_state[0] == 1 and past_state[1]):
+            current_state[2] = 1
+        if (past_state[2] == 1):
+            current_state[3] = 1
+            current_state[4] = 1
+        if (past_state[3] == 1 and past_state[4] == 1):
+            current_state[5] = 1
+        tpm[index, :] = current_state
+
+    cm = np.array([
+        [0, 0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0],
+        [0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 1],
+        [1, 1, 0, 0, 0, 0]
+    ])
+
+    return Network(tpm, cm)
 
 
 def rule110_network():
