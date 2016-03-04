@@ -296,7 +296,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
                    for micro_state in micro_states]
         return np.array(mapping)
 
-    def macro_tpm(self, micro_tpm, check_independence=False):
+    def macro_tpm(self, micro_tpm, check_independence=True):
         """Create a coarse-grained macro TPM.
 
         Args:
