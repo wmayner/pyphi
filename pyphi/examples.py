@@ -391,12 +391,11 @@ def propagation_delay_network():
     ``(0, 0, 1, 0, 1, 0, 0, 0, 0)``.
     """
     num_nodes = 9
-    num_states = 2**num_nodes
+    num_states = 2 ** num_nodes
 
     tpm = np.zeros((num_states, num_nodes))
 
-    for past_state_index in range(num_states):
-        past_state = loli_index2state(past_state_index, num_nodes)
+    for past_state_index, past_state in enumerate(all_states(num_nodes)):
         current_state = [0 for i in range(num_nodes)]
         if (past_state[2] == 1 or past_state[7] == 1):
             current_state[0] = 1
