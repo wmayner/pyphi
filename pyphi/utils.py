@@ -135,19 +135,19 @@ def phi_eq(x, y):
     return abs(x - y) <= constants.EPSILON
 
 
-def normalize(x):
-    """Normalize an array.
+def normalize(a):
+    """Normalize a distribution.
 
     Args:
-        x (np.ndarray): The array to normalize.
+        a (np.ndarray): The array to normalize.
 
     Returns:
-        np.ndarray: ``x`` normalized so that the sum of its entries is 1.
+        np.ndarray: ``a`` normalized so that the sum of its entries is 1.
     """
-    sum_x = x.sum()
-    if sum_x == 0:
-        return x
-    return x / sum_x
+    sum_a = a.sum()
+    if sum_a == 0:
+        return a
+    return a / sum_a
 
 
 # see http://stackoverflow.com/questions/16003217
