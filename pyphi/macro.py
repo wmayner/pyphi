@@ -43,7 +43,7 @@ class MacroSubsystem(Subsystem):
 
     Unlike |Subsystem|, whose TPM has dimensionality equal to that of the
     subsystem's network and represents nodes external to the system using
-    singleton dimensions, ``MacroSubsystem`` squeezes the TPM to remove these
+    singleton dimensions, |MacroSubsystem| squeezes the TPM to remove these
     singletons. As a result, the node indices of the system are also squeezed
     to ``0..n`` so they properly index the TPM, and the state-tuple is
     reduced to the size of the system.

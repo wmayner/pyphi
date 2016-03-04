@@ -127,8 +127,8 @@ and grouping
 
 However, this macro-TPM does not satisfy the conditional independence
 assumption, so this particular partition and grouping combination is not a valid
-coarse-graining of the system. Constructing a :class:`~pyphi.macro.MacroSubsystem`
-with this coarse-graining will also raise a
+coarse-graining of the system. Constructing a |MacroSubsystem| with this
+coarse-graining will also raise
 :exception:`~pyphi.macro.ConditionallyDependentError`:
 
 Lets consider a different coarse-graining instead.
@@ -150,7 +150,7 @@ Lets consider a different coarse-graining instead.
            [[ 0.09,  1.  ],
             [ 1.  ,  1.  ]]])
 
-We can now construct a ``MacroSubsystem``:
+We can now construct a |MacroSubsystem| using this coarse-graining:
 
     >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
     >>> macro_subsystem
