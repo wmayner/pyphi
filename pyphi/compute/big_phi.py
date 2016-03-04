@@ -46,9 +46,14 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
         mechanisms = set([c.mechanism for c in unpartitioned_constellation])
     else:
-        mechanisms = set(
-            [c.mechanism for c in unpartitioned_constellation] +
-            list(cut.all_cut_mechanisms()))
+        # TODO: renable this.
+        # Currently does not work for macro systems because the cut is over the
+        # micro indices, but we actually want to get find cut macro-elements.
+        #
+        # mechanisms = set(
+        #    [c.mechanism for c in unpartitioned_constellation] +
+        #    list(cut.all_cut_mechanisms()))
+        mechanisms = False
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
     log.debug("Finished evaluating cut {}.".format(cut))

@@ -117,7 +117,7 @@ comes into existence.
    >>> ABC = (0, 1, 2)
    >>> C = (2,)
    >>> AB = (0, 1)
-   
+
 The cut applied to the subsystem severs the connections from |A| and |B| to |C|. In
 this circumstance, knowing |A| and |B| do not tell us anything about the state of
 |C|, only the past state of |C| can tell us about the future state of |C|. Here,
@@ -197,9 +197,9 @@ The unpartitioned constellation has mechanisms |n0|, |n1| and |n0, n1| with
 
    >>> partitioned_constellation = mip.partitioned_constellation
    >>> [concept.mechanism for concept in partitioned_constellation]
-   [(0, 1), (0,), (1,)]
+   [(0,), (1,), (0, 1)]
    >>> [concept.phi for concept in partitioned_constellation]
-   [0.214286, 0.25, 0.166667]
+   [0.25, 0.166667, 0.214286]
    >>> sum([concept.phi for concept in partitioned_constellation])
    0.630953
 
