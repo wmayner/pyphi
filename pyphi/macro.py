@@ -278,70 +278,6 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
     # TODO: validate? Currently implemented in validate.coarse_grain, but
     # should be moved here if this ever has an __init__ method
 
-    def make_mapping(self):
-        """Return a mapping from micro-state to the macro-states based on the
-        partition and state grouping of this coarse-grain.
-
-        Return:
-            (nd.ndarray): A mapping from micro-states to macro-states. The
-            |ith| entry in the mapping is the macro-state corresponding to the
-            |ith| micro-state.
-        """
-        micro_states = utils.all_states(len(self.micro_indices))
-
-        # Find the corresponding macro-state for each micro-state.
-        # The i-th entry in the mapping is the macro-state corresponding to the
-        # i-th micro-state.
-        mapping = [convert.state2loli_index(self.macro_state(micro_state))
-                   for micro_state in micro_states]
-        return np.array(mapping)
-
-    def macro_tpm(self, micro_tpm, check_independence=True):
-        """Create a coarse-grained macro TPM.
-
-        Args:
-            micro_tpm (nd.array): The TPM of the micro-system.
-            check_independence (boolean): If True, the method will raise a
-                ``ConditionallyDependentError`` if the macro tpm is not
-                conditionally independent.
-
-        Returns:
-            (np.ndarray): The state-by-node TPM of the macro-system.
-        """
-        mapping = self.make_mapping()
-
-        validate.tpm(micro_tpm)
-
-        # TODO: only accept a state-by-node TPM? argument?
-        if (micro_tpm.ndim > 2) or (not micro_tpm.shape[0] == micro_tpm.shape[1]):
-            micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
-
-        num_macro_states = 2 ** len(self.macro_indices)
-        num_micro_states = 2 ** len(self.micro_indices)
-        macro_tpm = np.zeros((num_macro_states, num_macro_states))
-
-        # For every possible micro-state transition, get the corresponding past and
-        # current macro-state using the mapping and add that probability to the
-        # state-by-state macro TPM.
-        micro_state_transitions = itertools.product(range(num_micro_states),
-                                                    range(num_micro_states))
-        for past_state_index, current_state_index in micro_state_transitions:
-            macro_tpm[mapping[past_state_index],
-                      mapping[current_state_index]] += \
-                micro_tpm[past_state_index, current_state_index]
-
-        # Because we're going from a bigger TPM to a smaller TPM, we have to
-        # re-normalize each row.
-        # TODO: use utils.normalize when rebased onto develop
-        macro_tpm = np.array([list(row) if sum(row) == 0 else list(row / sum(row))
-                       for row in macro_tpm])
-
-        if (check_independence and
-                not validate.conditionally_independent(macro_tpm)):
-            raise ConditionallyDependentError
-
-        return convert.state_by_state2state_by_node(macro_tpm)
-
     @property
     def micro_indices(self):
         """Indices of micro elements represented in this coarse-graining."""
@@ -408,6 +344,70 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         return tuple(0 if sum(micro_state[list(reindexed.partition[i])])
                      in self.grouping[i][0] else 1
                      for i in self.macro_indices)
+
+    def make_mapping(self):
+        """Return a mapping from micro-state to the macro-states based on the
+        partition and state grouping of this coarse-grain.
+
+        Return:
+            (nd.ndarray): A mapping from micro-states to macro-states. The
+            |ith| entry in the mapping is the macro-state corresponding to the
+            |ith| micro-state.
+        """
+        micro_states = utils.all_states(len(self.micro_indices))
+
+        # Find the corresponding macro-state for each micro-state.
+        # The i-th entry in the mapping is the macro-state corresponding to the
+        # i-th micro-state.
+        mapping = [convert.state2loli_index(self.macro_state(micro_state))
+                   for micro_state in micro_states]
+        return np.array(mapping)
+
+    def macro_tpm(self, micro_tpm, check_independence=True):
+        """Create a coarse-grained macro TPM.
+
+        Args:
+            micro_tpm (nd.array): The TPM of the micro-system.
+            check_independence (boolean): If True, the method will raise a
+                ``ConditionallyDependentError`` if the macro tpm is not
+                conditionally independent.
+
+        Returns:
+            (np.ndarray): The state-by-node TPM of the macro-system.
+        """
+        mapping = self.make_mapping()
+
+        validate.tpm(micro_tpm)
+
+        # TODO: only accept a state-by-node TPM? argument?
+        if (micro_tpm.ndim > 2) or (not micro_tpm.shape[0] == micro_tpm.shape[1]):
+            micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
+
+        num_macro_states = 2 ** len(self.macro_indices)
+        num_micro_states = 2 ** len(self.micro_indices)
+        macro_tpm = np.zeros((num_macro_states, num_macro_states))
+
+        # For every possible micro-state transition, get the corresponding past
+        # and current macro-state using the mapping and add that probability to
+        # the state-by-state macro TPM.
+        micro_state_transitions = itertools.product(range(num_micro_states),
+                                                    range(num_micro_states))
+        for past_state_index, current_state_index in micro_state_transitions:
+            macro_tpm[mapping[past_state_index],
+                      mapping[current_state_index]] += \
+                micro_tpm[past_state_index, current_state_index]
+
+        # Because we're going from a bigger TPM to a smaller TPM, we have to
+        # re-normalize each row.
+        # TODO: use utils.normalize when rebased onto develop
+        macro_tpm = np.array([list(row) if sum(row) == 0 else list(row / sum(row))
+                       for row in macro_tpm])
+
+        if (check_independence and
+                not validate.conditionally_independent(macro_tpm)):
+            raise ConditionallyDependentError
+
+        return convert.state_by_state2state_by_node(macro_tpm)
 
 
 class Blackbox(namedtuple('Blackbox', ['hidden_indices', 'output_indices'])):
