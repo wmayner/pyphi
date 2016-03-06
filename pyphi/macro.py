@@ -772,10 +772,8 @@ def effective_info(network):
         Available online: `doi: 10.1073/pnas.1314922110
         <http://www.pnas.org/content/110/49/19790.abstract>`_.
     """
-    # TODO? move to utils
-    states = itertools.product(*((0, 1),)*network.size)
     subsystems = []
-    for state in states:
+    for state in utils.all_states(network.size):
         try:
             subsystems.append(Subsystem(network, state, network.node_indices))
         except validate.StateUnreachableError:

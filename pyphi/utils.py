@@ -46,9 +46,8 @@ def all_states(n):
     if n == 0:
         return
 
-    num_states = 2 ** n
-    for state_index in range(num_states):
-        yield(convert.loli_index2state(state_index, n))
+    for state in itertools.product((0, 1), repeat=n):
+        yield state[::-1]  # Convert to LOLI-ordering
 
 
 # Methods for converting the time scale of the tpm
