@@ -402,19 +402,25 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         return convert.state_by_state2state_by_node(macro_tpm)
 
 
-class Blackbox(namedtuple('Blackbox', ['hidden_indices', 'output_indices'])):
+class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
     """Class representing a blackboxing of a system.
 
     Attributes:
-        hidden_indices (tuple(int)): Nodes which are hidden inside blackboxes.
+        partition (tuple(tuple(int)): The partition of nodes into boxes.
         output_indices (tuple(int)): Outputs of the blackboxes.
     """
     # TODO: validate!
 
     @property
+    def hidden_indices(self):
+        """All elements hidden inside the blackboxes."""
+        return tuple(sorted(set(self.micro_indices) -
+                            set(self.output_indices)))
+
+    @property
     def micro_indices(self):
         """Indices of micro-elements in this blackboxing."""
-        return tuple(sorted(self.hidden_indices + self.output_indices))
+        return tuple(sorted(idx for part in self.partition for idx in part))
 
     @property
     def macro_indices(self):
@@ -428,17 +434,20 @@ class Blackbox(namedtuple('Blackbox', ['hidden_indices', 'output_indices'])):
             Blackbox: a new, reindexed ``Blackbox``.
 
         Example:
-            >>> hidden_indices = (2, 4)
-            >>> output_indices = (3,)
-            >>> blackbox = Blackbox(hidden_indices, output_indices)
+            >>> partition = ((3,), (2, 4))
+            >>> output_indices = (2, 3)
+            >>> blackbox = Blackbox(partition, output_indices)
             >>> blackbox.reindex()
-            Blackbox(hidden_indices=(0, 2), output_indices=(1,))
+            Blackbox(partition=((1,), (0, 2)), output_indices=(0, 1))
         """
         _map = dict(zip(self.micro_indices, reindex(self.micro_indices)))
-        hidden_indices = tuple(_map[i] for i in self.hidden_indices)
+        partition = tuple(
+            tuple(_map[index] for index in group)
+            for group in self.partition
+        )
         output_indices = tuple(_map[i] for i in self.output_indices)
 
-        return Blackbox(hidden_indices, output_indices)
+        return Blackbox(partition, output_indices)
 
     def macro_state(self, micro_state):
         """Compute the macro-state of this blackbox.
