@@ -561,8 +561,11 @@ def all_blackboxes(indices):
     Yields:
         Blackbox: The next blackbox of ``indices``.
     """
-    for hidden_indices, output_indices in utils.directed_bipartition(indices):
-        yield Blackbox(hidden_indices, output_indices)
+    # TODO: this only gives one output per box. Should there be more?
+    for partition in all_partitions(indices):
+        # Pick one output from each box
+        for output_indices in itertools.product(*partition):
+            yield Blackbox(partition, output_indices)
 
 
 class MacroNetwork:

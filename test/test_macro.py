@@ -51,11 +51,16 @@ def test_all_coarse_grainings():
 
 
 def test_all_blackboxes():
-    assert list(macro.all_blackboxes((1, 2))) == [
-        macro.Blackbox((), (1, 2)),
-        macro.Blackbox((1,), (2,)),
-        macro.Blackbox((2,), (1,)),
-        macro.Blackbox((1, 2), ()),
+    assert list(macro.all_blackboxes((1, 2, 3))) == [
+        macro.Blackbox(((1, 2), (3,)), (1, 3)),
+        macro.Blackbox(((1, 2), (3,)), (2, 3)),
+        macro.Blackbox(((1, 3), (2,)), (1, 2)),
+        macro.Blackbox(((1, 3), (2,)), (3, 2)),
+        macro.Blackbox(((1,), (2, 3)), (1, 2)),
+        macro.Blackbox(((1,), (2, 3)), (1, 3)),
+        macro.Blackbox(((1, 2, 3),), (1,)),
+        macro.Blackbox(((1, 2, 3),), (2,)),
+        macro.Blackbox(((1, 2, 3),), (3,)),
     ]
 
 
