@@ -23,14 +23,20 @@ The system has minimal |big_phi| without blackboxing:
 
  We will consider the blackbox system ``ABC`` and ``DEF``, where ``C`` and
  ``F`` are output elements and ``ABDE`` are hidden within their blackboxes.
- Blackboxing is done with a :class:~`pyphi.macro.Blackbox` object:
+ Blackboxing is done with a :class:~`pyphi.macro.Blackbox` object. As with
+ :class:~`pyphi.macro.CoarseGrain`, we pass it a partition of micro-elements:
 
-    >>> hidden_indices = (0, 1, 3, 4)
+    >>> partition = ((0, 1, 2), (3, 4, 5))
     >>> output_indices = (2, 5)
-    >>> blackbox = pyphi.macro.Blackbox(hidden_indices, output_indices)
+    >>> blackbox = pyphi.macro.Blackbox(partition, output_indices)
 
-Blackboxes have a few convenience methods: The ``micro_indices`` property
-lists all the micro-elements in the box:
+Blackboxes have a few convenience methods. The ``hidden_indices`` property
+returns the elements which are hidden within blackboxes:
+
+    >>> blackbox.hidden_indices
+    (0, 1, 3, 4)
+
+The ``micro_indices`` property lists all the micro-elements in the box:
 
     >>> blackbox.micro_indices
     (0, 1, 2, 3, 4, 5)
