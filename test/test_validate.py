@@ -126,6 +126,11 @@ def test_validate_coarse_grain():
     with pytest.raises(ValueError):
         validate.coarse_grain(cg)
 
+    # Two partitions contain same element
+    cg = macro.CoarseGrain(((5,), (5,)), (((0,), (1,)), (((0,), (1,)))))
+    with pytest.raises(ValueError):
+        validate.coarse_grain(cg)
+
 
 def test_validate_blackbox():
     validate.blackbox(macro.Blackbox(((0, 1),), (1,)))
@@ -141,3 +146,9 @@ def test_validate_blackbox():
     # Every box must have an output
     with pytest.raises(ValueError):
         validate.blackbox(macro.Blackbox(((0,), (1,)), (0,)))
+
+
+def test_validate_partition():
+    # Micro-element appears in two macro-elements
+    with pytest.raises(ValueError):
+        validate.partition(((0,), (0, 1)))

@@ -183,8 +183,22 @@ def time_scale(time_scale):
         raise ValueError('time scale must be a positive integer')
 
 
+def partition(partition):
+    """Validate a partition - used by blackboxes and coarse grains."""
+    nodes = set()
+    for part in partition:
+        for node in part:
+            if node in nodes:
+                raise ValueError(
+                    'Micro-element {} may not be partitioned into multiple '
+                    'macro-elements'.format(node))
+            nodes.add(node)
+
+
 def coarse_grain(coarse_grain):
     """Validate a macro coarse-graining."""
+    partition(coarse_grain.partition)
+
     if len(coarse_grain.partition) != len(coarse_grain.grouping):
         raise ValueError('output and state groupings must be the same size')
 
@@ -206,14 +220,9 @@ def blackbox(blackbox):
         raise ValueError('Output indices {} must be ordered'.format(
             blackbox.output_indices))
 
-    nodes = set()
-    for part in blackbox.partition:
-        for node in part:
-            if node in nodes:
-                raise ValueError(
-                    'Element {} may not be in multiple boxes'.format(node))
-            nodes.add(node)
+    partition(blackbox.partition)
 
+    for part in blackbox.partition:
         if not set(part) & set(blackbox.output_indices):
             raise ValueError(
                 'Every blackbox must have an output - {} does not'.format(
