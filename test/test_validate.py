@@ -128,8 +128,16 @@ def test_validate_coarse_grain():
 
 
 def test_validate_blackbox():
-    validate.blackbox(macro.Blackbox((0,), (1,)))
+    validate.blackbox(macro.Blackbox(((0, 1),), (1,)))
 
-    # Repeated nodes
+    # Unsorted output indices
     with pytest.raises(ValueError):
-        validate.blackbox(macro.Blackbox((0, 1), (1, 2)))
+        validate.blackbox(macro.Blackbox(((0, 1),), (1, 0)))
+
+    # Two boxes may not contain the same elements
+    with pytest.raises(ValueError):
+        validate.blackbox(macro.Blackbox(((0,), (0, 1)), (0, 1)))
+
+    # Every box must have an output
+    with pytest.raises(ValueError):
+        validate.blackbox(macro.Blackbox(((0,), (1,)), (0,)))

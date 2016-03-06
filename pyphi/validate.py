@@ -199,7 +199,22 @@ def coarse_grain(coarse_grain):
 
 def blackbox(blackbox):
     """Validate a macro blackboxing."""
-    if set(blackbox.hidden_indices) & set(blackbox.output_indices):
-        raise ValueError(
-            'Hidden {0} and output {1} indices must be disjoint.'.format(
-                blackbox.hidden_indices, blackbox.output_indices))
+
+    # TODO: validate that each box only has one output? Is this true?
+
+    if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
+        raise ValueError('Output indices {} must be ordered'.format(
+            blackbox.output_indices))
+
+    nodes = set()
+    for part in blackbox.partition:
+        for node in part:
+            if node in nodes:
+                raise ValueError(
+                    'Element {} may not be in multiple boxes'.format(node))
+            nodes.add(node)
+
+        if not set(part) & set(blackbox.output_indices):
+            raise ValueError(
+                'Every blackbox must have an output - {} does not'.format(
+                    part))
