@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from pyphi import compute, macro, models, Network
+from pyphi import compute, config, macro, models, Network, utils
 
 
 @pytest.mark.slow
@@ -64,3 +64,84 @@ def test_standard_blackbox(s):
     bb_mip = compute.big_mip(bb_sub)
     assert bb_mip.phi == 2.125
     assert bb_mip.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
+
+
+@pytest.mark.slow
+def test_basic_nor_or():
+    # A system composed of NOR and OR (copy) gates, which mimics the basic
+    # pyphi network
+
+    nodes = 12
+    tpm = np.zeros((2 ** nodes, nodes))
+
+    for psi, ps in enumerate(utils.all_states(nodes)):
+        cs = [0 for i in range(nodes)]
+        if (ps[5] == 0 and ps[11] == 0):
+            cs[0] = 1
+        if (ps[0] == 0):
+            cs[1] = 1
+        if (ps[1] == 1):
+            cs[2] = 1
+        if (ps[11] == 0):
+            cs[3] = 1
+        if (ps[3] == 0):
+            cs[4] = 1
+        if (ps[4] == 1):
+            cs[5] = 1
+        if (ps[2] == 0):
+            cs[6] = 1
+        if (ps[5] == 0):
+            cs[7] = 1
+        if (ps[6] == 0 and ps[7] == 0):
+            cs[8] = 1
+        if (ps[2] == 0 and ps[5] == 0):
+            cs[9] = 1
+        if (ps[9] == 1):
+            cs[10] = 1
+        if (ps[8] == 0 and ps[10] == 0):
+            cs[11] = 1
+        tpm[psi, :] = cs
+
+    cm = np.array([
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+    ])
+
+    state = (0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+    network = Network(tpm, connectivity_matrix=cm)
+
+    # (0, 1, 2) compose the OR element,
+    # (3, 4, 5) the COPY,
+    # (6, 7, 8, 9, 10, 11) the XOR
+    partition = ((0, 1, 2), (3, 4, 5), (6, 7, 8, 9, 10, 11))
+    output = (2, 5, 11)
+    blackbox = macro.Blackbox(partition, output)
+    assert blackbox.hidden_indices == (0, 1, 3, 4, 6, 7, 8, 9, 10)
+    time = 3
+
+    sub = macro.MacroSubsystem(network, state, network.node_indices,
+                               blackbox=blackbox, time_scale=time)
+
+    with config.override(CUT_ONE_APPROXIMATION=True):
+        mip = compute.big_mip(sub)
+
+    assert mip.phi == 1.958328
+    assert mip.cut == models.Cut((6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11))
+
+    # After performing the 'ONE_CUT_APPROXIMATION'
+    # For the blackboxed system
+    # Phi: 1.958328
+    # Cut: severed = (6,) intact = (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11)
+    # The cut disrupts half of the connection from A (OR) to C (XOR).
+    # It is able to do this because A 'enters' C from two different locations
