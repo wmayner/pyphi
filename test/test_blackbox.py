@@ -4,6 +4,8 @@ import pytest
 
 from pyphi import compute, config, macro, models, Network, utils
 
+# TODO: move these to examples.py
+
 
 @pytest.mark.slow
 def test_basic_propogation_delay(s):
@@ -142,3 +144,62 @@ def test_basic_nor_or():
     # Cut: severed = (6,) intact = (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11)
     # The cut disrupts half of the connection from A (OR) to C (XOR).
     # It is able to do this because A 'enters' C from two different locations
+
+
+@pytest.mark.slow
+def test_xor_propogation_delay():
+    # Three interconnected XOR gates, with COPY gates along each connection
+    # acting as propagation delays.
+
+    nodes = 9
+    tpm = np.zeros((2 ** nodes, nodes))
+
+    for psi, ps in enumerate(utils.all_states(nodes)):
+        cs = [0 for i in range(nodes)]
+        if (ps[2] ^ ps[7]):
+            cs[0] = 1
+        if (ps[0] == 1):
+            cs[1] = 1
+            cs[8] = 1
+        if (ps[1] ^ ps[5]):
+            cs[3] = 1
+        if (ps[3] == 1):
+            cs[2] = 1
+            cs[4] = 1
+        if (ps[4] ^ ps[8]):
+            cs[6] = 1
+        if (ps[6] == 1):
+            cs[5] = 1
+            cs[7] = 1
+        tpm[psi, :] = cs
+
+    cm = np.array([
+        [0, 1, 0, 0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 1, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0]
+    ])
+
+    # The state of the system is all OFF
+    state = (0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+    network = Network(tpm, connectivity_matrix=cm)
+
+    partition = ((0, 2, 7), (1, 3, 5), (4, 6, 8))
+    output_indices = (0, 3, 6)
+    blackbox = macro.Blackbox(partition, output_indices)
+    assert blackbox.hidden_indices == (1, 2, 4, 5, 7, 8)
+
+    time = 2
+    sub = macro.MacroSubsystem(network, state, network.node_indices,
+                               blackbox=blackbox, time_scale=time)
+
+    # TODO: expected values?
+    big_mip = compute.big_mip(sub)
+    print(big_mip)
+    assert big_mip.phi == None
