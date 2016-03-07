@@ -135,13 +135,9 @@ def test_basic_nor_or():
     with config.override(CUT_ONE_APPROXIMATION=True):
         mip = compute.big_mip(sub)
 
-    assert mip.phi == 1.958328
+    assert mip.phi == 1.958332
     assert mip.cut == models.Cut((6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11))
-
     # After performing the 'ONE_CUT_APPROXIMATION'
-    # For the blackboxed system
-    # Phi: 1.958328
-    # Cut: severed = (6,) intact = (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11)
     # The cut disrupts half of the connection from A (OR) to C (XOR).
     # It is able to do this because A 'enters' C from two different locations
 
