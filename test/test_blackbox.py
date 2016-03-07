@@ -6,17 +6,14 @@ from pyphi import compute, config, macro, models, Network, utils
 
 
 @pytest.mark.slow
-def test_standard_blackbox(s):
+def test_basic_propogation_delay(s):
     # Create basic network with propagation delay.
     # COPY gates on each of the connections in the original network.
 
     nodes = 8
-    states = 2 ** nodes
+    tpm = np.zeros((2 ** nodes, nodes))
 
-    tpm = np.zeros((states, nodes))
-
-    for psi in range(states):
-        ps = tuple(map(int, bin(psi)[2:].zfill(nodes)[::-1]))
+    for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
         if (ps[5] == 1 or ps[7] == 1):
             cs[0] = 1
