@@ -343,7 +343,9 @@ class Concept(cmp._Orderable):
         """Return whether this concept is equal to another in the context of an
         EMD calculation.
         """
-        return self.mechanism == other.mechanism and self.eq_repertoires(other)
+        return (self.phi == other.phi
+                and self.mechanism == other.mechanism
+                and self.eq_repertoires(other))
 
     # TODO Rename to expanded_cause_repertoire, etc
     def expand_cause_repertoire(self, new_purview=None):
