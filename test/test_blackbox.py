@@ -192,10 +192,9 @@ def test_xor_propogation_delay():
     assert blackbox.hidden_indices == (1, 2, 4, 5, 7, 8)
 
     time = 2
-    sub = macro.MacroSubsystem(network, state, network.node_indices,
-                               blackbox=blackbox, time_scale=time)
+    subsys = macro.MacroSubsystem(network, state, network.node_indices,
+                                  blackbox=blackbox, time_scale=time)
 
-    # TODO: expected values?
-    big_mip = compute.big_mip(sub)
-    print(big_mip)
-    assert big_mip.phi == None
+    big_mip = compute.big_mip(subsys)
+    assert big_mip.phi == 1.874999
+    assert big_mip.cut == models.Cut((0,), (1, 2, 3, 4, 5, 6, 7, 8))
