@@ -68,7 +68,7 @@ As in the coarse-graining example, the blackbox and time scale are passed to
 We can now compute |big_phi| for this macro system:
 
     >>> pyphi.compute.big_phi(macro_subsystem)
-    0.388889
+    0.638888
 
 We find that the macro subsystem has greater integrated information
 (:math:`\Phi = 0.388889`) than the micro system (:math:`\Phi =
