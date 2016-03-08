@@ -198,3 +198,54 @@ def test_xor_propogation_delay():
     big_mip = compute.big_mip(subsys)
     assert big_mip.phi == 1.874999
     assert big_mip.cut == models.Cut((0,), (1, 2, 3, 4, 5, 6, 7, 8))
+
+
+def test_coarsegrain_spatial_degenerate():
+    # TODO: move to docs?
+    # macro-micro examples from Hoel2016
+    # Example 2 - Spatial Degenerate
+    # The micro system has a full complex, and big_phi = 0.19
+    # The optimal coarse-graining groups AB, CD and EF, each with state
+    # mapping ((0, 1), (2))
+
+    nodes = 6
+    tpm = np.zeros((2**nodes, nodes))
+
+    for psi, ps in enumerate(utils.all_states(nodes)):
+        cs = [0 for i in range(nodes)]
+        if (ps[0] == 1 and ps[1] == 1):
+            cs[2] = 1
+            cs[3] = 1
+        if (ps[2] == 1 and ps[3] == 1):
+            cs[4] = 1
+            cs[5] = 1
+        if (ps[4] == 1 and ps[5] == 1):
+            cs[0] = 1
+            cs[1] = 1
+        tpm[psi, :] = cs
+
+    cm = np.array([
+        [0, 0, 1, 1, 0, 0],
+        [0, 0, 1, 1, 0, 0],
+        [0, 0, 0, 0, 1, 1],
+        [0, 0, 0, 0, 1, 1],
+        [1, 1, 0, 0, 0, 0],
+        [1, 1, 0, 0, 0, 0]
+    ])
+
+    state = (0, 0, 0, 0, 0, 0)
+
+    net = Network(tpm, cm)
+
+    mc = compute.main_complex(net, state)
+    assert mc.phi == 0.194445
+
+    partition = ((0, 1), (2, 3), (4, 5))
+    grouping = (((0, 1), (2,)), ((0, 1), (2,)), ((0, 1), (2, )))
+    coarse = macro.CoarseGrain(partition, grouping)
+
+    sub = macro.MacroSubsystem(net, state, range(net.size),
+                               coarse_grain=coarse)
+
+    mip = compute.big_mip(sub)
+    assert mip.phi == 0.834183
