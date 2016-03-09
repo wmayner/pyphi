@@ -36,6 +36,12 @@ def reindex(indices):
     return tuple(range(len(indices)))
 
 
+def generate_nodes(subsystem, indices):
+    """Generate the |Node| objects for these indices."""
+    # TODO: refactor this to node.py?
+    return tuple(Node(subsystem, i, indices=indices) for i in indices)
+
+
 class MacroSubsystem(Subsystem):
     """A subclass of |Subsystem| implementing macro computations.
 
@@ -108,8 +114,7 @@ class MacroSubsystem(Subsystem):
 
         # Regenerate nodes
         # ================
-        self.nodes = tuple(Node(self, i, indices=self.node_indices)
-                           for i in self.node_indices)
+        self.nodes = generate_nodes(self, self.node_indices)
 
         # Hash the final subsystem - only compute hash once.
         self._hash = hash((self.network,
@@ -137,8 +142,7 @@ class MacroSubsystem(Subsystem):
 
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
-        nodes = tuple(Node(self, i, indices=node_indices)
-                      for i in node_indices)
+        nodes = generate_nodes(self, node_indices)
 
         # Re-calcuate the tpm based on the results of the cut
         tpm = np.rollaxis(
@@ -161,8 +165,7 @@ class MacroSubsystem(Subsystem):
         Effectively this makes it so that only the output elements of each
         blackbox output to the rest of the system.
         """
-        nodes = tuple(Node(self, i, indices=self.node_indices)
-                      for i in self.node_indices)
+        nodes = generate_nodes(self, self.node_indices)
 
         def hidden_from(a, b):
             # Returns True if a is a hidden in a different blackbox than b
