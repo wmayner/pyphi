@@ -309,3 +309,14 @@ def test_state_by_state():
     # State-by-node, 2-dimensional
     tpm = np.ones((8, 3))
     assert not utils.state_by_state(tpm)
+
+
+def test_expand_tpm():
+    tpm = np.ones((2, 1, 2))
+    tpm[(0, 0)] = (0, 1)
+    assert np.array_equal(utils.expand_tpm(tpm), np.array([
+        [[0, 1],
+         [0, 1]],
+        [[1, 1],
+         [1, 1]],
+    ]))

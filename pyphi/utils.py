@@ -128,6 +128,13 @@ def condition_tpm(tpm, fixed_nodes, state):
     return tpm[conditioning_indices]
 
 
+def expand_tpm(tpm):
+    """Broadcast a state-by-node TPM so that singleton dimensions are expanded
+    over the full network."""
+    uc = np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]])
+    return tpm * uc
+
+
 def apply_cut(cut, connectivity_matrix):
     """Return a modified connectivity matrix where the connections from one set
     of nodes to the other are destroyed.
