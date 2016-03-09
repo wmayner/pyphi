@@ -15,7 +15,7 @@ import numpy as np
 
 from . import compute, config, constants, convert, utils, validate
 from .network import irreducible_purviews
-from .node import Node
+from .node import Node, expand_node_tpm
 from .subsystem import Subsystem
 
 # Create a logger for this module.
@@ -99,8 +99,7 @@ class MacroSubsystem(Subsystem):
 
                 node_tpm = utils.condition_tpm(node.tpm[1], hidden_inputs,
                                                self.state)
-                expanded_tpms.append(node.expand_tpm(self.node_indices,
-                                                     tpm=node_tpm))
+                expanded_tpms.append(expand_node_tpm(node_tpm))
 
             # Re-calcuate the tpm based on the results of the cut
             self.tpm = np.rollaxis(
@@ -163,7 +162,7 @@ class MacroSubsystem(Subsystem):
         # Re-calcuate the tpm based on the results of the cut
         tpm = np.rollaxis(
             np.array([
-                node.expand_tpm(node_indices) for node in nodes
+                expand_node_tpm(node.tpm[1]) for node in nodes
             ]), 0, len(node_indices) + 1)
 
         # The connectivity matrix is the network's connectivity matrix, with

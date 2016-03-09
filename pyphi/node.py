@@ -119,29 +119,6 @@ class Node:
                              node.index in self._output_indices]
         return self._outputs
 
-    # TODO: confirm that this works in all cases
-    def expand_tpm(self, node_indices, tpm=None):
-        """Expand this node's tpm over the specified nodes, broadcasting over
-        singleton dimensions.
-
-        The expanded TPM gives the probability that this node will be ON.
-
-        Args:
-            node_indices (tuple(int)): The nodes of the system over which to
-                expand the tpm.
-
-        Returns:
-            np.ndarray: The expanded distribution.
-        """
-        # Unconstrained distribution
-        uc = np.ones([2 for index in node_indices])
-
-        if tpm is None:
-            tpm = self.tpm[1]
-
-        # Broadcast the distribution to the correct shape
-        return tpm * uc
-
     def __repr__(self):
         return (self.label if self.label is not None
                 else 'n' + str(self.index))
@@ -174,3 +151,14 @@ class Node:
     # TODO do we need more than the index?
     def to_json(self):
         return self.index
+
+
+def expand_node_tpm(tpm):
+    """Broadcast a node TPM over the full network.
+
+    This is different from broadcasting the TPM of a full system since the last
+    dimension (containing the state of the node) is unitary -- not a state-
+    tuple.
+    """
+    uc = np.ones([2 for node in tpm.shape])
+    return uc * tpm

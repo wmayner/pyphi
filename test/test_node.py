@@ -6,7 +6,7 @@ import numpy as np
 
 from pyphi.network import Network
 from pyphi.subsystem import Subsystem
-from pyphi.node import Node
+from pyphi.node import Node, expand_node_tpm
 
 
 def test_node_init_tpm(s):
@@ -62,13 +62,14 @@ def test_str(s):
     print(str(s.nodes[0]))
 
 
-def test_expand_tpm(s):
-    # `B` is the COPY gate -- on whenever `C` is on
-    B = s.nodes[1]
-    answer = np.array([
-        [[ 0., 1.],
-         [ 0., 1.]],
-        [[ 0., 1.],
-         [ 0., 1.]]
+def test_expand_tpm():
+    tpm = np.array([
+        [[0, 1]]
     ])
-    assert np.array_equal(B.expand_tpm(s.node_indices), answer)
+    answer = np.array([
+        [[0, 1],
+         [0, 1]],
+        [[0, 1],
+         [0, 1]]
+    ])
+    assert np.array_equal(expand_node_tpm(tpm), answer)
