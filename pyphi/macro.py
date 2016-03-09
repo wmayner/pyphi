@@ -135,6 +135,9 @@ class MacroSubsystem(Subsystem):
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
         the number of internal indices in the system.
         """
+        # TODO: somehow don't assign to self.tpm, but still generate the nodes,
+        # perhaps by passing the tpm to the node constructor?
+
         # Don't squeeze out the final dimension (which contains the
         # probability) for networks of size one
         if self.network.size > 1:
