@@ -464,6 +464,16 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
         reindexed = self.reindex()
         return utils.state_of(reindexed.output_indices, micro_state)
 
+    def in_same_box(self, a, b):
+        """Returns True if nodes ``a`` and ``b``` are in the same box."""
+        assert a in self.micro_indices and b in self.micro_indices
+
+        for part in self.partition:
+            if a in part and b in part:
+                return True
+
+        return False
+
 
 def _partitions_list(N):
     """Return a list of partitions of the |N| binary nodes.

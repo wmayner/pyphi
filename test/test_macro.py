@@ -150,3 +150,19 @@ def test_blackbox_state():
         bb.macro_state((0, 1, 1, 1))
     assert bb.macro_state((0, 1, 0)) == (1, 0)
     assert bb.macro_state((1, 0, 0)) == (0, 0)
+
+
+def test_blackbox_same_box():
+    partition = ((1, 3), (4,))
+    output_indices = (3, 4)
+    bb = macro.Blackbox(partition, output_indices)
+
+    # Nodes not in Blackox
+    with pytest.raises(AssertionError):
+        bb.in_same_box(2, 4)
+    with pytest.raises(AssertionError):
+        bb.in_same_box(4, 19)
+
+    assert bb.in_same_box(1, 3)
+    assert not bb.in_same_box(3, 4)
+    assert not bb.in_same_box(4, 3)
