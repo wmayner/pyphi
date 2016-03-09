@@ -42,6 +42,12 @@ def generate_nodes(subsystem, indices):
     return tuple(Node(subsystem, i, indices=indices) for i in indices)
 
 
+def rebuild_system_tpm(node_tpms):
+    """Reconstruct the network TPM from a collection of node tpms."""
+    expanded_tpms = np.array([expand_node_tpm(tpm) for tpm in node_tpms])
+    return np.rollaxis(expanded_tpms, 0, len(expanded_tpms) + 1)
+
+
 class MacroSubsystem(Subsystem):
     """A subclass of |Subsystem| implementing macro computations.
 
@@ -148,10 +154,7 @@ class MacroSubsystem(Subsystem):
         nodes = generate_nodes(self, node_indices)
 
         # Re-calcuate the tpm based on the results of the cut
-        tpm = np.rollaxis(
-            np.array([
-                expand_node_tpm(node.tpm[1]) for node in nodes
-            ]), 0, len(node_indices) + 1)
+        tpm = rebuild_system_tpm(node.tpm[1] for node in nodes)
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
@@ -184,10 +187,7 @@ class MacroSubsystem(Subsystem):
                                                  hidden_inputs,
                                                  self.state))
 
-        # Recalculate the system TPM
-        expanded_tpms = [expand_node_tpm(tpm) for tpm in node_tpms]
-        return np.rollaxis(
-            np.array(expanded_tpms), 0, len(self.node_indices) + 1)
+        return rebuild_system_tpm(node_tpms)
 
     def _blackbox_time(self, time_scale):
         """Black box the CM and TPM over the given time_scale.
