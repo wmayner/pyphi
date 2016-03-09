@@ -87,21 +87,20 @@ class MacroSubsystem(Subsystem):
                           for i in self.node_indices)
 
             def hidden_from(a, b):
-                # Returns True if a is a hidden element in a different blackbox
-                # than b
+                # Returns True if a is a hidden in a different blackbox than b
                 return (a in blackbox.hidden_indices and
                         not blackbox.in_same_box(a, b))
 
-            expanded_tpms = []
+            node_tpms = []
             for node in nodes:
                 hidden_inputs = [input for input in node.input_indices
                                  if hidden_from(input, node.index)]
+                node_tpms.append(utils.condition_tpm(node.tpm[1],
+                                                     hidden_inputs,
+                                                     self.state))
 
-                node_tpm = utils.condition_tpm(node.tpm[1], hidden_inputs,
-                                               self.state)
-                expanded_tpms.append(expand_node_tpm(node_tpm))
-
-            # Re-calcuate the tpm based on the results of the cut
+            # Recalculate the system TPM, with hidden inputs frozen
+            expanded_tpms = [expand_node_tpm(tpm) for tpm in node_tpms]
             self.tpm = np.rollaxis(
                 np.array(expanded_tpms), 0, len(self.node_indices) + 1)
 
