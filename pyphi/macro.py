@@ -635,54 +635,46 @@ def coarse_grain(network, state, internal_indices):
     return (max_phi, max_coarse_grain)
 
 
-def emergence(network, state):
-    """Check for emergence of a micro-system into a macro-system.
+def emergence(network, state, blackbox=False, coarse_grain=True,
+              time_scales=None):
+    """Check for the emergence of a micro-system into a macro-system.
 
-    Checks all possible partitions and groupings of the micro-system to find
+    Checks all possible blackboxings and coarse-grainings of a system to find
     the spatial scale with maximum integrated information.
 
-    Args:
-        network (Network): The network of the micro-system under investigation.
-        state (tuple(int)): The state of the network.
-
-    Returns:
-        MacroNetwork: The maximal coarse-graining of the micro-system.
-    """
-    micro_phi = compute.main_complex(network, state).phi
-    max_phi = float('-inf')
-
-    systems = utils.powerset(network.node_indices)
-    for system in systems:
-        (phi, _coarse_grain) = coarse_grain(network, state, system)
-        if (phi - max_phi) > constants.EPSILON:
-            max_phi = phi
-            max_coarse_grain = _coarse_grain
-            max_system = system
-
-    return MacroNetwork(network=network,
-                        system=max_system,
-                        macro_phi=max_phi,
-                        micro_phi=micro_phi,
-                        coarse_grain=max_coarse_grain)
-
-
-def blackbox_emergence(network, state, time_scales=None):
-    """Check for the emergence of a micro-system into a macro-system, using
-    blackboxing and coarse-graining.
+    Use the ``blackbox`` and ``coarse_grain`` args to specifiy whether to use
+    blackboxing, coarse-graining, or both. The default is to just coarse-grain
+    the system.
 
     Args:
         network (Network): The network of the micro-system under investigation.
         state (tuple(int)): The state of the network.
-        time_scales (list(int)): List of all time steps to check for emergence.
+        blackbox (boolean): Set to True to enable blackboxing. Defaults to
+            False.
+        coarse_grain (boolean): Set to True to enable coarse-graining.
+            Defaults to True.
+        time_scales (list(int)): List of all time steps over which to check
+            for emergence.
 
     Returns:
-        MacroNetwork: The maximal coarse-graining of the micro-system.
-
-    TODO: refactor this to ``emergence``; parameterize so that you can choose
-    blackboxing, coarse-graining, or both.
+        MacroNetwork: The maximal macro-system generated from the micro-system.
     """
     if time_scales is None:
         time_scales = [1]
+
+    def blackboxes(system):
+        # Returns all blackboxes to evaluate
+        if not blackbox:
+            return [None]
+        return all_blackboxes(system)
+
+    def coarse_grains(blackbox, system):
+        # Returns all coarse-grains to test
+        if not coarse_grain:
+            return [None]
+        if blackbox is None:
+            return all_coarse_grains(system)
+        return all_coarse_grains(blackbox.output_indices)
 
     micro_phi = compute.main_complex(network, state).phi
 
@@ -691,8 +683,8 @@ def blackbox_emergence(network, state, time_scales=None):
 
     for system in utils.powerset(network.node_indices):
         for time_scale in time_scales:
-            for blackbox in all_blackboxes(system):
-                for coarse_grain in all_coarse_grains(blackbox.output_indices):
+            for blackbox in blackboxes(system):
+                for coarse_grain in coarse_grains(blackbox, system):
                     try:
                         subsystem = MacroSubsystem(
                             network, state, system,
