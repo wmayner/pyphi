@@ -77,32 +77,14 @@ class MacroSubsystem(Subsystem):
         self.tpm, self.cm, self.node_indices, self._state = (
             self._squeeze(node_indices))
 
-        # Freeze connections from hidden nodes to other boxes
-        # ===================================================
+        # TODO: refactor all blackboxing into one method?
+
+        # Blackbox partial freeze
+        # =======================
         if blackbox is not None:
             validate.blackbox(blackbox)
             blackbox = blackbox.reindex()
-
-            nodes = tuple(Node(self, i, indices=self.node_indices)
-                          for i in self.node_indices)
-
-            def hidden_from(a, b):
-                # Returns True if a is a hidden in a different blackbox than b
-                return (a in blackbox.hidden_indices and
-                        not blackbox.in_same_box(a, b))
-
-            node_tpms = []
-            for node in nodes:
-                hidden_inputs = [input for input in node.input_indices
-                                 if hidden_from(input, node.index)]
-                node_tpms.append(utils.condition_tpm(node.tpm[1],
-                                                     hidden_inputs,
-                                                     self.state))
-
-            # Recalculate the system TPM, with hidden inputs frozen
-            expanded_tpms = [expand_node_tpm(tpm) for tpm in node_tpms]
-            self.tpm = np.rollaxis(
-                np.array(expanded_tpms), 0, len(self.node_indices) + 1)
+            self.tpm = self._blackbox_partial_freeze(blackbox)
 
         # Blackbox over time
         # ==================
@@ -172,6 +154,34 @@ class MacroSubsystem(Subsystem):
         state = utils.state_of(internal_indices, self.state)
 
         return (tpm, cm, node_indices, state)
+
+    def _blackbox_partial_freeze(self, blackbox):
+        """Freeze connections from hidden elements to elements in other boxes.
+
+        Effectively this makes it so that only the output elements of each
+        blackbox output to the rest of the system.
+        """
+        nodes = tuple(Node(self, i, indices=self.node_indices)
+                      for i in self.node_indices)
+
+        def hidden_from(a, b):
+            # Returns True if a is a hidden in a different blackbox than b
+            return (a in blackbox.hidden_indices and
+                    not blackbox.in_same_box(a, b))
+
+        # Condition each node on the state of input nodes in other boxes
+        node_tpms = []
+        for node in nodes:
+            hidden_inputs = [input for input in node.input_indices
+                             if hidden_from(input, node.index)]
+            node_tpms.append(utils.condition_tpm(node.tpm[1],
+                                                 hidden_inputs,
+                                                 self.state))
+
+        # Recalculate the system TPM
+        expanded_tpms = [expand_node_tpm(tpm) for tpm in node_tpms]
+        return np.rollaxis(
+            np.array(expanded_tpms), 0, len(self.node_indices) + 1)
 
     def _blackbox_time(self, time_scale):
         """Black box the CM and TPM over the given time_scale.
