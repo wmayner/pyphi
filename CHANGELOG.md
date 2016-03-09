@@ -10,6 +10,10 @@ Next Release
   `all_partitions` and `all_groupings`. Both are now generators and return
   nested tuples instead of lists.
 - Moved `macro.make_mapping` to `CoarseGrain.make_mapping`.
+- Moved `macro.make_macro_tpm` to `CoarseGrain.macro_tpm`.
+- Added blackbox functionality to `macro.emergence`. Blackboxing and coarse-
+  graining are now parametrized with the `blackbox` and `coarse_grain`
+  arguments.
 
 ### API Additions
 - Added `macro.MacroSubsystem`. This subclass of `Subsystem` is used to performs
@@ -17,11 +21,12 @@ Next Release
 - Added `macro.CoarseGrain` to represent coarse-grainings of a system.
 - Added `macro.Blackbox` to represent system blackboxes.
 - Added `validate.blackbox` and `validate.coarse_grain`.
-- Added `macro.blackbox_emergence` to compute system emergence.
 - Added `macro.all_coarse_grains` and `macro.all_blackboxes` generators.
 - Added `Subsystem.cut_indices` property.
-- Added `Subsystem.cm` connectivity matrix alias
+- Added `Subsystem.cm` connectivity matrix alias.
 - Added `utils.all_states`, a generator over all states of an n-element system.
+- Added `utils.state_by_state` for testing whether a TPM is in state-by-state
+  format.
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
