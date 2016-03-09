@@ -367,32 +367,31 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         Returns:
             (np.ndarray): The state-by-node TPM of the macro-system.
         """
-        mapping = self.make_mapping()
-
         validate.tpm(micro_tpm)
 
         if not utils.state_by_state(micro_tpm):
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
+        mapping = self.make_mapping()
+
         num_macro_states = 2 ** len(self.macro_indices)
-        num_micro_states = 2 ** len(self.micro_indices)
         macro_tpm = np.zeros((num_macro_states, num_macro_states))
+
+        micro_states = range(2 ** len(self.micro_indices))
+        micro_state_transitions = itertools.product(micro_states, micro_states)
 
         # For every possible micro-state transition, get the corresponding past
         # and current macro-state using the mapping and add that probability to
         # the state-by-state macro TPM.
-        micro_state_transitions = itertools.product(range(num_micro_states),
-                                                    range(num_micro_states))
-        for past_state_index, current_state_index in micro_state_transitions:
-            macro_tpm[mapping[past_state_index],
-                      mapping[current_state_index]] += \
-                micro_tpm[past_state_index, current_state_index]
+        for past_state, current_state in micro_state_transitions:
+            macro_tpm[mapping[past_state], mapping[current_state]] += (
+                micro_tpm[past_state, current_state])
 
-        # Because we're going from a bigger TPM to a smaller TPM, we have to
-        # re-normalize each row.
+        # Re-normalize each row because we're going from larger to smaller TPM
         # TODO: use utils.normalize when rebased onto develop
-        macro_tpm = np.array([list(row) if sum(row) == 0 else list(row / sum(row))
-                       for row in macro_tpm])
+        macro_tpm = np.array([list(row) if sum(row) == 0
+                              else list(row / sum(row))
+                              for row in macro_tpm])
 
         if (check_independence and
                 not validate.conditionally_independent(macro_tpm)):
