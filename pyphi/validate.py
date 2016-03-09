@@ -8,7 +8,7 @@ Methods for validating common types of input.
 
 import numpy as np
 
-from . import config, constants, convert
+from . import config, constants, convert, utils
 from .constants import EPSILON
 
 
@@ -69,7 +69,7 @@ def conditionally_independent(tpm):
     """Validate that the TPM is conditionally independent."""
     tpm = np.array(tpm)
     if tpm.ndim > 1:
-        if tpm.shape[0] == tpm.shape[1] and tpm.ndim == 2:
+        if utils.state_by_state(tpm):
             there_and_back_again = convert.state_by_node2state_by_state(
                 convert.state_by_state2state_by_node(tpm))
         else:

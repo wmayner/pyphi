@@ -371,8 +371,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
 
         validate.tpm(micro_tpm)
 
-        # TODO: only accept a state-by-node TPM argument?
-        if (micro_tpm.ndim > 2) or (not micro_tpm.shape[0] == micro_tpm.shape[1]):
+        if not utils.state_by_state(micro_tpm):
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
         num_macro_states = 2 ** len(self.macro_indices)

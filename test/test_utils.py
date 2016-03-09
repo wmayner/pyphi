@@ -295,3 +295,17 @@ def test_all_states():
         (0, 1, 1),
         (1, 1, 1),
     ]
+
+
+def test_state_by_state():
+    # State-by-state
+    tpm = np.ones((8, 8))
+    assert utils.state_by_state(tpm)
+
+    # State-by-node, N-dimensional
+    tpm = np.ones((2, 2, 2, 3))
+    assert not utils.state_by_state(tpm)
+
+    # State-by-node, 2-dimensional
+    tpm = np.ones((8, 3))
+    assert not utils.state_by_state(tpm)

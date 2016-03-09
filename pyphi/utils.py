@@ -21,7 +21,7 @@ from scipy.spatial.distance import cdist
 from scipy.sparse import csc_matrix
 from scipy.sparse.csgraph import connected_components
 
-from . import constants, convert, validate
+from . import constants, convert
 from .cache import cache
 
 
@@ -102,6 +102,11 @@ def run_cm(cm, time_scale):
 
 # TPM and Connectivity Matrix utils
 # ============================================================================
+
+def state_by_state(tpm):
+    """Return True if the tpm is in state-by-state form, otherwise False."""
+    return tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]
+
 
 def condition_tpm(tpm, fixed_nodes, state):
     """Return a TPM conditioned on the given fixed node indices, whose states

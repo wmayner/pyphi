@@ -143,7 +143,7 @@ class Network:
         validate.tpm(tpm)
         # Convert to N-D state-by-node if we were given a square state-by-state
         # TPM. Otherwise, force conversion to N-D format.
-        if tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]:
+        if utils.state_by_state(tpm):
             self._tpm = convert.state_by_state2state_by_node(tpm)
         else:
             self._tpm = convert.to_n_dimensional(tpm)
