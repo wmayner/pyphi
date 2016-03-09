@@ -563,7 +563,7 @@ def all_blackboxes(indices):
     for partition in all_partitions(indices):
         # Pick one output from each box
         for output_indices in itertools.product(*partition):
-            yield Blackbox(partition, output_indices)
+            yield Blackbox(partition, tuple(sorted(output_indices)))
 
 
 class MacroNetwork:

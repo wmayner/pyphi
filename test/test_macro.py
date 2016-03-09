@@ -55,7 +55,7 @@ def test_all_blackboxes():
         macro.Blackbox(((1, 2), (3,)), (1, 3)),
         macro.Blackbox(((1, 2), (3,)), (2, 3)),
         macro.Blackbox(((1, 3), (2,)), (1, 2)),
-        macro.Blackbox(((1, 3), (2,)), (3, 2)),
+        macro.Blackbox(((1, 3), (2,)), (2, 3)),
         macro.Blackbox(((1,), (2, 3)), (1, 2)),
         macro.Blackbox(((1,), (2, 3)), (1, 3)),
         macro.Blackbox(((1, 2, 3),), (1,)),
