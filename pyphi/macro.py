@@ -77,6 +77,35 @@ class MacroSubsystem(Subsystem):
         self.tpm, self.cm, self.node_indices, self._state = (
             self._squeeze(node_indices))
 
+        # Freeze connections from hidden nodes to other boxes
+        # ===================================================
+        if blackbox is not None:
+            validate.blackbox(blackbox)
+            blackbox = blackbox.reindex()
+
+            nodes = tuple(Node(self, i, indices=self.node_indices)
+                          for i in self.node_indices)
+
+            def hidden_from(a, b):
+                # Returns True if a is a hidden element in a different blackbox
+                # than b
+                return (a in blackbox.hidden_indices and
+                        not blackbox.in_same_box(a, b))
+
+            expanded_tpms = []
+            for node in nodes:
+                hidden_inputs = [input for input in node.input_indices
+                                 if hidden_from(input, node.index)]
+
+                node_tpm = utils.condition_tpm(node.tpm[1], hidden_inputs,
+                                               self.state)
+                expanded_tpms.append(node.expand_tpm(self.node_indices,
+                                                     tpm=node_tpm))
+
+            # Re-calcuate the tpm based on the results of the cut
+            self.tpm = np.rollaxis(
+                np.array(expanded_tpms), 0, len(self.node_indices) + 1)
+
         # Blackbox over time
         # ==================
         if time_scale != 1:
@@ -86,8 +115,6 @@ class MacroSubsystem(Subsystem):
         # Blackbox in space
         # =================
         if blackbox is not None:
-            validate.blackbox(blackbox)
-            blackbox = blackbox.reindex()
             self.tpm, self.cm, self.node_indices, self._state = (
                 self._blackbox_space(blackbox))
 

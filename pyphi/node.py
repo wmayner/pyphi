@@ -120,7 +120,7 @@ class Node:
         return self._outputs
 
     # TODO: confirm that this works in all cases
-    def expand_tpm(self, node_indices):
+    def expand_tpm(self, node_indices, tpm=None):
         """Expand this node's tpm over the specified nodes, broadcasting over
         singleton dimensions.
 
@@ -133,14 +133,14 @@ class Node:
         Returns:
             np.ndarray: The expanded distribution.
         """
-        non_input_nodes = tuple(set(node_indices) - set(self.input_indices))
-
         # Unconstrained distribution
-        uc = np.ones([2 if index in non_input_nodes else 1
-                      for index in node_indices])
+        uc = np.ones([2 for index in node_indices])
+
+        if tpm is None:
+            tpm = self.tpm[1]
 
         # Broadcast the distribution to the correct shape
-        return self.tpm[1] * uc
+        return tpm * uc
 
     def __repr__(self):
         return (self.label if self.label is not None
