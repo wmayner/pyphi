@@ -687,6 +687,41 @@ def coarse_grain(network, state, internal_indices):
     return (max_phi, max_coarse_grain)
 
 
+def all_macro_systems(network, state, blackbox, coarse_grain, time_scales):
+    """Generator over all possible macro-systems for the network."""
+
+    if time_scales is None:
+        time_scales = [1]
+
+    def blackboxes(system):
+        # Returns all blackboxes to evaluate
+        if not blackbox:
+            return [None]
+        return all_blackboxes(system)
+
+    def coarse_grains(blackbox, system):
+        # Returns all coarse-grains to test
+        if not coarse_grain:
+            return [None]
+        if blackbox is None:
+            return all_coarse_grains(system)
+        return all_coarse_grains(blackbox.output_indices)
+
+    for system in utils.powerset(network.node_indices):
+        for time_scale in time_scales:
+            for blackbox in blackboxes(system):
+                for coarse_grain in coarse_grains(blackbox, system):
+                    try:
+                        yield MacroSubsystem(
+                            network, state, system,
+                            time_scale=time_scale,
+                            blackbox=blackbox,
+                            coarse_grain=coarse_grain)
+                    except (validate.StateUnreachableError,
+                            ConditionallyDependentError):
+                        continue
+
+
 def emergence(network, state, blackbox=False, coarse_grain=True,
               time_scales=None):
     """Check for the emergence of a micro-system into a macro-system.
@@ -711,54 +746,26 @@ def emergence(network, state, blackbox=False, coarse_grain=True,
     Returns:
         MacroNetwork: The maximal macro-system generated from the micro-system.
     """
-    if time_scales is None:
-        time_scales = [1]
-
-    def blackboxes(system):
-        # Returns all blackboxes to evaluate
-        if not blackbox:
-            return [None]
-        return all_blackboxes(system)
-
-    def coarse_grains(blackbox, system):
-        # Returns all coarse-grains to test
-        if not coarse_grain:
-            return [None]
-        if blackbox is None:
-            return all_coarse_grains(system)
-        return all_coarse_grains(blackbox.output_indices)
-
     micro_phi = compute.main_complex(network, state).phi
 
     max_phi = float('-inf')
     max_network = None
 
-    for system in utils.powerset(network.node_indices):
-        for time_scale in time_scales:
-            for blackbox in blackboxes(system):
-                for coarse_grain in coarse_grains(blackbox, system):
-                    try:
-                        subsystem = MacroSubsystem(
-                            network, state, system,
-                            time_scale=time_scale,
-                            blackbox=blackbox,
-                            coarse_grain=coarse_grain)
-                    except (validate.StateUnreachableError,
-                            ConditionallyDependentError):
-                        continue
+    for subsystem in all_macro_systems(network, state, blackbox=blackbox,
+                                       coarse_grain=coarse_grain,
+                                       time_scales=time_scales):
+        phi = compute.big_phi(subsystem)
 
-                    phi = compute.big_phi(subsystem)
-
-                    if (phi - max_phi) > constants.EPSILON:
-                        max_phi = phi
-                        max_network = MacroNetwork(
-                            network=network,
-                            macro_phi=phi,
-                            micro_phi=micro_phi,
-                            system=system,
-                            time_scale=time_scale,
-                            blackbox=blackbox,
-                            coarse_grain=coarse_grain)
+        if (phi - max_phi) > constants.EPSILON:
+            max_phi = phi
+            max_network = MacroNetwork(
+                network=network,
+                macro_phi=phi,
+                micro_phi=micro_phi,
+                system=subsystem._node_indices,
+                time_scale=subsystem._time_scale,
+                blackbox=subsystem._blackbox,
+                coarse_grain=subsystem._coarse_grain)
 
     return max_network
 
