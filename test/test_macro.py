@@ -166,3 +166,22 @@ def test_blackbox_same_box():
     assert bb.in_same_box(1, 3)
     assert not bb.in_same_box(3, 4)
     assert not bb.in_same_box(4, 3)
+
+
+def test_rebuild_system_tpm():
+    node0_tpm = np.array([
+        [0, 1],
+        [0, 0],
+    ])
+    node1_tpm = np.array([
+        [0, 1],  # Singleton first dimension
+    ])
+    node_tpms = [node0_tpm, node1_tpm]
+
+    answer = np.array([
+        [[0, 0],
+         [1, 1]],
+        [[0, 0],
+         [0, 1]]
+    ])
+    assert np.array_equal(macro.rebuild_system_tpm(node_tpms), answer)
