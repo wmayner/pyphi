@@ -197,9 +197,9 @@ The unpartitioned constellation has mechanisms |n0|, |n1| and |n0, n1| with
 
    >>> partitioned_constellation = mip.partitioned_constellation
    >>> [concept.mechanism for concept in partitioned_constellation]
-   [(0,), (1,), (0, 1)]
+   [(0, 1), (0,), (1,)]
    >>> [concept.phi for concept in partitioned_constellation]
-   [0.25, 0.166667, 0.214286]
+   [0.214286, 0.25, 0.166667]
    >>> sum([concept.phi for concept in partitioned_constellation])
    0.630953
 
