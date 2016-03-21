@@ -317,8 +317,6 @@ def test_blackbox_and_coarse_grain_external(s):
 
 @pytest.mark.slow
 def test_blackbox_emergence():
-    # TODO: fails because we are not considering all possible blackboxings.
-    # Once we support multiple outputs per box this should be resolved.
     network = pyphi.examples.macro_network()
     state = (0, 0, 0, 0)
     result = macro.emergence(network, state, blackbox=True,
