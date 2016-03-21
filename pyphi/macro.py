@@ -604,12 +604,14 @@ def all_coarse_grains(indices):
 
 
 def all_coarse_grains_for_blackbox(blackbox):
-    """Generator over all ``CoarseGrains`` for the given blackbox."""
+    """Generator over all ``CoarseGrains`` for the given blackbox.
+
+    If a box has multiple outputs, those outputs are partitioned into the same
+    coarse-grain macro-element.
+    """
     for partition in all_partitions(blackbox.output_indices):
         for grouping in all_groupings(partition):
             coarse_grain = CoarseGrain(partition, grouping)
-            # Exclude all coarse-graining in which the outputs of a box are not
-            # partitioned into the same CG macro-element.
             try:
                 validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
             except ValueError:
