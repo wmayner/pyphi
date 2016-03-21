@@ -245,7 +245,7 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain):
                 'A blackboxing with multiple outputs per box must be '
                 'coarse-grained.')
 
-        if (coarse_grain and not any(not outputs - set(part)
+        if (coarse_grain and not any(outputs.issubset(part)
                                      for part in coarse_grain.partition)):
             raise ValueError(
                 'Multiple outputs from a blackbox must be partitioned into '
