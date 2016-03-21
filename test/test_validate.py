@@ -159,6 +159,10 @@ def test_validate_blackbox_and_coarsegrain():
     coarse_grain = macro.CoarseGrain(((0, 1), (2,)), ((0, 1), (2,)))
     validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
+    blackbox = macro.Blackbox(((0, 1), (2,)), (0, 2))
+    coarse_grain = None
+    validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
+
     blackbox = macro.Blackbox(((0, 1), (2,)), (0, 1, 2))
     coarse_grain = macro.CoarseGrain(((0, 1), (2,)), ((0, 1), (2,)))
     validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
