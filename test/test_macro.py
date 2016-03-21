@@ -44,13 +44,13 @@ def test_all_groupings():
     ]
 
 
-def test_all_coarse_grainings():
+def test_all_coarse_grains():
     assert tuple(macro.all_coarse_grains((1,))) == (
         macro.CoarseGrain(partition=((1,),),
                           grouping=(((0,), (1,)),)),)
 
 
-def test_all_coarse_grainings_for_blackbox():
+def test_all_coarse_grains_for_blackbox():
     blackbox = macro.Blackbox(((0, 1),), (0, 1))
     assert list(macro.all_coarse_grains_for_blackbox(blackbox)) == [
         macro.CoarseGrain(((0, 1),), (((0, 1), (2,)),)),
