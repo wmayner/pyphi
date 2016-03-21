@@ -89,6 +89,8 @@ class MacroSubsystem(Subsystem):
         self.tpm, self.cm, self.node_indices, self._state = (
             self._squeeze(node_indices))
 
+        validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
+
         # TODO: refactor all blackboxing into one method?
 
         # Blackbox partial freeze

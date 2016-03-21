@@ -227,3 +227,25 @@ def blackbox(blackbox):
             raise ValueError(
                 'Every blackbox must have an output - {} does not'.format(
                     part))
+
+
+def blackbox_and_coarse_grain(blackbox, coarse_grain):
+    """Validate that a coarse-graining properly combines the outputs of a
+    blackboxing."""
+
+    if blackbox is None:
+        return
+
+    for box in blackbox.partition:
+        # Outputs of the box
+        outputs = set(box) & set(blackbox.output_indices)
+
+        if len(outputs) > 1 and coarse_grain is None:
+            raise ValueError(
+                'A blackboxing with multiple outputs per box must be '
+                'coarse-grained.')
+
+        if not any(not outputs - set(part) for part in coarse_grain.partition):
+            raise ValueError(
+                'Multiple outputs from a blackbox must be partitioned into '
+                'the same macro-element of the coarse-graining')

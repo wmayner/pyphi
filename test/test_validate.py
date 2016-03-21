@@ -152,3 +152,26 @@ def test_validate_partition():
     # Micro-element appears in two macro-elements
     with pytest.raises(ValueError):
         validate.partition(((0,), (0, 1)))
+
+
+def test_validate_blackbox_and_coarsegrain():
+    blackbox = None
+    coarse_grain = macro.CoarseGrain(((0, 1), (2,)), ((0, 1), (2,)))
+    validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
+
+    blackbox = macro.Blackbox(((0, 1), (2,)), (0, 1, 2))
+    coarse_grain = macro.CoarseGrain(((0, 1), (2,)), ((0, 1), (2,)))
+    validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
+
+    # Blackboxing with multiple outputs must be coarse-grained
+    blackbox = macro.Blackbox(((0, 1), (2,)), (0, 1, 2))
+    coarse_grain = None
+    with pytest.raises(ValueError):
+        validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
+
+    # Coarse-graining does not group multiple outputs of a box into the same
+    # macro element
+    blackbox = macro.Blackbox(((0, 1), (2,)), (0, 1, 2))
+    coarse_grain = macro.CoarseGrain(((0,), (1, 2)), ((0, 1), (2,)))
+    with pytest.raises(ValueError):
+        validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
