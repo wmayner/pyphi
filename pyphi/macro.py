@@ -612,11 +612,14 @@ def all_blackboxes(indices):
     Yields:
         Blackbox: The next blackbox of ``indices``.
     """
-    # TODO: this only gives one output per box. Should there be more?
     for partition in all_partitions(indices):
-        # Pick one output from each box
-        for output_indices in itertools.product(*partition):
-            yield Blackbox(partition, tuple(sorted(output_indices)))
+        for output_indices in utils.powerset(indices):
+            blackbox = Blackbox(partition, output_indices)
+            try:  # Ensure every box has at least one output
+                validate.blackbox(blackbox)
+            except ValueError:
+                continue
+            yield blackbox
 
 
 class MacroNetwork:
