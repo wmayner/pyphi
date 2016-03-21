@@ -603,6 +603,20 @@ def all_coarse_grains(indices):
             yield CoarseGrain(partition, grouping)
 
 
+def all_coarse_grains_for_blackbox(blackbox):
+    """Generator over all ``CoarseGrains`` for the given blackbox."""
+    for partition in all_partitions(blackbox.output_indices):
+        for grouping in all_groupings(partition):
+            coarse_grain = CoarseGrain(partition, grouping)
+            # Exclude all coarse-graining in which the outputs of a box are not
+            # partitioned into the same CG macro-element.
+            try:
+                validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
+            except ValueError:
+                continue
+            yield coarse_grain
+
+
 def all_blackboxes(indices):
     """Generator over all possible blackboxings of these indices.
 
@@ -710,7 +724,7 @@ def all_macro_systems(network, state, blackbox, coarse_grain, time_scales):
             return [None]
         if blackbox is None:
             return all_coarse_grains(system)
-        return all_coarse_grains(blackbox.output_indices)
+        return all_coarse_grains_for_blackbox(blackbox)
 
     for system in utils.powerset(network.node_indices):
         for time_scale in time_scales:

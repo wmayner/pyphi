@@ -50,6 +50,15 @@ def test_all_coarse_grainings():
                           grouping=(((0,), (1,)),)),)
 
 
+def test_all_coarse_grainings_for_blackbox():
+    blackbox = macro.Blackbox(((0, 1),), (0, 1))
+    assert list(macro.all_coarse_grains_for_blackbox(blackbox)) == [
+        macro.CoarseGrain(((0, 1),), (((0, 1), (2,)),)),
+        macro.CoarseGrain(((0, 1),), (((0, 2), (1,)),)),
+        macro.CoarseGrain(((0, 1),), (((0,), (1, 2)),)),
+    ]
+
+
 def test_all_blackboxes():
     assert list(macro.all_blackboxes((1, 2, 3))) == [
         macro.Blackbox(((1, 2), (3,)), (1, 3)),
