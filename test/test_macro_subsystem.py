@@ -214,20 +214,21 @@ def test_macro_cut_is_for_micro_indices(s):
 
 
 def test_subsystem_equality(s):
-    macro_subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices)
+    state = (0, 0, 0)
+    macro_subsys = macro.MacroSubsystem(s.network, state, s.node_indices)
     assert s != macro_subsys  # Although, should they be?
 
-    macro_subsys_t = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+    macro_subsys_t = macro.MacroSubsystem(s.network, state, s.node_indices,
                                           time_scale=2)
     assert macro_subsys != macro_subsys_t
 
-    blackbox = macro.Blackbox(((0, 1, 2),), (1, 2))
-    macro_subsys_h = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+    blackbox = macro.Blackbox(((0, 1, 2),), (2,))
+    macro_subsys_h = macro.MacroSubsystem(s.network, state, s.node_indices,
                                           blackbox=blackbox)
     assert macro_subsys != macro_subsys_h
 
     coarse_grain = macro.CoarseGrain(((0, 1), (2,)), (((0, 1), (2,)), ((0,), (1,))))
-    macro_subsys_c = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+    macro_subsys_c = macro.MacroSubsystem(s.network, state, s.node_indices,
                                           coarse_grain=coarse_grain)
     assert macro_subsys != macro_subsys_c
 
