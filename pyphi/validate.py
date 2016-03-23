@@ -214,8 +214,6 @@ def coarse_grain(coarse_grain):
 def blackbox(blackbox):
     """Validate a macro blackboxing."""
 
-    # TODO: validate that each box only has one output? Is this true?
-
     if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
         raise ValueError('Output indices {} must be ordered'.format(
             blackbox.output_indices))
