@@ -5,6 +5,7 @@ Next Release
 ------------------
 
 ### API changes:
+- `compute.possible_complexes` no longer includes the empty subsystem.
 - Made `is_cut` a property.
 - Renamed `macro.list_all_partitions` and `macro.list_all_groupings` to
   `all_partitions` and `all_groupings`. Both are now generators and return
@@ -16,6 +17,10 @@ Next Release
   arguments.
 
 ### API Additions
+- Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to
+  approximate the Earth-Movers Distance in MIP computations. If the mechanism
+  is found to be irreducible over the purview, φ is recalculated using the
+  proper EMD.
 - Added `macro.MacroSubsystem`. This subclass of `Subsystem` is used to performs
   macro computations.
 - Added `macro.CoarseGrain` to represent coarse-grainings of a system.
@@ -33,19 +38,6 @@ Next Release
 
 ### Documentation
 - Updated docs and examples to reflect changes made to the macro API and usage.
-
-
-Next Release
-------------------
-
-### API Changes
-- `compute.possible_complexes` no longer includes the empty subsystem.
-
-### API Additions
-- Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to
-  approximate the Earth-Movers Distance in MIP computations. If the mechanism
-  is found to be irreducible over the purview, φ is recalculated using the
-  proper EMD.
 
 
 0.8.1
