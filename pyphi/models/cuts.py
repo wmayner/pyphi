@@ -40,18 +40,14 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         return ((set(mechanism) & set(self[0])) and
                 (set(mechanism) & set(self[1])))
 
-    def all_cut_mechanisms(self, candidate_indices):
+    def all_cut_mechanisms(self):
         """Return all mechanisms with elements on both sides of this cut.
 
-        Args:
-            candidate_indices (tuple(int)): The node indices to consider as
-               as parts of mechanisms.
-
         Returns:
-            (tuple(tuple(int)))
+            tuple(tuple(int)):
         """
-        return (m for m in utils.powerset(candidate_indices)
-                if self.splits_mechanism(m))
+        all_mechanisms = utils.powerset(sorted(set(self[0] + self[1])))
+        return tuple(m for m in all_mechanisms if self.splits_mechanism(m))
 
     # TODO: pass in `size` arg and keep expanded to full network??
     # TODO: memoize?

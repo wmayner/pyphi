@@ -94,7 +94,7 @@ logging.config.dictConfig({
         }
     },
     'root': {
-        'level': 'INFO',
+        'level': 'DEBUG',
         'handlers': [h for h in ['file', 'stdout'] if
                      config.LOGGING_CONFIG[h]['enabled']]
     }

@@ -8,7 +8,7 @@ Methods for validating common types of input.
 
 import numpy as np
 
-from . import config, constants, convert
+from . import config, constants, convert, utils
 from .constants import EPSILON
 
 
@@ -68,9 +68,16 @@ def tpm(tpm):
 def conditionally_independent(tpm):
     """Validate that the TPM is conditionally independent."""
     tpm = np.array(tpm)
-    there_and_back_again = convert.state_by_node2state_by_state(
-        convert.state_by_state2state_by_node(tpm))
-    return np.all((tpm - there_and_back_again) < EPSILON)
+    if tpm.ndim > 1:
+        if utils.state_by_state(tpm):
+            there_and_back_again = convert.state_by_node2state_by_state(
+                convert.state_by_state2state_by_node(tpm))
+        else:
+            there_and_back_again = convert.state_by_state2state_by_node(
+                convert.state_by_node2state_by_state(tpm))
+        return np.all((tpm - there_and_back_again) < EPSILON)
+    else:
+        return True
 
 
 def connectivity_matrix(cm):
@@ -164,7 +171,80 @@ def subsystem(s):
     Checks its state and cut.
     """
     node_states(s.state)
-    cut(s.cut, s.node_indices)
+    cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)
     return True
+
+
+def time_scale(time_scale):
+    """Validate a macro temporal time scale."""
+    if time_scale <= 0 or isinstance(time_scale, float):
+        raise ValueError('time scale must be a positive integer')
+
+
+def partition(partition):
+    """Validate a partition - used by blackboxes and coarse grains."""
+    nodes = set()
+    for part in partition:
+        for node in part:
+            if node in nodes:
+                raise ValueError(
+                    'Micro-element {} may not be partitioned into multiple '
+                    'macro-elements'.format(node))
+            nodes.add(node)
+
+
+def coarse_grain(coarse_grain):
+    """Validate a macro coarse-graining."""
+    partition(coarse_grain.partition)
+
+    if len(coarse_grain.partition) != len(coarse_grain.grouping):
+        raise ValueError('output and state groupings must be the same size')
+
+    for part, group in zip(coarse_grain.partition, coarse_grain.grouping):
+        if set(range(len(part) + 1)) != set(group[0] + group[1]):
+            # Check that all elements in the partition are in one of the two
+            # state groupings
+            raise ValueError('elements in output grouping {0} do not match '
+                             'elements in state grouping {1}'.format(
+                                 part, group))
+
+
+def blackbox(blackbox):
+    """Validate a macro blackboxing."""
+
+    if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
+        raise ValueError('Output indices {} must be ordered'.format(
+            blackbox.output_indices))
+
+    partition(blackbox.partition)
+
+    for part in blackbox.partition:
+        if not set(part) & set(blackbox.output_indices):
+            raise ValueError(
+                'Every blackbox must have an output - {} does not'.format(
+                    part))
+
+
+def blackbox_and_coarse_grain(blackbox, coarse_grain):
+    """Validate that a coarse-graining properly combines the outputs of a
+    blackboxing."""
+
+    if blackbox is None:
+        return
+
+    for box in blackbox.partition:
+        # Outputs of the box
+        outputs = set(box) & set(blackbox.output_indices)
+
+        if coarse_grain is None and len(outputs) > 1:
+            raise ValueError(
+                'A blackboxing with multiple outputs per box must be '
+                'coarse-grained.')
+
+        if (coarse_grain and not any(outputs.issubset(part)
+                                     for part in coarse_grain.partition)):
+            raise ValueError(
+                'Multiple outputs from a blackbox must be partitioned into '
+                'the same macro-element of the coarse-graining')

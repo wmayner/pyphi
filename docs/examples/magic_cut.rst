@@ -117,7 +117,7 @@ comes into existence.
    >>> ABC = (0, 1, 2)
    >>> C = (2,)
    >>> AB = (0, 1)
-   
+
 The cut applied to the subsystem severs the connections from |A| and |B| to |C|. In
 this circumstance, knowing |A| and |B| do not tell us anything about the state of
 |C|, only the past state of |C| can tell us about the future state of |C|. Here,

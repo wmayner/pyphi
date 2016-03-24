@@ -8,17 +8,17 @@ import itertools
 
 import numpy as np
 
-from . import cache, config, utils, validate
+from . import cache, config, convert, utils, validate
 from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
 from .models import Concept, Cut, Mice, Mip, _null_mip, Part
+from .network import irreducible_purviews
 from .node import Node
 
 
 class Subsystem:
     # TODO! go through docs and make sure to say when things can be None
-    # TODO: Subsystem.cut() method, to return a cut version of Subsystem?
     """A set of nodes in a network.
 
     Args:
@@ -47,12 +47,15 @@ class Subsystem:
             by the cut.
         perturb_vector (np.array): The vector of perturbation probabilities for
             each node.
+        cut_indices (tuple(int)): The nodes of the subsystem cut by a |big_phi|
+            cut.
         null_cut (Cut): The cut object representing no cut.
         tpm (np.array): The TPM conditioned on the state of the external nodes.
     """
 
     def __init__(self, network, state, node_indices, cut=None,
-                 mice_cache=None, repertoire_cache=None):
+                 mice_cache=None, repertoire_cache=None, hidden_indices=None,
+                 partition=None, grouping=None, time_scale=1):
         """Construct a Subsystem."""
         # The network this subsystem belongs to.
         self.network = network
@@ -76,7 +79,7 @@ class Subsystem:
             self.network.tpm, self.external_indices, self.state)
 
         # The null cut (that leaves the system intact)
-        self.null_cut = Cut((), self.node_indices)
+        self.null_cut = Cut((), self.cut_indices)
 
         # The unidirectional cut applied for phi evaluation
         self.cut = cut if cut is not None else self.null_cut
@@ -106,10 +109,13 @@ class Subsystem:
         # have an accesible object-level cache. Just use a simple memoizer
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
-        validate.subsystem(self)
-
-        # The nodes of the subsystem
         self.nodes = tuple(Node(self, i) for i in self.node_indices)
+
+        # The nodes represented in computed repertoire distributions. This
+        # supports `MacroSubsystem`'s alternate TPM representation.
+        self._dist_indices = self.network.node_indices
+
+        validate.subsystem(self)
 
     @property
     def state(self):
@@ -139,13 +145,32 @@ class Subsystem:
         validate.subsystem(self)
 
     @property
+    def cm(self):
+        """Alias for ``connectivity_matrix`` attribute."""
+        return self.connectivity_matrix
+
+    @cm.setter
+    def cm(self, cm):
+        self.connectivity_matrix = cm
+
+    @property
     def size(self):
         """The size of this Subsystem."""
         return len(self.node_indices)
 
+    @property
     def is_cut(self):
         """Return whether this Subsystem has a cut applied to it."""
         return self.cut != self.null_cut
+
+    @property
+    def cut_indices(self):
+        """The indices of this system to be cut for |big_phi| computations.
+
+        This was added to support ``MacroSubsystem``, which cuts indices other
+        than ``self.node_indices``.
+        """
+        return self.node_indices
 
     def repertoire_cache_info(self):
         """Report repertoire cache statistics."""
@@ -209,6 +234,18 @@ class Subsystem:
             'cut': jsonify(self.cut),
         }
 
+    def apply_cut(self, cut):
+        """Return a cut version of this |Subsystem|.
+
+        Args:
+            cut (Cut): The cut to apply to this |Subsystem|.
+
+        Returns:
+            subsystem (Subsystem)
+        """
+        return Subsystem(self.network, self.state, self.node_indices,
+                         cut=cut, mice_cache=self._mice_cache)
+
     def indices2nodes(self, indices):
         """Return nodes for these indices.
 
@@ -261,7 +298,7 @@ class Subsystem:
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview -- return the purview's maximum entropy distribution.
         max_entropy_dist = utils.max_entropy_distribution(
-            purview, self.network.size,
+            purview, len(self._dist_indices),
             tuple(self.perturb_vector[i] for i in purview))
         if not mechanism:
             return max_entropy_dist
@@ -269,7 +306,7 @@ class Subsystem:
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
         cjd = np.ones(tuple(2 if i in purview else
-                            1 for i in self.network.node_indices))
+                            1 for i in self._dist_indices))
 
         # Loop over all nodes in this mechanism, successively taking the
         # product (with expansion/broadcasting of singleton dimensions) of each
@@ -337,8 +374,8 @@ class Subsystem:
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
-            [1] * self.network.size + [2 if i in purview else
-                                       1 for i in self.network.node_indices])
+            [1] * len(self._dist_indices) + [2 if i in purview else
+                                             1 for i in self._dist_indices])
 
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
@@ -365,7 +402,7 @@ class Subsystem:
 
             # Expand the dimensions so the TPM can be indexed as described
             first_half_shape = list(tpm.shape[:-1])
-            second_half_shape = [1] * self.network.size
+            second_half_shape = [1] * len(self._dist_indices)
             second_half_shape[purview_node.index] = 2
             tpm = tpm.reshape(first_half_shape + second_half_shape)
 
@@ -393,7 +430,7 @@ class Subsystem:
         # (the second half of the shape may also contain singleton dimensions,
         # depending on how many nodes are in the purview).
         accumulated_cjd = accumulated_cjd.reshape(
-            accumulated_cjd.shape[self.network.size:])
+            accumulated_cjd.shape[len(self._dist_indices):])
 
         return accumulated_cjd
 
@@ -645,18 +682,11 @@ class Subsystem:
             purviews = [purview for purview in purviews
                         if set(purview).issubset(self.node_indices)]
 
-        def reducible(purview):
-            # Returns True if purview is trivially reducible.
-            # (Purviews are already filtered in network._potential_purviews
-            # over the full network connectivity matrix. However, since the cm
-            # is cut/smaller we check again here.)
-            if direction == DIRECTIONS[PAST]:
-                _from, to = purview, mechanism
-            elif direction == DIRECTIONS[FUTURE]:
-                _from, to = mechanism, purview
-            return utils.block_reducible(self.connectivity_matrix, _from, to)
-
-        return [purview for purview in purviews if not reducible(purview)]
+        # Purviews are already filtered in network._potential_purviews
+        # over the full network connectivity matrix. However, since the cm
+        # is cut/smaller we check again here.
+        return irreducible_purviews(self.connectivity_matrix,
+                                    direction, mechanism, purviews)
 
     @cache.method('_mice_cache')
     def find_mice(self, direction, mechanism, purviews=False):

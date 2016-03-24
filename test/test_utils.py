@@ -280,3 +280,43 @@ def test_normalize():
     assert np.array_equal(utils.normalize(x), np.array([[0, .5], [.25, .25]]))
     x = np.array([0, 0])
     assert np.array_equal(utils.normalize(x), np.array([0, 0]))
+
+
+def test_all_states():
+    assert list(utils.all_states(0)) == []
+    assert list(utils.all_states(1)) == [(0,), (1,)]
+    assert list(utils.all_states(3)) == [
+        (0, 0, 0),
+        (1, 0, 0),
+        (0, 1, 0),
+        (1, 1, 0),
+        (0, 0, 1),
+        (1, 0, 1),
+        (0, 1, 1),
+        (1, 1, 1),
+    ]
+
+
+def test_state_by_state():
+    # State-by-state
+    tpm = np.ones((8, 8))
+    assert utils.state_by_state(tpm)
+
+    # State-by-node, N-dimensional
+    tpm = np.ones((2, 2, 2, 3))
+    assert not utils.state_by_state(tpm)
+
+    # State-by-node, 2-dimensional
+    tpm = np.ones((8, 3))
+    assert not utils.state_by_state(tpm)
+
+
+def test_expand_tpm():
+    tpm = np.ones((2, 1, 2))
+    tpm[(0, 0)] = (0, 1)
+    assert np.array_equal(utils.expand_tpm(tpm), np.array([
+        [[0, 1],
+         [0, 1]],
+        [[1, 1],
+         [1, 1]],
+    ]))

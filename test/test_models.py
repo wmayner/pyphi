@@ -143,9 +143,10 @@ def test_cut_splits_mechanism():
 
 def test_cut_all_cut_mechanisms():
     cut = models.Cut((0,), (1, 2))
-    assert (tuple(cut.all_cut_mechanisms((0, 1, 2))) ==
-            ((0, 1), (0, 2), (0, 1, 2)))
-    assert tuple(cut.all_cut_mechanisms((0, 1))) == ((0, 1),)
+    assert cut.all_cut_mechanisms() == ((0, 1), (0, 2), (0, 1, 2))
+
+    cut = models.Cut((1,), (5,))
+    assert cut.all_cut_mechanisms() == ((1, 5),)
 
 
 def test_cut_matrix():
@@ -498,6 +499,23 @@ def test_concept_hashing_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     assert hash(concept) == hash(another)
     assert(len(set([concept, another])) == 1)
 
+
+def test_concept_emd_eq(s, subsys_n1n2):
+    mice = models.Mice(mip(mech=(1,)))
+    concept = models.Concept(phi=1.0, mechanism=(1,), cause=mice, effect=mice,
+                             subsystem=s)
+
+    # Same repertoires, mechanism, phi
+    another = models.Concept(phi=1.0, mechanism=(1,), cause=mice, effect=mice,
+                             subsystem=subsys_n1n2)
+    assert concept.emd_eq(another)
+
+    # Everything equal except phi
+    another = models.Concept(phi=2.0, mechanism=(1,), cause=mice, effect=mice,
+                             subsystem=s)
+    assert not concept.emd_eq(another)
+
+    # TODO: test other expectations...
 
 # }}}
 

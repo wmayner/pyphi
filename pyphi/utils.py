@@ -8,17 +8,22 @@ external use.
 """
 
 import os
+import itertools
 import re
 import logging
 import hashlib
 import numpy as np
 from itertools import chain, combinations
+
+from pyemd import emd
 from scipy.misc import comb
 from scipy.spatial.distance import cdist
+from scipy.sparse import csc_matrix
 from scipy.sparse.csgraph import connected_components
-from pyemd import emd
+
+from . import constants, convert
 from .cache import cache
-from . import constants
+
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -29,8 +34,79 @@ def state_of(nodes, network_state):
     return tuple(network_state[n] for n in nodes) if nodes else ()
 
 
+def all_states(n):
+    """Return all binary states for a system.
+
+    Args:
+        n (int): The number of elements in the system.
+
+    Yields:
+        tuple(int): The next state of an ``n``-element system, in LOLI order.
+    """
+    if n == 0:
+        return
+
+    for state in itertools.product((0, 1), repeat=n):
+        yield state[::-1]  # Convert to LOLI-ordering
+
+
+# Methods for converting the time scale of the tpm
+# ================================================
+
+def sparse(matrix, threshold=0.1):
+    return np.sum(matrix > 0) / matrix.size > threshold
+
+
+def sparse_time(tpm, time_scale):
+    sparse_tpm = csc_matrix(tpm)
+    return (sparse_tpm ** time_scale).toarray()
+
+
+def dense_time(tpm, time_scale):
+    return np.linalg.matrix_power(tpm, time_scale)
+
+
+def run_tpm(tpm, time_scale):
+    """Iterate a tpm by the specified number of time steps.
+
+    Args:
+        tpm (np.ndarray): A state-by-node tpm.
+        time_scale (int): The number of steps to run the tpm.
+
+    Returns:
+        tpm (np.ndarray)
+    """
+    sbs_tpm = convert.state_by_node2state_by_state(tpm)
+    if sparse(tpm):
+        tpm = sparse_time(sbs_tpm, time_scale)
+    else:
+        tpm = dense_time(sbs_tpm, time_scale)
+    return convert.state_by_state2state_by_node(tpm)
+
+
+def run_cm(cm, time_scale):
+    """Iterate a connectivity matrix the specified number of steps.
+
+    Args:
+        cm (np.ndarray): A |N x N| connectivity matrix
+        time_scale (int): The number of steps to run.
+
+    Returns:
+        tpm (np.ndarray)
+    """
+    cm = np.linalg.matrix_power(cm, time_scale)
+    # Round non-unitary values back to 1
+    cm[cm > 1] = 1
+    return cm
+
+
 # TPM and Connectivity Matrix utils
 # ============================================================================
+
+def state_by_state(tpm):
+    """Return True if the tpm is in state-by-state form, otherwise False."""
+    return tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]
+
 
 def condition_tpm(tpm, fixed_nodes, state):
     """Return a TPM conditioned on the given fixed node indices, whose states
@@ -50,6 +126,13 @@ def condition_tpm(tpm, fixed_nodes, state):
     # Obtain the actual conditioned TPM by indexing with the conditioning
     # indices.
     return tpm[conditioning_indices]
+
+
+def expand_tpm(tpm):
+    """Broadcast a state-by-node TPM so that singleton dimensions are expanded
+    over the full network."""
+    uc = np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]])
+    return tpm * uc
 
 
 def apply_cut(cut, connectivity_matrix):
@@ -321,9 +404,16 @@ def hamming_emd(d1, d2):
     Singleton dimensions are sqeezed out.
     """
     d1, d2 = d1.squeeze(), d2.squeeze()
-    # Compute the EMD with Hamming distance between states as the
+    N = d1.ndim
+    d1, d2 = d1.ravel(), d2.ravel()
+
+    # Sanity check that distributions are the same size.
+    # TODO: should this be bubbled up into PyEmd?
+    assert len(d1) == len(d2)
+
+    # Compute EMD using the Hamming distance between states as the
     # transportation cost function.
-    return emd(d1.ravel(), d2.ravel(), _hamming_matrix(d1.ndim))
+    return emd(d1, d2, _hamming_matrix(N))
 
 
 def l1(d1, d2):

@@ -41,14 +41,19 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     """
     log.debug("Evaluating cut {}...".format(cut))
 
-    cut_subsystem = Subsystem(uncut_subsystem.network,
-                              uncut_subsystem.state,
-                              uncut_subsystem.node_indices,
-                              cut=cut,
-                              mice_cache=uncut_subsystem._mice_cache)
-    mechanisms = {c.mechanism for c in unpartitioned_constellation}
-    if not config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanisms |= set(cut.all_cut_mechanisms(uncut_subsystem.node_indices))
+    cut_subsystem = uncut_subsystem.apply_cut(cut)
+
+    from .. import macro
+
+    if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
+        mechanisms = set([c.mechanism for c in unpartitioned_constellation])
+    elif isinstance(uncut_subsystem, macro.MacroSubsystem):
+        # TODO: figure out when cut blackboxed systems produce new concepts
+        mechanisms = False
+    else:
+        mechanisms = set(
+            [c.mechanism for c in unpartitioned_constellation] +
+            list(cut.all_cut_mechanisms()))
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
     log.debug("Finished evaluating cut {}.".format(cut))
@@ -218,7 +223,7 @@ def _big_mip(cache_key, subsystem):
         # constellation.
         result = time_annotated(_null_bigmip(subsystem))
     else:
-        cuts = big_mip_bipartitions(subsystem.node_indices)
+        cuts = big_mip_bipartitions(subsystem.cut_indices)
         min_mip = _null_bigmip(subsystem)
         min_mip.phi = float('inf')
         min_mip = _find_mip(subsystem, cuts, unpartitioned_constellation,

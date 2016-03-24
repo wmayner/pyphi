@@ -10,7 +10,6 @@ in the network's list of nodes.
 import functools
 
 import numpy as np
-from marbl import Marbl
 
 from . import utils
 
@@ -33,7 +32,7 @@ class Node:
             The state of this node.
     """
 
-    def __init__(self, subsystem, index, label=None):
+    def __init__(self, subsystem, index, indices=None, label=None):
         # This node's parent subsystem.
         self.subsystem = subsystem
         # This node's index in the list of nodes.
@@ -62,38 +61,16 @@ class Node:
         # than on.
         tpm_off = 1 - tpm_on
 
-        # Marginalize-out non-input subsystem nodes and get dimension labels.
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # This list will hold the indices of the nodes that correspond to
-        # non-singleton dimensions of this node's on-TPM. It maps any subsystem
-        # node index to the corresponding dimension of this node's TPM with
-        # singleton dimensions removed. We need this for creating this node's
-        # Marbl.
-        self._dimension_labels = []
-        # This is the counter that will provide the actual labels.
-        current_non_singleton_dim_index = 0
-        # Iterate over all the nodes in the network, since we need to keep
-        # track of all singleton dimensions.
-        for i in range(self.network.size):
-            # Input nodes that are within the subsystem will correspond to a
-            # dimension in this node's squeezed TPM, so we map it to the index
-            # of the corresponding dimension and increment the corresponding
-            # index for the next one.
-            if i in self._input_indices and i in self.subsystem.node_indices:
-                self._dimension_labels.append(current_non_singleton_dim_index)
-                current_non_singleton_dim_index += 1
-            # Boundary nodes and non-input nodes have already been conditioned
-            # and marginalized-out, so their dimension in the TPM will be a
-            # singleton and will be squeezed out when creating a Marbl. So, we
-            # don't give them a dimension label.
-            else:
-                self._dimension_labels.append(None)
+        # Subsystem indices to generate TPM from
+        if indices is None:
+            indices = subsystem.node_indices
+
+        for i in indices:
             # TODO extend to nonbinary nodes
             # Marginalize out non-input nodes that are in the subsystem, since
             # the external nodes have already been dealt with as boundary
             # conditions in the subsystem's TPM.
-            if (i not in self._input_indices
-                    and i in self.subsystem.node_indices):
+            if i not in self._input_indices:
                 tpm_on = tpm_on.sum(i, keepdims=True) / 2
                 tpm_off = tpm_off.sum(i, keepdims=True) / 2
 
@@ -109,28 +86,12 @@ class Node:
 
         # Deferred properties
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # ``inputs``, ``outputs``, and ``marbl`` must be properties because at
+        # ``inputs`` and ``outputs`` must be properties because at
         # the time of node creation, the subsystem doesn't have a list of Node
         # objects yet, only a size (and thus a range of node indices). So, we
         # defer construction until the properties are needed.
         self._inputs = None
         self._outputs = None
-        self._marbl = None
-        self._raw_marbl = None
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def get_marbl(self, normalize=True):
-        """Generate a Marbl for this node TPM."""
-        # We take only the part of the TPM giving the probability the node is
-        # on.
-        # TODO extend to nonbinary nodes
-        augmented_child_tpms = [
-            [child._dimension_labels[self.index],
-             getattr(child, 'tpm')[1].squeeze()] for child in self.outputs
-        ]
-        marbl = Marbl(getattr(self, 'tpm')[1], augmented_child_tpms,
-                      normalize=normalize)
-        return marbl
 
     @property
     def input_indices(self):
@@ -145,44 +106,18 @@ class Node:
     @property
     def inputs(self):
         """The set of nodes with connections to this node."""
-        if self._inputs is not None:
-            return self._inputs
-        else:
+        if self._inputs is None:
             self._inputs = [node for node in self.subsystem.nodes if
                             node.index in self._input_indices]
-            return self._inputs
+        return self._inputs
 
     @property
     def outputs(self):
         """The set of nodes this node has connections to."""
-        if self._outputs is not None:
-            return self._outputs
-        else:
+        if self._outputs is None:
             self._outputs = [node for node in self.subsystem.nodes if
                              node.index in self._output_indices]
-            return self._outputs
-
-    @property
-    def marbl(self):
-        """The normalized representation of this node's Markov blanket,
-        conditioned on the fixed state of boundary-condition nodes in the
-        current timestep."""
-        if self._marbl is not None:
-            return self._marbl
-        else:
-            self._marbl = self.get_marbl()
-            return self._marbl
-
-    @property
-    def raw_marbl(self):
-        """The un-normalized representation of this node's Markov blanket,
-        conditioned on the fixed state of boundary-condition nodes in the
-        current timestep."""
-        if self._raw_marbl is not None:
-            return self._raw_marbl
-        else:
-            self._raw_marbl = self.get_marbl(normalize=False)
-            return self._raw_marbl
+        return self._outputs
 
     def __repr__(self):
         return (self.label if self.label is not None
@@ -216,3 +151,14 @@ class Node:
     # TODO do we need more than the index?
     def to_json(self):
         return self.index
+
+
+def expand_node_tpm(tpm):
+    """Broadcast a node TPM over the full network.
+
+    This is different from broadcasting the TPM of a full system since the last
+    dimension (containing the state of the node) is unitary -- not a state-
+    tuple.
+    """
+    uc = np.ones([2 for node in tpm.shape])
+    return uc * tpm

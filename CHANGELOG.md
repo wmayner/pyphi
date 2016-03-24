@@ -1,18 +1,43 @@
 Changelog
 =========
 
-
 Next Release
 ------------------
 
-### API Changes
+### API changes:
 - `compute.possible_complexes` no longer includes the empty subsystem.
+- Made `is_cut` a property.
+- Renamed `macro.list_all_partitions` and `macro.list_all_groupings` to
+  `all_partitions` and `all_groupings`. Both are now generators and return
+  nested tuples instead of lists.
+- Moved `macro.make_mapping` to `CoarseGrain.make_mapping`.
+- Moved `macro.make_macro_tpm` to `CoarseGrain.macro_tpm`.
+- Added blackbox functionality to `macro.emergence`. Blackboxing and coarse-
+  graining are now parametrized with the `blackbox` and `coarse_grain`
+  arguments.
 
 ### API Additions
 - Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to
   approximate the Earth-Movers Distance in MIP computations. If the mechanism
   is found to be irreducible over the purview, φ is recalculated using the
   proper EMD.
+- Added `macro.MacroSubsystem`. This subclass of `Subsystem` is used to performs
+  macro computations.
+- Added `macro.CoarseGrain` to represent coarse-grainings of a system.
+- Added `macro.Blackbox` to represent system blackboxes.
+- Added `validate.blackbox` and `validate.coarse_grain`.
+- Added `macro.all_coarse_grains` and `macro.all_blackboxes` generators.
+- Added `Subsystem.cut_indices` property.
+- Added `Subsystem.cm` connectivity matrix alias.
+- Added `utils.all_states`, a generator over all states of an n-element system.
+- Added `utils.state_by_state` for testing whether a TPM is in state-by-state
+  format.
+
+### Refactor
+- Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
+
+### Documentation
+- Updated docs and examples to reflect changes made to the macro API and usage.
 
 
 0.8.1

@@ -5,11 +5,6 @@ Emergence (Macro/Micro)
 
 * :func:`pyphi.examples.macro_network`
 
-For this example, we will use the ``pprint`` module to display lists in a way
-which makes them easer to read.
-
-    >>> from pprint import pprint
-
 We'll use the :mod:`~pyphi.macro` module to explore alternate spatial scales of
 a network. The network under consideration is a 4-node non-deterministic
 network, available from the :mod:`~pyphi.examples` module.
@@ -40,39 +35,31 @@ The question is whether there are other spatial scales which have greater
 values of |big_phi|. This is accomplished by considering all possible
 coarse-graining of micro-elements to form macro-elements. A coarse-graining of
 nodes is any partition of the elements of the micro system. First we'll get a
-list of all possible partitions:
+list of all possible coarse-grainings:
 
-    >>> partitions = pyphi.macro.list_all_partitions(network)
-    >>> pprint(partitions)
-    [[[0, 1, 2], [3]],
-     [[0, 1, 3], [2]],
-     [[0, 1], [2, 3]],
-     [[0, 1], [2], [3]],
-     [[0, 2, 3], [1]],
-     [[0, 2], [1, 3]],
-     [[0, 2], [1], [3]],
-     [[0, 3], [1, 2]],
-     [[0], [1, 2, 3]],
-     [[0], [1, 2], [3]],
-     [[0, 3], [1], [2]],
-     [[0], [1, 3], [2]],
-     [[0], [1], [2, 3]],
-     [[0, 1, 2, 3]]]
+    >>> grains = list(pyphi.macro.all_coarse_grains(network.node_indices))
 
-Lets start by considering the partition ``[[0, 1, 2], [3]]``:
+We start by considering the first coarse grain:
 
-    >>> partition = partitions[0]
-    >>> partition
-    [[0, 1, 2], [3]]
+    >>> coarse_grain = grains[0]
+    >>> coarse_grain
+    CoarseGrain(partition=((0, 1, 2), (3,)), grouping=(((0, 1, 2), (3,)), ((0,), (1,))))
 
-For this partition there are two macro-elements, one consisting of
+Each |CoarseGrain| specifies two fields: the ``partition`` of states into
+macro elements, and the ``grouping`` of micro-states into macro-states. Let's
+first look at the partition:
+
+    >>> coarse_grain.partition
+    ((0, 1, 2), (3,))
+
+There are two macro-elements in this partiion: one consists of
 micro-elements ``(0, 1, 2)`` and the other is simply micro-element ``3``.
 
 We must then determine the relationship between micro-elements and
-macro-elements. An assumption when coarse-graining the system, is that the
+macro-elements. When coarse-graining the system we assume that the
 resulting macro-elements do not differentiate the different micro-elements.
-Thus any correspondence between states must be stated soley in terms of the
-number of micro-elements which are on, and not depend on which micro-element
+Thus any correspondence between states must be stated solely in terms of the
+number of micro-elements which are on, and not depend on which micro-elements
 are on.
 
 For example, consider the macro-element ``(0, 1, 2)``. We may say that the
@@ -81,35 +68,24 @@ micro-elements are on; however, we may not say that the macro-element is **ON**
 if micro-element ``1`` is on, because this relationship involves identifying
 specific micro-elements.
 
-To see a list of all possible groupings of micro-states into macro-states:
+The ``grouping`` attribute of the |CoarseGrain| describes how the state of
+micro-elements describes the state of macro-elements:
 
-    >>> groupings = pyphi.macro.list_all_groupings(partition)
-    >>> pprint(groupings)
-    [[[[0, 1, 2], [3]], [[0], [1]]],
-     [[[0, 1, 3], [2]], [[0], [1]]],
-     [[[0, 1], [2, 3]], [[0], [1]]],
-     [[[0, 2, 3], [1]], [[0], [1]]],
-     [[[0, 2], [1, 3]], [[0], [1]]],
-     [[[0, 3], [1, 2]], [[0], [1]]],
-     [[[0], [1, 2, 3]], [[0], [1]]]]
-
-We will focus on the first grouping in the list.
-
-    >>> grouping = groupings[0]
+    >>> grouping = coarse_grain.grouping
     >>> grouping
-    [[[0, 1, 2], [3]], [[0], [1]]]
+    (((0, 1, 2), (3,)), ((0,), (1,)))
 
-The grouping contains two lists, one for each macro-element.
+The grouping consists of two lists, one for each macro-element:
 
     >>> grouping[0]
-    [[0, 1, 2], [3]]
+    ((0, 1, 2), (3,))
 
 For the first macro-element, this grouping means that the element will be
 **OFF** if zero, one or two of its micro-elements are **ON**, and will be
 **ON** if all three micro-elements are **ON**.
 
     >>> grouping[1]
-    [[0], [1]]
+    ((0,), (1,))
 
 For the second macro-element, the grouping means that the element will be
 **OFF** if its micro-element is **OFF**, and **ON** if its micro-element is
@@ -118,16 +94,15 @@ For the second macro-element, the grouping means that the element will be
 One we have selected a partition and grouping for analysis, we can create a
 mapping between micro-states and macro-states:
 
-    >>> mapping = pyphi.macro.make_mapping(partition, grouping)
+    >>> mapping = coarse_grain.make_mapping()
     >>> mapping
-    array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  2.,  2.,  2.,  2.,  2.,
-            2.,  2.,  3.])
+    array([0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3])
 
 The interpretation of the mapping uses the **LOLI** convention of indexing (see
 :ref:`loli-convention`).
 
     >>> mapping[7]
-    1.0
+    1
 
 This says that micro-state 7 corresponds to macro-state 1:
 
@@ -141,58 +116,54 @@ In micro-state 7, all three elements corresponding to the first macro-element
 are **ON**, so that macro-element is **ON**. The micro-element corresponding to
 the second macro-element is **OFF**, so that macro-element is **OFF**.
 
-Using the mapping, we can then create a state-by-state TPM for the macro-system
-corresponding to the selected partition and grouping:
+The |CoarseGrain| object uses the mapping internally to create a
+state-by-state TPM for the macro-system corresponding to the selected partition
+and grouping
 
-    >>> macro_tpm = pyphi.macro.make_macro_tpm(network.tpm, mapping)
-    >>> macro_tpm
-    array([[ 0.5838,  0.0162,  0.3802,  0.0198],
-           [ 0.    ,  0.    ,  0.91  ,  0.09  ],
-           [ 0.5019,  0.0981,  0.3451,  0.0549],
-           [ 0.    ,  0.    ,  0.    ,  1.    ]])
+    >>> coarse_grain.macro_tpm(network.tpm)
+    Traceback (most recent call last):
+        ...
+    pyphi.macro.ConditionallyDependentError
 
-This macro-TPM does not satisfy the conditional independence assumption, so
-this particular partition and grouping combination is not a valid
-coarse-graining of the system:
+However, this macro-TPM does not satisfy the conditional independence
+assumption, so this particular partition and grouping combination is not a valid
+coarse-graining of the system. Constructing a |MacroSubsystem| with this
+coarse-graining will also raise
+:exception:`~pyphi.macro.ConditionallyDependentError`:
 
-    >>> pyphi.validate.conditionally_independent(macro_tpm)
-    False
+Lets consider a different coarse-graining instead.
 
-In these cases, the object returned :func:`~pyphi.macro.make_macro_network`
-function will have a boolean value of ``False``:
+    >>> coarse_grain = grains[14]
+    >>> coarse_grain.partition
+    ((0, 1), (2, 3))
+    >>> coarse_grain.grouping
+    (((0, 1), (2,)), ((0, 1), (2,)))
 
-    >>> (macro_network, macro_state) = pyphi.macro.make_macro_network(network, state, mapping)
-    >>> bool(macro_network)
-    False
-
-Lets consider a different partition instead.
-
-    >>> partition = partitions[2]
-    >>> partition
-    [[0, 1], [2, 3]]
-
-    >>> groupings = pyphi.macro.list_all_groupings(partition)
-    >>> grouping = groupings[0]
-    >>> grouping
-    [[[0, 1], [2]], [[0, 1], [2]]]
-
-    >>> mapping = pyphi.macro.make_mapping(partition, grouping)
+    >>> mapping = coarse_grain.make_mapping()
     >>> mapping
-    array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,
-            2.,  2.,  3.])
+    array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 3])
 
-    >>> (macro_network, macro_state) = pyphi.macro.make_macro_network(network, state, mapping)
-    >>> bool(macro_network)
-    True
+    >>> coarse_grain.macro_tpm(network.tpm)
+    array([[[ 0.09,  0.09],
+            [ 1.  ,  0.09]],
+    <BLANKLINE>
+           [[ 0.09,  1.  ],
+            [ 1.  ,  1.  ]]])
+
+We can now construct a |MacroSubsystem| using this coarse-graining:
+
+    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
+    >>> macro_subsystem
+    MacroSubsystem((n0, n1))
 
 We can then consider the integrated information of this macro-network and
 compare it to the micro-network.
 
-    >>> macro_main_complex = pyphi.compute.main_complex(macro_network, macro_state)
-    >>> macro_main_complex.phi
-    0.86905
+    >>> macro_mip = pyphi.compute.big_mip(macro_subsystem)
+    >>> macro_mip.phi
+    0.597212
 
-The integrated information of the macro system (:math:`\Phi = 0.86905`) is
+The integrated information of the macro subsystem (:math:`\Phi = 0.597212`) is
 greater than the integrated information of the micro system (:math:`\Phi =
 0.113889`). We can conclude that a macro-scale is appropriate for this system,
 but to determine which one, we must check all possible partitions and all
@@ -200,13 +171,94 @@ possible groupings to find the maximum of integrated information across all
 scales.
 
     >>> M = pyphi.macro.emergence(network, state)
-    >>> M.partition
-    [[0, 1], [2, 3]]
-    >>> M.grouping
-    [[[0, 1], [2]], [[0, 1], [2]]]
     >>> M.emergence
-    0.755161
+    0.483323
+    >>> M.system
+    (0, 1, 2, 3)
+    >>> M.coarse_grain.partition
+    ((0, 1), (2, 3))
+    >>> M.coarse_grain.grouping
+    (((0, 1), (2,)), ((0, 1), (2,)))
 
 The analysis determines the partition and grouping which results in the maximum
 value of integrated information, as well as the emergence (increase in
 |big_phi|) from the micro-scale to the macro-scale.
+
+
+Blackboxing
+============
+
+* :func:`pyphi.examples.blackbox_network`
+
+The :mod:`~pyphi.macro` module also provides tools for studying the emergence
+of systems using blackboxing.
+
+    >>> import pyphi
+    >>> network = pyphi.examples.blackbox_network()
+
+We consider the state where all nodes are off:
+
+    >>> state = (0, 0, 0, 0, 0, 0)
+    >>> all_nodes = (0, 1, 2, 3, 4, 5)
+
+The system has minimal |big_phi| without blackboxing:
+
+    >>> subsys = pyphi.Subsystem(network, state, all_nodes)
+    >>> pyphi.compute.big_phi(subsys)
+    0.215278
+
+ We will consider the blackbox system ``ABC`` and ``DEF``, where ``C`` and
+ ``F`` are output elements and ``ABDE`` are hidden within their blackboxes.
+ Blackboxing is done with a |Blackbox| object. As with
+ |CoarseGrain|, we pass it a partition of micro-elements:
+
+    >>> partition = ((0, 1, 2), (3, 4, 5))
+    >>> output_indices = (2, 5)
+    >>> blackbox = pyphi.macro.Blackbox(partition, output_indices)
+
+Blackboxes have a few convenience methods. The ``hidden_indices`` property
+returns the elements which are hidden within blackboxes:
+
+    >>> blackbox.hidden_indices
+    (0, 1, 3, 4)
+
+The ``micro_indices`` property lists all the micro-elements in the box:
+
+    >>> blackbox.micro_indices
+    (0, 1, 2, 3, 4, 5)
+
+The ``macro_indices`` property generates a set of indices which index the
+blackbox macro-elements. Since there are two blackboxes in our example, and
+each has one output element, there are two macro-indices:
+
+    >>> blackbox.macro_indices
+    (0, 1)
+
+The ``macro_state`` method converts a state of the micro elements to the state
+of the macro-elements. The macro-state of a blackbox system is simply the
+state of the system's output elements:
+
+    >>> micro_state = (0, 0, 0, 0, 0, 1)
+    >>> blackbox.macro_state(micro_state)
+    (0, 1)
+
+Let us also define a time scale over which to perform our analysis:
+
+    >>> time_scale = 2
+
+As in the coarse-graining example, the blackbox and time scale are passed to
+|MacroSubsystem|:
+
+    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, all_nodes, blackbox=blackbox, time_scale=time_scale)
+
+We can now compute |big_phi| for this macro system:
+
+    >>> pyphi.compute.big_phi(macro_subsystem)
+    0.638888
+
+We find that the macro subsystem has greater integrated information
+(:math:`\Phi = 0.388889`) than the micro system (:math:`\Phi =
+0.215278`) - the system demonstrates emergence.
+
+
+.. todo:: TODO: demonstrate using``emergence`` for blackboxing
