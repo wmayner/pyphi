@@ -8,7 +8,7 @@ from pyphi import compute, config, macro, models, Network, utils
 
 
 @pytest.mark.slow
-def test_basic_propogation_delay(s):
+def test_basic_propogation_delay():
     # Create basic network with propagation delay.
     # COPY gates on each of the connections in the original network.
 

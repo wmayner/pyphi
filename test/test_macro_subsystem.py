@@ -287,7 +287,7 @@ def test_blackbox_and_coarse_grain(s):
     assert ms.state == (0,)
 
 
-def test_blackbox_and_coarse_grain_external(s):
+def test_blackbox_and_coarse_grain_external():
     # Larger, with external nodes, blackboxed and coarse-grained
     tpm = np.zeros((2 ** 6, 6))
     network = pyphi.Network(tpm)
