@@ -45,7 +45,7 @@ We start by considering the first coarse grain:
     >>> coarse_grain
     CoarseGrain(partition=((0, 1, 2), (3,)), grouping=(((0, 1, 2), (3,)), ((0,), (1,))))
 
-Each ``CoarseGrain`` specifies two fields: the ``partition`` of states into
+Each |CoarseGrain| specifies two fields: the ``partition`` of states into
 macro elements, and the ``grouping`` of micro-states into macro-states. Let's
 first look at the partition:
 
@@ -68,7 +68,7 @@ micro-elements are on; however, we may not say that the macro-element is **ON**
 if micro-element ``1`` is on, because this relationship involves identifying
 specific micro-elements.
 
-The ``grouping`` attribute of the ``CoarseGrain`` describes how the state of
+The ``grouping`` attribute of the |CoarseGrain| describes how the state of
 micro-elements describes the state of macro-elements:
 
     >>> grouping = coarse_grain.grouping
@@ -116,7 +116,7 @@ In micro-state 7, all three elements corresponding to the first macro-element
 are **ON**, so that macro-element is **ON**. The micro-element corresponding to
 the second macro-element is **OFF**, so that macro-element is **OFF**.
 
-The ``CoarseGrain`` object uses the mapping internally to create a
+The |CoarseGrain| object uses the mapping internally to create a
 state-by-state TPM for the macro-system corresponding to the selected partition
 and grouping
 
@@ -209,8 +209,8 @@ The system has minimal |big_phi| without blackboxing:
 
  We will consider the blackbox system ``ABC`` and ``DEF``, where ``C`` and
  ``F`` are output elements and ``ABDE`` are hidden within their blackboxes.
- Blackboxing is done with a :class:~`pyphi.macro.Blackbox` object. As with
- :class:~`pyphi.macro.CoarseGrain`, we pass it a partition of micro-elements:
+ Blackboxing is done with a |Blackbox| object. As with
+ |CoarseGrain|, we pass it a partition of micro-elements:
 
     >>> partition = ((0, 1, 2), (3, 4, 5))
     >>> output_indices = (2, 5)
@@ -261,4 +261,4 @@ We find that the macro subsystem has greater integrated information
 0.215278`) - the system demonstrates emergence.
 
 
-TODO: demonstrate using``emergence`` for blackboxing
+.. todo:: TODO: demonstrate using``emergence`` for blackboxing

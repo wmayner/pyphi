@@ -185,6 +185,8 @@ rst_prolog = """
 .. |Mip| replace:: :class:`~pyphi.models.concept.Mip`
 .. |Mice| replace:: :class:`~pyphi.models.concept.Mice`
 .. |Node| replace:: :class:`~pyphi.node.Node`
+.. |CoarseGrain| replace:: :class:`~pyphi.macro.CoarseGrain`
+.. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
 .. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
 .. |find_mice| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
 .. |loli_index2state| replace:: :class:`~pyphi.convert.loli_index2state`
