@@ -46,7 +46,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     from .. import macro
 
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanisms = set([c.mechanism for c in unpartitioned_constellation])
+        mechanisms = {c.mechanism for c in unpartitioned_constellation}
     elif isinstance(uncut_subsystem, macro.MacroSubsystem):
         # TODO: figure out when cut blackboxed systems produce new concepts
         mechanisms = False
