@@ -430,10 +430,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
                 micro_tpm[past_state, current_state])
 
         # Re-normalize each row because we're going from larger to smaller TPM
-        # TODO: use utils.normalize when rebased onto develop
-        macro_tpm = np.array([list(row) if sum(row) == 0
-                              else list(row / sum(row))
-                              for row in macro_tpm])
+        macro_tpm = np.array([utils.normalize(row) for row in macro_tpm])
 
         if (check_independence and
                 not validate.conditionally_independent(macro_tpm)):
