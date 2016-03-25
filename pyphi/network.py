@@ -78,6 +78,8 @@ class Network:
             ``connectivity_matrix[i][j] == 1`` means that node |i| is connected
             to node |j|. If no connectivity matrix is given, every node is
             connected to every node **(including itself)**.
+        node_labels (tuple(str)): Human readable labels for each node in the
+            network.
 
     Attributes:
         tpm (np.ndarray):
@@ -104,13 +106,14 @@ class Network:
     """
 
     # TODO make tpm also optional when implementing logical network definition
-    def __init__(self, tpm, connectivity_matrix=None,
+    def __init__(self, tpm, connectivity_matrix=None, node_labels=None,
                  perturb_vector=None, purview_cache=None):
         self.tpm = tpm
         self._size = self.tpm.shape[-1]
         # TODO extend to nonbinary nodes
         self._num_states = 2 ** self.size
         self._node_indices = tuple(range(self.size))
+        self._node_labels = node_labels
         self.connectivity_matrix = connectivity_matrix
         self.perturb_vector = perturb_vector
         self.purview_cache = purview_cache or cache.PurviewCache()
@@ -128,6 +131,10 @@ class Network:
     @property
     def node_indices(self):
         return self._node_indices
+
+    @property
+    def node_labels(self):
+        return self._node_labels
 
     @property
     def tpm(self):

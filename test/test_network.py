@@ -41,6 +41,12 @@ def test_potential_purviews(s):
             [(2,)])
 
 
+def test_node_labels(standard):
+    labels = ('A', 'B', 'C')
+    network = Network(standard.tpm, node_labels=labels)
+    assert network.node_labels == labels
+
+
 def test_repr(standard):
     print(repr(standard))
 
