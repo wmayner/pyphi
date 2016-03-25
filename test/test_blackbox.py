@@ -50,15 +50,16 @@ def test_basic_propogation_delay():
     net = Network(tpm, connectivity_matrix=cm)
 
     # Elements 1, 3, 5, 6, 7 are the COPY gates
-    # 0, 2, and 4 correspond to the original OR, COPY, XOR
-    hidden_indices = (1, 3, 5, 6, 7)
+    # 0, 2, and 4 correspond to the original OR, XOR, and COPY
+    partition = ((0, 5, 7), (3, 4), (1, 2, 6))
+    outputs  = (0, 2, 4)
+    blackbox = macro.Blackbox(partition, outputs)
 
     # Over two time steps, the system is functionally the same as the basic system
     time_step = 2
 
     bb_sub = macro.MacroSubsystem(net, cs, net.node_indices,
-                                  time_scale=time_step,
-                                  hidden_indices=hidden_indices)
+                                  time_scale=time_step, blackbox=blackbox)
 
     bb_mip = compute.big_mip(bb_sub)
     assert bb_mip.phi == 2.125

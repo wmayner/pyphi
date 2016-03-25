@@ -82,7 +82,7 @@ LOGGING_CONFIG:
         filename: "pyphi.log"
     stdout:
         enabled: true
-        level: "WARNING"
+        level: "DEBUG"
 # Log the current configuration when PyPhi is imported. This is useful for
 # checking what settings were used for a previous calculation.
 LOG_CONFIG_ON_IMPORT: true
