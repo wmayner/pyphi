@@ -95,6 +95,16 @@ def connectivity_matrix(cm):
     return True
 
 
+def node_labels(node_labels, node_indices):
+    """Validate that there is a label for each node."""
+    if node_labels is None:
+        return
+
+    if len(node_labels) != len(node_indices):
+        raise ValueError("Labels {0} must label every node {1}.""".format(
+            node_labels, node_indices))
+
+
 # TODO test
 def perturb_vector(pv, size):
     """Validate a network's pertubation vector."""
@@ -114,6 +124,7 @@ def network(n):
     tpm(n.tpm)
     connectivity_matrix(n.connectivity_matrix)
     perturb_vector(n.perturb_vector, n.size)
+    node_labels(n.node_labels, n.node_indices)
     if n.connectivity_matrix.shape[0] != n.size:
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")

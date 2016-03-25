@@ -46,6 +46,10 @@ def test_node_labels(standard):
     network = Network(standard.tpm, node_labels=labels)
     assert network.node_labels == labels
 
+    labels = ('A', 'B')  # Too few labels
+    with pytest.raises(ValueError):
+        Network(standard.tpm, node_labels=labels)
+
 
 def test_repr(standard):
     print(repr(standard))
