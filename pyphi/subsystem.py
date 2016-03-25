@@ -109,7 +109,7 @@ class Subsystem:
         # have an accesible object-level cache. Just use a simple memoizer
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
-        self.nodes = generate_nodes(self)
+        self.nodes = generate_nodes(self, labels=True)
 
         # The nodes represented in computed repertoire distributions. This
         # supports `MacroSubsystem`'s alternate TPM representation.

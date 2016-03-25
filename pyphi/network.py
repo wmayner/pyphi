@@ -200,6 +200,9 @@ class Network:
         _map = dict(zip(self.node_labels, self.node_indices))
         return tuple(_map[label] for label in labels)
 
+    # TODO: don't raise an error? Instead stringify indices? eg ('0', '1')
+    # This could clean up passing labels to `generate_nodes` in the Subsystem
+    # constructor.
     def indices2labels(self, indices):
         """Convert a tuple of node indices to node labels."""
         if self.node_labels is None:

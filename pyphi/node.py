@@ -153,11 +153,23 @@ class Node:
         return self.index
 
 
-def generate_nodes(subsystem, indices=None):
-    """Generate the |Node| objects for these indices."""
+def generate_nodes(subsystem, indices=None, labels=False):
+    """Generate the |Node| objects for these indices.
+
+    The ``labels`` arguments allows us to not extract labels from the network
+    when constructing macro systems. ``indices`` is also required by macro-
+    systems.
+    """
     if indices is None:
         indices = subsystem.node_indices
-    return tuple(Node(subsystem, i, indices=indices) for i in indices)
+
+    if labels is True and subsystem.network.node_labels is not None:
+        labels = subsystem.network.indices2labels(indices)
+    else:
+        labels = [None] * len(indices)
+
+    return tuple(Node(subsystem, index, indices=indices, label=label)
+                 for index, label in zip(indices, labels))
 
 
 def expand_node_tpm(tpm):
