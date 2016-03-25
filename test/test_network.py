@@ -36,9 +36,9 @@ def test_network_creates_fully_connected_cm_by_default():
 def test_potential_purviews(s):
     mechanism = (0,)
     assert (s.network._potential_purviews('past', mechanism) ==
-        [(1,), (2,), (1, 2)])
+            [(1,), (2,), (1, 2)])
     assert (s.network._potential_purviews('future', mechanism) ==
-        [(2,)])
+            [(2,)])
 
 
 def test_repr(standard):
