@@ -109,7 +109,6 @@ class Network:
     def __init__(self, tpm, connectivity_matrix=None, node_labels=None,
                  perturb_vector=None, purview_cache=None):
         self.tpm = tpm
-        self._size = self.tpm.shape[-1]
         # TODO extend to nonbinary nodes
         self._num_states = 2 ** self.size
         self._node_indices = tuple(range(self.size))
@@ -117,12 +116,12 @@ class Network:
         self.connectivity_matrix = connectivity_matrix
         self.perturb_vector = perturb_vector
         self.purview_cache = purview_cache or cache.PurviewCache()
-        # Validate the entire network.
+
         validate.network(self)
 
     @property
     def size(self):
-        return self._size
+        return self.tpm.shape[-1]
 
     @property
     def num_states(self):
