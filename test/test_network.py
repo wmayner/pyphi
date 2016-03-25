@@ -60,6 +60,15 @@ def test_labels2indices(standard):
         standard.labels2indices(('A', 'B'))
 
 
+def test_indices2labels(standard):
+    network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
+    assert network.indices2labels((0, 1)) == ('A', 'B')
+    assert network.indices2labels((0, 2)) == ('A', 'C')
+
+    with pytest.raises(ValueError):  # Not constructed with label
+        standard.indices2labels((0, 1))
+
+
 def test_generate_node_indices(standard):
     network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
     assert network.generate_node_indices(('B', 'A')) == (0, 1)
