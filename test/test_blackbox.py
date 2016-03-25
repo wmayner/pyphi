@@ -66,7 +66,7 @@ def test_basic_propogation_delay():
     assert bb_mip.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
 
 
-@pytest.mark.slow
+@pytest.mark.veryslow
 def test_basic_nor_or():
     # A system composed of NOR and OR (copy) gates, which mimics the basic
     # pyphi network
@@ -143,7 +143,7 @@ def test_basic_nor_or():
     # It is able to do this because A 'enters' C from two different locations
 
 
-@pytest.mark.slow
+@pytest.mark.veryslow
 def test_xor_propogation_delay():
     # Three interconnected XOR gates, with COPY gates along each connection
     # acting as propagation delays.
