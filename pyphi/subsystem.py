@@ -61,7 +61,7 @@ class Subsystem:
 
         # Remove duplicates, sort, and ensure native Python `int`s
         # (for JSON serialization).
-        self.node_indices = tuple(sorted(set(map(int, node_indices))))
+        self.node_indices = network.generate_node_indices(node_indices)
 
         validate.state_length(state, self.network.size)
 

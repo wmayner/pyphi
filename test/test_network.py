@@ -57,6 +57,16 @@ def test_labels2indices(standard):
     assert network.labels2indices(('A', 'C')) == (0, 2)
 
 
+def test_generate_node_indices(standard):
+    network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
+    assert network.generate_node_indices(('B', 'A')) == (0, 1)
+    assert network.generate_node_indices((0, 2, 1)) == (0, 1, 2)
+    assert standard.generate_node_indices(()) == ()  # No labels - regression
+
+    with pytest.raises(ValueError):
+        network.generate_node_indices((0, 'A'))
+
+
 def test_repr(standard):
     print(repr(standard))
 

@@ -197,6 +197,17 @@ class Network:
         _map = dict(zip(self.node_labels, self.node_indices))
         return tuple(_map[label] for label in labels)
 
+    def generate_node_indices(self, nodes):
+        """Returns the nodes indices for nodes, where ``nodes`` is either
+        already integer indices or node labels."""
+        if len(nodes) == 0:
+            indices = ()
+        elif all(isinstance(node, str) for node in nodes):
+            indices = self.labels2indices(nodes)
+        else:
+            indices = map(int, nodes)
+        return tuple(sorted(set(indices)))
+
     # TODO: this should really be a Subsystem method, but we're
     # interested in caching at the Network-level...
     @cache.method('purview_cache')

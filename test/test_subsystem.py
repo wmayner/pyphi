@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import example_networks
-from pyphi import config, utils, validate
+from pyphi import config, Network, utils, validate
 from pyphi.models import Cut, Part
 from pyphi.subsystem import Subsystem, mip_bipartitions
 
@@ -164,3 +164,9 @@ def test_apply_cut(s):
 def test_cut_indices(s, subsys_n1n2):
     assert s.cut_indices == (0, 1, 2)
     assert subsys_n1n2.cut_indices == (1, 2)
+
+
+def test_specify_elements_with_labels(standard):
+    network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
+    subsystem = Subsystem(network, (0, 0, 0), ('B', 'C'))
+    assert subsystem.node_indices == (1, 2)

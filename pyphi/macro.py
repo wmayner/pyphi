@@ -73,7 +73,7 @@ class MacroSubsystem(Subsystem):
                  coarse_grain=None):
 
         # Ensure indices are not a `range`
-        node_indices = tuple(node_indices)
+        node_indices = network.generate_node_indices(node_indices)
 
         # Store original arguments to use in `apply_cut`
         self._network_state = state
