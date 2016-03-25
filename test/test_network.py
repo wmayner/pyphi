@@ -56,6 +56,9 @@ def test_labels2indices(standard):
     assert network.labels2indices(('A', 'B')) == (0, 1)
     assert network.labels2indices(('A', 'C')) == (0, 2)
 
+    with pytest.raises(ValueError):  # Not constructed with label
+        standard.labels2indices(('A', 'B'))
+
 
 def test_generate_node_indices(standard):
     network = Network(standard.tpm, node_labels=('A', 'B', 'C'))

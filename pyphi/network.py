@@ -194,6 +194,9 @@ class Network:
 
     def labels2indices(self, labels):
         """Convert a tuple of node labels to node indices."""
+        if self.node_labels is None:
+            raise ValueError('Network not constructed with node labels')
+
         _map = dict(zip(self.node_labels, self.node_indices))
         return tuple(_map[label] for label in labels)
 
