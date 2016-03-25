@@ -68,12 +68,12 @@ class MacroSubsystem(Subsystem):
     # on their respective Blackbox and CoarseGrain objects? This would nicely
     # abstract the logic into a discrete, disconnected transformation.
 
-    def __init__(self, network, state, node_indices, cut=None,
+    def __init__(self, network, state, nodes, cut=None,
                  mice_cache=None, time_scale=1, blackbox=None,
                  coarse_grain=None):
 
         # Ensure indices are not a `range`
-        node_indices = network.generate_node_indices(node_indices)
+        node_indices = network.generate_node_indices(nodes)
 
         # Store original arguments to use in `apply_cut`
         self._network_state = state

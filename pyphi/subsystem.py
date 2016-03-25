@@ -24,8 +24,9 @@ class Subsystem:
     Args:
         network (Network): The network the subsystem belongs to.
         state (tuple(int)): The state of the network.
-        node_indices (tuple(int)): A sequence of indices of the nodes in this
-            subsystem.
+        nodes (tuple(int) or tuple(str)): The nodes of the network which are in
+            this subsystem. Nodes can be specified either as indices or as
+            labels if the |Network| was passed ``node_labels``.
 
     Keyword Args:
         cut (Cut): The unidirectional |Cut| to apply to this subsystem.
@@ -53,7 +54,7 @@ class Subsystem:
         tpm (np.array): The TPM conditioned on the state of the external nodes.
     """
 
-    def __init__(self, network, state, node_indices, cut=None,
+    def __init__(self, network, state, nodes, cut=None,
                  mice_cache=None, repertoire_cache=None):
         """Construct a Subsystem."""
         # The network this subsystem belongs to.
@@ -61,7 +62,7 @@ class Subsystem:
 
         # Remove duplicates, sort, and ensure native Python `int`s
         # (for JSON serialization).
-        self.node_indices = network.generate_node_indices(node_indices)
+        self.node_indices = network.generate_node_indices(nodes)
 
         validate.state_length(state, self.network.size)
 
