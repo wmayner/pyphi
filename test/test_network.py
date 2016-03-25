@@ -51,6 +51,12 @@ def test_node_labels(standard):
         Network(standard.tpm, node_labels=labels)
 
 
+def test_labels2indices(standard):
+    network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
+    assert network.labels2indices(('A', 'B')) == (0, 1)
+    assert network.labels2indices(('A', 'C')) == (0, 2)
+
+
 def test_repr(standard):
     print(repr(standard))
 

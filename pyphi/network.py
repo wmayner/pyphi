@@ -192,6 +192,11 @@ class Network:
         # Update hash.
         self._pv_hash = utils.np_hash(self.perturb_vector)
 
+    def labels2indices(self, labels):
+        """Convert a tuple of node labels to node indices."""
+        _map = dict(zip(self.node_labels, self.node_indices))
+        return tuple(_map[label] for label in labels)
+
     # TODO: this should really be a Subsystem method, but we're
     # interested in caching at the Network-level...
     @cache.method('purview_cache')
