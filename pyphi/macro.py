@@ -15,7 +15,7 @@ import numpy as np
 
 from . import compute, config, constants, convert, utils, validate
 from .network import irreducible_purviews
-from .node import Node, expand_node_tpm
+from .node import Node, expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
 
 # Create a logger for this module.
@@ -34,12 +34,6 @@ class ConditionallyDependentError(ValueError):
 def reindex(indices):
     """Generate a new set of node indices, the size of indices."""
     return tuple(range(len(indices)))
-
-
-def generate_nodes(subsystem, indices):
-    """Generate the |Node| objects for these indices."""
-    # TODO: refactor this to node.py?
-    return tuple(Node(subsystem, i, indices=indices) for i in indices)
 
 
 def rebuild_system_tpm(node_tpms):

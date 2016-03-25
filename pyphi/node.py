@@ -153,6 +153,13 @@ class Node:
         return self.index
 
 
+def generate_nodes(subsystem, indices=None):
+    """Generate the |Node| objects for these indices."""
+    if indices is None:
+        indices = subsystem.node_indices
+    return tuple(Node(subsystem, i, indices=indices) for i in indices)
+
+
 def expand_node_tpm(tpm):
     """Broadcast a node TPM over the full network.
 

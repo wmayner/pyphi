@@ -14,7 +14,7 @@ from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
 from .models import Concept, Cut, Mice, Mip, _null_mip, Part
 from .network import irreducible_purviews
-from .node import Node
+from .node import generate_nodes
 
 
 class Subsystem:
@@ -109,7 +109,7 @@ class Subsystem:
         # have an accesible object-level cache. Just use a simple memoizer
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
-        self.nodes = tuple(Node(self, i) for i in self.node_indices)
+        self.nodes = generate_nodes(self)
 
         # The nodes represented in computed repertoire distributions. This
         # supports `MacroSubsystem`'s alternate TPM representation.
