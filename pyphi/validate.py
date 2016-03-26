@@ -104,6 +104,9 @@ def node_labels(node_labels, node_indices):
         raise ValueError("Labels {0} must label every node {1}.""".format(
             node_labels, node_indices))
 
+    if len(node_labels) != len(set(node_labels)):
+        raise ValueError("Labels {0} must be unique.""".format(node_labels))
+
 
 # TODO test
 def perturb_vector(pv, size):

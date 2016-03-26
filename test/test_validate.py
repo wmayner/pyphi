@@ -107,6 +107,8 @@ def test_validate_node_labels():
         validate.node_labels(['A'], (0, 1))
     with pytest.raises(ValueError):
         validate.node_labels(['A', 'B'], (0,))
+    with pytest.raises(ValueError):
+        validate.node_labels(['A', 'A'], (0, 1))
 
 
 def test_validate_time_scale():
