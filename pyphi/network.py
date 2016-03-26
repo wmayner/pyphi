@@ -214,7 +214,7 @@ class Network:
     def generate_node_indices(self, nodes):
         """Returns the nodes indices for nodes, where ``nodes`` is either
         already integer indices or node labels."""
-        if len(nodes) == 0:
+        if not nodes:
             indices = ()
         elif all(isinstance(node, str) for node in nodes):
             indices = self.labels2indices(nodes)
