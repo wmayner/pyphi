@@ -32,6 +32,9 @@ Next Release
 - Added `utils.all_states`, a generator over all states of an n-element system.
 - Added `utils.state_by_state` for testing whether a TPM is in state-by-state
   format.
+- `Network` now takes an optional `node_labels`  argument, allowing nodes to be
+  referenced by a canonical name other than their indices. The nodes of a
+  `Subsystem` can now be specified by either their index or their label.
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
