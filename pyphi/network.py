@@ -67,8 +67,6 @@ class Network:
     def __init__(self, tpm, connectivity_matrix=None, node_labels=None,
                  perturb_vector=None, purview_cache=None):
         self.tpm = tpm
-        # TODO extend to nonbinary nodes
-        self._num_states = 2 ** self.size
         self._node_indices = tuple(range(self.size))
         self._node_labels = node_labels
         self.connectivity_matrix = connectivity_matrix
@@ -81,9 +79,10 @@ class Network:
     def size(self):
         return self.tpm.shape[-1]
 
+    # TODO extend to nonbinary nodes
     @property
     def num_states(self):
-        return self._num_states
+        return 2 ** self.size
 
     @property
     def node_indices(self):
