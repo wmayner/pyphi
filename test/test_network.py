@@ -52,7 +52,7 @@ def test_node_labels(standard):
 
     # Auto-generated labels
     network = Network(standard.tpm, node_labels=None)
-    assert network.node_labels == ('0', '1', '2')
+    assert network.node_labels == ('n0', 'n1', 'n2')
 
 
 def test_labels2indices(standard):
@@ -66,7 +66,7 @@ def test_indices2labels(standard):
     assert network.indices2labels((0, 1)) == ('A', 'B')
     assert network.indices2labels((0, 2)) == ('A', 'C')
     # Auto-generated labels
-    assert standard.indices2labels((0, 1)) == ('0', '1')
+    assert standard.indices2labels((0, 1)) == ('n0', 'n1')
 
 
 def test_parse_node_indices(standard):

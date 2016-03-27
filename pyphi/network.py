@@ -68,8 +68,7 @@ class Network:
                  perturb_vector=None, purview_cache=None):
         self.tpm = tpm
         self._node_indices = tuple(range(self.size))
-        self._node_labels = (node_labels or
-                             tuple(str(i) for i in self.node_indices))
+        self._node_labels = node_labels
         self.connectivity_matrix = connectivity_matrix
         self.perturb_vector = perturb_vector
         self.purview_cache = purview_cache or cache.PurviewCache()
@@ -91,6 +90,9 @@ class Network:
 
     @property
     def node_labels(self):
+        if self._node_labels is None:
+            self._node_labels = tuple("n{}".format(i)
+                                      for i in self.node_indices)
         return self._node_labels
 
     @property
