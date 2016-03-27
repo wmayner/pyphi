@@ -36,7 +36,7 @@ install:
   - pip freeze
 
 # Run tests
-script: travis_wait 20 coverage run --source=pyphi -m py.test --slow
+script: coverage run --source=pyphi -m py.test --slow
 
 after_success: coveralls
 
