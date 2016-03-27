@@ -69,14 +69,14 @@ def test_indices2labels(standard):
         standard.indices2labels((0, 1))
 
 
-def test_generate_node_indices(standard):
+def test_parse_node_indices(standard):
     network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
-    assert network.generate_node_indices(('B', 'A')) == (0, 1)
-    assert network.generate_node_indices((0, 2, 1)) == (0, 1, 2)
-    assert standard.generate_node_indices(()) == ()  # No labels - regression
+    assert network.parse_node_indices(('B', 'A')) == (0, 1)
+    assert network.parse_node_indices((0, 2, 1)) == (0, 1, 2)
+    assert standard.parse_node_indices(()) == ()  # No labels - regression
 
     with pytest.raises(ValueError):
-        network.generate_node_indices((0, 'A'))
+        network.parse_node_indices((0, 'A'))
 
 
 def test_repr(standard):

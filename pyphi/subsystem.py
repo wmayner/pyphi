@@ -62,7 +62,7 @@ class Subsystem:
 
         # Remove duplicates, sort, and ensure native Python `int`s
         # (for JSON serialization).
-        self.node_indices = network.generate_node_indices(nodes)
+        self.node_indices = network.parse_node_indices(nodes)
 
         validate.state_length(state, self.network.size)
 

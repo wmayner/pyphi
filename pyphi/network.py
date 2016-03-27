@@ -211,7 +211,7 @@ class Network:
         _map = dict(zip(self.node_indices, self.node_labels))
         return tuple(_map[index] for index in indices)
 
-    def generate_node_indices(self, nodes):
+    def parse_node_indices(self, nodes):
         """Returns the nodes indices for nodes, where ``nodes`` is either
         already integer indices or node labels."""
         if not nodes:
