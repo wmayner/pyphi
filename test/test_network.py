@@ -50,23 +50,23 @@ def test_node_labels(standard):
     with pytest.raises(ValueError):
         Network(standard.tpm, node_labels=labels)
 
+    # Auto-generated labels
+    network = Network(standard.tpm, node_labels=None)
+    assert network.node_labels == ('0', '1', '2')
+
 
 def test_labels2indices(standard):
     network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
     assert network.labels2indices(('A', 'B')) == (0, 1)
     assert network.labels2indices(('A', 'C')) == (0, 2)
 
-    with pytest.raises(ValueError):  # Not constructed with label
-        standard.labels2indices(('A', 'B'))
-
 
 def test_indices2labels(standard):
     network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
     assert network.indices2labels((0, 1)) == ('A', 'B')
     assert network.indices2labels((0, 2)) == ('A', 'C')
-
-    with pytest.raises(ValueError):  # Not constructed with label
-        standard.indices2labels((0, 1))
+    # Auto-generated labels
+    assert standard.indices2labels((0, 1)) == ('0', '1')
 
 
 def test_parse_node_indices(standard):

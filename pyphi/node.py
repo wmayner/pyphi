@@ -163,7 +163,7 @@ def generate_nodes(subsystem, indices=None, labels=False):
     if indices is None:
         indices = subsystem.node_indices
 
-    if labels is True and subsystem.network.node_labels is not None:
+    if labels is True:
         labels = subsystem.network.indices2labels(indices)
     else:
         labels = [None] * len(indices)

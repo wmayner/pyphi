@@ -68,7 +68,8 @@ class Network:
                  perturb_vector=None, purview_cache=None):
         self.tpm = tpm
         self._node_indices = tuple(range(self.size))
-        self._node_labels = node_labels
+        self._node_labels = (node_labels or
+                             tuple(str(i) for i in self.node_indices))
         self.connectivity_matrix = connectivity_matrix
         self.perturb_vector = perturb_vector
         self.purview_cache = purview_cache or cache.PurviewCache()
@@ -151,20 +152,11 @@ class Network:
 
     def labels2indices(self, labels):
         """Convert a tuple of node labels to node indices."""
-        if self.node_labels is None:
-            raise ValueError('Network not constructed with node labels')
-
         _map = dict(zip(self.node_labels, self.node_indices))
         return tuple(_map[label] for label in labels)
 
-    # TODO: don't raise an error? Instead stringify indices? eg ('0', '1')
-    # This could clean up passing labels to `generate_nodes` in the Subsystem
-    # constructor.
     def indices2labels(self, indices):
         """Convert a tuple of node indices to node labels."""
-        if self.node_labels is None:
-            raise ValueError('Network not constructed with node labels')
-
         _map = dict(zip(self.node_indices, self.node_labels))
         return tuple(_map[index] for index in indices)
 
