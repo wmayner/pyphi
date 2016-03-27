@@ -17,48 +17,6 @@ from .constants import DIRECTIONS, FUTURE, PAST
 
 # TODO!!! raise error if user tries to change TPM or CM, double-check and
 # document that states can be changed
-
-def from_json(filename):
-    """Convert a JSON representation of a network to a PyPhi network.
-
-    Args:
-        filename (str): A path to a JSON file representing a network.
-
-    Returns:
-       network (``Network``): The corresponding PyPhi network object.
-    """
-    with open(filename) as f:
-        network_dictionary = json.load(f)
-    tpm = network_dictionary['tpm']
-    cm = network_dictionary['cm']
-    network = Network(tpm, connectivity_matrix=cm)
-    return network
-
-
-def irreducible_purviews(cm, direction, mechanism, purviews):
-    """Returns all purview which are irreducible for the mechanism.
-
-    Args:
-        cm (np.ndarray): A |N x N| connectivity matrix.
-        direction (str): |past| or |future|.
-        purviews (list(tuple(int))): The purviews to check.
-        mechanism (tuple(int)): The mechanism in question.
-
-    Returns:
-        list(tuple(int)): All purviews in ``purviews`` which are not reducible
-            over ``mechanism``.
-    """
-    def reducible(purview):
-        # Returns True if purview is trivially reducible.
-        if direction == DIRECTIONS[PAST]:
-            _from, to = purview, mechanism
-        elif direction == DIRECTIONS[FUTURE]:
-            _from, to = mechanism, purview
-        return utils.block_reducible(cm, _from, to)
-
-    return [purview for purview in purviews if not reducible(purview)]
-
-
 class Network:
     """A network of nodes.
 
@@ -276,3 +234,44 @@ class Network:
             'cm': self.connectivity_matrix,
             'size': self.size
         }
+
+
+def irreducible_purviews(cm, direction, mechanism, purviews):
+    """Returns all purview which are irreducible for the mechanism.
+
+    Args:
+        cm (np.ndarray): A |N x N| connectivity matrix.
+        direction (str): |past| or |future|.
+        purviews (list(tuple(int))): The purviews to check.
+        mechanism (tuple(int)): The mechanism in question.
+
+    Returns:
+        list(tuple(int)): All purviews in ``purviews`` which are not reducible
+            over ``mechanism``.
+    """
+    def reducible(purview):
+        # Returns True if purview is trivially reducible.
+        if direction == DIRECTIONS[PAST]:
+            _from, to = purview, mechanism
+        elif direction == DIRECTIONS[FUTURE]:
+            _from, to = mechanism, purview
+        return utils.block_reducible(cm, _from, to)
+
+    return [purview for purview in purviews if not reducible(purview)]
+
+
+def from_json(filename):
+    """Convert a JSON representation of a network to a PyPhi network.
+
+    Args:
+        filename (str): A path to a JSON file representing a network.
+
+    Returns:
+       network (``Network``): The corresponding PyPhi network object.
+    """
+    with open(filename) as f:
+        network_dictionary = json.load(f)
+    tpm = network_dictionary['tpm']
+    cm = network_dictionary['cm']
+    network = Network(tpm, connectivity_matrix=cm)
+    return network
