@@ -202,6 +202,15 @@ def get_outputs_from_cm(index, connectivity_matrix):
                  connectivity_matrix[index][i])
 
 
+def causally_significant_nodes(cm):
+    """Returns a tuple of all nodes indices in the connectivity matrix which
+    are causally significant (have inputs and outputs)."""
+    inputs = cm.sum(0)
+    outputs = cm.sum(1)
+    nodes_with_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
+    return tuple(np.where(nodes_with_inputs_and_outputs)[0])
+
+
 def np_hash(a):
     """Return a hash of a NumPy array."""
     if a is None:

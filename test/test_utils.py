@@ -320,3 +320,24 @@ def test_expand_tpm():
         [[1, 1],
          [1, 1]],
     ]))
+
+
+def test_causally_significant_nodes():
+    cm = np.array([
+        [0, 0],
+        [1, 0]
+    ])
+    assert utils.causally_significant_nodes(cm) == ()
+
+    cm = np.array([
+        [0, 1],
+        [1, 0]
+    ])
+    assert utils.causally_significant_nodes(cm) == (0, 1)
+
+    cm = np.array([
+        [0, 1, 0],
+        [0, 0, 1],
+        [0, 1, 1],
+    ])
+    assert utils.causally_significant_nodes(cm) == (1, 2)

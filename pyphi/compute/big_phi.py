@@ -290,10 +290,8 @@ def possible_complexes(network, state):
     Yields:
         (Subsystem): The next subsystem which could be a complex.
     """
-    inputs = network.connectivity_matrix.sum(0)
-    outputs = network.connectivity_matrix.sum(1)
-    nodes_have_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
-    causally_significant_nodes = np.where(nodes_have_inputs_and_outputs)[0]
+    causally_significant_nodes = utils.causally_significant_nodes(
+        network.connectivity_matrix)
 
     for subset in utils.powerset(causally_significant_nodes):
         # Don't return empty system
