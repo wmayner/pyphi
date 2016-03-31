@@ -37,8 +37,14 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
             (bool): True if `mechanism` has elements on both sides
                 of the cut, otherwise False.
         """
+        # TODO: use cuts_connections
         return ((set(mechanism) & set(self[0])) and
                 (set(mechanism) & set(self[1])))
+
+    def cuts_connections(self, a, b):
+        """Check if this cut severs any connections from nodes `a` to `b`."""
+        return ((set(a) & set(self[0])) and
+                (set(b) & set(self[1])))
 
     def all_cut_mechanisms(self):
         """Return all mechanisms with elements on both sides of this cut.

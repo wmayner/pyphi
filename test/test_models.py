@@ -141,6 +141,14 @@ def test_cut_splits_mechanism():
     assert not cut.splits_mechanism((1, 2))
 
 
+def test_cut_splits_connections():
+    cut = models.Cut((0, 3), (1, 2))
+    assert cut.cuts_connections((0,), (1, 2))
+    assert cut.cuts_connections((0, 3), (1,))
+    assert not cut.cuts_connections((1, 2), (0,))
+    assert not cut.cuts_connections((1,), (0, 3))
+
+
 def test_cut_all_cut_mechanisms():
     cut = models.Cut((0,), (1, 2))
     assert cut.all_cut_mechanisms() == ((0, 1), (0, 2), (0, 1, 2))
