@@ -270,6 +270,27 @@ class MacroSubsystem(Subsystem):
         return irreducible_purviews(self.cm, direction,
                                     mechanism, all_purviews)
 
+    def macro2micro(self, macro_indices):
+        """Returns all micro indices which compose the elements specified by
+        `macro_indices`."""
+        def from_partition(partition, macro_indices):
+            micro_indices = []
+            for i in macro_indices:
+                micro_indices += partition[i]
+            return tuple(sorted(micro_indices))
+
+        if self._blackbox and self._coarse_grain:
+            cg_micro_indices = from_partition(self._coarse_grain.partition,
+                                              macro_indices)
+            return from_partition(self._blackbox.partition,
+                                  reindex(cg_micro_indices))
+        elif self._blackbox:
+            return from_partition(self._blackbox.partition, macro_indices)
+        elif self._coarse_grain:
+            return from_partition(self._coarse_grain.partition, macro_indices)
+        else:
+            return macro_indices
+
     def __repr__(self):
         return "MacroSubsystem(" + repr(self.nodes) + ")"
 

@@ -323,3 +323,33 @@ def test_blackbox_emergence():
                              coarse_grain=True, time_scales=[1, 2])
     assert result.phi == 0.713678
     assert result.emergence == 0.599789
+
+
+def test_macro2micro(s):
+    # Only blackboxing
+    blackbox = macro.Blackbox(((0, 2), (1,)), (1, 2))
+    subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+                                  blackbox=blackbox)
+    assert subsys.macro2micro((0,)) == (0, 2)
+    assert subsys.macro2micro((1,)) == (1,)
+    assert subsys.macro2micro((1, 0)) == (0, 1, 2)
+
+    # Only coarse-graining
+    coarse_grain = macro.CoarseGrain(((0,), (1, 2)), (((0,), (1,)), ((0,), (1, 2))))
+    subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+                                  coarse_grain=coarse_grain)
+    assert subsys.macro2micro((0,)) == (0,)
+    assert subsys.macro2micro((1,)) == (1, 2)
+    assert subsys.macro2micro((0, 1)) == (0, 1, 2)
+
+    # Blackboxing and coarse-graining
+    blackbox = macro.Blackbox(((0, 2), (1,)), (1, 2))
+    coarse_grain = macro.CoarseGrain(((1, 2),), (((0,), (1, 2)),))
+    subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+                                  blackbox=blackbox, coarse_grain=coarse_grain)
+    assert subsys.macro2micro((0,)) == (0, 1, 2)
+
+    # Pure micro
+    subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices)
+    assert subsys.macro2micro((1,)) == (1,)
+    assert subsys.macro2micro((0, 1)) == (0, 1)
