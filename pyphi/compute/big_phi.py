@@ -12,8 +12,6 @@ import logging
 import multiprocessing
 from time import time
 
-import numpy as np
-
 from . import parallel
 from .concept import constellation
 from .distance import constellation_distance
