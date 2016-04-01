@@ -96,6 +96,34 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         return [self.severed, self.intact]
 
 
+class Actual_Cut(namedtuple('Cut', ['cause_part1', 'cause_part2',
+                                    'effect_part1', 'effect_part2'])):
+
+    """Represents a actual cut for a context.
+
+    Attributes:
+        cause_part1 (tuple(int)):
+            Connections from this group to those in ``effect_part2`` are cut
+        cause_part2 (tuple(int)):
+            Connections from this group to those in ``effect_part1`` are cut
+        effect_part1 (tuple(int)):
+            Connections to this group from ``cause_part2`` are cut
+        effect_part2 (tuple(int)):
+             Connections to this group from ``cause_part1`` are cut
+    """
+    # This allows accessing the namedtuple's ``__dict__``; see
+    # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
+    __slots__ = ()
+
+    def __repr__(self):
+        return fmt.make_repr(self, ['cause_part1', 'cause_part2',
+                                    'effect_part1', 'effect_part2'])
+
+    def __str__(self):
+        return ("{self.cause_part1} --//--> {self.effect_part2} \n" +
+                "{self.cause_part2} --//--> {self.effect_part1}").format(self=self)
+
+
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
     """Represents one part of a bipartition.
 
