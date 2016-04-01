@@ -1106,3 +1106,9 @@ def causal_nexus(network, before_state, after_state, direction=None):
     log.info("Finished calculating causal nexus.")
     log.debug("RESULT: \n" + str(result))
     return result
+
+# ============================================================================
+# True Causes
+# ============================================================================
+
+
