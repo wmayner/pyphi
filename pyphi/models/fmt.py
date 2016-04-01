@@ -334,3 +334,47 @@ def fmt_repertoire(r):
         lines.append("{0}{1}{2:g}".format(state_str, space, r[state]))
 
     return box("\n".join(lines))
+
+
+def fmt_ac_mip(acmip, verbose=True):
+    """Helper function to format a nice Mip string"""
+
+    if acmip is False or acmip is None:  # mips can be Falsy
+        return ""
+
+    mechanism = "mechanism: {}\t".format(acmip.mechanism) if verbose else ""
+    direction = "direction: {}\n".format(acmip.direction) if verbose else ""
+    return (
+        "{alpha}\t"
+        "{mechanism}"
+        "purview: {acmip.purview}\t"
+        "{direction}"
+        "partition:\n{partition}\n"
+        "probability:\t{probability}\t"
+        "partitioned_probability:\t{partitioned_probability}\n").format(
+            alpha="{0:.4f}".format(round(acmip.alpha, 4)),
+            mechanism=mechanism,
+            direction=direction,
+            acmip=acmip,
+            partition=indent(fmt_partition(acmip.partition)),
+            probability=indent(acmip.probability),
+            partitioned_probability=indent(acmip.partitioned_probability))
+
+
+def fmt_ac_big_mip(ac_big_mip):
+    """Format a AcBigMip"""
+    return (
+        "{alpha}\n"
+        "direction: {ac_big_mip.direction}\n"
+        "context: {ac_big_mip.context}\n"
+        "past_state: {ac_big_mip.before_state}\n"
+        "current_state: {ac_big_mip.after_state}\n"
+        "cut: {ac_big_mip.cut}\n"
+        "unpartitioned_constellation: {unpartitioned_account}"
+        "partitioned_constellation: {partitioned_account}".format(
+            alpha="{0:.4f}".format(round(ac_big_mip.alpha, 4)),
+            ac_big_mip=ac_big_mip,
+            unpartitioned_account=fmt_account(
+                ac_big_mip.unpartitioned_account),
+            partitioned_account=fmt_account(
+                ac_big_mip.partitioned_account)))
