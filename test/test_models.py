@@ -182,7 +182,14 @@ def test_cut_matrix():
     assert np.array_equal(cut.cut_matrix(), np.array([]))
 
 
+def test_cut_indices():
+    cut = models.Cut((0,), (1, 2))
+    assert cut.indices == (0, 1, 2)
+    cut = models.Cut((7,), (3, 1))
+    assert cut.indices == (1, 3, 7)
+
 # }}}
+
 
 def mip(phi=1.0, dir=None, mech=(), purv=(), partition=None,
         unpartitioned_repertoire=None, partitioned_repertoire=None):

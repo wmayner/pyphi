@@ -174,7 +174,7 @@ def state_reachable(subsystem):
 
 def cut(cut, node_indices):
     """Check that the cut is for only the given nodes."""
-    if set(cut[0] + cut[1]) != set(node_indices):
+    if cut.indices != node_indices:
         raise ValueError('{} nodes are not equal to subsystem nodes '
                          '{}'.format(cut, node_indices))
 

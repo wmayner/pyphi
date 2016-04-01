@@ -26,6 +26,11 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
     __slots__ = ()
 
+    @property
+    def indices(self):
+        """Returns the indices of this cut."""
+        return tuple(sorted(set(self[0] + self[1])))
+
     # TODO: cast to bool
     def splits_mechanism(self, mechanism):
         """Check if this cut splits a mechanism.
@@ -52,7 +57,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         Returns:
             tuple(tuple(int)):
         """
-        all_mechanisms = utils.powerset(sorted(set(self[0] + self[1])))
+        all_mechanisms = utils.powerset(self.indices)
         return tuple(m for m in all_mechanisms if self.splits_mechanism(m))
 
     # TODO: pass in `size` arg and keep expanded to full network??
@@ -70,7 +75,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
             array([[ 0.,  1.],
                    [ 0.,  0.]])
         """
-        cut_indices = tuple(set(self[0] + self[1]))
+        cut_indices = self.indices
 
         # Don't pass an empty tuple to `max`
         if not cut_indices:
