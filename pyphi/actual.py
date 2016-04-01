@@ -1112,3 +1112,51 @@ def causal_nexus(network, before_state, after_state, direction=None):
 # ============================================================================
 
 
+def nice_true_constellation(true_constellation):
+    # TODO: Make sure the past and future purviews are ordered in the same way
+    past_list = []
+    future_list = []
+    cause = '<--'
+    effect = '-->'
+    for event in true_constellation:
+        if event.direction == DIRECTIONS[PAST]:
+            past_list.append(["{0:.4f}".format(round(event.alpha, 4)),
+                              event.mechanism, cause, event.purview])
+        elif event.direction == DIRECTIONS[FUTURE]:
+            future_list.append(["{0:.4f}".format(round(event.alpha, 4)),
+                                event.mechanism, effect, event.purview])
+        else:
+            validate.direction(event.direction)
+
+    true_list = [(past_list[event], future_list[event])
+                 for event in range(len(past_list))]
+    return true_list
+
+
+def true_constellation(subsystem, past_state, future_state):
+    """Set of all sets of elements that have true causes and true effects.
+       Note: Since the true constellation is always about the full system,
+       the background conditions don't matter and the subsystem should be
+       conditioned on the current state."""
+    log.info("Calculating true causes ...")
+    network = subsystem.network
+    nodes = subsystem.node_indices
+    state = subsystem.state
+    past_context = Context(network, past_state, state, nodes, nodes)
+    true_causes = directed_account(past_context, direction=DIRECTIONS[PAST])
+    log.info("Calculating true effects ...")
+    future_context = Context(network, state, future_state, nodes, nodes)
+    true_effects = directed_account(future_context,
+                                    direction=DIRECTIONS[FUTURE])
+    true_mechanisms = set([c.mechanism for c in true_causes]).\
+        intersection(c.mechanism for c in true_effects)
+    if true_mechanisms:
+        true_events = true_causes + true_effects
+        result = tuple(filter(lambda t: t.mechanism in true_mechanisms,
+                              true_events))
+        log.info("Finished calculating true events.")
+        log.debug("RESULT: \n" + str(result))
+        return result
+    else:
+        log.info("Finished calculating, no true events.")
+        return None
