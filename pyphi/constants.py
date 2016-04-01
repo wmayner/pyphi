@@ -20,7 +20,7 @@ EPSILON = 10 ** - config.PRECISION
 PAST = 0
 FUTURE = 1
 # Constants for using cause and effect methods.
-DIRECTIONS = ('past', 'future')
+DIRECTIONS = ('past', 'future', 'bidirectional')
 # Constants for labeling memoization backends.
 FILESYSTEM = 'fs'
 DATABASE = 'db'

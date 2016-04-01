@@ -370,11 +370,11 @@ def fmt_ac_big_mip(ac_big_mip):
         "past_state: {ac_big_mip.before_state}\n"
         "current_state: {ac_big_mip.after_state}\n"
         "cut: {ac_big_mip.cut}\n"
-        "unpartitioned_constellation: {unpartitioned_account}"
-        "partitioned_constellation: {partitioned_account}".format(
+        "unpartitioned_account: {unpartitioned_account}"
+        "partitioned_account: {partitioned_account}".format(
             alpha="{0:.4f}".format(round(ac_big_mip.alpha, 4)),
             ac_big_mip=ac_big_mip,
-            unpartitioned_account=fmt_account(
+            unpartitioned_account=fmt_constellation(
                 ac_big_mip.unpartitioned_account),
-            partitioned_account=fmt_account(
+            partitioned_account=fmt_constellation(
                 ac_big_mip.partitioned_account)))
