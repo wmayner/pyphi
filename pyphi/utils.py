@@ -150,6 +150,22 @@ def apply_cut(cut, cm):
     return cm
 
 
+# TODO test
+def apply_actual_cut(cut, connectivity_matrix):
+    """Returns a modified connectivity matrix where the connections from one
+    set of nodes to the other are destroyed."""
+    if cut is None:
+        return connectivity_matrix
+    cm = connectivity_matrix.copy()
+    for i in cut.cause_part1:
+        for j in cut.effect_part2:
+            cm[i][j] = 0
+    for i in cut.cause_part2:
+        for j in cut.effect_part1:
+            cm[i][j] = 0
+    return cm
+
+
 def fully_connected(cm, nodes1, nodes2):
     """Test connectivity of one set of nodes to another.
 
