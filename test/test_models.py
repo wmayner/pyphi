@@ -548,6 +548,11 @@ def test_constellation_repr():
     assert repr(c) == "Constellation(())"
 
 
+def test_normalize_constellation():
+    c1 = models.Concept(mechanism=(2,))
+    c2 = models.Concept(mechanism=(1, 3))
+    assert (c2, c1) == models.normalize_constellation((c1, c2))
+
 # }}}
 
 # Test BigMip {{{

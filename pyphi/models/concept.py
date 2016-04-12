@@ -400,6 +400,7 @@ class Constellation(tuple):
     represented as ``tuple(|Concept|)``; this usage still works in all
     functions.
     """
+    # TODO: compare constellations using set equality
 
     def __repr__(self):
         if config.READABLE_REPRS:
@@ -412,3 +413,16 @@ class Constellation(tuple):
 
     def to_json(self):
         return list(self)
+
+
+def normalize_constellation(constellation):
+    """Deterministically reorder the concepts in a constellation.
+
+    Args:
+        constellation (Constellation): The constellation in question.
+
+    Returns
+        Constellation: The constellation, ordered lexicographically by
+            mechanism.
+    """
+    return Constellation(sorted(constellation, key=lambda c: c.mechanism))
