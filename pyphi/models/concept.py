@@ -55,8 +55,9 @@ class Mip(cmp._Orderable, namedtuple('Mip', _mip_attributes)):
     def __eq__(self, other):
         # We don't count the partition and partitioned repertoire in checking
         # for MIP equality, since these are lost during normalization.
-        return cmp._general_eq(self, other, ['phi', 'direction', 'mechanism',
-                                         'purview', 'unpartitioned_repertoire'])
+        attrs = ['phi', 'direction', 'mechanism', 'purview',
+                 'unpartitioned_repertoire']
+        return cmp._general_eq(self, other, attrs)
 
     def __bool__(self):
         """A Mip is truthy if it is not reducible.
