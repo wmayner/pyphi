@@ -85,7 +85,10 @@ def fmt_partition(partition):
         return ""
 
     part0, part1 = partition
-    node_repr = lambda x: ','.join(map(str, x)) if x else '[]'
+
+    def node_repr(x):
+        return ','.join(map(str, x)) if x else '[]'
+
     numer0, denom0 = node_repr(part0.mechanism), node_repr(part0.purview)
     numer1, denom1 = node_repr(part1.mechanism), node_repr(part1.purview)
 
