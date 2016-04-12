@@ -35,6 +35,8 @@ Next Release
 - `Network` now takes an optional `node_labels`  argument, allowing nodes to be
   referenced by a canonical name other than their indices. The nodes of a
   `Subsystem` can now be specified by either their index or their label.
+- Added `models.normalize_constellation` for deterministically ordering a
+  constellation.
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
