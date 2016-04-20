@@ -107,23 +107,12 @@ relying on the cache. For this reason it is disabled by default.
     >>> defaults['CACHE_BIGMIPS']
     False
 
-.. note::
-    Concept caching only has an effect when a database is used as the the
-    caching backend.
-
 - ``pyphi.config.CACHE_POTENTIAL_PURVIEWS``: Controls whether the potential
   purviews of mechanisms of a network are cached. Caching speeds up
   computations by not recomputing expensive reducibility checks, but uses
   additional memory.
 
     >>> defaults['CACHE_POTENTIAL_PURVIEWS']
-    True
-
-- ``pyphi.config.NORMALIZE_TPMS``: Control whether TPMs should be normalized as
-  part of concept normalization. TPM normalization increases the chances that a
-  precomputed concept can be used again, but is expensive.
-
-    >>> defaults['NORMALIZE_TPMS']
     True
 
 - ``pyphi.config.CACHING_BACKEND``: Control whether precomputed results are
@@ -311,10 +300,6 @@ DEFAULTS = {
     # Controls whether the potential purviews of the mechanisms of a network
     # are cached. Speeds up calculations, but takes up additional memory.
     'CACHE_POTENTIAL_PURVIEWS': True,
-    # Controls whether TPMs should be normalized as part of concept
-    # normalization. TPM normalization increases the chances that a precomputed
-    # concept can be used again, but is expensive.
-    'NORMALIZE_TPMS': True,
     # The caching system to use. "fs" means cache results in a subdirectory of
     # the current directory; "db" means connect to a database and store the
     # results there.
