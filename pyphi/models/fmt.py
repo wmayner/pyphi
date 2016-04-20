@@ -12,13 +12,12 @@ from .. import config
 def make_repr(self, attrs):
     """Construct a repr string.
 
-    If `config.READABLE_REPRS` is True, this function calls out
-    to the object's __str__ method. Although this breaks the convention
-    that __repr__ should return a string which can reconstruct the object,
-    readable reprs are invaluable since the Python interpreter calls
-    `repr` to represent all objects in the shell. Since PyPhi is often
-    used in the interpreter we want to have meaningful and useful
-    representations.
+    If `config.READABLE_REPRS` is True, this function calls out to the object's
+    __str__ method. Although this breaks the convention that __repr__ should
+    return a string which can reconstruct the object, readable reprs are
+    invaluable since the Python interpreter calls `repr` to represent all
+    objects in the shell. Since PyPhi is often used in the interpreter we want
+    to have meaningful and useful representations.
 
     Args:
         self (obj): The object in question
