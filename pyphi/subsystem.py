@@ -490,8 +490,10 @@ class Subsystem:
         """
         if purview is None:
             purview = ()
+
         if new_purview is None:
             new_purview = self.node_indices  # full subsystem
+
         if not set(purview).issubset(new_purview):
             raise ValueError("Expanded purview must contain original purview.")
 
