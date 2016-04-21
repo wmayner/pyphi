@@ -571,24 +571,30 @@ class Subsystem:
         # partitioned ones
         unpartitioned_repertoire = repertoire(mechanism, purview)
 
-        # State is unreachable - return 0 instead of giving nonsense results
-        if (direction == DIRECTIONS[PAST] and
-                np.all(unpartitioned_repertoire == 0)):
-            return Mip(phi=0,
+        def _mip(phi, partition, partitioned_repertoire):
+            # Prototype of MIP with already known data
+            # TODO: Use properties here to infer mechanism and purview from
+            # partition yet access them with `.mechanism` and `.purview`.
+            return Mip(phi=phi,
                        direction=direction,
                        mechanism=mechanism,
                        purview=purview,
-                       partition=None,
+                       partition=partition,
                        unpartitioned_repertoire=unpartitioned_repertoire,
-                       partitioned_repertoire=None)
+                       partitioned_repertoire=partitioned_repertoire)
+
+        # State is unreachable - return 0 instead of giving nonsense results
+        if (direction == DIRECTIONS[PAST] and
+                np.all(unpartitioned_repertoire == 0)):
+            return _mip(0, None, None)
 
         # Loop over possible MIP bipartitions
-        for part0, part1 in mip_bipartitions(mechanism, purview):
+        for partition in mip_bipartitions(mechanism, purview):
             # Find the distance between the unpartitioned repertoire and
             # the product of the repertoires of the two parts, e.g.
             #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
-            part1rep = repertoire(part0.mechanism, part0.purview)
-            part2rep = repertoire(part1.mechanism, part1.purview)
+            part1rep = repertoire(partition[0].mechanism, partition[0].purview)
+            part2rep = repertoire(partition[1].mechanism, partition[1].purview)
             partitioned_repertoire = part1rep * part2rep
 
             if config.L1_DISTANCE_APPROXIMATION:
@@ -601,38 +607,19 @@ class Subsystem:
 
             # Return immediately if mechanism is reducible.
             if phi == 0:
-                return Mip(direction=direction,
-                           mechanism=mechanism,
-                           purview=purview,
-                           partition=(part0, part1),
-                           unpartitioned_repertoire=unpartitioned_repertoire,
-                           partitioned_repertoire=partitioned_repertoire,
-                           phi=0.0)
+                return _mip(0.0, partition, partitioned_repertoire)
 
             # Update MIP if it's more minimal.
             if phi < phi_min:
                 phi_min = phi
-                # TODO: Use properties here to infer mechanism and purview from
-                # partition yet access them with `.mechanism` and `.purview`.
-                mip = Mip(direction=direction,
-                          mechanism=mechanism,
-                          purview=purview,
-                          partition=(part0, part1),
-                          unpartitioned_repertoire=unpartitioned_repertoire,
-                          partitioned_repertoire=partitioned_repertoire,
-                          phi=phi)
+                mip = _mip(phi, partition, partitioned_repertoire)
 
         # Recompute distance for minimal MIP using the EMD
         if config.L1_DISTANCE_APPROXIMATION:
             phi = utils.hamming_emd(mip.unpartitioned_repertoire,
                                     mip.partitioned_repertoire)
-            mip = Mip(phi=round(phi, PRECISION),
-                      direction=mip.direction,
-                      mechanism=mip.mechanism,
-                      purview=mip.purview,
-                      partition=mip.partition,
-                      unpartitioned_repertoire=mip.unpartitioned_repertoire,
-                      partitioned_repertoire=mip.partitioned_repertoire)
+            phi = round(phi, PRECISION)
+            mip = _mip(phi, mip.partition, mip.partitioned_repertoire)
 
         return mip
 
