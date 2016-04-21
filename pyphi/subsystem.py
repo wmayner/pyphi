@@ -571,6 +571,17 @@ class Subsystem:
         # partitioned ones
         unpartitioned_repertoire = repertoire(mechanism, purview)
 
+        # State is unreachable - return 0 instead of giving nonsense results
+        if (direction == DIRECTIONS[PAST] and
+                np.all(unpartitioned_repertoire == 0)):
+            return Mip(phi=0,
+                       direction=direction,
+                       mechanism=mechanism,
+                       purview=purview,
+                       partition=None,
+                       unpartitioned_repertoire=unpartitioned_repertoire,
+                       partitioned_repertoire=None)
+
         # Loop over possible MIP bipartitions
         for part0, part1 in mip_bipartitions(mechanism, purview):
             # Find the distance between the unpartitioned repertoire and
