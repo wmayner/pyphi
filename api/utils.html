@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.distance.html"><code class="docutils literal"><span class="pre">compute.distance</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
@@ -177,6 +178,85 @@ external use.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pyphi.utils.all_states">
+<code class="descclassname">pyphi.utils.</code><code class="descname">all_states</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.all_states" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all binary states for a system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong> (<em>int</em>) &#8211; The number of elements in the system.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><strong>tuple</strong> (<em>int</em>) &#8211; The next state of an <code class="docutils literal"><span class="pre">n</span></code>-element system, in LOLI order.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.sparse">
+<code class="descclassname">pyphi.utils.</code><code class="descname">sparse</code><span class="sig-paren">(</span><em>matrix</em>, <em>threshold=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.sparse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.sparse_time">
+<code class="descclassname">pyphi.utils.</code><code class="descname">sparse_time</code><span class="sig-paren">(</span><em>tpm</em>, <em>time_scale</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.sparse_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.dense_time">
+<code class="descclassname">pyphi.utils.</code><code class="descname">dense_time</code><span class="sig-paren">(</span><em>tpm</em>, <em>time_scale</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.dense_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.run_tpm">
+<code class="descclassname">pyphi.utils.</code><code class="descname">run_tpm</code><span class="sig-paren">(</span><em>tpm</em>, <em>time_scale</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.run_tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate a tpm by the specified number of time steps.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tpm</strong> (<em>np.ndarray</em>) &#8211; A state-by-node tpm.</li>
+<li><strong>time_scale</strong> (<em>int</em>) &#8211; The number of steps to run the tpm.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tpm (np.ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.run_cm">
+<code class="descclassname">pyphi.utils.</code><code class="descname">run_cm</code><span class="sig-paren">(</span><em>cm</em>, <em>time_scale</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.run_cm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate a connectivity matrix the specified number of steps.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cm</strong> (<em>np.ndarray</em>) &#8211; A <span class="math">\(N \times N\)</span> connectivity matrix</li>
+<li><strong>time_scale</strong> (<em>int</em>) &#8211; The number of steps to run.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tpm (np.ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.state_by_state">
+<code class="descclassname">pyphi.utils.</code><code class="descname">state_by_state</code><span class="sig-paren">(</span><em>tpm</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.state_by_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if the tpm is in state-by-state form, otherwise False.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyphi.utils.condition_tpm">
 <code class="descclassname">pyphi.utils.</code><code class="descname">condition_tpm</code><span class="sig-paren">(</span><em>tpm</em>, <em>fixed_nodes</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.condition_tpm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a TPM conditioned on the given fixed node indices, whose states
@@ -185,6 +265,13 @@ are fixed according to the given state-tuple.</p>
 collapsed onto their state, making those dimensions singletons suitable for
 broadcasting. The number of dimensions of the conditioned TPM will be the
 same as the unconditioned TPM.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.expand_tpm">
+<code class="descclassname">pyphi.utils.</code><code class="descname">expand_tpm</code><span class="sig-paren">(</span><em>tpm</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.expand_tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast a state-by-node TPM so that singleton dimensions are expanded
+over the full network.</p>
 </dd></dl>
 
 <dl class="function">
@@ -250,6 +337,13 @@ connections to.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pyphi.utils.causally_significant_nodes">
+<code class="descclassname">pyphi.utils.</code><code class="descname">causally_significant_nodes</code><span class="sig-paren">(</span><em>cm</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.causally_significant_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a tuple of all nodes indices in the connectivity matrix which
+are causally significant (have inputs and outputs).</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyphi.utils.np_hash">
 <code class="descclassname">pyphi.utils.</code><code class="descname">np_hash</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.np_hash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a hash of a NumPy array.</p>
@@ -259,6 +353,24 @@ connections to.</p>
 <dt id="pyphi.utils.phi_eq">
 <code class="descclassname">pyphi.utils.</code><code class="descname">phi_eq</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.phi_eq" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compare two phi values up to <code class="xref py py-const docutils literal"><span class="pre">constants.PRECISION</span></code>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.normalize">
+<code class="descclassname">pyphi.utils.</code><code class="descname">normalize</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize a distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> (<em>np.ndarray</em>) &#8211; The array to normalize.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">a</span></code> normalized so that the sum of its entries is 1.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -450,6 +562,30 @@ by state, one dimension per node).</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pyphi.utils.l1">
+<code class="descclassname">pyphi.utils.</code><code class="descname">l1</code><span class="sig-paren">(</span><em>d1</em>, <em>d2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.l1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the L1 distance between two distributions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>d1</strong> (<em>np.ndarray</em>) &#8211; The first distribution.</li>
+<li><strong>d2</strong> (<em>np.ndarray</em>) &#8211; The second distribution.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The sum of absolute differences of <code class="docutils literal"><span class="pre">d1</span></code> and <code class="docutils literal"><span class="pre">d2</span></code>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyphi.utils.bipartition">
 <code class="descclassname">pyphi.utils.</code><code class="descname">bipartition</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.bipartition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of bipartitions for a sequence.</p>
@@ -591,6 +727,19 @@ bipartitions includes a set of size 1.</p>
 <span class="go">[((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.utils.load_data">
+<code class="descclassname">pyphi.utils.</code><code class="descname">load_data</code><span class="sig-paren">(</span><em>dir</em>, <em>num</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.utils.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load numpy data from the data directory.</p>
+<p>The files should stored in <code class="docutils literal"><span class="pre">data/{dir}</span></code> and named
+<code class="docutils literal"><span class="pre">0.npy,</span> <span class="pre">1.npy,</span> <span class="pre">...</span> <span class="pre">{num</span> <span class="pre">-</span> <span class="pre">1}.npy</span></code>.</p>
+<dl class="docutils">
+<dt>Returns</dt>
+<dd>list: A list of loaded data, such that <code class="docutils literal"><span class="pre">list[i]</span></code> contains the
+the contents of <code class="docutils literal"><span class="pre">i.npy</span></code>.</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -736,7 +885,7 @@ connectivity over.</td>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.distance.html"><code class="docutils literal"><span class="pre">compute.distance</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
@@ -169,9 +170,394 @@
   <div class="section" id="module-pyphi.macro">
 <span id="macro"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">macro</span></code><a class="headerlink" href="#module-pyphi.macro" title="Permalink to this headline">¶</a></h1>
 <p>Methods for coarse-graining systems to different levels of spatial analysis.</p>
+<dl class="exception">
+<dt id="pyphi.macro.ConditionallyDependentError">
+<em class="property">exception </em><code class="descclassname">pyphi.macro.</code><code class="descname">ConditionallyDependentError</code><a class="headerlink" href="#pyphi.macro.ConditionallyDependentError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyphi.macro.reindex">
+<code class="descclassname">pyphi.macro.</code><code class="descname">reindex</code><span class="sig-paren">(</span><em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.reindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a new set of node indices, the size of indices.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.macro.rebuild_system_tpm">
+<code class="descclassname">pyphi.macro.</code><code class="descname">rebuild_system_tpm</code><span class="sig-paren">(</span><em>node_tpms</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.rebuild_system_tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconstruct the network TPM from a collection of node tpms.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyphi.macro.MacroSubsystem">
+<em class="property">class </em><code class="descclassname">pyphi.macro.</code><code class="descname">MacroSubsystem</code><span class="sig-paren">(</span><em>network</em>, <em>state</em>, <em>nodes</em>, <em>cut=None</em>, <em>mice_cache=None</em>, <em>time_scale=1</em>, <em>blackbox=None</em>, <em>coarse_grain=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.MacroSubsystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>A subclass of <a class="reference internal" href="subsystem.html#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><code class="xref py py-class docutils literal"><span class="pre">Subsystem</span></code></a> implementing macro computations.</p>
+<p>This subsystem performs blackboxing and coarse-graining of elements.</p>
+<p>Unlike <a class="reference internal" href="subsystem.html#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><code class="xref py py-class docutils literal"><span class="pre">Subsystem</span></code></a>, whose TPM has dimensionality equal to that of the
+subsystem&#8217;s network and represents nodes external to the system using
+singleton dimensions, <a class="reference internal" href="#pyphi.macro.MacroSubsystem" title="pyphi.macro.MacroSubsystem"><code class="xref py py-class docutils literal"><span class="pre">MacroSubsystem</span></code></a> squeezes the TPM to remove these
+singletons. As a result, the node indices of the system are also squeezed
+to <code class="docutils literal"><span class="pre">0..n</span></code> so they properly index the TPM, and the state-tuple is
+reduced to the size of the system.</p>
+<p>After each macro update (temporal blackboxing, spatial blackboxing, and
+spatial coarse-graining) the TPM, CM, nodes, and state are updated so that
+they correctly represent the updated system.</p>
+<dl class="attribute">
+<dt id="pyphi.macro.MacroSubsystem.cut_indices">
+<code class="descname">cut_indices</code><a class="headerlink" href="#pyphi.macro.MacroSubsystem.cut_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>The indices of this system to be cut for <span class="math">\(\Phi\)</span> computations.</p>
+<p>For macro computations the cut is applied to the underlying
+micro-system.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.macro.MacroSubsystem.apply_cut">
+<code class="descname">apply_cut</code><span class="sig-paren">(</span><em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.MacroSubsystem.apply_cut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a cut version of this <cite>MacroSubsystem</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cut</strong> (<a class="reference internal" href="models.cuts.html#pyphi.models.cuts.Cut" title="pyphi.models.cuts.Cut"><em>Cut</em></a>) &#8211; The cut to apply to this <cite>MacroSubsystem</cite>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">subsystem (MacroSubsystem)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.macro.MacroSubsystem.macro2micro">
+<code class="descname">macro2micro</code><span class="sig-paren">(</span><em>macro_indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.MacroSubsystem.macro2micro" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all micro indices which compose the elements specified by
+<cite>macro_indices</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.macro.MacroSubsystem.__eq__">
+<code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.MacroSubsystem.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Two macro systems are equal if the underlying <a href="#id1"><span class="problematic" id="id2">|Subsystems|</span></a> are equal
+and all macro attributes are equal.</p>
+<p>TODO: handle cases where a MacroSubsystem is identical to a micro
+Subsystem, e.g. the macro has no timescale, hidden indices, etc.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyphi.macro.CoarseGrain">
+<em class="property">class </em><code class="descclassname">pyphi.macro.</code><code class="descname">CoarseGrain</code><a class="headerlink" href="#pyphi.macro.CoarseGrain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a coarse graining of a collection of nodes.</p>
+<dl class="attribute">
+<dt id="pyphi.macro.CoarseGrain.partition">
+<code class="descname">partition</code><a class="headerlink" href="#pyphi.macro.CoarseGrain.partition" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(tuple</em> &#8211; The partition of micro-elements into
+macro-elements.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.macro.CoarseGrain.grouping">
+<code class="descname">grouping</code><a class="headerlink" href="#pyphi.macro.CoarseGrain.grouping" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(tuple(tuple</em> &#8211; The grouping of micro-states into
+macro-states.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.macro.CoarseGrain.micro_indices">
+<code class="descname">micro_indices</code><a class="headerlink" href="#pyphi.macro.CoarseGrain.micro_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indices of micro elements represented in this coarse-graining.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.macro.CoarseGrain.macro_indices">
+<code class="descname">macro_indices</code><a class="headerlink" href="#pyphi.macro.CoarseGrain.macro_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indices of macro elements of this coarse-graining.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.macro.CoarseGrain.reindex">
+<code class="descname">reindex</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.CoarseGrain.reindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Re-index this coarse graining to use squeezed indices.</p>
+<p>The output grouping is translated to use indices <cite>0..n</cite>, where <cite>n</cite> is
+the number of micro indices in the coarse-graining. Re-indexing does
+not effect the state grouping, which is already index-independent.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A new CoarseGrain object, indexed from <cite>0..n</cite></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#pyphi.macro.CoarseGrain" title="pyphi.macro.CoarseGrain">CoarseGrain</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span> <span class="o">=</span> <span class="p">(((</span><span class="mi">0</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span> <span class="o">=</span> <span class="n">CoarseGrain</span><span class="p">(</span><span class="n">partition</span><span class="p">,</span> <span class="n">grouping</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span><span class="o">.</span><span class="n">reindex</span><span class="p">()</span>
+<span class="go">CoarseGrain(partition=((0, 1),), grouping=(((0,), (1, 2)),))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.macro.CoarseGrain.macro_state">
+<code class="descname">macro_state</code><span class="sig-paren">(</span><em>micro_state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.CoarseGrain.macro_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translate a micro state to a macro state</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>micro_state</strong> (<em>tuple(int</em>) &#8211; The state of the micro nodes in this
+coarse-graining.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>tuple</strong> &#8211;<dl class="docutils">
+<dt>The state of the macro system, translated as specified</dt>
+<dd>by this coarse-graining.</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span> <span class="o">=</span> <span class="n">CoarseGrain</span><span class="p">(((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),),</span> <span class="p">(((</span><span class="mi">0</span><span class="p">,),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span><span class="o">.</span><span class="n">macro_state</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="go">(0,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span><span class="o">.</span><span class="n">macro_state</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="go">(1,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span><span class="o">.</span><span class="n">macro_state</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="go">(1,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.macro.CoarseGrain.make_mapping">
+<code class="descname">make_mapping</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.CoarseGrain.make_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a mapping from micro-state to the macro-states based on the
+partition and state grouping of this coarse-grain.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A mapping from micro-states to macro-states. The
+<span class="math">\(i^{\textrm{th}}\)</span> entry in the mapping is the macro-state corresponding to the
+<span class="math">\(i^{\textrm{th}}\)</span> micro-state.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">(nd.ndarray)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.macro.CoarseGrain.macro_tpm">
+<code class="descname">macro_tpm</code><span class="sig-paren">(</span><em>micro_tpm</em>, <em>check_independence=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.CoarseGrain.macro_tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a coarse-grained macro TPM.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>micro_tpm</strong> (<em>nd.array</em>) &#8211; The TPM of the micro-system.</li>
+<li><strong>check_independence</strong> (<em>boolean</em>) &#8211; If True, the method will raise a
+<code class="docutils literal"><span class="pre">ConditionallyDependentError</span></code> if the macro tpm is not
+conditionally independent.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The state-by-node TPM of the macro-system.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">(np.ndarray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyphi.macro.Blackbox">
+<em class="property">class </em><code class="descclassname">pyphi.macro.</code><code class="descname">Blackbox</code><a class="headerlink" href="#pyphi.macro.Blackbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class representing a blackboxing of a system.</p>
+<dl class="attribute">
+<dt id="pyphi.macro.Blackbox.partition">
+<code class="descname">partition</code><a class="headerlink" href="#pyphi.macro.Blackbox.partition" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(tuple(int</em> &#8211; The partition of nodes into boxes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.macro.Blackbox.output_indices">
+<code class="descname">output_indices</code><a class="headerlink" href="#pyphi.macro.Blackbox.output_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(int</em> &#8211; Outputs of the blackboxes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.macro.Blackbox.hidden_indices">
+<code class="descname">hidden_indices</code><a class="headerlink" href="#pyphi.macro.Blackbox.hidden_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>All elements hidden inside the blackboxes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.macro.Blackbox.micro_indices">
+<code class="descname">micro_indices</code><a class="headerlink" href="#pyphi.macro.Blackbox.micro_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indices of micro-elements in this blackboxing.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.macro.Blackbox.macro_indices">
+<code class="descname">macro_indices</code><a class="headerlink" href="#pyphi.macro.Blackbox.macro_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fresh indices of macro-elements of the blackboxing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.macro.Blackbox.reindex">
+<code class="descname">reindex</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.Blackbox.reindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Squeeze the indices of this blackboxing to <code class="docutils literal"><span class="pre">0..n</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a new, reindexed <code class="docutils literal"><span class="pre">Blackbox</span></code>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#pyphi.macro.Blackbox" title="pyphi.macro.Blackbox">Blackbox</a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span> <span class="o">=</span> <span class="p">((</span><span class="mi">3</span><span class="p">,),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_indices</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blackbox</span> <span class="o">=</span> <span class="n">Blackbox</span><span class="p">(</span><span class="n">partition</span><span class="p">,</span> <span class="n">output_indices</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blackbox</span><span class="o">.</span><span class="n">reindex</span><span class="p">()</span>
+<span class="go">Blackbox(partition=((1,), (0, 2)), output_indices=(0, 1))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.macro.Blackbox.macro_state">
+<code class="descname">macro_state</code><span class="sig-paren">(</span><em>micro_state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.Blackbox.macro_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the macro-state of this blackbox.</p>
+<p>This is just the state of the blackbox&#8217;s output indices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>micro_state</strong> (<em>tuple(int</em>) &#8211; The state of the micro-elements in the
+blackbox.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>tuple</strong> &#8211; The state of the output indices.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.macro.Blackbox.in_same_box">
+<code class="descname">in_same_box</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.Blackbox.in_same_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if nodes <code class="docutils literal"><span class="pre">a</span></code> and <code class="docutils literal"><span class="pre">b`</span></code> are in the same box.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.macro.all_partitions">
+<code class="descclassname">pyphi.macro.</code><code class="descname">all_partitions</code><span class="sig-paren">(</span><em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.all_partitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of all possible coarse grains of a network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>indices</strong> (<em>tuple(int</em>) &#8211; The micro indices to partition.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><strong>tuple</strong> (<em>tuple</em>) &#8211;</p>
+<dl class="last docutils">
+<dt>A possible partition. Each element of the tuple</dt>
+<dd><p class="first last">is a tuple of micro-elements which correspond to macro-elements.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.macro.all_groupings">
+<code class="descclassname">pyphi.macro.</code><code class="descname">all_groupings</code><span class="sig-paren">(</span><em>partition</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.all_groupings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all possible groupings of states for a particular coarse graining
+(partition) of a network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>partition</strong> (<em>tuple(tuple</em>) &#8211; A partition of micro-elements into macro
+elements.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><strong>tuple</strong> (<em>tuple(tuple</em>) &#8211;</p>
+<dl class="last docutils">
+<dt>A grouping of micro-states into macro states of</dt>
+<dd><p class="first last">system.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p>TODO: document exactly how to interpret the grouping.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.macro.all_coarse_grains">
+<code class="descclassname">pyphi.macro.</code><code class="descname">all_coarse_grains</code><span class="sig-paren">(</span><em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.all_coarse_grains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator over all possible <code class="docutils literal"><span class="pre">CoarseGrains</span></code> of these indices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indices</strong> (<em>tuple(int</em>) &#8211; Node indices to coarse grain.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><em>CoarseGrain</em> &#8211; The next coarse-grain for <code class="docutils literal"><span class="pre">indices</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.macro.all_coarse_grains_for_blackbox">
+<code class="descclassname">pyphi.macro.</code><code class="descname">all_coarse_grains_for_blackbox</code><span class="sig-paren">(</span><em>blackbox</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.all_coarse_grains_for_blackbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator over all <code class="docutils literal"><span class="pre">CoarseGrains</span></code> for the given blackbox.</p>
+<p>If a box has multiple outputs, those outputs are partitioned into the same
+coarse-grain macro-element.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.macro.all_blackboxes">
+<code class="descclassname">pyphi.macro.</code><code class="descname">all_blackboxes</code><span class="sig-paren">(</span><em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.all_blackboxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator over all possible blackboxings of these indices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>indices</strong> (<em>tuple(int</em>) &#8211; Nodes to blackbox.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><em>Blackbox</em> &#8211; The next blackbox of <code class="docutils literal"><span class="pre">indices</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="class">
 <dt id="pyphi.macro.MacroNetwork">
-<em class="property">class </em><code class="descclassname">pyphi.macro.</code><code class="descname">MacroNetwork</code><span class="sig-paren">(</span><em>macro_network</em>, <em>macro_phi</em>, <em>micro_network</em>, <em>micro_phi</em>, <em>partition</em>, <em>grouping</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.MacroNetwork" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyphi.macro.</code><code class="descname">MacroNetwork</code><span class="sig-paren">(</span><em>network</em>, <em>system</em>, <em>macro_phi</em>, <em>micro_phi</em>, <em>coarse_grain</em>, <em>time_scale=1</em>, <em>blackbox=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.MacroNetwork" title="Permalink to this definition">¶</a></dt>
 <dd><p>A coarse-grained network of nodes.</p>
 <p>See the <a class="reference internal" href="../examples/macro.html#macro-micro"><span>Emergence (Macro/Micro)</span></a> example in the documentation for more
 information.</p>
@@ -202,17 +588,22 @@ corresponding micro-system.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pyphi.macro.MacroNetwork.partition">
-<code class="descname">partition</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.partition" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>list</em> &#8211; The partition which defines macro-elements in terms
-of micro-elements.</p>
+<dt id="pyphi.macro.MacroNetwork.coarse_grain">
+<code class="descname">coarse_grain</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.coarse_grain" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>CoarseGrain</em> &#8211; The coarse-graining of micro-elements into
+macro-elements.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pyphi.macro.MacroNetwork.grouping">
-<code class="descname">grouping</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.grouping" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>list(list</em> &#8211; The correspondence between micro-states and
-macro-states.</p>
+<dt id="pyphi.macro.MacroNetwork.time_scale">
+<code class="descname">time_scale</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.time_scale" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; The time scale the macro-network run over.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyphi.macro.MacroNetwork.blackbox">
+<code class="descname">blackbox</code><a class="headerlink" href="#pyphi.macro.MacroNetwork.blackbox" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Blackbox</em> &#8211; The blackboxing of micro elements in the network.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -222,58 +613,33 @@ macro-states.</p>
 and the micro-system.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt>
+<code class="descname">emergence</code></dt>
+<dd><p>Difference between the <span class="math">\(\Phi\)</span> of the macro and micro systems</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="function">
-<dt id="pyphi.macro.list_all_partitions">
-<code class="descclassname">pyphi.macro.</code><code class="descname">list_all_partitions</code><span class="sig-paren">(</span><em>network</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.list_all_partitions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a list of all possible coarse grains of a network.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>network</strong> (<a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><em>Network</em></a>) &#8211; The physical system to act as the &#8216;micro&#8217; level.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>partitions</strong> &#8211;<dl class="docutils">
-<dt>A list of possible partitions. Each</dt>
-<dd>element of the list is a list of micro-elements which correspong to
-macro-elements.</dd>
-</dl>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a href="#id1"><span class="problematic" id="id2">``</span></a>list(list</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="pyphi.macro.list_all_groupings">
-<code class="descclassname">pyphi.macro.</code><code class="descname">list_all_groupings</code><span class="sig-paren">(</span><em>partition</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.list_all_groupings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return all possible groupings of states for a particular coarse graining
-(partition) of a network.</p>
+<dt id="pyphi.macro.coarse_grain">
+<code class="descclassname">pyphi.macro.</code><code class="descname">coarse_grain</code><span class="sig-paren">(</span><em>network</em>, <em>state</em>, <em>internal_indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.coarse_grain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the maximal coarse-graining of a micro-system.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>network</strong> (<a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><em>Network</em></a>) &#8211; The physical system on the micro level.</li>
-<li><strong>partitions</strong> (<em>list(list</em>) &#8211; The partition of micro-elements into macro
-elements.</li>
+<li><strong>network</strong> (<a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><em>Network</em></a>) &#8211; The network in question.</li>
+<li><strong>state</strong> (<em>tuple(int</em>) &#8211; The state of the network.</li>
+<li><strong>internal_indices</strong> (<em>tuple(indices</em>) &#8211; Nodes in the micro-system.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>groupings</strong> &#8211;</p>
-<dl class="docutils">
-<dt>A list of all possible</dt>
-<dd><p class="first last">correspondences between micro-states and macro-states for the
-partition.</p>
-</dd>
-</dl>
-</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>tuple</strong> &#8211; The phi-value of the maximal CoarseGrain.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a href="#id3"><span class="problematic" id="id4">``</span></a>list(list(list(list</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int, CoarseGrain</p>
 </td>
 </tr>
 </tbody>
@@ -281,102 +647,50 @@ partition.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="pyphi.macro.make_mapping">
-<code class="descclassname">pyphi.macro.</code><code class="descname">make_mapping</code><span class="sig-paren">(</span><em>partition</em>, <em>grouping</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.make_mapping" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a mapping from micro-state to the macro-states based on the
-partition of elements and grouping of states.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>partition</strong> (<em>list(list</em>) &#8211; A partition of micro-elements into macro
-elements.</li>
-<li><strong>grouping</strong> (<em>list(list(list</em>) &#8211; For each macro-element, a list of micro
-states which set it to ON or OFF.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mapping</strong> &#8211; A mapping from micro-states to macro-states.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">nd.array</span></code></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="pyphi.macro.make_macro_tpm">
-<code class="descclassname">pyphi.macro.</code><code class="descname">make_macro_tpm</code><span class="sig-paren">(</span><em>micro_tpm</em>, <em>mapping</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.make_macro_tpm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create the macro TPM for a given mapping from micro to macro-states.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>micro_tpm</strong> (<em>nd.array</em>) &#8211; The TPM of the micro-system.</li>
-<li><strong>mapping</strong> (<em>nd.array</em>) &#8211; A mapping from micro-states to macro-states.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>macro_tpm</strong> &#8211; The TPM of the macro-system.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">nd.array</span></code></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="pyphi.macro.make_macro_network">
-<code class="descclassname">pyphi.macro.</code><code class="descname">make_macro_network</code><span class="sig-paren">(</span><em>network</em>, <em>state</em>, <em>mapping</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.make_macro_network" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create the macro-network for a given mapping from micro to macro-states.</p>
-<p>Returns <code class="docutils literal"><span class="pre">None</span></code> if the macro TPM does not satisfy the conditional
-independence assumption.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>micro_tpm</strong> (<em>nd.array</em>) &#8211; TPM of the micro-system.</li>
-<li><strong>mapping</strong> (<em>nd.array</em>) &#8211; Mapping from micro-states to macro-states.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">macro_network (<code class="docutils literal"><span class="pre">Network</span></code>): Network of the macro-system, or <code class="docutils literal"><span class="pre">None</span></code>.</p>
-</td>
-</tr>
-</tbody>
-</table>
+<dt id="pyphi.macro.all_macro_systems">
+<code class="descclassname">pyphi.macro.</code><code class="descname">all_macro_systems</code><span class="sig-paren">(</span><em>network</em>, <em>state</em>, <em>blackbox</em>, <em>coarse_grain</em>, <em>time_scales</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.all_macro_systems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator over all possible macro-systems for the network.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyphi.macro.emergence">
-<code class="descclassname">pyphi.macro.</code><code class="descname">emergence</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.emergence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check for emergence of a macro-system into a macro-system.</p>
-<p>Checks all possible partitions and groupings of the micro-system to find
+<code class="descclassname">pyphi.macro.</code><code class="descname">emergence</code><span class="sig-paren">(</span><em>network</em>, <em>state</em>, <em>blackbox=False</em>, <em>coarse_grain=True</em>, <em>time_scales=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.emergence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check for the emergence of a micro-system into a macro-system.</p>
+<p>Checks all possible blackboxings and coarse-grainings of a system to find
 the spatial scale with maximum integrated information.</p>
+<p>Use the <code class="docutils literal"><span class="pre">blackbox</span></code> and <code class="docutils literal"><span class="pre">coarse_grain</span></code> args to specifiy whether to use
+blackboxing, coarse-graining, or both. The default is to just coarse-grain
+the system.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>network</strong> (<a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><em>Network</em></a>) &#8211; The network of the micro-system under investigation.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>macro_network</strong> &#8211;<dl class="docutils">
-<dt>The maximal coarse-graining of the</dt>
-<dd>micro-system.</dd>
-</dl>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>network</strong> (<a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><em>Network</em></a>) &#8211; The network of the micro-system under investigation.</li>
+<li><strong>state</strong> (<em>tuple(int</em>) &#8211; The state of the network.</li>
+<li><strong>blackbox</strong> (<em>boolean</em>) &#8211; Set to True to enable blackboxing. Defaults to
+False.</li>
+<li><strong>coarse_grain</strong> (<em>boolean</em>) &#8211; Set to True to enable coarse-graining.
+Defaults to True.</li>
+<li><strong>time_scales</strong> (<em>list(int</em>) &#8211; List of all time steps over which to check
+for emergence.</li>
+</ul>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">MacroNetwork</span></code></td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The maximal macro-system generated from the micro-system.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#pyphi.macro.MacroNetwork" title="pyphi.macro.MacroNetwork">MacroNetwork</a></p>
+</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="function">
+<dt id="pyphi.macro.phi_by_grain">
+<code class="descclassname">pyphi.macro.</code><code class="descname">phi_by_grain</code><span class="sig-paren">(</span><em>network</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.macro.phi_by_grain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="pyphi.macro.effective_info">
@@ -425,7 +739,7 @@ National Academy of Sciences 110.49 (2013): 19790-19795.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

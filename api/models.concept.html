@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.distance.html"><code class="docutils literal"><span class="pre">compute.distance</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
@@ -433,6 +434,28 @@ functions.</p>
 
 </dd></dl>
 
+<dl class="function">
+<dt id="pyphi.models.concept.normalize_constellation">
+<code class="descclassname">pyphi.models.concept.</code><code class="descname">normalize_constellation</code><span class="sig-paren">(</span><em>constellation</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.concept.normalize_constellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deterministically reorder the concepts in a constellation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constellation</strong> (<a class="reference internal" href="#pyphi.models.concept.Constellation" title="pyphi.models.concept.Constellation"><em>Constellation</em></a>) &#8211; The constellation in question.</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Returns</dt>
+<dd><dl class="first last docutils">
+<dt>Constellation: The constellation, ordered lexicographically by</dt>
+<dd>mechanism.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
@@ -455,7 +478,7 @@ functions.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

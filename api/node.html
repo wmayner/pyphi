@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.distance.html"><code class="docutils literal"><span class="pre">compute.distance</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
@@ -172,7 +173,7 @@
 in the network&#8217;s list of nodes.</p>
 <dl class="class">
 <dt id="pyphi.node.Node">
-<em class="property">class </em><code class="descclassname">pyphi.node.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>subsystem</em>, <em>index</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.node.Node" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyphi.node.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>subsystem</em>, <em>index</em>, <em>indices=None</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.node.Node" title="Permalink to this definition">¶</a></dt>
 <dd><p>A node in a subsystem.</p>
 <dl class="attribute">
 <dt id="pyphi.node.Node.subsystem">
@@ -204,12 +205,6 @@ in the network&#8217;s list of nodes.</p>
 <dd><p><em>int</em> &#8211; The state of this node.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="pyphi.node.Node.get_marbl">
-<code class="descname">get_marbl</code><span class="sig-paren">(</span><em>normalize=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.node.Node.get_marbl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a Marbl for this node TPM.</p>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="pyphi.node.Node.input_indices">
 <code class="descname">input_indices</code><a class="headerlink" href="#pyphi.node.Node.input_indices" title="Permalink to this definition">¶</a></dt>
@@ -234,22 +229,6 @@ in the network&#8217;s list of nodes.</p>
 <dd><p>The set of nodes this node has connections to.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="pyphi.node.Node.marbl">
-<code class="descname">marbl</code><a class="headerlink" href="#pyphi.node.Node.marbl" title="Permalink to this definition">¶</a></dt>
-<dd><p>The normalized representation of this node&#8217;s Markov blanket,
-conditioned on the fixed state of boundary-condition nodes in the
-current timestep.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyphi.node.Node.raw_marbl">
-<code class="descname">raw_marbl</code><a class="headerlink" href="#pyphi.node.Node.raw_marbl" title="Permalink to this definition">¶</a></dt>
-<dd><p>The un-normalized representation of this node&#8217;s Markov blanket,
-conditioned on the fixed state of boundary-condition nodes in the
-current timestep.</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="pyphi.node.Node.__eq__">
 <code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.node.Node.__eq__" title="Permalink to this definition">¶</a></dt>
@@ -266,6 +245,24 @@ labels.</p>
 <code class="descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.node.Node.to_json" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.node.generate_nodes">
+<code class="descclassname">pyphi.node.</code><code class="descname">generate_nodes</code><span class="sig-paren">(</span><em>subsystem</em>, <em>indices=None</em>, <em>labels=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.node.generate_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the <a class="reference internal" href="#pyphi.node.Node" title="pyphi.node.Node"><code class="xref py py-class docutils literal"><span class="pre">Node</span></code></a> objects for these indices.</p>
+<p>The <code class="docutils literal"><span class="pre">labels</span></code> arguments allows us to not extract labels from the network
+when constructing macro systems. <code class="docutils literal"><span class="pre">indices</span></code> is also required by macro-
+systems.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.node.expand_node_tpm">
+<code class="descclassname">pyphi.node.</code><code class="descname">expand_node_tpm</code><span class="sig-paren">(</span><em>tpm</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.node.expand_node_tpm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Broadcast a node TPM over the full network.</p>
+<p>This is different from broadcasting the TPM of a full system since the last
+dimension (containing the state of the node) is unitary &#8211; not a state-
+tuple.</p>
 </dd></dl>
 
 </div>
@@ -290,7 +287,7 @@ labels.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

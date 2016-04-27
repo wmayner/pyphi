@@ -185,6 +185,15 @@ are not strictly accurate.</p>
 </pre></div>
 </div>
 </li>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.L1_DISTANCE_APPROXIMATION</span></code>: If enabled, the <code class="docutils literal"><span class="pre">L1</span></code> distance
+will be used instead of the EMD when computing MIPs. If a mechanism and
+purview are found to be irreducible, the <span class="math">\(\varphi\)</span> value of the MIP is
+recalculated using the EMD.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;L1_DISTANCE_APPROXIMATION&#39;</span><span class="p">]</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</li>
 </ul>
 </div>
 <div class="section" id="system-resources">
@@ -254,17 +263,11 @@ and automatically retreived.</p>
 </pre></div>
 </div>
 </li>
-</ul>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Concept caching only has an effect when a database is used as the the
-caching backend.</p>
-</div>
-<ul>
-<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.NORMALIZE_TPMS</span></code>: Control whether TPMs should be normalized as
-part of concept normalization. TPM normalization increases the chances that a
-precomputed concept can be used again, but is expensive.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;NORMALIZE_TPMS&#39;</span><span class="p">]</span>
+<li><p class="first"><code class="docutils literal"><span class="pre">pyphi.config.CACHE_POTENTIAL_PURVIEWS</span></code>: Controls whether the potential
+purviews of mechanisms of a network are cached. Caching speeds up
+computations by not recomputing expensive reducibility checks, but uses
+additional memory.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;CACHE_POTENTIAL_PURVIEWS&#39;</span><span class="p">]</span>
 <span class="go">True</span>
 </pre></div>
 </div>
@@ -533,7 +536,7 @@ which require specific configuration values.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

@@ -76,6 +76,19 @@ The documentation for :mod:`pyphi.models` contains description of these
 structures.
 
 .. note::
+    Networks can be constructed with an optional set of textual labels for each
+    node:
+
+        >>> labels = ('A', 'B', 'C')
+        >>> network = pyphi.Network(tpm, cm, node_labels=labels)
+
+    These labels must be unique. We can then use these labels when constructing
+    a |Subsystem|:
+
+        >>> pyphi.Subsystem(network, state, ('B', 'C'))
+        Subsystem((B, C))
+
+.. note::
     The network and subsystem discussed here are returned by the
     :func:`pyphi.examples.basic_network` and
     :func:`pyphi.examples.basic_subsystem` functions.

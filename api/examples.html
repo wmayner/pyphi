@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.distance.html"><code class="docutils literal"><span class="pre">compute.distance</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
@@ -830,6 +831,129 @@ after coarse graining to a macro scale.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="pyphi.examples.blackbox_network">
+<code class="descclassname">pyphi.examples.</code><code class="descname">blackbox_network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.blackbox_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>A micro-network to demonstrate blackboxing.</p>
+<p>Diagram:</p>
+<blockquote>
+<div><blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+</colgroup>
+<tbody valign="top">
+</tbody>
+</table>
+</div></blockquote>
+<p>+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;&gt;+ A (COPY) + &lt;&#8212;&#8212;&#8212;&#8212;&#8212;+
+|                     +&#8212;&#8212;&#8212;-+                 |
+|                 +&#8212;&#8212;&#8212;-+                     |
+|     +&#8212;&#8212;&#8212;&#8211;+ B (COPY) + &lt;&#8212;&#8212;&#8212;&#8212;-+     |
+v     v           +&#8212;&#8212;&#8212;-+               |     |</p>
+</div></blockquote>
+<p>+-+&#8212;&#8211;+-+                                  +-+&#8212;&#8211;+-+
+|         |                                  |         |
+| C (AND) |                                  | F (AND) |
+|         |                                  |         |
++-+&#8212;&#8211;+-+                                  +-+&#8212;&#8211;+-+</p>
+<blockquote>
+<div><div class="line-block">
+<div class="line">|                                      ^     ^</div>
+<div class="line">|           +&#8212;&#8212;&#8212;-+               |     |</div>
+<div class="line">+&#8212;&#8212;&#8212;&gt; + D (COPY) +&#8212;&#8212;&#8212;&#8212;&#8212;+     |</div>
+<div class="line-block">
+<div class="line">+&#8212;&#8212;&#8212;-+                     |</div>
+<div class="line-block">
+<div class="line">+&#8212;&#8212;&#8212;-+                 |</div>
+</div>
+</div>
+</div>
+<dl class="docutils">
+<dt>+&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-&gt; + E (COPY) +&#8212;&#8212;&#8212;&#8212;&#8212;&#8211;+</dt>
+<dd><table border="1" class="first last docutils">
+<colgroup>
+</colgroup>
+<tbody valign="top">
+</tbody>
+</table>
+</dd>
+</dl>
+</div></blockquote>
+<p>Connectivity Matrix:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>.</td>
+<td>A</td>
+<td>B</td>
+<td>C</td>
+<td>D</td>
+<td>E</td>
+<td>F</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td>B</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td>C</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td>D</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td>E</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="row-odd"><td>F</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>In the documentation example, the state is (0, 0, 0, 0, 0, 0).</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyphi.examples.rule110_network">
 <code class="descclassname">pyphi.examples.</code><code class="descname">rule110_network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.examples.rule110_network" title="Permalink to this definition">¶</a></dt>
 <dd><p>A network of three elements which follows the logic of
@@ -1027,7 +1151,7 @@ cellular automaton.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

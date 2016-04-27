@@ -95,6 +95,7 @@
 <li class="toctree-l2"><a class="reference internal" href="basic.html">Basic Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">Emergence (Macro/Micro)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#blackboxing">Blackboxing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="magic_cut.html">Magic Cuts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="residue.html">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
@@ -160,11 +161,6 @@
 <ul class="simple">
 <li><a class="reference internal" href="../api/examples.html#pyphi.examples.macro_network" title="pyphi.examples.macro_network"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.macro_network()</span></code></a></li>
 </ul>
-<p>For this example, we will use the <code class="docutils literal"><span class="pre">pprint</span></code> module to display lists in a way
-which makes them easer to read.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
-</pre></div>
-</div>
 <p>We&#8217;ll use the <a class="reference internal" href="../api/macro.html#module-pyphi.macro" title="pyphi.macro"><code class="xref py py-mod docutils literal"><span class="pre">macro</span></code></a> module to explore alternate spatial scales of
 a network. The network under consideration is a 4-node non-deterministic
 network, available from the <a class="reference internal" href="../api/examples.html#module-pyphi.examples" title="pyphi.examples"><code class="xref py py-mod docutils literal"><span class="pre">examples</span></code></a> module.</p>
@@ -195,72 +191,53 @@ the <span class="math">\(\Phi\)</span> value:</p>
 values of <span class="math">\(\Phi\)</span>. This is accomplished by considering all possible
 coarse-graining of micro-elements to form macro-elements. A coarse-graining of
 nodes is any partition of the elements of the micro system. First we&#8217;ll get a
-list of all possible partitions:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partitions</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">list_all_partitions</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">partitions</span><span class="p">)</span>
-<span class="go">[[[0, 1, 2], [3]],</span>
-<span class="go"> [[0, 1, 3], [2]],</span>
-<span class="go"> [[0, 1], [2, 3]],</span>
-<span class="go"> [[0, 1], [2], [3]],</span>
-<span class="go"> [[0, 2, 3], [1]],</span>
-<span class="go"> [[0, 2], [1, 3]],</span>
-<span class="go"> [[0, 2], [1], [3]],</span>
-<span class="go"> [[0, 3], [1, 2]],</span>
-<span class="go"> [[0], [1, 2, 3]],</span>
-<span class="go"> [[0], [1, 2], [3]],</span>
-<span class="go"> [[0, 3], [1], [2]],</span>
-<span class="go"> [[0], [1, 3], [2]],</span>
-<span class="go"> [[0], [1], [2, 3]],</span>
-<span class="go"> [[0, 1, 2, 3]]]</span>
+list of all possible coarse-grainings:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grains</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">all_coarse_grains</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">node_indices</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>Lets start by considering the partition <code class="docutils literal"><span class="pre">[[0,</span> <span class="pre">1,</span> <span class="pre">2],</span> <span class="pre">[3]]</span></code>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span> <span class="o">=</span> <span class="n">partitions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span>
-<span class="go">[[0, 1, 2], [3]]</span>
+<p>We start by considering the first coarse grain:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span> <span class="o">=</span> <span class="n">grains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span>
+<span class="go">CoarseGrain(partition=((0, 1, 2), (3,)), grouping=(((0, 1, 2), (3,)), ((0,), (1,))))</span>
 </pre></div>
 </div>
-<p>For this partition there are two macro-elements, one consisting of
+<p>Each <a class="reference internal" href="../api/macro.html#pyphi.macro.CoarseGrain" title="pyphi.macro.CoarseGrain"><code class="xref py py-class docutils literal"><span class="pre">CoarseGrain</span></code></a> specifies two fields: the <code class="docutils literal"><span class="pre">partition</span></code> of states into
+macro elements, and the <code class="docutils literal"><span class="pre">grouping</span></code> of micro-states into macro-states. Let&#8217;s
+first look at the partition:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span><span class="o">.</span><span class="n">partition</span>
+<span class="go">((0, 1, 2), (3,))</span>
+</pre></div>
+</div>
+<p>There are two macro-elements in this partiion: one consists of
 micro-elements <code class="docutils literal"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></code> and the other is simply micro-element <code class="docutils literal"><span class="pre">3</span></code>.</p>
 <p>We must then determine the relationship between micro-elements and
-macro-elements. An assumption when coarse-graining the system, is that the
+macro-elements. When coarse-graining the system we assume that the
 resulting macro-elements do not differentiate the different micro-elements.
-Thus any correspondence between states must be stated soley in terms of the
-number of micro-elements which are on, and not depend on which micro-element
+Thus any correspondence between states must be stated solely in terms of the
+number of micro-elements which are on, and not depend on which micro-elements
 are on.</p>
 <p>For example, consider the macro-element <code class="docutils literal"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2)</span></code>. We may say that the
 macro-element is <strong>ON</strong> if at least one micro-element is on, or if all
 micro-elements are on; however, we may not say that the macro-element is <strong>ON</strong>
 if micro-element <code class="docutils literal"><span class="pre">1</span></code> is on, because this relationship involves identifying
 specific micro-elements.</p>
-<p>To see a list of all possible groupings of micro-states into macro-states:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">groupings</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">list_all_groupings</span><span class="p">(</span><span class="n">partition</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pprint</span><span class="p">(</span><span class="n">groupings</span><span class="p">)</span>
-<span class="go">[[[[0, 1, 2], [3]], [[0], [1]]],</span>
-<span class="go"> [[[0, 1, 3], [2]], [[0], [1]]],</span>
-<span class="go"> [[[0, 1], [2, 3]], [[0], [1]]],</span>
-<span class="go"> [[[0, 2, 3], [1]], [[0], [1]]],</span>
-<span class="go"> [[[0, 2], [1, 3]], [[0], [1]]],</span>
-<span class="go"> [[[0, 3], [1, 2]], [[0], [1]]],</span>
-<span class="go"> [[[0], [1, 2, 3]], [[0], [1]]]]</span>
-</pre></div>
-</div>
-<p>We will focus on the first grouping in the list.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span> <span class="o">=</span> <span class="n">groupings</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<p>The <code class="docutils literal"><span class="pre">grouping</span></code> attribute of the <a class="reference internal" href="../api/macro.html#pyphi.macro.CoarseGrain" title="pyphi.macro.CoarseGrain"><code class="xref py py-class docutils literal"><span class="pre">CoarseGrain</span></code></a> describes how the state of
+micro-elements describes the state of macro-elements:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span> <span class="o">=</span> <span class="n">coarse_grain</span><span class="o">.</span><span class="n">grouping</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span>
-<span class="go">[[[0, 1, 2], [3]], [[0], [1]]]</span>
+<span class="go">(((0, 1, 2), (3,)), ((0,), (1,)))</span>
 </pre></div>
 </div>
-<p>The grouping contains two lists, one for each macro-element.</p>
+<p>The grouping consists of two lists, one for each macro-element:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="go">[[0, 1, 2], [3]]</span>
+<span class="go">((0, 1, 2), (3,))</span>
 </pre></div>
 </div>
 <p>For the first macro-element, this grouping means that the element will be
 <strong>OFF</strong> if zero, one or two of its micro-elements are <strong>ON</strong>, and will be
 <strong>ON</strong> if all three micro-elements are <strong>ON</strong>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="go">[[0], [1]]</span>
+<span class="go">((0,), (1,))</span>
 </pre></div>
 </div>
 <p>For the second macro-element, the grouping means that the element will be
@@ -268,16 +245,15 @@ specific micro-elements.</p>
 <strong>ON</strong>.</p>
 <p>One we have selected a partition and grouping for analysis, we can create a
 mapping between micro-states and macro-states:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_mapping</span><span class="p">(</span><span class="n">partition</span><span class="p">,</span> <span class="n">grouping</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span> <span class="o">=</span> <span class="n">coarse_grain</span><span class="o">.</span><span class="n">make_mapping</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span>
-<span class="go">array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  2.,  2.,  2.,  2.,  2.,</span>
-<span class="go">        2.,  2.,  3.])</span>
+<span class="go">array([0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3])</span>
 </pre></div>
 </div>
 <p>The interpretation of the mapping uses the <strong>LOLI</strong> convention of indexing (see
 <a class="reference internal" href="../conventions.html#loli-convention"><span>LOLI: Low-Order bits correspond to Low-Index nodes</span></a>).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
-<span class="go">1.0</span>
+<span class="go">1</span>
 </pre></div>
 </div>
 <p>This says that micro-state 7 corresponds to macro-state 1:</p>
@@ -292,78 +268,151 @@ mapping between micro-states and macro-states:</p>
 <p>In micro-state 7, all three elements corresponding to the first macro-element
 are <strong>ON</strong>, so that macro-element is <strong>ON</strong>. The micro-element corresponding to
 the second macro-element is <strong>OFF</strong>, so that macro-element is <strong>OFF</strong>.</p>
-<p>Using the mapping, we can then create a state-by-state TPM for the macro-system
-corresponding to the selected partition and grouping:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_tpm</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_macro_tpm</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">tpm</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">macro_tpm</span>
-<span class="go">array([[ 0.5838,  0.0162,  0.3802,  0.0198],</span>
-<span class="go">       [ 0.    ,  0.    ,  0.91  ,  0.09  ],</span>
-<span class="go">       [ 0.5019,  0.0981,  0.3451,  0.0549],</span>
-<span class="go">       [ 0.    ,  0.    ,  0.    ,  1.    ]])</span>
+<p>The <a class="reference internal" href="../api/macro.html#pyphi.macro.CoarseGrain" title="pyphi.macro.CoarseGrain"><code class="xref py py-class docutils literal"><span class="pre">CoarseGrain</span></code></a> object uses the mapping internally to create a
+state-by-state TPM for the macro-system corresponding to the selected partition
+and grouping</p>
+<div class="highlight-python"><div class="highlight"><pre>&gt;&gt;&gt; coarse_grain.macro_tpm(network.tpm)
+Traceback (most recent call last):
+    ...
+pyphi.macro.ConditionallyDependentError
 </pre></div>
 </div>
-<p>This macro-TPM does not satisfy the conditional independence assumption, so
-this particular partition and grouping combination is not a valid
-coarse-graining of the system:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">validate</span><span class="o">.</span><span class="n">conditionally_independent</span><span class="p">(</span><span class="n">macro_tpm</span><span class="p">)</span>
-<span class="go">False</span>
+<p>However, this macro-TPM does not satisfy the conditional independence
+assumption, so this particular partition and grouping combination is not a valid
+coarse-graining of the system. Constructing a <a class="reference internal" href="../api/macro.html#pyphi.macro.MacroSubsystem" title="pyphi.macro.MacroSubsystem"><code class="xref py py-class docutils literal"><span class="pre">MacroSubsystem</span></code></a> with this
+coarse-graining will also raise
+<a href="#id1"><span class="problematic" id="id2">:exception:`~pyphi.macro.ConditionallyDependentError`</span></a>:</p>
+<p>Lets consider a different coarse-graining instead.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span> <span class="o">=</span> <span class="n">grains</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span><span class="o">.</span><span class="n">partition</span>
+<span class="go">((0, 1), (2, 3))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span><span class="o">.</span><span class="n">grouping</span>
+<span class="go">(((0, 1), (2,)), ((0, 1), (2,)))</span>
 </pre></div>
 </div>
-<p>In these cases, the object returned <a class="reference internal" href="../api/macro.html#pyphi.macro.make_macro_network" title="pyphi.macro.make_macro_network"><code class="xref py py-func docutils literal"><span class="pre">make_macro_network()</span></code></a>
-function will have a boolean value of <code class="docutils literal"><span class="pre">False</span></code>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">macro_network</span><span class="p">,</span> <span class="n">macro_state</span><span class="p">)</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_macro_network</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">macro_network</span><span class="p">)</span>
-<span class="go">False</span>
-</pre></div>
-</div>
-<p>Lets consider a different partition instead.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span> <span class="o">=</span> <span class="n">partitions</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span>
-<span class="go">[[0, 1], [2, 3]]</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">groupings</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">list_all_groupings</span><span class="p">(</span><span class="n">partition</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span> <span class="o">=</span> <span class="n">groupings</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">grouping</span>
-<span class="go">[[[0, 1], [2]], [[0, 1], [2]]]</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_mapping</span><span class="p">(</span><span class="n">partition</span><span class="p">,</span> <span class="n">grouping</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span> <span class="o">=</span> <span class="n">coarse_grain</span><span class="o">.</span><span class="n">make_mapping</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mapping</span>
-<span class="go">array([ 0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  1.,  2.,</span>
-<span class="go">        2.,  2.,  3.])</span>
+<span class="go">array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 3])</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">macro_network</span><span class="p">,</span> <span class="n">macro_state</span><span class="p">)</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">make_macro_network</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">macro_network</span><span class="p">)</span>
-<span class="go">True</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">coarse_grain</span><span class="o">.</span><span class="n">macro_tpm</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">tpm</span><span class="p">)</span>
+<span class="go">array([[[ 0.09,  0.09],</span>
+<span class="go">        [ 1.  ,  0.09]],</span>
+
+<span class="go">       [[ 0.09,  1.  ],</span>
+<span class="go">        [ 1.  ,  1.  ]]])</span>
+</pre></div>
+</div>
+<p>We can now construct a <a class="reference internal" href="../api/macro.html#pyphi.macro.MacroSubsystem" title="pyphi.macro.MacroSubsystem"><code class="xref py py-class docutils literal"><span class="pre">MacroSubsystem</span></code></a> using this coarse-graining:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">MacroSubsystem</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">network</span><span class="o">.</span><span class="n">node_indices</span><span class="p">,</span> <span class="n">coarse_grain</span><span class="o">=</span><span class="n">coarse_grain</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">macro_subsystem</span>
+<span class="go">MacroSubsystem((n0, n1))</span>
 </pre></div>
 </div>
 <p>We can then consider the integrated information of this macro-network and
 compare it to the micro-network.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_main_complex</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">main_complex</span><span class="p">(</span><span class="n">macro_network</span><span class="p">,</span> <span class="n">macro_state</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">macro_main_complex</span><span class="o">.</span><span class="n">phi</span>
-<span class="go">0.86905</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_mip</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_mip</span><span class="p">(</span><span class="n">macro_subsystem</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">macro_mip</span><span class="o">.</span><span class="n">phi</span>
+<span class="go">0.597212</span>
 </pre></div>
 </div>
-<p>The integrated information of the macro system (<span class="math">\(\Phi = 0.86905\)</span>) is
+<p>The integrated information of the macro subsystem (<span class="math">\(\Phi = 0.597212\)</span>) is
 greater than the integrated information of the micro system (<span class="math">\(\Phi =
 0.113889\)</span>). We can conclude that a macro-scale is appropriate for this system,
 but to determine which one, we must check all possible partitions and all
 possible groupings to find the maximum of integrated information across all
 scales.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">M</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">emergence</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">partition</span>
-<span class="go">[[0, 1], [2, 3]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">grouping</span>
-<span class="go">[[[0, 1], [2]], [[0, 1], [2]]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">emergence</span>
-<span class="go">0.755161</span>
+<span class="go">0.483323</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">system</span>
+<span class="go">(0, 1, 2, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">coarse_grain</span><span class="o">.</span><span class="n">partition</span>
+<span class="go">((0, 1), (2, 3))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M</span><span class="o">.</span><span class="n">coarse_grain</span><span class="o">.</span><span class="n">grouping</span>
+<span class="go">(((0, 1), (2,)), ((0, 1), (2,)))</span>
 </pre></div>
 </div>
 <p>The analysis determines the partition and grouping which results in the maximum
 value of integrated information, as well as the emergence (increase in
 <span class="math">\(\Phi\)</span>) from the micro-scale to the macro-scale.</p>
+</div>
+<div class="section" id="blackboxing">
+<h1>Blackboxing<a class="headerlink" href="#blackboxing" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="../api/examples.html#pyphi.examples.blackbox_network" title="pyphi.examples.blackbox_network"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.blackbox_network()</span></code></a></li>
+</ul>
+<p>The <a class="reference internal" href="../api/macro.html#module-pyphi.macro" title="pyphi.macro"><code class="xref py py-mod docutils literal"><span class="pre">macro</span></code></a> module also provides tools for studying the emergence
+of systems using blackboxing.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyphi</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">blackbox_network</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>We consider the state where all nodes are off:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">all_nodes</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The system has minimal <span class="math">\(\Phi\)</span> without blackboxing:</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subsys</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">all_nodes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_phi</span><span class="p">(</span><span class="n">subsys</span><span class="p">)</span>
+<span class="go">0.215278</span>
+</pre></div>
+</div>
+<p>We will consider the blackbox system <code class="docutils literal"><span class="pre">ABC</span></code> and <code class="docutils literal"><span class="pre">DEF</span></code>, where <code class="docutils literal"><span class="pre">C</span></code> and
+<code class="docutils literal"><span class="pre">F</span></code> are output elements and <code class="docutils literal"><span class="pre">ABDE</span></code> are hidden within their blackboxes.
+Blackboxing is done with a <a class="reference internal" href="../api/macro.html#pyphi.macro.Blackbox" title="pyphi.macro.Blackbox"><code class="xref py py-class docutils literal"><span class="pre">Blackbox</span></code></a> object. As with
+<a class="reference internal" href="../api/macro.html#pyphi.macro.CoarseGrain" title="pyphi.macro.CoarseGrain"><code class="xref py py-class docutils literal"><span class="pre">CoarseGrain</span></code></a>, we pass it a partition of micro-elements:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span> <span class="o">=</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output_indices</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blackbox</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">Blackbox</span><span class="p">(</span><span class="n">partition</span><span class="p">,</span> <span class="n">output_indices</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Blackboxes have a few convenience methods. The <code class="docutils literal"><span class="pre">hidden_indices</span></code> property
+returns the elements which are hidden within blackboxes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">blackbox</span><span class="o">.</span><span class="n">hidden_indices</span>
+<span class="go">(0, 1, 3, 4)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">micro_indices</span></code> property lists all the micro-elements in the box:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">blackbox</span><span class="o">.</span><span class="n">micro_indices</span>
+<span class="go">(0, 1, 2, 3, 4, 5)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">macro_indices</span></code> property generates a set of indices which index the
+blackbox macro-elements. Since there are two blackboxes in our example, and
+each has one output element, there are two macro-indices:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">blackbox</span><span class="o">.</span><span class="n">macro_indices</span>
+<span class="go">(0, 1)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">macro_state</span></code> method converts a state of the micro elements to the state
+of the macro-elements. The macro-state of a blackbox system is simply the
+state of the system&#8217;s output elements:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">micro_state</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blackbox</span><span class="o">.</span><span class="n">macro_state</span><span class="p">(</span><span class="n">micro_state</span><span class="p">)</span>
+<span class="go">(0, 1)</span>
+</pre></div>
+</div>
+<p>Let us also define a time scale over which to perform our analysis:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">time_scale</span> <span class="o">=</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>As in the coarse-graining example, the blackbox and time scale are passed to
+<a class="reference internal" href="../api/macro.html#pyphi.macro.MacroSubsystem" title="pyphi.macro.MacroSubsystem"><code class="xref py py-class docutils literal"><span class="pre">MacroSubsystem</span></code></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">macro_subsystem</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">macro</span><span class="o">.</span><span class="n">MacroSubsystem</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">all_nodes</span><span class="p">,</span> <span class="n">blackbox</span><span class="o">=</span><span class="n">blackbox</span><span class="p">,</span> <span class="n">time_scale</span><span class="o">=</span><span class="n">time_scale</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can now compute <span class="math">\(\Phi\)</span> for this macro system:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">compute</span><span class="o">.</span><span class="n">big_phi</span><span class="p">(</span><span class="n">macro_subsystem</span><span class="p">)</span>
+<span class="go">0.638888</span>
+</pre></div>
+</div>
+<p>We find that the macro subsystem has greater integrated information
+(<span class="math">\(\Phi = 0.388889\)</span>) than the micro system (<span class="math">\(\Phi =
+0.215278\)</span>) - the system demonstrates emergence.</p>
 </div>
 
 
@@ -386,7 +435,7 @@ value of integrated information, as well as the emergence (increase in
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

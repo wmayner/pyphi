@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.distance.html"><code class="docutils literal"><span class="pre">compute.distance</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
@@ -186,6 +187,12 @@ severed.</p>
 severed.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="pyphi.models.cuts.Cut.indices">
+<code class="descname">indices</code><a class="headerlink" href="#pyphi.models.cuts.Cut.indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the indices of this cut.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="pyphi.models.cuts.Cut.splits_mechanism">
 <code class="descname">splits_mechanism</code><span class="sig-paren">(</span><em>mechanism</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.cuts.Cut.splits_mechanism" title="Permalink to this definition">¶</a></dt>
@@ -209,17 +216,22 @@ severed.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="pyphi.models.cuts.Cut.cuts_connections">
+<code class="descname">cuts_connections</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.cuts.Cut.cuts_connections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if this cut severs any connections from nodes <cite>a</cite> to <cite>b</cite>.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="pyphi.models.cuts.Cut.all_cut_mechanisms">
-<code class="descname">all_cut_mechanisms</code><span class="sig-paren">(</span><em>candidate_indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.cuts.Cut.all_cut_mechanisms" title="Permalink to this definition">¶</a></dt>
+<code class="descname">all_cut_mechanisms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.models.cuts.Cut.all_cut_mechanisms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return all mechanisms with elements on both sides of this cut.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>candidate_indices</strong> (<em>tuple(int</em>) &#8211; The node indices to consider as
-as parts of mechanisms.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>tuple</strong></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(tuple(tuple(int)))</td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple(int</td>
 </tr>
 </tbody>
 </table>
@@ -292,7 +304,7 @@ system in the following way:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

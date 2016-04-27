@@ -95,6 +95,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="">Basic Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="conditional_independence.html">Conditional Independence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="macro.html">Emergence (Macro/Micro)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="macro.html#blackboxing">Blackboxing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="magic_cut.html">Magic Cuts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="residue.html">Residue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="xor.html">XOR Network</a></li>
@@ -231,6 +232,21 @@ concepts, cause and effect repertoires, etc.</p>
 structures.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
+<p>Networks can be constructed with an optional set of textual labels for each
+node:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">pyphi</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">tpm</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">node_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>These labels must be unique. We can then use these labels when constructing
+a <a class="reference internal" href="../api/subsystem.html#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><code class="xref py py-class docutils literal"><span class="pre">Subsystem</span></code></a>:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pyphi</span><span class="o">.</span><span class="n">Subsystem</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">))</span>
+<span class="go">Subsystem((B, C))</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p class="last">The network and subsystem discussed here are returned by the
 <a class="reference internal" href="../api/examples.html#pyphi.examples.basic_network" title="pyphi.examples.basic_network"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_network()</span></code></a> and
 <a class="reference internal" href="../api/examples.html#pyphi.examples.basic_subsystem" title="pyphi.examples.basic_subsystem"><code class="xref py py-func docutils literal"><span class="pre">pyphi.examples.basic_subsystem()</span></code></a> functions.</p>
@@ -257,7 +273,7 @@ structures.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

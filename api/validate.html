@@ -102,6 +102,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.distance.html"><code class="docutils literal"><span class="pre">compute.distance</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
@@ -199,6 +200,12 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="pyphi.validate.node_labels">
+<code class="descclassname">pyphi.validate.</code><code class="descname">node_labels</code><span class="sig-paren">(</span><em>node_labels</em>, <em>node_indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.validate.node_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate that there is a label for each node.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyphi.validate.perturb_vector">
 <code class="descclassname">pyphi.validate.</code><code class="descname">perturb_vector</code><span class="sig-paren">(</span><em>pv</em>, <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.validate.perturb_vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Validate a network&#8217;s pertubation vector.</p>
@@ -246,6 +253,37 @@ free.</p>
 <p>Checks its state and cut.</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="pyphi.validate.time_scale">
+<code class="descclassname">pyphi.validate.</code><code class="descname">time_scale</code><span class="sig-paren">(</span><em>time_scale</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.validate.time_scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a macro temporal time scale.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.partition">
+<code class="descclassname">pyphi.validate.</code><code class="descname">partition</code><span class="sig-paren">(</span><em>partition</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.validate.partition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a partition - used by blackboxes and coarse grains.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.coarse_grain">
+<code class="descclassname">pyphi.validate.</code><code class="descname">coarse_grain</code><span class="sig-paren">(</span><em>coarse_grain</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.validate.coarse_grain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a macro coarse-graining.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.blackbox">
+<code class="descclassname">pyphi.validate.</code><code class="descname">blackbox</code><span class="sig-paren">(</span><em>blackbox</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.validate.blackbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate a macro blackboxing.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.validate.blackbox_and_coarse_grain">
+<code class="descclassname">pyphi.validate.</code><code class="descname">blackbox_and_coarse_grain</code><span class="sig-paren">(</span><em>blackbox</em>, <em>coarse_grain</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.validate.blackbox_and_coarse_grain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate that a coarse-graining properly combines the outputs of a
+blackboxing.</p>
+</dd></dl>
+
 </div>
 
 
@@ -266,7 +304,7 @@ free.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

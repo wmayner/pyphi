@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.distance.html"><code class="docutils literal"><span class="pre">compute.distance</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
@@ -170,27 +171,9 @@
 <span id="network"></span><span id="pyphi-network"></span><h1><code class="xref py py-mod docutils literal"><span class="pre">network</span></code><a class="headerlink" href="#module-pyphi.network" title="Permalink to this headline">¶</a></h1>
 <p>Represents the network of interest. This is the primary object of PyPhi and the
 context of all <span class="math">\(\varphi\)</span> and <span class="math">\(\Phi\)</span> computation.</p>
-<dl class="function">
-<dt id="pyphi.network.from_json">
-<code class="descclassname">pyphi.network.</code><code class="descname">from_json</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.from_json" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a JSON representation of a network to a PyPhi network.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; A path to a JSON file representing a network.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>network</strong> &#8211; The corresponding PyPhi network object.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">Network</span></code></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="class">
 <dt id="pyphi.network.Network">
-<em class="property">class </em><code class="descclassname">pyphi.network.</code><code class="descname">Network</code><span class="sig-paren">(</span><em>tpm</em>, <em>connectivity_matrix=None</em>, <em>perturb_vector=None</em>, <em>purview_cache=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.Network" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyphi.network.</code><code class="descname">Network</code><span class="sig-paren">(</span><em>tpm</em>, <em>connectivity_matrix=None</em>, <em>node_labels=None</em>, <em>perturb_vector=None</em>, <em>purview_cache=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.Network" title="Permalink to this definition">¶</a></dt>
 <dd><p>A network of nodes.</p>
 <p>Represents the network we&#8217;re analyzing and holds auxilary data about it.</p>
 <p class="rubric">Example</p>
@@ -201,14 +184,20 @@ probabilities for each node at <span class="math">\(t_0\)</span> given that stat
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tpm</strong> (<em>np.ndarray</em>) &#8211; See the corresponding attribute.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tpm</strong> (<em>np.ndarray</em>) &#8211; See the corresponding attribute.</p>
+</td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><strong>connectivity_matrix</strong> (<em>array or sequence</em>) &#8211; A square binary adjacency
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
+<li><strong>connectivity_matrix</strong> (<em>array or sequence</em>) &#8211; A square binary adjacency
 matrix indicating the connections between nodes in the network.
 <code class="docutils literal"><span class="pre">connectivity_matrix[i][j]</span> <span class="pre">==</span> <span class="pre">1</span></code> means that node <span class="math">\(i\)</span> is connected
 to node <span class="math">\(j\)</span>. If no connectivity matrix is given, every node is
-connected to every node <strong>(including itself)</strong>.</td>
+connected to every node <strong>(including itself)</strong>.</li>
+<li><strong>node_labels</strong> (<em>tuple(str</em>) &#8211; Human readable labels for each node in the
+network.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -264,6 +253,11 @@ nodes in the network.</p>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pyphi.network.Network.node_labels">
+<code class="descname">node_labels</code><a class="headerlink" href="#pyphi.network.Network.node_labels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt>
 <code class="descname">tpm</code></dt>
 <dd></dd></dl>
@@ -279,6 +273,25 @@ nodes in the network.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="pyphi.network.Network.labels2indices">
+<code class="descname">labels2indices</code><span class="sig-paren">(</span><em>labels</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.Network.labels2indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a tuple of node labels to node indices.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.network.Network.indices2labels">
+<code class="descname">indices2labels</code><span class="sig-paren">(</span><em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.Network.indices2labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a tuple of node indices to node labels.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.network.Network.parse_node_indices">
+<code class="descname">parse_node_indices</code><span class="sig-paren">(</span><em>nodes</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.Network.parse_node_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the nodes indices for nodes, where <code class="docutils literal"><span class="pre">nodes</span></code> is either
+already integer indices or node labels.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="pyphi.network.Network.__eq__">
 <code class="descname">__eq__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.Network.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether this network equals the other object.</p>
@@ -291,6 +304,56 @@ and perturbation vector.</p>
 <code class="descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.Network.to_json" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.network.irreducible_purviews">
+<code class="descclassname">pyphi.network.</code><code class="descname">irreducible_purviews</code><span class="sig-paren">(</span><em>cm</em>, <em>direction</em>, <em>mechanism</em>, <em>purviews</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.irreducible_purviews" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all purview which are irreducible for the mechanism.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cm</strong> (<em>np.ndarray</em>) &#8211; A <span class="math">\(N \times N\)</span> connectivity matrix.</li>
+<li><strong>direction</strong> (<em>str</em>) &#8211; <code class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[PAST]</span></code> or <code class="xref py py-const docutils literal"><span class="pre">DIRECTIONS[FUTURE]</span></code>.</li>
+<li><strong>purviews</strong> (<em>list(tuple(int</em>) &#8211; The purviews to check.</li>
+<li><strong>mechanism</strong> (<em>tuple(int</em>) &#8211; The mechanism in question.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p><strong>list</strong> &#8211;</p>
+<dl class="docutils">
+<dt>All purviews in <code class="docutils literal"><span class="pre">purviews</span></code> which are not reducible</dt>
+<dd><p class="first last">over <code class="docutils literal"><span class="pre">mechanism</span></code>.</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple(int</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyphi.network.from_json">
+<code class="descclassname">pyphi.network.</code><code class="descname">from_json</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.network.from_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a JSON representation of a network to a PyPhi network.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; A path to a JSON file representing a network.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>network</strong> &#8211; The corresponding PyPhi network object.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">Network</span></code></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -315,7 +378,7 @@ and perturbation vector.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>

@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="compute.html"><code class="docutils literal"><span class="pre">compute</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.big_phi.html"><code class="docutils literal"><span class="pre">compute.big_phi</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="compute.concept.html"><code class="docutils literal"><span class="pre">compute.concept</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.distance.html"><code class="docutils literal"><span class="pre">compute.distance</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="concept_caching.html"><code class="docutils literal"><span class="pre">concept_caching</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html"><code class="docutils literal"><span class="pre">config</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="convert.html"><code class="docutils literal"><span class="pre">convert</span></code></a></li>
@@ -171,7 +172,7 @@
 <p>Represents a candidate system for <span class="math">\(\varphi\)</span> and <span class="math">\(\Phi\)</span> evaluation.</p>
 <dl class="class">
 <dt id="pyphi.subsystem.Subsystem">
-<em class="property">class </em><code class="descclassname">pyphi.subsystem.</code><code class="descname">Subsystem</code><span class="sig-paren">(</span><em>network</em>, <em>state</em>, <em>node_indices</em>, <em>cut=None</em>, <em>mice_cache=None</em>, <em>repertoire_cache=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.subsystem.Subsystem" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyphi.subsystem.</code><code class="descname">Subsystem</code><span class="sig-paren">(</span><em>network</em>, <em>state</em>, <em>nodes</em>, <em>cut=None</em>, <em>mice_cache=None</em>, <em>repertoire_cache=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.subsystem.Subsystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>A set of nodes in a network.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -180,8 +181,9 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>network</strong> (<a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><em>Network</em></a>) &#8211; The network the subsystem belongs to.</li>
 <li><strong>state</strong> (<em>tuple(int</em>) &#8211; The state of the network.</li>
-<li><strong>node_indices</strong> (<em>tuple(int</em>) &#8211; A sequence of indices of the nodes in this
-subsystem.</li>
+<li><strong>nodes</strong> (<em>tuple(int</em>) &#8211; The nodes of the network which are in
+this subsystem. Nodes can be specified either as indices or as
+labels if the <a class="reference internal" href="network.html#pyphi.network.Network" title="pyphi.network.Network"><code class="xref py py-class docutils literal"><span class="pre">Network</span></code></a> was passed <code class="docutils literal"><span class="pre">node_labels</span></code>.</li>
 </ul>
 </td>
 </tr>
@@ -258,6 +260,13 @@ each node.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.cut_indices">
+<code class="descname">cut_indices</code><a class="headerlink" href="#pyphi.subsystem.Subsystem.cut_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(int</em> &#8211; The nodes of the subsystem cut by a <span class="math">\(\Phi\)</span>
+cut.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyphi.subsystem.Subsystem.null_cut">
 <code class="descname">null_cut</code><a class="headerlink" href="#pyphi.subsystem.Subsystem.null_cut" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>Cut</em> &#8211; The cut object representing no cut.</p>
@@ -283,15 +292,29 @@ each node.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyphi.subsystem.Subsystem.cm">
+<code class="descname">cm</code><a class="headerlink" href="#pyphi.subsystem.Subsystem.cm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <code class="docutils literal"><span class="pre">connectivity_matrix</span></code> attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt>
 <code class="descname">size</code></dt>
 <dd><p>The size of this Subsystem.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt id="pyphi.subsystem.Subsystem.is_cut">
-<code class="descname">is_cut</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.subsystem.Subsystem.is_cut" title="Permalink to this definition">¶</a></dt>
+<code class="descname">is_cut</code><a class="headerlink" href="#pyphi.subsystem.Subsystem.is_cut" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether this Subsystem has a cut applied to it.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">cut_indices</code></dt>
+<dd><p>The indices of this system to be cut for <span class="math">\(\Phi\)</span> computations.</p>
+<p>This was added to support <code class="docutils literal"><span class="pre">MacroSubsystem</span></code>, which cuts indices other
+than <code class="docutils literal"><span class="pre">self.node_indices</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -372,6 +395,22 @@ equal.</p>
 <dt id="pyphi.subsystem.Subsystem.to_json">
 <code class="descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.subsystem.Subsystem.to_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return this Subsystem as a JSON object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyphi.subsystem.Subsystem.apply_cut">
+<code class="descname">apply_cut</code><span class="sig-paren">(</span><em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#pyphi.subsystem.Subsystem.apply_cut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a cut version of this <a class="reference internal" href="#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><code class="xref py py-class docutils literal"><span class="pre">Subsystem</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cut</strong> (<a class="reference internal" href="models.cuts.html#pyphi.models.cuts.Cut" title="pyphi.models.cuts.Cut"><em>Cut</em></a>) &#8211; The cut to apply to this <a class="reference internal" href="#pyphi.subsystem.Subsystem" title="pyphi.subsystem.Subsystem"><code class="xref py py-class docutils literal"><span class="pre">Subsystem</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">subsystem (Subsystem)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -781,7 +820,7 @@ the unconstrained cause and effect repertoire of this subsystem.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2014 Will Mayner.
-      Last updated on Feb 15, 2016.
+      Last updated on Apr 27, 2016.
 
     </p>
   </div>
