@@ -116,12 +116,14 @@ rst_prolog = """
 .. |C| replace:: :math:`C`
 .. |D| replace:: :math:`D`
 .. |E| replace:: :math:`E`
+.. |F| replace:: :math:`F`
 .. |AB| replace:: :math:`AB`
 .. |CD| replace:: :math:`CD`
 .. |DE| replace:: :math:`DE`
 .. |FG| replace:: :math:`FG`
 .. |ABC| replace:: :math:`ABC`
 .. |CDE| replace:: :math:`CDE`
+.. |DEF| replace:: :math:`DEF`
 .. |n0| replace:: :math:`n_{0}`
 .. |n1| replace:: :math:`n_{1}`
 .. |n2| replace:: :math:`n_{2}`

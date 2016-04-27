@@ -1,7 +1,10 @@
 .. _macro-micro:
 
-Emergence (Macro/Micro)
-=======================
+Emergence (coarse-graining and blackboxing)
+===========================================
+
+Coarse-graining
+~~~~~~~~~~~~~~~
 
 * :func:`pyphi.examples.macro_network`
 
@@ -129,7 +132,7 @@ However, this macro-TPM does not satisfy the conditional independence
 assumption, so this particular partition and grouping combination is not a valid
 coarse-graining of the system. Constructing a |MacroSubsystem| with this
 coarse-graining will also raise
-:exception:`~pyphi.macro.ConditionallyDependentError`:
+:class:`~pyphi.macro.ConditionallyDependentError`:
 
 Lets consider a different coarse-graining instead.
 
@@ -186,7 +189,7 @@ value of integrated information, as well as the emergence (increase in
 
 
 Blackboxing
-============
+~~~~~~~~~~~
 
 * :func:`pyphi.examples.blackbox_network`
 
@@ -207,10 +210,12 @@ The system has minimal |big_phi| without blackboxing:
     >>> pyphi.compute.big_phi(subsys)
     0.215278
 
- We will consider the blackbox system ``ABC`` and ``DEF``, where ``C`` and
- ``F`` are output elements and ``ABDE`` are hidden within their blackboxes.
- Blackboxing is done with a |Blackbox| object. As with
- |CoarseGrain|, we pass it a partition of micro-elements:
+We will consider the blackbox system consisting of two blackbox elements, |ABC|
+and |DEF|, where |C| and |F| are output elements and |AB| and |DE| are hidden
+within their respective blackboxes. 
+
+Blackboxing is done with a |Blackbox| object. As with |CoarseGrain|, we pass it
+a partition of micro-elements:
 
     >>> partition = ((0, 1, 2), (3, 4, 5))
     >>> output_indices = (2, 5)
@@ -257,8 +262,8 @@ We can now compute |big_phi| for this macro system:
     0.638888
 
 We find that the macro subsystem has greater integrated information
-(:math:`\Phi = 0.388889`) than the micro system (:math:`\Phi =
-0.215278`) - the system demonstrates emergence.
+(:math:`\Phi = 0.638888`) than the micro system (:math:`\Phi =
+0.215278`)---the system demonstrates emergence.
 
 
 .. todo:: TODO: demonstrate using``emergence`` for blackboxing
