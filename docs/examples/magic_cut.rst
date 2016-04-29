@@ -6,7 +6,7 @@ Magic Cuts
 
 This example explores a system of three fully connected elements |A|, |B| and
 |C|, which follow the logic of the Rule 110 cellular automaton. The point of
-this example is to highlight an unexpected behaviour of system cuts, that
+this example is to highlight an unexpected behaviour of system cuts: that
 the minimum information partition of a system can result in new concepts
 being created.
 
