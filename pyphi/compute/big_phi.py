@@ -185,8 +185,8 @@ def _big_mip(cache_key, subsystem):
     # Annote a BigMip with the total elapsed calculation time, and optionally
     # also with the time taken to calculate the unpartitioned constellation.
     def time_annotated(big_mip, small_phi_time=0.0):
-        big_mip.time = time() - start
-        big_mip.small_phi_time = small_phi_time
+        big_mip.time = round(time() - start, config.PRECISION)
+        big_mip.small_phi_time = round(small_phi_time, config.PRECISION)
         return big_mip
 
     # Special case for single-node subsystems.
@@ -217,7 +217,7 @@ def _big_mip(cache_key, subsystem):
     log.debug("Finding unpartitioned constellation...")
     small_phi_start = time()
     unpartitioned_constellation = constellation(subsystem)
-    small_phi_time = time() - small_phi_start
+    small_phi_time = round(time() - small_phi_start, config.PRECISION)
     log.debug("Found unpartitioned constellation.")
 
     if not unpartitioned_constellation:

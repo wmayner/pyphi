@@ -41,7 +41,7 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
             mechanism, purviews=purviews, past_purviews=past_purviews,
             future_purviews=future_purviews)
 
-    concept.time = time() - start
+    concept.time = round(time() - start, config.PRECISION)
     return concept
 
 
