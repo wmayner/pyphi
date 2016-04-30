@@ -7,7 +7,8 @@ from collections import namedtuple
 import numpy as np
 
 from . import cmp, fmt
-from .. import config, jsonify, utils
+from .. import config, utils
+from ..jsonify import jsonify
 from ..constants import DIRECTIONS, PAST, FUTURE
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
@@ -72,13 +73,6 @@ class Mip(cmp._Orderable, namedtuple('Mip', _mip_attributes)):
                      self.mechanism,
                      self.purview,
                      utils.np_hash(self.unpartitioned_repertoire)))
-
-    def to_json(self):
-        d = self.__dict__
-        # Flatten the repertoires.
-        d['partitioned_repertoire'] = self.partitioned_repertoire.flatten()
-        d['unpartitioned_repertoire'] = self.unpartitioned_repertoire.flatten()
-        return d
 
     def __repr__(self):
         return fmt.make_repr(self, _mip_attributes)
@@ -171,7 +165,14 @@ class Mice(cmp._Orderable):
         return hash(('Mice', self._mip))
 
     def to_json(self):
-        return {'mip': self._mip}
+        return {
+            'phi': self.phi,
+            'purview': self.purview,
+            'partition': self.mip.partition,
+            'partitioned_repertoire': self.mip.partitioned_repertoire.flatten(),
+            'repertoire': self.mip.unpartitioned_repertoire.flatten()
+        }
+
 
     # TODO: benchmark and memoize?
     # TODO: pass in subsystem indices only?
@@ -382,8 +383,9 @@ class Concept(cmp._Orderable):
             self.effect.mip.partitioned_repertoire)
 
     def to_json(self):
-        d = jsonify.jsonify(self.__dict__)
-        # Attach the expanded repertoires to the jsonified MICEs.
+        d = jsonify(self.__dict__)
+        del d['normalized']
+        # Expand repertoires.
         d['cause']['repertoire'] = self.expand_cause_repertoire().flatten()
         d['effect']['repertoire'] = self.expand_effect_repertoire().flatten()
         d['cause']['partitioned_repertoire'] = \
