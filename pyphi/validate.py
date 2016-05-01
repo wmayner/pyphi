@@ -151,13 +151,7 @@ def state_length(state, size):
 
 
 def state_reachable(subsystem):
-    """Return whether a state can be reached according to the network's TPM.
-
-    If ``constrained_nodes`` is provided, then nodes not in
-    ``constrained_nodes`` will be left free (their state will not considered
-    restricted by the TPM). Otherwise, any nodes without inputs will be left
-    free.
-    """
+    """Return whether a state can be reached according to the network's TPM."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
