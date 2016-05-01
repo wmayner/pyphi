@@ -117,4 +117,6 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
     """
 
     __slots__ = ()
-    pass
+
+    def to_json(self):
+        return {'mechanism': self.mechanism, 'purview': self.purview}
