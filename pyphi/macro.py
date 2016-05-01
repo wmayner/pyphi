@@ -832,7 +832,7 @@ def effective_info(network):
 
     This is equivalent to the average of the
     :func:`~pyphi.subsystem.Subsystem.effect_info` (with the entire network as
-    the mechanism and purview) over all posisble states of the network. It can
+    the mechanism and purview) over all possible states of the network. It can
     be interpreted as the “noise in the network's TPM,” weighted by the size of
     its state space.
 

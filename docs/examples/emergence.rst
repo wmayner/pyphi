@@ -134,7 +134,7 @@ coarse-graining of the system. Constructing a |MacroSubsystem| with this
 coarse-graining will also raise
 :class:`~pyphi.macro.ConditionallyDependentError`:
 
-Lets consider a different coarse-graining instead.
+Let's consider a different coarse-graining instead.
 
     >>> coarse_grain = grains[14]
     >>> coarse_grain.partition
