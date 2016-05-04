@@ -434,25 +434,28 @@ class Subsystem:
 
         return accumulated_cjd
 
-    def _get_repertoire(self, direction):
-        """Return the cause or effect repertoire function based on a direction.
+    def _repertoire(self, direction, mechanism, purview):
+        """Return the cause or effect repertoire based on a direction.
 
         Args:
-            direction (str): The temporal direction (|past| or |future|)
-                specifiying the cause or effect repertoire.
+            direction (str): One of 'past' or 'future'.
+            mechanism (tuple(int)): The mechanism for which to calculate the
+                repertoire.
+            purview (tuple(int)): The purview over which to calculate the
+                repertoire.
 
         Returns:
-            repertoire_function (``function``): The cause or effect repertoire
-                function.
+            np.ndarray: The cause or effect repertoire of the mechanism over
+                the purview.
         """
         if direction == DIRECTIONS[PAST]:
-            return self.cause_repertoire
+            return self.cause_repertoire(mechanism, purview)
         elif direction == DIRECTIONS[FUTURE]:
-            return self.effect_repertoire
+            return self.effect_repertoire(mechanism, purview)
 
     def _unconstrained_repertoire(self, direction, purview):
         """Return the unconstrained cause/effect repertoire over a purview."""
-        return self._get_repertoire(direction)((), purview)
+        return self._repertoire(direction, (), purview)
 
     def unconstrained_cause_repertoire(self, purview):
         """Return the unconstrained cause repertoire for a purview.
@@ -469,11 +472,11 @@ class Subsystem:
         return self._unconstrained_repertoire(DIRECTIONS[FUTURE], purview)
 
     def partitioned_repertoire(self, direction, partition):
-        """Compute the repertoire of a partitioned mechaism and purview."""
-        repertoire = self._get_repertoire(direction)
-
-        part1rep = repertoire(partition[0].mechanism, partition[0].purview)
-        part2rep = repertoire(partition[1].mechanism, partition[1].purview)
+        """Compute the repertoire of a partitioned mechanism and purview."""
+        part1rep = self._repertoire(direction, partition[0].mechanism,
+                                    partition[0].purview)
+        part2rep = self._repertoire(direction, partition[1].mechanism,
+                                    partition[1].purview)
 
         return part1rep * part2rep
 
@@ -567,8 +570,6 @@ class Subsystem:
             mip (|Mip|): The mininum-information partition in one temporal
                 direction.
         """
-        repertoire = self._get_repertoire(direction)
-
         # We default to the null MIP (the MIP of a reducible mechanism)
         mip = _null_mip(direction, mechanism, purview)
 
@@ -578,7 +579,8 @@ class Subsystem:
         phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones
-        unpartitioned_repertoire = repertoire(mechanism, purview)
+        unpartitioned_repertoire = self._repertoire(direction, mechanism,
+                                                    purview)
 
         def _mip(phi, partition, partitioned_repertoire):
             # Prototype of MIP with already known data
