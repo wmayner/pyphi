@@ -468,6 +468,15 @@ class Subsystem:
         """
         return self._unconstrained_repertoire(DIRECTIONS[FUTURE], purview)
 
+    def partitioned_repertoire(self, direction, partition):
+        """Compute the repertoire of a partitioned mechaism and purview."""
+        repertoire = self._get_repertoire(direction)
+
+        part1rep = repertoire(partition[0].mechanism, partition[0].purview)
+        part2rep = repertoire(partition[1].mechanism, partition[1].purview)
+
+        return part1rep * part2rep
+
     # TODO: can the purview be extrapolated from the repertoire?
     def expand_repertoire(self, direction, purview, repertoire,
                           new_purview=None):
@@ -590,12 +599,8 @@ class Subsystem:
 
         # Loop over possible MIP bipartitions
         for partition in mip_bipartitions(mechanism, purview):
-            # Find the distance between the unpartitioned repertoire and
-            # the product of the repertoires of the two parts, e.g.
-            #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
-            part1rep = repertoire(partition[0].mechanism, partition[0].purview)
-            part2rep = repertoire(partition[1].mechanism, partition[1].purview)
-            partitioned_repertoire = part1rep * part2rep
+            partitioned_repertoire = self.partitioned_repertoire(direction,
+                                                                 partition)
 
             if config.L1_DISTANCE_APPROXIMATION:
                 phi = utils.l1(unpartitioned_repertoire,
