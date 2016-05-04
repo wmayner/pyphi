@@ -630,7 +630,6 @@ class Subsystem:
 
         return mip
 
-    # TODO Don't use these internally to avoid function call overhead
     def mip_past(self, mechanism, purview):
         """Return the past minimum information partition.
 
