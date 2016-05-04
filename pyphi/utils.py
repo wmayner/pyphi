@@ -611,8 +611,7 @@ def _hamming_matrix(N):
             "by typing ``import pyphi; pyphi;`` into a Python interperter)."
             .format(_NUM_PRECOMPUTED_HAMMING_MATRICES - 1)
         )
-        possible_states = np.array([list(bin(state)[2:].zfill(N)) for state in
-                                    range(2 ** N)])
+        possible_states = np.array(list(all_states((N))))
         return cdist(possible_states, possible_states, 'hamming') * N
 
 
