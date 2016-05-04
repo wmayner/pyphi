@@ -153,12 +153,24 @@ class Node:
         return self.index
 
 
+# TODO: rework MacroSubsystem to not need the indices arg
 def generate_nodes(subsystem, indices=None, labels=False):
     """Generate the |Node| objects for these indices.
 
-    The ``labels`` arguments allows us to not extract labels from the network
-    when constructing macro systems. ``indices`` is also required by macro-
-    systems.
+    Args:
+        subsystem (Subsystem): The subsystem for which nodes are being
+            generated.
+
+    Keyword Args:
+        indices (tuple(int)): Used by |MacroSubsystem| to force generation to
+            use certain indices.
+        labels (boolean): If True, nodes will be labeled with the labels of the
+            network. (This is also used by macro systems to keep labels from
+            being mixed up when many micro elements are combined into one macro
+            element.)
+
+    Returns:
+        tuple(Node): The nodes of the |Subsystem|.
     """
     if indices is None:
         indices = subsystem.node_indices
