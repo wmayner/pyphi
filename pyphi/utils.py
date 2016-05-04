@@ -135,24 +135,24 @@ def expand_tpm(tpm):
     return tpm * uc
 
 
-def apply_cut(cut, connectivity_matrix):
+def apply_cut(cut, cm):
     """Return a modified connectivity matrix where the connections from one set
     of nodes to the other are destroyed.
     """
     if cut is None:
-        return connectivity_matrix
-    cm = connectivity_matrix.copy()
+        return cm
+    cm = cm.copy()
     for i in cut.severed:
         for j in cut.intact:
             cm[i][j] = 0
     return cm
 
 
-def fully_connected(connectivity_matrix, nodes1, nodes2):
+def fully_connected(cm, nodes1, nodes2):
     """Test connectivity of one set of nodes to another.
 
     Args:
-        connectivity_matrix (``np.ndarrray``): The connectivity matrix
+        cm (``np.ndarrray``): The connectivity matrix
         nodes1 (tuple(int)): The nodes whose outputs to ``nodes2`` will be
             tested.
         nodes2 (tuple(int)): The nodes whose inputs from ``nodes1`` will
@@ -167,17 +167,17 @@ def fully_connected(connectivity_matrix, nodes1, nodes2):
     if not nodes1 or not nodes2:
         return True
 
-    cm = connectivity_matrix[np.ix_(nodes1, nodes2)]
+    cm = cm[np.ix_(nodes1, nodes2)]
 
     # Do all nodes have at least one connection?
     return cm.sum(0).all() and cm.sum(1).all()
 
 
-def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
+def apply_boundary_conditions_to_cm(external_indices, cm):
     """Return a connectivity matrix with all connections to or from external
     nodes removed.
     """
-    cm = connectivity_matrix.copy()
+    cm = cm.copy()
     for i in external_indices:
         # Zero-out row
         cm[i] = 0
@@ -186,20 +186,18 @@ def apply_boundary_conditions_to_cm(external_indices, connectivity_matrix):
     return cm
 
 
-def get_inputs_from_cm(index, connectivity_matrix):
+def get_inputs_from_cm(index, cm):
     """Return a tuple of node indices that have connections to the node with
     the given index.
     """
-    return tuple(i for i in range(connectivity_matrix.shape[0]) if
-                 connectivity_matrix[i][index])
+    return tuple(i for i in range(cm.shape[0]) if cm[i][index])
 
 
-def get_outputs_from_cm(index, connectivity_matrix):
+def get_outputs_from_cm(index, cm):
     """Return a tuple of node indices that the node with the given index has
     connections to.
     """
-    return tuple(i for i in range(connectivity_matrix.shape[0]) if
-                 connectivity_matrix[index][i])
+    return tuple(i for i in range(cm.shape[0]) if cm[index][i])
 
 
 def causally_significant_nodes(cm):
