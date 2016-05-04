@@ -141,10 +141,12 @@ def apply_cut(cut, cm):
     """
     if cut is None:
         return cm
+
     cm = cm.copy()
     for i in cut.severed:
         for j in cut.intact:
             cm[i][j] = 0
+
     return cm
 
 
