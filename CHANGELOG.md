@@ -15,6 +15,7 @@ Next Release
 - Added blackbox functionality to `macro.emergence`. Blackboxing and coarse-
   graining are now parametrized with the `blackbox` and `coarse_grain`
   arguments.
+- Removed `utils.submatrix`.
 
 ### API Additions
 - Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to

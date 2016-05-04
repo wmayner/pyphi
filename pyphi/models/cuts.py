@@ -84,7 +84,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         # in the cut, then extract the relevant submatrix
         n = max(cut_indices) + 1
         matrix = utils.relevant_connections(n, self[0], self[1])
-        return utils.submatrix(matrix, cut_indices, cut_indices)
+        return matrix[np.ix_(cut_indices, cut_indices)]
 
     def __repr__(self):
         return fmt.make_repr(self, ['severed', 'intact'])

@@ -167,7 +167,7 @@ def fully_connected(connectivity_matrix, nodes1, nodes2):
     if not nodes1 or not nodes2:
         return True
 
-    cm = submatrix(connectivity_matrix, nodes1, nodes2)
+    cm = connectivity_matrix[np.ix_(nodes1, nodes2)]
 
     # Do all nodes have at least one connection?
     return cm.sum(0).all() and cm.sum(1).all()
@@ -618,18 +618,6 @@ def _hamming_matrix(N):
         return cdist(possible_states, possible_states, 'hamming') * N
 
 
-def submatrix(cm, nodes1, nodes2):
-    """Return the submatrix of connections from ``nodes1`` to ``nodes2``.
-
-    Args:
-        cm (np.ndarray): The matrix
-        nodes1 (tuple(int)): Source nodes
-        nodes2 (tuple(int)): Sink nodes
-    """
-    submatrix_indices = np.ix_(nodes1, nodes2)
-    return cm[submatrix_indices]
-
-
 # TODO: better name?
 def relevant_connections(n, _from, to):
     """Construct a connectivity matrix.
@@ -736,7 +724,7 @@ def block_reducible(cm, nodes1, nodes2):
     if not nodes1 or not nodes2:
         return True  # trivially
 
-    cm = submatrix(cm, nodes1, nodes2)
+    cm = cm[np.ix_(nodes1, nodes2)]
 
     # Validate the connectivity matrix.
     if not cm.sum(0).all() or not cm.sum(1).all():
@@ -757,7 +745,7 @@ def strongly_connected(cm, nodes=None):
             connectivity over.
     """
     if nodes is not None:
-        cm = submatrix(cm, nodes, nodes)
+        cm = cm[np.ix_(nodes, nodes)]
 
     num_components, _ = connected_components(cm, connection='strong')
     return num_components < 2

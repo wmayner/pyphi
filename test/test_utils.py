@@ -220,19 +220,6 @@ def test_get_outputs_from_cm():
     assert utils.get_outputs_from_cm(2, cm) == tuple()
 
 
-def test_submatrix():
-    cm = np.array([
-        [0, 1, 0],
-        [1, 1, 1],
-        [0, 0, 0],
-    ])
-    assert np.array_equal(utils.submatrix(cm, (0,), (0, 1)),
-                          np.array([[0, 1]]))
-    assert np.array_equal(utils.submatrix(cm, (0, 1), (1, 2)),
-                          np.array([[1, 0], [1, 1]]))
-    assert np.array_equal(utils.submatrix(cm, (0, 1, 2), (0, 1, 2)), cm)
-
-
 def test_relevant_connections():
     cm = utils.relevant_connections(2, (0, 1), (1,))
     assert np.array_equal(cm, [

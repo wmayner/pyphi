@@ -211,8 +211,7 @@ class Mice(cmp._Orderable):
 
         cm = utils.relevant_connections(subsystem.network.size, _from, to)
         # Submatrix for this subsystem's nodes
-        idxs = subsystem.node_indices
-        return utils.submatrix(cm, idxs, idxs)
+        return cm[np.ix_(subsystem.node_indices, subsystem.node_indices)]
 
     # TODO: pass in `cut` instead? We can infer
     # subsystem indices from the cut itself, validate, and check.
