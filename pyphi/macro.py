@@ -9,13 +9,12 @@ Methods for coarse-graining systems to different levels of spatial analysis.
 from collections import namedtuple
 import itertools
 import logging
-import os
 
 import numpy as np
 
 from . import compute, config, constants, convert, utils, validate
 from .network import irreducible_purviews
-from .node import Node, expand_node_tpm, generate_nodes
+from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
 
 # Create a logger for this module.
