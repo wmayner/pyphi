@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 # models/concept.py
 
-from collections import namedtuple
-
 import numpy as np
 
 from . import cmp, fmt
@@ -15,7 +13,7 @@ _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
 
 
-class Mip(cmp._Orderable, namedtuple('Mip', _mip_attributes)):
+class Mip(cmp._Orderable):
     """A minimum information partition for |small_phi| calculation.
 
     MIPs may be compared with the built-in Python comparison operators (``<``,
@@ -46,7 +44,43 @@ class Mip(cmp._Orderable, namedtuple('Mip', _mip_attributes)):
             the repertoires of each part of the partition.
     """
 
-    __slots__ = ()
+    def __init__(self, phi, direction, mechanism, purview, partition,
+                 unpartitioned_repertoire, partitioned_repertoire):
+        self._phi = phi
+        self._direction = direction
+        self._mechanism = mechanism
+        self._purview = purview
+        self._partition = partition
+        self._unpartitioned_repertoire = unpartitioned_repertoire
+        self._partitioned_repertoire = partitioned_repertoire
+
+    @property
+    def phi(self):
+        return self._phi
+
+    @property
+    def direction(self):
+        return self._direction
+
+    @property
+    def mechanism(self):
+        return self._mechanism
+
+    @property
+    def purview(self):
+        return self._purview
+
+    @property
+    def partition(self):
+        return self._partition
+
+    @property
+    def unpartitioned_repertoire(self):
+        return self._unpartitioned_repertoire
+
+    @property
+    def partitioned_repertoire(self):
+        return self._partitioned_repertoire
 
     _unorderable_unless_eq = ['direction']
 
