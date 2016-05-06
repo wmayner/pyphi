@@ -596,7 +596,8 @@ class Subsystem:
                        purview=purview,
                        partition=partition,
                        unpartitioned_repertoire=unpartitioned_repertoire,
-                       partitioned_repertoire=partitioned_repertoire)
+                       partitioned_repertoire=partitioned_repertoire,
+                       subsystem=self)
 
         # State is unreachable - return 0 instead of giving nonsense results
         if (direction == DIRECTIONS[PAST] and

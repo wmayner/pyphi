@@ -65,7 +65,18 @@ def fmt_constellation(c):
     return "\n\n" + "\n".join(map(lambda x: indent(x), c)) + "\n"
 
 
-def fmt_partition(partition):
+def labels(indices, subsystem=None):
+    if subsystem is None:
+        return tuple(map(str, indices))
+    return subsystem.indices2labels(indices)
+
+
+def fmt_mechanism(indices, subsystem=None):
+    end = ',' if len(indices) in [0, 1] else ''
+    return '(' + ', '.join(labels(indices, subsystem)) + end + ')'
+
+
+def fmt_partition(partition, subsystem=None):
     """Format a partition.
 
     The returned string looks like::
@@ -86,7 +97,7 @@ def fmt_partition(partition):
     part0, part1 = partition
 
     def node_repr(x):
-        return ','.join(map(str, x)) if x else '[]'
+        return ','.join(labels(x, subsystem)) if x else '[]'
 
     numer0, denom0 = node_repr(part0.mechanism), node_repr(part0.purview)
     numer1, denom1 = node_repr(part1.mechanism), node_repr(part1.purview)
@@ -104,11 +115,12 @@ def fmt_partition(partition):
 def fmt_concept(concept):
     """Format a |Concept|."""
     return (
-        "phi: {concept.phi}\n"
-        "mechanism: {concept.mechanism}\n"
+        "phi: {phi}\n"
+        "mechanism: {mechanism}\n"
         "cause: {cause}\n"
         "effect: {effect}\n".format(
-            concept=concept,
+            phi=concept.phi,
+            mechanism=fmt_mechanism(concept.mechanism, concept.subsystem),
             cause=("\n" + indent(fmt_mip(concept.cause.mip, verbose=False))
                    if concept.cause else ""),
             effect=("\n" + indent(fmt_mip(concept.effect.mip, verbose=False))
@@ -120,25 +132,28 @@ def fmt_mip(mip, verbose=True):
     if mip is False or mip is None:  # mips can be Falsy
         return ""
 
-    mechanism = "mechanism: {}\n".format(mip.mechanism) if verbose else ""
+    mechanism = ("mechanism: {}\n".format(fmt_mechanism(mip.mechanism, mip.subsystem))
+                 if verbose else "")
     direction = "direction: {}\n".format(mip.direction) if verbose else ""
     return (
         "phi: {mip.phi}\n"
         "{mechanism}"
-        "purview: {mip.purview}\n"
+        "purview: {purview}\n"
         "partition:\n{partition}\n"
         "{direction}"
         "unpartitioned_repertoire:\n{unpart_rep}\n"
         "partitioned_repertoire:\n{part_rep}").format(
             mechanism=mechanism,
+            purview=fmt_mechanism(mip.purview, mip.subsystem),
             direction=direction,
             mip=mip,
-            partition=indent(fmt_partition(mip.partition)),
+            partition=indent(fmt_partition(mip.partition, mip.subsystem)),
             unpart_rep=indent(mip.unpartitioned_repertoire),
             part_rep=indent(mip.partitioned_repertoire))
 
 
-def fmt_big_mip(big_mip):
+# TODO: fmt_cut
+def fmt_big_mip(big_mip, subsystem=None):
     """Format a |BigMip|."""
     return (
         "phi: {big_mip.phi}\n"

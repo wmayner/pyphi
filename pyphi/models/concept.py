@@ -45,7 +45,8 @@ class Mip(cmp._Orderable):
     """
 
     def __init__(self, phi, direction, mechanism, purview, partition,
-                 unpartitioned_repertoire, partitioned_repertoire):
+                 unpartitioned_repertoire, partitioned_repertoire,
+                 subsystem=None):
         self._phi = phi
         self._direction = direction
         self._mechanism = mechanism
@@ -53,6 +54,9 @@ class Mip(cmp._Orderable):
         self._partition = partition
         self._unpartitioned_repertoire = unpartitioned_repertoire
         self._partitioned_repertoire = partitioned_repertoire
+
+        # Optional subsystem - only used to generate nice labeled reprs
+        self._subsystem = subsystem
 
     @property
     def phi(self):
@@ -81,6 +85,10 @@ class Mip(cmp._Orderable):
     @property
     def partitioned_repertoire(self):
         return self._partitioned_repertoire
+
+    @property
+    def subsystem(self):
+        return self._subsystem
 
     _unorderable_unless_eq = ['direction']
 
