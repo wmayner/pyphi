@@ -273,9 +273,8 @@ class MacroSubsystem(Subsystem):
         """Returns all micro indices which compose the elements specified by
         `macro_indices`."""
         def from_partition(partition, macro_indices):
-            micro_indices = []
-            for i in macro_indices:
-                micro_indices += partition[i]
+            micro_indices = itertools.chain.from_iterable(
+                partition[i] for i in macro_indices)
             return tuple(sorted(micro_indices))
 
         if self._blackbox and self._coarse_grain:
