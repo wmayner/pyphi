@@ -268,6 +268,10 @@ class Subsystem:
 
         return tuple(n for n in self.nodes if n.index in indices)
 
+    def indices2labels(self, indices):
+        """Returns the node labels for these indices."""
+        return tuple(n.label for n in self.indices2nodes(indices))
+
     @cache.method('_repertoire_cache', DIRECTIONS[PAST])
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
