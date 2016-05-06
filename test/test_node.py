@@ -73,3 +73,7 @@ def test_expand_tpm():
          [0, 1]]
     ])
     assert np.array_equal(expand_node_tpm(tpm), answer)
+
+
+def test_default_label(s):
+    assert Node(s, 2).label == 'n2'

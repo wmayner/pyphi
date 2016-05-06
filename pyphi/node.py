@@ -39,8 +39,12 @@ class Node:
         self.index = index
         # This node's parent network.
         self.network = subsystem.network
+
         # Label for display.
+        if label is None:
+            label = 'n' + str(index)
         self.label = label
+
         # State of this node.
         self.state = self.subsystem.state[self.index]
         # Get indices of the inputs.
@@ -120,8 +124,7 @@ class Node:
         return self._outputs
 
     def __repr__(self):
-        return (self.label if self.label is not None
-                else 'n' + str(self.index))
+        return self.label
 
     def __str__(self):
         return self.__repr__()
