@@ -132,11 +132,16 @@ def fmt_mip(mip, verbose=True):
     if mip is False or mip is None:  # mips can be Falsy
         return ""
 
-    mechanism = ("mechanism: {}\n".format(fmt_mechanism(mip.mechanism, mip.subsystem))
-                 if verbose else "")
-    direction = "direction: {}\n".format(mip.direction) if verbose else ""
+    if verbose:
+        mechanism = "mechanism: {}\n".format(
+            fmt_mechanism(mip.mechanism, mip.subsystem))
+        direction = "direction: {}\n".format(mip.direction)
+    else:
+        mechanism = ""
+        direction = ""
+
     return (
-        "phi: {mip.phi}\n"
+        "phi: {phi}\n"
         "{mechanism}"
         "purview: {purview}\n"
         "partition:\n{partition}\n"
@@ -146,7 +151,7 @@ def fmt_mip(mip, verbose=True):
             mechanism=mechanism,
             purview=fmt_mechanism(mip.purview, mip.subsystem),
             direction=direction,
-            mip=mip,
+            phi=mip.phi,
             partition=indent(fmt_partition(mip.partition, mip.subsystem)),
             unpart_rep=indent(mip.unpartitioned_repertoire),
             part_rep=indent(mip.partitioned_repertoire))
