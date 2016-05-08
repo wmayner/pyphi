@@ -183,9 +183,17 @@ def fmt_mip(mip, verbose=True):
 
 def fmt_cut(cut, subsystem=None):
     """Format a |Cut|."""
-    return "Cut {severed} --//--> {intact}".format(
-        severed=fmt_mechanism(cut.severed, subsystem),
-        intact=fmt_mechanism(cut.intact, subsystem))
+    try:
+        severed = fmt_mechanism(cut.severed, subsystem)
+        intact = fmt_mechanism(cut.intact, subsystem)
+    # Macro systems are cut at the micro level - hence conversion to Nodes will
+    # fail. Catch this error and use the raw micro node indices instead.
+    except ValueError:
+        severed = str(cut.severed)
+        intact = str(cut.intact)
+
+    return "Cut {severed} --//--> {intact}".format(severed=severed,
+                                                   intact=intact)
 
 
 def fmt_big_mip(big_mip):
