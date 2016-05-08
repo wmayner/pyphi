@@ -200,18 +200,17 @@ class Network:
                 ``mechanism``.
         """
         all_purviews = utils.powerset(self._node_indices)
-        return irreducible_purviews(self.connectivity_matrix,
-                                    direction, mechanism, all_purviews)
+        return irreducible_purviews(self.cm, direction, mechanism,
+                                    all_purviews)
 
     def __repr__(self):
         return ('Network({}, connectivity_matrix={}, '
                 'perturb_vector={})'.format(repr(self.tpm),
-                                            repr(self.connectivity_matrix),
+                                            repr(self.cm),
                                             repr(self.perturb_vector)))
 
     def __str__(self):
-        return 'Network({}, connectivity_matrix={})'.format(
-            self.tpm, self.connectivity_matrix)
+        return 'Network({}, connectivity_matrix={})'.format(self.tpm, self.cm)
 
     def __eq__(self, other):
         """Return whether this network equals the other object.
@@ -220,8 +219,7 @@ class Network:
         and perturbation vector.
         """
         return (np.array_equal(self.tpm, other.tpm)
-                and np.array_equal(self.connectivity_matrix,
-                                   other.connectivity_matrix)
+                and np.array_equal(self.cm, other.cm)
                 and np.array_equal(self.perturb_vector, other.perturb_vector)
                 if isinstance(other, type(self)) else False)
 
@@ -235,7 +233,7 @@ class Network:
     def to_json(self):
         return {
             'tpm': self.tpm,
-            'cm': self.connectivity_matrix,
+            'cm': self.cm,
             'size': self.size
         }
 
