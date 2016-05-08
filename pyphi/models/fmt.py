@@ -6,6 +6,8 @@
 Helper functions for formatting pretty representations of PyPhi models.
 """
 
+from itertools import chain
+
 from .. import config
 
 
@@ -66,14 +68,41 @@ def fmt_constellation(c):
 
 
 def labels(indices, subsystem=None):
+    """Get the labels for a tuple of mechanism indices."""
     if subsystem is None:
         return tuple(map(str, indices))
     return subsystem.indices2labels(indices)
 
 
 def fmt_mechanism(indices, subsystem=None):
+    """Format a mechanism or purview."""
     end = ',' if len(indices) in [0, 1] else ''
     return '(' + ', '.join(labels(indices, subsystem)) + end + ')'
+
+
+def fmt_part(part, subsystem=None):
+    """Format a |Part|.
+
+    The returned string looks like::
+
+        0,1
+        ---
+        []
+    """
+    def nodes(x):
+        return ','.join(labels(x, subsystem)) if x else '[]'
+
+    numer = nodes(part.mechanism)
+    denom = nodes(part.purview)
+
+    width = max(len(numer), len(denom))
+    divider = '-' * width
+
+    return (
+        "{numer:^{width}}\n"
+        "{divider}\n"
+        "{denom:^{width}}"
+    ).format(numer=numer, divider=divider, denom=denom, width=width)
 
 
 def fmt_partition(partition, subsystem=None):
@@ -95,21 +124,16 @@ def fmt_partition(partition, subsystem=None):
         return ""
 
     part0, part1 = partition
+    part0 = fmt_part(part0, subsystem).split("\n")
+    part1 = fmt_part(part1, subsystem).split("\n")
 
-    def node_repr(x):
-        return ','.join(labels(x, subsystem)) if x else '[]'
+    times = ("   ",
+             " X ",
+             "   ")
 
-    numer0, denom0 = node_repr(part0.mechanism), node_repr(part0.purview)
-    numer1, denom1 = node_repr(part1.mechanism), node_repr(part1.purview)
+    breaks = ("\n", "\n", "")  # No newline at the end of string
 
-    width0 = max(len(numer0), len(denom0))
-    width1 = max(len(numer1), len(denom1))
-
-    return ("{numer0:^{width0}}   {numer1:^{width1}}\n"
-                        "{div0} X {div1}\n"
-            "{denom0:^{width0}}   {denom1:^{width1}}").format(
-                numer0=numer0, denom0=denom0, width0=width0, div0='-' * width0,
-                numer1=numer1, denom1=denom1, width1=width1, div1='-' * width1)
+    return "".join(chain.from_iterable(zip(part0, times, part1, breaks)))
 
 
 def fmt_concept(concept):
