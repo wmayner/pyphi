@@ -207,8 +207,7 @@ def _big_mip(cache_key, subsystem):
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))
 
-    if not utils.strongly_connected(subsystem.connectivity_matrix,
-                                    subsystem.node_indices):
+    if not utils.strongly_connected(subsystem.cm, subsystem.node_indices):
         log.info('{} is not strongly connected; returning null MIP '
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))
@@ -292,8 +291,7 @@ def possible_complexes(network, state):
     Yields:
         (Subsystem): The next subsystem which could be a complex.
     """
-    causally_significant_nodes = utils.causally_significant_nodes(
-        network.connectivity_matrix)
+    causally_significant_nodes = utils.causally_significant_nodes(network.cm)
 
     for subset in utils.powerset(causally_significant_nodes):
         # Don't return empty system

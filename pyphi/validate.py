@@ -125,10 +125,10 @@ def network(n):
     Checks the TPM, connectivity matrix, and perturbation vector.
     """
     tpm(n.tpm)
-    connectivity_matrix(n.connectivity_matrix)
+    connectivity_matrix(n.cm)
     perturb_vector(n.perturb_vector, n.size)
     node_labels(n.node_labels, n.node_indices)
-    if n.connectivity_matrix.shape[0] != n.size:
+    if n.cm.shape[0] != n.size:
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")
     return True

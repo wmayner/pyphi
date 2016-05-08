@@ -695,8 +695,7 @@ class Subsystem:
         # Purviews are already filtered in network._potential_purviews
         # over the full network connectivity matrix. However, since the cm
         # is cut/smaller we check again here.
-        return irreducible_purviews(self.connectivity_matrix,
-                                    direction, mechanism, purviews)
+        return irreducible_purviews(self.cm, direction, mechanism, purviews)
 
     @cache.method('_mice_cache')
     def find_mice(self, direction, mechanism, purviews=False):
