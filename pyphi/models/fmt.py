@@ -152,15 +152,23 @@ def fmt_mip(mip, verbose=True):
             part_rep=indent(mip.partitioned_repertoire))
 
 
-# TODO: fmt_cut
-def fmt_big_mip(big_mip, subsystem=None):
+def fmt_cut(cut, subsystem=None):
+    """Format a |Cut|."""
+    return "Cut {severed} --//--> {intact}".format(
+        severed=fmt_mechanism(cut.severed, subsystem),
+        intact=fmt_mechanism(cut.intact, subsystem))
+
+
+def fmt_big_mip(big_mip):
     """Format a |BigMip|."""
     return (
-        "phi: {big_mip.phi}\n"
-        "subsystem: {big_mip.subsystem}\n"
-        "cut: {big_mip.cut}\n"
+        "phi: {phi}\n"
+        "subsystem: {subsystem}\n"
+        "cut: {cut}\n"
         "unpartitioned_constellation: {unpart_const}"
         "partitioned_constellation: {part_const}".format(
-            big_mip=big_mip,
+            phi=big_mip.phi,
+            subsystem=big_mip.subsystem,
+            cut=fmt_cut(big_mip.cut, big_mip.subsystem),
             unpart_const=fmt_constellation(big_mip.unpartitioned_constellation),
             part_const=fmt_constellation(big_mip.partitioned_constellation)))

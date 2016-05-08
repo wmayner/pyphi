@@ -90,7 +90,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         return fmt.make_repr(self, ['severed', 'intact'])
 
     def __str__(self):
-        return "Cut {self.severed} --//--> {self.intact}".format(self=self)
+        return fmt.fmt_cut(self)
 
     def to_json(self):
         return [self.severed, self.intact]
