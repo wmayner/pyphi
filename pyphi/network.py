@@ -54,9 +54,11 @@ class Network:
             state-by-node TPM must be ``(S, N)``, and the shape of the N-D form
             of the TPM must be ``[2] * N + [N]``, where ``S`` is the number of
             states and ``N`` is the number of nodes in the network.
-        connectivity_matrix (np.ndarray):
+        cm (np.ndarray):
             A square binary adjacency matrix indicating the connections between
             nodes in the network.
+        connectivity_matrix (np.ndarray):
+            Alias for `Network.cm`.
         size (int):
             The number of nodes in the network.
         num_states (int):
@@ -69,7 +71,7 @@ class Network:
         self.tpm = tpm
         self._node_indices = tuple(range(self.size))
         self._node_labels = node_labels
-        self.connectivity_matrix = connectivity_matrix
+        self.cm = connectivity_matrix
         self.perturb_vector = perturb_vector
         self.purview_cache = purview_cache or cache.PurviewCache()
 
@@ -119,21 +121,30 @@ class Network:
         self._tpm_hash = utils.np_hash(self.tpm)
 
     @property
+    def cm(self):
+        """The network's connectivity matrix."""
+        return self._cm
+
+    @cm.setter
+    def cm(self, cm):
+        if cm is not None:
+            self._cm = np.array(cm)
+        else:
+            # If none was provided, assume all are connected.
+            self._cm = np.ones((self.size, self.size))
+        # Make the underlying attribute immutable.
+        self._cm.flags.writeable = False
+        # Update hash.
+        self._cm_hash = utils.np_hash(self.cm)
+
+    @property
     def connectivity_matrix(self):
-        return self._connectivity_matrix
+        """Alias for `connectivity_matrix`."""
+        return self.cm
 
     @connectivity_matrix.setter
     def connectivity_matrix(self, cm):
-        # Get the connectivity matrix.
-        if cm is not None:
-            self._connectivity_matrix = np.array(cm)
-        else:
-            # If none was provided, assume all are connected.
-            self._connectivity_matrix = np.ones((self.size, self.size))
-        # Make the underlying attribute immutable.
-        self._connectivity_matrix.flags.writeable = False
-        # Update hash.
-        self._cm_hash = utils.np_hash(self.connectivity_matrix)
+        self.cm = cm
 
     @property
     def perturb_vector(self):
