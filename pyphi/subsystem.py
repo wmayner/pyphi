@@ -42,8 +42,8 @@ class Subsystem:
             ``proper_state[i]`` gives the |ith| node in the subsystem. Note
             that this is **not** the state of node |i|.
         cut (Cut): The cut that has been applied to this subsystem.
-        connectivity_matrix (np.array): The connectivity matrix after applying
-            the cut.
+        cm (np.array): The connectivity matrix after applying the cut.
+        connectivity_matrix(np.array): Alias for `cm`.
         cut_matrix (np.array): A matrix of connections which have been severed
             by the cut.
         perturb_vector (np.array): The vector of perturbation probabilities for
@@ -91,7 +91,7 @@ class Subsystem:
         self.cut_matrix = self.cut.cut_matrix()
 
         # The network's connectivity matrix with cut applied
-        self.connectivity_matrix = utils.apply_cut(cut, network.cm)
+        self.cm = utils.apply_cut(cut, network.cm)
 
         # The perturbation probabilities for each node in the network
         self.perturb_vector = network.perturb_vector
@@ -144,13 +144,13 @@ class Subsystem:
         validate.subsystem(self)
 
     @property
-    def cm(self):
-        """Alias for ``connectivity_matrix`` attribute."""
-        return self.connectivity_matrix
+    def connectivity_matrix(self):
+        """Alias for ``cm`` attribute."""
+        return self.cm
 
-    @cm.setter
-    def cm(self, cm):
-        self.connectivity_matrix = cm
+    @connectivity_matrix.setter
+    def connectivity_matrix(self, cm):
+        self.cm = cm
 
     @property
     def size(self):
