@@ -238,12 +238,8 @@ def test_null_mip():
 
 
 def test_mip_repr_str():
-    mip = models.Mip(direction=None, mechanism=(), purview=(),
-                     unpartitioned_repertoire=None,
-                     partitioned_repertoire=None, phi=0.0,
-                     partition=(models.Part((), ()), models.Part((), ())))
-    print(repr(mip))
-    print(str(mip))
+    print(repr(mip()))
+    print(str(mip()))
 
 
 # }}}
@@ -295,17 +291,13 @@ def test_mice_equality():
 
 
 def test_mice_repr_str():
-    mice = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    mice = models.Mice(mip())
     print(repr(mice))
     print(str(mice))
 
 
 def test_relevant_connections(s, subsys_n1n2):
-    mip = mock.Mock(mechanism=(0,), purview=(1,), direction='past')
-    mice = models.Mice(mip)
+    mice = models.Mice(mip(mech=(0,), purv=(1,), dir='past'))
     answer = np.array([
         [0, 0, 0],
         [1, 0, 0],
@@ -313,8 +305,7 @@ def test_relevant_connections(s, subsys_n1n2):
     ])
     assert np.array_equal(mice._relevant_connections(s), answer)
 
-    mip = mock.Mock(mechanism=(1,), purview=(1, 2), direction='future')
-    mice = models.Mice(mip)
+    mice = models.Mice(mip(mech=(1,), purv=(1, 2), dir='future'))
     answer = np.array([
         [1, 1],
         [0, 0],
@@ -328,14 +319,12 @@ def test_damaged(s):
     subsys = Subsystem(s.network, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:
-    mip = mock.MagicMock(mechanism=(0, 1), purview=(1, 2), direction='future')
-    mice = models.Mice(mip)
+    mice = models.Mice(mip(mech=(0, 1), purv=(1, 2), dir='future'))
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 
     # Cut splits mechanism & purview (but not *only* mechanism)
-    mip = mock.MagicMock(mechanism=(0,), purview=(1, 2), direction='future')
-    mice = models.Mice(mip)
+    mice = models.Mice(mip(mech=(0,), purv=(1, 2), dir='future'))
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 
@@ -367,12 +356,11 @@ def test_concept_ordering(s, micro_s):
 
 
 def test_concept_odering_by_mechanism(s):
-    small = models.Concept(
-        mechanism=(0, 1), cause=None, effect=None, subsystem=s,
-        phi=1.0)
-    big = models.Concept(
-        mechanism=(0, 1, 3), cause=None, effect=None, subsystem=s,
-        phi=1.0)
+    phi = 1.0
+    small = models.Concept(mechanism=(0, 1), cause=None, effect=None,
+                           subsystem=s, phi=phi)
+    big = models.Concept(mechanism=(0, 1, 3), cause=None, effect=None,
+                         subsystem=s, phi=phi)
     assert small < big
     assert small <= big
     assert big > small
@@ -408,14 +396,8 @@ def test_concept_equality_mechanism(s):
 
 def test_concept_equality_cause_purview_nodes(s):
     phi = 1.0
-    mice1 = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(1, 2),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
-    mice2 = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(1,),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    mice1 = models.Mice(mip(phi=phi, purv=(1, 2)))
+    mice2 = models.Mice(mip(phi=phi, purv=(1,)))
     concept = models.Concept(mechanism=(), cause=mice1, effect=None,
                              subsystem=s, phi=phi)
     another = models.Concept(mechanism=(), cause=mice2, effect=None,
@@ -425,14 +407,8 @@ def test_concept_equality_cause_purview_nodes(s):
 
 def test_concept_equality_effect_purview_nodes(s):
     phi = 1.0
-    mice1 = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(1, 2),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
-    mice2 = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(1,),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    mice1 = models.Mice(mip(phi=phi, purv=(1, 2)))
+    mice2 = models.Mice(mip(phi=phi, purv=(1,)))
     concept = models.Concept(mechanism=(), cause=None, effect=mice1,
                              subsystem=s, phi=phi)
     another = models.Concept(mechanism=(), cause=None, effect=mice2,
@@ -442,14 +418,11 @@ def test_concept_equality_effect_purview_nodes(s):
 
 def test_concept_equality_repertoires(s):
     phi = 1.0
-    mice1 = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(),
-        unpartitioned_repertoire=np.array([1, 2]), partitioned_repertoire=(),
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
-    mice2 = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(),
-        unpartitioned_repertoire=np.array([0, 0]), partitioned_repertoire=None,
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    mice1 = models.Mice(mip(phi=phi,
+                            unpartitioned_repertoire=np.array([1, 2]),
+                            partitioned_repertoire=()))
+    mice2 = models.Mice(mip(phi=phi,
+                            unpartitioned_repertoire=np.array([0, 0]), partitioned_repertoire=None))
     concept = models.Concept(mechanism=(), cause=mice1, effect=mice2,
                              subsystem=s, phi=phi)
     another = models.Concept(mechanism=(), cause=mice2, effect=mice1,
@@ -468,10 +441,7 @@ def test_concept_equality_network(s, simple_subsys_all_off):
 
 def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     phi = 1.0
-    mice = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(1, 2),
-        unpartitioned_repertoire=(), partitioned_repertoire=(),
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    mice = models.Mice(mip(mech=(), purv=(1, 2), phi=phi))
     concept = models.Concept(mechanism=(2,), cause=mice, effect=mice,
                              subsystem=s, phi=phi)
     another = models.Concept(mechanism=(2,), cause=mice, effect=mice,
@@ -480,33 +450,23 @@ def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
 
 
 def test_concept_repr_str():
-    mice = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
-    concept = models.Concept(
-        mechanism=(), cause=mice, effect=mice,
-        subsystem=None, phi=0.0)
+    mice = models.Mice(mip())
+    concept = models.Concept(mechanism=(), cause=mice, effect=mice,
+                             subsystem=None, phi=0.0)
     print(repr(concept))
     print(str(concept))
 
 
 def test_concept_hashing(s):
-    mice = models.Mice(models.Mip(
-        direction=None, mechanism=(0, 1, 2), purview=(0, 1, 2),
-        unpartitioned_repertoire=None, partitioned_repertoire=None,
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
-    concept = models.Concept(
-        mechanism=(0, 1, 2), cause=mice, effect=mice, subsystem=s, phi=0.0)
+    mice = models.Mice(mip(mech=(0, 1, 2), purv=(0, 1, 2)))
+    concept = models.Concept(mechanism=(0, 1, 2), cause=mice, effect=mice,
+                             subsystem=s, phi=0.0)
     hash(concept)
 
 
 def test_concept_hashing_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     phi = 1.0
-    mice = models.Mice(models.Mip(
-        direction=None, mechanism=(), purview=(1, 2),
-        unpartitioned_repertoire=(), partitioned_repertoire=(),
-        phi=0.0, partition=(models.Part((), ()), models.Part((), ()))))
+    mice = models.Mice(mip(mech=(), purv=(1, 2), phi=phi))
     concept = models.Concept(mechanism=(2,), cause=mice, effect=mice,
                              subsystem=s, phi=phi)
     another = models.Concept(mechanism=(2,), cause=mice, effect=mice,
