@@ -12,7 +12,7 @@ from . import cache, config, convert, utils, validate
 from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
-from .models import Concept, Cut, Mice, Mip, _null_mip, Part
+from .models import Concept, Cut, Mice, Mip, _null_mip, Part, Bipartition
 from .network import irreducible_purviews
 from .node import generate_nodes
 
@@ -823,7 +823,7 @@ def mip_bipartitions(mechanism, purview):
         purview (tuple(int)): The purview to partition
 
     Returns:
-        bipartitions (list(tuple((Part, Part)))): Where each partition is
+        bipartitions (Bipartition): Where each partition is
 
             bipart[0].mechanism   bipart[1].mechanism
             ------------------- X -------------------
@@ -834,11 +834,11 @@ def mip_bipartitions(mechanism, purview):
         >>> mechanism = (0,)
         >>> purview = (2, 3)
         >>> mip_bipartitions(mechanism, purview)
-        [(Part(mechanism=(), purview=(2,)), Part(mechanism=(0,), purview=(3,))), (Part(mechanism=(), purview=(3,)), Part(mechanism=(0,), purview=(2,))), (Part(mechanism=(), purview=(2, 3)), Part(mechanism=(0,), purview=()))]
+        [Bipartition(Part(mechanism=(), purview=(2,)), Part(mechanism=(0,),    purview=(3,))), Bipartition(Part(mechanism=(), purview=(3,)), Part(mechanism=(0,), purview=(2,))), Bipartition(Part(mechanism=(), purview=(2, 3)), Part(mechanism=(0,), purview=()))]
     """
     numerators = utils.bipartition(mechanism)
     denominators = utils.directed_bipartition(purview)
 
-    return [(Part(n[0], d[0]), Part(n[1], d[1]))
+    return [Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
             for (n, d) in itertools.product(numerators, denominators)
             if len(n[0]) + len(d[0]) > 0 and len(n[1]) + len(d[1]) > 0]

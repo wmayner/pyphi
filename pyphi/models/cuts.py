@@ -120,3 +120,27 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
 
     def to_json(self):
         return {'mechanism': self.mechanism, 'purview': self.purview}
+
+
+class Bipartition(namedtuple('Partition', ['part0', 'part1'])):
+    """A bipartition of a mechanism and purview.
+
+    Attributes:
+        part0 (Part): The first part of the partition.
+        part1 (Part): The second part of the partition.
+        mechanism (tuple(int)): The nodes of the mechanism in the partition.
+        purview (tuple(int)): The nodes of the purview in the partition.
+    """
+
+    @property
+    def mechanism(self):
+        return tuple(sorted(self[0].mechanism + self[1].mechanism))
+
+    @property
+    def purview(self):
+        return tuple(sorted(self[0].purview + self[1].purview))
+
+    __slots__ = ()
+
+    def to_json(self):
+        return {'part0': self.part0, 'part1': self.part1}
