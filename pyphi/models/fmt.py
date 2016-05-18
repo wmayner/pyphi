@@ -106,7 +106,7 @@ def fmt_part(part, subsystem=None):
 
 
 def fmt_partition(partition, subsystem=None):
-    """Format a partition.
+    """Format a |Bipartition|.
 
     The returned string looks like::
 
