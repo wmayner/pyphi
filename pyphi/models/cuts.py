@@ -122,7 +122,7 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
         return {'mechanism': self.mechanism, 'purview': self.purview}
 
 
-class Bipartition(namedtuple('Partition', ['part0', 'part1'])):
+class Bipartition(namedtuple('Bipartition', ['part0', 'part1'])):
     """A bipartition of a mechanism and purview.
 
     Attributes:
