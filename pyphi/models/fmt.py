@@ -105,7 +105,7 @@ def fmt_part(part, subsystem=None):
     ).format(numer=numer, divider=divider, denom=denom, width=width)
 
 
-def fmt_partition(partition, subsystem=None):
+def fmt_bipartition(partition, subsystem=None):
     """Format a |Bipartition|.
 
     The returned string looks like::
@@ -176,7 +176,7 @@ def fmt_mip(mip, verbose=True):
             purview=fmt_mechanism(mip.purview, mip.subsystem),
             direction=direction,
             phi=mip.phi,
-            partition=indent(fmt_partition(mip.partition, mip.subsystem)),
+            partition=indent(fmt_bipartition(mip.partition, mip.subsystem)),
             unpart_rep=indent(mip.unpartitioned_repertoire),
             part_rep=indent(mip.partitioned_repertoire))
 
