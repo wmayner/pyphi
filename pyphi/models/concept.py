@@ -335,17 +335,29 @@ class Concept(cmp._Orderable):
     def _order_by(self):
         return [self.phi, len(self.mechanism)]
 
+    @property
+    def cause_purview(self):
+        return getattr(self.cause, 'purview', None)
+
+    @property
+    def effect_purview(self):
+        return getattr(self.effect, 'purview', None)
+
+    @property
+    def cause_repertoire(self):
+        return getattr(self.cause, 'repertoire', None)
+
+    @property
+    def effect_repertoire(self):
+        return getattr(self.effect, 'repertoire', None)
+
     def __eq__(self, other):
-        self_cause_purview = getattr(self.cause, 'purview', None)
-        other_cause_purview = getattr(other.cause, 'purview', None)
-        self_effect_purview = getattr(self.effect, 'purview', None)
-        other_effect_purview = getattr(other.effect, 'purview', None)
         return (self.phi == other.phi
                 and self.mechanism == other.mechanism
                 and (utils.state_of(self.mechanism, self.subsystem.state) ==
                      utils.state_of(self.mechanism, other.subsystem.state))
-                and self_cause_purview == other_cause_purview
-                and self_effect_purview == other_effect_purview
+                and self.cause_purview == other.cause_purview
+                and self.effect_purview == other.effect_purview
                 and self.eq_repertoires(other)
                 and self.subsystem.network == other.subsystem.network)
 
@@ -353,10 +365,10 @@ class Concept(cmp._Orderable):
         return hash((self.phi,
                      self.mechanism,
                      utils.state_of(self.mechanism, self.subsystem.state),
-                     self.cause.purview,
-                     self.effect.purview,
-                     utils.np_hash(self.cause.repertoire),
-                     utils.np_hash(self.effect.repertoire),
+                     self.cause_purview,
+                     self.effect_purview,
+                     utils.np_hash(self.cause_repertoire),
+                     utils.np_hash(self.effect_repertoire),
                      self.subsystem.network))
 
     def __bool__(self):
@@ -375,12 +387,9 @@ class Concept(cmp._Orderable):
             arrays; mechanisms, purviews, or even the nodes that node indices
             refer to, might be different.
         """
-        this_cr = getattr(self.cause, 'repertoire', None)
-        this_er = getattr(self.effect, 'repertoire', None)
-        other_cr = getattr(other.cause, 'repertoire', None)
-        other_er = getattr(other.effect, 'repertoire', None)
-        return (np.array_equal(this_cr, other_cr) and
-                np.array_equal(this_er, other_er))
+        return (
+            np.array_equal(self.cause_repertoire, other.cause_repertoire) and
+            np.array_equal(self.effect_repertoire, other.effect_repertoire))
 
     def emd_eq(self, other):
         """Return whether this concept is equal to another in the context of an
