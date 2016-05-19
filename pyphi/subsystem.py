@@ -778,7 +778,7 @@ class Subsystem:
                 phi=0, direction=DIRECTIONS[PAST], mechanism=(),
                 purview=(),
                 partition=None, partitioned_repertoire=None))
-        # Null mip.
+        # Null effect.
         effect = Mice(
             Mip(unpartitioned_repertoire=effect_repertoire,
                 phi=0, direction=DIRECTIONS[FUTURE], mechanism=(),
