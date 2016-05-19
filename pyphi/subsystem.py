@@ -772,18 +772,12 @@ class Subsystem:
         cause_repertoire = self.cause_repertoire((), ())
         # Unconstrained effect repertoire.
         effect_repertoire = self.effect_repertoire((), ())
+
         # Null cause.
-        cause = Mice(
-            Mip(unpartitioned_repertoire=cause_repertoire,
-                phi=0, direction=DIRECTIONS[PAST], mechanism=(),
-                purview=(),
-                partition=None, partitioned_repertoire=None))
+        cause = Mice(_null_mip(DIRECTIONS[PAST], (), (), cause_repertoire))
         # Null effect.
-        effect = Mice(
-            Mip(unpartitioned_repertoire=effect_repertoire,
-                phi=0, direction=DIRECTIONS[FUTURE], mechanism=(),
-                purview=(),
-                partition=None, partitioned_repertoire=None))
+        effect = Mice(_null_mip(DIRECTIONS[FUTURE], (), (), effect_repertoire))
+
         # All together now...
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
                        subsystem=self)

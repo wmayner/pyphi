@@ -227,12 +227,14 @@ def test_null_mip():
     direction = 'past'
     mechanism = (0,)
     purview = (1,)
-    null_mip = models._null_mip(direction, mechanism, purview)
+    unpartitioned_repertoire = 'repertoire'
+    null_mip = models._null_mip(direction, mechanism, purview,
+                                unpartitioned_repertoire)
     assert null_mip.direction == direction
     assert null_mip.mechanism == mechanism
     assert null_mip.purview == purview
     assert null_mip.partition is None
-    assert null_mip.unpartitioned_repertoire is None
+    assert null_mip.unpartitioned_repertoire == 'repertoire'
     assert null_mip.partitioned_repertoire is None
     assert null_mip.phi == 0
 

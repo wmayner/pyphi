@@ -123,7 +123,7 @@ class Mip(cmp._Orderable):
         return "Mip\n" + fmt.indent(fmt.fmt_mip(self))
 
 
-def _null_mip(direction, mechanism, purview):
+def _null_mip(direction, mechanism, purview, unpartitioned_repertoire=None):
     """The null mip (of a reducible mechanism)."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
@@ -131,7 +131,7 @@ def _null_mip(direction, mechanism, purview):
                mechanism=mechanism,
                purview=purview,
                partition=None,
-               unpartitioned_repertoire=None,
+               unpartitioned_repertoire=unpartitioned_repertoire,
                partitioned_repertoire=None,
                phi=0.0)
 
