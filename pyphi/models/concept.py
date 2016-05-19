@@ -461,7 +461,7 @@ class Constellation(tuple):
         if config.READABLE_REPRS:
             return self.__str__()
         return "Constellation({})".format(
-            super(Constellation, self).__repr__())
+            super().__repr__())
 
     def __str__(self):
         return "\nConstellation\n*************" + fmt.fmt_constellation(self)
