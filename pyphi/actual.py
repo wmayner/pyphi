@@ -90,6 +90,7 @@ class Context:
         # The state of the system of the actual probably calculation. Default
         # to before state but will swtich depending on contexti
         self.nodes = tuple()
+        self._position = 'before'
         self._state = before_state
         self._actual_state = after_state
         # TODO don't need map to ints anymore?
@@ -146,12 +147,27 @@ class Context:
         return self._after_state
 
     @property
+    def position(self):
+        return self._position
+
+    @property
     def state(self):
         return self._state
 
     @property
     def actual_state(self):
         return self._actual_state
+
+    @position.setter
+    def position(self, position):
+        if position == 'before':
+            self.state = self.before_state
+            self.actual_state = self.after_state
+            self._position = position
+        elif position == 'after':
+            self.state = self.after_state
+            self.actual_state = self.before_state
+            self._position = position
 
     @before_state.setter
     def before_state(self, state):
@@ -172,7 +188,7 @@ class Context:
         self._after_state = after_state
         # TODO Validate.
         # validate.context(self)
-        
+
     @state.setter
     def state(self, state):
         # Cast state to a tuple so it can be hashed and properly used as
@@ -305,6 +321,10 @@ class Context:
             purview-repertoires with each other, since cut vs. whole
             comparisons are only ever done over the same purview.
         """
+
+        # Check that the current position is "before", otherwise adjust
+        if not self.position == 'after':
+            self.position = 'after'
         # If the purview is empty, the distribution is empty; return the
         # multiplicative identity.
         if not purview:
@@ -378,6 +398,10 @@ class Context:
             purview-repertoires with each other, since cut vs. whole
             comparisons are only ever done over the same purview.
         """
+
+        # Check that the position is "after", else adjust
+        if not self.position == 'before':
+            self.position = 'before'
         purview_nodes = self.indices2nodes(purview)
         mechanism_nodes = self.indices2nodes(mechanism)
 
@@ -556,12 +580,24 @@ class Context:
             self.unconstrained_cause_repertoire(purview)),
             PRECISION)
 
+    def cause_coefficient(self, mechanism, purview):
+        """ Return the cause coefficient for a mechanism in a state over a
+        purview in the actual past state """
+        return self.state_probability(self.cause_repertoire(mechanism, purview),
+                                      purview)
+
     def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
         return round(utils.hamming_emd(
             self.effect_repertoire(mechanism, purview),
             self.unconstrained_effect_repertoire(purview)),
             PRECISION)
+
+    def effect_coefficient(self, mechanism, purview):
+        """ Return the effect coefficient for a mechanism in a state over a
+        purview in the actual future state """
+        return self.state_probability(self.effect_repertoire(mechanism, purview),
+                                      purview)
 
     def cause_effect_info(self, mechanism, purview):
         """Return the cause-effect information for a mechanism over a
@@ -631,12 +667,6 @@ class Context:
         """
 
         repertoire = self._get_repertoire(direction)
-        if direction == DIRECTIONS[PAST]:
-            self.state = self.after_state
-            self.actual_state = self.before_state
-        elif direction == DIRECTIONS[FUTURE]:
-            self.state = self.before_state
-            self.actual_state = self.after_state
         alpha_min = float('inf')
         # Calculate the unpartitioned probability to compare against the
         # partitioned probabilities
