@@ -31,7 +31,7 @@ background condition.
 import logging
 import numpy as np
 
-from . import cache, validate, utils
+from . import cache, validate, utils, compute
 from .network import irreducible_purviews, Network
 from .utils import powerset, bipartition, directed_bipartition, phi_eq
 from .constants import DIRECTIONS, FUTURE, PAST, EPSILON
@@ -125,7 +125,8 @@ class Context:
         self.perturb_vector = network.perturb_vector
         # Generate the nodes.
         self.nodes = tuple(Node(self, i) for i in self.node_indices)
-        # TODO: Reimplement the matrix of connections which are severed due to the cut
+        # TODO: Reimplement the matrix of connections which are severed due to
+        # the cut
         # self.cut_matrix = self.cut.cut_matrix()
         # A cache for keeping core causes and effects that can be reused later
         # in the event that a cut doesn't effect them.
@@ -1160,3 +1161,110 @@ def true_constellation(subsystem, past_state, future_state):
     else:
         log.info("Finished calculating, no true events.")
         return None
+
+
+def true_events(network, past_state, current_state, future_state, indices=None,
+                main_complex=None):
+    """Set of all mechanisms that have true causes and true effects within the
+    complex.
+
+    Args:
+        network (Network):
+
+        past_state (tuple(int)): The state of the network at t-1
+        current_state (tuple(int)): The state of the network at t
+        future_state (tuple(int)): The state of the network at t+1
+
+    Optional Args:
+        indices (tuple(int)): The indices of the main complex
+        main_complex (big_mip): The main complex
+
+        Note: If main_complex is given, then indices is ignored.
+
+    Returns:
+        events (tuple(actions)): List of true events in the main complex
+    """
+    # TODO: validate triplet of states
+    if not indices and not main_complex:
+        main_complex = compute.main_complex(network, current_state)
+    elif not main_complex:
+        main_complex = compute.big_mip(network, current_state, indices)
+    # Calculate true causes
+    nodes = main_complex.subsystem.node_indices
+    past_context = Context(network, past_state, current_state, nodes, nodes)
+    true_causes = directed_account(past_context, direction=DIRECTIONS[PAST])
+    # Calculate true_effects
+    future_context = Context(network, current_state, future_state, nodes, nodes)
+    true_effects = directed_account(future_context,
+                                    direction=DIRECTIONS[FUTURE])
+    true_mechanisms = set([c.mechanism for c in true_causes]).\
+        intersection(c.mechanism for c in true_effects)
+    # TODO: Make sort function that sorts events by mechanism so that
+    # causes and effects match up.
+    if true_mechanisms:
+        true_causes = tuple(filter(lambda t: t.mechanism in true_mechanisms,
+                                   true_causes))
+        true_effects = tuple(filter(lambda t: t.mechanism in true_mechanisms,
+                                    true_effects))
+        true_events = tuple([true_causes[i], true_effects[i]] for i in
+                            range(len(true_mechanisms)))
+    else:
+        true_events = ()
+    return true_events
+
+
+def extrinsic_events(network, past_state, current_state, future_state,
+                     indices=None, main_complex=None):
+    """Set of all mechanisms that have true causes and true effects within the
+    complex.
+
+    Args:
+        network (Network):
+        past_state (tuple(int)): The state of the network at t-1
+        current_state (tuple(int)): The state of the network at t
+        future_state (tuple(int)): The state of the network at t+1
+
+    Optional Args:
+        indices (tuple(int)): The indices of the main complex
+        main_complex (big_mip): The main complex
+
+        Note: If main_complex is given, then indices is ignored.
+
+    Returns:
+        events (tuple(actions)): List of true events in the main complex
+    """
+    # TODO: validate triplet of states
+    if not indices and not main_complex:
+        main_complex = compute.main_complex(network, current_state)
+    elif not main_complex:
+        main_complex = compute.big_mip(network, current_state, indices)
+    # Identify the potential mechanisms for extrinsic events within the main
+    # complex
+    all_nodes = network.node_indices
+    mechanisms = list(utils.powerset(main_complex.subsystem.node_indices))[1:]
+    # Calculate true causes
+    past_context = Context(network, past_state, current_state, all_nodes,
+                           all_nodes)
+    true_causes = directed_account(past_context, direction=DIRECTIONS[PAST],
+                                   mechanisms=mechanisms)
+    # Calculate true_effects
+    future_context = Context(network, current_state, future_state, all_nodes,
+                             all_nodes)
+    true_effects = directed_account(future_context,
+                                    direction=DIRECTIONS[FUTURE],
+                                    mechanisms=mechanisms)
+    true_mechanisms = set([c.mechanism for c in true_causes]).\
+        intersection(c.mechanism for c in true_effects)
+    # TODO: Make sort function that sorts events by mechanism so that
+    # causes and effects match up.
+    if true_mechanisms:
+        true_causes = tuple(filter(lambda t: t.mechanism in true_mechanisms,
+                                   true_causes))
+        true_effects = tuple(filter(lambda t: t.mechanism in true_mechanisms,
+                                    true_effects))
+        true_events = tuple([true_causes[i], true_effects[i]] for i in
+                            range(len(true_mechanisms)))
+    else:
+        true_events = ()
+    return true_events
+
