@@ -156,15 +156,6 @@ class Context:
     def before_state(self, state):
         # Cast state to a tuple so it can be hashed and properly used as
         # np.array indices.
-        after_state = tuple(state)
-        self._after_state = after_state
-        # TODO Validate.
-        # validate.context(self)
-
-    @after_state.setter
-    def after_state(self, state):
-        # Cast state to a tuple so it can be hashed and properly used as
-        # np.array indices.
         before_state = tuple(state)
         self._before_state = before_state
         # TODO Validate.
@@ -172,6 +163,15 @@ class Context:
         for node in self.nodes:
             node.state = state[node.index]
 
+    @after_state.setter
+    def after_state(self, state):
+        # Cast state to a tuple so it can be hashed and properly used as
+        # np.array indices.
+        after_state = tuple(state)
+        self._after_state = after_state
+        # TODO Validate.
+        # validate.context(self)
+        
     @state.setter
     def state(self, state):
         # Cast state to a tuple so it can be hashed and properly used as
@@ -810,7 +810,7 @@ class Context:
 # ============================================================================
 
 
-def nice_ac_composition(account, direction):
+def nice_ac_composition(account):
     if account:
         if account[0].direction == DIRECTIONS[PAST]:
             dir_arrow = '<--'
