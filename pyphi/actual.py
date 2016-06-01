@@ -583,6 +583,8 @@ class Context:
     def cause_coefficient(self, mechanism, purview, norm=True):
         """ Return the cause coefficient for a mechanism in a state over a
         purview in the actual past state """
+        if not self.position == 'after':
+            self.position = 'after'
         if norm:
             normalization = self.state_probability(self.cause_repertoire((), purview), purview)
         else:
@@ -600,6 +602,8 @@ class Context:
     def effect_coefficient(self, mechanism, purview, norm=True):
         """ Return the effect coefficient for a mechanism in a state over a
         purview in the actual future state """
+        if not self.position == 'before':
+            self.position = 'before'
         if norm:
             normalization = self.state_probability(self.effect_repertoire((), purview), purview)
         else:
