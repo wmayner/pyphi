@@ -399,7 +399,7 @@ class Context:
             comparisons are only ever done over the same purview.
         """
 
-        # Check that the position is "after", else adjust
+        # Check that the position is "before", else adjust
         if not self.position == 'before':
             self.position = 'before'
         purview_nodes = self.indices2nodes(purview)
@@ -580,11 +580,15 @@ class Context:
             self.unconstrained_cause_repertoire(purview)),
             PRECISION)
 
-    def cause_coefficient(self, mechanism, purview):
+    def cause_coefficient(self, mechanism, purview, norm=True):
         """ Return the cause coefficient for a mechanism in a state over a
         purview in the actual past state """
+        if norm:
+            normalization = self.state_probability(self.cause_repertoire((), purview), purview)
+        else:
+            normalization = 1
         return self.state_probability(self.cause_repertoire(mechanism, purview),
-                                      purview)
+                                      purview) / normalization
 
     def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
@@ -593,11 +597,15 @@ class Context:
             self.unconstrained_effect_repertoire(purview)),
             PRECISION)
 
-    def effect_coefficient(self, mechanism, purview):
+    def effect_coefficient(self, mechanism, purview, norm=True):
         """ Return the effect coefficient for a mechanism in a state over a
         purview in the actual future state """
+        if norm:
+            normalization = self.state_probability(self.effect_repertoire((), purview), purview)
+        else:
+            normalization = 1
         return self.state_probability(self.effect_repertoire(mechanism, purview),
-                                      purview)
+                                      purview) / normalization
 
     def cause_effect_info(self, mechanism, purview):
         """Return the cause-effect information for a mechanism over a

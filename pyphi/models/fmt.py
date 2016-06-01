@@ -356,7 +356,7 @@ def fmt_ac_mip(acmip, verbose=True):
             mechanism=mechanism,
             direction=direction,
             acmip=acmip,
-            partition=indent(fmt_partition(acmip.partition)),
+            partition=indent(fmt_bipartition(acmip.partition)),
             probability=indent(acmip.probability),
             partitioned_probability=indent(acmip.partitioned_probability))
 
