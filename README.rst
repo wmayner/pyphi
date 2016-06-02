@@ -1,5 +1,5 @@
 .. image:: http://wmayner.github.io/pyphi/_static/pyphi-icon-and-text-380x90.png
-    :target: http://wmayner.github.io/pyphi/
+    :target: http://pyphi.readthedocs.io/en/latest/
     :alt: PyPhi logo
 
 |
@@ -53,9 +53,10 @@ actually used.)
 Usage, Examples, and API documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Check out the `documentation for the latest release
-<https://pythonhosted.org/pyphi>`_, or the `documentation for the latest
-development version <https://wmayner.github.io/pyphi>`_.
+Check out the `documentation for the latest stable release
+<http://pyphi.readthedocs.io/en/stable/>`_, or the `documentation for the
+latest (potentially unstable) development version
+<http://pyphi.readthedocs.io/en/latest/>`_.
 
 The documentation is also available within the Python interpreter with the
 ``help`` function.
