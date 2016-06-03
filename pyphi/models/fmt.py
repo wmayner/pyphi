@@ -64,7 +64,7 @@ def fmt_constellation(c):
     """Format a constellation."""
     if not c:
         return "()\n"
-    return "\n\n" + "\n".join(map(lambda x: indent(x), c)) + "\n"
+    return "\n\n" + "\n".join(indent(x) for x in c) + "\n"
 
 
 def labels(indices, subsystem=None):
