@@ -187,14 +187,17 @@ def fmt_mip(mip, verbose=True):
 
 def fmt_cut(cut, subsystem=None):
     """Format a |Cut|."""
-    try:
-        severed = fmt_mechanism(cut.severed, subsystem)
-        intact = fmt_mechanism(cut.intact, subsystem)
-    # Macro systems are cut at the micro level - hence conversion to Nodes will
-    # fail. Catch this error and use the raw micro node indices instead.
-    except ValueError:
+    # Cut indices cannot be converted to labels for macro systems since macro
+    # systems are cut at the micro label. Avoid this error by using micro
+    # indices directly in the representation.
+    # TODO: somehow handle this with inheritance instead of a conditional?
+    from ..macro import MacroSubsystem
+    if isinstance(subsystem, MacroSubsystem):
         severed = str(cut.severed)
         intact = str(cut.intact)
+    else:
+        severed = fmt_mechanism(cut.severed, subsystem)
+        intact = fmt_mechanism(cut.intact, subsystem)
 
     return "Cut {severed} --//--> {intact}".format(severed=severed,
                                                    intact=intact)
