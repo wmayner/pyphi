@@ -170,15 +170,15 @@ def fmt_mip(mip, verbose=True):
         "purview: {purview}\n"
         "partition:\n{partition}\n"
         "{direction}"
-        "unpartitioned_repertoire:\n{unpart_rep}\n"
-        "partitioned_repertoire:\n{part_rep}").format(
+        "unpartitioned_repertoire:\n{unpartitioned_repertoire}\n"
+        "partitioned_repertoire:\n{partitioned_repertoire}").format(
             mechanism=mechanism,
             purview=fmt_mechanism(mip.purview, mip.subsystem),
             direction=direction,
             phi=mip.phi,
             partition=indent(fmt_bipartition(mip.partition, mip.subsystem)),
-            unpart_rep=indent(mip.unpartitioned_repertoire),
-            part_rep=indent(mip.partitioned_repertoire))
+            unpartitioned_repertoire=indent(mip.unpartitioned_repertoire),
+            partitioned_repertoire=indent(mip.partitioned_repertoire))
 
 
 def fmt_cut(cut, subsystem=None):
@@ -202,10 +202,12 @@ def fmt_big_mip(big_mip):
         "phi: {phi}\n"
         "subsystem: {subsystem}\n"
         "cut: {cut}\n"
-        "unpartitioned_constellation: {unpart_const}"
-        "partitioned_constellation: {part_const}".format(
+        "unpartitioned_constellation: {unpartitioned_constellation}"
+        "partitioned_constellation: {partitioned_constellation}".format(
             phi=big_mip.phi,
             subsystem=big_mip.subsystem,
             cut=fmt_cut(big_mip.cut, big_mip.subsystem),
-            unpart_const=fmt_constellation(big_mip.unpartitioned_constellation),
-            part_const=fmt_constellation(big_mip.partitioned_constellation)))
+            unpartitioned_constellation=fmt_constellation(
+                big_mip.unpartitioned_constellation),
+            partitioned_constellation=fmt_constellation(
+                big_mip.partitioned_constellation)))
