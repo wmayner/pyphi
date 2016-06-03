@@ -138,6 +138,12 @@ def fmt_bipartition(partition, subsystem=None):
 
 def fmt_concept(concept):
     """Format a |Concept|."""
+
+    def fmt_cause_or_effect(x):
+        if not x:
+            return ""
+        return "\n" + indent(fmt_mip(x.mip, verbose=False))
+
     return (
         "phi: {phi}\n"
         "mechanism: {mechanism}\n"
@@ -145,10 +151,8 @@ def fmt_concept(concept):
         "effect: {effect}\n".format(
             phi=concept.phi,
             mechanism=fmt_mechanism(concept.mechanism, concept.subsystem),
-            cause=("\n" + indent(fmt_mip(concept.cause.mip, verbose=False))
-                   if concept.cause else ""),
-            effect=("\n" + indent(fmt_mip(concept.effect.mip, verbose=False))
-                    if concept.effect else "")))
+            cause=fmt_cause_or_effect(concept.cause),
+            effect=fmt_cause_or_effect(concept.effect)))
 
 
 def fmt_mip(mip, verbose=True):
