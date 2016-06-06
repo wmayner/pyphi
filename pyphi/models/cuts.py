@@ -144,3 +144,9 @@ class Bipartition(namedtuple('Bipartition', ['part0', 'part1'])):
 
     def to_json(self):
         return {'part0': self.part0, 'part1': self.part1}
+
+    def __str__(self):
+        return fmt.fmt_bipartition(self)
+
+    def __repr__(self):
+        return fmt.make_repr(self, ['part0', 'part1'])
