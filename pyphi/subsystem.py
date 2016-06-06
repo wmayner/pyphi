@@ -8,7 +8,7 @@ import itertools
 
 import numpy as np
 
-from . import cache, config, convert, utils, validate
+from . import cache, config, utils, validate
 from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
