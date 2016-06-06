@@ -21,9 +21,9 @@ before_install:
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda3/bin:$PATH
+  - conda info -a
   # Update conda itself
   - conda update --yes conda
-  - conda info -a
   # The next couple lines fix a crash with multiprocessing on Travis and are
   # not specific to using Miniconda
   # - sudo rm -rf /dev/shm
