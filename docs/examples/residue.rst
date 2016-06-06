@@ -97,7 +97,7 @@ Instead, we should evaluate |A| over the purview |CD|.
 
 In this case, there is a well defined MIP
 
-    >>> mip_A.partition
+    >>> mip_A.partition  # doctest: +NORMALIZE_WHITESPACE
     []   0
     -- X -
     2    3
