@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import pytest
+
 from pyphi import utils, constants, models
 
 
@@ -120,6 +122,13 @@ def test_emd_same_distributions():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
     assert utils.hamming_emd(a, b) == 0.0
+
+
+def test_emd_validates_distribution_shapes():
+    a = np.ones((2, 2, 2)) / 8
+    b = np.ones((3, 3, 3)) / 27
+    with pytest.raises(ValueError):
+        utils.hamming_emd(a, b)
 
 
 def test_l1_distance():
