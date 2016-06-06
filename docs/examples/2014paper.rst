@@ -406,12 +406,16 @@ attributes:
 
     >>> mip_c.phi
     0.499999
-    >>> mip_c.partition
-    (Part(mechanism=(0,), purview=()), Part(mechanism=(1, 2), purview=(0, 1, 2)))
+    >>> mip_c.partition  # doctest: +NORMALIZE_WHITESPACE
+    0     1,2
+    -- X -----
+    []   0,1,2
     >>> mip_e.phi
     0.25
-    >>> mip_e.partition
-    (Part(mechanism=(), purview=(1,)), Part(mechanism=(0, 1, 2), purview=(0, 2)))
+    >>> mip_e.partition  # doctest: +NORMALIZE_WHITESPACE
+    []   0,1,2
+    -- X -----
+    1     0,2
 
 For more information on these objects, see the API documentation for the
 :class:`~pyphi.models.Mip` class, or use ``help(mip_c)``.

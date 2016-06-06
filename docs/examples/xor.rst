@@ -175,11 +175,13 @@ system—but is it irreducible?
    >>> mip = subsystem.mip_past(n0n1n2, n0n1n2)
    >>> mip.phi
    0.0
-   >>> mip.partition
-   (Part(mechanism=(0,), purview=()), Part(mechanism=(1, 2), purview=(0, 1, 2)))
+   >>> mip.partition  # doctest: +NORMALIZE_WHITESPACE
+   0     1,2
+   -- X -----
+   []   0,1,2
 
 The mechanism has :math:`ci = 0.75`, but it is completely reducible
-(:math:`\varphi = 0`) to the partition 
+(:math:`\varphi = 0`) to the partition
 
 .. math::
     \frac{n_0}{\left[\,\right]} \times \frac{n_1n_2}{n_0n_1n_2}
