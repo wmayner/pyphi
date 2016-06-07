@@ -232,6 +232,7 @@ def _big_mip(cache_key, subsystem):
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
     log.debug("RESULT: \n" + str(result))
+
     return result
 
 
@@ -313,14 +314,17 @@ def complexes(network, state):
 def main_complex(network, state):
     """Return the main complex of the network."""
     log.info("Calculating main complex...")
+
     result = complexes(network, state)
     if result:
         result = max(result)
     else:
         empty_subsystem = Subsystem(network, state, ())
         result = _null_bigmip(empty_subsystem)
+
     log.info("Finished calculating main complex.")
     log.debug("RESULT: \n" + str(result))
+
     return result
 
 
@@ -328,8 +332,10 @@ def condensed(network, state):
     """Return the set of maximal non-overlapping complexes."""
     condensed = []
     covered_nodes = set()
+
     for c in reversed(sorted(complexes(network, state))):
         if not any(n in covered_nodes for n in c.subsystem.node_indices):
             condensed.append(c)
             covered_nodes = covered_nodes | set(c.subsystem.node_indices)
+
     return condensed
