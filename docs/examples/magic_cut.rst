@@ -67,13 +67,9 @@ and also the concepts of the partitioned constellation.
    1.4749980000000003
 
 The unpartitioned constellation includes all possible first and second order
-concepts, but there is no third order concept. After applying the cut, and
-severing the connections from |A| and |B| to |C|, a third order concept
-is created in the partitioned constellation. A new concept is created as a
-result of the cut, but there is also a concept destroyed |A,B| and the
-overall amount of |small_phi| in the system decreases from :math:`1.875` to
-:math:`1.475`.
-
+concepts, but there is no third order concept. After applying the cut and
+severing the connections from |A| and |B| to |C|, the third order concept |ABC|
+is created and the second order concept |AC| is destroyed. The overall amount of |small_phi| in the system decreases from :math:`1.875` to :math:`1.475`.
 
 
 Lets explore the concept which was created to determine why it does not exist
