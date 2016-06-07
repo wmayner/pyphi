@@ -17,7 +17,6 @@ from .concept import constellation
 from .distance import constellation_distance
 from .. import config, memory, utils, validate
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
-from ..network import Network
 from ..subsystem import Subsystem
 
 # Create a logger for this module.
@@ -254,6 +253,8 @@ def subsystems(network, state):
 
     Does not return subsystems that are in an impossible state.
     """
+    validate.is_network(network)
+
     for subset in utils.powerset(network.node_indices):
         try:
             yield Subsystem(network, state, subset)
@@ -267,10 +268,6 @@ def all_complexes(network, state):
     Includes reducible, zero-phi complexes (which are not, strictly speaking,
     complexes at all).
     """
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
     return (big_mip(subsystem) for subsystem in subsystems(network, state))
 
 
@@ -291,6 +288,8 @@ def possible_complexes(network, state):
     Yields:
         (Subsystem): The next subsystem which could be a complex.
     """
+    validate.is_network(network)
+
     causally_significant_nodes = utils.causally_significant_nodes(network.cm)
 
     for subset in utils.powerset(causally_significant_nodes):
@@ -307,20 +306,12 @@ def possible_complexes(network, state):
 
 def complexes(network, state):
     """Return a generator for all irreducible complexes of the network."""
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
     return tuple(filter(None, (big_mip(subsystem) for subsystem in
                                possible_complexes(network, state))))
 
 
 def main_complex(network, state):
     """Return the main complex of the network."""
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
     log.info("Calculating main complex...")
     result = complexes(network, state)
     if result:

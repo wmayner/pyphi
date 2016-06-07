@@ -62,6 +62,12 @@ def test_validate_network_wrong_cm_size(s):
         Network(s.network.tpm, np.ones(16).reshape(4, 4))
 
 
+def test_validate_is_network(s):
+    with pytest.raises(ValueError):
+        validate.is_network(s)
+    validate.is_network(s.network)
+
+
 def test_validate_state_no_error_1(s):
     validate.state_reachable(s)
 
@@ -102,7 +108,7 @@ def test_validate_state_no_error_2():
 def test_validate_node_labels():
     validate.node_labels(['A', 'B'], (0, 1))
     validate.node_labels(None, (0, 1))
-    
+
     with pytest.raises(ValueError):
         validate.node_labels(['A'], (0, 1))
     with pytest.raises(ValueError):

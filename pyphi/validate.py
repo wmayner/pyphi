@@ -134,6 +134,15 @@ def network(n):
     return True
 
 
+def is_network(network):
+    """Validate that the argument is a |Network|."""
+    from . import Network
+
+    if not isinstance(network, Network):
+        raise ValueError(
+            "Input must be a Network (perhaps you passed a Subsystem instead?")
+
+
 def node_states(state):
     """Check that the state contains only zeros and ones."""
     if not all(n in (0, 1) for n in state):
