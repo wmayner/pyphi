@@ -226,7 +226,7 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
-html_logo = "phi.png"
+html_logo = "_static/phi.png"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
