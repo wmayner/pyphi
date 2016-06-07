@@ -173,7 +173,7 @@ def generate_nodes(subsystem, indices=None, labels=False):
             element.)
 
     Returns:
-        tuple(Node): The nodes of the |Subsystem|.
+        tuple(|Node|): The nodes of the |Subsystem|.
     """
     if indices is None:
         indices = subsystem.node_indices

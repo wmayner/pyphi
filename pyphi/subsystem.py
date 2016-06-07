@@ -240,7 +240,7 @@ class Subsystem:
             cut (Cut): The cut to apply to this |Subsystem|.
 
         Returns:
-            subsystem (Subsystem)
+            |Subsystem|
         """
         return Subsystem(self.network, self.state, self.node_indices,
                          cut=cut, mice_cache=self._mice_cache)
@@ -282,8 +282,7 @@ class Subsystem:
                 cause repertoire.
 
         Returns:
-            cause_repertoire (``np.ndarray``): The cause repertoire of the
-                mechanism over the purview.
+            ``np.ndarray``: The cause repertoire of the mechanism over the purview.
 
         .. note::
             The returned repertoire is a distribution over the nodes in the
@@ -355,8 +354,8 @@ class Subsystem:
                 effect repertoire.
 
         Returns:
-            effect_repertoire (``np.ndarray``): The effect repertoire of the
-                mechanism over the purview.
+            ``np.ndarray``: The effect repertoire of the mechanism over the
+                purview.
 
         .. note::
             The returned repertoire is a distribution over the nodes in the
@@ -570,8 +569,7 @@ class Subsystem:
             purview (tuple(int)): The nodes in the purview.
 
         Returns:
-            mip (|Mip|): The mininum-information partition in one temporal
-                direction.
+            |Mip|: The mininum-information partition in one temporal direction.
         """
         # We default to the null MIP (the MIP of a reducible mechanism)
         mip = _null_mip(direction, mechanism, purview)
@@ -714,7 +712,7 @@ class Subsystem:
                 nodes.
 
         Returns:
-            mice (|Mice|): The maximally-irreducible cause or effect.
+            |Mice|: The maximally-irreducible cause or effect.
 
         .. note::
             Strictly speaking, the MICE is a pair of repertoires: the core
@@ -817,7 +815,7 @@ def mip_bipartitions(mechanism, purview):
         purview (tuple(int)): The purview to partition
 
     Returns:
-        bipartitions (Bipartition): Where each partition is
+        list(|Bipartition|): Where each partition is
 
             bipart[0].mechanism   bipart[1].mechanism
             ------------------- X -------------------

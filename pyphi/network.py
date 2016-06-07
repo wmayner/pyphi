@@ -269,7 +269,7 @@ def from_json(filename):
         filename (str): A path to a JSON file representing a network.
 
     Returns:
-       network (``Network``): The corresponding PyPhi network object.
+       |Network|: The corresponding PyPhi network object.
     """
     with open(filename) as f:
         network_dictionary = json.load(f)
