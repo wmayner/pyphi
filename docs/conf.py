@@ -118,6 +118,7 @@ rst_prolog = """
 .. |E| replace:: :math:`E`
 .. |F| replace:: :math:`F`
 .. |AB| replace:: :math:`AB`
+.. |AC| replace:: :math:`AC`
 .. |CD| replace:: :math:`CD`
 .. |DE| replace:: :math:`DE`
 .. |FG| replace:: :math:`FG`
@@ -129,8 +130,10 @@ rst_prolog = """
 .. |n2| replace:: :math:`n_{2}`
 .. |n0, n1| replace:: :math:`n_{0}n_{1}`
 .. |n0, n2| replace:: :math:`n_{0}n_{2}`
+.. |n0, n4| replace:: :math:`n_{0}n_{4}`
 .. |n1, n2| replace:: :math:`n_{1}n_{2}`
 .. |n0, n1, n2| replace:: :math:`n_{0}n_{1}n_{2}`
+.. |n0, n1, n4| replace:: :math:`n_{0}n_{1}n_{4}`
 .. |(AB / DE) x ([] / C)| replace:: :math:`\\frac{AB}{DE} \\times \\frac{\left[\\;\\right]}{C}`
 .. |(A / CD) x ([] / E)| replace:: :math:`\\frac{A}{CD} \\times \\frac{\left[\\;\\right]}{E}`
 .. |([] / C) x (A / D)| replace:: :math:`\\frac{\\left[\\;\\right]}{C} \\times \\frac{A}{D}`
@@ -184,6 +187,7 @@ rst_prolog = """
 .. |Concept| replace:: :class:`~pyphi.models.concept.Concept`
 .. |Constellation| replace:: :class:`~pyphi.models.concept.Constellation`
 .. |Cut| replace:: :class:`~pyphi.models.cuts.Cut`
+.. |Bipartition| replace:: :class:`~pyphi.models.cuts.Bipartition`
 .. |Mip| replace:: :class:`~pyphi.models.concept.Mip`
 .. |Mice| replace:: :class:`~pyphi.models.concept.Mice`
 .. |Node| replace:: :class:`~pyphi.node.Node`
