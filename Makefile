@@ -6,6 +6,7 @@ tests = test
 docs = docs
 docs_build = docs/_build
 docs_html = docs/_build/html
+benchmarks = benchmarks
 
 
 test: test-coverage coverage-html open-coverage
@@ -46,3 +47,6 @@ open-docs:
 upload-docs: build-docs
 	cp -r $(docs_html) ../pyphi-docs
 	cd ../pyphi-docs && git commit -a -m 'Update docs' && git push origin gh-pages
+
+benchmark:
+	cd $(benchmarks) && asv continuous develop
