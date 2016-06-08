@@ -7,7 +7,8 @@ docs = docs
 docs_build = docs/_build
 docs_html = docs/_build/html
 
-test: coverage-test coverage-html coverage-open
+
+test: test-coverage coverage-html open-coverage
 
 watch-test:
 	watchmedo shell-command \
@@ -15,13 +16,13 @@ watch-test:
 		--recursive --drop --ignore-directories \
 		--patterns="*.py" $(src) $(tests)
 
-coverage-test:
+test-coverage:
 	coverage run --source $(src) -m py.test
 
 coverage-html:
 	coverage html
 
-coverage-open:
+open-coverage:
 	open htmlcov/index.html
 
 docs: build-docs open-docs
