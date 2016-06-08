@@ -11,8 +11,8 @@ def concept_distance(c1, c2):
     """Return the distance between two concepts in concept-space.
 
     Args:
-        c1 (Concept): The first concept.
-        c2 (Concept): The second concept.
+        c1 (|Concept|): The first concept.
+        c2 (|Concept|): The second concept.
 
     Returns:
         float: The distance between the two concepts in concept-space.
@@ -117,8 +117,8 @@ def constellation_distance(C1, C2):
     """Return the distance between two constellations in concept-space.
 
     Args:
-        C1 (Constellation): The first constellation.
-        C2 (Constellation): The second constellation.
+        C1 (|Constellation|): The first constellation.
+        C2 (|Constellation|): The second constellation.
 
     Returns:
         float: The distance between the two constellations in concept-space.

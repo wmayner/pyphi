@@ -28,9 +28,9 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     """Find the |BigMip| for a given cut.
 
     Args:
-        uncut_subsystem (Subsystem): The subsystem without the cut applied.
-        cut (Cut): The cut to evaluate.
-        unpartitioned_constellation (Constellation): The constellation of the
+        uncut_subsystem (|Subsystem|): The subsystem without the cut applied.
+        cut (|Cut|): The cut to evaluate.
+        unpartitioned_constellation (|Constellation|): The constellation of the
             uncut subsystem.
 
     Returns:

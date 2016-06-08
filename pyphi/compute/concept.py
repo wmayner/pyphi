@@ -134,7 +134,7 @@ def constellation(subsystem, mechanisms=False, purviews=False,
             general ``purviews`` option.
 
     Returns:
-        |Constellation|: A tuple of all the |Concept|s in the constellation.
+        |Constellation|: A tuple of every |Concept| in the constellation.
     """
 
     if config.PARALLEL_CONCEPT_EVALUATION:

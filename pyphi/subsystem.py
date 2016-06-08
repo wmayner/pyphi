@@ -237,7 +237,7 @@ class Subsystem:
         """Return a cut version of this |Subsystem|.
 
         Args:
-            cut (Cut): The cut to apply to this |Subsystem|.
+            cut (|Cut|): The cut to apply to this |Subsystem|.
 
         Returns:
             |Subsystem|
@@ -804,7 +804,7 @@ class Subsystem:
 def mip_bipartitions(mechanism, purview):
     """Return all |small_phi| bipartitions of a mechanism over a purview.
 
-    Excludes all bipartitions where one half is entirely empty, e.g:
+    Excludes all bipartitions where one half is entirely empty, e.g::
 
          A    []                     A    []
         --- X -- is not valid,  but --- X --- is.
@@ -817,9 +817,11 @@ def mip_bipartitions(mechanism, purview):
     Returns:
         list(|Bipartition|): Where each partition is
 
+        ::
+
             bipart[0].mechanism   bipart[1].mechanism
             ------------------- X -------------------
-             bipart[0].purview     bipart[1].purview
+            bipart[0].purview     bipart[1].purview
     """
     numerators = utils.bipartition(mechanism)
     denominators = utils.directed_bipartition(purview)

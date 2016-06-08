@@ -247,13 +247,13 @@ class MacroSubsystem(Subsystem):
         return self._node_indices
 
     def apply_cut(self, cut):
-        """Return a cut version of this `MacroSubsystem`
+        """Return a cut version of this |MacroSubsystem|
 
         Args:
-            cut (Cut): The cut to apply to this `MacroSubsystem`.
+            cut (|Cut|): The cut to apply to this |MacroSubsystem|.
 
         Returns:
-            subsystem (MacroSubsystem)
+            |MacroSubsystem|
         """
         return MacroSubsystem(self.network, self._network_state,
                               self._node_indices, cut=cut,
@@ -296,7 +296,7 @@ class MacroSubsystem(Subsystem):
         return repr(self)
 
     def __eq__(self, other):
-        """Two macro systems are equal if the underlying |Subsystems| are equal
+        """Two macro systems are equal if each underlying |Subsystem| is equal
         and all macro attributes are equal.
 
         TODO: handle cases where a MacroSubsystem is identical to a micro
