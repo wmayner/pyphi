@@ -474,10 +474,10 @@ def normalize_constellation(constellation):
     """Deterministically reorder the concepts in a constellation.
 
     Args:
-        constellation (Constellation): The constellation in question.
+        constellation (|Constellation|): The constellation in question.
 
     Returns
-        Constellation: The constellation, ordered lexicographically by
+        |Constellation|: The constellation, ordered lexicographically by
             mechanism.
     """
     return Constellation(sorted(constellation, key=lambda c: c.mechanism))

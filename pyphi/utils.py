@@ -440,8 +440,8 @@ def bipartition(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        bipartition (``list(tuple(tuple))``): A list of tuples containing each
-            of the two partitions.
+        list(tuple(tuple)): A list of tuples containing each of the two
+            partitions.
 
     Example:
         >>> from pyphi.utils import bipartition
@@ -461,8 +461,8 @@ def directed_bipartition(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        bipartition (``list(tuple(tuple))``): A list of tuples containing each
-            of the two partitions.
+        list(tuple(tuple)): A list of tuples containing each of the two
+            partitions.
 
     Example:
         >>> from pyphi.utils import directed_bipartition
@@ -481,8 +481,8 @@ def directed_bipartition_of_one(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        bipartition (``list(tuple(tuple))``): A list of tuples containing each
-            of the two partitions.
+        list(tuple(tuple)): A list of tuples containing each of the two
+            partitions.
 
     Example:
         >>> from pyphi.utils import directed_bipartition_of_one

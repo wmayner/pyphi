@@ -237,7 +237,7 @@ class Subsystem:
         """Return a cut version of this |Subsystem|.
 
         Args:
-            cut (Cut): The cut to apply to this |Subsystem|.
+            cut (|Cut|): The cut to apply to this |Subsystem|.
 
         Returns:
             |Subsystem|
