@@ -16,6 +16,7 @@ watch-test:
 		--command='make test' \
 		--recursive --drop --ignore-directories \
 		--patterns="*.py" $(src) $(tests)
+		# TODO: watch test config files
 
 test-coverage:
 	coverage run --source $(src) -m py.test
