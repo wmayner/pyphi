@@ -122,6 +122,7 @@ class MacroSubsystem(Subsystem):
                            self.cut,
                            self._network_state,
                            self._node_indices,
+                           self._time_scale,
                            self._blackbox,
                            self._coarse_grain))
 
