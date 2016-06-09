@@ -38,6 +38,7 @@ Next Release
   `Subsystem` can now be specified by either their index or their label.
 - Added `models.normalize_constellation` for deterministically ordering a
   constellation.
+- Added a `Makefile`.
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
