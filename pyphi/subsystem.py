@@ -110,10 +110,6 @@ class Subsystem:
 
         self.nodes = generate_nodes(self, labels=True)
 
-        # The nodes represented in computed repertoire distributions. This
-        # supports `MacroSubsystem`'s alternate TPM representation.
-        self._dist_indices = self.network.node_indices
-
         validate.subsystem(self)
 
     @property
@@ -170,6 +166,11 @@ class Subsystem:
         than ``self.node_indices``.
         """
         return self.node_indices
+
+    @property
+    def tpm_indices(self):
+        """The indices of nodes in the tpm."""
+        return tuple(range(self.tpm.shape[-1]))
 
     def repertoire_cache_info(self):
         """Report repertoire cache statistics."""
@@ -300,15 +301,14 @@ class Subsystem:
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview -- return the purview's maximum entropy distribution.
         max_entropy_dist = utils.max_entropy_distribution(
-            purview, len(self._dist_indices),
+            purview, len(self.tpm_indices),
             tuple(self.perturb_vector[i] for i in purview))
         if not mechanism:
             return max_entropy_dist
 
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
-        cjd = np.ones(tuple(2 if i in purview else
-                            1 for i in self._dist_indices))
+        cjd = np.ones([2 if i in purview else 1 for i in self.tpm_indices])
 
         # Loop over all nodes in this mechanism, successively taking the
         # product (with expansion/broadcasting of singleton dimensions) of each
@@ -376,8 +376,8 @@ class Subsystem:
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
-            [1] * len(self._dist_indices) + [2 if i in purview else
-                                             1 for i in self._dist_indices])
+            [1] * len(self.tpm_indices) +
+            [2 if i in purview else 1 for i in self.tpm_indices])
 
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
@@ -404,7 +404,7 @@ class Subsystem:
 
             # Expand the dimensions so the TPM can be indexed as described
             first_half_shape = list(tpm.shape[:-1])
-            second_half_shape = [1] * len(self._dist_indices)
+            second_half_shape = [1] * len(self.tpm_indices)
             second_half_shape[purview_node.index] = 2
             tpm = tpm.reshape(first_half_shape + second_half_shape)
 
@@ -432,7 +432,7 @@ class Subsystem:
         # (the second half of the shape may also contain singleton dimensions,
         # depending on how many nodes are in the purview).
         accumulated_cjd = accumulated_cjd.reshape(
-            accumulated_cjd.shape[len(self._dist_indices):])
+            accumulated_cjd.shape[len(self.tpm_indices):])
 
         return accumulated_cjd
 

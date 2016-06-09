@@ -125,9 +125,6 @@ class MacroSubsystem(Subsystem):
                            self._blackbox,
                            self._coarse_grain))
 
-        # The nodes represented in computed repertoires.
-        self._dist_indices = self.node_indices
-
         validate.subsystem(self)
 
     def _squeeze(self, internal_indices):
