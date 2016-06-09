@@ -444,7 +444,6 @@ def bipartition(a):
             partitions.
 
     Example:
-        >>> from pyphi.utils import bipartition
         >>> bipartition((1,2,3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
@@ -465,7 +464,6 @@ def directed_bipartition(a):
             partitions.
 
     Example:
-        >>> from pyphi.utils import directed_bipartition
         >>> directed_bipartition((1, 2, 3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
     """
@@ -485,7 +483,6 @@ def directed_bipartition_of_one(a):
             partitions.
 
     Example:
-        >>> from pyphi.utils import directed_bipartition_of_one
         >>> directed_bipartition_of_one((1,2,3))
         [((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,))]
     """
@@ -507,7 +504,6 @@ def directed_bipartition_indices(N):
             for each of the two partitions.
 
     Example:
-        >>> from pyphi.utils import directed_bipartition_indices
         >>> N = 3
         >>> directed_bipartition_indices(N)
         [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
@@ -528,7 +524,6 @@ def bipartition_indices(N):
             for each of the two partitions.
 
     Example:
-        >>> from pyphi.utils import bipartition_indices
         >>> N = 3
         >>> bipartition_indices(N)
         [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
@@ -587,7 +582,6 @@ def _hamming_matrix(N):
             element is the Hamming distance between state |i| and state |j|.
 
     Example:
-        >>> from pyphi.utils import _hamming_matrix
         >>> _hamming_matrix(2)
         array([[ 0.,  1.,  1.,  2.],
                [ 1.,  0.,  2.,  1.],
