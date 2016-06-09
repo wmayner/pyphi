@@ -8,24 +8,19 @@ docs_build = docs/_build
 docs_html = docs/_build/html
 benchmarks = benchmarks
 
+test: coverage watch-tests
 
-test: test-coverage coverage-html open-coverage
+coverage:
+	coverage run --source $(src) -m py.test
+	coverage html
+	open htmlcov/index.html
 
-watch-test:
+watch-tests:
 	watchmedo shell-command \
-		--command='make test' \
+		--command='make coverage' \
 		--recursive --drop --ignore-directories \
 		--patterns="*.py" $(src) $(tests)
 		# TODO: watch test config files
-
-test-coverage:
-	coverage run --source $(src) -m py.test
-
-coverage-html:
-	coverage html
-
-open-coverage:
-	open htmlcov/index.html
 
 docs: build-docs open-docs
 
