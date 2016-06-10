@@ -140,24 +140,50 @@ def fmt_bipartition(partition, subsystem=None):
     return "".join(chain.from_iterable(zip(part0, times, part1, breaks)))
 
 
+def side_by_side(left, right, lheader, rheader):
+    """Put two boxes next to each other.
+
+    Assumes that all lines in the boxes are the same width.
+    """
+    left_lines = list(left.split("\n"))
+    right_lines = list(right.split("\n"))
+
+    # Pad the shorter column with whitespace
+    diff = abs(len(left_lines) - len(right_lines))
+    if len(left_lines) > len(right_lines):
+        fill = " " * len(right_lines[0])
+        right_lines += [fill] * diff
+    elif len(right_lines) > len(left_lines):
+        fill = " " * len(left_lines[0])
+        left_lines += [fill] * diff
+
+    header = (lheader.center(len(left_lines[0])) +
+              rheader.center(len(right_lines[0])))
+
+    return header + "\n" + "\n".join(
+        a + b for a, b in zip(left_lines, right_lines))
+
+
 def fmt_concept(concept):
     """Format a |Concept|."""
 
     def fmt_cause_or_effect(x):
         if not x:
             return ""
-        return "\n" + indent(fmt_mip(x.mip, verbose=False))
+        return box(indent(fmt_mip(x.mip, verbose=False), amount=1), split=True)
+
+    cause = fmt_cause_or_effect(concept.cause)
+    effect = fmt_cause_or_effect(concept.effect)
+    ce = side_by_side(cause, effect, "Cause", "Effect")
 
     return (
         "{SMALL_PHI} = {phi}\n"
         "Mechanism: {mechanism}\n"
-        "Cause: {cause}\n"
-        "Effect: {effect}\n".format(
+        "\n{ce}\n".format(
             SMALL_PHI=SMALL_PHI,
             phi=concept.phi,
             mechanism=fmt_mechanism(concept.mechanism, concept.subsystem),
-            cause=fmt_cause_or_effect(concept.cause),
-            effect=fmt_cause_or_effect(concept.effect)))
+            ce=ce))
 
 
 def fmt_mip(mip, verbose=True):
@@ -230,7 +256,7 @@ def fmt_big_mip(big_mip):
                 big_mip.partitioned_constellation)))
 
 
-def box(lines):
+def box(lines, split=False):
     """Wrap a list of lines in a box.
 
     Example:
@@ -240,6 +266,9 @@ def box(lines):
         | line2 |
         ---------
     """
+    if split:
+        lines = lines.split("\n")
+
     width = max(len(l) for l in lines)
     bar = "-" * (4 + width)
     lines = ["| {line:<{width}} |".format(line=line, width=width)
