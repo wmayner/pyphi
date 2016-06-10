@@ -10,6 +10,10 @@ from itertools import chain
 
 from .. import config, utils
 
+# TODO: will these print correctly on all terminals?
+SMALL_PHI = "\u03C6"
+BIG_PHI = "\u03D5"
+
 
 def make_repr(self, attrs):
     """Construct a repr string.
@@ -145,10 +149,11 @@ def fmt_concept(concept):
         return "\n" + indent(fmt_mip(x.mip, verbose=False))
 
     return (
-        "phi: {phi}\n"
-        "mechanism: {mechanism}\n"
-        "cause: {cause}\n"
-        "effect: {effect}\n".format(
+        "{SMALL_PHI} = {phi}\n"
+        "Mechanism: {mechanism}\n"
+        "Cause: {cause}\n"
+        "Effect: {effect}\n".format(
+            SMALL_PHI=SMALL_PHI,
             phi=concept.phi,
             mechanism=fmt_mechanism(concept.mechanism, concept.subsystem),
             cause=fmt_cause_or_effect(concept.cause),
@@ -161,21 +166,22 @@ def fmt_mip(mip, verbose=True):
         return ""
 
     if verbose:
-        mechanism = "mechanism: {}\n".format(
+        mechanism = "Mechanism: {}\n".format(
             fmt_mechanism(mip.mechanism, mip.subsystem))
-        direction = "direction: {}\n".format(mip.direction)
+        direction = "Direction: {}\n".format(mip.direction)
     else:
         mechanism = ""
         direction = ""
 
     return (
-        "phi: {phi}\n"
+        "{SMALL_PHI} = {phi}\n"
         "{mechanism}"
-        "purview: {purview}\n"
-        "partition:\n{partition}\n"
+        "Purview: {purview}\n"
+        "Partition:\n{partition}\n"
         "{direction}"
-        "unpartitioned_repertoire:\n{unpartitioned_repertoire}\n"
-        "partitioned_repertoire:\n{partitioned_repertoire}").format(
+        "Unpartitioned Repertoire:\n{unpartitioned_repertoire}\n"
+        "Partitioned Repertoire:\n{partitioned_repertoire}").format(
+            SMALL_PHI=SMALL_PHI,
             mechanism=mechanism,
             purview=fmt_mechanism(mip.purview, mip.subsystem),
             direction=direction,
@@ -209,11 +215,12 @@ def fmt_cut(cut, subsystem=None):
 def fmt_big_mip(big_mip):
     """Format a |BigMip|."""
     return (
-        "phi: {phi}\n"
-        "subsystem: {subsystem}\n"
-        "cut: {cut}\n"
-        "unpartitioned_constellation: {unpartitioned_constellation}"
-        "partitioned_constellation: {partitioned_constellation}".format(
+        "{BIG_PHI} = {phi}\n"
+        "{subsystem}\n"
+        "{cut}\n"
+        "Unpartitioned Constellation: {unpartitioned_constellation}"
+        "Partitioned Constellation: {partitioned_constellation}".format(
+            BIG_PHI=BIG_PHI,
             phi=big_mip.phi,
             subsystem=big_mip.subsystem,
             cut=fmt_cut(big_mip.cut, big_mip.subsystem),
