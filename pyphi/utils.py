@@ -745,6 +745,7 @@ def strongly_connected(cm, nodes=None):
 
 def print_repertoire(r):
     """Print a vertical, human-readable cause/effect repertoire."""
+    r = np.squeeze(r)
     print('\n', '-' * 80)
     for i in range(r.size):
         strindex = bin(i)[2:].zfill(r.ndim)
