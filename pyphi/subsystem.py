@@ -23,8 +23,8 @@ class Subsystem:
 
     Args:
         network (Network): The network the subsystem belongs to.
-        state (tuple(int)): The state of the network.
-        nodes (tuple(int) or tuple(str)): The nodes of the network which are in
+        state (tuple[int]): The state of the network.
+        nodes (tuple[int] or tuple[str]): The nodes of the network which are in
             this subsystem. Nodes can be specified either as indices or as
             labels if the |Network| was passed ``node_labels``.
 
@@ -32,13 +32,13 @@ class Subsystem:
         cut (Cut): The unidirectional |Cut| to apply to this subsystem.
 
     Attributes:
-        nodes (list(Node)): A list of nodes in the subsystem.
-        node_indices (tuple(int)): The indices of the nodes in the subsystem.
+        nodes (list[Node]): A list of nodes in the subsystem.
+        node_indices (tuple[int]): The indices of the nodes in the subsystem.
         size (int): The number of nodes in the subsystem.
         network (Network): The network the subsystem belongs to.
-        state (tuple(int)): The state of the subsystem's network. ``state[i]``
+        state (tuple[int]): The state of the subsystem's network. ``state[i]``
             gives the state of node |i|.
-        proper_state (tuple(int)): The state of the subsystem.
+        proper_state (tuple[int]): The state of the subsystem.
             ``proper_state[i]`` gives the |ith| node in the subsystem. Note
             that this is **not** the state of node |i|.
         cut (Cut): The cut that has been applied to this subsystem.
@@ -48,7 +48,7 @@ class Subsystem:
             by the cut.
         perturb_vector (np.array): The vector of perturbation probabilities for
             each node.
-        cut_indices (tuple(int)): The nodes of the subsystem cut by a |big_phi|
+        cut_indices (tuple[int]): The nodes of the subsystem cut by a |big_phi|
             cut.
         null_cut (Cut): The cut object representing no cut.
         tpm (np.array): The TPM conditioned on the state of the external nodes.
@@ -250,11 +250,10 @@ class Subsystem:
         """Return nodes for these indices.
 
         Args:
-            indices (iterable(int)):
+            indices (tuple[int]): The indices in question.
 
         Returns:
-            nodes (tuple(Node)): The |Node| objects corresponding to
-                these indices.
+            tuple[Node]: The |Node| objects corresponding to these indices.
 
         Raises:
             ValueError: If requested indices are not in the subsystem.
@@ -277,9 +276,9 @@ class Subsystem:
         """Return the cause repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (tuple(int)): The mechanism for which to calculate the
+            mechanism (tuple[int]): The mechanism for which to calculate the
                 cause repertoire.
-            purview (tuple(int)): The purview over which to calculate the
+            purview (tuple[int]): The purview over which to calculate the
                 cause repertoire.
 
         Returns:
@@ -348,9 +347,9 @@ class Subsystem:
         """Return the effect repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (tuple(int)): The mechanism for which to calculate the
+            mechanism (tuple[int]): The mechanism for which to calculate the
                 effect repertoire.
-            purview (tuple(int)): The purview over which to calculate the
+            purview (tuple[int]): The purview over which to calculate the
                 effect repertoire.
 
         Returns:
@@ -441,9 +440,9 @@ class Subsystem:
 
         Args:
             direction (str): One of 'past' or 'future'.
-            mechanism (tuple(int)): The mechanism for which to calculate the
+            mechanism (tuple[int]): The mechanism for which to calculate the
                 repertoire.
-            purview (tuple(int)): The purview over which to calculate the
+            purview (tuple[int]): The purview over which to calculate the
                 repertoire.
 
         Returns:
@@ -490,13 +489,13 @@ class Subsystem:
 
         Args:
             direction (str): Either |past| or |future|.
-            purview (tuple(int) or None): The purview over which the repertoire
+            purview (tuple[int] or None): The purview over which the repertoire
                 was calculated.
             repertoire (``np.ndarray``): A repertoire computed over
                 ``purview``.
 
         Keyword Args:
-            new_purview (tuple(int)): The purview to expand the repertoire
+            new_purview (tuple[int]): The purview to expand the repertoire
                 over. Defaults to the entire subsystem.
 
         Returns:
@@ -565,8 +564,8 @@ class Subsystem:
 
         Args:
             direction (str): Either |past| or |future|.
-            mechanism (tuple(int)): The nodes in the mechanism.
-            purview (tuple(int)): The nodes in the purview.
+            mechanism (tuple[int]): The nodes in the mechanism.
+            purview (tuple[int]): The nodes in the purview.
 
         Returns:
             |Mip|: The mininum-information partition in one temporal direction.
@@ -679,10 +678,10 @@ class Subsystem:
 
         Args:
             direction ('str'): Either |past| or |future|.
-            mechanism (tuple(int)): The mechanism of interest.
+            mechanism (tuple[int]): The mechanism of interest.
 
-        Kwargs:
-            purviews (tuple(int)): Optional subset of purviews of interest.
+        Keyword Args:
+            purviews (tuple[int]): Optional subset of purviews of interest.
         """
         if purviews is False:
             purviews = self.network._potential_purviews(direction, mechanism)
@@ -702,11 +701,11 @@ class Subsystem:
         Args:
             direction (str): The temporal direction (|past| or |future|)
                 specifying cause or effect.
-            mechanism (tuple(int)): The mechanism to be tested for
+            mechanism (tuple[int]): The mechanism to be tested for
                 irreducibility.
 
         Keyword Args:
-            purviews (tuple(int)): Optionally restrict the possible purviews
+            purviews (tuple[int]): Optionally restrict the possible purviews
                 to a subset of the subsystem. This may be useful for _e.g._
                 finding only concepts that are "about" a certain subset of
                 nodes.
@@ -811,11 +810,11 @@ def mip_bipartitions(mechanism, purview):
          B    []                    []     B
 
     Args:
-        mechanism (tuple(int)): The mechanism to partition
-        purview (tuple(int)): The purview to partition
+        mechanism (tuple[int]): The mechanism to partition
+        purview (tuple[int]): The purview to partition
 
     Returns:
-        list(|Bipartition|): Where each partition is
+        list[|Bipartition|]: Where each partition is
 
         ::
 

@@ -17,14 +17,14 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
     Args:
         subsystem (Subsytem): The context in which the mechanism should be
             considered.
-        mechanism (tuple(int)): The candidate set of nodes.
+        mechanism (tuple[int]): The candidate set of nodes.
 
     Keyword Args:
-        purviews (tuple(tuple(int))): Restrict the possible purviews to those
+        purviews (tuple[tuple[int]]): Restrict the possible purviews to those
             in this list.
-        past_purviews (tuple(tuple(int))): Restrict the possible cause
+        past_purviews (tuple[tuple[int]]): Restrict the possible cause
             purviews to those in this list. Takes precedence over ``purviews``.
-        future_purviews (tuple(tuple(int))): Restrict the possible effect
+        future_purviews (tuple[tuple[int]]): Restrict the possible effect
             purviews to those in this list. Takes precedence over ``purviews``.
 
     Returns:
@@ -118,17 +118,17 @@ def constellation(subsystem, mechanisms=False, purviews=False,
             constellation.
 
     Keyword Args:
-        mechanisms (tuple(tuple(int))): A list of mechanisms, as node indices,
+        mechanisms (tuple[tuple[int]]): A list of mechanisms, as node indices,
             to be considered as possible mechanisms for the concepts in the
             constellation.
-        purviews (tuple(tuple(int))): A list of purviews, as node indices, to
+        purviews (tuple[tuple[int]]): A list of purviews, as node indices, to
             be considered as possible purviews for the concepts in the
             constellation.
-        past_purviews (tuple(tuple(int))): A list of purviews, as node indices,
+        past_purviews (tuple[tuple[int]]): A list of purviews, as node indices,
             to be considered as possible *cause* purviews for the concepts in
             the constellation. This takes precedence over the more general
             ``purviews`` option.
-        future_purviews (tuple(tuple(int))): A list of purviews, as node
+        future_purviews (tuple[tuple[int]]): A list of purviews, as node
             indices, to be considered as possible *effect* purviews for the
             concepts in the constellation. This takes precedence over the more
             general ``purviews`` option.

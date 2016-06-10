@@ -23,10 +23,10 @@ def make_repr(self, attrs):
 
     Args:
         self (obj): The object in question
-        attrs (iterable(str)): Attributes to include in the repr
+        attrs (Iterable[str]): Attributes to include in the repr
 
     Returns:
-        (str): the `repr`esentation of the object
+        str: the `repr`esentation of the object
     """
     # TODO: change this to a closure so we can do
     # __repr__ = make_repr(attrs) ???
@@ -115,7 +115,7 @@ def fmt_bipartition(partition, subsystem=None):
          2    0,1
 
     Args:
-        partition (tuple(Part, Part)): The partition in question.
+        partition (Bipartition): The partition in question.
 
     Returns:
         str: A human-readable string representation of the partition.

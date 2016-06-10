@@ -29,12 +29,12 @@ class Mip(cmp._Orderable):
             Either |past| or |future|. The temporal direction specifiying
             whether this MIP should be calculated with cause or effect
             repertoires.
-        mechanism (tuple(int)):
+        mechanism (tuple[int]):
             The mechanism over which to evaluate the MIP.
-        purview (tuple(int)):
+        purview (tuple[int]):
             The purview over which the unpartitioned repertoire differs the
             least from the partitioned repertoire.
-        partition (tuple(Part, Part)):
+        partition (Bipartition):
             The partition that makes the least difference to the mechanism's
             repertoire.
         unpartitioned_repertoire (np.ndarray):

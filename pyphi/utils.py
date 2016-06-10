@@ -41,7 +41,7 @@ def all_states(n):
         n (int): The number of elements in the system.
 
     Yields:
-        tuple(int): The next state of an ``n``-element system, in LOLI order.
+        tuple[int]: The next state of an ``n``-element system, in LOLI order.
     """
     if n == 0:
         return
@@ -74,7 +74,7 @@ def run_tpm(tpm, time_scale):
         time_scale (int): The number of steps to run the tpm.
 
     Returns:
-        tpm (np.ndarray)
+        np.ndarray
     """
     sbs_tpm = convert.state_by_node2state_by_state(tpm)
     if sparse(tpm):
@@ -92,7 +92,7 @@ def run_cm(cm, time_scale):
         time_scale (int): The number of steps to run.
 
     Returns:
-        tpm (np.ndarray)
+        np.ndarray
     """
     cm = np.linalg.matrix_power(cm, time_scale)
     # Round non-unitary values back to 1
@@ -155,9 +155,9 @@ def fully_connected(cm, nodes1, nodes2):
 
     Args:
         cm (``np.ndarrray``): The connectivity matrix
-        nodes1 (tuple(int)): The nodes whose outputs to ``nodes2`` will be
+        nodes1 (tuple[int]): The nodes whose outputs to ``nodes2`` will be
             tested.
-        nodes2 (tuple(int)): The nodes whose inputs from ``nodes1`` will
+        nodes2 (tuple[int]): The nodes whose inputs from ``nodes1`` will
             be tested.
 
     Returns:
@@ -372,7 +372,7 @@ def max_entropy_distribution(node_indices, number_of_nodes,
     state.
 
     Args:
-        node_indices (tuple(int)): The set of node indices over which to take
+        node_indices (tuple[int]): The set of node indices over which to take
             the distribution.
         number_of_nodes (int): The total number of nodes in the network.
 
@@ -440,7 +440,7 @@ def bipartition(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        list(tuple(tuple)): A list of tuples containing each of the two
+        list[tuple[tuple]]: A list of tuples containing each of the two
             partitions.
 
     Example:
@@ -460,7 +460,7 @@ def directed_bipartition(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        list(tuple(tuple)): A list of tuples containing each of the two
+        list[tuple[tuple]]: A list of tuples containing each of the two
             partitions.
 
     Example:
@@ -479,7 +479,7 @@ def directed_bipartition_of_one(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        list(tuple(tuple)): A list of tuples containing each of the two
+        list[tuple[tuple]]: A list of tuples containing each of the two
             partitions.
 
     Example:
@@ -500,8 +500,8 @@ def directed_bipartition_indices(N):
         N (int): The length of the sequence.
 
     Returns:
-        bipartition_indices (``list``): A list of tuples containing the indices
-            for each of the two partitions.
+        list: A list of tuples containing the indices for each of the two
+            partitions.
 
     Example:
         >>> N = 3
@@ -520,8 +520,8 @@ def bipartition_indices(N):
         N (int): The length of the sequence.
 
     Returns:
-        bipartition_indices (``list``): A list of tuples containing the indices
-            for each of the two partitions.
+        list: A list of tuples containing the indices for each of the two
+            partitions.
 
     Example:
         >>> N = 3
@@ -550,7 +550,7 @@ def load_data(dir, num):
     The files should stored in ``data/{dir}`` and named
     ``0.npy, 1.npy, ... {num - 1}.npy``.
 
-    Returns
+    Returns:
         list: A list of loaded data, such that ``list[i]`` contains the
         the contents of ``i.npy``.
     """
@@ -578,8 +578,8 @@ def _hamming_matrix(N):
         N (int): The number of nodes under consideration
 
     Returns:
-        hamming_matrix (``np.ndarray``): A |2^N x 2^N| matrix where the |ith|
-            element is the Hamming distance between state |i| and state |j|.
+        ``np.ndarray``: A |2^N x 2^N| matrix where the |ith| element is the
+            Hamming distance between state |i| and state |j|.
 
     Example:
         >>> _hamming_matrix(2)
@@ -615,8 +615,8 @@ def relevant_connections(n, _from, to):
 
     Args:
         n (int): The dimensions of the matrix
-        _from (tuple(int)): Nodes with outgoing connections to ``to``
-        to (tuple(int)): Nodes with incoming connections from ``_from``
+        _from (tuple[int]): Nodes with outgoing connections to ``to``
+        to (tuple[int]): Nodes with incoming connections from ``_from``
     """
     cm = np.zeros((n, n))
 
@@ -706,8 +706,8 @@ def block_reducible(cm, nodes1, nodes2):
 
     Args:
         cm (np.ndarray): The network's connectivity matrix.
-        nodes1 (tuple(int)): Source nodes
-        nodes2 (tuple(int)): Sink nodes
+        nodes1 (tuple[int]): Source nodes
+        nodes2 (tuple[int]): Sink nodes
     """
     if not nodes1 or not nodes2:
         return True  # trivially
@@ -729,7 +729,7 @@ def strongly_connected(cm, nodes=None):
         cm (np.ndarray): A square connectivity matrix.
 
     Keyword Args:
-        nodes (tuple(int)): An optional subset of node indices to test strong
+        nodes (tuple[int]): An optional subset of node indices to test strong
             connectivity over.
     """
     if nodes is not None:

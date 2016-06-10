@@ -316,9 +316,9 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
     """Represents a coarse graining of a collection of nodes.
 
     Attributes:
-        partition (tuple(tuple)): The partition of micro-elements into
+        partition (tuple[tuple]): The partition of micro-elements into
             macro-elements.
-        grouping (tuple(tuple(tuple))): The grouping of micro-states into
+        grouping (tuple[tuple[tuple]]): The grouping of micro-states into
             macro-states.
     """
     # TODO: validate? Currently implemented in validate.coarse_grain, but
@@ -362,11 +362,11 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         """Translate a micro state to a macro state
 
         Args:
-            micro_state (tuple(int)): The state of the micro nodes in this
+            micro_state (tuple[int]): The state of the micro nodes in this
                 coarse-graining.
 
         Returns:
-            tuple(int): The state of the macro system, translated as specified
+            tuple[int]: The state of the macro system, translated as specified
                 by this coarse-graining.
 
         Example:
@@ -454,8 +454,8 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
     """Class representing a blackboxing of a system.
 
     Attributes:
-        partition (tuple(tuple(int)): The partition of nodes into boxes.
-        output_indices (tuple(int)): Outputs of the blackboxes.
+        partition (tuple[tuple[int]]): The partition of nodes into boxes.
+        output_indices (tuple[int]): Outputs of the blackboxes.
     """
     # TODO: validate!
     # TODO: validate that output indices are ordered?
@@ -504,11 +504,11 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
         This is just the state of the blackbox's output indices.
 
         Args:
-            micro_state (tuple(int)): The state of the micro-elements in the
+            micro_state (tuple[int]): The state of the micro-elements in the
                 blackbox.
 
         Returns:
-            tuple(int): The state of the output indices.
+            tuple[int]: The state of the output indices.
         """
         assert len(micro_state) == len(self.micro_indices)
 
@@ -534,11 +534,10 @@ def _partitions_list(N):
         N (int): The number of nodes under consideration.
 
     Returns:
-        partition_list (``list``): A list of lists, where each inner list is
-        the set of micro-elements corresponding to a macro-element.
+        list[list]: A list of lists, where each inner list is the set of
+        micro-elements corresponding to a macro-element.
 
     Example:
-        >>> from pyphi.macro import _partitions_list
         >>> _partitions_list(3)
         [[[0, 1], [2]], [[0, 2], [1]], [[0], [1, 2]], [[0], [1], [2]]]
     """
@@ -554,11 +553,11 @@ def all_partitions(indices):
     """Return a list of all possible coarse grains of a network.
 
     Args:
-        indices (tuple(int)): The micro indices to partition.
+        indices (tuple[int]): The micro indices to partition.
 
     Yields:
-        tuple(tuple): A possible partition. Each element of the tuple
-            is a tuple of micro-elements which correspond to macro-elements.
+        tuple[tuple]: A possible partition. Each element of the tuple
+        is a tuple of micro-elements which correspond to macro-elements.
     """
     n = len(indices)
     partitions = _partitions_list(n)
@@ -575,11 +574,11 @@ def all_groupings(partition):
     (partition) of a network.
 
     Args:
-        partition (tuple(tuple))): A partition of micro-elements into macro
+        partition (tuple[tuple]): A partition of micro-elements into macro
             elements.
 
     Yields:
-        tuple(tuple(tuple)): A grouping of micro-states into macro states of
+        tuple[tuple[tuple]]: A grouping of micro-states into macro states of
             system.
 
     TODO: document exactly how to interpret the grouping.
@@ -601,7 +600,7 @@ def all_coarse_grains(indices):
     """Generator over all possible ``CoarseGrains`` of these indices.
 
     Args:
-        indices (tuple(int)): Node indices to coarse grain.
+        indices (tuple[int]): Node indices to coarse grain.
 
     Yields:
         CoarseGrain: The next coarse-grain for ``indices``.
@@ -631,7 +630,7 @@ def all_blackboxes(indices):
     """Generator over all possible blackboxings of these indices.
 
     Args:
-        indices (tuple(int)): Nodes to blackbox.
+        indices (tuple[int]): Nodes to blackbox.
 
     Yields:
         Blackbox: The next blackbox of ``indices``.
@@ -692,11 +691,11 @@ def coarse_grain(network, state, internal_indices):
 
     Args:
         network (Network): The network in question.
-        state (tuple(int)): The state of the network.
-        internal_indices (tuple(indices)): Nodes in the micro-system.
+        state (tuple[int]): The state of the network.
+        internal_indices (tuple[int]): Nodes in the micro-system.
 
     Returns:
-        tuple(int, CoarseGrain): The phi-value of the maximal CoarseGrain.
+        tuple[int, CoarseGrain]: The phi-value of the maximal CoarseGrain.
     """
     max_phi = float('-inf')
     max_coarse_grain = CoarseGrain((), ())
@@ -764,12 +763,12 @@ def emergence(network, state, blackbox=False, coarse_grain=True,
 
     Args:
         network (Network): The network of the micro-system under investigation.
-        state (tuple(int)): The state of the network.
+        state (tuple[int]): The state of the network.
         blackbox (boolean): Set to True to enable blackboxing. Defaults to
             False.
         coarse_grain (boolean): Set to True to enable coarse-graining.
             Defaults to True.
-        time_scales (list(int)): List of all time steps over which to check
+        time_scales (list[int]): List of all time steps over which to check
             for emergence.
 
     Returns:

@@ -36,7 +36,7 @@ class Network:
             ``connectivity_matrix[i][j] == 1`` means that node |i| is connected
             to node |j|. If no connectivity matrix is given, every node is
             connected to every node **(including itself)**.
-        node_labels (tuple(str)): Human readable labels for each node in the
+        node_labels (tuple[str]): Human readable labels for each node in the
             network.
 
     Attributes:
@@ -192,11 +192,11 @@ class Network:
 
         Args:
             direction (str): |past| or |future|
-            mechanism (tuple(int)): The mechanism which all purviews are
+            mechanism (tuple[int]): The mechanism which all purviews are
                 checked for reducibility over.
 
         Returns:
-            list(tuple(int)): All purviews which are irreducible over
+            list[tuple[int]]: All purviews which are irreducible over
                 ``mechanism``.
         """
         all_purviews = utils.powerset(self._node_indices)
@@ -244,11 +244,11 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
     Args:
         cm (np.ndarray): A |N x N| connectivity matrix.
         direction (str): |past| or |future|.
-        purviews (list(tuple(int))): The purviews to check.
-        mechanism (tuple(int)): The mechanism in question.
+        purviews (list[tuple[int]]): The purviews to check.
+        mechanism (tuple[int]): The mechanism in question.
 
     Returns:
-        list(tuple(int)): All purviews in ``purviews`` which are not reducible
+        list[tuple[int]]: All purviews in ``purviews`` which are not reducible
             over ``mechanism``.
     """
     def reducible(purview):

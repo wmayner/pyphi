@@ -146,9 +146,9 @@ def big_mip_bipartitions(nodes):
     This value changes based on `config.CUT_ONE_APPROXIMATION`.
 
     Args:
-        nodes tuple(int): The node indices to partition.
+        nodes (tuple[int]): The node indices to partition.
     Returns:
-        list(|Cut|): All unidirectional partitions.
+        list[|Cut|]: All unidirectional partitions.
     """
     if config.CUT_ONE_APPROXIMATION:
         bipartitions = utils.directed_bipartition_of_one(nodes)
@@ -284,10 +284,10 @@ def possible_complexes(network, state):
 
     Args:
         network (Network): The network for which to return possible complexes.
-        state (tuple(int)): The state of the network.
+        state (tuple[int]): The state of the network.
 
     Yields:
-        (Subsystem): The next subsystem which could be a complex.
+        Subsystem: The next subsystem which could be a complex.
     """
     validate.is_network(network)
 
