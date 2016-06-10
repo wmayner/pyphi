@@ -140,10 +140,17 @@ def fmt_bipartition(partition, subsystem=None):
     return "".join(chain.from_iterable(zip(part0, times, part1, breaks)))
 
 
-def side_by_side(left, right, lheader, rheader):
+def side_by_side(left, right):
     """Put two boxes next to each other.
 
     Assumes that all lines in the boxes are the same width.
+
+    Example:
+        >>> left = "A \\nC "
+        >>> right = "B\\nD"
+        >>> print(side_by_side(left, right))
+        A B
+        C D
     """
     left_lines = list(left.split("\n"))
     right_lines = list(right.split("\n"))
@@ -157,11 +164,28 @@ def side_by_side(left, right, lheader, rheader):
         fill = " " * len(left_lines[0])
         left_lines += [fill] * diff
 
-    header = (lheader.center(len(left_lines[0])) +
-              rheader.center(len(right_lines[0])))
+    return "\n".join(a + b for a, b in zip(left_lines, right_lines)) + "\n"
 
-    return header + "\n" + "\n".join(
-        a + b for a, b in zip(left_lines, right_lines))
+
+def header(header, text, over_char=None, under_char=None):
+    """Center a header over a block of text.
+
+    Assumes that all lines in the text are the same width.
+    """
+    lines = list(text.split("\n"))
+    width = len(lines[0])
+
+    header = header.center(width) + "\n"
+
+    # Underline header
+    if under_char:
+        header = header + under_char * width + "\n"
+
+    # 'Overline' header
+    if over_char:
+        header = over_char * width + "\n" + header
+
+    return header + text
 
 
 def fmt_concept(concept):
@@ -172,20 +196,15 @@ def fmt_concept(concept):
             return ""
         return box(indent(fmt_mip(x.mip, verbose=False), amount=1), split=True)
 
-    cause = fmt_cause_or_effect(concept.cause)
-    effect = fmt_cause_or_effect(concept.effect)
-    ce = side_by_side(cause, effect, "Cause", "Effect")
+    cause = header("Cause", fmt_cause_or_effect(concept.cause))
+    effect = header("Effect", fmt_cause_or_effect(concept.effect))
+    ce = side_by_side(cause, effect)
 
-    width = len(ce.split("\n")[0])
     mechanism = fmt_mechanism(concept.mechanism, concept.subsystem)
-    header = "Concept: Mechanism = {}, {} = {}".format(
-        mechanism, SMALL_PHI, concept.phi).center(width)
-    underline = "=" * width
+    title = "Concept: Mechanism = {}, {} = {}".format(
+        mechanism, SMALL_PHI, concept.phi)
 
-    return ("{underline}\n"
-            "{header}\n"
-            "{underline}\n\n"
-            "{ce}\n".format(header=header, underline=underline, ce=ce))
+    return header(title, ce, "=", "=")
 
 
 def fmt_mip(mip, verbose=True):
