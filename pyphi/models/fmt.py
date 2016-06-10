@@ -8,7 +8,7 @@ Helper functions for formatting pretty representations of PyPhi models.
 
 from itertools import chain
 
-from .. import config
+from .. import config, utils
 
 
 def make_repr(self, attrs):
@@ -181,8 +181,11 @@ def fmt_mip(mip, verbose=True):
             direction=direction,
             phi=mip.phi,
             partition=indent(fmt_bipartition(mip.partition, mip.subsystem)),
-            unpartitioned_repertoire=indent(mip.unpartitioned_repertoire),
-            partitioned_repertoire=indent(mip.partitioned_repertoire))
+            unpartitioned_repertoire=indent(fmt_repertoire(
+                mip.unpartitioned_repertoire)),
+            partitioned_repertoire=indent(fmt_repertoire(
+                mip.partitioned_repertoire)))
+            # TODO: print the two repertoires side-by-side?
 
 
 def fmt_cut(cut, subsystem=None):
@@ -218,3 +221,41 @@ def fmt_big_mip(big_mip):
                 big_mip.unpartitioned_constellation),
             partitioned_constellation=fmt_constellation(
                 big_mip.partitioned_constellation)))
+
+
+def box(lines):
+    """Wrap a list of lines in a box.
+
+    Example:
+        >>> print(box(['line1', 'line2']))
+        ---------
+        | line1 |
+        | line2 |
+        ---------
+    """
+    width = max(len(l) for l in lines)
+    bar = "-" * (4 + width)
+    lines = ["| {line:<{width}} |".format(line=line, width=width)
+             for line in lines]
+
+    return bar + "\n" + "\n".join(lines) + "\n" + bar
+
+
+def fmt_repertoire(r):
+    """Format a repertoire."""
+    # TODO: will this get unwieldy with large repertoires?
+    r = r.squeeze()
+
+    lines = []
+
+    # Header: "S      P(S)"
+    space = " " * 4
+    lines.append("{S:^{s_width}}{space}P({S})".format(
+        S="S", s_width=r.ndim, space=space))
+
+    # Lines: "001     .25"
+    for state in utils.all_states(r.ndim):
+        state_str = "".join(str(i) for i in state)
+        lines.append("{0}{1}{2:g}".format(state_str, space, r[state]))
+
+    return box(lines)
