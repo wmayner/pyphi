@@ -464,7 +464,7 @@ class Constellation(tuple):
             super().__repr__())
 
     def __str__(self):
-        return "\nConstellation\n*************" + fmt.fmt_constellation(self)
+        return fmt.fmt_constellation(self)
 
     def to_json(self):
         return list(self)

@@ -64,11 +64,19 @@ def indent(lines, amount=2, chr=' '):
     return padding + ('\n' + padding).join(lines.split('\n'))
 
 
-def fmt_constellation(c):
+def fmt_constellation(c, title=None):
     """Format a constellation."""
     if not c:
         return "()\n"
-    return "\n\n" + "\n".join(indent(x) for x in c) + "\n"
+
+    if title is None:
+        title = "Constellation"
+
+    concepts = "\n".join(indent(x) for x in c) + "\n"
+    title = "{} ({} concept{})".format(
+        title, len(c), "" if len(c) == 1 else "s")
+
+    return "\n" + header(title, concepts, "*", "*")
 
 
 def labels(indices, subsystem=None):
@@ -265,16 +273,18 @@ def fmt_big_mip(big_mip):
         "{BIG_PHI} = {phi}\n"
         "{subsystem}\n"
         "{cut}\n"
-        "Unpartitioned Constellation: {unpartitioned_constellation}"
-        "Partitioned Constellation: {partitioned_constellation}".format(
+        "{unpartitioned_constellation}"
+        "{partitioned_constellation}".format(
             BIG_PHI=BIG_PHI,
             phi=big_mip.phi,
             subsystem=big_mip.subsystem,
             cut=fmt_cut(big_mip.cut, big_mip.subsystem),
             unpartitioned_constellation=fmt_constellation(
-                big_mip.unpartitioned_constellation),
+                big_mip.unpartitioned_constellation,
+                "Unpartitioned Constellation"),
             partitioned_constellation=fmt_constellation(
-                big_mip.partitioned_constellation)))
+                big_mip.partitioned_constellation,
+                "Partitioned Constellation")))
 
 
 def box(lines, split=False):
