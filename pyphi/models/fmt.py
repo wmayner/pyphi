@@ -64,19 +64,73 @@ def indent(lines, amount=2, chr=' '):
     return padding + ('\n' + padding).join(lines.split('\n'))
 
 
-def fmt_constellation(c, title=None):
-    """Format a constellation."""
-    if not c:
-        return "()\n"
+def box(lines, split=False):
+    """Wrap a list of lines in a box.
 
-    if title is None:
-        title = "Constellation"
+    Example:
+        >>> print(box(['line1', 'line2']))
+        ---------
+        | line1 |
+        | line2 |
+        ---------
+    """
+    if split:
+        lines = lines.split("\n")
 
-    concepts = "\n".join(indent(x) for x in c) + "\n"
-    title = "{} ({} concept{})".format(
-        title, len(c), "" if len(c) == 1 else "s")
+    width = max(len(l) for l in lines)
+    bar = "-" * (4 + width)
+    lines = ["| {line:<{width}} |".format(line=line, width=width)
+             for line in lines]
 
-    return "\n" + header(title, concepts, "*", "*")
+    return bar + "\n" + "\n".join(lines) + "\n" + bar
+
+
+def side_by_side(left, right):
+    """Put two boxes next to each other.
+
+    Assumes that all lines in the boxes are the same width.
+
+    Example:
+        >>> left = "A \\nC "
+        >>> right = "B\\nD"
+        >>> print(side_by_side(left, right))
+        A B
+        C D
+    """
+    left_lines = list(left.split("\n"))
+    right_lines = list(right.split("\n"))
+
+    # Pad the shorter column with whitespace
+    diff = abs(len(left_lines) - len(right_lines))
+    if len(left_lines) > len(right_lines):
+        fill = " " * len(right_lines[0])
+        right_lines += [fill] * diff
+    elif len(right_lines) > len(left_lines):
+        fill = " " * len(left_lines[0])
+        left_lines += [fill] * diff
+
+    return "\n".join(a + b for a, b in zip(left_lines, right_lines)) + "\n"
+
+
+def header(header, text, over_char=None, under_char=None):
+    """Center a header over a block of text.
+
+    Assumes that all lines in the text are the same width.
+    """
+    lines = list(text.split("\n"))
+    width = len(lines[0])
+
+    header = header.center(width) + "\n"
+
+    # Underline header
+    if under_char:
+        header = header + under_char * width + "\n"
+
+    # 'Overline' header
+    if over_char:
+        header = over_char * width + "\n" + header
+
+    return header + text
 
 
 def labels(indices, subsystem=None):
@@ -148,52 +202,19 @@ def fmt_bipartition(partition, subsystem=None):
     return "".join(chain.from_iterable(zip(part0, times, part1, breaks)))
 
 
-def side_by_side(left, right):
-    """Put two boxes next to each other.
+def fmt_constellation(c, title=None):
+    """Format a constellation."""
+    if not c:
+        return "()\n"
 
-    Assumes that all lines in the boxes are the same width.
+    if title is None:
+        title = "Constellation"
 
-    Example:
-        >>> left = "A \\nC "
-        >>> right = "B\\nD"
-        >>> print(side_by_side(left, right))
-        A B
-        C D
-    """
-    left_lines = list(left.split("\n"))
-    right_lines = list(right.split("\n"))
+    concepts = "\n".join(indent(x) for x in c) + "\n"
+    title = "{} ({} concept{})".format(
+        title, len(c), "" if len(c) == 1 else "s")
 
-    # Pad the shorter column with whitespace
-    diff = abs(len(left_lines) - len(right_lines))
-    if len(left_lines) > len(right_lines):
-        fill = " " * len(right_lines[0])
-        right_lines += [fill] * diff
-    elif len(right_lines) > len(left_lines):
-        fill = " " * len(left_lines[0])
-        left_lines += [fill] * diff
-
-    return "\n".join(a + b for a, b in zip(left_lines, right_lines)) + "\n"
-
-
-def header(header, text, over_char=None, under_char=None):
-    """Center a header over a block of text.
-
-    Assumes that all lines in the text are the same width.
-    """
-    lines = list(text.split("\n"))
-    width = len(lines[0])
-
-    header = header.center(width) + "\n"
-
-    # Underline header
-    if under_char:
-        header = header + under_char * width + "\n"
-
-    # 'Overline' header
-    if over_char:
-        header = over_char * width + "\n" + header
-
-    return header + text
+    return "\n" + header(title, concepts, "*", "*")
 
 
 def fmt_concept(concept):
@@ -285,27 +306,6 @@ def fmt_big_mip(big_mip):
             partitioned_constellation=fmt_constellation(
                 big_mip.partitioned_constellation,
                 "Partitioned Constellation")))
-
-
-def box(lines, split=False):
-    """Wrap a list of lines in a box.
-
-    Example:
-        >>> print(box(['line1', 'line2']))
-        ---------
-        | line1 |
-        | line2 |
-        ---------
-    """
-    if split:
-        lines = lines.split("\n")
-
-    width = max(len(l) for l in lines)
-    bar = "-" * (4 + width)
-    lines = ["| {line:<{width}} |".format(line=line, width=width)
-             for line in lines]
-
-    return bar + "\n" + "\n".join(lines) + "\n" + bar
 
 
 def fmt_repertoire(r):
