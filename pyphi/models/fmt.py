@@ -301,6 +301,9 @@ def box(lines, split=False):
 def fmt_repertoire(r):
     """Format a repertoire."""
     # TODO: will this get unwieldy with large repertoires?
+    if r is None:
+        return ""
+
     r = r.squeeze()
 
     lines = []
