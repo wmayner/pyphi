@@ -176,14 +176,16 @@ def fmt_concept(concept):
     effect = fmt_cause_or_effect(concept.effect)
     ce = side_by_side(cause, effect, "Cause", "Effect")
 
-    return (
-        "{SMALL_PHI} = {phi}\n"
-        "Mechanism: {mechanism}\n"
-        "\n{ce}\n".format(
-            SMALL_PHI=SMALL_PHI,
-            phi=concept.phi,
-            mechanism=fmt_mechanism(concept.mechanism, concept.subsystem),
-            ce=ce))
+    width = len(ce.split("\n")[0])
+    mechanism = fmt_mechanism(concept.mechanism, concept.subsystem)
+    header = "Concept: Mechanism = {}, {} = {}".format(
+        mechanism, SMALL_PHI, concept.phi).center(width)
+    underline = "=" * width
+
+    return ("{underline}\n"
+            "{header}\n"
+            "{underline}\n\n"
+            "{ce}\n".format(header=header, underline=underline, ce=ce))
 
 
 def fmt_mip(mip, verbose=True):
@@ -202,7 +204,7 @@ def fmt_mip(mip, verbose=True):
     return (
         "{SMALL_PHI} = {phi}\n"
         "{mechanism}"
-        "Purview: {purview}\n"
+        "Purview = {purview}\n"
         "Partition:\n{partition}\n"
         "{direction}"
         "Unpartitioned Repertoire:\n{unpartitioned_repertoire}\n"

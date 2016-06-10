@@ -317,7 +317,7 @@ class Concept(cmp._Orderable):
         return fmt.make_repr(self, _concept_attributes)
 
     def __str__(self):
-        return "Concept\n""-------\n" + fmt.fmt_concept(self)
+        return fmt.fmt_concept(self)
 
     @property
     def location(self):
