@@ -464,8 +464,15 @@ def directed_bipartition(a):
             partitions.
 
     Example:
-        >>> directed_bipartition((1, 2, 3))
-        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
+        >>> directed_bipartition((1, 2, 3))  # doctest: +NORMALIZE_WHITESPACE
+        [((), (1, 2, 3)),
+         ((1,), (2, 3)),
+         ((2,), (1, 3)),
+         ((1, 2), (3,)),
+         ((3,), (1, 2)),
+         ((1, 3), (2,)),
+         ((2, 3), (1,)),
+         ((1, 2, 3), ())]
     """
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
             for part0_idx, part1_idx in directed_bipartition_indices(len(a))]
@@ -483,8 +490,13 @@ def directed_bipartition_of_one(a):
             partitions.
 
     Example:
-        >>> directed_bipartition_of_one((1,2,3))
-        [((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,))]
+        >>> directed_bipartition_of_one((1,2,3))  # doctest: +NORMALIZE_WHITESPACE
+        [((1,), (2, 3)),
+         ((2,), (1, 3)),
+         ((1, 2), (3,)),
+         ((3,), (1, 2)),
+         ((1, 3), (2,)),
+         ((2, 3), (1,))]
     """
     return [partition for partition in directed_bipartition(a)
             if len(partition[0]) == 1 or len(partition[1]) == 1]
@@ -505,8 +517,15 @@ def directed_bipartition_indices(N):
 
     Example:
         >>> N = 3
-        >>> directed_bipartition_indices(N)
-        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
+        >>> directed_bipartition_indices(N)  # doctest: +NORMALIZE_WHITESPACE
+        [((), (0, 1, 2)),
+         ((0,), (1, 2)),
+         ((1,), (0, 2)),
+         ((0, 1), (2,)),
+         ((2,), (0, 1)),
+         ((0, 2), (1,)),
+         ((1, 2), (0,)),
+         ((0, 1, 2), ())]
     """
     indices = bipartition_indices(N)
     return indices + [idx[::-1] for idx in indices[::-1]]
