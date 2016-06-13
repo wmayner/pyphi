@@ -267,7 +267,7 @@ def combs(a, r):
 
 # see http://stackoverflow.com/questions/16003217/
 def comb_indices(n, k):
-    """N-D version of itertools.combinations.
+    """|N-D| version of itertools.combinations.
 
     Args:
         a (np.ndarray): The array from which to get combinations.

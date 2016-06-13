@@ -120,7 +120,7 @@ def holi_index2state(i, number_of_nodes):
 
 
 def to_n_dimensional(tpm):
-    """Reshape a state-by-node TPM to the N-D form.
+    """Reshape a state-by-node TPM to the |N-D| form.
 
     See documentation for the |Network| object for more information on TPM
     formats.
