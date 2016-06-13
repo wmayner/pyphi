@@ -96,6 +96,7 @@ def side_by_side(left, right):
         >>> print(side_by_side(left, right))
         A B
         C D
+        <BLANKLINE>
     """
     left_lines = list(left.split("\n"))
     right_lines = list(right.split("\n"))
