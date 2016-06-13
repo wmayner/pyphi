@@ -16,6 +16,7 @@ Next Release
   graining are now parametrized with the `blackbox` and `coarse_grain`
   arguments.
 - Removed `utils.submatrix`.
+- Made `Network.tpm` and `Network.cm` immutable properties.
 
 ### API Additions
 - Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to
@@ -42,6 +43,7 @@ Next Release
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
+- Improved string representations of PyPhi objects.
 
 ### Documentation
 - Updated docs and examples to reflect changes made to the macro API and usage.
