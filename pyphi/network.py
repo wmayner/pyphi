@@ -273,9 +273,10 @@ def from_json(filename):
        |Network|: The corresponding PyPhi network object.
     """
     with open(filename) as f:
-        network_dictionary = json.load(f)
-    tpm = network_dictionary['tpm']
-    cm = network_dictionary['cm']
-    labels = network_dictionary['labels']
-    network = Network(tpm, connectivity_matrix=cm, node_labels=labels)
-    return network
+        loaded = json.load(f)
+
+    tpm = loaded['tpm']
+    cm = loaded['cm']
+    labels = loaded['labels']
+
+    return Network(tpm, connectivity_matrix=cm, node_labels=labels)
