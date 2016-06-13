@@ -15,8 +15,6 @@ from . import cache, convert, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST
 
 
-# TODO!!! raise error if user tries to change TPM or CM, double-check and
-# document that states can be changed
 class Network:
     """A network of nodes.
 
