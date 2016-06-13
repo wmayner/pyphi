@@ -163,7 +163,7 @@ builds the HTML documentation.
 ``Gruntfile.js`` defines similar tasks. To get grunt, first install
 `Node.js <http://nodejs.org/>`_. Then, within the ``pyphi`` directory, run
 ``npm install`` to install the local npm dependencies, then run
-``sudo npm install -g grunt grunt-cli`` to instjall the ``grunt``command to your
+``sudo npm install -g grunt grunt-cli`` to install the ``grunt`` command to your
 system. You should now be able to run tasks with ``grunt``.
 
 
