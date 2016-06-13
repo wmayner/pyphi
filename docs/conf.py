@@ -156,6 +156,8 @@ rst_prolog = """
 .. |j| replace:: :math:`j`
 .. |i,jth| replace:: :math:`i,j^{\\textrm{th}}`
 .. |k| replace:: :math:`k`
+.. |2-D| replace:: :math:`2`-:math:`D`
+.. |N-D| replace:: :math:`N`-:math:`D`
 .. |past| replace:: :const:`DIRECTIONS[PAST]`
 .. |future| replace:: :const:`DIRECTIONS[FUTURE]`
 .. |PRECISION| replace:: :const:`constants.PRECISION`

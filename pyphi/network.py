@@ -22,47 +22,40 @@ class Network:
 
     Represents the network we're analyzing and holds auxilary data about it.
 
-    Example:
-        In a 3-node network, ``a_network.tpm[(0, 0, 1)]`` gives the transition
-        probabilities for each node at |t_0| given that state at |t_{-1}| was
-        |N_0 = 0, N_1 = 0, N_2 = 1|.
-
     Args:
-        tpm (np.ndarray): See the corresponding attribute.
+        tpm (np.ndarray): The transition probability matrix of the network.
+
+            The TPM can be provided in either state-by-node (either |2-D| or
+            |N-D|) or state-by-state form. In either form, row indices must
+            follow the **LOLI** convention (see discussion in the |examples|
+            module.) In state-by-state form column indices must also follow
+            **LOLI** convention.
+
+            If given in state-by-node form, the TPM can be either
+            2-dimensional, so that ``tpm[i]`` gives the probabilities of each
+            node being on if the past state is encoded by |i| according to
+            **LOLI**, or in |N-D| form, so that ``tpm[(0, 0, 1)]`` gives the
+            probabilities of each node being on if the past state is
+            |N_0 = 0, N_1 = 0, N_2 = 1|.
+
+            The shape of the 2-dimensional form of a state-by-node TPM must be
+            ``(S, N)``, and the shape of the |N-D| form of the TPM must be
+            ``[2] * N + [N]``, where ``S`` is the number of states and |N| is
+            the number of nodes in the network.
 
     Keyword Args:
-        connectivity_matrix (array or sequence): A square binary adjacency
-            matrix indicating the connections between nodes in the network.
+        connectivity_matrix (np.ndarray): A square binary adjacency matrix
+            indicating the connections between nodes in the network.
             ``connectivity_matrix[i][j] == 1`` means that node |i| is connected
             to node |j|. If no connectivity matrix is given, every node is
             connected to every node **(including itself)**.
         node_labels (tuple[str]): Human readable labels for each node in the
             network.
 
-    Attributes:
-        tpm (np.ndarray):
-            The network's transition probability matrix. It can be provided in
-            either state-by-node (either 2-D or N-D) or state-by-state form. In
-            either form, row indices must follow the **LOLI** convention (see
-            discussion in the |examples| module), and in state-by-state form,
-            so must column indices. If given in state-by-node form, it can be
-            either 2-dimensional, so that ``tpm[i]`` gives the probabilities of
-            each node being on if the past state is encoded by |i| according to
-            **LOLI**, or in N-D form, so that ``tpm[(0, 0, 1)]`` gives the
-            probabilities of each node being on if the past state is |N_0 = 0,
-            N_1 = 0, N_2 = 1|. The shape of the 2-dimensional form of a
-            state-by-node TPM must be ``(S, N)``, and the shape of the N-D form
-            of the TPM must be ``[2] * N + [N]``, where ``S`` is the number of
-            states and ``N`` is the number of nodes in the network.
-        cm (np.ndarray):
-            A square binary adjacency matrix indicating the connections between
-            nodes in the network.
-        connectivity_matrix (np.ndarray):
-            Alias for `Network.cm`.
-        size (int):
-            The number of nodes in the network.
-        num_states (int):
-            The number of possible states of the network.
+    Example:
+        In a 3-node network, ``a_network.tpm[(0, 0, 1)]`` gives the transition
+        probabilities for each node at |t_0| given that state at |t_{-1}| was
+        |N_0 = 0, N_1 = 0, N_2 = 1|.
     """
 
     # TODO make tpm also optional when implementing logical network definition
@@ -78,27 +71,9 @@ class Network:
         validate.network(self)
 
     @property
-    def size(self):
-        return self.tpm.shape[-1]
-
-    # TODO extend to nonbinary nodes
-    @property
-    def num_states(self):
-        return 2 ** self.size
-
-    @property
-    def node_indices(self):
-        return self._node_indices
-
-    @property
-    def node_labels(self):
-        if self._node_labels is None:
-            self._node_labels = tuple("n{}".format(i)
-                                      for i in self.node_indices)
-        return self._node_labels
-
-    @property
     def tpm(self):
+        """np.ndarray: The network's transition probability matrix, in |N-D|
+        form."""
         return self._tpm
 
     @tpm.setter
@@ -122,7 +97,11 @@ class Network:
 
     @property
     def cm(self):
-        """The network's connectivity matrix."""
+        """np.ndarray: The network's connectivity matrix.
+
+        A square binary adjacency matrix indicating the connections between
+        nodes in the network.
+        """
         return self._cm
 
     @cm.setter
@@ -139,12 +118,39 @@ class Network:
 
     @property
     def connectivity_matrix(self):
-        """Alias for `connectivity_matrix`."""
+        """np.ndarray: Alias for `connectivity_matrix`."""
         return self.cm
 
     @connectivity_matrix.setter
     def connectivity_matrix(self, cm):
         self.cm = cm
+
+    @property
+    def size(self):
+        """int: The number of nodes in the network."""
+        return self.tpm.shape[-1]
+
+    # TODO extend to nonbinary nodes
+    @property
+    def num_states(self):
+        """int: The number of possible states of the network."""
+        return 2 ** self.size
+
+    @property
+    def node_indices(self):
+        """tuple[int]: The indices of nodes in the network.
+
+        This is ``0..network.size``.
+        """
+        return self._node_indices
+
+    @property
+    def node_labels(self):
+        """tuple[str]: The labels of nodes in the network."""
+        if self._node_labels is None:
+            self._node_labels = tuple("n{}".format(i)
+                                      for i in self.node_indices)
+        return self._node_labels
 
     @property
     def perturb_vector(self):
