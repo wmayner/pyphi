@@ -234,7 +234,8 @@ class Network:
         return {
             'tpm': self.tpm,
             'cm': self.cm,
-            'size': self.size
+            'size': self.size,
+            'labels': self.node_labels
         }
 
 
@@ -275,5 +276,6 @@ def from_json(filename):
         network_dictionary = json.load(f)
     tpm = network_dictionary['tpm']
     cm = network_dictionary['cm']
-    network = Network(tpm, connectivity_matrix=cm)
+    labels = network_dictionary['labels']
+    network = Network(tpm, connectivity_matrix=cm, node_labels=labels)
     return network

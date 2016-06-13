@@ -52,7 +52,9 @@ def test_network_from_json(s):
     f = tempfile.NamedTemporaryFile(mode='wt')
     jsonify.dump(s.network, f)
     f.seek(0)
-    assert network.from_json(f.name) == s.network
+    loaded_network = network.from_json(f.name)
+    assert loaded_network == s.network
+    assert np.array_equal(loaded_network.node_labels, s.network.node_labels)
 
 
 # TODO: these tests need to be fleshed out, they don't do much
