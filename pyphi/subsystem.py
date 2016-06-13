@@ -821,6 +821,23 @@ def mip_bipartitions(mechanism, purview):
             bipart[0].mechanism   bipart[1].mechanism
             ------------------- X -------------------
             bipart[0].purview     bipart[1].purview
+
+    Example:
+        >>> mechanism = (0,)
+        >>> purview = (2, 3)
+        >>> for partition in mip_bipartitions(mechanism, purview):
+        ...     print(partition, "\\n")  # doctest: +NORMALIZE_WHITESPACE
+        []   0
+        -- X -
+        2    3
+        <BLANKLINE>
+        []   0
+        -- X -
+        3    2
+        <BLANKLINE>
+        []    0
+        --- X --
+        2,3   []
     """
     numerators = utils.bipartition(mechanism)
     denominators = utils.directed_bipartition(purview)
