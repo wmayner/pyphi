@@ -19,6 +19,7 @@ from .node import generate_nodes
 
 class Subsystem:
     # TODO! go through docs and make sure to say when things can be None
+    # TODO: make subsystem attributes immutable
     """A set of nodes in a network.
 
     Args:
@@ -32,31 +33,21 @@ class Subsystem:
         cut (Cut): The unidirectional |Cut| to apply to this subsystem.
 
     Attributes:
+        network (Network): The network the subsystem belongs to.
+        tpm (np.array): The TPM conditioned on the state of the external nodes.
+        cm (np.array): The connectivity matrix after applying the cut.
         nodes (list[Node]): A list of nodes in the subsystem.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
-        size (int): The number of nodes in the subsystem.
-        network (Network): The network the subsystem belongs to.
-        state (tuple[int]): The state of the subsystem's network. ``state[i]``
-            gives the state of node |i|.
-        proper_state (tuple[int]): The state of the subsystem.
-            ``proper_state[i]`` gives the |ith| node in the subsystem. Note
-            that this is **not** the state of node |i|.
         cut (Cut): The cut that has been applied to this subsystem.
-        cm (np.array): The connectivity matrix after applying the cut.
-        connectivity_matrix(np.array): Alias for `cm`.
         cut_matrix (np.array): A matrix of connections which have been severed
             by the cut.
+        null_cut (Cut): The cut object representing no cut.
         perturb_vector (np.array): The vector of perturbation probabilities for
             each node.
-        cut_indices (tuple[int]): The nodes of the subsystem cut by a |big_phi|
-            cut.
-        null_cut (Cut): The cut object representing no cut.
-        tpm (np.array): The TPM conditioned on the state of the external nodes.
     """
 
     def __init__(self, network, state, nodes, cut=None,
                  mice_cache=None, repertoire_cache=None):
-        """Construct a Subsystem."""
         # The network this subsystem belongs to.
         self.network = network
 
@@ -114,7 +105,7 @@ class Subsystem:
 
     @property
     def state(self):
-        """The state of the Network this Subsystem belongs to."""
+        """tuple[int]: The state of the Network this Subsystem belongs to."""
         return self._state
 
     @state.setter
@@ -127,7 +118,11 @@ class Subsystem:
 
     @property
     def proper_state(self):
-        """The state of the nodes in this Subsystem."""
+        """tuple[int]): The state of the subsystem.
+
+        ``proper_state[i]`` gives the state of the |ith| node **in the
+        subsystem**. Note that this is **not** the state of ``nodes[i]``.
+        """
         return utils.state_of(self.node_indices, self.state)
 
     @proper_state.setter
@@ -141,7 +136,7 @@ class Subsystem:
 
     @property
     def connectivity_matrix(self):
-        """Alias for ``cm`` attribute."""
+        """np.ndarray: Alias for ``Subsystem.cm``."""
         return self.cm
 
     @connectivity_matrix.setter
@@ -150,26 +145,27 @@ class Subsystem:
 
     @property
     def size(self):
-        """The size of this Subsystem."""
+        """int: The number of nodes in the subsystem."""
         return len(self.node_indices)
 
     @property
     def is_cut(self):
-        """Return whether this Subsystem has a cut applied to it."""
+        """boolean: True if this Subsystem has a cut applied to it."""
         return self.cut != self.null_cut
 
     @property
     def cut_indices(self):
-        """The indices of this system to be cut for |big_phi| computations.
+        """tuple[int]: The nodes of this subsystem cut for |big_phi|
+        computations.
 
         This was added to support ``MacroSubsystem``, which cuts indices other
-        than ``self.node_indices``.
+        than ``node_indices``.
         """
         return self.node_indices
 
     @property
     def tpm_indices(self):
-        """The indices of nodes in the tpm."""
+        """tuple[int]: The indices of nodes in the tpm."""
         return tuple(range(self.tpm.shape[-1]))
 
     def repertoire_cache_info(self):
