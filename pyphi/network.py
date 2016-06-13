@@ -61,10 +61,11 @@ class Network:
     # TODO make tpm also optional when implementing logical network definition
     def __init__(self, tpm, connectivity_matrix=None, node_labels=None,
                  perturb_vector=None, purview_cache=None):
+
         self._tpm, self._tpm_hash = self._build_tpm(tpm)
+        self._cm, self._cm_hash = self._build_cm(connectivity_matrix)
         self._node_indices = tuple(range(self.size))
         self._node_labels = node_labels
-        self.cm = connectivity_matrix
         self.perturb_vector = perturb_vector
         self.purview_cache = purview_cache or cache.PurviewCache()
 
@@ -102,26 +103,24 @@ class Network:
         """
         return self._cm
 
-    @cm.setter
-    def cm(self, cm):
-        if cm is not None:
-            self._cm = np.array(cm)
+    def _build_cm(self, cm):
+        """Convert the passed CM to the proper format, or construct the
+        unitary CM if none was provided."""
+        if cm is None:
+            # Assume all are connected.
+            cm = np.ones((self.size, self.size))
         else:
-            # If none was provided, assume all are connected.
-            self._cm = np.ones((self.size, self.size))
+            cm = np.array(cm)
+
         # Make the underlying attribute immutable.
-        self._cm.flags.writeable = False
-        # Update hash.
-        self._cm_hash = utils.np_hash(self.cm)
+        cm.flags.writeable = False
+
+        return (cm, utils.np_hash(cm))
 
     @property
     def connectivity_matrix(self):
-        """np.ndarray: Alias for `connectivity_matrix`."""
-        return self.cm
-
-    @connectivity_matrix.setter
-    def connectivity_matrix(self, cm):
-        self.cm = cm
+        """np.ndarray: Alias for `Network.cm`."""
+        return self._cm
 
     @property
     def size(self):
