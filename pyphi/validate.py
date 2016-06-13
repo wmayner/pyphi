@@ -32,7 +32,14 @@ def direction(direction):
 
 
 def tpm(tpm):
-    """Validate a TPM."""
+    """Validate a TPM.
+
+    The TPM can be in
+
+        * |2-D| state-by-state form,
+        * |2-D| state-by-node form, or
+        * |N-D| state-by-node form.
+    """
     see_tpm_docs = ('See documentation for pyphi.Network for more information '
                     'TPM formats.')
     # Cast to np.array.

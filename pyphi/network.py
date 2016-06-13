@@ -61,7 +61,7 @@ class Network:
     # TODO make tpm also optional when implementing logical network definition
     def __init__(self, tpm, connectivity_matrix=None, node_labels=None,
                  perturb_vector=None, purview_cache=None):
-        self.tpm = tpm
+        self._tpm, self._tpm_hash = self._build_tpm(tpm)
         self._node_indices = tuple(range(self.size))
         self._node_labels = node_labels
         self.cm = connectivity_matrix
@@ -76,24 +76,22 @@ class Network:
         form."""
         return self._tpm
 
-    @tpm.setter
-    def tpm(self, tpm):
-        # Cast TPM to np.array.
+    def _build_tpm(self, tpm):
+        """Validate the TPM passed by the user and convert to |N-D| form. """
         tpm = np.array(tpm)
-        # Validate TPM.
-        # The TPM can be either 2-dimensional or in N-D form, where transition
-        # probabilities can be indexed by state-tuples.
+
         validate.tpm(tpm)
-        # Convert to N-D state-by-node if we were given a square state-by-state
-        # TPM. Otherwise, force conversion to N-D format.
+
+        # Convert to N-D state-by-node form
         if utils.state_by_state(tpm):
-            self._tpm = convert.state_by_state2state_by_node(tpm)
+            tpm = convert.state_by_state2state_by_node(tpm)
         else:
-            self._tpm = convert.to_n_dimensional(tpm)
+            tpm = convert.to_n_dimensional(tpm)
+
         # Make the underlying attribute immutable.
-        self._tpm.flags.writeable = False
-        # Update hash.
-        self._tpm_hash = utils.np_hash(self.tpm)
+        tpm.flags.writeable = False
+
+        return (tpm, utils.np_hash(tpm))
 
     @property
     def cm(self):
