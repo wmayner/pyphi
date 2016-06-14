@@ -58,6 +58,11 @@ def indent(lines, amount=2, chr=' '):
 
     Returns:
         str: The indented string.
+
+    Example:
+        >>> print(indent("line1\\nline2", chr="*"))
+        **line1
+        **line2
     """
     lines = str(lines)
     padding = amount * chr
