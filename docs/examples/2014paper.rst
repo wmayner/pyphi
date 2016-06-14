@@ -461,7 +461,7 @@ and ``'cm'``:
     cm = network_dictionary['cm']
 
 For your convenience, there is a function that does this for you:
-:func:`pyphi.network.from_json()` that takes a path the a JSON file and returns
+:func:`pyphi.network.from_json()` that takes a path to a JSON file and returns
 a PyPhi network object.
 
 
@@ -647,11 +647,11 @@ into, use :func:`~pyphi.compute.condensed`:
     >>> condensed = pyphi.compute.condensed(network, state)
 
 We find that there are 2 complexes: the major complex :math:`ABC` with
-:math:`\Phi \approx 1.92`, and a minor complex `FG` with
-:math:`\Phi \approx 0.069` (note that there is typo in the figure: :math:`FG`'s
-:math:`\Phi` value should be :math:`0.069`). Furthermore, the program has been
-updated to only consider background conditions of current states, not past
-states; as a result the minor complex `DE` shown in the paper no longer exists.
+:math:`\Phi \approx 1.92`, and a minor complex `FG` with :math:`\Phi \approx
+0.069` (note that there is typo in the figure: :math:`FG`'s :math:`\Phi` value
+should be :math:`0.069`). Furthermore, the program has been updated to only
+consider background conditions of current states, not past states; as a result
+the minor complex :math:`DE` shown in the paper no longer exists.
 
     >>> len(condensed)
     2
