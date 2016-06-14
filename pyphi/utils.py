@@ -41,7 +41,7 @@ def all_states(n):
         n (int): The number of elements in the system.
 
     Yields:
-        tuple(int): The next state of an ``n``-element system, in LOLI order.
+        tuple[int]: The next state of an ``n``-element system, in LOLI order.
     """
     if n == 0:
         return
@@ -74,7 +74,7 @@ def run_tpm(tpm, time_scale):
         time_scale (int): The number of steps to run the tpm.
 
     Returns:
-        tpm (np.ndarray)
+        np.ndarray
     """
     sbs_tpm = convert.state_by_node2state_by_state(tpm)
     if sparse(tpm):
@@ -92,7 +92,7 @@ def run_cm(cm, time_scale):
         time_scale (int): The number of steps to run.
 
     Returns:
-        tpm (np.ndarray)
+        np.ndarray
     """
     cm = np.linalg.matrix_power(cm, time_scale)
     # Round non-unitary values back to 1
@@ -155,9 +155,9 @@ def fully_connected(cm, nodes1, nodes2):
 
     Args:
         cm (``np.ndarrray``): The connectivity matrix
-        nodes1 (tuple(int)): The nodes whose outputs to ``nodes2`` will be
+        nodes1 (tuple[int]): The nodes whose outputs to ``nodes2`` will be
             tested.
-        nodes2 (tuple(int)): The nodes whose inputs from ``nodes1`` will
+        nodes2 (tuple[int]): The nodes whose inputs from ``nodes1`` will
             be tested.
 
     Returns:
@@ -267,7 +267,7 @@ def combs(a, r):
 
 # see http://stackoverflow.com/questions/16003217/
 def comb_indices(n, k):
-    """N-D version of itertools.combinations.
+    """|N-D| version of itertools.combinations.
 
     Args:
         a (np.ndarray): The array from which to get combinations.
@@ -372,7 +372,7 @@ def max_entropy_distribution(node_indices, number_of_nodes,
     state.
 
     Args:
-        node_indices (tuple(int)): The set of node indices over which to take
+        node_indices (tuple[int]): The set of node indices over which to take
             the distribution.
         number_of_nodes (int): The total number of nodes in the network.
 
@@ -440,11 +440,10 @@ def bipartition(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        bipartition (``list(tuple(tuple))``): A list of tuples containing each
-            of the two partitions.
+        list[tuple[tuple]]: A list of tuples containing each of the two
+            partitions.
 
     Example:
-        >>> from pyphi.utils import bipartition
         >>> bipartition((1,2,3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
@@ -461,13 +460,19 @@ def directed_bipartition(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        bipartition (``list(tuple(tuple))``): A list of tuples containing each
-            of the two partitions.
+        list[tuple[tuple]]: A list of tuples containing each of the two
+            partitions.
 
     Example:
-        >>> from pyphi.utils import directed_bipartition
-        >>> directed_bipartition((1, 2, 3))
-        [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
+        >>> directed_bipartition((1, 2, 3))  # doctest: +NORMALIZE_WHITESPACE
+        [((), (1, 2, 3)),
+         ((1,), (2, 3)),
+         ((2,), (1, 3)),
+         ((1, 2), (3,)),
+         ((3,), (1, 2)),
+         ((1, 3), (2,)),
+         ((2, 3), (1,)),
+         ((1, 2, 3), ())]
     """
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
             for part0_idx, part1_idx in directed_bipartition_indices(len(a))]
@@ -481,13 +486,17 @@ def directed_bipartition_of_one(a):
         a (Iterable): The iterable to partition.
 
     Returns:
-        bipartition (``list(tuple(tuple))``): A list of tuples containing each
-            of the two partitions.
+        list[tuple[tuple]]: A list of tuples containing each of the two
+            partitions.
 
     Example:
-        >>> from pyphi.utils import directed_bipartition_of_one
-        >>> directed_bipartition_of_one((1,2,3))
-        [((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)), ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,))]
+        >>> directed_bipartition_of_one((1,2,3))  # doctest: +NORMALIZE_WHITESPACE
+        [((1,), (2, 3)),
+         ((2,), (1, 3)),
+         ((1, 2), (3,)),
+         ((3,), (1, 2)),
+         ((1, 3), (2,)),
+         ((2, 3), (1,))]
     """
     return [partition for partition in directed_bipartition(a)
             if len(partition[0]) == 1 or len(partition[1]) == 1]
@@ -503,14 +512,20 @@ def directed_bipartition_indices(N):
         N (int): The length of the sequence.
 
     Returns:
-        bipartition_indices (``list``): A list of tuples containing the indices
-            for each of the two partitions.
+        list: A list of tuples containing the indices for each of the two
+            partitions.
 
     Example:
-        >>> from pyphi.utils import directed_bipartition_indices
         >>> N = 3
-        >>> directed_bipartition_indices(N)
-        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,)), ((2,), (0, 1)), ((0, 2), (1,)), ((1, 2), (0,)), ((0, 1, 2), ())]
+        >>> directed_bipartition_indices(N)  # doctest: +NORMALIZE_WHITESPACE
+        [((), (0, 1, 2)),
+         ((0,), (1, 2)),
+         ((1,), (0, 2)),
+         ((0, 1), (2,)),
+         ((2,), (0, 1)),
+         ((0, 2), (1,)),
+         ((1, 2), (0,)),
+         ((0, 1, 2), ())]
     """
     indices = bipartition_indices(N)
     return indices + [idx[::-1] for idx in indices[::-1]]
@@ -524,11 +539,10 @@ def bipartition_indices(N):
         N (int): The length of the sequence.
 
     Returns:
-        bipartition_indices (``list``): A list of tuples containing the indices
-            for each of the two partitions.
+        list: A list of tuples containing the indices for each of the two
+            partitions.
 
     Example:
-        >>> from pyphi.utils import bipartition_indices
         >>> N = 3
         >>> bipartition_indices(N)
         [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
@@ -555,7 +569,7 @@ def load_data(dir, num):
     The files should stored in ``data/{dir}`` and named
     ``0.npy, 1.npy, ... {num - 1}.npy``.
 
-    Returns
+    Returns:
         list: A list of loaded data, such that ``list[i]`` contains the
         the contents of ``i.npy``.
     """
@@ -583,11 +597,10 @@ def _hamming_matrix(N):
         N (int): The number of nodes under consideration
 
     Returns:
-        hamming_matrix (``np.ndarray``): A |2^N x 2^N| matrix where the |ith|
-            element is the Hamming distance between state |i| and state |j|.
+        ``np.ndarray``: A |2^N x 2^N| matrix where the |ith| element is the
+            Hamming distance between state |i| and state |j|.
 
     Example:
-        >>> from pyphi.utils import _hamming_matrix
         >>> _hamming_matrix(2)
         array([[ 0.,  1.,  1.,  2.],
                [ 1.,  0.,  2.,  1.],
@@ -621,8 +634,8 @@ def relevant_connections(n, _from, to):
 
     Args:
         n (int): The dimensions of the matrix
-        _from (tuple(int)): Nodes with outgoing connections to ``to``
-        to (tuple(int)): Nodes with incoming connections from ``_from``
+        _from (tuple[int]): Nodes with outgoing connections to ``to``
+        to (tuple[int]): Nodes with incoming connections from ``_from``
     """
     cm = np.zeros((n, n))
 
@@ -712,8 +725,8 @@ def block_reducible(cm, nodes1, nodes2):
 
     Args:
         cm (np.ndarray): The network's connectivity matrix.
-        nodes1 (tuple(int)): Source nodes
-        nodes2 (tuple(int)): Sink nodes
+        nodes1 (tuple[int]): Source nodes
+        nodes2 (tuple[int]): Sink nodes
     """
     if not nodes1 or not nodes2:
         return True  # trivially
@@ -735,7 +748,7 @@ def strongly_connected(cm, nodes=None):
         cm (np.ndarray): A square connectivity matrix.
 
     Keyword Args:
-        nodes (tuple(int)): An optional subset of node indices to test strong
+        nodes (tuple[int]): An optional subset of node indices to test strong
             connectivity over.
     """
     if nodes is not None:
@@ -751,6 +764,7 @@ def strongly_connected(cm, nodes=None):
 
 def print_repertoire(r):
     """Print a vertical, human-readable cause/effect repertoire."""
+    r = np.squeeze(r)
     print('\n', '-' * 80)
     for i in range(r.size):
         strindex = bin(i)[2:].zfill(r.ndim)

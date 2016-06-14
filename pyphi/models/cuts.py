@@ -14,10 +14,10 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
     """Represents a unidirectional cut.
 
     Attributes:
-        severed (tuple(int)):
+        severed (tuple[int]):
             Connections from this group of nodes to those in ``intact`` are
             severed.
-        intact (tuple(int)):
+        intact (tuple[int]):
             Connections to this group of nodes from those in ``severed`` are
             severed.
     """
@@ -36,11 +36,11 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         """Check if this cut splits a mechanism.
 
         Args:
-            mechanism (tuple(int)): The mechanism in question
+            mechanism (tuple[int]): The mechanism in question
 
         Returns:
-            (bool): True if `mechanism` has elements on both sides
-                of the cut, otherwise False.
+            bool: True if `mechanism` has elements on both sides of the cut,
+                otherwise False.
         """
         # TODO: use cuts_connections
         return ((set(mechanism) & set(self[0])) and
@@ -54,7 +54,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         """Return all mechanisms with elements on both sides of this cut.
 
         Returns:
-            tuple(tuple(int)):
+            tuple[tuple[int]]
         """
         all_mechanisms = utils.powerset(self.indices)
         return tuple(m for m in all_mechanisms if self.splits_mechanism(m))
@@ -100,9 +100,9 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
     """Represents one part of a bipartition.
 
     Attributes:
-        mechanism (tuple(int)):
+        mechanism (tuple[int]):
             The nodes in the mechanism for this part.
-        purview (tuple(int)):
+        purview (tuple[int]):
             The nodes in the mechanism for this part.
 
     Example:
@@ -128,19 +128,25 @@ class Bipartition(namedtuple('Bipartition', ['part0', 'part1'])):
     Attributes:
         part0 (Part): The first part of the partition.
         part1 (Part): The second part of the partition.
-        mechanism (tuple(int)): The nodes of the mechanism in the partition.
-        purview (tuple(int)): The nodes of the purview in the partition.
     """
 
     @property
     def mechanism(self):
+        """tuple[int]: The nodes of the mechanism in the partition."""
         return tuple(sorted(self[0].mechanism + self[1].mechanism))
 
     @property
     def purview(self):
+        """tuple[int]: The nodes of the purview in the partition."""
         return tuple(sorted(self[0].purview + self[1].purview))
 
     __slots__ = ()
 
     def to_json(self):
         return {'part0': self.part0, 'part1': self.part1}
+
+    def __str__(self):
+        return fmt.fmt_bipartition(self)
+
+    def __repr__(self):
+        return fmt.make_repr(self, ['part0', 'part1'])

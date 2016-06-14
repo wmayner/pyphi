@@ -28,7 +28,7 @@ def state2holi_index(state):
     convention.
 
     Args:
-        state (tuple(int)): A state-tuple where the |ith| element of the tuple
+        state (tuple([int]): A state-tuple where the |ith| element of the tuple
             gives the state of the |ith| node.
 
     Returns:
@@ -50,7 +50,7 @@ def state2loli_index(state):
     convention.
 
     Args:
-        state (tuple(int)): A state-tuple where the |ith| element of the tuple
+        state (tuple[int]): A state-tuple where the |ith| element of the tuple
             gives the state of the |ith| node.
 
     Returns:
@@ -78,7 +78,7 @@ def loli_index2state(i, number_of_nodes):
             **LOLI** convention.
 
     Returns:
-        tuple(int): A state-tuple where the |ith| element of the tuple gives
+        tuple[int]: A state-tuple where the |ith| element of the tuple gives
         the state of the |ith| node.
 
     Examples:
@@ -104,7 +104,7 @@ def holi_index2state(i, number_of_nodes):
             **HOLI** convention.
 
     Returns:
-        tuple(int): A state-tuple where the |ith| element of the tuple gives
+        tuple[int]: A state-tuple where the |ith| element of the tuple gives
         the state of the |ith| node.
 
     Examples:
@@ -120,7 +120,7 @@ def holi_index2state(i, number_of_nodes):
 
 
 def to_n_dimensional(tpm):
-    """Reshape a state-by-node TPM to the N-D form.
+    """Reshape a state-by-node TPM to the |N-D| form.
 
     See documentation for the |Network| object for more information on TPM
     formats.
@@ -147,7 +147,7 @@ def state_by_state2state_by_node(tpm):
         conventions.
 
     Args:
-        tpm (list(list) or np.ndarray): A square state-by-state TPM with row
+        tpm (list[list] or np.ndarray): A square state-by-state TPM with row
             and column indices following the **LOLI** convention.
 
     Returns:
@@ -208,7 +208,7 @@ def state_by_node2state_by_state(tpm):
         resulting state-by-state TPM both follow the **HOLI** convention.
 
     Args:
-        tpm (list(list) or np.ndarray): A state-by-node TPM with row indices
+        tpm (list[list] or np.ndarray): A state-by-node TPM with row indices
             following the **LOLI** convention and column indices following the
             **HOLI** convention.
 

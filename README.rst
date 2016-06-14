@@ -142,32 +142,30 @@ Contributing
 To help develop PyPhi, fork the project on GitHub and install the requirements
 with ``pip install -r requirements.txt``.
 
+
 Development workflow
 ````````````````````
 
-``Gruntfile.js`` defines some tasks to help with development. These are run
-with `Grunt.js <http:gruntjs.com>`_.
-
-To get ``grunt``, first install `Node.js <http://nodejs.org/>`_. Then, within
-the ``pyphi`` directory, run ``npm install`` to install the local ``npm``
-dependencies, then run ``sudo npm install -g grunt grunt-cli`` to install the
-``grunt`` command to your system. Now you should be able to run tasks with
-``grunt``, *e.g.*
+``Makefile`` defines some tasks to help with development:
 
 .. code:: bash
 
-    grunt test
+    make test
 
-which will run the unit tests every time you change the source code. Similarly,
+runs the unit tests every time you change the source code.
 
 .. code:: bash
 
-    grunt docs
+    make docs
 
-will rebuild the HTML documentation on every change.
+builds the HTML documentation.
 
-At some point I'll try to use a Makefile instead, since many more people have
-access to ``make``.
+``Gruntfile.js`` defines similar tasks. To get grunt, first install
+`Node.js <http://nodejs.org/>`_. Then, within the ``pyphi`` directory, run
+``npm install`` to install the local npm dependencies, then run
+``sudo npm install -g grunt grunt-cli`` to install the ``grunt`` command to your
+system. You should now be able to run tasks with ``grunt``.
+
 
 Developing on Linux
 ```````````````````

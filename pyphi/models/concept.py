@@ -29,12 +29,12 @@ class Mip(cmp._Orderable):
             Either |past| or |future|. The temporal direction specifiying
             whether this MIP should be calculated with cause or effect
             repertoires.
-        mechanism (tuple(int)):
+        mechanism (tuple[int]):
             The mechanism over which to evaluate the MIP.
-        purview (tuple(int)):
+        purview (tuple[int]):
             The purview over which the unpartitioned repertoire differs the
             least from the partitioned repertoire.
-        partition (tuple(Part, Part)):
+        partition (Bipartition):
             The partition that makes the least difference to the mechanism's
             repertoire.
         unpartitioned_repertoire (np.ndarray):
@@ -317,7 +317,7 @@ class Concept(cmp._Orderable):
         return fmt.make_repr(self, _concept_attributes)
 
     def __str__(self):
-        return "Concept\n""-------\n" + fmt.fmt_concept(self)
+        return fmt.fmt_concept(self)
 
     @property
     def location(self):
@@ -464,7 +464,7 @@ class Constellation(tuple):
             super().__repr__())
 
     def __str__(self):
-        return "\nConstellation\n*************" + fmt.fmt_constellation(self)
+        return fmt.fmt_constellation(self)
 
     def to_json(self):
         return list(self)
@@ -474,10 +474,10 @@ def normalize_constellation(constellation):
     """Deterministically reorder the concepts in a constellation.
 
     Args:
-        constellation (Constellation): The constellation in question.
+        constellation (|Constellation|): The constellation in question.
 
     Returns
-        Constellation: The constellation, ordered lexicographically by
+        |Constellation|: The constellation, ordered lexicographically by
             mechanism.
     """
     return Constellation(sorted(constellation, key=lambda c: c.mechanism))

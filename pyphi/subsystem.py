@@ -8,7 +8,7 @@ import itertools
 
 import numpy as np
 
-from . import cache, config, convert, utils, validate
+from . import cache, config, utils, validate
 from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .jsonify import jsonify
@@ -19,12 +19,13 @@ from .node import generate_nodes
 
 class Subsystem:
     # TODO! go through docs and make sure to say when things can be None
+    # TODO: make subsystem attributes immutable
     """A set of nodes in a network.
 
     Args:
         network (Network): The network the subsystem belongs to.
-        state (tuple(int)): The state of the network.
-        nodes (tuple(int) or tuple(str)): The nodes of the network which are in
+        state (tuple[int]): The state of the network.
+        nodes (tuple[int] or tuple[str]): The nodes of the network which are in
             this subsystem. Nodes can be specified either as indices or as
             labels if the |Network| was passed ``node_labels``.
 
@@ -32,31 +33,21 @@ class Subsystem:
         cut (Cut): The unidirectional |Cut| to apply to this subsystem.
 
     Attributes:
-        nodes (list(Node)): A list of nodes in the subsystem.
-        node_indices (tuple(int)): The indices of the nodes in the subsystem.
-        size (int): The number of nodes in the subsystem.
         network (Network): The network the subsystem belongs to.
-        state (tuple(int)): The state of the subsystem's network. ``state[i]``
-            gives the state of node |i|.
-        proper_state (tuple(int)): The state of the subsystem.
-            ``proper_state[i]`` gives the |ith| node in the subsystem. Note
-            that this is **not** the state of node |i|.
-        cut (Cut): The cut that has been applied to this subsystem.
+        tpm (np.array): The TPM conditioned on the state of the external nodes.
         cm (np.array): The connectivity matrix after applying the cut.
-        connectivity_matrix(np.array): Alias for `cm`.
+        nodes (list[Node]): A list of nodes in the subsystem.
+        node_indices (tuple[int]): The indices of the nodes in the subsystem.
+        cut (Cut): The cut that has been applied to this subsystem.
         cut_matrix (np.array): A matrix of connections which have been severed
             by the cut.
+        null_cut (Cut): The cut object representing no cut.
         perturb_vector (np.array): The vector of perturbation probabilities for
             each node.
-        cut_indices (tuple(int)): The nodes of the subsystem cut by a |big_phi|
-            cut.
-        null_cut (Cut): The cut object representing no cut.
-        tpm (np.array): The TPM conditioned on the state of the external nodes.
     """
 
     def __init__(self, network, state, nodes, cut=None,
                  mice_cache=None, repertoire_cache=None):
-        """Construct a Subsystem."""
         # The network this subsystem belongs to.
         self.network = network
 
@@ -110,15 +101,11 @@ class Subsystem:
 
         self.nodes = generate_nodes(self, labels=True)
 
-        # The nodes represented in computed repertoire distributions. This
-        # supports `MacroSubsystem`'s alternate TPM representation.
-        self._dist_indices = self.network.node_indices
-
         validate.subsystem(self)
 
     @property
     def state(self):
-        """The state of the Network this Subsystem belongs to."""
+        """tuple[int]: The state of the Network this Subsystem belongs to."""
         return self._state
 
     @state.setter
@@ -131,7 +118,11 @@ class Subsystem:
 
     @property
     def proper_state(self):
-        """The state of the nodes in this Subsystem."""
+        """tuple[int]): The state of the subsystem.
+
+        ``proper_state[i]`` gives the state of the |ith| node **in the
+        subsystem**. Note that this is **not** the state of ``nodes[i]``.
+        """
         return utils.state_of(self.node_indices, self.state)
 
     @proper_state.setter
@@ -145,7 +136,7 @@ class Subsystem:
 
     @property
     def connectivity_matrix(self):
-        """Alias for ``cm`` attribute."""
+        """np.ndarray: Alias for ``Subsystem.cm``."""
         return self.cm
 
     @connectivity_matrix.setter
@@ -154,22 +145,28 @@ class Subsystem:
 
     @property
     def size(self):
-        """The size of this Subsystem."""
+        """int: The number of nodes in the subsystem."""
         return len(self.node_indices)
 
     @property
     def is_cut(self):
-        """Return whether this Subsystem has a cut applied to it."""
+        """boolean: True if this Subsystem has a cut applied to it."""
         return self.cut != self.null_cut
 
     @property
     def cut_indices(self):
-        """The indices of this system to be cut for |big_phi| computations.
+        """tuple[int]: The nodes of this subsystem cut for |big_phi|
+        computations.
 
         This was added to support ``MacroSubsystem``, which cuts indices other
-        than ``self.node_indices``.
+        than ``node_indices``.
         """
         return self.node_indices
+
+    @property
+    def tpm_indices(self):
+        """tuple[int]: The indices of nodes in the tpm."""
+        return tuple(range(self.tpm.shape[-1]))
 
     def repertoire_cache_info(self):
         """Report repertoire cache statistics."""
@@ -237,10 +234,10 @@ class Subsystem:
         """Return a cut version of this |Subsystem|.
 
         Args:
-            cut (Cut): The cut to apply to this |Subsystem|.
+            cut (|Cut|): The cut to apply to this |Subsystem|.
 
         Returns:
-            subsystem (Subsystem)
+            |Subsystem|
         """
         return Subsystem(self.network, self.state, self.node_indices,
                          cut=cut, mice_cache=self._mice_cache)
@@ -249,11 +246,10 @@ class Subsystem:
         """Return nodes for these indices.
 
         Args:
-            indices (iterable(int)):
+            indices (tuple[int]): The indices in question.
 
         Returns:
-            nodes (tuple(Node)): The |Node| objects corresponding to
-                these indices.
+            tuple[Node]: The |Node| objects corresponding to these indices.
 
         Raises:
             ValueError: If requested indices are not in the subsystem.
@@ -276,14 +272,13 @@ class Subsystem:
         """Return the cause repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (tuple(int)): The mechanism for which to calculate the
+            mechanism (tuple[int]): The mechanism for which to calculate the
                 cause repertoire.
-            purview (tuple(int)): The purview over which to calculate the
+            purview (tuple[int]): The purview over which to calculate the
                 cause repertoire.
 
         Returns:
-            cause_repertoire (``np.ndarray``): The cause repertoire of the
-                mechanism over the purview.
+            ``np.ndarray``: The cause repertoire of the mechanism over the purview.
 
         .. note::
             The returned repertoire is a distribution over the nodes in the
@@ -301,15 +296,14 @@ class Subsystem:
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview -- return the purview's maximum entropy distribution.
         max_entropy_dist = utils.max_entropy_distribution(
-            purview, len(self._dist_indices),
+            purview, len(self.tpm_indices),
             tuple(self.perturb_vector[i] for i in purview))
         if not mechanism:
             return max_entropy_dist
 
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
-        cjd = np.ones(tuple(2 if i in purview else
-                            1 for i in self._dist_indices))
+        cjd = np.ones([2 if i in purview else 1 for i in self.tpm_indices])
 
         # Loop over all nodes in this mechanism, successively taking the
         # product (with expansion/broadcasting of singleton dimensions) of each
@@ -349,14 +343,14 @@ class Subsystem:
         """Return the effect repertoire of a mechanism over a purview.
 
         Args:
-            mechanism (tuple(int)): The mechanism for which to calculate the
+            mechanism (tuple[int]): The mechanism for which to calculate the
                 effect repertoire.
-            purview (tuple(int)): The purview over which to calculate the
+            purview (tuple[int]): The purview over which to calculate the
                 effect repertoire.
 
         Returns:
-            effect_repertoire (``np.ndarray``): The effect repertoire of the
-                mechanism over the purview.
+            ``np.ndarray``: The effect repertoire of the mechanism over the
+                purview.
 
         .. note::
             The returned repertoire is a distribution over the nodes in the
@@ -377,8 +371,8 @@ class Subsystem:
         # Preallocate the purview's joint distribution
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
-            [1] * len(self._dist_indices) + [2 if i in purview else
-                                             1 for i in self._dist_indices])
+            [1] * len(self.tpm_indices) +
+            [2 if i in purview else 1 for i in self.tpm_indices])
 
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
@@ -405,7 +399,7 @@ class Subsystem:
 
             # Expand the dimensions so the TPM can be indexed as described
             first_half_shape = list(tpm.shape[:-1])
-            second_half_shape = [1] * len(self._dist_indices)
+            second_half_shape = [1] * len(self.tpm_indices)
             second_half_shape[purview_node.index] = 2
             tpm = tpm.reshape(first_half_shape + second_half_shape)
 
@@ -433,7 +427,7 @@ class Subsystem:
         # (the second half of the shape may also contain singleton dimensions,
         # depending on how many nodes are in the purview).
         accumulated_cjd = accumulated_cjd.reshape(
-            accumulated_cjd.shape[len(self._dist_indices):])
+            accumulated_cjd.shape[len(self.tpm_indices):])
 
         return accumulated_cjd
 
@@ -442,9 +436,9 @@ class Subsystem:
 
         Args:
             direction (str): One of 'past' or 'future'.
-            mechanism (tuple(int)): The mechanism for which to calculate the
+            mechanism (tuple[int]): The mechanism for which to calculate the
                 repertoire.
-            purview (tuple(int)): The purview over which to calculate the
+            purview (tuple[int]): The purview over which to calculate the
                 repertoire.
 
         Returns:
@@ -491,13 +485,13 @@ class Subsystem:
 
         Args:
             direction (str): Either |past| or |future|.
-            purview (tuple(int) or None): The purview over which the repertoire
+            purview (tuple[int] or None): The purview over which the repertoire
                 was calculated.
             repertoire (``np.ndarray``): A repertoire computed over
                 ``purview``.
 
         Keyword Args:
-            new_purview (tuple(int)): The purview to expand the repertoire
+            new_purview (tuple[int]): The purview to expand the repertoire
                 over. Defaults to the entire subsystem.
 
         Returns:
@@ -566,12 +560,11 @@ class Subsystem:
 
         Args:
             direction (str): Either |past| or |future|.
-            mechanism (tuple(int)): The nodes in the mechanism.
-            purview (tuple(int)): The nodes in the purview.
+            mechanism (tuple[int]): The nodes in the mechanism.
+            purview (tuple[int]): The nodes in the purview.
 
         Returns:
-            mip (|Mip|): The mininum-information partition in one temporal
-                direction.
+            |Mip|: The mininum-information partition in one temporal direction.
         """
         # We default to the null MIP (the MIP of a reducible mechanism)
         mip = _null_mip(direction, mechanism, purview)
@@ -681,10 +674,10 @@ class Subsystem:
 
         Args:
             direction ('str'): Either |past| or |future|.
-            mechanism (tuple(int)): The mechanism of interest.
+            mechanism (tuple[int]): The mechanism of interest.
 
-        Kwargs:
-            purviews (tuple(int)): Optional subset of purviews of interest.
+        Keyword Args:
+            purviews (tuple[int]): Optional subset of purviews of interest.
         """
         if purviews is False:
             purviews = self.network._potential_purviews(direction, mechanism)
@@ -704,17 +697,17 @@ class Subsystem:
         Args:
             direction (str): The temporal direction (|past| or |future|)
                 specifying cause or effect.
-            mechanism (tuple(int)): The mechanism to be tested for
+            mechanism (tuple[int]): The mechanism to be tested for
                 irreducibility.
 
         Keyword Args:
-            purviews (tuple(int)): Optionally restrict the possible purviews
+            purviews (tuple[int]): Optionally restrict the possible purviews
                 to a subset of the subsystem. This may be useful for _e.g._
                 finding only concepts that are "about" a certain subset of
                 nodes.
 
         Returns:
-            mice (|Mice|): The maximally-irreducible cause or effect.
+            |Mice|: The maximally-irreducible cause or effect.
 
         .. note::
             Strictly speaking, the MICE is a pair of repertoires: the core
@@ -806,29 +799,41 @@ class Subsystem:
 def mip_bipartitions(mechanism, purview):
     """Return all |small_phi| bipartitions of a mechanism over a purview.
 
-    Excludes all bipartitions where one half is entirely empty, e.g:
+    Excludes all bipartitions where one half is entirely empty, e.g::
 
          A    []                     A    []
         --- X -- is not valid,  but --- X --- is.
          B    []                    []     B
 
     Args:
-        mechanism (tuple(int)): The mechanism to partition
-        purview (tuple(int)): The purview to partition
+        mechanism (tuple[int]): The mechanism to partition
+        purview (tuple[int]): The purview to partition
 
     Returns:
-        bipartitions (Bipartition): Where each partition is
+        list[|Bipartition|]: Where each partition is
+
+        ::
 
             bipart[0].mechanism   bipart[1].mechanism
             ------------------- X -------------------
-             bipart[0].purview     bipart[1].purview
+            bipart[0].purview     bipart[1].purview
 
     Example:
-        >>> from pyphi.subsystem import mip_bipartitions
         >>> mechanism = (0,)
         >>> purview = (2, 3)
-        >>> mip_bipartitions(mechanism, purview)
-        [Bipartition(Part(mechanism=(), purview=(2,)), Part(mechanism=(0,),    purview=(3,))), Bipartition(Part(mechanism=(), purview=(3,)), Part(mechanism=(0,), purview=(2,))), Bipartition(Part(mechanism=(), purview=(2, 3)), Part(mechanism=(0,), purview=()))]
+        >>> for partition in mip_bipartitions(mechanism, purview):
+        ...     print(partition, "\\n")  # doctest: +NORMALIZE_WHITESPACE
+        []   0
+        -- X -
+        2    3
+        <BLANKLINE>
+        []   0
+        -- X -
+        3    2
+        <BLANKLINE>
+        []    0
+        --- X --
+        2,3   []
     """
     numerators = utils.bipartition(mechanism)
     denominators = utils.directed_bipartition(purview)

@@ -16,6 +16,7 @@ Next Release
   graining are now parametrized with the `blackbox` and `coarse_grain`
   arguments.
 - Removed `utils.submatrix`.
+- Made `Network.tpm` and `Network.cm` immutable properties.
 
 ### API Additions
 - Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to
@@ -38,9 +39,11 @@ Next Release
   `Subsystem` can now be specified by either their index or their label.
 - Added `models.normalize_constellation` for deterministically ordering a
   constellation.
+- Added a `Makefile`.
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
+- Improved string representations of PyPhi objects.
 
 ### Documentation
 - Updated docs and examples to reflect changes made to the macro API and usage.

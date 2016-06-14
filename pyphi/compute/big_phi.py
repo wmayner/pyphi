@@ -17,7 +17,6 @@ from .concept import constellation
 from .distance import constellation_distance
 from .. import config, memory, utils, validate
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
-from ..network import Network
 from ..subsystem import Subsystem
 
 # Create a logger for this module.
@@ -29,9 +28,9 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     """Find the |BigMip| for a given cut.
 
     Args:
-        uncut_subsystem (Subsystem): The subsystem without the cut applied.
-        cut (Cut): The cut to evaluate.
-        unpartitioned_constellation (Constellation): The constellation of the
+        uncut_subsystem (|Subsystem|): The subsystem without the cut applied.
+        cut (|Cut|): The cut to evaluate.
+        unpartitioned_constellation (|Constellation|): The constellation of the
             uncut subsystem.
 
     Returns:
@@ -147,9 +146,9 @@ def big_mip_bipartitions(nodes):
     This value changes based on `config.CUT_ONE_APPROXIMATION`.
 
     Args:
-        nodes tuple(int): The node indices to partition.
+        nodes (tuple[int]): The node indices to partition.
     Returns:
-        list(|Cut|): All unidirectional partitions.
+        list[|Cut|]: All unidirectional partitions.
     """
     if config.CUT_ONE_APPROXIMATION:
         bipartitions = utils.directed_bipartition_of_one(nodes)
@@ -233,6 +232,7 @@ def _big_mip(cache_key, subsystem):
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
     log.debug("RESULT: \n" + str(result))
+
     return result
 
 
@@ -254,6 +254,8 @@ def subsystems(network, state):
 
     Does not return subsystems that are in an impossible state.
     """
+    validate.is_network(network)
+
     for subset in utils.powerset(network.node_indices):
         try:
             yield Subsystem(network, state, subset)
@@ -267,10 +269,6 @@ def all_complexes(network, state):
     Includes reducible, zero-phi complexes (which are not, strictly speaking,
     complexes at all).
     """
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
     return (big_mip(subsystem) for subsystem in subsystems(network, state))
 
 
@@ -286,11 +284,13 @@ def possible_complexes(network, state):
 
     Args:
         network (Network): The network for which to return possible complexes.
-        state (tuple(int)): The state of the network.
+        state (tuple[int]): The state of the network.
 
     Yields:
-        (Subsystem): The next subsystem which could be a complex.
+        Subsystem: The next subsystem which could be a complex.
     """
+    validate.is_network(network)
+
     causally_significant_nodes = utils.causally_significant_nodes(network.cm)
 
     for subset in utils.powerset(causally_significant_nodes):
@@ -307,29 +307,24 @@ def possible_complexes(network, state):
 
 def complexes(network, state):
     """Return a generator for all irreducible complexes of the network."""
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
     return tuple(filter(None, (big_mip(subsystem) for subsystem in
                                possible_complexes(network, state))))
 
 
 def main_complex(network, state):
     """Return the main complex of the network."""
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
     log.info("Calculating main complex...")
+
     result = complexes(network, state)
     if result:
         result = max(result)
     else:
         empty_subsystem = Subsystem(network, state, ())
         result = _null_bigmip(empty_subsystem)
+
     log.info("Finished calculating main complex.")
     log.debug("RESULT: \n" + str(result))
+
     return result
 
 
@@ -337,8 +332,10 @@ def condensed(network, state):
     """Return the set of maximal non-overlapping complexes."""
     condensed = []
     covered_nodes = set()
+
     for c in reversed(sorted(complexes(network, state))):
         if not any(n in covered_nodes for n in c.subsystem.node_indices):
             condensed.append(c)
             covered_nodes = covered_nodes | set(c.subsystem.node_indices)
+
     return condensed

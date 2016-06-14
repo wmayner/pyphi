@@ -32,7 +32,14 @@ def direction(direction):
 
 
 def tpm(tpm):
-    """Validate a TPM."""
+    """Validate a TPM.
+
+    The TPM can be in
+
+        * |2-D| state-by-state form,
+        * |2-D| state-by-node form, or
+        * |N-D| state-by-node form.
+    """
     see_tpm_docs = ('See documentation for pyphi.Network for more information '
                     'TPM formats.')
     # Cast to np.array.
@@ -132,6 +139,15 @@ def network(n):
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")
     return True
+
+
+def is_network(network):
+    """Validate that the argument is a |Network|."""
+    from . import Network
+
+    if not isinstance(network, Network):
+        raise ValueError(
+            "Input must be a Network (perhaps you passed a Subsystem instead?")
 
 
 def node_states(state):
