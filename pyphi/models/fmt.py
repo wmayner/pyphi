@@ -64,18 +64,17 @@ def indent(lines, amount=2, chr=' '):
     return padding + ('\n' + padding).join(lines.split('\n'))
 
 
-def box(lines, split=False):
-    """Wrap a list of lines in a box.
+def box(text):
+    """Wrap a chunk of text in a box.
 
     Example:
-        >>> print(box(['line1', 'line2']))
+        >>> print(box('line1\\nline2'))
         ---------
         | line1 |
         | line2 |
         ---------
     """
-    if split:
-        lines = lines.split("\n")
+    lines = text.split("\n")
 
     width = max(len(l) for l in lines)
     bar = "-" * (4 + width)
@@ -224,7 +223,7 @@ def fmt_concept(concept):
     def fmt_cause_or_effect(x):
         if not x:
             return ""
-        return box(indent(fmt_mip(x.mip, verbose=False), amount=1), split=True)
+        return box(indent(fmt_mip(x.mip, verbose=False), amount=1))
 
     cause = header("Cause", fmt_cause_or_effect(concept.cause))
     effect = header("Effect", fmt_cause_or_effect(concept.effect))
@@ -329,4 +328,4 @@ def fmt_repertoire(r):
         state_str = "".join(str(i) for i in state)
         lines.append("{0}{1}{2:g}".format(state_str, space, r[state]))
 
-    return box(lines)
+    return box("\n".join(lines))
