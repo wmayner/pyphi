@@ -1,5 +1,5 @@
-.. image:: https://zenodo.org/badge/4651/wmayner/pyphi.png
-    :target: http://dx.doi.org/10.5281/zenodo.15787
+.. image:: https://zenodo.org/badge/doi/10.5281/zenodo.55692.svg
+    :target: http://dx.doi.org/10.5281/zenodo.55692
     :alt: Zenodo DOI badge
 
 .. image:: https://travis-ci.org/wmayner/pyphi.svg?branch=master
@@ -17,18 +17,18 @@ PyPhi: |phi| for Python
 PyPhi is a Python 3 library for computing integrated information (|phi|), and
 the associated quantities and objects.
 
-If you use this code, please cite both this repository (DOI
-`10.5281/zenodo.12194 <http://dx.doi.org/10.5281/zenodo.12194>`_) and the IIT
+**If you use this code, please cite both this repository (DOI
+`10.5281/zenodo.55692 <http://dx.doi.org/10.5281/zenodo.55692>`_) and the IIT
 3.0 paper (DOI `10.1371/journal.pcbi.1003588
-<http://dx.doi.org/10.1371/journal.pcbi.1003588>`_).
+<http://dx.doi.org/10.1371/journal.pcbi.1003588>`_).**
 
 
 Usage, Examples, and API documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Check out the `documentation for the latest release
-<https://pythonhosted.org/pyphi>`_, or the `documentation for the latest
-development version <https://wmayner.github.io/pyphi>`_.
+<http://pyphi.readthedocs.io/en/stable/>`_, or the `documentation for the latest
+development version <http://pyphi.readthedocs.io/en/latest/>`_.
 
 The documentation is also available within the Python interpreter with the
 ``help`` function.
