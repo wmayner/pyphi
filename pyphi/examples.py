@@ -1018,7 +1018,7 @@ def ac_ex1_context():
     net = ac_ex1_network()
     before_state = (0, 1, 1)
     after_state = (1, 0, 0)
-    return Context(net, before_state, after_state (1, 2), (0,))
+    return Context(net, before_state, after_state, (1, 2), (0,))
 
 
 def ac_ex2_network():
