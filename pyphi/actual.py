@@ -35,7 +35,7 @@ from . import cache, validate, utils, compute
 from .network import irreducible_purviews, Network
 from .utils import powerset, bipartition, directed_bipartition, phi_eq
 from .constants import DIRECTIONS, FUTURE, PAST, EPSILON
-from .models import Part, Actual_Cut
+from .models import Part, ActualCut
 from .node import Node
 from .config import PRECISION
 from .models import AcMip, AcMice, AcBigMip
@@ -110,7 +110,7 @@ class Context:
         # TODO Validate.
         # validate.context(self)
         # The null cut (that leaves the system intact).
-        self.null_cut = Actual_Cut((), self.cause_indices,
+        self.null_cut = ActualCut((), self.cause_indices,
                                    (), self.effect_indices)
         # The unidirectional cut applied for phi evaluation within the
         self.cut = cut if cut is not None else self.null_cut
@@ -1021,7 +1021,7 @@ def _get_cuts(context):
     # The first element of the list is the null cut.
     partitions = list(itertools.product(cause_bipartitions,
                                         effect_bipartitions))[1:]
-    cuts = [Actual_Cut(part[0][0], part[0][1], part[1][0], part[1][1])
+    cuts = [ActualCut(part[0][0], part[0][1], part[1][0], part[1][1])
             for part in partitions]
     return cuts
 
@@ -1309,4 +1309,3 @@ def extrinsic_events(network, past_state, current_state, future_state,
     else:
         true_events = ()
     return true_events
-

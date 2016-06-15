@@ -96,8 +96,8 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         return [self.severed, self.intact]
 
 
-class Actual_Cut(namedtuple('Cut', ['cause_part1', 'cause_part2',
-                                    'effect_part1', 'effect_part2'])):
+class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
+                                         'effect_part1', 'effect_part2'])):
 
     """Represents a actual cut for a context.
 
