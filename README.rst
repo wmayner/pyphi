@@ -4,8 +4,8 @@
 
 |
 
-.. image:: https://zenodo.org/badge/4651/wmayner/pyphi.svg
-    :target: https://zenodo.org/badge/latestdoi/4651/wmayner/pyphi
+.. image:: https://zenodo.org/badge/doi/10.5281/zenodo.55692.svg
+    :target: http://dx.doi.org/10.5281/zenodo.55692
     :alt: Zenodo DOI badge
 
 .. image:: https://travis-ci.org/wmayner/pyphi.svg?branch=master
@@ -25,25 +25,26 @@
 PyPhi is a Python library for computing integrated information (|phi|), and the
 associated quantities and objects.
 
-If you use this code, please cite both this repository and the `IIT 3.0 paper
+If you use this code, please cite it, as well as the `IIT 3.0 paper
 <http://dx.doi.org/10.1371/journal.pcbi.1003588>`_.
 
-To cite this code, use the Zenodo DOI for the verison you used. The latest one
-is `available here <https://zenodo.org/badge/latestdoi/4651/wmayner/pyphi>`_.
+To cite the code, use the Zenodo DOI for the verison you used. The latest one
+is `10.5281/zenodo.55692 <http://dx.doi.org/10.5281/zenodo.55692>`_.
 For example::
 
-    Will Mayner et al.. (2015). pyphi: 0.7.0. Zenodo. 10.5281/zenodo.17498
+    Will Mayner et al. (2016). pyphi: 0.8.1. Zenodo. 10.5281/zenodo.55692
 
 Or in BibTeX::
 
     @misc{pyphi
-      author = {Will Mayner and
-                William Marshall},
-      title  = {pyphi: 0.7.0},
-      month  = May,
-      year   = 2015,
-      doi    = {10.5281/zenodo.17498},
-      url    = {http://dx.doi.org/10.5281/zenodo.17498}
+      author = {Mayner, Will and
+                Marshall, William and
+                Marchman, Bo},
+      title  = {pyphi: 0.8.1},
+      month  = Feb,
+      year   = 2016,
+      doi    = {10.5281/zenodo.55692},
+      url    = {http://dx.doi.org/10.5281/zenodo.55692}
     }
 
 (Just make sure to use the version number, DOI, and URL for the version you
