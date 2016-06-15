@@ -8,8 +8,6 @@ Example networks and subsystems to go along with the documentation.
 
 import numpy as np
 
-from pyphi.convert import loli_index2state
-
 from .network import Network
 from .subsystem import Subsystem
 from .utils import all_states
