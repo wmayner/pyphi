@@ -189,6 +189,13 @@ class Context:
         return repertoire[index]
 
     def purview_state(self, direction):
+        """The state of the purview when we are computing coefficients in
+        ``direction``.
+
+        For example, if we are computing the cause coefficient of a mechanism
+        in ``after_state``, the direction is``PAST`` and the ``purview_state``
+        is ``before_state.
+        """
         if direction == DIRECTIONS[PAST]:
             purview_state = self.before_state
         elif direction == DIRECTIONS[FUTURE]:
@@ -197,6 +204,8 @@ class Context:
         return purview_state
 
     def mechanism_state(self, direction):
+        """The state of the mechanism when we are computing coefficients in
+        ``direction``."""
         if direction == DIRECTIONS[PAST]:
             mechanism_state = self.after_state
         elif direction == DIRECTIONS[FUTURE]:

@@ -1,4 +1,3 @@
-
 from pyphi import actual, examples
 
 # TODO:
@@ -7,11 +6,24 @@ from pyphi import actual, examples
 #   * test context equality/hash
 #   * state_probability
 
+
 def test_context_initialization():
     context = examples.ac_ex1_context()
     assert context.effect_context.state == (0, 1, 1)
     assert context.cause_context.state == (1, 0, 0)
     assert tuple(n.state for n in context.cause_context.nodes) == (1, 0, 0)
+
+
+def test_purview_state():
+    context = examples.ac_ex1_context()
+    assert context.purview_state('past') == (0, 1, 1)
+    assert context.purview_state('future') == (1, 0, 0)
+
+
+def test_mechanism_state():
+    context = examples.ac_ex1_context()
+    assert context.mechanism_state('past') == (1, 0, 0)
+    assert context.mechanism_state('future') == (0, 1, 1)
 
 
 def test_ac_ex1_context():
