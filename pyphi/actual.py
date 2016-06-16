@@ -31,15 +31,12 @@ background condition.
 import logging
 import numpy as np
 
-from . import cache, validate, utils, compute
-from .network import irreducible_purviews, Network
+from . import validate, utils, compute
+from .network import Network
 from .utils import powerset, bipartition, directed_bipartition, phi_eq
 from .constants import DIRECTIONS, FUTURE, PAST, EPSILON
-from .models import Part, ActualCut
-from .node import Node
-from .config import PRECISION
-from .models import AcMip, AcMice, AcBigMip, _null_ac_mip
-from .subsystem import mip_bipartitions
+from .models import AcMip, AcMice, AcBigMip, _null_ac_mip, ActualCut
+from .subsystem import mip_bipartitions, Subsystem
 
 import itertools
 from pprint import pprint
@@ -81,43 +78,33 @@ class Context:
     """
 
     def __init__(self, network, before_state, after_state, cause_indices,
-                 effect_indices, cut=None, mice_cache=None,
-                 repertoire_cache=None):
-        # The network this subsystem belongs to.
+                 effect_indices, cut=None):
+
         self.network = network
-        # The state the network is in.
-        self._before_state = tuple(before_state)
-        self._after_state = tuple(after_state)
-        # The state of the system of the actual probably calculation. Default
-        # to before state but will swtich depending on contexti
-        self.nodes = tuple()
-        self._position = 'before'
-        self._state = before_state
-        self._actual_state = after_state
-        # TODO don't need map to ints anymore?
+        self.before_state = before_state
+        self.after_state = after_state
+
         self.cause_indices = network.parse_node_indices(cause_indices)
         self.effect_indices = network.parse_node_indices(effect_indices)
-        # Remove duplicates, sort, and ensure indices are native Python `int`s
-        # (for JSON serialization).
-        self.node_indices = network.parse_node_indices(
-            tuple(set(cause_indices+effect_indices)))
-        # Get the external nodes.
-        self.external_indices = tuple(
-            set(network.node_indices) - set(self.node_indices))
-        # The TPM conditioned on the state of the external nodes.
-        self.tpm = utils.condition_tpm(
-            self.network.tpm, self.external_indices,
-            self._before_state)
-        # TODO Validate.
-        # validate.context(self)
-        # The null cut (that leaves the system intact).
+        self.node_indices = network.parse_node_indices(cause_indices +
+                                                       effect_indices)
+
+        # TODO: pass in cut ????
+        # Both are conditioned on the `before_state`, but we then change the
+        # state of the cause context to `after_state` to reflect the fact that
+        # that we are computing cause repertoires of mechanisms in that state.
+        self.effect_context = Subsystem(network, before_state, self.node_indices)
+        self.cause_context = Subsystem(network, before_state, self.node_indices)
+        self.cause_context.state = after_state
+        for node in self.cause_context.nodes:
+            node.state = after_state[node.index]
+
         self.null_cut = ActualCut((), self.cause_indices,
-                                   (), self.effect_indices)
+                                  (), self.effect_indices)
+
         # The unidirectional cut applied for phi evaluation within the
         self.cut = cut if cut is not None else self.null_cut
-        # Only compute hash once.
-        self._hash = hash((self.network, self.node_indices, self.before_state,
-                           self.after_state, self.cut))
+
         # Get the subsystem's connectivity matrix. This is the network's
         # connectivity matrix, but with the cut applied, and with all
         # connections to/from external nodes severed.
@@ -125,157 +112,29 @@ class Context:
         self.connectivity_matrix = self.cut.apply_cut(network.cm)
         # Get the perturbation probabilities for each node in the network
         self.perturb_vector = network.perturb_vector
-        # Generate the nodes.
-        self.nodes = tuple(Node(self, i) for i in self.node_indices)
+
         # TODO: Reimplement the matrix of connections which are severed due to
         # the cut
         # self.cut_matrix = self.cut.cut_matrix()
-        # A cache for keeping core causes and effects that can be reused later
-        # in the event that a cut doesn't effect them.
-        self._mice_cache = cache.MiceCache(self, mice_cache)
-        # Set up cause/effect repertoire cache.
-        self._repertoire_cache = repertoire_cache or cache.DictCache()
-        # The nodes represented in computed repertoire distributions. This
-        # supports `MacroSubsystem`'s alternate TPM representation.
-        self._dist_indices = self.network.node_indices
 
-    @property
-    def before_state(self):
-        return self._before_state
-
-    @property
-    def after_state(self):
-        return self._after_state
-
-    @property
-    def position(self):
-        return self._position
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def actual_state(self):
-        return self._actual_state
-
-    @position.setter
-    def position(self, position):
-        if position == 'before':
-            self.state = self.before_state
-            self.actual_state = self.after_state
-            self._position = position
-        elif position == 'after':
-            self.state = self.after_state
-            self.actual_state = self.before_state
-            self._position = position
-
-    @before_state.setter
-    def before_state(self, state):
-        # Cast state to a tuple so it can be hashed and properly used as
-        # np.array indices.
-        before_state = tuple(state)
-        self._before_state = before_state
-        # TODO Validate.
-        # validate.context(self)
-        for node in self.nodes:
-            node.state = state[node.index]
-
-    @after_state.setter
-    def after_state(self, state):
-        # Cast state to a tuple so it can be hashed and properly used as
-        # np.array indices.
-        after_state = tuple(state)
-        self._after_state = after_state
-        # TODO Validate.
-        # validate.context(self)
-
-    @state.setter
-    def state(self, state):
-        # Cast state to a tuple so it can be hashed and properly used as
-        # np.array indices.
-        state = tuple(state)
-        self._state = state
-        # update the state of all subsystem nodes
-        for node in self.nodes:
-            node.state = state[node.index]
-
-    @actual_state.setter
-    def actual_state(self, state):
-        actual_state = tuple(state)
-        self._actual_state = actual_state
-
-    @property
-    def cm(self):
-        """Alias for ``connectivity_matrix`` attribute."""
-        return self.connectivity_matrix
-
-    @cm.setter
-    def cm(self, cm):
-        self.connectivity_matrix = cm
-
-    @property
-    def size(self):
-        """The size of this Subsystem."""
-        return len(self.node_indices)
-
-    @property
-    def is_cut(self):
-        """Return whether this Subsystem has a cut applied to it."""
-        return self.cut != self.null_cut
-
-    @property
-    def cut_indices(self):
-        """The indices of this system to be cut for |big_phi| computations.
-
-        This was added to support ``MacroSubsystem``, which cuts indices other
-        than ``self.node_indices``.
-        """
-        return self.node_indices
-
-    def repertoire_cache_info(self):
-        """Report repertoire cache statistics."""
-        return self._repertoire_cachce.info()
+        self._hash = hash((
+            self.cause_indices, self.effect_indices, self.before_state,
+            self.after_state, self.network, self.cut))
 
     def __repr__(self):
-        return "Context(cause:" + repr(self.indices2nodes(self.cause_indices)) + \
-            ", effect:" + repr(self.indices2nodes(self.effect_indices)) + ")"
+        return "Context(cause: {}, effect: {})".format(
+            self.cause_context.indices2nodes(self.cause_indices),
+            self.effect_context.indices2nodes(self.effect_indices))
 
     def __str__(self):
         return repr(self)
 
     def __eq__(self, other):
-        """Return whether this subsystem is equal to the other object.
-
-        Two subsystems are equal if their sets of nodes, networks, and cuts are
-        equal."""
-        return (set(self.node_indices) == set(other.node_indices)
+        return (self.cause_indices == self.effect_indices
                 and self.before_state == other.before_state
                 and self.after_state == other.after_state
                 and self.network == other.network
                 and self.cut == other.cut)
-
-    def __bool__(self):
-        """Return false if the subsystem has no nodes, true otherwise."""
-        return bool(self.nodes)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __ge__(self, other):
-        return len(self.nodes) >= len(other.nodes)
-
-    def __le__(self, other):
-        return len(self.nodes) <= len(other.nodes)
-
-    def __gt__(self, other):
-        return len(self.nodes) > len(other.nodes)
-
-    def __lt__(self, other):
-        return len(self.nodes) < len(other.nodes)
-
-    def __len__(self):
-        return len(self.nodes)
 
     def __hash__(self):
         return self._hash
@@ -287,194 +146,18 @@ class Context:
     #         'cut': jsonify(self.cut),
     #    }
 
-    def indices2nodes(self, indices):
-        """Return a tuple of Nodes for these indices.
-
-        Raises a ValueError if the requested indices are not in the subsystem.
-        """
-        if not indices:
-            return ()
-        non_subsys_indices = set(indices) - set(self.node_indices)
-        if non_subsys_indices:
-            raise ValueError("Invalid indices {}. Indices must be a subset "
-                             "of subsystem indices.".format(non_subsys_indices))
-        return tuple(n for n in self.nodes if n.index in indices)
-
-    @cache.method('_repertoire_cache', DIRECTIONS[PAST])
     def cause_repertoire(self, mechanism, purview):
-        """Return the cause repertoire of a mechanism over a purview.
+        return self.cause_context.cause_repertoire(mechanism, purview)
 
-        Args:
-            mechanism (tuple(int)): The mechanism for which to calculate the
-                cause repertoire.
-            purview (tuple(int)): The purview over which to calculate the
-                cause repertoire.
-
-        Returns:
-            cause_repertoire (``np.ndarray``): The cause repertoire of the
-                mechanism over the purview.
-
-        .. note::
-            The returned repertoire is a distribution over the nodes in the
-            purview, not the whole network. This is because we never actually
-            need to compare proper cause/effect repertoires, which are
-            distributions over the whole network; we need only compare the
-            purview-repertoires with each other, since cut vs. whole
-            comparisons are only ever done over the same purview.
-        """
-
-        # Check that the current position is "before", otherwise adjust
-        if not self.position == 'after':
-            self.position = 'after'
-        # If the purview is empty, the distribution is empty; return the
-        # multiplicative identity.
-        if not purview:
-            return np.array([1.0])
-
-        # If the mechanism is empty, nothing is specified about the past state
-        # of the purview -- return the purview's maximum entropy distribution.
-        max_entropy_dist = utils.max_entropy_distribution(
-            purview, len(self._dist_indices),
-            tuple(self.perturb_vector[i] for i in purview))
-        if not mechanism:
-            return max_entropy_dist
-
-        # Preallocate the mechanism's conditional joint distribution.
-        # TODO extend to nonbinary nodes
-        cjd = np.ones(tuple(2 if i in purview else
-                            1 for i in self._dist_indices))
-
-        # Loop over all nodes in this mechanism, successively taking the
-        # product (with expansion/broadcasting of singleton dimensions) of each
-        # individual node's TPM (conditioned on that node's state) in order to
-        # get the conditional joint distribution for the whole mechanism
-        # (conditioned on the whole mechanism's state).
-        for mechanism_node in self.indices2nodes(mechanism):
-            # TODO extend to nonbinary nodes
-            # We're conditioning on this node's state, so take the probability
-            # table for the node being in that state.
-            conditioned_tpm = mechanism_node.tpm[mechanism_node.state]
-
-            # Marginalize-out all nodes which connect to this node but which
-            # are not in the purview:
-            non_purview_inputs = (set(mechanism_node.input_indices) -
-                                  set(purview))
-            for index in non_purview_inputs:
-                conditioned_tpm = utils.marginalize_out(
-                    index, conditioned_tpm, self.perturb_vector[index])
-
-            # Incorporate this node's CPT into the mechanism's conditional
-            # joint distribution by taking the product (with singleton
-            # broadcasting, which spreads the singleton probabilities in the
-            # collapsed dimensions out along the whole distribution in the
-            # appropriate way.
-            cjd *= conditioned_tpm
-
-        # If the perturbation vector is not maximum entropy, weight the
-        # probabilities before normalization.
-        if not np.all(self.perturb_vector == 0.5):
-            cjd *= max_entropy_dist
-
-        return utils.normalize(cjd)
-
-    @cache.method('_repertoire_cache', DIRECTIONS[FUTURE])
     def effect_repertoire(self, mechanism, purview):
-        """Return the effect repertoire of a mechanism over a purview.
+        return self.effect_context.effect_repertoire(mechanism, purview)
 
-        Args:
-            mechanism (tuple(int)): The mechanism for which to calculate the
-                effect repertoire.
-            purview (tuple(int)): The purview over which to calculate the
-                effect repertoire.
+    def unconstrained_cause_repertoire(self, purview):
+        return self.cause_repertoire((), purview)
 
-        Returns:
-            effect_repertoire (``np.ndarray``): The effect repertoire of the
-                mechanism over the purview.
+    def unconstrained_effect_repertoire(self, purview):
+        return self.effect_repertoire((), purview)
 
-        .. note::
-            The returned repertoire is a distribution over the nodes in the
-            purview, not the whole network. This is because we never actually
-            need to compare proper cause/effect repertoires, which are
-            distributions over the whole network; we need only compare the
-            purview-repertoires with each other, since cut vs. whole
-            comparisons are only ever done over the same purview.
-        """
-
-        # Check that the position is "before", else adjust
-        if not self.position == 'before':
-            self.position = 'before'
-        purview_nodes = self.indices2nodes(purview)
-        mechanism_nodes = self.indices2nodes(mechanism)
-
-        # If the purview is empty, the distribution is empty, so return the
-        # multiplicative identity.
-        if not purview:
-            return np.array([1.0])
-
-        # Preallocate the purview's joint distribution
-        # TODO extend to nonbinary nodes
-        accumulated_cjd = np.ones(
-            [1] * len(self._dist_indices) + [2 if i in purview else
-                                             1 for i in self._dist_indices])
-
-        # Loop over all nodes in the purview, successively taking the product
-        # (with 'expansion'/'broadcasting' of singleton dimensions) of each
-        # individual node's TPM in order to get the joint distribution for the
-        # whole purview.
-        for purview_node in purview_nodes:
-            # Unlike in calculating the cause repertoire, here the TPM is not
-            # conditioned yet. `tpm` is an array with twice as many dimensions
-            # as the network has nodes. For example, in a network with three
-            # nodes {n0, n1, n2}, the CPT for node n1 would have shape
-            # (2,2,2,1,2,1). The CPT for the node being off would be given by
-            # `tpm[:,:,:,0,0,0]`, and the CPT for the node being on would be
-            # given by `tpm[:,:,:,0,1,0]`. The second half of the shape is for
-            # indexing based on the current node's state, and the first half of
-            # the shape is the CPT indexed by network state, so that the
-            # overall CPT can be broadcast over the `accumulated_cjd` and then
-            # later conditioned by indexing.
-            # TODO extend to nonbinary nodes
-
-            # Rotate the dimensions so the first dimension is the last (the
-            # first dimension corresponds to the state of the node)
-            tpm = purview_node.tpm
-            tpm = tpm.transpose(list(range(tpm.ndim))[1:] + [0])
-
-            # Expand the dimensions so the TPM can be indexed as described
-            first_half_shape = list(tpm.shape[:-1])
-            second_half_shape = [1] * len(self._dist_indices)
-            second_half_shape[purview_node.index] = 2
-            tpm = tpm.reshape(first_half_shape + second_half_shape)
-
-            # Marginalize-out non-mechanism purview inputs.
-            non_mechanism_inputs = (set(purview_node.input_indices) -
-                                    set(mechanism))
-            for index in non_mechanism_inputs:
-                tpm = utils.marginalize_out(index, tpm,
-                                            self.perturb_vector[index])
-
-            # Incorporate this node's CPT into the future_nodes' conditional
-            # joint distribution (with singleton broadcasting).
-            accumulated_cjd = accumulated_cjd * tpm
-
-        # Collect all mechanism nodes which input to purview nodes; condition
-        # on the state of these nodes by collapsing the CJD onto those states.
-        mechanism_inputs = [node.index for node in mechanism_nodes
-                            if set(node.output_indices) & set(purview)]
-        accumulated_cjd = utils.condition_tpm(
-            accumulated_cjd, mechanism_inputs, self.state)
-
-        # The distribution still has twice as many dimensions as the network
-        # has nodes, with the first half of the shape now all singleton
-        # dimensions, so we reshape to eliminate those singleton dimensions
-        # (the second half of the shape may also contain singleton dimensions,
-        # depending on how many nodes are in the purview).
-        accumulated_cjd = accumulated_cjd.reshape(
-            accumulated_cjd.shape[len(self._dist_indices):])
-
-        return accumulated_cjd
-
-    # TODO check if the cache is faster
     def _get_repertoire(self, direction):
         """Returns the cause or effect repertoire function based on a
         direction.
@@ -492,133 +175,58 @@ class Context:
         elif direction == DIRECTIONS[FUTURE]:
             return self.effect_repertoire
 
-    def _unconstrained_repertoire(self, direction, purview):
-        """Return the unconstrained cause or effect repertoire over a
-        purview."""
-        return self._get_repertoire(direction)((), purview)
-
-    def unconstrained_cause_repertoire(self, purview):
-        """Return the unconstrained cause repertoire for a purview.
-
-        This is just the cause repertoire in the absence of any mechanism.
-        """
-        return self._unconstrained_repertoire(DIRECTIONS[PAST], purview)
-
-    def unconstrained_effect_repertoire(self, purview):
-        """Return the unconstrained effect repertoire for a purview.
-
-        This is just the effect repertoire in the absence of any mechanism.
-        """
-        return self._unconstrained_repertoire(DIRECTIONS[FUTURE], purview)
-
-    def expand_repertoire(self, direction, purview, repertoire,
-                          new_purview=None):
-        """Expand a partial repertoire over a purview to a distribution
-        over a new state space.
-
-        TODO: can the purview be extrapolated from the repertoire?
-
-        Args:
-            direction (str): Either |past| or |future|
-            purview (tuple(int) or None): The purview over which the repertoire
-                was calculated
-            repertoire (``np.ndarray``): A repertoire computed over ``purview``
-
-        Keyword Args:
-            new_purview (tuple(int)): The purview to expand the repertoire over.
-                Defaults to the entire subsystem.
-
-        Returns:
-            ``np.ndarray``: The expanded repertoire
-        """
-        if purview is None:
-            purview = ()
-        if new_purview is None:
-            new_purview = self.node_indices  # full subsystem
-        if not set(purview).issubset(new_purview):
-            raise ValueError("Expanded purview must contain original purview.")
-
-        # Get the unconstrained repertoire over the other nodes in the network.
-        non_purview_indices = tuple(set(new_purview) - set(purview))
-        uc = self._unconstrained_repertoire(direction, non_purview_indices)
-        # Multiply the given repertoire by the unconstrained one to get a
-        # distribution over all the nodes in the network.
-        expanded_repertoire = repertoire * uc
-
-        # Renormalize
-        if (np.sum(expanded_repertoire > 0)):
-            return expanded_repertoire / np.sum(expanded_repertoire)
-        else:
-            return expanded_repertoire
-
-    def state_probability(self, repertoire, purview):
+    def state_probability(self, direction, repertoire, purview,):
         """ The dimensions of the repertoire that correspond to the fixed nodes
         are collapsed onto their state. All other dimension should be singular
         already (repertoire size and fixed_nodes need to match), and thus
         should receive 0 as the conditioning index. A single probability is
         returned.
         """
-        index = tuple(self.actual_state[i] if i in purview else 0
-                      for i in range(len(self.state)))
+        purview_state = self.purview_state(direction)
+
+        index = tuple(purview_state[i] if i in purview else 0
+                      for i in range(len(purview_state)))
         return repertoire[index]
 
-    def expand_cause_repertoire(self, purview, repertoire, new_purview=None):
-        """Expand a partial cause repertoire over a purview to a distribution
-        over the entire subsystem's state space."""
-        return self.expand_repertoire(DIRECTIONS[PAST], purview, repertoire,
-                                      new_purview)
+    def purview_state(self, direction):
+        if direction == DIRECTIONS[PAST]:
+            purview_state = self.before_state
+        elif direction == DIRECTIONS[FUTURE]:
+            purview_state = self.after_state
 
-    def expand_effect_repertoire(self, purview, repertoire, new_purview=None):
-        """Expand a partial effect repertoire over a purview to a distribution
-        over the entire subsystem's state space."""
-        return self.expand_repertoire(DIRECTIONS[FUTURE], purview, repertoire,
-                                      new_purview)
+        return purview_state
 
-    def cause_info(self, mechanism, purview):
-        """Return the cause information for a mechanism over a purview."""
-        return round(utils.hamming_emd(
-            self.cause_repertoire(mechanism, purview),
-            self.unconstrained_cause_repertoire(purview)),
-            PRECISION)
+    def mechanism_state(self, direction):
+        if direction == DIRECTIONS[PAST]:
+            mechanism_state = self.after_state
+        elif direction == DIRECTIONS[FUTURE]:
+            mechanism_state = self.before_state
+
+        return mechanism_state
 
     def cause_coefficient(self, mechanism, purview, norm=True):
         """ Return the cause coefficient for a mechanism in a state over a
         purview in the actual past state """
-        if not self.position == 'after':
-            self.position = 'after'
         if norm:
-            normalization = self.state_probability(self.cause_repertoire((), purview), purview)
+            normalization = self.state_probability(
+                DIRECTIONS[PAST], self.unconstrained_cause_repertoire(purview),
+                purview)
         else:
             normalization = 1
-        return self.state_probability(self.cause_repertoire(mechanism, purview),
-                                      purview) / normalization
-
-    def effect_info(self, mechanism, purview):
-        """Return the effect information for a mechanism over a purview."""
-        return round(utils.hamming_emd(
-            self.effect_repertoire(mechanism, purview),
-            self.unconstrained_effect_repertoire(purview)),
-            PRECISION)
+        return self.state_probability(DIRECTIONS[PAST],
+            self.cause_repertoire(mechanism, purview), purview) / normalization
 
     def effect_coefficient(self, mechanism, purview, norm=True):
         """ Return the effect coefficient for a mechanism in a state over a
         purview in the actual future state """
-        if not self.position == 'before':
-            self.position = 'before'
         if norm:
-            normalization = self.state_probability(self.effect_repertoire((), purview), purview)
+            normalization = self.state_probability(
+                DIRECTIONS[FUTURE], self.unconstrained_effect_repertoire(purview),
+                purview)
         else:
             normalization = 1
-        return self.state_probability(self.effect_repertoire(mechanism, purview),
-                                      purview) / normalization
-
-    def cause_effect_info(self, mechanism, purview):
-        """Return the cause-effect information for a mechanism over a
-        purview.
-
-        This is the minimum of the cause and effect information."""
-        return min(self.cause_info(mechanism, purview),
-                   self.effect_info(mechanism, purview))
+        return self.state_probability(DIRECTIONS[FUTURE],
+            self.effect_repertoire(mechanism, purview), purview) / normalization
 
     # MIP methods
     # =========================================================================
@@ -638,11 +246,12 @@ class Context:
         # Calculate the unpartitioned probability to compare against the
         # partitioned probabilities
         unpartitioned_repertoire = repertoire(mechanism, purview)
-        probability = self.state_probability(unpartitioned_repertoire, purview)
+        probability = self.state_probability(direction, unpartitioned_repertoire,
+                                             purview)
         if norm:
             unconstrained_repertoire = repertoire((), purview)
             normalization = self.state_probability(
-                unconstrained_repertoire, purview)
+                direction, unconstrained_repertoire, purview)
         else:
             normalization = 1
         # Loop over possible MIP bipartitions
@@ -654,12 +263,12 @@ class Context:
             part2rep = repertoire(part1.mechanism, part1.purview)
             partitioned_repertoire = part1rep * part2rep
             partitioned_probability = self.state_probability(
-                partitioned_repertoire, purview)
+                direction, partitioned_repertoire, purview)
             alpha = (probability - partitioned_probability) / normalization
             # First check for 0
             # Default: don't count contrary causes and effects
             if phi_eq(alpha, 0) or (alpha < 0 and not allow_neg):
-                return AcMip(state=self.state,
+                return AcMip(state=self.mechanism_state(direction),
                              direction=direction,
                              mechanism=mechanism,
                              purview=purview,
@@ -671,7 +280,7 @@ class Context:
             # Then take closest to 0
             if (abs(alpha_min) - abs(alpha)) > EPSILON:
                 alpha_min = alpha
-                acmip = AcMip(state=self.state,
+                acmip = AcMip(state=self.mechanism_state(direction),
                               direction=direction,
                               mechanism=mechanism,
                               purview=purview,
@@ -681,46 +290,6 @@ class Context:
                               unconstrained_probability=normalization,
                               alpha=alpha_min)
         return acmip
-
-    # TODO Don't use these internally
-    def mip_past(self, mechanism, purview):
-        """Return the past minimum information partition.
-
-        Alias for |find_mip| with ``direction`` set to |past|.
-        """
-        return self.find_mip(DIRECTIONS[PAST], mechanism, purview)
-
-    def mip_future(self, mechanism, purview):
-        """Return the future minimum information partition.
-
-        Alias for |find_mip| with ``direction`` set to |future|.
-        """
-        return self.find_mip(DIRECTIONS[FUTURE], mechanism, purview)
-
-    def phi_mip_past(self, mechanism, purview):
-        """Return the |small_phi| value of the past minimum information
-        partition.
-
-        This is the distance between the unpartitioned cause repertoire and the
-        MIP cause repertoire.
-        """
-        mip = self.mip_past(mechanism, purview)
-        return mip.phi if mip else 0
-
-    def phi_mip_future(self, mechanism, purview):
-        """Return the |small_phi| value of the future minimum information
-        partition.
-
-        This is the distance between the unpartitioned effect repertoire and
-        the MIP cause repertoire.
-        """
-        mip = self.mip_future(mechanism, purview)
-        return mip.phi if mip else 0
-
-    def phi(self, mechanism, purview):
-        """Return the |small_phi| value of a mechanism over a purview."""
-        return min(self.phi_mip_past(mechanism, purview),
-                   self.phi_mip_future(mechanism, purview))
 
     # Phi_max methods
     # =========================================================================
@@ -737,17 +306,12 @@ class Context:
         Kwargs:
             purviews (tuple(int)): Optional subset of purviews of interest.
         """
-        if purviews is False:
-            purviews = self.network._potential_purviews(direction, mechanism)
-            # Filter out purviews that aren't in the subsystem
-            purviews = [purview for purview in purviews
-                        if set(purview).issubset(self.node_indices)]
+        if direction == DIRECTIONS[PAST]:
+            context = self.cause_context
+        elif direction == DIRECTIONS[FUTURE]:
+            context = self.effect_context
 
-        # Purviews are already filtered in network._potential_purviews
-        # over the full network connectivity matrix. However, since the cm
-        # is cut/smaller we check again here.
-        return irreducible_purviews(self.connectivity_matrix,
-                                    direction, mechanism, purviews)
+        return context._potential_purviews(direction, mechanism, purviews)
 
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')
@@ -781,7 +345,8 @@ class Context:
 
         # Find the maximal MIP over the remaining purviews.
         if not purviews:
-            maximal_mip = _null_ac_mip(self.state, direction, mechanism, None)
+            maximal_mip = _null_ac_mip(self.mechanism_state(direction),
+                                       direction, mechanism, None)
         else:
             # This max should be most positive
             maximal_mip = max(self.find_mip(direction, mechanism,

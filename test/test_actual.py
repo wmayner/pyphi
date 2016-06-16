@@ -1,7 +1,18 @@
 
 from pyphi import actual, examples
 
-# TODO: make pytest fixtures out of AC examples
+# TODO:
+# ~~~~~
+#   * make pytest fixtures out of AC examples
+#   * test context equality/hash
+#   * state_probability
+
+def test_context_initialization():
+    context = examples.ac_ex1_context()
+    assert context.effect_context.state == (0, 1, 1)
+    assert context.cause_context.state == (1, 0, 0)
+    assert tuple(n.state for n in context.cause_context.nodes) == (1, 0, 0)
+
 
 def test_ac_ex1_context():
     """Basic regression test for ac_ex1 example."""
