@@ -121,8 +121,8 @@ class Context:
         # Get the subsystem's connectivity matrix. This is the network's
         # connectivity matrix, but with the cut applied, and with all
         # connections to/from external nodes severed.
-        self.connectivity_matrix = utils.apply_actual_cut(
-            cut, network.connectivity_matrix)
+        # TODO: validate that this is an ActualCut
+        self.connectivity_matrix = self.cut.apply_cut(network.cm)
         # Get the perturbation probabilities for each node in the network
         self.perturb_vector = network.perturb_vector
         # Generate the nodes.

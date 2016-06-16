@@ -127,6 +127,22 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
     __slots__ = ()
 
+    # TODO test
+    def apply_cut(self, cm):
+        """Returns a modified connectivity matrix where the connections from one
+        set of nodes to the other are destroyed."""
+        cm = cm.copy()
+
+        for i in self.cause_part1:
+            for j in self.effect_part2:
+                cm[i][j] = 0
+
+        for i in self.cause_part2:
+            for j in self.effect_part1:
+                cm[i][j] = 0
+
+        return cm
+
     def __repr__(self):
         return fmt.make_repr(self, ['cause_part1', 'cause_part2',
                                     'effect_part1', 'effect_part2'])
