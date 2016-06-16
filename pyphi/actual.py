@@ -39,6 +39,7 @@ from .models import Part, ActualCut
 from .node import Node
 from .config import PRECISION
 from .models import AcMip, AcMice, AcBigMip, _null_ac_mip
+from .subsystem import mip_bipartitions
 
 import itertools
 from pprint import pprint
@@ -622,38 +623,6 @@ class Context:
     # MIP methods
     # =========================================================================
 
-    @staticmethod
-    def _mip_bipartition(mechanism, purview):
-        """Return all bipartitions of a mechanism over a purview.
-
-        Returns:
-            list((Part, Part))
-
-        TODO: use ``itertools.product``??
-        """
-        purview_bipartitions = utils.bipartition(purview)
-        # Also consider reverse or each parition, eg:
-        #   [((A), (BC)), ...] -> [((BC), (A)), ...]
-        reverse_bipartitions = [x[::-1] for x in purview_bipartitions]
-        result = []
-        for denominators in purview_bipartitions + reverse_bipartitions:
-            for numerators in utils.bipartition(mechanism):
-                # For the MIP, we only consider the bipartitions in which each
-                # node appears exactly once, e.g. for AB/ABC, (A/B) * (C/[]) is
-                # valid but (AB/BC) * ([]/A) is not (since B appears in both
-                # numerator and denominator), and exclude partitions whose
-                # numerator and denominator are both empty.
-                valid_partition = (
-                    len(numerators[0]) + len(denominators[0]) > 0 and
-                    len(numerators[1]) + len(denominators[1]) > 0)
-                if valid_partition:
-                    part0 = Part(mechanism=numerators[0],
-                                 purview=denominators[0])
-                    part1 = Part(mechanism=numerators[1],
-                                 purview=denominators[1])
-                    result.append((part0, part1))
-        return result
-
     def find_mip(self, direction, mechanism, purview,
                  norm=True, allow_neg=False):
         """ Return the cause coef mip minimum information partition for a mechanism
@@ -677,7 +646,7 @@ class Context:
         else:
             normalization = 1
         # Loop over possible MIP bipartitions
-        for part0, part1 in self._mip_bipartition(mechanism, purview):
+        for part0, part1 in mip_bipartitions(mechanism, purview):
             # Find the distance between the unpartitioned repertoire and
             # the product of the repertoires of the two parts, e.g.
             #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
