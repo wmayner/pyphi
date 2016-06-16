@@ -59,6 +59,18 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         all_mechanisms = utils.powerset(self.indices)
         return tuple(m for m in all_mechanisms if self.splits_mechanism(m))
 
+    def apply_cut(self, cm):
+        """Return a modified connectivity matrix where the connections from one
+        set of nodes to the other are destroyed.
+        """
+        cm = cm.copy()
+
+        for i in self[0]:
+            for j in self[1]:
+                cm[i][j] = 0
+
+        return cm
+
     # TODO: pass in `size` arg and keep expanded to full network??
     # TODO: memoize?
     def cut_matrix(self):

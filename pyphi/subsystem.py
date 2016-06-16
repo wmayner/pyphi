@@ -82,7 +82,7 @@ class Subsystem:
         self.cut_matrix = self.cut.cut_matrix()
 
         # The network's connectivity matrix with cut applied
-        self.cm = utils.apply_cut(cut, network.cm)
+        self.cm = self.cut.apply_cut(network.cm)
 
         # The perturbation probabilities for each node in the network
         self.perturb_vector = network.perturb_vector

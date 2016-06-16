@@ -188,6 +188,24 @@ def test_cut_indices():
     cut = models.Cut((7,), (3, 1))
     assert cut.indices == (1, 3, 7)
 
+
+def test_apply_cut():
+    cm = np.array([
+        [1, 0, 1, 0],
+        [1, 1, 1, 1],
+        [0, 1, 0, 1],
+        [1, 0, 1, 0]
+    ])
+    cut = models.Cut(severed=(0, 3), intact=(1, 2))
+    cut_cm = np.array([
+        [1, 0, 0, 0],
+        [1, 1, 1, 1],
+        [0, 1, 0, 1],
+        [1, 0, 0, 0]
+    ])
+    assert np.array_equal(cut.apply_cut(cm), cut_cm)
+
+
 # }}}
 
 

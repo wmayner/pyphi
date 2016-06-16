@@ -135,21 +135,6 @@ def expand_tpm(tpm):
     return tpm * uc
 
 
-def apply_cut(cut, cm):
-    """Return a modified connectivity matrix where the connections from one set
-    of nodes to the other are destroyed.
-    """
-    if cut is None:
-        return cm
-
-    cm = cm.copy()
-    for i in cut.severed:
-        for j in cut.intact:
-            cm[i][j] = 0
-
-    return cm
-
-
 # TODO test
 def apply_actual_cut(cut, connectivity_matrix):
     """Returns a modified connectivity matrix where the connections from one
