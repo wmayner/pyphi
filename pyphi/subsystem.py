@@ -80,7 +80,7 @@ class Subsystem:
         self.cut_matrix = self.cut.cut_matrix()
 
         # The network's connectivity matrix with cut applied
-        self.cm = utils.apply_cut(cut, network.cm)
+        self.cm = self.cut.apply_cut(network.cm)
 
         # Only compute hash once.
         self._hash = hash((self.network, self.node_indices, self.state,
