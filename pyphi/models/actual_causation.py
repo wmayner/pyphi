@@ -202,6 +202,17 @@ class AcMip(namedtuple('AcMip', _acmip_attributes)):
     __ge__ = _ap_phi_then_mechanism_size_ge
 
 
+def _null_ac_mip(state, direction, mechanism, purview):
+    return AcMip(state=state,
+                 direction=direction,
+                 mechanism=mechanism,
+                 purview=purview,
+                 partition=None,
+                 probability=None,
+                 partitioned_probability=None,
+                 unconstrained_probability=None,
+                 alpha=0.0)
+
 # =============================================================================
 
 class AcMice:

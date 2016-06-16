@@ -19,7 +19,7 @@ Attributes:
     AcBigMip: Alias for :class:`actual_causation.AcBigMip`
 """
 
-from .actual_causation import AcBigMip, AcMice, AcMip
+from .actual_causation import AcBigMip, AcMice, AcMip, _null_ac_mip
 from .big_phi import BigMip, _null_bigmip, _single_node_bigmip
 from .concept import (Mip, _null_mip, Mice, Concept, Constellation,
                       normalize_constellation)

@@ -38,7 +38,7 @@ from .constants import DIRECTIONS, FUTURE, PAST, EPSILON
 from .models import Part, ActualCut
 from .node import Node
 from .config import PRECISION
-from .models import AcMip, AcMice, AcBigMip
+from .models import AcMip, AcMice, AcBigMip, _null_ac_mip
 
 import itertools
 from pprint import pprint
@@ -654,20 +654,6 @@ class Context:
                     result.append((part0, part1))
         return result
 
-    @staticmethod
-    def _null_mip(state, direction, mechanism, purview):
-        # TODO Use properties here to infer mechanism and purview from
-        # partition yet access them with .mechanism and .partition
-        return AcMip(state=state,
-                     direction=direction,
-                     mechanism=mechanism,
-                     purview=purview,
-                     partition=None,
-                     probability=None,
-                     partitioned_probability=None,
-                     unconstrained_probability=None,
-                     alpha=0.0)
-
     def find_mip(self, direction, mechanism, purview,
                  norm=True, allow_neg=False):
         """ Return the cause coef mip minimum information partition for a mechanism
@@ -826,7 +812,7 @@ class Context:
 
         # Find the maximal MIP over the remaining purviews.
         if not purviews:
-            maximal_mip = self._null_mip(self.state, direction, mechanism, None)
+            maximal_mip = _null_ac_mip(self.state, direction, mechanism, None)
         else:
             # This max should be most positive
             maximal_mip = max(self.find_mip(direction, mechanism,
