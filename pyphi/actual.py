@@ -153,6 +153,7 @@ class Context:
     #         'cut': jsonify(self.cut),
     #    }
 
+    # TODO: remove these named repertoire methods and just use `_repertoire`?
     def cause_repertoire(self, mechanism, purview):
         return self.cause_system.cause_repertoire(mechanism, purview)
 
