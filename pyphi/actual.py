@@ -10,7 +10,6 @@ import logging
 import numpy as np
 
 from . import validate, utils, compute
-from .network import Network
 from .utils import powerset, bipartition, directed_bipartition, phi_eq
 from .constants import DIRECTIONS, FUTURE, PAST, EPSILON
 from .models import AcMip, AcMice, AcBigMip, _null_ac_mip, ActualCut
@@ -615,10 +614,7 @@ def contexts(network, before_state, after_state):
 def nexus(network, before_state, after_state, direction=None):
     """Return a generator for all irreducible nexus of the network.
        Direction options are past, future, bidirectional. """
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
+    validate.is_network(network)
 
     if not direction:
         direction = 'bidirectional'
@@ -629,12 +625,11 @@ def nexus(network, before_state, after_state, direction=None):
 
 def causal_nexus(network, before_state, after_state, direction=None):
     """Return the causal nexus of the network."""
-    if not isinstance(network, Network):
-        raise ValueError(
-            """Input must be a Network (perhaps you passed a Subsystem
-            instead?)""")
+    validate.is_network(network)
+
     if not direction:
         direction = 'bidirectional'
+
     log.info("Calculating causal nexus...")
     result = nexus(network, before_state, after_state, direction)
     if result:
