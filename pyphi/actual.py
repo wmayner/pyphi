@@ -4,29 +4,7 @@
 
 """
 Methods for computing actual causation of subsystems and mechanisms.
-
-Bidirectional analysis of a transition:
-    Note: during the init the subsystem should always come with the past state.
-    This is because the subsystem should take the past state as background
-    states in both directions. Then in the "past" case, the subsystem state
-    should be swapped, to condition on the current state. All functions that
-    take subsystems assume that the subsystem has already been prepared in this
-    way.
-
-    "past": evaluate cause-repertoires given current state
-        background: past, condition on: current, actual state: past
-
-    "future": evaluate effect-repertoires given past state
-        background: past, condition on: past, actual state: current
-
-To do this with the minimal effort, the subsystem state and actual state have
-to be swapped in the "past" case, after the subsystem is conditioned on the
-background condition.
 """
-
-# Todo: check that transition between past and current state is possible for
-# every function
-
 
 import logging
 import numpy as np
@@ -47,34 +25,36 @@ from scipy.sparse.csgraph import connected_components
 log = logging.getLogger(__name__)
 
 
-# TODO! go through docs and make sure to say when things can be None
-# TODO: validate that purview and mechanism args are explicitly *tuples*?
 class Context:
-
-    """A set of nodes in a network, with state transition
+    """A set of nodes in a network, with state transitions.
 
     Args:
         network (Network): The network the subsystem belongs to.
-        state (tuple(int)):
-        node_indices (tuple(int)): A sequence of indices of the nodes in this
-            subsystem.
+        before_state (tuple[int]): The state of the network at
+            time ``t-1``.
+        after_state (tuple[int]): The state of the network at
+            time ``t``.
+        cause_indices (tuple[int] or tuple[str]): Indices of nodes in the cause
+            system. (TODO: clarify)
+        effect_indices (tuple[int] or tuple[str]): Indices of nodes in the
+            effect system. (TODO: clarify)
 
     Attributes:
-        nodes (list(Node)): A list of nodes in the subsystem.
         node_indices (tuple(int)): The indices of the nodes in the subsystem.
-        size (int): The number of nodes in the subsystem.
         network (Network): The network the subsystem belongs to.
-        state (tuple): The current state of the subsystem. ``state[i]`` gives
-            the state of node |i|.
-        cut (Cut): The cut that has been applied to this subsystem.
-        connectivity_matrix (np.array): The connectivity matrix after applying
-            the cut.
-        cut_matrix (np.array): A matrix of connections which have been severed
-            by the cut.
-        perturb_vector (np.array): The vector of perturbation probabilities for
-            each node.
-        null_cut (Cut): The cut object representing no cut.
-        tpm (np.array): The TPM conditioned on the state of the external nodes.
+        before_state (tuple[int]): The state of the network at
+            time ``t-1``.
+        after_state (tuple[int]): The state of the network at
+            time ``t``.
+        system (dict): A dictionary mapping causal directions to the system
+            used to compute repertoires in that direction.
+        cut (ActualCut): The cut that has been applied to this context.
+
+    .. note::
+        During initialization, both the cause and effect systems are
+        conditioned on the ``before_state`` as the background state. After
+        conditioning the ``effect_system`` is then properly reset to
+        ``after_state``.
     """
 
     def __init__(self, network, before_state, after_state, cause_indices,
