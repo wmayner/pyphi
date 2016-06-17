@@ -123,6 +123,12 @@ class Context:
     def __hash__(self):
         return self._hash
 
+    def __len__(self):
+        return len(self.node_indices)
+
+    def __bool__(self):
+        return len(self) > 0
+
     # TODO jsonify
     # def to_json(self):
     #    return {

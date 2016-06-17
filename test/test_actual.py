@@ -34,6 +34,20 @@ def test_system_dict():
     assert context.system['future'] == context.effect_system
 
 
+def test_context_len(s):
+    context = examples.ac_ex1_context()
+    assert len(context) == 3
+    context = actual.Context(s.network, (0, 1, 1), (1, 1, 1), (), ())
+    assert len(context) == 0
+
+
+def test_context_bool(s):
+    context = examples.ac_ex1_context()
+    assert bool(context)
+    context = actual.Context(s.network, (0, 1, 1), (1, 1, 1), (), ())
+    assert not bool(context)
+
+
 def test_coefficients():
     context = examples.ac_ex1_context()
     A, B, C = (0, 1, 2)
