@@ -97,8 +97,6 @@ class Context:
         # connections to/from external nodes severed.
         # TODO: validate that this is an ActualCut
         self.connectivity_matrix = self.cut.apply_cut(network.cm)
-        # Get the perturbation probabilities for each node in the network
-        self.perturb_vector = network.perturb_vector
 
         # TODO: Reimplement the matrix of connections which are severed due to
         # the cut
