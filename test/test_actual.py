@@ -2,54 +2,63 @@ import pytest
 
 from pyphi import actual, examples
 
-# TODO:
-# ~~~~~
-#   * make pytest fixtures out of AC examples
+# TODO
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #   * test context equality/hash
 #   * state_probability
 
 
-def test_context_initialization():
-    context = examples.ac_ex1_context()
+# Fixtures
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+@pytest.fixture
+def context():
+    return examples.ac_ex1_context()
+
+
+@pytest.fixture
+def empty_context(context):
+    return actual.Context(context.network, context.before_state,
+                          context.after_state, (), ())
+
+
+# Tests
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def test_context_initialization(context):
     assert context.effect_system.state == (0, 1, 1)
     assert context.cause_system.state == (1, 0, 0)
     assert tuple(n.state for n in context.cause_system.nodes) == (1, 0, 0)
 
 
-def test_purview_state():
-    context = examples.ac_ex1_context()
+def test_purview_state(context):
     assert context.purview_state('past') == (0, 1, 1)
     assert context.purview_state('future') == (1, 0, 0)
 
 
-def test_mechanism_state():
-    context = examples.ac_ex1_context()
+def test_mechanism_state(context):
     assert context.mechanism_state('past') == (1, 0, 0)
     assert context.mechanism_state('future') == (0, 1, 1)
 
 
-def test_system_dict():
-    context = examples.ac_ex1_context()
+def test_system_dict(context):
     assert context.system['past'] == context.cause_system
     assert context.system['future'] == context.effect_system
 
 
-def test_context_len(s):
-    context = examples.ac_ex1_context()
+def test_context_len(context, empty_context):
     assert len(context) == 3
-    context = actual.Context(s.network, (0, 1, 1), (1, 1, 1), (), ())
-    assert len(context) == 0
+    assert len(empty_context) == 0
 
 
-def test_context_bool(s):
-    context = examples.ac_ex1_context()
+def test_context_bool(context, empty_context):
     assert bool(context)
-    context = actual.Context(s.network, (0, 1, 1), (1, 1, 1), (), ())
-    assert not bool(context)
+    assert not bool(empty_context)
 
 
-def test_coefficients():
-    context = examples.ac_ex1_context()
+def test_coefficients(context):
     A, B, C = (0, 1, 2)
 
     assert context.cause_coefficient((A,), (B, C), norm=False) == 1/3
@@ -67,9 +76,8 @@ def test_coefficients():
     # ...
 
 
-def test_ac_ex1_context():
+def test_ac_ex1_context(context):
     """Basic regression test for ac_ex1 example."""
-    context = examples.ac_ex1_context()
 
     cause_account = actual.directed_account(context, 'past')
     assert len(cause_account) == 1
