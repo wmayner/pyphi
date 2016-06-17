@@ -195,6 +195,10 @@ class Context:
 
         return self.state_probability(direction, repertoire, purview)
 
+    def _unconstrained_state_probability(self, direction, purview):
+        """Unconstrained probability of the purview."""
+        return self._state_probability(direction, (), purview)
+
     def purview_state(self, direction):
         """The state of the purview when we are computing coefficients in
         ``direction``.
@@ -220,15 +224,18 @@ class Context:
 
         return mechanism_state
 
+    def _normalize(self, probability, direction, purview, norm=True):
+        """Normalize the probability of a purview in the given direction."""
+        if not norm:
+            return probability
+
+        return probability / self._unconstrained_state_probability(direction, purview)
+
     def _coefficient(self, direction, mechanism, purview, norm=True):
         """Return the cause or effect coefficient of a mechanism over a
         purview."""
-        if norm:
-            normalization = self._state_probability(direction, (), purview)
-        else:
-            normalization = 1
-
-        return self._state_probability(direction, mechanism, purview) / normalization
+        p = self._state_probability(direction, mechanism, purview)
+        return self._normalize(p, direction, purview, norm)
 
     def cause_coefficient(self, mechanism, purview, norm=True):
         """ Return the cause coefficient for a mechanism in a state over a
@@ -248,6 +255,12 @@ class Context:
             system = self.effect_context
         return system.partitioned_repertoire(direction, partition)
 
+    def partitioned_probability(self, direction, partition):
+        """Compute the probability of the mechanism over the purview in
+        the partition."""
+        repertoire = self.partitioned_repertoire(direction, partition)
+        return self.state_probability(direction, repertoire, partition.purview)
+
     # MIP methods
     # =========================================================================
 
@@ -261,24 +274,16 @@ class Context:
             Todo: also return cut etc. ?
         """
         alpha_min = float('inf')
-        # Calculate the unpartitioned probability to compare against the
-        # partitioned probabilities
         probability = self._state_probability(direction, mechanism, purview)
-        if norm:
-            normalization = self._state_probability(direction, (), purview)
-        else:
-            normalization = 1
+        unconstrained_probability = self._unconstrained_state_probability(
+            direction, purview)
 
-        # Loop over possible MIP bipartitions
         for partition in mip_bipartitions(mechanism, purview):
-            # Find the distance between the unpartitioned repertoire and
-            # the product of the repertoires of the two parts, e.g.
-            #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
-            partitioned_repertoire = self.partitioned_repertoire(
+            partitioned_probability = self.partitioned_probability(
                 direction, partition)
-            partitioned_probability = self.state_probability(
-                direction, partitioned_repertoire, purview)
-            alpha = (probability - partitioned_probability) / normalization
+            alpha = self._normalize(probability - partitioned_probability,
+                                    direction, purview)
+
             # First check for 0
             # Default: don't count contrary causes and effects
             if phi_eq(alpha, 0) or (alpha < 0 and not allow_neg):
@@ -289,7 +294,7 @@ class Context:
                              partition=partition,
                              probability=probability,
                              partitioned_probability=partitioned_probability,
-                             unconstrained_probability=normalization,
+                             unconstrained_probability=unconstrained_probability,
                              alpha=0.0)
             # Then take closest to 0
             if (abs(alpha_min) - abs(alpha)) > EPSILON:
@@ -301,7 +306,7 @@ class Context:
                               partition=partition,
                               probability=probability,
                               partitioned_probability=partitioned_probability,
-                              unconstrained_probability=normalization,
+                              unconstrained_probability=unconstrained_probability,
                               alpha=alpha_min)
         return acmip
 
