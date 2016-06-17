@@ -237,6 +237,14 @@ class Context:
         return self.state_probability(DIRECTIONS[FUTURE],
             self.effect_repertoire(mechanism, purview), purview) / normalization
 
+    def partitioned_repertoire(self, direction, partition):
+        """Compute the repertoire over the partition in the given direction."""
+        if direction == DIRECTIONS[PAST]:
+            system = self.cause_context
+        elif direction == DIRECTIONS[FUTURE]:
+            system = self.effect_context
+        return system.partitioned_repertoire(direction, partition)
+
     # MIP methods
     # =========================================================================
 
@@ -264,13 +272,12 @@ class Context:
         else:
             normalization = 1
         # Loop over possible MIP bipartitions
-        for part0, part1 in mip_bipartitions(mechanism, purview):
+        for partition in mip_bipartitions(mechanism, purview):
             # Find the distance between the unpartitioned repertoire and
             # the product of the repertoires of the two parts, e.g.
             #   D( p(ABC/ABC) || p(AC/C) * p(B/AB) )
-            part1rep = repertoire(part0.mechanism, part0.purview)
-            part2rep = repertoire(part1.mechanism, part1.purview)
-            partitioned_repertoire = part1rep * part2rep
+            partitioned_repertoire = self.partitioned_repertoire(
+                direction, partition)
             partitioned_probability = self.state_probability(
                 direction, partitioned_repertoire, purview)
             alpha = (probability - partitioned_probability) / normalization
@@ -281,7 +288,7 @@ class Context:
                              direction=direction,
                              mechanism=mechanism,
                              purview=purview,
-                             partition=(part0, part1),
+                             partition=partition,
                              probability=probability,
                              partitioned_probability=partitioned_probability,
                              unconstrained_probability=normalization,
@@ -293,7 +300,7 @@ class Context:
                               direction=direction,
                               mechanism=mechanism,
                               purview=purview,
-                              partition=(part0, part1),
+                              partition=partition,
                               probability=probability,
                               partitioned_probability=partitioned_probability,
                               unconstrained_probability=normalization,
