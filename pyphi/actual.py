@@ -188,16 +188,16 @@ class Context:
                       for i in range(len(purview_state)))
         return repertoire[index]
 
-    def _state_probability(self, direction, mechanism, purview):
+    def probability(self, direction, mechanism, purview):
         """Probability that the purview is in it's current state given the
         state of the mechanism."""
         repertoire = self._get_repertoire(direction)(mechanism, purview)
 
         return self.state_probability(direction, repertoire, purview)
 
-    def _unconstrained_state_probability(self, direction, purview):
+    def unconstrained_probability(self, direction, purview):
         """Unconstrained probability of the purview."""
-        return self._state_probability(direction, (), purview)
+        return self.probability(direction, (), purview)
 
     def purview_state(self, direction):
         """The state of the purview when we are computing coefficients in
@@ -229,12 +229,12 @@ class Context:
         if not norm:
             return probability
 
-        return probability / self._unconstrained_state_probability(direction, purview)
+        return probability / self.unconstrained_probability(direction, purview)
 
     def _coefficient(self, direction, mechanism, purview, norm=True):
         """Return the cause or effect coefficient of a mechanism over a
         purview."""
-        p = self._state_probability(direction, mechanism, purview)
+        p = self.probability(direction, mechanism, purview)
         return self._normalize(p, direction, purview, norm)
 
     def cause_coefficient(self, mechanism, purview, norm=True):
@@ -274,8 +274,8 @@ class Context:
             Todo: also return cut etc. ?
         """
         alpha_min = float('inf')
-        probability = self._state_probability(direction, mechanism, purview)
-        unconstrained_probability = self._unconstrained_state_probability(
+        probability = self.probability(direction, mechanism, purview)
+        unconstrained_probability = self.unconstrained_probability(
             direction, purview)
 
         for partition in mip_bipartitions(mechanism, purview):
