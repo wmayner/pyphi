@@ -1,6 +1,6 @@
 import pytest
 
-from pyphi import actual, examples
+from pyphi import actual, examples, models
 
 # TODO
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -163,3 +163,8 @@ def test_ac_ex3_context():
     assert emip1.partitioned_probability == 0.75
     assert emip1.unconstrained_probability == 0.75
     assert emip1.partition == (((), (0,)), ((2,), ()))
+
+
+def test_actual_cut_indices():
+    cut = models.ActualCut((0,), (4,), (2,), (5,))
+    assert cut.indices == (0, 2, 4, 5)

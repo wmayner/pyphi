@@ -68,12 +68,19 @@ class Context:
         self.node_indices = network.parse_node_indices(cause_indices +
                                                        effect_indices)
 
-        # TODO: pass in cut ????
+        # TODO: clarify that `ActualCut` is implemented correctly (esp.
+        # cutting connections)
+        self.null_cut = ActualCut((), self.cause_indices,
+                                  (), self.effect_indices)
+        self.cut = cut if cut is not None else self.null_cut
+
         # Both are conditioned on the `before_state`, but we then change the
         # state of the cause context to `after_state` to reflect the fact that
         # that we are computing cause repertoires of mechanisms in that state.
-        self.effect_system = Subsystem(network, before_state, self.node_indices)
-        self.cause_system = Subsystem(network, before_state, self.node_indices)
+        self.effect_system = Subsystem(network, before_state,
+                                       self.node_indices, self.cut)
+        self.cause_system = Subsystem(network, before_state,
+                                      self.node_indices, self.cut)
         self.cause_system.state = after_state
         for node in self.cause_system.nodes:
             node.state = after_state[node.index]
@@ -84,22 +91,6 @@ class Context:
             DIRECTIONS[PAST]: self.cause_system,
             DIRECTIONS[FUTURE]: self.effect_system
         }
-
-        self.null_cut = ActualCut((), self.cause_indices,
-                                  (), self.effect_indices)
-
-        # The unidirectional cut applied for phi evaluation within the
-        self.cut = cut if cut is not None else self.null_cut
-
-        # Get the subsystem's connectivity matrix. This is the network's
-        # connectivity matrix, but with the cut applied, and with all
-        # connections to/from external nodes severed.
-        # TODO: validate that this is an ActualCut
-        self.connectivity_matrix = self.cut.apply_cut(network.cm)
-
-        # TODO: Reimplement the matrix of connections which are severed due to
-        # the cut
-        # self.cut_matrix = self.cut.cut_matrix()
 
         self._hash = hash((
             self.cause_indices, self.effect_indices, self.before_state,

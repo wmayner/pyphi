@@ -3,6 +3,7 @@
 # models/cuts.py
 
 from collections import namedtuple
+from itertools import chain
 
 import numpy as np
 
@@ -127,6 +128,11 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
     __slots__ = ()
 
+    @property
+    def indices(self):
+        """tuple[int]: The indices in this cut."""
+        return tuple(sorted(chain.from_iterable(self)))
+
     # TODO test
     def apply_cut(self, cm):
         """Returns a modified connectivity matrix where the connections from one
@@ -142,6 +148,10 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
                 cm[i][j] = 0
 
         return cm
+
+    # TODO implement
+    def cut_matrix(self):
+        return "DUMMY MATRIX"
 
     def __repr__(self):
         return fmt.make_repr(self, ['cause_part1', 'cause_part2',
