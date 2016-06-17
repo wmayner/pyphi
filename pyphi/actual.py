@@ -99,6 +99,13 @@ class Context:
         for node in self.cause_system.nodes:
             node.state = after_state[node.index]
 
+        # Dictionary mapping causal directions to the system which is used to
+        # compute repertoires in that direction
+        self.system = {
+            DIRECTIONS[PAST]: self.cause_system,
+            DIRECTIONS[FUTURE]: self.effect_system
+        }
+
         self.null_cut = ActualCut((), self.cause_indices,
                                   (), self.effect_indices)
 
@@ -158,22 +165,16 @@ class Context:
     def unconstrained_effect_repertoire(self, purview):
         return self.effect_repertoire((), purview)
 
-    def _get_repertoire(self, direction):
+    def _repertoire(self, direction, mechanism, purview):
         """Returns the cause or effect repertoire function based on a
         direction.
 
         Args:
             direction (str): The temporal direction, specifiying the cause or
                 effect repertoire.
-
-        Returns:
-            repertoire_function (``function``): The cause or effect repertoire
-                function.
         """
-        if direction == DIRECTIONS[PAST]:
-            return self.cause_repertoire
-        elif direction == DIRECTIONS[FUTURE]:
-            return self.effect_repertoire
+        system = self.system[direction]
+        return system._repertoire(direction, mechanism, purview)
 
     def state_probability(self, direction, repertoire, purview,):
         """ The dimensions of the repertoire that correspond to the fixed nodes
@@ -191,7 +192,7 @@ class Context:
     def probability(self, direction, mechanism, purview):
         """Probability that the purview is in it's current state given the
         state of the mechanism."""
-        repertoire = self._get_repertoire(direction)(mechanism, purview)
+        repertoire = self._repertoire(direction, mechanism, purview)
 
         return self.state_probability(direction, repertoire, purview)
 
@@ -217,12 +218,7 @@ class Context:
     def mechanism_state(self, direction):
         """The state of the mechanism when we are computing coefficients in
         ``direction``."""
-        if direction == DIRECTIONS[PAST]:
-            mechanism_state = self.after_state
-        elif direction == DIRECTIONS[FUTURE]:
-            mechanism_state = self.before_state
-
-        return mechanism_state
+        return self.system[direction].state
 
     def _normalize(self, probability, direction, purview, norm=True):
         """Normalize the probability of a purview in the given direction."""
@@ -249,10 +245,7 @@ class Context:
 
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
-        if direction == DIRECTIONS[PAST]:
-            system = self.cause_system
-        elif direction == DIRECTIONS[FUTURE]:
-            system = self.effect_system
+        system = self.system[direction]
         return system.partitioned_repertoire(direction, partition)
 
     def partitioned_probability(self, direction, partition):
@@ -325,12 +318,8 @@ class Context:
         Kwargs:
             purviews (tuple(int)): Optional subset of purviews of interest.
         """
-        if direction == DIRECTIONS[PAST]:
-            context = self.cause_system
-        elif direction == DIRECTIONS[FUTURE]:
-            context = self.effect_system
-
-        return context._potential_purviews(direction, mechanism, purviews)
+        system = self.system[direction]
+        return system._potential_purviews(direction, mechanism, purviews)
 
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')

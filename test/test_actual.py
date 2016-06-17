@@ -28,6 +28,12 @@ def test_mechanism_state():
     assert context.mechanism_state('future') == (0, 1, 1)
 
 
+def test_system_dict():
+    context = examples.ac_ex1_context()
+    assert context.system['past'] == context.cause_system
+    assert context.system['future'] == context.effect_system
+
+
 def test_coefficients():
     context = examples.ac_ex1_context()
     A, B, C = (0, 1, 2)
