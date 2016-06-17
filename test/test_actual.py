@@ -11,9 +11,9 @@ from pyphi import actual, examples
 
 def test_context_initialization():
     context = examples.ac_ex1_context()
-    assert context.effect_context.state == (0, 1, 1)
-    assert context.cause_context.state == (1, 0, 0)
-    assert tuple(n.state for n in context.cause_context.nodes) == (1, 0, 0)
+    assert context.effect_system.state == (0, 1, 1)
+    assert context.cause_system.state == (1, 0, 0)
+    assert tuple(n.state for n in context.cause_system.nodes) == (1, 0, 0)
 
 
 def test_purview_state():

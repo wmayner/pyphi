@@ -93,10 +93,10 @@ class Context:
         # Both are conditioned on the `before_state`, but we then change the
         # state of the cause context to `after_state` to reflect the fact that
         # that we are computing cause repertoires of mechanisms in that state.
-        self.effect_context = Subsystem(network, before_state, self.node_indices)
-        self.cause_context = Subsystem(network, before_state, self.node_indices)
-        self.cause_context.state = after_state
-        for node in self.cause_context.nodes:
+        self.effect_system = Subsystem(network, before_state, self.node_indices)
+        self.cause_system = Subsystem(network, before_state, self.node_indices)
+        self.cause_system.state = after_state
+        for node in self.cause_system.nodes:
             node.state = after_state[node.index]
 
         self.null_cut = ActualCut((), self.cause_indices,
@@ -123,8 +123,8 @@ class Context:
 
     def __repr__(self):
         return "Context(cause: {}, effect: {})".format(
-            self.cause_context.indices2nodes(self.cause_indices),
-            self.effect_context.indices2nodes(self.effect_indices))
+            self.cause_system.indices2nodes(self.cause_indices),
+            self.effect_system.indices2nodes(self.effect_indices))
 
     def __str__(self):
         return repr(self)
@@ -147,10 +147,10 @@ class Context:
     #    }
 
     def cause_repertoire(self, mechanism, purview):
-        return self.cause_context.cause_repertoire(mechanism, purview)
+        return self.cause_system.cause_repertoire(mechanism, purview)
 
     def effect_repertoire(self, mechanism, purview):
-        return self.effect_context.effect_repertoire(mechanism, purview)
+        return self.effect_system.effect_repertoire(mechanism, purview)
 
     def unconstrained_cause_repertoire(self, purview):
         return self.cause_repertoire((), purview)
@@ -250,9 +250,9 @@ class Context:
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
         if direction == DIRECTIONS[PAST]:
-            system = self.cause_context
+            system = self.cause_system
         elif direction == DIRECTIONS[FUTURE]:
-            system = self.effect_context
+            system = self.effect_system
         return system.partitioned_repertoire(direction, partition)
 
     def partitioned_probability(self, direction, partition):
@@ -326,9 +326,9 @@ class Context:
             purviews (tuple(int)): Optional subset of purviews of interest.
         """
         if direction == DIRECTIONS[PAST]:
-            context = self.cause_context
+            context = self.cause_system
         elif direction == DIRECTIONS[FUTURE]:
-            context = self.effect_context
+            context = self.effect_system
 
         return context._potential_purviews(direction, mechanism, purviews)
 
