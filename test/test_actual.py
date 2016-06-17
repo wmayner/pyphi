@@ -28,6 +28,25 @@ def test_mechanism_state():
     assert context.mechanism_state('future') == (0, 1, 1)
 
 
+def test_coefficients():
+    context = examples.ac_ex1_context()
+    A, B, C = (0, 1, 2)
+
+    assert context.cause_coefficient((A,), (B, C), norm=False) == 1/3
+    assert context.cause_coefficient((A,), (B,), norm=False) == 2/3
+    assert context.cause_coefficient((A,), (C,), norm=False) == 2/3
+    assert context.effect_coefficient((B, C), (A,), norm=False) == 1
+    assert context.effect_coefficient((A,), (B, C), norm=False) == 1/4
+    # ...
+
+    assert context.cause_coefficient((A,), (B, C)) == 4/3
+    assert context.cause_coefficient((A,), (B,)) == 4/3
+    assert context.cause_coefficient((A,), (C,)) == 4/3
+    assert context.effect_coefficient((B, C), (A,)) == 4/3
+    assert context.effect_coefficient((A,), (B, C)) == 1
+    # ...
+
+
 def test_ac_ex1_context():
     """Basic regression test for ac_ex1 example."""
     context = examples.ac_ex1_context()
