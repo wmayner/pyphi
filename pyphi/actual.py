@@ -188,6 +188,13 @@ class Context:
                       for i in range(len(purview_state)))
         return repertoire[index]
 
+    def _state_probability(self, direction, mechanism, purview):
+        """Probability that the purview is in it's current state given the
+        state of the mechanism."""
+        repertoire = self._get_repertoire(direction)(mechanism, purview)
+
+        return self.state_probability(direction, repertoire, purview)
+
     def purview_state(self, direction):
         """The state of the purview when we are computing coefficients in
         ``direction``.
@@ -213,29 +220,25 @@ class Context:
 
         return mechanism_state
 
+    def _coefficient(self, direction, mechanism, purview, norm=True):
+        """Return the cause or effect coefficient of a mechanism over a
+        purview."""
+        if norm:
+            normalization = self._state_probability(direction, (), purview)
+        else:
+            normalization = 1
+
+        return self._state_probability(direction, mechanism, purview) / normalization
+
     def cause_coefficient(self, mechanism, purview, norm=True):
         """ Return the cause coefficient for a mechanism in a state over a
         purview in the actual past state """
-        if norm:
-            normalization = self.state_probability(
-                DIRECTIONS[PAST], self.unconstrained_cause_repertoire(purview),
-                purview)
-        else:
-            normalization = 1
-        return self.state_probability(DIRECTIONS[PAST],
-            self.cause_repertoire(mechanism, purview), purview) / normalization
+        return self._coefficient(DIRECTIONS[PAST], mechanism, purview, norm)
 
     def effect_coefficient(self, mechanism, purview, norm=True):
         """ Return the effect coefficient for a mechanism in a state over a
         purview in the actual future state """
-        if norm:
-            normalization = self.state_probability(
-                DIRECTIONS[FUTURE], self.unconstrained_effect_repertoire(purview),
-                purview)
-        else:
-            normalization = 1
-        return self.state_probability(DIRECTIONS[FUTURE],
-            self.effect_repertoire(mechanism, purview), purview) / normalization
+        return self._coefficient(DIRECTIONS[FUTURE], mechanism, purview, norm)
 
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire over the partition in the given direction."""
@@ -257,20 +260,15 @@ class Context:
                             the unpartitioned cause and its MIP
             Todo: also return cut etc. ?
         """
-
-        repertoire = self._get_repertoire(direction)
         alpha_min = float('inf')
         # Calculate the unpartitioned probability to compare against the
         # partitioned probabilities
-        unpartitioned_repertoire = repertoire(mechanism, purview)
-        probability = self.state_probability(direction, unpartitioned_repertoire,
-                                             purview)
+        probability = self._state_probability(direction, mechanism, purview)
         if norm:
-            unconstrained_repertoire = repertoire((), purview)
-            normalization = self.state_probability(
-                direction, unconstrained_repertoire, purview)
+            normalization = self._state_probability(direction, (), purview)
         else:
             normalization = 1
+
         # Loop over possible MIP bipartitions
         for partition in mip_bipartitions(mechanism, purview):
             # Find the distance between the unpartitioned repertoire and
