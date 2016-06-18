@@ -12,7 +12,8 @@ import numpy as np
 from . import validate, utils, compute
 from .utils import powerset, bipartition, directed_bipartition, phi_eq
 from .constants import DIRECTIONS, FUTURE, PAST, BIDIRECTIONAL, EPSILON
-from .models import AcMip, AcMice, AcBigMip, _null_ac_mip, ActualCut
+from .models import (AcMip, AcMice, AcBigMip, _null_ac_mip, _null_ac_bigmip,
+                     ActualCut)
 from .subsystem import mip_bipartitions, Subsystem
 
 import itertools
@@ -433,18 +434,6 @@ def account_distance(A1, A2):
     """
     return (sum([action.alpha for action in A1])
             - sum([action.alpha for action in A2]))
-
-
-def _null_ac_bigmip(context, direction):
-    """Returns an ac |BigMip| with zero |big_ap_phi| and empty constellations.
-    For direction = bidirectional, the subsystem is subsystem_past and
-    subsystem2_or_actual_state is subsystem_future. """
-    if direction == DIRECTIONS[FUTURE]:
-        return AcBigMip(context=context, direction=direction, alpha=0.0,
-                        unpartitioned_account=(), partitioned_account=())
-    else:
-        return AcBigMip(context=context, direction=direction, alpha=0.0,
-                        unpartitioned_account=(), partitioned_account=())
 
 
 # TODO: single node BigMip

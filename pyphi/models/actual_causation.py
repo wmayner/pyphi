@@ -410,3 +410,12 @@ class AcBigMip:
 
     def __ge__(self, other):
         return (self.__gt__(other) or _ap_phi_eq(self, other))
+
+
+def _null_ac_bigmip(context, direction):
+    """Returns an ac |BigMip| with zero |big_ap_phi| and empty constellations."""
+    return AcBigMip(context=context,
+                    direction=direction,
+                    alpha=0.0,
+                    unpartitioned_account=(),
+                    partitioned_account=())
