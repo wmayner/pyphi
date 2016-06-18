@@ -11,7 +11,7 @@ import numpy as np
 
 from . import validate, utils, compute
 from .utils import powerset, bipartition, directed_bipartition, phi_eq
-from .constants import DIRECTIONS, FUTURE, PAST, EPSILON
+from .constants import DIRECTIONS, FUTURE, PAST, BIDIRECTIONAL, EPSILON
 from .models import AcMip, AcMice, AcBigMip, _null_ac_mip, ActualCut
 from .subsystem import mip_bipartitions, Subsystem
 
@@ -408,7 +408,7 @@ def directed_account(context, direction, mechanisms=False, purviews=False,
 
 
 def account(context, direction):
-    if direction == 'bidirectional':
+    if direction == DIRECTIONS[BIDIRECTIONAL]:
         return tuple(directed_account(context, DIRECTIONS[PAST]) +
                      directed_account(context, DIRECTIONS[FUTURE]))
     return directed_account(context, direction)
@@ -486,7 +486,7 @@ def _evaluate_cut(context, cut, unpartitioned_account, direction=None):
                           context.effect_indices,
                           cut)
     if not direction:
-        direction = 'bidirectional'
+        direction = DIRECTIONS[BIDIRECTIONAL]
 
     partitioned_account = account(cut_context, direction)
 
@@ -533,7 +533,7 @@ def big_acmip(context, direction=None):
             information for the given subsystem.
     """
     if not direction:
-        direction = 'bidirectional'
+        direction = DIRECTIONS[BIDIRECTIONAL]
     validate.direction(direction)
     log.info("Calculating big-alpha for {}...".format(context))
 
@@ -614,7 +614,7 @@ def nexus(network, before_state, after_state, direction=None):
     validate.is_network(network)
 
     if not direction:
-        direction = 'bidirectional'
+        direction = DIRECTIONS[BIDIRECTIONAL]
 
     return tuple(filter(None, (big_acmip(context, direction) for context in
                                contexts(network, before_state, after_state))))
@@ -625,7 +625,7 @@ def causal_nexus(network, before_state, after_state, direction=None):
     validate.is_network(network)
 
     if not direction:
-        direction = 'bidirectional'
+        direction = DIRECTIONS[BIDIRECTIONAL]
 
     log.info("Calculating causal nexus...")
     result = nexus(network, before_state, after_state, direction)

@@ -19,6 +19,7 @@ EPSILON = 10 ** - config.PRECISION
 # space.
 PAST = 0
 FUTURE = 1
+BIDIRECTIONAL = 2
 # Constants for using cause and effect methods.
 DIRECTIONS = ('past', 'future', 'bidirectional')
 # Constants for labeling memoization backends.
