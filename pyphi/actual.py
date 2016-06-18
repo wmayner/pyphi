@@ -406,6 +406,14 @@ def directed_account(context, direction, mechanisms=False, purviews=False,
     # Filter out falsy acmices, i.e. those with effectively zero ac_diff.
     return tuple(filter(None, actions))
 
+
+def account(context, direction):
+    if direction == 'bidirectional':
+        return tuple(directed_account(context, DIRECTIONS[PAST]) +
+                     directed_account(context, DIRECTIONS[FUTURE]))
+    return directed_account(context, direction)
+
+
 # ============================================================================
 # AcBigMips and System cuts
 # ============================================================================
@@ -479,12 +487,8 @@ def _evaluate_cut(context, cut, unpartitioned_account, direction=None):
                           cut)
     if not direction:
         direction = 'bidirectional'
-    if direction == 'bidirectional':
-        partitioned_account = tuple(
-            directed_account(cut_context, DIRECTIONS[PAST]) +
-            directed_account(cut_context, DIRECTIONS[FUTURE]))
-    else:
-        partitioned_account = directed_account(cut_context, direction)
+
+    partitioned_account = account(cut_context, direction)
 
     log.debug("Finished evaluating cut {}.".format(cut))
     alpha = account_distance(unpartitioned_account, partitioned_account)
@@ -550,13 +554,9 @@ def big_acmip(context, direction=None):
     cuts = _get_cuts(context)
 
     log.debug("Finding unpartitioned account...")
-    if direction == 'bidirectional':
-        unpartitioned_account = tuple(
-            directed_account(context, DIRECTIONS[PAST]) +
-            directed_account(context, DIRECTIONS[FUTURE]))
-    else:
-        unpartitioned_account = directed_account(context, direction)
+    unpartitioned_account = account(context, direction)
     log.debug("Found unpartitioned account.")
+
     if not unpartitioned_account:
         # Short-circuit if there are no actions in the unpartitioned
         # account.
