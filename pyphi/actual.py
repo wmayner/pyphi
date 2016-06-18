@@ -375,16 +375,16 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
     for transition in transitions:
         context = Context(network, transition[0], transition[1], cause_indices,
                           effect_indices)
-        cause_account = directed_account(context, 'past', mechanisms, purviews,
-                                         norm, allow_neg)
-        effect_account = directed_account(context, 'future', mechanisms,
-                                          purviews, norm, allow_neg)
+        cause_account = directed_account(context, DIRECTIONS[PAST], mechanisms,
+                                         purviews, norm, allow_neg)
+        effect_account = directed_account(context, DIRECTIONS[FUTURE],
+                                          mechanisms, purviews, norm, allow_neg)
         print('#####################################')
         print(transition)
         print('- cause coefs ----------------------')
-        pprint(nice_ac_composition(cause_account, 'past'))
+        pprint(nice_ac_composition(cause_account))
         print('- effect coefs ----------------------')
-        pprint(nice_ac_composition(effect_account, 'future'))
+        pprint(nice_ac_composition(effect_account))
         print('---------------------------')
 
 # ============================================================================
@@ -396,9 +396,9 @@ def directed_account(context, direction, mechanisms=False, purviews=False,
                      norm=True, allow_neg=False):
     """Set of all AcMice of the specified direction"""
     if mechanisms is False:
-        if direction == 'past':
+        if direction == DIRECTIONS[PAST]:
             mechanisms = powerset(context.effect_indices)
-        elif direction == 'future':
+        elif direction == DIRECTIONS[FUTURE]:
             mechanisms = powerset(context.cause_indices)
     actions = [context.find_mice(direction, mechanism, purviews=purviews,
                                  norm=norm, allow_neg=allow_neg)
@@ -480,10 +480,9 @@ def _evaluate_cut(context, cut, unpartitioned_account, direction=None):
     if not direction:
         direction = 'bidirectional'
     if direction == 'bidirectional':
-        past_partitioned_account = directed_account(cut_context, 'past')
-        future_partitioned_account = directed_account(cut_context, 'future')
-        partitioned_account = tuple(past_partitioned_account
-                                    + future_partitioned_account)
+        partitioned_account = tuple(
+            directed_account(cut_context, DIRECTIONS[PAST]) +
+            directed_account(cut_context, DIRECTIONS[FUTURE]))
     else:
         partitioned_account = directed_account(cut_context, direction)
 
@@ -552,8 +551,9 @@ def big_acmip(context, direction=None):
 
     log.debug("Finding unpartitioned account...")
     if direction == 'bidirectional':
-        unpartitioned_account = tuple(directed_account(context, 'past')
-                                      + directed_account(context, 'future'))
+        unpartitioned_account = tuple(
+            directed_account(context, DIRECTIONS[PAST]) +
+            directed_account(context, DIRECTIONS[FUTURE]))
     else:
         unpartitioned_account = directed_account(context, direction)
     log.debug("Found unpartitioned account.")
@@ -674,13 +674,12 @@ def true_constellation(subsystem, past_state, future_state):
     nodes = subsystem.node_indices
     state = subsystem.state
     past_context = Context(network, past_state, state, nodes, nodes)
-    true_causes = directed_account(past_context, direction=DIRECTIONS[PAST])
+    true_causes = directed_account(past_context, DIRECTIONS[PAST])
     log.info("Calculating true effects ...")
     future_context = Context(network, state, future_state, nodes, nodes)
-    true_effects = directed_account(future_context,
-                                    direction=DIRECTIONS[FUTURE])
-    true_mechanisms = set([c.mechanism for c in true_causes]).\
-        intersection(c.mechanism for c in true_effects)
+    true_effects = directed_account(future_context, DIRECTIONS[FUTURE])
+    true_mechanisms = set([c.mechanism for c in true_causes]).intersection(
+        c.mechanism for c in true_effects)
     if true_mechanisms:
         true_events = true_causes + true_effects
         result = tuple(filter(lambda t: t.mechanism in true_mechanisms,
