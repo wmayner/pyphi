@@ -168,3 +168,11 @@ def test_ac_ex3_context():
 def test_actual_cut_indices():
     cut = models.ActualCut((0,), (4,), (2,), (5,))
     assert cut.indices == (0, 2, 4, 5)
+
+
+def test_big_acmip(context):
+    bigmip = actual.big_acmip(context)
+    assert bigmip.alpha == 0.33333333333333326
+    assert bigmip.cut == models.ActualCut((1,), (2,), (), (0,))
+    assert len(bigmip.unpartitioned_account) == 3
+    assert len(bigmip.partitioned_account) == 2
