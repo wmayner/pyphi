@@ -117,7 +117,7 @@ def _general_eq(a, b, attributes):
     try:
         for attr in attributes:
             _a, _b = getattr(a, attr), getattr(b, attr)
-            if attr == 'phi':
+            if attr in ['phi', 'alpha']:
                 if not utils.phi_eq(_a, _b):
                     return False
             elif (attr == 'mechanism' or attr == 'purview'):

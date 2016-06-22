@@ -8,7 +8,7 @@ Containers for AcMip and AcMice and AcBigMip.
 from collections import namedtuple
 from .. import utils
 from ..utils import phi_eq
-from .cmp import _numpy_aware_eq
+from . import cmp
 from .fmt import fmt_ac_mip, fmt_ac_big_mip, make_repr, indent
 
 # TODO use properties to avoid data duplication
@@ -79,47 +79,17 @@ def _ap_phi_then_mechanism_size_ge(self, other):
             _ap_phi_eq(self, other))
 
 
-# Equality helpers
-# =============================================================================
-def _general_eq(a, b, attributes):
-    """Return whether two objects are equal up to the given attributes.
-
-    If an attribute is called ``'ap_phi'``, it is compared up to |PRECISION|.
-    All other attributes are compared with :func:`_numpy_aware_eq`.
-
-    If an attribute is called ``'mechanism'`` or ``'purview'``, it is compared
-    using set equality."""
-    try:
-        for attr in attributes:
-            _a, _b = getattr(a, attr), getattr(b, attr)
-            if attr == 'ap_phi':
-                if not phi_eq(_a, _b):
-                    return False
-            elif (attr == 'mechanism' or attr == 'purview'):
-                if _a is None or _b is None and not _a == _b:
-                    return False
-                # Don't use `set` because hashes may be different (contexts are
-                # included in node hashes); we want to use Node.__eq__.
-                elif not (all(n in _b for n in _a) and len(_a) == len(_b)):
-                    return False
-            else:
-                if not _numpy_aware_eq(_a, _b):
-                    return False
-        return True
-    except AttributeError:
-        return False
-
 # =============================================================================
 # Todo: Why do we even need this?
 # Todo: add second state
 _acmip_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',
                      'partition', 'probability', 'partitioned_probability',
                      'unconstrained_probability']
-_acmip_attributes_for_eq = ['alpha', 'direction', 'mechanism',
-                            'unpartitioned_ap']
+_acmip_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
+                            'purview', 'probability']
 
 
-class AcMip(namedtuple('AcMip', _acmip_attributes)):
+class AcMip(cmp._Orderable, namedtuple('AcMip', _acmip_attributes)):
 
     """A minimum information partition for ac_coef calculation.
 
@@ -154,22 +124,14 @@ class AcMip(namedtuple('AcMip', _acmip_attributes)):
     """
     __slots__ = ()
 
+    _unorderable_unless_eq = ['direction']
+
+    def _order_by(self):
+        return [self.alpha, len(self.mechanism)]
+
     def __eq__(self, other):
-        # We don't count the partition and partitioned repertoire in checking
-        # for MIP equality, since these are lost during normalization. We also
-        # don't count the mechanism and purview, since these may be different
-        # depending on the order in which purviews were evaluated.
-        # TODO!!! clarify the reason for that
-        # We do however check whether the size of the mechanism or purview is
-        # the same, since that matters (for the exclusion principle).
         # TODO: include 2nd state here?
-        if not self.purview or not other.purview:
-            return (_general_eq(self, other, _acmip_attributes_for_eq) and
-                    len(self.mechanism) == len(other.mechanism))
-        else:
-            return (_general_eq(self, other, _acmip_attributes_for_eq) and
-                    len(self.mechanism) == len(other.mechanism) and
-                    len(self.purview) == len(other.purview))
+        return cmp._general_eq(self, other, _acmip_attributes_for_eq)
 
     def __bool__(self):
         """An AcMip is truthy if it is not reducible; i.e. if it has a significant
@@ -194,12 +156,6 @@ class AcMip(namedtuple('AcMip', _acmip_attributes)):
 
     def __str__(self):
         return "Mip\n" + indent(fmt_ac_mip(self))
-
-    # Order by ap_phi value, then by mechanism size
-    __lt__ = _ap_phi_then_mechanism_size_lt
-    __gt__ = _ap_phi_then_mechanism_size_gt
-    __le__ = _ap_phi_then_mechanism_size_le
-    __ge__ = _ap_phi_then_mechanism_size_ge
 
 
 def _null_ac_mip(state, direction, mechanism, purview):
@@ -372,7 +328,7 @@ class AcBigMip:
         return self.context.after_state
 
     def __eq__(self, other):
-        return _general_eq(self, other, _acbigmip_attributes)
+        return cmp._general_eq(self, other, _acbigmip_attributes)
 
     def __bool__(self):
         """A BigMip is truthy if it is not reducible; i.e. if it has a
