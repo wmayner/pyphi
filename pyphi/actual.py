@@ -76,6 +76,9 @@ class Context:
         # Both are conditioned on the `before_state`, but we then change the
         # state of the cause context to `after_state` to reflect the fact that
         # that we are computing cause repertoires of mechanisms in that state.
+        # TODO: should we not validate the state of effect system since we
+        # never compute cause repertoires for it and therefore do not have to
+        # worry about invalid repertoires?
         self.effect_system = Subsystem(network, before_state,
                                        self.node_indices, self.cut)
         self.cause_system = Subsystem(network, before_state,
@@ -578,8 +581,11 @@ def contexts(network, before_state, after_state):
     possible_effects = np.where(np.sum(network.connectivity_matrix, 0) > 0)[0]
     for cause_subset in powerset(possible_causes):
         for effect_subset in powerset(possible_effects):
-            context_list.append(Context(network, before_state, after_state,
-                                        cause_subset, effect_subset))
+            try:
+                context_list.append(Context(network, before_state, after_state,
+                                            cause_subset, effect_subset))
+            except validate.StateUnreachableError:
+                pass
 
     def not_empty(context):
         """
