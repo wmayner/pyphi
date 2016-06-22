@@ -171,7 +171,7 @@ def _null_ac_mip(state, direction, mechanism, purview):
 
 # =============================================================================
 
-class AcMice:
+class AcMice(cmp._Orderable):
 
     """A maximally irreducible actual cause or effect (i.e., "actual cause” or
     “actual effect”).
@@ -252,6 +252,11 @@ class AcMice:
     def __str__(self):
         return "AcMice\n" + indent(fmt_ac_mip(self.mip))
 
+    _unorderable_unless_eq = AcMip._unorderable_unless_eq
+
+    def _order_by(self):
+        return self.mip._order_by()
+
     def __eq__(self, other):
         return self.mip == other.mip
 
@@ -265,12 +270,6 @@ class AcMice:
 
     def to_json(self):
         return {'acmip': self._mip}
-
-    # Order by ap_phi value, then by mechanism size
-    __lt__ = _ap_phi_then_mechanism_size_lt
-    __gt__ = _ap_phi_then_mechanism_size_gt
-    __le__ = _ap_phi_then_mechanism_size_le
-    __ge__ = _ap_phi_then_mechanism_size_ge
 
 
 # =============================================================================

@@ -61,23 +61,27 @@ def test_context_bool(context, empty_context):
 # Test AC models
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+def acmip(**kwargs):
+    defaults = {
+        'alpha': 0.0,
+        'state': None,
+        'direction': None,
+        'mechanism': (),
+        'purview': (),
+        'partition': None,
+        'probability': 0.0,
+        'partitioned_probability': 0.0,
+        'unconstrained_probability': 0.0
+    }
+    defaults.update(kwargs)
+    return models.AcMip(**defaults)
+
+
+def acmice(**kwargs):
+    return models.AcMice(acmip(**kwargs))
+
+
 def test_acmip_ordering():
-
-    def acmip(**kwargs):
-        defaults = {
-            'alpha': 0.0,
-            'state': None,
-            'direction': None,
-            'mechanism': (),
-            'purview': (),
-            'partition': None,
-            'probability': 0.0,
-            'partitioned_probability': 0.0,
-            'unconstrained_probability': 0.0
-        }
-        defaults.update(kwargs)
-        return models.AcMip(**defaults)
-
     assert acmip() == acmip()
     assert acmip(alpha=0.0) < acmip(alpha=1.0)
     assert acmip(alpha=0.0, mechanism=(1, 2)) <= acmip(alpha=1.0, mechanism=(1,))
@@ -85,6 +89,17 @@ def test_acmip_ordering():
 
     with pytest.raises(TypeError):
         acmip(direction='past') < acmip(direction='future')
+
+
+def test_acmice_ordering():
+    assert acmice() == acmice()
+
+    assert acmice(alpha=0.0) < acmice(alpha=1.0)
+    assert acmice(alpha=0.0, mechanism=(1, 2)) <= acmice(alpha=1.0, mechanism=(1,))
+    assert acmice(alpha=0.0, mechanism=(1, 2)) > acmice(alpha=0.0, mechanism=(1,))
+
+    with pytest.raises(TypeError):
+        acmice(direction='past') < acmice(direction='future')
 
 
 def test_coefficients(context):
