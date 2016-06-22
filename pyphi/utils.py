@@ -726,6 +726,15 @@ def block_reducible(cm, nodes1, nodes2):
     return False
 
 
+def _connected(cm, nodes, connection):
+    """Test connectivity for the connectivity matrix."""
+    if nodes is not None:
+        cm = cm[np.ix_(nodes, nodes)]
+
+    num_components, _ = connected_components(cm, connection=connection)
+    return num_components < 2
+
+
 def strongly_connected(cm, nodes=None):
     """Return whether the connectivity matrix is strongly connected.
 
@@ -736,11 +745,20 @@ def strongly_connected(cm, nodes=None):
         nodes (tuple[int]): An optional subset of node indices to test strong
             connectivity over.
     """
-    if nodes is not None:
-        cm = cm[np.ix_(nodes, nodes)]
+    return _connected(cm, nodes, 'strong')
 
-    num_components, _ = connected_components(cm, connection='strong')
-    return num_components < 2
+
+def weakly_connected(cm, nodes=None):
+    """Return whether the connectivity matrix is weakly connected.
+
+    Args:
+        cm (np.ndarray): A square connectivity matrix.
+
+    Keyword Args:
+        nodes (tuple[int]): An optional subset of node indices to test weak
+            connectivity over.
+    """
+    return _connected(cm, nodes, 'weak')
 
 
 # Custom printing methods

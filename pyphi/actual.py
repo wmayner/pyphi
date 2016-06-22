@@ -18,8 +18,6 @@ from .subsystem import mip_bipartitions, Subsystem
 
 import itertools
 from pprint import pprint
-from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import connected_components
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -531,12 +529,7 @@ def big_acmip(context, direction=None):
                  'immediately.'.format(context))
         return _null_ac_bigmip(context, direction)
 
-    submatrix_indices = np.ix_(context.node_indices, context.node_indices)
-    cm = context.network.connectivity_matrix[submatrix_indices]
-    # Get the number of weakly or strongly connected components.
-    num_components, _ = connected_components(csr_matrix(cm),
-                                             connection='weak')
-    if num_components > 1:
+    if not utils.weakly_connected(context.network.cm, context.node_indices):
         log.info('{} is not strongly/weakly connected; returning null MIP '
                  'immediately.'.format(context))
         return _null_ac_bigmip(context, direction)
