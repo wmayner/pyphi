@@ -178,3 +178,53 @@ def test_big_acmip(context):
     assert bigmip.cut == models.ActualCut((1,), (2,), (), (0,))
     assert len(bigmip.unpartitioned_account) == 3
     assert len(bigmip.partitioned_account) == 2
+
+
+def test_true_events(standard):
+    states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # Past, current, future
+    events = actual.true_events(standard, *states)
+
+    assert len(events) == 2
+
+    true_cause1, true_effect1 = events[0]
+
+    assert true_cause1.alpha == 1.0
+    assert true_cause1.mechanism == (0,)
+    assert true_cause1.purview == (2,)
+    assert true_cause1.direction == 'past'
+
+    assert true_effect1.alpha == 1.0
+    assert true_effect1.mechanism == (0,)
+    assert true_effect1.purview == (2,)
+    assert true_effect1.direction == 'future'
+
+    true_cause2, true_effect2 = events[1]
+
+    assert true_cause2.alpha == 1.0
+    assert true_cause2.mechanism == (2,)
+    assert true_cause2.purview == (0,)
+    assert true_cause2.direction == 'past'
+
+    assert true_effect2.alpha == 1.0
+    assert true_effect2.mechanism == (2,)
+    assert true_effect2.purview == (0,)
+    assert true_effect2.direction == 'future'
+
+
+def test_extrinsic_events(standard):
+    states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # Past, current, future
+
+    events = actual.extrinsic_events(standard, *states)
+
+    assert len(events) == 1
+
+    true_cause, true_effect = events[0]
+    assert true_cause.alpha == 1.0
+    assert true_cause.mechanism == (2,)
+    assert true_cause.purview == (0, 1)
+    assert true_cause.direction == 'past'
+
+    assert true_effect.alpha == 1.0
+    assert true_effect.mechanism == (2,)
+    assert true_effect.purview == (1,)
+    assert true_effect.direction == 'future'
