@@ -262,7 +262,7 @@ _acbigmip_attributes = ['alpha', 'direction', 'unpartitioned_account',
                         'partitioned_account', 'context', 'cut']
 
 
-class AcBigMip:
+class AcBigMip(cmp._Orderable):
 
     """A minimum information partition for |big_ap_phi| calculation.
 
@@ -310,6 +310,11 @@ class AcBigMip:
         '''Return actual current state of the context'''
         return self.context.after_state
 
+    _unorderable_unless_eq = ['direction']
+
+    def _order_by(self):
+        return [self.alpha, len(self.context)]
+
     def __eq__(self, other):
         return cmp._general_eq(self, other, _acbigmip_attributes)
 
@@ -322,33 +327,6 @@ class AcBigMip:
         return hash((self.alpha, self.unpartitioned_account,
                      self.partitioned_account, self.context,
                      self.cut))
-
-    # First compare alpha then context
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    def __lt__(self, other):
-        if _ap_phi_eq(self, other):
-            if len(self.context) == len(other.context):
-                return False
-            else:
-                return len(self.context) < len(other.context)
-        else:
-            return _ap_phi_lt(self, other)
-
-    def __gt__(self, other):
-        if _ap_phi_eq(self, other):
-            if len(self.context) == len(other.context):
-                return False
-            else:
-                return len(self.context) > len(other.context)
-        else:
-            return _ap_phi_gt(self, other)
-
-    def __le__(self, other):
-        return (self.__lt__(other) or _ap_phi_eq(self, other))
-
-    def __ge__(self, other):
-        return (self.__gt__(other) or _ap_phi_eq(self, other))
 
 
 def _null_ac_bigmip(context, direction):
