@@ -128,14 +128,14 @@ def test_ac_ex1_context(context):
     cmip = cause_account[0].mip
 
     assert cmip.mechanism == (0,)
-    assert cmip.purview == (2,)
+    assert cmip.purview == (1,)
     assert cmip.direction == 'past'
     assert cmip.state == (1, 0, 0)
     assert cmip.alpha == 0.33333333333333326
     assert cmip.probability == 0.66666666666666663
     assert cmip.partitioned_probability == 0.5
     assert cmip.unconstrained_probability == 0.5
-    assert cmip.partition == (((), (2,)), ((0,), ()))
+    assert cmip.partition == (((), (1,)), ((0,), ()))
 
     effect_account = actual.directed_account(context, 'future')
     assert len(effect_account) == 2
