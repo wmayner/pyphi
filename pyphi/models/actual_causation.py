@@ -176,30 +176,14 @@ class AcMice(cmp._Orderable):
     """A maximally irreducible actual cause or effect (i.e., "actual cause” or
     “actual effect”).
 
-    relevant_connections (np.array):
-        An ``N x N`` matrix, where ``N`` is the number of nodes in this
-        corresponding subsystem, that identifies connections that “matter” to
-        this AcMICE.
-
-        ``direction == 'past'``:
-            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
-            cause purview and node ``j`` is in the mechanism (and ``0``
-            otherwise).
-
-        ``direction == 'future'``:
-            ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
-            mechanism and node ``j`` is in the effect purview (and ``0``
-            otherwise).
-
     AcMICEs may be compared with the built-in Python comparison operators
-    (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
+    (``<``, ``>``, etc.). First, ``alpha`` values are compared. Then, if these
     are equal up to |PRECISION|, the size of the mechanism is compared
     (exclusion principle).
     """
 
-    def __init__(self, mip, relevant_connections=None):
+    def __init__(self, mip):
         self._mip = mip
-        self._relevant_connections = relevant_connections
 
     @property
     def alpha(self):
