@@ -5,79 +5,13 @@
 """
 Containers for AcMip and AcMice and AcBigMip.
 """
+
 from collections import namedtuple
+
+from . import cmp, fmt
 from .. import utils
-from ..utils import phi_eq
-from . import cmp
-from .fmt import fmt_ac_mip, fmt_ac_big_mip, make_repr, indent
 
 # TODO use properties to avoid data duplication
-
-# Ac_diff-ordering methods
-# =============================================================================
-
-
-# Compare ac_diff
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Todo: check how that works out also with abs values
-def _ap_phi_eq(self, other):
-    try:
-        return phi_eq(self.alpha, other.alpha)
-    except AttributeError:
-        return False
-
-
-def _ap_phi_lt(self, other):
-    try:
-        if not phi_eq(self.alpha, other.alpha):
-            return self.alpha < other.alpha
-        return False
-    except AttributeError:
-        return False
-
-
-def _ap_phi_gt(self, other):
-    try:
-        if not phi_eq(self.alpha, other.alpha):
-            return self.alpha > other.alpha
-        return False
-    except AttributeError:
-        return False
-
-
-def _ap_phi_le(self, other):
-    return _ap_phi_lt(self, other) or _ap_phi_eq(self, other)
-
-
-def _ap_phi_ge(self, other):
-    return _ap_phi_gt(self, other) or _ap_phi_eq(self, other)
-
-
-# First compare ap_phi, then mechanism size
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-def _ap_phi_then_mechanism_size_lt(self, other):
-    if _ap_phi_eq(self, other):
-        return (len(self.mechanism) < len(other.mechanism)
-                if hasattr(other, 'mechanism') else False)
-    else:
-        return _ap_phi_lt(self, other)
-
-
-def _ap_phi_then_mechanism_size_gt(self, other):
-    return (not _ap_phi_then_mechanism_size_lt(self, other) and
-            not self == other)
-
-
-def _ap_phi_then_mechanism_size_le(self, other):
-    return (_ap_phi_then_mechanism_size_lt(self, other) or
-            _ap_phi_eq(self, other))
-
-
-def _ap_phi_then_mechanism_size_ge(self, other):
-    return (_ap_phi_then_mechanism_size_gt(self, other) or
-            _ap_phi_eq(self, other))
-
 
 # =============================================================================
 # Todo: Why do we even need this?
@@ -136,7 +70,7 @@ class AcMip(cmp._Orderable, namedtuple('AcMip', _acmip_attributes)):
     def __bool__(self):
         """An AcMip is truthy if it is not reducible; i.e. if it has a significant
         amount of |ap_phi|."""
-        return not phi_eq(self.alpha, 0)
+        return not utils.phi_eq(self.alpha, 0)
 
     @property
     def phi(self):
@@ -155,7 +89,7 @@ class AcMip(cmp._Orderable, namedtuple('AcMip', _acmip_attributes)):
         return make_repr(self, _acmip_attributes)
 
     def __str__(self):
-        return "Mip\n" + indent(fmt_ac_mip(self))
+        return "Mip\n" + fmt.indent(fmt.fmt_ac_mip(self))
 
 
 def _null_ac_mip(state, direction, mechanism, purview):
@@ -234,7 +168,7 @@ class AcMice(cmp._Orderable):
         return make_repr(self, ['acmip'])
 
     def __str__(self):
-        return "AcMice\n" + indent(fmt_ac_mip(self.mip))
+        return "AcMice\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
 
     _unorderable_unless_eq = AcMip._unorderable_unless_eq
 
@@ -298,7 +232,7 @@ class AcBigMip(cmp._Orderable):
         return make_repr(self, _acbigmip_attributes)
 
     def __str__(self):
-        return "\nAcBigMip\n======\n" + fmt_ac_big_mip(self)
+        return "\nAcBigMip\n======\n" + fmt.fmt_ac_big_mip(self)
 
     @property
     def before_state(self):
@@ -321,7 +255,7 @@ class AcBigMip(cmp._Orderable):
     def __bool__(self):
         """A BigMip is truthy if it is not reducible; i.e. if it has a
         significant amount of |big_ap_phi|."""
-        return not _ap_phi_eq(self.alpha, 0)
+        return not utils.phi_eq(self.alpha, 0)
 
     def __hash__(self):
         return hash((self.alpha, self.unpartitioned_account,
