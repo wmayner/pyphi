@@ -131,7 +131,7 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
     @property
     def indices(self):
         """tuple[int]: The indices in this cut."""
-        return tuple(sorted(chain.from_iterable(self)))
+        return tuple(sorted(set(chain.from_iterable(self))))
 
     # TODO test
     def apply_cut(self, cm):
