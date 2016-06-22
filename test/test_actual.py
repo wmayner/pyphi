@@ -180,6 +180,14 @@ def test_big_acmip(context):
     assert len(bigmip.partitioned_account) == 2
 
 
+def test_causal_nexus(standard):
+    nexus = actual.causal_nexus(standard, (0, 0, 1), (1, 1, 0))
+    assert nexus.alpha == 2.0
+    assert nexus.direction == 'bidirectional'
+    assert nexus.context.cause_indices == (0, 1)
+    assert nexus.context.effect_indices == (2,)
+
+
 def test_true_events(standard):
     states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # Past, current, future
     events = actual.true_events(standard, *states)
