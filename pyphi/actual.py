@@ -129,6 +129,11 @@ class Context:
     #         'cut': jsonify(self.cut),
     #    }
 
+    def apply_cut(self, cut):
+        """Return a cut version of this context."""
+        return Context(self.network, self.before_state, self.after_state,
+                       self.cause_indices, self.effect_indices, cut)
+
     # TODO: remove these named repertoire methods and just use `_repertoire`?
     def cause_repertoire(self, mechanism, purview):
         return self.cause_system.cause_repertoire(mechanism, purview)
@@ -447,14 +452,8 @@ def _evaluate_cut_directed(context, cut, account, direction):
     subsystem is created the actual state and the system state need to be
     swapped."""
 
-    # Important to use make_ac_subsystem because otherwise the past
-    # cut_subsystem has the wrong conditioning.
-    cut_context = Context(context.network,
-                          context.before_state,
-                          context.after_state,
-                          context.cause_indices,
-                          context.effect_indices,
-                          cut)
+    cut_context = context.apply_cut(cut)
+
     # TODO: Implement shortcuts to avoid recomputing actions?
     # if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
     #     mechanisms = set([c.mechanism for c in unpartitioned_constellation])
@@ -469,12 +468,8 @@ def _evaluate_cut(context, cut, unpartitioned_account, direction=None):
     """Find the |AcBigMip| for a given cut. For direction = bidirectional, the
     uncut subsystem is subsystem_past and uncut_subsystem2_or_actual_state is
     subsystem_future. """
-    cut_context = Context(context.network,
-                          context.before_state,
-                          context.after_state,
-                          context.cause_indices,
-                          context.effect_indices,
-                          cut)
+    cut_context = context.apply_cut(cut)
+
     if not direction:
         direction = DIRECTIONS[BIDIRECTIONAL]
 

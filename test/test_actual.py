@@ -58,6 +58,16 @@ def test_context_bool(context, empty_context):
     assert not bool(empty_context)
 
 
+def test_context_apply_cut(context):
+    cut = models.ActualCut((1,), (2,), (), (0,))
+    cut_context = context.apply_cut(cut)
+    assert cut_context.before_state == context.before_state
+    assert cut_context.after_state == context.after_state
+    assert cut_context.cause_indices == context.cause_indices
+    assert cut_context.effect_indices == context.effect_indices
+    assert cut_context.cut == cut
+    assert cut_context != context
+
 # Test AC models
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
