@@ -86,7 +86,7 @@ class AcMip(cmp._Orderable, namedtuple('AcMip', _acmip_attributes)):
         return d
 
     def __repr__(self):
-        return make_repr(self, _acmip_attributes)
+        return fmt.make_repr(self, _acmip_attributes)
 
     def __str__(self):
         return "Mip\n" + fmt.indent(fmt.fmt_ac_mip(self))
@@ -165,7 +165,7 @@ class AcMice(cmp._Orderable):
         return self._mip
 
     def __repr__(self):
-        return make_repr(self, ['acmip'])
+        return fmt.make_repr(self, ['acmip'])
 
     def __str__(self):
         return "AcMice\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
@@ -229,7 +229,7 @@ class AcBigMip(cmp._Orderable):
         self.cut = cut
 
     def __repr__(self):
-        return make_repr(self, _acbigmip_attributes)
+        return fmt.make_repr(self, _acbigmip_attributes)
 
     def __str__(self):
         return "\nAcBigMip\n======\n" + fmt.fmt_ac_big_mip(self)
