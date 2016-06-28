@@ -13,6 +13,7 @@ from pprint import pprint
 
 from . import compute, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST, BIDIRECTIONAL, EPSILON
+from .jsonify import jsonify
 from .models import (AcMip, AcMice, AcBigMip, _null_ac_mip, _null_ac_bigmip,
                      ActualCut)
 from .subsystem import mip_bipartitions, Subsystem
@@ -121,12 +122,15 @@ class Context:
     def __bool__(self):
         return len(self) > 0
 
-    # TODO jsonify
-    # def to_json(self):
-    #    return {
-    #         'node_indices': jsonify(self.node_indices),
-    #         'cut': jsonify(self.cut),
-    #    }
+    def to_json(self):
+        return {
+            'network': jsonify(self.network),
+            'before_state': self.before_state,
+            'after_state': self.after_state,
+            'cause_indices': self.cause_indices,
+            'effect_indices': self.effect_indices,
+            'cut': jsonify(self.cut),
+        }
 
     def apply_cut(self, cut):
         """Return a cut version of this context."""

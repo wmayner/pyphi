@@ -68,6 +68,10 @@ def test_context_apply_cut(context):
     assert cut_context.cut == cut
     assert cut_context != context
 
+
+def test_to_json(context):
+    context.to_json()
+
 # Test AC models
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
