@@ -605,8 +605,9 @@ class Subsystem:
                 phi = utils.l1(unpartitioned_repertoire,
                                partitioned_repertoire)
             else:
-                phi = utils.hamming_emd(unpartitioned_repertoire,
-                                        partitioned_repertoire)
+                phi = emd(direction, unpartitioned_repertoire,
+                          partitioned_repertoire)
+
             phi = round(phi, PRECISION)
 
             # Return immediately if mechanism is reducible.
@@ -620,8 +621,8 @@ class Subsystem:
 
         # Recompute distance for minimal MIP using the EMD
         if config.L1_DISTANCE_APPROXIMATION:
-            phi = utils.hamming_emd(mip.unpartitioned_repertoire,
-                                    mip.partitioned_repertoire)
+            phi = emd(direction, mip.unpartitioned_repertoire,
+                      mip.partitioned_repertoire)
             phi = round(phi, PRECISION)
             mip = _mip(phi, mip.partition, mip.partitioned_repertoire)
 
@@ -841,3 +842,45 @@ def mip_bipartitions(mechanism, purview):
     return [Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
             for (n, d) in itertools.product(numerators, denominators)
             if len(n[0]) + len(d[0]) > 0 and len(n[1]) + len(d[1]) > 0]
+
+
+def effect_emd(d1, d2):
+    """Compute the EMD between two effect repertoires.
+
+    Billy's synopsis: Because the nodes are independent, the EMD between
+    effect repertoires is equal to the sum of the EMDs between the marginal
+    distributions of each node, and the EMD between marginal distribution for a
+    node is the absolute difference in the probabilities that the node is off.
+
+    Args:
+        d1 (np.ndarray): The first repertoire.
+        d2 (np.ndarray): The second repertoire.
+
+    Returns:
+        float: The EMD between ``d1`` and ``d2``.
+    """
+    return sum(np.abs(utils.marginal_zero(d1, i) - utils.marginal_zero(d2, i))
+               for i in range(d1.ndim))
+
+
+def emd(direction, d1, d2):
+    """Compute the EMD between two repertoires for a given direction.
+
+    The full EMD computation is used for cause repertoires. A fast analytic
+    solution is used for effect repertoires.
+
+    Args:
+        direction (str): One of |past| or |future|.
+        d1 (np.ndarray): The first repertoire.
+        d2 (np.ndarray): The second repertoire.
+
+    Returns:
+        float: The EMD between ``d1`` and ``d2``.
+    """
+
+    if direction == DIRECTIONS[PAST]:
+        func = utils.hamming_emd
+    elif direction == DIRECTIONS[FUTURE]:
+        func = effect_emd
+
+    return func(d1, d2)

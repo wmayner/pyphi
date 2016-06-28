@@ -362,6 +362,14 @@ def marginalize_out(index, tpm, perturb_value=0.5):
                            [1] + [i for i in tpm.shape[index:]])
 
 
+def marginal_zero(repertoire, node_index):
+    """Return the marginal distribution that the node is off."""
+    index = [slice(None) for i in range(repertoire.ndim)]
+    index[node_index] = 0
+
+    return repertoire[index].sum()
+
+
 @cache(cache={}, maxmem=None)
 def max_entropy_distribution(node_indices, number_of_nodes,
                              perturb_vector=None):

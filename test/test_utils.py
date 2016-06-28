@@ -337,3 +337,14 @@ def test_causally_significant_nodes():
         [0, 1, 1],
     ])
     assert utils.causally_significant_nodes(cm) == (1, 2)
+
+
+def test_marginal_zero():
+    repertoire = np.array([
+        [[0., 0.],
+         [0., 0.5]],
+        [[0., 0.],
+         [0., 0.5]]])
+    assert utils.marginal_zero(repertoire, 0) == 0.5
+    assert utils.marginal_zero(repertoire, 1) == 0
+    assert utils.marginal_zero(repertoire, 2) == 0
