@@ -6,18 +6,17 @@
 Methods for computing actual causation of subsystems and mechanisms.
 """
 
+import itertools
 import logging
 import numpy as np
+from pprint import pprint
 
-from . import validate, utils, compute
-from .utils import powerset, bipartition, directed_bipartition, phi_eq
+from . import compute, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST, BIDIRECTIONAL, EPSILON
 from .models import (AcMip, AcMice, AcBigMip, _null_ac_mip, _null_ac_bigmip,
                      ActualCut)
 from .subsystem import mip_bipartitions, Subsystem
 
-import itertools
-from pprint import pprint
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -261,7 +260,7 @@ class Context:
 
             # First check for 0
             # Default: don't count contrary causes and effects
-            if phi_eq(alpha, 0) or (alpha < 0 and not allow_neg):
+            if utils.phi_eq(alpha, 0) or (alpha < 0 and not allow_neg):
                 return AcMip(state=self.mechanism_state(direction),
                              direction=direction,
                              mechanism=mechanism,
@@ -404,9 +403,9 @@ def directed_account(context, direction, mechanisms=False, purviews=False,
     """Set of all AcMice of the specified direction"""
     if mechanisms is False:
         if direction == DIRECTIONS[PAST]:
-            mechanisms = powerset(context.effect_indices)
+            mechanisms = utils.powerset(context.effect_indices)
         elif direction == DIRECTIONS[FUTURE]:
-            mechanisms = powerset(context.cause_indices)
+            mechanisms = utils.powerset(context.cause_indices)
     actions = [context.find_mice(direction, mechanism, purviews=purviews,
                                  norm=norm, allow_neg=allow_neg)
                for mechanism in mechanisms]
@@ -496,8 +495,8 @@ def _get_cuts(context):
     # if config.CUT_ONE_APPROXIMATION:
     #     bipartitions = directed_bipartition_of_one(subsystem.node_indices)
     # else:
-    cause_bipartitions = bipartition(context.cause_indices)
-    effect_bipartitions = directed_bipartition(context.effect_indices)
+    cause_bipartitions = utils.bipartition(context.cause_indices)
+    effect_bipartitions = utils.directed_bipartition(context.effect_indices)
     # The first element of the list is the null cut.
     partitions = list(itertools.product(cause_bipartitions,
                                         effect_bipartitions))[1:]
@@ -574,8 +573,8 @@ def contexts(network, before_state, after_state):
     # elements without outputs are reducible causes.
     possible_causes = np.where(np.sum(network.connectivity_matrix, 1) > 0)[0]
     possible_effects = np.where(np.sum(network.connectivity_matrix, 0) > 0)[0]
-    for cause_subset in powerset(possible_causes):
-        for effect_subset in powerset(possible_effects):
+    for cause_subset in utils.powerset(possible_causes):
+        for effect_subset in utils.powerset(possible_effects):
             try:
                 context_list.append(Context(network, before_state, after_state,
                                             cause_subset, effect_subset))
