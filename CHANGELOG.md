@@ -45,6 +45,10 @@ Next Release
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
 - Improved string representations of PyPhi objects.
 
+### Optimizations
+- Added a linear-time solution for the EMD computation between effect
+  repertoires.
+
 ### Documentation
 - Updated docs and examples to reflect changes made to the macro API and usage.
 
