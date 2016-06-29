@@ -550,7 +550,7 @@ Conceptual information can be computed using the function named, as you might
 expect, :func:`~pyphi.compute.conceptual_information`:
 
     >>> pyphi.compute.conceptual_information(subsystem)
-    2.111109
+    2.1111089999999999
 
 
 Figure 12
@@ -576,7 +576,7 @@ We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
 shown in the figure:
 
     >>> big_mip.phi
-    1.916665
+    1.9166650000000001
     >>> big_mip.cut
     Cut (0, 1) --//--> (2,)
 
@@ -661,7 +661,7 @@ the minor complex :math:`DE` shown in the paper no longer exists.
     2
     >>> ABC, FG = condensed
     >>> (ABC.subsystem.nodes, ABC.phi)
-    ((n0, n1, n2), 1.916665)
+    ((n0, n1, n2), 1.9166650000000001)
     >>> (FG.subsystem.nodes, FG.phi)
     ((n5, n6), 0.069445)
 

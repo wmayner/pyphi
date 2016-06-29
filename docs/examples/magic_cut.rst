@@ -91,7 +91,7 @@ this power is reducible.
    0.0
    >>> mice_effect = subsystem.core_effect(ABC)
    >>> mice_effect.phi
-   0.624999
+   0.625
 
 The reason ABC does not exist as a concept is that its cause is reducible.
 Looking at the TPM of the system, there are no possible states with two of the
