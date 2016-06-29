@@ -604,11 +604,10 @@ class Subsystem:
             if config.L1_DISTANCE_APPROXIMATION:
                 phi = utils.l1(unpartitioned_repertoire,
                                partitioned_repertoire)
+                phi = round(phi, PRECISION)
             else:
                 phi = emd(direction, unpartitioned_repertoire,
                           partitioned_repertoire)
-
-            phi = round(phi, PRECISION)
 
             # Return immediately if mechanism is reducible.
             if phi == 0:
@@ -623,7 +622,6 @@ class Subsystem:
         if config.L1_DISTANCE_APPROXIMATION:
             phi = emd(direction, mip.unpartitioned_repertoire,
                       mip.partitioned_repertoire)
-            phi = round(phi, PRECISION)
             mip = _mip(phi, mip.partition, mip.partitioned_repertoire)
 
         return mip
@@ -870,12 +868,12 @@ def emd(direction, d1, d2):
     solution is used for effect repertoires.
 
     Args:
-        direction (str): One of |past| or |future|.
+        direction (str): Either |past| or |future|.
         d1 (np.ndarray): The first repertoire.
         d2 (np.ndarray): The second repertoire.
 
     Returns:
-        float: The EMD between ``d1`` and ``d2``.
+        float: The EMD between ``d1`` and ``d2``, rounded to |PRECISION|.
     """
 
     if direction == DIRECTIONS[PAST]:
@@ -883,4 +881,4 @@ def emd(direction, d1, d2):
     elif direction == DIRECTIONS[FUTURE]:
         func = effect_emd
 
-    return func(d1, d2)
+    return round(func(d1, d2), PRECISION)
