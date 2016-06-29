@@ -531,17 +531,15 @@ class Subsystem:
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
-        return round(utils.hamming_emd(
-            self.cause_repertoire(mechanism, purview),
-            self.unconstrained_cause_repertoire(purview)),
-            PRECISION)
+        return emd(DIRECTIONS[PAST],
+                   self.cause_repertoire(mechanism, purview),
+                   self.unconstrained_cause_repertoire(purview))
 
     def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
-        return round(utils.hamming_emd(
-            self.effect_repertoire(mechanism, purview),
-            self.unconstrained_effect_repertoire(purview)),
-            PRECISION)
+        return emd(DIRECTIONS[FUTURE],
+                   self.effect_repertoire(mechanism, purview),
+                   self.unconstrained_effect_repertoire(purview))
 
     def cause_effect_info(self, mechanism, purview):
         """Return the cause-effect information for a mechanism over a purview.
