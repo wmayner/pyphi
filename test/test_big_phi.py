@@ -106,13 +106,13 @@ big_subsys_0_thru_3_answer = {
 
 
 rule152_answer = {
-    'phi': 6.974953,
+    'phi': 6.952286,
     'unpartitioned_small_phis': {
-        (0,): 0.125002,
-        (1,): 0.125002,
-        (2,): 0.125002,
-        (3,): 0.125002,
-        (4,): 0.125002,
+        (0,): 0.125,
+        (1,): 0.125,
+        (2,): 0.125,
+        (3,): 0.125,
+        (4,): 0.125,
         (0, 1): 0.25,
         (0, 2): 0.184614,
         (0, 3): 0.184614,
@@ -141,8 +141,9 @@ rule152_answer = {
         (0, 1, 2, 3, 4): 0.25
     },
     'len_partitioned_constellation': 24,
-    'sum_partitioned_small_phis': 4.185367,
+    'sum_partitioned_small_phis': 4.185363,
     'cuts': [
+        models.Cut(severed=(0, 1, 2, 3), intact=(4,)),
         models.Cut(severed=(0, 1, 2, 4), intact=(3,)),
         models.Cut(severed=(0, 2, 3, 4), intact=(1,)),
         models.Cut(severed=(1, 2, 3, 4), intact=(0,)),
