@@ -859,12 +859,34 @@ def effect_emd(d1, d2):
                for i in range(d1.ndim))
 
 
+# Hack hack quick and dirty stats
+independent_repertoires = 0
+total_repertoires = 0
+
+import logging
+log = logging.getLogger(__file__)
+
+
 def cause_emd(d1, d2):
     """Compute the EMD between two cause repertoires.
 
     If the distributions are independent we can use the same shortcut we use
     for effect repertoires. Otherwise fall back to the Hamming EMD.
     """
+
+    # TODO: remove
+    # Log independent repertoires (irregardless of dimensionality)
+    # Note that each process has its own global variables so there will be
+    # weird interleavings of results.
+    global independent_repertoires
+    global total_repertoires
+
+    total_repertoires += 1
+    if utils.independent(d1) and utils.independent(d2):
+        independent_repertoires += 1
+    log.info("{}/{} ({:.2g}%) independent cause repertoires".format(
+        independent_repertoires, total_repertoires,
+        100 * independent_repertoires / total_repertoires))
 
     # TODO: benchmark with real repertoires and find the best cutoff
     # TODO: do we need to check both distributions? or just one?
