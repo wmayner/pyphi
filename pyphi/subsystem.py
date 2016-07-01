@@ -859,6 +859,20 @@ def effect_emd(d1, d2):
                for i in range(d1.ndim))
 
 
+def cause_emd(d1, d2):
+    """Compute the EMD between two cause repertoires.
+
+    If the distributions are independent we can use the same shortcut we use
+    for effect repertoires. Otherwise fall back to the Hamming EMD.
+    """
+    # TODO: only check independence for large repertoires
+    # TODO: do we need to check both distributions? or just one?
+    if utils.independent(d1) and utils.independent(d2):
+        return effect_emd(d1, d2)
+        
+    return utils.hamming_emd(d1, d2)
+
+
 def emd(direction, d1, d2):
     """Compute the EMD between two repertoires for a given direction.
 
@@ -875,7 +889,7 @@ def emd(direction, d1, d2):
     """
 
     if direction == DIRECTIONS[PAST]:
-        func = utils.hamming_emd
+        func = cause_emd
     elif direction == DIRECTIONS[FUTURE]:
         func = effect_emd
 

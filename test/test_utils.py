@@ -348,3 +348,14 @@ def test_marginal_zero():
     assert utils.marginal_zero(repertoire, 0) == 0.5
     assert utils.marginal_zero(repertoire, 1) == 0
     assert utils.marginal_zero(repertoire, 2) == 0
+
+
+def test_marginal():
+    repertoire = np.array([
+        [[0., 0.],
+         [0., 0.5]],
+        [[0., 0.],
+         [0., 0.5]]])
+    assert np.array_equal(utils.marginal(repertoire, 0), np.array([[[0.5]], [[0.5]]]))
+    assert np.array_equal(utils.marginal(repertoire, 1), np.array([[[0], [1]]]))
+    assert np.array_equal(utils.marginal(repertoire, 2), np.array([[[0, 1]]]))

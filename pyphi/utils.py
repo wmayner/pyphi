@@ -363,11 +363,40 @@ def marginalize_out(index, tpm, perturb_value=0.5):
 
 
 def marginal_zero(repertoire, node_index):
-    """Return the marginal distribution that the node is off."""
+    """Return the marginal probability that the node is off."""
     index = [slice(None) for i in range(repertoire.ndim)]
     index[node_index] = 0
 
     return repertoire[index].sum()
+
+
+def marginal(repertoire, node_index):
+    """Get the marginal distribution for a node."""
+    # Equivalent to:
+    # for i in range(repertoire.ndim):
+    #     if i != node_index:
+    #         repertoire = repertoire.sum(i, keepdims=True) / repertoire.shape[i]
+    index = tuple(i for i in range(repertoire.ndim) if i != node_index)
+    repertoire = (repertoire.sum(index, keepdims=True) /
+                  np.take(repertoire.shape, index).sum())
+
+    return normalize(repertoire)
+
+
+def independent(repertoire):
+    """Check whether the repertoire is independent."""
+    marginals = [marginal(repertoire, i) for i in range(repertoire.ndim)]
+
+    # TODO: is there a way to do without an explicit iteration?
+    joint = marginals[0]
+    for m in marginals[1:]:
+        joint = joint * m
+
+    # TODO: should we round here?
+    #repertoire = repertoire.round(config.PRECISION)
+    #joint = joint.round(config.PRECISION)
+
+    return np.array_equal(repertoire, joint)
 
 
 @cache(cache={}, maxmem=None)
