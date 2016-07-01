@@ -359,3 +359,19 @@ def test_marginal():
     assert np.array_equal(utils.marginal(repertoire, 0), np.array([[[0.5]], [[0.5]]]))
     assert np.array_equal(utils.marginal(repertoire, 1), np.array([[[0], [1]]]))
     assert np.array_equal(utils.marginal(repertoire, 2), np.array([[[0, 1]]]))
+
+
+def test_independent():
+    repertoire = np.array([
+        [[ 0.25],
+         [ 0.25]],
+        [[ 0.25],
+         [ 0.25]]])
+    assert utils.independent(repertoire)
+
+    repertoire = np.array([
+        [[ 0.5],
+         [ 0. ]],
+        [[ 0. ],
+         [ 0.5]]])
+    assert not utils.independent(repertoire)

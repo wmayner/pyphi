@@ -865,6 +865,7 @@ def cause_emd(d1, d2):
     If the distributions are independent we can use the same shortcut we use
     for effect repertoires. Otherwise fall back to the Hamming EMD.
     """
+    
     # TODO: benchmark with real repertoires and find the best cutoff
     # TODO: do we need to check both distributions? or just one?
     if d1.ndim > 7 and utils.independent(d1) and utils.independent(d2):
