@@ -869,7 +869,7 @@ def cause_emd(d1, d2):
     # TODO: do we need to check both distributions? or just one?
     if utils.independent(d1) and utils.independent(d2):
         return effect_emd(d1, d2)
-        
+
     return utils.hamming_emd(d1, d2)
 
 

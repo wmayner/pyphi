@@ -37,6 +37,9 @@ class BenchmarkEmdRandom:
     def time_effect_emd(self):
         pyphi.subsystem.effect_emd(self.d1, self.d2)
 
+    def time_cause_emd(self):
+        pyphi.subsystem.cause_emd(self.d1, self.d2)
+
     def time_hamming_emd(self):
         pyphi.utils.hamming_emd(self.d1, self.d2)
 
@@ -47,6 +50,7 @@ class BenchmarkEmdRule152:
     The data is the first 100,000 repertoires encountered when computing
     ``big_phi`` for the network.
     """
+    timeout = 100
 
     def setup(self):
         self.d1 = load_repertoire('1.npy')
@@ -55,6 +59,10 @@ class BenchmarkEmdRule152:
     def time_effect_emd(self):
         for d1, d2 in zip(self.d1, self.d2):
             pyphi.subsystem.effect_emd(d1, d2)
+
+    def time_cause_emd(self):
+        for d1, d2 in zip(self.d1, self.d2):
+            pyphi.subsystem.cause_emd(d1, d2)
 
     def time_hamming_emd(self):
         for d1, d2 in zip(self.d1, self.d2):
