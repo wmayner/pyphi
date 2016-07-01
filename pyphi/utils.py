@@ -372,15 +372,9 @@ def marginal_zero(repertoire, node_index):
 
 def marginal(repertoire, node_index):
     """Get the marginal distribution for a node."""
-    # Equivalent to:
-    # for i in range(repertoire.ndim):
-    #     if i != node_index:
-    #         repertoire = repertoire.sum(i, keepdims=True) / repertoire.shape[i]
     index = tuple(i for i in range(repertoire.ndim) if i != node_index)
-    repertoire = (repertoire.sum(index, keepdims=True) /
-                  np.take(repertoire.shape, index).sum())
 
-    return normalize(repertoire)
+    return repertoire.sum(index, keepdims=True)
 
 
 def independent(repertoire):
