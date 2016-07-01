@@ -375,3 +375,12 @@ def test_independent():
         [[ 0. ],
          [ 0.5]]])
     assert not utils.independent(repertoire)
+
+
+def test_purview_size(s):
+    mechanisms = utils.powerset(s.node_indices)
+    purviews = utils.powerset(s.node_indices)
+
+    for mechanism, purview in zip(mechanisms, purviews):
+        repertoire = s.cause_repertoire(mechanism, purview)
+        assert utils.purview_size(repertoire) == len(purview)

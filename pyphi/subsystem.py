@@ -893,7 +893,8 @@ def cause_emd(d1, d2):
 
     # TODO: benchmark with real repertoires and find the best cutoff
     # TODO: do we need to check both distributions? or just one?
-    if d1.ndim > 7 and utils.independent(d1) and utils.independent(d2):
+    if utils.purview_size(d1) > 6 and (utils.independent(d1) and
+                                       utils.independent(d2)):
         return effect_emd(d1, d2)
 
     return utils.hamming_emd(d1, d2)

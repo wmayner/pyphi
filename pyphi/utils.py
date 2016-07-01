@@ -393,6 +393,18 @@ def independent(repertoire):
     return np.array_equal(repertoire, joint)
 
 
+def purview_size(repertoire):
+    """Return the size of the purview of the repertoire.
+
+    Args:
+        repertoire (np.ndarray): A repertoire
+
+    Returns:
+        int: The size of purview that the repertoire was computed over.
+    """
+    return len(np.where(np.array(repertoire.shape) == 2)[0])
+
+
 @cache(cache={}, maxmem=None)
 def max_entropy_distribution(node_indices, number_of_nodes,
                              perturb_vector=None):
