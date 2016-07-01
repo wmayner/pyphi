@@ -873,20 +873,23 @@ def cause_emd(d1, d2):
     If the distributions are independent we can use the same shortcut we use
     for effect repertoires. Otherwise fall back to the Hamming EMD.
     """
-
     # TODO: remove
     # Log independent repertoires (irregardless of dimensionality)
     # Note that each process has its own global variables so there will be
     # weird interleavings of results.
-    global independent_repertoires
-    global total_repertoires
+    #
+    # To enable logging, set LOG_CAUSE_REPERTOIRE_INDEPENDCE=True and
+    # the log level to 'INFO'.
+    if config.LOG_CAUSE_REPERTOIRE_INDEPENDENCE:
+        global independent_repertoires
+        global total_repertoires
 
-    total_repertoires += 1
-    if utils.independent(d1) and utils.independent(d2):
-        independent_repertoires += 1
-    log.info("{}/{} ({:.2g}%) independent cause repertoires".format(
-        independent_repertoires, total_repertoires,
-        100 * independent_repertoires / total_repertoires))
+        total_repertoires += 1
+        if utils.independent(d1) and utils.independent(d2):
+            independent_repertoires += 1
+        log.info("{}/{} ({:.2g}%) independent cause repertoires".format(
+            independent_repertoires, total_repertoires,
+            100 * independent_repertoires / total_repertoires))
 
     # TODO: benchmark with real repertoires and find the best cutoff
     # TODO: do we need to check both distributions? or just one?
