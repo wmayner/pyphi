@@ -348,8 +348,6 @@ DEFAULTS = {
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
     # Use prettier __str__-like formatting in `repr` calls.
     'READABLE_REPRS': True,
-    # Log the independence of cause repertoires
-    'LOG_CAUSE_REPERTOIRE_INDEPENDENCE': False,
 }
 
 # Get a reference to this module's dictionary so we can set the configuration

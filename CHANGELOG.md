@@ -46,7 +46,7 @@ Next Release
 - Improved string representations of PyPhi objects.
 
 ### Optimizations
-- Added a linear-time solution for the EMD computation between effect
+- Added an analytic solution for the EMD computation between effect
   repertoires.
 
 ### Documentation
