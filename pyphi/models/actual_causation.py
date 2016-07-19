@@ -9,7 +9,7 @@ Containers for AcMip and AcMice and AcBigMip.
 from collections import namedtuple
 
 from . import cmp, fmt
-from .. import utils
+from .. import config, utils
 
 # TODO use properties to avoid data duplication
 
@@ -193,13 +193,21 @@ class AcMice(cmp._Orderable):
 # =============================================================================
 
 
-class DirectedAccount(tuple):
-    """The set of MICE with non-zero alpha for one direction of a context."""
-    pass
-
-
 class Account(tuple):
     """The set of MICE with non-zero alpha for both |past| and |future|."""
+
+    def __repr__(self):
+        if config.READABLE_REPRS:
+            return self.__str__()
+        return "Constellation({})".format(
+            super().__repr__())
+
+    def __str__(self):
+        return fmt.fmt_account(self)
+
+
+class DirectedAccount(Account):
+    """The set of MICE with non-zero alpha for one direction of a context."""
     pass
 
 
