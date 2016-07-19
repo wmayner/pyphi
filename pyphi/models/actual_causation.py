@@ -192,6 +192,19 @@ class AcMice(cmp._Orderable):
 
 # =============================================================================
 
+
+class DirectedAccount(tuple):
+    """The set of MICE with non-zero alpha for one direction of a context."""
+    pass
+
+
+class Account(tuple):
+    """The set of MICE with non-zero alpha for both |past| and |future|."""
+    pass
+
+
+# =============================================================================
+
 _acbigmip_attributes = ['alpha', 'direction', 'unpartitioned_account',
                         'partitioned_account', 'context', 'cut']
 

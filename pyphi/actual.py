@@ -15,7 +15,7 @@ from . import compute, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST, BIDIRECTIONAL, EPSILON
 from .jsonify import jsonify
 from .models import (AcMip, AcMice, AcBigMip, _null_ac_mip, _null_ac_bigmip,
-                     ActualCut)
+                     ActualCut, Account, DirectedAccount)
 from .subsystem import mip_bipartitions, Subsystem
 
 
@@ -410,17 +410,19 @@ def directed_account(context, direction, mechanisms=False, purviews=False,
             mechanisms = utils.powerset(context.effect_indices)
         elif direction == DIRECTIONS[FUTURE]:
             mechanisms = utils.powerset(context.cause_indices)
+
     actions = [context.find_mice(direction, mechanism, purviews=purviews,
                                  norm=norm, allow_neg=allow_neg)
                for mechanism in mechanisms]
-    # Filter out falsy acmices, i.e. those with effectively zero ac_diff.
-    return tuple(filter(None, actions))
+
+    # Filter out MICE with zero alpha
+    return DirectedAccount(filter(None, actions))
 
 
 def account(context, direction):
     if direction == DIRECTIONS[BIDIRECTIONAL]:
-        return tuple(directed_account(context, DIRECTIONS[PAST]) +
-                     directed_account(context, DIRECTIONS[FUTURE]))
+        return Account(directed_account(context, DIRECTIONS[PAST]) +
+                       directed_account(context, DIRECTIONS[FUTURE]))
     return directed_account(context, direction)
 
 
