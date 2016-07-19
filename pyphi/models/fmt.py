@@ -120,10 +120,10 @@ def side_by_side(left, right):
 def header(header, text, over_char=None, under_char=None):
     """Center a header over a block of text.
 
-    Assumes that all lines in the text are the same width.
+    The width of the text is the width of the longest line of the text.
     """
     lines = list(text.split("\n"))
-    width = len(lines[0])
+    width = max(len(l) for l in lines)
 
     header = header.center(width) + "\n"
 
