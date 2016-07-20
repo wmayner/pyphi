@@ -141,6 +141,8 @@ rst_prolog = """
 .. |small_phi = 1/10| replace:: :math:`\\varphi = \\frac{1}{10}`
 .. |t_{-1}| replace:: :math:`t_{-1}`
 .. |t_0| replace:: :math:`t_0`
+.. |t| replace:: :math:`t`
+.. |t-1| replace:: :math:`t-1`
 .. |1,0,0| replace:: :math:`\{1,0,0\}`
 .. |0,1,0| replace:: :math:`\{0,1,0\}`
 .. |0,0,1| replace:: :math:`\{0,0,1\}`
@@ -195,6 +197,7 @@ rst_prolog = """
 .. |Node| replace:: :class:`~pyphi.node.Node`
 .. |CoarseGrain| replace:: :class:`~pyphi.macro.CoarseGrain`
 .. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
+.. |Context| replace:: :class:`~pyphi.actual.Context`
 .. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
 .. |find_mice| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
 .. |loli_index2state| replace:: :class:`~pyphi.convert.loli_index2state`

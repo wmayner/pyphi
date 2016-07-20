@@ -18,32 +18,42 @@ from .models import (AcMip, AcMice, AcBigMip, _null_ac_mip, _null_ac_bigmip,
                      ActualCut, Account, DirectedAccount)
 from .subsystem import mip_bipartitions, Subsystem
 
-
-# Create a logger for this module.
 log = logging.getLogger(__name__)
 
 
 class Context:
     """A set of nodes in a network, with state transitions.
 
+    A |Context| contains two |Subsystem| objects - one representing the system
+    at time |t-1| used to compute effect coefficients, and another
+    representing the system at time |t| which is used to compute cause
+    coefficients. These subsystems are accessed with the ``effect_system`` and
+    ``cause_system`` attributes, and are mapped to the causal directions via
+    the ``system`` attribute.
+
     Args:
         network (Network): The network the subsystem belongs to.
         before_state (tuple[int]): The state of the network at
-            time ``t-1``.
+            time |t-1|.
         after_state (tuple[int]): The state of the network at
-            time ``t``.
+            time |t|.
         cause_indices (tuple[int] or tuple[str]): Indices of nodes in the cause
             system. (TODO: clarify)
         effect_indices (tuple[int] or tuple[str]): Indices of nodes in the
             effect system. (TODO: clarify)
 
     Attributes:
-        node_indices (tuple(int)): The indices of the nodes in the subsystem.
-        network (Network): The network the subsystem belongs to.
+        node_indices (tuple(int)): The indices of the nodes in the system.
+        network (Network): The network the system belongs to.
         before_state (tuple[int]): The state of the network at
-            time ``t-1``.
+            time |t-1|.
         after_state (tuple[int]): The state of the network at
-            time ``t``.
+            time |t|.
+        effect_system (Subsystem): The system in ``before_state`` used to
+            compute effect repertoires and coefficients.
+        cause_system (Subsystem): The system in ``after_state`` used to compute
+            cause repertoires and coefficients.
+        cause_system (Subsystem):
         system (dict): A dictionary mapping causal directions to the system
             used to compute repertoires in that direction.
         cut (ActualCut): The cut that has been applied to this context.
@@ -62,10 +72,10 @@ class Context:
         self.before_state = before_state
         self.after_state = after_state
 
-        self.cause_indices = network.parse_node_indices(cause_indices)
-        self.effect_indices = network.parse_node_indices(effect_indices)
-        self.node_indices = network.parse_node_indices(cause_indices +
-                                                       effect_indices)
+        parse_nodes = network.parse_node_indices
+        self.cause_indices = parse_nodes(cause_indices)
+        self.effect_indices = parse_nodes(effect_indices)
+        self.node_indices = parse_nodes(cause_indices + effect_indices)
 
         # TODO: clarify that `ActualCut` is implemented correctly (esp.
         # cutting connections)
