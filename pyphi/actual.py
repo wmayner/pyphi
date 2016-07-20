@@ -43,7 +43,7 @@ class Context:
             effect system. (TODO: clarify)
 
     Attributes:
-        node_indices (tuple(int)): The indices of the nodes in the system.
+        node_indices (tuple[int]): The indices of the nodes in the system.
         network (Network): The network the system belongs to.
         before_state (tuple[int]): The state of the network at
             time |t-1|.
@@ -254,12 +254,22 @@ class Context:
 
     def find_mip(self, direction, mechanism, purview,
                  norm=True, allow_neg=False):
-        """ Return the cause coef mip minimum information partition for a mechanism
-            over a cause purview.
-            Returns:
-                ap_phi_min: The min. difference of the actual probabilities of
-                            the unpartitioned cause and its MIP
-            Todo: also return cut etc. ?
+        """Find the coefficient minimum information partition for a mechanism
+        over a purview.
+
+        Args:
+            direction (str): |past| or |future|
+            mechanism (tuple[int]): A mechanism.
+            purview (tuple[int]): A purview.
+
+        Keyword Args:
+            norm (boolean): If true, probabilities will be normalized.
+            allow_neg (boolean): If true, ``alpha`` is allowed to be negative.
+                Otherwise, negative values of ``alpha`` will be treated as if
+                they were 0.
+
+        Returns:
+            AcMip: The found MIP.
         """
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
@@ -307,11 +317,11 @@ class Context:
         Filters out trivially-reducible purviews.
 
         Args:
-            direction ('str'): Either |past| or |future|.
-            mechanism (tuple(int)): The mechanism of interest.
+            direction (str): Either |past| or |future|.
+            mechanism (tuple[int]): The mechanism of interest.
 
-        Kwargs:
-            purviews (tuple(int)): Optional subset of purviews of interest.
+        Keyword Argss:
+            purviews (tuple[int]): Optional subset of purviews of interest.
         """
         system = self.system[direction]
         return system._potential_purviews(direction, mechanism, purviews)
@@ -325,16 +335,17 @@ class Context:
         Args:
             direction (str): The temporal direction, specifying cause or
                 effect.
-            mechanism (tuple(int)): The mechanism to be tested for
+            mechanism (tuple[int]): The mechanism to be tested for
                 irreducibility.
 
         Keyword Args:
-            purviews (tuple(int)): Optionally restrict the possible purviews
+            purviews (tuple[int]): Optionally restrict the possible purviews
                 to a subset of the subsystem. This may be useful for _e.g._
                 finding only concepts that are "about" a certain subset of
                 nodes.
+
         Returns:
-            ac_mice: The maximally-irreducible actual cause or effect.
+            AcMice: The maximally-irreducible actual cause or effect.
 
         .. note::
             Strictly speaking, the AC_MICE is a pair of coefficients: the
@@ -385,7 +396,7 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
                                         effect_indices, mechanisms=False,
                                         purviews=False, norm=True,
                                         allow_neg=False):
-    """nice composition for multiple pairs of states
+    """Print a nice composition for multiple pairs of states
     Args: As above
         transitions (list(2 state tuples)):
             The first is past the second current.
@@ -446,12 +457,11 @@ def account_distance(A1, A2):
     difference in sum(alpha)
 
     Args:
-        A1 (tuple(Concept)): The first constellation.
-        A2 (tuple(Concept)): The second constellation.
+        A1 (Account): The first account.
+        A2 (Account): The second account
 
     Returns:
-        distance (``float``): The distance between the two constellations in
-            concept-space.
+        float: The distance between the two accounts.
     """
     return (sum([action.alpha for action in A1])
             - sum([action.alpha for action in A2]))
@@ -480,9 +490,7 @@ def _evaluate_cut_directed(context, cut, account, direction):
 
 
 def _evaluate_cut(context, cut, unpartitioned_account, direction=None):
-    """Find the |AcBigMip| for a given cut. For direction = bidirectional, the
-    uncut subsystem is subsystem_past and uncut_subsystem2_or_actual_state is
-    subsystem_future. """
+    """Find the |AcBigMip| for a given cut."""
     cut_context = context.apply_cut(cut)
 
     if not direction:
@@ -503,9 +511,7 @@ def _evaluate_cut(context, cut, unpartitioned_account, direction=None):
 
 
 def _get_cuts(context):
-    """ A list of possible cuts to a context.
-    Returns:
-        cuts: A list of cuts to evaluate. """
+    """A list of possible cuts to a context."""
 
     # TODO: Add one-cut approximation as an option.
     # if config.CUT_ONE_APPROXIMATION:
@@ -526,9 +532,10 @@ def big_acmip(context, direction=None):
     direction.
 
     Args:
-        subsystem (Subsystem): The candidate set of nodes.
+        context (Context): The candidate system.
+
     Returns:
-        big_mip (|BigMip|): A nested structure containing all the data from the
+        AcBigMip: A nested structure containing all the data from the
             intermediate calculations. The top level contains the basic MIP
             information for the given subsystem.
     """
@@ -581,7 +588,7 @@ def big_acmip(context, direction=None):
 
 # TODO: Fix this to test whether the transition is possible
 def contexts(network, before_state, after_state):
-    """Return a generator of all **possible** subsystems of a network.
+    """Return a generator of all **possible** contexts of a network.
     """
     # TODO: Does not return subsystems that are in an impossible transitions.
     context_list = []
@@ -697,19 +704,17 @@ def true_events(network, past_state, current_state, future_state, indices=None,
 
     Args:
         network (Network):
-
-        past_state (tuple(int)): The state of the network at t-1
-        current_state (tuple(int)): The state of the network at t
-        future_state (tuple(int)): The state of the network at t+1
+        past_state (tuple[int]): The state of the network at t-1
+        current_state (tuple[int]): The state of the network at t
+        future_state (tuple[int]): The state of the network at t+1
 
     Optional Args:
-        indices (tuple(int)): The indices of the main complex
-        main_complex (big_mip): The main complex
-
-        Note: If main_complex is given, then indices is ignored.
+        indices (tuple[int]): The indices of the main complex
+        main_complex (AcBigMip): The main complex. If ``main_complex`` is given
+            then ``indices`` is ignored.
 
     Returns:
-        events (tuple(actions)): List of true events in the main complex
+        tuple[actions]: List of true events in the main complex
     """
     # TODO: validate triplet of states
     if not indices and not main_complex:
@@ -747,18 +752,17 @@ def extrinsic_events(network, past_state, current_state, future_state,
 
     Args:
         network (Network):
-        past_state (tuple(int)): The state of the network at t-1
-        current_state (tuple(int)): The state of the network at t
-        future_state (tuple(int)): The state of the network at t+1
+        past_state (tuple[int]): The state of the network at t-1
+        current_state (tuple[int]): The state of the network at t
+        future_state (tuple[int]): The state of the network at t+1
 
     Optional Args:
-        indices (tuple(int)): The indices of the main complex
-        main_complex (big_mip): The main complex
-
-        Note: If main_complex is given, then indices is ignored.
+        indices (tuple[int]): The indices of the main complex
+        main_complex (AcBigMip): The main complex. If ``main_complex`` is given
+            then ``indices`` is ignored.
 
     Returns:
-        events (tuple(actions)): List of true events in the main complex
+        tuple(actions): List of true events in the main complex
     """
     # TODO: validate triplet of states
     if not indices and not main_complex:
