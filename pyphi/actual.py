@@ -669,6 +669,13 @@ def nice_true_constellation(true_constellation):
     return true_list
 
 
+def _true_mechanisms(true_causes, true_effects):
+    """Returns the set of mechanisms which are both true causes and true
+    effects."""
+    return set(c.mechanism for c in true_causes).intersection(
+               c.mechanism for c in true_effects)
+
+
 def true_constellation(subsystem, past_state, future_state):
     """Set of all sets of elements that have true causes and true effects.
        Note: Since the true constellation is always about the full system,
@@ -683,8 +690,7 @@ def true_constellation(subsystem, past_state, future_state):
     log.info("Calculating true effects ...")
     future_context = Context(network, state, future_state, nodes, nodes)
     true_effects = directed_account(future_context, DIRECTIONS[FUTURE])
-    true_mechanisms = set([c.mechanism for c in true_causes]).intersection(
-        c.mechanism for c in true_effects)
+    true_mechanisms = _true_mechanisms(true_causes, true_effects)
     if true_mechanisms:
         true_events = true_causes + true_effects
         result = tuple(filter(lambda t: t.mechanism in true_mechanisms,
@@ -729,8 +735,8 @@ def true_events(network, past_state, current_state, future_state, indices=None,
     future_context = Context(network, current_state, future_state, nodes, nodes)
     true_effects = directed_account(future_context,
                                     direction=DIRECTIONS[FUTURE])
-    true_mechanisms = set([c.mechanism for c in true_causes]).\
-        intersection(c.mechanism for c in true_effects)
+    true_mechanisms = _true_mechanisms(true_causes, true_effects)
+
     # TODO: Make sort function that sorts events by mechanism so that
     # causes and effects match up.
     if true_mechanisms:
@@ -784,8 +790,8 @@ def extrinsic_events(network, past_state, current_state, future_state,
     true_effects = directed_account(future_context,
                                     direction=DIRECTIONS[FUTURE],
                                     mechanisms=mechanisms)
-    true_mechanisms = set([c.mechanism for c in true_causes]).\
-        intersection(c.mechanism for c in true_effects)
+    true_mechanisms = _true_mechanisms(true_causes, true_effects)
+
     # TODO: Make sort function that sorts events by mechanism so that
     # causes and effects match up.
     if true_mechanisms:
