@@ -392,3 +392,9 @@ def fmt_account(account, title=None):
     content = "\n".join(str(m) for m in account)
 
     return "\n" + header(title, content, under_char="*")
+
+
+def fmt_actual_cut(cut):
+    """Format an ActualCut"""
+    return ("{cut.cause_part1} --//--> {cut.effect_part2} && "
+            "{cut.cause_part2} --//--> {cut.effect_part1}").format(cut=cut)

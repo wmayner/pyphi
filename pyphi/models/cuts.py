@@ -158,8 +158,7 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
                                     'effect_part1', 'effect_part2'])
 
     def __str__(self):
-        return ("{self.cause_part1} --//--> {self.effect_part2} \n" +
-                "{self.cause_part2} --//--> {self.effect_part1}").format(self=self)
+        return fmt.fmt_actual_cut(self)
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
