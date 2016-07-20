@@ -704,16 +704,16 @@ def true_constellation(subsystem, past_state, future_state):
 
     true_mechanisms = _true_mechanisms(true_causes, true_effects)
 
-    if true_mechanisms:
-        true_events = true_causes + true_effects
-        result = tuple(filter(lambda t: t.mechanism in true_mechanisms,
-                              true_events))
-        log.info("Finished calculating true events.")
-        log.debug("RESULT: \n" + str(result))
-        return result
-    else:
+    if not true_mechanisms:
         log.info("Finished calculating, no true events.")
         return None
+
+    true_events = true_causes + true_effects
+    result = tuple(filter(lambda t: t.mechanism in true_mechanisms,
+                          true_events))
+    log.info("Finished calculating true events.")
+    log.debug("RESULT: \n" + str(result))
+    return result
 
 
 # TODO: Add `Event` model
