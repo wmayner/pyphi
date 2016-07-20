@@ -669,6 +669,20 @@ def nice_true_constellation(true_constellation):
     return true_list
 
 
+def _true_causes(network, past_state, current_state, nodes, mechanisms=False):
+    log.info("Calculating true causes ...")
+    context = Context(network, past_state, current_state, nodes, nodes)
+
+    return directed_account(context, DIRECTIONS[PAST], mechanisms=mechanisms)
+
+def _true_effects(network, current_state, future_state, nodes,
+                  mechanisms=False):
+    log.info("Calculating true effects ...")
+    context = Context(network, current_state, future_state, nodes, nodes)
+
+    return directed_account(context, DIRECTIONS[FUTURE], mechanisms=mechanisms)
+
+
 def _true_mechanisms(true_causes, true_effects):
     """Returns the set of mechanisms which are both true causes and true
     effects."""
@@ -681,16 +695,15 @@ def true_constellation(subsystem, past_state, future_state):
        Note: Since the true constellation is always about the full system,
        the background conditions don't matter and the subsystem should be
        conditioned on the current state."""
-    log.info("Calculating true causes ...")
     network = subsystem.network
     nodes = subsystem.node_indices
     state = subsystem.state
-    past_context = Context(network, past_state, state, nodes, nodes)
-    true_causes = directed_account(past_context, DIRECTIONS[PAST])
-    log.info("Calculating true effects ...")
-    future_context = Context(network, state, future_state, nodes, nodes)
-    true_effects = directed_account(future_context, DIRECTIONS[FUTURE])
+
+    true_causes = _true_causes(network, past_state, state, nodes)
+    true_effects = _true_effects(network, state, future_state, nodes)
+
     true_mechanisms = _true_mechanisms(true_causes, true_effects)
+
     if true_mechanisms:
         true_events = true_causes + true_effects
         result = tuple(filter(lambda t: t.mechanism in true_mechanisms,
@@ -727,14 +740,12 @@ def true_events(network, past_state, current_state, future_state, indices=None,
         main_complex = compute.main_complex(network, current_state)
     elif not main_complex:
         main_complex = compute.big_mip(network, current_state, indices)
-    # Calculate true causes
+
     nodes = main_complex.subsystem.node_indices
-    past_context = Context(network, past_state, current_state, nodes, nodes)
-    true_causes = directed_account(past_context, direction=DIRECTIONS[PAST])
-    # Calculate true_effects
-    future_context = Context(network, current_state, future_state, nodes, nodes)
-    true_effects = directed_account(future_context,
-                                    direction=DIRECTIONS[FUTURE])
+
+    true_causes = _true_causes(network, past_state, current_state, nodes)
+    true_effects = _true_effects(network, current_state, future_state, nodes)
+
     true_mechanisms = _true_mechanisms(true_causes, true_effects)
 
     # TODO: Make sort function that sorts events by mechanism so that
@@ -779,17 +790,11 @@ def extrinsic_events(network, past_state, current_state, future_state,
     # complex
     all_nodes = network.node_indices
     mechanisms = list(utils.powerset(main_complex.subsystem.node_indices))[1:]
-    # Calculate true causes
-    past_context = Context(network, past_state, current_state, all_nodes,
-                           all_nodes)
-    true_causes = directed_account(past_context, direction=DIRECTIONS[PAST],
-                                   mechanisms=mechanisms)
-    # Calculate true_effects
-    future_context = Context(network, current_state, future_state, all_nodes,
-                             all_nodes)
-    true_effects = directed_account(future_context,
-                                    direction=DIRECTIONS[FUTURE],
-                                    mechanisms=mechanisms)
+
+    true_causes = _true_causes(network, past_state, current_state, all_nodes,
+                               mechanisms=mechanisms)
+    true_effects = _true_effects(network, current_state, future_state,
+                                 all_nodes, mechanisms=mechanisms)
     true_mechanisms = _true_mechanisms(true_causes, true_effects)
 
     # TODO: Make sort function that sorts events by mechanism so that
