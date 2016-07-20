@@ -724,16 +724,17 @@ def _find_true_events(true_causes, true_effects):
     if not true_mechanisms:
         return ()
 
-    def in_true_mechanisms(true_causes_or_effects):
-        """Filter out accounts which don't have true mechanisms."""
-        return tuple(t for t in true_causes_or_effects
-                     if t.mechanism in true_mechanisms)
+    def index(true_causes_or_effects):
+        """Filter out MICE which don't have true mechanisms and return a
+        dictionary keyed by the mechanism of the cause or effect."""
+        return {t.mechanism: t for t in true_causes_or_effects
+                if t.mechanism in true_mechanisms}
 
-    true_causes = in_true_mechanisms(true_causes)
-    true_effects = in_true_mechanisms(true_effects)
+    true_causes = index(true_causes)
+    true_effects = index(true_effects)
 
-    return tuple([true_causes[i], true_effects[i]]
-                 for i in range(len(true_mechanisms)))
+    return tuple([true_causes[m], true_effects[m]]
+                 for m in sorted(true_mechanisms))
 
 
 def true_events(network, past_state, current_state, future_state, indices=None,
