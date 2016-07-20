@@ -716,6 +716,26 @@ def true_constellation(subsystem, past_state, future_state):
         return None
 
 
+# TODO: Add `Event` model
+def _find_true_events(true_causes, true_effects):
+    """Compute the true events from the true causes and effect."""
+    true_mechanisms = _true_mechanisms(true_causes, true_effects)
+
+    if not true_mechanisms:
+        return ()
+
+    def in_true_mechanisms(true_causes_or_effects):
+        """Filter out accounts which don't have true mechanisms."""
+        return tuple(t for t in true_causes_or_effects
+                     if t.mechanism in true_mechanisms)
+
+    true_causes = in_true_mechanisms(true_causes)
+    true_effects = in_true_mechanisms(true_effects)
+
+    return tuple([true_causes[i], true_effects[i]]
+                 for i in range(len(true_mechanisms)))
+
+
 def true_events(network, past_state, current_state, future_state, indices=None,
                 main_complex=None):
     """Set of all mechanisms that have true causes and true effects within the
@@ -746,20 +766,7 @@ def true_events(network, past_state, current_state, future_state, indices=None,
     true_causes = _true_causes(network, past_state, current_state, nodes)
     true_effects = _true_effects(network, current_state, future_state, nodes)
 
-    true_mechanisms = _true_mechanisms(true_causes, true_effects)
-
-    # TODO: Make sort function that sorts events by mechanism so that
-    # causes and effects match up.
-    if true_mechanisms:
-        true_causes = tuple(filter(lambda t: t.mechanism in true_mechanisms,
-                                   true_causes))
-        true_effects = tuple(filter(lambda t: t.mechanism in true_mechanisms,
-                                    true_effects))
-        true_events = tuple([true_causes[i], true_effects[i]] for i in
-                            range(len(true_mechanisms)))
-    else:
-        true_events = ()
-    return true_events
+    return _find_true_events(true_causes, true_effects)
 
 
 def extrinsic_events(network, past_state, current_state, future_state,
@@ -795,17 +802,5 @@ def extrinsic_events(network, past_state, current_state, future_state,
                                mechanisms=mechanisms)
     true_effects = _true_effects(network, current_state, future_state,
                                  all_nodes, mechanisms=mechanisms)
-    true_mechanisms = _true_mechanisms(true_causes, true_effects)
 
-    # TODO: Make sort function that sorts events by mechanism so that
-    # causes and effects match up.
-    if true_mechanisms:
-        true_causes = tuple(filter(lambda t: t.mechanism in true_mechanisms,
-                                   true_causes))
-        true_effects = tuple(filter(lambda t: t.mechanism in true_mechanisms,
-                                    true_effects))
-        true_events = tuple([true_causes[i], true_effects[i]] for i in
-                            range(len(true_mechanisms)))
-    else:
-        true_events = ()
-    return true_events
+    return _find_true_events(true_causes, true_effects)

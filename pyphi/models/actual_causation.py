@@ -76,10 +76,9 @@ class AcMip(cmp._Orderable, namedtuple('AcMip', _acmip_attributes)):
     def phi(self):
         self.phi = self.alpha
 
-    # def __hash__(self):
-    #     return hash((self.ap_phi, self.actual_state, self.direction,
-    #                  self.mechanism, self.purview,
-    #                  utils.np_hash(self.unpartitioned_ap)))
+    def __hash__(self):
+        attrs = tuple(getattr(self, attr) for attr in _acmip_attributes_for_eq)
+        return hash(attrs)
 
     def to_json(self):
         d = self.__dict__

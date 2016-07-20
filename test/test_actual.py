@@ -105,6 +105,10 @@ def test_acmip_ordering():
         acmip(direction='past') < acmip(direction='future')
 
 
+def test_acmip_hash():
+    hash(acmip())
+
+
 def test_acmice_ordering():
     assert acmice() == acmice()
 
