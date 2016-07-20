@@ -774,8 +774,8 @@ def true_events(network, past_state, current_state, future_state, indices=None,
 
 def extrinsic_events(network, past_state, current_state, future_state,
                      indices=None, main_complex=None):
-    """Set of all mechanisms that have true causes and true effects within the
-    complex.
+    """Set of all mechanisms that are in the main complex but which have true
+    causes and effects within the entire network.
 
     Args:
         network (Network):
