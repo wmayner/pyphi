@@ -112,7 +112,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
 class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
                                          'effect_part1', 'effect_part2'])):
 
-    """Represents a actual cut for a context.
+    """Represents an actual cut for a context.
 
     Attributes:
         cause_part1 (tuple(int)):
@@ -124,8 +124,7 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
         effect_part2 (tuple(int)):
              Connections to this group from ``cause_part1`` are cut
     """
-    # This allows accessing the namedtuple's ``__dict__``; see
-    # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
+
     __slots__ = ()
 
     @property
@@ -135,8 +134,15 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
 
     # TODO test
     def apply_cut(self, cm):
-        """Returns a modified connectivity matrix where the connections from one
-        set of nodes to the other are destroyed."""
+        """Cut a connectivity matrix.
+
+        Args:
+            cm (np.ndarray): A connectivity matrix
+
+        Returns:
+            np.ndarray: A copy of the connectivity matrix with connections cut
+                across the cause and effect indices.
+        """
         cm = cm.copy()
 
         for i in self.cause_part1:
