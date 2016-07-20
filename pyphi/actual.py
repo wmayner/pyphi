@@ -756,12 +756,14 @@ def true_events(network, past_state, current_state, future_state, indices=None,
         tuple[actions]: List of true events in the main complex
     """
     # TODO: validate triplet of states
-    if not indices and not main_complex:
-        main_complex = compute.main_complex(network, current_state)
-    elif not main_complex:
-        main_complex = compute.big_mip(network, current_state, indices)
 
-    nodes = main_complex.subsystem.node_indices
+    if main_complex:
+        nodes = main_complex.subsystem.node_indices
+    elif indices:
+        nodes = indices
+    else:
+        main_complex = compute.main_complex(network, current_state)
+        nodes = main_complex.subsystem.node_indices
 
     true_causes = _true_causes(network, past_state, current_state, nodes)
     true_effects = _true_effects(network, current_state, future_state, nodes)
@@ -788,15 +790,16 @@ def extrinsic_events(network, past_state, current_state, future_state,
     Returns:
         tuple(actions): List of true events in the main complex
     """
-    # TODO: validate triplet of states
-    if not indices and not main_complex:
+    if main_complex:
+        mc_nodes = main_complex.subsystem.node_indices
+    elif indices:
+        mc_nodes = indices
+    else:
         main_complex = compute.main_complex(network, current_state)
-    elif not main_complex:
-        main_complex = compute.big_mip(network, current_state, indices)
-    # Identify the potential mechanisms for extrinsic events within the main
-    # complex
+        mc_nodes = main_complex.subsystem.node_indices
+
+    mechanisms = list(utils.powerset(mc_nodes))[1:]
     all_nodes = network.node_indices
-    mechanisms = list(utils.powerset(main_complex.subsystem.node_indices))[1:]
 
     true_causes = _true_causes(network, past_state, current_state, all_nodes,
                                mechanisms=mechanisms)
