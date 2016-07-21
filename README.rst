@@ -36,7 +36,7 @@ For example::
 
 Or in BibTeX::
 
-    @misc{pyphi
+    @misc{pyphi,
       author = {Mayner, Will and
                 Marshall, William and
                 Marchman, Bo},
