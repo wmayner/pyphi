@@ -257,6 +257,7 @@ def test_true_events(standard):
     assert len(events) == 2
 
     true_cause1, true_effect1 = events[0]
+    assert events[0].mechanism == (0,)
 
     assert true_cause1.alpha == 1.0
     assert true_cause1.mechanism == (0,)
@@ -269,6 +270,7 @@ def test_true_events(standard):
     assert true_effect1.direction == 'future'
 
     true_cause2, true_effect2 = events[1]
+    assert events[1].mechanism == (2,)
 
     assert true_cause2.alpha == 1.0
     assert true_cause2.mechanism == (2,)
@@ -289,6 +291,8 @@ def test_extrinsic_events(standard):
     assert len(events) == 1
 
     true_cause, true_effect = events[0]
+    assert events[0].mechanism == (2,)
+
     assert true_cause.alpha == 1.0
     assert true_cause.mechanism == (2,)
     assert true_cause.purview == (0, 1)

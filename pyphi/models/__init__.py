@@ -21,7 +21,7 @@ Attributes:
     DirectedAccount: Alias for :class:`actual_causation.DirectedAccount`
 """
 
-from .actual_causation import (AcBigMip, AcMice, AcMip, _null_ac_mip,
+from .actual_causation import (AcBigMip, AcMice, AcMip, _null_ac_mip, Event,
                                _null_ac_bigmip, DirectedAccount, Account)
 from .big_phi import BigMip, _null_bigmip, _single_node_bigmip
 from .concept import (Mip, _null_mip, Mice, Concept, Constellation,

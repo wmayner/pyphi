@@ -290,3 +290,13 @@ def _null_ac_bigmip(context, direction):
                     alpha=0.0,
                     unpartitioned_account=(),
                     partitioned_account=())
+
+
+# TODO: is this the correct definition of an event?
+class Event(namedtuple('Event', ['true_cause', 'true_effect'])):
+    """A mechanism which has both a true cause and a true effect."""
+
+    @property
+    def mechanism(self):
+        assert self.true_cause.mechanism == self.true_effect.mechanism
+        return self.true_cause.mechanism

@@ -15,7 +15,7 @@ from . import compute, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST, BIDIRECTIONAL, EPSILON
 from .jsonify import jsonify
 from .models import (AcMip, AcMice, AcBigMip, _null_ac_mip, _null_ac_bigmip,
-                     ActualCut, Account, DirectedAccount)
+                     ActualCut, Account, DirectedAccount, Event)
 from .subsystem import mip_bipartitions, Subsystem
 
 log = logging.getLogger(__name__)
@@ -675,6 +675,7 @@ def _true_causes(network, past_state, current_state, nodes, mechanisms=False):
 
     return directed_account(context, DIRECTIONS[PAST], mechanisms=mechanisms)
 
+
 def _true_effects(network, current_state, future_state, nodes,
                   mechanisms=False):
     log.info("Calculating true effects ...")
@@ -716,7 +717,6 @@ def true_constellation(subsystem, past_state, future_state):
     return result
 
 
-# TODO: Add `Event` model
 def _find_true_events(true_causes, true_effects):
     """Compute the true events from the true causes and effect."""
     true_mechanisms = _true_mechanisms(true_causes, true_effects)
@@ -733,7 +733,7 @@ def _find_true_events(true_causes, true_effects):
     true_causes = index(true_causes)
     true_effects = index(true_effects)
 
-    return tuple([true_causes[m], true_effects[m]]
+    return tuple(Event(true_causes[m], true_effects[m])
                  for m in sorted(true_mechanisms))
 
 
