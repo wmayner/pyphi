@@ -90,8 +90,8 @@ def acmip(**kwargs):
     return models.AcMip(**defaults)
 
 
-def acmice(**kwargs):
-    return models.AcMice(acmip(**kwargs))
+def action(**kwargs):
+    return models.Action(acmip(**kwargs))
 
 
 def test_acmip_ordering():
@@ -108,15 +108,15 @@ def test_acmip_hash():
     hash(acmip())
 
 
-def test_acmice_ordering():
-    assert acmice() == acmice()
+def test_action_ordering():
+    assert action() == action()
 
-    assert acmice(alpha=0.0) < acmice(alpha=1.0)
-    assert acmice(alpha=0.0, mechanism=(1, 2)) <= acmice(alpha=1.0, mechanism=(1,))
-    assert acmice(alpha=0.0, mechanism=(1, 2)) > acmice(alpha=0.0, mechanism=(1,))
+    assert action(alpha=0.0) < action(alpha=1.0)
+    assert action(alpha=0.0, mechanism=(1, 2)) <= action(alpha=1.0, mechanism=(1,))
+    assert action(alpha=0.0, mechanism=(1, 2)) > action(alpha=0.0, mechanism=(1,))
 
     with pytest.raises(TypeError):
-        acmice(direction='past') < acmice(direction='future')
+        action(direction='past') < action(direction='future')
 
 
 def test_coefficients(context):

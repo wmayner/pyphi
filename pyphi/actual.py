@@ -14,7 +14,7 @@ from pprint import pprint
 from . import compute, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST, BIDIRECTIONAL, EPSILON
 from .jsonify import jsonify
-from .models import (AcMip, AcMice, AcBigMip, _null_ac_mip, _null_ac_bigmip,
+from .models import (AcMip, Action, AcBigMip, _null_ac_mip, _null_ac_bigmip,
                      ActualCut, Account, DirectedAccount, Event)
 from .subsystem import mip_bipartitions, Subsystem
 
@@ -324,7 +324,7 @@ class Context:
 
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')
-    def find_mice(self, direction, mechanism, purviews=False,
+    def find_action(self, direction, mechanism, purviews=False,
                   norm=True, allow_neg=False):
         """Return the maximally irreducible cause or effect coefficient for a mechanism.
 
@@ -341,10 +341,10 @@ class Context:
                 nodes.
 
         Returns:
-            AcMice: The maximally-irreducible actual cause or effect.
+            Action: The maximally-irreducible actual cause or effect.
 
         .. note::
-            Strictly speaking, the AC_MICE is a pair of coefficients: the
+            Strictly speaking, the Action is a pair of coefficients: the
             actual cause and actual effect of a mechanism. Here, we return only
             information corresponding to one direction, |past| or |future|,
             i.e., we return an actual cause or actual effect coefficient, not
@@ -363,8 +363,13 @@ class Context:
                                             purview, norm, allow_neg)
                               for purview in purviews)
 
-        # Construct the corresponding AcMICE.
-        return AcMice(maximal_mip)
+        # Construct the corresponding Action
+        return Action(maximal_mip)
+
+
+    def find_mice(self, *args, **kwargs):
+        """Backwards-compatible alias for `find_action`."""
+        return self.find_action(*args, **kwargs)
 
 
 # ===========================================================================
@@ -421,15 +426,15 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
 
 def directed_account(context, direction, mechanisms=False, purviews=False,
                      norm=True, allow_neg=False):
-    """Set of all AcMice of the specified direction"""
+    """Set of all Action of the specified direction"""
     if mechanisms is False:
         if direction == DIRECTIONS[PAST]:
             mechanisms = utils.powerset(context.effect_indices)
         elif direction == DIRECTIONS[FUTURE]:
             mechanisms = utils.powerset(context.cause_indices)
 
-    actions = [context.find_mice(direction, mechanism, purviews=purviews,
-                                 norm=norm, allow_neg=allow_neg)
+    actions = [context.find_action(direction, mechanism, purviews=purviews,
+                                   norm=norm, allow_neg=allow_neg)
                for mechanism in mechanisms]
 
     # Filter out MICE with zero alpha

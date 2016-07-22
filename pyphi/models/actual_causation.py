@@ -3,7 +3,7 @@
 # models/actual_causation.py
 
 """
-Containers for AcMip and AcMice and AcBigMip.
+Containers for AcMip and Action and AcBigMip.
 """
 
 from collections import namedtuple
@@ -100,12 +100,12 @@ def _null_ac_mip(state, direction, mechanism, purview):
 
 # =============================================================================
 
-class AcMice(cmp._Orderable):
 
+class Action(cmp._Orderable):
     """A maximally irreducible actual cause or effect (i.e., "actual cause” or
     “actual effect”).
 
-    AcMICEs may be compared with the built-in Python comparison operators
+    Actions may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``alpha`` values are compared. Then, if these
     are equal up to |PRECISION|, the size of the mechanism is compared
     (exclusion principle).
@@ -140,7 +140,7 @@ class AcMice(cmp._Orderable):
     @property
     def mechanism(self):
         """
-        ``list(int)`` -- The mechanism for which the AcMICE is evaluated.
+        ``list(int)`` -- The mechanism for which the action is evaluated.
         """
         return self._mip.mechanism
 
@@ -163,7 +163,7 @@ class AcMice(cmp._Orderable):
         return fmt.make_repr(self, ['acmip'])
 
     def __str__(self):
-        return "AcMice\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
+        return "Action\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
 
     _unorderable_unless_eq = AcMip._unorderable_unless_eq
 
@@ -174,10 +174,10 @@ class AcMice(cmp._Orderable):
         return self.mip == other.mip
 
     def __hash__(self):
-        return hash(('AcMice', self._mip))
+        return hash(('Action', self._mip))
 
     def __bool__(self):
-        """An AcMice is truthy if it is not reducible; i.e. if it has a
+        """An Action is truthy if it is not reducible; i.e. if it has a
         significant amount of |ap_phi|."""
         return not utils.phi_eq(self._mip.alpha, 0)
 
