@@ -85,7 +85,6 @@ def acmip(**kwargs):
         'partition': None,
         'probability': 0.0,
         'partitioned_probability': 0.0,
-        'unconstrained_probability': 0.0
     }
     defaults.update(kwargs)
     return models.AcMip(**defaults)
@@ -152,7 +151,6 @@ def test_ac_ex1_context(context):
     assert cmip.alpha == 0.33333333333333326
     assert cmip.probability == 0.66666666666666663
     assert cmip.partitioned_probability == 0.5
-    assert cmip.unconstrained_probability == 0.5
     assert cmip.partition == (((), (1,)), ((0,), ()))
 
     effect_account = actual.directed_account(context, 'future')
@@ -167,7 +165,6 @@ def test_ac_ex1_context(context):
     assert emip0.alpha == 0.33333333333333331
     assert emip0.probability == 1.0
     assert emip0.partitioned_probability == 0.75
-    assert emip0.unconstrained_probability == 0.75
     assert emip0.partition == (((), (0,)), ((1,), ()))
 
     assert emip1.mechanism == (2,)
@@ -177,7 +174,6 @@ def test_ac_ex1_context(context):
     assert emip1.alpha == 0.33333333333333331
     assert emip1.probability == 1.0
     assert emip1.partitioned_probability == 0.75
-    assert emip1.unconstrained_probability == 0.75
     assert emip1.partition == (((), (0,)), ((2,), ()))
 
 
@@ -198,7 +194,6 @@ def test_ac_ex3_context():
     assert cmip.alpha == 0.33333333333333326
     assert cmip.probability == 0.66666666666666663
     assert cmip.partitioned_probability == 0.5
-    assert cmip.unconstrained_probability == 0.5
     assert cmip.partition == (((), (2,)), ((0,), ()))
 
     effect_account = actual.directed_account(context, 'future')
@@ -213,7 +208,6 @@ def test_ac_ex3_context():
     assert emip0.alpha == 0.33333333333333331
     assert emip0.probability == 1.0
     assert emip0.partitioned_probability == 0.75
-    assert emip0.unconstrained_probability == 0.75
     assert emip0.partition == (((), (0,)), ((1,), ()))
 
     assert emip1.mechanism == (2,)
@@ -223,7 +217,6 @@ def test_ac_ex3_context():
     assert emip1.alpha == 0.33333333333333331
     assert emip1.probability == 1.0
     assert emip1.partitioned_probability == 0.75
-    assert emip1.unconstrained_probability == 0.75
     assert emip1.partition == (((), (0,)), ((2,), ()))
 
 

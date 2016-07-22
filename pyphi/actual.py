@@ -273,8 +273,6 @@ class Context:
         """
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
-        unconstrained_probability = self.unconstrained_probability(
-            direction, purview)
 
         for partition in mip_bipartitions(mechanism, purview):
             partitioned_probability = self.partitioned_probability(
@@ -292,7 +290,6 @@ class Context:
                              partition=partition,
                              probability=probability,
                              partitioned_probability=partitioned_probability,
-                             unconstrained_probability=unconstrained_probability,
                              alpha=0.0)
             # Then take closest to 0
             if (abs(alpha_min) - abs(alpha)) > EPSILON:
@@ -304,7 +301,6 @@ class Context:
                               partition=partition,
                               probability=probability,
                               partitioned_probability=partitioned_probability,
-                              unconstrained_probability=unconstrained_probability,
                               alpha=alpha_min)
         return acmip
 

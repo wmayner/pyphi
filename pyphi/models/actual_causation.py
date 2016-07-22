@@ -17,8 +17,7 @@ from .. import config, utils
 # Todo: Why do we even need this?
 # Todo: add second state
 _acmip_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',
-                     'partition', 'probability', 'partitioned_probability',
-                     'unconstrained_probability']
+                     'partition', 'probability', 'partitioned_probability']
 _acmip_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
                             'purview', 'probability']
 
@@ -53,8 +52,6 @@ class AcMip(cmp._Orderable, namedtuple('AcMip', _acmip_attributes)):
             The probability of the state in the past/future.
         partitioned_probability (float):
             The probability of the state in the partitioned repertoire.
-        unconstrained_probability (float):
-            The unconstrained probability of the state, used for normalization.
     """
     __slots__ = ()
 
@@ -99,7 +96,6 @@ def _null_ac_mip(state, direction, mechanism, purview):
                  partition=None,
                  probability=None,
                  partitioned_probability=None,
-                 unconstrained_probability=None,
                  alpha=0.0)
 
 # =============================================================================
