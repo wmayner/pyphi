@@ -404,24 +404,21 @@ class Concept(cmp._Orderable):
         """Expand a cause repertoire into a distribution over an entire
         network.
         """
-        return self.subsystem.expand_cause_repertoire(self.cause.purview,
-                                                      self.cause.repertoire,
-                                                      new_purview)
+        return self.subsystem.expand_cause_repertoire(
+            self.cause.repertoire, new_purview)
 
     def expand_effect_repertoire(self, new_purview=None):
         """Expand an effect repertoire into a distribution over an entire
         network.
         """
-        return self.subsystem.expand_effect_repertoire(self.effect.purview,
-                                                       self.effect.repertoire,
-                                                       new_purview)
+        return self.subsystem.expand_effect_repertoire(
+            self.effect.repertoire, new_purview)
 
     def expand_partitioned_cause_repertoire(self):
         """Expand a partitioned cause repertoire into a distribution over an
         entire network.
         """
         return self.subsystem.expand_cause_repertoire(
-            self.cause.purview,
             self.cause.mip.partitioned_repertoire)
 
     def expand_partitioned_effect_repertoire(self):
@@ -429,7 +426,6 @@ class Concept(cmp._Orderable):
         entire network.
         """
         return self.subsystem.expand_effect_repertoire(
-            self.effect.purview,
             self.effect.mip.partitioned_repertoire)
 
     def to_json(self):

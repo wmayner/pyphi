@@ -477,28 +477,22 @@ class Subsystem:
 
         return part1rep * part2rep
 
-    # TODO: can the purview be extrapolated from the repertoire?
-    def expand_repertoire(self, direction, purview, repertoire,
-                          new_purview=None):
+    def expand_repertoire(self, direction, repertoire, new_purview=None):
         """Expand a partial repertoire over a purview to a distribution over a
         new state space.
 
         Args:
             direction (str): Either |past| or |future|.
-            purview (tuple[int] or None): The purview over which the repertoire
-                was calculated.
-            repertoire (``np.ndarray``): A repertoire computed over
-                ``purview``.
+            repertoire (np.ndarray): A repertoire.
 
         Keyword Args:
             new_purview (tuple[int]): The purview to expand the repertoire
                 over. Defaults to the entire subsystem.
 
         Returns:
-            ``np.ndarray``: The expanded repertoire.
+            np.ndarray: The expanded repertoire.
         """
-        if purview is None:
-            purview = ()
+        purview = utils.purview(repertoire)
 
         if new_purview is None:
             new_purview = self.node_indices  # full subsystem
@@ -515,18 +509,18 @@ class Subsystem:
 
         return utils.normalize(expanded_repertoire)
 
-    def expand_cause_repertoire(self, purview, repertoire, new_purview=None):
+    def expand_cause_repertoire(self, repertoire, new_purview=None):
         """Expand a partial cause repertoire over a purview to a distribution
         over the entire subsystem's state space.
         """
-        return self.expand_repertoire(DIRECTIONS[PAST], purview, repertoire,
+        return self.expand_repertoire(DIRECTIONS[PAST], repertoire,
                                       new_purview)
 
-    def expand_effect_repertoire(self, purview, repertoire, new_purview=None):
+    def expand_effect_repertoire(self, repertoire, new_purview=None):
         """Expand a partial effect repertoire over a purview to a distribution
         over the entire subsystem's state space.
         """
-        return self.expand_repertoire(DIRECTIONS[FUTURE], purview, repertoire,
+        return self.expand_repertoire(DIRECTIONS[FUTURE], repertoire,
                                       new_purview)
 
     def cause_info(self, mechanism, purview):
