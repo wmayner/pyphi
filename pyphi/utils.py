@@ -393,6 +393,18 @@ def independent(repertoire):
     return np.array_equal(repertoire, joint)
 
 
+def purview(repertoire):
+    """The purview of the repertoire.
+
+    Args:
+        repertoire (np.ndarray): A repertoire
+
+    Returns:
+        tuple[int]: The purview that the repertoire was computed over.
+    """
+    return tuple(np.where(np.array(repertoire.shape) == 2)[0])
+
+
 def purview_size(repertoire):
     """Return the size of the purview of the repertoire.
 
@@ -402,7 +414,7 @@ def purview_size(repertoire):
     Returns:
         int: The size of purview that the repertoire was computed over.
     """
-    return len(np.where(np.array(repertoire.shape) == 2)[0])
+    return len(purview(repertoire))
 
 
 @cache(cache={}, maxmem=None)
