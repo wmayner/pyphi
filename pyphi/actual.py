@@ -592,26 +592,21 @@ def contexts(network, before_state, after_state):
     """Return a generator of all **possible** contexts of a network.
     """
     # TODO: Does not return subsystems that are in an impossible transitions.
-    context_list = []
+
     # Elements without inputs are reducibe effects,
     # elements without outputs are reducible causes.
     possible_causes = np.where(np.sum(network.connectivity_matrix, 1) > 0)[0]
     possible_effects = np.where(np.sum(network.connectivity_matrix, 0) > 0)[0]
+    
     for cause_subset in utils.powerset(possible_causes):
         for effect_subset in utils.powerset(possible_effects):
-            try:
-                context_list.append(Context(network, before_state, after_state,
-                                            cause_subset, effect_subset))
-            except validate.StateUnreachableError:
-                pass
 
-    def not_empty(context):
-        """
-        Ensures both cause and effect indices are not empty
-        """
-        return bool(context.cause_indices and context.effect_indices)
-
-    return list(filter(not_empty, context_list))
+            if cause_subset and effect_subset:
+                try:
+                    yield Context(network, before_state, after_state,
+                                  cause_subset, effect_subset)
+                except validate.StateUnreachableError:
+                    pass
 
 
 def nexus(network, before_state, after_state, direction=None):

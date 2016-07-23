@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from pyphi import actual, examples, models
 
