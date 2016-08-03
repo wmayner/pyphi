@@ -14,7 +14,7 @@ from pprint import pprint
 from . import compute, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST, BIDIRECTIONAL, EPSILON
 from .jsonify import jsonify
-from .models import (AcMip, Action, AcBigMip, _null_ac_mip, _null_ac_bigmip,
+from .models import (AcMip, Occurence, AcBigMip, _null_ac_mip, _null_ac_bigmip,
                      ActualCut, Account, DirectedAccount, Event)
 from .subsystem import mip_bipartitions, Subsystem
 
@@ -341,10 +341,10 @@ class Context:
                 nodes.
 
         Returns:
-            Action: The maximally-irreducible actual cause or effect.
+            Occurence: The maximally-irreducible actual cause or effect.
 
         .. note::
-            Strictly speaking, the Action is a pair of coefficients: the
+            Strictly speaking, the Occurence is a pair of coefficients: the
             actual cause and actual effect of a mechanism. Here, we return only
             information corresponding to one direction, |past| or |future|,
             i.e., we return an actual cause or actual effect coefficient, not
@@ -363,8 +363,8 @@ class Context:
                                             purview, norm, allow_neg)
                               for purview in purviews)
 
-        # Construct the corresponding Action
-        return Action(maximal_mip)
+        # Construct the corresponding Occurence
+        return Occurence(maximal_mip)
 
 
     def find_mice(self, *args, **kwargs):
@@ -426,7 +426,7 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
 
 def directed_account(context, direction, mechanisms=False, purviews=False,
                      norm=True, allow_neg=False):
-    """Set of all Action of the specified direction"""
+    """Set of all Occurence of the specified direction"""
     if mechanisms is False:
         if direction == DIRECTIONS[PAST]:
             mechanisms = utils.powerset(context.effect_indices)
@@ -597,7 +597,7 @@ def contexts(network, before_state, after_state):
     # elements without outputs are reducible causes.
     possible_causes = np.where(np.sum(network.connectivity_matrix, 1) > 0)[0]
     possible_effects = np.where(np.sum(network.connectivity_matrix, 0) > 0)[0]
-    
+
     for cause_subset in utils.powerset(possible_causes):
         for effect_subset in utils.powerset(possible_effects):
 

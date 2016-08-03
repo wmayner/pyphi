@@ -92,7 +92,7 @@ def acmip(**kwargs):
 
 
 def action(**kwargs):
-    return models.Action(acmip(**kwargs))
+    return models.Occurence(acmip(**kwargs))
 
 
 def test_acmip_ordering():

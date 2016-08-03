@@ -3,7 +3,7 @@
 # models/actual_causation.py
 
 """
-Containers for AcMip and Action and AcBigMip.
+Containers for AcMip and Occurence and AcBigMip.
 """
 
 from collections import namedtuple
@@ -101,11 +101,11 @@ def _null_ac_mip(state, direction, mechanism, purview):
 # =============================================================================
 
 
-class Action(cmp._Orderable):
+class Occurence(cmp._Orderable):
     """A maximally irreducible actual cause or effect (i.e., "actual cause” or
     “actual effect”).
 
-    Actions may be compared with the built-in Python comparison operators
+    Occurences may be compared with the built-in Python comparison operators
     (``<``, ``>``, etc.). First, ``alpha`` values are compared. Then, if these
     are equal up to |PRECISION|, the size of the mechanism is compared
     (exclusion principle).
@@ -163,7 +163,7 @@ class Action(cmp._Orderable):
         return fmt.make_repr(self, ['acmip'])
 
     def __str__(self):
-        return "Action\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
+        return "Occurence\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
 
     _unorderable_unless_eq = AcMip._unorderable_unless_eq
 
@@ -174,10 +174,10 @@ class Action(cmp._Orderable):
         return self.mip == other.mip
 
     def __hash__(self):
-        return hash(('Action', self._mip))
+        return hash(('Occurence', self._mip))
 
     def __bool__(self):
-        """An Action is truthy if it is not reducible; i.e. if it has a
+        """An Occurence is truthy if it is not reducible; i.e. if it has a
         significant amount of |ap_phi|."""
         return not utils.phi_eq(self._mip.alpha, 0)
 

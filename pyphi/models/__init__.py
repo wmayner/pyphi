@@ -15,13 +15,13 @@ Attributes:
     Bipartition: Alias for :class:`cuts.Bipartition`
     ActualCut: Alias for :class:`cuts.ActualCut`
     AcMip: Alias for :class:`actual_causation.AcMip`
-    Action: Alias for :class:`actual_causation.Action`
+    Occurence: Alias for :class:`actual_causation.Occurence`
     AcBigMip: Alias for :class:`actual_causation.AcBigMip`
     Account: Alias for :class:`actual_causation.Account`
     DirectedAccount: Alias for :class:`actual_causation.DirectedAccount`
 """
 
-from .actual_causation import (AcBigMip, Action, AcMip, _null_ac_mip, Event,
+from .actual_causation import (AcBigMip, Occurence, AcMip, _null_ac_mip, Event,
                                _null_ac_bigmip, DirectedAccount, Account)
 from .big_phi import BigMip, _null_bigmip, _single_node_bigmip
 from .concept import (Mip, _null_mip, Mice, Concept, Constellation,
