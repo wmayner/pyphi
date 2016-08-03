@@ -202,7 +202,7 @@ class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
 
 
 class Account(tuple):
-    """The set of MICE with non-zero alpha for both |past| and |future|."""
+    """The set of occurences with alpha > 0 for both |past| and |future|."""
 
     def __repr__(self):
         if config.READABLE_REPRS:
@@ -215,7 +215,7 @@ class Account(tuple):
 
 
 class DirectedAccount(Account):
-    """The set of MICE with non-zero alpha for one direction of a context."""
+    """The set of occurences with alpha > 0 for one direction of a context."""
     pass
 
 # =============================================================================
