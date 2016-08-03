@@ -185,6 +185,19 @@ class Occurence(cmp._Orderable):
         return {'acmip': self._mip}
 
 
+class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
+    """A mechanism which has both an actual cause and an actual effect.
+
+    Attributes:
+        actual_cause (Occurence): The actual cause of the mechanism.
+        actual_effect (Occurence): The actual effect of the mechanism.
+    """
+
+    @property
+    def mechanism(self):
+        assert self.actual_cause.mechanism == self.actual_effect.mechanism
+        return self.actual_cause.mechanism
+
 # =============================================================================
 
 
@@ -204,7 +217,6 @@ class Account(tuple):
 class DirectedAccount(Account):
     """The set of MICE with non-zero alpha for one direction of a context."""
     pass
-
 
 # =============================================================================
 
@@ -286,13 +298,3 @@ def _null_ac_bigmip(context, direction):
                     alpha=0.0,
                     unpartitioned_account=(),
                     partitioned_account=())
-
-
-# TODO: is this the correct definition of an event?
-class Event(namedtuple('Event', ['true_cause', 'true_effect'])):
-    """A mechanism which has both a true cause and a true effect."""
-
-    @property
-    def mechanism(self):
-        assert self.true_cause.mechanism == self.true_effect.mechanism
-        return self.true_cause.mechanism
