@@ -324,8 +324,8 @@ class Context:
 
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')
-    def find_action(self, direction, mechanism, purviews=False,
-                  norm=True, allow_neg=False):
+    def find_occurence(self, direction, mechanism, purviews=False,
+                       norm=True, allow_neg=False):
         """Return the maximally irreducible cause or effect coefficient for a mechanism.
 
         Args:
@@ -368,8 +368,8 @@ class Context:
 
 
     def find_mice(self, *args, **kwargs):
-        """Backwards-compatible alias for `find_action`."""
-        return self.find_action(*args, **kwargs)
+        """Backwards-compatible alias for `find_occurence`."""
+        return self.find_occurence(*args, **kwargs)
 
 
 # ===========================================================================
@@ -433,8 +433,8 @@ def directed_account(context, direction, mechanisms=False, purviews=False,
         elif direction == DIRECTIONS[FUTURE]:
             mechanisms = utils.powerset(context.cause_indices)
 
-    actions = [context.find_action(direction, mechanism, purviews=purviews,
-                                   norm=norm, allow_neg=allow_neg)
+    actions = [context.find_occurence(direction, mechanism, purviews=purviews,
+                                      norm=norm, allow_neg=allow_neg)
                for mechanism in mechanisms]
 
     # Filter out MICE with zero alpha
