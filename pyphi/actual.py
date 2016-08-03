@@ -366,7 +366,6 @@ class Context:
         # Construct the corresponding Occurence
         return Occurence(maximal_mip)
 
-
     def find_mice(self, *args, **kwargs):
         """Backwards-compatible alias for `find_occurence`."""
         return self.find_occurence(*args, **kwargs)
