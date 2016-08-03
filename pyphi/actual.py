@@ -665,28 +665,52 @@ def nice_true_constellation(true_constellation):
     return true_list
 
 
-def _true_causes(network, past_state, current_state, nodes, mechanisms=False):
+def _actual_causes(network, past_state, current_state, nodes,
+                   mechanisms=False):
     log.info("Calculating true causes ...")
     context = Context(network, past_state, current_state, nodes, nodes)
 
     return directed_account(context, DIRECTIONS[PAST], mechanisms=mechanisms)
 
 
-def _true_effects(network, current_state, future_state, nodes,
-                  mechanisms=False):
+def _actual_effects(network, current_state, future_state, nodes,
+                    mechanisms=False):
     log.info("Calculating true effects ...")
     context = Context(network, current_state, future_state, nodes, nodes)
 
     return directed_account(context, DIRECTIONS[FUTURE], mechanisms=mechanisms)
 
 
-def _true_mechanisms(true_causes, true_effects):
-    """Returns the set of mechanisms which are both true causes and true
-    effects."""
-    return set(c.mechanism for c in true_causes).intersection(
-               c.mechanism for c in true_effects)
+def events(network, past_state, current_state, future_state, nodes,
+           mechanisms=False):
+    """Find all events (mechanisms with actual causes and actual effects."""
+
+    actual_causes = _actual_causes(network, past_state, current_state, nodes,
+                                   mechanisms)
+    actual_effects = _actual_effects(network, current_state, future_state,
+                                     nodes, mechanisms)
+
+    actual_mechanisms = (set(c.mechanism for c in actual_causes) &
+                         set(c.mechanism for c in actual_effects))
+
+    if not actual_mechanisms:
+        return ()
+
+    def index(actual_causes_or_effects):
+        """Filter out unidirectional occurences and return a
+        dictionary keyed by the mechanism of the cause or effect."""
+        return {o.mechanism: o for o in actual_causes_or_effects
+                if o.mechanism in actual_mechanisms}
+
+    actual_causes = index(actual_causes)
+    actual_effects = index(actual_effects)
+
+    return tuple(Event(actual_causes[m], actual_effects[m])
+                 for m in sorted(actual_mechanisms))
 
 
+# TODO: do we need this? it's just a re-structuring of the `events` results
+# TODO: rename to `actual_constellation`?
 def true_constellation(subsystem, past_state, future_state):
     """Set of all sets of elements that have true causes and true effects.
        Note: Since the true constellation is always about the full system,
@@ -696,41 +720,18 @@ def true_constellation(subsystem, past_state, future_state):
     nodes = subsystem.node_indices
     state = subsystem.state
 
-    true_causes = _true_causes(network, past_state, state, nodes)
-    true_effects = _true_effects(network, state, future_state, nodes)
+    _events = events(network, past_state, state, future_state, nodes)
 
-    true_mechanisms = _true_mechanisms(true_causes, true_effects)
-
-    if not true_mechanisms:
-        log.info("Finished calculating, no true events.")
+    if not _events:
+        log.info("Finished calculating, no echo events.")
         return None
 
-    true_events = true_causes + true_effects
-    result = tuple(filter(lambda t: t.mechanism in true_mechanisms,
-                          true_events))
+    result = tuple([event.actual_cause for event in _events] +
+                   [event.actual_effect for event in _events])
     log.info("Finished calculating true events.")
     log.debug("RESULT: \n" + str(result))
+
     return result
-
-
-def _find_true_events(true_causes, true_effects):
-    """Compute the true events from the true causes and effect."""
-    true_mechanisms = _true_mechanisms(true_causes, true_effects)
-
-    if not true_mechanisms:
-        return ()
-
-    def index(true_causes_or_effects):
-        """Filter out MICE which don't have true mechanisms and return a
-        dictionary keyed by the mechanism of the cause or effect."""
-        return {t.mechanism: t for t in true_causes_or_effects
-                if t.mechanism in true_mechanisms}
-
-    true_causes = index(true_causes)
-    true_effects = index(true_effects)
-
-    return tuple(Event(true_causes[m], true_effects[m])
-                 for m in sorted(true_mechanisms))
 
 
 def true_events(network, past_state, current_state, future_state, indices=None,
@@ -750,7 +751,7 @@ def true_events(network, past_state, current_state, future_state, indices=None,
             then ``indices`` is ignored.
 
     Returns:
-        tuple[actions]: List of true events in the main complex
+        tuple[Event]: List of true events in the main complex
     """
     # TODO: validate triplet of states
 
@@ -762,10 +763,7 @@ def true_events(network, past_state, current_state, future_state, indices=None,
         main_complex = compute.main_complex(network, current_state)
         nodes = main_complex.subsystem.node_indices
 
-    true_causes = _true_causes(network, past_state, current_state, nodes)
-    true_effects = _true_effects(network, current_state, future_state, nodes)
-
-    return _find_true_events(true_causes, true_effects)
+    return events(network, past_state, current_state, future_state, nodes)
 
 
 def extrinsic_events(network, past_state, current_state, future_state,
@@ -798,9 +796,5 @@ def extrinsic_events(network, past_state, current_state, future_state,
     mechanisms = list(utils.powerset(mc_nodes))[1:]
     all_nodes = network.node_indices
 
-    true_causes = _true_causes(network, past_state, current_state, all_nodes,
-                               mechanisms=mechanisms)
-    true_effects = _true_effects(network, current_state, future_state,
-                                 all_nodes, mechanisms=mechanisms)
-
-    return _find_true_events(true_causes, true_effects)
+    return events(network, past_state, current_state, future_state, all_nodes,
+                  mechanisms=mechanisms)

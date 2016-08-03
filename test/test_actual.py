@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from pyphi import actual, examples, models
+from pyphi import actual, examples, models, Subsystem
 
 # TODO
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -275,6 +275,24 @@ def test_true_events(standard):
     assert true_effect2.mechanism == (2,)
     assert true_effect2.purview == (0,)
     assert true_effect2.direction == 'future'
+
+
+def test_true_constellation(standard):
+    past_state = (1, 0, 0)
+    current_state = (0, 0, 1)
+    future_state = (1, 1, 0)
+    subsystem = Subsystem(standard, current_state, standard.node_indices)
+
+    constellation = actual.true_constellation(subsystem, past_state, future_state)
+
+    assert len(constellation) == 2
+    actual_cause, actual_effect = constellation
+
+    assert actual_cause.purview == (0, 1)
+    assert actual_cause.mechanism == (2,)
+
+    assert actual_effect.purview == (1,)
+    assert actual_effect.mechanism == (2,)
 
 
 def test_extrinsic_events(standard):
