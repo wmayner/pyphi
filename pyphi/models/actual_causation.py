@@ -207,8 +207,8 @@ class Account(tuple):
     def __repr__(self):
         if config.READABLE_REPRS:
             return self.__str__()
-        return "Constellation({})".format(
-            super().__repr__())
+        return "{0}({1})".format(
+            self.__class__.__name__, super().__repr__())
 
     def __str__(self):
         return fmt.fmt_account(self)
