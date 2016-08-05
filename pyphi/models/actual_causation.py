@@ -160,7 +160,7 @@ class Occurence(cmp._Orderable):
         return self._mip
 
     def __repr__(self):
-        return fmt.make_repr(self, ['acmip'])
+        return fmt.make_repr(self, ['mip'])
 
     def __str__(self):
         return "Occurence\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
