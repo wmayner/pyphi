@@ -147,12 +147,6 @@ with ``pip install -r requirements.txt``.
 Development workflow
 ````````````````````
 
-To benchmark performance:
-
-.. code:: bash
-
-    cd benchmarks && asv continuous <commit_1> <commit_2>
-
 The ``Makefile`` defines some tasks to help with development:
 
 .. code:: bash
@@ -160,6 +154,12 @@ The ``Makefile`` defines some tasks to help with development:
     make test
 
 runs the unit tests every time you change the source code.
+
+.. code:: bash
+
+    make benchmark
+
+runs performance benchmarks.
 
 .. code:: bash
 
