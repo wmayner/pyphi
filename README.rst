@@ -147,7 +147,13 @@ with ``pip install -r requirements.txt``.
 Development workflow
 ````````````````````
 
-``Makefile`` defines some tasks to help with development:
+To benchmark performance:
+
+.. code:: bash
+
+    cd benchmarks && asv continuous <commit_1> <commit_2>
+
+The ``Makefile`` defines some tasks to help with development:
 
 .. code:: bash
 
