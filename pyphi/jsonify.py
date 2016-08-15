@@ -10,6 +10,8 @@ import json
 
 import numpy as np
 
+import pyphi
+
 
 def _jsonify_dict(dct):
     return {key: jsonify(value) for key, value in dct.items()}
@@ -21,7 +23,9 @@ def jsonify(obj):
     native lists and types along the way."""
     try:
         # Call the `to_json` method if available.
-        return jsonify(obj.to_json())
+        d = obj.to_json()
+        d['__class__'] = obj.__class__.__name__
+        return jsonify(d)
     except AttributeError:
         # If we have a numpy array, convert it to a list.
         if isinstance(obj, np.ndarray):
@@ -71,6 +75,17 @@ def dump(obj, fp, **user_kwargs):
     return json.dump(obj, fp, **kwargs)
 
 
-# TODO implement proper loading into PyPhi objects.
-loads = json.loads
+def pyphi_classes():
+    return {
+        'Network': pyphi.Network,
+        'Subsystem': pyphi.Subsystem,
+    }
+
+
+def loads(string):
+    d = json.loads(string)
+    cls = pyphi_classes()[d['__class__']]
+    return cls.from_json(d)
+
+
 load = json.load

@@ -93,7 +93,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         return fmt.fmt_cut(self)
 
     def to_json(self):
-        return [self.severed, self.intact]
+        return {'severed': self.severed, 'intact': self.intact}
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):

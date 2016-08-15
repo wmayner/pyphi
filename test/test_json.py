@@ -43,9 +43,7 @@ def test_jsonify_numpy():
 
 def test_jsonify_network(s):
     loaded = jsonify.loads(jsonify.dumps(s.network))
-    assert np.array_equal(loaded['tpm'], s.network.tpm)
-    assert np.array_equal(loaded['cm'], s.network.connectivity_matrix)
-    assert loaded['size'] == s.network.size
+    assert loaded == s.network
 
 
 def test_network_from_json(s):

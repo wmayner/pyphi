@@ -464,7 +464,7 @@ class Constellation(tuple):
         return fmt.fmt_constellation(self)
 
     def to_json(self):
-        return list(self)
+        return {'concepts': list(self)}
 
 
 def normalize_constellation(constellation):
