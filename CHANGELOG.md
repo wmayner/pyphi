@@ -17,6 +17,7 @@ Next Release
   arguments.
 - Removed `utils.submatrix`.
 - Made `Network.tpm` and `Network.cm` immutable properties.
+- Removed the `purview` argument from `Subsystem.expand_repertoire`.
 
 ### API Additions
 - Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to
@@ -40,6 +41,7 @@ Next Release
 - Added `models.normalize_constellation` for deterministically ordering a
   constellation.
 - Added a `Makefile`.
+- Added `utils.purview` for computing the purview of a repertoire.
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
