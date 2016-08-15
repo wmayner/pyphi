@@ -402,6 +402,9 @@ def purview(repertoire):
     Returns:
         tuple[int]: The purview that the repertoire was computed over.
     """
+    if repertoire is None:
+        return None
+
     return tuple(np.where(np.array(repertoire.shape) == 2)[0])
 
 

@@ -393,3 +393,5 @@ def test_purview(s):
     for mechanism, purview in zip(mechanisms, purviews):
         repertoire = s.cause_repertoire(mechanism, purview)
         assert utils.purview(repertoire) == purview
+
+    assert utils.purview(None) == None
