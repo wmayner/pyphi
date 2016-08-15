@@ -239,6 +239,11 @@ class Network:
             'labels': self.node_labels
         }
 
+    @classmethod
+    def from_json(cls, json):
+        return Network(json['tpm'], json['cm'],
+                       node_labels=json['labels'])
+
 
 def irreducible_purviews(cm, direction, mechanism, purviews):
     """Returns all purview which are irreducible for the mechanism.

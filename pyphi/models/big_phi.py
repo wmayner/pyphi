@@ -3,7 +3,7 @@
 # models/big_phi.py
 
 
-from .. import utils, config, jsonify
+from .. import utils, config
 from . import cmp, fmt
 
 
@@ -88,7 +88,7 @@ class BigMip(cmp._Orderable):
 
     def to_json(self):
         return {
-            attr: jsonify.jsonify(getattr(self, attr))
+            attr: getattr(self, attr)
             for attr in _bigmip_attributes + ['time', 'small_phi_time']
         }
 

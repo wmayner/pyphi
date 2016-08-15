@@ -11,7 +11,6 @@ import numpy as np
 from . import cache, config, utils, validate
 from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
-from .jsonify import jsonify
 from .models import Concept, Cut, Mice, Mip, _null_mip, Part, Bipartition
 from .network import irreducible_purviews
 from .node import generate_nodes
@@ -226,8 +225,8 @@ class Subsystem:
     def to_json(self):
         """Return this Subsystem as a JSON object."""
         return {
-            'node_indices': jsonify(self.node_indices),
-            'cut': jsonify(self.cut),
+            'node_indices': self.node_indices,
+            'cut': self.cut,
         }
 
     def apply_cut(self, cut):

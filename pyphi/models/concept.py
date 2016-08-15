@@ -6,7 +6,6 @@ import numpy as np
 
 from . import cmp, fmt
 from .. import config, utils
-from ..jsonify import jsonify
 from ..constants import DIRECTIONS, PAST, FUTURE
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
@@ -429,17 +428,19 @@ class Concept(cmp._Orderable):
             self.effect.mip.partitioned_repertoire)
 
     def to_json(self):
-        d = jsonify(self.__dict__)
+        d = self.__dict__
         del d['normalized']
-        # Expand repertoires.
-        d['cause']['repertoire'] = \
-            self.expand_cause_repertoire().flatten(order='f')
-        d['effect']['repertoire'] = \
-            self.expand_effect_repertoire().flatten(order='f')
-        d['cause']['partitioned_repertoire'] = \
-            self.expand_partitioned_cause_repertoire().flatten(order='f')
-        d['effect']['partitioned_repertoire'] = \
-            self.expand_partitioned_effect_repertoire().flatten(order='f')
+
+        # Expand repertoires
+        d['cause'].repertoire = (
+            self.expand_cause_repertoire().flatten(order='f'))
+        d['effect'].repertoire = (
+            self.expand_effect_repertoire().flatten(order='f'))
+        d['cause'].partitioned_repertoire = (
+            self.expand_partitioned_cause_repertoire().flatten(order='f'))
+        d['effect'].partitioned_repertoire = (
+            self.expand_partitioned_effect_repertoire().flatten(order='f'))
+
         return d
 
 
