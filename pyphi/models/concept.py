@@ -51,8 +51,8 @@ class Mip(cmp._Orderable):
         self._mechanism = mechanism
         self._purview = purview
         self._partition = partition
-        self._unpartitioned_repertoire = unpartitioned_repertoire
-        self._partitioned_repertoire = partitioned_repertoire
+        self._unpartitioned_repertoire = np.array(unpartitioned_repertoire)
+        self._partitioned_repertoire = np.array(partitioned_repertoire)
 
         # Optional subsystem - only used to generate nice labeled reprs
         self._subsystem = subsystem
@@ -121,6 +121,9 @@ class Mip(cmp._Orderable):
     def __str__(self):
         return "Mip\n" + fmt.indent(fmt.fmt_mip(self))
 
+    def to_json(self):
+        return {attr: getattr(self, attr) for attr in _mip_attributes}
+
 
 def _null_mip(direction, mechanism, purview, unpartitioned_repertoire=None):
     """The null mip (of a reducible mechanism)."""
@@ -184,6 +187,13 @@ class Mice(cmp._Orderable):
         return self._mip.unpartitioned_repertoire
 
     @property
+    def partitioned_repertoire(self):
+        """``np.ndarray`` -- The partitioned repertoire of the mechanism over
+        the purview.
+        """
+        return self._mip.partitioned_repertoire
+
+    @property
     def mip(self):
         """``Mip`` -- The minimum information partition for this mechanism."""
         return self._mip
@@ -206,14 +216,7 @@ class Mice(cmp._Orderable):
         return hash(('Mice', self._mip))
 
     def to_json(self):
-        return {
-            'phi': self.phi,
-            'purview': self.purview,
-            'partition': self.mip.partition,
-            'partitioned_repertoire': self.mip.partitioned_repertoire.flatten(),
-            'repertoire': self.mip.unpartitioned_repertoire.flatten()
-        }
-
+        return {'mip': self.mip}
 
     # TODO: benchmark and memoize?
     # TODO: pass in subsystem indices only?
@@ -303,14 +306,14 @@ class Concept(cmp._Orderable):
     """
 
     def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
-                 subsystem=None, normalized=False):
+                 subsystem=None, normalized=False, time=None):
         self.phi = phi
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
         self.subsystem = subsystem
         self.normalized = normalized
-        self.time = None
+        self.time = time
 
     def __repr__(self):
         return fmt.make_repr(self, _concept_attributes)
@@ -432,13 +435,13 @@ class Concept(cmp._Orderable):
         del d['normalized']
 
         # Expand repertoires
-        d['cause'].repertoire = (
+        d['cause'].mip._unpartitioned_repertoire = (
             self.expand_cause_repertoire().flatten(order='f'))
-        d['effect'].repertoire = (
+        d['effect'].mip._unpartitioned_repertoire = (
             self.expand_effect_repertoire().flatten(order='f'))
-        d['cause'].partitioned_repertoire = (
+        d['cause'].mip._partitioned_repertoire = (
             self.expand_partitioned_cause_repertoire().flatten(order='f'))
-        d['effect'].partitioned_repertoire = (
+        d['effect'].mip._partitioned_repertoire = (
             self.expand_partitioned_effect_repertoire().flatten(order='f'))
 
         return d
