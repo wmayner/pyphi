@@ -227,14 +227,9 @@ class Subsystem:
         return {
             'network': self.network,
             'state': self.state,
-            'node_indices': self.node_indices,
+            'nodes': self.node_indices,
             'cut': self.cut,
         }
-
-    @classmethod
-    def from_json(cls, json):
-        return Subsystem(json['network'], json['state'], json['node_indices'],
-                         cut=json['cut'])
 
     def apply_cut(self, cut):
         """Return a cut version of this |Subsystem|.

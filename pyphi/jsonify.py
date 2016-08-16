@@ -12,6 +12,8 @@ import numpy as np
 
 import pyphi
 
+CLASS_KEY = '__class__'
+
 
 def _jsonify_dict(dct):
     return {key: jsonify(value) for key, value in dct.items()}
@@ -24,7 +26,7 @@ def jsonify(obj):
     try:
         # Call the `to_json` method if available.
         d = obj.to_json()
-        d['__class__'] = obj.__class__.__name__
+        d[CLASS_KEY] = obj.__class__.__name__
         return jsonify(d)
     except AttributeError:
         # If we have a numpy array, convert it to a list.
@@ -89,10 +91,19 @@ def _load_object(d):
     if isinstance(d, dict):
         d = {k: _load_object(v) for k, v in d.items()}
 
-        if '__class__' in d:
-            cls = pyphi_classes()[d['__class__']]
-            return cls.from_json(d)
+        # PyPhi class dictionary
+        if CLASS_KEY in d:
+            cls = pyphi_classes()[d[CLASS_KEY]]
+            del d[CLASS_KEY]
 
+            # If implemented, use the `from_json` method
+            if hasattr(cls, 'from_json'):
+                return cls.from_json(d)
+
+            # Otherwise pass the dictionary as keyword arguments
+            return cls(**d)
+
+    # TODO: load nested items
     if isinstance(d, list):
         return tuple(d)
 

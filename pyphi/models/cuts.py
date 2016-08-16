@@ -95,10 +95,6 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
     def to_json(self):
         return {'severed': self.severed, 'intact': self.intact}
 
-    @classmethod
-    def from_json(cls, json):
-        return Cut(severed=json['severed'], intact=json['intact'])
-
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
     """Represents one part of a bipartition.
@@ -125,10 +121,6 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
     def to_json(self):
         return {'mechanism': self.mechanism, 'purview': self.purview}
 
-    @classmethod
-    def from_json(cls, json):
-        return Part(json['mechanism'], json['purview'])
-
 
 class Bipartition(namedtuple('Bipartition', ['part0', 'part1'])):
     """A bipartition of a mechanism and purview.
@@ -152,10 +144,6 @@ class Bipartition(namedtuple('Bipartition', ['part0', 'part1'])):
 
     def to_json(self):
         return {'part0': self.part0, 'part1': self.part1}
-
-    @classmethod
-    def from_json(cls, json):
-        return Bipartition(json['part0'], json['part1'])
 
     def __str__(self):
         return fmt.fmt_bipartition(self)
