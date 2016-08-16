@@ -53,9 +53,9 @@ class PyPhiJSONEncoder(json.JSONEncoder):
     """Extension of the default JSONEncoder that allows for serializing PyPhi
     objects with ``jsonify``."""
 
-    def default(self, obj):
+    def encode(self, obj):
         """Encode the output of ``jsonify`` with the default encoder."""
-        return jsonify(obj)
+        return super().encode(jsonify(obj))
 
 
 def dumps(obj, **user_kwargs):
