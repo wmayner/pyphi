@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # test_json.py
 
+import json
 import tempfile
 
 import numpy as np
@@ -22,7 +23,7 @@ def test_jsonify_native():
         'bool': [True, False],
         'null': None
     }
-    assert answer == jsonify.loads(jsonify.dumps(x))
+    assert answer == json.loads(jsonify.dumps(x))
 
 
 def test_jsonify_numpy():
@@ -38,12 +39,18 @@ def test_jsonify_numpy():
         'np.int64': 2,
         'np.float64': 3.0,
     }
-    assert answer == jsonify.loads(jsonify.dumps(x))
+    assert answer == json.loads(jsonify.dumps(x))
 
 
-def test_jsonify_network(s):
-    loaded = jsonify.loads(jsonify.dumps(s.network))
-    assert loaded == s.network
+def test_json_deserialization(s):
+    objects = [
+        s.network,  # Network
+        s,  # Subsystem
+    ]
+
+    for o in objects:
+        loaded = jsonify.loads(jsonify.dumps(o))
+        assert loaded == o
 
 
 def test_network_from_json(s):

@@ -79,13 +79,27 @@ def pyphi_classes():
     return {
         'Network': pyphi.Network,
         'Subsystem': pyphi.Subsystem,
+        'Cut': pyphi.models.Cut,
     }
+
+
+def _load_object(d):
+    if isinstance(d, dict):
+        d = {k: _load_object(v) for k, v in d.items()}
+
+        if '__class__' in d:
+            cls = pyphi_classes()[d['__class__']]
+            return cls.from_json(d)
+
+    if isinstance(d, list):
+        return tuple(d)
+
+    return d
 
 
 def loads(string):
     d = json.loads(string)
-    cls = pyphi_classes()[d['__class__']]
-    return cls.from_json(d)
+    return _load_object(d)
 
 
 load = json.load
