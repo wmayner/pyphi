@@ -80,6 +80,8 @@ def pyphi_classes():
         'Network': pyphi.Network,
         'Subsystem': pyphi.Subsystem,
         'Cut': pyphi.models.Cut,
+        'Part': pyphi.models.Part,
+        'Bipartition': pyphi.models.Bipartition,
     }
 
 

@@ -7,7 +7,7 @@ import tempfile
 
 import numpy as np
 
-from pyphi import compute, jsonify, network
+from pyphi import compute, jsonify, models, network
 
 
 def test_jsonify_native():
@@ -46,8 +46,8 @@ def test_json_deserialization(s):
     objects = [
         s.network,  # Network
         s,  # Subsystem
+        models.Bipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
     ]
-
     for o in objects:
         loaded = jsonify.loads(jsonify.dumps(o))
         assert loaded == o
