@@ -97,33 +97,42 @@ def pyphi_classes():
     }
 
 
-def _load_object(d):
+class PyPhiJSONDecoder(json.JSONDecoder):
+    """Extension of the default encoder which automatically deserializes
+    PyPhi JSON to the appropriate model classes.
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs['object_hook'] = self._load_object
+        super().__init__(*args, **kwargs)
 
-    if isinstance(d, dict):
+    def _load_object(self, obj):
+        """Recursively load a PyPhi object."""
+        if isinstance(obj, dict):
+            obj = {k: self._load_object(v) for k, v in obj.items()}
 
-        d = {k: _load_object(v) for k, v in d.items()}
+            # PyPhi class dictionary
+            if CLASS_KEY in obj:
+                cls = pyphi_classes()[obj[CLASS_KEY]]
+                del obj[CLASS_KEY]
 
-        # PyPhi class dictionary
-        if CLASS_KEY in d:
-            cls = pyphi_classes()[d[CLASS_KEY]]
-            del d[CLASS_KEY]
+                # If implemented, use the `from_json` method
+                if hasattr(cls, 'from_json'):
+                    return cls.from_json(obj)
 
-            # If implemented, use the `from_json` method
-            if hasattr(cls, 'from_json'):
-                return cls.from_json(d)
+                # Otherwise pass the dictionary as keyword arguments
+                return cls(**obj)
 
-            # Otherwise pass the dictionary as keyword arguments
-            return cls(**d)
+        # Cast to tuple because most iterables in PyPhi are ultimately tuples
+        # (eg. mechanisms, purviews.) Other iterables (tpms, repertoires)
+        # should be cast to the correct type in init methods
+        if isinstance(obj, list):
+            return tuple(self._load_object(item) for item in obj)
 
-    if isinstance(d, list):
-        return tuple(_load_object(item) for item in d)
-
-    return d
+        return obj
 
 
 def loads(string):
-    d = json.loads(string)
-    return _load_object(d)
+    return json.loads(string, cls=PyPhiJSONDecoder)
 
 
 load = json.load
