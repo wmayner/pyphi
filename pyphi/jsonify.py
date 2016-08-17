@@ -42,6 +42,27 @@ CLASS_KEY = '__class__'
 VERSION_KEY = '__version__'
 
 
+def _loadable_models():
+    """A dictionary of loadable PyPhi models.
+
+    These are stored in this function (instead of module scope) to resolve
+    circular import issues.
+    """
+    classes = [
+        pyphi.Network,
+        pyphi.Subsystem,
+        pyphi.models.Cut,
+        pyphi.models.Part,
+        pyphi.models.Bipartition,
+        pyphi.models.Mip,
+        pyphi.models.Mice,
+        pyphi.models.Concept,
+        pyphi.models.Constellation,
+        pyphi.models.BigMip,
+    ]
+    return {cls.__name__: cls for cls in classes}
+
+
 class JSONVersionError(ValueError):
     pass
 
@@ -117,27 +138,6 @@ def dump(obj, fp, **user_kwargs):
     """Serialize ``obj`` as a JSON-formatted stream and write to ``fp`` (a
     ``.write()``-supporting file-like object."""
     return json.dump(obj, fp, **_encoder_kwargs(user_kwargs))
-
-
-def _loadable_models():
-    """A dictionary of loadable PyPhi models.
-
-    These are stored in this function (instead of module scope) to resolve
-    circular import issues.
-    """
-    classes = [
-        pyphi.Network,
-        pyphi.Subsystem,
-        pyphi.models.Cut,
-        pyphi.models.Part,
-        pyphi.models.Bipartition,
-        pyphi.models.Mip,
-        pyphi.models.Mice,
-        pyphi.models.Concept,
-        pyphi.models.Constellation,
-        pyphi.models.BigMip,
-    ]
-    return {cls.__name__: cls for cls in classes}
 
 
 class PyPhiJSONDecoder(json.JSONDecoder):
