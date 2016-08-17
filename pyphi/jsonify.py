@@ -135,4 +135,5 @@ def loads(string):
     return json.loads(string, cls=PyPhiJSONDecoder)
 
 
-load = json.load
+def load(fp):
+    return json.load(fp, cls=PyPhiJSONDecoder)
