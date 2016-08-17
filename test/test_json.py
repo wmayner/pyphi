@@ -48,6 +48,7 @@ def test_json_deserialization(s):
         s,  # Subsystem
         models.Bipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
         s.concept((1, 2)),
+        s.concept((1,)),
     ]
     for o in objects:
         loaded = jsonify.loads(jsonify.dumps(o))

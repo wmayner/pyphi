@@ -51,8 +51,14 @@ class Mip(cmp._Orderable):
         self._mechanism = mechanism
         self._purview = purview
         self._partition = partition
-        self._unpartitioned_repertoire = np.array(unpartitioned_repertoire)
-        self._partitioned_repertoire = np.array(partitioned_repertoire)
+
+        def _repertoire(repertoire):
+            if repertoire is None:
+                return None
+            return np.array(repertoire)
+
+        self._unpartitioned_repertoire = _repertoire(unpartitioned_repertoire)
+        self._partitioned_repertoire = _repertoire(partitioned_repertoire)
 
         # Optional subsystem - only used to generate nice labeled reprs
         self._subsystem = subsystem
@@ -434,15 +440,20 @@ class Concept(cmp._Orderable):
         d = self.__dict__
         del d['normalized']
 
+        def flatten(repertoire):
+            if repertoire is None:
+                return None
+            return repertoire.flatten(order='f')
+
         # Expand repertoires
-        d['cause'].mip._unpartitioned_repertoire = (
-            self.expand_cause_repertoire().flatten(order='f'))
-        d['effect'].mip._unpartitioned_repertoire = (
-            self.expand_effect_repertoire().flatten(order='f'))
-        d['cause'].mip._partitioned_repertoire = (
-            self.expand_partitioned_cause_repertoire().flatten(order='f'))
-        d['effect'].mip._partitioned_repertoire = (
-            self.expand_partitioned_effect_repertoire().flatten(order='f'))
+        d['cause'].mip._unpartitioned_repertoire = flatten(
+            self.expand_cause_repertoire())
+        d['effect'].mip._unpartitioned_repertoire = flatten(
+            self.expand_effect_repertoire())
+        d['cause'].mip._partitioned_repertoire = flatten(
+            self.expand_partitioned_cause_repertoire())
+        d['effect'].mip._partitioned_repertoire = flatten(
+            self.expand_partitioned_effect_repertoire())
 
         return d
 

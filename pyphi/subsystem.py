@@ -493,6 +493,9 @@ class Subsystem:
         Returns:
             np.ndarray: The expanded repertoire.
         """
+        if repertoire is None:
+            return None
+
         purview = utils.purview(repertoire)
 
         if new_purview is None:
