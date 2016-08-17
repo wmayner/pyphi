@@ -140,6 +140,15 @@ def dump(obj, fp, **user_kwargs):
     return json.dump(obj, fp, **_encoder_kwargs(user_kwargs))
 
 
+def _check_version(version):
+    """Check whether the JSON version matches the PyPhi version."""
+    if version != pyphi.__version__:
+        raise JSONVersionError(
+            'Cannot load JSON from a different version of PyPhi. '
+            'JSON version = {0}, current version = {1}.'.format(
+                version, pyphi.__version__))
+
+
 class PyPhiJSONDecoder(json.JSONDecoder):
     """Extension of the default encoder which automatically deserializes
     PyPhi JSON to the appropriate model classes.
@@ -160,12 +169,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
             if CLASS_KEY in obj:
                 cls = self._loadable_models[obj[CLASS_KEY]]
 
-                version = obj[VERSION_KEY]
-                if version != pyphi.__version__:
-                    raise JSONVersionError(
-                        'Cannot load JSON from a different version of PyPhi. '
-                        'JSON version = {0}, current version = {1}.'.format(
-                            version, pyphi.__version__))
+                _check_version(obj[VERSION_KEY])
 
                 del obj[CLASS_KEY], obj[VERSION_KEY]
 
