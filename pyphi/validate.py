@@ -15,12 +15,10 @@ from .constants import EPSILON
 class StateUnreachableError(ValueError):
     """Raised when the current state cannot be reached from any past state."""
 
-    def __init__(self, state, message):
+    def __init__(self, state):
         self.state = state
-        self.message = message
-
-    def __str__(self):
-        return self.message
+        msg = 'The state {} cannot be reached in the given TPM.'
+        super().__init__(msg.format(state))
 
 
 def direction(direction):
@@ -177,9 +175,7 @@ def state_reachable(subsystem):
     # Then we do the subtraction and test.
     test = tpm - np.array(subsystem.state)[list(subsystem.node_indices)]
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
-        raise StateUnreachableError(
-            subsystem.state, 'This state cannot be reached according to the '
-                             'given TPM.')
+        raise StateUnreachableError(subsystem.state)
 
 
 def cut(cut, node_indices):
