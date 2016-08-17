@@ -82,19 +82,25 @@ def dump(obj, fp, **user_kwargs):
     return json.dump(obj, fp, **kwargs)
 
 
-def pyphi_classes():
-    return {
-        'Network': pyphi.Network,
-        'Subsystem': pyphi.Subsystem,
-        'Cut': pyphi.models.Cut,
-        'Part': pyphi.models.Part,
-        'Bipartition': pyphi.models.Bipartition,
-        'Mip': pyphi.models.Mip,
-        'Mice': pyphi.models.Mice,
-        'Concept': pyphi.models.Concept,
-        'Constellation': pyphi.models.Constellation,
-        'BigMip': pyphi.models.BigMip,
-    }
+def _loadable_models():
+    """A dictionary of loadable PyPhi models.
+
+    These are stored in this function (instead of module scope) to resolve
+    circular import issues.
+    """
+    classes = [
+        pyphi.Network,
+        pyphi.Subsystem,
+        pyphi.models.Cut,
+        pyphi.models.Part,
+        pyphi.models.Bipartition,
+        pyphi.models.Mip,
+        pyphi.models.Mice,
+        pyphi.models.Concept,
+        pyphi.models.Constellation,
+        pyphi.models.BigMip,
+    ]
+    return {cls.__name__: cls for cls in classes}
 
 
 class PyPhiJSONDecoder(json.JSONDecoder):
@@ -105,6 +111,9 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         kwargs['object_hook'] = self._load_object
         super().__init__(*args, **kwargs)
 
+        # Memoize available models
+        self._loadable_models = _loadable_models()
+
     def _load_object(self, obj):
         """Recursively load a PyPhi object."""
         if isinstance(obj, dict):
@@ -112,7 +121,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
             # PyPhi class dictionary
             if CLASS_KEY in obj:
-                cls = pyphi_classes()[obj[CLASS_KEY]]
+                cls = self._loadable_models[obj[CLASS_KEY]]
                 del obj[CLASS_KEY]
 
                 # If implemented, use the `from_json` method
