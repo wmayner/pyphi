@@ -88,6 +88,7 @@ def pyphi_classes():
         'Mip': pyphi.models.Mip,
         'Mice': pyphi.models.Mice,
         'Concept': pyphi.models.Concept,
+        'Constellation': pyphi.models.Constellation,
     }
 
 
@@ -109,9 +110,8 @@ def _load_object(d):
             # Otherwise pass the dictionary as keyword arguments
             return cls(**d)
 
-    # TODO: load nested items
     if isinstance(d, list):
-        return tuple(d)
+        return tuple(_load_object(item) for item in d)
 
     return d
 

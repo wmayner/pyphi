@@ -440,20 +440,22 @@ class Concept(cmp._Orderable):
         d = self.__dict__
         del d['normalized']
 
-        def flatten(repertoire):
-            if repertoire is None:
-                return None
-            return repertoire.flatten(order='f')
-
-        # Expand repertoires
-        d['cause'].mip._unpartitioned_repertoire = flatten(
-            self.expand_cause_repertoire())
-        d['effect'].mip._unpartitioned_repertoire = flatten(
-            self.expand_effect_repertoire())
-        d['cause'].mip._partitioned_repertoire = flatten(
-            self.expand_partitioned_cause_repertoire())
-        d['effect'].mip._partitioned_repertoire = flatten(
-            self.expand_partitioned_effect_repertoire())
+        # TODO: handle this - is this format needed for vphi?
+        #
+        # def flatten(repertoire):
+        #     if repertoire is None:
+        #         return None
+        #     return repertoire.flatten(order='f')
+        #
+        # # Expand repertoires
+        # d['cause'].mip._unpartitioned_repertoire = flatten(
+        #     self.expand_cause_repertoire())
+        # d['effect'].mip._unpartitioned_repertoire = flatten(
+        #     self.expand_effect_repertoire())
+        # d['cause'].mip._partitioned_repertoire = flatten(
+        #     self.expand_partitioned_cause_repertoire())
+        # d['effect'].mip._partitioned_repertoire = flatten(
+        #     self.expand_partitioned_effect_repertoire())
 
         return d
 
@@ -479,6 +481,10 @@ class Constellation(tuple):
 
     def to_json(self):
         return {'concepts': list(self)}
+
+    @classmethod
+    def from_json(cls, json):
+        return Constellation(json['concepts'])
 
 
 def normalize_constellation(constellation):
