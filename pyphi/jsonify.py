@@ -74,21 +74,23 @@ class PyPhiJSONEncoder(json.JSONEncoder):
         return super().iterencode(jsonify(obj), **kwargs)
 
 
+def _encoder_kwargs(user_kwargs):
+    """Update kwargs for `dump` and `dumps` to use the PyPhi encoder."""
+    kwargs = {'separators': (',', ':'), 'cls': PyPhiJSONEncoder}
+    kwargs.update(user_kwargs)
+
+    return kwargs
+
+
 def dumps(obj, **user_kwargs):
     """Serialize ``obj`` as JSON-formatted stream."""
-    kwargs = {'separators': (',', ':'),
-              'cls': PyPhiJSONEncoder}
-    kwargs.update(user_kwargs)
-    return json.dumps(obj, **kwargs)
+    return json.dumps(obj, **_encoder_kwargs(user_kwargs))
 
 
 def dump(obj, fp, **user_kwargs):
     """Serialize ``obj`` as a JSON-formatted stream and write to ``fp`` (a
     ``.write()``-supporting file-like object."""
-    kwargs = {'separators': (',', ':'),
-              'cls': PyPhiJSONEncoder}
-    kwargs.update(user_kwargs)
-    return json.dump(obj, fp, **kwargs)
+    return json.dump(obj, fp, **_encoder_kwargs(user_kwargs))
 
 
 def _loadable_models():
