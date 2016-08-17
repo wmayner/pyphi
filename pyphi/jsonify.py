@@ -13,6 +13,11 @@ import numpy as np
 import pyphi
 
 CLASS_KEY = '__class__'
+VERSION_KEY = '__version__'
+
+
+class JSONVersionError(ValueError):
+    pass
 
 
 def _jsonify_dict(dct):
@@ -27,7 +32,11 @@ def jsonify(obj):
     if hasattr(obj, 'to_json'):
         # Call the `to_json` method if available.
         d = obj.to_json()
+
+        # Add metadata
         d[CLASS_KEY] = obj.__class__.__name__
+        d[VERSION_KEY] = pyphi.__version__
+
         return jsonify(d)
 
     # If we have a numpy array, convert it to a list.
@@ -122,7 +131,15 @@ class PyPhiJSONDecoder(json.JSONDecoder):
             # PyPhi class dictionary
             if CLASS_KEY in obj:
                 cls = self._loadable_models[obj[CLASS_KEY]]
-                del obj[CLASS_KEY]
+
+                version = obj[VERSION_KEY]
+                if version != pyphi.__version__:
+                    raise JSONVersionError(
+                        'Cannot load JSON from a different version of PyPhi. '
+                        'JSON version = {0}, current version = {1}.'.format(
+                            version, pyphi.__version__))
+
+                del obj[CLASS_KEY], obj[VERSION_KEY]
 
                 # If implemented, use the `from_json` method
                 if hasattr(cls, 'from_json'):

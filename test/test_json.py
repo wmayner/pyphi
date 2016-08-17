@@ -5,6 +5,7 @@
 import json
 import tempfile
 
+import pytest
 import numpy as np
 
 from pyphi import compute, jsonify, models, network
@@ -64,3 +65,15 @@ def test_network_from_json(s):
     loaded_network = network.from_json(f.name)
     assert loaded_network == s.network
     assert np.array_equal(loaded_network.node_labels, s.network.node_labels)
+
+
+def test_version_check_during_deserialization(s):
+    string = jsonify.dumps(s)
+
+    # Change the version
+    _obj = json.loads(string)
+    _obj[jsonify.VERSION_KEY] = '0.1.bogus'
+    string = json.dumps(_obj)
+
+    with pytest.raises(jsonify.JSONVersionError):
+        jsonify.loads(string)
