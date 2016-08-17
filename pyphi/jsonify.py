@@ -4,6 +4,32 @@
 
 """
 PyPhi- and NumPy-aware JSON serialization.
+
+To be properly serialized and deserialized, PyPhi models must implement a
+``to_json`` method which returns a dictionary of attribute names and attribute
+values. These attributes should be the names of arguments passed to the model
+constructor. If the constructor takes additional, fewer, or differnt arguments,
+the model needs to implement a custom ``from_json`` classmethod which takes a
+Python dictionary as an argument and returns a PyPhi object. For example::
+
+    class Phi:
+        def __init__(self, phi):
+            self.phi = phi
+
+        def to_json(self):
+            return {'phi': self.phi, 'twice_phi': 2 * self.phi}
+
+        @classmethod
+        def from_json(cls, json):
+            return Phi(json['phi'])
+
+The model must also be added to ``jsonify._loadable_models``.
+
+The JSON encoder adds the name of the model and the current PyPhi version to
+the JSON stream. The JSON decoder uses this metadata to recursively deserialize
+the stream to a nested PyPhi model structure. The decoder will raise an
+exception if the version of the JSON does not match the current version of
+PyPhi.
 """
 
 import json
@@ -160,8 +186,10 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
 
 def loads(string):
+    """Deserialize a JSON string to a Python object."""
     return json.loads(string, cls=PyPhiJSONDecoder)
 
 
 def load(fp):
+    """Deserialize a JSON stream to a Python object."""
     return json.load(fp, cls=PyPhiJSONDecoder)
