@@ -50,6 +50,7 @@ def test_json_deserialization(s):
         s.concept((1, 2)),
         s.concept((1,)),
         compute.constellation(s),
+        compute.big_mip(s)
     ]
     for o in objects:
         loaded = jsonify.loads(jsonify.dumps(o))
@@ -63,16 +64,3 @@ def test_network_from_json(s):
     loaded_network = network.from_json(f.name)
     assert loaded_network == s.network
     assert np.array_equal(loaded_network.node_labels, s.network.node_labels)
-
-
-# TODO: these tests need to be fleshed out, they don't do much
-
-def test_jsonify_big_mip(s, flushcache, restore_fs_cache):
-    flushcache()
-    jsonify.loads(jsonify.dumps(compute.big_mip(s)))
-
-
-def test_jsonify_complexes(s, flushcache, restore_fs_cache):
-    flushcache()
-    complexes = compute.complexes(s.network, s.state)
-    jsonify.loads(jsonify.dumps(complexes))

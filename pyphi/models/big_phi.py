@@ -37,14 +37,14 @@ class BigMip(cmp._Orderable):
 
     def __init__(self, phi=None, unpartitioned_constellation=None,
                  partitioned_constellation=None, subsystem=None,
-                 cut_subsystem=None):
+                 cut_subsystem=None, time=None, small_phi_time=None):
         self.phi = phi
         self.unpartitioned_constellation = unpartitioned_constellation
         self.partitioned_constellation = partitioned_constellation
         self.subsystem = subsystem
         self.cut_subsystem = cut_subsystem
-        self.time = None
-        self.small_phi_time = None
+        self.time = time
+        self.small_phi_time = small_phi_time
 
     def __repr__(self):
         return fmt.make_repr(self, _bigmip_attributes)

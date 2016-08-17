@@ -89,6 +89,7 @@ def pyphi_classes():
         'Mice': pyphi.models.Mice,
         'Concept': pyphi.models.Concept,
         'Constellation': pyphi.models.Constellation,
+        'BigMip': pyphi.models.BigMip,
     }
 
 
