@@ -60,6 +60,10 @@ class PyPhiJSONEncoder(json.JSONEncoder):
         """Encode the output of ``jsonify`` with the default encoder."""
         return super().encode(jsonify(obj))
 
+    def iterencode(self, obj, **kwargs):
+        """Analog to `encode` used by json.dump."""
+        return super().iterencode(jsonify(obj), **kwargs)
+
 
 def dumps(obj, **user_kwargs):
     """Serialize ``obj`` as JSON-formatted stream."""

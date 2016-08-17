@@ -281,8 +281,4 @@ def from_json(filename):
     with open(filename) as f:
         loaded = json.load(f)
 
-    tpm = loaded['tpm']
-    cm = loaded['cm']
-    labels = loaded['labels']
-
-    return Network(tpm, connectivity_matrix=cm, node_labels=labels)
+    return Network.from_json(loaded)
