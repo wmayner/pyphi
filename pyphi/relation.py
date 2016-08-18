@@ -93,16 +93,37 @@ def cut_subsystem(direction, purview, concept_set):
 
 
 def find_relation(direction, concept_list):
-    """
-    for purview:
-        cut_system = cut_inputs_or_outputs(direction, purview, subsystem)
 
-        for concept in concepts:
-            cut_concept = recompute_concept(cut_system concept)
+    concept_set = ConceptSet(concept_list)
 
-            phi_diff = concept.phi - cut_concept.phi
+    max_purview = None
+    max_purview_phi = 0
 
-        min_phi_diff = min(concept.phi_diff)
+    for purview in concept_set.possible_purviews(direction):
 
-    maximally_irreducible_overlap = max(purview.min_phi_diff) # "small phi"
-    """
+        cut_system = cut_subsystem(direction, purview, concept_set)
+
+        min_phi_diff = float('inf')
+
+        for concept in concept_set:
+            if direction == DIRECTIONS[PAST]:
+                attr = 'cause_purview'
+            elif direction == DIRECTIONS[FUTURE]:
+                attr = 'effect_purview'
+
+            concept_purview = getattr(concept, attr)
+
+            # Recompute the concept
+            # TODO: clarify that this is correct - or do we compute the
+            # entire Concept? or the Mice?
+            cut_phi = cut_system.find_mip(direction, concept.mechanism,
+                                          concept_purview).phi
+            phi_diff = concept.phi - cut_phi
+            if phi_diff < min_phi_diff:
+                min_phi_diff = phi_diff
+
+        if min_phi_diff > max_purview_phi:
+            max_purview_phi = min_phi_diff
+            max_purview = purview
+
+    return max_purview, max_purview_phi

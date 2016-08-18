@@ -35,6 +35,7 @@ def test_shared_purview_elements(concept_set):
 
 def test_possible_purviews(concept_set):
     assert concept_set.possible_purviews('past') == [(0,), (1,), (0, 1)]
+    assert concept_set.possible_purviews('future') == [(1,)]
 
 
 def test_relation_cut(s, concept_set):
@@ -61,3 +62,8 @@ def test_relation_cut(s, concept_set):
     assert np.array_equal(cut.apply_cut(cm), answer)
 
     relation.cut_subsystem('past', (0, 1), concept_set)
+
+
+def test_find_relation(concept_set):
+    print(relation.find_relation('past', concept_set.concepts))
+    print(relation.find_relation('future', concept_set.concepts))
