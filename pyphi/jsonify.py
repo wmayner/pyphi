@@ -159,8 +159,8 @@ def _is_model(dct):
 
 class _ObjectCache(cache.DictCache):
     """Cache mapping ids to loaded objects, keyed by the id of the object."""
-    def key(self, obj, **kwargs):
-        return obj[ID_KEY]
+    def key(self, dct, **kwargs):
+        return dct[ID_KEY]
 
 
 class PyPhiJSONDecoder(json.JSONDecoder):
@@ -172,7 +172,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         super().__init__(*args, **kwargs)
 
         # Memoize available models
-        self._loadable_models = _loadable_models()
+        self._models = _loadable_models()
 
         # Cache for loaded objects
         self._object_cache = _ObjectCache()
@@ -207,7 +207,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         """
         _check_version(dct[VERSION_KEY])
 
-        cls = self._loadable_models[dct[CLASS_KEY]]
+        cls = self._models[dct[CLASS_KEY]]
 
         # Clean metadata
         del dct[CLASS_KEY], dct[VERSION_KEY], dct[ID_KEY]
