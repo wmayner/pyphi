@@ -188,12 +188,11 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         """
         if isinstance(obj, dict):
             obj = {k: self._load_object(v) for k, v in obj.items()}
-
             # Load a serialized PyPhi model
             if _is_model(obj):
                 return self._load_model(obj)
 
-        if isinstance(obj, list):
+        elif isinstance(obj, list):
             return tuple(self._load_object(item) for item in obj)
 
         return obj
@@ -202,21 +201,20 @@ class PyPhiJSONDecoder(json.JSONDecoder):
     def _load_model(self, dct):
         """Load a serialized PyPhi model.
 
-        The loaded object is memoized and reused if it appears else where in
-        the object graph.
+        The object is memoized for reuse elsewhere in the object graph.
         """
-        _check_version(dct[VERSION_KEY])
+        version = dct.pop(VERSION_KEY)
+        classname = dct.pop(CLASS_KEY)
+        del dct[ID_KEY]
 
-        cls = self._models[dct[CLASS_KEY]]
+        _check_version(version)
+        cls = self._models[classname]
 
-        # Clean metadata
-        del dct[CLASS_KEY], dct[VERSION_KEY], dct[ID_KEY]
-
-        # If implemented, use the `from_json` method
+        # Use `to_json` if available
         if hasattr(cls, 'from_json'):
             return cls.from_json(dct)
 
-        # Otherwise pass the dictionary as keyword arguments
+        # Default to object constructor
         return cls(**dct)
 
 
