@@ -438,7 +438,8 @@ class Concept(cmp._Orderable):
 
     def to_json(self):
         d = self.__dict__
-        del d['normalized']
+
+        # del d['normalized']
 
         # TODO: handle this - is this format needed for vphi?
         #
