@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # jsonify.py
 
+# TODO: extend to `macro` objects
+# TODO: resolve schema issues with `vphi` and other external consumers
+# TODO: somehow check schema instead of version?
+
 """
 PyPhi- and NumPy-aware JSON serialization.
 
