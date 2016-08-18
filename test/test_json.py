@@ -62,7 +62,8 @@ def test_deserialization_memoizes_duplicate_objects(s):
     big_mip = compute.big_mip(s)
 
     def check_subsystems(big_mip):
-        assert big_mip.subsystem is big_mip.unpartitioned_constellation[0].subsystem
+        assert (big_mip.subsystem is
+            big_mip.unpartitioned_constellation[0].subsystem)
 
     check_subsystems(big_mip)
     loaded = jsonify.loads(jsonify.dumps(big_mip))
