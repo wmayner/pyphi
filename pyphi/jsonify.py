@@ -178,8 +178,14 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         self._object_cache = _ObjectCache()
 
     def _load_object(self, obj):
-        """Recursively load a PyPhi object."""
+        """Recursively load a PyPhi object.
 
+        PyPhi models are recursively loaded, using the model metadata to
+        recreate the original object relations. Lists are cast to tuples
+        because most objects in PyPhi which are serialized to lists (eg.
+        mechanisms and purviews) are ultimately tuples. Other lists (tpms,
+        repertoires) should be cast to the correct type in init methods.
+        """
         if isinstance(obj, dict):
             obj = {k: self._load_object(v) for k, v in obj.items()}
 
@@ -187,9 +193,6 @@ class PyPhiJSONDecoder(json.JSONDecoder):
             if _is_model(obj):
                 return self._load_model(obj)
 
-        # Cast to tuple because most iterables in PyPhi are ultimately tuples
-        # (eg. mechanisms, purviews.) Other iterables (tpms, repertoires)
-        # should be cast to the correct type in init methods
         if isinstance(obj, list):
             return tuple(self._load_object(item) for item in obj)
 
@@ -197,7 +200,11 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
     @cache.method('_object_cache')
     def _load_model(self, dct):
-        """Load a serialized PyPhi model."""
+        """Load a serialized PyPhi model.
+
+        The loaded object is memoized and reused if it appears else where in
+        the object graph.
+        """
         _check_version(dct[VERSION_KEY])
 
         cls = self._loadable_models[dct[CLASS_KEY]]
