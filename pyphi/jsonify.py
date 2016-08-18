@@ -225,7 +225,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         _check_version(version)
         cls = self._models[classname]
 
-        # Use `to_json` if available
+        # Use `from_json` if available
         if hasattr(cls, 'from_json'):
             return cls.from_json(dct)
 
