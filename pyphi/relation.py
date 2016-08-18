@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # relation.py
 
+from collections import namedtuple
+
 import numpy as np
 
 import pyphi
@@ -43,6 +45,46 @@ class ConceptSet:
     def possible_purviews(self, direction):
         """Possible purviews of this set of concepts."""
         return list(utils.powerset(self.shared_purview(direction)))[1:]
+
+
+class RelationCut(namedtuple('RelationCut',
+                             ['direction', 'purview', 'non_purview'])):
+    """Cut purview elements.
+
+    The outputs of the purview are cut if we are computing causes, the inputs
+    of the purview are cut if we are computing effects.
+    """
+    @property
+    def indices(self):
+        """The indices of the cut."""
+        return indices(self.purview + self.non_purview)
+
+    def apply_cut(self, cm):
+        cm = cm.copy()
+
+        # Cut outputs of purview
+        if self.direction == DIRECTIONS[PAST]:
+            cm[self.purview, :] = 0
+
+        # Cut inputs of purview
+        elif self.direction == DIRECTIONS[FUTURE]:
+            cm[:, self.purview] = 0
+
+        return cm
+
+    def cut_matrix(self):
+        return "NO MATRIX"
+
+
+def cut_subsystem(direction, purview, concept_set):
+    """Cut a subsystem by severing the purview (joint constraint)."""
+    subsystem = concept_set.subsystem
+    non_purview = indices(set(subsystem.node_indices) - set(purview))
+
+    cut = RelationCut(direction, purview, non_purview)
+
+    # TODO: is this safe, given the Mice cache is reused?
+    return subsystem.apply_cut(cut)
 
 
 def find_relation(direction, concept_list):
