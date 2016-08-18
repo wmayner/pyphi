@@ -201,17 +201,26 @@ class Subsystem:
             'cut': self.cut,
         }
 
-    def apply_cut(self, cut):
+    def apply_cut(self, cut, _reuse_cache=True):
         """Return a cut version of this |Subsystem|.
 
         Args:
             cut (|Cut|): The cut to apply to this |Subsystem|.
 
+        Keyword Args:
+            reuse_cache (boolean): Set to True to pass this subsystem's Mice
+                cache to the new |Subsystem|.
+
         Returns:
             |Subsystem|
         """
+        if _reuse_cache:
+            cache = self._mice_cache
+        else:
+            cache = None
+
         return Subsystem(self.network, self.state, self.node_indices,
-                         cut=cut, mice_cache=self._mice_cache)
+                         cut=cut, mice_cache=cache)
 
     def indices2nodes(self, indices):
         """Return nodes for these indices.

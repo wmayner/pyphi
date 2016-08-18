@@ -72,6 +72,7 @@ class RelationCut(namedtuple('RelationCut',
 
         return cm
 
+    # TODO: implement so that we can reuse the mice cache
     def cut_matrix(self):
         return "NO MATRIX"
 
@@ -83,8 +84,8 @@ def cut_subsystem(direction, purview, concept_set):
 
     cut = RelationCut(direction, purview, non_purview)
 
-    # TODO: is this safe, given the Mice cache is reused?
-    return subsystem.apply_cut(cut)
+    # TODO: implement `cut.cut_matrix` so that we can reuse the cache
+    return subsystem.apply_cut(cut, _reuse_cache=False)
 
 
 def find_relation(direction, concept_list):

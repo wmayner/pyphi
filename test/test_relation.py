@@ -33,13 +33,13 @@ def test_possible_purviews(concept_set):
     assert concept_set.possible_purviews('past') == [(0,), (1,), (0, 1)]
 
 
-def test_relation_cut(s):
+def test_relation_cut(s, concept_set):
     cm = np.array([
         [0, 0, 1],
         [1, 0, 1],
         [1, 1, 0]
     ])
-    
+
     cut = relation.RelationCut('past', (1,), (0, 2))
     answer = np.array([
         [0, 0, 1],
@@ -55,3 +55,5 @@ def test_relation_cut(s):
         [0, 0, 0],
     ])
     assert np.array_equal(cut.apply_cut(cm), answer)
+
+    relation.cut_subsystem('past', (0, 1), concept_set)
