@@ -75,6 +75,19 @@ class JSONVersionError(ValueError):
 
 def _jsonify_dict(dct):
     return {key: jsonify(value) for key, value in dct.items()}
+    
+
+def _push_metadata(dct, obj):
+    dct.update({
+        CLASS_KEY: obj.__class__.__name__,
+        VERSION_KEY: pyphi.__version__,
+        ID_KEY: id(obj)
+    })
+    return dct
+
+
+def _pop_metadata(dct):
+    return dct.pop(CLASS_KEY), dct.pop(VERSION_KEY), dct.pop(ID_KEY)
 
 
 def jsonify(obj):
@@ -85,9 +98,7 @@ def jsonify(obj):
     # Call the `to_json` method if available and add metadata.
     if hasattr(obj, 'to_json'):
         d = obj.to_json()
-        d[CLASS_KEY] = obj.__class__.__name__
-        d[VERSION_KEY] = pyphi.__version__
-        d[ID_KEY] = id(obj)  # To properly reconstruct the object graph
+        _push_metadata(d, obj)
         return jsonify(d)
 
     # If we have a numpy array, convert it to a list.
@@ -209,9 +220,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
         The object is memoized for reuse elsewhere in the object graph.
         """
-        version = dct.pop(VERSION_KEY)
-        classname = dct.pop(CLASS_KEY)
-        del dct[ID_KEY]
+        classname, version, id_ = _pop_metadata(dct)
 
         _check_version(version)
         cls = self._models[classname]
