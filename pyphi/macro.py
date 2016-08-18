@@ -13,6 +13,7 @@ import logging
 import numpy as np
 
 from . import compute, config, constants, convert, utils, validate
+from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
@@ -24,11 +25,6 @@ log = logging.getLogger(__name__)
 _NUM_PRECOMPUTED_PARTITION_LISTS = 10
 _partition_lists = utils.load_data('partition_lists',
                                    _NUM_PRECOMPUTED_PARTITION_LISTS)
-
-
-class ConditionallyDependentError(ValueError):
-    pass
-
 
 def reindex(indices):
     """Generate a new set of node indices, the size of indices."""
@@ -445,7 +441,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
 
         if (check_independence and
                 not validate.conditionally_independent(macro_tpm)):
-            raise ConditionallyDependentError
+            raise exceptions.ConditionallyDependentError
 
         return convert.state_by_state2state_by_node(macro_tpm)
 
@@ -745,7 +741,7 @@ def all_macro_systems(network, state, blackbox, coarse_grain, time_scales):
                             time_scale=time_scale,
                             blackbox=blackbox,
                             coarse_grain=coarse_grain)
-                    except (validate.StateUnreachableError,
+                    except (StateUnreachableError,
                             ConditionallyDependentError):
                         continue
 
@@ -852,7 +848,7 @@ def effective_info(network):
     for state in utils.all_states(network.size):
         try:
             subsystems.append(Subsystem(network, state, network.node_indices))
-        except validate.StateUnreachableError:
+        except StateUnreachableError:
             continue
     return np.array([
         subsystem.effect_info(network.node_indices, network.node_indices)

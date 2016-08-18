@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from pyphi import macro, Network, Subsystem, validate
+from pyphi import exceptions, macro, Network, Subsystem, validate
 
 
 def test_validate_direction():
@@ -73,7 +73,7 @@ def test_validate_state_no_error_1(s):
 
 
 def test_validate_state_error(s):
-    with pytest.raises(validate.StateUnreachableError):
+    with pytest.raises(exceptions.StateUnreachableError):
         state = (0, 1, 0)
         Subsystem(s.network, state, s.node_indices)
 

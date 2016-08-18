@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 import example_networks
-from pyphi import config, Network, utils, validate
+from pyphi import config, exceptions, Network, utils, validate
 from pyphi.models import Cut, Part
 from pyphi.subsystem import Subsystem, mip_bipartitions
 
@@ -24,7 +24,7 @@ def test_subsystem_validation(s):
     # Disallow impossible states at subsystem level (we don't want to return a
     # phi-value associated with an impossible state).
     net = example_networks.simple()
-    with pytest.raises(validate.StateUnreachableError):
+    with pytest.raises(exceptions.StateUnreachableError):
         s = Subsystem(net, (0, 1, 0), s.node_indices)
 
 

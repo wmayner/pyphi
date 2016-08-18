@@ -15,7 +15,7 @@ from time import time
 from . import parallel
 from .concept import constellation
 from .distance import constellation_distance
-from .. import config, memory, utils, validate
+from .. import config, exceptions, memory, utils, validate
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
 from ..subsystem import Subsystem
 
@@ -259,7 +259,7 @@ def subsystems(network, state):
     for subset in utils.powerset(network.node_indices):
         try:
             yield Subsystem(network, state, subset)
-        except validate.StateUnreachableError:
+        except exceptions.StateUnreachableError:
             pass
 
 
@@ -301,7 +301,7 @@ def possible_complexes(network, state):
         # Don't return subsystems that are in an impossible state.
         try:
             yield Subsystem(network, state, subset)
-        except validate.StateUnreachableError:
+        except exceptions.StateUnreachableError:
             continue
 
 
