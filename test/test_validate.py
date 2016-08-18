@@ -32,6 +32,8 @@ def test_validate_tpm_conditional_independence():
         [0,  0,  0,  1],
     ])
     with pytest.raises(ValueError):
+        validate.conditionally_independent(tpm)
+    with pytest.raises(ValueError):
         validate.tpm(tpm)
 
 

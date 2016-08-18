@@ -439,9 +439,8 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         # Re-normalize each row because we're going from larger to smaller TPM
         macro_tpm = np.array([utils.normalize(row) for row in macro_tpm])
 
-        if (check_independence and
-                not validate.conditionally_independent(macro_tpm)):
-            raise exceptions.ConditionallyDependentError
+        if check_independence:
+            validate.conditionally_independent(macro_tpm)
 
         return convert.state_by_state2state_by_node(macro_tpm)
 

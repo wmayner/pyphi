@@ -43,11 +43,8 @@ def tpm(tpm):
                 'there must be ' '2^N rows and N columns, where N is the '
                 'number of nodes. State-by-state TPM must be square. '
                 '{}'.format(tpm.shape, see_tpm_docs))
-        if (tpm.shape[0] == tpm.shape[1]
-                and not conditionally_independent(tpm)):
-            raise ValueError('TPM is not conditionally independent. See the '
-                             'conditional independence example in the '
-                             'documentation for more information.')
+        if tpm.shape[0] == tpm.shape[1]:
+            conditionally_independent(tpm)
     elif tpm.ndim == (N + 1):
         if not (tpm.shape == tuple([2] * N + [N])):
             raise ValueError(
@@ -71,9 +68,13 @@ def conditionally_independent(tpm):
         else:
             there_and_back_again = convert.state_by_state2state_by_node(
                 convert.state_by_node2state_by_state(tpm))
-        return np.all((tpm - there_and_back_again) < EPSILON)
-    else:
-        return True
+
+        if np.any((tpm - there_and_back_again) >= EPSILON):
+            raise exceptions.ConditionallyDependentError(
+                'TPM is not conditionally independent. See the conditional '
+                'independence example in the documentation for more info')
+
+    return True
 
 
 def connectivity_matrix(cm):
