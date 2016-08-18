@@ -512,6 +512,15 @@ def test_concept_emd_eq(s, subsys_n1n2):
 
     # TODO: test other expectations...
 
+
+def test_concept_purview(s):
+    concept = s.concept((1,))
+    assert concept.cause_purview == (2,)
+    assert concept.purview('past') == (2,)
+    assert concept.effect_purview == (0,)
+    assert concept.purview('future') == (0,)
+
+
 # }}}
 
 # Test Constellation {{{

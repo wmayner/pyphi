@@ -351,6 +351,12 @@ class Concept(cmp._Orderable):
     def effect_purview(self):
         return getattr(self.effect, 'purview', None)
 
+    def purview(self, direction):
+        if direction == DIRECTIONS[PAST]:
+            return self.cause_purview
+        elif direction == DIRECTIONS[FUTURE]:
+            return self.effect_purview
+
     @property
     def cause_repertoire(self):
         return getattr(self.cause, 'repertoire', None)

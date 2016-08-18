@@ -37,13 +37,7 @@ class ConceptSet:
 
     def shared_purview(self, direction):
         """All elements in the purview of every concept in the set."""
-
-        if direction == DIRECTIONS[PAST]:
-            attr = 'cause_purview'
-        elif direction == DIRECTIONS[FUTURE]:
-            attr = 'effect_purview'
-
-        return indices(set.intersection(*[set(getattr(c, attr))
+        return indices(set.intersection(*[set(c.purview(direction))
                                           for c in self.concepts]))
 
     def possible_purviews(self, direction):
@@ -106,18 +100,11 @@ def find_relation(direction, concept_list):
         min_phi_diff = float('inf')
 
         for concept in concept_set:
-            if direction == DIRECTIONS[PAST]:
-                attr = 'cause_purview'
-            elif direction == DIRECTIONS[FUTURE]:
-                attr = 'effect_purview'
-
-            concept_purview = getattr(concept, attr)
-
             # Recompute the concept
             # TODO: clarify that this is correct - or do we compute the
             # entire Concept? or the Mice?
             cut_phi = cut_system.find_mip(direction, concept.mechanism,
-                                          concept_purview).phi
+                                          concept.purview(direction)).phi
             phi_diff = concept.phi - cut_phi
             if phi_diff < min_phi_diff:
                 min_phi_diff = phi_diff
