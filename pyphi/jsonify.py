@@ -40,6 +40,7 @@ import pyphi
 
 CLASS_KEY = '__class__'
 VERSION_KEY = '__version__'
+ID_KEY = '__id__'
 
 
 def _loadable_models():
@@ -83,6 +84,7 @@ def jsonify(obj):
         # Add metadata
         d[CLASS_KEY] = obj.__class__.__name__
         d[VERSION_KEY] = pyphi.__version__
+        d[ID_KEY] = id(obj)  # To properly reconstruct the object graph
 
         return jsonify(d)
 
@@ -160,25 +162,41 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         # Memoize available models
         self._loadable_models = _loadable_models()
 
+        # Dictionary mapping ids to loaded objects. If the same object
+        # appears twice in this JSON serialization we used the memoized
+        # object to properly restore the object graph.
+        self._loaded_objects = {}
+
     def _load_object(self, obj):
-        """Recursively load a PyPhi object."""
+        """Recursively load a PyPhi object.
+
+        All PyPhi model objects are memoized and reused if necessary.
+        """
         if isinstance(obj, dict):
             obj = {k: self._load_object(v) for k, v in obj.items()}
 
             # PyPhi class dictionary
             if CLASS_KEY in obj:
+                obj_id = obj[ID_KEY]
+                if obj_id in self._loaded_objects:
+                    return self._loaded_objects[obj_id]
+
                 cls = self._loadable_models[obj[CLASS_KEY]]
 
                 _check_version(obj[VERSION_KEY])
 
-                del obj[CLASS_KEY], obj[VERSION_KEY]
+                del obj[CLASS_KEY], obj[VERSION_KEY], obj[ID_KEY]
 
                 # If implemented, use the `from_json` method
                 if hasattr(cls, 'from_json'):
-                    return cls.from_json(obj)
-
+                    loaded = cls.from_json(obj)
                 # Otherwise pass the dictionary as keyword arguments
-                return cls(**obj)
+                else:
+                    loaded = cls(**obj)
+
+                # Memoize
+                self._loaded_objects[obj_id] = loaded
+                return loaded
 
         # Cast to tuple because most iterables in PyPhi are ultimately tuples
         # (eg. mechanisms, purviews.) Other iterables (tpms, repertoires)

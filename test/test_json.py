@@ -58,6 +58,17 @@ def test_json_deserialization(s):
         assert loaded == o
 
 
+def test_deserialization_memoizes_duplicate_objects(s):
+    big_mip = compute.big_mip(s)
+
+    def check_subsystems(big_mip):
+        assert big_mip.subsystem is big_mip.unpartitioned_constellation[0].subsystem
+
+    check_subsystems(big_mip)
+    loaded = jsonify.loads(jsonify.dumps(big_mip))
+    check_subsystems(loaded)
+
+
 def test_network_from_json(s):
     f = tempfile.NamedTemporaryFile(mode='wt')
     jsonify.dump(s.network, f)
