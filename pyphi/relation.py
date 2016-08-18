@@ -25,6 +25,10 @@ class ConceptSet:
 
         self.concepts = concepts
 
+    def __iter__(self):
+        """Iterate over concepts in the set."""
+        return iter(self.concepts)
+
     @property
     def subsystem(self):
         subsystem = self.concepts[0].subsystem

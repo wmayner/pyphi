@@ -24,6 +24,10 @@ def test_concepts_must_be_nonempty():
         relation.ConceptSet([])
 
 
+def test_concept_set_iteration(concept_set):
+    list(concept_set)
+
+
 def test_shared_purview_elements(concept_set):
     assert concept_set.shared_purview('past') == (0, 1)
     assert concept_set.shared_purview('future') == (1,)
