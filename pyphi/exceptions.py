@@ -16,3 +16,7 @@ class StateUnreachableError(ValueError):
 
 class ConditionallyDependentError(ValueError):
     """The TPM is conditionally dependent."""
+
+
+class JSONVersionError(ValueError):
+    """JSON was serialized with a different version of PyPhi."""

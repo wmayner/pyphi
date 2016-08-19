@@ -8,7 +8,7 @@ import tempfile
 import pytest
 import numpy as np
 
-from pyphi import compute, jsonify, models, network
+from pyphi import compute, exceptions, jsonify, models, network
 
 
 def test_jsonify_native():
@@ -87,5 +87,5 @@ def test_version_check_during_deserialization(s):
     _obj[jsonify.VERSION_KEY] = '0.1.bogus'
     string = json.dumps(_obj)
 
-    with pytest.raises(jsonify.JSONVersionError):
+    with pytest.raises(exceptions.JSONVersionError):
         jsonify.loads(string)

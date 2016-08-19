@@ -69,10 +69,6 @@ def _loadable_models():
     return {cls.__name__: cls for cls in classes}
 
 
-class JSONVersionError(ValueError):
-    pass
-
-
 def _jsonify_dict(dct):
     return {key: jsonify(value) for key, value in dct.items()}
     
@@ -163,7 +159,7 @@ def dump(obj, fp, **user_kwargs):
 def _check_version(version):
     """Check whether the JSON version matches the PyPhi version."""
     if version != pyphi.__version__:
-        raise JSONVersionError(
+        raise pyphi.exceptions.JSONVersionError(
             'Cannot load JSON from a different version of PyPhi. '
             'JSON version = {0}, current version = {1}.'.format(
                 version, pyphi.__version__))
