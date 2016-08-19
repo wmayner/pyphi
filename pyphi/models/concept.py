@@ -437,31 +437,40 @@ class Concept(cmp._Orderable):
             self.effect.mip.partitioned_repertoire)
 
     def to_json(self):
-        return {
+        dct = {
             attr: getattr(self, attr)
             for attr in _concept_attributes + ['time']
         }
-        # TODO: flatten repertoires, at least to pass to vphi.
-        # vphi expects HOLI order repertoires - flattening with `order='f'`
-        # here transposes the repertoires to LOLI ordering.
-        #
-        # Do we want to expand and transpose all repertoires before
-        # serialization? Or should we just handle that in `phiserver`?
-        #
-        # def flatten(repertoire):
-        #     if repertoire is None:
-        #         return None
-        #     return repertoire.flatten(order='f')
-        #
-        # # Expand repertoires
-        # d['cause'].mip._unpartitioned_repertoire = flatten(
-        #     self.expand_cause_repertoire())
-        # d['effect'].mip._unpartitioned_repertoire = flatten(
-        #     self.expand_effect_repertoire())
-        # d['cause'].mip._partitioned_repertoire = flatten(
-        #     self.expand_partitioned_cause_repertoire())
-        # d['effect'].mip._partitioned_repertoire = flatten(
-        #     self.expand_partitioned_effect_repertoire())
+
+        def flatten(repertoire):
+            """Flattens to LOLI-ordering"""
+            if repertoire is None:
+                return None
+            return repertoire.flatten(order='f')
+
+        # These values are passed to `vphi` via `phiserver`
+        dct.update({
+            'expanded_cause_repertoire': flatten(
+                self.expand_cause_repertoire()),
+            'expanded_effect_repertoire': flatten(
+                self.expand_effect_repertoire()),
+            'expanded_partitioned_cause_repertoire': flatten(
+                self.expand_partitioned_cause_repertoire()),
+            'expanded_partitioned_effect_repertoire': flatten(
+                self.expand_partitioned_effect_repertoire()),
+        })
+
+        return dct
+
+    @classmethod
+    def from_json(cls, dct):
+        # Remove extra attributes
+        del dct['expanded_cause_repertoire']
+        del dct['expanded_effect_repertoire']
+        del dct['expanded_partitioned_cause_repertoire']
+        del dct['expanded_partitioned_effect_repertoire']
+
+        return Concept(**dct)
 
 
 class Constellation(tuple):
