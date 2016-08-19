@@ -437,11 +437,16 @@ class Concept(cmp._Orderable):
             self.effect.mip.partitioned_repertoire)
 
     def to_json(self):
-        d = self.__dict__
-
-        # del d['normalized']
-
-        # TODO: handle this - is this format needed for vphi?
+        return {
+            attr: getattr(self, attr)
+            for attr in _concept_attributes + ['time']
+        }
+        # TODO: flatten repertoires, at least to pass to vphi.
+        # vphi expects HOLI order repertoires - flattening with `order='f'`
+        # here transposes the repertoires to LOLI ordering.
+        #
+        # Do we want to expand and transpose all repertoires before
+        # serialization? Or should we just handle that in `phiserver`?
         #
         # def flatten(repertoire):
         #     if repertoire is None:
@@ -457,8 +462,6 @@ class Concept(cmp._Orderable):
         #     self.expand_partitioned_cause_repertoire())
         # d['effect'].mip._partitioned_repertoire = flatten(
         #     self.expand_partitioned_effect_repertoire())
-
-        return d
 
 
 class Constellation(tuple):
