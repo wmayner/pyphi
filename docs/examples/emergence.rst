@@ -126,13 +126,13 @@ and grouping
     >>> coarse_grain.macro_tpm(network.tpm)
     Traceback (most recent call last):
         ...
-    pyphi.macro.ConditionallyDependentError
+    pyphi.exceptions.ConditionallyDependentError...
 
 However, this macro-TPM does not satisfy the conditional independence
 assumption, so this particular partition and grouping combination is not a valid
 coarse-graining of the system. Constructing a |MacroSubsystem| with this
 coarse-graining will also raise
-:class:`~pyphi.macro.ConditionallyDependentError`:
+:class:`~pyphi.exceptions.ConditionallyDependentError`.
 
 Let's consider a different coarse-graining instead.
 
@@ -212,7 +212,7 @@ The system has minimal |big_phi| without blackboxing:
 
 We will consider the blackbox system consisting of two blackbox elements, |ABC|
 and |DEF|, where |C| and |F| are output elements and |AB| and |DE| are hidden
-within their respective blackboxes. 
+within their respective blackboxes.
 
 Blackboxing is done with a |Blackbox| object. As with |CoarseGrain|, we pass it
 a partition of micro-elements:
