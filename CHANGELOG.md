@@ -49,6 +49,10 @@ Next Release
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
 - Improved string representations of PyPhi objects.
+- Refactored JSON support. The `jsonify` module now dumps PyPhi models to a
+  a format which can be loaded to reproduce the full object graph of PyPhi
+  objects. This causes backwards incompatible changes to the JSON format of
+  some model representations.
 
 ### Optimizations
 - Added an analytic solution for the EMD computation between effect
