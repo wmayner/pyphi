@@ -6,7 +6,6 @@ import numpy as np
 
 from . import cmp, fmt
 from .. import config, utils
-from ..jsonify import jsonify
 from ..constants import DIRECTIONS, PAST, FUTURE
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
@@ -52,8 +51,14 @@ class Mip(cmp._Orderable):
         self._mechanism = mechanism
         self._purview = purview
         self._partition = partition
-        self._unpartitioned_repertoire = unpartitioned_repertoire
-        self._partitioned_repertoire = partitioned_repertoire
+
+        def _repertoire(repertoire):
+            if repertoire is None:
+                return None
+            return np.array(repertoire)
+
+        self._unpartitioned_repertoire = _repertoire(unpartitioned_repertoire)
+        self._partitioned_repertoire = _repertoire(partitioned_repertoire)
 
         # Optional subsystem - only used to generate nice labeled reprs
         self._subsystem = subsystem
@@ -122,6 +127,9 @@ class Mip(cmp._Orderable):
     def __str__(self):
         return "Mip\n" + fmt.indent(fmt.fmt_mip(self))
 
+    def to_json(self):
+        return {attr: getattr(self, attr) for attr in _mip_attributes}
+
 
 def _null_mip(direction, mechanism, purview, unpartitioned_repertoire=None):
     """The null mip (of a reducible mechanism)."""
@@ -185,6 +193,13 @@ class Mice(cmp._Orderable):
         return self._mip.unpartitioned_repertoire
 
     @property
+    def partitioned_repertoire(self):
+        """``np.ndarray`` -- The partitioned repertoire of the mechanism over
+        the purview.
+        """
+        return self._mip.partitioned_repertoire
+
+    @property
     def mip(self):
         """``Mip`` -- The minimum information partition for this mechanism."""
         return self._mip
@@ -207,14 +222,7 @@ class Mice(cmp._Orderable):
         return hash(('Mice', self._mip))
 
     def to_json(self):
-        return {
-            'phi': self.phi,
-            'purview': self.purview,
-            'partition': self.mip.partition,
-            'partitioned_repertoire': self.mip.partitioned_repertoire.flatten(),
-            'repertoire': self.mip.unpartitioned_repertoire.flatten()
-        }
-
+        return {'mip': self.mip}
 
     # TODO: benchmark and memoize?
     # TODO: pass in subsystem indices only?
@@ -304,14 +312,14 @@ class Concept(cmp._Orderable):
     """
 
     def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
-                 subsystem=None, normalized=False):
+                 subsystem=None, normalized=False, time=None):
         self.phi = phi
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
         self.subsystem = subsystem
         self.normalized = normalized
-        self.time = None
+        self.time = time
 
     def __repr__(self):
         return fmt.make_repr(self, _concept_attributes)
@@ -429,18 +437,40 @@ class Concept(cmp._Orderable):
             self.effect.mip.partitioned_repertoire)
 
     def to_json(self):
-        d = jsonify(self.__dict__)
-        del d['normalized']
-        # Expand repertoires.
-        d['cause']['repertoire'] = \
-            self.expand_cause_repertoire().flatten(order='f')
-        d['effect']['repertoire'] = \
-            self.expand_effect_repertoire().flatten(order='f')
-        d['cause']['partitioned_repertoire'] = \
-            self.expand_partitioned_cause_repertoire().flatten(order='f')
-        d['effect']['partitioned_repertoire'] = \
-            self.expand_partitioned_effect_repertoire().flatten(order='f')
-        return d
+        dct = {
+            attr: getattr(self, attr)
+            for attr in _concept_attributes + ['time']
+        }
+
+        def flatten(repertoire):
+            """Flattens to LOLI-ordering"""
+            if repertoire is None:
+                return None
+            return repertoire.flatten(order='f')
+
+        # These values are passed to `vphi` via `phiserver`
+        dct.update({
+            'expanded_cause_repertoire': flatten(
+                self.expand_cause_repertoire()),
+            'expanded_effect_repertoire': flatten(
+                self.expand_effect_repertoire()),
+            'expanded_partitioned_cause_repertoire': flatten(
+                self.expand_partitioned_cause_repertoire()),
+            'expanded_partitioned_effect_repertoire': flatten(
+                self.expand_partitioned_effect_repertoire()),
+        })
+
+        return dct
+
+    @classmethod
+    def from_json(cls, dct):
+        # Remove extra attributes
+        del dct['expanded_cause_repertoire']
+        del dct['expanded_effect_repertoire']
+        del dct['expanded_partitioned_cause_repertoire']
+        del dct['expanded_partitioned_effect_repertoire']
+
+        return Concept(**dct)
 
 
 class Constellation(tuple):
@@ -463,7 +493,11 @@ class Constellation(tuple):
         return fmt.fmt_constellation(self)
 
     def to_json(self):
-        return list(self)
+        return {'concepts': list(self)}
+
+    @classmethod
+    def from_json(cls, json):
+        return Constellation(json['concepts'])
 
 
 def normalize_constellation(constellation):

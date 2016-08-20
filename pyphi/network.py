@@ -239,6 +239,11 @@ class Network:
             'labels': self.node_labels
         }
 
+    @classmethod
+    def from_json(cls, json):
+        return Network(json['tpm'], json['cm'],
+                       node_labels=json['labels'])
+
 
 def irreducible_purviews(cm, direction, mechanism, purviews):
     """Returns all purview which are irreducible for the mechanism.
@@ -276,8 +281,4 @@ def from_json(filename):
     with open(filename) as f:
         loaded = json.load(f)
 
-    tpm = loaded['tpm']
-    cm = loaded['cm']
-    labels = loaded['labels']
-
-    return Network(tpm, connectivity_matrix=cm, node_labels=labels)
+    return Network.from_json(loaded)
