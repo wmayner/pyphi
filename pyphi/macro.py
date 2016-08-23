@@ -75,7 +75,7 @@ class MacroSubsystem(Subsystem):
 
         # Shrink TPM to size of internal indices
         # ======================================
-        self.tpm, self.cm, self.node_indices, self._state = (
+        self.tpm, self.cm, self.node_indices, self.state = (
             self._squeeze(node_indices))
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
@@ -98,7 +98,7 @@ class MacroSubsystem(Subsystem):
         # Blackbox in space
         # =================
         if blackbox is not None:
-            self.tpm, self.cm, self.node_indices, self._state = (
+            self.tpm, self.cm, self.node_indices, self.state = (
                 self._blackbox_space(blackbox))
 
         # Coarse-grain in space
@@ -106,7 +106,7 @@ class MacroSubsystem(Subsystem):
         if coarse_grain is not None:
             validate.coarse_grain(coarse_grain)
             coarse_grain = coarse_grain.reindex()
-            self.tpm, self.cm, self.node_indices, self._state = (
+            self.tpm, self.cm, self.node_indices, self.state = (
                 self._coarsegrain_space(coarse_grain))
 
         # Regenerate nodes

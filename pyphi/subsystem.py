@@ -18,7 +18,7 @@ from .node import generate_nodes
 
 class Subsystem:
     # TODO! go through docs and make sure to say when things can be None
-    # TODO: make subsystem attributes immutable
+    # TODO: make subsystem attributes private and wrap them in getters?
     """A set of nodes in a network.
 
     Args:
@@ -35,6 +35,7 @@ class Subsystem:
         network (Network): The network the subsystem belongs to.
         tpm (np.array): The TPM conditioned on the state of the external nodes.
         cm (np.array): The connectivity matrix after applying the cut.
+        state (tuple[int]): The state of the network.
         nodes (list[Node]): A list of nodes in the subsystem.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
         cut (Cut): The cut that has been applied to this subsystem.
@@ -57,7 +58,7 @@ class Subsystem:
         validate.state_length(state, self.network.size)
 
         # The state of the network.
-        self._state = tuple(state)
+        self.state = tuple(state)
 
         # Get the external node indices.
         # TODO: don't expose this as an attribute?
@@ -101,11 +102,6 @@ class Subsystem:
         self.nodes = generate_nodes(self, labels=True)
 
         validate.subsystem(self)
-
-    @property
-    def state(self):
-        """tuple[int]: The state of the Network this Subsystem belongs to."""
-        return self._state
 
     @property
     def proper_state(self):
