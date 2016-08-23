@@ -414,6 +414,28 @@ def purview_size(repertoire):
     return len(purview(repertoire))
 
 
+def repertoire_shape(purview, N):
+    """Return the shape a repertoire.
+
+    Args:
+        purview (tuple[int]): The purview over which the repertoire is
+            computed.
+        N (int): The number of elements in the system.
+
+    Returns:
+        list[int]: The shape of the repertoire. Purview nodes have two
+        dimensions and non-purview nodes are collapsed to a unitary dimension.
+
+    Example:
+        >>> purview = (0, 2)
+        >>> N = 3
+        >>> repertoire_shape(purview, N)
+        [2, 1, 2]
+    """
+    # TODO: extend to non-binary nodes
+    return [2 if i in purview else 1 for i in range(N)]
+
+
 @cache(cache={}, maxmem=None)
 def max_entropy_distribution(node_indices, number_of_nodes):
     """Return the maximum entropy distribution over a set of nodes.
@@ -431,9 +453,7 @@ def max_entropy_distribution(node_indices, number_of_nodes):
         distribution (``np.ndarray``): The maximum entropy distribution over
             the set of nodes.
     """
-    # TODO extend to nonbinary nodes
-    distribution = np.ones([2 if index in node_indices else 1
-                            for index in range(number_of_nodes)])
+    distribution = np.ones(repertoire_shape(node_indices, number_of_nodes))
 
     return distribution / distribution.size
 

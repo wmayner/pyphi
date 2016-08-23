@@ -272,7 +272,7 @@ class Subsystem:
 
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
-        cjd = np.ones([2 if i in purview else 1 for i in self.tpm_indices])
+        cjd = np.ones(utils.repertoire_shape(purview, len(self.tpm_indices)))
 
         # Loop over all nodes in this mechanism, successively taking the
         # product (with expansion/broadcasting of singleton dimensions) of each
@@ -335,7 +335,7 @@ class Subsystem:
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
             [1] * len(self.tpm_indices) +
-            [2 if i in purview else 1 for i in self.tpm_indices])
+            utils.repertoire_shape(purview, len(self.tpm_indices)))
 
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each

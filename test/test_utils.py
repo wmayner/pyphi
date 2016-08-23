@@ -395,3 +395,10 @@ def test_purview(s):
         assert utils.purview(repertoire) == purview
 
     assert utils.purview(None) == None
+
+
+def test_repertoire_shape():
+    N = 3
+    assert utils.repertoire_shape((), N) == [1, 1, 1]
+    assert utils.repertoire_shape((1, 2), N) == [1, 2, 2]
+    assert utils.repertoire_shape((0, 2), N) == [2, 1, 2]

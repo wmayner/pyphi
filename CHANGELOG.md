@@ -46,6 +46,7 @@ Next Release
 - Added a `Makefile`.
 - Added `utils.purview` for computing the purview of a repertoire.
 - Added an `exceptions` module.
+- Added `utils.repertoire_shape`.
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
