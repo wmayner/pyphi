@@ -121,10 +121,6 @@ class Subsystem:
         """np.ndarray: Alias for ``Subsystem.cm``."""
         return self.cm
 
-    @connectivity_matrix.setter
-    def connectivity_matrix(self, cm):
-        self.cm = cm
-
     @property
     def size(self):
         """int: The number of nodes in the subsystem."""
