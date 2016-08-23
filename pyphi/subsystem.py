@@ -36,7 +36,7 @@ class Subsystem:
         tpm (np.array): The TPM conditioned on the state of the external nodes.
         cm (np.array): The connectivity matrix after applying the cut.
         state (tuple[int]): The state of the network.
-        nodes (list[Node]): A list of nodes in the subsystem.
+        nodes (tuple[Node]): The nodes of the subsystem.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
         cut (Cut): The cut that has been applied to this subsystem.
         cut_matrix (np.array): A matrix of connections which have been severed
