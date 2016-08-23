@@ -142,12 +142,10 @@ def test_is_cut(s):
     assert s.is_cut is True
 
 
-def test_proper_state(s, subsys_n0n2):
-    # subsys_n0n2.state == (1, 0, 0)
+def test_proper_state(subsys_n0n2, subsys_n1n2):
+    # state == (1, 0, 0)
     assert subsys_n0n2.proper_state == (1, 0)
-    subsys_n0n2.proper_state = (0, 1)
-    assert subsys_n0n2.proper_state == (0, 1)
-    assert subsys_n0n2.state == (0, 0, 1)
+    assert subsys_n1n2.proper_state == (0, 0)
 
 
 def test_apply_cut(s):

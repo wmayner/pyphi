@@ -107,14 +107,6 @@ class Subsystem:
         """tuple[int]: The state of the Network this Subsystem belongs to."""
         return self._state
 
-    @state.setter
-    def state(self, state):
-        # Cast state to a tuple so it can be hashed and properly used as
-        # np.array indices.
-        self._state = tuple(state)
-        # Validate.
-        validate.subsystem(self)
-
     @property
     def proper_state(self):
         """tuple[int]): The state of the subsystem.
@@ -123,15 +115,6 @@ class Subsystem:
         subsystem**. Note that this is **not** the state of ``nodes[i]``.
         """
         return utils.state_of(self.node_indices, self.state)
-
-    @proper_state.setter
-    def proper_state(self, proper_state):
-        # Update the network's state.
-        self.state = tuple(proper_state[self.node_indices.index(n)]
-                           if n in self.node_indices else self.state[n]
-                           for n in self.network.node_indices)
-        # Validate.
-        validate.subsystem(self)
 
     @property
     def connectivity_matrix(self):
