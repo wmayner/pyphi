@@ -20,6 +20,7 @@ Next Release
 - Removed the `purview` argument from `Subsystem.expand_repertoire`.
 - Moved `validate.StateUnreachableError` and `macro.ConditionallyDependentError`
   to the `exceptions` module.
+- Removed perturbation vector support.
 
 ### API Additions
 - Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to
