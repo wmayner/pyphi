@@ -241,8 +241,7 @@ class Network:
 
     @classmethod
     def from_json(cls, json):
-        return Network(json['tpm'], json['cm'],
-                       node_labels=json['labels'])
+        return Network(json['tpm'], json['cm'], node_labels=json['labels'])
 
 
 def irreducible_purviews(cm, direction, mechanism, purviews):
