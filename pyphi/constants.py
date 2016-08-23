@@ -12,21 +12,28 @@ import joblib
 
 from . import config
 
-# The threshold below which we consider differences in phi values to be
-# zero.
+#: The threshold below which we consider differences in phi values to be zero.
 EPSILON = 10 ** - config.PRECISION
-# Constants for accessing the past or future subspaces of concept
-# space.
+
+#: Key for accessing the cause side of computations and concept space.
 PAST = 0
+
+#: Key for accessing the effect side of computations and concept space.
 FUTURE = 1
-# Constants for using cause and effect methods.
+
+#: Constants which parametrize cause and effect methods.
+#: Accessed using ``DIRECTIONS[PAST]`` and ```DIRECTIONS[FUTURE]``
 DIRECTIONS = ('past', 'future')
-# Constants for labeling memoization backends.
+
+#: Label for the filesystem cache backend.
 FILESYSTEM = 'fs'
+
+#: Label for the MongoDB cache backed.
 DATABASE = 'db'
-# The protocol used for pickling objects.
+
+#: The protocol used for pickling objects.
 PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL
-# Create the joblib Memory object for persistent caching without a
-# database.
+
+#: The joblib Memory object for persistent caching without a database.
 joblib_memory = joblib.Memory(cachedir=config.FS_CACHE_DIRECTORY,
                               verbose=config.FS_CACHE_VERBOSITY)
