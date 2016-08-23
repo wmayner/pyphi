@@ -15,6 +15,12 @@ from . import cache, convert, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST
 
 
+def immutable(array):
+    """Make a numpy array immutable."""
+    array.flags.writeable = False
+    return array
+
+
 class Network:
     """A network of nodes.
 
@@ -87,8 +93,7 @@ class Network:
         else:
             tpm = convert.to_n_dimensional(tpm)
 
-        # Make the underlying attribute immutable.
-        tpm.flags.writeable = False
+        immutable(tpm)
 
         return (tpm, utils.np_hash(tpm))
 
@@ -110,8 +115,7 @@ class Network:
         else:
             cm = np.array(cm)
 
-        # Make the underlying attribute immutable.
-        cm.flags.writeable = False
+        immutable(cm)
 
         return (cm, utils.np_hash(cm))
 
@@ -159,9 +163,9 @@ class Network:
         else:
             # If none was provided, assume maximum-entropy.
             self._perturb_vector = np.ones(self.size) / 2
-        # Make the underlying attribute immutable.
-        self._perturb_vector.flags.writeable = False
-        # Update hash.
+
+        immutable(self._perturb_vector)
+
         self._pv_hash = utils.np_hash(self.perturb_vector)
 
     def labels2indices(self, labels):
