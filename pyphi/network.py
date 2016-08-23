@@ -64,13 +64,12 @@ class Network:
 
     # TODO make tpm also optional when implementing logical network definition
     def __init__(self, tpm, connectivity_matrix=None, node_labels=None,
-                 perturb_vector=None, purview_cache=None):
+                 purview_cache=None):
 
         self._tpm, self._tpm_hash = self._build_tpm(tpm)
         self._cm, self._cm_hash = self._build_cm(connectivity_matrix)
         self._node_indices = tuple(range(self.size))
         self._node_labels = node_labels
-        self.perturb_vector = perturb_vector
         self.purview_cache = purview_cache or cache.PurviewCache()
 
         validate.network(self)
@@ -151,23 +150,6 @@ class Network:
                                       for i in self.node_indices)
         return self._node_labels
 
-    @property
-    def perturb_vector(self):
-        return self._perturb_vector
-
-    @perturb_vector.setter
-    def perturb_vector(self, perturb_vector):
-        # Get pertubation vector.
-        if perturb_vector is not None:
-            self._perturb_vector = np.array(perturb_vector)
-        else:
-            # If none was provided, assume maximum-entropy.
-            self._perturb_vector = np.ones(self.size) / 2
-
-        immutable(self._perturb_vector)
-
-        self._pv_hash = utils.np_hash(self.perturb_vector)
-
     def labels2indices(self, labels):
         """Convert a tuple of node labels to node indices."""
         _map = dict(zip(self.node_labels, self.node_indices))
@@ -209,23 +191,18 @@ class Network:
                                     all_purviews)
 
     def __repr__(self):
-        return ('Network({}, connectivity_matrix={}, '
-                'perturb_vector={})'.format(repr(self.tpm),
-                                            repr(self.cm),
-                                            repr(self.perturb_vector)))
+        return 'Network({}, connectivity_matrix={})'.format(self.tpm, self.cm)
 
     def __str__(self):
-        return 'Network({}, connectivity_matrix={})'.format(self.tpm, self.cm)
+        return self.__repr__()
 
     def __eq__(self, other):
         """Return whether this network equals the other object.
 
-        Two networks are equal if they have the same TPM, connectivity matrix,
-        and perturbation vector.
+        Two networks are equal if they have the same TPM and CM.
         """
         return (np.array_equal(self.tpm, other.tpm)
                 and np.array_equal(self.cm, other.cm)
-                and np.array_equal(self.perturb_vector, other.perturb_vector)
                 if isinstance(other, type(self)) else False)
 
     def __ne__(self, other):
@@ -233,7 +210,7 @@ class Network:
 
     def __hash__(self):
         # TODO: hash only once?
-        return hash((self._tpm_hash, self._cm_hash, self._pv_hash))
+        return hash((self._tpm_hash, self._cm_hash))
 
     def to_json(self):
         return {

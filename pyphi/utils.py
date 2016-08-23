@@ -341,7 +341,7 @@ def uniform_distribution(number_of_nodes):
             number_of_states).reshape([2] * number_of_nodes)
 
 
-def marginalize_out(index, tpm, perturb_value=0.5):
+def marginalize_out(index, tpm):
     """
     Marginalize out a node from a TPM.
 
@@ -353,13 +353,7 @@ def marginalize_out(index, tpm, perturb_value=0.5):
         tpm (``np.ndarray``): A TPM with the same number of dimensions, with
             the node marginalized out.
     """
-    if perturb_value == 0.5:
-        return tpm.sum(index, keepdims=True) / tpm.shape[index]
-    else:
-        tpm = np.average(tpm, index,
-                         weights=[1 - perturb_value, perturb_value])
-        return tpm.reshape([i for i in tpm.shape[0:index]] +
-                           [1] + [i for i in tpm.shape[index:]])
+    return tpm.sum(index, keepdims=True) / tpm.shape[index]
 
 
 def marginal_zero(repertoire, node_index):
@@ -421,8 +415,7 @@ def purview_size(repertoire):
 
 
 @cache(cache={}, maxmem=None)
-def max_entropy_distribution(node_indices, number_of_nodes,
-                             perturb_vector=None):
+def max_entropy_distribution(node_indices, number_of_nodes):
     """Return the maximum entropy distribution over a set of nodes.
 
     This is different from the network's uniform distribution because nodes
@@ -439,28 +432,10 @@ def max_entropy_distribution(node_indices, number_of_nodes,
             the set of nodes.
     """
     # TODO extend to nonbinary nodes
-    if ((perturb_vector is None) or
-            (np.all(perturb_vector == 0.5)) or
-            (len(perturb_vector) == 0)):
-        distribution = np.ones([2 if index in node_indices else 1 for index in
-                                range(number_of_nodes)])
-        return distribution / distribution.size
-    else:
-        perturb_vector = np.array(perturb_vector)
-        bin_states = [bin(x)[2:].zfill(len(node_indices))[::-1] for x in
-                      range(2 ** len(node_indices))]
-        distribution = np.array([
-            np.prod(perturb_vector[[m.start() for m in
-                                    re.finditer('1', bin_states[x])]])
-            * np.prod(1 - perturb_vector[[m.start() for m in
-                                          re.finditer('0', bin_states[x])]])
-            for x in range(2 ** len(node_indices))
-        ])
-        return distribution.reshape(
-            [2 if index in node_indices else 1 for index in
-             range(number_of_nodes)],
-            order='F')
+    distribution = np.ones([2 if index in node_indices else 1
+                            for index in range(number_of_nodes)])
 
+    return distribution / distribution.size
 
 # TODO extend to binary nodes
 # TODO? parametrize and use other metrics (KDL, L1)

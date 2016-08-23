@@ -42,8 +42,6 @@ class Subsystem:
         cut_matrix (np.array): A matrix of connections which have been severed
             by the cut.
         null_cut (Cut): The cut object representing no cut.
-        perturb_vector (np.array): The vector of perturbation probabilities for
-            each node.
     """
 
     def __init__(self, network, state, nodes, cut=None,
@@ -83,9 +81,6 @@ class Subsystem:
 
         # The network's connectivity matrix with cut applied
         self.cm = utils.apply_cut(cut, network.cm)
-
-        # The perturbation probabilities for each node in the network
-        self.perturb_vector = network.perturb_vector
 
         # Only compute hash once.
         self._hash = hash((self.network, self.node_indices, self.state,
@@ -271,11 +266,9 @@ class Subsystem:
 
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview -- return the purview's maximum entropy distribution.
-        max_entropy_dist = utils.max_entropy_distribution(
-            purview, len(self.tpm_indices),
-            tuple(self.perturb_vector[i] for i in purview))
         if not mechanism:
-            return max_entropy_dist
+            return utils.max_entropy_distribution(
+                purview, len(self.tpm_indices))
 
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
@@ -297,8 +290,7 @@ class Subsystem:
             non_purview_inputs = (set(mechanism_node.input_indices) -
                                   set(purview))
             for index in non_purview_inputs:
-                conditioned_tpm = utils.marginalize_out(
-                    index, conditioned_tpm, self.perturb_vector[index])
+                conditioned_tpm = utils.marginalize_out(index, conditioned_tpm)
 
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
@@ -306,11 +298,6 @@ class Subsystem:
             # collapsed dimensions out along the whole distribution in the
             # appropriate way.
             cjd *= conditioned_tpm
-
-        # If the perturbation vector is not maximum entropy, weight the
-        # probabilities before normalization.
-        if not np.all(self.perturb_vector == 0.5):
-            cjd *= max_entropy_dist
 
         return utils.normalize(cjd)
 
@@ -383,8 +370,7 @@ class Subsystem:
             non_mechanism_inputs = (set(purview_node.input_indices) -
                                     set(mechanism))
             for index in non_mechanism_inputs:
-                tpm = utils.marginalize_out(index, tpm,
-                                            self.perturb_vector[index])
+                tpm = utils.marginalize_out(index, tpm)
 
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution (with singleton broadcasting).

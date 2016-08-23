@@ -105,25 +105,13 @@ def node_labels(node_labels, node_indices):
         raise ValueError("Labels {0} must be unique.""".format(node_labels))
 
 
-# TODO test
-def perturb_vector(pv, size):
-    """Validate a network's pertubation vector."""
-    if pv.size != size:
-        raise ValueError("Perturbation vector must have one element per node.")
-    if np.any(pv > 1) or np.any(pv < 0):
-        raise ValueError("Perturbation vector elements must be probabilities, "
-                         "between 0 and 1.")
-    return True
-
-
 def network(n):
     """Validate a |Network|.
 
-    Checks the TPM, connectivity matrix, and perturbation vector.
+    Checks the TPM and connectivity matrix.
     """
     tpm(n.tpm)
     connectivity_matrix(n.cm)
-    perturb_vector(n.perturb_vector, n.size)
     node_labels(n.node_labels, n.node_indices)
     if n.cm.shape[0] != n.size:
         raise ValueError("Connectivity matrix must be NxN, where N is the "
