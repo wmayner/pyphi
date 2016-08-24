@@ -1,3 +1,5 @@
+.. _compute.big_phi:
+
 :mod:`compute.big_phi`
 ======================
 

@@ -1,3 +1,5 @@
+.. _validate:
+
 :mod:`validate`
 ===============
 

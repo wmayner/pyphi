@@ -1,3 +1,5 @@
+.. _concept_caching:
+
 :mod:`concept_caching`
 ======================
 

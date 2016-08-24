@@ -1,3 +1,5 @@
+.. _models.big_phi:
+
 :mod:`models.big_phi`
 =====================
 

@@ -1,3 +1,5 @@
+.. _compute.distance:
+
 :mod:`compute.distance`
 =======================
 

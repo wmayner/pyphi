@@ -1,3 +1,5 @@
+.. _models.concept:
+
 :mod:`models.concept`
 =====================
 

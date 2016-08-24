@@ -1,3 +1,5 @@
+.. _constants:
+
 :mod:`constants`
 =========
 

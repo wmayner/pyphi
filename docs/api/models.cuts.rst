@@ -1,3 +1,5 @@
+.. _models.cuts:
+
 :mod:`models.cuts`
 ==================
 

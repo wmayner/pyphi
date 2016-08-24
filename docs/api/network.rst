@@ -1,4 +1,4 @@
-.. _pyphi-network:
+.. _network:
 
 :mod:`network`
 ==============

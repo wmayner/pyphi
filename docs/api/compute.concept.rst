@@ -1,3 +1,5 @@
+.. _compute.concept:
+
 :mod:`compute.concept`
 ======================
 

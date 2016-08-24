@@ -1,3 +1,5 @@
+.. _subsystem:
+
 :mod:`subsystem`
 ================
 

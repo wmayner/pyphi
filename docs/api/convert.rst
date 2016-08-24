@@ -1,3 +1,5 @@
+.. _convert:
+
 :mod:`convert`
 ==============
 
