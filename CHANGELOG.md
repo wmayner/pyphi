@@ -21,6 +21,7 @@ Next Release
 - Moved `validate.StateUnreachableError` and `macro.ConditionallyDependentError`
   to the `exceptions` module.
 - Removed perturbation vector support.
+- Changed `utils.marginalize_out` to take a list of indices.
 
 ### API Additions
 - Added `config.L1_DISTANCE_APPROXIMATION` which uses the L1-distance to

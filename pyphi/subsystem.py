@@ -288,8 +288,8 @@ class Subsystem:
             # are not in the purview:
             non_purview_inputs = (set(mechanism_node.input_indices) -
                                   set(purview))
-            for index in non_purview_inputs:
-                conditioned_tpm = utils.marginalize_out(index, conditioned_tpm)
+            conditioned_tpm = utils.marginalize_out(non_purview_inputs,
+                                                    conditioned_tpm)
 
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
@@ -368,8 +368,7 @@ class Subsystem:
             # Marginalize-out non-mechanism purview inputs.
             non_mechanism_inputs = (set(purview_node.input_indices) -
                                     set(mechanism))
-            for index in non_mechanism_inputs:
-                tpm = utils.marginalize_out(index, tpm)
+            tpm = utils.marginalize_out(non_mechanism_inputs, tpm)
 
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution (with singleton broadcasting).

@@ -108,7 +108,7 @@ assumption.
 The node indices are ``0`` and ``1`` for |A| and |B|, and ``2`` for |C|:
 
    >>> AB = [0, 1]
-   >>> C = 2
+   >>> C = [2]
 
 From here, if we marginalize out the node |C|;
 

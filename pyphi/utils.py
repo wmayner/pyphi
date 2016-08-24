@@ -341,19 +341,20 @@ def uniform_distribution(number_of_nodes):
             number_of_states).reshape([2] * number_of_nodes)
 
 
-def marginalize_out(index, tpm):
+def marginalize_out(indices, tpm):
     """
     Marginalize out a node from a TPM.
 
     Args:
-        index (list): The index of the node to be marginalized out.
+        indices (list[int]): The indices of nodes to be marginalized out.
         tpm (np.ndarray): The TPM to marginalize the node out of.
 
     Returns:
         tpm (``np.ndarray``): A TPM with the same number of dimensions, with
-            the node marginalized out.
+            the nodes marginalized out.
     """
-    return tpm.sum(index, keepdims=True) / tpm.shape[index]
+    return tpm.sum(tuple(indices), keepdims=True) / (
+        np.array(tpm.shape)[list(indices)].prod())
 
 
 def marginal_zero(repertoire, node_index):
