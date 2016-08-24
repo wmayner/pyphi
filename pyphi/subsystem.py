@@ -282,21 +282,19 @@ class Subsystem:
             # TODO extend to nonbinary nodes
             # We're conditioning on this node's state, so take the probability
             # table for the node being in that state.
-            conditioned_tpm = mechanism_node.tpm[mechanism_node.state]
+            tpm = mechanism_node.tpm[mechanism_node.state]
 
             # Marginalize-out all nodes which connect to this node but which
             # are not in the purview:
-            non_purview_inputs = (set(mechanism_node.input_indices) -
-                                  set(purview))
-            conditioned_tpm = utils.marginalize_out(non_purview_inputs,
-                                                    conditioned_tpm)
+            other_inputs = set(mechanism_node.input_indices) - set(purview)
+            tpm = utils.marginalize_out(other_inputs, tpm)
 
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
             # broadcasting, which spreads the singleton probabilities in the
             # collapsed dimensions out along the whole distribution in the
             # appropriate way.
-            cjd *= conditioned_tpm
+            cjd *= tpm
 
         return utils.normalize(cjd)
 
@@ -365,10 +363,9 @@ class Subsystem:
             second_half_shape[purview_node.index] = 2
             tpm = tpm.reshape(first_half_shape + second_half_shape)
 
-            # Marginalize-out non-mechanism purview inputs.
-            non_mechanism_inputs = (set(purview_node.input_indices) -
-                                    set(mechanism))
-            tpm = utils.marginalize_out(non_mechanism_inputs, tpm)
+            # Marginalize-out non-mechanism inputs.
+            other_inputs = set(purview_node.input_indices) - set(mechanism)
+            tpm = utils.marginalize_out(other_inputs, tpm)
 
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution (with singleton broadcasting).
