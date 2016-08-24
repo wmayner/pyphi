@@ -25,7 +25,7 @@ Or load a dictionary of configuration values:
 Theoretical approximations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section with deals assumptions that speed up computation at the cost of
+This section deals with assumptions that speed up computation at the cost of
 theoretical accuracy.
 
 - ``pyphi.config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS``:
@@ -37,10 +37,21 @@ theoretical accuracy.
     >>> defaults['ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS']
     False
 
-- ``pyphi.config.L1_DISTANCE_APPROXIMATION``: If enabled, the ``L1`` distance
-  will be used instead of the EMD when computing MIPs. If a mechanism and
-  purview are found to be irreducible, the |small_phi| value of the MIP is
-  recalculated using the EMD.
+- ``pyphi.config.CUT_ONE_APPROXIMATION``:
+  When determining the MIP for |big_phi|, this restricts the set of system cuts
+  that are considered to only those that cut the inputs or outputs of a single
+  node. This restricted set of cuts scales linearly with the size of the
+  system; the full set of all possible bipartitions scales exponentially. This
+  approximation is more likely to give theoretically accurate results with
+  modular, sparsely-connected, or homogeneous networks.
+
+    >>> defaults['CUT_ONE_APPROXIMATION']
+    False
+
+- ``pyphi.config.L1_DISTANCE_APPROXIMATION``:
+  If enabled, the ``L1`` distance will be used instead of the EMD when
+  computing MIPs. If a mechanism and purview are found to be irreducible, the
+  |small_phi| value of the MIP is recalculated using the EMD.
 
     >>> defaults['L1_DISTANCE_APPROXIMATION']
     False
