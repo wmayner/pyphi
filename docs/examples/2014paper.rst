@@ -35,7 +35,7 @@ we'll start by defining its TPM.
     state, but a column for each node. The |i,jth| entry gives the probability
     that the |jth| node is on in the |ith| state. For more information on how
     TPMs are represented in PyPhi, see the documentation for the
-    :ref:`pyphi-network` module and the explanation of :ref:`loli-convention`.
+    :ref:`network` module and the explanation of :ref:`loli-convention`.
 
 In the figure, the TPM is shown only for the candidate set. We'll define the
 entire network's TPM. Also, nodes :math:`D, E` and :math:`F` are not assigned

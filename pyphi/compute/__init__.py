@@ -4,7 +4,7 @@
 
 """Maintains backwards compatability with the old ``compute`` API.
 
-See |compute.concept| and |compute.big_phi| for documentation.
+See :ref:`compute.concept` and :ref:`compute.big_phi` for documentation.
 
 Attributes:
     concept: Alias for :func:`concept.concept`.
