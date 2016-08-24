@@ -23,7 +23,7 @@ Next Release
 - Removed perturbation vector support.
 
 ### API Additions
-- Added config.L1_DISTANCE_APPROXIMATION which uses the L1-distance to
+- Added `config.L1_DISTANCE_APPROXIMATION` which uses the L1-distance to
   approximate the Earth-Movers Distance in MIP computations. If the mechanism
   is found to be irreducible over the purview, φ is recalculated using the
   proper EMD.
@@ -130,7 +130,7 @@ _2016-02-06_
 - Updated documentation and examples to reflect node-to-index conversion.
 
 
-0.7.5
+0.7.5 [unreleased]
 ------------------
 _2015-11-02_
 
@@ -147,7 +147,7 @@ _2015-11-02_
   default but can be disabled via the `VALIDATE_SUBSYSTEM_STATES` option.
 
 
-0.7.4
+0.7.4 [unreleased]
 ------------------
 _2015-10-12_
 
@@ -156,7 +156,7 @@ _2015-10-12_
   value, leading to collisions.
 
 
-0.7.3
+0.7.3 [unreleased]
 ------------------
 _2015-09-08_
 
@@ -164,7 +164,7 @@ _2015-09-08_
 - Heavily refactored the `pyphi.json` module and renamed it to `pyphi.jsonify`.
 
 
-0.7.2
+0.7.2 [unreleased]
 ------------------
 _2015-07-01_
 
