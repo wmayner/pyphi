@@ -8,11 +8,11 @@
     :target: http://dx.doi.org/10.5281/zenodo.55692
     :alt: Zenodo DOI badge
 
-.. image:: https://travis-ci.org/wmayner/pyphi.svg?branch=master
+.. image:: https://img.shields.io/travis/wmayner/pyphi/master.svg?maxAge=600
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build badge
 
-.. image:: https://coveralls.io/repos/wmayner/pyphi/badge.svg?branch=master
+.. image:: https://img.shields.io/coveralls/wmayner/pyphi/master.svg?maxAge=600
     :target: https://coveralls.io/github/wmayner/pyphi
     :alt: Coveralls.io badge
 
