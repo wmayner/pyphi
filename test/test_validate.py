@@ -199,3 +199,19 @@ def test_validate_blackbox_and_coarsegrain():
     coarse_grain = macro.CoarseGrain(((0,), (1, 2)), ((0, 1), (2,)))
     with pytest.raises(ValueError):
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
+
+
+def test_validate_concept_set(s, subsys_n0n2):
+    # Can't be empty
+    with pytest.raises(ValueError):
+        validate.concept_set([])
+
+    concept1 = s.concept((0,))
+    validate.concept_set([concept1])
+
+    concept2 = subsys_n0n2.concept((0,))
+    validate.concept_set([concept2])
+
+    # Concepts cannot be from different subsystems
+    with pytest.raises(ValueError):
+        validate.concept_set([concept1, concept2])

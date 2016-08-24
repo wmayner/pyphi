@@ -248,3 +248,13 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain):
             raise ValueError(
                 'Multiple outputs from a blackbox must be partitioned into '
                 'the same macro-element of the coarse-graining')
+
+
+def concept_set(concepts):
+    """Validate the concepts of in a ConceptSet."""
+    if len(concepts) == 0:
+        raise ValueError('ConceptSet cannot be empty.')
+
+    subsystem = concepts[0].subsystem
+    if not all(c.subsystem == subsystem for c in concepts):
+        raise ValueError('Concepts must be from the same subsystem.')

@@ -7,7 +7,7 @@ from collections import namedtuple
 import numpy as np
 
 import pyphi
-from . import utils
+from . import utils, validate
 from .constants import DIRECTIONS, PAST, FUTURE
 
 
@@ -20,10 +20,9 @@ class ConceptSet:
     """A set of concepts to be evaluated for a relationship"""
 
     def __init__(self, concepts):
-        if len(concepts) == 0:
-            raise ValueError('ConceptSet cannot be empty')
-
         self.concepts = concepts
+
+        validate.concept_set(concepts)
 
     def __iter__(self):
         """Iterate over concepts in the set."""
@@ -31,9 +30,7 @@ class ConceptSet:
 
     @property
     def subsystem(self):
-        subsystem = self.concepts[0].subsystem
-        assert (subsystem == c.subsystem for c in self.concepts)
-        return subsystem
+        return self.concepts[0].subsystem
 
     def shared_purview(self, direction):
         """All elements in the purview of every concept in the set."""
