@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# fmt.py
+# models/fmt.py
 
 """
 Helper functions for formatting pretty representations of PyPhi models.
