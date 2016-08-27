@@ -7,8 +7,6 @@ import multiprocessing
 from .. import config
 
 
-# TODO: can return a negative number if NUMBER_OF_CORES
-# is too negative. Handle this
 def get_num_processes():
     """Return the number of processes to use in parallel."""
     cpu_count = multiprocessing.cpu_count()
@@ -24,6 +22,12 @@ def get_num_processes():
             'system).'.format(cpu_count))
 
     if config.NUMBER_OF_CORES < 0:
-        return cpu_count + config.NUMBER_OF_CORES + 1
+        num = cpu_count + config.NUMBER_OF_CORES + 1
+        if num <= 0:
+            raise ValueError(
+                'Invalid NUMBER_OF_CORES; negative value is too negative: '
+                'requesting {} cores, {} available.'.format(num, cpu_count))
+
+        return num
 
     return config.NUMBER_OF_CORES
