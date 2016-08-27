@@ -42,7 +42,7 @@ class Node:
 
         # Label for display.
         if label is None:
-            label = 'n' + str(index)
+            label = default_label(index)
         self.label = label
 
         # State of this node.
@@ -154,6 +154,16 @@ class Node:
     # TODO do we need more than the index?
     def to_json(self):
         return self.index
+
+
+def default_label(index):
+    """Default label for a node."""
+    return "n{}".format(index)
+
+
+def default_labels(indices):
+    """Default labels for serveral nodes."""
+    return tuple(default_label(i) for i in indices)
 
 
 # TODO: rework MacroSubsystem to not need the indices arg

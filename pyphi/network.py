@@ -13,6 +13,7 @@ import numpy as np
 
 from . import cache, convert, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST
+from .node import default_labels
 
 
 def immutable(array):
@@ -69,7 +70,7 @@ class Network:
         self._tpm, self._tpm_hash = self._build_tpm(tpm)
         self._cm, self._cm_hash = self._build_cm(connectivity_matrix)
         self._node_indices = tuple(range(self.size))
-        self._node_labels = node_labels
+        self._node_labels = node_labels or default_labels(self._node_indices)
         self.purview_cache = purview_cache or cache.PurviewCache()
 
         validate.network(self)
@@ -145,9 +146,6 @@ class Network:
     @property
     def node_labels(self):
         """tuple[str]: The labels of nodes in the network."""
-        if self._node_labels is None:
-            self._node_labels = tuple("n{}".format(i)
-                                      for i in self.node_indices)
         return self._node_labels
 
     def labels2indices(self, labels):
