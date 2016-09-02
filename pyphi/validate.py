@@ -153,7 +153,7 @@ def state_reachable(subsystem):
     # the nodes that are actually in the subsystem...
     tpm = subsystem.tpm[..., subsystem.node_indices]
     # Then we do the subtraction and test.
-    test = tpm - np.array(subsystem.state)[list(subsystem.node_indices)]
+    test = tpm - np.array(subsystem.proper_state)
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
         raise exceptions.StateUnreachableError(subsystem.state)
 
