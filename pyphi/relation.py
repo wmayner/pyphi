@@ -28,14 +28,14 @@ class ConceptSet:
     def subsystem(self):
         return self.concepts[0].subsystem
 
-    def shared_purview(self, direction):
+    def purview_overlap(self, direction):
         """All elements in the purview of every concept in the set."""
         return indices(set.intersection(*[set(c.purview(direction))
                                           for c in self.concepts]))
 
     def possible_purviews(self, direction):
         """Possible purviews of this set of concepts."""
-        return list(utils.powerset(self.shared_purview(direction)))[1:]
+        return list(utils.powerset(self.purview_overlap(direction)))[1:]
 
 
 def find_relation(direction, concept_list):

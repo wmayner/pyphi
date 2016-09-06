@@ -28,9 +28,9 @@ def test_concept_set_iteration(concept_set):
     list(concept_set)
 
 
-def test_shared_purview_elements(concept_set):
-    assert concept_set.shared_purview('past') == (0, 1)
-    assert concept_set.shared_purview('future') == (1,)
+def test_purview_overlap_elements(concept_set):
+    assert concept_set.purview_overlap('past') == (0, 1)
+    assert concept_set.purview_overlap('future') == (1,)
 
 
 def test_possible_purviews(concept_set):
