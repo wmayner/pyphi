@@ -365,6 +365,12 @@ class Concept(cmp._Orderable):
     def effect_repertoire(self):
         return getattr(self.effect, 'repertoire', None)
 
+    def repertoire(self, direction):
+        if direction == DIRECTIONS[PAST]:
+            return self.cause_repertoire
+        elif direction == DIRECTIONS[FUTURE]:
+            return self.effect_repertoire
+
     def __eq__(self, other):
         return (self.phi == other.phi
                 and self.mechanism == other.mechanism

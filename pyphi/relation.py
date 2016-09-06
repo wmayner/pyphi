@@ -6,8 +6,7 @@ from collections import namedtuple
 
 import numpy as np
 
-import pyphi
-from . import utils, validate
+from . import models, utils, validate
 from .constants import DIRECTIONS, PAST, FUTURE
 
 
@@ -86,28 +85,39 @@ def cut_subsystem(direction, purview, concept_set):
 def find_relation(direction, concept_list):
 
     concept_set = ConceptSet(concept_list)
+    subsystem = concept_set.subsystem
 
     max_purview = None
     max_purview_phi = 0
 
     for purview in concept_set.possible_purviews(direction):
 
-        cut_system = cut_subsystem(direction, purview, concept_set)
-
-        min_phi_diff = float('inf')
+        min_phi = float('inf')
 
         for concept in concept_set:
             # Recompute the concept
             # TODO: clarify that this is correct - or do we compute the
             # entire Concept? or the Mice?
-            cut_phi = cut_system.find_mip(direction, concept.mechanism,
-                                          concept.purview(direction)).phi
-            phi_diff = concept.phi - cut_phi
-            if phi_diff < min_phi_diff:
-                min_phi_diff = phi_diff
 
-        if min_phi_diff > max_purview_phi:
-            max_purview_phi = min_phi_diff
+            p0m = concept.mechanism
+            p0p = tuple(set(concept.purview(direction)) - set(purview))
+            part0 = models.Part(p0m, p0p)
+
+            part1 = models.Part((), purview)
+            partition = models.Bipartition(part0, part1)
+
+            partitioned_repertoire = subsystem.partitioned_repertoire(
+                direction, partition)
+
+            phi = utils.hamming_emd(concept.repertoire(direction),
+                                    partitioned_repertoire)
+
+            print(direction, phi)
+            if phi < min_phi:
+                min_phi = phi
+
+        if min_phi > max_purview_phi:
+            max_purview_phi = min_phi
             max_purview = purview
 
     return max_purview, max_purview_phi

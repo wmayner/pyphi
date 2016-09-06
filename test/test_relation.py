@@ -67,3 +67,4 @@ def test_relation_cut(s, concept_set):
 def test_find_relation(concept_set):
     print(relation.find_relation('past', concept_set.concepts))
     print(relation.find_relation('future', concept_set.concepts))
+    assert False
