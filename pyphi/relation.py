@@ -5,6 +5,7 @@
 import numpy as np
 
 from . import models, utils, validate
+from .subsystem import emd
 
 
 def indices(iterable):
@@ -70,8 +71,8 @@ def find_relation(direction, concept_list):
             partitioned_repertoire = subsystem.partitioned_repertoire(
                 direction, partition)
 
-            phi = utils.hamming_emd(concept.repertoire(direction),
-                                    partitioned_repertoire)
+            phi = emd(direction, concept.repertoire(direction),
+                      partitioned_repertoire)
 
             print(direction, phi)
             if phi < min_phi:
