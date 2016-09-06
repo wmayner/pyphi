@@ -38,6 +38,16 @@ class ConceptSet:
         return list(utils.powerset(self.purview_overlap(direction)))[1:]
 
 
+def relation_partition(direction, concept, purview):
+    """Cut all connections to or from the purview, depending on direction."""
+    p0m = concept.mechanism
+    p0p = tuple(set(concept.purview(direction)) - set(purview))
+    part0 = models.Part(p0m, p0p)
+    part1 = models.Part((), purview)
+
+    return models.Bipartition(part0, part1)
+
+
 def find_relation(direction, concept_list):
 
     concept_set = ConceptSet(concept_list)
@@ -55,12 +65,7 @@ def find_relation(direction, concept_list):
             # TODO: clarify that this is correct - or do we compute the
             # entire Concept? or the Mice?
 
-            p0m = concept.mechanism
-            p0p = tuple(set(concept.purview(direction)) - set(purview))
-            part0 = models.Part(p0m, p0p)
-
-            part1 = models.Part((), purview)
-            partition = models.Bipartition(part0, part1)
+            partition = relation_partition(direction, concept, purview)
 
             partitioned_repertoire = subsystem.partitioned_repertoire(
                 direction, partition)
