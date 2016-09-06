@@ -11,6 +11,7 @@ import itertools
 import logging
 
 import numpy as np
+from scipy.stats import entropy
 
 from . import compute, config, constants, convert, utils, validate
 from .exceptions import ConditionallyDependentError, StateUnreachableError
@@ -817,19 +818,8 @@ def phi_by_grain(network, state):
 # TODO write tests
 # TODO? give example of doing it for a bunch of coarse-grains in docstring
 # (make all groupings and partitions, make_network for each of them, etc.)
-def effective_info(network):
+def effective_info(tpm):
     """Return the effective information of the given network.
-
-    This is equivalent to the average of the
-    :func:`~pyphi.subsystem.Subsystem.effect_info` (with the entire network as
-    the mechanism and purview) over all possible states of the network. It can
-    be interpreted as the “noise in the network's TPM,” weighted by the size of
-    its state space.
-
-    .. warning::
-
-        If ``config.VALIDATE_SUBSYSTEM_STATES`` is enabled, then unreachable
-        states are omitted from the average.
 
     .. note::
 
@@ -843,13 +833,8 @@ def effective_info(network):
         Available online: `doi: 10.1073/pnas.1314922110
         <http://www.pnas.org/content/110/49/19790.abstract>`_.
     """
-    subsystems = []
-    for state in utils.all_states(network.size):
-        try:
-            subsystems.append(Subsystem(network, state, network.node_indices))
-        except StateUnreachableError:
-            continue
-    return np.array([
-        subsystem.effect_info(network.node_indices, network.node_indices)
-        for subsystem in subsystems
-    ]).mean()
+    sbs_tpm = convert.state_by_node2state_by_state(tpm)
+    avg_repertoire = np.mean(sbs_tpm, 0)
+
+    return np.mean([entropy(repertoire, avg_repertoire, 2.0)
+                    for repertoire in sbs_tpm])
