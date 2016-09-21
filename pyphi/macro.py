@@ -818,7 +818,7 @@ def phi_by_grain(network, state):
 # TODO write tests
 # TODO? give example of doing it for a bunch of coarse-grains in docstring
 # (make all groupings and partitions, make_network for each of them, etc.)
-def effective_info(tpm):
+def effective_info(network):
     """Return the effective information of the given network.
 
     .. note::
@@ -833,7 +833,9 @@ def effective_info(tpm):
         Available online: `doi: 10.1073/pnas.1314922110
         <http://www.pnas.org/content/110/49/19790.abstract>`_.
     """
-    sbs_tpm = convert.state_by_node2state_by_state(tpm)
+    validate.is_network(network)
+
+    sbs_tpm = convert.state_by_node2state_by_state(network.tpm)
     avg_repertoire = np.mean(sbs_tpm, 0)
 
     return np.mean([entropy(repertoire, avg_repertoire, 2.0)
