@@ -62,19 +62,15 @@ def find_relation(direction, concept_list):
         min_phi = float('inf')
 
         for concept in concept_set:
-            # Recompute the concept
-            # TODO: clarify that this is correct - or do we compute the
-            # entire Concept? or the Mice?
+            # Cut inputs/outputs of purview and recompute the concept
+            repertoire = concept.repertoire(direction)
 
             partition = relation_partition(direction, concept, purview)
-
             partitioned_repertoire = subsystem.partitioned_repertoire(
                 direction, partition)
 
-            phi = emd(direction, concept.repertoire(direction),
-                      partitioned_repertoire)
+            phi = emd(direction, repertoire, partitioned_repertoire)
 
-            print(direction, phi)
             if phi < min_phi:
                 min_phi = phi
 
