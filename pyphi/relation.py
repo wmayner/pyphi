@@ -55,7 +55,7 @@ def find_relation(direction, concept_list):
     subsystem = concept_set.subsystem
 
     max_purview = None
-    max_purview_phi = 0
+    max_purview_phi = 0.0
 
     for purview in concept_set.possible_purviews(direction):
 
@@ -78,4 +78,25 @@ def find_relation(direction, concept_list):
             max_purview_phi = min_phi
             max_purview = purview
 
-    return max_purview, max_purview_phi
+    return MaximalOverlap(max_purview_phi, max_purview, direction, concept_set)
+
+
+# TODO: rename?
+class MaximalOverlap:
+    """A maximally irreducible overlap.
+
+    Defines the relationship between a set of concepts
+
+    Attributes:
+        phi (float): The measure of the irreducibility of these concepts.
+        purview (tuple(int)): The maximally irreducible overlap.
+        direction (str): |past| or |future|.
+        concepts (ConceptSet): The concepts over which this overlap is
+            computed.
+    """
+
+    def __init__(self, phi, purview, direction, concepts):
+        self.phi = phi
+        self.purview = purview
+        self.direction = direction
+        self.concepts = concepts
