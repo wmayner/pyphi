@@ -100,3 +100,11 @@ class MaximalOverlap:
         self.purview = purview
         self.direction = direction
         self.concepts = concepts
+
+    def __repr__(self):
+        attrs = ['phi', 'purview', 'direction', 'concepts']
+        return models.fmt.make_repr(self, attrs)
+
+    def __str__(self):
+        return "MaximalOverlap(phi={}, purview={}, direction={})".format(
+            self.phi, self.purview, self.direction)
