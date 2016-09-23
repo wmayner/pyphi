@@ -71,7 +71,7 @@ def _loadable_models():
 
 def _jsonify_dict(dct):
     return {key: jsonify(value) for key, value in dct.items()}
-    
+
 
 def _push_metadata(dct, obj):
     dct.update({

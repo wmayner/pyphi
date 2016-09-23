@@ -50,6 +50,15 @@ def relation_partition(direction, concept, purview):
 
 
 def find_relation(direction, concept_list):
+    """Find the relation between a set of concepts.
+
+    Arguments:
+        direction (str): |past| or |future|.
+        concept_list (tuple[Concept]): A list of concepts.
+
+    Returns:
+        MaximalOverlap: The maximally irreducible overlap of the concepts.
+    """
 
     concept_set = ConceptSet(concept_list)
     subsystem = concept_set.subsystem
