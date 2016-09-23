@@ -22,6 +22,7 @@ Next Release
   to the `exceptions` module.
 - Removed perturbation vector support.
 - Changed `utils.marginalize_out` to take a list of indices.
+- Fixed `macro.effective_info` to use the algorithm from the macro-micro paper.
 
 ### API Additions
 - Added `config.L1_DISTANCE_APPROXIMATION` which uses the L1-distance to
