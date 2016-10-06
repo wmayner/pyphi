@@ -76,6 +76,16 @@ def run_tpm(tpm, indices, mechanism, steps):
     return tpm
 
 
+class SystemAttrs(namedtuple('SystemAttrs',
+                             ['tpm', 'cm', 'node_indices', 'state'])):
+    pass
+
+
+def pack_attrs(system):
+    return SystemAttrs(system.tpm, system.cm, system.node_indices,
+                       system.state)
+
+
 class MacroSubsystem(Subsystem):
     """A subclass of |Subsystem| implementing macro computations.
 
@@ -132,13 +142,13 @@ class MacroSubsystem(Subsystem):
         # ==================
         if time_scale != 1:
             validate.time_scale(time_scale)
-            self.tpm, self.cm = self._blackbox_time(time_scale)
+            self.tpm, self.cm = self._blackbox_time(time_scale, pack_attrs(self))
 
         # Blackbox in space
         # =================
         if blackbox is not None:
             self.tpm, self.cm, self.node_indices, self.state = (
-                self._blackbox_space(blackbox))
+                self._blackbox_space(blackbox, pack_attrs(self)))
 
         # Coarse-grain in space
         # =====================
@@ -146,7 +156,7 @@ class MacroSubsystem(Subsystem):
             validate.coarse_grain(coarse_grain)
             coarse_grain = coarse_grain.reindex()
             self.tpm, self.cm, self.node_indices, self.state = (
-                self._coarsegrain_space(coarse_grain))
+                self._coarsegrain_space(coarse_grain, self.is_cut, pack_attrs(self)))
 
         # Regenerate nodes
         # ================
@@ -217,18 +227,18 @@ class MacroSubsystem(Subsystem):
 
         return rebuild_system_tpm(node_tpms)
 
-    def _blackbox_time(self, time_scale):
+    def _blackbox_time(self, time_scale, system):
         """Black box the CM and TPM over the given time_scale.
 
         TODO(billy): This is a blackboxed time. Coarse grain time is not yet
         implemented.
         """
-        tpm = run_tpm(self.tpm, self.cm, time_scale)
-        cm = utils.run_cm(self.cm, time_scale)
+        tpm = utils.run_tpm(system.tpm, time_scale)
+        cm = utils.run_cm(system.cm, time_scale)
 
         return (tpm, cm)
 
-    def _blackbox_space(self, blackbox):
+    def _blackbox_space(self, blackbox, system):
         """Blackbox the TPM and CM in space.
 
         Conditions the TPM on the current value of the hidden nodes. The CM is
@@ -240,29 +250,29 @@ class MacroSubsystem(Subsystem):
         state of the subsystem.
         """
         # TODO: validate conditional independence?
-        tpm = utils.condition_tpm(self.tpm, blackbox.hidden_indices,
-                                  self.state)
+        tpm = utils.condition_tpm(system.tpm, blackbox.hidden_indices,
+                                  system.state)
 
-        if len(self.node_indices) > 1:
+        if len(system.node_indices) > 1:
             tpm = np.squeeze(tpm)[..., blackbox.output_indices]
 
         # Universal connectivity, for now.
         n = len(blackbox.output_indices)
         cm = np.ones((n, n))
 
-        state = blackbox.macro_state(self.state)
+        state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
 
         return (tpm, cm, node_indices, state)
 
-    def _coarsegrain_space(self, coarse_grain):
+    def _coarsegrain_space(self, coarse_grain, is_cut, system):
         """Spatially coarse-grain the TPM and CM."""
 
         tpm = coarse_grain.macro_tpm(
-            self.tpm, check_independence=(not self.is_cut))
+            system.tpm, check_independence=(not is_cut))
 
         node_indices = coarse_grain.macro_indices
-        state = coarse_grain.macro_state(self.state)
+        state = coarse_grain.macro_state(system.state)
 
         # Universal connectivity, for now.
         n = len(node_indices)
