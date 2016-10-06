@@ -37,6 +37,7 @@ class Node:
         self.subsystem = subsystem
         # This node's index in the list of nodes.
         self.index = index
+
         # This node's parent network.
         self.network = subsystem.network
 

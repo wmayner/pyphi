@@ -38,6 +38,44 @@ def rebuild_system_tpm(node_tpms):
     return np.rollaxis(expanded_tpms, 0, len(expanded_tpms) + 1)
 
 
+class _DummySubsystem:
+
+    def __init__(self, tpm, cm, indices):
+        self.tpm = tpm
+        self.cm = cm
+        self.network = None
+
+
+# TODO: check this for efficiency
+# TODO: ensure that mechanism is micro mechanism
+def run_tpm(tpm, indices, mechanism, steps):
+    """Iterate the TPM for the given number of timesteps, noising the outputs
+    of non-mechanism elements."""
+
+    for i in steps:
+
+        # TODO: how does the CM change with the time steps?
+        # Just use full connectivity for now.
+        cm = np.array([len(indices), len(indices)])
+        dummy_subsystem = _DummySubsystem(tpm, cm, indices)
+        nodes = generate_nodes(dummy_subsystem, indices=indices)
+
+        # For each node, marginalize out all inputs not in the mechanism
+        node_tpms = []
+        for node in nodes:
+            non_mechanism_inputs = set(node.input_indices) - set(mechanism)
+            node_tpm = utils.marginalize_out(non_mechanism_inputs, node.tpm[1])
+
+            node_tpms.append(node_tpm)
+
+        tpm = rebuild_system_tpm(node_tpms)
+
+        tpm = utils.run_tpm(tpm, 2)  # One time step
+
+
+    return tpm
+
+
 class MacroSubsystem(Subsystem):
     """A subclass of |Subsystem| implementing macro computations.
 
@@ -185,7 +223,7 @@ class MacroSubsystem(Subsystem):
         TODO(billy): This is a blackboxed time. Coarse grain time is not yet
         implemented.
         """
-        tpm = utils.run_tpm(self.tpm, time_scale)
+        tpm = run_tpm(self.tpm, self.cm, time_scale)
         cm = utils.run_cm(self.cm, time_scale)
 
         return (tpm, cm)
