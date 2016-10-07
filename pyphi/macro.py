@@ -44,19 +44,19 @@ class _DummySubsystem:
         self.tpm = tpm
         self.cm = cm
         self.network = None
-
+        self.state = [None] * len(indices)
 
 # TODO: check this for efficiency
 # TODO: ensure that mechanism is micro mechanism
+# TODO: handle conditional dependence?
 def run_tpm(tpm, indices, mechanism, steps):
     """Iterate the TPM for the given number of timesteps, noising the outputs
     of non-mechanism elements."""
-
-    for i in steps:
+    for i in range(steps - 1):
 
         # TODO: how does the CM change with the time steps?
         # Just use full connectivity for now.
-        cm = np.array([len(indices), len(indices)])
+        cm = np.ones([len(indices), len(indices)])
         dummy_subsystem = _DummySubsystem(tpm, cm, indices)
         nodes = generate_nodes(dummy_subsystem, indices=indices)
 
@@ -70,8 +70,8 @@ def run_tpm(tpm, indices, mechanism, steps):
 
         tpm = rebuild_system_tpm(node_tpms)
 
+        # TODO: this hides any conditional dependence in the TPM
         tpm = utils.run_tpm(tpm, 2)  # One time step
-
 
     return tpm
 
@@ -137,6 +137,7 @@ class MacroSubsystem(Subsystem):
             validate.blackbox(blackbox)
             blackbox = blackbox.reindex()
             self.tpm = self._blackbox_partial_freeze(blackbox)
+
 
         # Blackbox over time
         # ==================
