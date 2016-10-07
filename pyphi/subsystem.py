@@ -9,7 +9,6 @@ import itertools
 import numpy as np
 
 from . import cache, config, utils, validate
-from .config import PRECISION
 from .constants import DIRECTIONS, FUTURE, PAST
 from .models import Concept, Cut, Mice, Mip, _null_mip, Part, Bipartition
 from .network import irreducible_purviews
@@ -556,7 +555,7 @@ class Subsystem:
             if config.L1_DISTANCE_APPROXIMATION:
                 phi = utils.l1(unpartitioned_repertoire,
                                partitioned_repertoire)
-                phi = round(phi, PRECISION)
+                phi = round(phi, config.PRECISION)
             else:
                 phi = emd(direction, unpartitioned_repertoire,
                           partitioned_repertoire)
@@ -833,4 +832,4 @@ def emd(direction, d1, d2):
     elif direction == DIRECTIONS[FUTURE]:
         func = effect_emd
 
-    return round(func(d1, d2), PRECISION)
+    return round(func(d1, d2), config.PRECISION)
