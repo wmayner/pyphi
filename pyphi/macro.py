@@ -57,6 +57,7 @@ def run_tpm(tpm, indices, mechanism, steps):
         # TODO: how does the CM change with the time steps?
         # Just use full connectivity for now.
         cm = np.ones([len(indices), len(indices)])
+
         dummy_subsystem = _DummySubsystem(tpm, cm, indices)
         nodes = generate_nodes(dummy_subsystem, indices=indices)
 
@@ -84,6 +85,10 @@ class SystemAttrs(namedtuple('SystemAttrs',
 def pack_attrs(system):
     return SystemAttrs(system.tpm, system.cm, system.node_indices,
                        system.state)
+
+
+def apply_attrs(system, attrs):
+    system.tpm, system.cm, system.node_indices, system.state = attrs
 
 
 class MacroSubsystem(Subsystem):
@@ -138,30 +143,10 @@ class MacroSubsystem(Subsystem):
             blackbox = blackbox.reindex()
             self.tpm = self._blackbox_partial_freeze(blackbox)
 
+        # Store the base system
+        self._base_system = pack_attrs(self)
 
-        # Blackbox over time
-        # ==================
-        if time_scale != 1:
-            validate.time_scale(time_scale)
-            self.tpm, self.cm = self._blackbox_time(time_scale, pack_attrs(self))
-
-        # Blackbox in space
-        # =================
-        if blackbox is not None:
-            self.tpm, self.cm, self.node_indices, self.state = (
-                self._blackbox_space(blackbox, pack_attrs(self)))
-
-        # Coarse-grain in space
-        # =====================
-        if coarse_grain is not None:
-            validate.coarse_grain(coarse_grain)
-            coarse_grain = coarse_grain.reindex()
-            self.tpm, self.cm, self.node_indices, self.state = (
-                self._coarsegrain_space(coarse_grain, self.is_cut, pack_attrs(self)))
-
-        # Regenerate nodes
-        # ================
-        self.nodes = generate_nodes(self, self.node_indices)
+        self._setup_system(None)
 
         # Hash the final subsystem - only compute hash once.
         self._hash = hash((self.network,
@@ -280,6 +265,50 @@ class MacroSubsystem(Subsystem):
         cm = np.ones((n, n))
 
         return (tpm, cm, node_indices, state)
+
+    def _setup_system(self, mechanism):
+
+        time_scale = self._time_scale
+        blackbox = self._blackbox
+        coarse_grain = self._coarse_grain
+
+        # Setup basic system, after partial freeze but before any other
+        # macro effects.
+        apply_attrs(self, self._base_system)
+
+        # Blackbox over time
+        # ==================
+        if time_scale != 1:
+            validate.time_scale(time_scale)
+            self.tpm, self.cm = self._blackbox_time(time_scale, pack_attrs(self))
+
+        # Blackbox in space
+        # =================
+        if blackbox is not None:
+            blackbox = blackbox.reindex()
+            self.tpm, self.cm, self.node_indices, self.state = (
+                self._blackbox_space(blackbox, pack_attrs(self)))
+
+        # Coarse-grain in space
+        # =====================
+        if coarse_grain is not None:
+            validate.coarse_grain(coarse_grain)
+            coarse_grain = coarse_grain.reindex()
+            self.tpm, self.cm, self.node_indices, self.state = (
+                self._coarsegrain_space(coarse_grain, self.is_cut, pack_attrs(self)))
+
+        # Regenerate nodes
+        # ================
+        self.nodes = generate_nodes(self, self.node_indices)
+
+
+    def cause_repertoire(self, mechanism, purview):
+        self._setup_system(mechanism)
+        return super().cause_repertoire(mechanism, purview)
+
+    def effect_repertoire(self, mechanism, purview):
+        self._setup_system(mechanism)
+        return super().effect_repertoire(mechanism, purview)
 
     @property
     def cut_indices(self):
