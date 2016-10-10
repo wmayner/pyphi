@@ -146,8 +146,6 @@ class MacroSubsystem(Subsystem):
         # Store the base system
         self._base_system = pack_attrs(self)
 
-        self._setup_system(None)
-
         # Hash the final subsystem - only compute hash once.
         self._hash = hash((self.network,
                            self.cut,
@@ -213,13 +211,13 @@ class MacroSubsystem(Subsystem):
 
         return rebuild_system_tpm(node_tpms)
 
-    def _blackbox_time(self, time_scale, system):
+    def _blackbox_time(self, time_scale, mechanism, system):
         """Black box the CM and TPM over the given time_scale.
 
         TODO(billy): This is a blackboxed time. Coarse grain time is not yet
         implemented.
         """
-        tpm = utils.run_tpm(system.tpm, time_scale)
+        tpm = run_tpm(system.tpm, self.node_indices, mechanism, time_scale)
         cm = utils.run_cm(system.cm, time_scale)
 
         return (tpm, cm)
@@ -280,7 +278,8 @@ class MacroSubsystem(Subsystem):
         # ==================
         if time_scale != 1:
             validate.time_scale(time_scale)
-            self.tpm, self.cm = self._blackbox_time(time_scale, pack_attrs(self))
+            self.tpm, self.cm = self._blackbox_time(time_scale, mechanism,
+                                                    pack_attrs(self))
 
         # Blackbox in space
         # =================
@@ -300,7 +299,6 @@ class MacroSubsystem(Subsystem):
         # Regenerate nodes
         # ================
         self.nodes = generate_nodes(self, self.node_indices)
-
 
     def cause_repertoire(self, mechanism, purview):
         self._setup_system(mechanism)
