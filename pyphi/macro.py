@@ -221,6 +221,14 @@ class MacroSubsystem(Subsystem):
         TODO(billy): This is a blackboxed time. Coarse grain time is not yet
         implemented.
         """
+        # TODO: Disallow coarse-graining for the moment
+        if self._coarse_grain:
+            raise Exception
+
+        # TODO: how do macro mechanisms translate to micro?
+
+        mechanism = self._blackbox.
+
         tpm = run_tpm(system.tpm, system.node_indices, mechanism, time_scale)
         #tpm = utils.run_tpm(system.tpm, time_scale)
         cm = utils.run_cm(system.cm, time_scale)
