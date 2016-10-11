@@ -87,7 +87,7 @@ def pack_attrs(system):
                        system.state)
 
 
-def apply_attrs(system, attrs):
+def apply_system(system, attrs):
     system.tpm, system.cm, system.node_indices, system.state = attrs
 
 
@@ -304,7 +304,7 @@ class MacroSubsystem(Subsystem):
 
         system = self._compute_system(mechanism)
 
-        apply_attrs(self, system)
+        apply_system(self, system)
 
         # TODO: make cachable
         # Regenerate nodes
