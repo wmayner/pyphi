@@ -13,7 +13,7 @@ import logging
 import numpy as np
 from scipy.stats import entropy
 
-from . import compute, config, constants, convert, utils, validate
+from . import cache, compute, config, constants, convert, utils, validate
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
@@ -157,6 +157,8 @@ class MacroSubsystem(Subsystem):
                            self._blackbox,
                            self._coarse_grain))
 
+        self._macro_system_cache = cache.DictCache()
+
         validate.subsystem(self)
 
     def _squeeze(self, internal_indices):
@@ -267,6 +269,7 @@ class MacroSubsystem(Subsystem):
 
         return SystemAttrs(tpm, cm, node_indices, state)
 
+    @cache.method('_macro_system_cache')
     def _compute_system(self, mechanism):
 
         time_scale = self._time_scale
@@ -303,13 +306,13 @@ class MacroSubsystem(Subsystem):
 
         apply_attrs(self, system)
 
+        # TODO: make cachable
         # Regenerate nodes
         # ================
         nodes = generate_nodes(self, system.node_indices)
 
     def cause_repertoire(self, mechanism, purview):
         self._setup_system(mechanism)
-        print(mechanism, purview, self.cut)
         return super().cause_repertoire(mechanism, purview)
 
     def effect_repertoire(self, mechanism, purview):
