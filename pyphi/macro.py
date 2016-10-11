@@ -146,6 +146,8 @@ class MacroSubsystem(Subsystem):
         # Store the base system
         self._base_system = pack_attrs(self)
 
+        # self._setup_system(None)
+
         # Hash the final subsystem - only compute hash once.
         self._hash = hash((self.network,
                            self.cut,
@@ -217,10 +219,11 @@ class MacroSubsystem(Subsystem):
         TODO(billy): This is a blackboxed time. Coarse grain time is not yet
         implemented.
         """
-        tpm = run_tpm(system.tpm, self.node_indices, mechanism, time_scale)
+        tpm = run_tpm(system.tpm, system.node_indices, mechanism, time_scale)
+        #tpm = utils.run_tpm(system.tpm, time_scale)
         cm = utils.run_cm(system.cm, time_scale)
 
-        return (tpm, cm)
+        return SystemAttrs(tpm, cm, system.node_indices, system.state)
 
     def _blackbox_space(self, blackbox, system):
         """Blackbox the TPM and CM in space.
@@ -247,7 +250,7 @@ class MacroSubsystem(Subsystem):
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
 
-        return (tpm, cm, node_indices, state)
+        return SystemAttrs(tpm, cm, node_indices, state)
 
     def _coarsegrain_space(self, coarse_grain, is_cut, system):
         """Spatially coarse-grain the TPM and CM."""
@@ -262,9 +265,9 @@ class MacroSubsystem(Subsystem):
         n = len(node_indices)
         cm = np.ones((n, n))
 
-        return (tpm, cm, node_indices, state)
+        return SystemAttrs(tpm, cm, node_indices, state)
 
-    def _setup_system(self, mechanism):
+    def _compute_system(self, mechanism):
 
         time_scale = self._time_scale
         blackbox = self._blackbox
@@ -272,36 +275,41 @@ class MacroSubsystem(Subsystem):
 
         # Setup basic system, after partial freeze but before any other
         # macro effects.
-        apply_attrs(self, self._base_system)
+        system = self._base_system
 
         # Blackbox over time
-        # ==================
         if time_scale != 1:
             validate.time_scale(time_scale)
-            self.tpm, self.cm = self._blackbox_time(time_scale, mechanism,
-                                                    pack_attrs(self))
+            system = self._blackbox_time(time_scale, mechanism, system)
 
         # Blackbox in space
         # =================
         if blackbox is not None:
             blackbox = blackbox.reindex()
-            self.tpm, self.cm, self.node_indices, self.state = (
-                self._blackbox_space(blackbox, pack_attrs(self)))
+            system = self._blackbox_space(blackbox, system)
 
         # Coarse-grain in space
         # =====================
         if coarse_grain is not None:
             validate.coarse_grain(coarse_grain)
             coarse_grain = coarse_grain.reindex()
-            self.tpm, self.cm, self.node_indices, self.state = (
-                self._coarsegrain_space(coarse_grain, self.is_cut, pack_attrs(self)))
+            system = self._coarsegrain_space(coarse_grain, self.is_cut, system)
+
+        return system
+
+    def _setup_system(self, mechanism):
+
+        system = self._compute_system(mechanism)
+
+        apply_attrs(self, system)
 
         # Regenerate nodes
         # ================
-        self.nodes = generate_nodes(self, self.node_indices)
+        nodes = generate_nodes(self, system.node_indices)
 
     def cause_repertoire(self, mechanism, purview):
         self._setup_system(mechanism)
+        print(mechanism, purview, self.cut)
         return super().cause_repertoire(mechanism, purview)
 
     def effect_repertoire(self, mechanism, purview):
