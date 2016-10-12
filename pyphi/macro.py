@@ -47,7 +47,6 @@ class _DummySubsystem:
         self.state = [None] * len(indices)
 
 # TODO: check this for efficiency
-# TODO: ensure that mechanism is micro mechanism
 # TODO: handle conditional dependence?
 def run_tpm(tpm, indices, mechanism, steps):
     """Iterate the TPM for the given number of timesteps, noising the outputs
@@ -221,13 +220,16 @@ class MacroSubsystem(Subsystem):
         TODO(billy): This is a blackboxed time. Coarse grain time is not yet
         implemented.
         """
-        # TODO: Disallow coarse-graining for the moment
+        # TODO: Disallow coarse-graining for the moment to simplify macro to
+        # micro mechanism translation.
         if self._coarse_grain:
             raise Exception
 
-        # TODO: how do macro mechanisms translate to micro?
-
-        mechanism = self._blackbox.
+        # Translate macro mechanism indices to micro indices in the TPM:
+        # the outputs of each box in the mechanism.
+        # TODO: is this correct?
+        mechanism = (set(self.macro2micro(mechanism)) &
+                     set(self._blackbox.output_indices))
 
         tpm = run_tpm(system.tpm, system.node_indices, mechanism, time_scale)
         #tpm = utils.run_tpm(system.tpm, time_scale)
