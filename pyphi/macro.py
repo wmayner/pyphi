@@ -38,15 +38,16 @@ def rebuild_system_tpm(node_tpms):
     return np.rollaxis(expanded_tpms, 0, len(expanded_tpms) + 1)
 
 
+# TODO: refactor ``generate_nodes`` to not need this
 class _DummySubsystem:
-
+    """Placeholder class to pass to ``generate_nodes``."""
     def __init__(self, tpm, cm, indices):
         self.tpm = tpm
         self.cm = cm
         self.network = None
         self.state = [None] * len(indices)
 
-# TODO: check this for efficiency
+
 # TODO: handle conditional dependence?
 def run_tpm(tpm, indices, mechanism, steps):
     """Iterate the TPM for the given number of timesteps, noising the outputs
@@ -144,6 +145,9 @@ class MacroSubsystem(Subsystem):
 
         # Store the base system
         self._base_system = pack_attrs(self)
+
+        # All remaining blackboxing and coarse-graining happens in the
+        # ``_setup_system`` method.
 
         # self._setup_system(None)
 
@@ -286,11 +290,12 @@ class MacroSubsystem(Subsystem):
         blackbox = self._blackbox
         coarse_grain = self._coarse_grain
 
-        # Setup basic system, after partial freeze but before any other
-        # macro effects.
+        # Start with the basic system, after partial freeze but before any
+        # other macro effects.
         system = self._base_system
 
         # Blackbox over time
+        # ==================
         if time_scale != 1:
             validate.time_scale(time_scale)
             system = self._blackbox_time(time_scale, mechanism, system)
@@ -316,7 +321,7 @@ class MacroSubsystem(Subsystem):
 
         apply_system(self, system)
 
-        # TODO: make cachable
+        # TODO: make cachable - move to ``_compute_system``
         # Regenerate nodes
         # ================
         nodes = generate_nodes(self, system.node_indices)
