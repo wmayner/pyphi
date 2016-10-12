@@ -324,7 +324,7 @@ class MacroSubsystem(Subsystem):
         # TODO: make cachable - move to ``_compute_system``
         # Regenerate nodes
         # ================
-        nodes = generate_nodes(self, system.node_indices)
+        self.nodes = generate_nodes(self, system.node_indices)
 
     def cause_repertoire(self, mechanism, purview):
         self._setup_system(mechanism)
