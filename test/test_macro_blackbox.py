@@ -62,7 +62,7 @@ def test_tpm_noising():
     mechanism = (0,)
     steps = 2
 
-    system = macro.SystemAttrs(tpm, None, indices, (0, 0))
+    system = macro.SystemAttrs(tpm, None, indices, None, (0, 0))
 
     result = macro.run_tpm(system, mechanism, steps)
     answer = convert.state_by_state2state_by_node(np.array([

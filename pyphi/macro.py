@@ -68,17 +68,17 @@ def run_tpm(system, mechanism, steps):
 
 
 class SystemAttrs(namedtuple('SystemAttrs',
-                             ['tpm', 'cm', 'node_indices', 'state'])):
+                             ['tpm', 'cm', 'node_indices', 'nodes', 'state'])):
     pass
 
 
 def pack_attrs(system):
-    return SystemAttrs(system.tpm, system.cm, system.node_indices,
+    return SystemAttrs(system.tpm, system.cm, system.node_indices, system.nodes,
                        system.state)
 
 
 def apply_system(system, attrs):
-    system.tpm, system.cm, system.node_indices, system.state = attrs
+    system.tpm, system.cm, system.node_indices, system.nodes, system.state = attrs
 
 
 class MacroSubsystem(Subsystem):
@@ -119,8 +119,7 @@ class MacroSubsystem(Subsystem):
 
         # Shrink TPM to size of internal indices
         # ======================================
-        self.tpm, self.cm, self.node_indices, self.state = (
-            self._squeeze(node_indices))
+        apply_system(self, self._squeeze(node_indices))
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
@@ -184,7 +183,7 @@ class MacroSubsystem(Subsystem):
 
         state = utils.state_of(internal_indices, self.state)
 
-        return (tpm, cm, node_indices, state)
+        return (tpm, cm, node_indices, None, state)
 
     def _blackbox_partial_freeze(self, blackbox):
         """Freeze connections from hidden elements to elements in other boxes.
@@ -230,7 +229,7 @@ class MacroSubsystem(Subsystem):
         #tpm = utils.run_tpm(system.tpm, time_scale)
         cm = utils.run_cm(system.cm, time_scale)
 
-        return SystemAttrs(tpm, cm, system.node_indices, system.state)
+        return SystemAttrs(tpm, cm, system.node_indices, None, system.state)
 
     def _blackbox_space(self, blackbox, system):
         """Blackbox the TPM and CM in space.
@@ -257,7 +256,7 @@ class MacroSubsystem(Subsystem):
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
 
-        return SystemAttrs(tpm, cm, node_indices, state)
+        return SystemAttrs(tpm, cm, node_indices, None, state)
 
     def _coarsegrain_space(self, coarse_grain, is_cut, system):
         """Spatially coarse-grain the TPM and CM."""
@@ -272,7 +271,7 @@ class MacroSubsystem(Subsystem):
         n = len(node_indices)
         cm = np.ones((n, n))
 
-        return SystemAttrs(tpm, cm, node_indices, state)
+        return SystemAttrs(tpm, cm, node_indices, None, state)
 
     @cache.method('_macro_system_cache')
     def _compute_system(self, mechanism):
@@ -304,18 +303,16 @@ class MacroSubsystem(Subsystem):
             coarse_grain = coarse_grain.reindex()
             system = self._coarsegrain_space(coarse_grain, self.is_cut, system)
 
+        # Regenerate nodes
+        # ================
+        nodes = generate_nodes(system.tpm, system.cm, system.state)
+        system = system._replace(nodes=nodes)
+
         return system
 
     def _setup_system(self, mechanism):
-
         system = self._compute_system(mechanism)
-
         apply_system(self, system)
-
-        # TODO: make cachable - move to ``_compute_system``
-        # Regenerate nodes
-        # ================
-        self.nodes = generate_nodes(self.tpm, self.cm, self.state)
 
     def cause_repertoire(self, mechanism, purview):
         self._setup_system(mechanism)
