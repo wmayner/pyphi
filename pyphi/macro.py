@@ -146,10 +146,14 @@ class MacroSubsystem(Subsystem):
         # Store the base system
         self._base_system = pack_attrs(self)
 
+        # Cache for macro systems for each mechanism
+        self._macro_system_cache = cache.DictCache()
+
         # All remaining blackboxing and coarse-graining happens in the
         # ``_setup_system`` method.
-
-        # self._setup_system(None)
+        # Do an initial setup so that CM, nodes are available.
+        # TODO: how does this initial CM affect potential purviews, etc?
+        self._setup_system(())
 
         # Hash the final subsystem - only compute hash once.
         self._hash = hash((self.network,
@@ -159,8 +163,6 @@ class MacroSubsystem(Subsystem):
                            self._time_scale,
                            self._blackbox,
                            self._coarse_grain))
-
-        self._macro_system_cache = cache.DictCache()
 
         validate.subsystem(self)
 
