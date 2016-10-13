@@ -38,28 +38,18 @@ def rebuild_system_tpm(node_tpms):
     return np.rollaxis(expanded_tpms, 0, len(expanded_tpms) + 1)
 
 
-# TODO: refactor ``generate_nodes`` to not need this
-class _DummySubsystem:
-    """Placeholder class to pass to ``generate_nodes``."""
-    def __init__(self, tpm, cm, indices):
-        self.tpm = tpm
-        self.cm = cm
-        self.network = None
-        self.state = [None] * len(indices)
-
-
+# TODO: how does the state affect node generation each iteration?
 # TODO: handle conditional dependence?
-def run_tpm(tpm, indices, mechanism, steps):
+def run_tpm(system, mechanism, steps):
     """Iterate the TPM for the given number of timesteps, noising the outputs
     of non-mechanism elements."""
     for i in range(steps - 1):
 
         # TODO: how does the CM change with the time steps?
         # Just use full connectivity for now.
-        cm = np.ones([len(indices), len(indices)])
+        cm = np.ones([len(system.node_indices), len(system.node_indices)])
 
-        dummy_subsystem = _DummySubsystem(tpm, cm, indices)
-        nodes = generate_nodes(dummy_subsystem, indices=indices)
+        nodes = generate_nodes(system.tpm, cm, system.state)
 
         # For each node, marginalize out all inputs not in the mechanism
         node_tpms = []
@@ -182,7 +172,7 @@ class MacroSubsystem(Subsystem):
 
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
-        nodes = generate_nodes(self, node_indices)
+        nodes = generate_nodes(self.tpm, self.cm, self.state)
 
         # Re-calcuate the tpm based on the results of the cut
         tpm = rebuild_system_tpm(node.tpm[1] for node in nodes)
@@ -202,7 +192,7 @@ class MacroSubsystem(Subsystem):
         Effectively this makes it so that only the output elements of each
         blackbox output to the rest of the system.
         """
-        nodes = generate_nodes(self, self.node_indices)
+        nodes = generate_nodes(self.tpm, self.cm, self.state)
 
         def hidden_from(a, b):
             # Returns True if a is a hidden in a different blackbox than b
@@ -236,7 +226,7 @@ class MacroSubsystem(Subsystem):
         # TODO: is this correct?
         mechanism = self.macro2micro(mechanism)
 
-        tpm = run_tpm(system.tpm, system.node_indices, mechanism, time_scale)
+        tpm = run_tpm(system, mechanism, time_scale)
         #tpm = utils.run_tpm(system.tpm, time_scale)
         cm = utils.run_cm(system.cm, time_scale)
 
@@ -325,7 +315,7 @@ class MacroSubsystem(Subsystem):
         # TODO: make cachable - move to ``_compute_system``
         # Regenerate nodes
         # ================
-        self.nodes = generate_nodes(self, system.node_indices)
+        self.nodes = generate_nodes(self.tpm, self.cm, self.state)
 
     def cause_repertoire(self, mechanism, purview):
         self._setup_system(mechanism)
