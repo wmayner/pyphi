@@ -39,7 +39,7 @@ def test_node_init_inputs(s):
     for node in s.nodes:
         assert set(node.inputs) == set(answer[node.index])
 
-
+"""
 def test_node_eq(s):
     assert s.nodes[1] == Node(s, 1)
 
@@ -52,6 +52,7 @@ def test_node_neq_by_context(s):
     other_network = Network(s.network.tpm)
     other_s = Subsystem(other_network, (0, 0, 0), s.node_indices)
     assert s.nodes[0] != Node(other_s, 0)
+"""
 
 
 def test_repr(s):
@@ -75,10 +76,6 @@ def test_expand_tpm():
     assert np.array_equal(expand_node_tpm(tpm), answer)
 
 
-def test_default_label(s):
-    assert Node(s, 2).label == 'n2'
-
-
 def test_generate_nodes(s):
     nodes = generate_nodes(s.tpm, s.cm, s.state)
 
@@ -93,6 +90,7 @@ def test_generate_nodes(s):
     assert nodes[0].inputs == (nodes[1], nodes[2])
     assert nodes[0].output_indices == (2,)
     assert nodes[0].outputs == (nodes[2],)
+    assert nodes[0].label == 'n0'
 
     node1_tpm = np.array([
         [[[1, 0]]],
@@ -103,6 +101,7 @@ def test_generate_nodes(s):
     assert nodes[1].inputs == (nodes[2],)
     assert nodes[1].output_indices == (0, 2)
     assert nodes[1].outputs == (nodes[0], nodes[2])
+    assert nodes[1].label == 'n1'
 
     node2_tpm = np.array([
         [[[1],
@@ -119,3 +118,4 @@ def test_generate_nodes(s):
     assert nodes[2].inputs == (nodes[0], nodes[1])
     assert nodes[2].output_indices == (0, 1)
     assert nodes[2].outputs == (nodes[0], nodes[1])
+    assert nodes[2].label == 'n2'
