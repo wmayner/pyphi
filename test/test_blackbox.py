@@ -7,6 +7,48 @@ from pyphi import compute, config, macro, models, Network, utils
 # TODO: move these to examples.py
 
 
+@pytest.fixture
+def degenerate():
+
+    nodes = 6
+    tpm = np.zeros((2 ** nodes, nodes))
+
+    for psi, ps in enumerate(utils.all_states(nodes)):
+        cs = [0 for i in range(nodes)]
+        if (ps[5] == 1):
+            cs[0] = 1
+            cs[1] = 1
+        if (ps[0] == 1 and ps[1]):
+            cs[2] = 1
+        if (ps[2] == 1):
+            cs[3] = 1
+            cs[4] = 1
+        if (ps[3] == 1 and ps[4] == 1):
+            cs[5] = 1
+        tpm[psi, :] = cs
+
+    cm = np.array([
+        [0, 0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 1, 1, 0],
+        [0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 1],
+        [1, 1, 0, 0, 0, 0]
+    ])
+
+    current_state = (0, 0, 0, 0, 0, 0)
+
+    network = Network(tpm, cm)
+
+    partition = ((0, 1, 2), (3, 4, 5))
+    output_indices = (2, 5)
+    blackbox = macro.Blackbox(partition, output_indices)
+    time_scale = 2
+
+    return macro.MacroSubsystem(network, current_state, network.node_indices,
+                                blackbox=blackbox, time_scale=time_scale)
+
+
 @pytest.mark.veryslow
 def test_basic_propogation_delay():
     # Create basic network with propagation delay.
