@@ -201,28 +201,3 @@ def test_rebuild_system_tpm():
          [0, 1]]
     ])
     assert np.array_equal(macro.rebuild_system_tpm(node_tpms), answer)
-
-
-def test_tpm_noising():
-    # System is an OR gate and a COPY gate; the OR gate is connected with a
-    # self loop.
-    tpm = convert.to_n_dimensional(np.array([
-        [0, 0],
-        [1, 1],
-        [1, 0],
-        [1, 1],
-    ]))
-    indices = (0, 1)
-    mechanism = (0,)
-    steps = 2
-
-    system = macro.SystemAttrs(tpm, None, indices, (0, 0))
-
-    result = macro.run_tpm(system, mechanism, steps)
-    answer = convert.state_by_state2state_by_node(np.array([
-        [.25, .25, 0, .5],
-        [0, 0, 0, 1],
-        [.25, .25, 0, .5],
-        [0, 0, 0, 1],
-    ]))
-    np.testing.assert_array_equal(result, answer)

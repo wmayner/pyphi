@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from pyphi import compute, config, macro, models, Network, utils
+from pyphi import compute, config, convert, macro, models, Network, utils
 
 # TODO: move these to examples.py
 
@@ -47,6 +47,31 @@ def degenerate():
 
     return macro.MacroSubsystem(network, current_state, network.node_indices,
                                 blackbox=blackbox, time_scale=time_scale)
+
+
+def test_tpm_noising():
+    # System is an OR gate and a COPY gate; the OR gate is connected with a
+    # self loop.
+    tpm = convert.to_n_dimensional(np.array([
+        [0, 0],
+        [1, 1],
+        [1, 0],
+        [1, 1],
+    ]))
+    indices = (0, 1)
+    mechanism = (0,)
+    steps = 2
+
+    system = macro.SystemAttrs(tpm, None, indices, (0, 0))
+
+    result = macro.run_tpm(system, mechanism, steps)
+    answer = convert.state_by_state2state_by_node(np.array([
+        [.25, .25, 0, .5],
+        [0, 0, 0, 1],
+        [.25, .25, 0, .5],
+        [0, 0, 0, 1],
+    ]))
+    np.testing.assert_array_equal(result, answer)
 
 
 @pytest.mark.veryslow
