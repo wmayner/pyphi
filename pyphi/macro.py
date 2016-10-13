@@ -77,7 +77,7 @@ def pack_attrs(system):
                        system.state)
 
 
-def apply_system(system, attrs):
+def apply_attrs(system, attrs):
     system.tpm, system.cm, system.node_indices, system.nodes, system.state = attrs
 
 
@@ -119,7 +119,7 @@ class MacroSubsystem(Subsystem):
 
         # Shrink TPM to size of internal indices
         # ======================================
-        apply_system(self, self._squeeze(node_indices))
+        apply_attrs(self, self._squeeze(node_indices))
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
@@ -312,7 +312,7 @@ class MacroSubsystem(Subsystem):
 
     def _setup_system(self, mechanism):
         system = self._compute_system(mechanism)
-        apply_system(self, system)
+        apply_attrs(self, system)
 
     def cause_repertoire(self, mechanism, purview):
         self._setup_system(mechanism)
