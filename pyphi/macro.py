@@ -16,7 +16,7 @@ from scipy.stats import entropy
 from . import cache, compute, config, constants, convert, utils, validate
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
-from .node import expand_node_tpm, generate_nodes
+from .node import expand_node_tpm, generate_nodes, tpm_indices
 from .subsystem import Subsystem
 
 # Create a logger for this module.
@@ -118,7 +118,7 @@ class MacroSubsystem(Subsystem):
 
         # Shrink TPM to size of internal indices
         # ======================================
-        apply_attrs(self, self._squeeze(node_indices))
+        apply_attrs(self, self._squeeze())
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
@@ -154,7 +154,7 @@ class MacroSubsystem(Subsystem):
 
         validate.subsystem(self)
 
-    def _squeeze(self, internal_indices):
+    def _squeeze(self):
         """Squeeze out all singleton dimensions in the Subsystem.
 
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
@@ -162,6 +162,8 @@ class MacroSubsystem(Subsystem):
         """
         # TODO: somehow don't assign to self.tpm, but still generate the nodes,
         # perhaps by passing the tpm to the node constructor?
+
+        internal_indices = tpm_indices(self.tpm)
 
         # Don't squeeze out the final dimension (which contains the
         # probability) for networks of size one

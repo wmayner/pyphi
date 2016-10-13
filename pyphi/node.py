@@ -156,9 +156,11 @@ def default_labels(indices):
     return tuple(default_label(i) for i in indices)
 
 
+# TODO: move to utils
 def tpm_indices(tpm):
     """Indices of nodes in the TPM."""
     return tuple(np.where(np.array(tpm.shape[:-1]) == 2)[0])
+
 
 # TODO: rework MacroSubsystem to not need the indices arg
 def generate_nodes(tpm, cm, network_state, labels=None):
