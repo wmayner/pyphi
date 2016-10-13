@@ -127,7 +127,10 @@ class Node:
         labels.
         """
         return (self.index == other.index and
-                self.subsystem == other.subsystem)
+                self.tpm == other.tpm and
+                self.state == other.state and
+                self.input_indices == other.input_indices and
+                self.output_indices == other.output_indices)
 
     def __ne__(self, other):
         return not self.__eq__(other)
