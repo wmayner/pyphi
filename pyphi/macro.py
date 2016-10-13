@@ -116,9 +116,12 @@ class MacroSubsystem(Subsystem):
 
         super().__init__(network, state, node_indices, cut, mice_cache)
 
+        # Store the base system
+        self._base_system = pack_attrs(self)
+
         # Shrink TPM to size of internal indices
         # ======================================
-        apply_attrs(self, self._squeeze())
+        self._base_system = self._squeeze(self._base_system)
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
@@ -129,10 +132,8 @@ class MacroSubsystem(Subsystem):
         if blackbox is not None:
             validate.blackbox(blackbox)
             blackbox = blackbox.reindex()
-            self.tpm = self._blackbox_partial_freeze(blackbox)
-
-        # Store the base system
-        self._base_system = pack_attrs(self)
+            self._base_system = self._blackbox_partial_freeze(
+                blackbox, self._base_system)
 
         # Cache for macro systems for each mechanism
         self._macro_system_cache = cache.DictCache()
@@ -154,7 +155,7 @@ class MacroSubsystem(Subsystem):
 
         validate.subsystem(self)
 
-    def _squeeze(self):
+    def _squeeze(self, system):
         """Squeeze out all singleton dimensions in the Subsystem.
 
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
@@ -163,36 +164,38 @@ class MacroSubsystem(Subsystem):
         # TODO: somehow don't assign to self.tpm, but still generate the nodes,
         # perhaps by passing the tpm to the node constructor?
 
-        internal_indices = tpm_indices(self.tpm)
+        internal_indices = tpm_indices(system.tpm)
 
         # Don't squeeze out the final dimension (which contains the
         # probability) for networks of size one
-        if self.network.size > 1:
-            self.tpm = np.squeeze(self.tpm)[..., internal_indices]
-
-        # Re-index the subsystem nodes with the external nodes removed
-        node_indices = reindex(internal_indices)
-        nodes = generate_nodes(self.tpm, self.cm, self.state)
-
-        # Re-calcuate the tpm based on the results of the cut
-        tpm = rebuild_system_tpm(node.tpm[1] for node in nodes)
+        if len(internal_indices) > 1:
+            tpm = np.squeeze(system.tpm)[..., internal_indices]
+        else:
+            tpm = system.tpm1
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
         # shrunk to the size of the internal nodes.
-        cm = self.cm[np.ix_(internal_indices, internal_indices)]
+        cm = system.cm[np.ix_(internal_indices, internal_indices)]
 
-        state = utils.state_of(internal_indices, self.state)
+        state = utils.state_of(internal_indices, system.state)
 
-        return (tpm, cm, node_indices, None, state)
+        # Re-index the subsystem nodes with the external nodes removed
+        node_indices = reindex(internal_indices)
+        nodes = generate_nodes(tpm, cm, state)
 
-    def _blackbox_partial_freeze(self, blackbox):
+        # Re-calcuate the tpm based on the results of the cut
+        tpm = rebuild_system_tpm(node.tpm[1] for node in nodes)
+
+        return SystemAttrs(tpm, cm, node_indices, nodes, state)
+
+    def _blackbox_partial_freeze(self, blackbox, system):
         """Freeze connections from hidden elements to elements in other boxes.
 
         Effectively this makes it so that only the output elements of each
         blackbox output to the rest of the system.
         """
-        nodes = generate_nodes(self.tpm, self.cm, self.state)
+        nodes = generate_nodes(system.tpm, system.cm, system.state)
 
         def hidden_from(a, b):
             # Returns True if a is a hidden in a different blackbox than b
@@ -206,9 +209,11 @@ class MacroSubsystem(Subsystem):
                              if hidden_from(input, node.index)]
             node_tpms.append(utils.condition_tpm(node.tpm[1],
                                                  hidden_inputs,
-                                                 self.state))
+                                                 system.state))
 
-        return rebuild_system_tpm(node_tpms)
+        tpm = rebuild_system_tpm(node_tpms)
+
+        return system._replace(tpm=tpm, nodes=None)
 
     def _blackbox_time(self, time_scale, mechanism, system):
         """Black box the CM and TPM over the given time_scale.
