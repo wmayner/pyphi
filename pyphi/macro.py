@@ -232,8 +232,7 @@ class MacroSubsystem(Subsystem):
         # Translate macro mechanism indices to micro indices in the TPM:
         # the outputs of each box in the mechanism.
         # TODO: is this correct?
-        mechanism = (set(self.macro2micro(mechanism)) &
-                     set(self._blackbox.output_indices))
+        mechanism = self.macro2micro(mechanism)
 
         tpm = run_tpm(system.tpm, system.node_indices, mechanism, time_scale)
         #tpm = utils.run_tpm(system.tpm, time_scale)
