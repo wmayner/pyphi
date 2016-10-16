@@ -161,7 +161,6 @@ def tpm_indices(tpm):
     return tuple(np.where(np.array(tpm.shape[:-1]) == 2)[0])
 
 
-# TODO: rework MacroSubsystem to not need the indices arg
 def generate_nodes(tpm, cm, network_state, labels=None):
     """Generate the |Node| objects for these indices.
 
