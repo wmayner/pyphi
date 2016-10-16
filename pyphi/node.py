@@ -20,16 +20,16 @@ class Node:
     """A node in a subsystem.
 
     Attributes:
-        subsystem (Subsystem):
-            The subsystem the node belongs to.
+        tpm (np.ndarray):
+            The TPM of the subsystem.
+        cm (np.ndarray):
+            The CM of the subsystem.
         index (int):
             The node's index in the network.
-        network (Network):
-            The network the node belongs to.
-        label (str):
-            An optional label for the node.
         state (int):
             The state of this node.
+        label (str):
+            An optional label for the node.
     """
 
     def __init__(self, tpm, cm, index, state, label=None):
