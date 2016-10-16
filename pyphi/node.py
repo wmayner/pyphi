@@ -57,18 +57,17 @@ class Node:
         # scalar value (this node's state) rather than a state-vector for all
         # the network nodes.
         tpm_on = tpm[..., self.index]
+
+        # TODO extend to nonbinary nodes
+        # Marginalize out non-input nodes that are in the subsystem, since
+        # the external nodes have already been dealt with as boundary
+        # conditions in the subsystem's TPM.
+        non_input_indices = set(tpm_indices(tpm)) - set(self._input_indices)
+        tpm_on = utils.marginalize_out(non_input_indices, tpm_on)
+
         # Get the TPM that gives the probability of the node being off, rather
         # than on.
         tpm_off = 1 - tpm_on
-
-        for i in tpm_indices(tpm):
-            # TODO extend to nonbinary nodes
-            # Marginalize out non-input nodes that are in the subsystem, since
-            # the external nodes have already been dealt with as boundary
-            # conditions in the subsystem's TPM.
-            if i not in self._input_indices:
-                tpm_on = tpm_on.sum(i, keepdims=True) / 2
-                tpm_off = tpm_off.sum(i, keepdims=True) / 2
 
         # Combine the on- and off-TPM.
         self.tpm = np.array([tpm_off, tpm_on])
