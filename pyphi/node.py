@@ -74,7 +74,7 @@ class Node:
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Make the TPM immutable (for hashing).
-        self.tpm.flags.writeable = False
+        utils.np_immutable(self.tpm)
 
         # Only compute the hash once.
         self._hash = hash((index, utils.np_hash(self.tpm), self.state,

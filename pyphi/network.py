@@ -16,12 +16,6 @@ from .constants import DIRECTIONS, FUTURE, PAST
 from .node import default_labels
 
 
-def immutable(array):
-    """Make a numpy array immutable."""
-    array.flags.writeable = False
-    return array
-
-
 class Network:
     """A network of nodes.
 
@@ -93,7 +87,7 @@ class Network:
         else:
             tpm = convert.to_n_dimensional(tpm)
 
-        immutable(tpm)
+        utils.np_immutable(tpm)
 
         return (tpm, utils.np_hash(tpm))
 
@@ -115,7 +109,7 @@ class Network:
         else:
             cm = np.array(cm)
 
-        immutable(cm)
+        utils.np_immutable(cm)
 
         return (cm, utils.np_hash(cm))
 
