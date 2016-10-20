@@ -32,14 +32,12 @@ class Node:
             An optional label for the node.
     """
 
-    def __init__(self, tpm, cm, index, state, label=None):
+    def __init__(self, tpm, cm, index, state, label):
 
         # This node's index in the list of nodes.
         self.index = index
 
         # Label for display.
-        if label is None:
-            label = default_label(index)
         self.label = label
 
         # State of this node.
@@ -180,7 +178,7 @@ def generate_nodes(tpm, cm, network_state, labels=None):
     indices = tpm_indices(tpm)
 
     if labels is None:
-        labels = [None] * len(indices)
+        labels = default_labels(indices)
     else:
         assert len(labels) == len(indices)
 
