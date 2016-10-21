@@ -160,15 +160,15 @@ def tpm_indices(tpm):
 
 
 def generate_nodes(tpm, cm, network_state, labels=None):
-    """Generate the |Node| objects for these indices.
+    """Generate |Node| objects for a subsystem.
 
     Args:
-        tpm (np.ndarray): A TPM.
+        tpm (np.ndarray): The system's TPM
         cm (np.ndarray): The corresponding CM.
         network_state (tuple): The state of the network.
 
     Keyword Args:
-        labels (tuple[str]): Textual labels for e each node.
+        labels (tuple[str]): Textual labels for each node.
 
     Returns:
         tuple[|Node|]: The nodes of the system.
