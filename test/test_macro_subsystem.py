@@ -49,6 +49,11 @@ def test_pass_node_indices_as_a_range(s):
     macro.MacroSubsystem(s.network, s.state, range(s.size))
 
 
+def test_node_labels(macro_subsystem):
+    assert macro_subsystem.nodes[0].label == "m0"
+    assert macro_subsystem.nodes[1].label == "m1"
+
+
 #answer_cm = np.array([
 #    [0, 1],
 #    [1, 0]

@@ -38,6 +38,11 @@ def rebuild_system_tpm(node_tpms):
     return np.rollaxis(expanded_tpms, 0, len(expanded_tpms) + 1)
 
 
+def node_labels(indices):
+    """Labels for macro nodes."""
+    return tuple("m{}".format(i) for i in indices)
+
+
 # TODO: handle conditional dependence?
 def run_tpm(system, mechanism, steps):
     """Iterate the TPM for the given number of timesteps, noising the outputs
@@ -311,7 +316,8 @@ class MacroSubsystem(Subsystem):
 
         # Regenerate nodes
         # ================
-        nodes = generate_nodes(system.tpm, system.cm, system.state)
+        nodes = generate_nodes(system.tpm, system.cm, system.state,
+                               node_labels(system.node_indices))
         system = system._replace(nodes=nodes)
 
         return system
