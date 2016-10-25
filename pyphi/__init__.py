@@ -59,13 +59,13 @@ and their defaults.
 
 from .__about__ import *
 from . import (config, constants, convert, db, examples, jsonify, macro,
-               models, network, node, subsystem, utils, validate)
+               models, network, node, relation, subsystem, utils, validate)
 from .network import Network
 from .subsystem import Subsystem
 
 __all__ = ['Network', 'Subsystem', 'config', 'constants', 'convert', 'db',
            'examples', 'jsonify', 'macro', 'models', 'network', 'node',
-           'subsystem', 'utils', 'validate']
+           'relation', 'subsystem', 'utils', 'validate']
 
 import logging
 import logging.config
