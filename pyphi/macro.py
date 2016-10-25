@@ -176,7 +176,7 @@ class MacroSubsystem(Subsystem):
         if len(internal_indices) > 1:
             tpm = np.squeeze(system.tpm)[..., internal_indices]
         else:
-            tpm = system.tpm1
+            tpm = system.tpm
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
@@ -830,6 +830,7 @@ def all_macro_systems(network, state, blackbox, coarse_grain, time_scales):
         if not coarse_grain:
             return [None]
         if blackbox is None:
+
             return all_coarse_grains(system)
         return all_coarse_grains_for_blackbox(blackbox)
 
