@@ -52,21 +52,24 @@ def run_tpm(system, mechanism, steps):
 
     for i in range(steps - 1):
 
-        # TODO: how does the CM change with the time steps?
-        # Just use full connectivity for now.
-        cm = np.ones([len(system.node_indices), len(system.node_indices)])
+        # Don't noise the first iteration - we don't want to hide the state
+        # of non-mechanism elements
+        if i > 0:
+            # TODO: how does the CM change with the time steps?
+            # Just use full connectivity for now.
+            cm = np.ones([len(system.node_indices), len(system.node_indices)])
 
-        nodes = generate_nodes(tpm, cm, system.state)
+            nodes = generate_nodes(tpm, cm, system.state)
 
-        # For each node, marginalize out all inputs not in the mechanism
-        node_tpms = []
-        for node in nodes:
-            non_mechanism_inputs = set(node.input_indices) - set(mechanism)
-            node_tpm = utils.marginalize_out(non_mechanism_inputs, node.tpm[1])
+            # For each node, marginalize out all inputs not in the mechanism
+            node_tpms = []
+            for node in nodes:
+                non_mechanism_inputs = set(node.input_indices) - set(mechanism)
+                node_tpm = utils.marginalize_out(non_mechanism_inputs, node.tpm[1])
 
-            node_tpms.append(node_tpm)
+                node_tpms.append(node_tpm)
 
-        tpm = rebuild_system_tpm(node_tpms)
+            tpm = rebuild_system_tpm(node_tpms)
 
         # TODO: this hides any conditional dependence in the TPM
         tpm = utils.run_tpm(tpm, 2)  # One time step
