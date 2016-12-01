@@ -48,13 +48,15 @@ def node_labels(indices):
 def run_tpm(system, mechanism, steps):
     """Iterate the TPM for the given number of timesteps, noising the outputs
     of non-mechanism elements."""
+    tpm = system.tpm
+
     for i in range(steps - 1):
 
         # TODO: how does the CM change with the time steps?
         # Just use full connectivity for now.
         cm = np.ones([len(system.node_indices), len(system.node_indices)])
 
-        nodes = generate_nodes(system.tpm, cm, system.state)
+        nodes = generate_nodes(tpm, cm, system.state)
 
         # For each node, marginalize out all inputs not in the mechanism
         node_tpms = []
