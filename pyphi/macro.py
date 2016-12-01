@@ -14,6 +14,7 @@ import numpy as np
 from scipy.stats import entropy
 
 from . import cache, compute, config, constants, convert, utils, validate
+from .constants import DIRECTIONS, PAST, FUTURE
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes, tpm_indices
@@ -327,12 +328,38 @@ class MacroSubsystem(Subsystem):
         apply_attrs(self, system)
 
     def cause_repertoire(self, mechanism, purview):
-        self._setup_system(mechanism)
-        return super().cause_repertoire(mechanism, purview)
+        return self._repertoire(DIRECTIONS[PAST], mechanism, purview)
 
     def effect_repertoire(self, mechanism, purview):
-        self._setup_system(mechanism)
-        return super().effect_repertoire(mechanism, purview)
+        return self._repertoire(DIRECTIONS[FUTURE], mechanism, purview)
+
+    def _repertoire(self, direction, mechanism, purview, recompute_system=True):
+        """Return the cause or effect repertoire based on a direction."""
+        if recompute_system:
+            self._setup_system(mechanism)
+
+        if direction == DIRECTIONS[PAST]:
+            repertoire = super().cause_repertoire
+        elif direction == DIRECTIONS[FUTURE]:
+            repertoire = super().effect_repertoire
+
+        return repertoire(mechanism, purview)
+
+    def partitioned_repertoire(self, direction, partition):
+        """Compute the repertoire of a partitioned mechanism and purview.
+
+        We use the TPM computed for the *unpartitioned mechanism* when
+        calculating the partitioned repertoires in `find_mip`."""
+        self._setup_system(partition.mechanism)
+
+        part1rep = self._repertoire(
+            direction, partition[0].mechanism, partition[0].purview,
+            recompute_system=False)
+        part2rep = self._repertoire(
+            direction, partition[1].mechanism, partition[1].purview,
+            recompute_system=False)
+
+        return part1rep * part2rep
 
     @property
     def cut_indices(self):
