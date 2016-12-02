@@ -133,14 +133,8 @@ class MacroSubsystem(Subsystem):
             self._base_system = self._blackbox_partial_freeze(
                 blackbox, self._base_system)
 
-        # Cache for macro systems for each mechanism
-        self._macro_system_cache = cache.DictCache()
-
-        # All remaining blackboxing and coarse-graining happens in the
-        # ``_setup_system`` method.
-        # Do an initial setup so that CM, nodes are available.
-        # TODO: how does this initial CM affect potential purviews, etc?
-        self._setup_system(())
+        system = self._compute_system()
+        apply_attrs(self, system)
 
         # Hash the final subsystem - only compute hash once.
         self._hash = hash((self.network,
@@ -213,23 +207,13 @@ class MacroSubsystem(Subsystem):
 
         return system._replace(tpm=tpm, nodes=None)
 
-    def _blackbox_time(self, time_scale, mechanism, system):
+    def _blackbox_time(self, time_scale, system):
         """Black box the CM and TPM over the given time_scale.
 
         TODO(billy): This is a blackboxed time. Coarse grain time is not yet
         implemented.
         """
-        # TODO: Disallow coarse-graining for the moment to simplify macro to
-        # micro mechanism translation.
-        if self._coarse_grain:
-            raise Exception
-
-        # Translate macro mechanism indices to micro indices in the TPM:
-        # the outputs of each box in the mechanism.
-        # TODO: is this correct?
-        mechanism = self.macro2micro(mechanism)
-
-        tpm = run_tpm(system, mechanism, time_scale)
+        tpm = run_tpm(system, time_scale)
         #tpm = utils.run_tpm(system.tpm, time_scale)
         cm = utils.run_cm(system.cm, time_scale)
 
@@ -277,8 +261,7 @@ class MacroSubsystem(Subsystem):
 
         return SystemAttrs(tpm, cm, node_indices, None, state)
 
-    @cache.method('_macro_system_cache')
-    def _compute_system(self, mechanism):
+    def _compute_system(self):
 
         time_scale = self._time_scale
         blackbox = self._blackbox
@@ -292,7 +275,7 @@ class MacroSubsystem(Subsystem):
         # ==================
         if time_scale != 1:
             validate.time_scale(time_scale)
-            system = self._blackbox_time(time_scale, mechanism, system)
+            system = self._blackbox_time(time_scale, system)
 
         # Blackbox in space
         # =================
@@ -314,44 +297,6 @@ class MacroSubsystem(Subsystem):
         system = system._replace(nodes=nodes)
 
         return system
-
-    def _setup_system(self, mechanism):
-        system = self._compute_system(mechanism)
-        apply_attrs(self, system)
-
-    def cause_repertoire(self, mechanism, purview):
-        return self._repertoire(DIRECTIONS[PAST], mechanism, purview)
-
-    def effect_repertoire(self, mechanism, purview):
-        return self._repertoire(DIRECTIONS[FUTURE], mechanism, purview)
-
-    def _repertoire(self, direction, mechanism, purview, recompute_system=True):
-        """Return the cause or effect repertoire based on a direction."""
-        if recompute_system:
-            self._setup_system(mechanism)
-
-        if direction == DIRECTIONS[PAST]:
-            repertoire = super().cause_repertoire
-        elif direction == DIRECTIONS[FUTURE]:
-            repertoire = super().effect_repertoire
-
-        return repertoire(mechanism, purview)
-
-    def partitioned_repertoire(self, direction, partition):
-        """Compute the repertoire of a partitioned mechanism and purview.
-
-        We use the TPM computed for the *unpartitioned mechanism* when
-        calculating the partitioned repertoires in `find_mip`."""
-        self._setup_system(partition.mechanism)
-
-        part1rep = self._repertoire(
-            direction, partition[0].mechanism, partition[0].purview,
-            recompute_system=False)
-        part2rep = self._repertoire(
-            direction, partition[1].mechanism, partition[1].purview,
-            recompute_system=False)
-
-        return part1rep * part2rep
 
     @property
     def cut_indices(self):
