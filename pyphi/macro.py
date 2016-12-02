@@ -44,37 +44,24 @@ def node_labels(indices):
     return tuple("m{}".format(i) for i in indices)
 
 
-# TODO: handle conditional dependence?
-def run_tpm(system, mechanism, steps):
+def run_tpm(system, steps):
     """Iterate the TPM for the given number of timesteps, noising the outputs
-    of non-mechanism elements."""
-    tpm = system.tpm
+    of non-mechanism elements.
 
-    for i in range(steps - 1):
+    Returns tpm * (noise_tpm^(t-1))
+    """
+    nodes = generate_nodes(system.tpm, system.cm, system.state)
 
-        # Don't noise the first iteration - we don't want to hide the state
-        # of non-mechanism elements
-        if i > 0:
-            # TODO: how does the CM change with the time steps?
-            # Just use full connectivity for now.
-            cm = np.ones([len(system.node_indices), len(system.node_indices)])
+    noised_node_tpms = [utils.marginalize_out(node.input_indices, node.tpm[1])
+                        for node in nodes]
+    noised_tpm = rebuild_system_tpm(noised_node_tpms)
 
-            nodes = generate_nodes(tpm, cm, system.state)
+    tpm = convert.state_by_node2state_by_state(system.tpm)
+    noised_tpm = convert.state_by_node2state_by_state(noised_tpm)
 
-            # For each node, marginalize out all inputs not in the mechanism
-            node_tpms = []
-            for node in nodes:
-                non_mechanism_inputs = set(node.input_indices) - set(mechanism)
-                node_tpm = utils.marginalize_out(non_mechanism_inputs, node.tpm[1])
+    tpm = np.dot(tpm, np.linalg.matrix_power(noised_tpm, steps - 1))
 
-                node_tpms.append(node_tpm)
-
-            tpm = rebuild_system_tpm(node_tpms)
-
-        # TODO: this hides any conditional dependence in the TPM
-        tpm = utils.run_tpm(tpm, 2)  # One time step
-
-    return tpm
+    return convert.state_by_state2state_by_node(tpm)
 
 
 class SystemAttrs(namedtuple('SystemAttrs',
