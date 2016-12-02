@@ -44,20 +44,22 @@ def node_labels(indices):
     return tuple("m{}".format(i) for i in indices)
 
 
-def run_tpm(system, steps, blackbox):
+def run_tpm(system, steps, output_indices):
     """Iterate the TPM for the given number of timesteps, noising the outputs
     of non-mechanism elements.
 
     Returns tpm * (noise_tpm^(t-1))
     """
-    blackbox = blackbox.reindex()
-
     nodes = generate_nodes(system.tpm, system.cm, system.state)
-    output_nodes = [node for node in nodes if node.index in blackbox.output_indices]
 
-    noised_node_tpms = [utils.marginalize_out(node.input_indices, node.tpm[1])
-                        for node in output_nodes]
-    noised_tpm = rebuild_system_tpm(noised_node_tpms)
+    node_tpms = []
+    for node in nodes:
+        node_tpm = node.tpm[1]
+        if node.index in output_indices:
+            node_tpm = utils.marginalize_out(node.input_indices, node.tpm[1])
+        node_tpms.append(node_tpm)
+
+    noised_tpm = rebuild_system_tpm(node_tpms)
 
     tpm = convert.state_by_node2state_by_state(system.tpm)
     noised_tpm = convert.state_by_node2state_by_state(noised_tpm)
@@ -216,7 +218,8 @@ class MacroSubsystem(Subsystem):
         TODO(billy): This is a blackboxed time. Coarse grain time is not yet
         implemented.
         """
-        tpm = run_tpm(system, time_scale, blackbox)
+        blackbox = blackbox.reindex()
+        tpm = run_tpm(system, time_scale, blackbox.output_indices)
         #tpm = utils.run_tpm(system.tpm, time_scale)
         cm = utils.run_cm(system.cm, time_scale)
 
