@@ -44,16 +44,19 @@ def node_labels(indices):
     return tuple("m{}".format(i) for i in indices)
 
 
-def run_tpm(system, steps):
+def run_tpm(system, steps, blackbox):
     """Iterate the TPM for the given number of timesteps, noising the outputs
     of non-mechanism elements.
 
     Returns tpm * (noise_tpm^(t-1))
     """
+    blackbox = blackbox.reindex()
+
     nodes = generate_nodes(system.tpm, system.cm, system.state)
+    output_nodes = [node for node in nodes if node.index in blackbox.output_indices]
 
     noised_node_tpms = [utils.marginalize_out(node.input_indices, node.tpm[1])
-                        for node in nodes]
+                        for node in output_nodes]
     noised_tpm = rebuild_system_tpm(noised_node_tpms)
 
     tpm = convert.state_by_node2state_by_state(system.tpm)
@@ -207,13 +210,13 @@ class MacroSubsystem(Subsystem):
 
         return system._replace(tpm=tpm, nodes=None)
 
-    def _blackbox_time(self, time_scale, system):
+    def _blackbox_time(self, time_scale, blackbox, system):
         """Black box the CM and TPM over the given time_scale.
 
         TODO(billy): This is a blackboxed time. Coarse grain time is not yet
         implemented.
         """
-        tpm = run_tpm(system, time_scale)
+        tpm = run_tpm(system, time_scale, blackbox)
         #tpm = utils.run_tpm(system.tpm, time_scale)
         cm = utils.run_cm(system.cm, time_scale)
 
@@ -274,8 +277,9 @@ class MacroSubsystem(Subsystem):
         # Blackbox over time
         # ==================
         if time_scale != 1:
+            assert blackbox is not None
             validate.time_scale(time_scale)
-            system = self._blackbox_time(time_scale, system)
+            system = self._blackbox_time(time_scale, blackbox, system)
 
         # Blackbox in space
         # =================
