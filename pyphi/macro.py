@@ -56,7 +56,7 @@ def run_tpm(system, steps, output_indices):
     for node in nodes:
         node_tpm = node.tpm[1]
         if node.index in output_indices:
-            node_tpm = utils.marginalize_out(node.input_indices, node.tpm[1])
+            node_tpm = utils.marginalize_out(node.input_indices, node_tpm)
         node_tpms.append(node_tpm)
 
     noised_tpm = rebuild_system_tpm(node_tpms)
