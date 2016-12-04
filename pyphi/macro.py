@@ -192,6 +192,8 @@ class MacroSubsystem(Subsystem):
             return (a in blackbox.hidden_indices and
                     not blackbox.in_same_box(a, b))
 
+        cm = system.cm.copy()
+
         # Condition each node on the state of input nodes in other boxes
         node_tpms = []
         for node in nodes:
@@ -200,10 +202,12 @@ class MacroSubsystem(Subsystem):
             node_tpms.append(utils.condition_tpm(node.tpm[1],
                                                  hidden_inputs,
                                                  system.state))
+            # Destroy connections in CM
+            cm[hidden_inputs, node.index] = 0
 
         tpm = rebuild_system_tpm(node_tpms)
 
-        return system._replace(tpm=tpm, nodes=None)
+        return system._replace(tpm=tpm, cm=cm, nodes=None)
 
     def _blackbox_time(self, time_scale, blackbox, system):
         """Black box the CM and TPM over the given time_scale.

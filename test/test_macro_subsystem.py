@@ -358,3 +358,16 @@ def test_macro2micro(s):
     subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices)
     assert subsys.macro2micro((1,)) == (1,)
     assert subsys.macro2micro((0, 1)) == (0, 1)
+
+
+def test_blackbox_partial_freeze_cm(s):
+    blackbox = macro.Blackbox(((0,), (1, 2)), (0, 1))
+    subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices,
+                                  blackbox=blackbox)
+
+    cm = subsys._blackbox_partial_freeze(blackbox, macro.pack_attrs(s)).cm
+    np.testing.assert_array_equal(cm, np.array([
+        [0, 0, 1],
+        [1, 0, 1],
+        [0, 1, 0],
+    ]))
