@@ -45,18 +45,15 @@ def node_labels(indices):
 
 
 def run_tpm(system, steps, output_indices):
-    """Iterate the TPM for the given number of timesteps, noising the outputs
-    of non-mechanism elements.
+    """Iterate the TPM for the given number of timesteps, noising output
+    elements after the first time step.
 
     Returns tpm * (noise_tpm^(t-1))
     """
     nodes = generate_nodes(system.tpm, system.cm, system.state)
 
-    node_tpms = [
-        utils.marginalize_out(node.input_indices, node.tpm[1])
-        if node.index in output_indices
-        else node.tpm[1]
-        for node in nodes]
+    node_tpms = [utils.marginalize_out(output_indices, node.tpm[1])
+                 for node in nodes]
 
     noised_tpm = rebuild_system_tpm(node_tpms)
 
