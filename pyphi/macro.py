@@ -76,9 +76,9 @@ def blackbox_cm(micro_cm, blackbox, time_scale):
     cm = np.zeros((m, m))
     # Zero out micro connections that leave a blackbox from non-output elements
     for index in range(m):
-        hidden_elements = np.array([item for item in blackbox.partition[index]
-                                    if item != blackbox.output_indices[index]])
-        non_blackbox_elements = np.array([item for item in range(n) if item not in blackbox.partition[index]])
+        hidden_elements = [item for item in blackbox.partition[index]
+                           if item != blackbox.output_indices[index]]
+        non_blackbox_elements = [item for item in range(n) if item not in blackbox.partition[index]]
         micro_cm[np.ix_(hidden_elements, non_blackbox_elements)] = 0
     if time_scale > 1:
         for index in range(n):
@@ -86,7 +86,7 @@ def blackbox_cm(micro_cm, blackbox, time_scale):
     for m_in in range(m):
         for m_out in range(m):
             temp_cm = np.array(micro_cm)
-            non_target_outputs = np.array([i for i in range(n) if i not in blackbox.partition[m_out]])
+            non_target_outputs = [i for i in range(n) if i not in blackbox.partition[m_out]]
             temp_cm[blackbox.output_indices[m_in], non_target_outputs] = 0
             temp_cm = np.linalg.matrix_power(temp_cm, time_scale)
             if temp_cm[blackbox.output_indices[m_in], blackbox.output_indices[m_out]] > 0:
