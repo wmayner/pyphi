@@ -74,11 +74,15 @@ def find_relation(direction, concept_list):
             # Cut inputs/outputs of purview and recompute the concept
             repertoire = concept.repertoire(direction)
 
-            partition = relation_partition(direction, concept, purview)
-            partitioned_repertoire = subsystem.partitioned_repertoire(
-                direction, partition)
+            def partition_distance(purview_subset):
+                partition = relation_partition(direction, concept,
+                    purview_subset)
+                partitioned_repertoire = subsystem.partitioned_repertoire(
+                    direction, partition)
+                return emd(direction, repertoire, partitioned_repertoire)
 
-            phi = emd(direction, repertoire, partitioned_repertoire)
+            phi = min(partition_distance(purview_subset)
+                      for purview_subset in list(utils.powerset(purview))[1:])
 
             if phi < min_phi:
                 min_phi = phi
