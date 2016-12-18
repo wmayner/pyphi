@@ -286,23 +286,31 @@ def comb_indices(n, k):
 
 
 # TODO? implement this with numpy
-def powerset(iterable):
+def powerset(iterable, include_empty=True):
     """Return the power set of an iterable (see `itertools recipes
     <http://docs.python.org/2/library/itertools.html#recipes>`_).
 
     Args:
         iterable (Iterable): The iterable from which to generate the power set.
 
+    Keyword Args:
+        include_empty (boolean): If True (default) the empty subset is
+        included in the set.
+
     Returns:
         chain (``Iterable``): An chained iterator over the power set.
 
     Example:
-        >>> ps = powerset(np.arange(2))
+        >>> ps = powerset((0, 1))
         >>> print(list(ps))
         [(), (0,), (1,), (0, 1)]
+        >>> ps = powerset((0, 1), include_empty=False)
+        >>> print(list(ps))
+        [(0,), (1,), (0, 1)]
     """
+    min_length = (1, 0)[include_empty]
     return chain.from_iterable(combinations(iterable, r)
-                               for r in range(len(iterable) + 1))
+                               for r in range(min_length, len(iterable) + 1))
 
 
 def uniform_distribution(number_of_nodes):
