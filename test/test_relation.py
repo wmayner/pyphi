@@ -34,8 +34,8 @@ def test_purview_overlap_elements(concept_set):
 
 
 def test_possible_purviews(concept_set):
-    assert concept_set.possible_purviews('past') == [(0,), (1,), (0, 1)]
-    assert concept_set.possible_purviews('future') == [(1,)]
+    assert list(concept_set.possible_purviews('past')) == [(0,), (1,), (0, 1)]
+    assert list(concept_set.possible_purviews('future')) == [(1,)]
 
 
 def test_relation_partitions(concept_set):

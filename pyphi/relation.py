@@ -36,12 +36,13 @@ class ConceptSet:
 
     def possible_purviews(self, direction):
         """Possible purviews of this set of concepts."""
-        return list(utils.powerset(self.purview_overlap(direction)))[1:]
+        return utils.powerset(self.purview_overlap(direction),
+                              include_empty=False)
 
 
 def relation_partitions(direction, concept, purview):
     """Yield a generator over all possible partitions of the purview."""
-    for purview_subset in list(utils.powerset(purview))[1:]:
+    for purview_subset in utils.powerset(purview, include_empty=False):
         p0m = concept.mechanism
         p0p = tuple(set(concept.purview(direction)) - set(purview_subset))
         part0 = models.Part(p0m, p0p)
