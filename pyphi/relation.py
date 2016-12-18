@@ -39,14 +39,15 @@ class ConceptSet:
         return list(utils.powerset(self.purview_overlap(direction)))[1:]
 
 
-def relation_partition(direction, concept, purview):
-    """Cut all connections to or from the purview, depending on direction."""
-    p0m = concept.mechanism
-    p0p = tuple(set(concept.purview(direction)) - set(purview))
-    part0 = models.Part(p0m, p0p)
-    part1 = models.Part((), purview)
+def relation_partitions(direction, concept, purview):
+    """Yield a generator over all possible partitions of the purview."""
+    for purview_subset in list(utils.powerset(purview))[1:]:
+        p0m = concept.mechanism
+        p0p = tuple(set(concept.purview(direction)) - set(purview_subset))
+        part0 = models.Part(p0m, p0p)
+        part1 = models.Part((), purview_subset)
 
-    return models.Bipartition(part0, part1)
+        yield models.Bipartition(part0, part1)
 
 
 def find_relation(direction, concept_list):
@@ -74,15 +75,14 @@ def find_relation(direction, concept_list):
             # Cut inputs/outputs of purview and recompute the concept
             repertoire = concept.repertoire(direction)
 
-            def partition_distance(purview_subset):
-                partition = relation_partition(direction, concept,
-                    purview_subset)
+            def partition_distance(partition):
                 partitioned_repertoire = subsystem.partitioned_repertoire(
                     direction, partition)
                 return emd(direction, repertoire, partitioned_repertoire)
 
-            phi = min(partition_distance(purview_subset)
-                      for purview_subset in list(utils.powerset(purview))[1:])
+            phi = min(partition_distance(partition)
+                      for partition in relation_partitions(
+                        direction, concept, purview))
 
             if phi < min_phi:
                 min_phi = phi

@@ -38,6 +38,21 @@ def test_possible_purviews(concept_set):
     assert concept_set.possible_purviews('future') == [(1,)]
 
 
+def test_relation_partitions(concept_set):
+    purview = (0, 1)
+    concept = concept_set.concepts[0]
+    partitions = relation.relation_partitions('past', concept, purview)
+
+    def _partition(p0m, p0p, p1m, p1p):
+        return ((p0m, p0p), (p1m, p1p))
+
+    assert np.array_equal(list(partitions), [
+        _partition((2,), (1,), (), (0,)),  # subset (0,)
+        _partition((2,), (0,), (), (1,)),  # subset (1,)
+        _partition((2,), (), (), (0, 1)),  # subset (0, 1)
+    ])
+
+
 def test_find_relation(concept_set):
     print(relation.find_relation('past', concept_set.concepts))
     print(relation.find_relation('future', concept_set.concepts))
