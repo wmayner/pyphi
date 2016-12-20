@@ -25,6 +25,8 @@ Next Release
 - Fixed `macro.effective_info` to use the algorithm from the macro-micro paper.
 
 ### API Additions
+- Added `subsystem.evaluate_partition`. This returns the φ for a particular
+  partition.
 - Added `config.L1_DISTANCE_APPROXIMATION` which uses the L1-distance to
   approximate the Earth-Movers Distance in MIP computations. If the mechanism
   is found to be irreducible over the purview, φ is recalculated using the
