@@ -177,10 +177,10 @@ def generate_nodes(subsystem, indices=None, labels=False):
     Keyword Args:
         indices (tuple[int]): Used by |MacroSubsystem| to force generation to
             use certain indices.
-        labels (boolean): If True, nodes will be labeled with the labels of the
-            network. (This is also used by macro systems to keep labels from
-            being mixed up when many micro elements are combined into one macro
-            element.)
+        labels (bool): If ``True``, nodes will be labeled with the labels of
+            the network. (This is also used by macro systems to keep labels
+            from being mixed up when many micro elements are combined into one
+            macro element.)
 
     Returns:
         tuple[|Node|]: The nodes of the |Subsystem|.

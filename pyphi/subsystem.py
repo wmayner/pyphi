@@ -118,7 +118,7 @@ class Subsystem:
 
     @property
     def is_cut(self):
-        """boolean: True if this Subsystem has a cut applied to it."""
+        """bool: ``True`` if this Subsystem has a cut applied to it."""
         return self.cut != self.null_cut
 
     @property
@@ -133,7 +133,7 @@ class Subsystem:
 
     @property
     def tpm_size(self):
-        """int: The number of nodes in the tpm."""
+        """int: The number of nodes in the TPM."""
         return self.tpm.shape[-1]
 
     def repertoire_cache_info(self):
@@ -522,8 +522,8 @@ class Subsystem:
 
         Returns:
             tuple[phi, partitioned_repertoire]: The distance between the
-            unpartitioned and partitioned repertoires, and the
-            partitioned_repertoire.
+            unpartitioned and partitioned repertoires, and the partitioned
+            repertoire.
         """
         if unpartitioned_repertoire is None:
             unpartitioned_repertoire = self._repertoire(direction, mechanism,
@@ -688,7 +688,8 @@ class Subsystem:
                 nodes.
 
         Returns:
-            |Mice|: The maximally-irreducible cause or effect.
+            |Mice|: The maximally-irreducible cause or effect in one temporal
+            direction.
 
         .. note::
             Strictly speaking, the MICE is a pair of repertoires: the core
@@ -791,7 +792,7 @@ def mip_bipartitions(mechanism, purview):
         purview (tuple[int]): The purview to partition
 
     Returns:
-        list[|Bipartition|]: Where each partition is
+        list[|Bipartition|]: Where each bipartition is
 
         ::
 

@@ -18,9 +18,9 @@ BIG_PHI = "\u03D5"
 def make_repr(self, attrs):
     """Construct a repr string.
 
-    If `config.READABLE_REPRS` is True, this function calls out to the object's
-    __str__ method. Although this breaks the convention that __repr__ should
-    return a string which can reconstruct the object, readable reprs are
+    If `config.READABLE_REPRS` is ``True``, this function calls out to the
+    object's __str__ method. Although this breaks the convention that __repr__
+    should return a string which can reconstruct the object, readable reprs are
     invaluable since the Python interpreter calls `repr` to represent all
     objects in the shell. Since PyPhi is often used in the interpreter we want
     to have meaningful and useful representations.
@@ -30,7 +30,7 @@ def make_repr(self, attrs):
         attrs (Iterable[str]): Attributes to include in the repr
 
     Returns:
-        str: the `repr`esentation of the object
+        str: the ``repr``esentation of the object
     """
     # TODO: change this to a closure so we can do
     # __repr__ = make_repr(attrs) ???

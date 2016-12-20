@@ -183,6 +183,7 @@ rst_prolog = """
 .. |validate| replace:: :mod:`~pyphi.validate`
 .. |config| replace:: :mod:`~pyphi.config`
 .. |Subsystem| replace:: :class:`~pyphi.subsystem.Subsystem`
+.. |MacroNetwork| replace:: :class:`~pyphi.macro.MacroNetwork`
 .. |MacroSubsystem| replace:: :class:`~pyphi.macro.MacroSubsystem`
 .. |Network| replace:: :class:`~pyphi.network.Network`
 .. |BigMip| replace:: :class:`~pyphi.models.big_phi.BigMip`

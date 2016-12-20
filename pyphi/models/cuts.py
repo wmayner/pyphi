@@ -39,8 +39,8 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
             mechanism (tuple[int]): The mechanism in question
 
         Returns:
-            bool: True if `mechanism` has elements on both sides of the cut,
-                otherwise False.
+            bool: ``True`` if `mechanism` has elements on both sides of the
+            cut, otherwise ``False``.
         """
         # TODO: use cuts_connections
         return ((set(mechanism) & set(self[0])) and

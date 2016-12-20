@@ -68,19 +68,19 @@ def _make_key(args, kwds, typed,
 def lru_cache(cache={}, maxsize=128, typed=False, maxmem=False):
     """Least-recently-used cache decorator.
 
-    *maxmem* is an integer in range(1, 101) specifying the maximum percentage
+    ``maxmem`` is an integer in range(1, 101) specifying the maximum percentage
     of physical memory that the cache can use. If it is set, *maxsize* has no
     effect.
 
-    If *maxsize* is set to None and *maxmem* is False, the LRU features are
-    disabled and the cache can grow without bound.
+    If ``maxsize`` is set to None and *maxmem* is ``False``, the LRU features
+    are disabled and the cache can grow without bound.
 
-    If *maxsize* is not None and *maxmem* is False, then the cache will be
-    limited to *maxsize* entries.
+    If ``maxsize`` is not None and *maxmem* is ``False``, then the cache will
+    be limited to *maxsize* entries.
 
-    If *typed* is True, arguments of different types will be cached separately.
-    For example, f(3.0) and f(3) will be treated as distinct calls with
-    distinct results.
+    If ``typed`` is ``True``, arguments of different types will be cached
+    separately. For example, f(3.0) and f(3) will be treated as distinct calls
+    with distinct results.
 
     Arguments to the cached function must be hashable.
 

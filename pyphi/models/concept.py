@@ -251,8 +251,8 @@ class Mice(cmp._Orderable):
             subsystem (Subsystem): The subsystem of this mice
 
         Returns:
-            cm (np.ndarray): A |n x n| matrix of connections, where `n` is the
-                size of the subsystem.
+            np.ndarray: A |n x n| matrix of connections, where `n` is the size
+            of the subsystem.
         """
         if self.direction == DIRECTIONS[PAST]:
             _from, to = self.purview, self.mechanism
@@ -266,11 +266,10 @@ class Mice(cmp._Orderable):
     # TODO: pass in `cut` instead? We can infer
     # subsystem indices from the cut itself, validate, and check.
     def damaged_by_cut(self, subsystem):
-        """Return True if this |Mice| is affected by the subsystem's cut.
+        """Return ``True`` if this |Mice| is affected by the subsystem's cut.
 
-        The cut affects the |Mice| if it either splits the |Mice|'s
-        mechanism or splits the connections between the purview and
-        mechanism.
+        The cut affects the |Mice| if it either splits the |Mice|'s mechanism
+        or splits the connections between the purview and mechanism.
         """
         return (subsystem.cut.splits_mechanism(self.mechanism) or
                 np.any(self._relevant_connections(subsystem) *

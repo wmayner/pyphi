@@ -67,7 +67,7 @@ def dense_time(tpm, time_scale):
 
 
 def run_tpm(tpm, time_scale):
-    """Iterate a tpm by the specified number of time steps.
+    """Iterate a TPM by the specified number of time steps.
 
     Args:
         tpm (np.ndarray): A state-by-node tpm.
@@ -104,7 +104,8 @@ def run_cm(cm, time_scale):
 # ============================================================================
 
 def state_by_state(tpm):
-    """Return True if the tpm is in state-by-state form, otherwise False."""
+    """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
+    ``False``."""
     return tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]
 
 
@@ -161,10 +162,10 @@ def fully_connected(cm, nodes1, nodes2):
             be tested.
 
     Returns:
-        bool: Returns True if all elements in ``nodes1`` output to
-            some element in ``nodes2`` AND all elements in ``nodes2``
-            have an input from some element in ``nodes1``. Otherwise
-            return False. Return True if either set of nodes is empty.
+        bool: Returns ``True`` if all elements in ``nodes1`` output to some
+        element in ``nodes2`` AND all elements in ``nodes2`` have an input from
+        some element in ``nodes1``. Otherwise return ``False``. Return ``True``
+        if either set of nodes is empty.
     """
     if not nodes1 or not nodes2:
         return True
@@ -203,7 +204,7 @@ def get_outputs_from_cm(index, cm):
 
 
 def causally_significant_nodes(cm):
-    """Returns a tuple of all nodes indices in the connectivity matrix which
+    """Return a tuple of all nodes indices in the connectivity matrix which
     are causally significant (have inputs and outputs)."""
     inputs = cm.sum(0)
     outputs = cm.sum(1)
@@ -253,7 +254,7 @@ def combs(a, r):
         r (int): The length of the combinations.
 
     Returns:
-        combinations (``np.ndarray``): An array of combinations.
+        np.ndarray: An array of combinations.
     """
     # Special-case for 0-length combinations
     if r == 0:
@@ -274,8 +275,7 @@ def comb_indices(n, k):
         k (int): The desired length of the combinations.
 
     Returns:
-        combination_indices (``np.ndarray``): Indices that give the
-            |k|-combinations of |n| elements.
+        np.ndarray: Indices that give the |k|-combinations of |n| elements.
 
     Example:
         >>> n, k = 3, 2
@@ -309,7 +309,7 @@ def powerset(iterable):
         iterable (Iterable): The iterable from which to generate the power set.
 
     Returns:
-        chain (``Iterable``): An chained iterator over the power set.
+        generator: An chained generator over the power set.
 
     Example:
         >>> ps = powerset(np.arange(2))
@@ -330,8 +330,7 @@ def uniform_distribution(number_of_nodes):
         nodes (np.ndarray): A set of indices of binary nodes.
 
     Returns:
-        distribution (``np.ndarray``): The uniform distribution over the set of
-            nodes.
+        np.ndarray: The uniform distribution over the set of nodes.
     """
     # The size of the state space for binary nodes is 2^(number of nodes).
     number_of_states = 2 ** number_of_nodes
@@ -350,8 +349,8 @@ def marginalize_out(indices, tpm):
         tpm (np.ndarray): The TPM to marginalize the node out of.
 
     Returns:
-        tpm (``np.ndarray``): A TPM with the same number of dimensions, with
-            the nodes marginalized out.
+        np.ndarray: A TPM with the same number of dimensions, with the nodes
+        marginalized out.
     """
     return tpm.sum(tuple(indices), keepdims=True) / (
         np.array(tpm.shape)[list(indices)].prod())
@@ -451,8 +450,7 @@ def max_entropy_distribution(node_indices, number_of_nodes):
         number_of_nodes (int): The total number of nodes in the network.
 
     Returns:
-        distribution (``np.ndarray``): The maximum entropy distribution over
-            the set of nodes.
+        np.ndarray: The maximum entropy distribution over the set of nodes.
     """
     distribution = np.ones(repertoire_shape(node_indices, number_of_nodes))
 
@@ -495,7 +493,7 @@ def bipartition(a):
 
     Returns:
         list[tuple[tuple]]: A list of tuples containing each of the two
-            partitions.
+        partitions.
 
     Example:
         >>> bipartition((1,2,3))
@@ -515,7 +513,7 @@ def directed_bipartition(a):
 
     Returns:
         list[tuple[tuple]]: A list of tuples containing each of the two
-            partitions.
+        partitions.
 
     Example:
         >>> directed_bipartition((1, 2, 3))  # doctest: +NORMALIZE_WHITESPACE
@@ -541,7 +539,7 @@ def directed_bipartition_of_one(a):
 
     Returns:
         list[tuple[tuple]]: A list of tuples containing each of the two
-            partitions.
+        partitions.
 
     Example:
         >>> directed_bipartition_of_one((1,2,3))  # doctest: +NORMALIZE_WHITESPACE
@@ -560,14 +558,12 @@ def directed_bipartition_of_one(a):
 def directed_bipartition_indices(N):
     """Return indices for directed bipartitions of a sequence.
 
-    The directed bipartion
-
     Args:
         N (int): The length of the sequence.
 
     Returns:
         list: A list of tuples containing the indices for each of the two
-            partitions.
+        partitions.
 
     Example:
         >>> N = 3
@@ -587,14 +583,14 @@ def directed_bipartition_indices(N):
 
 @cache(cache={}, maxmem=None)
 def bipartition_indices(N):
-    """Return indices for bipartitions of a sequence.
+    """Return indices for undirected bipartitions of a sequence.
 
     Args:
         N (int): The length of the sequence.
 
     Returns:
         list: A list of tuples containing the indices for each of the two
-            partitions.
+        partitions.
 
     Example:
         >>> N = 3
@@ -624,8 +620,8 @@ def load_data(dir, num):
     ``0.npy, 1.npy, ... {num - 1}.npy``.
 
     Returns:
-        list: A list of loaded data, such that ``list[i]`` contains the
-        the contents of ``i.npy``.
+        list: A list of loaded data, such that ``list[i]`` contains the the
+        contents of ``i.npy``.
     """
 
     root = os.path.abspath(os.path.dirname(__file__))
@@ -651,8 +647,8 @@ def _hamming_matrix(N):
         N (int): The number of nodes under consideration
 
     Returns:
-        ``np.ndarray``: A |2^N x 2^N| matrix where the |ith| element is the
-            Hamming distance between state |i| and state |j|.
+        np.ndarray: A |2^N x 2^N| matrix where the |ith| element is the Hamming
+        distance between state |i| and state |j|.
 
     Example:
         >>> _hamming_matrix(2)
@@ -683,13 +679,14 @@ def _hamming_matrix(N):
 def relevant_connections(n, _from, to):
     """Construct a connectivity matrix.
 
-    Returns an |n x n| connectivity matrix with the |i,jth| entry
-    set to ``1`` if |i| is in ``_from`` and |j| is in ``to``.
-
     Args:
         n (int): The dimensions of the matrix
         _from (tuple[int]): Nodes with outgoing connections to ``to``
         to (tuple[int]): Nodes with incoming connections from ``_from``
+
+    Returns:
+        np.ndarray: An |n x n| connectivity matrix with the |i,jth| entry set
+        to ``1`` if |i| is in ``_from`` and |j| is in ``to``.
     """
     cm = np.zeros((n, n))
 

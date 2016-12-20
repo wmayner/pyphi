@@ -73,12 +73,12 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
           typed=False):
     """Memory-limited cache decorator.
 
-    *maxmem* is a float between 0 and 100, inclusive, specifying the maximum
+    ``maxmem`` is a float between 0 and 100, inclusive, specifying the maximum
     percentage of physical memory that the cache can use.
 
-    If *typed* is True, arguments of different types will be cached separately.
-    For example, f(3.0) and f(3) will be treated as distinct calls with
-    distinct results.
+    If ``typed`` is ``True``, arguments of different types will be cached
+    separately. For example, f(3.0) and f(3) will be treated as distinct calls
+    with distinct results.
 
     Arguments to the cached function must be hashable.
 
