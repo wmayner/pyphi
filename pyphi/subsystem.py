@@ -248,7 +248,7 @@ class Subsystem:
                 cause repertoire.
 
         Returns:
-            ``np.ndarray``: The cause repertoire of the mechanism over the purview.
+            np.ndarray: The cause repertoire of the mechanism over the purview.
 
         .. note::
             The returned repertoire is a distribution over the nodes in the
@@ -308,8 +308,8 @@ class Subsystem:
                 effect repertoire.
 
         Returns:
-            ``np.ndarray``: The effect repertoire of the mechanism over the
-                purview.
+            np.ndarray: The effect repertoire of the mechanism over the
+            purview.
 
         .. note::
             The returned repertoire is a distribution over the nodes in the
@@ -399,7 +399,7 @@ class Subsystem:
 
         Returns:
             np.ndarray: The cause or effect repertoire of the mechanism over
-                the purview.
+            the purview.
         """
         if direction == DIRECTIONS[PAST]:
             return self.cause_repertoire(mechanism, purview)
@@ -521,9 +521,9 @@ class Subsystem:
                 If not supplied, it will be computed.
 
         Returns:
-            tuple(phi, partitioned_repertoire): The distance between the
-                unpartitioned and partitioned repertoires, and the
-                partitioned_repertoire.
+            tuple[phi, partitioned_repertoire]: The distance between the
+            unpartitioned and partitioned repertoires, and the
+            partitioned_repertoire.
         """
         if unpartitioned_repertoire is None:
             unpartitioned_repertoire = self._repertoire(direction, mechanism,
