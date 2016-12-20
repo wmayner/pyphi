@@ -505,6 +505,42 @@ class Subsystem:
     # MIP methods
     # =========================================================================
 
+    def evaluate_partition(self, direction, mechanism, purview, partition,
+                           unpartitioned_repertoire=None):
+        """Return the |small_phi| of a mechanism over a purview for the given
+        partition.
+
+        Args:
+            direction (str): Either |past| or |future|.
+            mechanism (tuple[int]): The nodes in the mechanism.
+            purview (tuple[int]): The nodes in the purview.
+            partition (tuple[int]): The partition to evaluate.
+
+        Keyword Args:
+            unpartitioned_repertoire (np.array): The unpartitioned repertoire.
+                If not supplied, it will be computed.
+
+        Returns:
+            tuple(phi, partitioned_repertoire): The distance between the
+                unpartitioned and partitioned repertoires, and the
+                partitioned_repertoire.
+        """
+        if unpartitioned_repertoire is None:
+            unpartitioned_repertoire = self._repertoire(direction, mechanism,
+                                                        purview)
+
+        partitioned_repertoire = self.partitioned_repertoire(direction, partition)
+
+        if config.L1_DISTANCE_APPROXIMATION:
+            phi = utils.l1(unpartitioned_repertoire, partitioned_repertoire)
+            phi = round(phi, config.PRECISION)
+        else:
+            phi = emd(direction, unpartitioned_repertoire,
+                      partitioned_repertoire)
+
+        return (phi, partitioned_repertoire)
+
+
     def find_mip(self, direction, mechanism, purview):
         """Return the minimum information partition for a mechanism over a
         purview.
@@ -549,16 +585,11 @@ class Subsystem:
 
         # Loop over possible MIP bipartitions
         for partition in mip_bipartitions(mechanism, purview):
-            partitioned_repertoire = self.partitioned_repertoire(direction,
-                                                                 partition)
-
-            if config.L1_DISTANCE_APPROXIMATION:
-                phi = utils.l1(unpartitioned_repertoire,
-                               partitioned_repertoire)
-                phi = round(phi, config.PRECISION)
-            else:
-                phi = emd(direction, unpartitioned_repertoire,
-                          partitioned_repertoire)
+            # Find the distance between the unpartitioned and partitioned
+            # repertoire.
+            phi, partitioned_repertoire = self.evaluate_partition(
+                direction, mechanism, purview, partition,
+                unpartitioned_repertoire=unpartitioned_repertoire)
 
             # Return immediately if mechanism is reducible.
             if phi == 0:
