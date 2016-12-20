@@ -32,13 +32,13 @@ class Subsystem:
 
     Attributes:
         network (Network): The network the subsystem belongs to.
-        tpm (np.array): The TPM conditioned on the state of the external nodes.
-        cm (np.array): The connectivity matrix after applying the cut.
+        tpm (np.ndarray): The TPM conditioned on the state of the external nodes.
+        cm (np.ndarray): The connectivity matrix after applying the cut.
         state (tuple[int]): The state of the network.
         nodes (tuple[Node]): The nodes of the subsystem.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
         cut (Cut): The cut that has been applied to this subsystem.
-        cut_matrix (np.array): A matrix of connections which have been severed
+        cut_matrix (np.ndarray): A matrix of connections which have been severed
             by the cut.
         null_cut (Cut): The cut object representing no cut.
     """
@@ -525,7 +525,7 @@ class Subsystem:
 
         phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
-        # partitioned ones
+        # partitioned ones.
         unpartitioned_repertoire = self._repertoire(direction, mechanism,
                                                     purview)
 
@@ -751,9 +751,9 @@ def mip_bipartitions(mechanism, purview):
 
     Excludes all bipartitions where one half is entirely empty, e.g::
 
-         A    []                     A    []
-        --- X -- is not valid,  but --- X --- is.
-         B    []                    []     B
+         A    []                    A    []
+        --- X -- is not valid, but --- X --- is.
+         B    []                    []    B
 
     Args:
         mechanism (tuple[int]): The mechanism to partition
