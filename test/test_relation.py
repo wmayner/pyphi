@@ -43,6 +43,11 @@ def test_maximal_overlap_purviews(concept_set):
     assert mo.concept_purviews == [(0, 1), (0, 1, 2)]
 
 
+def test_maximal_overlap_mechanisms(concept_set):
+    mo = relation.MaximalOverlap(0, (0, 1), 'past', concept_set.concepts)
+    assert mo.concept_mechanisms == [(2,), (0, 1, 2)]
+
+
 def test_relation_partitions(concept_set):
     purview = (0, 1)
     concept = concept_set.concepts[0]

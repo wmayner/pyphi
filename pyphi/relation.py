@@ -119,6 +119,10 @@ class MaximalOverlap:
     def concept_purviews(self):
         return [c.purview(self.direction) for c in self.concepts]
 
+    @property
+    def concept_mechanisms(self):
+        return [c.mechanism for c in self.concepts]
+
     def __repr__(self):
         attrs = ['phi', 'purview', 'direction', 'concepts']
         return models.fmt.make_repr(self, attrs)
