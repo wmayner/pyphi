@@ -67,10 +67,12 @@ def find_relation(direction, concept_list):
 
     max_purview = None
     max_purview_phi = 0.0
+    max_partition = None
 
     for purview in concept_set.possible_purviews(direction):
 
         min_phi = float('inf')
+        min_partition = None
 
         for concept in concept_set:
             # Cut inputs/outputs of purview and recompute the concept
@@ -81,18 +83,20 @@ def find_relation(direction, concept_list):
                     direction, partition)
                 return emd(direction, repertoire, partitioned_repertoire)
 
-            phi = min(partition_distance(partition)
-                      for partition in relation_partitions(
-                        direction, concept, purview))
+            partitions = list(relation_partitions(direction, concept, purview))
+            phis = map(partition_distance, partitions)
+            phi, partition = min(zip(phis, partitions), key=lambda x: x[0])
 
             if phi < min_phi:
                 min_phi = phi
+                min_partition = partition
 
         if min_phi > max_purview_phi:
             max_purview_phi = min_phi
             max_purview = purview
+            max_partition = partition
 
-    return MaximalOverlap(max_purview_phi, max_purview, direction, concept_set)
+    return MaximalOverlap(max_purview_phi, max_purview, max_partition, direction, concept_set)
 
 
 # TODO: rename?
@@ -104,14 +108,16 @@ class MaximalOverlap:
     Attributes:
         phi (float): The measure of the irreducibility of these concepts.
         purview (tuple(int)): The maximally irreducible overlap.
+        partition (Bipartition): The minimizing partition of the overlap.
         direction (str): |past| or |future|.
         concepts (ConceptSet): The concepts over which this overlap is
             computed.
     """
 
-    def __init__(self, phi, purview, direction, concepts):
+    def __init__(self, phi, purview, partition, direction, concepts):
         self.phi = phi
         self.purview = purview
+        self.partition = partition
         self.direction = direction
         self.concepts = concepts
 
