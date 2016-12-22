@@ -149,30 +149,27 @@ def test_coarse_grain_state():
     assert cg.macro_state((1, 1)) == (1, 0)
 
 
-def test_blackbox_indices():
+@pytest.fixture
+def bb():
     partition = ((1, 3), (4,))
     output_indices = (3, 4)
-    bb = macro.Blackbox(partition, output_indices)
+    return macro.Blackbox(partition, output_indices)
+
+
+def test_blackbox_indices(bb):
     assert bb.micro_indices == (1, 3, 4)
     assert bb.macro_indices == (0, 1)
     assert bb.reindex() == macro.Blackbox(((0, 1), (2,)), (1, 2))
 
 
-def test_blackbox_state():
-    partition = ((1, 3), (4,))
-    output_indices = (3, 4)
-    bb = macro.Blackbox(partition, output_indices)
+def test_blackbox_state(bb):
     with pytest.raises(AssertionError):
         bb.macro_state((0, 1, 1, 1))
     assert bb.macro_state((0, 1, 0)) == (1, 0)
     assert bb.macro_state((1, 0, 0)) == (0, 0)
 
 
-def test_blackbox_same_box():
-    partition = ((1, 3), (4,))
-    output_indices = (3, 4)
-    bb = macro.Blackbox(partition, output_indices)
-
+def test_blackbox_same_box(bb):
     # Nodes not in Blackox
     with pytest.raises(AssertionError):
         bb.in_same_box(2, 4)
@@ -184,11 +181,7 @@ def test_blackbox_same_box():
     assert not bb.in_same_box(4, 3)
 
 
-def test_blackbox_hidden_from():
-    partition = ((1, 3), (4,))
-    output_indices = (3, 4)
-    bb = macro.Blackbox(partition, output_indices)
-
+def test_blackbox_hidden_from(bb):
     assert bb.hidden_from(1, 4)
     assert not bb.hidden_from(1, 3)
     assert not bb.hidden_from(3, 4)
