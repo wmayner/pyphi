@@ -184,6 +184,16 @@ def test_blackbox_same_box():
     assert not bb.in_same_box(4, 3)
 
 
+def test_blackbox_hidden_from():
+    partition = ((1, 3), (4,))
+    output_indices = (3, 4)
+    bb = macro.Blackbox(partition, output_indices)
+
+    assert bb.hidden_from(1, 4)
+    assert not bb.hidden_from(1, 3)
+    assert not bb.hidden_from(3, 4)
+
+
 def test_rebuild_system_tpm():
     node0_tpm = np.array([
         [0, 1],

@@ -216,18 +216,13 @@ class MacroSubsystem(Subsystem):
         """
         nodes = generate_nodes(system.tpm, system.cm, system.state)
 
-        def hidden_from(a, b):
-            # Returns True if a is a hidden in a different blackbox than b
-            return (a in blackbox.hidden_indices and
-                    not blackbox.in_same_box(a, b))
-
         cm = system.cm.copy()
 
         # Condition each node on the state of input nodes in other boxes
         node_tpms = []
         for node in nodes:
             hidden_inputs = [input for input in node.input_indices
-                             if hidden_from(input, node.index)]
+                             if blackbox.hidden_from(input, node.index)]
             node_tpms.append(utils.condition_tpm(node.tpm[1],
                                                  hidden_inputs,
                                                  system.state))
@@ -623,6 +618,10 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
                 return True
 
         return False
+
+    def hidden_from(self, a, b):
+        """Returns True if ``a`` is hidden in a different box than ``b``."""
+        return (a in self.hidden_indices and not self.in_same_box(a, b))
 
 
 def _partitions_list(N):
