@@ -523,7 +523,7 @@ def test_find_mip_sequential_micro(micro_s, flushcache, restore_fs_cache):
     check_mip(mip, micro_answer)
 
 
-@pytest.mark.filter
+@pytest.mark.dev
 def test_big_mip_macro(macro_s, flushcache, restore_fs_cache):
     flushcache()
     mip = compute.big_mip(macro_s)
