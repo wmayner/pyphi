@@ -80,7 +80,7 @@ have bugs, run:
     pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
 
 **Note:** this software has only been tested on the Mac OS X and Linux
-operating systems. Windows is not supported, though it might work on with minor
+operating systems. Windows is not supported, though it might work with minor
 modifications. If you do get it to work, a writeup of the steps would be much
 appreciated!
 
