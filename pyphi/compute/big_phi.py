@@ -306,7 +306,7 @@ def possible_complexes(network, state):
 
 
 def complexes(network, state):
-    """Return a generator for all irreducible complexes of the network."""
+    """Return all irreducible complexes of the network."""
     return tuple(filter(None, (big_mip(subsystem) for subsystem in
                                possible_complexes(network, state))))
 
