@@ -1,6 +1,4 @@
 pytest
 coverage
-# current PyPi release is way behind
-# TODO: update on next release
-git+https://github.com/spacetelescope/asv.git@master
+asv
 virtualenv
