@@ -251,6 +251,7 @@ def fmt_concept(concept):
     return header(title, ce, "=", "=")
 
 
+
 def fmt_mip(mip, verbose=True):
     """Format a |Mip|."""
     if mip is False or mip is None:  # mips can be Falsy
@@ -259,29 +260,39 @@ def fmt_mip(mip, verbose=True):
     if verbose:
         mechanism = "Mechanism: {}\n".format(
             fmt_mechanism(mip.mechanism, mip.subsystem))
-        direction = "Direction: {}\n".format(mip.direction)
+        direction = "\nDirection: {}\n".format(mip.direction)
     else:
         mechanism = ""
         direction = ""
 
+    if config.REPR_VERBOSITY is HIGH:
+        partition = "\nPartition:\n{}".format(
+            indent(fmt_bipartition(mip.partition, mip.subsystem)))
+        unpartitioned_repertoire = "\nUnpartitioned Repertoire:\n{}".format(
+            indent(fmt_repertoire(mip.unpartitioned_repertoire)))
+        partitioned_repertoire = "\nPartitioned Repertoire:\n{}".format(
+            indent(fmt_repertoire(mip.partitioned_repertoire)))
+    else:
+        partition = ""
+        unpartitioned_repertoire = ""
+        partitioned_repertoire = ""
+
     return (
         "{SMALL_PHI} = {phi}\n"
         "{mechanism}"
-        "Purview = {purview}\n"
-        "Partition:\n{partition}\n"
+        "Purview = {purview}"
+        "{partition}"
         "{direction}"
-        "Unpartitioned Repertoire:\n{unpartitioned_repertoire}\n"
-        "Partitioned Repertoire:\n{partitioned_repertoire}").format(
+        "{unpartitioned_repertoire}"
+        "{partitioned_repertoire}").format(
             SMALL_PHI=SMALL_PHI,
             mechanism=mechanism,
             purview=fmt_mechanism(mip.purview, mip.subsystem),
             direction=direction,
             phi=mip.phi,
-            partition=indent(fmt_bipartition(mip.partition, mip.subsystem)),
-            unpartitioned_repertoire=indent(fmt_repertoire(
-                mip.unpartitioned_repertoire)),
-            partitioned_repertoire=indent(fmt_repertoire(
-                mip.partitioned_repertoire)))
+            partition=partition,
+            unpartitioned_repertoire=unpartitioned_repertoire,
+            partitioned_repertoire=partitioned_repertoire)
             # TODO: print the two repertoires side-by-side?
 
 
