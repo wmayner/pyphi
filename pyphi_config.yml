@@ -97,4 +97,4 @@ VALIDATE_SUBSYSTEM_STATES: true
 # with a self-loop as having 0.5 Phi, a priori.
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 # Use pretty __str__-like formatting in repr calls
-READABLE_REPRS: true
+REPR_VERBOSITY: 2

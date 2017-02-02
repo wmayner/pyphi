@@ -3,6 +3,7 @@
 # models/fmt.py
 
 """
+
 Helper functions for formatting pretty representations of PyPhi models.
 """
 
@@ -14,11 +15,16 @@ from .. import config, utils
 SMALL_PHI = "\u03C6"
 BIG_PHI = "\u03D5"
 
+# repr verbosity levels
+LOW = 0
+MEDIUM = 1
+HIGH = 2
+
 
 def make_repr(self, attrs):
     """Construct a repr string.
 
-    If `config.READABLE_REPRS` is ``True``, this function calls out to the
+    If `config.REPR_VERBOSITY` is ``1`` or ``2``, this function calls the
     object's __str__ method. Although this breaks the convention that __repr__
     should return a string which can reconstruct the object, readable reprs are
     invaluable since the Python interpreter calls `repr` to represent all
@@ -35,12 +41,16 @@ def make_repr(self, attrs):
     # TODO: change this to a closure so we can do
     # __repr__ = make_repr(attrs) ???
 
-    if config.READABLE_REPRS:
+    if config.REPR_VERBOSITY in [MEDIUM, HIGH]:
         return self.__str__()
 
-    return "{}({})".format(
-        self.__class__.__name__,
-        ", ".join(attr + '=' + repr(getattr(self, attr)) for attr in attrs))
+    elif config.REPR_VERBOSITY is LOW:
+        return "{}({})".format(
+            self.__class__.__name__,
+            ", ".join(attr + '=' + repr(getattr(self, attr)) for attr in attrs))
+
+    raise ValueError("Invalid `REPR_VERBOSITY` value of {}. Must be one of "
+                     "[0, 1, 2]".format(config.REPR_VERBOSITY))
 
 
 def indent(lines, amount=2, chr=' '):

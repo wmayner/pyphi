@@ -504,7 +504,7 @@ def test_constellation_is_still_a_tuple():
     assert len(c) == 1
 
 
-@config.override(READABLE_REPRS=False)
+@config.override(REPR_VERBOSITY=0)
 def test_constellation_repr():
     c = models.Constellation()
     assert repr(c) == "Constellation(())"
@@ -609,12 +609,12 @@ class ReadableReprClass:
         return "A nice fat explicit string"
 
 
-@config.override(READABLE_REPRS=False)
+@config.override(REPR_VERBOSITY=0)
 def test_make_reprs_uses___repr__():
     assert repr(ReadableReprClass()) == "ReadableReprClass(some_attr=3.14)"
 
 
-@config.override(READABLE_REPRS=True)
+@config.override(REPR_VERBOSITY=2)
 def test_make_reprs_calls_out_to_string():
     assert repr(ReadableReprClass()) == "A nice fat explicit string"
 

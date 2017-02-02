@@ -262,16 +262,20 @@ Miscellaneous
     False
 
 
-- ``pyphi.config.READABLE_REPRS``: If set to ``True``, this causes ``repr``
-  calls on PyPhi objects to return pretty-formatted and legible strings.
+- ``pyphi.config.REPR_VERBOSITY``: Controls the verbosity of ``__repr__``
+  methods on PyPhi objects. Can be set to ``0``, ``1``, or ``2``. If set to
+  ``1``, calling ``repr`` on PyPhi objects will return pretty-formatted and
+  legible strings, excluding repertoires. If set to ``2``, ``repr`` calls also
+  include repertoires.
+
   Although this breaks the convention that ``__repr__`` methods should return a
   representation which can reconstruct the object, readable representations are
   convenient since the Python REPL calls ``repr`` to represent all objects in
   the shell and PyPhi is often used interactively with the REPL. If set to
-  ``False``, ``repr`` returns more traditional object representations.
+  ``0``, ``repr`` returns more traditional object representations.
 
-    >>> defaults['READABLE_REPRS']
-    True
+    >>> defaults['REPR_VERBOSITY']
+    2
 
 -------------------------------------------------------------------------------
 """
@@ -358,7 +362,7 @@ DEFAULTS = {
     # single-node subsystems as having 0.5 Phi.
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
     # Use prettier __str__-like formatting in `repr` calls.
-    'READABLE_REPRS': True,
+    'REPR_VERBOSITY': 2,
 }
 
 # Get a reference to this module's dictionary so we can set the configuration

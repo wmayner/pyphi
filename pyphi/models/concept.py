@@ -483,8 +483,9 @@ class Constellation(tuple):
     # TODO: compare constellations using set equality
 
     def __repr__(self):
-        if config.READABLE_REPRS:
+        if config.REPR_VERBOSITY > 0:
             return self.__str__()
+
         return "Constellation({})".format(
             super().__repr__())
 
