@@ -107,8 +107,8 @@ _2016-02-06_
 - Disabled concept caching; removed the `config.CACHE_CONCEPTS` option.
 
 ### API Additions
-- Added `config.READABLE_REPRS` to control whether `__reprs__` of PyPhi models
-  default to using pretty string formatting.
+- Added `config.REPR_VERBOSITY` to control whether `__reprs__` of PyPhi models
+  use pretty string formatting and control the verbosity of the output.
 - Added a `Constellation` object.
 - Added `utils.submatrix` and `utils.relevant_connections` functions.
 - Added the `macro.effective_info` function.
