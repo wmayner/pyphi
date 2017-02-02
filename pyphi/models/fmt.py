@@ -127,7 +127,7 @@ def side_by_side(left, right):
     return "\n".join(a + b for a, b in zip(left_lines, right_lines)) + "\n"
 
 
-def header(header, text, over_char=None, under_char=None):
+def header(header, text, over_char=None, under_char=None, center=True):
     """Center a header over a block of text.
 
     Assumes that all lines in the text are the same width.
@@ -135,7 +135,11 @@ def header(header, text, over_char=None, under_char=None):
     lines = list(text.split("\n"))
     width = len(lines[0])
 
-    header = header.center(width) + "\n"
+    # Center or left-justify
+    if center:
+        header = header.center(width) + "\n"
+    else:
+        header = header.ljust(width) + "\n"
 
     # Underline header
     if under_char:
@@ -248,8 +252,9 @@ def fmt_concept(concept):
     title = "Concept: Mechanism = {}, {} = {}".format(
         mechanism, SMALL_PHI, concept.phi)
 
-    return header(title, ce, "=", "=")
+    center = config.REPR_VERBOSITY is 2
 
+    return header(title, ce, "=", "=", center=center)
 
 
 def fmt_mip(mip, verbose=True):
