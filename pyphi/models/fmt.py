@@ -252,7 +252,8 @@ def fmt_concept(concept):
     title = "Concept: Mechanism = {}, {} = {}".format(
         mechanism, SMALL_PHI, concept.phi)
 
-    center = config.REPR_VERBOSITY is 2
+    # Only center headers for high-verbosity output
+    center = config.REPR_VERBOSITY is HIGH
 
     return header(title, ce, "=", "=", center=center)
 
