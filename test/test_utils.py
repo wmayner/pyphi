@@ -141,6 +141,13 @@ def test_l1_distance():
     assert utils.l1(a, b) == 5.5
 
 
+def test_kld():
+    a = np.array([0, 1.0])
+    b = np.array([0.5, 0.5])
+
+    assert utils.kld(a, b) == 1
+
+
 def test_uniform_distribution():
     assert np.array_equal(utils.uniform_distribution(3),
                           (np.ones(8)/8).reshape([2]*3))

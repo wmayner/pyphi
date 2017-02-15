@@ -858,7 +858,6 @@ def emd(direction, d1, d2):
     Returns:
         float: The EMD between ``d1`` and ``d2``, rounded to |PRECISION|.
     """
-
     if direction == DIRECTIONS[PAST]:
         func = utils.hamming_emd
     elif direction == DIRECTIONS[FUTURE]:

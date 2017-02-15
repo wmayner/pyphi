@@ -20,6 +20,7 @@ from scipy.misc import comb
 from scipy.spatial.distance import cdist
 from scipy.sparse import csc_matrix
 from scipy.sparse.csgraph import connected_components
+from scipy.stats import entropy
 
 from . import constants, convert
 from .cache import cache
@@ -483,6 +484,20 @@ def l1(d1, d2):
         float: The sum of absolute differences of ``d1`` and ``d2``.
     """
     return np.absolute(d1 - d2).sum()
+
+
+def kld(d1, d2):
+    """Return the Kullback-Leibler Divergence (KLD) between two distributions.
+
+    Args:
+        d1 (np.ndarray): The first distribution.
+        d2 (np.ndarray): The second distribution.
+
+    Returns:
+        float: The KLD of ``d1`` from ``d2``.
+    """
+    d1, d2 = d1.squeeze().ravel(), d2.squeeze().ravel()
+    return entropy(d1, d2, 2.0)
 
 
 def bipartition(a):
