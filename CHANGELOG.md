@@ -27,10 +27,8 @@ Next Release
 ### API Additions
 - Added `subsystem.evaluate_partition`. This returns the φ for a particular
   partition.
-- Added `config.L1_DISTANCE_APPROXIMATION` which uses the L1-distance to
-  approximate the Earth-Movers Distance in MIP computations. If the mechanism
-  is found to be irreducible over the purview, φ is recalculated using the
-  proper EMD.
+- Added `config.MEASURE` to choose between EMD, KLD, or L1 for distance
+  computations.
 - Added `macro.MacroSubsystem`. This subclass of `Subsystem` is used to performs
   macro computations.
 - Added `macro.CoarseGrain` to represent coarse-grainings of a system.

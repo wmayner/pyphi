@@ -37,3 +37,15 @@ PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL
 #: The joblib Memory object for persistent caching without a database.
 joblib_memory = joblib.Memory(cachedir=config.FS_CACHE_DIRECTORY,
                               verbose=config.FS_CACHE_VERBOSITY)
+
+#: Earth Movers Distance
+EMD = 'EMD'
+
+#: Kullback-Leibler Divergence
+KLD = 'KLD'
+
+#: L1 distance
+L1 = 'L1'
+
+#: All available measures
+MEASURES = [EMD, KLD, L1]

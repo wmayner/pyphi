@@ -9,7 +9,7 @@ import itertools
 import numpy as np
 
 from . import cache, config, utils, validate
-from .constants import DIRECTIONS, FUTURE, PAST
+from .constants import DIRECTIONS, FUTURE, PAST, EMD, KLD, L1, MEASURES
 from .models import Concept, Cut, Mice, Mip, _null_mip, Part, Bipartition
 from .network import irreducible_purviews
 from .node import generate_nodes
@@ -484,13 +484,13 @@ class Subsystem:
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
-        return emd(DIRECTIONS[PAST],
+        return measure(DIRECTIONS[PAST],
                    self.cause_repertoire(mechanism, purview),
                    self.unconstrained_cause_repertoire(purview))
 
     def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
-        return emd(DIRECTIONS[FUTURE],
+        return measure(DIRECTIONS[FUTURE],
                    self.effect_repertoire(mechanism, purview),
                    self.unconstrained_effect_repertoire(purview))
 
@@ -531,15 +531,10 @@ class Subsystem:
 
         partitioned_repertoire = self.partitioned_repertoire(direction, partition)
 
-        if config.L1_DISTANCE_APPROXIMATION:
-            phi = utils.l1(unpartitioned_repertoire, partitioned_repertoire)
-            phi = round(phi, config.PRECISION)
-        else:
-            phi = emd(direction, unpartitioned_repertoire,
+        phi = measure(direction, unpartitioned_repertoire,
                       partitioned_repertoire)
 
         return (phi, partitioned_repertoire)
-
 
     def find_mip(self, direction, mechanism, purview):
         """Return the minimum information partition for a mechanism over a
@@ -600,8 +595,9 @@ class Subsystem:
                 phi_min = phi
                 mip = _mip(phi, partition, partitioned_repertoire)
 
-        # Recompute distance for minimal MIP using the EMD
-        if config.L1_DISTANCE_APPROXIMATION:
+        # Recompute distance for minimal MIP using the EMD.
+        # (See `config.MEASURE`)
+        if config.MEASURE == L1:
             phi = emd(direction, mip.unpartitioned_repertoire,
                       mip.partitioned_repertoire)
             mip = _mip(phi, mip.partition, mip.partitioned_repertoire)
@@ -864,3 +860,31 @@ def emd(direction, d1, d2):
         func = effect_emd
 
     return round(func(d1, d2), config.PRECISION)
+
+
+def measure(direction, d1, d2):
+    """Compute the distance between two repertoires for the given direction.
+
+    Args:
+        direction (str): Either |past| or |future|.
+        d1 (np.ndarray): The first repertoire.
+        d2 (np.ndarray): The second repertoire.
+
+    Returns:
+        float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
+    """
+    if config.MEASURE == EMD:
+        dist = emd(direction, d1, d2)
+
+    elif config.MEASURE == KLD:
+        dist = utils.kld(d1, d2)
+
+    elif config.MEASURE == L1:
+        dist = utils.l1(d1, d2)
+
+    else:
+        raise ValueError(
+            "Invalid value `{}` for `config.MEASURE`. Choose one of {}".format(
+                config.MEASURE, MEASURES))
+
+    return round(dist, config.PRECISION)
