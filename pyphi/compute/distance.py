@@ -7,6 +7,8 @@ import numpy as np
 from .. import config, utils
 from ..constants import EMD, KLD, L1
 
+BIG_NUMBER = 1000000
+
 
 def measure(d1, d2):
     """Compute the distance between two repertoires.
@@ -22,8 +24,15 @@ def measure(d1, d2):
     if config.MEASURE in [EMD, L1]:
         return utils.hamming_emd(d1, d2)
 
+    # If the distance is `inf` return a very large number instead so that
+    # the generalized EMD can still operate on a KLD distance matrix.
     elif config.MEASURE == KLD:
-        return utils.kld(d1, d2)
+        result = utils.kld(d1, d2)
+
+        if np.isinf(result):
+            return BIG_NUMBER
+
+        return result
 
     validate.measure(config.MEASURE)
 

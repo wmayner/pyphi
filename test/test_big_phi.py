@@ -4,6 +4,7 @@
 
 import pickle
 import pytest
+import numpy as np
 from unittest.mock import patch
 
 from pyphi import constants, config, compute, models, utils, Network, Subsystem
@@ -273,6 +274,16 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     compute.constellation_distance((lone_concept,), (other_concept,))
     assert mock_emd_distance.called is True
     assert mock_simple_distance.called is False
+
+
+@config.override(MEASURE='KLD')
+def test_kld_distance_no_inf():
+    a = np.array([1.0, 0])
+    b = np.array([0, 1.0])
+
+    d = compute.distance.measure(a, b)
+    assert not np.isinf(d)
+    assert d == compute.distance.BIG_NUMBER
 
 
 def test_conceptual_information(s, flushcache, restore_fs_cache):
