@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from pyphi import exceptions, macro, Network, Subsystem, validate
+from pyphi import constants, exceptions, macro, Network, Subsystem, validate
 
 
 def test_validate_direction():
@@ -199,3 +199,12 @@ def test_validate_blackbox_and_coarsegrain():
     coarse_grain = macro.CoarseGrain(((0,), (1, 2)), ((0, 1), (2,)))
     with pytest.raises(ValueError):
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
+
+
+def test_measure():
+    validate.measure(constants.EMD)
+    validate.measure(constants.KLD)
+    validate.measure(constants.L1)
+
+    with pytest.raises(ValueError):
+        validate.measure('emd')

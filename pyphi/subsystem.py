@@ -883,8 +883,6 @@ def measure(direction, d1, d2):
         dist = utils.l1(d1, d2)
 
     else:
-        raise ValueError(
-            "Invalid value `{}` for `config.MEASURE`. Choose one of {}".format(
-                config.MEASURE, MEASURES))
+        validate.measure(config.MEASURE)
 
     return round(dist, config.PRECISION)
