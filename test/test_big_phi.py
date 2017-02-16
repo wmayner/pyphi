@@ -286,6 +286,20 @@ def test_kld_distance_no_inf():
     assert d == compute.distance.BIG_NUMBER
 
 
+@config.override(CACHE_BIGMIPS=True)
+def test_big_mip_cache_key_includes_config_dependencies(s, flushcache,
+                                                        restore_fs_cache):
+    flushcache()
+
+    with config.override(MEASURE='EMD'):
+        emd_big_phi = compute.big_phi(s)
+
+    with config.override(MEASURE='KLD'):
+        kld_big_phi = compute.big_phi(s)
+
+    assert kld_big_phi != emd_big_phi
+
+
 def test_conceptual_information(s, flushcache, restore_fs_cache):
     flushcache()
     assert compute.conceptual_information(s) == 2.8125
