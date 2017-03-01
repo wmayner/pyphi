@@ -675,19 +675,34 @@ def _hamming_matrix(N):
     if N < _NUM_PRECOMPUTED_HAMMING_MATRICES:
         return _hamming_matrices[N]
     else:
-        log.warn(
-            "Hamming matrices for more than {} nodes have not been "
-            "precomputed. This will make EMD calculations less inefficient; "
-            "calculating hamming matrices is an exponential-time procedure. "
-            "Consider pre-computing the hamming matrices up to the desired "
-            "number of nodes with the ``pyphi.utils._hamming_matrix`` "
-            "function and saving them to the 'data' directory in the "
-            "directory where PyPhi was installed (you can find this directory "
-            "by typing ``import pyphi; pyphi;`` into a Python interperter)."
-            .format(_NUM_PRECOMPUTED_HAMMING_MATRICES - 1)
-        )
-        possible_states = np.array(list(all_states((N))))
-        return cdist(possible_states, possible_states, 'hamming') * N
+        return _compute_hamming_matrix(N)
+
+
+@constants.joblib_memory.cache
+def _compute_hamming_matrix(N):
+    """
+    Compute and store a Hamming matrix for |N| nodes.
+
+    Hamming matrices have the following sizes:
+
+    n   MBs
+    ==  ===
+    9   2
+    10  8
+    11  32
+    12  128
+    13  512
+
+    Given these sizes and the fact that large matrices are needed infrequently,
+    we store computed matrices using the Joblib filesystem cache instead of
+    adding computed matrices to the ``_hamming_matrices`` global and clogging
+    up memory.
+
+    This function is only called when N > _NUM_PRECOMPUTED_HAMMING_MATRICES.
+    Don't call this function directly; use ``utils._hamming_matrix`` instead.
+    """
+    possible_states = np.array(list(all_states((N))))
+    return cdist(possible_states, possible_states, 'hamming') * N
 
 
 # TODO: better name?
