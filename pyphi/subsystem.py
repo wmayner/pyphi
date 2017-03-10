@@ -438,7 +438,8 @@ class Subsystem:
         new state space.
 
         Args:
-            direction (str): Either |past| or |future|.
+            direction (str): Either ``DIRECTIONS[PAST]`` or
+                ``DIRECTIONS[FUTURE]``.
             repertoire (np.ndarray): A repertoire.
 
         Keyword Args:
@@ -511,10 +512,11 @@ class Subsystem:
         partition.
 
         Args:
-            direction (str): Either |past| or |future|.
+            direction (str): Either ``DIRECTIONS[PAST]`` or
+                ``DIRECTIONS[FUTURE]``.
             mechanism (tuple[int]): The nodes in the mechanism.
             purview (tuple[int]): The nodes in the purview.
-            partition (tuple[int]): The partition to evaluate.
+            partition (Bipartition): The partition to evaluate.
 
         Keyword Args:
             unpartitioned_repertoire (np.array): The unpartitioned repertoire.
@@ -541,7 +543,8 @@ class Subsystem:
         purview.
 
         Args:
-            direction (str): Either |past| or |future|.
+            direction (str): Either ``DIRECTIONS[PAST]`` or
+                ``DIRECTIONS[FUTURE]``.
             mechanism (tuple[int]): The nodes in the mechanism.
             purview (tuple[int]): The nodes in the purview.
 
@@ -607,7 +610,7 @@ class Subsystem:
     def mip_past(self, mechanism, purview):
         """Return the past minimum information partition.
 
-        Alias for |find_mip| with ``direction`` set to |past|.
+        Alias for |find_mip| with ``direction`` set to ``DIRECTIONS[FUTURE]``.
         """
         return self.find_mip(DIRECTIONS[PAST], mechanism, purview)
 
@@ -650,7 +653,8 @@ class Subsystem:
         Filters out trivially-reducible purviews.
 
         Args:
-            direction ('str'): Either |past| or |future|.
+            direction ('str'): Either ``DIRECTIONS[PAST]`` or
+                ``DIRECTIONS[FUTURE]``.
             mechanism (tuple[int]): The mechanism of interest.
 
         Keyword Args:
@@ -672,7 +676,8 @@ class Subsystem:
         """Return the maximally irreducible cause or effect for a mechanism.
 
         Args:
-            direction (str): The temporal direction (|past| or |future|)
+            direction (str): The temporal direction (``DIRECTIONS[PAST]`` or
+                ``DIRECTIONS[FUTURE]``)
                 specifying cause or effect.
             mechanism (tuple[int]): The mechanism to be tested for
                 irreducibility.
@@ -692,9 +697,9 @@ class Subsystem:
             cause repertoire and core effect repertoire of a mechanism, which
             are maximally different than the unconstrained cause/effect
             repertoires (*i.e.*, those that maximize |small_phi|). Here, we
-            return only information corresponding to one direction, |past| or
-            |future|, i.e., we return a core cause or core effect, not the pair
-            of them.
+            return only information corresponding to one direction,
+            ``DIRECTIONS[PAST]`` or ``DIRECTIONS[FUTURE]``, i.e., we return a
+            core cause or core effect, not the pair of them.
         """
         purviews = self._potential_purviews(direction, mechanism, purviews)
 
@@ -709,14 +714,14 @@ class Subsystem:
     def core_cause(self, mechanism, purviews=False):
         """Return the core cause repertoire of a mechanism.
 
-        Alias for |find_mice| with ``direction`` set to |past|.
+        Alias for |find_mice| with ``direction`` set to ``DIRECTIONS[PAST]``.
         """
         return self.find_mice('past', mechanism, purviews=purviews)
 
     def core_effect(self, mechanism, purviews=False):
         """Return the core effect repertoire of a mechanism.
 
-        Alias for |find_mice| with ``direction`` set to |past|.
+        Alias for |find_mice| with ``direction`` set to ``DIRECTIONS[FUTURE]``.
         """
         return self.find_mice('future', mechanism, purviews=purviews)
 
@@ -847,7 +852,7 @@ def emd(direction, d1, d2):
     solution is used for effect repertoires.
 
     Args:
-        direction (str): Either |past| or |future|.
+        direction (str): Either ``DIRECTIONS[PAST]`` or ``DIRECTIONS[FUTURE]``.
         d1 (np.ndarray): The first repertoire.
         d2 (np.ndarray): The second repertoire.
 
@@ -866,7 +871,7 @@ def measure(direction, d1, d2):
     """Compute the distance between two repertoires for the given direction.
 
     Args:
-        direction (str): Either |past| or |future|.
+        direction (str): Either ``DIRECTIONS[PAST]`` or ``DIRECTIONS[FUTURE]``.
         d1 (np.ndarray): The first repertoire.
         d2 (np.ndarray): The second repertoire.
 
