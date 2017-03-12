@@ -242,13 +242,13 @@ class MacroSubsystem(Subsystem):
         return self._node_indices
 
     def apply_cut(self, cut):
-        """Return a cut version of this |MacroSubsystem|
+        """Return a cut version of this |MacroSubsystem|.
 
         Args:
             cut (Cut): The cut to apply to this |MacroSubsystem|.
 
         Returns:
-            |MacroSubsystem|
+            MacroSubsystem: The cut version of this |MacroSubsystem|.
         """
         return MacroSubsystem(self.network, self._network_state,
                               self._node_indices, cut=cut,
@@ -339,7 +339,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         not effect the state grouping, which is already index-independent.
 
         Returns:
-            |CoarseGrain|: A new |CoarseGrain| object, indexed from ``0..n``.
+            CoarseGrain: A new |CoarseGrain| object, indexed from ``0..n``.
 
         Example:
             >>> partition = ((1, 2),)
@@ -476,7 +476,7 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
         """Squeeze the indices of this blackboxing to ``0..n``.
 
         Returns:
-            |Blackbox|: a new, reindexed |Blackbox|.
+            Blackbox: a new, reindexed |Blackbox|.
 
         Example:
             >>> partition = ((3,), (2, 4))
@@ -593,13 +593,13 @@ def all_groupings(partition):
 
 
 def all_coarse_grains(indices):
-    """Generator over all possible |CoarseGrains| of these indices.
+    """Generator over all possible |CoarseGrain|s of these indices.
 
     Args:
         indices (tuple[int]): Node indices to coarse grain.
 
     Yields:
-        |CoarseGrain|: The next coarse-grain for ``indices``.
+        CoarseGrain: The next |CoarseGrain| for ``indices``.
     """
     for partition in all_partitions(indices):
         for grouping in all_groupings(partition):
@@ -607,7 +607,7 @@ def all_coarse_grains(indices):
 
 
 def all_coarse_grains_for_blackbox(blackbox):
-    """Generator over all ``CoarseGrains`` for the given blackbox.
+    """Generator over all |CoarseGrain|s for the given blackbox.
 
     If a box has multiple outputs, those outputs are partitioned into the same
     coarse-grain macro-element.
@@ -629,7 +629,7 @@ def all_blackboxes(indices):
         indices (tuple[int]): Nodes to blackbox.
 
     Yields:
-        Blackbox: The next blackbox of ``indices``.
+        Blackbox: The next |Blackbox| of ``indices``.
     """
     for partition in all_partitions(indices):
         for output_indices in utils.powerset(indices):
@@ -654,7 +654,7 @@ class MacroNetwork:
             system.
         micro_phi (float): The |big_phi| of the main complex of the
             corresponding micro-system.
-        coarse_grain (|CoarseGrain|): The coarse-graining of micro-elements
+        coarse_grain (CoarseGrain): The coarse-graining of micro-elements
             into macro-elements.
         time_scale (int): The time scale the macro-network run over.
         blackbox (Blackbox): The blackboxing of micro elements in the network.
@@ -691,7 +691,7 @@ def coarse_grain(network, state, internal_indices):
         internal_indices (tuple[int]): Nodes in the micro-system.
 
     Returns:
-        tuple[int, |CoarseGrain|]: The phi-value of the maximal |CoarseGrain|.
+        tuple[int, CoarseGrain]: The phi-value of the maximal |CoarseGrain|.
     """
     max_phi = float('-inf')
     max_coarse_grain = CoarseGrain((), ())
@@ -768,7 +768,7 @@ def emergence(network, state, blackbox=False, coarse_grain=True,
             for emergence.
 
     Returns:
-        |MacroNetwork|: The maximal macro-system generated from the
+        MacroNetwork: The maximal macro-system generated from the
         micro-system.
     """
     micro_phi = compute.main_complex(network, state).phi
