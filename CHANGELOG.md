@@ -23,6 +23,9 @@ Next Release
 - Removed perturbation vector support.
 - Changed `utils.marginalize_out` to take a list of indices.
 - Fixed `macro.effective_info` to use the algorithm from the macro-micro paper.
+- Replace `constants.DIRECTIONS`, `constants.PAST`, and `constants.FUTURE` with
+  a proper `Enum` class: `constants.Direction`. Past and future are now
+  represented by `constants.Direction.PAST` and `constants.Direction.FUTURE`.
 
 ### API Additions
 - Added `subsystem.evaluate_partition`. This returns the φ for a particular
