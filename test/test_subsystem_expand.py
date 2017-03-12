@@ -4,7 +4,7 @@
 
 import pytest
 from pyphi.compute import big_mip
-from pyphi.constants import EPSILON
+from pyphi.constants import EPSILON, Direction
 import numpy as np
 
 CD = (2, 3)
@@ -53,4 +53,4 @@ def test_expand_repertoire_purview_must_be_subset_of_new_purview(s):
     new_purview = (1,)
     cause_repertoire = s.cause_repertoire(mechanism, purview)
     with pytest.raises(ValueError):
-        s.expand_repertoire('past', cause_repertoire, new_purview)
+        s.expand_repertoire(Direction.PAST, cause_repertoire, new_purview)

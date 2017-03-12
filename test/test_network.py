@@ -6,6 +6,7 @@ import pytest
 import numpy as np
 
 from pyphi.network import Network
+from pyphi.constants import Direction
 
 
 @pytest.fixture()
@@ -35,10 +36,10 @@ def test_network_creates_fully_connected_cm_by_default():
 
 def test_potential_purviews(s):
     mechanism = (0,)
-    assert (s.network._potential_purviews('past', mechanism) ==
-            [(1,), (2,), (1, 2)])
-    assert (s.network._potential_purviews('future', mechanism) ==
-            [(2,)])
+    assert (s.network._potential_purviews(Direction.PAST, mechanism)
+            == [(1,), (2,), (1, 2)])
+    assert (s.network._potential_purviews(Direction.FUTURE, mechanism)
+            == [(2,)])
 
 
 def test_node_labels(standard):

@@ -12,7 +12,7 @@ import json
 import numpy as np
 
 from . import cache, convert, utils, validate
-from .constants import DIRECTIONS, FUTURE, PAST
+from .constants import Direction
 from .node import default_labels
 
 
@@ -176,7 +176,8 @@ class Network:
         """All purviews which are not clearly reducible for mechanism.
 
         Args:
-            direction (str): |past| or |future|
+            direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+            :const:`~pyphi.constants.Direction.FUTURE`.
             mechanism (tuple[int]): The mechanism which all purviews are
                 checked for reducibility over.
 
@@ -228,7 +229,8 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
 
     Args:
         cm (np.ndarray): A |N x N| connectivity matrix.
-        direction (str): |past| or |future|.
+        direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+            :const:`~pyphi.constants.Direction.FUTURE`.
         purviews (list[tuple[int]]): The purviews to check.
         mechanism (tuple[int]): The mechanism in question.
 
@@ -238,9 +240,9 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
     """
     def reducible(purview):
         # Returns True if purview is trivially reducible.
-        if direction == DIRECTIONS[PAST]:
+        if direction == Direction.PAST:
             _from, to = purview, mechanism
-        elif direction == DIRECTIONS[FUTURE]:
+        elif direction == Direction.FUTURE:
             _from, to = mechanism, purview
         return utils.block_reducible(cm, _from, to)
 

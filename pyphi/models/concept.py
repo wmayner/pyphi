@@ -6,7 +6,7 @@ import numpy as np
 
 from . import cmp, fmt
 from .. import config, utils
-from ..constants import DIRECTIONS, PAST, FUTURE
+from ..constants import Direction
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
@@ -25,9 +25,8 @@ class Mip(cmp._Orderable):
             This is the difference between the mechanism's unpartitioned and
             partitioned repertoires.
         direction (str):
-            Either |past| or |future|. The temporal direction specifiying
-            whether this MIP should be calculated with cause or effect
-            repertoires.
+            direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+                :const:`~pyphi.constants.Direction.FUTURE`.
         mechanism (tuple[int]):
             The mechanism over which to evaluate the MIP.
         purview (tuple[int]):
@@ -237,12 +236,12 @@ class Mice(cmp._Orderable):
         corresponding subsystem, that identifies connections that “matter” to
         this MICE:
 
-        ``direction == 'past'``:
+        ``direction == Direction.PAST``:
             ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
             cause purview and node ``j`` is in the mechanism (and ``0``
             otherwise).
 
-        ``direction == 'future'``:
+        ``direction == Direction.FUTURE``:
             ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
             mechanism and node ``j`` is in the effect purview (and ``0``
             otherwise).
@@ -254,9 +253,9 @@ class Mice(cmp._Orderable):
             np.ndarray: A |n x n| matrix of connections, where `n` is the size
             of the subsystem.
         """
-        if self.direction == DIRECTIONS[PAST]:
+        if self.direction == Direction.PAST:
             _from, to = self.purview, self.mechanism
-        elif self.direction == DIRECTIONS[FUTURE]:
+        elif self.direction == Direction.FUTURE:
             _from, to = self.mechanism, self.purview
 
         cm = utils.relevant_connections(subsystem.network.size, _from, to)

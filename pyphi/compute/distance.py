@@ -14,7 +14,8 @@ def measure(d1, d2):
     """Compute the distance between two repertoires.
 
     Args:
-        direction (str): Either |past| or |future|.
+        direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+            :const:`~pyphi.constants.Direction.FUTURE`.
         d1 (np.ndarray): The first repertoire.
         d2 (np.ndarray): The second repertoire.
 

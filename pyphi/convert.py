@@ -28,7 +28,7 @@ def state2holi_index(state):
     convention.
 
     Args:
-        state (tuple([int]): A state-tuple where the |ith| element of the tuple
+        state (tuple[int]): A state-tuple where the |ith| element of the tuple
             gives the state of the |ith| node.
 
     Returns:

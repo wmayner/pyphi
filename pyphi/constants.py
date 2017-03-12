@@ -6,24 +6,25 @@
 Package-wide constants.
 """
 
+from enum import Enum
 import pickle
 
 import joblib
 
 from . import config
 
+
+class Direction(Enum):
+    """Constants that parametrize cause and effect methods.
+
+    Accessed using ``Direction.PAST`` and ``Direction.FUTURE``.
+    """
+    PAST = 0
+    FUTURE = 1
+
+
 #: The threshold below which we consider differences in phi values to be zero.
 EPSILON = 10 ** - config.PRECISION
-
-#: Key for accessing the cause side of computations and concept space.
-PAST = 0
-
-#: Key for accessing the effect side of computations and concept space.
-FUTURE = 1
-
-#: Constants which parametrize cause and effect methods.
-#: Accessed using ``DIRECTIONS[PAST]`` and ```DIRECTIONS[FUTURE]``
-DIRECTIONS = ('past', 'future')
 
 #: Label for the filesystem cache backend.
 FILESYSTEM = 'fs'

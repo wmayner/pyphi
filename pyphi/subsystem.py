@@ -9,8 +9,8 @@ import itertools
 import numpy as np
 
 from . import cache, config, utils, validate
-from .constants import DIRECTIONS, FUTURE, PAST, EMD, KLD, L1, MEASURES
-from .models import Concept, Cut, Mice, Mip, _null_mip, Part, Bipartition
+from .constants import EMD, KLD, L1, MEASURES, Direction
+from .models import Bipartition, Concept, Cut, Mice, Mip, Part, _null_mip
 from .network import irreducible_purviews
 from .node import generate_nodes
 
@@ -237,7 +237,7 @@ class Subsystem:
         """Returns the node labels for these indices."""
         return tuple(n.label for n in self.indices2nodes(indices))
 
-    @cache.method('_repertoire_cache', DIRECTIONS[PAST])
+    @cache.method('_repertoire_cache', Direction.PAST)
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -297,7 +297,7 @@ class Subsystem:
 
         return utils.normalize(cjd)
 
-    @cache.method('_repertoire_cache', DIRECTIONS[FUTURE])
+    @cache.method('_repertoire_cache', Direction.FUTURE)
     def effect_repertoire(self, mechanism, purview):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -391,7 +391,8 @@ class Subsystem:
         """Return the cause or effect repertoire based on a direction.
 
         Args:
-            direction (str): One of 'past' or 'future'.
+            direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+                :const:`~pyphi.constants.Direction.FUTURE`.
             mechanism (tuple[int]): The mechanism for which to calculate the
                 repertoire.
             purview (tuple[int]): The purview over which to calculate the
@@ -401,9 +402,9 @@ class Subsystem:
             np.ndarray: The cause or effect repertoire of the mechanism over
             the purview.
         """
-        if direction == DIRECTIONS[PAST]:
+        if direction == Direction.PAST:
             return self.cause_repertoire(mechanism, purview)
-        elif direction == DIRECTIONS[FUTURE]:
+        elif direction == Direction.FUTURE:
             return self.effect_repertoire(mechanism, purview)
 
     def _unconstrained_repertoire(self, direction, purview):
@@ -415,14 +416,14 @@ class Subsystem:
 
         This is just the cause repertoire in the absence of any mechanism.
         """
-        return self._unconstrained_repertoire(DIRECTIONS[PAST], purview)
+        return self._unconstrained_repertoire(Direction.PAST, purview)
 
     def unconstrained_effect_repertoire(self, purview):
         """Return the unconstrained effect repertoire for a purview.
 
         This is just the effect repertoire in the absence of any mechanism.
         """
-        return self._unconstrained_repertoire(DIRECTIONS[FUTURE], purview)
+        return self._unconstrained_repertoire(Direction.FUTURE, purview)
 
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire of a partitioned mechanism and purview."""
@@ -438,8 +439,8 @@ class Subsystem:
         new state space.
 
         Args:
-            direction (str): Either ``DIRECTIONS[PAST]`` or
-                ``DIRECTIONS[FUTURE]``.
+            direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+                :const:`~pyphi.constants.Direction.FUTURE`.
             repertoire (np.ndarray): A repertoire.
 
         Keyword Args:
@@ -473,25 +474,25 @@ class Subsystem:
         """Expand a partial cause repertoire over a purview to a distribution
         over the entire subsystem's state space.
         """
-        return self.expand_repertoire(DIRECTIONS[PAST], repertoire,
+        return self.expand_repertoire(Direction.PAST, repertoire,
                                       new_purview)
 
     def expand_effect_repertoire(self, repertoire, new_purview=None):
         """Expand a partial effect repertoire over a purview to a distribution
         over the entire subsystem's state space.
         """
-        return self.expand_repertoire(DIRECTIONS[FUTURE], repertoire,
+        return self.expand_repertoire(Direction.FUTURE, repertoire,
                                       new_purview)
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
-        return measure(DIRECTIONS[PAST],
+        return measure(Direction.PAST,
                    self.cause_repertoire(mechanism, purview),
                    self.unconstrained_cause_repertoire(purview))
 
     def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
-        return measure(DIRECTIONS[FUTURE],
+        return measure(Direction.FUTURE,
                    self.effect_repertoire(mechanism, purview),
                    self.unconstrained_effect_repertoire(purview))
 
@@ -512,8 +513,8 @@ class Subsystem:
         partition.
 
         Args:
-            direction (str): Either ``DIRECTIONS[PAST]`` or
-                ``DIRECTIONS[FUTURE]``.
+            direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+                :const:`~pyphi.constants.Direction.FUTURE`.
             mechanism (tuple[int]): The nodes in the mechanism.
             purview (tuple[int]): The nodes in the purview.
             partition (Bipartition): The partition to evaluate.
@@ -543,8 +544,8 @@ class Subsystem:
         purview.
 
         Args:
-            direction (str): Either ``DIRECTIONS[PAST]`` or
-                ``DIRECTIONS[FUTURE]``.
+            direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+                :const:`~pyphi.constants.Direction.FUTURE`.
             mechanism (tuple[int]): The nodes in the mechanism.
             purview (tuple[int]): The nodes in the purview.
 
@@ -577,7 +578,7 @@ class Subsystem:
                        subsystem=self)
 
         # State is unreachable - return 0 instead of giving nonsense results
-        if (direction == DIRECTIONS[PAST] and
+        if (direction == Direction.PAST and
                 np.all(unpartitioned_repertoire == 0)):
             return _mip(0, None, None)
 
@@ -610,16 +611,16 @@ class Subsystem:
     def mip_past(self, mechanism, purview):
         """Return the past minimum information partition.
 
-        Alias for |find_mip| with ``direction`` set to ``DIRECTIONS[FUTURE]``.
+        Alias for |find_mip| with ``direction`` set to ``Direction.FUTURE``.
         """
-        return self.find_mip(DIRECTIONS[PAST], mechanism, purview)
+        return self.find_mip(Direction.PAST, mechanism, purview)
 
     def mip_future(self, mechanism, purview):
         """Return the future minimum information partition.
 
         Alias for |find_mip| with ``direction`` set to |future|.
         """
-        return self.find_mip(DIRECTIONS[FUTURE], mechanism, purview)
+        return self.find_mip(Direction.FUTURE, mechanism, purview)
 
     def phi_mip_past(self, mechanism, purview):
         """Return the |small_phi| of the past minimum information partition.
@@ -653,8 +654,8 @@ class Subsystem:
         Filters out trivially-reducible purviews.
 
         Args:
-            direction ('str'): Either ``DIRECTIONS[PAST]`` or
-                ``DIRECTIONS[FUTURE]``.
+            direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+                :const:`~pyphi.constants.Direction.FUTURE`.
             mechanism (tuple[int]): The mechanism of interest.
 
         Keyword Args:
@@ -676,9 +677,8 @@ class Subsystem:
         """Return the maximally irreducible cause or effect for a mechanism.
 
         Args:
-            direction (str): The temporal direction (``DIRECTIONS[PAST]`` or
-                ``DIRECTIONS[FUTURE]``)
-                specifying cause or effect.
+            direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+                :const:`~pyphi.constants.Direction.FUTURE`.
             mechanism (tuple[int]): The mechanism to be tested for
                 irreducibility.
 
@@ -698,7 +698,7 @@ class Subsystem:
             are maximally different than the unconstrained cause/effect
             repertoires (*i.e.*, those that maximize |small_phi|). Here, we
             return only information corresponding to one direction,
-            ``DIRECTIONS[PAST]`` or ``DIRECTIONS[FUTURE]``, i.e., we return a
+            ``Direction.PAST`` or ``Direction.FUTURE``, i.e., we return a
             core cause or core effect, not the pair of them.
         """
         purviews = self._potential_purviews(direction, mechanism, purviews)
@@ -714,16 +714,18 @@ class Subsystem:
     def core_cause(self, mechanism, purviews=False):
         """Return the core cause repertoire of a mechanism.
 
-        Alias for |find_mice| with ``direction`` set to ``DIRECTIONS[PAST]``.
+        Alias for |find_mice| with ``direction`` set to
+        :const:`~pyphi.constants.Direction.PAST`.
         """
-        return self.find_mice('past', mechanism, purviews=purviews)
+        return self.find_mice(Direction.PAST, mechanism, purviews=purviews)
 
     def core_effect(self, mechanism, purviews=False):
         """Return the core effect repertoire of a mechanism.
 
-        Alias for |find_mice| with ``direction`` set to ``DIRECTIONS[FUTURE]``.
+        Alias for |find_mice| with ``direction`` set to
+        :const:`~pyphi.constants.Direction.FUTURE`.
         """
-        return self.find_mice('future', mechanism, purviews=purviews)
+        return self.find_mice(Direction.FUTURE, mechanism, purviews=purviews)
 
     def phi_max(self, mechanism):
         """Return the |small_phi_max| of a mechanism.
@@ -750,9 +752,9 @@ class Subsystem:
         effect_repertoire = self.effect_repertoire((), ())
 
         # Null cause.
-        cause = Mice(_null_mip(DIRECTIONS[PAST], (), (), cause_repertoire))
+        cause = Mice(_null_mip(Direction.PAST, (), (), cause_repertoire))
         # Null effect.
-        effect = Mice(_null_mip(DIRECTIONS[FUTURE], (), (), effect_repertoire))
+        effect = Mice(_null_mip(Direction.FUTURE, (), (), effect_repertoire))
 
         # All together now...
         return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
@@ -852,16 +854,17 @@ def emd(direction, d1, d2):
     solution is used for effect repertoires.
 
     Args:
-        direction (str): Either ``DIRECTIONS[PAST]`` or ``DIRECTIONS[FUTURE]``.
+        direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+            :const:`~pyphi.constants.Direction.FUTURE`.
         d1 (np.ndarray): The first repertoire.
         d2 (np.ndarray): The second repertoire.
 
     Returns:
         float: The EMD between ``d1`` and ``d2``, rounded to |PRECISION|.
     """
-    if direction == DIRECTIONS[PAST]:
+    if direction == Direction.PAST:
         func = utils.hamming_emd
-    elif direction == DIRECTIONS[FUTURE]:
+    elif direction == Direction.FUTURE:
         func = effect_emd
 
     return round(func(d1, d2), config.PRECISION)
@@ -871,7 +874,8 @@ def measure(direction, d1, d2):
     """Compute the distance between two repertoires for the given direction.
 
     Args:
-        direction (str): Either ``DIRECTIONS[PAST]`` or ``DIRECTIONS[FUTURE]``.
+        direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+            :const:`~pyphi.constants.Direction.FUTURE`.
         d1 (np.ndarray): The first repertoire.
         d2 (np.ndarray): The second repertoire.
 

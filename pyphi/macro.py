@@ -245,7 +245,7 @@ class MacroSubsystem(Subsystem):
         """Return a cut version of this |MacroSubsystem|
 
         Args:
-            cut (|Cut|): The cut to apply to this |MacroSubsystem|.
+            cut (Cut): The cut to apply to this |MacroSubsystem|.
 
         Returns:
             |MacroSubsystem|

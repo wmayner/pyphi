@@ -5,6 +5,7 @@ import pytest
 from itertools import chain
 
 from pyphi import Subsystem
+from pyphi.constants import Direction
 from pyphi.models import Mice, Cut, _null_mip
 from pyphi.utils import phi_eq
 
@@ -15,7 +16,7 @@ import example_networks
 # ====================
 
 s = example_networks.s()
-directions = ('past', 'future')
+directions = (Direction.PAST, Direction.FUTURE)
 cuts = (None, Cut((1, 2), (0,)))
 subsystem = {
     cut: Subsystem(s.network, s.state, s.node_indices, cut=cut)
@@ -24,13 +25,13 @@ subsystem = {
 
 expected_purview_indices = {
     cuts[0]: {
-        'past': {
+        Direction.PAST: {
             (1,): (2,),
             (2,): (0, 1),
             (0, 1): (1, 2),
             (0, 1, 2): (0, 1, 2)
         },
-        'future': {
+        Direction.FUTURE: {
             (1,): (0,),
             (2,): (1,),
             (0, 1): (2,),
@@ -38,13 +39,13 @@ expected_purview_indices = {
         }
     },
     cuts[1]: {
-        'past': {
+        Direction.PAST: {
             (1,): (2,),
             (2,): (0, 1),
             (0, 1): (),
             (0, 1, 2): (),
         },
-        'future': {
+        Direction.FUTURE: {
             (1,): (2,),
             (2,): (1,),
             (0, 1): (2,),
@@ -116,27 +117,25 @@ def test_find_mice_empty(s):
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
 def test_core_cause_or_effect(cut, direction, expected):
-    if direction == 'past':
+    if direction == Direction.PAST:
         core_ce = subsystem[cut].core_cause
-    elif direction == 'future':
+    elif direction == Direction.FUTURE:
         core_ce = subsystem[cut].core_effect
-    else:
-        raise ValueError("Direction must be 'past' or 'future'")
     assert core_ce(expected.mechanism) == expected
 
 
 phi_max_scenarios = [
     [
         (cut, past.mechanism, min(past.phi, future.phi))
-        for past, future in zip(expected_mice[cut]['past'],
-                                expected_mice[cut]['future'])]
+        for past, future in zip(expected_mice[cut][Direction.PAST],
+                                expected_mice[cut][Direction.FUTURE])]
     for cut in cuts
 ]
 # Flatten singly-nested list of scenarios.
 phi_max_scenarios = list(chain(*phi_max_scenarios))
 
 
-@pytest.mark.parametrize('cut,mechanism, expected_phi_max', phi_max_scenarios)
+@pytest.mark.parametrize('cut,mechanism,expected_phi_max', phi_max_scenarios)
 def test_phi_max(cut, expected_phi_max, mechanism):
     assert phi_eq(subsystem[cut].phi_max(mechanism), expected_phi_max)
 

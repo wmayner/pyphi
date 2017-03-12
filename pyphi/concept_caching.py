@@ -17,7 +17,7 @@ import numpy as np
 from marbl import MarblSet
 
 from . import config, convert, db, models
-from .constants import DIRECTIONS, FUTURE, PAST
+from .constants import Direction
 
 
 class NormalizedMechanism:
@@ -158,9 +158,8 @@ class NormalizedMice(_NormalizedMice):
         phi (float):
             The difference between the mechanism's unpartitioned and
             partitioned repertoires.
-        direction (str):
-            Either 'past' or 'future'. If 'past' ('future'), this represents a
-            maximally irreducible cause (effect).
+        direction (Direction): :const:`~pyphi.constants.Direction.PAST` or
+            :const:`~pyphi.constants.Direction.FUTURE`.
         mechanism (tuple(int)):
             The normalized indices of the MICE's mechanism.
         purview (tuple(int)):
@@ -239,9 +238,9 @@ class NormalizedConcept:
     def __init__(self, normalized_mechanism, concept):
         self.mechanism = normalized_mechanism
         self.phi = concept.phi
-        self.cause = _normalize_mice(DIRECTIONS[PAST], concept.cause,
+        self.cause = _normalize_mice(Direction.PAST, concept.cause,
                                      self.mechanism)
-        self.effect = _normalize_mice(DIRECTIONS[FUTURE], concept.effect,
+        self.effect = _normalize_mice(Direction.FUTURE, concept.effect,
                                       self.mechanism)
 
     def __hash__(self):

@@ -9,14 +9,14 @@ Methods for validating common types of input.
 import numpy as np
 
 from . import config, constants, convert, exceptions, utils
-from .constants import EPSILON
+from .constants import EPSILON, Direction
 
 
 def direction(direction):
     """Validate that the given direction is one of the allowed constants."""
-    if direction not in constants.DIRECTIONS:
+    if direction not in Direction:
         raise ValueError('Direction must be one of '
-                         '{}.'.format(constants.DIRECTIONS))
+                         '{}.'.format(Direction))
     return True
 
 

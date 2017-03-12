@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 from pyphi import models, constants, config, Subsystem
+from pyphi.constants import Direction
 
 
 # TODO: better way to build test objects than Mock?
@@ -213,18 +214,18 @@ def test_mip_ordering_and_equality():
     assert mip(phi=1.0) == mip(phi=1.0)
     assert mip(phi=1.0) == mip(phi=(1.0 - constants.EPSILON/2))
     assert mip(phi=1.0) != mip(phi=(1.0 - constants.EPSILON * 2))
-    assert mip(dir='past') != mip(dir='future')
+    assert mip(dir=Direction.PAST) != mip(dir=Direction.FUTURE)
     assert mip(mech=(1,)) != mip(mech=(1, 2))
 
     with pytest.raises(TypeError):
-        mip(dir='past') < mip(dir='future')
+        mip(dir=Direction.PAST) < mip(dir=Direction.FUTURE)
 
     with pytest.raises(TypeError):
-        mip(dir='past') >= mip(dir='future')
+        mip(dir=Direction.PAST) >= mip(dir=Direction.FUTURE)
 
 
 def test_null_mip():
-    direction = 'past'
+    direction = Direction.PAST
     mechanism = (0,)
     purview = (1,)
     unpartitioned_repertoire = 'repertoire'
@@ -299,7 +300,7 @@ def test_mice_repr_str():
 
 
 def test_relevant_connections(s, subsys_n1n2):
-    mice = models.Mice(mip(mech=(0,), purv=(1,), dir='past'))
+    mice = models.Mice(mip(mech=(0,), purv=(1,), dir=Direction.PAST))
     answer = np.array([
         [0, 0, 0],
         [1, 0, 0],
@@ -307,7 +308,7 @@ def test_relevant_connections(s, subsys_n1n2):
     ])
     assert np.array_equal(mice._relevant_connections(s), answer)
 
-    mice = models.Mice(mip(mech=(1,), purv=(1, 2), dir='future'))
+    mice = models.Mice(mip(mech=(1,), purv=(1, 2), dir=Direction.FUTURE))
     answer = np.array([
         [1, 1],
         [0, 0],
@@ -321,12 +322,12 @@ def test_damaged(s):
     subsys = Subsystem(s.network, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:
-    mice = models.Mice(mip(mech=(0, 1), purv=(1, 2), dir='future'))
+    mice = models.Mice(mip(mech=(0, 1), purv=(1, 2), dir=Direction.FUTURE))
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 
     # Cut splits mechanism & purview (but not *only* mechanism)
-    mice = models.Mice(mip(mech=(0,), purv=(1, 2), dir='future'))
+    mice = models.Mice(mip(mech=(0,), purv=(1, 2), dir=Direction.FUTURE))
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 

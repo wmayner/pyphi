@@ -7,24 +7,23 @@ Functions used by more than one PyPhi module or class, or that might be of
 external use.
 """
 
-import os
-import itertools
-import re
-import logging
 import hashlib
-import numpy as np
+import itertools
+import logging
+import os
 from itertools import chain, combinations
+
+import numpy as np
 
 from pyemd import emd
 from scipy.misc import comb
-from scipy.spatial.distance import cdist
 from scipy.sparse import csc_matrix
 from scipy.sparse.csgraph import connected_components
+from scipy.spatial.distance import cdist
 from scipy.stats import entropy
 
 from . import constants, convert
 from .cache import cache
-
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)

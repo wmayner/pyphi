@@ -8,7 +8,7 @@ import numpy as np
 from unittest.mock import patch
 
 from pyphi import constants, config, compute, models, utils, Network, Subsystem
-from pyphi.constants import DIRECTIONS, PAST, FUTURE
+from pyphi.constants import Direction
 from pyphi.models import Cut, _null_bigmip
 from pyphi.compute import constellation
 from pyphi.compute.big_phi import (_find_mip_parallel, _find_mip_sequential,
@@ -228,11 +228,11 @@ def test_null_concept(s, flushcache, restore_fs_cache):
     flushcache()
     cause = models.Mice(models.Mip(
         unpartitioned_repertoire=s.unconstrained_cause_repertoire(()),
-        phi=0, direction=DIRECTIONS[PAST], mechanism=(), purview=(),
+        phi=0, direction=Direction.PAST, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
     effect = models.Mice(models.Mip(
         unpartitioned_repertoire=s.unconstrained_effect_repertoire(()),
-        phi=0, direction=DIRECTIONS[FUTURE], mechanism=(), purview=(),
+        phi=0, direction=Direction.FUTURE, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
     assert (s.null_concept ==
             models.Concept(mechanism=(), phi=0, cause=cause, effect=effect,
