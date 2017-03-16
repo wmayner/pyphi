@@ -781,7 +781,7 @@ class Subsystem:
                        effect=effect, subsystem=self)
 
 
-def mip_bipartitions(mechanism, purview):
+def mip_bipartitions(mechanism, purview, split_mechanism=False):
     """Return all |small_phi| bipartitions of a mechanism over a purview.
 
     Excludes all bipartitions where one half is entirely empty, e.g::
@@ -823,9 +823,16 @@ def mip_bipartitions(mechanism, purview):
     numerators = utils.bipartition(mechanism)
     denominators = utils.directed_bipartition(purview)
 
-    return [Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
-            for (n, d) in itertools.product(numerators, denominators)
-            if len(n[0]) + len(d[0]) > 0 and len(n[1]) + len(d[1]) > 0]
+    bipartitions = [Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
+                    for (n, d) in itertools.product(numerators, denominators)
+                    if len(n[0]) + len(d[0]) > 0 and len(n[1]) + len(d[1]) > 0]
+
+    if split_mechanism:
+        bipartitions = [b for b in bipartitions
+                        if (b[0].mechanism and b[1].mechanism)
+                        or not b[0].purview or not b[1].purview]
+
+    return bipartitions
 
 
 def effect_emd(d1, d2):
