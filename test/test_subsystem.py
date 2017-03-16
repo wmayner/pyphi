@@ -9,7 +9,7 @@ import pytest
 
 import example_networks
 from pyphi import config, exceptions, Network, utils, validate
-from pyphi.models import Cut, Part
+from pyphi.models import Bipartition, Cut, Part
 from pyphi.subsystem import Subsystem, mip_bipartitions
 
 
@@ -128,30 +128,30 @@ def test_indices2nodes_with_bad_indices(subsys_n1n2):
 
 def test_mip_bipartition():
     mechanism, purview = (0,), (1, 2)
-    answer = [
-        (Part((), (2,)), Part((0,), (1,))),
-        (Part((), (1,)), Part((0,), (2,))),
-        (Part((), (1, 2)), Part((0,), ())),
-    ]
-    assert set(mip_bipartitions(mechanism, purview)) == set(answer)
+    answer = set([
+        Bipartition(Part((), (2,)), Part((0,), (1,))),
+        Bipartition(Part((), (1,)), Part((0,), (2,))),
+        Bipartition(Part((), (1, 2)), Part((0,), ())),
+    ])
+    assert set(mip_bipartitions(mechanism, purview)) == answer
 
 
 def test_mip_bipartition_split_mechanisms():
     mechanism, purview = (0,), (1, 2)
-    answer = [
-        (Part((), (1, 2)), Part((0,), ())),
-    ]
-    assert set(mip_bipartitions(mechanism, purview, split_mechanism=True)) == set(answer)
+    answer = set([
+        Bipartition(Part((), (1, 2)), Part((0,), ())),
+    ])
+    assert set(mip_bipartitions(mechanism, purview, split_mechanism=True)) == answer
 
     mechanism, purview = (3, 4), (5, 6)
-    answer = [
-        (Part((3,), (5,)), Part((4,), (6,))),
-        (Part((3,), (6,)), Part((4,), (5,))),
-        (Part((3,), (5, 6)), Part((4,), ())),
-        (Part((3,), ()), Part((4,), (5, 6))),
-        (Part((), (5, 6)), Part((3, 4), ())),
-    ]
-    assert set(mip_bipartitions(mechanism, purview, split_mechanism=True)) == set(answer)
+    answer = set([
+        Bipartition(Part((3,), (5,)), Part((4,), (6,))),
+        Bipartition(Part((3,), (6,)), Part((4,), (5,))),
+        Bipartition(Part((3,), (5, 6)), Part((4,), ())),
+        Bipartition(Part((3,), ()), Part((4,), (5, 6))),
+        Bipartition(Part((), (5, 6)), Part((3, 4), ())),
+    ])
+    assert set(mip_bipartitions(mechanism, purview, split_mechanism=True)) == answer
 
 
 def test_is_cut(s):
