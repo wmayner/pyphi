@@ -136,6 +136,24 @@ def test_mip_bipartition():
     assert set(mip_bipartitions(mechanism, purview)) == set(answer)
 
 
+def test_mip_bipartition_split_mechanisms():
+    mechanism, purview = (0,), (1, 2)
+    answer = [
+        (Part((), (1, 2)), Part((0,), ())),
+    ]
+    assert set(mip_bipartitions(mechanism, purview, split_mechanism=True)) == set(answer)
+
+    mechanism, purview = (3, 4), (5, 6)
+    answer = [
+        (Part((3,), (5,)), Part((4,), (6,))),
+        (Part((3,), (6,)), Part((4,), (5,))),
+        (Part((3,), (5, 6)), Part((4,), ())),
+        (Part((3,), ()), Part((4,), (5, 6))),
+        (Part((), (5, 6)), Part((3, 4), ())),
+    ]
+    assert set(mip_bipartitions(mechanism, purview, split_mechanism=True)) == set(answer)
+
+
 def test_is_cut(s):
     assert s.is_cut is False
     s = Subsystem(s.network, s.state, s.node_indices, cut=Cut((0,), (1, 2)))
