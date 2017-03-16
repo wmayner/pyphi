@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*-
 # test_subsystem.py
 
-from unittest import mock
-
 import numpy as np
 import pytest
 
 import example_networks
-from pyphi import config, exceptions, Network, utils, validate
+from pyphi import config, exceptions, Network, utils
 from pyphi.models import Bipartition, Cut, Part
 from pyphi.subsystem import Subsystem, mip_bipartitions
 

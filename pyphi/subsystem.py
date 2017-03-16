@@ -9,7 +9,7 @@ import itertools
 import numpy as np
 
 from . import cache, config, utils, validate
-from .constants import EMD, KLD, L1, MEASURES, Direction
+from .constants import EMD, KLD, L1, Direction
 from .models import Bipartition, Concept, Cut, Mice, Mip, Part, _null_mip
 from .network import irreducible_purviews
 from .node import generate_nodes
