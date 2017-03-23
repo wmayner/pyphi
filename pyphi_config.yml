@@ -98,3 +98,5 @@ VALIDATE_SUBSYSTEM_STATES: true
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 # Use pretty __str__-like formatting in repr calls
 REPR_VERBOSITY: 2
+# Only consider bipartitions which strictly partition the mechanism.
+PARTITION_MECHANISMS: false

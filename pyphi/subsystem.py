@@ -583,7 +583,10 @@ class Subsystem:
             return _mip(0, None, None)
 
         # Loop over possible MIP bipartitions
-        for partition in mip_bipartitions(mechanism, purview):
+        partitions = mip_bipartitions(
+            mechanism, purview, split_mechanism=config.PARTITION_MECHANISMS)
+
+        for partition in partitions:
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(
@@ -706,8 +709,15 @@ class Subsystem:
         if not purviews:
             max_mip = _null_mip(direction, mechanism, ())
         else:
-            max_mip = max(self.find_mip(direction, mechanism, purview)
-                          for purview in purviews)
+            mips = [self.find_mip(direction, mechanism, purview)
+                    for purview in purviews]
+
+            if config.PARTITION_MECHANISMS:
+                # In the case of tie, chose the mip with smallest purview.
+                # (The default behavior is to chose the larger purview.)
+                max_mip = max(mips, key=lambda m: (m.phi, -len(m.purview)))
+            else:
+                max_mip = max(mips)
 
         return Mice(max_mip)
 

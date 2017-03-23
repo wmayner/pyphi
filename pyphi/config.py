@@ -280,6 +280,35 @@ Miscellaneous
     >>> defaults['REPR_VERBOSITY']
     2
 
+- ``pyphi.config.PARTITION_MECHANISMS``: If ``True``, |small_phi|-MIP
+  computations will only consider bipartitions that strictly partition the
+  mechanism. That is, for the mechanism ``(A, B)`` and purview ``(B, C, D)``
+  the partition ::
+
+    AB   []
+    -- X --
+    B    CD
+
+  is not considered, but ::
+
+    A    B
+    -- X --
+    B    CD
+
+  is. The following is also valid::
+
+    AB   []
+    -- X ---
+    []   BCD
+
+  Additionally, in the case of a |small_phi|-tie when computing MICE, this
+  setting choses the MIP with smallest purview instead the largest (which is
+  the default behavior.)
+
+    >>> defaults['PARTITION_MECHANISMS']
+    False
+
+
 -------------------------------------------------------------------------------
 """
 
@@ -366,6 +395,8 @@ DEFAULTS = {
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
     # Use prettier __str__-like formatting in `repr` calls.
     'REPR_VERBOSITY': 2,
+    # Only consider bipartitions which strictly partition the mechanism.
+    'PARTITION_MECHANISMS': False,
 }
 
 # Get a reference to this module's dictionary so we can set the configuration
