@@ -8,7 +8,7 @@
     :target: http://dx.doi.org/10.5281/zenodo.55692
     :alt: Zenodo DOI badge
 
-.. image:: https://img.shields.io/travis/wmayner/pyphi/master.svg?maxAge=600
+.. image:: https://img.shields.io/travis/wmayner/pyphi.svg?maxAge=600
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build badge
 
@@ -25,7 +25,7 @@
 PyPhi is a Python library for computing integrated information (|phi|), and the
 associated quantities and objects.
 
-If you use this code, please cite it, as well as the `IIT 3.0 paper
+**If you use this code, please cite it, as well as the** `IIT 3.0 paper
 <http://dx.doi.org/10.1371/journal.pcbi.1003588>`_.
 
 To cite the code, use the Zenodo DOI for the verison you used. The latest one
@@ -49,6 +49,13 @@ Or in BibTeX::
 
 (Just make sure to use the version number, DOI, and URL for the version you
 actually used.)
+
+For technical issues with PyPhithe software, please use the `issues page
+<https://github.com/wmayner/pyphi/issues>`_.
+
+For discussion about the software or integrated information theory in general,
+you can join the `PyPhi users group
+<https://groups.google.com/forum/#!forum/pyphi-users>`_.
 
 
 Usage, Examples, and API documentation
