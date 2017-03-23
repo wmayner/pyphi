@@ -134,12 +134,12 @@ def test_mip_bipartition():
     assert set(mip_bipartitions(mechanism, purview)) == answer
 
 
-def test_mip_bipartition_split_mechanisms():
+def test_mip_bipartition_partition_mechanisms():
     mechanism, purview = (0,), (1, 2)
     answer = set([
         Bipartition(Part((), (1, 2)), Part((0,), ())),
     ])
-    assert set(mip_bipartitions(mechanism, purview, split_mechanism=True)) == answer
+    assert set(mip_bipartitions(mechanism, purview, partition_mechanism=True)) == answer
 
     mechanism, purview = (3, 4), (5, 6)
     answer = set([
@@ -149,7 +149,7 @@ def test_mip_bipartition_split_mechanisms():
         Bipartition(Part((3,), ()), Part((4,), (5, 6))),
         Bipartition(Part((), (5, 6)), Part((3, 4), ())),
     ])
-    assert set(mip_bipartitions(mechanism, purview, split_mechanism=True)) == answer
+    assert set(mip_bipartitions(mechanism, purview, partition_mechanism=True)) == answer
 
 
 def test_PARTITION_MECHANISMS_choses_smallest_purview(s):
