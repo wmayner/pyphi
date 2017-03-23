@@ -155,6 +155,23 @@ def test_mip_bipartition_split_mechanisms():
     assert set(mip_bipartitions(mechanism, purview, split_mechanism=True)) == answer
 
 
+def test_PARTITION_MECHANISMS_choses_smallest_purview(s):
+    mechanism = (1,)
+
+    with config.override(PARTITION_MECHANISMS=False):
+        effect = s.core_effect(mechanism)
+        assert effect.phi == 0.25
+        assert effect.purview == (0,)
+
+    s._repertoire_cache.clear()
+
+    # In phi-tie, chose the smaller purview ((0,) instead of (0, 2))
+    with config.override(PARTITION_MECHANISMS=True):
+        effect = s.core_effect(mechanism)
+        assert effect.phi == 0.25
+        assert effect.purview == (0,)
+
+
 def test_is_cut(s):
     assert s.is_cut is False
     s = Subsystem(s.network, s.state, s.node_indices, cut=Cut((0,), (1, 2)))
