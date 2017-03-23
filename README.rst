@@ -8,7 +8,7 @@
     :target: http://dx.doi.org/10.5281/zenodo.55692
     :alt: Zenodo DOI badge
 
-.. image:: https://img.shields.io/travis/wmayner/pyphi.svg?maxAge=600
+.. image:: https://img.shields.io/travis/wmayner/pyphi.svg?maxAge=601
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build badge
 
@@ -24,6 +24,10 @@
 
 PyPhi is a Python library for computing integrated information (|phi|), and the
 associated quantities and objects.
+
+
+Cite the code
+`````````````
 
 **If you use this code, please cite it, as well as the** `IIT 3.0 paper
 <http://dx.doi.org/10.1371/journal.pcbi.1003588>`_.
@@ -50,8 +54,12 @@ Or in BibTeX::
 (Just make sure to use the version number, DOI, and URL for the version you
 actually used.)
 
-For technical issues with PyPhithe software, please use the `issues page
-<https://github.com/wmayner/pyphi/issues>`_.
+
+Discussion
+``````````
+
+For technical issues with PyPhi or feature requests, please use the `issues
+page <https://github.com/wmayner/pyphi/issues>`_.
 
 For discussion about the software or integrated information theory in general,
 you can join the `PyPhi users group
@@ -96,52 +104,6 @@ Detailed installation guide for Mac OS X
 ````````````````````````````````````````
 
 `See here <https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.md>`_.
-
-
-Optional: caching with MongoDb
-`````````````````````````````````
-
-PyPhi stores the results of |Phi| calculations as they're computed in order to
-avoid expensive re-computation. These results can be stored locally on the
-filesystem (the default setting), or in a full-fledged database.
-
-Using the default caching system is easier and works out of the box, but using
-a database is more robust.
-
-To use the database-backed caching system, you must install `MongoDB
-<http://www.mongodb.org/>`_. Please see their `installation guide
-<http://docs.mongodb.org/manual/installation/>`_ for instructions.
-
-Once you have MongoDB installed, use ``mongod`` to start the MongoDB server.
-Make sure the ``mongod`` configuration matches the PyPhi's database
-configuration settings in ``pyphi_config.yml`` (see the `configuration section
-<https://pythonhosted.org/pyphi/index.html#configuration>`_ of PyPhi's
-documentation).
-
-You can also check out MongoDB's `Getting Started guide
-<http://docs.mongodb.org/manual/tutorial/getting-started/>`_ or the full
-`manual <http://docs.mongodb.org/manual/>`_.
-
-
-Optional: caching with Redis
-`````````````````````````````
-
-PyPhi can also use Redis as a fast in-memory global LRU cache to store Mice
-objects, reducing the memory load on PyPhi processes.
-
-`Install Redis <http://redis.io/download>`_. The `redis.conf` file provided
-with PyPhi includes the minimum settings needed to run Redis as an LRU cache:
-
-.. code:: bash
-
-    redis-server /path/to/pyphi/redis.conf
-
-Once the server is running you can enable Redis caching by setting
-``REDIS_CACHE: true`` in your ``pyphi_config.yml``.
-
-**Note:** PyPhi currently flushes the connected Redis database at the start of
-every execution. If you are running Redis for another application be sure PyPhi
-connects to its own Redis server.
 
 
 Contributing
