@@ -26,10 +26,10 @@ PyPhi is a Python library for computing integrated information (|phi|), and the
 associated quantities and objects.
 
 
-Cite the code
-`````````````
+Citing the code
+~~~~~~~~~~~~~~~
 
-**If you use this code, please cite it, as well as the** `IIT 3.0 paper
+If you use this code, please cite it, as well as the `IIT 3.0 paper
 <http://dx.doi.org/10.1371/journal.pcbi.1003588>`_.
 
 To cite the code, use the Zenodo DOI for the verison you used. The latest one
@@ -53,17 +53,6 @@ Or in BibTeX::
 
 (Just make sure to use the version number, DOI, and URL for the version you
 actually used.)
-
-
-Discussion
-``````````
-
-For technical issues with PyPhi or feature requests, please use the `issues
-page <https://github.com/wmayner/pyphi/issues>`_.
-
-For discussion about the software or integrated information theory in general,
-you can join the `PyPhi users group
-<https://groups.google.com/forum/#!forum/pyphi-users>`_.
 
 
 Usage, Examples, and API documentation
@@ -104,6 +93,17 @@ Detailed installation guide for Mac OS X
 ````````````````````````````````````````
 
 `See here <https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.md>`_.
+
+
+Discussion
+~~~~~~~~~~
+
+For technical issues with PyPhi or feature requests, please use the `issues
+page <https://github.com/wmayner/pyphi/issues>`_.
+
+For discussion about the software or integrated information theory in general,
+you can join the `PyPhi users group
+<https://groups.google.com/forum/#!forum/pyphi-users>`_.
 
 
 Contributing
