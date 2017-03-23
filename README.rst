@@ -25,11 +25,7 @@
 PyPhi is a Python library for computing integrated information (|phi|), and the
 associated quantities and objects.
 
-
-Citing the code
-~~~~~~~~~~~~~~~
-
-If you use this code, please cite it, as well as the `IIT 3.0 paper
+**If you use this code, please cite it, as well as the** `IIT 3.0 paper
 <http://dx.doi.org/10.1371/journal.pcbi.1003588>`_.
 
 To cite the code, use the Zenodo DOI for the verison you used. The latest one
