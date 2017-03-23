@@ -563,7 +563,7 @@ class Subsystem:
 
         # Loop over possible MIP bipartitions
         partitions = mip_bipartitions(
-            mechanism, purview, split_mechanism=config.PARTITION_MECHANISMS)
+            mechanism, purview, partition_mechanism=config.PARTITION_MECHANISMS)
 
         for partition in partitions:
             partitioned_repertoire = self.partitioned_repertoire(direction,
@@ -770,7 +770,7 @@ class Subsystem:
                        effect=effect, subsystem=self)
 
 
-def mip_bipartitions(mechanism, purview, split_mechanism=False):
+def mip_bipartitions(mechanism, purview, partition_mechanism=False):
     """Return all |small_phi| bipartitions of a mechanism over a purview.
 
     Excludes all bipartitions where one half is entirely empty, e.g::
@@ -782,6 +782,11 @@ def mip_bipartitions(mechanism, purview, split_mechanism=False):
     Args:
         mechanism (tuple[int]): The mechanism to partition
         purview (tuple[int]): The purview to partition
+
+    Keyword Args:
+        partition_mechanism (boolean): If True, the mechanism will be
+            strictly partitioned. See ``pyphi.config.PARTITION_MECHANISMS``
+            for more information.
 
     Returns:
         list[|Bipartition|]: Where each partition is
@@ -816,7 +821,7 @@ def mip_bipartitions(mechanism, purview, split_mechanism=False):
                     for (n, d) in itertools.product(numerators, denominators)
                     if len(n[0]) + len(d[0]) > 0 and len(n[1]) + len(d[1]) > 0]
 
-    if split_mechanism:
+    if partition_mechanism:
         bipartitions = [b for b in bipartitions
                         if (b[0].mechanism and b[1].mechanism)
                         or not b[0].purview or not b[1].purview]
