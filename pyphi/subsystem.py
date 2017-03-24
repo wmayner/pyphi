@@ -796,9 +796,17 @@ def mip_bipartitions(mechanism, purview, partition_mechanism=False):
 
     Excludes all bipartitions where one half is entirely empty, e.g::
 
-         A    []                    A    []
-        --- X -- is not valid, but --- X --- is.
-         B    []                    []    B
+         A    []
+        --- X --
+         B    []
+
+    is not valid, but ::
+
+        A    []
+        -- X --
+        []   B
+
+    is.
 
     Args:
         mechanism (tuple[int]): The mechanism to partition
@@ -810,7 +818,7 @@ def mip_bipartitions(mechanism, purview, partition_mechanism=False):
             for more information.
 
     Returns:
-        list[|Bipartition|]: Where each bipartition is
+        list[Bipartition]: Where each bipartition is
 
         ::
 
