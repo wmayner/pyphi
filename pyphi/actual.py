@@ -11,7 +11,7 @@ import logging
 import numpy as np
 from pprint import pprint
 
-from . import compute, utils, validate
+from . import compute, config, utils, validate
 from .constants import DIRECTIONS, FUTURE, PAST, BIDIRECTIONAL, EPSILON
 from .jsonify import jsonify
 from .models import (AcMip, Occurence, AcBigMip, _null_ac_mip, _null_ac_bigmip,
@@ -274,7 +274,10 @@ class Context:
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
 
-        for partition in mip_bipartitions(mechanism, purview):
+        partitions = mip_bipartitions(
+            mechanism, purview, partition_mechanism=config.PARTITION_MECHANISMS)
+
+        for partition in partitions:
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
             alpha = self._normalize(probability - partitioned_probability,
