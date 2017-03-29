@@ -191,3 +191,8 @@ PLoS Comput Biol 10(5): e1003588. doi: 10.1371/journal.pcbi.1003588
 
 .. |phi| unicode:: U+1D6BD .. mathematical bold capital phi
 .. |small_phi| unicode:: U+1D6D7 .. mathematical bold phi
+
+
+.. image:: https://badges.gitter.im/pyphi/Lobby.svg
+   :alt: Join the chat at https://gitter.im/pyphi/Lobby
+   :target: https://gitter.im/pyphi/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
