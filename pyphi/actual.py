@@ -358,16 +358,22 @@ class Context:
 
         # Find the maximal MIP over the remaining purviews.
         if not purviews:
-            maximal_mip = _null_ac_mip(self.mechanism_state(direction),
-                                       direction, mechanism, None)
+            max_mip = _null_ac_mip(self.mechanism_state(direction),
+                                   direction, mechanism, None)
         else:
             # This max should be most positive
-            maximal_mip = max(self.find_mip(direction, mechanism,
-                                            purview, norm, allow_neg)
-                              for purview in purviews)
+            mips = [self.find_mip(direction, mechanism, purview, norm, allow_neg)
+                    for purview in purviews]
+
+            if config.PARTITION_MECHANISMS:
+                # In the case of tie, chose the mip with smallest purview.
+                # (The default behavior is to chose the larger purview.)
+                max_mip = max(mips, key=lambda m: (m.phi, -len(m.purview)))
+            else:
+                max_mip = max(mips)
 
         # Construct the corresponding Occurence
-        return Occurence(maximal_mip)
+        return Occurence(max_mip)
 
     def find_mice(self, *args, **kwargs):
         """Backwards-compatible alias for `find_occurence`."""
