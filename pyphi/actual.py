@@ -368,7 +368,7 @@ class Context:
             if config.PARTITION_MECHANISMS:
                 # In the case of tie, chose the mip with smallest purview.
                 # (The default behavior is to chose the larger purview.)
-                max_mip = max(mips, key=lambda m: (m.phi, -len(m.purview)))
+                max_mip = max(mips, key=lambda m: (m.alpha, -len(m.purview)))
             else:
                 max_mip = max(mips)
 
