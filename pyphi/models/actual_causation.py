@@ -71,7 +71,7 @@ class AcMip(cmp._Orderable, namedtuple('AcMip', _acmip_attributes)):
 
     @property
     def phi(self):
-        self.phi = self.alpha
+        return self.alpha
 
     def __hash__(self):
         attrs = tuple(getattr(self, attr) for attr in _acmip_attributes_for_eq)

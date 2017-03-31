@@ -109,6 +109,10 @@ def test_acmip_hash():
     hash(acmip())
 
 
+def test_acmip_phi_alias():
+    assert acmip(alpha=3.3).phi == 3.3
+
+
 def test_action_ordering():
     assert action() == action()
 
