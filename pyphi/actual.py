@@ -10,6 +10,7 @@ import itertools
 import logging
 import numpy as np
 from pprint import pprint
+from math import log2
 
 from . import compute, exceptions, utils, validate
 from .constants import Direction, EPSILON
@@ -277,7 +278,11 @@ class Context:
         for partition in mip_bipartitions(mechanism, purview):
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
-            alpha = self._normalize(probability - partitioned_probability,
+            
+            if config.PARTITION_MECHANISMS == True:
+                alpha = log2(probability/partitioned_probability)
+            else:
+                alpha = self._normalize(probability - partitioned_probability,
                                     direction, purview)
 
             # First check for 0
