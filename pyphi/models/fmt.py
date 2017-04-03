@@ -208,17 +208,19 @@ def fmt_bipartition(partition, subsystem=None):
     if not partition:
         return ""
 
-    part0, part1 = partition
-    part0 = fmt_part(part0, subsystem).split("\n")
-    part1 = fmt_part(part1, subsystem).split("\n")
+    parts = [fmt_part(part, subsystem).split("\n") for part in partition]
 
     times = ("   ",
              " X ",
              "   ")
-
     breaks = ("\n", "\n", "")  # No newline at the end of string
+    between = [times] * (len(parts) - 1) + [breaks]
 
-    return "".join(chain.from_iterable(zip(part0, times, part1, breaks)))
+    # Alternate [part, break, part, ..., end]
+    elements = chain.from_iterable(zip(parts, between))
+
+    # Transform vertical stacks into horizontal lines
+    return "".join(chain.from_iterable(zip(*elements)))
 
 
 def fmt_constellation(c, title=None):

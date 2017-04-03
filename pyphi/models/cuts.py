@@ -3,6 +3,7 @@
 # models/cuts.py
 
 from collections import namedtuple
+from itertools import chain
 
 import numpy as np
 
@@ -122,7 +123,25 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
         return {'mechanism': self.mechanism, 'purview': self.purview}
 
 
-class Bipartition(namedtuple('Bipartition', ['part0', 'part1'])):
+class _BasePartition:
+    __slots__ = ()
+
+    @property
+    def mechanism(self):
+        """tuple[int]: The nodes of the mechanism in the partition."""
+        return tuple(sorted(chain.from_iterable(part.mechanism for part in self)))
+
+    @property
+    def purview(self):
+        """tuple[int]: The nodes of the purview in the partition."""
+        return tuple(sorted(chain.from_iterable(part.purview for part in self)))
+
+    def __str__(self):
+        return fmt.fmt_bipartition(self)
+
+
+class Bipartition(_BasePartition, namedtuple('Bipartition',
+                                             ['part0', 'part1'])):
     """A bipartition of a mechanism and purview.
 
     Attributes:
@@ -130,23 +149,21 @@ class Bipartition(namedtuple('Bipartition', ['part0', 'part1'])):
         part1 (Part): The second part of the partition.
     """
 
-    @property
-    def mechanism(self):
-        """tuple[int]: The nodes of the mechanism in the partition."""
-        return tuple(sorted(self[0].mechanism + self[1].mechanism))
-
-    @property
-    def purview(self):
-        """tuple[int]: The nodes of the purview in the partition."""
-        return tuple(sorted(self[0].purview + self[1].purview))
-
     __slots__ = ()
 
     def to_json(self):
         return {'part0': self.part0, 'part1': self.part1}
 
-    def __str__(self):
-        return fmt.fmt_bipartition(self)
-
     def __repr__(self):
         return fmt.make_repr(self, ['part0', 'part1'])
+
+
+class Tripartition(_BasePartition, namedtuple('Tripartition',
+                                              ['part0', 'part1', 'part2'])):
+    __slots__ = ()
+
+    def to_json(self):
+        raise NotImplemented
+
+    def __repr__(self):
+        return fmt.make_repr(self, ['part0', 'part1', 'part2'])

@@ -621,4 +621,46 @@ def test_make_reprs_calls_out_to_string():
 
 # }}}
 
+
+# Test partitions
+# ===============
+
+@pytest.fixture
+def bipartition():
+    return models.Bipartition(
+        models.Part((0,), (0, 4)),
+        models.Part((), (1,)))
+
+
+def test_bipartition_properties(bipartition):
+    assert bipartition.mechanism == (0,)
+    assert bipartition.purview == (0, 1, 4)
+
+
+def test_bipartition_str(bipartition):
+    assert str(bipartition) == (
+        " 0    []\n"
+        "--- X --\n"
+        "0,4   1 ")
+
+
+@pytest.fixture
+def tripartition():
+    return models.Tripartition(
+        models.Part((0,), (0, 4)),
+        models.Part((), (1,)),
+        models.Part((2,), (2,)))
+
+
+def test_tripartion_properties(tripartition):
+    assert tripartition.mechanism == (0, 2)
+    assert tripartition.purview == (0, 1, 2, 4)
+
+
+def test_tripartition_str(tripartition):
+    assert str(tripartition) == (
+        " 0    []   2\n"
+        "--- X -- X -\n"
+        "0,4   1    2")
+
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :
