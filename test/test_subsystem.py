@@ -7,8 +7,8 @@ import pytest
 
 import example_networks
 from pyphi import config, exceptions, Network, utils
-from pyphi.models import Bipartition, Cut, Part
-from pyphi.subsystem import Subsystem, mip_bipartitions
+from pyphi.models import Bipartition, Cut, Part, Tripartition
+from pyphi.subsystem import Subsystem, mip_bipartitions, wedge_partitions
 
 
 @config.override(VALIDATE_SUBSYSTEM_STATES=True)
@@ -150,6 +150,44 @@ def test_mip_bipartition_partition_mechanisms():
         Bipartition(Part((), (5, 6)), Part((3, 4), ())),
     ])
     assert set(mip_bipartitions(mechanism, purview, partition_mechanism=True)) == answer
+
+
+def test_wedge_partitions():
+    mechanism, purview = (0,), (1, 2)
+    assert set(wedge_partitions(mechanism, purview)) == set([
+        Tripartition(Part((), (1, 2)), Part((0,), ()), Part((), ())),
+        Tripartition(Part((), (2,)), Part((0,), ()), Part((), (1,))),
+        Tripartition(Part((), (1,)), Part((0,), ()), Part((), (2,))),
+        Tripartition(Part((), ()), Part((0,), ()), Part((), (1, 2))),
+    ])
+
+    mechanism, purview = (3, 4), (5, 6)
+    assert set(wedge_partitions(mechanism, purview)) == set([
+        Tripartition(Part((3,), (5,)), Part((4,), (6,)), Part((), ())),
+        Tripartition(Part((3,), ()), Part((4,), (6,)), Part((), (5,))),
+        Tripartition(Part((3,), (5,)), Part((4,), ()), Part((), (6,))),
+        Tripartition(Part((3,), ()), Part((4,), ()), Part((), (5, 6))),
+
+        Tripartition(Part((3,), (6,)), Part((4,), (5,)), Part((), ())),
+        Tripartition(Part((3,), (6,)), Part((4,), ()), Part((), (5,))),
+        Tripartition(Part((3,), ()), Part((4,), (5,)), Part((), (6,))),
+        Tripartition(Part((3,), ()), Part((4,), ()), Part((), (5, 6))),
+
+        Tripartition(Part((3,), (5, 6)), Part((4,), ()), Part((), ())),
+        Tripartition(Part((3,), (6,)), Part((4,), ()), Part((), (5,))),
+        Tripartition(Part((3,), (5,)), Part((4,), ()), Part((), (6,))),
+        Tripartition(Part((3,), ()), Part((4,), ()), Part((), (5, 6))),
+
+        Tripartition(Part((3,), ()), Part((4,), (5, 6)), Part((), ())),
+        Tripartition(Part((3,), ()), Part((4,), (6,)), Part((), (5,))),
+        Tripartition(Part((3,), ()), Part((4,), (5,)), Part((), (6,))),
+        Tripartition(Part((3,), ()), Part((4,), ()), Part((), (5, 6))),
+
+        Tripartition(Part((), (5, 6)), Part((3, 4), ()), Part((), ())),
+        Tripartition(Part((), (6,)), Part((3, 4), ()), Part((), (5,))),
+        Tripartition(Part((), (5,)), Part((3, 4), ()), Part((), (6,))),
+        Tripartition(Part((), ()), Part((3, 4), ()), Part((), (5, 6))),
+    ])
 
 
 def test_PARTITION_MECHANISMS_choses_smallest_purview(s):
