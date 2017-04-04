@@ -301,7 +301,15 @@ Miscellaneous
     -- X ---
     []   BCD
 
-  Additionally, in the case of a |small_phi|-tie when computing MICE, this
+  In addition, this option introduces wedge tripartitions of the form ::
+
+    A    B   []
+    -- X - X --
+    B    C   D
+
+  where the mechanism in the third part is always empty.
+
+  Finally, in the case of a |small_phi|-tie when computing MICE, this
   setting choses the MIP with smallest purview instead the largest (which is
   the default behavior.)
 

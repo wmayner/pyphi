@@ -7,6 +7,7 @@ import pytest
 
 import example_networks
 from pyphi import config, exceptions, Network, utils
+from pyphi.constants import Direction
 from pyphi.models import Bipartition, Cut, Part, Tripartition
 from pyphi.subsystem import Subsystem, mip_bipartitions, wedge_partitions
 
@@ -188,6 +189,15 @@ def test_wedge_partitions():
         Tripartition(Part((), (5,)), Part((3, 4), ()), Part((), (6,))),
         Tripartition(Part((), ()), Part((3, 4), ()), Part((), (5, 6))),
     ])
+
+
+def test_partitioned_repertoire_with_tripartition(s):
+    mechanism, purview = (0,), (1, 2)
+    tripartition = Tripartition(Part((), (1,)), Part((0,), ()), Part((), (2,)))
+
+    assert np.array_equal(
+        s.partitioned_repertoire(Direction.PAST, tripartition),
+        np.array([[[0.25, 0.25], [0.25, 0.25]]]))
 
 
 def test_PARTITION_MECHANISMS_choses_smallest_purview(s):

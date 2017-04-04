@@ -4,6 +4,7 @@
 
 """Represents a candidate system for |small_phi| and |big_phi| evaluation."""
 
+import functools
 import itertools
 
 import numpy as np
@@ -427,12 +428,11 @@ class Subsystem:
 
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire of a partitioned mechanism and purview."""
-        part1rep = self._repertoire(direction, partition[0].mechanism,
-                                    partition[0].purview)
-        part2rep = self._repertoire(direction, partition[1].mechanism,
-                                    partition[1].purview)
+        repertoires = [
+            self._repertoire(direction, part.mechanism, part.purview)
+            for part in partition]
 
-        return part1rep * part2rep
+        return functools.reduce(np.multiply, repertoires)
 
     def expand_repertoire(self, direction, repertoire, new_purview=None):
         """Expand a partial repertoire over a purview to a distribution over a
@@ -583,8 +583,10 @@ class Subsystem:
             return _mip(0, None, None)
 
         # Loop over possible MIP bipartitions
-        partitions = mip_bipartitions(
-            mechanism, purview, partition_mechanism=config.PARTITION_MECHANISMS)
+        if config.PARTITION_MECHANISMS:
+            partitions = wedge_partitions(mechanism, purview)
+        else:
+            partitions = mip_bipartitions(mechanism, purview)
 
         for partition in partitions:
             # Find the distance between the unpartitioned and partitioned
