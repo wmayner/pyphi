@@ -208,8 +208,7 @@ def test_PARTITION_MECHANISMS_choses_smallest_purview(s):
         assert effect.phi == 0.5
         assert effect.purview == (0, 1)
 
-    s._repertoire_cache.clear()
-    s._mice_cache.clear()
+    s.clear_caches()
 
     # In phi-tie, chose the smaller purview (0,)
     with config.override(PARTITION_MECHANISMS=True):

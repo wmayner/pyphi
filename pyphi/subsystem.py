@@ -141,6 +141,11 @@ class Subsystem:
         """Report repertoire cache statistics."""
         return self._repertoire_cache.info()
 
+    def clear_caches(self):
+        """Clear the mice and repertoire caches."""
+        self._repertoire_cache.clear()
+        self._mice_cache.clear()
+
     def __repr__(self):
         """Return a representation of this Subsystem."""
         return "Subsystem(" + repr(self.nodes) + ")"
