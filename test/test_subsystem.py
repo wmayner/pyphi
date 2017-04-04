@@ -201,19 +201,20 @@ def test_partitioned_repertoire_with_tripartition(s):
 
 
 def test_PARTITION_MECHANISMS_choses_smallest_purview(s):
-    mechanism = (1,)
+    mechanism = (1, 2)
 
     with config.override(PARTITION_MECHANISMS=False):
         effect = s.core_effect(mechanism)
-        assert effect.phi == 0.25
-        assert effect.purview == (0,)
+        assert effect.phi == 0.5
+        assert effect.purview == (0, 1)
 
     s._repertoire_cache.clear()
+    s._mice_cache.clear()
 
-    # In phi-tie, chose the smaller purview ((0,) instead of (0, 2))
+    # In phi-tie, chose the smaller purview (0,)
     with config.override(PARTITION_MECHANISMS=True):
         effect = s.core_effect(mechanism)
-        assert effect.phi == 0.25
+        assert effect.phi == 0.5
         assert effect.purview == (0,)
 
 
