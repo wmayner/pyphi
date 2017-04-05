@@ -877,19 +877,20 @@ def wedge_partitions(mechanism, purview):
                     if (b[0].mechanism and b[1].mechanism)
                     or not b[0].purview or not b[1].purview]
 
-    tripartitions = []
+    tripartitions = set()
     for bi in bipartitions:
         for p2 in utils.powerset(purview):
             # Move purview subset p2 to it's own Part
             p0 = set(bi[0].purview) - set(p2)
             p1 = set(bi[1].purview) - set(p2)
 
-            tripartitions.append(Tripartition(
-                Part(bi[0].mechanism, tuple(p0)),
-                Part(bi[1].mechanism, tuple(p1)),
-                Part((), p2)))
+            parts = (Part(bi[0].mechanism, tuple(p0)),
+                     Part(bi[1].mechanism, tuple(p1)),
+                     Part((), p2))
 
-    return tripartitions
+            tripartitions.add(Tripartition(*sorted(parts)))
+
+    return list(tripartitions)
 
 
 def effect_emd(d1, d2):

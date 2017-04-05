@@ -156,38 +156,25 @@ def test_mip_bipartition_partition_mechanisms():
 def test_wedge_partitions():
     mechanism, purview = (0,), (1, 2)
     assert set(wedge_partitions(mechanism, purview)) == set([
-        Tripartition(Part((), (1, 2)), Part((0,), ()), Part((), ())),
-        Tripartition(Part((), (2,)), Part((0,), ()), Part((), (1,))),
-        Tripartition(Part((), (1,)), Part((0,), ()), Part((), (2,))),
-        Tripartition(Part((), ()), Part((0,), ()), Part((), (1, 2))),
+        Tripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),
+        Tripartition(Part((), (1,)), Part((), (2,)), Part((0,), ())),
     ])
 
     mechanism, purview = (3, 4), (5, 6)
     assert set(wedge_partitions(mechanism, purview)) == set([
-        Tripartition(Part((3,), (5,)), Part((4,), (6,)), Part((), ())),
-        Tripartition(Part((3,), ()), Part((4,), (6,)), Part((), (5,))),
-        Tripartition(Part((3,), (5,)), Part((4,), ()), Part((), (6,))),
-        Tripartition(Part((3,), ()), Part((4,), ()), Part((), (5, 6))),
-
-        Tripartition(Part((3,), (6,)), Part((4,), (5,)), Part((), ())),
-        Tripartition(Part((3,), (6,)), Part((4,), ()), Part((), (5,))),
-        Tripartition(Part((3,), ()), Part((4,), (5,)), Part((), (6,))),
-        Tripartition(Part((3,), ()), Part((4,), ()), Part((), (5, 6))),
-
-        Tripartition(Part((3,), (5, 6)), Part((4,), ()), Part((), ())),
-        Tripartition(Part((3,), (6,)), Part((4,), ()), Part((), (5,))),
-        Tripartition(Part((3,), (5,)), Part((4,), ()), Part((), (6,))),
-        Tripartition(Part((3,), ()), Part((4,), ()), Part((), (5, 6))),
-
-        Tripartition(Part((3,), ()), Part((4,), (5, 6)), Part((), ())),
-        Tripartition(Part((3,), ()), Part((4,), (6,)), Part((), (5,))),
-        Tripartition(Part((3,), ()), Part((4,), (5,)), Part((), (6,))),
-        Tripartition(Part((3,), ()), Part((4,), ()), Part((), (5, 6))),
-
-        Tripartition(Part((), (5, 6)), Part((3, 4), ()), Part((), ())),
-        Tripartition(Part((), (6,)), Part((3, 4), ()), Part((), (5,))),
-        Tripartition(Part((), (5,)), Part((3, 4), ()), Part((), (6,))),
-        Tripartition(Part((), ()), Part((3, 4), ()), Part((), (5, 6))),
+        Tripartition(Part((), ()), Part((3,), (5,)), Part((4,), (6,))),
+        Tripartition(Part((), (5,)), Part((3,), ()), Part((4,), (6,))),
+        Tripartition(Part((), (6,)), Part((3,), (5,)), Part((4,), ())),
+        Tripartition(Part((), (5, 6)), Part((3,), ()), Part((4,), ())),
+        Tripartition(Part((), ()), Part((3,), (6,)), Part((4,), (5,))),
+        Tripartition(Part((), (5,)), Part((3,), (6,)), Part((4,), ())),
+        Tripartition(Part((), (6,)), Part((3,), ()), Part((4,), (5,))),
+        Tripartition(Part((), ()), Part((3,), (5, 6)), Part((4,), ())),
+        Tripartition(Part((), ()), Part((3,), ()), Part((4,), (5, 6))),
+        Tripartition(Part((), ()), Part((), (5, 6)), Part((3, 4), ())),
+        Tripartition(Part((), (5,)), Part((), (6,)), Part((3, 4), ())),
+        Tripartition(Part((), (5,)), Part((), (6,)), Part((3, 4), ())),
+        Tripartition(Part((), ()), Part((), (5, 6)), Part((3, 4), ())),
     ])
 
 
