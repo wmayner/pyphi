@@ -12,7 +12,7 @@ import numpy as np
 from pprint import pprint
 from math import log2
 
-from . import compute, exceptions, utils, validate
+from . import compute, config, exceptions, utils, validate
 from .constants import Direction, EPSILON
 from .jsonify import jsonify
 from .models import (AcMip, Occurence, AcBigMip, _null_ac_mip, _null_ac_bigmip,
@@ -278,7 +278,7 @@ class Context:
         for partition in mip_bipartitions(mechanism, purview):
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
-            
+
             if config.PARTITION_MECHANISMS == True:
                 alpha = log2(probability/partitioned_probability)
             else:
