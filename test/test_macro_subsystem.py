@@ -360,14 +360,32 @@ def test_macro2micro(s):
     assert subsys.macro2micro((0, 1)) == (0, 1)
 
 
-def test_blackbox_partial_freeze_cm(s):
+def test_blackbox_partial_noise(s):
     blackbox = macro.Blackbox(((0,), (1, 2)), (0, 1))
     subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices,
                                   blackbox=blackbox)
 
-    cm = subsys._blackbox_partial_freeze(blackbox, macro.pack_attrs(s)).cm
-    np.testing.assert_array_equal(cm, np.array([
-        [0, 0, 1],
-        [1, 0, 1],
-        [0, 1, 0],
-    ]))
+    noised = subsys._blackbox_partial_noise(blackbox, macro.pack_attrs(s))
+
+    # Noise connection from 2 -> 0
+    assert np.array_equal(
+        noised.tpm,
+        convert.to_n_dimensional(np.array([
+            [.5, 0, 0],
+            [.5, 0, 1],
+            [1., 0, 1],
+            [1., 0, 0],
+            [.5, 1, 0],
+            [.5, 1, 1],
+            [1., 1, 1],
+            [1., 1, 0],
+        ])))
+
+    # No change
+    assert np.array_equal(
+        noised.cm,
+        np.array([
+            [0, 0, 1],
+            [1, 0, 1],
+            [1, 1, 0]
+        ]))

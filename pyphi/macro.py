@@ -160,7 +160,7 @@ class MacroSubsystem(Subsystem):
         if blackbox is not None:
             validate.blackbox(blackbox)
             blackbox = blackbox.reindex()
-            self._base_system = self._blackbox_partial_freeze(
+            self._base_system = self._blackbox_partial_noise(
                 blackbox, self._base_system)
 
         system = self._compute_system()
@@ -208,30 +208,23 @@ class MacroSubsystem(Subsystem):
 
         return SystemAttrs(tpm, cm, node_indices, nodes, state)
 
-    def _blackbox_partial_freeze(self, blackbox, system):
-        """Freeze connections from hidden elements to elements in other boxes.
-
-        Effectively this makes it so that only the output elements of each
-        blackbox output to the rest of the system.
-        """
+    def _blackbox_partial_noise(self, blackbox, system):
+        """Noise connections from hidden elements to other boxes."""
         nodes = generate_nodes(system.tpm, system.cm, system.state)
 
-        cm = system.cm.copy()
-
-        # Condition each node on the state of input nodes in other boxes
+        # Noise inputs from non-output elements hidden in other boxes
         node_tpms = []
         for node in nodes:
-            hidden_inputs = [input for input in node.input_indices
-                             if blackbox.hidden_from(input, node.index)]
-            node_tpms.append(utils.condition_tpm(node.tpm[1],
-                                                 hidden_inputs,
-                                                 system.state))
-            # Destroy connections in CM
-            cm[hidden_inputs, node.index] = 0
+            node_tpm = node.tpm[1]
+            for input in node.input_indices:
+                if blackbox.hidden_from(input, node.index):
+                    node_tpm = utils.marginalize_out([input], node_tpm)
+
+            node_tpms.append(node_tpm)
 
         tpm = rebuild_system_tpm(node_tpms)
 
-        return system._replace(tpm=tpm, cm=cm, nodes=None)
+        return system._replace(tpm=tpm, nodes=None)
 
     def _blackbox_time(self, time_scale, blackbox, system):
         """Black box the CM and TPM over the given time_scale.
