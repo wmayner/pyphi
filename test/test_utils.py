@@ -105,6 +105,19 @@ def test_directed_bipartition():
     assert [] == utils.directed_bipartition(())
 
 
+def test_directed_tripartition_indices():
+    assert utils.directed_tripartition_indices(0) == []
+    assert utils.directed_tripartition_indices(2) == [
+        ((0, 1), (), ()),
+        ((0,), (1,), ()),
+        ((0,), (), (1,)),
+        ((1,), (0,), ()),
+        ((), (0, 1), ()),
+        ((), (0,), (1,)),
+        ((1,), (), (0,)),
+        ((), (1,), (0,)),
+        ((), (), (0, 1))]
+
 def test_emd_same_distributions():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8

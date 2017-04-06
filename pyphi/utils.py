@@ -609,6 +609,65 @@ def bipartition_indices(N):
     return result
 
 
+@cache(cache={}, maxmem=None)
+def directed_tripartition_indices(N):
+    """Return indices for directed tripartitions of a sequence.
+
+    Args:
+        N (int): The length of the sequence.
+
+    Returns:
+        list[tuple]: A list of tuples containing the indices for each partition.
+
+    Example:
+        >>> N = 1
+        >>> directed_tripartition_indices(N)
+        [((0,), (), ()), ((), (0,), ()), ((), (), (0,))]
+    """
+
+    result = []
+    if N <= 0:
+        return result
+
+    base = [0, 1, 2]
+    for key in itertools.product(base, repeat=N):
+        part = [[], [], []]
+        for i, location in enumerate(key):
+            part[location].append(i)
+
+        result.append(tuple(tuple(p) for p in part))
+
+    return result
+
+
+def directed_tripartition(seq):
+    """Generator over all directed tripartitions of a sequence.
+
+    Args:
+        seq (Iterable): a sequence.
+
+    Yields:
+        tuple[tuple]: A tripartition of ``seq``.
+
+    Example:
+        >>> seq = (2, 5)
+        >>> list(directed_tripartition(seq))  # doctest: +NORMALIZE_WHITESPACE
+        [((2, 5), (), ()),
+         ((2,), (5,), ()),
+         ((2,), (), (5,)),
+         ((5,), (2,), ()),
+         ((), (2, 5), ()),
+         ((), (2,), (5,)),
+         ((5,), (), (2,)),
+         ((), (5,), (2,)),
+         ((), (), (2, 5))]
+    """
+    for a, b, c in directed_tripartition_indices(len(seq)):
+        yield (tuple(seq[i] for i in a),
+               tuple(seq[j] for j in b),
+               tuple(seq[k] for k in c))
+
+
 # Internal helper methods
 # =============================================================================
 
