@@ -65,35 +65,6 @@ def run_tpm(system, steps, mechanism, output_indices):
     return convert.state_by_state2state_by_node(tpm)
 
 
-def blackbox_cm(micro_cm, blackbox, time_scale):
-    ''' Compute the macro connectivity matrix of a blackbox system
-    1) Zero out hidden element outputs
-    2) For a specific connection between two blackbox elements, zero out all other outputs
-    3) Loop over all possible options
-    '''
-    n = np.shape(micro_cm)[0]
-    m = len(blackbox.partition)
-    cm = np.zeros((m, m))
-    # Zero out micro connections that leave a blackbox from non-output elements
-    for index in range(m):
-        hidden_elements = [item for item in blackbox.partition[index]
-                           if item != blackbox.output_indices[index]]
-        non_blackbox_elements = [item for item in range(n) if item not in blackbox.partition[index]]
-        micro_cm[np.ix_(hidden_elements, non_blackbox_elements)] = 0
-    if time_scale > 1:
-        for index in range(n):
-            micro_cm[index, index] = 0
-    for m_in in range(m):
-        for m_out in range(m):
-            temp_cm = np.array(micro_cm)
-            non_target_outputs = [i for i in range(n) if i not in blackbox.partition[m_out]]
-            temp_cm[blackbox.output_indices[m_in], non_target_outputs] = 0
-            temp_cm = np.linalg.matrix_power(temp_cm, time_scale)
-            if temp_cm[blackbox.output_indices[m_in], blackbox.output_indices[m_out]] > 0:
-                cm[m_in, m_out] = 1
-    return cm
-
-
 class SystemAttrs(namedtuple('SystemAttrs',
                              ['tpm', 'cm', 'node_indices', 'nodes', 'state'])):
     pass
@@ -317,8 +288,8 @@ class MacroSubsystem(Subsystem):
             blackbox = blackbox.reindex()
             system = self._blackbox_space(blackbox, system)
             # TODO: build macro CM inline with other computations
-            system = system._replace(cm=blackbox_cm(
-                self._base_system.cm, blackbox, time_scale))
+            # system = system._replace(cm=blackbox_cm(
+            #     self._base_system.cm, blackbox, time_scale))
 
         # Coarse-grain in space
         # =====================
