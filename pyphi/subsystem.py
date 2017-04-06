@@ -865,32 +865,44 @@ def mip_bipartitions(mechanism, purview, partition_mechanism=False):
     return bipartitions
 
 
-# TODO: prune duplicate partitions
 def wedge_partitions(mechanism, purview):
-    """Return all wedge partitions.
+    """Return an iterator over all wedge partitions.
 
-    These are partitions which strictly split the mechnism and allow a subset
-    of the purview to be split into a third partition.
+    These are partitions which strictly split the mechanism and allow a subset
+    of the purview to be split into a third partition, eg::
+
+        A    B   []
+        -- X - X --
+        B    C   D
+
+    See ``pyphi.config.PARTITION_MECHANISMS`` for more information.
+
+    Args:
+        mechanism (tuple[int]): A mechanism.
+        purview (tuple[int]): A purview.
+
+    Yields:
+        Tripartition: all unique tripartitions of this mechanism and purview.
     """
-    # All bipartitions with split mechanisms
-    bipartitions = [b for b in mip_bipartitions(mechanism, purview)
-                    if (b[0].mechanism and b[1].mechanism)
-                    or not b[0].purview or not b[1].purview]
 
-    tripartitions = set()
-    for bi in bipartitions:
-        for p2 in utils.powerset(purview):
-            # Move purview subset p2 to it's own Part
-            p0 = set(bi[0].purview) - set(p2)
-            p1 = set(bi[1].purview) - set(p2)
+    numerators = utils.bipartition(mechanism)
+    denominators = utils.directed_tripartition(purview)
 
-            parts = (Part(bi[0].mechanism, tuple(p0)),
-                     Part(bi[1].mechanism, tuple(p1)),
-                     Part((), p2))
+    yielded = set()
 
-            tripartitions.add(Tripartition(*sorted(parts)))
+    for n, d in itertools.product(numerators, denominators):
+        if ((n[0] or d[0]) and (n[1] or d[1]) and
+           ((n[0] and n[1]) or not d[0] or not d[1])):
 
-    return list(tripartitions)
+            # Normalize order of parts to remove duplicates.
+            tripart = Tripartition(*sorted((
+                Part(n[0], d[0]),
+                Part(n[1], d[1]),
+                Part((),   d[2]))))
+
+            if tripart not in yielded:
+                yielded.add(tripart)
+                yield tripart
 
 
 def effect_emd(d1, d2):
