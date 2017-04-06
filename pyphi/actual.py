@@ -285,11 +285,11 @@ class Context:
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
 
-            if config.PARTITION_MECHANISMS == True:
-                alpha = log2(probability/partitioned_probability)
+            if config.PARTITION_MECHANISMS:
+                alpha = log2(probability / partitioned_probability)
             else:
                 alpha = self._normalize(probability - partitioned_probability,
-                                    direction, purview)
+                                        direction, purview)
 
             # First check for 0
             # Default: don't count contrary causes and effects
