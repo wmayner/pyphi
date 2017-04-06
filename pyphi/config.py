@@ -108,12 +108,12 @@ long time!), resulting in data loss.
 Caching
 ~~~~~~~
 
-PyPhi is equipped with a transparent caching system for the |BigMip| and
-|Concept| objects, which stores them as they are computed to avoid having to
-recompute them later. This makes it easy to play around interactively with the
-program, or to accumulate results with minimal effort. For larger projects,
-however, it is recommended that you manage the results explicitly, rather than
-relying on the cache. For this reason it is disabled by default.
+PyPhi is equipped with a transparent caching system for |BigMip| objects which
+stores them as they are computed to avoid having to recompute them later. This
+makes it easy to play around interactively with the program, or to accumulate
+results with minimal effort. For larger projects, however, it is recommended
+that you manage the results explicitly, rather than relying on the cache. For
+this reason it is disabled by default.
 
 - ``pyphi.config.CACHE_BIGMIPS``: Control whether |BigMip| objects are cached
   and automatically retreived.

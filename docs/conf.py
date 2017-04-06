@@ -178,7 +178,6 @@ rst_prolog = """
 .. |convert| replace:: :mod:`~pyphi.convert`
 .. |examples| replace:: :mod:`~pyphi.examples`
 .. |node| replace:: :mod:`~pyphi.node`
-.. |concept_caching| replace:: :mod:`~pyphi.concept_caching`
 .. |memory| replace:: :mod:`~pyphi.memory`
 .. |db| replace:: :mod:`~pyphi.db`
 .. |utils| replace:: :mod:`~pyphi.utils`
