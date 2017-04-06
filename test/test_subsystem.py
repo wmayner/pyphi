@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 import example_networks
-from pyphi import config, exceptions, Network, utils
+from pyphi import config, exceptions, Network
 from pyphi.constants import Direction
 from pyphi.models import Bipartition, Cut, Part, Tripartition
 from pyphi.subsystem import Subsystem, mip_bipartitions, wedge_partitions
@@ -223,8 +223,7 @@ def test_apply_cut(s):
     assert s.state == cut_s.state
     assert s.node_indices == cut_s.node_indices
     assert np.array_equal(cut_s.tpm, s.tpm)
-    assert np.array_equal(cut_s.connectivity_matrix,
-                          utils.apply_cut(cut, s.connectivity_matrix))
+    assert np.array_equal(cut_s.cm, cut.apply_cut(s.cm))
 
 
 def test_cut_indices(s, subsys_n1n2):

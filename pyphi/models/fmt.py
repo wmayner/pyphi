@@ -130,10 +130,10 @@ def side_by_side(left, right):
 def header(header, text, over_char=None, under_char=None, center=True):
     """Center a header over a block of text.
 
-    Assumes that all lines in the text are the same width.
+    The width of the text is the width of the longest line of the text.
     """
     lines = list(text.split("\n"))
-    width = len(lines[0])
+    width = max(len(l) for l in lines)
 
     # Center or left-justify
     if center:
@@ -363,3 +363,67 @@ def fmt_repertoire(r):
         lines.append("{0}{1}{2:g}".format(state_str, space, r[state]))
 
     return box("\n".join(lines))
+
+
+def fmt_ac_mip(acmip, verbose=True):
+    """Helper function to format a nice Mip string"""
+
+    if acmip is False or acmip is None:  # mips can be Falsy
+        return ""
+
+    mechanism = "mechanism: {}\t".format(acmip.mechanism) if verbose else ""
+    direction = "direction: {}\n".format(acmip.direction) if verbose else ""
+    return (
+        "{alpha}\t"
+        "{mechanism}"
+        "purview: {acmip.purview}\t"
+        "{direction}"
+        "partition:\n{partition}\n"
+        "probability:\t{probability}\t"
+        "partitioned_probability:\t{partitioned_probability}\n").format(
+            alpha="{0:.4f}".format(round(acmip.alpha, 4)),
+            mechanism=mechanism,
+            direction=direction,
+            acmip=acmip,
+            partition=indent(fmt_bipartition(acmip.partition)),
+            probability=indent(acmip.probability),
+            partitioned_probability=indent(acmip.partitioned_probability))
+
+
+def fmt_ac_big_mip(ac_big_mip):
+    """Format a AcBigMip"""
+    return (
+        "{alpha}\n"
+        "direction: {ac_big_mip.direction}\n"
+        "context: {ac_big_mip.context}\n"
+        "past_state: {ac_big_mip.before_state}\n"
+        "current_state: {ac_big_mip.after_state}\n"
+        "cut: {ac_big_mip.cut}\n"
+        "{unpartitioned_account}"
+        "{partitioned_account}".format(
+            alpha="{0:.4f}".format(round(ac_big_mip.alpha, 4)),
+            ac_big_mip=ac_big_mip,
+            unpartitioned_account=fmt_account(
+                ac_big_mip.unpartitioned_account, "Unpartitioned Account"),
+            partitioned_account=fmt_account(
+                ac_big_mip.partitioned_account, "Partitioned Account")))
+
+
+def fmt_account(account, title=None):
+    """Format an Account or a DirectedAccount"""
+
+    if title is None:
+        title = account.__class__.__name__  # `Account` or `DirectedAccount`
+
+    title = "{} ({} coefficient{})".format(
+        title, len(account), "" if len(account) == 1 else "s")
+
+    content = "\n".join(str(m) for m in account)
+
+    return "\n" + header(title, content, under_char="*")
+
+
+def fmt_actual_cut(cut):
+    """Format an ActualCut"""
+    return ("{cut.cause_part1} --//--> {cut.effect_part2} && "
+            "{cut.cause_part2} --//--> {cut.effect_part1}").format(cut=cut)

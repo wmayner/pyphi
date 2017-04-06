@@ -21,6 +21,7 @@ class Direction(Enum):
     """
     PAST = 0
     FUTURE = 1
+    BIDIRECTIONAL = 2
 
 
 #: The threshold below which we consider differences in phi values to be zero.

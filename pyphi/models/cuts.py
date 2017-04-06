@@ -60,6 +60,18 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         all_mechanisms = utils.powerset(self.indices)
         return tuple(m for m in all_mechanisms if self.splits_mechanism(m))
 
+    def apply_cut(self, cm):
+        """Return a modified connectivity matrix where the connections from one
+        set of nodes to the other are destroyed.
+        """
+        cm = cm.copy()
+
+        for i in self[0]:
+            for j in self[1]:
+                cm[i][j] = 0
+
+        return cm
+
     # TODO: pass in `size` arg and keep expanded to full network??
     # TODO: memoize?
     def cut_matrix(self):
@@ -95,6 +107,64 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
 
     def to_json(self):
         return {'severed': self.severed, 'intact': self.intact}
+
+
+class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
+                                         'effect_part1', 'effect_part2'])):
+
+    """Represents an actual cut for a context.
+
+    Attributes:
+        cause_part1 (tuple(int)):
+            Connections from this group to those in ``effect_part2`` are cut
+        cause_part2 (tuple(int)):
+            Connections from this group to those in ``effect_part1`` are cut
+        effect_part1 (tuple(int)):
+            Connections to this group from ``cause_part2`` are cut
+        effect_part2 (tuple(int)):
+             Connections to this group from ``cause_part1`` are cut
+    """
+
+    __slots__ = ()
+
+    @property
+    def indices(self):
+        """tuple[int]: The indices in this cut."""
+        return tuple(sorted(set(chain.from_iterable(self))))
+
+    # TODO test
+    def apply_cut(self, cm):
+        """Cut a connectivity matrix.
+
+        Args:
+            cm (np.ndarray): A connectivity matrix
+
+        Returns:
+            np.ndarray: A copy of the connectivity matrix with connections cut
+                across the cause and effect indices.
+        """
+        cm = cm.copy()
+
+        for i in self.cause_part1:
+            for j in self.effect_part2:
+                cm[i][j] = 0
+
+        for i in self.cause_part2:
+            for j in self.effect_part1:
+                cm[i][j] = 0
+
+        return cm
+
+    # TODO implement
+    def cut_matrix(self):
+        return "DUMMY MATRIX"
+
+    def __repr__(self):
+        return fmt.make_repr(self, ['cause_part1', 'cause_part2',
+                                    'effect_part1', 'effect_part2'])
+
+    def __str__(self):
+        return fmt.fmt_actual_cut(self)
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
