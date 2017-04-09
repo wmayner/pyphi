@@ -243,6 +243,7 @@ def test_xor_propogation_delay():
     assert big_mip.cut == models.Cut((0,), (1, 2, 3, 4, 5, 6, 7, 8))
 
 
+@pytest.mark.xfail
 def test_soup():
     # An first example attempting to capture the "soup" metaphor
     #
@@ -314,6 +315,7 @@ def test_soup():
     assert compute.big_phi(sub) == 0
 
 
+@pytest.mark.slow
 def test_coarsegrain_spatial_degenerate():
     # TODO: move to docs?
     # macro-micro examples from Hoel2016
