@@ -258,7 +258,9 @@ class MacroSubsystem(Subsystem):
 
         tpm = run_tpm(system, time_scale, mechanism, blackbox)
 
-        cm = utils.run_cm(system.cm, time_scale)
+        # Universal connectivity, for now.
+        n = len(system.node_indices)
+        cm = np.ones((n, n))
 
         return SystemAttrs(tpm, cm, system.node_indices, None, system.state)
 
