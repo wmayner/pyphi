@@ -161,15 +161,15 @@ def test_wedge_partitions():
 
     mechanism, purview = (3, 4), (5, 6)
     assert set(wedge_partitions(mechanism, purview)) == set([
-        Tripartition(Part((), ()), Part((3,), (5,)), Part((4,), (6,))),
-        Tripartition(Part((), (5,)), Part((3,), ()), Part((4,), (6,))),
-        Tripartition(Part((), (6,)), Part((3,), (5,)), Part((4,), ())),
-        Tripartition(Part((), ()), Part((3,), (6,)), Part((4,), (5,))),
-        Tripartition(Part((), (5,)), Part((3,), (6,)), Part((4,), ())),
-        Tripartition(Part((), (6,)), Part((3,), ()), Part((4,), (5,))),
-        Tripartition(Part((), ()), Part((3,), (5, 6)), Part((4,), ())),
-        Tripartition(Part((), ()), Part((3,), ()), Part((4,), (5, 6))),
-        Tripartition(Part((), ()), Part((), (5, 6)), Part((3, 4), ())),
+        Tripartition(Part((), ()),   Part((),   (5, 6)), Part((3, 4), ())),
+        Tripartition(Part((), ()),   Part((3,), ()),     Part((4,), (5, 6))),
+        Tripartition(Part((), ()),   Part((3,), (5,)),   Part((4,), (6,))),
+        Tripartition(Part((), ()),   Part((3,), (5, 6)), Part((4,), ())),
+        Tripartition(Part((), ()),   Part((3,), (6,)),   Part((4,), (5,))),
+        Tripartition(Part((), (5,)), Part((3,), ()),     Part((4,), (6,))),
+        Tripartition(Part((), (5,)), Part((3,), (6,)),   Part((4,), ())),
+        Tripartition(Part((), (6,)), Part((3,), ()),     Part((4,), (5,))),
+        Tripartition(Part((), (6,)), Part((3,), (5,)),   Part((4,), ())),
     ])
 
 
