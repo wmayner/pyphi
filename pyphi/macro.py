@@ -244,11 +244,7 @@ class MacroSubsystem(Subsystem):
         return system._replace(tpm=tpm, nodes=None)
 
     def _blackbox_time(self, time_scale, blackbox, mechanism, system):
-        """Black box the CM and TPM over the given time_scale.
-
-        TODO(billy): This is a blackboxed time. Coarse grain time is not yet
-        implemented.
-        """
+        """Black box the CM and TPM over the given time_scale."""
         blackbox = blackbox.reindex()
 
         # Translate macro mechanism indices to micro indices in the TPM:
@@ -275,7 +271,6 @@ class MacroSubsystem(Subsystem):
         there is only `len(output_indices)` dimensions in the TPM and in the
         state of the subsystem.
         """
-        # TODO: validate conditional independence?
         tpm = utils.condition_tpm(system.tpm, blackbox.hidden_indices,
                                   system.state)
 
@@ -314,7 +309,7 @@ class MacroSubsystem(Subsystem):
         blackbox = self._blackbox
         coarse_grain = self._coarse_grain
 
-        # Start with the basic system, after partial freeze but before any
+        # Start with the basic system, after partial noise but before any
         # other macro effects.
         system = self._base_system
 
@@ -330,9 +325,6 @@ class MacroSubsystem(Subsystem):
         if blackbox is not None:
             blackbox = blackbox.reindex()
             system = self._blackbox_space(blackbox, system)
-            # TODO: build macro CM inline with other computations
-            # system = system._replace(cm=blackbox_cm(
-            #     self._base_system.cm, blackbox, time_scale))
 
         # Coarse-grain in space
         # =====================
@@ -345,9 +337,8 @@ class MacroSubsystem(Subsystem):
         # ================
         nodes = generate_nodes(system.tpm, system.cm, system.state,
                                node_labels(system.node_indices))
-        system = system._replace(nodes=nodes)
 
-        return system
+        return system._replace(nodes=nodes)
 
     def _setup_system(self, mechanism):
         system = self._compute_system(mechanism)
@@ -405,13 +396,16 @@ class MacroSubsystem(Subsystem):
         Returns:
             |MacroSubsystem|
         """
-        return MacroSubsystem(self.network, self._network_state,
-                              self._node_indices, cut=cut,
-                              time_scale=self._time_scale,
-                              blackbox=self._blackbox,
-                              coarse_grain=self._coarse_grain)
-                              # TODO: is the MICE cache reusable?
-                              # mice_cache=self._mice_cache)
+        return MacroSubsystem(
+            self.network,
+            self._network_state,
+            self._node_indices,
+            cut=cut,
+            time_scale=self._time_scale,
+            blackbox=self._blackbox,
+            coarse_grain=self._coarse_grain)
+            # TODO: is the MICE cache reusable?
+            # mice_cache=self._mice_cache)
 
     def _potential_purviews(self, direction, mechanism, purviews=False):
         """Override Subsystem implementation using Network-level indices."""
