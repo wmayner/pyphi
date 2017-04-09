@@ -798,8 +798,9 @@ class Subsystem:
                        effect=effect, subsystem=self)
 
 
-def mip_bipartitions(mechanism, purview, partition_mechanism=False):
-    """Return all |small_phi| bipartitions of a mechanism over a purview.
+def mip_bipartitions(mechanism, purview):
+    """Return an generator of all |small_phi| bipartitions of a mechanism over
+    a purview.
 
     Excludes all bipartitions where one half is entirely empty, e.g::
 
@@ -819,13 +820,8 @@ def mip_bipartitions(mechanism, purview, partition_mechanism=False):
         mechanism (tuple[int]): The mechanism to partition
         purview (tuple[int]): The purview to partition
 
-    Keyword Args:
-        partition_mechanism (boolean): If True, the mechanism will be
-            strictly partitioned. See ``pyphi.config.PARTITION_MECHANISMS``
-            for more information.
-
-    Returns:
-        list[Bipartition]: Where each bipartition is
+    Yields:
+        Bipartition: Where each bipartition is
 
         ::
 
@@ -853,16 +849,9 @@ def mip_bipartitions(mechanism, purview, partition_mechanism=False):
     numerators = utils.bipartition(mechanism)
     denominators = utils.directed_bipartition(purview)
 
-    bipartitions = [Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
-                    for (n, d) in itertools.product(numerators, denominators)
-                    if len(n[0]) + len(d[0]) > 0 and len(n[1]) + len(d[1]) > 0]
-
-    if partition_mechanism:
-        bipartitions = [b for b in bipartitions
-                        if (b[0].mechanism and b[1].mechanism)
-                        or not b[0].purview or not b[1].purview]
-
-    return bipartitions
+    for (n, d) in itertools.product(numerators, denominators):
+        if (n[0] or d[0]) and (n[1] or d[1]):
+            yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
 
 
 def wedge_partitions(mechanism, purview):
