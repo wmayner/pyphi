@@ -400,17 +400,33 @@ def test_tpm_noising():
         [1, 0],
         [1, 1],
     ]))
+    cm = np.array([
+        [1, 1],
+        [1, 0],
+    ])
     indices = (0, 1)
-    mechanism = (0,)
+    blackbox = macro.Blackbox(((0,), (1,)), (0, 1))
     steps = 2
+    state = (1, 0)
 
-    system = macro.SystemAttrs(tpm, None, indices, None, (0, 0))
+    system = macro.SystemAttrs(tpm, cm, indices, None, state)
 
-    result = macro.run_tpm(system, mechanism, steps)
+    mechanism = (0,)
+    result = macro.run_tpm(system, steps, mechanism, blackbox)
     answer = convert.state_by_state2state_by_node(np.array([
-        [.25, .25, 0, .5],
-        [0, 0, 0, 1],
-        [.25, .25, 0, .5],
-        [0, 0, 0, 1],
+        [.125, .375, .125, .375],
+        [0,    .5,    0,   .5],
+        [.125, .375, .125, .375],
+        [0,    .5,    0,   .5],
+    ]))
+    np.testing.assert_array_equal(result, answer)
+
+    mechanism = (1,)
+    result = macro.run_tpm(system, steps, mechanism, blackbox)
+    answer = convert.state_by_state2state_by_node(np.array([
+        [.25, .25, .25, .25],
+        [0,   .5,   0,  .5],
+        [.25, .25, .25, .25],
+        [0,   .5,   0,  .5],
     ]))
     np.testing.assert_array_equal(result, answer)

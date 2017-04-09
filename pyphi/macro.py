@@ -44,22 +44,56 @@ def node_labels(indices):
     return tuple("m{}".format(i) for i in indices)
 
 
-def run_tpm(system, steps, mechanism, output_indices):
-    """Iterate the TPM for the given number of timesteps, noising output
-    elements after the first time step.
+def run_tpm(system, steps, mechanism, blackbox):
+    """Iterate the TPM for the given number of timesteps.
 
     Returns tpm * (noise_tpm^(t-1))
     """
     nodes = generate_nodes(system.tpm, system.cm, system.state)
 
-    node_tpms = [utils.marginalize_out(output_indices, node.tpm[1])
-                 for node in nodes]
+    # TODO: refactor to initialization
+    # Generate noised TPM
+    # Noise the connections from every output element to elements in other
+    # boxes.
+    node_tpms = []
+    for node in nodes:
+        node_tpm = node.tpm[1]
+        for input in node.input_indices:
+            if not blackbox.in_same_box(node.index, input):
+                if input in blackbox.output_indices:
+                    node_tpm = utils.marginalize_out([input], node_tpm)
+
+        node_tpms.append(node_tpm)
 
     noised_tpm = rebuild_system_tpm(node_tpms)
-
-    tpm = convert.state_by_node2state_by_state(system.tpm)
     noised_tpm = convert.state_by_node2state_by_state(noised_tpm)
 
+    # Generate mechanism-specific TPM
+    #
+    # For every micro (output) element in the mechanism, freeze connections
+    # from that element to elements in other blackboxes. Noise the
+    # connections from the remaining non-mechanism output indices to other
+    # boxes. Connections from the output elements (mechanism and non-mechanism)
+    # to other micro elements in the same box are left untouched.
+    non_mechanism_outputs = set(blackbox.output_indices) - set(mechanism)
+    node_tpms = []
+    for node in nodes:
+        node_tpm = node.tpm[1]
+        for input in node.input_indices:
+            # CLARIFY: we only noise/freeze connections to other boxes, right?
+            # So, given a box (A, B), with B as the output, and B in the mechanism,
+            # we don't freeze any connections B->A, just B to other boxes, right?
+            if not blackbox.in_same_box(node.index, input):
+                if input in non_mechanism_outputs:
+                    node_tpm = utils.marginalize_out([input], node_tpm)
+                if input in mechanism:
+                    node_tpm = utils.condition_tpm(node_tpm, [input], system.state)
+        node_tpms.append(node_tpm)
+
+    tpm = rebuild_system_tpm(node_tpms)
+    tpm = convert.state_by_node2state_by_state(tpm)
+
+    # Muliply by noise
     tpm = np.dot(tpm, np.linalg.matrix_power(noised_tpm, steps - 1))
 
     return convert.state_by_state2state_by_node(tpm)
@@ -216,7 +250,7 @@ class MacroSubsystem(Subsystem):
         # TODO: is this correct?
         mechanism = self.macro2micro(mechanism)
 
-        tpm = run_tpm(system, time_scale, mechanism, blackbox.output_indices)
+        tpm = run_tpm(system, time_scale, mechanism, blackbox)
 
         cm = utils.run_cm(system.cm, time_scale)
 
