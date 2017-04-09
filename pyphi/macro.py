@@ -39,6 +39,24 @@ def rebuild_system_tpm(node_tpms):
     return np.rollaxis(expanded_tpms, 0, len(expanded_tpms) + 1)
 
 
+def remove_singleton_dimensions(tpm):
+    """Remove singleton dimensions from the TPM.
+
+    Singleton dimensions are created by conditioning on a set of elements.
+    This removes those elements from the TPM, leaving a TPM that only
+    describes the non-conditioned elements.
+
+    Note that indices used in the original TPM must be reindexed for the
+    smaller TPM.
+    """
+    # Don't squeeze out the final dimension (which contains the probability)
+    # for networks with one element.
+    if tpm.ndim <= 2:
+        return tpm
+
+    return tpm.squeeze()[..., tpm_indices(tpm)]
+
+
 def node_labels(indices):
     """Labels for macro nodes."""
     return tuple("m{}".format(i) for i in indices)
@@ -185,14 +203,11 @@ class MacroSubsystem(Subsystem):
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
         the number of internal indices in the system.
         """
+        assert system.node_indices == tpm_indices(system.tpm)
+
         internal_indices = tpm_indices(system.tpm)
 
-        # Don't squeeze out the final dimension (which contains the
-        # probability) for networks of size one
-        if len(internal_indices) > 1:
-            tpm = np.squeeze(system.tpm)[..., internal_indices]
-        else:
-            tpm = system.tpm
+        tpm = remove_singleton_dimensions(system.tpm)
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
@@ -262,8 +277,9 @@ class MacroSubsystem(Subsystem):
         tpm = utils.condition_tpm(system.tpm, blackbox.hidden_indices,
                                   system.state)
 
-        if len(system.node_indices) > 1:
-            tpm = np.squeeze(tpm)[..., blackbox.output_indices]
+        assert blackbox.output_indices == tpm_indices(tpm)
+
+        tpm = remove_singleton_dimensions(tpm)
 
         # Universal connectivity, for now.
         n = len(blackbox.output_indices)

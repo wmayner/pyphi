@@ -204,3 +204,29 @@ def test_rebuild_system_tpm():
          [0, 1]]
     ])
     assert np.array_equal(macro.rebuild_system_tpm(node_tpms), answer)
+
+
+def test_remove_singleton_dimensions():
+    # Don't squeeze out last dimension of single-node tpm
+    tpm = np.array([[0], [1]])
+    assert macro.tpm_indices(tpm) == (0,)
+    assert np.array_equal(macro.remove_singleton_dimensions(tpm), tpm)
+
+    tpm = np.array([
+        [[[0.,  0.,  1.]],
+         [[1.,  0.,  0.]]]])
+    assert macro.tpm_indices(tpm) == (1,)
+    assert np.array_equal(macro.remove_singleton_dimensions(tpm), np.array([
+        [0], [0]]))
+
+    tpm = np.array([
+        [[[0., 0., 0.],
+          [1., 1., 0.]]],
+        [[[0., 0., 1.],
+          [1., 1., 1.]]]])
+    assert macro.tpm_indices(tpm) == (0, 2)
+    assert np.array_equal(macro.remove_singleton_dimensions(tpm), np.array([
+        [[0., 0.],
+         [1., 0.]],
+        [[0., 1.],
+         [1., 1.]]]))
