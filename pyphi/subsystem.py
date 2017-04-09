@@ -908,7 +908,7 @@ def wedge_partitions(mechanism, purview):
             # equivalent partition by combing two of its parts; eg.
             # A/[] x B/[] x []/CD is equivalent to AB/[] x []/CD so we don't
             # include it.
-            def reducible(tripart):
+            def compressible(tripart):
                 pairs = [
                     (tripart[0], tripart[1]),
                     (tripart[0], tripart[2]),
@@ -920,7 +920,7 @@ def wedge_partitions(mechanism, purview):
                          x.purview + y.purview == ())):
                         return True
 
-            if not reducible(tripart) and tripart not in yielded:
+            if not compressible(tripart) and tripart not in yielded:
                 yielded.add(tripart)
                 yield tripart
 
