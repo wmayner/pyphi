@@ -900,7 +900,26 @@ def wedge_partitions(mechanism, purview):
                 Part(n[1], d[1]),
                 Part((),   d[2]))))
 
-            if tripart not in yielded:
+            def nonempty(part):
+                return part.mechanism or part.purview
+
+            # Check if the tripartition can be transformed into a causally
+            # equivalent partition by combing two of its parts; eg.
+            # A/[] x B/[] x []/CD is equivalent to AB/[] x []/CD so we don't
+            # include it.
+            def reducible(tripart):
+                pairs = [
+                    (tripart[0], tripart[1]),
+                    (tripart[0], tripart[2]),
+                    (tripart[1], tripart[2])]
+
+                for x, y in pairs:
+                    if (nonempty(x) and nonempty(y) and
+                        (x.mechanism + y.mechanism == () or
+                         x.purview + y.purview == ())):
+                        return True
+
+            if not reducible(tripart) and tripart not in yielded:
                 yielded.add(tripart)
                 yield tripart
 
