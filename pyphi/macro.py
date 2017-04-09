@@ -177,15 +177,6 @@ class MacroSubsystem(Subsystem):
         # TODO: how does this initial CM affect potential purviews, etc?
         self._setup_system(())
 
-        # Hash the final subsystem - only compute hash once.
-        self._hash = hash((self.network,
-                           self.cut,
-                           self._network_state,
-                           self._node_indices,
-                           self._time_scale,
-                           self._blackbox,
-                           self._coarse_grain))
-
         validate.subsystem(self)
 
     def _squeeze(self, system):
@@ -439,9 +430,6 @@ class MacroSubsystem(Subsystem):
     def __eq__(self, other):
         """Two macro systems are equal if each underlying |Subsystem| is equal
         and all macro attributes are equal.
-
-        TODO: handle cases where a MacroSubsystem is identical to a micro
-        Subsystem, e.g. the macro has no timescale, hidden indices, etc.
         """
         if type(self) != type(other):
             return False
@@ -452,7 +440,11 @@ class MacroSubsystem(Subsystem):
                 self._coarse_grain == other._coarse_grain)
 
     def __hash__(self):
-        return self._hash
+        return hash(
+            (super().__hash__(),
+             self._time_scale,
+             self._blackbox,
+             self._coarse_grain))
 
 
 class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):

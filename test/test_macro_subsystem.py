@@ -198,17 +198,20 @@ def test_macro_cut_is_for_micro_indices(s):
 
 def test_subsystem_equality(s):
     macro_subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices)
-    assert s != macro_subsys  # Although, should they be?
+    assert s != macro_subsys
+    assert hash(s) != hash(macro_subsys)
 
     blackbox = macro.Blackbox(((0, 1, 2),), (2,))
     macro_subsys_bb = macro.MacroSubsystem(
         s.network, s.state, s.node_indices, blackbox=blackbox, time_scale=2)
     assert macro_subsys != macro_subsys_bb
+    assert hash(macro_subsys) != hash(macro_subsys_bb)
 
     coarse_grain = macro.CoarseGrain(((0, 1), (2,)), (((0, 1), (2,)), ((0,), (1,))))
     macro_subsys_cg = macro.MacroSubsystem(
         s.network, s.state, s.node_indices, coarse_grain=coarse_grain)
     assert macro_subsys != macro_subsys_cg
+    assert hash(macro_subsys) != hash(macro_subsys_cg)
 
 
 # Test MacroSubsystem initialization
