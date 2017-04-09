@@ -441,8 +441,8 @@ def max_entropy_distribution(node_indices, number_of_nodes):
 
     return distribution / distribution.size
 
+
 # TODO extend to binary nodes
-# TODO? parametrize and use other metrics (KDL, L1)
 def hamming_emd(d1, d2):
     """Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node).
