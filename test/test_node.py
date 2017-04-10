@@ -39,20 +39,18 @@ def test_node_init_inputs(s):
     for node in s.nodes:
         assert set(node.inputs) == set(answer[node.index])
 
-"""
+
 def test_node_eq(s):
-    assert s.nodes[1] == Node(s, 1)
+    assert s.nodes[1] == Node(s.tpm, s.cm, 1, 0, 'B')
 
 
 def test_node_neq_by_index(s):
-    assert s.nodes[0] != Node(s, 1)
+    assert s.nodes[0] != Node(s.tpm, s.cm, 1, 0, 'B')
 
 
-def test_node_neq_by_context(s):
-    other_network = Network(s.network.tpm)
-    other_s = Subsystem(other_network, (0, 0, 0), s.node_indices)
-    assert s.nodes[0] != Node(other_s, 0)
-"""
+def test_node_neq_by_state(s):
+    other_s = Subsystem(s.network, (1, 1, 1), s.node_indices)
+    assert other_s.nodes[1] != Node(s.tpm, s.cm, 1, 0, 'B')
 
 
 def test_repr(s):

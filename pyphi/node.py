@@ -124,7 +124,7 @@ class Node:
         labels.
         """
         return (self.index == other.index and
-                self.tpm == other.tpm and
+                np.array_equal(self.tpm, other.tpm) and
                 self.state == other.state and
                 self.input_indices == other.input_indices and
                 self.output_indices == other.output_indices)
