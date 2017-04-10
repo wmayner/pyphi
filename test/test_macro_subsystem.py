@@ -353,7 +353,7 @@ def test_blackbox_partial_noise(s):
     subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices,
                                   blackbox=blackbox)
 
-    noised = subsys._blackbox_partial_noise(blackbox, macro.pack_attrs(s))
+    noised = subsys._blackbox_partial_noise(blackbox, macro.SystemAttrs.pack(s))
 
     # Noise connection from 2 -> 0
     assert np.array_equal(
@@ -397,7 +397,7 @@ def test_blackbox_time():
     steps = 2
     state = (1, 0)
 
-    system = macro.SystemAttrs(tpm, cm, indices, None, state)
+    system = macro.SystemAttrs(tpm, cm, indices, state)
 
     mechanism = (0,)
     result = macro.run_tpm(system, steps, mechanism, blackbox)

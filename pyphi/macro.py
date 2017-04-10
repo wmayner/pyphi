@@ -69,14 +69,12 @@ def run_tpm(system, steps, mechanism, blackbox):
     """
     assert not set(mechanism) - set(blackbox.output_indices)
 
-    nodes = generate_nodes(system.tpm, system.cm, system.state)
-
     # TODO: refactor to initialization
     # Generate noised TPM
     # Noise the connections from every output element to elements in other
     # boxes.
     node_tpms = []
-    for node in nodes:
+    for node in system.nodes:
         node_tpm = node.tpm[1]
         for input in node.input_indices:
             if not blackbox.in_same_box(node.index, input):
@@ -97,7 +95,7 @@ def run_tpm(system, steps, mechanism, blackbox):
     # to other micro elements in the same box are left untouched.
     non_mechanism_outputs = set(blackbox.output_indices) - set(mechanism)
     node_tpms = []
-    for node in nodes:
+    for node in system.nodes:
         node_tpm = node.tpm[1]
         for input in node.input_indices:
             # CLARIFY: we only noise/freeze connections to other boxes, right?
@@ -120,17 +118,28 @@ def run_tpm(system, steps, mechanism, blackbox):
 
 
 class SystemAttrs(namedtuple('SystemAttrs',
-                             ['tpm', 'cm', 'node_indices', 'nodes', 'state'])):
-    pass
+                             ['tpm', 'cm', 'node_indices', 'state'])):
+    """An immutable container that holds all the attributes of a subsystem.
 
+    Versions of this object are passed down the steps of the micro-to-macro
+    pipeline.
+    """
+    @property
+    def nodes(self):
+        labels = node_labels(self.node_indices)
+        return generate_nodes(self.tpm, self.cm, self.state, labels)
 
-def pack_attrs(system):
-    return SystemAttrs(system.tpm, system.cm, system.node_indices, system.nodes,
-                       system.state)
+    @classmethod
+    def pack(cls, system):
+        return SystemAttrs(system.tpm, system.cm, system.node_indices,
+                           system.state)
 
-
-def apply_attrs(system, attrs):
-    system.tpm, system.cm, system.node_indices, system.nodes, system.state = attrs
+    def apply(self, system):
+        system.tpm = self.tpm
+        system.cm = self.cm
+        system.node_indices = self.node_indices
+        system.nodes = self.nodes
+        system.state = self.state
 
 
 class MacroSubsystem(Subsystem):
@@ -170,7 +179,7 @@ class MacroSubsystem(Subsystem):
         super().__init__(network, state, node_indices, cut, mice_cache)
 
         # Store the base system
-        self._base_system = pack_attrs(self)
+        self._base_system = SystemAttrs.pack(self)
 
         # Shrink TPM to size of internal indices
         # ======================================
@@ -225,15 +234,14 @@ class MacroSubsystem(Subsystem):
         # Re-calcuate the tpm based on the results of the cut
         tpm = rebuild_system_tpm(node.tpm[1] for node in nodes)
 
-        return SystemAttrs(tpm, cm, node_indices, nodes, state)
+        return SystemAttrs(tpm, cm, node_indices, state)
 
     def _blackbox_partial_noise(self, blackbox, system):
         """Noise connections from hidden elements to other boxes."""
-        nodes = generate_nodes(system.tpm, system.cm, system.state)
 
         # Noise inputs from non-output elements hidden in other boxes
         node_tpms = []
-        for node in nodes:
+        for node in system.nodes:
             node_tpm = node.tpm[1]
             for input in node.input_indices:
                 if blackbox.hidden_from(input, node.index):
@@ -243,7 +251,7 @@ class MacroSubsystem(Subsystem):
 
         tpm = rebuild_system_tpm(node_tpms)
 
-        return system._replace(tpm=tpm, nodes=None)
+        return system._replace(tpm=tpm)
 
     def _blackbox_time(self, time_scale, blackbox, mechanism, system):
         """Black box the CM and TPM over the given time_scale."""
@@ -259,7 +267,7 @@ class MacroSubsystem(Subsystem):
         n = len(system.node_indices)
         cm = np.ones((n, n))
 
-        return SystemAttrs(tpm, cm, system.node_indices, None, system.state)
+        return SystemAttrs(tpm, cm, system.node_indices, system.state)
 
     def _blackbox_space(self, blackbox, system):
         """Blackbox the TPM and CM in space.
@@ -286,7 +294,7 @@ class MacroSubsystem(Subsystem):
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
 
-        return SystemAttrs(tpm, cm, node_indices, None, state)
+        return SystemAttrs(tpm, cm, node_indices, state)
 
     def _coarsegrain_space(self, coarse_grain, is_cut, system):
         """Spatially coarse-grain the TPM and CM."""
@@ -301,7 +309,7 @@ class MacroSubsystem(Subsystem):
         n = len(node_indices)
         cm = np.ones((n, n))
 
-        return SystemAttrs(tpm, cm, node_indices, None, state)
+        return SystemAttrs(tpm, cm, node_indices, state)
 
     @cache.method('_macro_system_cache')
     def _compute_system(self, mechanism):
@@ -334,16 +342,11 @@ class MacroSubsystem(Subsystem):
             coarse_grain = coarse_grain.reindex()
             system = self._coarsegrain_space(coarse_grain, self.is_cut, system)
 
-        # Regenerate nodes
-        # ================
-        nodes = generate_nodes(system.tpm, system.cm, system.state,
-                               node_labels(system.node_indices))
-
-        return system._replace(nodes=nodes)
+        return system
 
     def _setup_system(self, mechanism):
         system = self._compute_system(mechanism)
-        apply_attrs(self, system)
+        system.apply(self)
 
     def cause_repertoire(self, mechanism, purview):
         return self._repertoire(DIRECTIONS[PAST], mechanism, purview)

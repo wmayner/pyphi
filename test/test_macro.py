@@ -230,3 +230,27 @@ def test_remove_singleton_dimensions():
          [1., 0.]],
         [[0., 1.],
          [1., 1.]]]))
+
+
+def test_pack_attrs(s):
+    attrs = macro.SystemAttrs.pack(s)
+    assert np.array_equal(attrs.tpm, s.tpm)
+    assert np.array_equal(attrs.cm, s.cm)
+    assert attrs.node_indices == s.node_indices
+    assert attrs.state == s.state
+    assert attrs.nodes == s.nodes
+
+
+def test_apply_attrs(s):
+    attrs = macro.SystemAttrs.pack(s)
+
+    class SomeSystem:
+        pass
+    target = SomeSystem()
+
+    attrs.apply(target)
+    assert np.array_equal(target.tpm, s.tpm)
+    assert np.array_equal(target.cm, s.cm)
+    assert target.node_indices == s.node_indices
+    assert target.state == s.state
+    assert target.nodes == s.nodes
