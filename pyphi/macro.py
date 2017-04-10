@@ -67,6 +67,8 @@ def run_tpm(system, steps, mechanism, blackbox):
 
     Returns tpm * (noise_tpm^(t-1))
     """
+    assert not set(mechanism) - set(blackbox.output_indices)
+
     nodes = generate_nodes(system.tpm, system.cm, system.state)
 
     # TODO: refactor to initialization
@@ -249,8 +251,7 @@ class MacroSubsystem(Subsystem):
 
         # Translate macro mechanism indices to micro indices in the TPM:
         # the outputs of each box in the mechanism.
-        # TODO: is this correct?
-        mechanism = self.macro2micro(mechanism)
+        mechanism = self.macro2blackbox_outputs(mechanism)
 
         tpm = run_tpm(system, time_scale, mechanism, blackbox)
 
@@ -431,6 +432,17 @@ class MacroSubsystem(Subsystem):
             return from_partition(self._coarse_grain.partition, macro_indices)
         else:
             return macro_indices
+
+    def macro2blackbox_outputs(self, macro_indices):
+        """Given a set of macro elements, return the blackbox output elements
+        which compose these elements.
+        """
+        if not self._blackbox:
+            raise ValueError('System is not blackboxed')
+
+        return tuple(sorted(set(
+            self.macro2micro(macro_indices)
+        ).intersection(self._blackbox.output_indices)))
 
     def __repr__(self):
         return "MacroSubsystem(" + repr(self.nodes) + ")"

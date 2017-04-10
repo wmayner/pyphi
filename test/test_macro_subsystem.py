@@ -315,6 +315,10 @@ def test_macro2micro(s):
     assert subsys.macro2micro((1,)) == (1,)
     assert subsys.macro2micro((1, 0)) == (0, 1, 2)
 
+    assert subsys.macro2blackbox_outputs((0,)) == (2,)
+    assert subsys.macro2blackbox_outputs((1,)) == (1,)
+    assert subsys.macro2blackbox_outputs((1, 0)) == (1, 2)
+
     # Only coarse-graining
     coarse_grain = macro.CoarseGrain(((0,), (1, 2)), (((0,), (1,)), ((0,), (1, 2))))
     subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices,
@@ -323,6 +327,9 @@ def test_macro2micro(s):
     assert subsys.macro2micro((1,)) == (1, 2)
     assert subsys.macro2micro((0, 1)) == (0, 1, 2)
 
+    with pytest.raises(ValueError):
+        subsys.macro2blackbox_outputs((0,))
+
     # Blackboxing and coarse-graining
     blackbox = macro.Blackbox(((0, 2), (1,)), (1, 2))
     coarse_grain = macro.CoarseGrain(((1, 2),), (((0,), (1, 2)),))
@@ -330,10 +337,15 @@ def test_macro2micro(s):
                                   blackbox=blackbox, coarse_grain=coarse_grain)
     assert subsys.macro2micro((0,)) == (0, 1, 2)
 
+    assert subsys.macro2blackbox_outputs((0,)) == (1, 2)
+
     # Pure micro
     subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices)
     assert subsys.macro2micro((1,)) == (1,)
     assert subsys.macro2micro((0, 1)) == (0, 1)
+
+    with pytest.raises(ValueError):
+        subsys.macro2blackbox_outputs((1,))
 
 
 def test_blackbox_partial_noise(s):
