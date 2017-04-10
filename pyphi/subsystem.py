@@ -48,6 +48,7 @@ class Subsystem:
     def __init__(self, network, state, nodes, cut=None,
                  mice_cache=None, repertoire_cache=None):
         # The network this subsystem belongs to.
+        validate.is_network(network)
         self.network = network
 
         # Remove duplicates, sort, and ensure native Python `int`s
