@@ -187,7 +187,7 @@ def test_blackbox_hidden_from(bb):
     assert not bb.hidden_from(3, 4)
 
 
-def test_rebuild_system_tpm():
+def test_rebuild_system_tpm(s):
     node0_tpm = np.array([
         [0, 1],
         [0, 0],
@@ -204,6 +204,9 @@ def test_rebuild_system_tpm():
          [0, 1]]
     ])
     assert np.array_equal(macro.rebuild_system_tpm(node_tpms), answer)
+
+    node_tpms = [node.tpm[1] for node in s.nodes]
+    assert np.array_equal(macro.rebuild_system_tpm(node_tpms), s.tpm)
 
 
 def test_remove_singleton_dimensions():
