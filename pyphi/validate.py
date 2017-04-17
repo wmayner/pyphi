@@ -15,8 +15,9 @@ from .constants import EPSILON, Direction
 def direction(direction):
     """Validate that the given direction is one of the allowed constants."""
     if direction not in Direction:
-        raise ValueError('Direction must be one of '
-                         '{}.'.format(Direction))
+        raise ValueError(
+            '`direction` must be either `pyphi.constants.Direction.PAST` '
+            'or `pyphi.constants.Direction.FUTURE`')
     return True
 
 
