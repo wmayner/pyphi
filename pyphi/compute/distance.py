@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from .. import config, utils
+from .. import config, utils, validate
 from ..constants import EMD, KLD, L1
 
 BIG_NUMBER = 1000000
