@@ -252,6 +252,9 @@ class Mice(cmp._Orderable):
         Returns:
             np.ndarray: A |n x n| matrix of connections, where `n` is the size
             of the subsystem.
+
+        Raises:
+            ValueError: If ``direction`` is invalid.
         """
         if self.direction == Direction.PAST:
             _from, to = self.purview, self.mechanism

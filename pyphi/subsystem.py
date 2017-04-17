@@ -462,6 +462,10 @@ class Subsystem:
 
         Returns:
             np.ndarray: The expanded repertoire.
+
+        Raises:
+            ValueError: If the expanded purview doesn't contain the original
+                purview.
         """
         if repertoire is None:
             return None
@@ -954,6 +958,9 @@ def emd(direction, d1, d2):
 
     Returns:
         float: The EMD between ``d1`` and ``d2``, rounded to |PRECISION|.
+
+    Raises:
+        ValueError: If ``direction`` is invalid.
     """
     if direction == Direction.PAST:
         func = utils.hamming_emd
