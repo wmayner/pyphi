@@ -237,6 +237,9 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
     Returns:
         list[tuple[int]]: All purviews in ``purviews`` which are not reducible
             over ``mechanism``.
+
+    Raises:
+        ValueError: If ``direction`` is invalid.
     """
     def reducible(purview):
         # Returns True if purview is trivially reducible.
@@ -244,6 +247,9 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
             _from, to = purview, mechanism
         elif direction == Direction.FUTURE:
             _from, to = mechanism, purview
+        else:
+            # TODO: test that ValueError is raised
+            validate.direction(direction)
         return utils.block_reducible(cm, _from, to)
 
     return [purview for purview in purviews if not reducible(purview)]

@@ -407,11 +407,18 @@ class Subsystem:
         Returns:
             np.ndarray: The cause or effect repertoire of the mechanism over
             the purview.
+
+        Raises:
+            ValueError: If ``direction`` is invalid.
         """
         if direction == Direction.PAST:
             return self.cause_repertoire(mechanism, purview)
         elif direction == Direction.FUTURE:
             return self.effect_repertoire(mechanism, purview)
+        else:
+            # TODO: test that ValueError is raised
+            validate.direction(direction)
+
 
     def _unconstrained_repertoire(self, direction, purview):
         """Return the unconstrained cause/effect repertoire over a purview."""
@@ -951,6 +958,9 @@ def emd(direction, d1, d2):
         func = utils.hamming_emd
     elif direction == Direction.FUTURE:
         func = effect_emd
+    else:
+        # TODO: test that ValueError is raised
+        validate.direction(direction)
 
     return round(func(d1, d2), config.PRECISION)
 
