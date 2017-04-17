@@ -11,7 +11,8 @@ import numpy as np
 
 from . import cache, config, utils, validate
 from .constants import EMD, KLD, L1, Direction
-from .models import Bipartition, Concept, Cut, Mice, Mip, Part, Tripartition, _null_mip
+from .models import (Bipartition, Concept, Cut, Mice, Mip, Part, Tripartition,
+                     _null_mip)
 from .network import irreducible_purviews
 from .node import generate_nodes
 
