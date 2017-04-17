@@ -5,7 +5,7 @@
 import numpy as np
 
 from . import cmp, fmt
-from .. import config, utils
+from .. import config, utils, validate
 from ..constants import Direction
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
@@ -257,6 +257,8 @@ class Mice(cmp._Orderable):
             _from, to = self.purview, self.mechanism
         elif self.direction == Direction.FUTURE:
             _from, to = self.mechanism, self.purview
+        else:
+            validate.direction(self.direction)
 
         cm = utils.relevant_connections(subsystem.network.size, _from, to)
         # Submatrix for this subsystem's nodes
