@@ -238,7 +238,7 @@ class Subsystem:
         """Returns the node labels for these indices."""
         return tuple(n.label for n in self.indices2nodes(indices))
 
-#    @cache.method('_repertoire_cache', DIRECTIONS[PAST])
+    @cache.method('_repertoire_cache', DIRECTIONS[PAST])
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -298,7 +298,7 @@ class Subsystem:
 
         return utils.normalize(cjd)
 
-#    @cache.method('_repertoire_cache', DIRECTIONS[FUTURE])
+    @cache.method('_repertoire_cache', DIRECTIONS[FUTURE])
     def effect_repertoire(self, mechanism, purview):
         """Return the effect repertoire of a mechanism over a purview.
 

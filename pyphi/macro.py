@@ -62,14 +62,11 @@ def node_labels(indices):
     return tuple("m{}".format(i) for i in indices)
 
 
-def run_tpm(system, steps, mechanism, blackbox):
+def run_tpm(system, steps, blackbox):
     """Iterate the TPM for the given number of timesteps.
 
     Returns tpm * (noise_tpm^(t-1))
     """
-    assert not set(mechanism) - set(blackbox.output_indices)
-
-    # TODO: refactor to initialization
     # Generate noised TPM
     # Noise the connections from every output element to elements in other
     # boxes.
@@ -86,30 +83,7 @@ def run_tpm(system, steps, mechanism, blackbox):
     noised_tpm = rebuild_system_tpm(node_tpms)
     noised_tpm = convert.state_by_node2state_by_state(noised_tpm)
 
-    # Generate mechanism-specific TPM
-    #
-    # For every micro (output) element in the mechanism, freeze connections
-    # from that element to elements in other blackboxes. Noise the
-    # connections from the remaining non-mechanism output indices to other
-    # boxes. Connections from the output elements (mechanism and non-mechanism)
-    # to other micro elements in the same box are left untouched.
-    non_mechanism_outputs = set(blackbox.output_indices) - set(mechanism)
-    node_tpms = []
-    for node in system.nodes:
-        node_tpm = node.tpm[1]
-        for input in node.input_indices:
-            # CLARIFY: we only noise/freeze connections to other boxes, right?
-            # So, given a box (A, B), with B as the output, and B in the mechanism,
-            # we don't freeze any connections B->A, just B to other boxes, right?
-            if not blackbox.in_same_box(node.index, input):
-                if input in non_mechanism_outputs:
-                    node_tpm = utils.marginalize_out([input], node_tpm)
-                if input in mechanism:
-                    node_tpm = utils.condition_tpm(node_tpm, [input], system.state)
-        node_tpms.append(node_tpm)
-
-    tpm = rebuild_system_tpm(node_tpms)
-    tpm = convert.state_by_node2state_by_state(tpm)
+    tpm = convert.state_by_node2state_by_state(system.tpm)
 
     # Muliply by noise
     tpm = np.dot(tpm, np.linalg.matrix_power(noised_tpm, steps - 1))
@@ -197,14 +171,9 @@ class MacroSubsystem(Subsystem):
             self._base_system = self._blackbox_partial_noise(
                 blackbox, self._base_system)
 
-        # Cache for macro systems for each mechanism
-        self._macro_system_cache = cache.DictCache()
-
-        # All remaining blackboxing and coarse-graining happens in the
-        # ``_setup_system`` method.
-        # Do an initial setup so that CM, nodes are available.
-        # TODO: how does this initial CM affect potential purviews, etc?
-        self._setup_system(())
+        # All remaining blackboxing and coarse-graining
+        system = self._compute_system()
+        system.apply(self)
 
         validate.subsystem(self)
 
@@ -253,15 +222,11 @@ class MacroSubsystem(Subsystem):
 
         return system._replace(tpm=tpm)
 
-    def _blackbox_time(self, time_scale, blackbox, mechanism, system):
+    def _blackbox_time(self, time_scale, blackbox,  system):
         """Black box the CM and TPM over the given time_scale."""
         blackbox = blackbox.reindex()
 
-        # Translate macro mechanism indices to micro indices in the TPM:
-        # the outputs of each box in the mechanism.
-        mechanism = self.macro2blackbox_outputs(mechanism)
-
-        tpm = run_tpm(system, time_scale, mechanism, blackbox)
+        tpm = run_tpm(system, time_scale, blackbox)
 
         # Universal connectivity, for now.
         n = len(system.node_indices)
@@ -280,8 +245,7 @@ class MacroSubsystem(Subsystem):
         there is only `len(output_indices)` dimensions in the TPM and in the
         state of the subsystem.
         """
-        tpm = utils.condition_tpm(system.tpm, blackbox.hidden_indices,
-                                  system.state)
+        tpm = utils.marginalize_out(blackbox.hidden_indices, system.tpm)
 
         assert blackbox.output_indices == tpm_indices(tpm)
 
@@ -311,8 +275,7 @@ class MacroSubsystem(Subsystem):
 
         return SystemAttrs(tpm, cm, node_indices, state)
 
-    @cache.method('_macro_system_cache')
-    def _compute_system(self, mechanism):
+    def _compute_system(self):
 
         time_scale = self._time_scale
         blackbox = self._blackbox
@@ -327,7 +290,7 @@ class MacroSubsystem(Subsystem):
         if time_scale != 1:
             assert blackbox is not None
             validate.time_scale(time_scale)
-            system = self._blackbox_time(time_scale, blackbox, mechanism, system)
+            system = self._blackbox_time(time_scale, blackbox, system)
 
         # Blackbox in space
         # =================
@@ -343,44 +306,6 @@ class MacroSubsystem(Subsystem):
             system = self._coarsegrain_space(coarse_grain, self.is_cut, system)
 
         return system
-
-    def _setup_system(self, mechanism):
-        system = self._compute_system(mechanism)
-        system.apply(self)
-
-    def cause_repertoire(self, mechanism, purview):
-        return self._repertoire(DIRECTIONS[PAST], mechanism, purview)
-
-    def effect_repertoire(self, mechanism, purview):
-        return self._repertoire(DIRECTIONS[FUTURE], mechanism, purview)
-
-    def _repertoire(self, direction, mechanism, purview, recompute_system=True):
-        """Return the cause or effect repertoire based on a direction."""
-        if recompute_system:
-            self._setup_system(mechanism)
-
-        if direction == DIRECTIONS[PAST]:
-            repertoire = super().cause_repertoire
-        elif direction == DIRECTIONS[FUTURE]:
-            repertoire = super().effect_repertoire
-
-        return repertoire(mechanism, purview)
-
-    def partitioned_repertoire(self, direction, partition):
-        """Compute the repertoire of a partitioned mechanism and purview.
-
-        We use the TPM computed for the *unpartitioned mechanism* when
-        calculating the partitioned repertoires in `find_mip`."""
-        self._setup_system(partition.mechanism)
-
-        part1rep = self._repertoire(
-            direction, partition[0].mechanism, partition[0].purview,
-            recompute_system=False)
-        part2rep = self._repertoire(
-            direction, partition[1].mechanism, partition[1].purview,
-            recompute_system=False)
-
-        return part1rep * part2rep
 
     @property
     def cut_indices(self):

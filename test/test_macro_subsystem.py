@@ -400,7 +400,7 @@ def test_blackbox_time():
     system = macro.SystemAttrs(tpm, cm, indices, state)
 
     mechanism = (0,)
-    result = macro.run_tpm(system, steps, mechanism, blackbox)
+    result = macro.run_tpm(system, steps, blackbox)
     answer = convert.state_by_state2state_by_node(np.array([
         [.125, .375, .125, .375],
         [0,    .5,    0,   .5],
@@ -410,7 +410,7 @@ def test_blackbox_time():
     np.testing.assert_array_equal(result, answer)
 
     mechanism = (1,)
-    result = macro.run_tpm(system, steps, mechanism, blackbox)
+    result = macro.run_tpm(system, steps, blackbox)
     answer = convert.state_by_state2state_by_node(np.array([
         [.25, .25, .25, .25],
         [0,   .5,   0,  .5],
