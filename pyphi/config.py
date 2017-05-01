@@ -343,11 +343,15 @@ Miscellaneous
 """
 
 import contextlib
+import logging
+import logging.config
 import os
 import pprint
 import sys
 
 import yaml
+
+from . import __about__
 
 # TODO: document mongo config
 # Defaults for configurable constants.
@@ -457,6 +461,45 @@ def print_config():
     print('Current PyPhi configuration:\n', get_config_string())
 
 
+def configure_logging():
+    """Configure PyPhi logging based on the loaded configuration.
+
+    Note: if PyPhi config options that control logging are changed after they
+    are loaded (eg. in testing), the Python logging configuration will stay
+    the same unless you manually reconfigure the logging by calling this
+    function.
+
+    TODO: call this in `config.override`?
+    """
+    logging.config.dictConfig({
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'standard': {
+                'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
+            }
+        },
+        'handlers': {
+            'file': {
+                'level': this_module.LOG_FILE_LEVEL,
+                'filename': this_module.LOG_FILE,
+                'class': 'logging.FileHandler',
+                'formatter': 'standard',
+            },
+            'stdout': {
+                'level': this_module.LOG_STDOUT_LEVEL,
+                'class': 'logging.StreamHandler',
+                'formatter': 'standard',
+            }
+        },
+        'root': {
+            'level': 'DEBUG',
+            'handlers': (['file'] if this_module.LOG_FILE_LEVEL else []) +
+                        (['stdout'] if this_module.LOG_STDOUT_LEVEL else [])
+        }
+    })
+
+
 class override(contextlib.ContextDecorator):
     """Decorator and context manager to override config values.
 
@@ -492,12 +535,29 @@ class override(contextlib.ContextDecorator):
         return False
 
 
-# The name of the file to load configuration data from.
 PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
 
-# Try to load the config file, falling back to the default configuration.
+# Load the default config
 load_config_default()
+
+# Then try and load the config file
 file_loaded = False
 if os.path.exists(PYPHI_CONFIG_FILENAME):
     load_config_file(PYPHI_CONFIG_FILENAME)
     file_loaded = True
+
+# Setup logging
+configure_logging()
+
+# Log the PyPhi version and loaded configuration
+if this_module.LOG_CONFIG_ON_IMPORT:
+    log = logging.getLogger(__name__)
+
+    log.info('PyPhi version {}'.format(__about__.__version__))
+    if file_loaded:
+        log.info('Loaded configuration from '
+                 '`./{}`'.format(PYPHI_CONFIG_FILENAME))
+    else:
+        log.info('Using default configuration (no config file provided)')
+
+    log.info('Current PyPhi configuration:\n {}'.format(get_config_string()))
