@@ -26,6 +26,8 @@ Next Release
 - Replace `constants.DIRECTIONS`, `constants.PAST`, and `constants.FUTURE` with
   a proper `Enum` class: `constants.Direction`. Past and future are now
   represented by `constants.Direction.PAST` and `constants.Direction.FUTURE`.
+- Simplifed logging config to use `config.LOG_STDOUT_LEVEL`,
+  `config.LOG_FILE_LEVEL` and `config.LOG_FILE`.
 
 ### API Additions
 - Added `subsystem.evaluate_partition`. This returns the φ for a particular

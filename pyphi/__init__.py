@@ -78,26 +78,26 @@ logging.config.dictConfig({
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': config.LOGGING_CONFIG['format']
+            'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
         }
     },
     'handlers': {
         'file': {
-            'level': config.LOGGING_CONFIG['file']['level'],
+            'level': config.LOG_FILE_LEVEL,
+            'filename': config.LOG_FILE,
             'class': 'logging.FileHandler',
-            'filename': config.LOGGING_CONFIG['file']['filename'],
             'formatter': 'standard',
         },
         'stdout': {
-            'level': config.LOGGING_CONFIG['stdout']['level'],
+            'level': config.LOG_STDOUT_LEVEL,
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
         }
     },
     'root': {
         'level': 'DEBUG',
-        'handlers': [h for h in ['file', 'stdout'] if
-                     config.LOGGING_CONFIG[h]['enabled']]
+        'handlers': (['file'] if config.LOG_FILE_LEVEL else []) +
+                    (['stdout'] if config.LOG_STDOUT_LEVEL else [])
     }
 })
 

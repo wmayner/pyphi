@@ -183,41 +183,34 @@ this reason it is disabled by default.
 Logging
 ~~~~~~~
 
-These are the settings for PyPhi logging. You can control the format of the
-logs and the name of the log file. Logs can be written to standard output, a
-file, both, or none. See the `documentation on Python's logger
+These settings control how PyPhi handles log messages. Logs can be written to
+standard output, a file, both, or none. If these simple default controls are
+not flexible enough for you, you can override the entire logging configuration.
+See the `documentation on Python's logger
 <https://docs.python.org/3.4/library/logging.html>`_ for more information.
 
-- ``pyphi.config.LOGGING_CONFIG['file']['enabled']``: Control whether logs are
-  written to a file.
+- ``pyphi.config.LOG_STDOUT_LEVEL``: Controls the level of log messages written
+  to standard output. Can be one of ``'DEBUG'``, ``'INFO'``,
+  ``'WARNING'``, ``'ERROR'``, ``'CRITICAL'``, or ``None``. ``DEBUG`` is the
+  least restrictive level and will show the most log messages. ``CRITICAL`` is
+  the most restrictive level and will only display information about
+  unrecoverable errors. If set to ``None``, logging to standard output will be
+  disabled entirely.
 
-    >>> defaults['LOGGING_CONFIG']['file']['enabled']
-    True
+    >>> defaults['LOG_STDOUT_LEVEL']
+    'WARNING'
 
-- ``pyphi.config.LOGGING_CONFIG['file']['filename']``: Control the name of the
-  logfile.
+- ``pyphi.config.LOG_FILE_LEVEL: Controls the level of log messages written to
+  the log file. This option has the same possible values as
+  ``LOG_STDOUT_LEVEL``.
 
-    >>> defaults['LOGGING_CONFIG']['file']['filename']
-    'pyphi.log'
-
-- ``pyphi.config.LOGGING_CONFIG['file']['level']``: Control the concern level
-  of file logging. Can be one of ``'DEBUG'``, ``'INFO'``, ``'WARNING'``,
-  ``'ERROR'``, or ``'CRITICAL'``.
-
-    >>> defaults['LOGGING_CONFIG']['file']['level']
+    >>> defaults['LOG_FILE_LEVEL']
     'INFO'
 
-- ``pyphi.config.LOGGING_CONFIG['stdout']['enabled']``: Control whether logs
-  are written to standard output.
+- ``pyphi.config.LOG_FILE``: Control the name of the logfile.
 
-    >>> defaults['LOGGING_CONFIG']['stdout']['enabled']
-    True
-
-- ``pyphi.config.LOGGING_CONFIG['stdout']['level']``: Control the concern level
-  of standard output logging. Same possible values as file logging.
-
-    >>> defaults['LOGGING_CONFIG']['stdout']['level']
-    'WARNING'
+    >>> defaults['LOG_FILE']
+    'pyphi.log'
 
 - ``pyphi.config.LOG_CONFIG_ON_IMPORT``: Controls whether the current
   configuration is printed when PyPhi is imported.
@@ -406,20 +399,12 @@ DEFAULTS = {
         'host': 'localhost',
         'port': 6379,
     },
-    # These are the settings for PyPhi logging.
-    'LOGGING_CONFIG': {
-        'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s',
-        # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
-        'file': {
-            'enabled': True,
-            'level': 'INFO',
-            'filename': 'pyphi.log'
-        },
-        'stdout': {
-            'enabled': True,
-            'level': 'WARNING'
-        }
-    },
+    # The file to log to
+    'LOG_FILE': 'pyphi.log',
+    # The log level to write to `LOG_FILE`
+    'LOG_FILE_LEVEL': 'INFO',
+    # The log level to write to stdout
+    'LOG_STDOUT_LEVEL': 'WARNING',
     # Controls whether the current configuration is logged upon import.
     'LOG_CONFIG_ON_IMPORT': True,
     # The number of decimal points to which phi values are considered accurate.
