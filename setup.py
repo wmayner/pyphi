@@ -24,6 +24,7 @@ install_requires = [
     'pymongo >=2.7.1, <3.0.0',
     'pyyaml >=3.11, <4.0',
     'redis >=2.10.5, <3.0.0'
+    'tqdm >=4.11.2, <5.0.0'
 ]
 
 setup(

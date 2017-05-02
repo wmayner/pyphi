@@ -12,6 +12,8 @@ import logging
 import multiprocessing
 from time import time
 
+from tqdm import tqdm
+
 from . import parallel
 from .concept import constellation
 from .distance import constellation_distance
@@ -81,6 +83,11 @@ def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
     out_queue.put(None)
 
 
+def progress(iterable):
+    """A progress bar for cuts."""
+    return tqdm(iterable, desc='Evaluating \u03D5 cuts')
+
+
 def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
     """Find the MIP for a subsystem with a parallel loop over all cuts.
 
@@ -107,7 +114,7 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
         processes[i].start()
     # Continue to process output queue until all processes have completed, or a
     # 'poison pill' has been returned.
-    while True:
+    for i in progress(range(len(cuts) + number_of_processes)):
         new_mip = out_queue.get()
         if new_mip is None:
             number_of_processes -= 1
@@ -129,7 +136,7 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
 
     Holds only two |BigMip|s in memory at once.
     """
-    for i, cut in enumerate(cuts):
+    for i, cut in enumerate(progress(cuts)):
         new_mip = evaluate_cut(subsystem, cut, unpartitioned_constellation)
         log.debug("Finished {} of {} cuts.".format(i + 1, len(cuts)))
         if new_mip < min_mip:
