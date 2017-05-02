@@ -218,6 +218,12 @@ See the `documentation on Python's logger
     >>> defaults['LOG_CONFIG_ON_IMPORT']
     True
 
+- ``pyphi.config.PROGRESS_BARS``: Controls whether to show progress bars on
+  the console.
+
+    >>> defaults['PROGRESS_BARS']
+    True
+
 
 Numerical precision
 ~~~~~~~~~~~~~~~~~~~
@@ -411,6 +417,8 @@ DEFAULTS = {
     'LOG_STDOUT_LEVEL': 'WARNING',
     # Controls whether the current configuration is logged upon import.
     'LOG_CONFIG_ON_IMPORT': True,
+    # Enable/disable progress bars
+    'PROGRESS_BARS': True,
     # The number of decimal points to which phi values are considered accurate.
     'PRECISION': 6,
     # Controls whether a subsystem's state is validated when the subsystem is

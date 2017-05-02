@@ -85,6 +85,8 @@ def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
 
 def progress(iterable):
     """A progress bar for cuts."""
+    if not config.PROGRESS_BARS:
+        return iterable
     return tqdm(iterable, desc='Evaluating \u03D5 cuts')
 
 

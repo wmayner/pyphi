@@ -78,6 +78,8 @@ LOG_STDOUT_LEVEL: "WARNING"
 # Log the current configuration when PyPhi is imported. This is useful for
 # checking what settings were used for a previous calculation.
 LOG_CONFIG_ON_IMPORT: true
+# Enable/disable progress bars
+PROGRESS_BARS: true
 
 # Numerical precision
 # ~~~~~~~~~~~~~~~~~~~
