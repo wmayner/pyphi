@@ -496,7 +496,7 @@ def configure_logging():
             },
             'stdout': {
                 'level': this_module.LOG_STDOUT_LEVEL,
-                'class': 'logging.StreamHandler',
+                'class': 'pyphi.logging.TqdmHandler',
                 'formatter': 'standard',
             }
         },
