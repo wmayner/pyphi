@@ -152,27 +152,40 @@ class MacroSubsystem(Subsystem):
 
         super().__init__(network, state, node_indices, cut, mice_cache)
 
-        # Store the base system
-        self._base_system = SystemAttrs.pack(self)
+        validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
+
+        system = SystemAttrs.pack(self)
 
         # Shrink TPM to size of internal indices
         # ======================================
-        self._base_system = self._squeeze(self._base_system)
-
-        validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
-
-        # TODO: refactor all blackboxing into one method?
+        system = self._squeeze(system)
 
         # Blackbox partial freeze
         # =======================
         if blackbox is not None:
             validate.blackbox(blackbox)
             blackbox = blackbox.reindex()
-            self._base_system = self._blackbox_partial_noise(
-                blackbox, self._base_system)
+            system = self._blackbox_partial_noise(blackbox, system)
 
-        # All remaining blackboxing and coarse-graining
-        system = self._compute_system()
+        # Blackbox over time
+        # ==================
+        if time_scale != 1:
+            assert blackbox is not None
+            validate.time_scale(time_scale)
+            system = self._blackbox_time(time_scale, blackbox, system)
+
+        # Blackbox in space
+        # =================
+        if blackbox is not None:
+            system = self._blackbox_space(blackbox, system)
+
+        # Coarse-grain in space
+        # =====================
+        if coarse_grain is not None:
+            validate.coarse_grain(coarse_grain)
+            coarse_grain = coarse_grain.reindex()
+            system = self._coarsegrain_space(coarse_grain, self.is_cut, system)
+
         system.apply(self)
 
         validate.subsystem(self)
@@ -274,38 +287,6 @@ class MacroSubsystem(Subsystem):
         cm = np.ones((n, n))
 
         return SystemAttrs(tpm, cm, node_indices, state)
-
-    def _compute_system(self):
-
-        time_scale = self._time_scale
-        blackbox = self._blackbox
-        coarse_grain = self._coarse_grain
-
-        # Start with the basic system, after partial noise but before any
-        # other macro effects.
-        system = self._base_system
-
-        # Blackbox over time
-        # ==================
-        if time_scale != 1:
-            assert blackbox is not None
-            validate.time_scale(time_scale)
-            system = self._blackbox_time(time_scale, blackbox, system)
-
-        # Blackbox in space
-        # =================
-        if blackbox is not None:
-            blackbox = blackbox.reindex()
-            system = self._blackbox_space(blackbox, system)
-
-        # Coarse-grain in space
-        # =====================
-        if coarse_grain is not None:
-            validate.coarse_grain(coarse_grain)
-            coarse_grain = coarse_grain.reindex()
-            system = self._coarsegrain_space(coarse_grain, self.is_cut, system)
-
-        return system
 
     @property
     def cut_indices(self):
