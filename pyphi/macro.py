@@ -264,9 +264,15 @@ class MacroSubsystem(Subsystem):
 
         tpm = remove_singleton_dimensions(tpm)
 
-        # Universal connectivity, for now.
         n = len(blackbox.output_indices)
-        cm = np.ones((n, n))
+        cm = np.zeros((n, n))
+        for i, j in itertools.product(range(n), range(n)):
+            # TODO: don't pull cm from self
+            output = tuple(set(self._blackbox.partition[i]).intersection(
+                self._blackbox.output_indices))
+            to = self._blackbox.partition[j]
+            if self.cm[output, to].sum() > 0:
+                cm[i, j] = 1
 
         state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
