@@ -220,11 +220,8 @@ def test_subsystem_equality(s):
 def test_blackbox(s):
     ms = macro.MacroSubsystem(s.network, s.state, s.node_indices,
                               blackbox=macro.Blackbox(((0, 1, 2),), (1,)))
-    # Conditioned on hidden indices and squeezed
-    assert np.array_equal(ms.tpm, np.array([[0], [0]]))
-    # Universal connectivity
+    assert np.array_equal(ms.tpm, np.array([[.5], [.5]]))
     assert np.array_equal(ms.cm, np.array([[1]]))
-    # Reindexed
     assert ms.node_indices == (0,)
     assert ms.state == (0,)
 
@@ -233,7 +230,7 @@ def test_blackbox_external(s):
     # Which is the same if one of these indices is external
     ms = macro.MacroSubsystem(s.network, s.state, (1, 2),
                               blackbox=macro.Blackbox(((1, 2),), (1,)))
-    assert np.array_equal(ms.tpm, np.array([[0], [0]]))
+    assert np.array_equal(ms.tpm, np.array([[.5], [.5]]))
     assert np.array_equal(ms.cm, np.array([[1]]))
     assert ms.node_indices == (0,)
     assert ms.state == (0,)
