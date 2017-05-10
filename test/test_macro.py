@@ -149,6 +149,13 @@ def test_coarse_grain_state():
     assert cg.macro_state((1, 1)) == (1, 0)
 
 
+def test_coarse_grain_len():
+   partition = ((1, 2),)
+   grouping = (((0,), (1, 2)),)
+   cg = macro.CoarseGrain(partition, grouping)
+   assert len(cg) == 1
+
+
 @pytest.fixture
 def bb():
     partition = ((1, 3), (4,))

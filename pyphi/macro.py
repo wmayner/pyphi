@@ -405,6 +405,9 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         """Indices of macro elements of this coarse-graining."""
         return tuple(range(len(self.partition)))
 
+    def __len__(self):
+        return len(self.partition)
+
     def reindex(self):
         """Re-index this coarse graining to use squeezed indices.
 
