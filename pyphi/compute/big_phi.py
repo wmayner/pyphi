@@ -86,13 +86,6 @@ def _eval_wrapper(in_queue, out_queue, log_queue, subsystem, unpartitioned_const
     out_queue.put(None)
 
 
-def progress(iterable):
-    """A progress bar for cuts."""
-    if not config.PROGRESS_BARS:
-        return iterable
-    return tqdm(iterable, desc='Evaluating \u03D5 cuts')
-
-
 # The worker configuration is done at the start of the worker process run.
 def configure_worker(queue):
     config_worker = {
@@ -149,23 +142,30 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
     # Continue to process output queue until all processes have completed, or a
     # 'poison pill' has been returned.
 
+    # Load tqdm before the logger thread to prevent race conditions
+    progress = tqdm(total=len(cuts), leave=False,
+                    disable=(not config.PROGRESS_BARS),
+                    desc='Evaluating \u03D5 cuts')
+
     lp = threading.Thread(target=logger_thread, args=(log_queue,))
     lp.start()
-
-    for i in progress(range(len(cuts) + number_of_processes)):
+    while True:
         new_mip = out_queue.get()
         if new_mip is None:
             number_of_processes -= 1
             if number_of_processes == 0:
                 break
-        elif new_mip.phi == 0:
-            min_mip = new_mip
-            for process in processes:
-                process.terminate()
-            break
-        elif new_mip < min_mip:
-            min_mip = new_mip
+        else:
+            progress.update(1)
+            if new_mip.phi == 0:
+                min_mip = new_mip
+                for process in processes:
+                    process.terminate()
+                break
+            elif new_mip < min_mip:
+                min_mip = new_mip
 
+    progress.close()
     log_queue.put(None)
     lp.join()
 
