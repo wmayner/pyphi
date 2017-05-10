@@ -73,19 +73,6 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
         cut_subsystem=cut_subsystem)
 
 
-# Wrapper for `evaluate_cut` for parallel processing.
-def _eval_wrapper(in_queue, out_queue, log_queue, subsystem, unpartitioned_constellation):
-
-    configure_worker(log_queue)
-    while True:
-        cut = in_queue.get()
-        if cut is None:
-            break
-        new_mip = evaluate_cut(subsystem, cut, unpartitioned_constellation)
-        out_queue.put(new_mip)
-    out_queue.put(None)
-
-
 # The worker configuration is done at the start of the worker process run.
 def configure_worker(queue):
     config_worker = {
@@ -114,62 +101,102 @@ def logger_thread(q):
         logger.handle(record)
 
 
+POISON_PILL = None
+
+
+class MapReduce:
+
+    def __init__(self, subsystem, cuts, unpartitioned_constellation, min_mip):
+        self.subsystem = subsystem
+        self.cuts = cuts
+        self.unpartitioned_constellation = unpartitioned_constellation
+        self.min_mip = min_mip
+
+        self.number_of_processes = parallel.get_num_processes()
+        # Define input and output queues to allow short-circuit if a cut if found
+        # with zero Phi. Load the input queue with all possible cuts and a 'poison
+        # pill' for each process.
+        self.in_queue = multiprocessing.Queue()
+        self.out_queue = multiprocessing.Queue()
+        self.log_queue = multiprocessing.Queue()
+
+        for cut in cuts:
+            self.in_queue.put(cut)
+
+        for i in range(self.number_of_processes):
+            self.in_queue.put(POISON_PILL)
+
+    # TODO: should this not be a method? Is there a performance cost to
+    # using a bound method as a Process?
+    def worker(self, in_queue, out_queue, log_queue, subsystem,
+               unpartitioned_constellation):
+        """Worker process."""
+        configure_worker(log_queue)
+        while True:
+            cut = in_queue.get()
+            if cut is POISON_PILL:
+                break
+            out_queue.put(self.compute(cut, subsystem, unpartitioned_constellation))
+        out_queue.put(POISON_PILL)
+
+    # TODO: refactor args to make overridable
+    def compute(self, cut, subsystem, unpartitioned_constellation):
+        """Do the actual work of the parallel computation."""
+        return evaluate_cut(subsystem, cut, unpartitioned_constellation)
+
+    def execute(self):
+        # Initialize the processes and start them.
+        processes = [
+            multiprocessing.Process(target=self.worker,
+                                    args=(self.in_queue, self.out_queue,
+                                          self.log_queue,
+                                          self.subsystem,
+                                          self.unpartitioned_constellation))
+            for i in range(self.number_of_processes)
+        ]
+        for process in processes:
+            process.start()
+
+        # Continue to process output queue until all processes have completed, or a
+        # 'poison pill' has been returned.
+
+        # Load tqdm before the logger thread to prevent race conditions
+        progress = tqdm(total=len(self.cuts), leave=False,
+                        disable=(not config.PROGRESS_BARS),
+                        desc='Evaluating \u03D5 cuts')
+
+        log_thread = threading.Thread(target=logger_thread, args=(self.log_queue,))
+        log_thread.start()
+
+        min_mip = self.min_mip
+        while True:
+            new_mip = self.out_queue.get()
+            if new_mip is POISON_PILL:
+                self.number_of_processes -= 1
+                if self.number_of_processes == 0:
+                    break
+            else:
+                progress.update(1)
+                if new_mip.phi == 0:
+                    min_mip = new_mip
+                    for process in processes:
+                        process.terminate()
+                    break
+                elif new_mip < min_mip:
+                    min_mip = new_mip
+
+        progress.close()
+        self.log_queue.put(POISON_PILL)
+        log_thread.join()
+
+        return min_mip
+
+
 def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
-    """Find the MIP for a subsystem with a parallel loop over all cuts.
 
-    Uses the specified number of cores.
-    """
-    number_of_processes = parallel.get_num_processes()
-    # Define input and output queues to allow short-circuit if a cut if found
-    # with zero Phi. Load the input queue with all possible cuts and a 'poison
-    # pill' for each process.
-    in_queue = multiprocessing.Queue()
-    out_queue = multiprocessing.Queue()
-    log_queue = multiprocessing.Queue()
-    for cut in cuts:
-        in_queue.put(cut)
-    for i in range(number_of_processes):
-        in_queue.put(None)
-    # Initialize the processes and start them.
-    processes = [
-        multiprocessing.Process(target=_eval_wrapper,
-                                args=(in_queue, out_queue, log_queue, subsystem,
-                                      unpartitioned_constellation))
-        for i in range(number_of_processes)
-    ]
-    for i in range(number_of_processes):
-        processes[i].start()
-    # Continue to process output queue until all processes have completed, or a
-    # 'poison pill' has been returned.
-
-    # Load tqdm before the logger thread to prevent race conditions
-    progress = tqdm(total=len(cuts), leave=False,
-                    disable=(not config.PROGRESS_BARS),
-                    desc='Evaluating \u03D5 cuts')
-
-    lp = threading.Thread(target=logger_thread, args=(log_queue,))
-    lp.start()
-    while True:
-        new_mip = out_queue.get()
-        if new_mip is None:
-            number_of_processes -= 1
-            if number_of_processes == 0:
-                break
-        else:
-            progress.update(1)
-            if new_mip.phi == 0:
-                min_mip = new_mip
-                for process in processes:
-                    process.terminate()
-                break
-            elif new_mip < min_mip:
-                min_mip = new_mip
-
-    progress.close()
-    log_queue.put(None)
-    lp.join()
-
-    return min_mip
+    parallelizer = MapReduce(subsystem, cuts, unpartitioned_constellation,
+                                min_mip)
+    return parallelizer.execute()
 
 
 def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
