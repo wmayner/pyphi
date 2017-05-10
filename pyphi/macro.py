@@ -263,13 +263,12 @@ class MacroSubsystem(Subsystem):
         assert blackbox.output_indices == tpm_indices(tpm)
 
         tpm = remove_singleton_dimensions(tpm)
-        n = len(blackbox.partition)
+        n = len(blackbox)
         cm = np.zeros((n, n))
         for i, j in itertools.product(range(n), range(n)):
             # TODO: don't pull cm from self
             outputs = self._blackbox.outputs_of(i)
             to = self._blackbox.partition[j]
-            print(outputs, to)
             if self.cm[np.ix_(outputs, to)].sum() > 0:
                 cm[i, j] = 1
 
@@ -546,6 +545,9 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
     def macro_indices(self):
         """Fresh indices of macro-elements of the blackboxing."""
         return reindex(self.output_indices)
+
+    def __len__(self):
+        return len(self.partition)
 
     def outputs_of(self, partition_index):
         """The outputs of the partition at ``partition_index``.

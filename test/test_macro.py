@@ -156,6 +156,15 @@ def bb():
     return macro.Blackbox(partition, output_indices)
 
 
+@pytest.fixture
+def cg_bb():
+    """A blackbox with multiple outputs for a box, which must be coarse-
+    grained."""
+    partition = ((1, 3), (4,), (5,))
+    output_indices = (1, 3, 4, 5)
+    return macro.Blackbox(partition, output_indices)
+
+
 def test_blackbox_indices(bb):
     assert bb.micro_indices == (1, 3, 4)
     assert bb.macro_indices == (0, 1)
@@ -187,12 +196,14 @@ def test_blackbox_hidden_from(bb):
     assert not bb.hidden_from(3, 4)
 
 
-def test_blackbox_outputs_of():
-    partition = ((1, 3), (4,))
-    output_indices = (1, 3, 4)
-    box = macro.Blackbox(partition, output_indices)
-    assert box.outputs_of(0) == (1, 3)
-    assert box.outputs_of(1) == (4,)
+def test_blackbox_outputs_of(cg_bb):
+    assert cg_bb.outputs_of(0) == (1, 3)
+    assert cg_bb.outputs_of(1) == (4,)
+
+
+def test_blackbox_len(bb, cg_bb):
+    assert len(bb) == 2
+    assert len(cg_bb) == 3
 
 
 def test_rebuild_system_tpm(s):
