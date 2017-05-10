@@ -10,6 +10,7 @@ subsystems.
 import functools
 import logging
 import multiprocessing
+import threading
 from time import time
 
 from tqdm import tqdm
@@ -73,7 +74,9 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
 
 
 # Wrapper for `evaluate_cut` for parallel processing.
-def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
+def _eval_wrapper(in_queue, out_queue, log_queue, subsystem, unpartitioned_constellation):
+
+    configure_worker(log_queue)
     while True:
         cut = in_queue.get()
         if cut is None:
@@ -90,6 +93,34 @@ def progress(iterable):
     return tqdm(iterable, desc='Evaluating \u03D5 cuts')
 
 
+# The worker configuration is done at the start of the worker process run.
+def configure_worker(queue):
+    config_worker = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'queue': {
+                'class': 'logging.handlers.QueueHandler',
+                'queue': queue,
+            },
+        },
+        'root': {
+            'level': 'DEBUG',
+            'handlers': ['queue']
+        },
+    }
+    logging.config.dictConfig(config_worker)
+
+
+def logger_thread(q):
+    while True:
+        record = q.get()
+        if record is None:
+            break
+        logger = logging.getLogger(record.name)
+        logger.handle(record)
+
+
 def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
     """Find the MIP for a subsystem with a parallel loop over all cuts.
 
@@ -101,6 +132,7 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
     # pill' for each process.
     in_queue = multiprocessing.Queue()
     out_queue = multiprocessing.Queue()
+    log_queue = multiprocessing.Queue()
     for cut in cuts:
         in_queue.put(cut)
     for i in range(number_of_processes):
@@ -108,7 +140,7 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
     # Initialize the processes and start them.
     processes = [
         multiprocessing.Process(target=_eval_wrapper,
-                                args=(in_queue, out_queue, subsystem,
+                                args=(in_queue, out_queue, log_queue, subsystem,
                                       unpartitioned_constellation))
         for i in range(number_of_processes)
     ]
@@ -116,6 +148,10 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
         processes[i].start()
     # Continue to process output queue until all processes have completed, or a
     # 'poison pill' has been returned.
+
+    lp = threading.Thread(target=logger_thread, args=(log_queue,))
+    lp.start()
+
     for i in progress(range(len(cuts) + number_of_processes)):
         new_mip = out_queue.get()
         if new_mip is None:
@@ -129,6 +165,10 @@ def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
             break
         elif new_mip < min_mip:
             min_mip = new_mip
+
+    log_queue.put(None)
+    lp.join()
+
     return min_mip
 
 
