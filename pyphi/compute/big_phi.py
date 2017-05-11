@@ -72,9 +72,10 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
 
 
 class FindMip(MapReduce):
+    """Computation engine for finding the minimal ``BigMip``."""
 
     def compute(self, cut, subsystem, unpartitioned_constellation):
-        """Do the actual work of the parallel computation."""
+        """Evaluate a cut."""
         return evaluate_cut(subsystem, cut, unpartitioned_constellation)
 
     def process_result(self, new_mip, min_mip):
@@ -87,23 +88,6 @@ class FindMip(MapReduce):
             return new_mip
 
         return min_mip
-
-
-def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
-
-    parallelizer = FindMip(cuts, min_mip, subsystem, unpartitioned_constellation)
-
-    return parallelizer.run_parallel()
-
-
-def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
-                         min_mip):
-    """Find the minimal cut for a subsystem by sequentially loop over all cuts.
-
-    Holds only two |BigMip|s in memory at once.
-    """
-    p = FindMip(cuts, min_mip, subsystem, unpartitioned_constellation)
-    return p.run_sequential()
 
 
 def big_mip_bipartitions(nodes):
@@ -141,11 +125,6 @@ def _big_mip(cache_key, subsystem):
     """
     log.info("Calculating big-phi data for {}...".format(subsystem))
     start = time()
-
-    if config.PARALLEL_CUT_EVALUATION:
-        _find_mip = _find_mip_parallel
-    else:
-        _find_mip = _find_mip_sequential
 
     # Annote a BigMip with the total elapsed calculation time, and optionally
     # also with the time taken to calculate the unpartitioned constellation.
@@ -192,8 +171,10 @@ def _big_mip(cache_key, subsystem):
         cuts = big_mip_bipartitions(subsystem.cut_indices)
         min_mip = _null_bigmip(subsystem)
         min_mip.phi = float('inf')
-        min_mip = _find_mip(subsystem, cuts, unpartitioned_constellation,
-                            min_mip)
+
+        finder = FindMip(cuts, min_mip, subsystem, unpartitioned_constellation)
+        min_mip = finder.run(config.PARALLEL_CUT_EVALUATION)
+
         result = time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
