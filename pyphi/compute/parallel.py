@@ -79,6 +79,9 @@ class MapReduce:
 
     Supports both parallel and sequential computations.
     """
+    # Description for the tqdm progress bar
+    description = ''
+
     # *args are (subsystem, unpartitioned_constellation)
     def __init__(self, iterable, default_result, *context):
         self.iterable = iterable
@@ -141,8 +144,8 @@ class MapReduce:
 
         # Initialize progress bar
         self.progress = tqdm(total=len(self.iterable), leave=False,
-                        disable=(not config.PROGRESS_BARS),
-                        desc='Evaluating \u03D5 cuts')
+                             disable=(not config.PROGRESS_BARS),
+                             desc=self.description)
 
     def start_parallel(self):
         """Start all processses and the logger thread."""

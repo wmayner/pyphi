@@ -73,6 +73,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
 
 class FindMip(MapReduce):
     """Computation engine for finding the minimal ``BigMip``."""
+    description = 'Evaluating \u03D5 cuts'
 
     def compute(self, cut, subsystem, unpartitioned_constellation):
         """Evaluate a cut."""
