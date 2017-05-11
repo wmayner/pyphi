@@ -93,9 +93,8 @@ class MapReduce:
     # Description for the tqdm progress bar
     description = ''
 
-    # *args are (subsystem, unpartitioned_constellation)
     def __init__(self, iterable, default_result, *context):
-        self.iterable = iterable
+        self.iterable = list(iterable)
         self.default_result = default_result
         self.context = context
 
