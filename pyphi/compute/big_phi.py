@@ -228,6 +228,12 @@ class MapReduce:
 
         return result
 
+    def run(self, parallel=True):
+        if parallel:
+            return self.run_parallel()
+        else:
+            return self.run_sequential()
+
 
 def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
 
