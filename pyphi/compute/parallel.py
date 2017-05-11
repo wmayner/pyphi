@@ -49,6 +49,7 @@ class LogThread(threading.Thread):
     def __init__(self, q):
         self.q = q
         super().__init__()
+        self.daemon = True
 
     def run(self):
         while True:
@@ -147,7 +148,7 @@ class MapReduce:
 
         args = (self.in_queue, self.out_queue, self.log_queue) + self.context
         self.processes = [
-            multiprocessing.Process(target=self.worker, args=args)
+            multiprocessing.Process(target=self.worker, args=args, daemon=True)
             for i in range(self.number_of_processes)]
 
         self.log_thread = LogThread(self.log_queue)
