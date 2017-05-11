@@ -38,6 +38,26 @@ def get_num_processes():
     return config.NUMBER_OF_CORES
 
 
+POISON_PILL = None
+
+class LogThread(threading.Thread):
+    """Thread which handles log records sent from ``MapReduce`` processes.
+
+    It listens to an instance of ``multiprocessing.Queue``, rewriting log
+    messages to the PyPhi log handler.
+    """
+    def __init__(self, q):
+        self.q = q
+        super().__init__()
+
+    def run(self):
+        while True:
+            record = self.q.get()
+            if record is POISON_PILL:
+                break
+            logger = logging.getLogger(record.name)
+            logger.handle(record)
+
 
 # The worker configuration is done at the start of the worker process run.
 def configure_worker(queue):
@@ -56,18 +76,6 @@ def configure_worker(queue):
         },
     }
     logging.config.dictConfig(config_worker)
-
-
-def logger_thread(q):
-    while True:
-        record = q.get()
-        if record is None:
-            break
-        logger = logging.getLogger(record.name)
-        logger.handle(record)
-
-
-POISON_PILL = None
 
 
 class MapReduce:
@@ -139,8 +147,7 @@ class MapReduce:
             multiprocessing.Process(target=self.worker, args=args)
             for i in range(self.number_of_processes)]
 
-        self.log_thread = threading.Thread(target=logger_thread,
-                                           args=(self.log_queue,))
+        self.log_thread = LogThread(self.log_queue)
 
         # Initialize progress bar
         self.progress = tqdm(total=len(self.iterable), leave=False,
