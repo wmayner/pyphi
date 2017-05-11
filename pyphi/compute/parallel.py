@@ -40,6 +40,8 @@ def get_num_processes():
 
 POISON_PILL = None
 
+
+# TODO: maintain a single log thread?
 class LogThread(threading.Thread):
     """Thread which handles log records sent from ``MapReduce`` processes.
 
@@ -167,7 +169,7 @@ class MapReduce:
 
         # Shutdown the log thread
         self.log_queue.put(POISON_PILL)
-        self.log_thread.join()
+        # self.log_thread.join()
 
         # Remove the progress bar
         self.progress.close()
