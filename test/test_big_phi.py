@@ -11,8 +11,7 @@ from pyphi import constants, config, compute, models, utils, Network, Subsystem
 from pyphi.constants import Direction
 from pyphi.models import Cut, _null_bigmip
 from pyphi.compute import constellation
-from pyphi.compute.big_phi import (_find_mip_parallel, _find_mip_sequential,
-                                   big_mip_bipartitions)
+from pyphi.compute.big_phi import FindMip, big_mip_bipartitions
 
 # TODO: split these into `concept` and `big_phi` tests
 
@@ -346,59 +345,78 @@ def test_big_mip_single_node_selfloops_dont_have_phi(s_single, flushcache,
     assert compute.big_mip(s_single).phi == 0.0
 
 
-@config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_standard_example(s, flushcache, restore_fs_cache):
-    flushcache()
+@pytest.fixture
+def standard_FindMip(s):
     unpartitioned_constellation = constellation(s)
-    bipartitions = utils.directed_bipartition(s.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
+    cuts = big_mip_bipartitions(s.node_indices)
     min_mip = _null_bigmip(s)
     min_mip.phi = float('inf')
-    mip = _find_mip_sequential(s, cuts, unpartitioned_constellation, min_mip)
+    return FindMip(cuts, min_mip, s, unpartitioned_constellation)
+
+
+@config.override(PARALLEL_CUT_EVALUATION=False)
+def test_find_mip_sequential_standard_example(standard_FindMip, flushcache,
+                                              restore_fs_cache):
+    flushcache()
+    mip = standard_FindMip.run_sequential()
     check_mip(mip, standard_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
-def test_find_mip_parallel_standard_example(s, flushcache, restore_fs_cache):
-    flushcache()
-    unpartitioned_constellation = constellation(s)
-    bipartitions = utils.directed_bipartition(s.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
-    min_mip = _null_bigmip(s)
-    min_mip.phi = float('inf')
-    mip = _find_mip_parallel(s, cuts, unpartitioned_constellation, min_mip)
-    check_mip(mip, standard_answer)
-
-
-@config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_noised_example(s_noised, flushcache,
+def test_find_mip_parallel_standard_example(standard_FindMip, flushcache,
                                             restore_fs_cache):
     flushcache()
+    mip = standard_FindMip.run_parallel()
+    check_mip(mip, standard_answer)
+
+
+@pytest.fixture
+def s_noised_FindMip(s_noised):
     unpartitioned_constellation = constellation(s_noised)
-    bipartitions = utils.directed_bipartition(s_noised.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
+    cuts = big_mip_bipartitions(s_noised.node_indices)
     min_mip = _null_bigmip(s_noised)
     min_mip.phi = float('inf')
-    mip = _find_mip_sequential(s_noised, cuts, unpartitioned_constellation, min_mip)
+    return FindMip(cuts, min_mip, s_noised, unpartitioned_constellation)
 
+
+@config.override(PARALLEL_CUT_EVALUATION=False)
+def test_find_mip_sequential_noised_example(s_noised_FindMip, flushcache,
+                                            restore_fs_cache):
+    flushcache()
+    mip = s_noised_FindMip.run_sequential()
     check_mip(mip, noised_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
-def test_find_mip_parallel_noised_example(s_noised, flushcache,
+def test_find_mip_parallel_noised_example(s_noised_FindMip, flushcache,
                                           restore_fs_cache):
     flushcache()
-    unpartitioned_constellation = constellation(s_noised)
-    bipartitions = utils.directed_bipartition(s_noised.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
-    min_mip = _null_bigmip(s_noised)
-    min_mip.phi = float('inf')
-    mip = _find_mip_parallel(s_noised, cuts, unpartitioned_constellation, min_mip)
+    mip = s_noised_FindMip.run_parallel()
     check_mip(mip, noised_answer)
+
+
+@pytest.fixture
+def micro_s_FindMip(micro_s):
+    unpartitioned_constellation = constellation(micro_s)
+    cuts = big_mip_bipartitions(micro_s.node_indices)
+    min_mip = _null_bigmip(micro_s)
+    min_mip.phi = float('inf')
+
+    return FindMip(cuts, min_mip, micro_s, unpartitioned_constellation)
+
+
+@config.override(PARALLEL_CUT_EVALUATION=True)
+def test_find_mip_parallel_micro(micro_s_FindMip, flushcache, restore_fs_cache):
+    flushcache()
+    mip = micro_s_FindMip.run_parallel()
+    check_mip(mip, micro_answer)
+
+
+@config.override(PARALLEL_CUT_EVALUATION=False)
+def test_find_mip_sequential_micro(micro_s_FindMip, flushcache, restore_fs_cache):
+    flushcache()
+    mip = micro_s_FindMip.run_sequential()
+    check_mip(mip, micro_answer)
 
 
 def test_possible_complexes(s):
@@ -516,36 +534,6 @@ def test_rule152_complexes_no_caching(rule152):
                         in enumerate(main.unpartitioned_constellation)))
         # Check that the minimal cut is the same.
         assert main.cut == result['cut']
-
-
-@config.override(PARALLEL_CUT_EVALUATION=True)
-def test_find_mip_parallel_micro(micro_s, flushcache, restore_fs_cache):
-    flushcache()
-
-    unpartitioned_constellation = constellation(micro_s)
-    bipartitions = utils.directed_bipartition(micro_s.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
-    min_mip = _null_bigmip(micro_s)
-    min_mip.phi = float('inf')
-    mip = _find_mip_parallel(micro_s, cuts, unpartitioned_constellation,
-                             min_mip)
-    check_mip(mip, micro_answer)
-
-
-@config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_micro(micro_s, flushcache, restore_fs_cache):
-    flushcache()
-
-    unpartitioned_constellation = constellation(micro_s)
-    bipartitions = utils.directed_bipartition(micro_s.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
-    min_mip = _null_bigmip(micro_s)
-    min_mip.phi = float('inf')
-    mip = _find_mip_sequential(micro_s, cuts, unpartitioned_constellation,
-                               min_mip)
-    check_mip(mip, micro_answer)
 
 
 @pytest.mark.dev
