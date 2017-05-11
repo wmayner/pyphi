@@ -96,6 +96,11 @@ class MapReduce:
         self.default_result = default_result
         self.context = context
 
+        # Initialize progress bar
+        self.progress = tqdm(total=len(self.iterable), leave=False,
+                             disable=(not config.PROGRESS_BARS),
+                             desc=self.description)
+
     def worker(self, in_queue, out_queue, log_queue, *context):
         """Worker process."""
         configure_worker_logging(log_queue)
@@ -147,11 +152,6 @@ class MapReduce:
 
         self.log_thread = LogThread(self.log_queue)
 
-        # Initialize progress bar
-        self.progress = tqdm(total=len(self.iterable), leave=False,
-                             disable=(not config.PROGRESS_BARS),
-                             desc=self.description)
-
     def start_parallel(self):
         """Start all processses and the logger thread."""
         for process in self.processes:
@@ -161,15 +161,15 @@ class MapReduce:
 
     def finish_parallel(self):
         """Terminate all processes."""
-        # Remove the progress bar
-        self.progress.close()
-
         for process in self.processes:
             process.terminate()
 
         # Shutdown the log thread
         self.log_queue.put(POISON_PILL)
         self.log_thread.join()
+
+        # Remove the progress bar
+        self.progress.close()
 
     def run_parallel(self):
         """Perform the computation in parallel, reading results from the output
@@ -208,6 +208,9 @@ class MapReduce:
             # Short-circuited?
             if not self.working:
                 break
+
+        # Remove progress bar
+        self.progress.close()
 
         return result
 
