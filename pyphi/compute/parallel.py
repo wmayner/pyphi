@@ -59,9 +59,9 @@ class LogThread(threading.Thread):
             logger.handle(record)
 
 
-# The worker configuration is done at the start of the worker process run.
-def configure_worker(queue):
-    config_worker = {
+def configure_worker_logging(queue):
+    """Configure a worker process to log all messages to the given queue."""
+    config = {
         'version': 1,
         'disable_existing_loggers': False,
         'handlers': {
@@ -75,7 +75,7 @@ def configure_worker(queue):
             'handlers': ['queue']
         },
     }
-    logging.config.dictConfig(config_worker)
+    logging.config.dictConfig(config)
 
 
 class MapReduce:
@@ -96,11 +96,9 @@ class MapReduce:
         self.default_result = default_result
         self.context = context
 
-    # TODO: should this not be a method? Is there a performance cost to
-    # using a bound method as a Process?
     def worker(self, in_queue, out_queue, log_queue, *context):
         """Worker process."""
-        configure_worker(log_queue)
+        configure_worker_logging(log_queue)
         while True:
             obj = in_queue.get()
             if obj is POISON_PILL:
