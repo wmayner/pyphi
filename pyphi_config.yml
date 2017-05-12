@@ -20,12 +20,15 @@ MEASURE: "EMD"
 
 # System resources
 # ~~~~~~~~~~~~~~~~
+# Controls whether concepts are evaluated in parallel.
+PARALLEL_CONCEPT_EVALUATION: false
 # Controls whether cuts are evaluated in parallel, which requires more
 # memory. If cuts are evaluated sequentially, only two BigMips need to be
 # in memory at a time.
-PARALLEL_CUT_EVALUATION: false
-# Controls whether concepts are evaluated in parallel.
-PARALLEL_CONCEPT_EVALUATION: false
+PARALLEL_CUT_EVALUATION: true
+# Controls whether complexes are evaluated in parallel.
+PARALLEL_COMPLEX_EVALUATION: false
+
 # The number of CPU cores to use in parallel cut evaluation. -1 means all
 # available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
@@ -74,7 +77,7 @@ LOG_FILE: "pyphi.log"
 # The log level to write to `LOG_FILE`
 LOG_FILE_LEVEL: "INFO"
 # The log level to write to stdout
-LOG_STDOUT_LEVEL: "DEBUG"
+LOG_STDOUT_LEVEL: "WARNING"
 # Log the current configuration when PyPhi is imported. This is useful for
 # checking what settings were used for a previous calculation.
 LOG_CONFIG_ON_IMPORT: true

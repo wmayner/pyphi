@@ -271,10 +271,23 @@ def possible_complexes(network, state):
             continue
 
 
+class FindComplexes(MapReduce):
+    """Computation engine for computing irreducible complexes of a network."""
+    description = 'Finding complexes'
+
+    def compute(self, subsystem):
+        return big_mip(subsystem)
+
+    def process_result(self, new_big_mip, complexes):
+        if new_big_mip.phi > 0:
+            complexes.append(new_big_mip)
+        return complexes
+
+
 def complexes(network, state):
     """Return all irreducible complexes of the network."""
-    return tuple(filter(None, (big_mip(subsystem) for subsystem in
-                               possible_complexes(network, state))))
+    engine = FindComplexes(possible_complexes(network, state), [])
+    return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
 
 
 def main_complex(network, state):
