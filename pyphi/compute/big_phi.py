@@ -37,7 +37,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     Returns:
         |BigMip|: The |BigMip| for that cut.
     """
-    log.debug("Evaluating cut {}...".format(cut))
+    log.info("Evaluating cut {}...".format(cut))
 
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
@@ -58,7 +58,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
             list(cut.all_cut_mechanisms()))
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
-    log.debug("Finished evaluating cut {}.".format(cut))
+    log.info("Finished evaluating cut {}.".format(cut))
 
     phi = constellation_distance(unpartitioned_constellation,
                                  partitioned_constellation)
@@ -155,7 +155,7 @@ def _big_mip(cache_key, subsystem):
     #   - an elementary mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null MIP.
     if not subsystem:
-        log.info('Subsystem {} is empty; returning null MIP '
+        log.info('{} is empty; returning null MIP '
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))
 
@@ -165,11 +165,11 @@ def _big_mip(cache_key, subsystem):
         return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
 
-    log.debug("Finding unpartitioned constellation...")
+    log.info("Finding unpartitioned constellation of {}...".format(subsystem))
     small_phi_start = time()
     unpartitioned_constellation = constellation(subsystem)
     small_phi_time = round(time() - small_phi_start, config.PRECISION)
-    log.debug("Found unpartitioned constellation.")
+    log.info("Found unpartitioned constellation of {}.".format(subsystem))
 
     if not unpartitioned_constellation:
         # Short-circuit if there are no concepts in the unpartitioned
