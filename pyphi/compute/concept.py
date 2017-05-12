@@ -49,6 +49,9 @@ class ComputeConstellation(parallel.MapReduce):
     """Engine for computing a constellation."""
     description = 'Computing concepts'
 
+    def empty_result(self, *args):
+        return []
+
     def compute(self, mechanism, subsystem, purviews, past_purviews,
                 future_purviews):
         """Compute a concept for a mechanism, in this subsystem with the
@@ -98,7 +101,7 @@ def constellation(subsystem, mechanisms=False, purviews=False,
     if mechanisms is False:
         mechanisms = utils.powerset(subsystem.node_indices)
 
-    engine = ComputeConstellation(mechanisms, [], subsystem, purviews,
+    engine = ComputeConstellation(mechanisms, subsystem, purviews,
                                   past_purviews, future_purviews)
     return models.Constellation(engine.run(config.PARALLEL_CONCEPT_EVALUATION))
 

@@ -93,9 +93,8 @@ class MapReduce:
     # Description for the tqdm progress bar
     description = ''
 
-    def __init__(self, iterable, default_result, *context):
+    def __init__(self, iterable, *context):
         self.iterable = list(iterable)
-        self.default_result = default_result
         self.context = context
 
         # Initialize progress bar
@@ -112,6 +111,10 @@ class MapReduce:
                 break
             out_queue.put(self.compute(obj, *context))
         out_queue.put(POISON_PILL)
+
+    def empty_result(self, obj, *context):
+        """The default to result with which to begin the computation."""
+        raise NotImplementedError
 
     def compute(self, obj, *context):
         """Computation handler.
@@ -180,7 +183,8 @@ class MapReduce:
         self.init_parallel()
         self.start_parallel()
         self.working = True
-        result = self.default_result
+
+        result = self.empty_result(*self.context)
 
         while self.working:
             r = self.out_queue.get()
@@ -201,7 +205,7 @@ class MapReduce:
         objects in memory at a time.
         """
         self.working = True
-        result = self.default_result
+        result = self.empty_result(*self.context)
         for cut in self.iterable:
             r = self.compute(cut, *self.context)
             result = self.process_result(r, result)

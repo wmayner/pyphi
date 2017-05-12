@@ -75,6 +75,13 @@ class FindMip(MapReduce):
     """Computation engine for finding the minimal ``BigMip``."""
     description = 'Evaluating \u03D5 cuts'
 
+    def empty_result(self, subsystem, unpartitioned_constellation):
+        """Begin with a mip with infinite phi; all actual mips will have less
+        phi."""
+        min_mip = _null_bigmip(subsystem)
+        min_mip.phi = float('inf')
+        return min_mip
+
     def compute(self, cut, subsystem, unpartitioned_constellation):
         """Evaluate a cut."""
         return evaluate_cut(subsystem, cut, unpartitioned_constellation)
@@ -170,12 +177,8 @@ def _big_mip(cache_key, subsystem):
         result = time_annotated(_null_bigmip(subsystem))
     else:
         cuts = big_mip_bipartitions(subsystem.cut_indices)
-        min_mip = _null_bigmip(subsystem)
-        min_mip.phi = float('inf')
-
-        finder = FindMip(cuts, min_mip, subsystem, unpartitioned_constellation)
+        finder = FindMip(cuts, subsystem, unpartitioned_constellation)
         min_mip = finder.run(config.PARALLEL_CUT_EVALUATION)
-
         result = time_annotated(min_mip, small_phi_time)
 
     log.info("Finished calculating big-phi data for {}.".format(subsystem))
@@ -275,6 +278,9 @@ class FindComplexes(MapReduce):
     """Computation engine for computing irreducible complexes of a network."""
     description = 'Finding complexes'
 
+    def empty_result(self):
+        return []
+
     def compute(self, subsystem):
         return big_mip(subsystem)
 
@@ -286,7 +292,7 @@ class FindComplexes(MapReduce):
 
 def complexes(network, state):
     """Return all irreducible complexes of the network."""
-    engine = FindComplexes(possible_complexes(network, state), [])
+    engine = FindComplexes(possible_complexes(network, state))
     return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
 
 

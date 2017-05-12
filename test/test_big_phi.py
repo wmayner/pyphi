@@ -349,9 +349,7 @@ def test_big_mip_single_node_selfloops_dont_have_phi(s_single, flushcache,
 def standard_FindMip(s):
     unpartitioned_constellation = constellation(s)
     cuts = big_mip_bipartitions(s.node_indices)
-    min_mip = _null_bigmip(s)
-    min_mip.phi = float('inf')
-    return FindMip(cuts, min_mip, s, unpartitioned_constellation)
+    return FindMip(cuts, s, unpartitioned_constellation)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
@@ -374,9 +372,7 @@ def test_find_mip_parallel_standard_example(standard_FindMip, flushcache,
 def s_noised_FindMip(s_noised):
     unpartitioned_constellation = constellation(s_noised)
     cuts = big_mip_bipartitions(s_noised.node_indices)
-    min_mip = _null_bigmip(s_noised)
-    min_mip.phi = float('inf')
-    return FindMip(cuts, min_mip, s_noised, unpartitioned_constellation)
+    return FindMip(cuts, s_noised, unpartitioned_constellation)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
@@ -399,10 +395,7 @@ def test_find_mip_parallel_noised_example(s_noised_FindMip, flushcache,
 def micro_s_FindMip(micro_s):
     unpartitioned_constellation = constellation(micro_s)
     cuts = big_mip_bipartitions(micro_s.node_indices)
-    min_mip = _null_bigmip(micro_s)
-    min_mip.phi = float('inf')
-
-    return FindMip(cuts, min_mip, micro_s, unpartitioned_constellation)
+    return FindMip(cuts, micro_s, unpartitioned_constellation)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True)
