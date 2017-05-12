@@ -127,7 +127,7 @@ class MapReduce:
         called with the result and the previous (accumulated) result. This
         method compares or collates these two values, returning the new result.
 
-        Setting ``self.working`` to ``False`` in this method will abort the
+        Setting ``self.done`` to ``True`` in this method will abort the
         remainder of the computation, returning this final result.
         """
         raise NotImplementedError
@@ -189,10 +189,10 @@ class MapReduce:
         self.init_parallel()
         self.start_parallel()
 
-        self.working = True
+        self.done = False
         result = self.empty_result(*self.context)
 
-        while self.working:
+        while not self.done:
             r = self.out_queue.get()
             if r is POISON_PILL:
                 self.number_of_processes -= 1
@@ -210,7 +210,7 @@ class MapReduce:
         """Perform the computation sequentially, only holding two computed
         objects in memory at a time.
         """
-        self.working = True
+        self.done = False
         result = self.empty_result(*self.context)
 
         for obj in self.iterable:
@@ -219,7 +219,7 @@ class MapReduce:
             self.progress.update(1)
 
             # Short-circuited?
-            if not self.working:
+            if self.done:
                 break
 
         # Remove progress bar

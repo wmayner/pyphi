@@ -89,7 +89,7 @@ class FindMip(MapReduce):
     def process_result(self, new_mip, min_mip):
         """Check if the new mip has smaller phi than the standing result."""
         if new_mip.phi == 0:
-            self.working = False  # Short-circuit
+            self.done = True  # Short-circuit
             return new_mip
 
         elif new_mip < min_mip:
