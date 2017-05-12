@@ -107,10 +107,11 @@ class MapReduce:
         self.iterable = list(iterable)
         self.context = context
 
-        # Initialize progress bar
+        # Initialize a progress bar
+        # Forked worker processes can't show progress bars.
+        disable = self.forked or not config.PROGRESS_BARS
         self.progress = tqdm(total=len(self.iterable), leave=False,
-                             disable=(not config.PROGRESS_BARS),
-                             desc=self.description)
+                             disable=disable, desc=self.description)
 
     def empty_result(self, obj, *context):
         """Return the default result with which to begin the computation."""
@@ -132,9 +133,23 @@ class MapReduce:
         """
         raise NotImplementedError
 
+    _forked = False
+
+    @property
+    def forked(self):
+        """Is this a subprocess of another MapReduce operation?"""
+        return MapReduce._forked
+
+    @forked.setter
+    def forked(self, value):
+        MapReduce._forked = value
+
     def worker(self, in_queue, out_queue, log_queue, *context):
         """A worker process, run by ``multiprocessing.Process``."""
+        self.forked = True
+
         configure_worker_logging(log_queue)
+
         while True:
             obj = in_queue.get()
             if obj is POISON_PILL:
