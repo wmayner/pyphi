@@ -506,7 +506,7 @@ def configure_logging():
             },
             'stdout': {
                 'level': this_module.LOG_STDOUT_LEVEL,
-                'class': 'pyphi.logging.TqdmHandler',
+                'class': 'pyphi.logging.ProgressBarHandler',
                 'formatter': 'standard',
             }
         },

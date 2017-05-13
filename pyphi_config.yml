@@ -77,7 +77,7 @@ LOG_FILE: "pyphi.log"
 # The log level to write to `LOG_FILE`
 LOG_FILE_LEVEL: "INFO"
 # The log level to write to stdout
-LOG_STDOUT_LEVEL: "WARNING"
+LOG_STDOUT_LEVEL: "DEBUG"
 # Log the current configuration when PyPhi is imported. This is useful for
 # checking what settings were used for a previous calculation.
 LOG_CONFIG_ON_IMPORT: true

@@ -9,6 +9,7 @@ import threading
 from tqdm import tqdm
 
 from .. import config
+from ..logging import ProgressBar
 
 
 def get_num_processes():
@@ -110,8 +111,8 @@ class MapReduce:
         # Initialize a progress bar
         # Forked worker processes can't show progress bars.
         disable = self.forked or not config.PROGRESS_BARS
-        self.progress = tqdm(total=len(self.iterable), leave=False,
-                             disable=disable, desc=self.description)
+        self.progress = ProgressBar(total=len(self.iterable), leave=False,
+                                    disable=disable, desc=self.description)
 
     def empty_result(self, obj, *context):
         """Return the default result with which to begin the computation."""
