@@ -198,8 +198,8 @@ See the `documentation on Python's logger
 
 - ``pyphi.config.LOG_STDOUT_LEVEL``: Controls the level of log messages written
   to standard output. Can be one of ``'DEBUG'``, ``'INFO'``,
-  ``'WARNING'``, ``'ERROR'``, ``'CRITICAL'``, or ``None``. ``DEBUG`` is the
-  least restrictive level and will show the most log messages. ``CRITICAL`` is
+  ``'WARNING'``, ``'ERROR'``, ``'CRITICAL'``, or ``None``. ``'DEBUG'`` is the
+  least restrictive level and will show the most log messages. ``'CRITICAL'`` is
   the most restrictive level and will only display information about
   unrecoverable errors. If set to ``None``, logging to standard output will be
   disabled entirely.

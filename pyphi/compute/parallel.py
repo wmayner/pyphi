@@ -41,49 +41,8 @@ def get_num_processes():
 POISON_PILL = None
 
 
-# TODO: maintain a single log thread?
-class LogThread(threading.Thread):
-    """Thread which handles log records sent from ``MapReduce`` processes.
-
-    It listens to an instance of ``multiprocessing.Queue``, rewriting log
-    messages to the PyPhi log handler.
-    """
-    def __init__(self, q):
-        self.q = q
-        super().__init__()
-        self.daemon = True
-
-    def run(self):
-        while True:
-            record = self.q.get()
-            if record is POISON_PILL:
-                break
-            logger = logging.getLogger(record.name)
-            logger.handle(record)
-
-
-def configure_worker_logging(queue):
-    """Configure a worker process to log all messages to the given queue."""
-    config = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'handlers': {
-            'queue': {
-                'class': 'logging.handlers.QueueHandler',
-                'queue': queue,
-            },
-        },
-        'root': {
-            'level': 'DEBUG',
-            'handlers': ['queue']
-        },
-    }
-    logging.config.dictConfig(config)
-
-
 class MapReduce:
-    """
-    An engine for doing heavy computations over an iterable.
+    """An engine for doing heavy computations over an iterable.
 
     This is similar to ``multiprocessing.Pool``, but allows computations to
     shortcircuit, and supports both parallel and sequential computations.
@@ -99,7 +58,16 @@ class MapReduce:
         * ``compute``, (map), and
         * ``process_result`` (reduce).
 
-    The engine includes a builtin ``tqdm`` progress bar.
+    The engine includes a builtin ``tqdm`` progress bar; this can be disabled
+    by setting ``pyphi.config.PROGRESS_BARS`` to ``False``.
+
+    Parallel operations start a daemon thread which handles log messages sent
+    from worker processes.
+
+    Subprocesses spawned by ``MapReduce`` cannot spawn more subprocesses; be
+    aware of this when composing nested computations. This is not an issue in
+    practice because it is typically most efficient to only parallelize the top
+    level computation.
     """
     # Description for the tqdm progress bar
     description = ''
@@ -248,3 +216,43 @@ class MapReduce:
             return self.run_parallel()
         else:
             return self.run_sequential()
+
+
+# TODO: maintain a single log thread?
+class LogThread(threading.Thread):
+    """Thread which handles log records sent from ``MapReduce`` processes.
+
+    It listens to an instance of ``multiprocessing.Queue``, rewriting log
+    messages to the PyPhi log handler.
+    """
+    def __init__(self, q):
+        self.q = q
+        super().__init__()
+        self.daemon = True
+
+    def run(self):
+        while True:
+            record = self.q.get()
+            if record is POISON_PILL:
+                break
+            logger = logging.getLogger(record.name)
+            logger.handle(record)
+
+
+def configure_worker_logging(queue):
+    """Configure a worker process to log all messages to ``queue``."""
+    config = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'queue': {
+                'class': 'logging.handlers.QueueHandler',
+                'queue': queue,
+            },
+        },
+        'root': {
+            'level': 'DEBUG',
+            'handlers': ['queue']
+        },
+    }
+    logging.config.dictConfig(config)
