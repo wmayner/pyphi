@@ -9,8 +9,6 @@ subsystems.
 
 import functools
 import logging
-import multiprocessing
-import threading
 from time import time
 
 from .concept import constellation
