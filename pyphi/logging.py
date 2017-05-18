@@ -8,11 +8,12 @@ import contextlib
 class LockedProgressBar(tqdm.tqdm):
     """Thread safe progress-bar wrapper around ``tqdm``."""
 
-    @property
-    def _lock(self):
-        return logging._handlers['stdout'].lock
+    # @classmethod
+    # @property
+    # def _lock(cls):
+    #     return logging._handlers['stdout'].lock
 
-#    _lock = threading.RLock()
+    _lock = threading.RLock()
 
     def __init__(self, *args, **kwargs):
         with self._lock:
@@ -63,7 +64,7 @@ class ProgressBarHandler(logging.StreamHandler):
     def emit (self, record):
         try:
             msg = self.format(record)
-            ProgressBar.write(msg, file=self.stream)
+            LockedProgressBar.write(msg, file=self.stream)
             self.flush()
         except Exception:
             self.handleError(record)

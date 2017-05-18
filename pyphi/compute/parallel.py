@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 # compute/parallel.py
 
+import sys
 import logging
 import multiprocessing
 import threading
 
 from tqdm import tqdm
+from tblib import Traceback
 
 from .. import config
 from ..logging import ProgressBar
@@ -38,6 +40,19 @@ def get_num_processes():
         return num
 
     return config.NUMBER_OF_CORES
+
+
+class ExceptionWrapper:
+    """Exception wrapper suitable for passing exceptions through instances of
+    ``multiprocessing.Queue``.
+    """
+    def __init__(self, ee):
+        self.ee = ee
+        __,  __, tb = sys.exc_info()
+        self.tb = Traceback(tb)
+
+    def reraise(self):
+        raise self.ee.with_traceback(self.tb.as_traceback())
 
 
 POISON_PILL = None
@@ -117,20 +132,24 @@ class MapReduce:
 
     def worker(self, in_queue, out_queue, log_queue, *context):
         """A worker process, run by ``multiprocessing.Process``."""
-        self.forked = True
 
-        log.debug('Worker process starting...')
+        try:
+            self.forked = True
+            log.debug('Worker process starting...')
 
-        configure_worker_logging(log_queue)
+            configure_worker_logging(log_queue)
 
-        while True:
-            obj = in_queue.get()
-            if obj is POISON_PILL:
-                break
-            out_queue.put(self.compute(obj, *context))
+            while True:
+                obj = in_queue.get()
+                if obj is POISON_PILL:
+                    break
+                out_queue.put(self.compute(obj, *context))
 
-        out_queue.put(POISON_PILL)
-        log.debug('Worker process exiting - no more jobs')
+            out_queue.put(POISON_PILL)
+            log.debug('Worker process exiting - no more jobs')
+
+        except Exception as e:
+            out_queue.put(ExceptionWrapper(e))
 
     def init_parallel(self):
         self.number_of_processes = get_num_processes()
@@ -189,6 +208,9 @@ class MapReduce:
                 self.number_of_processes -= 1
                 if self.number_of_processes == 0:
                     break
+            elif isinstance(r, ExceptionWrapper):
+                r.reraise()
+
             else:
                 result = self.process_result(r, result)
                 self.progress.update(1)

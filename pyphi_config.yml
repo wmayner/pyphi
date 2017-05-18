@@ -75,7 +75,7 @@ REDIS_CONFIG:
 # The file to log to
 LOG_FILE: "pyphi.log"
 # The log level to write to `LOG_FILE`
-LOG_FILE_LEVEL: "INFO"
+LOG_FILE_LEVEL: "DEBUG"
 # The log level to write to stdout
 LOG_STDOUT_LEVEL: "DEBUG"
 # Log the current configuration when PyPhi is imported. This is useful for
