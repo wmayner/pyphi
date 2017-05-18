@@ -11,6 +11,8 @@ from tqdm import tqdm
 from .. import config
 from ..logging import ProgressBar
 
+log = logging.getLogger(__name__)
+
 
 def get_num_processes():
     """Return the number of processes to use in parallel."""
@@ -117,6 +119,8 @@ class MapReduce:
         """A worker process, run by ``multiprocessing.Process``."""
         self.forked = True
 
+        log.debug('Worker process starting...')
+
         configure_worker_logging(log_queue)
 
         while True:
@@ -124,7 +128,9 @@ class MapReduce:
             if obj is POISON_PILL:
                 break
             out_queue.put(self.compute(obj, *context))
+
         out_queue.put(POISON_PILL)
+        log.debug('Worker process exiting - no more jobs')
 
     def init_parallel(self):
         self.number_of_processes = get_num_processes()
@@ -157,6 +163,7 @@ class MapReduce:
     def finish_parallel(self):
         """Terminate all processes and the log thread."""
         for process in self.processes:
+            log.debug('Terminating worker process {}'.format(process))
             process.terminate()
 
         # Shutdown the log thread
@@ -231,12 +238,14 @@ class LogThread(threading.Thread):
         self.daemon = True
 
     def run(self):
+        log.debug('Log thread started')
         while True:
             record = self.q.get()
             if record is POISON_PILL:
                 break
             logger = logging.getLogger(record.name)
             logger.handle(record)
+        log.debug('Log thread exiting')
 
 
 def configure_worker_logging(queue):
