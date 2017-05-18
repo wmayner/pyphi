@@ -5,10 +5,14 @@ import threading
 import contextlib
 
 
-class ProgressBar(tqdm.tqdm):
+class LockedProgressBar(tqdm.tqdm):
     """Thread safe progress-bar wrapper around ``tqdm``."""
 
-    _lock = threading.RLock()
+    @property
+    def _lock(self):
+        return logging._handlers['stdout'].lock
+
+#    _lock = threading.RLock()
 
     def __init__(self, *args, **kwargs):
         with self._lock:
@@ -26,6 +30,30 @@ class ProgressBar(tqdm.tqdm):
     def close(self):
         with self._lock:
             super().close()
+
+
+class DummyProgressBar:
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def write(cls, *args, **kwargs):
+        pass
+
+    def update(self, *args, **kwargs):
+        pass
+
+    def close(self):
+        pass
+
+
+def ProgressBar(disable=False, **kwargs):
+    if disable:
+        cls = DummyProgressBar
+    else:
+        cls = LockedProgressBar
+
+    return cls(**kwargs)
 
 
 class ProgressBarHandler(logging.StreamHandler):
