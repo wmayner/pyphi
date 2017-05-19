@@ -181,16 +181,20 @@ class MapReduce:
 
     def finish_parallel(self):
         """Terminate all processes and the log thread."""
-        for process in self.processes:
-            log.debug('Terminating worker process {}'.format(process))
-            process.terminate()
-
         # Shutdown the log thread
         self.log_queue.put(POISON_PILL)
-        # self.log_thread.join()
+        self.log_thread.join()
 
         # Remove the progress bar
         self.progress.close()
+
+        # Terminating processes which are holding resources (open files, locks)
+        # can cause issues, so we make sure the log thread and progress bar
+        # are shut down before terminating.
+        # TODO: use an Event instead?
+        for process in self.processes:
+            log.debug('Terminating worker process {}'.format(process))
+            process.terminate()
 
     def run_parallel(self):
         """Perform the computation in parallel, reading results from the output

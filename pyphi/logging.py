@@ -50,7 +50,7 @@ class DummyProgressBar:
 
 def ProgressBar(disable=False, **kwargs):
     if disable:
-        cls = DummyProgressBar
+        cls = LockedProgressBar
     else:
         cls = LockedProgressBar
 
