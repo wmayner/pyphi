@@ -5,7 +5,7 @@ import threading
 import contextlib
 
 
-class LockedProgressBar(tqdm.tqdm):
+class ProgressBar(tqdm.tqdm):
     """Thread safe progress-bar wrapper around ``tqdm``."""
 
     # @classmethod
@@ -31,30 +31,6 @@ class LockedProgressBar(tqdm.tqdm):
     def close(self):
         with self._lock:
             super().close()
-
-
-class DummyProgressBar:
-
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def write(cls, *args, **kwargs):
-        pass
-
-    def update(self, *args, **kwargs):
-        pass
-
-    def close(self):
-        pass
-
-
-def ProgressBar(disable=False, **kwargs):
-    if disable:
-        cls = LockedProgressBar
-    else:
-        cls = LockedProgressBar
-
-    return cls(**kwargs)
 
 
 class ProgressBarHandler(logging.StreamHandler):
