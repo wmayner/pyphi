@@ -237,3 +237,7 @@ class Tripartition(_BasePartition, namedtuple('Tripartition',
 
     def __repr__(self):
         return fmt.make_repr(self, ['part0', 'part1', 'part2'])
+
+
+class KPartition(_BasePartition, tuple):
+    pass
