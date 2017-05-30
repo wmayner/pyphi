@@ -16,9 +16,9 @@ We'll consider the state with all nodes **OFF**.
 
     >>> state = (0, 0, 0)
 
-Existence is a top-down process; the whole is more important than its parts.
-The first step is to confirm the existence of the whole, by finding the main
-complex of the network:
+According to IIT, existence is a holistic notion; the whole is more important
+than its parts. The first step is to confirm the existence of the whole, by
+finding the main complex of the network:
 
     >>> main_complex = pyphi.compute.main_complex(network, state)
 
