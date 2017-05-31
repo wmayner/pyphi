@@ -600,13 +600,15 @@ class Subsystem:
                 np.all(unpartitioned_repertoire == 0)):
             return _mip(0, None, None)
 
-        # Loop over possible MIP bipartitions
-        if config.PARTITION_MECHANISMS:
-            partitions = wedge_partitions(mechanism, purview)
-        else:
+        # Loop over possible MIP partitions
+        # TODO: refactor this to a function and share with actual.py
+        # TODO: validate `PARTITION_TYPE` value
+        if config.PARTITION_TYPE == 'BI':
             partitions = mip_bipartitions(mechanism, purview)
-
-        #       partitions = all_partitions(mechanism, purview)
+        elif config.PARTITION_TYPE == 'TRI':
+            partitions = wedge_partitions(mechanism, purview)
+        elif config.PARTITION_TYPE == 'ALL':
+            partitions = all_partitions(mechanism, purview)
 
         for partition in partitions:
             # Find the distance between the unpartitioned and partitioned
@@ -734,7 +736,7 @@ class Subsystem:
             mips = [self.find_mip(direction, mechanism, purview)
                     for purview in purviews]
 
-            if config.PARTITION_MECHANISMS:
+            if config.PARTITION_TYPE == 'TRI':
                 # In the case of tie, chose the mip with smallest purview.
                 # (The default behavior is to chose the larger purview.)
                 max_mip = max(mips, key=lambda m: (m.phi, -len(m.purview)))
@@ -879,7 +881,7 @@ def wedge_partitions(mechanism, purview):
         -- X - X --
         B    C   D
 
-    See ``pyphi.config.PARTITION_MECHANISMS`` for more information.
+    See ``pyphi.config.PARTITION_TYPE`` for more information.
 
     Args:
         mechanism (tuple[int]): A mechanism.

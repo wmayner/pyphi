@@ -54,8 +54,8 @@ Next Release
 - Added `utils.purview` for computing the purview of a repertoire.
 - Added an `exceptions` module.
 - Added `utils.repertoire_shape`.
-- Added `config.PARTITION_MECHANISMS` to require that MIP bipartitions strictly
-  partition the mechanism.
+- Added `config.PARTITION_TYPE` to control the ways in which φ-partitions are
+  generated.
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
