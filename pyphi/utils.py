@@ -484,6 +484,11 @@ def kld(d1, d2):
     return entropy(d1, d2, 2.0)
 
 
+def entropy_difference(d1, d2):
+    d1, d2 = d1.squeeze().ravel(), d2.squeeze().ravel()
+    return abs(entropy(d1, base=2.0) - entropy(d2, base=2.0))
+
+
 def bipartition(a):
     """Return a list of bipartitions for a sequence.
 

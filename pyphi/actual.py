@@ -275,17 +275,19 @@ class Context:
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
 
-        # Loop over possible MIP bipartitions
-        if config.PARTITION_MECHANISMS:
-            partitions = wedge_partitions(mechanism, purview)
-        else:
+        # Loop over possible MIP partitions
+        if config.PARTITION_TYPE == 'BI':
             partitions = mip_bipartitions(mechanism, purview)
+        elif config.PARTITION_TYPE == 'TRI':
+            partitions = wedge_partitions(mechanism, purview)
+        elif config.PARTITION_TYPE == 'ALL':
+            partitions = all_partitions(mechanism, purview)
 
         for partition in partitions:
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
 
-            if config.PARTITION_MECHANISMS:
+            if config.PARTITION_TYPE == 'TRI':
                 alpha = log2(probability / partitioned_probability)
             else:
                 alpha = self._normalize(probability - partitioned_probability,
@@ -373,7 +375,7 @@ class Context:
             mips = [self.find_mip(direction, mechanism, purview, norm, allow_neg)
                     for purview in purviews]
 
-            if config.PARTITION_MECHANISMS:
+            if config.PARTITION_TYPE == 'TRI':
                 # In the case of tie, chose the mip with smallest purview.
                 # (The default behavior is to chose the larger purview.)
                 max_mip = max(mips, key=lambda m: (m.alpha, -len(m.purview)))
