@@ -2,7 +2,8 @@
 
 outputfile="profile.pstats"
 path="profile_data/"
-prefix="profile_"
+prefix="profile"
+sep="."
 extension=".pstats"
 if [ -z $1 ]
 then
@@ -10,6 +11,6 @@ then
 else
     filename=$1
 fi
-save=$path$prefix$filename$extension
-echo "Saved $outputfile to $save"
+save=$path$prefix$sep$filename$extension
+echo "Saved '$outputfile' to '$save'"
 cp $outputfile $save

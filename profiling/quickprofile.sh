@@ -7,8 +7,8 @@
 
 NETWORK=$1
 
-python code_to_profile.py $NETWORK
-./loadprofile.sh pstats/$NETWORK.pstats
-./makecallgraph
-python print_stats.py
+python code_to_profile.py $NETWORK &&
+./loadprofile.sh pstats/$NETWORK.pstats &&
+./makecallgraph &&
+python print_stats.py &&
 open -a Firefox callgraph.svg
