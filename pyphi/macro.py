@@ -14,7 +14,6 @@ import numpy as np
 from scipy.stats import entropy
 
 from . import cache, compute, config, constants, convert, utils, validate
-from .constants import DIRECTIONS, PAST, FUTURE
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes, tpm_indices
