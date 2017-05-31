@@ -13,10 +13,11 @@ import logging
 import numpy as np
 from scipy.stats import entropy
 
-from . import compute, config, constants, convert, utils, validate
+from . import cache, compute, config, constants, convert, utils, validate
+from .constants import DIRECTIONS, PAST, FUTURE
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
-from .node import expand_node_tpm, generate_nodes
+from .node import expand_node_tpm, generate_nodes, tpm_indices
 from .subsystem import Subsystem
 
 # Create a logger for this module.
@@ -36,6 +37,83 @@ def rebuild_system_tpm(node_tpms):
     """Reconstruct the network TPM from a collection of node TPMs."""
     expanded_tpms = np.array([expand_node_tpm(tpm) for tpm in node_tpms])
     return np.rollaxis(expanded_tpms, 0, len(expanded_tpms) + 1)
+
+
+def remove_singleton_dimensions(tpm):
+    """Remove singleton dimensions from the TPM.
+
+    Singleton dimensions are created by conditioning on a set of elements.
+    This removes those elements from the TPM, leaving a TPM that only
+    describes the non-conditioned elements.
+
+    Note that indices used in the original TPM must be reindexed for the
+    smaller TPM.
+    """
+    # Don't squeeze out the final dimension (which contains the probability)
+    # for networks with one element.
+    if tpm.ndim <= 2:
+        return tpm
+
+    return tpm.squeeze()[..., tpm_indices(tpm)]
+
+
+def node_labels(indices):
+    """Labels for macro nodes."""
+    return tuple("m{}".format(i) for i in indices)
+
+
+def run_tpm(system, steps, blackbox):
+    """Iterate the TPM for the given number of timesteps.
+
+    Returns tpm * (noise_tpm^(t-1))
+    """
+    # Generate noised TPM
+    # Noise the connections from every output element to elements in other
+    # boxes.
+    node_tpms = []
+    for node in system.nodes:
+        node_tpm = node.tpm[1]
+        for input in node.input_indices:
+            if not blackbox.in_same_box(node.index, input):
+                if input in blackbox.output_indices:
+                    node_tpm = utils.marginalize_out([input], node_tpm)
+
+        node_tpms.append(node_tpm)
+
+    noised_tpm = rebuild_system_tpm(node_tpms)
+    noised_tpm = convert.state_by_node2state_by_state(noised_tpm)
+
+    tpm = convert.state_by_node2state_by_state(system.tpm)
+
+    # Muliply by noise
+    tpm = np.dot(tpm, np.linalg.matrix_power(noised_tpm, steps - 1))
+
+    return convert.state_by_state2state_by_node(tpm)
+
+
+class SystemAttrs(namedtuple('SystemAttrs',
+                             ['tpm', 'cm', 'node_indices', 'state'])):
+    """An immutable container that holds all the attributes of a subsystem.
+
+    Versions of this object are passed down the steps of the micro-to-macro
+    pipeline.
+    """
+    @property
+    def nodes(self):
+        labels = node_labels(self.node_indices)
+        return generate_nodes(self.tpm, self.cm, self.state, labels)
+
+    @classmethod
+    def pack(cls, system):
+        return SystemAttrs(system.tpm, system.cm, system.node_indices,
+                           system.state)
+
+    def apply(self, system):
+        system.tpm = self.tpm
+        system.cm = self.cm
+        system.node_indices = self.node_indices
+        system.nodes = self.nodes
+        system.state = self.state
 
 
 class MacroSubsystem(Subsystem):
@@ -74,123 +152,102 @@ class MacroSubsystem(Subsystem):
 
         super().__init__(network, state, node_indices, cut, mice_cache)
 
-        # Shrink TPM to size of internal indices
-        # ======================================
-        self.tpm, self.cm, self.node_indices, self.state = (
-            self._squeeze(node_indices))
-
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
-        # TODO: refactor all blackboxing into one method?
+        system = SystemAttrs.pack(self)
+
+        # Shrink TPM to size of internal indices
+        # ======================================
+        system = self._squeeze(system)
 
         # Blackbox partial freeze
         # =======================
         if blackbox is not None:
             validate.blackbox(blackbox)
             blackbox = blackbox.reindex()
-            self.tpm = self._blackbox_partial_freeze(blackbox)
+            system = self._blackbox_partial_noise(blackbox, system)
 
         # Blackbox over time
         # ==================
         if time_scale != 1:
+            assert blackbox is not None
             validate.time_scale(time_scale)
-            self.tpm, self.cm = self._blackbox_time(time_scale)
+            system = self._blackbox_time(time_scale, blackbox, system)
 
         # Blackbox in space
         # =================
         if blackbox is not None:
-            self.tpm, self.cm, self.node_indices, self.state = (
-                self._blackbox_space(blackbox))
+            system = self._blackbox_space(blackbox, system)
 
         # Coarse-grain in space
         # =====================
         if coarse_grain is not None:
             validate.coarse_grain(coarse_grain)
             coarse_grain = coarse_grain.reindex()
-            self.tpm, self.cm, self.node_indices, self.state = (
-                self._coarsegrain_space(coarse_grain))
+            system = self._coarsegrain_space(coarse_grain, self.is_cut, system)
 
-        # Regenerate nodes
-        # ================
-        self.nodes = generate_nodes(self, self.node_indices)
-
-        # Hash the final subsystem - only compute hash once.
-        self._hash = hash((self.network,
-                           self.cut,
-                           self._network_state,
-                           self._node_indices,
-                           self._time_scale,
-                           self._blackbox,
-                           self._coarse_grain))
+        system.apply(self)
 
         validate.subsystem(self)
 
-    def _squeeze(self, internal_indices):
+    def _squeeze(self, system):
         """Squeeze out all singleton dimensions in the Subsystem.
 
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
         the number of internal indices in the system.
         """
-        # TODO: somehow don't assign to self.tpm, but still generate the nodes,
-        # perhaps by passing the tpm to the node constructor?
+        assert system.node_indices == tpm_indices(system.tpm)
 
-        # Don't squeeze out the final dimension (which contains the
-        # probability) for networks of size one
-        if self.network.size > 1:
-            self.tpm = np.squeeze(self.tpm)[..., internal_indices]
+        internal_indices = tpm_indices(system.tpm)
 
-        # Re-index the subsystem nodes with the external nodes removed
-        node_indices = reindex(internal_indices)
-        nodes = generate_nodes(self, node_indices)
-
-        # Re-calcuate the tpm based on the results of the cut
-        tpm = rebuild_system_tpm(node.tpm[1] for node in nodes)
+        tpm = remove_singleton_dimensions(system.tpm)
 
         # The connectivity matrix is the network's connectivity matrix, with
         # cut applied, with all connections to/from external nodes severed,
         # shrunk to the size of the internal nodes.
-        cm = self.cm[np.ix_(internal_indices, internal_indices)]
+        cm = system.cm[np.ix_(internal_indices, internal_indices)]
 
-        state = utils.state_of(internal_indices, self.state)
+        state = utils.state_of(internal_indices, system.state)
 
-        return (tpm, cm, node_indices, state)
+        # Re-index the subsystem nodes with the external nodes removed
+        node_indices = reindex(internal_indices)
+        nodes = generate_nodes(tpm, cm, state)
 
-    def _blackbox_partial_freeze(self, blackbox):
-        """Freeze connections from hidden elements to elements in other boxes.
+        # Re-calcuate the tpm based on the results of the cut
+        tpm = rebuild_system_tpm(node.tpm[1] for node in nodes)
 
-        Effectively this makes it so that only the output elements of each
-        blackbox output to the rest of the system.
-        """
-        nodes = generate_nodes(self, self.node_indices)
+        return SystemAttrs(tpm, cm, node_indices, state)
 
-        def hidden_from(a, b):
-            # Returns True if a is a hidden in a different blackbox than b
-            return (a in blackbox.hidden_indices and
-                    not blackbox.in_same_box(a, b))
+    def _blackbox_partial_noise(self, blackbox, system):
+        """Noise connections from hidden elements to other boxes."""
 
-        # Condition each node on the state of input nodes in other boxes
+        # Noise inputs from non-output elements hidden in other boxes
         node_tpms = []
-        for node in nodes:
-            hidden_inputs = [input for input in node.input_indices
-                             if hidden_from(input, node.index)]
-            node_tpms.append(utils.condition_tpm(node.tpm[1],
-                                                 hidden_inputs,
-                                                 self.state))
+        for node in system.nodes:
+            node_tpm = node.tpm[1]
+            for input in node.input_indices:
+                if blackbox.hidden_from(input, node.index):
+                    node_tpm = utils.marginalize_out([input], node_tpm)
 
-        return rebuild_system_tpm(node_tpms)
+            node_tpms.append(node_tpm)
 
-    def _blackbox_time(self, time_scale):
-        """Black box the CM and TPM over the given time_scale.
+        tpm = rebuild_system_tpm(node_tpms)
 
-        TODO(billy): This is a blackboxed time. Coarse grain time is not yet
-        implemented.
-        """
-        tpm = utils.run_tpm(self.tpm, time_scale)
-        cm = utils.run_cm(self.cm, time_scale)
+        return system._replace(tpm=tpm)
 
-        return (tpm, cm)
+    def _blackbox_time(self, time_scale, blackbox,  system):
+        """Black box the CM and TPM over the given time_scale."""
+        blackbox = blackbox.reindex()
 
-    def _blackbox_space(self, blackbox):
+        tpm = run_tpm(system, time_scale, blackbox)
+
+        # Universal connectivity, for now.
+        n = len(system.node_indices)
+        cm = np.ones((n, n))
+
+        return SystemAttrs(tpm, cm, system.node_indices, system.state)
+
+    def _blackbox_space(self, blackbox, system):
         """Blackbox the TPM and CM in space.
 
         Conditions the TPM on the current value of the hidden nodes. The CM is
@@ -201,36 +258,39 @@ class MacroSubsystem(Subsystem):
         there is only `len(output_indices)` dimensions in the TPM and in the
         state of the subsystem.
         """
-        # TODO: validate conditional independence?
-        tpm = utils.condition_tpm(self.tpm, blackbox.hidden_indices,
-                                  self.state)
+        tpm = utils.marginalize_out(blackbox.hidden_indices, system.tpm)
 
-        if len(self.node_indices) > 1:
-            tpm = np.squeeze(tpm)[..., blackbox.output_indices]
+        assert blackbox.output_indices == tpm_indices(tpm)
 
-        # Universal connectivity, for now.
-        n = len(blackbox.output_indices)
-        cm = np.ones((n, n))
+        tpm = remove_singleton_dimensions(tpm)
+        n = len(blackbox)
+        cm = np.zeros((n, n))
+        for i, j in itertools.product(range(n), range(n)):
+            # TODO: don't pull cm from self
+            outputs = self._blackbox.outputs_of(i)
+            to = self._blackbox.partition[j]
+            if self.cm[np.ix_(outputs, to)].sum() > 0:
+                cm[i, j] = 1
 
-        state = blackbox.macro_state(self.state)
+        state = blackbox.macro_state(system.state)
         node_indices = blackbox.macro_indices
 
-        return (tpm, cm, node_indices, state)
+        return SystemAttrs(tpm, cm, node_indices, state)
 
-    def _coarsegrain_space(self, coarse_grain):
+    def _coarsegrain_space(self, coarse_grain, is_cut, system):
         """Spatially coarse-grain the TPM and CM."""
 
         tpm = coarse_grain.macro_tpm(
-            self.tpm, check_independence=(not self.is_cut))
+            system.tpm, check_independence=(not is_cut))
 
         node_indices = coarse_grain.macro_indices
-        state = coarse_grain.macro_state(self.state)
+        state = coarse_grain.macro_state(system.state)
 
         # Universal connectivity, for now.
         n = len(node_indices)
         cm = np.ones((n, n))
 
-        return (tpm, cm, node_indices, state)
+        return SystemAttrs(tpm, cm, node_indices, state)
 
     @property
     def cut_indices(self):
@@ -250,19 +310,21 @@ class MacroSubsystem(Subsystem):
         Returns:
             MacroSubsystem: The cut version of this |MacroSubsystem|.
         """
-        return MacroSubsystem(self.network, self._network_state,
-                              self._node_indices, cut=cut,
-                              time_scale=self._time_scale,
-                              blackbox=self._blackbox,
-                              coarse_grain=self._coarse_grain)
-                              # TODO: is the MICE cache reusable?
-                              # mice_cache=self._mice_cache)
+        return MacroSubsystem(
+            self.network,
+            self._network_state,
+            self._node_indices,
+            cut=cut,
+            time_scale=self._time_scale,
+            blackbox=self._blackbox,
+            coarse_grain=self._coarse_grain)
+            # TODO: is the MICE cache reusable?
+            # mice_cache=self._mice_cache)
 
     def _potential_purviews(self, direction, mechanism, purviews=False):
         """Override Subsystem implementation using Network-level indices."""
         all_purviews = utils.powerset(self.node_indices)
-        return irreducible_purviews(self.cm, direction,
-                                    mechanism, all_purviews)
+        return irreducible_purviews(self.cm, direction, mechanism, all_purviews)
 
     def macro2micro(self, macro_indices):
         """Returns all micro indices which compose the elements specified by
@@ -284,6 +346,17 @@ class MacroSubsystem(Subsystem):
         else:
             return macro_indices
 
+    def macro2blackbox_outputs(self, macro_indices):
+        """Given a set of macro elements, return the blackbox output elements
+        which compose these elements.
+        """
+        if not self._blackbox:
+            raise ValueError('System is not blackboxed')
+
+        return tuple(sorted(set(
+            self.macro2micro(macro_indices)
+        ).intersection(self._blackbox.output_indices)))
+
     def __repr__(self):
         return "MacroSubsystem(" + repr(self.nodes) + ")"
 
@@ -293,9 +366,6 @@ class MacroSubsystem(Subsystem):
     def __eq__(self, other):
         """Two macro systems are equal if each underlying |Subsystem| is equal
         and all macro attributes are equal.
-
-        TODO: handle cases where a MacroSubsystem is identical to a micro
-        Subsystem, e.g. the macro has no timescale, hidden indices, etc.
         """
         if type(self) != type(other):
             return False
@@ -306,7 +376,11 @@ class MacroSubsystem(Subsystem):
                 self._coarse_grain == other._coarse_grain)
 
     def __hash__(self):
-        return self._hash
+        return hash(
+            (super().__hash__(),
+             self._time_scale,
+             self._blackbox,
+             self._coarse_grain))
 
 
 class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
@@ -330,6 +404,9 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
     def macro_indices(self):
         """Indices of macro elements of this coarse-graining."""
         return tuple(range(len(self.partition)))
+
+    def __len__(self):
+        return len(self.partition)
 
     def reindex(self):
         """Re-index this coarse graining to use squeezed indices.
@@ -472,6 +549,19 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
         """Fresh indices of macro-elements of the blackboxing."""
         return reindex(self.output_indices)
 
+    def __len__(self):
+        return len(self.partition)
+
+    def outputs_of(self, partition_index):
+        """The outputs of the partition at ``partition_index``.
+
+        Note that this returns a tuple of element indices, since coarse-
+        grained blackboxes may have multiple outputs.
+        """
+        partition = self.partition[partition_index]
+        outputs = set(partition).intersection(self.output_indices)
+        return tuple(sorted(outputs))
+
     def reindex(self):
         """Squeeze the indices of this blackboxing to ``0..n``.
 
@@ -521,6 +611,10 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
                 return True
 
         return False
+
+    def hidden_from(self, a, b):
+        """Returns True if ``a`` is hidden in a different box than ``b``."""
+        return (a in self.hidden_indices and not self.in_same_box(a, b))
 
 
 def _partitions_list(N):
@@ -728,6 +822,7 @@ def all_macro_systems(network, state, blackbox, coarse_grain, time_scales):
         if not coarse_grain:
             return [None]
         if blackbox is None:
+
             return all_coarse_grains(system)
         return all_coarse_grains_for_blackbox(blackbox)
 

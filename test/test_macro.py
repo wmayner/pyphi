@@ -149,30 +149,43 @@ def test_coarse_grain_state():
     assert cg.macro_state((1, 1)) == (1, 0)
 
 
-def test_blackbox_indices():
+def test_coarse_grain_len():
+   partition = ((1, 2),)
+   grouping = (((0,), (1, 2)),)
+   cg = macro.CoarseGrain(partition, grouping)
+   assert len(cg) == 1
+
+
+@pytest.fixture
+def bb():
     partition = ((1, 3), (4,))
     output_indices = (3, 4)
-    bb = macro.Blackbox(partition, output_indices)
+    return macro.Blackbox(partition, output_indices)
+
+
+@pytest.fixture
+def cg_bb():
+    """A blackbox with multiple outputs for a box, which must be coarse-
+    grained."""
+    partition = ((1, 3), (4,), (5,))
+    output_indices = (1, 3, 4, 5)
+    return macro.Blackbox(partition, output_indices)
+
+
+def test_blackbox_indices(bb):
     assert bb.micro_indices == (1, 3, 4)
     assert bb.macro_indices == (0, 1)
     assert bb.reindex() == macro.Blackbox(((0, 1), (2,)), (1, 2))
 
 
-def test_blackbox_state():
-    partition = ((1, 3), (4,))
-    output_indices = (3, 4)
-    bb = macro.Blackbox(partition, output_indices)
+def test_blackbox_state(bb):
     with pytest.raises(AssertionError):
         bb.macro_state((0, 1, 1, 1))
     assert bb.macro_state((0, 1, 0)) == (1, 0)
     assert bb.macro_state((1, 0, 0)) == (0, 0)
 
 
-def test_blackbox_same_box():
-    partition = ((1, 3), (4,))
-    output_indices = (3, 4)
-    bb = macro.Blackbox(partition, output_indices)
-
+def test_blackbox_same_box(bb):
     # Nodes not in Blackox
     with pytest.raises(AssertionError):
         bb.in_same_box(2, 4)
@@ -184,7 +197,23 @@ def test_blackbox_same_box():
     assert not bb.in_same_box(4, 3)
 
 
-def test_rebuild_system_tpm():
+def test_blackbox_hidden_from(bb):
+    assert bb.hidden_from(1, 4)
+    assert not bb.hidden_from(1, 3)
+    assert not bb.hidden_from(3, 4)
+
+
+def test_blackbox_outputs_of(cg_bb):
+    assert cg_bb.outputs_of(0) == (1, 3)
+    assert cg_bb.outputs_of(1) == (4,)
+
+
+def test_blackbox_len(bb, cg_bb):
+    assert len(bb) == 2
+    assert len(cg_bb) == 3
+
+
+def test_rebuild_system_tpm(s):
     node0_tpm = np.array([
         [0, 1],
         [0, 0],
@@ -201,3 +230,56 @@ def test_rebuild_system_tpm():
          [0, 1]]
     ])
     assert np.array_equal(macro.rebuild_system_tpm(node_tpms), answer)
+
+    node_tpms = [node.tpm[1] for node in s.nodes]
+    assert np.array_equal(macro.rebuild_system_tpm(node_tpms), s.tpm)
+
+
+def test_remove_singleton_dimensions():
+    # Don't squeeze out last dimension of single-node tpm
+    tpm = np.array([[0], [1]])
+    assert macro.tpm_indices(tpm) == (0,)
+    assert np.array_equal(macro.remove_singleton_dimensions(tpm), tpm)
+
+    tpm = np.array([
+        [[[0.,  0.,  1.]],
+         [[1.,  0.,  0.]]]])
+    assert macro.tpm_indices(tpm) == (1,)
+    assert np.array_equal(macro.remove_singleton_dimensions(tpm), np.array([
+        [0], [0]]))
+
+    tpm = np.array([
+        [[[0., 0., 0.],
+          [1., 1., 0.]]],
+        [[[0., 0., 1.],
+          [1., 1., 1.]]]])
+    assert macro.tpm_indices(tpm) == (0, 2)
+    assert np.array_equal(macro.remove_singleton_dimensions(tpm), np.array([
+        [[0., 0.],
+         [1., 0.]],
+        [[0., 1.],
+         [1., 1.]]]))
+
+
+def test_pack_attrs(s):
+    attrs = macro.SystemAttrs.pack(s)
+    assert np.array_equal(attrs.tpm, s.tpm)
+    assert np.array_equal(attrs.cm, s.cm)
+    assert attrs.node_indices == s.node_indices
+    assert attrs.state == s.state
+    assert attrs.nodes == s.nodes
+
+
+def test_apply_attrs(s):
+    attrs = macro.SystemAttrs.pack(s)
+
+    class SomeSystem:
+        pass
+    target = SomeSystem()
+
+    attrs.apply(target)
+    assert np.array_equal(target.tpm, s.tpm)
+    assert np.array_equal(target.cm, s.cm)
+    assert target.node_indices == s.node_indices
+    assert target.state == s.state
+    assert target.nodes == s.nodes

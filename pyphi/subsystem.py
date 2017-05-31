@@ -96,7 +96,8 @@ class Subsystem:
         # have an accesible object-level cache. Just use a simple memoizer
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
-        self.nodes = generate_nodes(self, labels=True)
+        self.nodes = generate_nodes(self.tpm, self.cm, self.state,
+                                    network.indices2labels(self.node_indices))
 
         validate.subsystem(self)
 
