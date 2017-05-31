@@ -10,7 +10,7 @@ import itertools
 import numpy as np
 
 from . import cache, config, utils, validate
-from .constants import EMD, KLD, L1, Direction
+from .constants import EMD, KLD, L1, ENTROPY_DIFFERENCE, Direction
 from .models import (Bipartition, Concept, Cut, Mice, Mip, Part, Tripartition,
                      _null_mip, KPartition)
 from .network import irreducible_purviews
@@ -1110,6 +1110,7 @@ def measure(direction, d1, d2):
     Returns:
         float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
     """
+
     if config.MEASURE == EMD:
         dist = emd(direction, d1, d2)
 
@@ -1118,6 +1119,9 @@ def measure(direction, d1, d2):
 
     elif config.MEASURE == L1:
         dist = utils.l1(d1, d2)
+
+    elif config.MEASURE == ENTROPY_DIFFERENCE:
+        dist = utils.entropy_difference(d1, d2)
 
     else:
         validate.measure(config.MEASURE)

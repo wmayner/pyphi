@@ -49,5 +49,8 @@ KLD = 'KLD'
 #: L1 distance
 L1 = 'L1'
 
+#: Entropy difference
+ENTROPY_DIFFERENCE = 'ENTROPY_DIFFERENCE'
+
 #: All available measures
 MEASURES = [EMD, KLD, L1]
