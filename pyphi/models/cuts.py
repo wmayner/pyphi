@@ -7,7 +7,7 @@ from itertools import chain
 
 import numpy as np
 
-from .. import utils
+from .. import config, utils
 from . import fmt
 
 
@@ -219,6 +219,9 @@ class KPartition(tuple):
         return fmt.fmt_bipartition(self)
 
     def __repr__(self):
+        if config.REPR_VERBOSITY > 0:
+            return str(self)
+
         return '{}{}'.format(self.__class__.__name__, super().__repr__())
 
     def to_json(self):
