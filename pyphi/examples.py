@@ -98,6 +98,7 @@ def basic_subsystem():
     return Subsystem(net, state, range(net.size))
 
 
+# TODO label nodes
 def residue_network():
     """The network for the residue example.
 

@@ -998,4 +998,5 @@ def measure(direction, d1, d2):
     else:
         validate.measure(config.MEASURE)
 
+    # TODO do we actually need to round here?
     return round(dist, config.PRECISION)
