@@ -12,7 +12,7 @@ import numpy as np
 from . import cache, config, utils, validate
 from .constants import EMD, KLD, L1, Direction
 from .models import (Bipartition, Concept, Cut, Mice, Mip, Part, Tripartition,
-                     _null_mip)
+                     _null_mip, KPartition)
 from .network import irreducible_purviews
 from .node import generate_nodes
 
@@ -600,11 +600,15 @@ class Subsystem:
                 np.all(unpartitioned_repertoire == 0)):
             return _mip(0, None, None)
 
-        # Loop over possible MIP bipartitions
-        if config.PARTITION_MECHANISMS:
-            partitions = wedge_partitions(mechanism, purview)
-        else:
+        # Loop over possible MIP partitions
+        # TODO: refactor this to a function and share with actual.py
+        # TODO: validate `PARTITION_TYPE` value
+        if config.PARTITION_TYPE == 'BI':
             partitions = mip_bipartitions(mechanism, purview)
+        elif config.PARTITION_TYPE == 'TRI':
+            partitions = wedge_partitions(mechanism, purview)
+        elif config.PARTITION_TYPE == 'ALL':
+            partitions = all_partitions(mechanism, purview)
 
         for partition in partitions:
             # Find the distance between the unpartitioned and partitioned
@@ -732,7 +736,7 @@ class Subsystem:
             mips = [self.find_mip(direction, mechanism, purview)
                     for purview in purviews]
 
-            if config.PARTITION_MECHANISMS:
+            if config.PARTITION_TYPE == 'TRI':
                 # In the case of tie, chose the mip with smallest purview.
                 # (The default behavior is to chose the larger purview.)
                 max_mip = max(mips, key=lambda m: (m.phi, -len(m.purview)))
@@ -877,7 +881,7 @@ def wedge_partitions(mechanism, purview):
         -- X - X --
         B    C   D
 
-    See ``pyphi.config.PARTITION_MECHANISMS`` for more information.
+    See ``pyphi.config.PARTITION_TYPE`` for more information.
 
     Args:
         mechanism (tuple[int]): A mechanism.
@@ -924,6 +928,126 @@ def wedge_partitions(mechanism, purview):
             if not compressible(tripart) and tripart not in yielded:
                 yielded.add(tripart)
                 yield tripart
+
+
+def partitions(collection):
+    # all possible partitions
+    # stackoverflow.com/questions/19368375/set-partitions-in-python
+    if len(collection) == 1:
+        yield [collection]
+        return
+
+    first = collection[0]
+    for smaller in partitions(collection[1:]):
+        for n, subset in enumerate(smaller):
+            yield smaller[:n] + [[first] + subset] + smaller[n+1:]
+        yield [[first]] + smaller
+
+
+def k_partitions(collection, k):
+    # Algorithm for generating k-partitions of a collection
+    # codereview.stackexchange.com/questions/1526/finding-all-k-subset-partitions
+    def visit(n, a):
+        ps = [[] for i in range(k)]
+        for j in range(n):
+            ps[a[j + 1]].append(collection[j])
+        return ps
+
+    def f(mu, nu, sigma, n, a):
+        if mu == 2:
+            yield visit(n, a)
+        else:
+            for v in f(mu - 1, nu - 1, (mu + sigma) % 2, n, a):
+                yield v
+        if nu == mu + 1:
+            a[mu] = mu - 1
+            yield visit(n, a)
+            while a[nu] > 0:
+                a[nu] = a[nu] - 1
+                yield visit(n, a)
+        elif nu > mu + 1:
+            if (mu + sigma) % 2 == 1:
+                a[nu - 1] = mu - 1
+            else:
+                a[mu] = mu - 1
+            if (a[nu] + sigma) % 2 == 1:
+                for v in b(mu, nu - 1, 0, n, a):
+                    yield v
+            else:
+                for v in f(mu, nu - 1, 0, n, a):
+                    yield v
+            while a[nu] > 0:
+                a[nu] = a[nu] - 1
+                if (a[nu] + sigma) % 2 == 1:
+                    for v in b(mu, nu - 1, 0, n, a):
+                        yield v
+                else:
+                    for v in f(mu, nu - 1, 0, n, a):
+                        yield v
+
+    def b(mu, nu, sigma, n, a):
+        if nu == mu + 1:
+            while a[nu] < mu - 1:
+                yield visit(n, a)
+                a[nu] = a[nu] + 1
+            yield visit(n, a)
+            a[mu] = 0
+        elif nu > mu + 1:
+            if (a[nu] + sigma) % 2 == 1:
+                for v in f(mu, nu - 1, 0, n, a):
+                    yield v
+            else:
+                for v in b(mu, nu - 1, 0, n, a):
+                    yield v
+            while a[nu] < mu - 1:
+                a[nu] = a[nu] + 1
+                if (a[nu] + sigma) % 2 == 1:
+                    for v in f(mu, nu - 1, 0, n, a):
+                        yield v
+                else:
+                    for v in b(mu, nu - a, 0, n, a):
+                        yield v
+            if (mu + sigma) % 2 == 1:
+                a[nu - 1] = 0
+            else:
+                a[mu] = 0
+        if mu == 2:
+            yield visit(n, a)
+        else:
+            for v in b(mu - 1, nu - 1, (mu + sigma) % 2, n, a):
+                yield v
+    if k == 1:
+        return ([[[item for item in collection]]])
+    else:
+        n = len(collection)
+        a = [0] * (n + 1)
+        for j in range(1, k + 1):
+            a[n - k + j] = j - 1
+        return f(k, n, 0, n, a)
+
+
+def all_partitions(m, p):
+    m = list(m)
+    p = list(p)
+    mechanism_partitions = partitions(m)
+    for mechanism_partition in mechanism_partitions:
+        mechanism_partition.append([])
+        n_mechanism_parts = len(mechanism_partition)
+        max_purview_partition = min(len(p), n_mechanism_parts)
+        for n_purview_parts in range(1, max_purview_partition + 1):
+            purview_partitions = k_partitions(p, n_purview_parts)
+            n_empty = n_mechanism_parts - n_purview_parts
+            for purview_partition in purview_partitions:
+                purview_partition = [tuple(_list)
+                                     for _list in purview_partition]
+                # Extend with empty tuples so purview partition has same size
+                # as mechanism purview
+                purview_partition.extend([() for j in range(n_empty)])
+                # Unique permutations to avoid duplicates empties
+                for permutation in set(itertools.permutations(purview_partition)):
+                    yield KPartition(
+                        *(Part(tuple(mechanism_partition[i]), tuple(permutation[i]))
+                          for i in range(n_mechanism_parts)))
 
 
 def effect_emd(d1, d2):

@@ -645,9 +645,9 @@ def test_make_reprs_calls_out_to_string():
 
 @pytest.fixture
 def bipartition():
-    return models.Bipartition(
+    return models.Bipartition((
         models.Part((0,), (0, 4)),
-        models.Part((), (1,)))
+        models.Part((), (1,))))
 
 
 def test_bipartition_properties(bipartition):

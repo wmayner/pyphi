@@ -273,8 +273,13 @@ Miscellaneous
     >>> defaults['REPR_VERBOSITY']
     2
 
-- ``pyphi.config.PARTITION_MECHANISMS``: If ``True``, |small_phi|-MIP
-  computations will only consider bipartitions that strictly partition the
+- ``pyphi.config.PARTITION_TYPE``: Controls the type of partition used for
+  |small_phi| computations.
+
+  If set to ``'BI'``, partitions will have two parts.
+
+  If set to ``'TRI'``, partitions will have three parts. In addition,
+  computations will only consider partitions that strictly partition the
   mechanism. That is, for the mechanism ``(A, B)`` and purview ``(B, C, D)``
   the partition ::
 
@@ -302,41 +307,14 @@ Miscellaneous
 
   where the mechanism in the third part is always empty.
 
-  Finally, in the case of a |small_phi|-tie when computing MICE, this
-  setting choses the MIP with smallest purview instead the largest (which is
-  the default behavior.)
+  In addition, in the case of a |small_phi|-tie when computing MICE,
+  The ``'TRIPARTITION'`` setting choses the MIP with smallest purview instead of
+  the largest (which is the default.)
 
-    >>> defaults['PARTITION_MECHANISMS']
-    False
+  Finally, if set to ``'ALL'``, all possible partitions will be tested.
 
-
-- ``pyphi.config.PARTITION_MECHANISMS``: If ``True``, |small_phi|-MIP
-  computations will only consider bipartitions that strictly partition the
-  mechanism. That is, for the mechanism ``(A, B)`` and purview ``(B, C, D)``
-  the partition ::
-
-    AB   []
-    -- X --
-    B    CD
-
-  is not considered, but ::
-
-    A    B
-    -- X --
-    B    CD
-
-  is. The following is also valid::
-
-    AB   []
-    -- X ---
-    []   BCD
-
-  Additionally, in the case of a |small_phi|-tie when computing MICE, this
-  setting choses the MIP with smallest purview instead the largest (which is
-  the default behavior.)
-
-    >>> defaults['PARTITION_MECHANISMS']
-    False
+    >>> defaults['PARTITION_TYPE']
+    'BI'
 
 
 -------------------------------------------------------------------------------
@@ -421,8 +399,8 @@ DEFAULTS = {
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
     # Use prettier __str__-like formatting in `repr` calls.
     'REPR_VERBOSITY': 2,
-    # Only consider bipartitions which strictly partition the mechanism.
-    'PARTITION_MECHANISMS': False,
+    # Control the number of parts in a partition
+    'PARTITION_TYPE': 'BI'
 }
 
 # Get a reference to this module's dictionary so we can set the configuration
