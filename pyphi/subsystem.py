@@ -601,12 +601,12 @@ class Subsystem:
             return _mip(0, None, None)
 
         # Loop over possible MIP bipartitions
-        # if config.PARTITION_MECHANISMS:
-        #     partitions = wedge_partitions(mechanism, purview)
-        # else:
-        #     partitions = mip_bipartitions(mechanism, purview)
+        if config.PARTITION_MECHANISMS:
+            partitions = wedge_partitions(mechanism, purview)
+        else:
+            partitions = mip_bipartitions(mechanism, purview)
 
-        partitions = all_partitions(mechanism, purview)
+        #       partitions = all_partitions(mechanism, purview)
 
         for partition in partitions:
             # Find the distance between the unpartitioned and partitioned
@@ -866,7 +866,7 @@ def mip_bipartitions(mechanism, purview):
 
     for (n, d) in itertools.product(numerators, denominators):
         if (n[0] or d[0]) and (n[1] or d[1]):
-            yield KPartition((Part(n[0], d[0]), Part(n[1], d[1])))
+            yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
 
 
 def wedge_partitions(mechanism, purview):
@@ -899,7 +899,7 @@ def wedge_partitions(mechanism, purview):
            ((n[0] and n[1]) or not d[0] or not d[1])):
 
             # Normalize order of parts to remove duplicates.
-            tripart = KPartition(sorted((
+            tripart = Tripartition(*sorted((
                 Part(n[0], d[0]),
                 Part(n[1], d[1]),
                 Part((),   d[2]))))
@@ -1044,7 +1044,7 @@ def all_partitions(m, p):
                 # Unique permutations to avoid duplicates empties
                 for permutation in set(itertools.permutations(purview_partition)):
                     yield KPartition(
-                        (Part(tuple(mechanism_partition[i]), tuple(permutation[i]))
+                        *(Part(tuple(mechanism_partition[i]), tuple(permutation[i]))
                           for i in range(n_mechanism_parts)))
 
 
