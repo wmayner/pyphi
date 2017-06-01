@@ -157,7 +157,7 @@ We can now construct a |MacroSubsystem| using this coarse-graining:
 
     >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
     >>> macro_subsystem
-    MacroSubsystem((n0, n1))
+    MacroSubsystem((m0, m1))
 
 We can then consider the integrated information of this macro-network and
 compare it to the micro-network.
