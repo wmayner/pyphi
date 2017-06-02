@@ -903,33 +903,3 @@ def weakly_connected(cm, nodes=None):
             connectivity over.
     """
     return _connected(cm, nodes, 'weak')
-
-
-# Custom printing methods
-# =============================================================================
-
-
-def print_repertoire(r):
-    """Print a vertical, human-readable cause/effect repertoire."""
-    r = np.squeeze(r)
-    print('\n', '-' * 80)
-    for i in range(r.size):
-        strindex = bin(i)[2:].zfill(r.ndim)
-        index = tuple(map(int, list(strindex)))
-        print('\n', strindex, '\t', r[index])
-    print('\n', '-' * 80, '\n')
-
-
-def print_repertoire_horiz(r):
-    """Print a horizontal, human-readable cause/effect repertoire."""
-    r = np.squeeze(r)
-    colwidth = 11
-    print('\n' + '-' * 70 + '\n')
-    index_labels = [bin(i)[2:].zfill(r.ndim) for i in range(r.size)]
-    indices = [tuple(map(int, list(s))) for s in index_labels]
-    print('     p:  ', '|'.join('{0:.3f}'.format(r[index]).center(colwidth) for
-                                index in indices))
-    print('         ', '|'.join(' ' * colwidth for index in indices))
-    print(' state:  ', '|'.join(label.center(colwidth) for label in
-                                index_labels))
-    print('\n' + '-' * 70 + '\n')
