@@ -20,38 +20,32 @@ class Node:
     """A node in a subsystem.
 
     Attributes:
-        subsystem (Subsystem):
-            The subsystem the node belongs to.
+        tpm (np.ndarray):
+            The TPM of the subsystem.
+        cm (np.ndarray):
+            The CM of the subsystem.
         index (int):
             The node's index in the network.
-        network (Network):
-            The network the node belongs to.
-        label (str):
-            An optional label for the node.
         state (int):
             The state of this node.
+        label (str):
+            An optional label for the node.
     """
 
-    def __init__(self, subsystem, index, indices=None, label=None):
-        # This node's parent subsystem.
-        self.subsystem = subsystem
+    def __init__(self, tpm, cm, index, state, label):
+
         # This node's index in the list of nodes.
         self.index = index
-        # This node's parent network.
-        self.network = subsystem.network
 
         # Label for display.
-        if label is None:
-            label = default_label(index)
         self.label = label
 
         # State of this node.
-        self.state = self.subsystem.state[self.index]
+        self.state = state
+
         # Get indices of the inputs.
-        self._input_indices = utils.get_inputs_from_cm(
-            self.index, subsystem.cm)
-        self._output_indices = utils.get_outputs_from_cm(
-            self.index, subsystem.cm)
+        self._input_indices = utils.get_inputs_from_cm(self.index, cm)
+        self._output_indices = utils.get_outputs_from_cm(self.index, cm)
 
         # Generate the node's TPM.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -60,33 +54,29 @@ class Node:
         # but its last dimension will be gone, since now there's just a single
         # scalar value (this node's state) rather than a state-vector for all
         # the network nodes.
-        tpm_on = self.subsystem.tpm[..., self.index]
+        tpm_on = tpm[..., self.index]
+
+        # TODO extend to nonbinary nodes
+        # Marginalize out non-input nodes that are in the subsystem, since
+        # the external nodes have already been dealt with as boundary
+        # conditions in the subsystem's TPM.
+        non_input_indices = set(tpm_indices(tpm)) - set(self._input_indices)
+        tpm_on = utils.marginalize_out(non_input_indices, tpm_on)
+
         # Get the TPM that gives the probability of the node being off, rather
         # than on.
         tpm_off = 1 - tpm_on
-
-        # Subsystem indices to generate TPM from
-        if indices is None:
-            indices = subsystem.node_indices
-
-        for i in indices:
-            # TODO extend to nonbinary nodes
-            # Marginalize out non-input nodes that are in the subsystem, since
-            # the external nodes have already been dealt with as boundary
-            # conditions in the subsystem's TPM.
-            if i not in self._input_indices:
-                tpm_on = tpm_on.sum(i, keepdims=True) / 2
-                tpm_off = tpm_off.sum(i, keepdims=True) / 2
 
         # Combine the on- and off-TPM.
         self.tpm = np.array([tpm_off, tpm_on])
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Make the TPM immutable (for hashing).
-        self.tpm.flags.writeable = False
+        utils.np_immutable(self.tpm)
 
         # Only compute the hash once.
-        self._hash = hash((self.index, self.subsystem))
+        self._hash = hash((index, utils.np_hash(self.tpm), self.state,
+                           self._input_indices, self._output_indices))
 
         # Deferred properties
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -110,17 +100,11 @@ class Node:
     @property
     def inputs(self):
         """The set of nodes with connections to this node."""
-        if self._inputs is None:
-            self._inputs = [node for node in self.subsystem.nodes if
-                            node.index in self._input_indices]
         return self._inputs
 
     @property
     def outputs(self):
         """The set of nodes this node has connections to."""
-        if self._outputs is None:
-            self._outputs = [node for node in self.subsystem.nodes if
-                             node.index in self._output_indices]
         return self._outputs
 
     def __repr__(self):
@@ -140,7 +124,10 @@ class Node:
         labels.
         """
         return (self.index == other.index and
-                self.subsystem == other.subsystem)
+                np.array_equal(self.tpm, other.tpm) and
+                self.state == other.state and
+                self.input_indices == other.input_indices and
+                self.output_indices == other.output_indices)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -166,35 +153,48 @@ def default_labels(indices):
     return tuple(default_label(i) for i in indices)
 
 
-# TODO: rework MacroSubsystem to not need the indices arg
-def generate_nodes(subsystem, indices=None, labels=False):
-    """Generate the |Node| objects for these indices.
+# TODO: move to utils
+def tpm_indices(tpm):
+    """Indices of nodes in the TPM."""
+    return tuple(np.where(np.array(tpm.shape[:-1]) == 2)[0])
+
+
+def generate_nodes(tpm, cm, network_state, labels=None):
+    """Generate |Node| objects for a subsystem.
 
     Args:
-        subsystem (Subsystem): The subsystem for which nodes are being
-            generated.
+        tpm (np.ndarray): The system's TPM
+        cm (np.ndarray): The corresponding CM.
+        network_state (tuple): The state of the network.
 
     Keyword Args:
-        indices (tuple[int]): Used by |MacroSubsystem| to force generation to
-            use certain indices.
-        labels (bool): If ``True``, nodes will be labeled with the labels of
-            the network. (This is also used by macro systems to keep labels
-            from being mixed up when many micro elements are combined into one
-            macro element.)
+        labels (tuple[str]): Textual labels for each node.
 
     Returns:
-        tuple[|Node|]: The nodes of the |Subsystem|.
+        tuple[|Node|]: The nodes of the system.
     """
-    if indices is None:
-        indices = subsystem.node_indices
 
-    if labels is True:
-        labels = subsystem.network.indices2labels(indices)
+    # Indices in the TPM
+    indices = tpm_indices(tpm)
+
+    if labels is None:
+        labels = default_labels(indices)
     else:
-        labels = [None] * len(indices)
+        assert len(labels) == len(indices)
 
-    return tuple(Node(subsystem, index, indices=indices, label=label)
-                 for index, label in zip(indices, labels))
+    node_state = utils.state_of(indices, network_state)
+
+    nodes = tuple(Node(tpm, cm, index, state, label=label)
+                  for index, state, label in zip(indices, node_state, labels))
+
+    # Finalize inputs and outputs
+    for node in nodes:
+        node._inputs = tuple(
+            n for n in nodes if n.index in node._input_indices)
+        node._outputs = tuple(
+            n for n in nodes if n.index in node._output_indices)
+
+    return nodes
 
 
 def expand_node_tpm(tpm):

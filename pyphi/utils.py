@@ -197,6 +197,12 @@ def causally_significant_nodes(cm):
     return tuple(np.where(nodes_with_inputs_and_outputs)[0])
 
 
+def np_immutable(a):
+    """Make a NumPy array immutable."""
+    a.flags.writeable = False
+    return a
+
+
 def np_hash(a):
     """Return a hash of a NumPy array."""
     if a is None:
