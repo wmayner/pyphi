@@ -14,7 +14,6 @@ import os
 from itertools import chain, combinations
 
 import numpy as np
-
 from pyemd import emd
 from scipy.misc import comb
 from scipy.sparse import csc_matrix
@@ -39,9 +38,12 @@ def all_states(n, holi=False):
 
     Args:
         n (int): The number of elements in the system.
+        holi (bool): Whether to return the states in HOLI order instead of LOLI
+            order.
 
     Yields:
-        tuple[int]: The next state of an ``n``-element system, in LOLI order.
+        tuple[int]: The next state of an ``n``-element system, in LOLI order
+            unless ``holi`` is ``True``.
     """
     if n == 0:
         return
