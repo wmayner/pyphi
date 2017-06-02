@@ -488,7 +488,6 @@ class override(contextlib.ContextDecorator):
 
     Example:
         >>> from pyphi import config
-        >>>
         >>> @config.override(PRECISION=20000)
         ... def test_something():
         ...     assert config.PRECISION == 20000
