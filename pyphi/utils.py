@@ -372,8 +372,8 @@ def independent(repertoire):
         joint = joint * m
 
     # TODO: should we round here?
-    #repertoire = repertoire.round(config.PRECISION)
-    #joint = joint.round(config.PRECISION)
+    # repertoire = repertoire.round(config.PRECISION)
+    # joint = joint.round(config.PRECISION)
 
     return np.array_equal(repertoire, joint)
 
@@ -611,7 +611,7 @@ def bipartition_indices(N):
     if N <= 0:
         return result
 
-    for i in range(2 ** (N-1)):
+    for i in range(2**(N - 1)):
         part = [[], []]
         for n in range(N):
             bit = (i >> n) & 1
@@ -628,7 +628,8 @@ def directed_tripartition_indices(N):
         N (int): The length of the sequence.
 
     Returns:
-        list[tuple]: A list of tuples containing the indices for each partition.
+        list[tuple]: A list of tuples containing the indices for each
+            partition.
 
     Example:
         >>> N = 1
