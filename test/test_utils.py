@@ -288,7 +288,7 @@ def test_normalize():
 def test_all_states():
     assert list(utils.all_states(0)) == []
     assert list(utils.all_states(1)) == [(0,), (1,)]
-    assert list(utils.all_states(3)) == [
+    states = [
         (0, 0, 0),
         (1, 0, 0),
         (0, 1, 0),
@@ -297,6 +297,10 @@ def test_all_states():
         (1, 0, 1),
         (0, 1, 1),
         (1, 1, 1),
+    ]
+    assert list(utils.all_states(3)) == states
+    assert list(utils.all_states(3, holi=True)) == [
+        tuple(reversed(state)) for state in states
     ]
 
 
