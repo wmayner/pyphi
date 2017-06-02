@@ -6,6 +6,9 @@ import pytest
 
 import numpy as np
 from pyphi import convert, macro
+from pyphi.exceptions import ConditionallyDependentError
+
+# flake8: noqa
 
 
 def test_all_partitions():
@@ -122,6 +125,46 @@ def test_make_macro_tpm():
     assert np.array_equal(answer_tpm, macro_tpm)
 
 
+def test_make_macro_tpm_conditional_independence_check():
+    micro_tpm = np.array([
+        [1,  0,  0,  0],
+        [0, .5, .5,  0],
+        [0, .5, .5,  0],
+        [0,  0,  0,  1],
+    ])
+    partition = ((0,), (1,))
+    grouping = (((0,), (1,)), ((0,), (1,)))
+    coarse_grain = macro.CoarseGrain(partition, grouping)
+    with pytest.raises(ConditionallyDependentError):
+        macro_tpm = coarse_grain.macro_tpm(micro_tpm,
+                                           check_independence=True)
+
+
+# TODO: make a fixture for this conditionally dependent TPM
+def test_macro_tpm_sbs():
+    micro_tpm = np.array([
+        [1,  0,  0,  0,  0,  0,  0,  0],
+        [0, .5, .5,  0,  0,  0,  0,  0],
+        [0, .5, .5,  0,  0,  0,  0,  0],
+        [0,  0,  0,  1,  0,  0,  0,  0],
+        [1,  0,  0,  0,  0,  0,  0,  0],
+        [0, .5, .5,  0,  0,  0,  0,  0],
+        [0, .5, .5,  0,  0,  0,  0,  0],
+        [0,  0,  0,  1,  0,  0,  0,  0],
+    ])
+    answer_tpm = np.array([
+        [1,   0,   0,   0  ],
+        [0,   1/2, 1/2, 0  ],
+        [1/3, 1/3, 1/3, 0  ],
+        [0,   1/6, 1/6, 2/3]
+    ])
+    partition = ((0,), (1, 2))
+    grouping = (((0,), (1,)), ((0,), (1, 2,)))
+    coarse_grain = macro.CoarseGrain(partition, grouping)
+    macro_tpm = coarse_grain.macro_tpm_sbs(micro_tpm)
+    assert np.array_equal(answer_tpm, macro_tpm)
+
+
 def test_coarse_grain_indices():
     partition = ((1, 2),)  # Node 0 not in system
     grouping = (((0,), (1, 2)),)
@@ -150,10 +193,10 @@ def test_coarse_grain_state():
 
 
 def test_coarse_grain_len():
-   partition = ((1, 2),)
-   grouping = (((0,), (1, 2)),)
-   cg = macro.CoarseGrain(partition, grouping)
-   assert len(cg) == 1
+    partition = ((1, 2),)
+    grouping = (((0,), (1, 2)),)
+    cg = macro.CoarseGrain(partition, grouping)
+    assert len(cg) == 1
 
 
 @pytest.fixture
