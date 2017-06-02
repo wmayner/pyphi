@@ -903,3 +903,17 @@ def weakly_connected(cm, nodes=None):
             connectivity over.
     """
     return _connected(cm, nodes, 'weak')
+
+
+def reverse_bits(i, n):
+    """Reverse the bits of the ``n``-bit number ``i``.
+
+    Examples:
+        >>> reverse_bits(10, 8)
+        80
+        >>> reverse_bits(0, 1)
+        0
+        >>> reverse_bits(1, 2)
+        2
+    """
+    return int(bin(i)[2:].zfill(n)[::-1], 2)
