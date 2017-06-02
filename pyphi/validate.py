@@ -21,7 +21,7 @@ def direction(direction):
     return True
 
 
-def tpm(tpm):
+def tpm(tpm, check_independence=True):
     """Validate a TPM.
 
     The TPM can be in
@@ -44,7 +44,7 @@ def tpm(tpm):
                 'there must be ' '2^N rows and N columns, where N is the '
                 'number of nodes. State-by-state TPM must be square. '
                 '{}'.format(tpm.shape, see_tpm_docs))
-        if tpm.shape[0] == tpm.shape[1]:
+        if tpm.shape[0] == tpm.shape[1] and check_independence:
             conditionally_independent(tpm)
     elif tpm.ndim == (N + 1):
         if not (tpm.shape == tuple([2] * N + [N])):
