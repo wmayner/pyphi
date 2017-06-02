@@ -56,6 +56,18 @@ Next Release
 - Added `utils.repertoire_shape`.
 - Added `config.PARTITION_TYPE` to control the ways in which φ-partitions are
   generated.
+- Added more functions to the `convert` module:
+  - `holi2loli` and `loli2holi` convert decimal indices between **HOLI** and
+    **LOLI** formats.
+  - `holi2loli_state_by_state` and `loli2holi_state_by_state` convert between
+    **HOLI** and **LOLI** formats for state-by-state TPMs.
+  - Added short aliases for some functions:
+    - `sbn2sbs` is `state_by_node2state_by_state`
+    - `sbs2sbn` is `state_by_state2state_by_node`
+    - `h2l_sbs` is `holi2loli_state_by_state`
+    - `l2h_sbs` is `loli2holi_state_by_state`
+    - `h2l` is `holi2loli`
+    - `l2h` is `loli2holi`
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
