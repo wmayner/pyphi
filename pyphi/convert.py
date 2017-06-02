@@ -27,6 +27,14 @@ def nodes2state(nodes):
     return tuple(n.state for n in nodes) if nodes else ()
 
 
+def holi2loli(i, n):
+    """Convert between **HOLI** and **LOLI** for indices in ``range(n)``."""
+    return reverse_bits(i, n)
+
+
+loli2holi = holi2loli
+
+
 def state2holi_index(state):
     """Convert a PyPhi state-tuple to a decimal index according to the **HOLI**
     convention.
@@ -67,14 +75,6 @@ def state2loli_index(state):
         7
     """
     return int(''.join(str(int(n)) for n in state[::-1]), 2)
-
-
-def holi2loli(i, n):
-    """Convert between **HOLI** and **LOLI** for indices in ``range(n)``."""
-    return reverse_bits(i, n)
-
-
-loli2holi = holi2loli
 
 
 def loli_index2state(i, number_of_nodes):
@@ -224,9 +224,6 @@ def state_by_state2state_by_node(tpm):
     return sbn_tpm
 
 
-sbs2sbn = state_by_state2state_by_node
-
-
 # TODO support nondeterministic TPMs
 def state_by_node2state_by_state(tpm):
     """Convert a state-by-node TPM to a state-by-state TPM.
@@ -304,4 +301,15 @@ def state_by_node2state_by_state(tpm):
     return sbs_tpm
 
 
+# Short aliases
+
+h2l = holi2loli
+l2h = loli2holi
+l2s = loli_index2state
+h2s = holi_index2state
+s2h = state2loli_index
+s2l = state2holi_index
+h2l_sbs = holi2loli_state_by_state
+l2h_sbs = loli2holi_state_by_state
 sbn2sbs = state_by_node2state_by_state
+sbs2sbn = state_by_state2state_by_node
