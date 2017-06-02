@@ -34,7 +34,7 @@ def state_of(nodes, network_state):
     return tuple(network_state[n] for n in nodes) if nodes else ()
 
 
-def all_states(n):
+def all_states(n, holi=False):
     """Return all binary states for a system.
 
     Args:
@@ -47,7 +47,10 @@ def all_states(n):
         return
 
     for state in itertools.product((0, 1), repeat=n):
-        yield state[::-1]  # Convert to LOLI-ordering
+        if holi:
+            yield state
+        else:
+            yield state[::-1]  # Convert to LOLI-ordering
 
 
 # Methods for converting the time scale of the tpm
