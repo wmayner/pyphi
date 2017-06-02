@@ -36,7 +36,6 @@ def state2holi_index(state):
         **HOLI** convention.
 
     Examples:
-        >>> from pyphi.convert import state2loli_index
         >>> state2holi_index((1, 0, 0, 0, 0))
         16
         >>> state2holi_index((1, 1, 1, 0, 0, 0, 0, 0))
@@ -58,7 +57,6 @@ def state2loli_index(state):
         **LOLI** convention.
 
     Examples:
-        >>> from pyphi.convert import state2loli_index
         >>> state2loli_index((1, 0, 0, 0, 0))
         1
         >>> state2loli_index((1, 1, 1, 0, 0, 0, 0, 0))
@@ -82,7 +80,6 @@ def loli_index2state(i, number_of_nodes):
         the state of the |ith| node.
 
     Examples:
-        >>> from pyphi.convert import loli_index2state
         >>> number_of_nodes = 5
         >>> loli_index2state(1, number_of_nodes)
         (1, 0, 0, 0, 0)
@@ -108,7 +105,6 @@ def holi_index2state(i, number_of_nodes):
         the state of the |ith| node.
 
     Examples:
-        >>> from pyphi.convert import holi_index2state
         >>> number_of_nodes = 5
         >>> holi_index2state(1, number_of_nodes)
         (0, 0, 0, 0, 1)
@@ -155,7 +151,6 @@ def state_by_state2state_by_node(tpm):
         **LOLI** convention.
 
     Examples:
-        >>> from pyphi.convert import state_by_state2state_by_node
         >>> tpm = np.array([[0.5, 0.5, 0.0, 0.0],
         ...                 [0.0, 1.0, 0.0, 0.0],
         ...                 [0.0, 0.2, 0.0, 0.8],
@@ -219,7 +214,6 @@ def state_by_node2state_by_state(tpm):
         np.ndarray: A state-by-state TPM, with both row and column indices
         following the **HOLI** convention.
 
-    >>> from pyphi.convert import state_by_node2state_by_state
     >>> tpm = np.array([[1, 1, 0],
     ...                 [0, 0, 1],
     ...                 [0, 1, 1],
