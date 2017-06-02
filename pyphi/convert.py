@@ -189,6 +189,9 @@ def state_by_state2state_by_node(tpm):
     return sbn_tpm
 
 
+sbs2sbn = state_by_state2state_by_node
+
+
 # TODO support nondeterministic TPMs
 def state_by_node2state_by_state(tpm):
     """Convert a state-by-node TPM to a state-by-state TPM.
@@ -265,3 +268,6 @@ def state_by_node2state_by_state(tpm):
                     np.prod(marginal_tpm[current_state == 1]) *
                     np.prod(1 - marginal_tpm[current_state == 0]))
     return sbs_tpm
+
+
+sbn2sbs = state_by_node2state_by_state
