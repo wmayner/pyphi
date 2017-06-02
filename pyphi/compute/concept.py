@@ -6,8 +6,8 @@ import multiprocessing
 from time import time
 
 from . import parallel
-from .distance import constellation_distance
 from .. import config, models, utils
+from .distance import constellation_distance
 
 
 def concept(subsystem, mechanism, purviews=False, past_purviews=False,

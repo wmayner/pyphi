@@ -6,8 +6,8 @@
 Package-wide constants.
 """
 
-from enum import Enum
 import pickle
+from enum import Enum
 
 import joblib
 

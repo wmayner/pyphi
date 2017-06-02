@@ -6,9 +6,9 @@
 Methods for coarse-graining systems to different levels of spatial analysis.
 """
 
-from collections import namedtuple
 import itertools
 import logging
+from collections import namedtuple
 
 import numpy as np
 from scipy.stats import entropy

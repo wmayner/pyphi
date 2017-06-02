@@ -3,9 +3,8 @@
 # models/big_phi.py
 
 
-from .. import utils, config
 from . import cmp, fmt
-
+from .. import config, utils
 
 _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'partitioned_constellation', 'subsystem',

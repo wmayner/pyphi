@@ -13,11 +13,11 @@ import multiprocessing
 from time import time
 
 from . import parallel
-from .concept import constellation
-from .distance import constellation_distance
 from .. import config, exceptions, memory, utils, validate
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
 from ..subsystem import Subsystem
+from .concept import constellation
+from .distance import constellation_distance
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)

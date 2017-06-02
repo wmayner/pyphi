@@ -8,9 +8,9 @@ Example networks and subsystems to go along with the documentation.
 
 import numpy as np
 
+from .actual import Context
 from .network import Network
 from .subsystem import Subsystem
-from .actual import Context
 from .utils import all_states
 
 

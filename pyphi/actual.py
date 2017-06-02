@@ -8,16 +8,17 @@ Methods for computing actual causation of subsystems and mechanisms.
 
 import itertools
 import logging
-import numpy as np
-from pprint import pprint
 from math import log2
+from pprint import pprint
+
+import numpy as np
 
 from . import compute, config, exceptions, utils, validate
-from .constants import Direction, EPSILON
+from .constants import EPSILON, Direction
 from .jsonify import jsonify
-from .models import (AcMip, Occurence, AcBigMip, _null_ac_mip, _null_ac_bigmip,
-                     ActualCut, Account, DirectedAccount, Event)
-from .subsystem import mip_bipartitions, Subsystem, wedge_partitions
+from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
+                     Event, Occurence, _null_ac_bigmip, _null_ac_mip)
+from .subsystem import Subsystem, mip_bipartitions, wedge_partitions
 
 log = logging.getLogger(__name__)
 

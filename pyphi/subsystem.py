@@ -10,9 +10,9 @@ import itertools
 import numpy as np
 
 from . import cache, config, utils, validate
-from .constants import EMD, KLD, L1, ENTROPY_DIFFERENCE, Direction
-from .models import (Bipartition, Concept, Cut, Mice, Mip, Part, Tripartition,
-                     _null_mip, KPartition)
+from .constants import EMD, ENTROPY_DIFFERENCE, KLD, L1, Direction
+from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
+                     Tripartition, _null_mip)
 from .network import irreducible_purviews
 from .node import generate_nodes
 
