@@ -13,7 +13,7 @@ from collections import namedtuple
 import numpy as np
 from scipy.stats import entropy
 
-from . import cache, compute, config, constants, convert, utils, validate
+from . import compute, config, constants, convert, utils, validate
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes, tpm_indices
@@ -26,6 +26,7 @@ log = logging.getLogger(__name__)
 _NUM_PRECOMPUTED_PARTITION_LISTS = 10
 _partition_lists = utils.load_data('partition_lists',
                                    _NUM_PRECOMPUTED_PARTITION_LISTS)
+
 
 def reindex(indices):
     """Generate a new set of node indices, the size of indices."""
@@ -481,22 +482,16 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
                    for micro_state in micro_states]
         return np.array(mapping)
 
-    def macro_tpm(self, micro_tpm, check_independence=True):
-        """Create a coarse-grained macro TPM.
+    def macro_tpm_sbs(self, state_by_state_micro_tpm):
+        """Create a state-by-state coarse-grained macro TPM.
 
         Args:
-            micro_tpm (nd.array): The TPM of the micro-system.
-            check_independence (bool): If ``True``, the method will raise a
-                ``ConditionallyDependentError`` if the macro TPM is not
-                conditionally independent.
+            micro_tpm (nd.array): The state-by-state TPM of the micro-system.
 
         Returns:
-            np.ndarray: The state-by-node TPM of the macro-system.
+            np.ndarray: The state-by-state TPM of the macro-system.
         """
-        validate.tpm(micro_tpm)
-
-        if not utils.state_by_state(micro_tpm):
-            micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
+        validate.tpm(state_by_state_micro_tpm, check_independence=False)
 
         mapping = self.make_mapping()
 
@@ -511,10 +506,30 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         # the state-by-state macro TPM.
         for past_state, current_state in micro_state_transitions:
             macro_tpm[mapping[past_state], mapping[current_state]] += (
-                micro_tpm[past_state, current_state])
+                state_by_state_micro_tpm[past_state, current_state])
 
         # Re-normalize each row because we're going from larger to smaller TPM
-        macro_tpm = np.array([utils.normalize(row) for row in macro_tpm])
+        return np.array([utils.normalize(row) for row in macro_tpm])
+
+    def macro_tpm(self, micro_tpm, check_independence=True):
+        """Create a coarse-grained macro TPM.
+
+        Args:
+            micro_tpm (nd.array): The TPM of the micro-system.
+            check_independence (bool): Whether to check that the macro TPM is
+                conditionally independent.
+
+        Raises:
+            ConditionallyDependentError: If ``check_independence`` is ``True``
+                and the macro TPM is not conditionally independent.
+
+        Returns:
+            np.ndarray: The state-by-node TPM of the macro-system.
+        """
+        if not utils.state_by_state(micro_tpm):
+            micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
+
+        macro_tpm = self.macro_tpm_sbs(micro_tpm)
 
         if check_independence:
             validate.conditionally_independent(macro_tpm)
