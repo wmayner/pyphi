@@ -62,12 +62,16 @@ Next Release
   - `holi2loli_state_by_state` and `loli2holi_state_by_state` convert between
     **HOLI** and **LOLI** formats for state-by-state TPMs.
   - Added short aliases for some functions:
-    - `sbn2sbs` is `state_by_node2state_by_state`
-    - `sbs2sbn` is `state_by_state2state_by_node`
-    - `h2l_sbs` is `holi2loli_state_by_state`
-    - `l2h_sbs` is `loli2holi_state_by_state`
     - `h2l` is `holi2loli`
     - `l2h` is `loli2holi`
+    - `l2s` is `loli_index2state`
+    - `h2s` is `holi_index2state`
+    - `s2h` is `state2loli_index`
+    - `s2l` is `state2holi_index`
+    - `h2l_sbs` is `holi2loli_state_by_state`
+    - `l2h_sbs` is `loli2holi_state_by_state`
+    - `sbn2sbs` is `state_by_node2state_by_state`
+    - `sbs2sbn` is `state_by_state2state_by_node`
 
 ### Refactor
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
