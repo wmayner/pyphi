@@ -1,0 +1,15 @@
+[flake8]
+
+ignore = F401
+
+exclude =
+  __pycache__,
+  __pyphi_cache__,
+  .cache,
+  .git,
+  .coverage,
+  build,
+  dist,
+  docs,
+  htmlcov,
+  benchmarks,
