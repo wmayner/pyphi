@@ -1,0 +1,19 @@
+[MASTER]
+
+ignore=
+  __pycache__,
+  __pyphi_cache__,
+  .cache,
+  .git,
+  .coverage,
+  build,
+  dist,
+  docs,
+  htmlcov,
+  benchmarks,
+
+[MESSAGES CONTROL]
+
+disable=
+  no-member,
+  invalid-name
