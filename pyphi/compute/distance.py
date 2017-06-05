@@ -5,7 +5,7 @@
 import numpy as np
 
 from .. import config, utils, validate
-from ..constants import EMD, KLD, L1
+from ..constants import EMD, KLD, L1, ENTROPY_DIFFERENCE
 
 BIG_NUMBER = 1000000
 
@@ -22,6 +22,9 @@ def measure(d1, d2):
     """
     if config.MEASURE in [EMD, L1]:
         return utils.hamming_emd(d1, d2)
+
+    elif config.MEASURE == ENTROPY_DIFFERENCE:
+        return utils.entropy_difference(d1, d2)
 
     # If the distance is `inf` return a very large number instead so that
     # the generalized EMD can still operate on a KLD distance matrix.
