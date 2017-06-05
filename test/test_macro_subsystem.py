@@ -252,6 +252,7 @@ def test_coarse_grain(s):
     assert ms.state == (0, 0)
 
 
+@pytest.mark.xfail
 def test_blackbox_and_coarse_grain(s):
     blackbox = macro.Blackbox(((0, 1, 2),), (0, 2))
     coarse_grain = macro.CoarseGrain(partition=((0, 2),),
@@ -376,6 +377,7 @@ def test_blackbox_partial_noise(s):
         ]))
 
 
+@pytest.mark.xfail
 def test_blackbox_time():
     # System is an OR gate and a COPY gate; the OR gate is connected with a
     # self loop.
