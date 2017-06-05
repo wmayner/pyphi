@@ -11,10 +11,22 @@ from math import log2
 
 import numpy as np
 
-from .utils import reverse_bits
-
 # Create a logger for this module.
 log = logging.getLogger(__name__)
+
+
+def reverse_bits(i, n):
+    """Reverse the bits of the ``n``-bit number ``i``.
+
+    Examples:
+        >>> reverse_bits(10, 8)
+        80
+        >>> reverse_bits(0, 1)
+        0
+        >>> reverse_bits(1, 2)
+        2
+    """
+    return int(bin(i)[2:].zfill(n)[::-1], 2)
 
 
 def nodes2indices(nodes):
