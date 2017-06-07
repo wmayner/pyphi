@@ -8,10 +8,9 @@ external use.
 """
 
 import hashlib
-import itertools
 import logging
 import os
-from itertools import chain, combinations
+from itertools import chain, combinations, product
 
 import numpy as np
 from pyemd import emd
@@ -48,7 +47,7 @@ def all_states(n, holi=False):
     if n == 0:
         return
 
-    for state in itertools.product((0, 1), repeat=n):
+    for state in product((0, 1), repeat=n):
         if holi:
             yield state
         else:
@@ -647,7 +646,7 @@ def directed_tripartition_indices(N):
         return result
 
     base = [0, 1, 2]
-    for key in itertools.product(base, repeat=N):
+    for key in product(base, repeat=N):
         part = [[], [], []]
         for i, location in enumerate(key):
             part[location].append(i)
