@@ -151,7 +151,10 @@ class MapReduce:
         except Exception as e:
             out_queue.put(ExceptionWrapper(e))
 
-    def init_parallel(self):
+    def start_parallel(self):
+        """Initialize all queues and start the worker processes and the log
+        thread.
+        """
         self.number_of_processes = get_num_processes()
 
         self.in_queue = multiprocessing.Queue()
@@ -172,8 +175,6 @@ class MapReduce:
 
         self.log_thread = LogThread(self.log_queue)
 
-    def start_parallel(self):
-        """Start all processses and the log thread."""
         for process in self.processes:
             process.start()
 
@@ -200,7 +201,6 @@ class MapReduce:
         """Perform the computation in parallel, reading results from the output
         queue and passing them to ``process_result``.
         """
-        self.init_parallel()
         self.start_parallel()
 
         self.done = False
