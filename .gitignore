@@ -11,7 +11,6 @@ node_modules
 **/*.log
 **/*.BACKUP
 pyphi/data/hamming_matrices/10.npy
-
 __pyphi_cache__
 dist
 build
@@ -23,3 +22,4 @@ html
 env
 benchmarks/pyphi_config.yml
 profiling/pyphi_config.yml
+ignore
