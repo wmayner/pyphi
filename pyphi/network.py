@@ -12,6 +12,7 @@ import json
 import numpy as np
 
 from . import cache, convert, utils, validate
+from .utils import connectivity
 from .constants import Direction
 from .node import default_labels
 
@@ -244,7 +245,7 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
         else:
             # TODO: test that ValueError is raised
             validate.direction(direction)
-        return utils.block_reducible(cm, _from, to)
+        return connectivity.block_reducible(cm, _from, to)
 
     return [purview for purview in purviews if not reducible(purview)]
 

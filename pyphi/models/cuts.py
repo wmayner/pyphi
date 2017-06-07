@@ -9,6 +9,7 @@ import numpy as np
 
 from . import fmt
 from .. import config, utils
+from ..utils import connectivity
 
 
 class Cut(namedtuple('Cut', ['severed', 'intact'])):
@@ -96,7 +97,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         # Construct a cut matrix large enough for all indices
         # in the cut, then extract the relevant submatrix
         n = max(cut_indices) + 1
-        matrix = utils.relevant_connections(n, self[0], self[1])
+        matrix = connectivity.relevant_connections(n, self[0], self[1])
         return matrix[np.ix_(cut_indices, cut_indices)]
 
     def __repr__(self):

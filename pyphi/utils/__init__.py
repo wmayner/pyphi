@@ -16,15 +16,13 @@ import numpy as np
 from pyemd import emd
 from scipy.misc import comb
 from scipy.sparse import csc_matrix
-from scipy.sparse.csgraph import connected_components
 from scipy.spatial.distance import cdist
 from scipy.stats import entropy
 
-from . import constants, convert
-from .cache import cache
+from .. import constants, convert
+from ..cache import cache
 
-# Create a logger for this module.
-log = logging.getLogger(__name__)
+# Create a logger for this module. log = logging.getLogger(__name__)
 
 
 def state_of(nodes, network_state):
@@ -690,7 +688,7 @@ def directed_tripartition(seq):
 def load_data(dir, num):
     """Load numpy data from the data directory.
 
-    The files should stored in ``data/{dir}`` and named
+    The files should stored in ``../data/{dir}`` and named
     ``0.npy, 1.npy, ... {num - 1}.npy``.
 
     Returns:
@@ -701,7 +699,7 @@ def load_data(dir, num):
     root = os.path.abspath(os.path.dirname(__file__))
 
     def get_path(i):
-        return os.path.join(root, 'data', dir, str(i) + '.npy')
+        return os.path.join(root, '..', 'data', dir, str(i) + '.npy')
 
     return [np.load(get_path(i)) for i in range(num)]
 
@@ -762,155 +760,3 @@ def _compute_hamming_matrix(N):
     """
     possible_states = np.array(list(all_states((N))))
     return cdist(possible_states, possible_states, 'hamming') * N
-
-
-# TODO: better name?
-def relevant_connections(n, _from, to):
-    """Construct a connectivity matrix.
-
-    Args:
-        n (int): The dimensions of the matrix
-        _from (tuple[int]): Nodes with outgoing connections to ``to``
-        to (tuple[int]): Nodes with incoming connections from ``_from``
-
-    Returns:
-        np.ndarray: An |n x n| connectivity matrix with the |i,jth| entry set
-        to ``1`` if |i| is in ``_from`` and |j| is in ``to``.
-    """
-    cm = np.zeros((n, n))
-
-    # Don't try and index with empty arrays. Older versions of NumPy
-    # (at least up to 1.9.3) break with empty array indices.
-    if not _from or not to:
-        return cm
-
-    cm[np.ix_(_from, to)] = 1
-    return cm
-
-
-def block_cm(cm):
-    """Return whether ``cm`` can be arranged as a block connectivity matrix.
-
-    If so, the corresponding mechanism/purview is trivially reducible.
-    Technically, only square matrices are "block diagonal", but the notion of
-    connectivity carries over.
-
-    We test for block connectivity by trying to grow a block of nodes such
-    that:
-
-    * 'source' nodes only input to nodes in the block
-    * 'sink' nodes only receive inputs from source nodes in the block
-
-    For example, the following connectivity matrix represents connections from
-    ``nodes1 = A, B, C`` to ``nodes2 = D, E, F, G`` (without loss of
-    generality—note that ``nodes1`` and ``nodes2`` may share elements)::
-
-         D  E  F  G
-      A [1, 1, 0, 0]
-      B [1, 1, 0, 0]
-      C [0, 0, 1, 1]
-
-    Since nodes |AB| only connect to nodes |DE|, and node |C| only connects to
-    nodes |FG|, the subgraph is reducible; the cut ::
-
-      AB   C
-      -- X --
-      DE   FG
-
-    does not change the structure of the graph.
-    """
-    if np.any(cm.sum(1) == 0):
-        return True
-    if np.all(cm.sum(1) == 1):
-        return True
-
-    outputs = list(range(cm.shape[1]))
-
-    # CM helpers:
-    def outputs_of(nodes):
-        # All nodes that `nodes` connect to (output to)
-        return np.where(cm[nodes, :].sum(0))[0]
-
-    def inputs_to(nodes):
-        # All nodes which connect to (input to) `nodes`
-        return np.where(cm[:, nodes].sum(1))[0]
-
-    # Start: source node with most outputs
-    sources = [np.argmax(cm.sum(1))]
-    sinks = outputs_of(sources)
-    sink_inputs = inputs_to(sinks)
-
-    while True:
-        if np.all(sink_inputs == sources):
-            # sources exclusively connect to sinks.
-            # There are no other nodes which connect sink nodes,
-            # hence set(sources) + set(sinks) form a component
-            # which is not connected to the rest of the graph
-            return True
-
-        # Recompute sources, sinks, and sink_inputs
-        sources = sink_inputs
-        sinks = outputs_of(sources)
-        sink_inputs = inputs_to(sinks)
-
-        # Considering all output nodes?
-        if np.all(sinks == outputs):
-            return False
-
-
-# TODO: simplify the conditional validation here and in block_cm
-# TODO: combine with fully_connected
-def block_reducible(cm, nodes1, nodes2):
-    """Return whether connections from ``nodes1`` to ``nodes2`` are reducible.
-
-    Args:
-        cm (np.ndarray): The network's connectivity matrix.
-        nodes1 (tuple[int]): Source nodes
-        nodes2 (tuple[int]): Sink nodes
-    """
-    if not nodes1 or not nodes2:
-        return True  # trivially
-
-    cm = cm[np.ix_(nodes1, nodes2)]
-
-    # Validate the connectivity matrix.
-    if not cm.sum(0).all() or not cm.sum(1).all():
-        return True
-    if len(nodes1) > 1 and len(nodes2) > 1:
-        return block_cm(cm)
-    return False
-
-
-def _connected(cm, nodes, connection):
-    """Test connectivity for the connectivity matrix."""
-    if nodes is not None:
-        cm = cm[np.ix_(nodes, nodes)]
-
-    num_components, _ = connected_components(cm, connection=connection)
-    return num_components < 2
-
-
-def strongly_connected(cm, nodes=None):
-    """Return whether the connectivity matrix is strongly connected.
-
-    Args:
-        cm (np.ndarray): A square connectivity matrix.
-
-    Keyword Args:
-        nodes (tuple[int]): An optional subset of node indices to test strong
-            connectivity over.
-    """
-    return _connected(cm, nodes, 'strong')
-
-
-def weakly_connected(cm, nodes=None):
-    """Return whether the connectivity matrix is weakly connected.
-
-    Args:
-        cm (np.ndarray): A square connectivity matrix.
-
-    Keyword Args:
-        nodes (tuple[int]): An optional subset of node indices to test weak
-            connectivity over.
-    """
-    return _connected(cm, nodes, 'weak')

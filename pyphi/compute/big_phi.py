@@ -16,6 +16,7 @@ from . import parallel
 from .. import config, exceptions, memory, utils, validate
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
 from ..subsystem import Subsystem
+from ..utils import connectivity
 from .concept import constellation
 from .distance import constellation_distance
 
@@ -206,7 +207,7 @@ def _big_mip(cache_key, subsystem):
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))
 
-    if not utils.strongly_connected(subsystem.cm, subsystem.node_indices):
+    if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
         log.info('{} is not strongly connected; returning null MIP '
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))

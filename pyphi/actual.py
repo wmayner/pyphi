@@ -19,6 +19,7 @@ from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, Occurence, _null_ac_bigmip, _null_ac_mip)
 from .subsystem import Subsystem, mip_bipartitions, wedge_partitions
+from .utils import connectivity
 
 log = logging.getLogger(__name__)
 
@@ -569,7 +570,7 @@ def big_acmip(context, direction=None):
                  'immediately.'.format(context))
         return _null_ac_bigmip(context, direction)
 
-    if not utils.weakly_connected(context.network.cm, context.node_indices):
+    if not connectivity.is_weak(context.network.cm, context.node_indices):
         log.info('{} is not strongly/weakly connected; returning null MIP '
                  'immediately.'.format(context))
         return _null_ac_bigmip(context, direction)
