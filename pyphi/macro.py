@@ -265,7 +265,7 @@ class MacroSubsystem(Subsystem):
         tpm = remove_singleton_dimensions(tpm)
         n = len(blackbox)
         cm = np.zeros((n, n))
-        for i, j in itertools.product(range(n), range(n)):
+        for i, j in itertools.product(range(n), repeat=2):
             # TODO: don't pull cm from self
             outputs = self._blackbox.outputs_of(i)
             to = self._blackbox.partition[j]
@@ -499,7 +499,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         macro_tpm = np.zeros((num_macro_states, num_macro_states))
 
         micro_states = range(2 ** len(self.micro_indices))
-        micro_state_transitions = itertools.product(micro_states, micro_states)
+        micro_state_transitions = itertools.product(micro_states, repeat=2)
 
         # For every possible micro-state transition, get the corresponding past
         # and current macro-state using the mapping and add that probability to
