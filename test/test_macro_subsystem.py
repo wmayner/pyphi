@@ -9,6 +9,7 @@ from pyphi import convert, macro, models, utils
 from pyphi.convert import (state_by_node2state_by_state as sbn2sbs,
                            state_by_state2state_by_node as sbs2sbn)
 
+
 @pytest.fixture()
 def macro_subsystem():
 
@@ -35,7 +36,7 @@ def macro_subsystem():
     coarse_grain = macro.CoarseGrain(partition, grouping)
 
     return macro.MacroSubsystem(network, state, network.node_indices,
-                                     coarse_grain=coarse_grain)
+                                coarse_grain=coarse_grain)
 
 
 def test_cut_indices(macro_subsystem, s):
@@ -54,10 +55,10 @@ def test_node_labels(macro_subsystem):
     assert macro_subsystem.nodes[1].label == "m1"
 
 
-#answer_cm = np.array([
-#    [0, 1],
-#    [1, 0]
-#])
+# answer_cm = np.array([
+#     [0, 1],
+#     [1, 0]
+# ])
 # TODO: using universal connectivity until we clarify how to handle
 # connectivity for hidden and coarse-grained elements.
 answer_cm = np.ones((2, 2))
@@ -71,8 +72,9 @@ def test_macro_subsystem(macro_subsystem):
         [1., 1.]
     ])
     assert np.array_equal(macro_subsystem.connectivity_matrix, answer_cm)
-    assert np.all(macro_subsystem.tpm.reshape([4]+[2], order='F') - answer_tpm
-                  < pyphi.constants.EPSILON)
+    assert np.allclose(macro_subsystem.tpm.reshape([4] + [2], order='f'),
+                       answer_tpm,
+                       rtol=pyphi.constants.EPSILON)
 
 
 def test_macro_cut_subsystem(macro_subsystem):
@@ -85,19 +87,22 @@ def test_macro_cut_subsystem(macro_subsystem):
         [1., 0.4225]
     ])
     assert np.array_equal(cut_subsystem.connectivity_matrix, answer_cm)
-    assert np.all(cut_subsystem.tpm.reshape([4]+[2], order='F') - answer_tpm
-                  < pyphi.constants.EPSILON)
+    assert np.allclose(cut_subsystem.tpm.reshape([4] + [2], order='f'),
+                       answer_tpm,
+                       rtol=pyphi.constants.EPSILON)
 
 
 # Tests for purely temporal blackboxing
 # =====================================
 
-
-
 def test_sparse_blackbox():
-    tpm_huge = np.array([[1 if i == j+1 else 0
-                          for i in range(1000)]
-                         for j in range(1000)])
+    tpm_huge = np.array([
+        [
+            1 if i == j + 1 else 0
+            for i in range(1000)
+        ]
+        for j in range(1000)
+    ])
     tpm_huge[999, 0] = 1
     assert np.array_equal(utils.sparse_time(tpm_huge, 1001), tpm_huge)
 
@@ -125,7 +130,7 @@ def test_cycle_blackbox():
         [1, 1, 1]
     ]))
 
-    # tpm over 2 timesteps
+    # TPM over 2 timesteps
     tpm2 = sbn2sbs(np.array([
         [0, 0, 0],
         [0, 0, 1],
@@ -137,7 +142,7 @@ def test_cycle_blackbox():
         [1, 1, 1]
     ]))
 
-    # tpm over 3 timesteps
+    # TPM over 3 timesteps
     tpm3 = sbn2sbs(np.array([
         [0, 0, 0],
         [1, 0, 0],
@@ -207,7 +212,8 @@ def test_subsystem_equality(s):
     assert macro_subsys != macro_subsys_bb
     assert hash(macro_subsys) != hash(macro_subsys_bb)
 
-    coarse_grain = macro.CoarseGrain(((0, 1), (2,)), (((0, 1), (2,)), ((0,), (1,))))
+    coarse_grain = macro.CoarseGrain(
+        ((0, 1), (2,)), (((0, 1), (2,)), ((0,), (1,))))
     macro_subsys_cg = macro.MacroSubsystem(
         s.network, s.state, s.node_indices, coarse_grain=coarse_grain)
     assert macro_subsys != macro_subsys_cg
@@ -318,7 +324,8 @@ def test_macro2micro(s):
     assert subsys.macro2blackbox_outputs((1, 0)) == (1, 2)
 
     # Only coarse-graining
-    coarse_grain = macro.CoarseGrain(((0,), (1, 2)), (((0,), (1,)), ((0,), (1, 2))))
+    coarse_grain = macro.CoarseGrain(
+        ((0,), (1, 2)), (((0,), (1,)), ((0,), (1, 2))))
     subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices,
                                   coarse_grain=coarse_grain)
     assert subsys.macro2micro((0,)) == (0,)
@@ -351,7 +358,8 @@ def test_blackbox_partial_noise(s):
     subsys = macro.MacroSubsystem(s.network, s.state, s.node_indices,
                                   blackbox=blackbox)
 
-    noised = subsys._blackbox_partial_noise(blackbox, macro.SystemAttrs.pack(s))
+    noised = subsys._blackbox_partial_noise(blackbox,
+                                            macro.SystemAttrs.pack(s))
 
     # Noise connection from 2 -> 0
     assert np.array_equal(
@@ -398,22 +406,20 @@ def test_blackbox_time():
 
     system = macro.SystemAttrs(tpm, cm, indices, state)
 
-    mechanism = (0,)
     result = macro.run_tpm(system, steps, blackbox)
     answer = convert.state_by_state2state_by_node(np.array([
-        [.125, .375, .125, .375],
-        [0,    .5,    0,   .5],
-        [.125, .375, .125, .375],
-        [0,    .5,    0,   .5],
-    ]))
+        [1, 3, 1, 3],
+        [0, 4, 0, 4],
+        [1, 3, 1, 3],
+        [0, 4, 0, 4],
+    ]) / 8)
     np.testing.assert_array_equal(result, answer)
 
-    mechanism = (1,)
     result = macro.run_tpm(system, steps, blackbox)
     answer = convert.state_by_state2state_by_node(np.array([
-        [.25, .25, .25, .25],
-        [0,   .5,   0,  .5],
-        [.25, .25, .25, .25],
-        [0,   .5,   0,  .5],
-    ]))
+        [1, 1, 1, 1],
+        [0, 2, 0, 2],
+        [1, 1, 1, 1],
+        [0, 2, 0, 2],
+    ]) / 4)
     np.testing.assert_array_equal(result, answer)
