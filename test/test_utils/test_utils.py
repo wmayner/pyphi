@@ -7,20 +7,6 @@ import pytest
 from pyphi import utils, constants
 
 
-def test_fully_connected():
-    cm = np.array([
-        [0, 0, 1],
-        [1, 0, 1],
-        [1, 1, 0]
-    ])
-    assert not utils.fully_connected(cm, (0,), (0, 1, 2))
-    assert not utils.fully_connected(cm, (2,), (2,))
-    assert not utils.fully_connected(cm, (0, 1), (1, 2))
-    assert utils.fully_connected(cm, (0, 1), (0, 2))
-    assert utils.fully_connected(cm, (1, 2), (1, 2))
-    assert utils.fully_connected(cm, (0, 1, 2), (0, 1, 2))
-
-
 def test_phi_eq():
     phi = 0.5
     close_enough = phi - constants.EPSILON/2
@@ -149,71 +135,6 @@ def test_uniform_distribution():
                           (np.ones(8)/8).reshape([2]*3))
 
 
-def test_block_cm():
-    cm1 = np.array([
-        [1, 0, 0, 1, 1, 0],
-        [1, 0, 1, 0, 0, 1],
-        [0, 0, 0, 1, 0, 0],
-        [0, 1, 0, 0, 0, 0],
-        [1, 1, 0, 0, 0, 1]
-    ])
-    cm2 = np.array([
-        [1, 0, 0],
-        [0, 1, 1],
-        [0, 1, 1]
-    ])
-    cm3 = np.array([
-        [1, 1, 0, 0, 0],
-        [0, 0, 1, 1, 1]
-    ])
-    cm4 = np.array([
-        [1, 1, 0, 0, 0],
-        [0, 1, 1, 0, 0],
-        [0, 0, 1, 1, 0],
-        [0, 0, 0, 1, 1],
-        [1, 0, 0, 0, 0]
-    ])
-    cm5 = np.array([
-        [1, 1],
-        [0, 1]
-    ])
-    assert not utils.block_cm(cm1)
-    assert utils.block_cm(cm2)
-    assert utils.block_cm(cm3)
-    assert not utils.block_cm(cm4)
-    assert not utils.block_cm(cm5)
-
-
-def test_block_reducible():
-    cm1 = np.array([
-        [1, 0, 0, 1, 1, 0],
-        [1, 0, 1, 0, 0, 1],
-        [0, 0, 0, 1, 0, 0],
-        [0, 1, 0, 0, 0, 0],
-        [1, 1, 0, 0, 0, 1],
-        [0, 0, 0, 0, 0, 0],
-    ])
-    cm2 = np.array([
-        [1, 0, 0],
-        [0, 1, 1],
-        [0, 1, 1]
-    ])
-    cm3 = np.array([
-        [1, 1, 0, 0, 0],
-        [0, 0, 1, 1, 1]
-    ])
-    cm4 = np.array([
-        [0, 1, 1],
-        [1, 0, 1],
-        [1, 1, 0]
-    ])
-    assert not utils.block_reducible(cm1, tuple(range(cm1.shape[0] - 1)),
-                                     tuple(range(cm1.shape[1])))
-    assert utils.block_reducible(cm2, (0, 1, 2), (0, 1, 2))
-    assert utils.block_reducible(cm3, (0, 1), (0, 1, 2, 3, 4))
-    assert not utils.block_reducible(cm4, (0, 1), (1, 2))
-
-
 def test_get_inputs_from_cm():
     cm = np.array([
         [0, 1, 0],
@@ -234,46 +155,6 @@ def test_get_outputs_from_cm():
     assert utils.get_outputs_from_cm(0, cm) == (1,)
     assert utils.get_outputs_from_cm(1, cm) == (0, 1, 2)
     assert utils.get_outputs_from_cm(2, cm) == tuple()
-
-
-def test_relevant_connections():
-    cm = utils.relevant_connections(2, (0, 1), (1,))
-    assert np.array_equal(cm, [
-        [0, 1],
-        [0, 1],
-    ])
-    cm = utils.relevant_connections(3, (0, 1), (0, 2))
-    assert np.array_equal(cm, [
-        [1, 0, 1],
-        [1, 0, 1],
-        [0, 0, 0],
-    ])
-
-
-def test_strongly_connected():
-    # Strongly connected
-    cm = np.array([[0, 1, 0],
-                   [0, 0, 1],
-                   [1, 0, 0]])
-    assert utils.strongly_connected(cm)
-
-    # Disconnected
-    cm = np.array([[0, 0, 1],
-                   [0, 1, 0],
-                   [1, 0, 0]])
-    assert not utils.strongly_connected(cm)
-
-    # Weakly connected
-    cm = np.array([[0, 1, 0],
-                   [0, 0, 1],
-                   [0, 1, 0]])
-    assert not utils.strongly_connected(cm)
-
-    # Nodes (0, 1) are strongly connected
-    cm = np.array([[0, 1, 0],
-                   [1, 0, 0],
-                   [0, 0, 0]])
-    assert utils.strongly_connected(cm, (0, 1))
 
 
 def test_normalize():

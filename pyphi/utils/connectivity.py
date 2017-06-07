@@ -160,3 +160,28 @@ def is_weak(cm, nodes=None):
             connectivity over.
     """
     return _connected(cm, nodes, 'weak')
+
+
+def is_full(cm, nodes1, nodes2):
+    """Test connectivity of one set of nodes to another.
+
+    Args:
+        cm (``np.ndarrray``): The connectivity matrix
+        nodes1 (tuple[int]): The nodes whose outputs to ``nodes2`` will be
+            tested.
+        nodes2 (tuple[int]): The nodes whose inputs from ``nodes1`` will
+            be tested.
+
+    Returns:
+        bool: Returns ``True`` if all elements in ``nodes1`` output to some
+        element in ``nodes2`` AND all elements in ``nodes2`` have an input from
+        some element in ``nodes1``. Otherwise return ``False``. Return ``True``
+        if either set of nodes is empty.
+    """
+    if not nodes1 or not nodes2:
+        return True
+
+    cm = cm[np.ix_(nodes1, nodes2)]
+
+    # Do all nodes have at least one connection?
+    return cm.sum(0).all() and cm.sum(1).all()
