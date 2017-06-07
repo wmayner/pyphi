@@ -867,7 +867,7 @@ def mip_bipartitions(mechanism, purview):
     numerators = utils.bipartition(mechanism)
     denominators = utils.directed_bipartition(purview)
 
-    for (n, d) in itertools.product(numerators, denominators):
+    for n, d in itertools.product(numerators, denominators):
         if (n[0] or d[0]) and (n[1] or d[1]):
             yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
 
