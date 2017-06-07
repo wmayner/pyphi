@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from pyphi.utils import connectivity
+from pyphi import connectivity
 
 
 def test_relevant_connections():

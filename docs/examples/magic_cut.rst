@@ -104,7 +104,7 @@ for any purview, so the cause information is reducible.
    >>> A = (0,)
    >>> repertoire = subsystem.cause_repertoire(ABC, ABC)
    >>> cut_repertoire = subsystem.cause_repertoire(BC, ABC) * subsystem.cause_repertoire(A, ())
-   >>> pyphi.utils.hamming_emd(repertoire, cut_repertoire)
+   >>> pyphi.distance.hamming_emd(repertoire, cut_repertoire)
    0.0
 
 Next, lets look at the cut subsystem to understand how the new concept
@@ -131,7 +131,7 @@ of C gives us additional information over and above knowing A and B.
 
    >>> repertoire = cut_subsystem.cause_repertoire(ABC, ABC)
    >>> cut_repertoire = cut_subsystem.cause_repertoire(AB, ABC) * cut_subsystem.cause_repertoire(C, ())
-   >>> pyphi.utils.hamming_emd(repertoire, cut_repertoire)
+   >>> pyphi.distance.hamming_emd(repertoire, cut_repertoire)
    0.500001
 
 With this partition, the integrated information is :math:`\varphi = 0.5`, but

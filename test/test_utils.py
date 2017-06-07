@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# test/test_utils.py
 
 import numpy as np
-import pytest
 
 from pyphi import utils, constants
 
 
 def test_phi_eq():
     phi = 0.5
-    close_enough = phi - constants.EPSILON/2
-    not_quite = phi - constants.EPSILON*2
+    close_enough = phi - constants.EPSILON / 2
+    not_quite = phi - constants.EPSILON * 2
     assert utils.phi_eq(phi, close_enough)
     assert not utils.phi_eq(phi, not_quite)
     assert not utils.phi_eq(phi, (phi - phi))
@@ -19,15 +19,15 @@ def test_phi_eq():
 def test_marginalize_out(s):
     marginalized_distribution = utils.marginalize_out([0], s.tpm)
     assert np.array_equal(marginalized_distribution,
-                          np.array([[[[0.,  0.,  0.5],
-                                      [1.,  1.,  0.5]],
-                                     [[1.,  0.,  0.5],
-                                      [1.,  1.,  0.5]]]]))
+                          np.array([[[[0.0, 0.0, 0.5],
+                                      [1.0, 1.0, 0.5]],
+                                     [[1.0, 0.0, 0.5],
+                                      [1.0, 1.0, 0.5]]]]))
 
     marginalized_distribution = utils.marginalize_out([0, 1], s.tpm)
     assert np.array_equal(marginalized_distribution,
-                          np.array([[[[ 0.5,  0. ,  0.5],
-                                      [ 1. ,  1. ,  0.5]]]]))
+                          np.array([[[[0.5, 0.0, 0.5],
+                                      [1.0, 1.0, 0.5]]]]))
 
 
 def test_purview_max_entropy_distribution():
@@ -70,19 +70,6 @@ def test_powerset():
     assert list(utils.powerset(a)) == [(), (0,), (1,), (0, 1)]
 
 
-def test_hamming_matrix():
-    H = utils._hamming_matrix(3)
-    answer = np.array([[0.,  1.,  1.,  2.,  1.,  2.,  2.,  3.],
-                       [1.,  0.,  2.,  1.,  2.,  1.,  3.,  2.],
-                       [1.,  2.,  0.,  1.,  2.,  3.,  1.,  2.],
-                       [2.,  1.,  1.,  0.,  3.,  2.,  2.,  1.],
-                       [1.,  2.,  2.,  3.,  0.,  1.,  1.,  2.],
-                       [2.,  1.,  3.,  2.,  1.,  0.,  2.,  1.],
-                       [2.,  3.,  1.,  2.,  1.,  2.,  0.,  1.],
-                       [3.,  2.,  2.,  1.,  2.,  1.,  1.,  0.]])
-    assert (H == answer).all()
-
-
 def test_directed_bipartition():
     answer = [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)),
               ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
@@ -104,35 +91,10 @@ def test_directed_tripartition_indices():
         ((), (1,), (0,)),
         ((), (), (0, 1))]
 
-def test_emd_same_distributions():
-    a = np.ones((2, 2, 2)) / 8
-    b = np.ones((2, 2, 2)) / 8
-    assert utils.hamming_emd(a, b) == 0.0
-
-
-def test_emd_validates_distribution_shapes():
-    a = np.ones((2, 2, 2)) / 8
-    b = np.ones((3, 3, 3)) / 27
-    with pytest.raises(ValueError):
-        utils.hamming_emd(a, b)
-
-
-def test_l1_distance():
-    a = np.array([0, 1, 2])
-    b = np.array([2, 2, 4.5])
-    assert utils.l1(a, b) == 5.5
-
-
-def test_kld():
-    a = np.array([0, 1.0])
-    b = np.array([0.5, 0.5])
-
-    assert utils.kld(a, b) == 1
-
 
 def test_uniform_distribution():
     assert np.array_equal(utils.uniform_distribution(3),
-                          (np.ones(8)/8).reshape([2]*3))
+                          (np.ones(8) / 8).reshape([2] * 3))
 
 
 def test_get_inputs_from_cm():
@@ -248,24 +210,27 @@ def test_marginal():
          [0., 0.5]],
         [[0., 0.],
          [0., 0.5]]])
-    assert np.array_equal(utils.marginal(repertoire, 0), np.array([[[0.5]], [[0.5]]]))
-    assert np.array_equal(utils.marginal(repertoire, 1), np.array([[[0], [1]]]))
-    assert np.array_equal(utils.marginal(repertoire, 2), np.array([[[0, 1]]]))
+    assert np.array_equal(
+        utils.marginal(repertoire, 0), np.array([[[0.5]], [[0.5]]]))
+    assert np.array_equal(
+        utils.marginal(repertoire, 1), np.array([[[0], [1]]]))
+    assert np.array_equal(
+        utils.marginal(repertoire, 2), np.array([[[0, 1]]]))
 
 
 def test_independent():
     repertoire = np.array([
-        [[ 0.25],
-         [ 0.25]],
-        [[ 0.25],
-         [ 0.25]]])
+        [[0.25],
+         [0.25]],
+        [[0.25],
+         [0.25]]])
     assert utils.independent(repertoire)
 
     repertoire = np.array([
-        [[ 0.5],
-         [ 0. ]],
-        [[ 0. ],
-         [ 0.5]]])
+        [[0.5],
+         [0.0]],
+        [[0.0],
+         [0.5]]])
     assert not utils.independent(repertoire)
 
 
@@ -286,7 +251,7 @@ def test_purview(s):
         repertoire = s.cause_repertoire(mechanism, purview)
         assert utils.purview(repertoire) == purview
 
-    assert utils.purview(None) == None
+    assert utils.purview(None) is None
 
 
 def test_repertoire_shape():

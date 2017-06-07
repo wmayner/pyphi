@@ -13,10 +13,9 @@ import multiprocessing
 from time import time
 
 from . import parallel
-from .. import config, exceptions, memory, utils, validate
+from .. import config, exceptions, memory, utils, validate, connectivity
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
 from ..subsystem import Subsystem
-from ..utils import connectivity
 from .concept import constellation
 from .distance import constellation_distance
 

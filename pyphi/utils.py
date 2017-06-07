@@ -7,22 +7,16 @@ Functions used by more than one PyPhi module or class, or that might be of
 external use.
 """
 
-import hashlib
-import logging
 import os
+import hashlib
 from itertools import chain, combinations, product
 
 import numpy as np
-from pyemd import emd
 from scipy.misc import comb
 from scipy.sparse import csc_matrix
-from scipy.spatial.distance import cdist
-from scipy.stats import entropy
 
-from .. import constants, convert
-from ..cache import cache
-
-# Create a logger for this module. log = logging.getLogger(__name__)
+from . import constants, convert
+from .cache import cache
 
 
 def state_of(nodes, network_state):
@@ -425,53 +419,6 @@ def max_entropy_distribution(node_indices, number_of_nodes):
     return distribution / distribution.size
 
 
-# TODO extend to binary nodes
-def hamming_emd(d1, d2):
-    """Return the Earth Mover's Distance between two distributions (indexed
-    by state, one dimension per node).
-
-    Singleton dimensions are sqeezed out.
-    """
-    d1, d2 = d1.squeeze(), d2.squeeze()
-    N = d1.ndim
-
-    # Compute EMD using the Hamming distance between states as the
-    # transportation cost function.
-    return emd(d1.ravel(), d2.ravel(), _hamming_matrix(N))
-
-
-def l1(d1, d2):
-    """Return the L1 distance between two distributions.
-
-    Args:
-        d1 (np.ndarray): The first distribution.
-        d2 (np.ndarray): The second distribution.
-
-    Returns:
-        float: The sum of absolute differences of ``d1`` and ``d2``.
-    """
-    return np.absolute(d1 - d2).sum()
-
-
-def kld(d1, d2):
-    """Return the Kullback-Leibler Divergence (KLD) between two distributions.
-
-    Args:
-        d1 (np.ndarray): The first distribution.
-        d2 (np.ndarray): The second distribution.
-
-    Returns:
-        float: The KLD of ``d1`` from ``d2``.
-    """
-    d1, d2 = d1.squeeze().ravel(), d2.squeeze().ravel()
-    return entropy(d1, d2, 2.0)
-
-
-def entropy_difference(d1, d2):
-    d1, d2 = d1.squeeze().ravel(), d2.squeeze().ravel()
-    return abs(entropy(d1, base=2.0) - entropy(d2, base=2.0))
-
-
 def bipartition(a):
     """Return a list of bipartitions for a sequence.
 
@@ -657,10 +604,7 @@ def directed_tripartition(seq):
                tuple(seq[k] for k in c))
 
 
-# Internal helper methods
-# =============================================================================
-
-def load_data(dir, num):
+def load_data(directory, num):
     """Load numpy data from the data directory.
 
     The files should stored in ``../data/{dir}`` and named
@@ -673,65 +617,7 @@ def load_data(dir, num):
 
     root = os.path.abspath(os.path.dirname(__file__))
 
-    def get_path(i):
-        return os.path.join(root, '..', 'data', dir, str(i) + '.npy')
+    def get_path(i):  # pylint: disable=missing-docstring
+        return os.path.join(root, 'data', directory, str(i) + '.npy')
 
     return [np.load(get_path(i)) for i in range(num)]
-
-
-# Load precomputed hamming matrices.
-_NUM_PRECOMPUTED_HAMMING_MATRICES = 10
-_hamming_matrices = load_data('hamming_matrices',
-                              _NUM_PRECOMPUTED_HAMMING_MATRICES)
-
-
-# TODO extend to nonbinary nodes
-def _hamming_matrix(N):
-    """Return a matrix of Hamming distances for the possible states of |N|
-    binary nodes.
-
-    Args:
-        N (int): The number of nodes under consideration
-
-    Returns:
-        np.ndarray: A |2^N x 2^N| matrix where the |ith| element is the Hamming
-        distance between state |i| and state |j|.
-
-    Example:
-        >>> _hamming_matrix(2)
-        array([[ 0.,  1.,  1.,  2.],
-               [ 1.,  0.,  2.,  1.],
-               [ 1.,  2.,  0.,  1.],
-               [ 2.,  1.,  1.,  0.]])
-    """
-    if N < _NUM_PRECOMPUTED_HAMMING_MATRICES:
-        return _hamming_matrices[N]
-    else:
-        return _compute_hamming_matrix(N)
-
-
-@constants.joblib_memory.cache
-def _compute_hamming_matrix(N):
-    """
-    Compute and store a Hamming matrix for |N| nodes.
-
-    Hamming matrices have the following sizes:
-
-    n   MBs
-    ==  ===
-    9   2
-    10  8
-    11  32
-    12  128
-    13  512
-
-    Given these sizes and the fact that large matrices are needed infrequently,
-    we store computed matrices using the Joblib filesystem cache instead of
-    adding computed matrices to the ``_hamming_matrices`` global and clogging
-    up memory.
-
-    This function is only called when N > _NUM_PRECOMPUTED_HAMMING_MATRICES.
-    Don't call this function directly; use ``utils._hamming_matrix`` instead.
-    """
-    possible_states = np.array(list(all_states((N))))
-    return cdist(possible_states, possible_states, 'hamming') * N

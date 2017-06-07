@@ -9,12 +9,13 @@ import itertools
 
 import numpy as np
 
-from . import cache, config, utils, validate
+from . import cache, config, utils, validate, distance
 from .constants import EMD, ENTROPY_DIFFERENCE, KLD, L1, Direction
 from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
                      Tripartition, _null_mip)
 from .network import irreducible_purviews
 from .node import generate_nodes
+from .distance import hamming_emd, emd, entropy_difference, kld
 
 
 class Subsystem:
@@ -1089,7 +1090,7 @@ def emd(direction, d1, d2):
         ValueError: If ``direction`` is invalid.
     """
     if direction == Direction.PAST:
-        func = utils.hamming_emd
+        func = distance.hamming_emd
     elif direction == Direction.FUTURE:
         func = effect_emd
     else:
@@ -1116,13 +1117,13 @@ def measure(direction, d1, d2):
         dist = emd(direction, d1, d2)
 
     elif config.MEASURE == KLD:
-        dist = utils.kld(d1, d2)
+        dist = kld(d1, d2)
 
     elif config.MEASURE == L1:
-        dist = utils.l1(d1, d2)
+        dist = l1(d1, d2)
 
     elif config.MEASURE == ENTROPY_DIFFERENCE:
-        dist = utils.entropy_difference(d1, d2)
+        dist = entropy_difference(d1, d2)
 
     else:
         validate.measure(config.MEASURE)

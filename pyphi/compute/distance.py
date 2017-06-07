@@ -6,6 +6,7 @@ import numpy as np
 
 from .. import config, utils, validate
 from ..constants import EMD, KLD, L1, ENTROPY_DIFFERENCE
+from ..distance import hamming_emd, emd, entropy_difference, kld
 
 BIG_NUMBER = 1000000
 
@@ -21,15 +22,15 @@ def measure(d1, d2):
         float: The distance between ``d1`` and ``d2``.
     """
     if config.MEASURE in [EMD, L1]:
-        return utils.hamming_emd(d1, d2)
+        return hamming_emd(d1, d2)
 
     elif config.MEASURE == ENTROPY_DIFFERENCE:
-        return utils.entropy_difference(d1, d2)
+        return entropy_difference(d1, d2)
 
     # If the distance is `inf` return a very large number instead so that
     # the generalized EMD can still operate on a KLD distance matrix.
     elif config.MEASURE == KLD:
-        result = utils.kld(d1, d2)
+        result = kld(d1, d2)
 
         if np.isinf(result):
             return BIG_NUMBER
@@ -143,7 +144,7 @@ def _constellation_distance_emd(unique_C1, unique_C2):
     # The sum of the two signatures should be the same.
     assert utils.phi_eq(sum(d1), sum(d2))
     # Calculate!
-    return utils.emd(np.array(d1), np.array(d2), distance_matrix)
+    return emd(np.array(d1), np.array(d2), distance_matrix)
 
 
 def constellation_distance(C1, C2):

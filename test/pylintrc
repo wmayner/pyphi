@@ -6,4 +6,5 @@ disable=
   redefined-outer-name,
   too-few-public-methods,
   no-member,
-  invalid-name
+  invalid-name,
+  protected-access
