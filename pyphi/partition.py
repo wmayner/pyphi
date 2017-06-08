@@ -102,11 +102,11 @@ def directed_bipartition_indices(N):
 
 # TODO? [optimization] optimize this to use indices rather than nodes
 # TODO? are native lists really slower
-def directed_bipartition(a):
+def directed_bipartition(seq, nontrivial=False):
     """Return a list of directed bipartitions for a sequence.
 
     Args:
-        a (Iterable): The iterable to partition.
+        seq (Iterable): The sequence to partition.
 
     Returns:
         list[tuple[tuple]]: A list of tuples containing each of the two
@@ -123,8 +123,16 @@ def directed_bipartition(a):
          ((2, 3), (1,)),
          ((1, 2, 3), ())]
     """
-    return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
-            for part0_idx, part1_idx in directed_bipartition_indices(len(a))]
+    partitions = [
+        (tuple(seq[i] for i in part0_idx), tuple(seq[j] for j in part1_idx))
+        for part0_idx, part1_idx in directed_bipartition_indices(len(seq))
+    ]
+    if nontrivial:
+        # The first and last partitions have a part that is empty; skip them.
+        # NOTE: This depends on the implementation of
+        # `directed_partition_indices`.
+        return partitions[1:-1]
+    return partitions
 
 
 def bipartition_of_one(seq):

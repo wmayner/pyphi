@@ -154,8 +154,8 @@ def big_mip_bipartitions(nodes):
     if config.CUT_ONE_APPROXIMATION:
         bipartitions = directed_bipartition_of_one(nodes)
     else:
-        # Skip the first and last (trivial, null cut) bipartitions
-        bipartitions = directed_bipartition(nodes)[1:-1]
+        # Don't consider trivial partitions where one part is empty
+        bipartitions = directed_bipartition(nodes, nontrivial=True)
 
     return [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
