@@ -11,9 +11,7 @@ from scipy.sparse.csgraph import connected_components
 
 
 def apply_boundary_conditions_to_cm(external_indices, cm):
-    """Return a connectivity matrix with all connections to or from external
-    nodes removed.
-    """
+    """Remove connections to or from external nodes."""
     cm = cm.copy()
     for i in external_indices:
         # Zero-out row
@@ -24,22 +22,17 @@ def apply_boundary_conditions_to_cm(external_indices, cm):
 
 
 def get_inputs_from_cm(index, cm):
-    """Return a tuple of node indices that have connections to the node with
-    the given index.
-    """
+    """Return indices of inputs to the node with the given index."""
     return tuple(i for i in range(cm.shape[0]) if cm[i][index])
 
 
 def get_outputs_from_cm(index, cm):
-    """Return a tuple of node indices that the node with the given index has
-    connections to.
-    """
+    """Return indices of the outputs of node with the given index."""
     return tuple(i for i in range(cm.shape[0]) if cm[index][i])
 
 
 def causally_significant_nodes(cm):
-    """Return a tuple of all nodes indices in the connectivity matrix which
-    are causally significant (have inputs and outputs)."""
+    """Return indices of nodes that have both inputs and outputs."""
     inputs = cm.sum(0)
     outputs = cm.sum(1)
     nodes_with_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
