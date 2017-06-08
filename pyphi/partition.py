@@ -312,7 +312,12 @@ def _b(mu, nu, sigma, n, a, k, collection):  # flake8: noqa
 
 
 def k_partitions(collection, k):
-    """Generate all k-partitions of a collection."""
+    """Generate all k-partitions of a collection.
+
+    Example:
+        >>> list(k_partitions(range(3), 2))
+        [[[0, 1], [2]], [[0], [1, 2]], [[0, 2], [1]]]
+    """
     collection = list(collection)
     n = len(collection)
 
