@@ -121,7 +121,7 @@ class Network:
 
     @property
     def causally_significant_nodes(self):
-        """See :func:`connectivity.causally_significant_nodes`."""
+        """See :func:`~pyphi.connectivity.causally_significant_nodes`."""
         return connectivity.causally_significant_nodes(self.cm)
 
     @property
