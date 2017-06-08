@@ -44,78 +44,6 @@ def all_states(n, holi=False):
             yield state[::-1]  # Convert to LOLI-ordering
 
 
-# TPM and Connectivity Matrix utils
-# ============================================================================
-
-def state_by_state(tpm):
-    """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
-    ``False``."""
-    return tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]
-
-
-def condition_tpm(tpm, fixed_nodes, state):
-    """Return a TPM conditioned on the given fixed node indices, whose states
-    are fixed according to the given state-tuple.
-
-    The dimensions of the new TPM that correspond to the fixed nodes are
-    collapsed onto their state, making those dimensions singletons suitable for
-    broadcasting. The number of dimensions of the conditioned TPM will be the
-    same as the unconditioned TPM.
-    """
-    conditioning_indices = [[slice(None)]] * len(state)
-    for i in fixed_nodes:
-        # Preserve singleton dimensions with `np.newaxis`
-        conditioning_indices[i] = [state[i], np.newaxis]
-    # Flatten the indices.
-    conditioning_indices = list(chain.from_iterable(conditioning_indices))
-    # Obtain the actual conditioned TPM by indexing with the conditioning
-    # indices.
-    return tpm[conditioning_indices]
-
-
-def expand_tpm(tpm):
-    """Broadcast a state-by-node TPM so that singleton dimensions are expanded
-    over the full network."""
-    uc = np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]])
-    return tpm * uc
-
-
-def apply_boundary_conditions_to_cm(external_indices, cm):
-    """Return a connectivity matrix with all connections to or from external
-    nodes removed.
-    """
-    cm = cm.copy()
-    for i in external_indices:
-        # Zero-out row
-        cm[i] = 0
-        # Zero-out column
-        cm[:, i] = 0
-    return cm
-
-
-def get_inputs_from_cm(index, cm):
-    """Return a tuple of node indices that have connections to the node with
-    the given index.
-    """
-    return tuple(i for i in range(cm.shape[0]) if cm[i][index])
-
-
-def get_outputs_from_cm(index, cm):
-    """Return a tuple of node indices that the node with the given index has
-    connections to.
-    """
-    return tuple(i for i in range(cm.shape[0]) if cm[index][i])
-
-
-def causally_significant_nodes(cm):
-    """Return a tuple of all nodes indices in the connectivity matrix which
-    are causally significant (have inputs and outputs)."""
-    inputs = cm.sum(0)
-    outputs = cm.sum(1)
-    nodes_with_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
-    return tuple(np.where(nodes_with_inputs_and_outputs)[0])
-
-
 def np_immutable(a):
     """Make a NumPy array immutable."""
     a.flags.writeable = False
@@ -213,22 +141,6 @@ def powerset(iterable):
     """
     return chain.from_iterable(combinations(iterable, r)
                                for r in range(len(iterable) + 1))
-
-
-def marginalize_out(indices, tpm):
-    """
-    Marginalize out a node from a TPM.
-
-    Args:
-        indices (list[int]): The indices of nodes to be marginalized out.
-        tpm (np.ndarray): The TPM to marginalize the node out of.
-
-    Returns:
-        np.ndarray: A TPM with the same number of dimensions, with the nodes
-        marginalized out.
-    """
-    return tpm.sum(tuple(indices), keepdims=True) / (
-        np.array(tpm.shape)[list(indices)].prod())
 
 
 def load_data(directory, num):

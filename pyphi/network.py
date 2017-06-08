@@ -12,6 +12,7 @@ import json
 import numpy as np
 
 from . import cache, convert, utils, validate, connectivity
+from .tpm import is_state_by_state
 from .constants import Direction
 from .node import default_labels
 
@@ -82,7 +83,7 @@ class Network:
         validate.tpm(tpm)
 
         # Convert to N-D state-by-node form
-        if utils.state_by_state(tpm):
+        if is_state_by_state(tpm):
             tpm = convert.state_by_state2state_by_node(tpm)
         else:
             tpm = convert.to_n_dimensional(tpm)

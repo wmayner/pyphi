@@ -7,6 +7,49 @@ import numpy as np
 from pyphi import connectivity
 
 
+def test_get_inputs_from_cm():
+    cm = np.array([
+        [0, 1, 0],
+        [1, 1, 1],
+        [0, 0, 0],
+    ])
+    assert connectivity.get_inputs_from_cm(0, cm) == (1,)
+    assert connectivity.get_inputs_from_cm(1, cm) == (0, 1)
+    assert connectivity.get_inputs_from_cm(2, cm) == (1,)
+
+
+def test_get_outputs_from_cm():
+    cm = np.array([
+        [0, 1, 0],
+        [1, 1, 1],
+        [0, 0, 0],
+    ])
+    assert connectivity.get_outputs_from_cm(0, cm) == (1,)
+    assert connectivity.get_outputs_from_cm(1, cm) == (0, 1, 2)
+    assert connectivity.get_outputs_from_cm(2, cm) == tuple()
+
+
+def test_causally_significant_nodes():
+    cm = np.array([
+        [0, 0],
+        [1, 0]
+    ])
+    assert connectivity.causally_significant_nodes(cm) == ()
+
+    cm = np.array([
+        [0, 1],
+        [1, 0]
+    ])
+    assert connectivity.causally_significant_nodes(cm) == (0, 1)
+
+    cm = np.array([
+        [0, 1, 0],
+        [0, 0, 1],
+        [0, 1, 1],
+    ])
+    assert connectivity.causally_significant_nodes(cm) == (1, 2)
+
+
 def test_relevant_connections():
     cm = connectivity.relevant_connections(2, (0, 1), (1,))
     assert np.array_equal(cm, [

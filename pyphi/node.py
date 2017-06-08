@@ -12,6 +12,8 @@ import functools
 import numpy as np
 
 from . import utils
+from .tpm import marginalize_out
+from .connectivity import get_inputs_from_cm, get_outputs_from_cm
 
 
 # TODO extend to nonbinary nodes
@@ -44,8 +46,8 @@ class Node:
         self.state = state
 
         # Get indices of the inputs.
-        self._input_indices = utils.get_inputs_from_cm(self.index, cm)
-        self._output_indices = utils.get_outputs_from_cm(self.index, cm)
+        self._input_indices = get_inputs_from_cm(self.index, cm)
+        self._output_indices = get_outputs_from_cm(self.index, cm)
 
         # Generate the node's TPM.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -61,7 +63,7 @@ class Node:
         # the external nodes have already been dealt with as boundary
         # conditions in the subsystem's TPM.
         non_input_indices = set(tpm_indices(tpm)) - set(self._input_indices)
-        tpm_on = utils.marginalize_out(non_input_indices, tpm_on)
+        tpm_on = marginalize_out(non_input_indices, tpm_on)
 
         # Get the TPM that gives the probability of the node being off, rather
         # than on.

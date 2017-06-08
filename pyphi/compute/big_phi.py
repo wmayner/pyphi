@@ -310,7 +310,8 @@ def possible_complexes(network, state):
     """
     validate.is_network(network)
 
-    causally_significant_nodes = utils.causally_significant_nodes(network.cm)
+    causally_significant_nodes = \
+        connectivity.causally_significant_nodes(network.cm)
 
     for subset in utils.powerset(causally_significant_nodes):
         # Don't return empty system

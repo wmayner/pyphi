@@ -11,6 +11,7 @@ import numpy as np
 
 from . import cache, config, utils, validate, distance, distribution
 from .constants import EMD, ENTROPY_DIFFERENCE, KLD, L1, Direction
+from .tpm import condition_tpm, marginalize_out
 from .partition import (partitions, bipartition, directed_bipartition,
                         directed_bipartition_of_one, directed_tripartition,
                         k_partitions)
@@ -71,7 +72,7 @@ class Subsystem:
             set(network.node_indices) - set(self.node_indices))
 
         # The TPM conditioned on the state of the external nodes.
-        self.tpm = utils.condition_tpm(
+        self.tpm = condition_tpm(
             self.network.tpm, self.external_indices, self.state)
 
         # The null cut (that leaves the system intact)
@@ -301,7 +302,7 @@ class Subsystem:
             # Marginalize-out all nodes which connect to this node but which
             # are not in the purview:
             other_inputs = set(mechanism_node.input_indices) - set(purview)
-            tpm = utils.marginalize_out(other_inputs, tpm)
+            tpm = marginalize_out(other_inputs, tpm)
 
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
@@ -379,7 +380,7 @@ class Subsystem:
 
             # Marginalize-out non-mechanism inputs.
             other_inputs = set(purview_node.input_indices) - set(mechanism)
-            tpm = utils.marginalize_out(other_inputs, tpm)
+            tpm = marginalize_out(other_inputs, tpm)
 
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution (with singleton broadcasting).
@@ -389,7 +390,7 @@ class Subsystem:
         # on the state of these nodes by collapsing the CJD onto those states.
         mechanism_inputs = [node.index for node in mechanism_nodes
                             if set(node.output_indices) & set(purview)]
-        accumulated_cjd = utils.condition_tpm(
+        accumulated_cjd = condition_tpm(
             accumulated_cjd, mechanism_inputs, self.state)
 
         # The distribution still has twice as many dimensions as the network
