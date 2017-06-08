@@ -62,28 +62,6 @@ def test_powerset():
     assert list(utils.powerset(a)) == [(), (0,), (1,), (0, 1)]
 
 
-def test_directed_bipartition():
-    answer = [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,)),
-              ((3,), (1, 2)), ((1, 3), (2,)), ((2, 3), (1,)), ((1, 2, 3), ())]
-    assert answer == utils.directed_bipartition((1, 2, 3))
-    # Test with empty input
-    assert [] == utils.directed_bipartition(())
-
-
-def test_directed_tripartition_indices():
-    assert utils.directed_tripartition_indices(0) == []
-    assert utils.directed_tripartition_indices(2) == [
-        ((0, 1), (), ()),
-        ((0,), (1,), ()),
-        ((0,), (), (1,)),
-        ((1,), (0,), ()),
-        ((), (0, 1), ()),
-        ((), (0,), (1,)),
-        ((1,), (), (0,)),
-        ((), (1,), (0,)),
-        ((), (), (0, 1))]
-
-
 def test_get_inputs_from_cm():
     cm = np.array([
         [0, 1, 0],
