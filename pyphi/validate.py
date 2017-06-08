@@ -3,7 +3,7 @@
 # validate.py
 
 """
-Methods for validating common types of input.
+Methods for validating arguments.
 """
 
 import numpy as np
