@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # compute/distance.py
 
+"""
+Functions for computing distances between various PyPhi objects.
+"""
+
 import numpy as np
 
 from .. import config, utils, validate

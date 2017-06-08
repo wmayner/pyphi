@@ -3,8 +3,7 @@
 # compute/big_phi.py
 
 """
-Methods for computing concepts, constellations, and integrated information of
-subsystems.
+Functions for computing concepts, constellations, and integrated information.
 """
 
 import functools
