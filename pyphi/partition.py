@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# utils.py
+# partition.py
 
 """
 Functions for generating partitions.
@@ -54,6 +54,7 @@ def bipartition_indices(N):
     return result
 
 
+# TODO? rename to `bipartitions`
 def bipartition(a):
     """Return a list of bipartitions for a sequence.
 
