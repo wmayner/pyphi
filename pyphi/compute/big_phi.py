@@ -16,6 +16,7 @@ from . import parallel
 from .. import config, exceptions, memory, utils, validate, connectivity
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
 from ..subsystem import Subsystem
+from ..partition import directed_bipartition, directed_bipartition_of_one
 from .concept import constellation
 from .distance import constellation_distance
 
@@ -151,10 +152,10 @@ def big_mip_bipartitions(nodes):
         list[|Cut|]: All unidirectional partitions.
     """
     if config.CUT_ONE_APPROXIMATION:
-        bipartitions = utils.directed_bipartition_of_one(nodes)
+        bipartitions = directed_bipartition_of_one(nodes)
     else:
         # Skip the first and last (trivial, null cut) bipartitions
-        bipartitions = utils.directed_bipartition(nodes)[1:-1]
+        bipartitions = directed_bipartition(nodes)[1:-1]
 
     return [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]

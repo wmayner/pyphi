@@ -11,6 +11,8 @@ import numpy as np
 
 from . import cache, config, utils, validate, distance, distribution
 from .constants import EMD, ENTROPY_DIFFERENCE, KLD, L1, Direction
+from .partition import (bipartition, directed_bipartition,
+                        directed_bipartition_of_one, directed_tripartition)
 from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
                      Tripartition, _null_mip)
 from .network import irreducible_purviews
@@ -867,8 +869,8 @@ def mip_bipartitions(mechanism, purview):
         --- X --
         2,3   []
     """
-    numerators = utils.bipartition(mechanism)
-    denominators = utils.directed_bipartition(purview)
+    numerators = bipartition(mechanism)
+    denominators = directed_bipartition(purview)
 
     for n, d in itertools.product(numerators, denominators):
         if (n[0] or d[0]) and (n[1] or d[1]):
@@ -895,8 +897,8 @@ def wedge_partitions(mechanism, purview):
         Tripartition: all unique tripartitions of this mechanism and purview.
     """
 
-    numerators = utils.bipartition(mechanism)
-    denominators = utils.directed_tripartition(purview)
+    numerators = bipartition(mechanism)
+    denominators = directed_tripartition(purview)
 
     yielded = set()
 

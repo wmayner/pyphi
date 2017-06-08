@@ -15,6 +15,7 @@ import numpy as np
 
 from . import compute, config, exceptions, utils, validate, connectivity
 from .constants import EPSILON, Direction
+from .partition import bipartition, directed_bipartition
 from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, Occurence, _null_ac_bigmip, _null_ac_mip)
@@ -537,8 +538,8 @@ def _get_cuts(context):
     # if config.CUT_ONE_APPROXIMATION:
     #     bipartitions = directed_bipartition_of_one(subsystem.node_indices)
     # else:
-    cause_bipartitions = utils.bipartition(context.cause_indices)
-    effect_bipartitions = utils.directed_bipartition(context.effect_indices)
+    cause_bipartitions = bipartition(context.cause_indices)
+    effect_bipartitions = directed_bipartition(context.effect_indices)
     # The first element of the list is the null cut.
     partitions = list(itertools.product(cause_bipartitions,
                                         effect_bipartitions))[1:]
