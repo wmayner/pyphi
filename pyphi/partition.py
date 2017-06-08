@@ -207,3 +207,99 @@ def directed_tripartition(seq):
         yield (tuple(seq[i] for i in a),
                tuple(seq[j] for j in b),
                tuple(seq[k] for k in c))
+
+
+# Knuth's algorithm for k-partitions of a set
+# codereview.stackexchange.com/questions/1526/finding-all-k-subset-partitions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# pylint: disable=too-many-arguments,too-many-branches
+
+
+def _visit(n, a, k, collection):
+    ps = [[] for i in range(k)]
+    for j in range(n):
+        ps[a[j + 1]].append(collection[j])
+    return ps
+
+
+def _f(mu, nu, sigma, n, a, k, collection):  # flake8: noqa
+    if mu == 2:
+        yield _visit(n, a, k, collection)
+    else:
+        for v in _f(mu - 1, nu - 1, (mu + sigma) % 2, n, a, k, collection):
+            yield v
+    if nu == mu + 1:
+        a[mu] = mu - 1
+        yield _visit(n, a, k, collection)
+        while a[nu] > 0:
+            a[nu] = a[nu] - 1
+            yield _visit(n, a, k, collection)
+    elif nu > mu + 1:
+        if (mu + sigma) % 2 == 1:
+            a[nu - 1] = mu - 1
+        else:
+            a[mu] = mu - 1
+        if (a[nu] + sigma) % 2 == 1:
+            for v in _b(mu, nu - 1, 0, n, a, k, collection):
+                yield v
+        else:
+            for v in _f(mu, nu - 1, 0, n, a, k, collection):
+                yield v
+        while a[nu] > 0:
+            a[nu] = a[nu] - 1
+            if (a[nu] + sigma) % 2 == 1:
+                for v in _b(mu, nu - 1, 0, n, a, k, collection):
+                    yield v
+            else:
+                for v in _f(mu, nu - 1, 0, n, a, k, collection):
+                    yield v
+
+
+def _b(mu, nu, sigma, n, a, k, collection):  # flake8: noqa
+    if nu == mu + 1:
+        while a[nu] < mu - 1:
+            yield _visit(n, a, k, collection)
+            a[nu] = a[nu] + 1
+        yield _visit(n, a, k, collection)
+        a[mu] = 0
+    elif nu > mu + 1:
+        if (a[nu] + sigma) % 2 == 1:
+            for v in _f(mu, nu - 1, 0, n, a, k, collection):
+                yield v
+        else:
+            for v in _b(mu, nu - 1, 0, n, a, k, collection):
+                yield v
+        while a[nu] < mu - 1:
+            a[nu] = a[nu] + 1
+            if (a[nu] + sigma) % 2 == 1:
+                for v in _f(mu, nu - 1, 0, n, a, k, collection):
+                    yield v
+            else:
+                for v in _b(mu, nu - 1, 0, n, a, k, collection):
+                    yield v
+        if (mu + sigma) % 2 == 1:
+            a[nu - 1] = 0
+        else:
+            a[mu] = 0
+    if mu == 2:
+        yield _visit(n, a, k, collection)
+    else:
+        for v in _b(mu - 1, nu - 1, (mu + sigma) % 2, n, a, k, collection):
+            yield v
+
+
+def k_partitions(collection, k):
+    """Generate all k-partitions of a collection."""
+    n = len(collection)
+
+    # Special cases
+    if n == 0 or k < 1:
+        return []
+    if k == 1:
+        return [list(collection)]
+
+    a = [0] * (n + 1)
+    for j in range(1, k + 1):
+        a[n - k + j] = j - 1
+    return _f(k, n, 0, n, a, k, collection)
