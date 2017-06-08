@@ -7,12 +7,11 @@ Functions for measuring distances.
 """
 
 import numpy as np
+from pyemd import emd
 from scipy.spatial.distance import cdist
 from scipy.stats import entropy
-from pyemd import emd
 
 from . import constants, utils
-
 
 # Load precomputed hamming matrices.
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10

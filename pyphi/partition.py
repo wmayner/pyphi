@@ -6,7 +6,7 @@
 Functions for generating partitions.
 """
 
-from itertools import product, chain
+from itertools import chain, product
 
 from .cache import cache
 

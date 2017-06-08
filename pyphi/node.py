@@ -12,8 +12,8 @@ import functools
 import numpy as np
 
 from . import utils
-from .tpm import marginalize_out
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
+from .tpm import marginalize_out
 
 
 # TODO extend to nonbinary nodes

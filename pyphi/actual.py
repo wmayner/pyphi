@@ -13,12 +13,12 @@ from pprint import pprint
 
 import numpy as np
 
-from . import compute, config, exceptions, utils, validate, connectivity
+from . import compute, config, connectivity, exceptions, utils, validate
 from .constants import EPSILON, Direction
-from .partition import bipartition, directed_bipartition
 from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, Occurence, _null_ac_bigmip, _null_ac_mip)
+from .partition import bipartition, directed_bipartition
 from .subsystem import Subsystem, mip_bipartitions, wedge_partitions
 
 log = logging.getLogger(__name__)

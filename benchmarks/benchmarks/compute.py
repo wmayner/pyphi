@@ -1,8 +1,10 @@
 
-import timeit
 import copy
+import timeit
 
-from pyphi import cache as _cache, compute, config, constants, examples, Subsystem
+from pyphi import cache as _cache
+from pyphi import Subsystem, compute, config, constants, examples
+
 from .subsystem import clear_subsystem_caches
 
 

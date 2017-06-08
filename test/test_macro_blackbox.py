@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 
-from pyphi import compute, config, convert, macro, models, Network, utils
+from pyphi import Network, compute, config, convert, macro, models, utils
+
 
 # TODO: move these to examples.py
 

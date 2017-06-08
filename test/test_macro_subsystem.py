@@ -6,8 +6,8 @@ import pytest
 
 import pyphi
 from pyphi import convert, macro, models, timescale
-from pyphi.convert import (state_by_node2state_by_state as sbn2sbs,
-                           state_by_state2state_by_node as sbs2sbn)
+from pyphi.convert import state_by_node2state_by_state as sbn2sbs
+from pyphi.convert import state_by_state2state_by_node as sbs2sbn
 
 
 @pytest.fixture()

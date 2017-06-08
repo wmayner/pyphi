@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 # test_parallel.py
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from pyphi import config
 from pyphi.compute import parallel

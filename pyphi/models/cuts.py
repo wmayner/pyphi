@@ -8,7 +8,7 @@ from itertools import chain
 import numpy as np
 
 from . import fmt
-from .. import config, utils, connectivity
+from .. import config, connectivity, utils
 
 
 class Cut(namedtuple('Cut', ['severed', 'intact'])):

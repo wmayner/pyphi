@@ -4,10 +4,9 @@
 
 import itertools
 
-from pyphi.partition import (
-    directed_bipartition, directed_tripartition_indices, k_partitions,
-    partitions
-)
+from pyphi.partition import (directed_bipartition,
+                             directed_tripartition_indices, k_partitions,
+                             partitions)
 
 
 def test_partitions():

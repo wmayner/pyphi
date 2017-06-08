@@ -5,7 +5,7 @@
 import numpy as np
 
 from . import cmp, fmt
-from .. import config, utils, validate, connectivity
+from .. import config, connectivity, utils, validate
 from ..constants import Direction
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',

@@ -9,17 +9,17 @@ import itertools
 
 import numpy as np
 
-from . import cache, config, utils, validate, distance, distribution
+from . import cache, config, distance, distribution, utils, validate
 from .constants import EMD, ENTROPY_DIFFERENCE, KLD, L1, Direction
-from .tpm import condition_tpm, marginalize_out
-from .partition import (partitions, bipartition, directed_bipartition,
-                        directed_bipartition_of_one, directed_tripartition,
-                        k_partitions)
+from .distance import entropy_difference, kld, l1
 from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
                      Tripartition, _null_mip)
 from .network import irreducible_purviews
 from .node import generate_nodes
-from .distance import entropy_difference, kld, l1
+from .partition import (bipartition, directed_bipartition,
+                        directed_bipartition_of_one, directed_tripartition,
+                        k_partitions, partitions)
+from .tpm import condition_tpm, marginalize_out
 
 
 class Subsystem:

@@ -7,8 +7,8 @@ Functions for converting the timescale of a TPM.
 """
 
 import numpy as np
-
 from scipy.sparse import csc_matrix
+
 from . import convert
 
 

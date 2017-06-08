@@ -3,17 +3,18 @@
 # test_big_phi.py
 
 import pickle
-import pytest
-import numpy as np
 from unittest.mock import patch
 
-from pyphi import constants, config, compute, models, utils, Network, Subsystem
-from pyphi.partition import directed_bipartition
-from pyphi.constants import Direction
-from pyphi.models import Cut, _null_bigmip
+import numpy as np
+import pytest
+
+from pyphi import Network, Subsystem, compute, config, constants, models, utils
 from pyphi.compute import constellation
 from pyphi.compute.big_phi import (_find_mip_parallel, _find_mip_sequential,
                                    big_mip_bipartitions)
+from pyphi.constants import Direction
+from pyphi.models import Cut, _null_bigmip
+from pyphi.partition import directed_bipartition
 
 # pylint: disable=unused-argument
 

@@ -7,8 +7,8 @@ Functions used by more than one PyPhi module or class, or that might be of
 external use.
 """
 
-import os
 import hashlib
+import os
 from itertools import chain, combinations, product
 
 import numpy as np

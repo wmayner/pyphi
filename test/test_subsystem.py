@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 import example_networks
-from pyphi import config, exceptions, Network
+from pyphi import Network, config, exceptions
 from pyphi.constants import Direction
 from pyphi.models import Bipartition, Cut, Part, Tripartition
 from pyphi.subsystem import Subsystem, mip_bipartitions, wedge_partitions

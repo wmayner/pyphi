@@ -12,10 +12,10 @@ import multiprocessing
 from time import time
 
 from . import parallel
-from .. import config, exceptions, memory, utils, validate, connectivity
+from .. import config, connectivity, exceptions, memory, utils, validate
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
-from ..subsystem import Subsystem
 from ..partition import directed_bipartition, directed_bipartition_of_one
+from ..subsystem import Subsystem
 from .concept import constellation
 from .distance import constellation_distance
 

@@ -13,13 +13,13 @@ from collections import namedtuple
 import numpy as np
 from scipy.stats import entropy
 
-from . import (compute, config, constants, convert, utils, validate,
-               distribution)
-from .tpm import is_state_by_state, marginalize_out
+from . import (compute, config, constants, convert, distribution, utils,
+               validate)
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes, tpm_indices
 from .subsystem import Subsystem
+from .tpm import is_state_by_state, marginalize_out
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)

@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 # test_network.py
 
-import pytest
 import numpy as np
+import pytest
 
-from pyphi.network import Network
 from pyphi.constants import Direction
+from pyphi.network import Network
 
 
 @pytest.fixture()

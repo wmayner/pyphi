@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 # conftest.py
 
-import pytest
+import logging
 import os
 import shutil
-from pyphi import constants, config, db
+
+import pytest
 
 import example_networks
+from pyphi import config, constants, db
 
-import logging
 log = logging.getLogger()
 
 # Cache management and fixtures

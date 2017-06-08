@@ -5,8 +5,8 @@
 import numpy as np
 
 from pyphi.network import Network
-from pyphi.subsystem import Subsystem
 from pyphi.node import Node, expand_node_tpm, generate_nodes
+from pyphi.subsystem import Subsystem
 
 
 def test_node_init_tpm(s):

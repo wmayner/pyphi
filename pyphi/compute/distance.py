@@ -9,8 +9,8 @@ Functions for computing distances between various PyPhi objects.
 import numpy as np
 
 from .. import config, utils, validate
-from ..constants import EMD, KLD, L1, ENTROPY_DIFFERENCE
-from ..distance import hamming_emd, emd, entropy_difference, kld
+from ..constants import EMD, ENTROPY_DIFFERENCE, KLD, L1
+from ..distance import emd, entropy_difference, hamming_emd, kld
 
 BIG_NUMBER = 1000000
 

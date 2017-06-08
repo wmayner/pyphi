@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from pyphi import utils, constants
+from pyphi import constants, utils
 
 
 def test_all_states():

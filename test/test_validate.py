@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from pyphi import constants, exceptions, macro, Network, Subsystem, validate
+from pyphi import Network, Subsystem, constants, exceptions, macro, validate
 
 
 def test_validate_direction():

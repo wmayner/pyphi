@@ -9,8 +9,8 @@ Methods for validating arguments.
 import numpy as np
 
 from . import config, constants, convert, exceptions, utils
-from .tpm import is_state_by_state
 from .constants import EPSILON, Direction
+from .tpm import is_state_by_state
 
 
 def direction(direction):
