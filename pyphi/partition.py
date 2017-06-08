@@ -11,6 +11,35 @@ from itertools import product
 from .cache import cache
 
 
+@cache(cache={}, maxmem=None)
+def bipartition_indices(N):
+    """Return indices for undirected bipartitions of a sequence.
+
+    Args:
+        N (int): The length of the sequence.
+
+    Returns:
+        list: A list of tuples containing the indices for each of the two
+        partitions.
+
+    Example:
+        >>> N = 3
+        >>> bipartition_indices(N)
+        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
+    """
+    result = []
+    if N <= 0:
+        return result
+
+    for i in range(2**(N - 1)):
+        part = [[], []]
+        for n in range(N):
+            bit = (i >> n) & 1
+            part[bit].append(n)
+        result.append((tuple(part[1]), tuple(part[0])))
+    return result
+
+
 def bipartition(a):
     """Return a list of bipartitions for a sequence.
 
@@ -27,6 +56,33 @@ def bipartition(a):
     """
     return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
             for part0_idx, part1_idx in bipartition_indices(len(a))]
+
+
+@cache(cache={}, maxmem=None)
+def directed_bipartition_indices(N):
+    """Return indices for directed bipartitions of a sequence.
+
+    Args:
+        N (int): The length of the sequence.
+
+    Returns:
+        list: A list of tuples containing the indices for each of the two
+        partitions.
+
+    Example:
+        >>> N = 3
+        >>> directed_bipartition_indices(N)  # doctest: +NORMALIZE_WHITESPACE
+        [((), (0, 1, 2)),
+         ((0,), (1, 2)),
+         ((1,), (0, 2)),
+         ((0, 1), (2,)),
+         ((2,), (0, 1)),
+         ((0, 2), (1,)),
+         ((1, 2), (0,)),
+         ((0, 1, 2), ())]
+    """
+    indices = bipartition_indices(N)
+    return indices + [idx[::-1] for idx in indices[::-1]]
 
 
 # TODO? [optimization] optimize this to use indices rather than nodes
@@ -79,62 +135,6 @@ def directed_bipartition_of_one(a):
     """
     return [partition for partition in directed_bipartition(a)
             if len(partition[0]) == 1 or len(partition[1]) == 1]
-
-
-@cache(cache={}, maxmem=None)
-def directed_bipartition_indices(N):
-    """Return indices for directed bipartitions of a sequence.
-
-    Args:
-        N (int): The length of the sequence.
-
-    Returns:
-        list: A list of tuples containing the indices for each of the two
-        partitions.
-
-    Example:
-        >>> N = 3
-        >>> directed_bipartition_indices(N)  # doctest: +NORMALIZE_WHITESPACE
-        [((), (0, 1, 2)),
-         ((0,), (1, 2)),
-         ((1,), (0, 2)),
-         ((0, 1), (2,)),
-         ((2,), (0, 1)),
-         ((0, 2), (1,)),
-         ((1, 2), (0,)),
-         ((0, 1, 2), ())]
-    """
-    indices = bipartition_indices(N)
-    return indices + [idx[::-1] for idx in indices[::-1]]
-
-
-@cache(cache={}, maxmem=None)
-def bipartition_indices(N):
-    """Return indices for undirected bipartitions of a sequence.
-
-    Args:
-        N (int): The length of the sequence.
-
-    Returns:
-        list: A list of tuples containing the indices for each of the two
-        partitions.
-
-    Example:
-        >>> N = 3
-        >>> bipartition_indices(N)
-        [((), (0, 1, 2)), ((0,), (1, 2)), ((1,), (0, 2)), ((0, 1), (2,))]
-    """
-    result = []
-    if N <= 0:
-        return result
-
-    for i in range(2**(N - 1)):
-        part = [[], []]
-        for n in range(N):
-            bit = (i >> n) & 1
-            part[bit].append(n)
-        result.append((tuple(part[1]), tuple(part[0])))
-    return result
 
 
 @cache(cache={}, maxmem=None)
