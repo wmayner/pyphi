@@ -9,7 +9,7 @@ import itertools
 
 import numpy as np
 
-from . import cache, config, utils, validate, distance
+from . import cache, config, utils, validate, distance, distribution
 from .constants import EMD, ENTROPY_DIFFERENCE, KLD, L1, Direction
 from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
                      Tripartition, _null_mip)
@@ -276,11 +276,11 @@ class Subsystem:
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview -- return the purview's maximum entropy distribution.
         if not mechanism:
-            return utils.max_entropy_distribution(purview, self.tpm_size)
+            return distribution.max_entropy_distribution(purview, self.tpm_size)
 
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
-        cjd = np.ones(utils.repertoire_shape(purview, self.tpm_size))
+        cjd = np.ones(distribution.repertoire_shape(purview, self.tpm_size))
 
         # Loop over all nodes in this mechanism, successively taking the
         # product (with expansion/broadcasting of singleton dimensions) of each
@@ -305,7 +305,7 @@ class Subsystem:
             # appropriate way.
             cjd *= tpm
 
-        return utils.normalize(cjd)
+        return distribution.normalize(cjd)
 
     @cache.method('_repertoire_cache', Direction.FUTURE)
     def effect_repertoire(self, mechanism, purview):
@@ -341,7 +341,7 @@ class Subsystem:
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
             [1] * self.tpm_size +
-            utils.repertoire_shape(purview, self.tpm_size))
+            distribution.repertoire_shape(purview, self.tpm_size))
 
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
@@ -473,7 +473,7 @@ class Subsystem:
         if repertoire is None:
             return None
 
-        purview = utils.purview(repertoire)
+        purview = distribution.purview(repertoire)
 
         if new_purview is None:
             new_purview = self.node_indices  # full subsystem
@@ -488,7 +488,7 @@ class Subsystem:
         # distribution over all the nodes in the network.
         expanded_repertoire = repertoire * uc
 
-        return utils.normalize(expanded_repertoire)
+        return distribution.normalize(expanded_repertoire)
 
     def expand_cause_repertoire(self, repertoire, new_purview=None):
         """Expand a partial cause repertoire over a purview to a distribution
@@ -1067,7 +1067,7 @@ def effect_emd(d1, d2):
     Returns:
         float: The EMD between ``d1`` and ``d2``.
     """
-    return sum(np.abs(utils.marginal_zero(d1, i) - utils.marginal_zero(d2, i))
+    return sum(np.abs(distribution.marginal_zero(d1, i) - distribution.marginal_zero(d2, i))
                for i in range(d1.ndim))
 
 

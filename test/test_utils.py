@@ -30,14 +30,6 @@ def test_marginalize_out(s):
                                       [1.0, 1.0, 0.5]]]]))
 
 
-def test_purview_max_entropy_distribution():
-    max_ent = utils.max_entropy_distribution((0, 1), 3)
-    assert max_ent.shape == (2, 2, 1)
-    assert np.array_equal(max_ent,
-                          (np.ones(4) / 4).reshape((2, 2, 1)))
-    assert max_ent[0][1][0] == 0.25
-
-
 def test_combs_for_1D_input():
     n, k = 3, 2
     data = np.arange(n)
@@ -92,11 +84,6 @@ def test_directed_tripartition_indices():
         ((), (), (0, 1))]
 
 
-def test_uniform_distribution():
-    assert np.array_equal(utils.uniform_distribution(3),
-                          (np.ones(8) / 8).reshape([2] * 3))
-
-
 def test_get_inputs_from_cm():
     cm = np.array([
         [0, 1, 0],
@@ -117,15 +104,6 @@ def test_get_outputs_from_cm():
     assert utils.get_outputs_from_cm(0, cm) == (1,)
     assert utils.get_outputs_from_cm(1, cm) == (0, 1, 2)
     assert utils.get_outputs_from_cm(2, cm) == tuple()
-
-
-def test_normalize():
-    x = np.array([2, 4, 2])
-    assert np.array_equal(utils.normalize(x), np.array([.25, .5, .25]))
-    x = np.array([[0, 4], [2, 2]])
-    assert np.array_equal(utils.normalize(x), np.array([[0, .5], [.25, .25]]))
-    x = np.array([0, 0])
-    assert np.array_equal(utils.normalize(x), np.array([0, 0]))
 
 
 def test_all_states():
@@ -191,71 +169,3 @@ def test_causally_significant_nodes():
         [0, 1, 1],
     ])
     assert utils.causally_significant_nodes(cm) == (1, 2)
-
-
-def test_marginal_zero():
-    repertoire = np.array([
-        [[0., 0.],
-         [0., 0.5]],
-        [[0., 0.],
-         [0., 0.5]]])
-    assert utils.marginal_zero(repertoire, 0) == 0.5
-    assert utils.marginal_zero(repertoire, 1) == 0
-    assert utils.marginal_zero(repertoire, 2) == 0
-
-
-def test_marginal():
-    repertoire = np.array([
-        [[0., 0.],
-         [0., 0.5]],
-        [[0., 0.],
-         [0., 0.5]]])
-    assert np.array_equal(
-        utils.marginal(repertoire, 0), np.array([[[0.5]], [[0.5]]]))
-    assert np.array_equal(
-        utils.marginal(repertoire, 1), np.array([[[0], [1]]]))
-    assert np.array_equal(
-        utils.marginal(repertoire, 2), np.array([[[0, 1]]]))
-
-
-def test_independent():
-    repertoire = np.array([
-        [[0.25],
-         [0.25]],
-        [[0.25],
-         [0.25]]])
-    assert utils.independent(repertoire)
-
-    repertoire = np.array([
-        [[0.5],
-         [0.0]],
-        [[0.0],
-         [0.5]]])
-    assert not utils.independent(repertoire)
-
-
-def test_purview_size(s):
-    mechanisms = utils.powerset(s.node_indices)
-    purviews = utils.powerset(s.node_indices)
-
-    for mechanism, purview in zip(mechanisms, purviews):
-        repertoire = s.cause_repertoire(mechanism, purview)
-        assert utils.purview_size(repertoire) == len(purview)
-
-
-def test_purview(s):
-    mechanisms = utils.powerset(s.node_indices)
-    purviews = utils.powerset(s.node_indices)
-
-    for mechanism, purview in zip(mechanisms, purviews):
-        repertoire = s.cause_repertoire(mechanism, purview)
-        assert utils.purview(repertoire) == purview
-
-    assert utils.purview(None) is None
-
-
-def test_repertoire_shape():
-    N = 3
-    assert utils.repertoire_shape((), N) == [1, 1, 1]
-    assert utils.repertoire_shape((1, 2), N) == [1, 2, 2]
-    assert utils.repertoire_shape((0, 2), N) == [2, 1, 2]

@@ -13,7 +13,8 @@ from collections import namedtuple
 import numpy as np
 from scipy.stats import entropy
 
-from . import compute, config, constants, convert, utils, validate
+from . import (compute, config, constants, convert, utils, validate,
+               distribution)
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes, tpm_indices
@@ -509,7 +510,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
                 state_by_state_micro_tpm[past_state, current_state])
 
         # Re-normalize each row because we're going from larger to smaller TPM
-        return np.array([utils.normalize(row) for row in macro_tpm])
+        return np.array([distribution.normalize(row) for row in macro_tpm])
 
     def macro_tpm(self, micro_tpm, check_independence=True):
         """Create a coarse-grained macro TPM.
