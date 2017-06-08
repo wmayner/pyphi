@@ -125,7 +125,7 @@ def directed_bipartition_of_one(a):
         partitions.
 
     Example:
-        >>> directed_bipartition_of_one((1,2,3))  # doctest: +NORMALIZE_WHITESPACE
+        >>> directed_bipartition_of_one((1, 2, 3))  # doctest: +NORMALIZE_WHITESPACE
         [((1,), (2, 3)),
          ((2,), (1, 3)),
          ((1, 2), (3,)),
