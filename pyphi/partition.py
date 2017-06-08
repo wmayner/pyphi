@@ -6,7 +6,7 @@
 Functions for generating partitions.
 """
 
-from itertools import product
+from itertools import product, chain
 
 from .cache import cache
 
@@ -112,29 +112,41 @@ def directed_bipartition(a):
             for part0_idx, part1_idx in directed_bipartition_indices(len(a))]
 
 
-# TODO generate these directly
-def directed_bipartition_of_one(a):
-    """Return a list of directed bipartitions for a sequence where each
-    bipartition includes a set of size 1.
+def bipartition_of_one(seq):
+    """Generate bipartitions where one parition is of length 1."""
+    seq = list(seq)
+    for i, elt in enumerate(seq):
+        yield ((elt,), tuple(seq[:i] + seq[(i + 1):]))
+
+
+def reverse_elements(seq):
+    """Reverse the elements of a sequence."""
+    for elt in seq:
+        yield elt[::-1]
+
+
+def directed_bipartition_of_one(seq):
+    """Generate directed bipartitions where one partition is of length 1.
 
     Args:
-        a (Iterable): The iterable to partition.
+        seq (Iterable): The sequence to partition.
 
     Returns:
         list[tuple[tuple]]: A list of tuples containing each of the two
-        partitions.
+            partitions.
 
     Example:
-        >>> directed_bipartition_of_one((1, 2, 3))  # doctest: +NORMALIZE_WHITESPACE
+        >>> list(directed_bipartition_of_one((1, 2, 3)))
+        ...   # doctest: +NORMALIZE_WHITESPACE
         [((1,), (2, 3)),
          ((2,), (1, 3)),
-         ((1, 2), (3,)),
          ((3,), (1, 2)),
+         ((2, 3), (1,)),
          ((1, 3), (2,)),
-         ((2, 3), (1,))]
+         ((1, 2), (3,))]
     """
-    return [partition for partition in directed_bipartition(a)
-            if len(partition[0]) == 1 or len(partition[1]) == 1]
+    bipartitions = list(bipartition_of_one(seq))
+    return chain(bipartitions, reverse_elements(bipartitions))
 
 
 @cache(cache={}, maxmem=None)
