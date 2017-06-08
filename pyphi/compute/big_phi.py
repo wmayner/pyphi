@@ -312,7 +312,7 @@ def possible_complexes(network, state):
 
     for subset in utils.powerset(network.causally_significant_nodes):
         # Don't return empty system
-        if len(subset) == 0:
+        if not subset:
             continue
 
         # Don't return subsystems that are in an impossible state.
