@@ -313,13 +313,14 @@ def _b(mu, nu, sigma, n, a, k, collection):  # flake8: noqa
 
 def k_partitions(collection, k):
     """Generate all k-partitions of a collection."""
+    collection = list(collection)
     n = len(collection)
 
     # Special cases
     if n == 0 or k < 1:
         return []
     if k == 1:
-        return [list(collection)]
+        return [[collection]]
 
     a = [0] * (n + 1)
     for j in range(1, k + 1):
