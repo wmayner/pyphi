@@ -120,6 +120,11 @@ class Network:
         return self._cm
 
     @property
+    def causally_significant_nodes(self):
+        """See :func:`connectivity.causally_significant_nodes`."""
+        return connectivity.causally_significant_nodes(self.cm)
+
+    @property
     def size(self):
         """int: The number of nodes in the network."""
         return self.tpm.shape[-1]
