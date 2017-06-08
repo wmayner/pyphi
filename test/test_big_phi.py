@@ -590,9 +590,9 @@ def test_big_mip_bipartitions():
         answer = [models.Cut((1,), (2, 3, 4)),
                   models.Cut((2,), (1, 3, 4)),
                   models.Cut((3,), (1, 2, 4)),
-                  models.Cut((1, 2, 3), (4,)),
                   models.Cut((4,), (1, 2, 3)),
-                  models.Cut((1, 2, 4), (3,)),
+                  models.Cut((2, 3, 4), (1,)),
                   models.Cut((1, 3, 4), (2,)),
-                  models.Cut((2, 3, 4), (1,))]
+                  models.Cut((1, 2, 4), (3,)),
+                  models.Cut((1, 2, 3), (4,))]
         assert big_mip_bipartitions((1, 2, 3, 4)) == answer
