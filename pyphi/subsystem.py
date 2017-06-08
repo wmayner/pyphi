@@ -11,7 +11,7 @@ import numpy as np
 
 from . import cache, config, utils, validate, distance, distribution
 from .constants import EMD, ENTROPY_DIFFERENCE, KLD, L1, Direction
-from .partition import (bipartition, directed_bipartition,
+from .partition import (partitions, bipartition, directed_bipartition,
                         directed_bipartition_of_one, directed_tripartition,
                         k_partitions)
 from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
@@ -935,20 +935,6 @@ def wedge_partitions(mechanism, purview):
             if not compressible(tripart) and tripart not in yielded:
                 yielded.add(tripart)
                 yield tripart
-
-
-def partitions(collection):
-    # all possible partitions
-    # stackoverflow.com/questions/19368375/set-partitions-in-python
-    if len(collection) == 1:
-        yield [collection]
-        return
-
-    first = collection[0]
-    for smaller in partitions(collection[1:]):
-        for n, subset in enumerate(smaller):
-            yield smaller[:n] + [[first] + subset] + smaller[n+1:]
-        yield [[first]] + smaller
 
 
 def all_partitions(m, p):

@@ -11,6 +11,20 @@ from itertools import product, chain
 from .cache import cache
 
 
+# From stackoverflow.com/questions/19368375/set-partitions-in-python
+def partitions(collection):
+    """Generate all set partitions of a collection."""
+    if len(collection) == 1:
+        yield [collection]
+        return
+
+    first = collection[0]
+    for smaller in partitions(collection[1:]):
+        for n, subset in enumerate(smaller):
+            yield smaller[:n] + [[first] + subset] + smaller[n+1:]
+        yield [[first]] + smaller
+
+
 @cache(cache={}, maxmem=None)
 def bipartition_indices(N):
     """Return indices for undirected bipartitions of a sequence.
