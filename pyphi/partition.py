@@ -34,7 +34,7 @@ def bipartition_indices(N):
 
     Returns:
         list: A list of tuples containing the indices for each of the two
-        partitions.
+            parts.
 
     Example:
         >>> N = 3
@@ -55,11 +55,11 @@ def bipartition_indices(N):
 
 
 # TODO? rename to `bipartitions`
-def bipartition(a):
+def bipartition(seq):
     """Return a list of bipartitions for a sequence.
 
     Args:
-        a (Iterable): The iterable to partition.
+        a (Iterable): The sequence to partition.
 
     Returns:
         list[tuple[tuple]]: A list of tuples containing each of the two
@@ -69,8 +69,8 @@ def bipartition(a):
         >>> bipartition((1,2,3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
-    return [(tuple(a[i] for i in part0_idx), tuple(a[j] for j in part1_idx))
-            for part0_idx, part1_idx in bipartition_indices(len(a))]
+    return [(tuple(seq[i] for i in part0_idx), tuple(seq[j] for j in part1_idx))
+            for part0_idx, part1_idx in bipartition_indices(len(seq))]
 
 
 @cache(cache={}, maxmem=None)
@@ -82,7 +82,7 @@ def directed_bipartition_indices(N):
 
     Returns:
         list: A list of tuples containing the indices for each of the two
-        partitions.
+            parts.
 
     Example:
         >>> N = 3
@@ -101,7 +101,6 @@ def directed_bipartition_indices(N):
 
 
 # TODO? [optimization] optimize this to use indices rather than nodes
-# TODO? are native lists really slower
 def directed_bipartition(seq, nontrivial=False):
     """Return a list of directed bipartitions for a sequence.
 
@@ -110,7 +109,7 @@ def directed_bipartition(seq, nontrivial=False):
 
     Returns:
         list[tuple[tuple]]: A list of tuples containing each of the two
-        partitions.
+            parts.
 
     Example:
         >>> directed_bipartition((1, 2, 3))  # doctest: +NORMALIZE_WHITESPACE
@@ -136,7 +135,7 @@ def directed_bipartition(seq, nontrivial=False):
 
 
 def bipartition_of_one(seq):
-    """Generate bipartitions where one parition is of length 1."""
+    """Generate bipartitions where one part is of length 1."""
     seq = list(seq)
     for i, elt in enumerate(seq):
         yield ((elt,), tuple(seq[:i] + seq[(i + 1):]))
@@ -149,7 +148,7 @@ def reverse_elements(seq):
 
 
 def directed_bipartition_of_one(seq):
-    """Generate directed bipartitions where one partition is of length 1.
+    """Generate directed bipartitions where one part is of length 1.
 
     Args:
         seq (Iterable): The sequence to partition.
