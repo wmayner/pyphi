@@ -14,6 +14,11 @@ from .cache import cache
 # From stackoverflow.com/questions/19368375/set-partitions-in-python
 def partitions(collection):
     """Generate all set partitions of a collection."""
+    collection = list(collection)
+
+    # Special cases
+    if not collection:
+        return []
     if len(collection) == 1:
         yield [collection]
         return
