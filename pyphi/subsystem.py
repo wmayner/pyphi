@@ -15,7 +15,7 @@ from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
                      Tripartition, _null_mip)
 from .network import irreducible_purviews
 from .node import generate_nodes
-from .distance import hamming_emd, emd, entropy_difference, kld
+from .distance import entropy_difference, kld, l1
 
 
 class Subsystem:
@@ -35,14 +35,15 @@ class Subsystem:
 
     Attributes:
         network (Network): The network the subsystem belongs to.
-        tpm (np.ndarray): The TPM conditioned on the state of the external nodes.
+        tpm (np.ndarray): The TPM conditioned on the state of the external
+            nodes.
         cm (np.ndarray): The connectivity matrix after applying the cut.
         state (tuple[int]): The state of the network.
         nodes (tuple[Node]): The nodes of the subsystem.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
         cut (Cut): The cut that has been applied to this subsystem.
-        cut_matrix (np.ndarray): A matrix of connections which have been severed
-            by the cut.
+        cut_matrix (np.ndarray): A matrix of connections which have been
+            severed by the cut.
         null_cut (Cut): The cut object representing no cut.
     """
 
@@ -276,7 +277,8 @@ class Subsystem:
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview -- return the purview's maximum entropy distribution.
         if not mechanism:
-            return distribution.max_entropy_distribution(purview, self.tpm_size)
+            return distribution.max_entropy_distribution(purview,
+                                                         self.tpm_size)
 
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
@@ -423,7 +425,6 @@ class Subsystem:
             # TODO: test that ValueError is raised
             validate.direction(direction)
 
-
     def _unconstrained_repertoire(self, direction, purview):
         """Return the unconstrained cause/effect repertoire over a purview."""
         return self._repertoire(direction, (), purview)
@@ -552,7 +553,8 @@ class Subsystem:
             unpartitioned_repertoire = self._repertoire(direction, mechanism,
                                                         purview)
 
-        partitioned_repertoire = self.partitioned_repertoire(direction, partition)
+        partitioned_repertoire = self.partitioned_repertoire(direction,
+                                                             partition)
 
         phi = measure(direction, unpartitioned_repertoire,
                       partitioned_repertoire)
@@ -1067,7 +1069,8 @@ def effect_emd(d1, d2):
     Returns:
         float: The EMD between ``d1`` and ``d2``.
     """
-    return sum(np.abs(distribution.marginal_zero(d1, i) - distribution.marginal_zero(d2, i))
+    return sum(np.abs(distribution.marginal_zero(d1, i) -
+                      distribution.marginal_zero(d2, i))
                for i in range(d1.ndim))
 
 
