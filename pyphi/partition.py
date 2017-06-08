@@ -13,7 +13,16 @@ from .cache import cache
 
 # From stackoverflow.com/questions/19368375/set-partitions-in-python
 def partitions(collection):
-    """Generate all set partitions of a collection."""
+    """Generate all set partitions of a collection.
+
+    Example:
+        >>> list(partitions(range(3)))  # doctest: +NORMALIZE_WHITESPACE
+        [[[0, 1, 2]],
+         [[0], [1, 2]],
+         [[0, 1], [2]],
+         [[1], [0, 2]],
+         [[0], [1], [2]]]
+    """
     collection = list(collection)
 
     # Special cases
