@@ -20,18 +20,20 @@ def measure(d1, d2):
     Returns:
         float: The distance between ``d1`` and ``d2``.
     """
-    if config.MEASURE == EMD:
+    measure_name = config.BIG_PHI_MEASURE
+
+    if measure_name == EMD:
         return utils.hamming_emd(d1, d2)
 
-    elif config.MEASURE == L1:
+    elif measure_name == L1:
         return utils.l1(d1, d2)
 
-    elif config.MEASURE == ENTROPY_DIFFERENCE:
+    elif measure_name == ENTROPY_DIFFERENCE:
         return utils.entropy_difference(d1, d2)
 
     # If the distance is `inf` return a very large number instead so that
     # the generalized EMD can still operate on a KLD distance matrix.
-    elif config.MEASURE == KLD:
+    elif measure_name == KLD:
         result = utils.kld(d1, d2)
 
         if np.isinf(result):
@@ -39,7 +41,7 @@ def measure(d1, d2):
 
         return result
 
-    validate.measure(config.MEASURE)
+    validate.measure(measure_name, 'config.BIG_PHI_MEASURE')
 
 
 def concept_distance(c1, c2):
