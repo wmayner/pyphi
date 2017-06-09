@@ -627,13 +627,6 @@ class Subsystem:
                 phi_min = phi
                 mip = _mip(phi, partition, partitioned_repertoire)
 
-        # Recompute distance for minimal MIP using the EMD.
-        # (See `config.MEASURE`)
-        if config.MEASURE == L1:
-            phi = emd(direction, mip.unpartitioned_repertoire,
-                      mip.partitioned_repertoire)
-            mip = _mip(phi, mip.partition, mip.partitioned_repertoire)
-
         return mip
 
     def mip_past(self, mechanism, purview):

@@ -257,3 +257,12 @@ def measure(value):
         raise ValueError(
             "Invalid value `{}` for `config.MEASURE`. "
             "Choose one of {}".format(value, constants.MEASURES))
+
+
+def partition_type(value):
+    """Validate a type of partition."""
+    options = ['BI', 'TRI', 'ALL']
+    if value not in options:
+        raise ValueError(
+            "Invalid value `{}` for `config.PARTITION_TYPE`. "
+            "Choose one of {}".format(value, options))
