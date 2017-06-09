@@ -208,12 +208,14 @@ class KPartition(tuple):
     @property
     def mechanism(self):
         """tuple[int]: The nodes of the mechanism in the partition."""
-        return tuple(sorted(chain.from_iterable(part.mechanism for part in self)))
+        return tuple(sorted(
+            chain.from_iterable(part.mechanism for part in self)))
 
     @property
     def purview(self):
         """tuple[int]: The nodes of the purview in the partition."""
-        return tuple(sorted(chain.from_iterable(part.purview for part in self)))
+        return tuple(sorted(
+            chain.from_iterable(part.purview for part in self)))
 
     def __str__(self):
         return fmt.fmt_bipartition(self)
@@ -225,7 +227,7 @@ class KPartition(tuple):
         return '{}{}'.format(self.__class__.__name__, super().__repr__())
 
     def to_json(self):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class Bipartition(KPartition):
