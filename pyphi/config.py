@@ -51,7 +51,8 @@ theoretical accuracy.
 - ``pyphi.config.MEASURE``: The measure to use when computing distances
   between repertoires and concepts. The default is ``EMD``; the Earth Movers's
   Distance. ``KLD`` is the Kullback-Leibler Divergence. ``L1`` is the ``L1``
-  distance.
+  distance. ``ENTROPY_DIFFERENCE`` is the absolute value of the difference in
+  entropy of the two distributions, ``abs(entropy(a) - entropy(b))``.
 
     >>> defaults['MEASURE']
     'EMD'

@@ -496,6 +496,7 @@ def kld(d1, d2):
 
 
 def entropy_difference(d1, d2):
+    """Return the difference in entropy between the distributions."""
     d1, d2 = d1.squeeze().ravel(), d2.squeeze().ravel()
     return abs(entropy(d1, base=2.0) - entropy(d2, base=2.0))
 
