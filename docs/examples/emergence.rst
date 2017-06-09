@@ -155,7 +155,8 @@ Let's consider a different coarse-graining instead.
 
 We can now construct a |MacroSubsystem| using this coarse-graining:
 
-    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, network.node_indices, coarse_grain=coarse_grain)
+    >>> macro_subsystem = pyphi.macro.MacroSubsystem(
+    ...     network, state, network.node_indices, coarse_grain=coarse_grain)
     >>> macro_subsystem
     MacroSubsystem((m0, m1))
 

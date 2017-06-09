@@ -350,7 +350,7 @@ class Subsystem:
             # Unlike in calculating the cause repertoire, here the TPM is not
             # conditioned yet. `tpm` is an array with twice as many dimensions
             # as the network has nodes. For example, in a network with three
-            # nodes {n0, n1, n2}, the CPT for node n1 would have shape
+            # nodes {A, B, C}, the CPT for node B would have shape
             # (2,2,2,1,2,1). The CPT for the node being off would be given by
             # `tpm[:,:,:,0,0,0]`, and the CPT for the node being on would be
             # given by `tpm[:,:,:,0,1,0]`. The second half of the shape is for

@@ -58,7 +58,7 @@ We can then determine what the specific partition is.
     -- X ---
     2    3,4
 
-The labels ``(n0, n1, n2, n3, n4)`` correspond to nodes :math:`A, B, C, D, E`
+The indices ``(0, 1, 2, 3, 4)`` correspond to nodes :math:`A, B, C, D, E`
 respectively. Thus the MIP is |(AB / DE) x ([] / C)|, where :math:`[\,]`
 denotes the empty mechanism.
 

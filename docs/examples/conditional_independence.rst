@@ -1,8 +1,8 @@
 Conditional Independence
 ========================
 
-* :mod:`pyphi.examples.cond_depend_tpm()`
-* :mod:`pyphi.examples.cond_independ_tpm()`
+* :func:`pyphi.examples.cond_depend_tpm()`
+* :func:`pyphi.examples.cond_independ_tpm()`
 
 This example explores the assumption of conditional independence, and the
 behaviour of the program when it is not satisfied.
@@ -20,7 +20,7 @@ analyzed system will not correspond to the original TPM. Note that every
 deterministic state-by-state TPM will automatically satisfy the conditional
 independence assumption.
 
-Consider a system of two binary nodes(|A| and |B|) which do not change if they
+Consider a system of two binary nodes (|A| and |B|) which do not change if they
 have the same value, but flip with probability 50% if they have different
 values.
 

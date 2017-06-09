@@ -217,4 +217,4 @@ def test_specify_elements_with_labels(standard):
 
 
 def test_indices2labels(s):
-    assert s.indices2labels((1, 2)) == ('n1', 'n2')
+    assert s.indices2labels((1, 2)) == ('B', 'C')

@@ -6,12 +6,12 @@ Magic Cuts
 
 This example explores a system of three fully connected elements |A|, |B| and
 |C|, which follow the logic of the Rule 110 cellular automaton. The point of
-this example is to highlight an unexpected behaviour of system cuts: that
-the minimum information partition of a system can result in new concepts
-being created.
+this example is to highlight an unexpected behaviour of system cuts: that the
+minimum information partition of a system can result in new concepts being
+created.
 
-First let's create the the Rule 110 network, with all nodes **OFF** in the current
-state.
+First let's create the the Rule 110 network, with all nodes **OFF** in the
+current state.
 
    >>> import pyphi
    >>> network = pyphi.examples.rule110_network()
@@ -30,13 +30,13 @@ analyze the micro scale to determine the main complex of the system:
    >>> main_complex = pyphi.compute.main_complex(network, state)
    >>> subsystem = main_complex.subsystem
    >>> subsystem
-   Subsystem((n0, n1, n2))
+   Subsystem((A, B, C))
    >>> main_complex.phi
    1.35708
 
 The main complex of the system contains all three nodes of the system, and it
-has integrated information :math:`\Phi = 1.35708`. Now that we have identified the
-main complex of the system, we can explore its conceptual structure and the
+has integrated information :math:`\Phi = 1.35708`. Now that we have identified
+the main complex of the system, we can explore its conceptual structure and the
 effect of the **MIP**.
 
    >>> constellation = main_complex.unpartitioned_constellation
@@ -69,7 +69,8 @@ and also the concepts of the partitioned constellation.
 The unpartitioned constellation includes all possible first and second order
 concepts, but there is no third order concept. After applying the cut and
 severing the connections from |A| and |B| to |C|, the third order concept |ABC|
-is created and the second order concept |AC| is destroyed. The overall amount of |small_phi| in the system decreases from :math:`1.875` to :math:`1.475`.
+is created and the second order concept |AC| is destroyed. The overall amount
+of |small_phi| in the system decreases from :math:`1.875` to :math:`1.475`.
 
 
 Lets explore the concept which was created to determine why it does not exist
@@ -95,10 +96,10 @@ this power is reducible.
 
 The reason ABC does not exist as a concept is that its cause is reducible.
 Looking at the TPM of the system, there are no possible states with two of the
-elements set to **OFF**. This means that knowing two elements are **OFF** is enough to
-know that the third element must also be **OFF**, and thus the third element can
-always be cut from the concept without a loss of information. This will be true
-for any purview, so the cause information is reducible.
+elements set to **OFF**. This means that knowing two elements are **OFF** is
+enough to know that the third element must also be **OFF**, and thus the third
+element can always be cut from the concept without a loss of information. This
+will be true for any purview, so the cause information is reducible.
 
    >>> BC = (1, 2)
    >>> A = (0,)
@@ -107,18 +108,19 @@ for any purview, so the cause information is reducible.
    >>> pyphi.utils.hamming_emd(repertoire, cut_repertoire)
    0.0
 
-Next, lets look at the cut subsystem to understand how the new concept
-comes into existence.
+Next, lets look at the cut subsystem to understand how the new concept comes
+into existence.
 
    >>> ABC = (0, 1, 2)
    >>> C = (2,)
    >>> AB = (0, 1)
 
-The cut applied to the subsystem severs the connections from |A| and |B| to |C|. In
-this circumstance, knowing |A| and |B| do not tell us anything about the state of
-|C|, only the past state of |C| can tell us about the future state of |C|. Here,
-``past_tpm[1]`` gives us the probability of C being **ON** in the next state, while
-``past_tpm[0]`` would give us the probability of C being **OFF**.
+The cut applied to the subsystem severs the connections from |A| and |B| to
+|C|. In this circumstance, knowing |A| and |B| do not tell us anything about
+the state of |C|, only the past state of |C| can tell us about the future state
+of |C|. Here, ``past_tpm[1]`` gives us the probability of C being **ON** in the
+next state, while ``past_tpm[0]`` would give us the probability of C being
+**OFF**.
 
    >>> C_node = cut_subsystem.indices2nodes(C)[0]
    >>> C_node.tpm[1].flatten()
@@ -162,7 +164,7 @@ logic of the Rule 154 cellular automaton. Lets first load the network,
    >>> network = pyphi.examples.rule154_network()
    >>> state = (1, 0, 0, 0, 0)
 
-For this example, it is the subsystem consisting of |n0, n1, n4| that we
+For this example, it is the subsystem consisting of |A|, |B|, and |E| that we
 explore. This is not the main concept of the system, but it serves as a proof
 of principle regardless.
 
@@ -177,7 +179,7 @@ Calculating the **MIP** of the system,
    Cut (0, 4) --//--> (1,)
 
 This subsystem has a |big_phi| value of 0.15533, and the **MIP** cuts the
-connections from |n0, n4| to |n1|. Investigating the concepts in both the
+connections from |AE| to |B|. Investigating the concepts in both the
 partitioned and unpartitioned constellations,
 
    >>> unpartitioned_constellation = mip.unpartitioned_constellation
@@ -188,7 +190,7 @@ partitioned and unpartitioned constellations,
    >>> sum([concept.phi for concept in unpartitioned_constellation])
    0.5952390000000001
 
-The unpartitioned constellation has mechanisms |n0|, |n1| and |n0, n1| with
+The unpartitioned constellation has mechanisms |A|, |B| and |AB| with
 :math:`\sum\varphi = 0.595239`.
 
    >>> partitioned_constellation = mip.partitioned_constellation
@@ -199,12 +201,11 @@ The unpartitioned constellation has mechanisms |n0|, |n1| and |n0, n1| with
    >>> sum([concept.phi for concept in partitioned_constellation])
    0.630953
 
-The unpartitioned constellation has mechanisms |n0|, |n1| and |n0, n1| with
+The unpartitioned constellation has mechanisms |A|, |B| and |AB| with
 :math:`\sum\varphi = 0.630953`. There are the same number of concepts in both
 constellations, over the same mechanisms; however, the partitioned
-constellation has a greater |small_phi| value for the concept |n0, n1|,
-resulting in an overall greater :math:`\sum\varphi` for the **MIP**
-constellation.
+constellation has a greater |small_phi| value for the concept |AB|, resulting
+in an overall greater :math:`\sum\varphi` for the **MIP** constellation.
 
 Although situations described above are rare, they do occur, so one must be
 careful when analyzing the integrated information of physical systems not to
