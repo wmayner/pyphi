@@ -720,13 +720,7 @@ class Subsystem:
         else:
             mips = [self.find_mip(direction, mechanism, purview)
                     for purview in purviews]
-
-            if config.PARTITION_TYPE == 'TRI':
-                # In the case of tie, chose the mip with smallest purview.
-                # (The default behavior is to chose the larger purview.)
-                max_mip = max(mips, key=lambda m: (m.phi, -len(m.purview)))
-            else:
-                max_mip = max(mips)
+            max_mip = maximal_mip(mips)
 
         return Mice(max_mip)
 
@@ -798,6 +792,16 @@ class Subsystem:
         # remain un-expanded so the concept doesn't depend on the subsystem.
         return Concept(mechanism=mechanism, phi=phi, cause=cause,
                        effect=effect, subsystem=self)
+
+
+def maximal_mip(mips):
+    """Pick the maximal mip out of a collection."""
+    if config.PICK_SMALLEST_PURVIEW:
+        max_mip = max(mips, key=lambda m: (m.phi, -len(m.purview)))
+    else:
+        max_mip = max(mips)
+
+    return max_mip
 
 
 def mip_partitions(mechanism, purview):

@@ -167,7 +167,7 @@ def test_partitioned_repertoire_with_tripartition(s):
 def test_tripartitions_choses_smallest_purview(s):
     mechanism = (1, 2)
 
-    with config.override(PARTITION_TYPE='BI'):
+    with config.override(PICK_SMALLEST_PURVIEW=False):
         effect = s.core_effect(mechanism)
         assert effect.phi == 0.5
         assert effect.purview == (0, 1)
@@ -175,7 +175,7 @@ def test_tripartitions_choses_smallest_purview(s):
     s.clear_caches()
 
     # In phi-tie, chose the smaller purview (0,)
-    with config.override(PARTITION_TYPE='TRI'):
+    with config.override(PICK_SMALLEST_PURVIEW=True):
         effect = s.core_effect(mechanism)
         assert effect.phi == 0.5
         assert effect.purview == (0,)

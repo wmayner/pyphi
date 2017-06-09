@@ -98,3 +98,5 @@ SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 REPR_VERBOSITY: 2
 # Control the number of parts in a partition
 PARTITION_TYPE: "BI"
+# Controls how to resolve phi-ties when computing MICE
+PICK_SMALLEST_PURVIEW: false

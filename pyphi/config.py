@@ -319,6 +319,13 @@ Miscellaneous
     >>> defaults['PARTITION_TYPE']
     'BI'
 
+- ``pyphi.config.PICK_SMALLEST_PURVIEW``: When computing MICE, it is possible
+  for several MIPs to have the same |small_phi| value. If this options is set to
+  ``True`` the MIP with the smallest purview will be chosen; otherwise, the MIP
+  with the largest purview will be selected.
+
+    >>> defaults['PICK_SMALLEST_PURVIEW']
+    False
 
 -------------------------------------------------------------------------------
 """
@@ -404,7 +411,9 @@ DEFAULTS = {
     # Use prettier __str__-like formatting in `repr` calls.
     'REPR_VERBOSITY': 2,
     # Control the number of parts in a partition
-    'PARTITION_TYPE': 'BI'
+    'PARTITION_TYPE': 'BI',
+    # Controls how to pick MIPs in the case of phi-ties
+    'PICK_SMALLEST_PURVIEW': False,
 }
 
 # Get a reference to this module's dictionary so we can set the configuration

@@ -18,7 +18,7 @@ from .constants import EPSILON, Direction
 from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, Occurence, _null_ac_bigmip, _null_ac_mip)
-from .subsystem import Subsystem, mip_partitions
+from .subsystem import Subsystem, maximal_mip, mip_partitions
 
 log = logging.getLogger(__name__)
 
@@ -367,13 +367,7 @@ class Context:
             # This max should be most positive
             mips = [self.find_mip(direction, mechanism, purview, norm, allow_neg)
                     for purview in purviews]
-
-            if config.PARTITION_TYPE == 'TRI':
-                # In the case of tie, chose the mip with smallest purview.
-                # (The default behavior is to chose the larger purview.)
-                max_mip = max(mips, key=lambda m: (m.alpha, -len(m.purview)))
-            else:
-                max_mip = max(mips)
+            max_mip = maximal_mip(mips)
 
         # Construct the corresponding Occurence
         return Occurence(max_mip)
