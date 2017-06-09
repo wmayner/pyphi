@@ -701,7 +701,7 @@ def all_groupings(partition):
 
 
 def all_coarse_grains(indices):
-    """Generator over all possible |CoarseGrain|s of these indices.
+    """Generator over all possible |CoarseGrains| of these indices.
 
     Args:
         indices (tuple[int]): Node indices to coarse grain.
@@ -715,7 +715,7 @@ def all_coarse_grains(indices):
 
 
 def all_coarse_grains_for_blackbox(blackbox):
-    """Generator over all |CoarseGrain|s for the given blackbox.
+    """Generator over all |CoarseGrains| for the given blackbox.
 
     If a box has multiple outputs, those outputs are partitioned into the same
     coarse-grain macro-element.

@@ -119,6 +119,7 @@ rst_prolog = """
 .. |F| replace:: :math:`F`
 .. |AB| replace:: :math:`AB`
 .. |AC| replace:: :math:`AC`
+.. |AE| replace:: :math:`AE`
 .. |BC| replace:: :math:`BC`
 .. |CD| replace:: :math:`CD`
 .. |DE| replace:: :math:`DE`
@@ -197,6 +198,7 @@ rst_prolog = """
 .. |Mice| replace:: :class:`~pyphi.models.concept.Mice`
 .. |Node| replace:: :class:`~pyphi.node.Node`
 .. |CoarseGrain| replace:: :class:`~pyphi.macro.CoarseGrain`
+.. |CoarseGrains| replace:: :class:`~pyphi.macro.CoarseGrain`
 .. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
 .. |Context| replace:: :class:`~pyphi.actual.Context`
 .. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
@@ -204,7 +206,6 @@ rst_prolog = """
 .. |loli_index2state| replace:: :class:`~pyphi.convert.loli_index2state`
 .. |holi_index2state| replace:: :class:`~pyphi.convert.holi_index2state`
 .. |big_phi > 0| replace:: :math:`\\Phi > 0`
-.. |Occurence| replace:: :class:`~pyphi.models.Occurence`
 .. |AcBigMip| replace:: :class:`~pyphi.models.AcBigMip`
 .. |Account| replace:: :class:`~pyphi.models.Account`
 .. |AcMip| replace:: :class:`~pyphi.models.AcMip`
