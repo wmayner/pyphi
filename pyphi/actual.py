@@ -203,7 +203,7 @@ class Context:
 
         For example, if we are computing the cause coefficient of a mechanism
         in ``after_state``, the direction is``PAST`` and the ``purview_state``
-        is ``before_state.
+        is ``before_state``.
         """
         if direction == Direction.PAST:
             purview_state = self.before_state
@@ -355,10 +355,10 @@ class Context:
                 nodes.
 
         Returns:
-            Occurence: The maximally-irreducible actual cause or effect.
+            |Occurence|: The maximally-irreducible actual cause or effect.
 
         .. note::
-            Strictly speaking, the Occurence is a pair of coefficients: the
+            Strictly speaking, the |Occurence| is a pair of coefficients: the
             actual cause and actual effect of a mechanism. Here, we return only
             information corresponding to one direction, |past| or |future|,
             i.e., we return an actual cause or actual effect coefficient, not
@@ -732,9 +732,12 @@ def events(network, past_state, current_state, future_state, nodes,
 # TODO: rename to `actual_constellation`?
 def true_constellation(subsystem, past_state, future_state):
     """Set of all sets of elements that have true causes and true effects.
-       Note: Since the true constellation is always about the full system,
-       the background conditions don't matter and the subsystem should be
-       conditioned on the current state."""
+
+    .. note::
+        Since the true constellation is always about the full system,
+        the background conditions don't matter and the subsystem should be
+        conditioned on the current state.
+    """
     network = subsystem.network
     nodes = subsystem.node_indices
     state = subsystem.state
@@ -755,22 +758,22 @@ def true_constellation(subsystem, past_state, future_state):
 
 def true_events(network, past_state, current_state, future_state, indices=None,
                 main_complex=None):
-    """Set of all mechanisms that have true causes and true effects within the
+    """Return all mechanisms that have true causes and true effects within the
     complex.
 
     Args:
-        network (Network):
-        past_state (tuple[int]): The state of the network at t-1
-        current_state (tuple[int]): The state of the network at t
-        future_state (tuple[int]): The state of the network at t+1
+        network (Network): The network to analyze.
+        past_state (tuple[int]): The state of the network at ``t - 1``.
+        current_state (tuple[int]): The state of the network at ``t``.
+        future_state (tuple[int]): The state of the network at ``t + 1``.
 
     Optional Args:
-        indices (tuple[int]): The indices of the main complex
+        indices (tuple[int]): The indices of the main complex.
         main_complex (AcBigMip): The main complex. If ``main_complex`` is given
             then ``indices`` is ignored.
 
     Returns:
-        tuple[Event]: List of true events in the main complex
+        tuple[Event]: List of true events in the main complex.
     """
     # TODO: validate triplet of states
 
@@ -791,18 +794,18 @@ def extrinsic_events(network, past_state, current_state, future_state,
     causes and effects within the entire network.
 
     Args:
-        network (Network):
-        past_state (tuple[int]): The state of the network at t-1
-        current_state (tuple[int]): The state of the network at t
-        future_state (tuple[int]): The state of the network at t+1
+        network (Network): The network to analyze.
+        past_state (tuple[int]): The state of the network at ``t - 1``.
+        current_state (tuple[int]): The state of the network at ``t``.
+        future_state (tuple[int]): The state of the network at ``t + 1``.
 
     Optional Args:
-        indices (tuple[int]): The indices of the main complex
+        indices (tuple[int]): The indices of the main complex.
         main_complex (AcBigMip): The main complex. If ``main_complex`` is given
             then ``indices`` is ignored.
 
     Returns:
-        tuple(actions): List of true events in the main complex
+        tuple(actions): List of extrinsic events in the main complex.
     """
     if main_complex:
         mc_nodes = main_complex.subsystem.node_indices
