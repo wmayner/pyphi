@@ -204,6 +204,14 @@ rst_prolog = """
 .. |loli_index2state| replace:: :class:`~pyphi.convert.loli_index2state`
 .. |holi_index2state| replace:: :class:`~pyphi.convert.holi_index2state`
 .. |big_phi > 0| replace:: :math:`\\Phi > 0`
+.. |Occurence| replace:: :class:`~pyphi.models.Occurence`
+.. |AcBigMip| replace:: :class:`~pyphi.models.AcBigMip`
+.. |Account| replace:: :class:`~pyphi.models.Account`
+.. |AcMip| replace:: :class:`~pyphi.models.AcMip`
+.. |modelsCut| replace:: :class:`~pyphi.models.modelsCut`
+.. |DirectedAccount| replace:: :class:`~pyphi.models.DirectedAccount`
+.. |Event| replace:: :class:`~pyphi.models.Event`
+.. |Occurence| replace:: :class:`~pyphi.models.Occurence`
 """
 
 # -- Options for Napoleon (docstring format extension) --------------------
