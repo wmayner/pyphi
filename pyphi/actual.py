@@ -18,7 +18,7 @@ from .constants import EPSILON, Direction
 from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, Occurence, _null_ac_bigmip, _null_ac_mip)
-from .subsystem import Subsystem, mip_bipartitions, wedge_partitions
+from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
 
@@ -276,15 +276,7 @@ class Context:
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
 
-        # Loop over possible MIP partitions
-        if config.PARTITION_TYPE == 'BI':
-            partitions = mip_bipartitions(mechanism, purview)
-        elif config.PARTITION_TYPE == 'TRI':
-            partitions = wedge_partitions(mechanism, purview)
-        elif config.PARTITION_TYPE == 'ALL':
-            partitions = all_partitions(mechanism, purview)
-
-        for partition in partitions:
+        for partition in mip_partitions(mechanism, purview):
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
 

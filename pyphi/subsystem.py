@@ -602,16 +602,7 @@ class Subsystem:
             return _mip(0, None, None)
 
         # Loop over possible MIP partitions
-        # TODO: refactor this to a function and share with actual.py
-        # TODO: validate `PARTITION_TYPE` value
-        if config.PARTITION_TYPE == 'BI':
-            partitions = mip_bipartitions(mechanism, purview)
-        elif config.PARTITION_TYPE == 'TRI':
-            partitions = wedge_partitions(mechanism, purview)
-        elif config.PARTITION_TYPE == 'ALL':
-            partitions = all_partitions(mechanism, purview)
-
-        for partition in partitions:
+        for partition in mip_partitions(mechanism, purview):
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(
@@ -807,6 +798,20 @@ class Subsystem:
         # remain un-expanded so the concept doesn't depend on the subsystem.
         return Concept(mechanism=mechanism, phi=phi, cause=cause,
                        effect=effect, subsystem=self)
+
+
+def mip_partitions(mechanism, purview):
+    """Return a generator over all MIP partitions, based on the current
+    configuration."""
+    validate.partition_type(config.PARTITION_TYPE)
+
+    func = {
+        'BI': mip_bipartitions,
+        'TRI': wedge_partitions,
+        'ALL': all_partitions
+    }[config.PARTITION_TYPE]
+
+    return func(mechanism, purview)
 
 
 def mip_bipartitions(mechanism, purview):
