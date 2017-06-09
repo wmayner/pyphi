@@ -31,15 +31,8 @@ def measure(d1, d2):
     elif measure_name == ENTROPY_DIFFERENCE:
         return utils.entropy_difference(d1, d2)
 
-    # If the distance is `inf` return a very large number instead so that
-    # the generalized EMD can still operate on a KLD distance matrix.
     elif measure_name == KLD:
-        result = utils.kld(d1, d2)
-
-        if np.isinf(result):
-            return BIG_NUMBER
-
-        return result
+        raise ValueError("KLD is not supported as a big-phi measure.")
 
     validate.measure(measure_name, 'config.BIG_PHI_MEASURE')
 

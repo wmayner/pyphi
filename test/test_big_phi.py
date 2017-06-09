@@ -276,16 +276,6 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     assert mock_simple_distance.called is False
 
 
-@config.override(BIG_PHI_MEASURE='KLD')
-def test_kld_distance_no_inf():
-    a = np.array([1.0, 0])
-    b = np.array([0, 1.0])
-
-    d = compute.distance.measure(a, b)
-    assert not np.isinf(d)
-    assert d == compute.distance.BIG_NUMBER
-
-
 @config.override(CACHE_BIGMIPS=True)
 def test_big_mip_cache_key_includes_config_dependencies(s, flushcache,
                                                         restore_fs_cache):
@@ -294,10 +284,10 @@ def test_big_mip_cache_key_includes_config_dependencies(s, flushcache,
     with config.override(BIG_PHI_MEASURE='EMD'):
         emd_big_phi = compute.big_phi(s)
 
-    with config.override(BIG_PHI_MEASURE='KLD'):
-        kld_big_phi = compute.big_phi(s)
+    with config.override(BIG_PHI_MEASURE='L1'):
+        l1_big_phi = compute.big_phi(s)
 
-    assert kld_big_phi != emd_big_phi
+    assert l1_big_phi != emd_big_phi
 
 
 def test_conceptual_information(s, flushcache, restore_fs_cache):
