@@ -63,11 +63,13 @@ def test_labels2indices(standard):
 
 
 def test_indices2labels(standard):
-    network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
-    assert network.indices2labels((0, 1)) == ('A', 'B')
-    assert network.indices2labels((0, 2)) == ('A', 'C')
-    # Auto-generated labels
-    assert standard.indices2labels((0, 1)) == ('n0', 'n1')
+    # Example labels
+    assert standard.indices2labels((0, 1)) == ('A', 'B')
+
+    # Default labels
+    network = Network(standard.tpm, node_labels=None)
+    assert network.indices2labels((0, 1)) == ('n0', 'n1')
+    assert network.indices2labels((0, 2)) == ('n0', 'n2')
 
 
 def test_parse_node_indices(standard):

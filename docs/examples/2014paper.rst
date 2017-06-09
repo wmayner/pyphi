@@ -615,7 +615,7 @@ And we see that the nodes in the complex are indeed :math:`A, B,` and
 :math:`C`:
 
     >>> main_complex.subsystem.nodes
-    (n0, n1, n2)
+    (A, B, C)
 
 
 Figure 15
@@ -661,9 +661,9 @@ the minor complex :math:`DE` shown in the paper no longer exists.
     2
     >>> ABC, FG = condensed
     >>> (ABC.subsystem.nodes, ABC.phi)
-    ((n0, n1, n2), 1.9166650000000001)
+    ((A, B, C), 1.9166650000000001)
     >>> (FG.subsystem.nodes, FG.phi)
-    ((n5, n6), 0.069445)
+    ((F, G), 0.069445)
 
 There are several other functions available for working with complexes; see the
 documentation for :func:`~pyphi.compute.subsystems`,
