@@ -20,8 +20,11 @@ def measure(d1, d2):
     Returns:
         float: The distance between ``d1`` and ``d2``.
     """
-    if config.MEASURE in [EMD, L1]:
+    if config.MEASURE == EMD:
         return utils.hamming_emd(d1, d2)
+
+    elif config.MEASURE == L1:
+        return utils.l1(d1, d2)
 
     elif config.MEASURE == ENTROPY_DIFFERENCE:
         return utils.entropy_difference(d1, d2)
