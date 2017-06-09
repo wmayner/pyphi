@@ -416,12 +416,12 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
                                         effect_indices, mechanisms=False,
                                         purviews=False, norm=True,
                                         allow_neg=False):
-    """Print a nice composition for multiple pairs of states
-    Args: As above
-        transitions (list(2 state tuples)):
-            The first is past the second current.
-            For 'past' current belongs to subsystem and past is the second
-            state. Vice versa for "future"
+    """Print a nice composition for multiple pairs of states.
+
+    Args:
+        transitions (list(2 state tuples)): The first is past the second
+            current. For 'past' current belongs to subsystem and past is the
+            second state. Vice versa for "future"
     """
     for transition in transitions:
         context = Context(network, transition[0], transition[1], cause_indices,
@@ -767,7 +767,7 @@ def true_events(network, past_state, current_state, future_state, indices=None,
         current_state (tuple[int]): The state of the network at ``t``.
         future_state (tuple[int]): The state of the network at ``t + 1``.
 
-    Optional Args:
+    Keyword Args:
         indices (tuple[int]): The indices of the main complex.
         main_complex (AcBigMip): The main complex. If ``main_complex`` is given
             then ``indices`` is ignored.
@@ -799,7 +799,7 @@ def extrinsic_events(network, past_state, current_state, future_state,
         current_state (tuple[int]): The state of the network at ``t``.
         future_state (tuple[int]): The state of the network at ``t + 1``.
 
-    Optional Args:
+    Keyword Args:
         indices (tuple[int]): The indices of the main complex.
         main_complex (AcBigMip): The main complex. If ``main_complex`` is given
             then ``indices`` is ignored.
