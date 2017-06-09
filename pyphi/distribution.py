@@ -90,7 +90,7 @@ def purview(repertoire):
     if repertoire is None:
         return None
 
-    return tuple(np.where(np.array(repertoire.shape) == 2)[0])
+    return tuple(i for i, dim in enumerate(repertoire.shape) if dim == 2)
 
 
 def purview_size(repertoire):
