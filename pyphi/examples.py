@@ -397,19 +397,19 @@ def propagation_delay_network():
 
     for past_state_index, past_state in enumerate(all_states(num_nodes)):
         current_state = [0 for i in range(num_nodes)]
-        if (past_state[2] == 1 or past_state[7] == 1):
+        if past_state[2] == 1 or past_state[7] == 1:
             current_state[0] = 1
-        if (past_state[0] == 1):
+        if past_state[0] == 1:
             current_state[1] = 1
             current_state[8] = 1
-        if (past_state[3] == 1):
+        if past_state[3] == 1:
             current_state[2] = 1
             current_state[4] = 1
-        if (past_state[1] == 1 ^ past_state[5] == 1):
+        if past_state[1] == 1 ^ past_state[5] == 1:
             current_state[3] = 1
-        if (past_state[4] == 1 and past_state[8] == 1):
+        if past_state[4] == 1 and past_state[8] == 1:
             current_state[6] = 1
-        if (past_state[6] == 1):
+        if past_state[6] == 1:
             current_state[5] = 1
             current_state[7] = 1
         tpm[past_state_index, :] = current_state
@@ -507,15 +507,15 @@ def blackbox_network():
 
     for index, past_state in enumerate(all_states(num_nodes)):
         current_state = [0 for i in range(num_nodes)]
-        if (past_state[5] == 1):
+        if past_state[5] == 1:
             current_state[0] = 1
             current_state[1] = 1
-        if (past_state[0] == 1 and past_state[1]):
+        if past_state[0] == 1 and past_state[1]:
             current_state[2] = 1
-        if (past_state[2] == 1):
+        if past_state[2] == 1:
             current_state[3] = 1
             current_state[4] = 1
-        if (past_state[3] == 1 and past_state[4] == 1):
+        if past_state[3] == 1 and past_state[4] == 1:
             current_state[5] = 1
         tpm[index, :] = current_state
 
@@ -698,7 +698,6 @@ def fig3a():
         [1, 0, 0, 0],
         [1, 0, 0, 0]
     ])
-    current_state = (1, 0, 0, 0)
     return Network(tpm, connectivity_matrix=cm)
 
 
@@ -728,7 +727,6 @@ def fig3b():
         [1, 0, 0, 0],
         [1, 0, 0, 0]
     ])
-    current_state = (1, 0, 0, 0)
     return Network(tpm, connectivity_matrix=cm)
 
 
@@ -764,7 +762,6 @@ def fig4():
         [1, 0, 1],
         [1, 1, 0],
     ])
-    current_state = (1, 0, 0)
     return Network(tpm, connectivity_matrix=cm)
 
 
@@ -799,7 +796,6 @@ def fig5a():
         [1, 0, 1],
         [1, 1, 0]
     ])
-    current_state = (1, 1, 1)
     return Network(tpm, connectivity_matrix=cm)
 
 
@@ -834,7 +830,6 @@ def fig5b():
         [0, 0, 1],
         [0, 1, 0]
     ])
-    current_state = (1, 0, 0)
     return Network(tpm, connectivity_matrix=cm)
 
 
@@ -1060,7 +1055,6 @@ def ac_ex2_context():
     before_state = (0, 1, 1, 0)
     after_state = (0, 0, 0, 1)
     return Context(net, before_state, after_state, (1,), (3,))
-
 
 
 def ac_ex3_network():
