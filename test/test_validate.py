@@ -209,3 +209,12 @@ def test_measure():
 
     with pytest.raises(ValueError):
         validate.measure('emd')
+
+
+def test_validate_partition_type():
+    validate.partition_type('BI')
+    validate.partition_type('TRI')
+    validate.partition_type('ALL')
+
+    with pytest.raises(ValueError):
+        validate.partition_type('WEDGE')
