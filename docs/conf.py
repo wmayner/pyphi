@@ -119,6 +119,7 @@ rst_prolog = """
 .. |F| replace:: :math:`F`
 .. |AB| replace:: :math:`AB`
 .. |AC| replace:: :math:`AC`
+.. |BC| replace:: :math:`BC`
 .. |CD| replace:: :math:`CD`
 .. |DE| replace:: :math:`DE`
 .. |FG| replace:: :math:`FG`
