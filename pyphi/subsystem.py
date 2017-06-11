@@ -609,16 +609,7 @@ class Subsystem:
             return _mip(0, None, None)
 
         # Loop over possible MIP partitions
-        # TODO: refactor this to a function and share with actual.py
-        # TODO: validate `PARTITION_TYPE` value
-        if config.PARTITION_TYPE == 'BI':
-            partitions = mip_bipartitions(mechanism, purview)
-        elif config.PARTITION_TYPE == 'TRI':
-            partitions = wedge_partitions(mechanism, purview)
-        elif config.PARTITION_TYPE == 'ALL':
-            partitions = all_partitions(mechanism, purview)
-
-        for partition in partitions:
+        for partition in mip_partitions(mechanism, purview):
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(
@@ -633,13 +624,6 @@ class Subsystem:
             if phi < phi_min:
                 phi_min = phi
                 mip = _mip(phi, partition, partitioned_repertoire)
-
-        # Recompute distance for minimal MIP using the EMD.
-        # (See `config.MEASURE`)
-        if config.MEASURE == L1:
-            phi = emd(direction, mip.unpartitioned_repertoire,
-                      mip.partitioned_repertoire)
-            mip = _mip(phi, mip.partition, mip.partitioned_repertoire)
 
         return mip
 
@@ -743,12 +727,7 @@ class Subsystem:
         else:
             mips = [self.find_mip(direction, mechanism, purview)
                     for purview in purviews]
-            if config.PARTITION_TYPE == 'TRI':
-                # In the case of tie, chose the mip with smallest purview.
-                # (The default behavior is to chose the larger purview.)
-                max_mip = max(mips, key=lambda m: (m.phi, -len(m.purview)))
-            else:
-                max_mip = max(mips)
+            max_mip = maximal_mip(mips)
 
         return Mice(max_mip)
 

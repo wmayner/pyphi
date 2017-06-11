@@ -277,15 +277,7 @@ class Context:
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
 
-        # Loop over possible MIP partitions
-        if config.PARTITION_TYPE == 'BI':
-            partitions = mip_bipartitions(mechanism, purview)
-        elif config.PARTITION_TYPE == 'TRI':
-            partitions = wedge_partitions(mechanism, purview)
-        elif config.PARTITION_TYPE == 'ALL':
-            partitions = all_partitions(mechanism, purview)
-
-        for partition in partitions:
+        for partition in mip_partitions(mechanism, purview):
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
 
@@ -376,13 +368,7 @@ class Context:
             # This max should be most positive
             mips = [self.find_mip(direction, mechanism, purview, norm, allow_neg)
                     for purview in purviews]
-
-            if config.PARTITION_TYPE == 'TRI':
-                # In the case of tie, chose the mip with smallest purview.
-                # (The default behavior is to chose the larger purview.)
-                max_mip = max(mips, key=lambda m: (m.alpha, -len(m.purview)))
-            else:
-                max_mip = max(mips)
+            max_mip = maximal_mip(mips)
 
         # Construct the corresponding Occurence
         return Occurence(max_mip)
