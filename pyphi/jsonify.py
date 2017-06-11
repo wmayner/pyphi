@@ -136,11 +136,11 @@ class PyPhiJSONEncoder(json.JSONEncoder):
     """Extension of the default JSONEncoder that allows for serializing PyPhi
     objects with ``jsonify``."""
 
-    def encode(self, obj):
+    def encode(self, obj):  # pylint: disable=arguments-differ
         """Encode the output of ``jsonify`` with the default encoder."""
         return super().encode(jsonify(obj))
 
-    def iterencode(self, obj, **kwargs):
+    def iterencode(self, obj, **kwargs):  # pylint: disable=arguments-differ
         """Analog to `encode` used by json.dump."""
         return super().iterencode(jsonify(obj), **kwargs)
 
@@ -180,7 +180,7 @@ def _is_model(dct):
 
 class _ObjectCache(cache.DictCache):
     """Cache mapping ids to loaded objects, keyed by the id of the object."""
-    def key(self, dct, **kwargs):
+    def key(self, dct, **kwargs):  # pylint: disable=arguments-differ
         return dct[ID_KEY]
 
 
