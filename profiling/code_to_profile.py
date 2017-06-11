@@ -5,19 +5,22 @@
 Profiling tool for PyPhi.
 """
 
+import argparse
+import cProfile
+import json
 import logging
 import os
-import sys
-import json
 import pickle
-import cProfile
-import argparse
+import sys
 from time import time
+
+from joblib import Parallel, delayed
+
+import pyphi
+
 pyphidir = os.path.abspath('..')
 if pyphidir not in sys.path:
     sys.path.insert(0, pyphidir)
-import pyphi
-from joblib import Parallel, delayed
 
 
 formatter = logging.Formatter(

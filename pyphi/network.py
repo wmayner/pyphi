@@ -11,9 +11,10 @@ import json
 
 import numpy as np
 
-from . import cache, convert, utils, validate
+from . import cache, connectivity, convert, utils, validate
 from .constants import Direction
 from .node import default_labels
+from .tpm import is_state_by_state
 
 
 class Network:
@@ -82,7 +83,7 @@ class Network:
         validate.tpm(tpm)
 
         # Convert to N-D state-by-node form
-        if utils.state_by_state(tpm):
+        if is_state_by_state(tpm):
             tpm = convert.state_by_state2state_by_node(tpm)
         else:
             tpm = convert.to_n_dimensional(tpm)
@@ -117,6 +118,11 @@ class Network:
     def connectivity_matrix(self):
         """np.ndarray: Alias for `Network.cm`."""
         return self._cm
+
+    @property
+    def causally_significant_nodes(self):
+        """See :func:`~pyphi.connectivity.causally_significant_nodes`."""
+        return connectivity.causally_significant_nodes(self.cm)
 
     @property
     def size(self):
@@ -244,7 +250,7 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
         else:
             # TODO: test that ValueError is raised
             validate.direction(direction)
-        return utils.block_reducible(cm, _from, to)
+        return connectivity.block_reducible(cm, _from, to)
 
     return [purview for purview in purviews if not reducible(purview)]
 

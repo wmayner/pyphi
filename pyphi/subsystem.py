@@ -9,12 +9,17 @@ import itertools
 
 import numpy as np
 
-from . import cache, config, utils, validate
+from . import cache, config, distance, distribution, utils, validate
 from .constants import EMD, ENTROPY_DIFFERENCE, KLD, L1, Direction
+from .distance import entropy_difference, kld, l1
 from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
                      Tripartition, _null_mip)
 from .network import irreducible_purviews
 from .node import generate_nodes
+from .partition import (bipartition, directed_bipartition,
+                        directed_bipartition_of_one, directed_tripartition,
+                        k_partitions, partitions)
+from .tpm import condition_tpm, marginalize_out
 
 
 class Subsystem:
@@ -34,14 +39,15 @@ class Subsystem:
 
     Attributes:
         network (Network): The network the subsystem belongs to.
-        tpm (np.ndarray): The TPM conditioned on the state of the external nodes.
+        tpm (np.ndarray): The TPM conditioned on the state of the external
+            nodes.
         cm (np.ndarray): The connectivity matrix after applying the cut.
         state (tuple[int]): The state of the network.
         nodes (tuple[Node]): The nodes of the subsystem.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
         cut (Cut): The cut that has been applied to this subsystem.
-        cut_matrix (np.ndarray): A matrix of connections which have been severed
-            by the cut.
+        cut_matrix (np.ndarray): A matrix of connections which have been
+            severed by the cut.
         null_cut (Cut): The cut object representing no cut.
     """
 
@@ -66,7 +72,7 @@ class Subsystem:
             set(network.node_indices) - set(self.node_indices))
 
         # The TPM conditioned on the state of the external nodes.
-        self.tpm = utils.condition_tpm(
+        self.tpm = condition_tpm(
             self.network.tpm, self.external_indices, self.state)
 
         # The null cut (that leaves the system intact)
@@ -275,11 +281,12 @@ class Subsystem:
         # If the mechanism is empty, nothing is specified about the past state
         # of the purview -- return the purview's maximum entropy distribution.
         if not mechanism:
-            return utils.max_entropy_distribution(purview, self.tpm_size)
+            return distribution.max_entropy_distribution(purview,
+                                                         self.tpm_size)
 
         # Preallocate the mechanism's conditional joint distribution.
         # TODO extend to nonbinary nodes
-        cjd = np.ones(utils.repertoire_shape(purview, self.tpm_size))
+        cjd = np.ones(distribution.repertoire_shape(purview, self.tpm_size))
 
         # Loop over all nodes in this mechanism, successively taking the
         # product (with expansion/broadcasting of singleton dimensions) of each
@@ -295,7 +302,7 @@ class Subsystem:
             # Marginalize-out all nodes which connect to this node but which
             # are not in the purview:
             other_inputs = set(mechanism_node.input_indices) - set(purview)
-            tpm = utils.marginalize_out(other_inputs, tpm)
+            tpm = marginalize_out(other_inputs, tpm)
 
             # Incorporate this node's CPT into the mechanism's conditional
             # joint distribution by taking the product (with singleton
@@ -304,7 +311,7 @@ class Subsystem:
             # appropriate way.
             cjd *= tpm
 
-        return utils.normalize(cjd)
+        return distribution.normalize(cjd)
 
     @cache.method('_repertoire_cache', Direction.FUTURE)
     def effect_repertoire(self, mechanism, purview):
@@ -340,7 +347,7 @@ class Subsystem:
         # TODO extend to nonbinary nodes
         accumulated_cjd = np.ones(
             [1] * self.tpm_size +
-            utils.repertoire_shape(purview, self.tpm_size))
+            distribution.repertoire_shape(purview, self.tpm_size))
 
         # Loop over all nodes in the purview, successively taking the product
         # (with 'expansion'/'broadcasting' of singleton dimensions) of each
@@ -373,7 +380,7 @@ class Subsystem:
 
             # Marginalize-out non-mechanism inputs.
             other_inputs = set(purview_node.input_indices) - set(mechanism)
-            tpm = utils.marginalize_out(other_inputs, tpm)
+            tpm = marginalize_out(other_inputs, tpm)
 
             # Incorporate this node's CPT into the future_nodes' conditional
             # joint distribution (with singleton broadcasting).
@@ -383,7 +390,7 @@ class Subsystem:
         # on the state of these nodes by collapsing the CJD onto those states.
         mechanism_inputs = [node.index for node in mechanism_nodes
                             if set(node.output_indices) & set(purview)]
-        accumulated_cjd = utils.condition_tpm(
+        accumulated_cjd = condition_tpm(
             accumulated_cjd, mechanism_inputs, self.state)
 
         # The distribution still has twice as many dimensions as the network
@@ -421,7 +428,6 @@ class Subsystem:
         else:
             # TODO: test that ValueError is raised
             validate.direction(direction)
-
 
     def _unconstrained_repertoire(self, direction, purview):
         """Return the unconstrained cause/effect repertoire over a purview."""
@@ -472,7 +478,7 @@ class Subsystem:
         if repertoire is None:
             return None
 
-        purview = utils.purview(repertoire)
+        purview = distribution.purview(repertoire)
 
         if new_purview is None:
             new_purview = self.node_indices  # full subsystem
@@ -487,7 +493,7 @@ class Subsystem:
         # distribution over all the nodes in the network.
         expanded_repertoire = repertoire * uc
 
-        return utils.normalize(expanded_repertoire)
+        return distribution.normalize(expanded_repertoire)
 
     def expand_cause_repertoire(self, repertoire, new_purview=None):
         """Expand a partial cause repertoire over a purview to a distribution
@@ -551,7 +557,8 @@ class Subsystem:
             unpartitioned_repertoire = self._repertoire(direction, mechanism,
                                                         purview)
 
-        partitioned_repertoire = self.partitioned_repertoire(direction, partition)
+        partitioned_repertoire = self.partitioned_repertoire(direction,
+                                                             partition)
 
         phi = measure(direction, unpartitioned_repertoire,
                       partitioned_repertoire)
@@ -602,7 +609,16 @@ class Subsystem:
             return _mip(0, None, None)
 
         # Loop over possible MIP partitions
-        for partition in mip_partitions(mechanism, purview):
+        # TODO: refactor this to a function and share with actual.py
+        # TODO: validate `PARTITION_TYPE` value
+        if config.PARTITION_TYPE == 'BI':
+            partitions = mip_bipartitions(mechanism, purview)
+        elif config.PARTITION_TYPE == 'TRI':
+            partitions = wedge_partitions(mechanism, purview)
+        elif config.PARTITION_TYPE == 'ALL':
+            partitions = all_partitions(mechanism, purview)
+
+        for partition in partitions:
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(
@@ -617,6 +633,13 @@ class Subsystem:
             if phi < phi_min:
                 phi_min = phi
                 mip = _mip(phi, partition, partitioned_repertoire)
+
+        # Recompute distance for minimal MIP using the EMD.
+        # (See `config.MEASURE`)
+        if config.MEASURE == L1:
+            phi = emd(direction, mip.unpartitioned_repertoire,
+                      mip.partitioned_repertoire)
+            mip = _mip(phi, mip.partition, mip.partitioned_repertoire)
 
         return mip
 
@@ -720,7 +743,12 @@ class Subsystem:
         else:
             mips = [self.find_mip(direction, mechanism, purview)
                     for purview in purviews]
-            max_mip = maximal_mip(mips)
+            if config.PARTITION_TYPE == 'TRI':
+                # In the case of tie, chose the mip with smallest purview.
+                # (The default behavior is to chose the larger purview.)
+                max_mip = max(mips, key=lambda m: (m.phi, -len(m.purview)))
+            else:
+                max_mip = max(mips)
 
         return Mice(max_mip)
 
@@ -866,8 +894,8 @@ def mip_bipartitions(mechanism, purview):
         --- X --
         2,3   []
     """
-    numerators = utils.bipartition(mechanism)
-    denominators = utils.directed_bipartition(purview)
+    numerators = bipartition(mechanism)
+    denominators = directed_bipartition(purview)
 
     for n, d in itertools.product(numerators, denominators):
         if (n[0] or d[0]) and (n[1] or d[1]):
@@ -894,8 +922,8 @@ def wedge_partitions(mechanism, purview):
         Tripartition: all unique tripartitions of this mechanism and purview.
     """
 
-    numerators = utils.bipartition(mechanism)
-    denominators = utils.directed_tripartition(purview)
+    numerators = bipartition(mechanism)
+    denominators = directed_tripartition(purview)
 
     yielded = set()
 
@@ -931,102 +959,6 @@ def wedge_partitions(mechanism, purview):
             if not compressible(tripart) and tripart not in yielded:
                 yielded.add(tripart)
                 yield tripart
-
-
-def partitions(collection):
-    # all possible partitions
-    # stackoverflow.com/questions/19368375/set-partitions-in-python
-    if len(collection) == 1:
-        yield [collection]
-        return
-
-    first = collection[0]
-    for smaller in partitions(collection[1:]):
-        for n, subset in enumerate(smaller):
-            yield smaller[:n] + [[first] + subset] + smaller[n+1:]
-        yield [[first]] + smaller
-
-
-def k_partitions(collection, k):
-    # Algorithm for generating k-partitions of a collection
-    # codereview.stackexchange.com/questions/1526/finding-all-k-subset-partitions
-    def visit(n, a):
-        ps = [[] for i in range(k)]
-        for j in range(n):
-            ps[a[j + 1]].append(collection[j])
-        return ps
-
-    def f(mu, nu, sigma, n, a):
-        if mu == 2:
-            yield visit(n, a)
-        else:
-            for v in f(mu - 1, nu - 1, (mu + sigma) % 2, n, a):
-                yield v
-        if nu == mu + 1:
-            a[mu] = mu - 1
-            yield visit(n, a)
-            while a[nu] > 0:
-                a[nu] = a[nu] - 1
-                yield visit(n, a)
-        elif nu > mu + 1:
-            if (mu + sigma) % 2 == 1:
-                a[nu - 1] = mu - 1
-            else:
-                a[mu] = mu - 1
-            if (a[nu] + sigma) % 2 == 1:
-                for v in b(mu, nu - 1, 0, n, a):
-                    yield v
-            else:
-                for v in f(mu, nu - 1, 0, n, a):
-                    yield v
-            while a[nu] > 0:
-                a[nu] = a[nu] - 1
-                if (a[nu] + sigma) % 2 == 1:
-                    for v in b(mu, nu - 1, 0, n, a):
-                        yield v
-                else:
-                    for v in f(mu, nu - 1, 0, n, a):
-                        yield v
-
-    def b(mu, nu, sigma, n, a):
-        if nu == mu + 1:
-            while a[nu] < mu - 1:
-                yield visit(n, a)
-                a[nu] = a[nu] + 1
-            yield visit(n, a)
-            a[mu] = 0
-        elif nu > mu + 1:
-            if (a[nu] + sigma) % 2 == 1:
-                for v in f(mu, nu - 1, 0, n, a):
-                    yield v
-            else:
-                for v in b(mu, nu - 1, 0, n, a):
-                    yield v
-            while a[nu] < mu - 1:
-                a[nu] = a[nu] + 1
-                if (a[nu] + sigma) % 2 == 1:
-                    for v in f(mu, nu - 1, 0, n, a):
-                        yield v
-                else:
-                    for v in b(mu, nu - a, 0, n, a):
-                        yield v
-            if (mu + sigma) % 2 == 1:
-                a[nu - 1] = 0
-            else:
-                a[mu] = 0
-        if mu == 2:
-            yield visit(n, a)
-        else:
-            for v in b(mu - 1, nu - 1, (mu + sigma) % 2, n, a):
-                yield v
-    if k == 1:
-        return ([[[item for item in collection]]])
-    else:
-        n = len(collection)
-        a = [0] * (n + 1)
-        for j in range(1, k + 1):
-            a[n - k + j] = j - 1
-        return f(k, n, 0, n, a)
 
 
 def all_partitions(m, p):
@@ -1068,7 +1000,8 @@ def effect_emd(d1, d2):
     Returns:
         float: The EMD between ``d1`` and ``d2``.
     """
-    return sum(np.abs(utils.marginal_zero(d1, i) - utils.marginal_zero(d2, i))
+    return sum(np.abs(distribution.marginal_zero(d1, i) -
+                      distribution.marginal_zero(d2, i))
                for i in range(d1.ndim))
 
 
@@ -1091,7 +1024,7 @@ def emd(direction, d1, d2):
         ValueError: If ``direction`` is invalid.
     """
     if direction == Direction.PAST:
-        func = utils.hamming_emd
+        func = distance.hamming_emd
     elif direction == Direction.FUTURE:
         func = effect_emd
     else:
@@ -1120,13 +1053,13 @@ def measure(direction, d1, d2):
         dist = emd(direction, d1, d2)
 
     elif measure_name == KLD:
-        dist = utils.kld(d1, d2)
+        dist = kld(d1, d2)
 
     elif measure_name == L1:
-        dist = utils.l1(d1, d2)
+        dist = l1(d1, d2)
 
     elif measure_name == ENTROPY_DIFFERENCE:
-        dist = utils.entropy_difference(d1, d2)
+        dist = entropy_difference(d1, d2)
 
     else:
         validate.measure(measure_name, 'config.SMALL_PHI_MEASURE')

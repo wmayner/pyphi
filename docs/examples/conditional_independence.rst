@@ -112,7 +112,7 @@ The node indices are ``0`` and ``1`` for |A| and |B|, and ``2`` for |C|:
 
 From here, if we marginalize out the node |C|;
 
-   >>> tpm2_marginalizeC = pyphi.utils.marginalize_out(C, sbn_tpm2)
+   >>> tpm2_marginalizeC = pyphi.tpm.marginalize_out(C, sbn_tpm2)
 
 And then restrict the purview to only nodes |A| and |B|;
 

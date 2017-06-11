@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 # test_models.py
 
-from unittest import mock
 from collections import namedtuple
+from unittest import mock
+
 import numpy as np
 import pytest
 
-from pyphi import models, constants, config, Subsystem
+from pyphi import Subsystem, config, constants, models
 from pyphi.constants import Direction
-
 
 # TODO: better way to build test objects than Mock?
 

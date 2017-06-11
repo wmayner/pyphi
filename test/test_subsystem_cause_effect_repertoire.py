@@ -2,14 +2,12 @@
 # -*- coding: utf-8 -*-
 # test_subsystem_cause_and_effect_repertoire.py
 
-import pytest
 import numpy as np
-
-from pyphi.models import Cut
-from pyphi import Subsystem
+import pytest
 
 import example_networks
-
+from pyphi import Subsystem
+from pyphi.models import Cut
 
 # Get example networks
 standard = example_networks.standard()

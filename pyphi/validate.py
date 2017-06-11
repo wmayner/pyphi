@@ -3,13 +3,14 @@
 # validate.py
 
 """
-Methods for validating common types of input.
+Methods for validating arguments.
 """
 
 import numpy as np
 
 from . import config, constants, convert, exceptions, utils
 from .constants import EPSILON, Direction
+from .tpm import is_state_by_state
 
 
 def direction(direction):
@@ -63,7 +64,7 @@ def conditionally_independent(tpm):
     """Validate that the TPM is conditionally independent."""
     tpm = np.array(tpm)
     if tpm.ndim > 1:
-        if utils.state_by_state(tpm):
+        if is_state_by_state(tpm):
             there_and_back_again = convert.state_by_node2state_by_state(
                 convert.state_by_state2state_by_node(tpm))
         else:

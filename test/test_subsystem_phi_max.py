@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import pytest
 from itertools import chain
 
-from pyphi import Subsystem
-from pyphi.constants import Direction
-from pyphi.models import Mice, Cut, _null_mip
-from pyphi.utils import phi_eq
+import pytest
 
 import example_networks
-
+from pyphi import Subsystem
+from pyphi.constants import Direction
+from pyphi.models import Cut, Mice, _null_mip
+from pyphi.utils import phi_eq
 
 # Expected results {{{
 # ====================

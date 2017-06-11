@@ -13,11 +13,13 @@ from collections import namedtuple
 import numpy as np
 from scipy.stats import entropy
 
-from . import compute, config, constants, convert, utils, validate
+from . import (compute, config, constants, convert, distribution, utils,
+               validate)
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes, tpm_indices
 from .subsystem import Subsystem
+from .tpm import is_state_by_state, marginalize_out
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -76,7 +78,7 @@ def run_tpm(system, steps, blackbox):
         for input in node.input_indices:
             if not blackbox.in_same_box(node.index, input):
                 if input in blackbox.output_indices:
-                    node_tpm = utils.marginalize_out([input], node_tpm)
+                    node_tpm = marginalize_out([input], node_tpm)
 
         node_tpms.append(node_tpm)
 
@@ -227,7 +229,7 @@ class MacroSubsystem(Subsystem):
             node_tpm = node.tpm[1]
             for input in node.input_indices:
                 if blackbox.hidden_from(input, node.index):
-                    node_tpm = utils.marginalize_out([input], node_tpm)
+                    node_tpm = marginalize_out([input], node_tpm)
 
             node_tpms.append(node_tpm)
 
@@ -258,7 +260,7 @@ class MacroSubsystem(Subsystem):
         there is only `len(output_indices)` dimensions in the TPM and in the
         state of the subsystem.
         """
-        tpm = utils.marginalize_out(blackbox.hidden_indices, system.tpm)
+        tpm = marginalize_out(blackbox.hidden_indices, system.tpm)
 
         assert blackbox.output_indices == tpm_indices(tpm)
 
@@ -509,7 +511,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
                 state_by_state_micro_tpm[past_state, current_state])
 
         # Re-normalize each row because we're going from larger to smaller TPM
-        return np.array([utils.normalize(row) for row in macro_tpm])
+        return np.array([distribution.normalize(row) for row in macro_tpm])
 
     def macro_tpm(self, micro_tpm, check_independence=True):
         """Create a coarse-grained macro TPM.
@@ -526,7 +528,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         Returns:
             np.ndarray: The state-by-node TPM of the macro-system.
         """
-        if not utils.state_by_state(micro_tpm):
+        if not is_state_by_state(micro_tpm):
             micro_tpm = convert.state_by_node2state_by_state(micro_tpm)
 
         macro_tpm = self.macro_tpm_sbs(micro_tpm)

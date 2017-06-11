@@ -4,7 +4,6 @@
 import numpy as np
 
 
-
 # Unconstrained cause repertoire tests {{{{
 # =========================================
 #   Matlab default network {{{

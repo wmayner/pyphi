@@ -13,11 +13,12 @@ from pprint import pprint
 
 import numpy as np
 
-from . import compute, config, exceptions, utils, validate
+from . import compute, config, connectivity, exceptions, utils, validate
 from .constants import EPSILON, Direction
 from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, Occurence, _null_ac_bigmip, _null_ac_mip)
+from .partition import bipartition, directed_bipartition
 from .subsystem import Subsystem, maximal_mip, mip_partitions
 
 log = logging.getLogger(__name__)
@@ -276,7 +277,15 @@ class Context:
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
 
-        for partition in mip_partitions(mechanism, purview):
+        # Loop over possible MIP partitions
+        if config.PARTITION_TYPE == 'BI':
+            partitions = mip_bipartitions(mechanism, purview)
+        elif config.PARTITION_TYPE == 'TRI':
+            partitions = wedge_partitions(mechanism, purview)
+        elif config.PARTITION_TYPE == 'ALL':
+            partitions = all_partitions(mechanism, purview)
+
+        for partition in partitions:
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
 
@@ -367,7 +376,13 @@ class Context:
             # This max should be most positive
             mips = [self.find_mip(direction, mechanism, purview, norm, allow_neg)
                     for purview in purviews]
-            max_mip = maximal_mip(mips)
+
+            if config.PARTITION_TYPE == 'TRI':
+                # In the case of tie, chose the mip with smallest purview.
+                # (The default behavior is to chose the larger purview.)
+                max_mip = max(mips, key=lambda m: (m.alpha, -len(m.purview)))
+            else:
+                max_mip = max(mips)
 
         # Construct the corresponding Occurence
         return Occurence(max_mip)
@@ -523,8 +538,8 @@ def _get_cuts(context):
     # if config.CUT_ONE_APPROXIMATION:
     #     bipartitions = directed_bipartition_of_one(subsystem.node_indices)
     # else:
-    cause_bipartitions = utils.bipartition(context.cause_indices)
-    effect_bipartitions = utils.directed_bipartition(context.effect_indices)
+    cause_bipartitions = bipartition(context.cause_indices)
+    effect_bipartitions = directed_bipartition(context.effect_indices)
     # The first element of the list is the null cut.
     partitions = list(itertools.product(cause_bipartitions,
                                         effect_bipartitions))[1:]
@@ -555,7 +570,7 @@ def big_acmip(context, direction=None):
                  'immediately.'.format(context))
         return _null_ac_bigmip(context, direction)
 
-    if not utils.weakly_connected(context.network.cm, context.node_indices):
+    if not connectivity.is_weak(context.network.cm, context.node_indices):
         log.info('{} is not strongly/weakly connected; returning null MIP '
                  'immediately.'.format(context))
         return _null_ac_bigmip(context, direction)

@@ -3,8 +3,7 @@
 # compute/big_phi.py
 
 """
-Methods for computing concepts, constellations, and integrated information of
-subsystems.
+Functions for computing concepts, constellations, and integrated information.
 """
 
 import functools
@@ -13,8 +12,9 @@ import multiprocessing
 from time import time
 
 from . import parallel
-from .. import config, exceptions, memory, utils, validate
+from .. import config, connectivity, exceptions, memory, utils, validate
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
+from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem
 from .concept import constellation
 from .distance import constellation_distance
@@ -151,10 +151,10 @@ def big_mip_bipartitions(nodes):
         list[|Cut|]: All unidirectional partitions.
     """
     if config.CUT_ONE_APPROXIMATION:
-        bipartitions = utils.directed_bipartition_of_one(nodes)
+        bipartitions = directed_bipartition_of_one(nodes)
     else:
-        # Skip the first and last (trivial, null cut) bipartitions
-        bipartitions = utils.directed_bipartition(nodes)[1:-1]
+        # Don't consider trivial partitions where one part is empty
+        bipartitions = directed_bipartition(nodes, nontrivial=True)
 
     return [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
@@ -206,7 +206,7 @@ def _big_mip(cache_key, subsystem):
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))
 
-    if not utils.strongly_connected(subsystem.cm, subsystem.node_indices):
+    if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
         log.info('{} is not strongly connected; returning null MIP '
                  'immediately.'.format(subsystem))
         return time_annotated(_null_bigmip(subsystem))
@@ -310,11 +310,9 @@ def possible_complexes(network, state):
     """
     validate.is_network(network)
 
-    causally_significant_nodes = utils.causally_significant_nodes(network.cm)
-
-    for subset in utils.powerset(causally_significant_nodes):
+    for subset in utils.powerset(network.causally_significant_nodes):
         # Don't return empty system
-        if len(subset) == 0:
+        if not subset:
             continue
 
         # Don't return subsystems that are in an impossible state.

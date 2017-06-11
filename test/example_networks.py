@@ -8,7 +8,6 @@ import pyphi
 from pyphi.network import Network
 from pyphi.subsystem import Subsystem
 
-
 # TODO pass just the subsystem (contains a reference to the network)
 
 use_connectivity_matrices = True

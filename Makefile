@@ -19,7 +19,7 @@ watch-tests:
 	watchmedo shell-command \
 		--command='make coverage' \
 		--recursive --drop --ignore-directories \
-		--patterns="*.py" $(src) $(tests)
+		--patterns="*.py;*.rst" $(src) $(tests) $(docs)
 		# TODO: watch test config files
 
 docs: build-docs open-docs

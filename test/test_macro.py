@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 # test_macro.py
 
+import numpy as np
 import pytest
 
-import numpy as np
 from pyphi import convert, macro
 from pyphi.exceptions import ConditionallyDependentError
+
 
 # flake8: noqa
 

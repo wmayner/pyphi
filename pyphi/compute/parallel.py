@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # compute/parallel.py
 
+"""
+Utilities for parallel computation.
+"""
+
 import multiprocessing
 
 from .. import config

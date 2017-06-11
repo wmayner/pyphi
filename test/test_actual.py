@@ -1,8 +1,9 @@
-import pytest
 import numpy as np
+import pytest
 
-from pyphi import actual, examples, models, Subsystem
+from pyphi import Subsystem, actual, examples, models
 from pyphi.constants import Direction
+
 
 # TODO
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -2,7 +2,6 @@ import numpy as np
 
 from pyphi import utils
 
-
 cm0 = [
     [1, 1, 0, 0, 0],
     [1, 1, 0, 0, 0],

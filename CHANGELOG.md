@@ -5,6 +5,8 @@ Next Release
 ------------------
 
 ### API changes:
+- Many functions have been refactored to different modules; see the "Refactor"
+  section for details.
 - `compute.possible_complexes` no longer includes the empty subsystem.
 - Made `is_cut` a property.
 - Renamed `macro.list_all_partitions` and `macro.list_all_groupings` to
@@ -21,7 +23,7 @@ Next Release
 - Moved `validate.StateUnreachableError` and `macro.ConditionallyDependentError`
   to the `exceptions` module.
 - Removed perturbation vector support.
-- Changed `utils.marginalize_out` to take a list of indices.
+- Changed `tpm.marginalize_out` to take a list of indices.
 - Fixed `macro.effective_info` to use the algorithm from the macro-micro paper.
 - Replace `constants.DIRECTIONS`, `constants.PAST`, and `constants.FUTURE` with
   a proper `Enum` class: `constants.Direction`. Past and future are now
@@ -42,8 +44,9 @@ Next Release
 - Added `macro.all_coarse_grains` and `macro.all_blackboxes` generators.
 - Added `Subsystem.cut_indices` property.
 - Added `Subsystem.cm` connectivity matrix alias.
-- Added `utils.all_states`, a generator over all states of an n-element system.
-- Added `utils.state_by_state` for testing whether a TPM is in state-by-state
+- Added `utils.all_states`, a generator over all states of an `n`-element
+  system.
+- Added `tpm.is_state_by_state` for testing whether a TPM is in state-by-state
   format.
 - `Network` now takes an optional `node_labels`  argument, allowing nodes to be
   referenced by a canonical name other than their indices. The nodes of a
@@ -51,9 +54,9 @@ Next Release
 - Added `models.normalize_constellation` for deterministically ordering a
   constellation.
 - Added a `Makefile`.
-- Added `utils.purview` for computing the purview of a repertoire.
 - Added an `exceptions` module.
-- Added `utils.repertoire_shape`.
+- Added `distribution.purview` for computing the purview of a repertoire.
+- Added `distribution.repertoire_shape`.
 - Added `config.PARTITION_TYPE` to control the ways in which φ-partitions are
   generated.
 - Added more functions to the `convert` module:
@@ -74,6 +77,8 @@ Next Release
     - `sbs2sbn` is `state_by_state2state_by_node`
 
 ### Refactor
+- Refactored the `utils` module into the `connectivity`, `distance`,
+  `distribution`, `partition`, `timescale`, and `tpm` modules.
 - Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
 - Improved string representations of PyPhi objects.
 - Refactored JSON support. The `jsonify` module now dumps PyPhi models to a
@@ -84,9 +89,13 @@ Next Release
 ### Optimizations
 - Added an analytic solution for the EMD computation between effect
   repertoires.
+- Improved the time complexity of `directed_bipartition_of_one` from
+  exponential to linear.
 
 ### Documentation
-- Updated docs and examples to reflect changes made to the macro API and usage.
+- Updated documentation and examples to reflect changes made to the `macro` API
+  and usage.
+- Added documentation pages for new modules.
 
 
 0.8.1

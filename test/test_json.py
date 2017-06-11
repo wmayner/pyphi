@@ -5,8 +5,8 @@
 import json
 import tempfile
 
-import pytest
 import numpy as np
+import pytest
 
 from pyphi import compute, exceptions, jsonify, models, network
 

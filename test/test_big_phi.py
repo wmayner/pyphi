@@ -3,16 +3,20 @@
 # test_big_phi.py
 
 import pickle
-import pytest
-import numpy as np
 from unittest.mock import patch
 
-from pyphi import constants, config, compute, models, utils, Network, Subsystem
-from pyphi.constants import Direction
-from pyphi.models import Cut, _null_bigmip
+import numpy as np
+import pytest
+
+from pyphi import Network, Subsystem, compute, config, constants, models, utils
 from pyphi.compute import constellation
 from pyphi.compute.big_phi import (_find_mip_parallel, _find_mip_sequential,
                                    big_mip_bipartitions)
+from pyphi.constants import Direction
+from pyphi.models import Cut, _null_bigmip
+from pyphi.partition import directed_bipartition
+
+# pylint: disable=unused-argument
 
 # TODO: split these into `concept` and `big_phi` tests
 
@@ -340,7 +344,7 @@ def test_big_mip_single_node_selfloops_dont_have_phi(s_single, flushcache,
 def test_find_mip_sequential_standard_example(s, flushcache, restore_fs_cache):
     flushcache()
     unpartitioned_constellation = constellation(s)
-    bipartitions = utils.directed_bipartition(s.node_indices)[1:-1]
+    bipartitions = directed_bipartition(s.node_indices, nontrivial=True)
     cuts = [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
     min_mip = _null_bigmip(s)
@@ -353,7 +357,7 @@ def test_find_mip_sequential_standard_example(s, flushcache, restore_fs_cache):
 def test_find_mip_parallel_standard_example(s, flushcache, restore_fs_cache):
     flushcache()
     unpartitioned_constellation = constellation(s)
-    bipartitions = utils.directed_bipartition(s.node_indices)[1:-1]
+    bipartitions = directed_bipartition(s.node_indices, nontrivial=True)
     cuts = [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
     min_mip = _null_bigmip(s)
@@ -367,12 +371,13 @@ def test_find_mip_sequential_noised_example(s_noised, flushcache,
                                             restore_fs_cache):
     flushcache()
     unpartitioned_constellation = constellation(s_noised)
-    bipartitions = utils.directed_bipartition(s_noised.node_indices)[1:-1]
+    bipartitions = directed_bipartition(s_noised.node_indices, nontrivial=True)
     cuts = [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
     min_mip = _null_bigmip(s_noised)
     min_mip.phi = float('inf')
-    mip = _find_mip_sequential(s_noised, cuts, unpartitioned_constellation, min_mip)
+    mip = _find_mip_sequential(s_noised, cuts, unpartitioned_constellation,
+                               min_mip)
 
     check_mip(mip, noised_answer)
 
@@ -382,12 +387,13 @@ def test_find_mip_parallel_noised_example(s_noised, flushcache,
                                           restore_fs_cache):
     flushcache()
     unpartitioned_constellation = constellation(s_noised)
-    bipartitions = utils.directed_bipartition(s_noised.node_indices)[1:-1]
+    bipartitions = directed_bipartition(s_noised.node_indices, nontrivial=True)
     cuts = [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
     min_mip = _null_bigmip(s_noised)
     min_mip.phi = float('inf')
-    mip = _find_mip_parallel(s_noised, cuts, unpartitioned_constellation, min_mip)
+    mip = _find_mip_parallel(s_noised, cuts, unpartitioned_constellation,
+                             min_mip)
     check_mip(mip, noised_answer)
 
 
@@ -489,7 +495,7 @@ def test_rule152_complexes_no_caching(rule152):
         diff = [utils.phi_eq(bigmip.phi, result['subsystem_phis'][perm[i]]) for
                 i, bigmip in list(enumerate(complexes))]
         assert all(utils.phi_eq(bigmip.phi, result['subsystem_phis'][perm[i]])
-                for i, bigmip in list(enumerate(complexes))[:])
+                   for i, bigmip in list(enumerate(complexes))[:])
         # Check the main complex in particular.
         main = compute.main_complex(net)
         # Check the phi value of the main complex.
@@ -498,9 +504,10 @@ def test_rule152_complexes_no_caching(rule152):
         assert (main.subsystem.node_indices ==
                 complexes[result['main_complex'] - 1].subsystem.node_indices)
         # Check that the concept's phi values are the same.
-        result_concepts = [c for c in result['concepts'] if c['is_irreducible']]
+        result_concepts = [c for c in result['concepts']
+                           if c['is_irreducible']]
         z = list(zip([c.phi for c in main.unpartitioned_constellation],
-                    [c['phi'] for c in result_concepts]))
+                     [c['phi'] for c in result_concepts]))
         diff = [i for i in range(len(z)) if not utils.phi_eq(z[i][0], z[i][1])]
         assert all(list(utils.phi_eq(c.phi, result_concepts[i]['phi']) for i, c
                         in enumerate(main.unpartitioned_constellation)))
@@ -513,7 +520,7 @@ def test_find_mip_parallel_micro(micro_s, flushcache, restore_fs_cache):
     flushcache()
 
     unpartitioned_constellation = constellation(micro_s)
-    bipartitions = utils.directed_bipartition(micro_s.node_indices)[1:-1]
+    bipartitions = directed_bipartition(micro_s.node_indices, nontrivial=True)
     cuts = [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
     min_mip = _null_bigmip(micro_s)
@@ -528,7 +535,7 @@ def test_find_mip_sequential_micro(micro_s, flushcache, restore_fs_cache):
     flushcache()
 
     unpartitioned_constellation = constellation(micro_s)
-    bipartitions = utils.directed_bipartition(micro_s.node_indices)[1:-1]
+    bipartitions = directed_bipartition(micro_s.node_indices, nontrivial=True)
     cuts = [Cut(bipartition[0], bipartition[1])
             for bipartition in bipartitions]
     min_mip = _null_bigmip(micro_s)
@@ -579,9 +586,9 @@ def test_big_mip_bipartitions():
         answer = [models.Cut((1,), (2, 3, 4)),
                   models.Cut((2,), (1, 3, 4)),
                   models.Cut((3,), (1, 2, 4)),
-                  models.Cut((1, 2, 3), (4,)),
                   models.Cut((4,), (1, 2, 3)),
-                  models.Cut((1, 2, 4), (3,)),
+                  models.Cut((2, 3, 4), (1,)),
                   models.Cut((1, 3, 4), (2,)),
-                  models.Cut((2, 3, 4), (1,))]
+                  models.Cut((1, 2, 4), (3,)),
+                  models.Cut((1, 2, 3), (4,))]
         assert big_mip_bipartitions((1, 2, 3, 4)) == answer

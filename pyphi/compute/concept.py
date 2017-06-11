@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # compute/concept.py
 
+"""
+Functions for computing concepts and constellations of concepts.
+"""
+
 import multiprocessing
 from time import time
 

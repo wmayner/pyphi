@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import pytest
 from pprint import pprint
-import numpy as np
 
+import numpy as np
+import pytest
+
+import example_networks
 from pyphi import constants
 from pyphi.constants import Direction
 from pyphi.models import Mip, Part
-
-import example_networks
-
 
 s = example_networks.s()
 

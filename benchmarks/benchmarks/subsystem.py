@@ -1,6 +1,7 @@
 import copy
 
-from pyphi import compute, config, examples, Subsystem
+from pyphi import Subsystem, compute, config, examples
+
 
 """
 PyPhi performance benchmarks

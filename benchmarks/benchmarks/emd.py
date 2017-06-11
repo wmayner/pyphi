@@ -1,7 +1,10 @@
 
 import os
+
 import numpy as np
+
 import pyphi
+
 
 """
 A set of benchmarks demonstrating the difference between the standard ``pyemd``
