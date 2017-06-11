@@ -76,7 +76,8 @@ class Network:
         form."""
         return self._tpm
 
-    def _build_tpm(self, tpm):
+    @staticmethod
+    def _build_tpm(tpm):
         """Validate the TPM passed by the user and convert to |N-D| form. """
         tpm = np.array(tpm)
 

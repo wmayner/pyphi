@@ -105,8 +105,8 @@ class SystemAttrs(namedtuple('SystemAttrs',
         labels = node_labels(self.node_indices)
         return generate_nodes(self.tpm, self.cm, self.state, labels)
 
-    @classmethod
-    def pack(cls, system):
+    @staticmethod
+    def pack(system):
         return SystemAttrs(system.tpm, system.cm, system.node_indices,
                            system.state)
 
@@ -192,7 +192,8 @@ class MacroSubsystem(Subsystem):
 
         validate.subsystem(self)
 
-    def _squeeze(self, system):
+    @staticmethod
+    def _squeeze(system):
         """Squeeze out all singleton dimensions in the Subsystem.
 
         Reindexes the subsystem so that the nodes are ``0..n`` where ``n`` is
@@ -220,7 +221,8 @@ class MacroSubsystem(Subsystem):
 
         return SystemAttrs(tpm, cm, node_indices, state)
 
-    def _blackbox_partial_noise(self, blackbox, system):
+    @staticmethod
+    def _blackbox_partial_noise(blackbox, system):
         """Noise connections from hidden elements to other boxes."""
 
         # Noise inputs from non-output elements hidden in other boxes
@@ -237,7 +239,8 @@ class MacroSubsystem(Subsystem):
 
         return system._replace(tpm=tpm)
 
-    def _blackbox_time(self, time_scale, blackbox,  system):
+    @staticmethod
+    def _blackbox_time(time_scale, blackbox,  system):
         """Black box the CM and TPM over the given time_scale."""
         blackbox = blackbox.reindex()
 
@@ -279,7 +282,8 @@ class MacroSubsystem(Subsystem):
 
         return SystemAttrs(tpm, cm, node_indices, state)
 
-    def _coarsegrain_space(self, coarse_grain, is_cut, system):
+    @staticmethod
+    def _coarsegrain_space(coarse_grain, is_cut, system):
         """Spatially coarse-grain the TPM and CM."""
 
         tpm = coarse_grain.macro_tpm(

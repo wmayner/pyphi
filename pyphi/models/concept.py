@@ -473,7 +473,7 @@ class Concept(cmp._Orderable):
         del dct['expanded_partitioned_cause_repertoire']
         del dct['expanded_partitioned_effect_repertoire']
 
-        return Concept(**dct)
+        return cls(**dct)
 
 
 class Constellation(tuple):
@@ -501,7 +501,7 @@ class Constellation(tuple):
 
     @classmethod
     def from_json(cls, json):
-        return Constellation(json['concepts'])
+        return cls(json['concepts'])
 
 
 def normalize_constellation(constellation):
