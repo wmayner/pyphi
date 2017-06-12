@@ -17,8 +17,7 @@ from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,
-                        directed_bipartition_of_one, directed_tripartition,
-                        k_partitions, partitions)
+                        directed_tripartition, k_partitions, partitions)
 from .tpm import condition_tpm, marginalize_out
 
 
