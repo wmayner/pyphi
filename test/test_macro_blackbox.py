@@ -5,8 +5,6 @@ from pyphi import Network, compute, config, convert, macro, models, utils
 
 
 # TODO: move these to examples.py
-
-
 @pytest.fixture
 def degenerate():
 
@@ -15,15 +13,15 @@ def degenerate():
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
-        if (ps[5] == 1):
+        if ps[5] == 1:
             cs[0] = 1
             cs[1] = 1
-        if (ps[0] == 1 and ps[1]):
+        if ps[0] == 1 and ps[1]:
             cs[2] = 1
-        if (ps[2] == 1):
+        if ps[2] == 1:
             cs[3] = 1
             cs[4] = 1
-        if (ps[3] == 1 and ps[4] == 1):
+        if ps[3] == 1 and ps[4] == 1:
             cs[5] = 1
         tpm[psi, :] = cs
 
@@ -59,18 +57,18 @@ def propogation_delay():
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
-        if (ps[5] == 1 or ps[7] == 1):
+        if ps[5] == 1 or ps[7] == 1:
             cs[0] = 1
-        if (ps[0] == 1):
+        if ps[0] == 1:
             cs[1] = 1
-        if (ps[1] ^ ps[6]):
+        if ps[1] ^ ps[6]:
             cs[2] = 1
-        if (ps[2] == 1):
+        if ps[2] == 1:
             cs[3] = 1
             cs[7] = 1
-        if (ps[3] == 1):
+        if ps[3] == 1:
             cs[4] = 1
-        if (ps[4] == 1):
+        if ps[4] == 1:
             cs[5] = 1
             cs[6] = 1
         tpm[psi, :] = cs
@@ -94,14 +92,16 @@ def propogation_delay():
     # Elements 1, 3, 5, 6, 7 are the COPY gates
     # 0, 2, and 4 correspond to the original OR, XOR, and COPY
     partition = ((0, 5, 7), (3, 4), (1, 2, 6))
-    outputs  = (0, 2, 4)
+    outputs = (0, 2, 4)
     blackbox = macro.Blackbox(partition, outputs)
 
-    # Over two time steps, the system is functionally the same as the basic system
+    # Over two time steps, the system is functionally the same as the basic
+    # system
     time_step = 2
 
     return macro.MacroSubsystem(net, cs, net.node_indices,
                                 time_scale=time_step, blackbox=blackbox)
+
 
 @pytest.mark.veryslow
 def test_basic_nor_or():
@@ -113,29 +113,29 @@ def test_basic_nor_or():
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
-        if (ps[5] == 0 and ps[11] == 0):
+        if ps[5] == 0 and ps[11] == 0:
             cs[0] = 1
-        if (ps[0] == 0):
+        if ps[0] == 0:
             cs[1] = 1
-        if (ps[1] == 1):
+        if ps[1] == 1:
             cs[2] = 1
-        if (ps[11] == 0):
+        if ps[11] == 0:
             cs[3] = 1
-        if (ps[3] == 0):
+        if ps[3] == 0:
             cs[4] = 1
-        if (ps[4] == 1):
+        if ps[4] == 1:
             cs[5] = 1
-        if (ps[2] == 0):
+        if ps[2] == 0:
             cs[6] = 1
-        if (ps[5] == 0):
+        if ps[5] == 0:
             cs[7] = 1
-        if (ps[6] == 0 and ps[7] == 0):
+        if ps[6] == 0 and ps[7] == 0:
             cs[8] = 1
-        if (ps[2] == 0 and ps[5] == 0):
+        if ps[2] == 0 and ps[5] == 0:
             cs[9] = 1
-        if (ps[9] == 1):
+        if ps[9] == 1:
             cs[10] = 1
-        if (ps[8] == 0 and ps[10] == 0):
+        if ps[8] == 0 and ps[10] == 0:
             cs[11] = 1
         tpm[psi, :] = cs
 
@@ -190,19 +190,19 @@ def test_xor_propogation_delay():
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
-        if (ps[2] ^ ps[7]):
+        if ps[2] ^ ps[7]:
             cs[0] = 1
-        if (ps[0] == 1):
+        if ps[0] == 1:
             cs[1] = 1
             cs[8] = 1
-        if (ps[1] ^ ps[5]):
+        if ps[1] ^ ps[5]:
             cs[3] = 1
-        if (ps[3] == 1):
+        if ps[3] == 1:
             cs[2] = 1
             cs[4] = 1
-        if (ps[4] ^ ps[8]):
+        if ps[4] ^ ps[8]:
             cs[6] = 1
-        if (ps[6] == 1):
+        if ps[6] == 1:
             cs[5] = 1
             cs[7] = 1
         tpm[psi, :] = cs
@@ -255,16 +255,16 @@ def test_soup():
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
-        if (ps[5] == 1):
+        if ps[5] == 1:
             cs[0] = 1
-        if (ps[3] == 1 and ps[5] == 1):
+        if ps[3] == 1 and ps[5] == 1:
             cs[1] = 1
-        if (ps[0] == 1 and ps[1]):
+        if ps[0] == 1 and ps[1]:
             cs[2] = 1
-        if (ps[2] == 1):
+        if ps[2] == 1:
             cs[3] = 1
             cs[4] = 1
-        if (ps[3] == 1 and ps[4] == 1):
+        if ps[3] == 1 and ps[4] == 1:
             cs[5] = 1
         tpm[psi, :] = cs
 
@@ -324,13 +324,13 @@ def test_coarsegrain_spatial_degenerate():
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
-        if (ps[0] == 1 and ps[1] == 1):
+        if ps[0] == 1 and ps[1] == 1:
             cs[2] = 1
             cs[3] = 1
-        if (ps[2] == 1 and ps[3] == 1):
+        if ps[2] == 1 and ps[3] == 1:
             cs[4] = 1
             cs[5] = 1
-        if (ps[4] == 1 and ps[5] == 1):
+        if ps[4] == 1 and ps[5] == 1:
             cs[0] = 1
             cs[1] = 1
         tpm[psi, :] = cs
