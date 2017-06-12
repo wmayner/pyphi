@@ -233,7 +233,6 @@ def _big_mip(cache_key, subsystem):
         result = time_annotated(min_mip, small_phi_time)
 
     log.info('Finished calculating big-phi data for %s.', subsystem)
-    log.debug('RESULT: \n%s', result)
 
     return result
 
@@ -342,7 +341,6 @@ def main_complex(network, state):
         result = _null_bigmip(empty_subsystem)
 
     log.info("Finished calculating main complex.")
-    log.debug("RESULT: \n%s", result)
 
     return result
 
