@@ -184,6 +184,20 @@ def to_n_dimensional(tpm):
     return tpm.reshape([2] * N + [N], order="F").astype(float)
 
 
+def to_2_dimensional(tpm):
+    """Reshape a state-by-node TPM to the |2-D| form.
+
+    See documentation for the |Network| object for more information on TPM
+    formats.
+    """
+    # Cast to np.array.
+    tpm = np.array(tpm)
+    # Get the number of nodes.
+    N = tpm.shape[-1]
+    # Reshape.
+    return tpm.reshape([2**N, N]).astype(float)
+
+
 def state_by_state2state_by_node(tpm):
     """Convert a state-by-state TPM to a state-by-node TPM.
 
