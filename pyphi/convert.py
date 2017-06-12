@@ -337,5 +337,7 @@ s2h = state2loli_index
 s2l = state2holi_index
 h2l_sbs = holi2loli_state_by_state
 l2h_sbs = loli2holi_state_by_state
+to_n_d = to_n_dimensional
+to_2_d = to_2_dimensional
 sbn2sbs = state_by_node2state_by_state
 sbs2sbn = state_by_state2state_by_node
