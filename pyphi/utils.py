@@ -124,9 +124,9 @@ def comb_indices(n, k):
 
 
 # TODO? implement this with numpy
+# From https://docs.python.org/3/library/itertools.html#itertools-recipes
 def powerset(iterable, nonempty=False):
-    """Return the power set of an iterable (see `itertools recipes
-    <http://docs.python.org/2/library/itertools.html#recipes>`_).
+    """Generate the power set of an iterable.
 
     Args:
         iterable (Iterable): The iterable from which to generate the power set.
@@ -138,6 +138,9 @@ def powerset(iterable, nonempty=False):
         >>> ps = powerset(np.arange(2))
         >>> print(list(ps))
         [(), (0,), (1,), (0, 1)]
+        >>> ps = powerset(np.arange(2), nonempty=True)
+        >>> print(list(ps))
+        [(0,), (1,), (0, 1)]
     """
     result = chain.from_iterable(combinations(iterable, r) for r in
                                  range(len(iterable) + 1))
