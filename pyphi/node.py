@@ -59,9 +59,9 @@ class Node:
         tpm_on = tpm[..., self.index]
 
         # TODO extend to nonbinary nodes
-        # Marginalize out non-input nodes that are in the subsystem, since
-        # the external nodes have already been dealt with as boundary
-        # conditions in the subsystem's TPM.
+        # Marginalize out non-input nodes that are in the subsystem, since the
+        # external nodes have already been dealt with as boundary conditions in
+        # the subsystem's TPM.
         non_input_indices = set(tpm_indices(tpm)) - set(self._input_indices)
         tpm_on = marginalize_out(non_input_indices, tpm_on)
 
@@ -82,10 +82,10 @@ class Node:
 
         # Deferred properties
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # ``inputs`` and ``outputs`` must be properties because at
-        # the time of node creation, the subsystem doesn't have a list of Node
-        # objects yet, only a size (and thus a range of node indices). So, we
-        # defer construction until the properties are needed.
+        # ``inputs`` and ``outputs`` must be properties because at the time of
+        # node creation, the subsystem doesn't have a list of Node objects yet,
+        # only a size (and thus a range of node indices). So, we defer
+        # construction until the properties are needed.
         self._inputs = None
         self._outputs = None
 
