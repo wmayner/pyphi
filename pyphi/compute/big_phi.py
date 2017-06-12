@@ -216,13 +216,15 @@ def _big_mip(cache_key, subsystem):
     small_phi_start = time()
     unpartitioned_constellation = constellation(subsystem)
     small_phi_time = round(time() - small_phi_start, config.PRECISION)
-    log.debug("Found unpartitioned constellation.")
 
     if not unpartitioned_constellation:
         # Short-circuit if there are no concepts in the unpartitioned
         # constellation.
+        log.info('Empty unpartitioned constellation; returning null MIP '
+                 'immediately.')
         result = time_annotated(_null_bigmip(subsystem))
     else:
+        log.debug('Found unpartitioned constellation.')
         cuts = big_mip_bipartitions(subsystem.cut_indices)
         min_mip = _null_bigmip(subsystem)
         min_mip.phi = float('inf')
