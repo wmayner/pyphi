@@ -147,7 +147,7 @@ def constellation(subsystem, mechanisms=False, purviews=False,
         constellation = _sequential_constellation
 
     if mechanisms is False:
-        mechanisms = utils.powerset(subsystem.node_indices)
+        mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
 
     return constellation(subsystem, mechanisms, purviews, past_purviews,
                          future_purviews)
