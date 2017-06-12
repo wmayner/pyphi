@@ -746,6 +746,8 @@ def all_blackboxes(indices):
         Blackbox: The next |Blackbox| of ``indices``.
     """
     for partition in all_partitions(indices):
+        # TODO? don't consider the empty set here
+        # (pass `nonempty=True` to `powerset`)
         for output_indices in utils.powerset(indices):
             blackbox = Blackbox(partition, output_indices)
             try:  # Ensure every box has at least one output
@@ -846,6 +848,8 @@ def all_macro_systems(network, state, blackbox, coarse_grain, time_scales):
             return all_coarse_grains(system)
         return all_coarse_grains_for_blackbox(blackbox)
 
+    # TODO? don't consider the empty set here
+    # (pass `nonempty=True` to `powerset`)
     for system in utils.powerset(network.node_indices):
         for time_scale in time_scales:
             for blackbox in blackboxes(system):
@@ -913,7 +917,7 @@ def emergence(network, state, blackbox=False, coarse_grain=True,
 def phi_by_grain(network, state):
     list_of_phi = []
 
-    systems = utils.powerset(network.node_indices)
+    systems = utils.powerset(network.node_indices, nonempty=True)
     for system in systems:
         micro_subsystem = Subsystem(network, state, system)
         phi = compute.big_phi(micro_subsystem)

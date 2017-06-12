@@ -57,7 +57,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         Returns:
             tuple[tuple[int]]
         """
-        all_mechanisms = utils.powerset(self.indices)
+        all_mechanisms = utils.powerset(self.indices, nonempty=True)
         return tuple(m for m in all_mechanisms if self.splits_mechanism(m))
 
     def apply_cut(self, cm):

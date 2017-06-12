@@ -47,7 +47,8 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
 
     elif isinstance(uncut_subsystem, macro.MacroSubsystem):
         mechanisms = {c.mechanism for c in unpartitioned_constellation}
-        for mechanism in utils.powerset(uncut_subsystem.node_indices):
+        for mechanism in utils.powerset(uncut_subsystem.node_indices,
+                                        nonempty=True):
             micro_mechanism = uncut_subsystem.macro2micro(mechanism)
             if cut.splits_mechanism(micro_mechanism):
                 mechanisms.add(mechanism)
@@ -276,7 +277,7 @@ def subsystems(network, state):
     """
     validate.is_network(network)
 
-    for subset in utils.powerset(network.node_indices):
+    for subset in utils.powerset(network.node_indices, nonempty=True):
         try:
             yield Subsystem(network, state, subset)
         except exceptions.StateUnreachableError:
@@ -311,11 +312,8 @@ def possible_complexes(network, state):
     """
     validate.is_network(network)
 
-    for subset in utils.powerset(network.causally_significant_nodes):
-        # Don't return empty system
-        if not subset:
-            continue
-
+    for subset in utils.powerset(network.causally_significant_nodes,
+                                 nonempty=True):
         # Don't return subsystems that are in an impossible state.
         try:
             yield Subsystem(network, state, subset)

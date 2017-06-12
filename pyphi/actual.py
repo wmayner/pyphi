@@ -432,8 +432,10 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
 
 def directed_account(context, direction, mechanisms=False, purviews=False,
                      norm=True, allow_neg=False):
-    """Set of all Occurence of the specified direction"""
+    """Return the set of all |Occurences| of the specified direction."""
     if mechanisms is False:
+        # TODO? don't consider the empty mechanism
+        # (pass `nonempty=True` to powerset)
         if direction == Direction.PAST:
             mechanisms = utils.powerset(context.effect_indices)
         elif direction == Direction.FUTURE:
@@ -603,6 +605,8 @@ def contexts(network, before_state, after_state):
     possible_causes = np.where(np.sum(network.connectivity_matrix, 1) > 0)[0]
     possible_effects = np.where(np.sum(network.connectivity_matrix, 0) > 0)[0]
 
+    # TODO? don't consider the empty set here
+    # (pass `nonempty=True` to `powerset`)
     for cause_subset in utils.powerset(possible_causes):
         for effect_subset in utils.powerset(possible_effects):
 
@@ -801,7 +805,7 @@ def extrinsic_events(network, past_state, current_state, future_state,
         main_complex = compute.main_complex(network, current_state)
         mc_nodes = main_complex.subsystem.node_indices
 
-    mechanisms = list(utils.powerset(mc_nodes))[1:]
+    mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
     all_nodes = network.node_indices
 
     return events(network, past_state, current_state, future_state, all_nodes,
