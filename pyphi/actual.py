@@ -505,7 +505,7 @@ def _evaluate_cut(context, cut, unpartitioned_account, direction=None):
 
     partitioned_account = account(cut_context, direction)
 
-    log.debug("Finished evaluating cut {}.".format(cut))
+    log.debug("Finished evaluating %s.", cut)
     alpha = account_distance(unpartitioned_account, partitioned_account)
 
     return AcBigMip(
@@ -549,16 +549,16 @@ def big_acmip(context, direction=None):
     if not direction:
         direction = Direction.BIDIRECTIONAL
     validate.direction(direction)
-    log.info("Calculating big-alpha for {}...".format(context))
+    log.info("Calculating big-alpha for %s...", context)
 
     if not context:
-        log.info('Context {} is empty; returning null MIP '
-                 'immediately.'.format(context))
+        log.info('Context %s is empty; returning null MIP '
+                 'immediately.', context)
         return _null_ac_bigmip(context, direction)
 
     if not connectivity.is_weak(context.network.cm, context.node_indices):
-        log.info('{} is not strongly/weakly connected; returning null MIP '
-                 'immediately.'.format(context))
+        log.info('%s is not strongly/weakly connected; returning null MIP '
+                 'immediately.', context)
         return _null_ac_bigmip(context, direction)
     cuts = _get_cuts(context)
 
@@ -576,16 +576,15 @@ def big_acmip(context, direction=None):
         for i, cut in enumerate(cuts):
             new_ac_mip = _evaluate_cut(context, cut, unpartitioned_account,
                                        direction)
-            log.debug("Finished {} of {} cuts.".format(
-                i + 1, len(cuts)))
+            log.debug("Finished %s of %s cuts.", i + 1, len(cuts))
             if new_ac_mip < ac_mip:
                 ac_mip = new_ac_mip
             # Short-circuit as soon as we find a MIP with effectively 0 phi.
             if not ac_mip:
                 break
         result = ac_mip
-    log.info("Finished calculating big-ac-phi data for {}.".format(context))
-    log.debug("RESULT: \n" + str(result))
+    log.info("Finished calculating big-ac-phi data for %s.", context)
+    log.debug("RESULT: \n%s", result)
     return result
 
 # ============================================================================
@@ -642,7 +641,7 @@ def causal_nexus(network, before_state, after_state, direction=None):
         empty_context = Context(network, before_state, after_state, (), ())
         result = _null_ac_bigmip(empty_context, direction)
     log.info("Finished calculating causal nexus.")
-    log.debug("RESULT: \n" + str(result))
+    log.debug("RESULT: \n%s", result)
     return result
 
 # ============================================================================
@@ -738,7 +737,7 @@ def true_constellation(subsystem, past_state, future_state):
     result = tuple([event.actual_cause for event in _events] +
                    [event.actual_effect for event in _events])
     log.info("Finished calculating true events.")
-    log.debug("RESULT: \n" + str(result))
+    log.debug("RESULT: \n%s", result)
 
     return result
 

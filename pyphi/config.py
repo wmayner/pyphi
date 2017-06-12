@@ -543,11 +543,11 @@ configure_logging()
 if this_module.LOG_CONFIG_ON_IMPORT:
     log = logging.getLogger(__name__)
 
-    log.info('PyPhi version {}'.format(__about__.__version__))
+    log.info('PyPhi version %s', __about__.__version__)
     if file_loaded:
         log.info('Loaded configuration from '
-                 '`./{}`'.format(PYPHI_CONFIG_FILENAME))
+                 '`./%s`', PYPHI_CONFIG_FILENAME)
     else:
         log.info('Using default configuration (no config file provided)')
 
-    log.info('Current PyPhi configuration:\n {}'.format(get_config_string()))
+    log.info('Current PyPhi configuration:\n %s', get_config_string())

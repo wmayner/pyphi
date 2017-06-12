@@ -36,7 +36,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     Returns:
         |BigMip|: The |BigMip| for that cut.
     """
-    log.debug("Evaluating cut {}...".format(cut))
+    log.debug("Evaluating %s...", cut)
 
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
@@ -57,7 +57,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
             list(cut.all_cut_mechanisms()))
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
-    log.debug("Finished evaluating cut {}.".format(cut))
+    log.debug("Finished evaluating %s.", cut)
 
     phi = constellation_distance(unpartitioned_constellation,
                                  partitioned_constellation)
@@ -131,7 +131,7 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
     """
     for i, cut in enumerate(cuts):
         new_mip = evaluate_cut(subsystem, cut, unpartitioned_constellation)
-        log.debug("Finished {} of {} cuts.".format(i + 1, len(cuts)))
+        log.debug("Finished %i of %i cuts.", i + 1, len(cuts))
         if new_mip < min_mip:
             min_mip = new_mip
         # Short-circuit as soon as we find a MIP with effectively 0 phi.
@@ -173,7 +173,7 @@ def _big_mip(cache_key, subsystem):
         intermediate calculations. The top level contains the basic MIP
         information for the given subsystem.
     """
-    log.info("Calculating big-phi data for {}...".format(subsystem))
+    log.info("Calculating big-phi data for %s...", subsystem)
     start = time()
 
     if config.PARALLEL_CUT_EVALUATION:
@@ -183,15 +183,15 @@ def _big_mip(cache_key, subsystem):
 
     # Annote a BigMip with the total elapsed calculation time, and optionally
     # also with the time taken to calculate the unpartitioned constellation.
-    def time_annotated(big_mip, small_phi_time=0.0):
-        big_mip.time = round(time() - start, config.PRECISION)
-        big_mip.small_phi_time = round(small_phi_time, config.PRECISION)
-        return big_mip
+    def time_annotated(bm, small_phi_time=0.0):
+        bm.time = round(time() - start, config.PRECISION)
+        bm.small_phi_time = round(small_phi_time, config.PRECISION)
+        return bm
 
     # Special case for single-node subsystems.
     if len(subsystem) == 1:
-        log.info('Single-node {}; returning the hard-coded single-node MIP '
-                 'immediately.'.format(subsystem))
+        log.info('Single-node %s; returning the hard-coded single-node MIP '
+                 'immediately.', subsystem)
         return time_annotated(_single_node_bigmip(subsystem))
 
     # Check for degenerate cases
@@ -202,13 +202,13 @@ def _big_mip(cache_key, subsystem):
     #   - an elementary mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null MIP.
     if not subsystem:
-        log.info('Subsystem {} is empty; returning null MIP '
-                 'immediately.'.format(subsystem))
+        log.info('Subsystem %s is empty; returning null MIP '
+                 'immediately.', subsystem)
         return time_annotated(_null_bigmip(subsystem))
 
     if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
-        log.info('{} is not strongly connected; returning null MIP '
-                 'immediately.'.format(subsystem))
+        log.info('%s is not strongly connected; returning null MIP '
+                 'immediately.', subsystem)
         return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
 
@@ -230,8 +230,8 @@ def _big_mip(cache_key, subsystem):
                             min_mip)
         result = time_annotated(min_mip, small_phi_time)
 
-    log.info("Finished calculating big-phi data for {}.".format(subsystem))
-    log.debug("RESULT: \n" + str(result))
+    log.info("Finished calculating big-phi data for %s.", subsystem)
+    log.debug("RESULT: \n%s", result)
 
     return result
 
@@ -340,7 +340,7 @@ def main_complex(network, state):
         result = _null_bigmip(empty_subsystem)
 
     log.info("Finished calculating main complex.")
-    log.debug("RESULT: \n" + str(result))
+    log.debug("RESULT: \n%s", result)
 
     return result
 

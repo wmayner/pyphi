@@ -74,8 +74,8 @@ def profile_network(filename):
 
             network, state = load_json_network(json.load(f))
 
-            log.info('Profiling {}...'.format(filename))
-            log.info('PyPhi configuration:\n' +
+            log.info('Profiling %s...', filename)
+            log.info('PyPhi configuration:\n%s',
                      pyphi.config.get_config_string())
 
             start = time()
@@ -91,7 +91,7 @@ def profile_network(filename):
             os.makedirs(os.path.dirname(pstatsfile), exist_ok=True)
             pr.dump_stats(pstatsfile)
 
-            log.info('Finished in {} seconds.'.format(end - start))
+            log.info('Finished in %i seconds.', end - start)
 
             resultfile = os.path.join(RESULTS, filename + '-results.pkl')
             os.makedirs(os.path.dirname(resultfile), exist_ok=True)
