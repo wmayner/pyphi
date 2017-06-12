@@ -36,7 +36,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     Returns:
         |BigMip|: The |BigMip| for that cut.
     """
-    log.debug("Evaluating %s...", cut)
+    log.debug('Evaluating %s...', cut)
 
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
@@ -57,7 +57,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
             list(cut.all_cut_mechanisms()))
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
-    log.debug("Finished evaluating %s.", cut)
+    log.debug('Finished evaluating %s.', cut)
 
     phi = constellation_distance(unpartitioned_constellation,
                                  partitioned_constellation)
@@ -131,7 +131,7 @@ def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
     """
     for i, cut in enumerate(cuts):
         new_mip = evaluate_cut(subsystem, cut, unpartitioned_constellation)
-        log.debug("Finished %i of %i cuts.", i + 1, len(cuts))
+        log.debug('Finished %i of %i cuts.', i + 1, len(cuts))
         if new_mip < min_mip:
             min_mip = new_mip
         # Short-circuit as soon as we find a MIP with effectively 0 phi.
@@ -173,7 +173,7 @@ def _big_mip(cache_key, subsystem):
         intermediate calculations. The top level contains the basic MIP
         information for the given subsystem.
     """
-    log.info("Calculating big-phi data for %s...", subsystem)
+    log.info('Calculating big-phi data for %s...', subsystem)
     start = time()
 
     if config.PARALLEL_CUT_EVALUATION:
@@ -212,16 +212,16 @@ def _big_mip(cache_key, subsystem):
         return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
 
-    log.debug("Finding unpartitioned constellation...")
+    log.debug('Finding unpartitioned constellation...')
     small_phi_start = time()
     unpartitioned_constellation = constellation(subsystem)
     small_phi_time = round(time() - small_phi_start, config.PRECISION)
 
     if not unpartitioned_constellation:
-        # Short-circuit if there are no concepts in the unpartitioned
-        # constellation.
         log.info('Empty unpartitioned constellation; returning null MIP '
                  'immediately.')
+        # Short-circuit if there are no concepts in the unpartitioned
+        # constellation.
         result = time_annotated(_null_bigmip(subsystem))
     else:
         log.debug('Found unpartitioned constellation.')
@@ -232,8 +232,8 @@ def _big_mip(cache_key, subsystem):
                             min_mip)
         result = time_annotated(min_mip, small_phi_time)
 
-    log.info("Finished calculating big-phi data for %s.", subsystem)
-    log.debug("RESULT: \n%s", result)
+    log.info('Finished calculating big-phi data for %s.', subsystem)
+    log.debug('RESULT: \n%s', result)
 
     return result
 
@@ -332,7 +332,7 @@ def complexes(network, state):
 
 def main_complex(network, state):
     """Return the main complex of the network."""
-    log.info("Calculating main complex...")
+    log.info('Calculating main complex...')
 
     result = complexes(network, state)
     if result:
