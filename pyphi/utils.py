@@ -9,7 +9,7 @@ external use.
 
 import hashlib
 import os
-from itertools import chain, combinations, product
+from itertools import chain, combinations, islice, product
 
 import numpy as np
 from scipy.misc import comb
@@ -124,7 +124,7 @@ def comb_indices(n, k):
 
 
 # TODO? implement this with numpy
-def powerset(iterable):
+def powerset(iterable, nonempty=False):
     """Return the power set of an iterable (see `itertools recipes
     <http://docs.python.org/2/library/itertools.html#recipes>`_).
 
@@ -139,8 +139,11 @@ def powerset(iterable):
         >>> print(list(ps))
         [(), (0,), (1,), (0, 1)]
     """
-    return chain.from_iterable(combinations(iterable, r)
-                               for r in range(len(iterable) + 1))
+    result = chain.from_iterable(combinations(iterable, r) for r in
+                                 range(len(iterable) + 1))
+    if nonempty:
+        return islice(result, 1, None)
+    return result
 
 
 def load_data(directory, num):
