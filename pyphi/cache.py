@@ -31,9 +31,10 @@ class _HashedSeq(list):
     the key multiple times on a cache miss.
     """
 
-    __slots__ = 'hashvalue'
+    __slots__ = ('hashvalue',)
 
     def __init__(self, tup, hash=hash):
+        super().__init__()
         self[:] = tup
         self.hashvalue = hash(tup)
 
@@ -41,6 +42,7 @@ class _HashedSeq(list):
         return self.hashvalue
 
 
+# pylint: disable=dangerous-default-value,redefined-builtin,too-many-arguments
 def _make_key(args, kwds, typed,
               kwd_mark=(object(),),
               fasttypes={int, str, frozenset, type(None)},
@@ -150,7 +152,7 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
     return decorating_function
 
 
-class DictCache():
+class DictCache:
     """A generic dictionary-based cache.
 
     Intended to be used as an object-level cache of method results.
@@ -233,7 +235,7 @@ class RedisConn:
 
 # TODO: use a cache prefix?
 # TODO: key schema for easy access/queries
-class RedisCache():
+class RedisCache:
 
     def clear(self):
         raise NotImplementedError
