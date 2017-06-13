@@ -8,8 +8,9 @@ import pytest
 import example_networks
 from pyphi import Network, config, exceptions
 from pyphi.constants import Direction
-from pyphi.models import Bipartition, Cut, Part, Tripartition
-from pyphi.subsystem import Subsystem, mip_bipartitions, wedge_partitions
+from pyphi.models import Bipartition, Cut, Part, Tripartition, KPartition
+from pyphi.subsystem import (Subsystem, mip_bipartitions, wedge_partitions,
+                             all_partitions)
 
 
 @config.override(VALIDATE_SUBSYSTEM_STATES=True)
@@ -179,6 +180,32 @@ def test_tripartitions_choses_smallest_purview(s):
         effect = s.core_effect(mechanism)
         assert effect.phi == 0.5
         assert effect.purview == (0,)
+
+
+def test_all_partitions():
+    mechanism, purview = (0, 1), (2,)
+    assert set(all_partitions(mechanism, purview)) == set([
+        KPartition(Part((0, 1), (2,)), Part((), ())),
+        KPartition(Part((0, 1), ()), Part((), (2,))),
+        KPartition(Part((0,), ()), Part((1,), ()), Part((), (2,))),
+        KPartition(Part((0,), (2,)), Part((1,), ()), Part((), ())),
+        KPartition(Part((0,), ()), Part((1,), (2,)), Part((), ()))])
+
+    mechanism, purview = (0, 1), (2, 3)
+    assert set(all_partitions(mechanism, purview)) == set([
+        KPartition(Part((0, 1), ()), Part((), (2, 3))),
+        KPartition(Part((0, 1), (2, 3)), Part((), ())),
+        KPartition(Part((0, 1), (3,)), Part((), (2,))),
+        KPartition(Part((0, 1), (2,)), Part((), (3,))),
+        KPartition(Part((0,), ()), Part((1,), (2, 3)), Part((), ())),
+        KPartition(Part((0,), (2, 3)), Part((1,), ()), Part((), ())),
+        KPartition(Part((0,), ()), Part((1,), ()), Part((), (2, 3))),
+        KPartition(Part((0,), ()), Part((1,), (3,)), Part((), (2,))),
+        KPartition(Part((0,), (2,)), Part((1,), ()), Part((), (3,))),
+        KPartition(Part((0,), ()), Part((1,), (2,)), Part((), (3,))),
+        KPartition(Part((0,), (3,)), Part((1,), (2,)), Part((), ())),
+        KPartition(Part((0,), (3,)), Part((1,), ()), Part((), (2,))),
+        KPartition(Part((0,), (2,)), Part((1,), (3,)), Part((), ()))])
 
 
 def test_is_cut(s):

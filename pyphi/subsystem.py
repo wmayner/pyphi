@@ -939,28 +939,39 @@ def wedge_partitions(mechanism, purview):
                 yield tripart
 
 
-def all_partitions(m, p):
-    m = list(m)
-    p = list(p)
-    mechanism_partitions = partitions(m)
-    for mechanism_partition in mechanism_partitions:
+def all_partitions(mechanism, purview):
+    """Returns a generator over all possible partitions of a mechanism and a
+    purview, consisting of any number of parts.
+
+    Args:
+        mechanism (tuple[int]): A mechanism.
+        purview (tuple[int]): A purview.
+
+   Yields:
+        KPartition: A partition of this mechanism and purview into ``k``
+        ``Parts``.
+   """
+    for mechanism_partition in partitions(mechanism):
         mechanism_partition.append([])
         n_mechanism_parts = len(mechanism_partition)
-        max_purview_partition = min(len(p), n_mechanism_parts)
+        max_purview_partition = min(len(purview), n_mechanism_parts)
         for n_purview_parts in range(1, max_purview_partition + 1):
-            purview_partitions = k_partitions(p, n_purview_parts)
             n_empty = n_mechanism_parts - n_purview_parts
-            for purview_partition in purview_partitions:
+            for purview_partition in k_partitions(purview, n_purview_parts):
                 purview_partition = [tuple(_list)
                                      for _list in purview_partition]
                 # Extend with empty tuples so purview partition has same size
                 # as mechanism purview
-                purview_partition.extend([() for j in range(n_empty)])
+                purview_partition.extend([()] * n_empty)
+
                 # Unique permutations to avoid duplicates empties
-                for permutation in set(itertools.permutations(purview_partition)):
-                    yield KPartition(
-                        *(Part(tuple(mechanism_partition[i]), tuple(permutation[i]))
-                          for i in range(n_mechanism_parts)))
+                for purview_permutation in set(itertools.permutations(purview_partition)):
+
+                    parts = [
+                        Part(tuple(m), tuple(p))
+                        for m, p in zip(mechanism_partition, purview_permutation)]
+
+                    yield KPartition(*parts)
 
 
 def effect_emd(d1, d2):
