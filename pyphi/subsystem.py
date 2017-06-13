@@ -967,8 +967,8 @@ def all_partitions(m, p):
 def effect_emd(d1, d2):
     """Compute the EMD between two effect repertoires.
 
-    Billy's synopsis: Because the nodes are independent, the EMD between
-    effect repertoires is equal to the sum of the EMDs between the marginal
+    Billy's synopsis: Because the nodes are independent, the EMD between effect
+    repertoires is equal to the sum of the EMDs between the marginal
     distributions of each node, and the EMD between marginal distribution for a
     node is the absolute difference in the probabilities that the node is off.
 
@@ -979,8 +979,8 @@ def effect_emd(d1, d2):
     Returns:
         float: The EMD between ``d1`` and ``d2``.
     """
-    return sum(np.abs(distribution.marginal_zero(d1, i) -
-                      distribution.marginal_zero(d2, i))
+    return sum(abs(distribution.marginal_zero(d1, i) -
+                   distribution.marginal_zero(d2, i))
                for i in range(d1.ndim))
 
 
