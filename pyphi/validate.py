@@ -8,9 +8,11 @@ Methods for validating arguments.
 
 import numpy as np
 
-from . import config, constants, convert, exceptions, utils
+from . import config, constants, convert, exceptions
 from .constants import EPSILON, Direction
 from .tpm import is_state_by_state
+
+# pylint: disable=redefined-outer-name
 
 
 def direction(direction):
@@ -31,8 +33,8 @@ def tpm(tpm, check_independence=True):
         * |2-D| state-by-node form, or
         * |N-D| state-by-node form.
     """
-    see_tpm_docs = ('See documentation for pyphi.Network for more information '
-                    'TPM formats.')
+    see_tpm_docs = ('See documentation for pyphi.Network for more information'
+                    'on TPM formats.')
     # Cast to np.array.
     tpm = np.array(tpm)
     # Get the number of nodes from the state-by-node TPM.
@@ -48,7 +50,7 @@ def tpm(tpm, check_independence=True):
         if tpm.shape[0] == tpm.shape[1] and check_independence:
             conditionally_independent(tpm)
     elif tpm.ndim == (N + 1):
-        if not (tpm.shape == tuple([2] * N + [N])):
+        if tpm.shape != tuple([2] * N + [N]):
             raise ValueError(
                 'Invalid shape for N-D state-by-node TPM: {}\nThe shape '
                 'should be {} for {} nodes. {}'.format(
@@ -84,7 +86,7 @@ def connectivity_matrix(cm):
     # Special case for empty matrices.
     if cm.size == 0:
         return True
-    if (cm.ndim != 2):
+    if cm.ndim != 2:
         raise ValueError("Connectivity matrix must be 2-dimensional.")
     if cm.shape[0] != cm.shape[1]:
         raise ValueError("Connectivity matrix must be square.")
