@@ -51,7 +51,7 @@ def tpm(tpm, check_independence=True):
         if not (tpm.shape == tuple([2] * N + [N])):
             raise ValueError(
                 'Invalid shape for N-D state-by-node TPM: {}\nThe shape '
-                'should be {} for {} nodes.'.format(
+                'should be {} for {} nodes. {}'.format(
                     tpm.shape, ([2] * N) + [N], N, see_tpm_docs))
     else:
         raise ValueError(
