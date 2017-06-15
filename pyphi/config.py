@@ -52,7 +52,9 @@ theoretical accuracy.
   between repertoires and concepts. The default is ``EMD``; the Earth Movers's
   Distance. ``KLD`` is the Kullback-Leibler Divergence. ``L1`` is the ``L1``
   distance. ``ENTROPY_DIFFERENCE`` is the absolute value of the difference in
-  entropy of the two distributions, ``abs(entropy(a) - entropy(b))``.
+  entropy of the two distributions, ``abs(entropy(a) - entropy(b))``. ``KLD``
+  cannot be used as a measure when performing big-phi computations because of
+  it's asymmetry.
 
     >>> defaults['MEASURE']
     'EMD'
