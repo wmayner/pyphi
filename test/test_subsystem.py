@@ -185,7 +185,6 @@ def test_tripartitions_choses_smallest_purview(s):
 def test_all_partitions():
     mechanism, purview = (0, 1), (2,)
     assert set(all_partitions(mechanism, purview)) == set([
-        KPartition(Part((0, 1), (2,)), Part((), ())),
         KPartition(Part((0, 1), ()), Part((), (2,))),
         KPartition(Part((0,), ()), Part((1,), ()), Part((), (2,))),
         KPartition(Part((0,), (2,)), Part((1,), ()), Part((), ())),
@@ -194,9 +193,6 @@ def test_all_partitions():
     mechanism, purview = (0, 1), (2, 3)
     assert set(all_partitions(mechanism, purview)) == set([
         KPartition(Part((0, 1), ()), Part((), (2, 3))),
-        KPartition(Part((0, 1), (2, 3)), Part((), ())),
-        KPartition(Part((0, 1), (3,)), Part((), (2,))),
-        KPartition(Part((0, 1), (2,)), Part((), (3,))),
         KPartition(Part((0,), ()), Part((1,), (2, 3)), Part((), ())),
         KPartition(Part((0,), (2, 3)), Part((1,), ()), Part((), ())),
         KPartition(Part((0,), ()), Part((1,), ()), Part((), (2, 3))),

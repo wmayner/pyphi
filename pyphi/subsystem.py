@@ -971,6 +971,11 @@ def all_partitions(mechanism, purview):
                         Part(tuple(m), tuple(p))
                         for m, p in zip(mechanism_partition, purview_permutation)]
 
+                    # Must partition the mechanism, unless the purview is fully
+                    # cut away from the mechanism.
+                    if parts[0].mechanism == mechanism and parts[0].purview:
+                        continue
+
                     yield KPartition(*parts)
 
 
