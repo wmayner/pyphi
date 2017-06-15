@@ -203,13 +203,12 @@ def test_validate_blackbox_and_coarsegrain():
 
 
 def test_measure():
-    config_name = 'config.SMALL_PHI_MEASURE'
-    validate.measure(constants.EMD, config_name)
-    validate.measure(constants.KLD, config_name)
-    validate.measure(constants.L1, config_name)
+    validate.measure(constants.EMD)
+    validate.measure(constants.KLD)
+    validate.measure(constants.L1)
 
     with pytest.raises(ValueError):
-        validate.measure('emd', config_name)
+        validate.measure('emd')
 
 
 def test_validate_partition_type():

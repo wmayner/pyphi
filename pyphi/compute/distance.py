@@ -25,21 +25,21 @@ def measure(d1, d2):
     Returns:
         float: The distance between ``d1`` and ``d2``.
     """
-    measure_name = config.BIG_PHI_MEASURE
-
-    if measure_name == EMD:
+    if config.MEASURE == EMD:
         return hamming_emd(d1, d2)
 
-    elif measure_name == L1:
+    elif config.MEASURE == L1:
         return l1(d1, d2)
 
-    elif measure_name == ENTROPY_DIFFERENCE:
+    elif config.MEASURE == ENTROPY_DIFFERENCE:
         return entropy_difference(d1, d2)
 
-    elif measure_name == KLD:
+    # If the distance is `inf` return a very large number instead so that
+    # the generalized EMD can still operate on a KLD distance matrix.
+    elif config.MEASURE == KLD:
         raise ValueError("KLD is not supported as a big-phi measure.")
 
-    validate.measure(measure_name, 'config.BIG_PHI_MEASURE')
+    validate.measure(config.MEASURE)
 
 
 def concept_distance(c1, c2):

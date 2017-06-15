@@ -248,8 +248,7 @@ def _big_mip_cache_key(subsystem):
         hash(subsystem),
         config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS,
         config.CUT_ONE_APPROXIMATION,
-        config.SMALL_PHI_MEASURE,
-        config.BIG_PHI_MEASURE,
+        config.MEASURE,
         config.PRECISION,
         config.VALIDATE_SUBSYSTEM_STATES,
         config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI

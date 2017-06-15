@@ -280,15 +280,16 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     assert mock_simple_distance.called is False
 
 
+
 @config.override(CACHE_BIGMIPS=True)
 def test_big_mip_cache_key_includes_config_dependencies(s, flushcache,
                                                         restore_fs_cache):
     flushcache()
 
-    with config.override(BIG_PHI_MEASURE='EMD'):
+    with config.override(MEASURE='EMD'):
         emd_big_phi = compute.big_phi(s)
 
-    with config.override(BIG_PHI_MEASURE='L1'):
+    with config.override(MEASURE='L1'):
         l1_big_phi = compute.big_phi(s)
 
     assert l1_big_phi != emd_big_phi

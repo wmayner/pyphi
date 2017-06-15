@@ -15,10 +15,8 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 # nodes, but this approximation is usually correct, and at worst provides an
 # upper bound for integrated information.
 CUT_ONE_APPROXIMATION: false
-# The measures to use when computing distances between repertoires and concepts.
-# ("EMD", "KLD", "L1", "ENTROPY_DIFFERENCE") are all valid options.
-SMALL_PHI_MEASURE: "EMD"
-BIG_PHI_MEASURE: "EMD"
+# The measure to use when computing phi ("EMD", "KLD", "L1")
+MEASURE: "EMD"
 
 # System resources
 # ~~~~~~~~~~~~~~~~

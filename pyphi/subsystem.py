@@ -1041,22 +1041,20 @@ def measure(direction, d1, d2):
         float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
     """
 
-    measure_name = config.SMALL_PHI_MEASURE
-
-    if measure_name == EMD:
+    if config.MEASURE == EMD:
         dist = emd(direction, d1, d2)
 
-    elif measure_name == KLD:
+    elif config.MEASURE == KLD:
         dist = kld(d1, d2)
 
-    elif measure_name == L1:
+    elif config.MEASURE == L1:
         dist = l1(d1, d2)
 
-    elif measure_name == ENTROPY_DIFFERENCE:
+    elif config.MEASURE == ENTROPY_DIFFERENCE:
         dist = entropy_difference(d1, d2)
 
     else:
-        validate.measure(measure_name, 'config.SMALL_PHI_MEASURE')
+        validate.measure(config.MEASURE)
 
     # TODO do we actually need to round here?
     return round(dist, config.PRECISION)

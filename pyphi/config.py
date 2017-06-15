@@ -48,18 +48,14 @@ theoretical accuracy.
     >>> defaults['CUT_ONE_APPROXIMATION']
     False
 
-- ``pyphi.config.SMALL_PHI_MEASURE``:
-  The measure to use when computing distances between partitioned and
-  unpartitioned repertoires. The default is ``EMD``; the Earth Movers's
+- ``pyphi.config.MEASURE``: The measure to use when computing distances
+  between repertoires and concepts. The default is ``EMD``; the Earth Movers's
   Distance. ``KLD`` is the Kullback-Leibler Divergence. ``L1`` is the ``L1``
   distance. ``ENTROPY_DIFFERENCE`` is the absolute value of the difference in
   entropy of the two distributions, ``abs(entropy(a) - entropy(b))``.
 
-    >>> defaults['SMALL_PHI_MEASURE']
+    >>> defaults['MEASURE']
     'EMD'
-
-- ``pyphi.config.BIG_PHI_MEASURE``: The measure to use to compute distances
-  between concepts. See ``config.SMALL_PHI_MEASURE`` for available options.
 
 
 System resources
@@ -350,9 +346,8 @@ DEFAULTS = {
     'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
     # Only check single nodes cuts for the MIP. 2**n cuts instead of n.
     'CUT_ONE_APPROXIMATION': False,
-    # The measures to use when computing phi
-    'SMALL_PHI_MEASURE': 'EMD',
-    'BIG_PHI_MEASURE': 'EMD',
+    # The measure to use when computing phi ('EMD', 'KLD', 'L1')
+    'MEASURE': 'EMD',
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Controls whether concepts are evaluated in parallel.
     'PARALLEL_CONCEPT_EVALUATION': False,
