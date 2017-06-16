@@ -64,7 +64,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
                                  partitioned_constellation)
 
     return BigMip(
-        phi=round(phi, config.PRECISION),
+        phi=phi,
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=partitioned_constellation,
         subsystem=uncut_subsystem,

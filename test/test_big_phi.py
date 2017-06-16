@@ -258,6 +258,9 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     moved to the null concept and all other concepts are the same then
     we use the simple constellation distance. Otherwise, use the EMD.
     """
+    mock_emd_distance.return_value = float()
+    mock_simple_distance.return_value = float()
+
     make_mice = lambda: models.Mice(models.Mip(
         phi=None, direction=None, mechanism=None,
         purview=None, partition=None,
@@ -279,6 +282,17 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     assert mock_emd_distance.called is True
     assert mock_simple_distance.called is False
 
+
+def test_constellation_distance_switches_to_small_phi_difference(s):
+    mip = compute.big_mip(s)
+    constellations = (mip.unpartitioned_constellation,
+                      mip.partitioned_constellation)
+
+    with config.override(USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE=False):
+        assert 2.3125 == compute.constellation_distance(*constellations)
+
+    with config.override(USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE=True):
+        assert 1.083333 == compute.constellation_distance(*constellations)
 
 
 @config.override(CACHE_BIGMIPS=True)

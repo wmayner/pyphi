@@ -325,6 +325,11 @@ Miscellaneous
     >>> defaults['PICK_SMALLEST_PURVIEW']
     False
 
+- ``pyphi.config.USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE``: If set
+  to ``True``, the distance between constellations (when computing |BigMip|) is
+  calculated using the difference between the sum of |small_phi| in the
+  constellations instead of the extended EMD.
+
 -------------------------------------------------------------------------------
 """
 
@@ -411,6 +416,8 @@ DEFAULTS = {
     'PARTITION_TYPE': 'BI',
     # Controls how to pick MIPs in the case of phi-ties
     'PICK_SMALLEST_PURVIEW': False,
+    # Use the difference in sum of small phi for the constellation distance
+    'USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE': False,
 }
 
 # Get a reference to this module's dictionary so we can set the configuration

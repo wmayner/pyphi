@@ -159,6 +159,9 @@ def constellation_distance(C1, C2):
     Returns:
         float: The distance between the two constellations in concept-space.
     """
+    if config.USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE:
+        return round(small_phi_constellation_distance(C1, C2), config.PRECISION)
+
     concepts_only_in_C1 = [
         c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
     concepts_only_in_C2 = [
@@ -166,7 +169,14 @@ def constellation_distance(C1, C2):
     # If the only difference in the constellations is that some concepts
     # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:
-        return _constellation_distance_simple(C1, C2)
+        dist = _constellation_distance_simple(C1, C2)
     else:
-        return _constellation_distance_emd(concepts_only_in_C1,
+        dist = _constellation_distance_emd(concepts_only_in_C1,
                                            concepts_only_in_C2)
+
+    return round(dist, config.PRECISION)
+
+
+def small_phi_constellation_distance(C1, C2):
+    """Return the difference in small phi between constellations."""
+    return sum(c.phi for c in C1) - sum(c.phi for c in C2)
