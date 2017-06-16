@@ -49,64 +49,26 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
     return concept
 
 
-def _sequential_constellation(subsystem, mechanisms, purviews=False,
-                              past_purviews=False, future_purviews=False):
-    concepts = [concept(subsystem, mechanism, purviews=purviews,
-                        past_purviews=past_purviews,
-                        future_purviews=future_purviews)
-                for mechanism in mechanisms]
-    # Filter out falsy concepts, i.e. those with effectively zero Phi.
-    return models.Constellation(filter(None, concepts))
+class ComputeConstellation(parallel.MapReduce):
+    """Engine for computing a constellation."""
+    description = 'Computing concepts'
 
+    def empty_result(self, *args):
+        return []
 
-def _concept_wrapper(in_queue, out_queue, subsystem, purviews=False,
-                     past_purviews=False, future_purviews=False):
-    """Wrapper for parallel evaluation of concepts."""
-    while True:
-        mechanism = in_queue.get()
-        if mechanism is None:
-            break
-        new_concept = concept(subsystem, mechanism, purviews=purviews,
-                              past_purviews=past_purviews,
-                              future_purviews=future_purviews)
+    def compute(self, mechanism, subsystem, purviews, past_purviews,
+                future_purviews):
+        """Compute a concept for a mechanism, in this subsystem with the
+        provided purviews."""
+        return concept(subsystem, mechanism, purviews=purviews,
+                       past_purviews=past_purviews,
+                       future_purviews=future_purviews)
+
+    def process_result(self, new_concept, concepts):
+        """Save all concepts with non-zero phi to the constellation."""
         if new_concept.phi > 0:
-            out_queue.put(new_concept)
-    out_queue.put(None)
-
-
-def _parallel_constellation(subsystem, mechanisms, purviews=False,
-                            past_purviews=False, future_purviews=False):
-
-    number_of_processes = parallel.get_num_processes()
-
-    # Define input and output queues and load the input queue with all possible
-    # cuts and a 'poison pill' for each process.
-    in_queue = multiprocessing.Queue()
-    out_queue = multiprocessing.Queue()
-    for mechanism in mechanisms:
-        in_queue.put(mechanism)
-    for i in range(number_of_processes):
-        in_queue.put(None)
-
-    # Initialize the processes and start them.
-    for i in range(number_of_processes):
-        args = (in_queue, out_queue, subsystem, purviews,
-                past_purviews, future_purviews)
-        process = multiprocessing.Process(target=_concept_wrapper, args=args)
-        process.start()
-
-    # Continue to process output queue until all processes have completed, or a
-    # 'poison pill' has been returned.
-    concepts = []
-    while True:
-        new_concept = out_queue.get()
-        if new_concept is None:
-            number_of_processes -= 1
-            if number_of_processes == 0:
-                break
-        else:
             concepts.append(new_concept)
-    return models.Constellation(concepts)
+        return concepts
 
 
 def constellation(subsystem, mechanisms=False, purviews=False,
@@ -140,17 +102,12 @@ def constellation(subsystem, mechanisms=False, purviews=False,
     Returns:
         |Constellation|: A tuple of every |Concept| in the constellation.
     """
-
-    if config.PARALLEL_CONCEPT_EVALUATION:
-        constellation = _parallel_constellation
-    else:
-        constellation = _sequential_constellation
-
     if mechanisms is False:
         mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
 
-    return constellation(subsystem, mechanisms, purviews, past_purviews,
-                         future_purviews)
+    engine = ComputeConstellation(mechanisms, subsystem, purviews,
+                                  past_purviews, future_purviews)
+    return models.Constellation(engine.run(config.PARALLEL_CONCEPT_EVALUATION))
 
 
 def conceptual_information(subsystem):

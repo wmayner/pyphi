@@ -8,11 +8,13 @@ Functions for computing concepts, constellations, and integrated information.
 
 import functools
 import logging
-import multiprocessing
 from time import time
 
 from . import parallel
 from .. import config, connectivity, exceptions, memory, utils, validate
+from .concept import constellation
+from .distance import constellation_distance
+from .parallel import MapReduce
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem
@@ -71,74 +73,31 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
         cut_subsystem=cut_subsystem)
 
 
-# Wrapper for `evaluate_cut` for parallel processing.
-def _eval_wrapper(in_queue, out_queue, subsystem, unpartitioned_constellation):
-    while True:
-        cut = in_queue.get()
-        if cut is None:
-            break
-        new_mip = evaluate_cut(subsystem, cut, unpartitioned_constellation)
-        out_queue.put(new_mip)
-    out_queue.put(None)
+class FindMip(MapReduce):
+    """Computation engine for finding the minimal ``BigMip``."""
+    description = 'Evaluating \u03D5 cuts'
 
+    def empty_result(self, subsystem, unpartitioned_constellation):
+        """Begin with a mip with infinite phi; all actual mips will have less
+        phi."""
+        min_mip = _null_bigmip(subsystem)
+        min_mip.phi = float('inf')
+        return min_mip
 
-def _find_mip_parallel(subsystem, cuts, unpartitioned_constellation, min_mip):
-    """Find the MIP for a subsystem with a parallel loop over all cuts.
+    def compute(self, cut, subsystem, unpartitioned_constellation):
+        """Evaluate a cut."""
+        return evaluate_cut(subsystem, cut, unpartitioned_constellation)
 
-    Uses the specified number of cores.
-    """
-    number_of_processes = parallel.get_num_processes()
-    # Define input and output queues to allow short-circuit if a cut if found
-    # with zero Phi. Load the input queue with all possible cuts and a 'poison
-    # pill' for each process.
-    in_queue = multiprocessing.Queue()
-    out_queue = multiprocessing.Queue()
-    for cut in cuts:
-        in_queue.put(cut)
-    for i in range(number_of_processes):
-        in_queue.put(None)
-    # Initialize the processes and start them.
-    processes = [
-        multiprocessing.Process(target=_eval_wrapper,
-                                args=(in_queue, out_queue, subsystem,
-                                      unpartitioned_constellation))
-        for i in range(number_of_processes)
-    ]
-    for i in range(number_of_processes):
-        processes[i].start()
-    # Continue to process output queue until all processes have completed, or a
-    # 'poison pill' has been returned.
-    while True:
-        new_mip = out_queue.get()
-        if new_mip is None:
-            number_of_processes -= 1
-            if number_of_processes == 0:
-                break
-        elif new_mip.phi == 0:
-            min_mip = new_mip
-            for process in processes:
-                process.terminate()
-            break
+    def process_result(self, new_mip, min_mip):
+        """Check if the new mip has smaller phi than the standing result."""
+        if new_mip.phi == 0:
+            self.done = True  # Short-circuit
+            return new_mip
+
         elif new_mip < min_mip:
-            min_mip = new_mip
-    return min_mip
+            return new_mip
 
-
-def _find_mip_sequential(subsystem, cuts, unpartitioned_constellation,
-                         min_mip):
-    """Find the minimal cut for a subsystem by sequentially loop over all cuts.
-
-    Holds only two |BigMip|s in memory at once.
-    """
-    for i, cut in enumerate(cuts):
-        new_mip = evaluate_cut(subsystem, cut, unpartitioned_constellation)
-        log.debug('Finished %i of %i cuts.', i + 1, len(cuts))
-        if new_mip < min_mip:
-            min_mip = new_mip
-        # Short-circuit as soon as we find a MIP with effectively 0 phi.
-        if min_mip.phi == 0:
-            break
-    return min_mip
+        return min_mip
 
 
 def big_mip_bipartitions(nodes):
@@ -176,11 +135,6 @@ def _big_mip(cache_key, subsystem):
     """
     log.info('Calculating big-phi data for %s...', subsystem)
     start = time()
-
-    if config.PARALLEL_CUT_EVALUATION:
-        _find_mip = _find_mip_parallel
-    else:
-        _find_mip = _find_mip_sequential
 
     # Annote a BigMip with the total elapsed calculation time, and optionally
     # also with the time taken to calculate the unpartitioned constellation.
@@ -227,10 +181,8 @@ def _big_mip(cache_key, subsystem):
     else:
         log.debug('Found unpartitioned constellation.')
         cuts = big_mip_bipartitions(subsystem.cut_indices)
-        min_mip = _null_bigmip(subsystem)
-        min_mip.phi = float('inf')
-        min_mip = _find_mip(subsystem, cuts, unpartitioned_constellation,
-                            min_mip)
+        finder = FindMip(cuts, subsystem, unpartitioned_constellation)
+        min_mip = finder.run(config.PARALLEL_CUT_EVALUATION)
         result = time_annotated(min_mip, small_phi_time)
 
     log.info('Finished calculating big-phi data for %s.', subsystem)
@@ -320,10 +272,26 @@ def possible_complexes(network, state):
             continue
 
 
+class FindComplexes(MapReduce):
+    """Computation engine for computing irreducible complexes of a network."""
+    description = 'Finding complexes'
+
+    def empty_result(self):
+        return []
+
+    def compute(self, subsystem):
+        return big_mip(subsystem)
+
+    def process_result(self, new_big_mip, complexes):
+        if new_big_mip.phi > 0:
+            complexes.append(new_big_mip)
+        return complexes
+
+
 def complexes(network, state):
     """Return all irreducible complexes of the network."""
-    return tuple(filter(None, (big_mip(subsystem) for subsystem in
-                               possible_complexes(network, state))))
+    engine = FindComplexes(possible_complexes(network, state))
+    return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
 
 
 def main_complex(network, state):

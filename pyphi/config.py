@@ -82,13 +82,20 @@ long time!), resulting in data loss.
     >>> defaults['PARALLEL_CUT_EVALUATION']
     True
 
+- ``pyphi.config.PARALLEL_COMPLEX_EVALUATION``: Control whether systems are
+  evaluated in parallel when computing complexes.
+
+    >>> defaults['PARALLEL_COMPLEX_EVALUATION']
+    False
+
   .. warning::
 
-    ``PARALLEL_CONCEPT_EVALUATION`` and ``PARALLEL_CUT_EVALUATION`` should not
-    both be set to ``True``. Enabling both parallelization modes will slow down
-    computations. If you are doing |big_phi|-computations (with ``big_mip``,
-    ``main_complex``, etc.) ``PARALLEL_CUT_EVALUATION`` will be fastest. Use
-    ``PARALLEL_CONCEPT_EVALUATION`` if you are only computing constellations.
+    Only one of ``PARALLEL_CONCEPT_EVALUATION``, ``PARALLEL_CUT_EVALUATION``,
+    and ``PARALLEL_COMPLEX_EVALUATION`` can be set to ``True`` at a time. For
+    maximal efficiency, you should parallelize the highest level computations
+    possible: eg. parallelize complex evaluation instead of cut evaluation, but
+    only if you are actually computing complexes. You should only parallelize
+    concept evaluation if you are just computing constellations.
 
 - ``pyphi.config.NUMBER_OF_CORES``: Control the number of CPU cores used to
   evaluate unidirectional cuts. Negative numbers count backwards from the total
@@ -192,8 +199,8 @@ See the `documentation on Python's logger
 
 - ``pyphi.config.LOG_STDOUT_LEVEL``: Controls the level of log messages written
   to standard output. Can be one of ``'DEBUG'``, ``'INFO'``,
-  ``'WARNING'``, ``'ERROR'``, ``'CRITICAL'``, or ``None``. ``DEBUG`` is the
-  least restrictive level and will show the most log messages. ``CRITICAL`` is
+  ``'WARNING'``, ``'ERROR'``, ``'CRITICAL'``, or ``None``. ``'DEBUG'`` is the
+  least restrictive level and will show the most log messages. ``'CRITICAL'`` is
   the most restrictive level and will only display information about
   unrecoverable errors. If set to ``None``, logging to standard output will be
   disabled entirely.
@@ -217,6 +224,12 @@ See the `documentation on Python's logger
   configuration is printed when PyPhi is imported.
 
     >>> defaults['LOG_CONFIG_ON_IMPORT']
+    True
+
+- ``pyphi.config.PROGRESS_BARS``: Controls whether to show progress bars on
+  the console.
+
+    >>> defaults['PROGRESS_BARS']
     True
 
 
@@ -362,6 +375,9 @@ DEFAULTS = {
     # memory. If cuts are evaluated sequentially, only two BigMips need to be
     # in memory at a time.
     'PARALLEL_CUT_EVALUATION': True,
+    # Controls whether systems are evaluated in parallel when searching for
+    # complexes.
+    'PARALLEL_COMPLEX_EVALUATION': False,
     # The number of CPU cores to use in parallel cut evaluation. -1 means all
     # available cores, -2 means all but one available cores, etc.
     'NUMBER_OF_CORES': -1,
@@ -402,6 +418,8 @@ DEFAULTS = {
     'LOG_STDOUT_LEVEL': 'WARNING',
     # Controls whether the current configuration is logged upon import.
     'LOG_CONFIG_ON_IMPORT': True,
+    # Enable/disable progress bars
+    'PROGRESS_BARS': True,
     # The number of decimal points to which phi values are considered accurate.
     'PRECISION': 6,
     # Controls whether a subsystem's state is validated when the subsystem is
@@ -471,7 +489,7 @@ def configure_logging():
         'disable_existing_loggers': False,
         'formatters': {
             'standard': {
-                'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
+                'format': '%(asctime)s [%(name)s] %(levelname)s %(processName)s: %(message)s'
             }
         },
         'handlers': {
@@ -483,7 +501,7 @@ def configure_logging():
             },
             'stdout': {
                 'level': this_module.LOG_STDOUT_LEVEL,
-                'class': 'logging.StreamHandler',
+                'class': 'pyphi.logging.ProgressBarHandler',
                 'formatter': 'standard',
             }
         },
