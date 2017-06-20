@@ -18,8 +18,6 @@ from .parallel import MapReduce
 from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem
-from .concept import constellation
-from .distance import constellation_distance
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
