@@ -12,7 +12,6 @@ import logging
 import multiprocessing
 import threading
 
-from tqdm import tqdm
 from tblib import Traceback
 
 from .. import config
@@ -48,16 +47,20 @@ def get_num_processes():
 
 
 class ExceptionWrapper:
-    """Exception wrapper suitable for passing exceptions through instances of
-    ``multiprocessing.Queue``.
+    """A picklable wrapper suitable for passing exception tracebacks through
+    instances of ``multiprocessing.Queue``.
+
+    Args:
+        exception (Exception): The exception to wrap.
     """
-    def __init__(self, ee):
-        self.ee = ee
-        __,  __, tb = sys.exc_info()
+    def __init__(self, exception):
+        self.exception = exception
+        _, _, tb = sys.exc_info()
         self.tb = Traceback(tb)
 
     def reraise(self):
-        raise self.ee.with_traceback(self.tb.as_traceback())
+        """Re-raise the exception."""
+        raise self.exception.with_traceback(self.tb.as_traceback())
 
 
 POISON_PILL = None
@@ -97,6 +100,7 @@ class MapReduce:
     def __init__(self, iterable, *context):
         self.iterable = list(iterable)
         self.context = context
+        self.done = False
 
         # Initialize a progress bar
         # Forked worker processes can't show progress bars.
@@ -104,7 +108,15 @@ class MapReduce:
         self.progress = ProgressBar(total=len(self.iterable), leave=False,
                                     disable=disable, desc=self.description)
 
-    def empty_result(self, obj, *context):
+        # Attributes used by parallel computations
+        self.in_queue = None
+        self.out_queue = None
+        self.log_queue = None
+        self.log_thread = None
+        self.processes = None
+        self.number_of_processes = None
+
+    def empty_result(self, *context):
         """Return the default result with which to begin the computation."""
         raise NotImplementedError
 
@@ -137,7 +149,6 @@ class MapReduce:
 
     def worker(self, in_queue, out_queue, log_queue, *context):
         """A worker process, run by ``multiprocessing.Process``."""
-
         try:
             self.forked = True
             log.debug('Worker process starting...')
@@ -153,7 +164,7 @@ class MapReduce:
             out_queue.put(POISON_PILL)
             log.debug('Worker process exiting - no more jobs')
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             out_queue.put(ExceptionWrapper(e))
 
     def start_parallel(self):
@@ -199,7 +210,7 @@ class MapReduce:
         # are shut down before terminating.
         # TODO: use an Event instead?
         for process in self.processes:
-            log.debug('Terminating worker process {}'.format(process))
+            log.debug('Terminating worker process %s', process)
             process.terminate()
 
     def run_parallel(self):
@@ -208,7 +219,6 @@ class MapReduce:
         """
         self.start_parallel()
 
-        self.done = False
         result = self.empty_result(*self.context)
 
         while not self.done:
@@ -232,7 +242,6 @@ class MapReduce:
         """Perform the computation sequentially, only holding two computed
         objects in memory at a time.
         """
-        self.done = False
         result = self.empty_result(*self.context)
 
         for obj in self.iterable:
@@ -250,10 +259,15 @@ class MapReduce:
         return result
 
     def run(self, parallel=True):
+        """Perform the computation.
+
+        Keyword Args:
+            parallel (boolean): If True, run the computation in parallel.
+                Otherwise, operate sequentially.
+        """
         if parallel:
             return self.run_parallel()
-        else:
-            return self.run_sequential()
+        return self.run_sequential()
 
 
 # TODO: maintain a single log thread?
@@ -281,7 +295,7 @@ class LogThread(threading.Thread):
 
 def configure_worker_logging(queue):
     """Configure a worker process to log all messages to ``queue``."""
-    config = {
+    logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
         'handlers': {
@@ -294,5 +308,4 @@ def configure_worker_logging(queue):
             'level': 'DEBUG',
             'handlers': ['queue']
         },
-    }
-    logging.config.dictConfig(config)
+    })
