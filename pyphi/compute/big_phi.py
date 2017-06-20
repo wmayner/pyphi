@@ -77,9 +77,7 @@ class FindMip(MapReduce):
     def empty_result(self, subsystem, unpartitioned_constellation):
         """Begin with a mip with infinite phi; all actual mips will have less
         phi."""
-        min_mip = _null_bigmip(subsystem)
-        min_mip.phi = float('inf')
-        return min_mip
+        return _null_bigmip(subsystem, phi=float('inf'))
 
     def compute(self, cut, subsystem, unpartitioned_constellation):
         """Evaluate a cut."""

@@ -92,12 +92,12 @@ class BigMip(cmp._Orderable):
         }
 
 
-def _null_bigmip(subsystem):
+def _null_bigmip(subsystem, phi=0.0):
     """Return a |BigMip| with zero |big_phi| and empty constellations.
 
     This is the MIP associated with a reducible subsystem.
     """
-    return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=0.0,
+    return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=phi,
                   unpartitioned_constellation=(), partitioned_constellation=())
 
 
