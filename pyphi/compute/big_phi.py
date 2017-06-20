@@ -10,7 +10,6 @@ import functools
 import logging
 from time import time
 
-from . import parallel
 from .. import config, connectivity, exceptions, memory, utils, validate
 from .concept import constellation
 from .distance import constellation_distance
@@ -118,7 +117,7 @@ def big_mip_bipartitions(nodes):
             for bipartition in bipartitions]
 
 
-# TODO document big_mip
+# pylint: disable=unused-argument
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
     """Return the minimal information partition of a subsystem.

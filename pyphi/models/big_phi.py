@@ -92,7 +92,6 @@ class BigMip(cmp._Orderable):
         }
 
 
-# TODO document
 def _null_bigmip(subsystem):
     """Return a |BigMip| with zero |big_phi| and empty constellations.
 
@@ -115,5 +114,5 @@ def _single_node_bigmip(subsystem):
             partitioned_constellation=(),
             subsystem=subsystem,
             cut_subsystem=subsystem)
-    else:
-        return _null_bigmip(subsystem)
+
+    return _null_bigmip(subsystem)
