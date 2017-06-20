@@ -6,13 +6,14 @@
 Helper functions for formatting pretty representations of PyPhi models.
 """
 
+from fractions import Fraction
 from itertools import chain
 
-from .. import config, utils
+from .. import config, utils, constants
 
 # TODO: will these print correctly on all terminals?
 SMALL_PHI = '\u03C6'
-BIG_PHI = '\u03D5'
+BIG_PHI = '\u03A6'
 
 TOP_LEFT_CORNER = '\u250C'
 TOP_RIGHT_CORNER = '\u2510'
@@ -25,9 +26,13 @@ HEADER_BAR_1 = '\u2550'
 HEADER_BAR_2 = '\u2501'
 HEADER_BAR_3 = '\u254D'
 
+DOTTED_HEADER = '\u2574'
+
 CUT_SYMBOL = '\u2501' * 2 + '/ /' + '\u2501' * 2 + '\u25B6'
 
-EMPTY_SET = '\u2205'
+EMPTY_SET = '[]'
+
+NICE_DENOMINATORS = list(range(16)) + [16, 32, 64, 128]
 
 # repr verbosity levels
 LOW = 0
@@ -148,8 +153,8 @@ def side_by_side(left, right):
     return '\n'.join(a + b for a, b in zip(left_lines, right_lines)) + '\n'
 
 
-def header(header, text, over_char=None, under_char=None, center=True):
-    """Center a header over a block of text.
+def header(head, text, over_char=None, under_char=None, center=True):
+    """Center a head over a block of text.
 
     The width of the text is the width of the longest line of the text.
     """
@@ -158,19 +163,19 @@ def header(header, text, over_char=None, under_char=None, center=True):
 
     # Center or left-justify
     if center:
-        header = header.center(width) + '\n'
+        head = head.center(width) + '\n'
     else:
-        header = header.ljust(width) + '\n'
+        head = head.ljust(width) + '\n'
 
-    # Underline header
+    # Underline head
     if under_char:
-        header = header + under_char * width + '\n'
+        head = head + under_char * width + '\n'
 
-    # 'Overline' header
+    # 'Overline' head
     if over_char:
-        header = over_char * width + '\n' + header
+        head = over_char * width + '\n' + head
 
-    return header + text
+    return head + text
 
 
 def labels(indices, subsystem=None):
@@ -180,10 +185,29 @@ def labels(indices, subsystem=None):
     return subsystem.indices2labels(indices)
 
 
+def fmt_number(p):
+    """Format a number.
+
+    It will be printed as a fraction if the denominator isn't too big and as a
+    decimal otherwise.
+    """
+    formatted = '{:n}'.format(p)
+
+    if not config.PRINT_FRACTIONS:
+        return formatted
+
+    fraction = Fraction(p)
+    nice = fraction.limit_denominator(128)
+    return (
+        str(nice) if (abs(fraction - nice) < constants.EPSILON and
+                      nice.denominator in NICE_DENOMINATORS)
+        else formatted
+    )
+
+
 def fmt_mechanism(indices, subsystem=None):
     """Format a mechanism or purview."""
-    end = ',' if len(indices) in [0, 1] else ''
-    return '(' + ', '.join(labels(indices, subsystem)) + end + ')'
+    return '[' + ', '.join(labels(indices, subsystem)) + ']'
 
 
 def fmt_part(part, subsystem=None):
@@ -195,13 +219,13 @@ def fmt_part(part, subsystem=None):
         ---
         []
     """
-    def nodes(x):
+    def nodes(x):  # pylint: disable=missing-docstring
         return ','.join(labels(x, subsystem)) if x else EMPTY_SET
 
     numer = nodes(part.mechanism)
     denom = nodes(part.purview)
 
-    width = max(len(numer), len(denom))
+    width = max(3, len(numer), len(denom))
     divider = HORIZONTAL_BAR * width
 
     return (
@@ -262,7 +286,7 @@ def fmt_constellation(c, title=None):
 def fmt_concept(concept):
     """Format a |Concept|."""
 
-    def fmt_cause_or_effect(x):
+    def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
         if not x:
             return ''
         return box(indent(fmt_mip(x.mip, verbose=False), amount=1))
@@ -273,7 +297,7 @@ def fmt_concept(concept):
 
     mechanism = fmt_mechanism(concept.mechanism, concept.subsystem)
     title = 'Concept: Mechanism = {}, {} = {}'.format(
-        mechanism, SMALL_PHI, concept.phi)
+        mechanism, SMALL_PHI, fmt_number(concept.phi))
 
     # Only center headers for high-verbosity output
     center = config.REPR_VERBOSITY is HIGH
@@ -319,7 +343,7 @@ def fmt_mip(mip, verbose=True):
             mechanism=mechanism,
             purview=fmt_mechanism(mip.purview, mip.subsystem),
             direction=direction,
-            phi=mip.phi,
+            phi=fmt_number(mip.phi),
             partition=partition,
             unpartitioned_repertoire=unpartitioned_repertoire,
             partitioned_repertoire=partitioned_repertoire)
@@ -353,7 +377,7 @@ def fmt_big_mip(big_mip):
         '{unpartitioned_constellation}'
         '{partitioned_constellation}'.format(
             BIG_PHI=BIG_PHI,
-            phi=big_mip.phi,
+            phi=fmt_number(big_mip.phi),
             subsystem=big_mip.subsystem,
             cut=fmt_cut(big_mip.cut, big_mip.subsystem),
             unpartitioned_constellation=fmt_constellation(
@@ -379,12 +403,15 @@ def fmt_repertoire(r):
     head = '{S:^{s_width}}{space}P({S})'.format(
         S='S', s_width=r.ndim, space=space)
     lines.append(head)
-    lines.append('\u2574' * len(head))
 
     # Lines: '001     .25'
     for state in utils.all_states(r.ndim):
         state_str = ''.join(str(i) for i in state)
-        lines.append('{0}{1}{2:g}'.format(state_str, space, r[state]))
+        lines.append('{0}{1}{2}'.format(state_str, space,
+                                        fmt_number(r[state])))
+
+    width = max(len(line) for line in lines)
+    lines.insert(1, DOTTED_HEADER * (width + 1))
 
     return box('\n'.join(lines))
 

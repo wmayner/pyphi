@@ -276,6 +276,14 @@ Miscellaneous
     >>> defaults['REPR_VERBOSITY']
     2
 
+- ``pyphi.config.PRINT_FRACTIONS``: Controls whether numbers in ``repr``s are
+  printed as fractions. Numbers are still printed as decimals if the fraction's
+  denominator would be large. This only has an effect if ``REPR_VERBOSITY >
+  0``.
+
+    >>> defaults['PRINT_FRACTIONS']
+    True
+
 - ``pyphi.config.PARTITION_TYPE``: Controls the type of partition used for
   |small_phi| computations.
 
@@ -410,9 +418,11 @@ DEFAULTS = {
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
     # Use prettier __str__-like formatting in `repr` calls.
     'REPR_VERBOSITY': 2,
-    # Control the number of parts in a partition
+    # Print numbers as fractions if the denominator isn't too big.
+    'PRINT_FRACTIONS': True,
+    # Control the number of parts in a partition.
     'PARTITION_TYPE': 'BI',
-    # Controls how to pick MIPs in the case of phi-ties
+    # Controls how to pick MIPs in the case of phi-ties.
     'PICK_SMALLEST_PURVIEW': False,
 }
 

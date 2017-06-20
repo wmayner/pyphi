@@ -11,6 +11,7 @@ from . import fmt
 from .. import config, connectivity, utils
 
 
+# TODO: Rename `severed` to `from` and `intact` to `to`
 class Cut(namedtuple('Cut', ['severed', 'intact'])):
     """Represents a unidirectional cut.
 
