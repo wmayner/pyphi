@@ -32,15 +32,15 @@ To cite the code, use the Zenodo DOI for the verison you used. The latest one
 is `10.5281/zenodo.55692 <http://dx.doi.org/10.5281/zenodo.55692>`_.
 For example::
 
-    Will Mayner et al. (2016). pyphi: 0.8.1. Zenodo. 10.5281/zenodo.55692
+    Mayner, William GP et al. (2016). PyPhi: 0.8.1. Zenodo. 10.5281/zenodo.595866
 
 Or in BibTeX::
 
     @misc{pyphi,
-      author = {Mayner, Will and
+      author = {Mayner, William Gerald Paul and
                 Marshall, William and
                 Marchman, Bo},
-      title  = {pyphi: 0.8.1},
+      title  = {PyPhi: 0.8.1},
       month  = Feb,
       year   = 2016,
       doi    = {10.5281/zenodo.55692},
