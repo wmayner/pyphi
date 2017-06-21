@@ -22,7 +22,7 @@ _acmip_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
                             'purview', 'probability']
 
 
-class AcMip(cmp._Orderable, namedtuple('AcMip', _acmip_attributes)):
+class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
 
     """A minimum information partition for ac_coef calculation.
 
@@ -55,14 +55,14 @@ class AcMip(cmp._Orderable, namedtuple('AcMip', _acmip_attributes)):
     """
     __slots__ = ()
 
-    _unorderable_unless_eq = ['direction']
+    unorderable_unless_eq = ['direction']
 
-    def _order_by(self):
+    def order_by(self):
         return [self.alpha, len(self.mechanism), len(self.purview)]
 
     def __eq__(self, other):
         # TODO: include 2nd state here?
-        return cmp._general_eq(self, other, _acmip_attributes_for_eq)
+        return cmp.general_eq(self, other, _acmip_attributes_for_eq)
 
     def __bool__(self):
         """An AcMip is truthy if it is not reducible; i.e. if it has a significant
@@ -101,7 +101,7 @@ def _null_ac_mip(state, direction, mechanism, purview):
 # =============================================================================
 
 
-class Occurence(cmp._Orderable):
+class Occurence(cmp.Orderable):
     """A maximally irreducible actual cause or effect (i.e., "actual cause” or
     “actual effect”).
 
@@ -165,10 +165,10 @@ class Occurence(cmp._Orderable):
     def __str__(self):
         return "Occurence\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
 
-    _unorderable_unless_eq = AcMip._unorderable_unless_eq
+    unorderable_unless_eq = AcMip.unorderable_unless_eq
 
-    def _order_by(self):
-        return self.mip._order_by()
+    def order_by(self):
+        return self.mip.order_by()
 
     def __eq__(self, other):
         return self.mip == other.mip
@@ -224,7 +224,7 @@ _acbigmip_attributes = ['alpha', 'direction', 'unpartitioned_account',
                         'partitioned_account', 'context', 'cut']
 
 
-class AcBigMip(cmp._Orderable):
+class AcBigMip(cmp.Orderable):
 
     """A minimum information partition for |big_ap_phi| calculation.
 
@@ -272,13 +272,13 @@ class AcBigMip(cmp._Orderable):
         '''Return actual current state of the context'''
         return self.context.after_state
 
-    _unorderable_unless_eq = ['direction']
+    unorderable_unless_eq = ['direction']
 
-    def _order_by(self):
+    def order_by(self):
         return [self.alpha, len(self.context)]
 
     def __eq__(self, other):
-        return cmp._general_eq(self, other, _acbigmip_attributes)
+        return cmp.general_eq(self, other, _acbigmip_attributes)
 
     def __bool__(self):
         """A BigMip is truthy if it is not reducible; i.e. if it has a

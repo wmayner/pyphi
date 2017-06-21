@@ -33,25 +33,25 @@ def sametype(func):
     return wrapper
 
 
-class _Orderable:
+class Orderable:
     """Base mixin for implementing rich object comparisons on phi-objects.
 
-    Both ``__eq__`` and `_order_by`` need to be implemented on the subclass.
-    The ``_order_by`` method returns a list of attributes which are compared
+    Both ``__eq__`` and `order_by`` need to be implemented on the subclass.
+    The ``order_by`` method returns a list of attributes which are compared
     to implement the ordering.
 
-    Subclasses can optionally set a value for `_unorderable_unless_eq`. This
+    Subclasses can optionally set a value for `unorderable_unless_eq`. This
     attribute controls whether objects are orderable: if all attributes listed
-    in `_unorderable_unless_eq` are not equal then the objects are not
+    in `unorderable_unless_eq` are not equal then the objects are not
     orderable with respect to one another and a TypeError is raised. For
     example: it doesn't make sense to compare ``Concepts`` unless they are
     from the same ``Subsystem`` or compare ``Mips`` with different directions.
     """
 
     # The object is not orderable unless these attributes are all equal
-    _unorderable_unless_eq = []
+    unorderable_unless_eq = []
 
-    def _order_by(self):
+    def order_by(self):
         """Return a list of values to compare for ordering.
 
         The first value in the list has the greatest priority; if the first
@@ -61,11 +61,11 @@ class _Orderable:
 
     @sametype
     def __lt__(self, other):
-        if not _general_eq(self, other, self._unorderable_unless_eq):
+        if not general_eq(self, other, self.unorderable_unless_eq):
             raise TypeError(
                 'Unorderable: the following attrs must be equal: {}'.format(
-                    self._unorderable_unless_eq))
-        return self._order_by() < other._order_by()
+                    self.unorderable_unless_eq))
+        return self.order_by() < other.order_by()
 
     @sametype
     def __le__(self, other):
@@ -92,7 +92,7 @@ class _Orderable:
 # =============================================================================
 
 # TODO use builtin numpy methods here
-def _numpy_aware_eq(a, b):
+def numpy_aware_eq(a, b):
     """Return whether two objects are equal via recursion, using
     :func:`numpy.array_equal` for comparing numpy arays.
     """
@@ -102,17 +102,17 @@ def _numpy_aware_eq(a, b):
             and not isinstance(a, str) and not isinstance(b, str)):
         if len(a) != len(b):
             return False
-        return all(_numpy_aware_eq(x, y) for x, y in zip(a, b))
+        return all(numpy_aware_eq(x, y) for x, y in zip(a, b))
     return a == b
 
 
-def _general_eq(a, b, attributes):
+def general_eq(a, b, attributes):
     """Return whether two objects are equal up to the given attributes.
 
     If an attribute is called ``'phi'``, it is compared up to |PRECISION|.
     If an attribute is called ``'mechanism'`` or ``'purview'``, it is
     compared using set equality.  All other attributes are compared with
-    :func:`_numpy_aware_eq`.
+    :func:`numpy_aware_eq`.
     """
     try:
         for attr in attributes:
@@ -126,7 +126,7 @@ def _general_eq(a, b, attributes):
                 elif not set(_a) == set(_b):
                     return False
             else:
-                if not _numpy_aware_eq(_a, _b):
+                if not numpy_aware_eq(_a, _b):
                     return False
         return True
     except AttributeError:

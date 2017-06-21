@@ -12,7 +12,7 @@ _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
 
 
-class Mip(cmp._Orderable):
+class Mip(cmp.Orderable):
     """A minimum information partition for |small_phi| calculation.
 
     MIPs may be compared with the built-in Python comparison operators (``<``,
@@ -94,9 +94,9 @@ class Mip(cmp._Orderable):
     def subsystem(self):
         return self._subsystem
 
-    _unorderable_unless_eq = ['direction']
+    unorderable_unless_eq = ['direction']
 
-    def _order_by(self):
+    def order_by(self):
         return [self.phi, len(self.mechanism), len(self.purview)]
 
     def __eq__(self, other):
@@ -104,7 +104,7 @@ class Mip(cmp._Orderable):
         # for MIP equality, since these are lost during normalization.
         attrs = ['phi', 'direction', 'mechanism', 'purview',
                  'unpartitioned_repertoire']
-        return cmp._general_eq(self, other, attrs)
+        return cmp.general_eq(self, other, attrs)
 
     def __bool__(self):
         """A Mip is truthy if it is not reducible.
@@ -145,7 +145,7 @@ def _null_mip(direction, mechanism, purview, unpartitioned_repertoire=None):
 
 # =============================================================================
 
-class Mice(cmp._Orderable):
+class Mice(cmp.Orderable):
     """A maximally irreducible cause or effect (i.e., “core cause” or “core
     effect”).
 
@@ -209,10 +209,10 @@ class Mice(cmp._Orderable):
     def __str__(self):
         return "Mice\n" + fmt.indent(fmt.fmt_mip(self.mip))
 
-    _unorderable_unless_eq = Mip._unorderable_unless_eq
+    unorderable_unless_eq = Mip.unorderable_unless_eq
 
-    def _order_by(self):
-        return self.mip._order_by()
+    def order_by(self):
+        return self.mip.order_by()
 
     def __eq__(self, other):
         return self.mip == other.mip
@@ -288,7 +288,7 @@ _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
 
 # TODO: make mechanism a property
 # TODO: make phi a property
-class Concept(cmp._Orderable):
+class Concept(cmp.Orderable):
     """A star in concept-space.
 
     The ``phi`` attribute is the |small_phi_max| value. ``cause`` and
@@ -341,9 +341,9 @@ class Concept(cmp._Orderable):
         else:
             return (self.cause, self.effect)
 
-    _unorderable_unless_eq = ['subsystem']
+    unorderable_unless_eq = ['subsystem']
 
-    def _order_by(self):
+    def order_by(self):
         return [self.phi, len(self.mechanism)]
 
     @property

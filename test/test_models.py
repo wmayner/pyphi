@@ -25,12 +25,12 @@ a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
 
 def test_phi_mechanism_ordering():
 
-    class PhiThing(models.cmp._Orderable):
+    class PhiThing(models.cmp.Orderable):
         def __init__(self, phi, mechanism):
             self.phi = phi
             self.mechanism = mechanism
 
-        def _order_by(self):
+        def order_by(self):
             return [self.phi, self.mechanism]
 
         def __eq__(self, other):
@@ -78,56 +78,56 @@ def test_sametype_decorator():
 
 def test_numpy_aware_eq_noniterable():
     b = 1
-    assert not models.cmp._numpy_aware_eq(a, b)
+    assert not models.cmp.numpy_aware_eq(a, b)
 
 
 def test_numpy_aware_eq_nparray():
     b = np.arange(3)
-    assert not models.cmp._numpy_aware_eq(a, b)
+    assert not models.cmp.numpy_aware_eq(a, b)
 
 
 def test_numpy_aware_eq_tuple_nparrays():
     b = (np.arange(3), np.arange(3))
-    assert not models.cmp._numpy_aware_eq(a, b)
+    assert not models.cmp.numpy_aware_eq(a, b)
 
 
 def test_numpy_aware_eq_identical():
     b = a
-    assert models.cmp._numpy_aware_eq(a, b)
+    assert models.cmp.numpy_aware_eq(a, b)
 
 
 def test_general_eq_different_attributes():
     similar_nt = namedtuple('nt', nt_attributes + ['supbro'])
     b = similar_nt(a.this, a.that, a.phi, a.mechanism, a.purview,
                    supbro="nothin' much")
-    assert models.cmp._general_eq(a, b, nt_attributes)
+    assert models.cmp.general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_true():
     b = nt(a.this, a.that, (a.phi - constants.EPSILON/2), a.mechanism,
            a.purview)
-    assert models.cmp._general_eq(a, b, nt_attributes)
+    assert models.cmp.general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_false():
     b = nt(a.this, a.that, (a.phi - constants.EPSILON*2), a.mechanism,
            a.purview)
-    assert not models.cmp._general_eq(a, b, nt_attributes)
+    assert not models.cmp.general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_different_mechanism_order():
     b = nt(a.this, a.that, a.phi, a.mechanism[::-1], a.purview)
-    assert models.cmp._general_eq(a, b, nt_attributes)
+    assert models.cmp.general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_different_purview_order():
     b = nt(a.this, a.that, a.phi, a.mechanism, a.purview[::-1])
-    assert models.cmp._general_eq(a, b, nt_attributes)
+    assert models.cmp.general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_different_mechanism_and_purview_order():
     b = nt(a.this, a.that, a.phi, a.mechanism[::-1], a.purview[::-1])
-    assert models.cmp._general_eq(a, b, nt_attributes)
+    assert models.cmp.general_eq(a, b, nt_attributes)
 
 
 # }}}

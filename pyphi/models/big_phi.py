@@ -11,7 +11,7 @@ _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'cut_subsystem']
 
 
-class BigMip(cmp._Orderable):
+class BigMip(cmp.Orderable):
     """A minimum information partition for |big_phi| calculation.
 
     BigMips may be compared with the built-in Python comparison operators
@@ -63,13 +63,13 @@ class BigMip(cmp._Orderable):
         """The network this |BigMip| belongs to."""
         return self.subsystem.network
 
-    _unorderable_unless_eq = ['network']
+    unorderable_unless_eq = ['network']
 
-    def _order_by(self):
+    def order_by(self):
         return [self.phi, len(self.subsystem)]
 
     def __eq__(self, other):
-        return cmp._general_eq(self, other, _bigmip_attributes)
+        return cmp.general_eq(self, other, _bigmip_attributes)
 
     def __bool__(self):
         """A BigMip is truthy if it is not reducible.
