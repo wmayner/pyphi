@@ -1,17 +1,18 @@
-import tqdm
-import sys
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# logging.py
+
+"""Utilities for logging and progress bars."""
+
 import logging
 import threading
-import contextlib
+
+import tqdm
 
 
+# pylint: disable=arguments-differ
 class ProgressBar(tqdm.tqdm):
     """Thread safe progress-bar wrapper around ``tqdm``."""
-
-    # @classmethod
-    # @property
-    # def _lock(cls):
-    #     return logging._handlers['stdout'].lock
 
     _lock = threading.RLock()
 
@@ -37,10 +38,10 @@ class ProgressBarHandler(logging.StreamHandler):
     """Logging handler which writes through ``tqdm`` in order to not break
     progress bars.
     """
-    def emit (self, record):
+    def emit(self, record):
         try:
             msg = self.format(record)
             ProgressBar.write(msg, file=self.stream)
             self.flush()
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             self.handleError(record)
