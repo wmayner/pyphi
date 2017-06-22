@@ -12,6 +12,7 @@ from scipy.spatial.distance import cdist
 from scipy.stats import entropy
 
 from . import constants, utils
+from .distribution import flatten
 
 # Load precomputed hamming matrices.
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
@@ -73,15 +74,13 @@ def _compute_hamming_matrix(N):
 # TODO extend to binary nodes
 def hamming_emd(d1, d2):
     """Return the Earth Mover's Distance between two distributions (indexed
-    by state, one dimension per node).
+    by state, one dimension per node) using the Hamming distance between states
+    as the transportation cost function.
 
     Singleton dimensions are sqeezed out.
     """
-    d1, d2 = d1.squeeze(), d2.squeeze()
-    N = d1.ndim
-
-    # Compute EMD using the Hamming distance between states as the
-    # transportation cost function.
+    N = d1.squeeze().ndim
+    d1, d2 = flatten(d1), flatten(d2)
     return emd(d1.ravel(), d2.ravel(), _hamming_matrix(N))
 
 
@@ -108,11 +107,11 @@ def kld(d1, d2):
     Returns:
         float: The KLD of ``d1`` from ``d2``.
     """
-    d1, d2 = d1.squeeze().ravel(), d2.squeeze().ravel()
+    d1, d2 = flatten(d1), flatten(d2)
     return entropy(d1, d2, 2.0)
 
 
 def entropy_difference(d1, d2):
     """Return the difference in entropy between two distributions."""
-    d1, d2 = d1.squeeze().ravel(), d2.squeeze().ravel()
+    d1, d2 = flatten(d1), flatten(d2)
     return abs(entropy(d1, base=2.0) - entropy(d2, base=2.0))
