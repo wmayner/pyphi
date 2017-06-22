@@ -81,7 +81,7 @@ def hamming_emd(d1, d2):
     """
     N = d1.squeeze().ndim
     d1, d2 = flatten(d1), flatten(d2)
-    return emd(d1.ravel(), d2.ravel(), _hamming_matrix(N))
+    return emd(d1, d2, _hamming_matrix(N))
 
 
 def l1(d1, d2):
