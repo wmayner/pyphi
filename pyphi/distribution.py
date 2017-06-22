@@ -145,7 +145,9 @@ def flatten(repertoire, holi=False):
         return None
 
     order = 'C' if holi else 'F'
-    return repertoire.flatten(order=order)
+    # For efficiency, use `ravel` (which returns a view of the array) instead
+    # of `np.flatten` (which copies the whole array).
+    return repertoire.squeeze().ravel(order=order)
 
 
 @cache(cache={}, maxmem=None)
