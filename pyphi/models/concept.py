@@ -282,8 +282,7 @@ class Mice(cmp.Orderable):
 
 # =============================================================================
 
-_concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem',
-                       'normalized']
+_concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem']
 
 
 # TODO: make mechanism a property
@@ -315,13 +314,12 @@ class Concept(cmp.Orderable):
     """
 
     def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
-                 subsystem=None, normalized=False, time=None):
+                 subsystem=None, time=None):
         self.phi = phi
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
         self.subsystem = subsystem
-        self.normalized = normalized
         self.time = time
 
     def __repr__(self):
