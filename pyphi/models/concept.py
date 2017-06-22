@@ -5,7 +5,7 @@
 import numpy as np
 
 from . import cmp, fmt
-from .. import config, connectivity, utils, validate
+from .. import config, connectivity, distribution, utils, validate
 from ..constants import Direction
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
@@ -443,21 +443,16 @@ class Concept(cmp.Orderable):
             for attr in _concept_attributes + ['time']
         }
 
-        def flatten(repertoire):
-            """Flattens to LOLI-ordering"""
-            if repertoire is None:
-                return None
-            return repertoire.flatten(order='f')
-
-        # These values are passed to `vphi` via `phiserver`
+        # These flattened, LOLI-order repertoires are passed to `vphi` via
+        # `phiserver`.
         dct.update({
-            'expanded_cause_repertoire': flatten(
+            'expanded_cause_repertoire': distribution.flatten(
                 self.expand_cause_repertoire()),
-            'expanded_effect_repertoire': flatten(
+            'expanded_effect_repertoire': distribution.flatten(
                 self.expand_effect_repertoire()),
-            'expanded_partitioned_cause_repertoire': flatten(
+            'expanded_partitioned_cause_repertoire': distribution.flatten(
                 self.expand_partitioned_cause_repertoire()),
-            'expanded_partitioned_effect_repertoire': flatten(
+            'expanded_partitioned_effect_repertoire': distribution.flatten(
                 self.expand_partitioned_effect_repertoire()),
         })
 

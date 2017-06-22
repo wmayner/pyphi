@@ -99,3 +99,15 @@ def test_repertoire_shape():
     assert distribution.repertoire_shape((), N) == [1, 1, 1]
     assert distribution.repertoire_shape((1, 2), N) == [1, 2, 2]
     assert distribution.repertoire_shape((0, 2), N) == [2, 1, 2]
+
+
+def test_flatten():
+    repertoire = np.array([
+        [[0.1, 0.0]],
+        [[0.2, 0.7]]])
+
+    assert np.array_equal(distribution.flatten(repertoire),
+                          [0.1, 0.2, 0.0, 0.7])
+    assert np.array_equal(distribution.flatten(repertoire, holi=True),
+                          [0.1, 0.0, 0.2, 0.7])
+    assert distribution.flatten(None) == None

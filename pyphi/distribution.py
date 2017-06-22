@@ -127,6 +127,27 @@ def repertoire_shape(purview, N):
     return [2 if i in purview else 1 for i in range(N)]
 
 
+def flatten(repertoire, holi=False):
+    """Flatten a repertoire, removing empty dimensions.
+
+    By default, the flattened repertoire is returned in LOLI order.
+
+    Args:
+        repertoire (np.ndarray or None): A repertoire.
+
+    Keyword Args:
+        holi (boolean): If ``True``, flatten the repertoire in HOLI order.
+
+    Returns:
+        np.ndarray: The flattened repertoire.
+    """
+    if repertoire is None:
+        return None
+
+    order = 'C' if holi else 'F'
+    return repertoire.flatten(order=order)
+
+
 @cache(cache={}, maxmem=None)
 def max_entropy_distribution(node_indices, number_of_nodes):
     """Return the maximum entropy distribution over a set of nodes.
