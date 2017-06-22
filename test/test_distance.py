@@ -20,6 +20,11 @@ def test_hamming_matrix():
     assert np.array_equal(distance._hamming_matrix(3), answer)
 
 
+def test_large_hamming_matrix():
+    n = distance._NUM_PRECOMPUTED_HAMMING_MATRICES + 1
+    distance._hamming_matrix(n)
+
+
 def test_emd_same_distributions():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8

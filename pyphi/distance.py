@@ -67,7 +67,7 @@ def _compute_hamming_matrix(N):
     This function is only called when N > _NUM_PRECOMPUTED_HAMMING_MATRICES.
     Don't call this function directly; use :func:`_hamming_matrix` instead.
     """
-    possible_states = np.array(list(all_states((N))))
+    possible_states = np.array(list(utils.all_states((N))))
     return cdist(possible_states, possible_states, 'hamming') * N
 
 
