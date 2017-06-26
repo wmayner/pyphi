@@ -17,9 +17,9 @@ from . import (compute, config, constants, convert, distribution, utils,
                validate)
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
-from .node import expand_node_tpm, generate_nodes, tpm_indices
+from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
-from .tpm import is_state_by_state, marginalize_out
+from .tpm import is_state_by_state, marginalize_out, tpm_indices
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ def reindex(indices):
 def rebuild_system_tpm(node_tpms):
     """Reconstruct the network TPM from a collection of node TPMs."""
     expanded_tpms = np.array([expand_node_tpm(tpm) for tpm in node_tpms])
-    return np.rollaxis(expanded_tpms, 0, len(expanded_tpms) + 1)
+    return np.moveaxis(expanded_tpms, 0, -1)
 
 
 def remove_singleton_dimensions(tpm):
@@ -74,8 +74,8 @@ def run_tpm(system, steps, blackbox):
     # boxes.
     node_tpms = []
     for node in system.nodes:
-        node_tpm = node.tpm[1]
-        for input in node.input_indices:
+        node_tpm = node.tpm_on
+        for input in node.inputs:
             if not blackbox.in_same_box(node.index, input):
                 if input in blackbox.output_indices:
                     node_tpm = marginalize_out([input], node_tpm)
@@ -217,7 +217,7 @@ class MacroSubsystem(Subsystem):
         nodes = generate_nodes(tpm, cm, state)
 
         # Re-calcuate the tpm based on the results of the cut
-        tpm = rebuild_system_tpm(node.tpm[1] for node in nodes)
+        tpm = rebuild_system_tpm(node.tpm_on for node in nodes)
 
         return SystemAttrs(tpm, cm, node_indices, state)
 
@@ -228,8 +228,8 @@ class MacroSubsystem(Subsystem):
         # Noise inputs from non-output elements hidden in other boxes
         node_tpms = []
         for node in system.nodes:
-            node_tpm = node.tpm[1]
-            for input in node.input_indices:
+            node_tpm = node.tpm_on
+            for input in node.inputs:
                 if blackbox.hidden_from(input, node.index):
                     node_tpm = marginalize_out([input], node_tpm)
 

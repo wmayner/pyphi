@@ -16,6 +16,7 @@ collect_ignore += list(filter(None, open(git_ignore).read().split('\n')))
 # Run slow tests separately with command-line option, filter tests
 # ================================================================
 
+
 def pytest_addoption(parser):
     parser.addoption("--filter", action="store",
                      help="only run tests with the given mark")

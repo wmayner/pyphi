@@ -12,7 +12,7 @@ from scipy.spatial.distance import cdist
 from scipy.stats import entropy
 
 from . import constants, utils
-from .distribution import flatten
+from .distribution import flatten, marginal_zero
 
 # Load precomputed hamming matrices.
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
@@ -82,6 +82,25 @@ def hamming_emd(d1, d2):
     N = d1.squeeze().ndim
     d1, d2 = flatten(d1), flatten(d2)
     return emd(d1, d2, _hamming_matrix(N))
+
+
+def effect_emd(d1, d2):
+    """Compute the EMD between two effect repertoires.
+
+    Billy's synopsis: Because the nodes are independent, the EMD between effect
+    repertoires is equal to the sum of the EMDs between the marginal
+    distributions of each node, and the EMD between marginal distribution for a
+    node is the absolute difference in the probabilities that the node is off.
+
+    Args:
+        d1 (np.ndarray): The first repertoire.
+        d2 (np.ndarray): The second repertoire.
+
+    Returns:
+        float: The EMD between ``d1`` and ``d2``.
+    """
+    return sum(abs(marginal_zero(d1, i) - marginal_zero(d2, i))
+               for i in range(d1.ndim))
 
 
 def l1(d1, d2):
