@@ -275,7 +275,7 @@ def test_rebuild_system_tpm(s):
     ])
     assert np.array_equal(macro.rebuild_system_tpm(node_tpms), answer)
 
-    node_tpms = [node.tpm[1] for node in s.nodes]
+    node_tpms = [node.tpm_on for node in s.nodes]
     assert np.array_equal(macro.rebuild_system_tpm(node_tpms), s.tpm)
 
 
