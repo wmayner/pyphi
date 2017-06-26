@@ -38,7 +38,7 @@ def reindex(indices):
 def rebuild_system_tpm(node_tpms):
     """Reconstruct the network TPM from a collection of node TPMs."""
     expanded_tpms = np.array([expand_node_tpm(tpm) for tpm in node_tpms])
-    return np.rollaxis(expanded_tpms, 0, len(expanded_tpms) + 1)
+    return np.moveaxis(expanded_tpms, 0, -1)
 
 
 def remove_singleton_dimensions(tpm):
