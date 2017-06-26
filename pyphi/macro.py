@@ -17,9 +17,9 @@ from . import (compute, config, constants, convert, distribution, utils,
                validate)
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .network import irreducible_purviews
-from .node import expand_node_tpm, generate_nodes, tpm_indices
+from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
-from .tpm import is_state_by_state, marginalize_out
+from .tpm import is_state_by_state, marginalize_out, tpm_indices
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)

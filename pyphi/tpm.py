@@ -11,6 +11,11 @@ from itertools import chain
 import numpy as np
 
 
+def tpm_indices(tpm):
+    """Indices of nodes in the TPM."""
+    return tuple(np.where(np.array(tpm.shape[:-1]) == 2)[0])
+
+
 def is_state_by_state(tpm):
     """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
     ``False``."""

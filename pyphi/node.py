@@ -13,7 +13,7 @@ import numpy as np
 
 from . import utils
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
-from .tpm import marginalize_out
+from .tpm import marginalize_out, tpm_indices
 
 
 # TODO extend to nonbinary nodes
@@ -153,12 +153,6 @@ def default_label(index):
 def default_labels(indices):
     """Default labels for serveral nodes."""
     return tuple(default_label(i) for i in indices)
-
-
-# TODO: move to utils
-def tpm_indices(tpm):
-    """Indices of nodes in the TPM."""
-    return tuple(np.where(np.array(tpm.shape[:-1]) == 2)[0])
 
 
 def generate_nodes(tpm, cm, network_state, labels=None):
