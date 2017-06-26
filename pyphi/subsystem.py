@@ -157,7 +157,7 @@ class Subsystem:
 
     def __repr__(self):
         """Return a representation of this Subsystem."""
-        return "Subsystem(" + repr(list(self.nodes)) + ")"
+        return "Subsystem(" + ', '.join(map(repr, self.nodes)) + ")"
 
     def __str__(self):
         """Return this Subsystem as a string."""
