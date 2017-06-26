@@ -78,7 +78,7 @@ def block_cm(cm):
 
     For example, the following connectivity matrix represents connections from
     ``nodes1 = A, B, C`` to ``nodes2 = D, E, F, G`` (without loss of
-    generality—note that ``nodes1`` and ``nodes2`` may share elements)::
+    generality, note that ``nodes1`` and ``nodes2`` may share elements)::
 
          D  E  F  G
       A [1, 1, 0, 0]
@@ -143,8 +143,9 @@ def block_reducible(cm, nodes1, nodes2):
         nodes1 (tuple[int]): Source nodes
         nodes2 (tuple[int]): Sink nodes
     """
+    # Trivial case
     if not nodes1 or not nodes2:
-        return True  # trivially
+        return True
 
     cm = cm[np.ix_(nodes1, nodes2)]
 
