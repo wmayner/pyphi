@@ -74,8 +74,8 @@ def run_tpm(system, steps, blackbox):
     # boxes.
     node_tpms = []
     for node in system.nodes:
-        node_tpm = node.tpm[1]
-        for input in node.input_indices:
+        node_tpm = node.tpm_on
+        for input in node.inputs:
             if not blackbox.in_same_box(node.index, input):
                 if input in blackbox.output_indices:
                     node_tpm = marginalize_out([input], node_tpm)
@@ -217,7 +217,7 @@ class MacroSubsystem(Subsystem):
         nodes = generate_nodes(tpm, cm, state)
 
         # Re-calcuate the tpm based on the results of the cut
-        tpm = rebuild_system_tpm(node.tpm[1] for node in nodes)
+        tpm = rebuild_system_tpm(node.tpm_on for node in nodes)
 
         return SystemAttrs(tpm, cm, node_indices, state)
 
@@ -228,8 +228,8 @@ class MacroSubsystem(Subsystem):
         # Noise inputs from non-output elements hidden in other boxes
         node_tpms = []
         for node in system.nodes:
-            node_tpm = node.tpm[1]
-            for input in node.input_indices:
+            node_tpm = node.tpm_on
+            for input in node.inputs:
                 if blackbox.hidden_from(input, node.index):
                     node_tpm = marginalize_out([input], node_tpm)
 

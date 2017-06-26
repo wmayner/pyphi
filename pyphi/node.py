@@ -46,8 +46,8 @@ class Node:
         self.state = state
 
         # Get indices of the inputs.
-        self._input_indices = get_inputs_from_cm(self.index, cm)
-        self._output_indices = get_outputs_from_cm(self.index, cm)
+        self._inputs = frozenset(get_inputs_from_cm(self.index, cm))
+        self._outputs = frozenset(get_outputs_from_cm(self.index, cm))
 
         # Generate the node's TPM.
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,15 +62,15 @@ class Node:
         # Marginalize out non-input nodes that are in the subsystem, since the
         # external nodes have already been dealt with as boundary conditions in
         # the subsystem's TPM.
-        non_input_indices = set(tpm_indices(tpm)) - set(self._input_indices)
-        tpm_on = marginalize_out(non_input_indices, tpm_on)
+        non_inputs = set(tpm_indices(tpm)) - self._inputs
+        tpm_on = marginalize_out(non_inputs, tpm_on)
 
         # Get the TPM that gives the probability of the node being off, rather
         # than on.
         tpm_off = 1 - tpm_on
 
-        # Combine the on- and off-TPM.
-        self.tpm = np.array([tpm_off, tpm_on])
+        # Combine the on- and off-TPM in the last dimension.
+        self.tpm = np.moveaxis([tpm_off, tpm_on], 0, -1)
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Make the TPM immutable (for hashing).
@@ -78,26 +78,17 @@ class Node:
 
         # Only compute the hash once.
         self._hash = hash((index, utils.np_hash(self.tpm), self.state,
-                           self._input_indices, self._output_indices))
-
-        # Deferred properties
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # ``inputs`` and ``outputs`` must be properties because at the time of
-        # node creation, the subsystem doesn't have a list of Node objects yet,
-        # only a size (and thus a range of node indices). So, we defer
-        # construction until the properties are needed.
-        self._inputs = None
-        self._outputs = None
+                           self._inputs, self._outputs))
 
     @property
-    def input_indices(self):
-        """The indices of nodes which connect to this node."""
-        return self._input_indices
+    def tpm_off(self):
+        """The TPM of this node containing only the 'OFF' probabilities."""
+        return self.tpm[..., 0]
 
     @property
-    def output_indices(self):
-        """The indices of nodes that this node connects to."""
-        return self._output_indices
+    def tpm_on(self):
+        """The TPM of this node containing only the 'ON' probabilities."""
+        return self.tpm[..., 1]
 
     @property
     def inputs(self):
@@ -128,8 +119,8 @@ class Node:
         return (self.index == other.index and
                 np.array_equal(self.tpm, other.tpm) and
                 self.state == other.state and
-                self.input_indices == other.input_indices and
-                self.output_indices == other.output_indices)
+                self.inputs == other.inputs and
+                self.outputs == other.outputs)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -169,7 +160,6 @@ def generate_nodes(tpm, cm, network_state, labels=None):
     Returns:
         tuple[|Node|]: The nodes of the system.
     """
-
     # Indices in the TPM
     indices = tpm_indices(tpm)
 
@@ -180,17 +170,8 @@ def generate_nodes(tpm, cm, network_state, labels=None):
 
     node_state = utils.state_of(indices, network_state)
 
-    nodes = tuple(Node(tpm, cm, index, state, label=label)
-                  for index, state, label in zip(indices, node_state, labels))
-
-    # Finalize inputs and outputs
-    for node in nodes:
-        node._inputs = tuple(
-            n for n in nodes if n.index in node._input_indices)
-        node._outputs = tuple(
-            n for n in nodes if n.index in node._output_indices)
-
-    return nodes
+    return tuple(Node(tpm, cm, index, state, label=label)
+                 for index, state, label in zip(indices, node_state, labels))
 
 
 def expand_node_tpm(tpm):
