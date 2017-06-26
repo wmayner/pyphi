@@ -979,26 +979,6 @@ def all_partitions(mechanism, purview):
                     yield KPartition(*parts)
 
 
-def effect_emd(d1, d2):
-    """Compute the EMD between two effect repertoires.
-
-    Billy's synopsis: Because the nodes are independent, the EMD between effect
-    repertoires is equal to the sum of the EMDs between the marginal
-    distributions of each node, and the EMD between marginal distribution for a
-    node is the absolute difference in the probabilities that the node is off.
-
-    Args:
-        d1 (np.ndarray): The first repertoire.
-        d2 (np.ndarray): The second repertoire.
-
-    Returns:
-        float: The EMD between ``d1`` and ``d2``.
-    """
-    return sum(abs(distribution.marginal_zero(d1, i) -
-                   distribution.marginal_zero(d2, i))
-               for i in range(d1.ndim))
-
-
 def emd(direction, d1, d2):
     """Compute the EMD between two repertoires for a given direction.
 
@@ -1020,7 +1000,7 @@ def emd(direction, d1, d2):
     if direction == Direction.PAST:
         func = distance.hamming_emd
     elif direction == Direction.FUTURE:
-        func = effect_emd
+        func = distance.effect_emd
     else:
         # TODO: test that ValueError is raised
         validate.direction(direction)
