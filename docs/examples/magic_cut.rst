@@ -20,7 +20,7 @@ current state.
 Next, we want to identify the spatial scale and main complex of the network:
 
    >>> macro = pyphi.macro.emergence(network, state)
-   >>> macro.emergence
+   >>> print(macro.emergence)
    -1.35708
 
 Since the emergence value is negative, there is no macro scale which has
@@ -31,7 +31,7 @@ analyze the micro scale to determine the main complex of the system:
    >>> subsystem = main_complex.subsystem
    >>> subsystem
    Subsystem((A, B, C))
-   >>> main_complex.phi
+   >>> print(main_complex.phi)
    1.35708
 
 The main complex of the system contains all three nodes of the system, and it
@@ -48,14 +48,14 @@ connections from elements |A| and |B| to |C|.
    >>> cut_subsystem = pyphi.Subsystem(network, state, range(network.size), cut)
    >>> cut_constellation = pyphi.compute.constellation(cut_subsystem)
 
-Lets investigate the concepts in the unpartitioned constellation,
+Let's investigate the concepts in the unpartitioned constellation,
 
    >>> [concept.mechanism for concept in constellation]
    [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
    >>> [concept.phi for concept in constellation]
    [0.125, 0.125, 0.125, 0.499999, 0.499999, 0.499999]
-   >>> sum(_)
-   1.8749970000000002
+   >>> print(sum(_))
+   1.874997
 
 and also the concepts of the partitioned constellation.
 
@@ -63,8 +63,8 @@ and also the concepts of the partitioned constellation.
    [(0,), (1,), (2,), (0, 1), (1, 2), (0, 1, 2)]
    >>> [concept.phi for concept in cut_constellation]
    [0.125, 0.125, 0.125, 0.499999, 0.266666, 0.333333]
-   >>> sum(_)
-   1.4749980000000003
+   >>> print(sum(_))
+   1.474998
 
 The unpartitioned constellation includes all possible first and second order
 concepts, but there is no third order concept. After applying the cut and
@@ -73,7 +73,7 @@ is created and the second order concept |AC| is destroyed. The overall amount
 of |small_phi| in the system decreases from :math:`1.875` to :math:`1.475`.
 
 
-Lets explore the concept which was created to determine why it does not exist
+let's explore the concept which was created to determine why it does not exist
 in the unpartitioned constellation and what changed in the partitioned
 constellation.
 
@@ -108,7 +108,7 @@ will be true for any purview, so the cause information is reducible.
    >>> pyphi.distance.hamming_emd(repertoire, cut_repertoire)
    0.0
 
-Next, lets look at the cut subsystem to understand how the new concept comes
+Next, let's look at the cut subsystem to understand how the new concept comes
 into existence.
 
    >>> ABC = (0, 1, 2)
@@ -123,7 +123,7 @@ next state, while ``past_tpm[0]`` would give us the probability of C being
 **OFF**.
 
    >>> C_node = cut_subsystem.indices2nodes(C)[0]
-   >>> C_node.tpm[1].flatten()
+   >>> C_node.tpm_on.flatten()
    array([ 0.5 ,  0.75])
 
 This states that A has a 50% chance of being **ON** in the next state if it
@@ -132,8 +132,9 @@ currently **ON**. Thus unlike the unpartitioned case, knowing the current state
 of C gives us additional information over and above knowing A and B.
 
    >>> repertoire = cut_subsystem.cause_repertoire(ABC, ABC)
-   >>> cut_repertoire = cut_subsystem.cause_repertoire(AB, ABC) * cut_subsystem.cause_repertoire(C, ())
-   >>> pyphi.distance.hamming_emd(repertoire, cut_repertoire)
+   >>> cut_repertoire = (cut_subsystem.cause_repertoire(AB, ABC) *
+   ...                   cut_subsystem.cause_repertoire(C, ()))
+   >>> print(pyphi.distance.hamming_emd(repertoire, cut_repertoire))
    0.500001
 
 With this partition, the integrated information is :math:`\varphi = 0.5`, but
@@ -159,7 +160,7 @@ In the previous example, the **MIP** created a new concept, but the amount of
 |small_phi| in the constellation still decreased. This is not always the case.
 Next we will look at an example of system whoes **MIP** increases the amount of
 |small_phi|. This example is based on a five node network which follows the
-logic of the Rule 154 cellular automaton. Lets first load the network,
+logic of the Rule 154 cellular automaton. Let's first load the network,
 
    >>> network = pyphi.examples.rule154_network()
    >>> state = (1, 0, 0, 0, 0)
@@ -187,7 +188,7 @@ partitioned and unpartitioned constellations,
    [(0,), (1,), (0, 1)]
    >>> [concept.phi for concept in unpartitioned_constellation]
    [0.25, 0.166667, 0.178572]
-   >>> sum([concept.phi for concept in unpartitioned_constellation])
+   >>> print(sum(_))
    0.5952390000000001
 
 The unpartitioned constellation has mechanisms |A|, |B| and |AB| with
@@ -198,7 +199,7 @@ The unpartitioned constellation has mechanisms |A|, |B| and |AB| with
    [(0, 1), (0,), (1,)]
    >>> [concept.phi for concept in partitioned_constellation]
    [0.214286, 0.25, 0.166667]
-   >>> sum([concept.phi for concept in partitioned_constellation])
+   >>> print(sum(_))
    0.630953
 
 The unpartitioned constellation has mechanisms |A|, |B| and |AB| with
