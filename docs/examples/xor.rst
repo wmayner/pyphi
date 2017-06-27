@@ -30,7 +30,7 @@ The main complex exists (|big_phi > 0|),
 and it consists of the entire network:
 
     >>> main_complex.subsystem
-    Subsystem((A, B, C))
+    Subsystem(A, B, C)
 
 Knowing what exists at the system level, we can now investigate the existence
 of concepts within the complex.
@@ -174,9 +174,9 @@ system—but is it irreducible?
    >>> mip.phi
    0.0
    >>> mip.partition  # doctest: +NORMALIZE_WHITESPACE
-   0     1,2
-   -- X -----
-   []   0,1,2
+    0     1,2
+   ─── ✕ ─────
+   []    0,1,2
 
 The mechanism has :math:`ci = 0.75`, but it is completely reducible
 (:math:`\varphi = 0`) to the partition

@@ -294,27 +294,27 @@ Miscellaneous
   mechanism. That is, for the mechanism ``(A, B)`` and purview ``(B, C, D)``
   the partition ::
 
-    AB   []
-    -- X --
-    B    CD
+    A,B   []
+    ─── ✕ ───
+     B    C,D
 
   is not considered, but ::
 
-    A    B
-    -- X --
-    B    CD
+     A     B
+    ─── ✕ ───
+     B    C,D
 
   is. The following is also valid::
 
-    AB   []
-    -- X ---
-    []   BCD
+    A,B    []
+    ─── ✕ ─────
+    []    B,C,D
 
   In addition, this option introduces wedge tripartitions of the form ::
 
-    A    B   []
-    -- X - X --
-    B    C   D
+     A     B    []
+    ─── ✕ ─── ✕ ───
+     B     C     D
 
   where the mechanism in the third part is always empty.
 

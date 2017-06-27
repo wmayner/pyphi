@@ -11,7 +11,14 @@ from itertools import chain
 
 from .. import config, utils, constants
 
-# TODO: will these print correctly on all terminals?
+# repr verbosity levels
+
+LOW = 0
+MEDIUM = 1
+HIGH = 2
+
+NICE_DENOMINATORS = list(range(16)) + [16, 32, 64, 128]
+
 SMALL_PHI = '\u03C6'
 BIG_PHI = '\u03A6'
 
@@ -31,13 +38,6 @@ DOTTED_HEADER = '\u2574'
 CUT_SYMBOL = '\u2501' * 2 + '/ /' + '\u2501' * 2 + '\u25B6'
 
 EMPTY_SET = '[]'
-
-NICE_DENOMINATORS = list(range(16)) + [16, 32, 64, 128]
-
-# repr verbosity levels
-LOW = 0
-MEDIUM = 1
-HIGH = 2
 
 
 def make_repr(self, attrs):
@@ -84,13 +84,13 @@ def indent(lines, amount=2, char=' '):
 
     Keyword Args:
         amount (int): The number of columns to indent by.
-        chr (char): The character to to use as the indentation.
+        char (str): The character to to use as the indentation.
 
     Returns:
         str: The indented string.
 
     Example:
-        >>> print(indent('line1\\nline2', chr='*'))
+        >>> print(indent('line1\\nline2', char='*'))
         **line1
         **line2
     """
@@ -107,10 +107,10 @@ def box(text):
 
     Example:
         >>> print(box('line1\\nline2'))
-        ---------
-        | line1 |
-        | line2 |
-        ---------
+        ┌───────┐
+        │ line1 │
+        │ line2 │
+        └───────┘
     """
     lines = text.split('\n')
 
@@ -216,7 +216,7 @@ def fmt_part(part, subsystem=None):
     The returned string looks like::
 
         0,1
-        ---
+        ───
         []
     """
     def nodes(x):  # pylint: disable=missing-docstring
@@ -241,7 +241,7 @@ def fmt_bipartition(partition, subsystem=None):
     The returned string looks like::
 
         0,1   []
-        --- X ---
+        ─── ✕ ───
          2    0,1
 
     Args:

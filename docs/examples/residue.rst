@@ -54,9 +54,9 @@ To calculate the MIP structure of mechanism |AB|:
 We can then determine what the specific partition is.
 
     >>> mip_AB.partition  # doctest: +NORMALIZE_WHITESPACE
-    []   0,1
-    -- X ---
-    2    3,4
+    []    0,1
+    ─── ✕ ───
+     2    3,4
 
 The indices ``(0, 1, 2, 3, 4)`` correspond to nodes :math:`A, B, C, D, E`
 respectively. Thus the MIP is |(AB / DE) x ([] / C)|, where :math:`[\,]`
@@ -87,9 +87,9 @@ The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
     >>> subsystem.mip_past(A, CDE).phi
     0.0
     >>> subsystem.mip_past(A, CDE).partition  # doctest: +NORMALIZE_WHITESPACE
-    []    0
-    -- X ---
-    4    2,3
+    []     0
+    ─── ✕ ───
+     4    2,3
 
 Instead, we should evaluate |A| over the purview |CD|.
 
@@ -98,9 +98,9 @@ Instead, we should evaluate |A| over the purview |CD|.
 In this case, there is a well defined MIP
 
     >>> mip_A.partition  # doctest: +NORMALIZE_WHITESPACE
-    []   0
-    -- X -
-    2    3
+    []     0
+    ─── ✕ ───
+     2     3
 
 which is |([] / C) x (A / D)|. It has partitioned repertoire
 

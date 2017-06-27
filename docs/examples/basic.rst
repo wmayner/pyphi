@@ -86,7 +86,7 @@ structures.
     a |Subsystem|:
 
         >>> pyphi.Subsystem(network, state, ('B', 'C'))
-        Subsystem((B, C))
+        Subsystem(B, C)
 
 .. note::
     The network and subsystem discussed here are returned by the

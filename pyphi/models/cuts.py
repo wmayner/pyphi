@@ -181,9 +181,9 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
         When calculating |small_phi| of a 3-node subsystem, we partition the
         system in the following way::
 
-            mechanism:   A C        B
-                        -----  X  -----
-              purview:    B        A C
+            mechanism:  A,C    B
+                        ─── ✕ ───
+              purview:   B    A,C
 
         This class represents one term in the above product.
     """
