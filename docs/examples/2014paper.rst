@@ -407,15 +407,15 @@ attributes:
     >>> mip_c.phi
     0.499999
     >>> mip_c.partition  # doctest: +NORMALIZE_WHITESPACE
-    0     1,2
-    -- X -----
-    []   0,1,2
+     0     1,2
+    ─── ✕ ─────
+    []    0,1,2
     >>> mip_e.phi
     0.25
     >>> mip_e.partition  # doctest: +NORMALIZE_WHITESPACE
-    []   0,1,2
-    -- X -----
-    1     0,2
+    []    0,1,2
+    ─── ✕ ─────
+     1     0,2
 
 For more information on these objects, see the API documentation for the
 :class:`~pyphi.models.Mip` class, or use ``help(mip_c)``.
@@ -578,7 +578,7 @@ shown in the figure:
     >>> big_mip.phi
     1.9166650000000001
     >>> big_mip.cut
-    Cut (0, 1) --//--> (2,)
+    Cut [0, 1] ━━/ /━━▶ [2]
 
 .. note::
 

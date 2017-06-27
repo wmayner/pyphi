@@ -97,11 +97,13 @@ VALIDATE_SUBSYSTEM_STATES: true
 # In some applications of this library, you may prefer to define single-nodes
 # with a self-loop as having 0.5 Phi, a priori.
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
-# Use pretty __str__-like formatting in repr calls
+# Use pretty __str__-like formatting in repr calls.
 REPR_VERBOSITY: 2
-# Control the number of parts in a partition
+# Print numbers as fractions if the denominator isn't too big.
+PRINT_FRACTIONS: true
+# Control the number of parts in a partition.
 PARTITION_TYPE: "BI"
-# Controls how to resolve phi-ties when computing MICE
+# Controls how to resolve phi-ties when computing MICE.
 PICK_SMALLEST_PURVIEW: false
 # Use the difference in sum of small phi for the constellation distance
 USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE: false

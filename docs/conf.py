@@ -214,6 +214,7 @@ rst_prolog = """
 .. |DirectedAccount| replace:: :class:`~pyphi.models.DirectedAccount`
 .. |Event| replace:: :class:`~pyphi.models.Event`
 .. |Occurence| replace:: :class:`~pyphi.models.Occurence`
+.. |Occurences| replace:: :class:`~pyphi.models.Occurence`
 """
 
 # -- Options for Napoleon (docstring format extension) --------------------

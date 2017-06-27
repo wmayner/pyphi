@@ -287,6 +287,14 @@ Miscellaneous
     >>> defaults['REPR_VERBOSITY']
     2
 
+- ``pyphi.config.PRINT_FRACTIONS``: Controls whether numbers in ``repr``s are
+  printed as fractions. Numbers are still printed as decimals if the fraction's
+  denominator would be large. This only has an effect if ``REPR_VERBOSITY >
+  0``.
+
+    >>> defaults['PRINT_FRACTIONS']
+    True
+
 - ``pyphi.config.PARTITION_TYPE``: Controls the type of partition used for
   |small_phi| computations.
 
@@ -297,27 +305,27 @@ Miscellaneous
   mechanism. That is, for the mechanism ``(A, B)`` and purview ``(B, C, D)``
   the partition ::
 
-    AB   []
-    -- X --
-    B    CD
+    A,B   []
+    ─── ✕ ───
+     B    C,D
 
   is not considered, but ::
 
-    A    B
-    -- X --
-    B    CD
+     A     B
+    ─── ✕ ───
+     B    C,D
 
   is. The following is also valid::
 
-    AB   []
-    -- X ---
-    []   BCD
+    A,B    []
+    ─── ✕ ─────
+    []    B,C,D
 
   In addition, this option introduces wedge tripartitions of the form ::
 
-    A    B   []
-    -- X - X --
-    B    C   D
+     A     B    []
+    ─── ✕ ─── ✕ ───
+     B     C     D
 
   where the mechanism in the third part is always empty.
 
@@ -430,9 +438,11 @@ DEFAULTS = {
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
     # Use prettier __str__-like formatting in `repr` calls.
     'REPR_VERBOSITY': 2,
-    # Control the number of parts in a partition
+    # Print numbers as fractions if the denominator isn't too big.
+    'PRINT_FRACTIONS': True,
+    # Control the number of parts in a partition.
     'PARTITION_TYPE': 'BI',
-    # Controls how to pick MIPs in the case of phi-ties
+    # Controls how to pick MIPs in the case of phi-ties.
     'PICK_SMALLEST_PURVIEW': False,
     # Use the difference in sum of small phi for the constellation distance
     'USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE': False,

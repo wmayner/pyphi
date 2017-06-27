@@ -236,7 +236,7 @@ def test_specify_elements_with_labels(standard):
     subsystem = Subsystem(network, (0, 0, 0), ('B', 'C'))
     assert subsystem.node_indices == (1, 2)
     assert tuple(node.label for node in subsystem.nodes) == ('B', 'C')
-    assert str(subsystem) == 'Subsystem((B, C))'
+    assert str(subsystem) == 'Subsystem(B, C)'
 
 
 def test_indices2labels(s):

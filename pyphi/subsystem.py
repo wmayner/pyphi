@@ -177,7 +177,7 @@ class Subsystem:
 
     def __repr__(self):
         """Return a representation of this Subsystem."""
-        return "Subsystem(" + repr(self.nodes) + ")"
+        return "Subsystem(" + ', '.join(map(repr, self.nodes)) + ")"
 
     def __str__(self):
         """Return this Subsystem as a string."""
@@ -804,14 +804,14 @@ def mip_bipartitions(mechanism, purview):
     Excludes all bipartitions where one half is entirely empty, e.g::
 
          A    []
-        --- X --
+        ─── ✕ ───
          B    []
 
     is not valid, but ::
 
-        A    []
-        -- X --
-        []   B
+         A    []
+        ─── ✕ ───
+        []     B
 
     is.
 
@@ -820,12 +820,10 @@ def mip_bipartitions(mechanism, purview):
         purview (tuple[int]): The purview to partition
 
     Yields:
-        Bipartition: Where each bipartition is
-
-        ::
+        Bipartition: Where each bipartition is::
 
             bipart[0].mechanism   bipart[1].mechanism
-            ------------------- X -------------------
+            ─────────────────── ✕ ───────────────────
             bipart[0].purview     bipart[1].purview
 
     Example:
@@ -833,16 +831,16 @@ def mip_bipartitions(mechanism, purview):
         >>> purview = (2, 3)
         >>> for partition in mip_bipartitions(mechanism, purview):
         ...     print(partition, "\\n")  # doctest: +NORMALIZE_WHITESPACE
-        []   0
-        -- X -
-        2    3
+        []     0
+        ─── ✕ ───
+         2     3
         <BLANKLINE>
-        []   0
-        -- X -
-        3    2
+        []     0
+        ─── ✕ ───
+         3     2
         <BLANKLINE>
-        []    0
-        --- X --
+        []     0
+        ─── ✕ ───
         2,3   []
     """
     numerators = bipartition(mechanism)
@@ -857,11 +855,11 @@ def wedge_partitions(mechanism, purview):
     """Return an iterator over all wedge partitions.
 
     These are partitions which strictly split the mechanism and allow a subset
-    of the purview to be split into a third partition, eg::
+    of the purview to be split into a third partition, e.g.::
 
-        A    B   []
-        -- X - X --
-        B    C   D
+         A     B    []
+        ─── ✕ ─── ✕ ───
+         B     C     D
 
     See ``pyphi.config.PARTITION_TYPE`` for more information.
 

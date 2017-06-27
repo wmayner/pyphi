@@ -192,7 +192,7 @@ class Mice(cmp.Orderable):
         return self._mip.unpartitioned_repertoire
 
     @property
-    def partitioned_repertoire(self):
+    def partitioned_rertoire(self):
         """``np.ndarray`` -- The partitioned repertoire of the mechanism over
         the purview.
         """
@@ -263,7 +263,8 @@ class Mice(cmp.Orderable):
         else:
             validate.direction(self.direction)
 
-        cm = connectivity.relevant_connections(subsystem.network.size, _from, to)
+        cm = connectivity.relevant_connections(subsystem.network.size,
+                                               _from, to)
         # Submatrix for this subsystem's nodes
         return cm[np.ix_(subsystem.node_indices, subsystem.node_indices)]
 

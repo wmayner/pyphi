@@ -73,8 +73,8 @@ def block_cm(cm):
     We test for block connectivity by trying to grow a block of nodes such
     that:
 
-    * 'source' nodes only input to nodes in the block
-    * 'sink' nodes only receive inputs from source nodes in the block
+    - 'source' nodes only input to nodes in the block
+    - 'sink' nodes only receive inputs from source nodes in the block
 
     For example, the following connectivity matrix represents connections from
     ``nodes1 = A, B, C`` to ``nodes2 = D, E, F, G`` (without loss of
@@ -88,9 +88,9 @@ def block_cm(cm):
     Since nodes |AB| only connect to nodes |DE|, and node |C| only connects to
     nodes |FG|, the subgraph is reducible; the cut ::
 
-      AB   C
-      -- X --
-      DE   FG
+      A,B    C
+      ─── ✕ ───
+      D,E   F,G
 
     does not change the structure of the graph.
     """
