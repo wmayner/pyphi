@@ -24,9 +24,9 @@ watch-tests:
 
 docs: build-docs open-docs
 
-watch-docs:
+watch-docs: docs
 	watchmedo shell-command \
-		--command='make docs' \
+		--command='make build-docs' \
 		--recursive --drop --ignore-directories \
 		--patterns="*.py;*.rst" $(src) $(docs)
 
