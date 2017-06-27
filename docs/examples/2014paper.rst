@@ -582,11 +582,8 @@ shown in the figure:
 
 .. note::
 
-    A note on how to interpret the :class:`~pyphi.models.Cut` object: it has
-    two attributes, ``severed`` and ``intact``. The connections going from the
-    nodes in the ``severed`` set to those in the ``intact`` set are the
-    connections removed by the cut.
-
+    This ``Cut`` represents removing any connections from the nodes with
+    indices ``0`` and ``1`` to the node with index ``2``.
 
 Figure 13
 ~~~~~~~~~

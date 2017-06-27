@@ -357,15 +357,14 @@ def fmt_cut(cut, subsystem=None):
     # TODO: somehow handle this with inheritance instead of a conditional?
     from ..macro import MacroSubsystem
     if isinstance(subsystem, MacroSubsystem):
-        severed = str(cut.severed)
-        intact = str(cut.intact)
+        from_nodes = str(cut.from_nodes)
+        to_nodes = str(cut.to_nodes)
     else:
-        severed = fmt_mechanism(cut.severed, subsystem)
-        intact = fmt_mechanism(cut.intact, subsystem)
+        from_nodes = fmt_mechanism(cut.from_nodes, subsystem)
+        to_nodes = fmt_mechanism(cut.to_nodes, subsystem)
 
-    return 'Cut {severed} {symbol} {intact}'.format(severed=severed,
-                                                    symbol=CUT_SYMBOL,
-                                                    intact=intact)
+    return 'Cut {from_nodes} {symbol} {to_nodes}'.format(
+        from_nodes=from_nodes, symbol=CUT_SYMBOL, to_nodes=to_nodes)
 
 
 def fmt_big_mip(big_mip):

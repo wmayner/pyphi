@@ -33,7 +33,7 @@ standard_answer = {
     },
     'len_partitioned_constellation': 1,
     'sum_partitioned_small_phis': 0.5,
-    'cut': models.Cut(severed=(1, 2), intact=(0,))
+    'cut': models.Cut(from_nodes=(1, 2), to_nodes=(0,))
 }
 
 
@@ -50,7 +50,7 @@ noised_answer = {
     },
     'len_partitioned_constellation': 7,
     'sum_partitioned_small_phis': 0.504906,
-    'cut': models.Cut(severed=(1, 2), intact=(0,))
+    'cut': models.Cut(from_nodes=(1, 2), to_nodes=(0,))
 }
 
 
@@ -90,7 +90,7 @@ big_answer = {
     },
     'len_partitioned_constellation': 17,
     'sum_partitioned_small_phis': 3.564909,
-    'cut': models.Cut(severed=(2, 4), intact=(0, 1, 3))
+    'cut': models.Cut(from_nodes=(2, 4), to_nodes=(0, 1, 3))
 }
 
 
@@ -106,7 +106,7 @@ big_subsys_0_thru_3_answer = {
     },
     'len_partitioned_constellation': 5,
     'sum_partitioned_small_phis': 0.883334,
-    'cut': models.Cut(severed=(1, 3), intact=(0, 2))
+    'cut': models.Cut(from_nodes=(1, 3), to_nodes=(0, 2))
 }
 
 
@@ -148,11 +148,11 @@ rule152_answer = {
     'len_partitioned_constellation': 24,
     'sum_partitioned_small_phis': 4.185363,
     'cuts': [
-        models.Cut(severed=(0, 1, 2, 3), intact=(4,)),
-        models.Cut(severed=(0, 1, 2, 4), intact=(3,)),
-        models.Cut(severed=(0, 1, 3, 4), intact=(2,)),
-        models.Cut(severed=(0, 2, 3, 4), intact=(1,)),
-        models.Cut(severed=(1, 2, 3, 4), intact=(0,)),
+        models.Cut(from_nodes=(0, 1, 2, 3), to_nodes=(4,)),
+        models.Cut(from_nodes=(0, 1, 2, 4), to_nodes=(3,)),
+        models.Cut(from_nodes=(0, 1, 3, 4), to_nodes=(2,)),
+        models.Cut(from_nodes=(0, 2, 3, 4), to_nodes=(1,)),
+        models.Cut(from_nodes=(1, 2, 3, 4), to_nodes=(0,)),
         # TODO: are there other possible cuts?
     ]
 }
@@ -169,10 +169,10 @@ micro_answer = {
         (2, 3): 0.348114,
     },
     'cuts': [
-        models.Cut(severed=(0, 2), intact=(1, 3)),
-        models.Cut(severed=(1, 2), intact=(0, 3)),
-        models.Cut(severed=(0, 3), intact=(1, 2)),
-        models.Cut(severed=(1, 3), intact=(0, 2)),
+        models.Cut(from_nodes=(0, 2), to_nodes=(1, 3)),
+        models.Cut(from_nodes=(1, 2), to_nodes=(0, 3)),
+        models.Cut(from_nodes=(0, 3), to_nodes=(1, 2)),
+        models.Cut(from_nodes=(1, 3), to_nodes=(0, 2)),
     ]
 }
 
@@ -183,8 +183,8 @@ macro_answer = {
         (1,): 0.455,
     },
     'cuts': [
-        models.Cut(severed=(0,), intact=(1,)),
-        models.Cut(severed=(1,), intact=(0,)),
+        models.Cut(from_nodes=(0,), to_nodes=(1,)),
+        models.Cut(from_nodes=(1,), to_nodes=(0,)),
     ]
 }
 
@@ -288,10 +288,12 @@ def test_constellation_distance_switches_to_small_phi_difference(s):
     constellations = (mip.unpartitioned_constellation,
                       mip.partitioned_constellation)
 
-    with config.override(USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE=False):
+    with config.override(
+            USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE=False):
         assert 2.3125 == compute.constellation_distance(*constellations)
 
-    with config.override(USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE=True):
+    with config.override(
+            USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE=True):
         assert 1.083333 == compute.constellation_distance(*constellations)
 
 
@@ -409,14 +411,16 @@ def micro_s_FindMip(micro_s):
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True)
-def test_find_mip_parallel_micro(micro_s_FindMip, flushcache, restore_fs_cache):
+def test_find_mip_parallel_micro(micro_s_FindMip, flushcache,
+                                 restore_fs_cache):
     flushcache()
     mip = micro_s_FindMip.run_parallel()
     check_mip(mip, micro_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_micro(micro_s_FindMip, flushcache, restore_fs_cache):
+def test_find_mip_sequential_micro(micro_s_FindMip, flushcache,
+                                   restore_fs_cache):
     flushcache()
     mip = micro_s_FindMip.run_sequential()
     check_mip(mip, micro_answer)

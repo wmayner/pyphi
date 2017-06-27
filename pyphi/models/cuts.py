@@ -11,17 +11,16 @@ from . import fmt
 from .. import config, connectivity, utils
 
 
-# TODO: Rename `severed` to `from` and `intact` to `to`
-class Cut(namedtuple('Cut', ['severed', 'intact'])):
+class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes'])):
     """Represents a unidirectional cut.
 
     Attributes:
-        severed (tuple[int]):
-            Connections from this group of nodes to those in ``intact`` are
-            severed.
-        intact (tuple[int]):
-            Connections to this group of nodes from those in ``severed`` are
-            severed.
+        from_nodes (tuple[int]):
+            Connections from this group of nodes to those in ``to_nodes`` are
+            from_nodes.
+        to_nodes (tuple[int]):
+            Connections to this group of nodes from those in ``from_nodes`` are
+            from_nodes.
     """
 
     # This allows accessing the namedtuple's ``__dict__``; see
@@ -79,7 +78,7 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         """Compute the cut matrix for this cut.
 
         The cut matrix is a square matrix which represents connections
-        severed by the cut. The matrix is shrunk to the size of the cut
+        from_nodes by the cut. The matrix is shrunk to the size of the cut
         subsystem--not necessarily the size of the entire network.
 
         Example:
@@ -101,13 +100,13 @@ class Cut(namedtuple('Cut', ['severed', 'intact'])):
         return matrix[np.ix_(cut_indices, cut_indices)]
 
     def __repr__(self):
-        return fmt.make_repr(self, ['severed', 'intact'])
+        return fmt.make_repr(self, ['from_nodes', 'to_nodes'])
 
     def __str__(self):
         return fmt.fmt_cut(self)
 
     def to_json(self):
-        return {'severed': self.severed, 'intact': self.intact}
+        return {'from_nodes': self.from_nodes, 'to_nodes': self.to_nodes}
 
 
 class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',

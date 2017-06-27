@@ -44,7 +44,7 @@ effect of the **MIP**.
 There two equalivalent cuts for this system; for concreteness we sever all
 connections from elements |A| and |B| to |C|.
 
-    >>> cut = pyphi.models.Cut(severed = (0, 1), intact = (2,))
+    >>> cut = pyphi.models.Cut(from_nodes=(0, 1), to_nodes=(2,))
     >>> cut_subsystem = pyphi.Subsystem(network, state, range(network.size), 
     ...                                 cut=cut)
     >>> cut_constellation = pyphi.compute.constellation(cut_subsystem)
@@ -152,9 +152,8 @@ It turns out that the MIP is
 
 and the integrated information of ABC is :math:`\varphi = 1/3`.
 
-Note: In order for a new concept to be created by a cut, there must be a within
-mechanism connection severed by the cut.
-
+Note that in order for a new concept to be created by a cut, there must be a
+within-mechanism connection severed by the cut.
 
 In the previous example, the **MIP** created a new concept, but the amount of
 |small_phi| in the constellation still decreased. This is not always the case.

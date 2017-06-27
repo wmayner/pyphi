@@ -194,7 +194,7 @@ def test_apply_cut():
         [0, 1, 0, 1],
         [1, 0, 1, 0]
     ])
-    cut = models.Cut(severed=(0, 3), intact=(1, 2))
+    cut = models.Cut(from_nodes=(0, 3), to_nodes=(1, 2))
     cut_cm = np.array([
         [1, 0, 0, 0],
         [1, 1, 1, 1],
