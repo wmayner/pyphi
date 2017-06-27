@@ -23,8 +23,6 @@ from .tpm import condition_tpm, marginalize_out
 
 
 class Subsystem:
-    # TODO! go through docs and make sure to say when things can be None
-    # TODO: make subsystem attributes private and wrap them in getters?
     """A set of nodes in a network.
 
     Args:
