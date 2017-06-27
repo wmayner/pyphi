@@ -30,7 +30,7 @@ analyze the micro scale to determine the main complex of the system:
     >>> main_complex = pyphi.compute.main_complex(network, state)
     >>> subsystem = main_complex.subsystem
     >>> subsystem
-    Subsystem((A, B, C))
+    Subsystem(A, B, C)
     >>> print(main_complex.phi)
     1.35708
 
