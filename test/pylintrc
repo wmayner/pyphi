@@ -7,4 +7,9 @@ disable=
   too-few-public-methods,
   no-member,
   invalid-name,
-  protected-access
+  protected-access,
+  expression-not-assigned,
+  pointless-statement,
+  unused-argument,
+  too-many-arguments,
+  no-self-use,

@@ -3,15 +3,12 @@
 # test_models.py
 
 from collections import namedtuple
-from unittest import mock
 
 import numpy as np
 import pytest
 
 from pyphi import Subsystem, config, constants, models
 from pyphi.constants import Direction
-
-# TODO: better way to build test objects than Mock?
 
 
 nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
@@ -20,8 +17,8 @@ a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
        mechanism=(0, 1, 2), purview=(2, 4))
 
 
-# Test equality helpers {{{
-# =========================
+# Test equality helpers
+# {{{
 
 def test_phi_mechanism_ordering():
 
@@ -104,13 +101,13 @@ def test_general_eq_different_attributes():
 
 
 def test_general_eq_phi_precision_comparison_true():
-    b = nt(a.this, a.that, (a.phi - constants.EPSILON/2), a.mechanism,
+    b = nt(a.this, a.that, (a.phi - constants.EPSILON / 2), a.mechanism,
            a.purview)
     assert models.cmp._general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_false():
-    b = nt(a.this, a.that, (a.phi - constants.EPSILON*2), a.mechanism,
+    b = nt(a.this, a.that, (a.phi - constants.EPSILON * 2), a.mechanism,
            a.purview)
     assert not models.cmp._general_eq(a, b, nt_attributes)
 
@@ -132,8 +129,8 @@ def test_general_eq_different_mechanism_and_purview_order():
 
 # }}}
 
-# Test Cut {{{
-# ============
+# Test Cut
+# {{{
 
 def test_cut_splits_mechanism():
     cut = models.Cut((0,), (1, 2))
@@ -210,36 +207,39 @@ def test_apply_cut():
 # }}}
 
 
-def mip(phi=1.0, dir=None, mech=(), purv=(), partition=None,
+# Test MIP
+# {{{
+
+
+def mip(phi=1.0, d=None, mech=(), purv=(), partition=None,
         unpartitioned_repertoire=None, partitioned_repertoire=None):
-    return models.Mip(phi=phi, direction=dir, mechanism=mech,
+    return models.Mip(phi=phi, direction=d, mechanism=mech,
                       purview=purv, partition=partition,
                       unpartitioned_repertoire=unpartitioned_repertoire,
                       partitioned_repertoire=partitioned_repertoire)
 
-
-# Test MIP {{{
-# ============
 
 def test_mip_ordering_and_equality():
     assert mip(phi=1.0) < mip(phi=2.0)
     assert mip(phi=2.0) > mip(phi=1.0)
     assert mip(phi=1.0, mech=(1,)) < mip(phi=1.0, mech=(1, 2))
     assert mip(phi=1.0, mech=(1, 2)) >= mip(phi=1.0, mech=(1,))
-    assert mip(phi=1.0, mech=(1,), purv=(1,)) < mip(phi=1.0, mech=(1,), purv=(1, 2))
-    assert mip(phi=1.0, mech=(1,), purv=(1, 2)) >= mip(phi=1.0, mech=(1,), purv=(1,))
+    assert (mip(phi=1.0, mech=(1,), purv=(1,)) <
+            mip(phi=1.0, mech=(1,), purv=(1, 2)))
+    assert (mip(phi=1.0, mech=(1,), purv=(1, 2)) >=
+            mip(phi=1.0, mech=(1,), purv=(1,)))
 
     assert mip(phi=1.0) == mip(phi=1.0)
-    assert mip(phi=1.0) == mip(phi=(1.0 - constants.EPSILON/2))
+    assert mip(phi=1.0) == mip(phi=(1.0 - constants.EPSILON / 2))
     assert mip(phi=1.0) != mip(phi=(1.0 - constants.EPSILON * 2))
-    assert mip(dir=Direction.PAST) != mip(dir=Direction.FUTURE)
+    assert mip(d=Direction.PAST) != mip(d=Direction.FUTURE)
     assert mip(mech=(1,)) != mip(mech=(1, 2))
 
     with pytest.raises(TypeError):
-        mip(dir=Direction.PAST) < mip(dir=Direction.FUTURE)
+        mip(d=Direction.PAST) < mip(d=Direction.FUTURE)
 
     with pytest.raises(TypeError):
-        mip(dir=Direction.PAST) >= mip(dir=Direction.FUTURE)
+        mip(d=Direction.PAST) >= mip(d=Direction.FUTURE)
 
 
 def test_null_mip():
@@ -265,12 +265,12 @@ def test_mip_repr_str():
 
 # }}}
 
-# Test MICE {{{
-# =============
+# Test MICE
+# {{{
 
 def test_mice_ordering_by_phi():
     phi1 = models.Mice(mip())
-    different_phi1 = models.Mice(mip(dir='different'))
+    different_phi1 = models.Mice(mip(d='different'))
     phi2 = models.Mice(mip(phi=(1.0 + constants.EPSILON * 2), partition=()))
     assert phi1 < phi2
     assert phi2 > phi1
@@ -318,7 +318,7 @@ def test_mice_repr_str():
 
 
 def test_relevant_connections(s, subsys_n1n2):
-    mice = models.Mice(mip(mech=(0,), purv=(1,), dir=Direction.PAST))
+    mice = models.Mice(mip(mech=(0,), purv=(1,), d=Direction.PAST))
     answer = np.array([
         [0, 0, 0],
         [1, 0, 0],
@@ -326,7 +326,7 @@ def test_relevant_connections(s, subsys_n1n2):
     ])
     assert np.array_equal(mice._relevant_connections(s), answer)
 
-    mice = models.Mice(mip(mech=(1,), purv=(1, 2), dir=Direction.FUTURE))
+    mice = models.Mice(mip(mech=(1,), purv=(1, 2), d=Direction.FUTURE))
     answer = np.array([
         [1, 1],
         [0, 0],
@@ -340,20 +340,21 @@ def test_damaged(s):
     subsys = Subsystem(s.network, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:
-    mice = models.Mice(mip(mech=(0, 1), purv=(1, 2), dir=Direction.FUTURE))
+    mice = models.Mice(mip(mech=(0, 1), purv=(1, 2), d=Direction.FUTURE))
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 
     # Cut splits mechanism & purview (but not *only* mechanism)
-    mice = models.Mice(mip(mech=(0,), purv=(1, 2), dir=Direction.FUTURE))
+    mice = models.Mice(mip(mech=(0,), purv=(1, 2), d=Direction.FUTURE))
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 
 
 # }}}
 
-# Test Concept {{{
-# ================
+
+# Test Concept
+# {{{
 
 def test_concept_ordering(s, micro_s):
     phi1 = models.Concept(
@@ -364,7 +365,7 @@ def test_concept_ordering(s, micro_s):
         phi=1.0)
     phi2 = models.Concept(
         mechanism=(0,), cause='stilldifferent', effect=None, subsystem=s,
-        phi=1.0 + constants.EPSILON*2)
+        phi=1.0 + constants.EPSILON * 2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -443,7 +444,8 @@ def test_concept_equality_repertoires(s):
                             unpartitioned_repertoire=np.array([1, 2]),
                             partitioned_repertoire=()))
     mice2 = models.Mice(mip(phi=phi,
-                            unpartitioned_repertoire=np.array([0, 0]), partitioned_repertoire=None))
+                            unpartitioned_repertoire=np.array([0, 0]),
+                            partitioned_repertoire=None))
     concept = models.Concept(mechanism=(), cause=mice1, effect=mice2,
                              subsystem=s, phi=phi)
     another = models.Concept(mechanism=(), cause=mice2, effect=mice1,
@@ -493,7 +495,7 @@ def test_concept_hashing_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     another = models.Concept(mechanism=(2,), cause=mice, effect=mice,
                              subsystem=subsys_n1n2, phi=phi)
     assert hash(concept) == hash(another)
-    assert(len(set([concept, another])) == 1)
+    assert len(set([concept, another])) == 1
 
 
 def test_concept_emd_eq(s, subsys_n1n2):
@@ -515,8 +517,9 @@ def test_concept_emd_eq(s, subsys_n1n2):
 
 # }}}
 
-# Test Constellation {{{
-# ======================
+
+# Test Constellation
+# {{{
 
 def test_constellation_is_still_a_tuple():
     c = models.Constellation([models.Concept()])
@@ -536,8 +539,9 @@ def test_normalize_constellation():
 
 # }}}
 
-# Test BigMip {{{
-# ===============
+
+# Test BigMip
+# {{{
 
 def test_bigmip_ordering(s, s_noised):
     phi1 = models.BigMip(
@@ -551,7 +555,7 @@ def test_bigmip_ordering(s, s_noised):
     phi2 = models.BigMip(
         unpartitioned_constellation='stilldifferent',
         partitioned_constellation=None, subsystem=s, cut_subsystem=(),
-        phi=1.0 + constants.EPSILON*2)
+        phi=1.0 + constants.EPSILON * 2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
@@ -587,11 +591,11 @@ def test_bigmip_equality(s):
     close_enough = models.BigMip(
         unpartitioned_constellation=None, partitioned_constellation=None,
         subsystem=s, cut_subsystem=s,
-        phi=(phi - constants.EPSILON/2))
+        phi=(phi - constants.EPSILON / 2))
     not_quite = models.BigMip(
         unpartitioned_constellation=None, partitioned_constellation=None,
         subsystem=s, cut_subsystem=s,
-        phi=(phi - constants.EPSILON*2))
+        phi=(phi - constants.EPSILON * 2))
     assert bigmip == close_enough
     assert bigmip != not_quite
 
@@ -606,14 +610,15 @@ def test_bigmip_repr_str(s):
 
 # }}}
 
-# Test model __str__ and __reprs__ {{{
-# ====================================
+
+# Test model __str__ and __reprs__
+# {{{
 
 def test_indent():
-    s = ("line1\n"
-         "line2")
-    answer = ("  line1\n"
-              "  line2")
+    s = ('line1\n'
+         'line2')
+    answer = ('  line1\n'
+              '  line2')
     assert models.fmt.indent(s) == answer
 
 
@@ -625,23 +630,23 @@ class ReadableReprClass:
         return models.fmt.make_repr(self, ['some_attr'])
 
     def __str__(self):
-        return "A nice fat explicit string"
+        return 'A nice fat explicit string'
 
 
 @config.override(REPR_VERBOSITY=0)
 def test_make_reprs_uses___repr__():
-    assert repr(ReadableReprClass()) == "ReadableReprClass(some_attr=3.14)"
+    assert repr(ReadableReprClass()) == 'ReadableReprClass(some_attr=3.14)'
 
 
 @config.override(REPR_VERBOSITY=2)
 def test_make_reprs_calls_out_to_string():
-    assert repr(ReadableReprClass()) == "A nice fat explicit string"
+    assert repr(ReadableReprClass()) == 'A nice fat explicit string'
 
 # }}}
 
 
 # Test partitions
-# ===============
+# {{{
 
 @pytest.fixture
 def bipartition():
@@ -657,9 +662,9 @@ def test_bipartition_properties(bipartition):
 
 def test_bipartition_str(bipartition):
     assert str(bipartition) == (
-        " 0    []\n"
-        "--- X --\n"
-        "0,4   1 ")
+        ' 0    [] \n'
+        '─── ✕ ───\n'
+        '0,4    1 ')
 
 
 @pytest.fixture
@@ -675,10 +680,12 @@ def test_tripartion_properties(tripartition):
     assert tripartition.purview == (0, 1, 2, 4)
 
 
-def test_tripartition_str(tripartition):
+def test_tripartion_str(tripartition):
     assert str(tripartition) == (
-        " 0    []   2\n"
-        "--- X -- X -\n"
-        "0,4   1    2")
+        ' 0    []     2 \n'
+        '─── ✕ ─── ✕ ───\n'
+        '0,4    1     2 ')
+
+# }}}
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :
