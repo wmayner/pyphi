@@ -8,6 +8,10 @@
     :target: http://dx.doi.org/10.5281/zenodo.55692
     :alt: Zenodo DOI badge
 
+.. image:: https://readthedocs.org/projects/pyphi/badge/?version=latest
+    :target: https://pyphi.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation badge
+
 .. image:: https://img.shields.io/travis/wmayner/pyphi.svg?maxAge=601
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build badge
