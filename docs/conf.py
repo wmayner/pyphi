@@ -167,8 +167,8 @@ rst_prolog = """
 .. |compute| replace:: :mod:`~pyphi.compute`
 .. |compute.concept| replace:: :mod:`~pyphi.compute.big_phi`
 .. |Subsystem.concept| replace:: :mod:`~pyphi.subsystem.Subsystem.concept`
-.. |Subsystem.core_cause| replace:: :mod:`~pyphi.subsystem.Subsystem.concept`
-.. |Subsystem.core_effect| replace:: :mod:`~pyphi.subsystem.Subsystem.concept`
+.. |Subsystem.core_cause| replace:: :mod:`~pyphi.subsystem.Subsystem.core_cause`
+.. |Subsystem.core_effect| replace:: :mod:`~pyphi.subsystem.Subsystem.core_effect`
 .. |compute.big_phi| replace:: :mod:`~pyphi.compute.concept.concept`
 .. |compute.distance| replace:: :mod:`~pyphi.compute.concept.distance`
 .. |compute.conceptual_information| replace:: :func:`~pyphi.compute.big_phi.conceptual_information`
