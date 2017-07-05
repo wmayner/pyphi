@@ -1,4 +1,4 @@
-.. image:: http://wmayner.github.io/pyphi/_static/pyphi-icon-and-text-760x180.png
+.. image:: https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-icon-and-text-760x180.png
     :target: http://pyphi.readthedocs.io/en/latest/
     :alt: PyPhi logo
     :height: 90px
@@ -24,7 +24,7 @@
     :target: https://coveralls.io/github/wmayner/pyphi
     :alt: Coveralls.io badge
 
-.. image:: https://img.shields.io/github/license/wmayner/pyphi?maxAge=86400
+.. image:: https://img.shields.io/github/license/wmayner/pyphi.svg?maxAge=86400
     :target: https://github.com/wmayner/pyphi/blob/master/LICENSE.md
     :alt: License badge
 
