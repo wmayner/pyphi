@@ -14,9 +14,9 @@ The various options are listed here with their defaults.
     >>> import pyphi
     >>> defaults = pyphi.config.DEFAULTS
 
-Options can be changed on-the-fly by simply reassigning their values:
+Many options can be changed on-the-fly by simply assigning them a new value:
 
-    >>> pyphi.config.
+    >>> pyphi.config.PROGRESS_BARS = True
 
 It is also possible to manually load a YAML configuration file within your
 script:
