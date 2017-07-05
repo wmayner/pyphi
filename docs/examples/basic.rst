@@ -72,7 +72,8 @@ For instance, we can see that this network has 4 concepts:
     >>> len(mip.unpartitioned_constellation)
     4
 
-The documentation for |models| contains description of these structures.
+See the documentation for |models.big_phi| and |models.concept| for more
+information on these objects.
 
 .. note::
     Networks can be constructed with an optional set of textual labels for each
