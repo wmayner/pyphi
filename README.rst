@@ -1,12 +1,6 @@
-.. image:: https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-icon-and-text-760x180.png
-    :target: http://pyphi.readthedocs.io/en/latest/
-    :alt: PyPhi logo
-    :height: 90px
-    :width: 380px
-    :scale: 50%
-    :align: left
+.. raw:: html
 
-|
+    <a href="http://pyphi.readthedocs.io/en/latest/"><img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-icon-and-text-760x180.png" style="height:90px;width:380px;max-width:100%;"></a>
 
 .. image:: https://zenodo.org/badge/doi/10.5281/zenodo.55692.svg
     :target: http://dx.doi.org/10.5281/zenodo.55692
