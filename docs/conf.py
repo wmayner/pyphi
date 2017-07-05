@@ -352,8 +352,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'PyPhi.tex', 'PyPhi Documentation',
-   'Will Mayner', 'manual'),
+  ('index', 'PyPhi.tex', 'PyPhi Documentation', __author__, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -382,8 +381,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pyphi', 'PyPhi Documentation',
-     ['Will Mayner'], 1)
+    ('index', 'pyphi', 'PyPhi Documentation', [__author__], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -396,8 +394,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'PyPhi', 'PyPhi Documentation',
-   'Will Mayner', 'PyPhi',
+  ('index', 'PyPhi', 'PyPhi Documentation', __author__, 'PyPhi',
    'A Python module for computing integrated information',
    'Miscellaneous'),
 ]
