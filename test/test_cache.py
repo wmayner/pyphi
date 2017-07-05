@@ -34,7 +34,7 @@ def test_cache():
 
 
 class SomeObject:
-    """Object for testing cache decorator"""
+    '''Object for testing cache decorator'''
     def __init__(self):
         self.my_cache = cache.DictCache()
 
@@ -59,9 +59,9 @@ def test_cache_key_generation():
 # Test MICE caching
 # ========================
 
-"""Note: all subsystems are loaded from `examples` internally instead of by
+'''Note: all subsystems are loaded from `examples` internally instead of by
 pytest fixture because they must be constructed with the correct cache config.
-"""
+'''
 
 try:
     redis_available = cache.RedisConn().ping()
@@ -80,10 +80,10 @@ redis_cache = lambda f: config.override(REDIS_CACHE=True)(require_redis(f))
 
 
 def all_caches(test_func):
-    """Decorator to run a test twice: once with the local cache and once with Redis.
+    '''Decorator to run a test twice: once with the local cache and once with Redis.
 
     Any decorated test must add a `redis_cache` argument.
-    """
+    '''
     @pytest.mark.parametrize("redis_cache,", [
         require_redis((True,)),
         (False,),
@@ -97,7 +97,7 @@ def all_caches(test_func):
 
 @pytest.fixture
 def flush_redis():
-    """Fixture to flush and reset the Redis cache."""
+    '''Fixture to flush and reset the Redis cache.'''
     try:
         conn = cache.RedisConn()
         conn.flushall()
@@ -177,8 +177,8 @@ def test_only_cache_uncut_subsystem_mices(redis_cache, flush_redis, s):
 
 @all_caches
 def test_split_mechanism_mice_is_not_reusable(redis_cache, flush_redis):
-    """If mechanism is split, then cached mice are not usable
-    when a cache is built from a parent cache."""
+    '''If mechanism is split, then cached mice are not usable
+    when a cache is built from a parent cache.'''
     s = examples.basic_subsystem()
     mechanism = (0, 1)
     mice = s.find_mice(Direction.PAST, mechanism)
@@ -195,8 +195,8 @@ def test_split_mechanism_mice_is_not_reusable(redis_cache, flush_redis):
 
 @all_caches
 def test_cut_relevant_connections_mice_is_not_reusable(redis_cache, flush_redis):
-    """If relevant connections are cut, cached mice are not usable
-    when a cache is built from a parent cache."""
+    '''If relevant connections are cut, cached mice are not usable
+    when a cache is built from a parent cache.'''
     s = examples.basic_subsystem()
     mechanism = (1,)
     mice = s.find_mice(Direction.PAST, mechanism)
@@ -214,8 +214,8 @@ def test_cut_relevant_connections_mice_is_not_reusable(redis_cache, flush_redis)
 @all_caches
 def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, flush_redis):
 
-    """Cached Mice are saved from the parent cache if both
-    the mechanism and the relevant connections are not cut."""
+    '''Cached Mice are saved from the parent cache if both
+    the mechanism and the relevant connections are not cut.'''
     s = examples.basic_subsystem()
     mechanism = (1,)
     mice = s.find_mice(Direction.PAST, mechanism)

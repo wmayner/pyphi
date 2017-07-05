@@ -9,7 +9,7 @@ import example_networks
 from pyphi import Subsystem
 from pyphi.constants import Direction
 from pyphi.models import Cut, Mice, _null_mip
-from pyphi.utils import phi_eq
+from pyphi.utils import eq
 
 # Expected results {{{
 # ====================
@@ -136,7 +136,7 @@ phi_max_scenarios = list(chain(*phi_max_scenarios))
 
 @pytest.mark.parametrize('cut,mechanism,expected_phi_max', phi_max_scenarios)
 def test_phi_max(cut, expected_phi_max, mechanism):
-    assert phi_eq(subsystem[cut].phi_max(mechanism), expected_phi_max)
+    assert eq(subsystem[cut].phi_max(mechanism), expected_phi_max)
 
 # }}}
 

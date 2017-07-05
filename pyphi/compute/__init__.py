@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # compute/__init__.py
 
-"""Maintains backwards compatability with the old ``compute`` API.
+'''Maintains backwards compatability with the old ``compute`` API.
 
-See :ref:`compute.concept` and :ref:`compute.big_phi` for documentation.
+See :mod:`compute.concept` and :mod:`compute.big_phi` for documentation.
 
 Attributes:
     concept: Alias for :func:`concept.concept`.
@@ -21,7 +21,7 @@ Attributes:
     main_complex: Alias for :func:`big_phi.main_complex`.
     possible_complexes: Alias for :func:`big_phi.possible_complexes`.
     subsystems: Alias for :func:`big_phi.subsystems`.
-"""
+'''
 
 from .big_phi import (all_complexes, big_mip, big_phi, complexes, condensed,
                       evaluate_cut, main_complex, possible_complexes,

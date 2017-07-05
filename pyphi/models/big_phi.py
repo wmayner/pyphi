@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # models/big_phi.py
 
+'''Objects that represent cause-effect structures.'''
 
 from . import cmp, fmt
 from .. import config, utils
@@ -12,12 +13,11 @@ _bigmip_attributes = ['phi', 'unpartitioned_constellation',
 
 
 class BigMip(cmp.Orderable):
-    """A minimum information partition for |big_phi| calculation.
+    '''A minimum information partition for |big_phi| calculation.
 
-    BigMips may be compared with the built-in Python comparison operators
-    (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
-    are equal up to |PRECISION|, the size of the subsystem is compared
-    (exclusion principle).
+    These can be compared with the built-in Python comparison operators (``<``,
+    ``>``, etc.). First, |big_phi| values are compared. Then, if these are
+    equal up to |PRECISION|, the one with the larger subsystem is greater.
 
     Attributes:
         phi (float): The |big_phi| value for the subsystem when taken against
@@ -32,7 +32,7 @@ class BigMip(cmp.Orderable):
         time (float): The number of seconds it took to calculate.
         small_phi_time (float): The number of seconds it took to calculate the
             unpartitioned constellation.
-    """
+    '''
 
     def __init__(self, phi=None, unpartitioned_constellation=None,
                  partitioned_constellation=None, subsystem=None,
@@ -58,14 +58,14 @@ class BigMip(cmp.Orderable):
 
     @property
     def cut(self):
-        """The unidirectional cut that makes the least difference to the
+        '''The unidirectional cut that makes the least difference to the
         subsystem.
-        """
+        '''
         return self.cut_subsystem.cut
 
     @property
     def network(self):
-        """The network this |BigMip| belongs to."""
+        '''The network this |BigMip| belongs to.'''
         return self.subsystem.network
 
     unorderable_unless_eq = ['network']
@@ -77,11 +77,8 @@ class BigMip(cmp.Orderable):
         return cmp.general_eq(self, other, _bigmip_attributes)
 
     def __bool__(self):
-        """A BigMip is truthy if it is not reducible.
-
-        (That is, if it has a significant amount of |big_phi|.)
-        """
-        return not utils.phi_eq(self.phi, 0)
+        '''A |BigMip| is ``True`` if it has |big_phi > 0|.'''
+        return not utils.eq(self.phi, 0)
 
     def __hash__(self):
         return hash((self.phi,
@@ -98,19 +95,19 @@ class BigMip(cmp.Orderable):
 
 
 def _null_bigmip(subsystem, phi=0.0):
-    """Return a |BigMip| with zero |big_phi| and empty constellations.
+    '''Return a |BigMip| with zero |big_phi| and empty constellations.
 
     This is the MIP associated with a reducible subsystem.
-    """
+    '''
     return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=phi,
                   unpartitioned_constellation=(), partitioned_constellation=())
 
 
 def _single_node_bigmip(subsystem):
-    """Return a |BigMip| of a single-node with a selfloop.
+    '''Return a |BigMip| of a single-node with a selfloop.
 
-    Whether these have a nonzero |Phi| value depends on the PyPhi constants.
-    """
+    Whether these have |big_phi > 0| value depends on the PyPhi configuration.
+    '''
     if config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
         # TODO return the actual concept
         return BigMip(

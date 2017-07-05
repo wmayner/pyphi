@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # utils/distance.py
 
-"""
+'''
 Functions for measuring distances.
-"""
+'''
 
 import numpy as np
 from pyemd import emd
@@ -22,7 +22,7 @@ _hamming_matrices = utils.load_data('hamming_matrices',
 
 # TODO extend to nonbinary nodes
 def _hamming_matrix(N):
-    """Return a matrix of Hamming distances for the possible states of |N|
+    '''Return a matrix of Hamming distances for the possible states of |N|
     binary nodes.
 
     Args:
@@ -38,7 +38,7 @@ def _hamming_matrix(N):
                [ 1.,  0.,  2.,  1.],
                [ 1.,  2.,  0.,  1.],
                [ 2.,  1.,  1.,  0.]])
-    """
+    '''
     if N < _NUM_PRECOMPUTED_HAMMING_MATRICES:
         return _hamming_matrices[N]
     return _compute_hamming_matrix(N)
@@ -46,7 +46,7 @@ def _hamming_matrix(N):
 
 @constants.joblib_memory.cache
 def _compute_hamming_matrix(N):
-    """
+    '''
     Compute and store a Hamming matrix for |N| nodes.
 
     Hamming matrices have the following sizes:
@@ -66,31 +66,31 @@ def _compute_hamming_matrix(N):
 
     This function is only called when N > _NUM_PRECOMPUTED_HAMMING_MATRICES.
     Don't call this function directly; use :func:`_hamming_matrix` instead.
-    """
+    '''
     possible_states = np.array(list(utils.all_states((N))))
     return cdist(possible_states, possible_states, 'hamming') * N
 
 
 # TODO extend to binary nodes
 def hamming_emd(d1, d2):
-    """Return the Earth Mover's Distance between two distributions (indexed
+    '''Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node) using the Hamming distance between states
     as the transportation cost function.
 
     Singleton dimensions are sqeezed out.
-    """
+    '''
     N = d1.squeeze().ndim
     d1, d2 = flatten(d1), flatten(d2)
     return emd(d1, d2, _hamming_matrix(N))
 
 
 def effect_emd(d1, d2):
-    """Compute the EMD between two effect repertoires.
+    '''Compute the EMD between two effect repertoires.
 
-    Billy's synopsis: Because the nodes are independent, the EMD between effect
-    repertoires is equal to the sum of the EMDs between the marginal
-    distributions of each node, and the EMD between marginal distribution for a
-    node is the absolute difference in the probabilities that the node is off.
+    Because the nodes are independent, the EMD between effect repertoires is
+    equal to the sum of the EMDs between the marginal distributions of each
+    node, and the EMD between marginal distribution for a node is the absolute
+    difference in the probabilities that the node is off.
 
     Args:
         d1 (np.ndarray): The first repertoire.
@@ -98,13 +98,13 @@ def effect_emd(d1, d2):
 
     Returns:
         float: The EMD between ``d1`` and ``d2``.
-    """
+    '''
     return sum(abs(marginal_zero(d1, i) - marginal_zero(d2, i))
                for i in range(d1.ndim))
 
 
 def l1(d1, d2):
-    """Return the L1 distance between two distributions.
+    '''Return the L1 distance between two distributions.
 
     Args:
         d1 (np.ndarray): The first distribution.
@@ -112,12 +112,12 @@ def l1(d1, d2):
 
     Returns:
         float: The sum of absolute differences of ``d1`` and ``d2``.
-    """
+    '''
     return np.absolute(d1 - d2).sum()
 
 
 def kld(d1, d2):
-    """Return the Kullback-Leibler Divergence (KLD) between two distributions.
+    '''Return the Kullback-Leibler Divergence (KLD) between two distributions.
 
     Args:
         d1 (np.ndarray): The first distribution.
@@ -125,12 +125,12 @@ def kld(d1, d2):
 
     Returns:
         float: The KLD of ``d1`` from ``d2``.
-    """
+    '''
     d1, d2 = flatten(d1), flatten(d2)
     return entropy(d1, d2, 2.0)
 
 
 def entropy_difference(d1, d2):
-    """Return the difference in entropy between two distributions."""
+    '''Return the difference in entropy between two distributions.'''
     d1, d2 = flatten(d1), flatten(d2)
     return abs(entropy(d1, base=2.0) - entropy(d2, base=2.0))

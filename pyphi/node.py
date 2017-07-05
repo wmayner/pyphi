@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # node.py
 
-"""
-Represents a node in a subsystem. Each node has a unique index, its position
-in the network's list of nodes.
-"""
+'''
+Represents a node in a network. Each node has a unique index, its position in
+the network's list of nodes.
+'''
 
 import functools
 
@@ -19,7 +19,7 @@ from .tpm import marginalize_out, tpm_indices
 # TODO extend to nonbinary nodes
 @functools.total_ordering
 class Node:
-    """A node in a subsystem.
+    '''A node in a subsystem.
 
     Attributes:
         tpm (np.ndarray):
@@ -32,7 +32,7 @@ class Node:
             The state of this node.
         label (str):
             An optional label for the node.
-    """
+    '''
 
     def __init__(self, tpm, cm, index, state, label):
 
@@ -82,22 +82,22 @@ class Node:
 
     @property
     def tpm_off(self):
-        """The TPM of this node containing only the 'OFF' probabilities."""
+        '''The TPM of this node containing only the 'OFF' probabilities.'''
         return self.tpm[..., 0]
 
     @property
     def tpm_on(self):
-        """The TPM of this node containing only the 'ON' probabilities."""
+        '''The TPM of this node containing only the 'ON' probabilities.'''
         return self.tpm[..., 1]
 
     @property
     def inputs(self):
-        """The set of nodes with connections to this node."""
+        '''The set of nodes with connections to this node.'''
         return self._inputs
 
     @property
     def outputs(self):
-        """The set of nodes this node has connections to."""
+        '''The set of nodes this node has connections to.'''
         return self._outputs
 
     def __repr__(self):
@@ -107,7 +107,7 @@ class Node:
         return self.__repr__()
 
     def __eq__(self, other):
-        """Return whether this node equals the other object.
+        '''Return whether this node equals the other object.
 
         Two nodes are equal if they belong to the same subsystem and have the
         same index (their TPMs must be the same in that case, so this method
@@ -115,7 +115,7 @@ class Node:
 
         Labels are for display only, so two equal nodes may have different
         labels.
-        """
+        '''
         return (self.index == other.index and
                 np.array_equal(self.tpm, other.tpm) and
                 self.state == other.state and
@@ -137,17 +137,17 @@ class Node:
 
 
 def default_label(index):
-    """Default label for a node."""
+    '''Default label for a node.'''
     return "n{}".format(index)
 
 
 def default_labels(indices):
-    """Default labels for serveral nodes."""
+    '''Default labels for serveral nodes.'''
     return tuple(default_label(i) for i in indices)
 
 
 def generate_nodes(tpm, cm, network_state, labels=None):
-    """Generate |Node| objects for a subsystem.
+    '''Generate |Node| objects for a subsystem.
 
     Args:
         tpm (np.ndarray): The system's TPM
@@ -158,8 +158,8 @@ def generate_nodes(tpm, cm, network_state, labels=None):
         labels (tuple[str]): Textual labels for each node.
 
     Returns:
-        tuple[|Node|]: The nodes of the system.
-    """
+        tuple[Node]: The nodes of the system.
+    '''
     # Indices in the TPM
     indices = tpm_indices(tpm)
 
@@ -175,11 +175,11 @@ def generate_nodes(tpm, cm, network_state, labels=None):
 
 
 def expand_node_tpm(tpm):
-    """Broadcast a node TPM over the full network.
+    '''Broadcast a node TPM over the full network.
 
     This is different from broadcasting the TPM of a full system since the last
-    dimension (containing the state of the node) is unitary -- not a state-
-    tuple.
-    """
+    dimension (containing the state of the node) contains only the probability
+    of *this* node being on, rather than the probabilities for each node.
+    '''
     uc = np.ones([2 for node in tpm.shape])
     return uc * tpm

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # models/cuts.py
 
+'''Objects that represent partitions of sets of nodes.'''
+
 from collections import namedtuple
 from itertools import chain
 
@@ -12,16 +14,14 @@ from .. import config, connectivity, utils
 
 
 class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes'])):
-    """Represents a unidirectional cut.
+    '''Represents a unidirectional cut.
 
     Attributes:
-        from_nodes (tuple[int]):
-            Connections from this group of nodes to those in ``to_nodes`` are
-            from_nodes.
-        to_nodes (tuple[int]):
-            Connections to this group of nodes from those in ``from_nodes`` are
-            from_nodes.
-    """
+        from_nodes (tuple[int]): Connections from this group of nodes to those
+            in ``to_nodes`` are from_nodes.
+        to_nodes (tuple[int]): Connections to this group of nodes from those in
+            ``from_nodes`` are from_nodes.
+    '''
 
     # This allows accessing the namedtuple's ``__dict__``; see
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
@@ -29,41 +29,41 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes'])):
 
     @property
     def indices(self):
-        """Returns the indices of this cut."""
+        '''Returns the indices of this cut.'''
         return tuple(sorted(set(self[0] + self[1])))
 
     # TODO: cast to bool
     def splits_mechanism(self, mechanism):
-        """Check if this cut splits a mechanism.
+        '''Check if this cut splits a mechanism.
 
         Args:
-            mechanism (tuple[int]): The mechanism in question
+            mechanism (tuple[int]): The mechanism in question.
 
         Returns:
             bool: ``True`` if `mechanism` has elements on both sides of the
-            cut, otherwise ``False``.
-        """
+            cut; ``False`` otherwise.
+        '''
         # TODO: use cuts_connections
         return ((set(mechanism) & set(self[0])) and
                 (set(mechanism) & set(self[1])))
 
     def cuts_connections(self, a, b):
-        """Check if this cut severs any connections from nodes `a` to `b`."""
+        '''Check if this cut severs any connections from ``a`` to ``b``.'''
         return (set(a) & set(self[0])) and (set(b) & set(self[1]))
 
     def all_cut_mechanisms(self):
-        """Return all mechanisms with elements on both sides of this cut.
+        '''Return all mechanisms with elements on both sides of this cut.
 
         Returns:
             tuple[tuple[int]]
-        """
+        '''
         all_mechanisms = utils.powerset(self.indices, nonempty=True)
         return tuple(m for m in all_mechanisms if self.splits_mechanism(m))
 
     def apply_cut(self, cm):
-        """Return a modified connectivity matrix where the connections from one
+        '''Return a modified connectivity matrix where the connections from one
         set of nodes to the other are destroyed.
-        """
+        '''
         cm = cm.copy()
 
         for i in self[0]:
@@ -75,18 +75,18 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes'])):
     # TODO: pass in `size` arg and keep expanded to full network??
     # TODO: memoize?
     def cut_matrix(self):
-        """Compute the cut matrix for this cut.
+        '''Compute the cut matrix for this cut.
 
-        The cut matrix is a square matrix which represents connections
-        from_nodes by the cut. The matrix is shrunk to the size of the cut
-        subsystem--not necessarily the size of the entire network.
+        The cut matrix is a square matrix which represents connections severed
+        by the cut. The matrix is shrunk to the size of the cut subsystem---not
+        necessarily the size of the entire network.
 
         Example:
             >>> cut = Cut((1,), (2,))
             >>> cut.cut_matrix()
             array([[ 0.,  1.],
                    [ 0.,  0.]])
-        """
+        '''
         cut_indices = self.indices
 
         # Don't pass an empty tuple to `max`
@@ -111,38 +111,37 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes'])):
 
 class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
                                          'effect_part1', 'effect_part2'])):
-
-    """Represents an actual cut for a context.
+    '''Represents an cut for a |Context|.
 
     Attributes:
-        cause_part1 (tuple(int)):
-            Connections from this group to those in ``effect_part2`` are cut
-        cause_part2 (tuple(int)):
-            Connections from this group to those in ``effect_part1`` are cut
-        effect_part1 (tuple(int)):
-            Connections to this group from ``cause_part2`` are cut
-        effect_part2 (tuple(int)):
-             Connections to this group from ``cause_part1`` are cut
-    """
+        cause_part1 (tuple[int]): Connections from this group to those in
+            ``effect_part2`` are cut.
+        cause_part2 (tuple[int]): Connections from this group to those in
+            ``effect_part1`` are cut.
+        effect_part1 (tuple[int]): Connections to this group from
+            ``cause_part2`` are cut.
+        effect_part2 (tuple[int]): Connections to this group from
+            ``cause_part1`` are cut.
+    '''
 
     __slots__ = ()
 
     @property
     def indices(self):
-        """tuple[int]: The indices in this cut."""
+        '''tuple[int]: The indices in this cut.'''
         return tuple(sorted(set(chain.from_iterable(self))))
 
     # TODO test
     def apply_cut(self, cm):
-        """Cut a connectivity matrix.
+        '''Cut a connectivity matrix.
 
         Args:
             cm (np.ndarray): A connectivity matrix
 
         Returns:
             np.ndarray: A copy of the connectivity matrix with connections cut
-                across the cause and effect indices.
-        """
+            across the cause and effect indices.
+        '''
         cm = cm.copy()
 
         for i in self.cause_part1:
@@ -168,13 +167,11 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
-    """Represents one part of a bipartition.
+    '''Represents one part of a |Bipartition|.
 
     Attributes:
-        mechanism (tuple[int]):
-            The nodes in the mechanism for this part.
-        purview (tuple[int]):
-            The nodes in the mechanism for this part.
+        mechanism (tuple[int]): The nodes in the mechanism for this part.
+        purview (tuple[int]): The nodes in the mechanism for this part.
 
     Example:
         When calculating |small_phi| of a 3-node subsystem, we partition the
@@ -185,7 +182,7 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
               purview:   B    A,C
 
         This class represents one term in the above product.
-    """
+    '''
 
     __slots__ = ()
 
@@ -194,26 +191,26 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
 
 
 class KPartition(tuple):
-    """A partition with an arbitrary number of parts."""
+    '''A partition with an arbitrary number of parts.'''
     __slots__ = ()
 
     def __new__(cls, *args):
-        """Construct the base tuple with multiple ``Part`` arguments."""
+        '''Construct the base tuple with multiple |Part| arguments.'''
         return super().__new__(cls, args)
 
     def __getnewargs__(self):
-        """And support unpickling with this ``__new__`` signature."""
+        '''And support unpickling with this ``__new__`` signature.'''
         return tuple(self)
 
     @property
     def mechanism(self):
-        """tuple[int]: The nodes of the mechanism in the partition."""
+        '''tuple[int]: The nodes of the mechanism in the partition.'''
         return tuple(sorted(
             chain.from_iterable(part.mechanism for part in self)))
 
     @property
     def purview(self):
-        """tuple[int]: The nodes of the purview in the partition."""
+        '''tuple[int]: The nodes of the purview in the partition.'''
         return tuple(sorted(
             chain.from_iterable(part.purview for part in self)))
 
@@ -231,12 +228,12 @@ class KPartition(tuple):
 
 
 class Bipartition(KPartition):
-    """A bipartition of a mechanism and purview.
+    '''A bipartition of a mechanism and purview.
 
     Attributes:
         part0 (Part): The first part of the partition.
         part1 (Part): The second part of the partition.
-    """
+    '''
     __slots__ = ()
 
     def to_json(self):

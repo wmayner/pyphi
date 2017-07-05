@@ -2,15 +2,21 @@
 # -*- coding: utf-8 -*-
 # config.py
 
-"""
-The configuration is loaded upon import from a YAML file in the directory where
-PyPhi is run: ``pyphi_config.yml``. If no file is found, the default
-configuration is used.
+'''
+Various aspects of PyPhi's behavior can be configured.
 
-The various options are listed here with their defaults
+The configuration is loaded upon import from a YAML file called
+``pyphi_config.yml`` that must be in the directory where Python was started. If
+no file is found, the default configuration is used.
+
+The various options are listed here with their defaults.
 
     >>> import pyphi
     >>> defaults = pyphi.config.DEFAULTS
+
+Options can be changed on-the-fly by simply reassigning their values:
+
+    >>> pyphi.config.
 
 It is also possible to manually load a YAML configuration file within your
 script:
@@ -22,13 +28,12 @@ Or load a dictionary of configuration values:
     >>> pyphi.config.load_config_dict({'SOME_CONFIG': 'value'})
 
 
-Theoretical approximations
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Approximations and theoretical options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section deals with assumptions that speed up computation at the cost of
-theoretical accuracy.
+These options control the algorithms PyPhi uses.
 
-- ``pyphi.config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS``:
+- ``ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS``:
   In certain cases, making a cut can actually cause a previously reducible
   concept to become a proper, irreducible concept. Assuming this can never
   happen can increase performance significantly, however the obtained results
@@ -37,7 +42,7 @@ theoretical accuracy.
     >>> defaults['ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS']
     False
 
-- ``pyphi.config.CUT_ONE_APPROXIMATION``:
+- ``CUT_ONE_APPROXIMATION``:
   When determining the MIP for |big_phi|, this restricts the set of system cuts
   that are considered to only those that cut the inputs or outputs of a single
   node. This restricted set of cuts scales linearly with the size of the
@@ -48,16 +53,74 @@ theoretical accuracy.
     >>> defaults['CUT_ONE_APPROXIMATION']
     False
 
-- ``pyphi.config.MEASURE``: The measure to use when computing distances
-  between repertoires and concepts. The default is ``EMD``; the Earth Movers's
-  Distance. ``KLD`` is the Kullback-Leibler Divergence. ``L1`` is the ``L1``
-  distance. ``ENTROPY_DIFFERENCE`` is the absolute value of the difference in
-  entropy of the two distributions, ``abs(entropy(a) - entropy(b))``. ``KLD``
-  cannot be used as a measure when performing big-phi computations because of
-  it's asymmetry.
+- ``MEASURE``:
+  The measure to use when computing distances between repertoires and concepts.
+  The default is ``EMD``, the Earth Mover's Distance. ``KLD`` is the
+  Kullback-Leibler Divergence. ``L1`` is the |L1| distance.
+  ``ENTROPY_DIFFERENCE`` is the absolute value of the difference in entropy of
+  the two distributions, ``abs(entropy(a) - entropy(b))``. ``KLD`` cannot be
+  used as a measure when performing |big_phi| computations because of its
+  asymmetry.
 
     >>> defaults['MEASURE']
     'EMD'
+
+- ``PARTITION_TYPE``:
+  Controls the type of partition used for |small_phi| computations.
+
+  If set to ``'BI'``, partitions will have two parts.
+
+  If set to ``'TRI'``, partitions will have three parts. In addition,
+  computations will only consider partitions that strictly partition the
+  mechanism the mechanism. That is, for the mechanism ``(A, B)`` and purview
+  ``(B, C, D)`` the partition::
+
+    A,B    ∅
+    ─── ✕ ───
+     B    C,D
+
+  is not considered, but::
+
+     A     B
+    ─── ✕ ───
+     B    C,D
+
+  is. The following is also valid::
+
+    A,B     ∅
+    ─── ✕ ─────
+     ∅    B,C,D
+
+  In addition, this option introduces "wedge" tripartitions of the form::
+
+     A     B     ∅
+    ─── ✕ ─── ✕ ───
+     B     C     D
+
+  where the mechanism in the third part is always empty.
+
+  In addition, in the case of a |small_phi|-tie when computing MICE, The
+  ``'TRIPARTITION'`` setting choses the MIP with smallest purview instead of
+  the largest (which is the default).
+
+  Finally, if set to ``'ALL'``, all possible partitions will be tested.
+
+    >>> defaults['PARTITION_TYPE']
+    'BI'
+
+- ``PICK_SMALLEST_PURVIEW``:
+  When computing MICE, it is possible for several MIPs to have the same
+  |small_phi| value. If this options is set to ``True`` the MIP with the
+  smallest purview is chosen; otherwise, the one with largest purview is
+  chosen.
+
+    >>> defaults['PICK_SMALLEST_PURVIEW']
+    False
+
+- ``USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE``:
+  If set to ``True``, the distance between constellations (when computing a
+  |BigMip|) is calculated using the difference between the sum of |small_phi|
+  in the constellations instead of the extended EMD.
 
 
 System resources
@@ -69,46 +132,48 @@ machine, so **please check these settings before running anything**. Otherwise,
 there is a risk that simulations might crash (potentially after running for a
 long time!), resulting in data loss.
 
-- ``pyphi.config.PARALLEL_CONCEPT_EVALUATION``: Control whether concepts are
-  evaluated in parallel when computing constellations.
+- ``PARALLEL_CONCEPT_EVALUATION``:
+  Controls whether concepts are evaluated in parallel when computing
+  constellations.
 
     >>> defaults['PARALLEL_CONCEPT_EVALUATION']
     False
 
-- ``pyphi.config.PARALLEL_CUT_EVALUATION``: Control whether system cuts are
-  evaluated in parallel, which requires more memory. If cuts are evaluated
-  sequentially, only two |BigMip| instances need to be in memory at once.
+- ``PARALLEL_CUT_EVALUATION``:
+  Controls whether system cuts are evaluated in parallel, which is faster but
+  requires more memory. If cuts are evaluated sequentially, only two |BigMip|
+  instances need to be in memory at once.
 
     >>> defaults['PARALLEL_CUT_EVALUATION']
     True
 
-- ``pyphi.config.PARALLEL_COMPLEX_EVALUATION``: Control whether systems are
-  evaluated in parallel when computing complexes.
+- ``PARALLEL_COMPLEX_EVALUATION``:
+  Controls whether systems are evaluated in parallel when computing complexes.
 
     >>> defaults['PARALLEL_COMPLEX_EVALUATION']
     False
 
   .. warning::
-
     Only one of ``PARALLEL_CONCEPT_EVALUATION``, ``PARALLEL_CUT_EVALUATION``,
     and ``PARALLEL_COMPLEX_EVALUATION`` can be set to ``True`` at a time. For
     maximal efficiency, you should parallelize the highest level computations
-    possible: eg. parallelize complex evaluation instead of cut evaluation, but
-    only if you are actually computing complexes. You should only parallelize
-    concept evaluation if you are just computing constellations.
+    possible, *e.g.*, parallelize complex evaluation instead of cut evaluation,
+    but only if you are actually computing complexes. You should only
+    parallelize concept evaluation if you are just computing constellations.
 
-- ``pyphi.config.NUMBER_OF_CORES``: Control the number of CPU cores used to
-  evaluate unidirectional cuts. Negative numbers count backwards from the total
-  number of available cores, with ``-1`` meaning "use all available cores."
+- ``NUMBER_OF_CORES``:
+  Controls the number of CPU cores used to evaluate unidirectional cuts.
+  Negative numbers count backwards from the total number of available cores,
+  with ``-1`` meaning "use all available cores."
 
     >>> defaults['NUMBER_OF_CORES']
     -1
 
-- ``pyphi.config.MAXIMUM_CACHE_MEMORY_PERCENTAGE``: PyPhi employs several
-  in-memory caches to speed up computation. However, these can quickly use a
-  lot of memory for large networks or large numbers of them; to avoid
-  thrashing, this options limits the percentage of a system's RAM that the
-  caches can collectively use.
+- ``MAXIMUM_CACHE_MEMORY_PERCENTAGE``:
+  PyPhi employs several in-memory caches to speed up computation. However,
+  these can quickly use a lot of memory for large networks or large numbers of
+  them; to avoid thrashing, this options limits the percentage of a system's
+  RAM that the caches can collectively use.
 
     >>> defaults['MAXIMUM_CACHE_MEMORY_PERCENTAGE']
     50
@@ -123,48 +188,50 @@ results with minimal effort. For larger projects, however, it is recommended
 that you manage the results explicitly, rather than relying on the cache. For
 this reason it is disabled by default.
 
-- ``pyphi.config.CACHE_BIGMIPS``: Control whether |BigMip| objects are cached
-  and automatically retreived.
+- ``CACHE_BIGMIPS``:
+  Controls whether |BigMip| objects are cached and automatically retrieved.
 
     >>> defaults['CACHE_BIGMIPS']
     False
 
-- ``pyphi.config.CACHE_POTENTIAL_PURVIEWS``: Controls whether the potential
-  purviews of mechanisms of a network are cached. Caching speeds up
-  computations by not recomputing expensive reducibility checks, but uses
-  additional memory.
+- ``CACHE_POTENTIAL_PURVIEWS``:
+  Controls whether the potential purviews of mechanisms of a network are
+  cached. Caching speeds up computations by not recomputing expensive
+  reducibility checks, but uses additional memory.
 
     >>> defaults['CACHE_POTENTIAL_PURVIEWS']
     True
 
-- ``pyphi.config.CACHING_BACKEND``: Control whether precomputed results are
-  stored and read from a database or from a local filesystem-based cache in the
-  current directory. Set this to 'fs' for the filesystem, 'db' for the
-  database. Caching results on the filesystem is the easiest to use but least
-  robust caching system. Caching results in a database is more robust and
-  allows for caching individual concepts, but requires installing MongoDB.
+- ``CACHING_BACKEND``:
+  Controls whether precomputed results are stored and read from a local
+  filesystem-based cache in the current directory or from a database. Set this
+  to ``'fs'`` for the filesystem, ``'db'`` for the database.
 
     >>> defaults['CACHING_BACKEND']
     'fs'
 
-- ``pyphi.config.FS_CACHE_VERBOSITY``: Control how much caching information is
-  printed. Takes a value between 0 and 11. Note that printing during a loop
-  iteration can slow down the loop considerably.
+- ``FS_CACHE_VERBOSITY``:
+  Controls how much caching information is printed if the filesystem cache is
+  used. Takes a value between ``0`` and ``11``.
 
     >>> defaults['FS_CACHE_VERBOSITY']
     0
 
-- ``pyphi.config.FS_CACHE_DIRECTORY``: If the caching backend is set to use the
-  filesystem, the cache will be stored in this directory. This directory can be
-  copied and moved around if you want to reuse results _e.g._ on a another
-  computer, but it must be in the same directory from which PyPhi is being run.
+  .. warning::
+      Printing during a loop iteration can slow down the loop considerably.
+
+- ``FS_CACHE_DIRECTORY``:
+  If the filesystem is used for caching, the cache will be stored in this
+  directory. This directory can be copied and moved around if you want to reuse
+  results *e.g.* on a another computer, but it must be in the same directory
+  from which Python is being run.
 
     >>> defaults['FS_CACHE_DIRECTORY']
     '__pyphi_cache__'
 
-- ``pyphi.config.MONGODB_CONFIG``: Set the configuration for the MongoDB
-  database backend. This only has an effect if the caching backend is set to
-  use the database.
+- ``MONGODB_CONFIG``:
+  Set the configuration for the MongoDB database backend (only has an effect if
+  ``CACHING_BACKEND`` is ``'db'``).
 
     >>> defaults['MONGODB_CONFIG']['host']
     'localhost'
@@ -175,13 +242,15 @@ this reason it is disabled by default.
     >>> defaults['MONGODB_CONFIG']['collection_name']
     'cache'
 
-- ``pyphi.config.REDIS_CACHE``: Specifies whether to use Redis to cache Mice.
+- ``REDIS_CACHE``:
+  Specifies whether to use Redis to cache |Mice|.
 
     >>> defaults['REDIS_CACHE']
     False
 
-- ``pyphi.config.REDIS_CONFIG``: Configure the Redis database backend. These
-    are the defaults in the provided ``redis.conf`` file.
+- ``REDIS_CONFIG``:
+  Configure the Redis database backend. These are the defaults in the provided
+  ``redis.conf`` file.
 
     >>> defaults['REDIS_CONFIG']['host']
     'localhost'
@@ -197,53 +266,67 @@ not flexible enough for you, you can override the entire logging configuration.
 See the `documentation on Python's logger
 <https://docs.python.org/3.4/library/logging.html>`_ for more information.
 
-- ``pyphi.config.LOG_STDOUT_LEVEL``: Controls the level of log messages written
-  to standard output. Can be one of ``'DEBUG'``, ``'INFO'``,
-  ``'WARNING'``, ``'ERROR'``, ``'CRITICAL'``, or ``None``. ``'DEBUG'`` is the
-  least restrictive level and will show the most log messages. ``'CRITICAL'`` is
-  the most restrictive level and will only display information about
-  unrecoverable errors. If set to ``None``, logging to standard output will be
-  disabled entirely.
+.. important::
+    After PyPhi has been imported, changing these options will have no effect
+    unless you call |configure_logging| afterwards.
+
+- ``LOG_STDOUT_LEVEL``:
+  Controls the level of log messages written to standard output. Can be one of
+  ``'DEBUG'``, ``'INFO'``, ``'WARNING'``, ``'ERROR'``, ``'CRITICAL'``, or
+  ``None``. ``'DEBUG'`` is the least restrictive level and will show the most
+  log messages. ``'CRITICAL'`` is the most restrictive level and will only
+  display information about fatal errors. If set to ``None``, logging to
+  standard output will be disabled entirely.
 
     >>> defaults['LOG_STDOUT_LEVEL']
     'WARNING'
 
-- ``pyphi.config.LOG_FILE_LEVEL: Controls the level of log messages written to
-  the log file. This option has the same possible values as
-  ``LOG_STDOUT_LEVEL``.
+- ``LOG_FILE_LEVEL``:
+  Controls the level of log messages written to the log file. This option has
+  the same possible values as ``LOG_STDOUT_LEVEL``.
 
     >>> defaults['LOG_FILE_LEVEL']
     'INFO'
 
-- ``pyphi.config.LOG_FILE``: Control the name of the logfile.
+- ``LOG_FILE``:
+  Controls the name of the log file.
 
     >>> defaults['LOG_FILE']
     'pyphi.log'
 
-- ``pyphi.config.LOG_CONFIG_ON_IMPORT``: Controls whether the current
-  configuration is printed when PyPhi is imported.
+- ``LOG_CONFIG_ON_IMPORT``:
+  Controls whether the configuration is printed when PyPhi is imported.
 
     >>> defaults['LOG_CONFIG_ON_IMPORT']
     True
 
-- ``pyphi.config.PROGRESS_BARS``: Controls whether to show progress bars on
-  the console.
+  .. tip::
+      If this is enabled and ``LOG_FILE_LEVEL`` is ``INFO`` or higher, then
+      the log file can serve as an automatic record of which configuration
+      options you used to obtain results.
+
+- ``PROGRESS_BARS``:
+  Controls whether to show progress bars on the console.
 
     >>> defaults['PROGRESS_BARS']
     True
 
+  .. tip::
+    If you are iterating over many systems rather than doing one long-running
+    calculation, consider disabling this for speed.
 
 Numerical precision
 ~~~~~~~~~~~~~~~~~~~
 
-- ``pyphi.config.PRECISION``: Computations in PyPhi rely on finding the Earth
-  Mover's Distance. This is done via an external C++ library that uses
-  flow-optimization to find a good approximation of the EMD. Consequently,
-  systems with zero |big_phi| will sometimes be computed to have a small but
-  non-zero amount. This setting controls the number of decimal places to which
-  PyPhi will consider EMD calculations accurate. Values of |big_phi| lower than
-  ``10e-PRECISION`` will be considered insignificant and treated as zero. The
-  default value is about as accurate as the EMD computations get.
+- ``PRECISION``:
+  If ``MEASURE`` is ``EMD``, then the Earth Mover's Distance is calculated with
+  an external C++ library that a numerical optimizer to find a good
+  approximation. Consequently, systems with analytically zero |big_phi| will
+  sometimes be numerically found to have a small but non-zero amount. This
+  setting controls the number of decimal places to which PyPhi will consider
+  EMD calculations accurate. Values of |big_phi| lower than ``10e-PRECISION``
+  will be considered insignificant and treated as zero. The default value is
+  about as accurate as the EMD computations get.
 
     >>> defaults['PRECISION']
     6
@@ -252,31 +335,32 @@ Numerical precision
 Miscellaneous
 ~~~~~~~~~~~~~
 
-- ``pyphi.config.VALIDATE_SUBSYSTEM_STATES``: Control whether PyPhi checks if
-  the subsystems's state is possible (reachable from some past state), given
-  the subsystem's TPM (**which is conditioned on background conditions**). If
-  this is turned off, then **calculated** |big_phi| **values may not be
-  valid**, since they may be associated with a subsystem that could never be in
-  the given state.
+- ``VALIDATE_SUBSYSTEM_STATES``:
+  Controls whether PyPhi checks if the subsystems's state is possible
+  (reachable with nonzero probability from some past state), given the
+  subsystem's TPM (**which is conditioned on background conditions**). If this
+  is turned off, then **calculated** |big_phi| **values may not be valid**,
+  since they may be associated with a subsystem that could never be in the
+  given state.
 
     >>> defaults['VALIDATE_SUBSYSTEM_STATES']
     True
 
 
-- ``pyphi.config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI``: If set to ``True``,
-  this defines the Phi value of subsystems containing only a single node with a
-  self-loop to be ``0.5``. If set to False, their |big_phi| will be actually be
-  computed (to be zero, in this implementation).
+- ``SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI``:
+  If set to ``True``, this defines the Phi value of subsystems containing only
+  a single node with a self-loop to be ``0.5``. If set to False, their
+  |big_phi| will be actually be computed (to be zero, in this implementation).
 
     >>> defaults['SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI']
     False
 
 
-- ``pyphi.config.REPR_VERBOSITY``: Controls the verbosity of ``__repr__``
-  methods on PyPhi objects. Can be set to ``0``, ``1``, or ``2``. If set to
-  ``1``, calling ``repr`` on PyPhi objects will return pretty-formatted and
-  legible strings, excluding repertoires. If set to ``2``, ``repr`` calls also
-  include repertoires.
+- ``REPR_VERBOSITY``:
+  Controls the verbosity of ``__repr__`` methods on PyPhi objects. Can be set
+  to ``0``, ``1``, or ``2``. If set to ``1``, calling ``repr`` on PyPhi objects
+  will return pretty-formatted and legible strings, excluding repertoires. If
+  set to ``2``, ``repr`` calls also include repertoires.
 
   Although this breaks the convention that ``__repr__`` methods should return a
   representation which can reconstruct the object, readable representations are
@@ -287,72 +371,16 @@ Miscellaneous
     >>> defaults['REPR_VERBOSITY']
     2
 
-- ``pyphi.config.PRINT_FRACTIONS``: Controls whether numbers in ``repr``s are
-  printed as fractions. Numbers are still printed as decimals if the fraction's
-  denominator would be large. This only has an effect if ``REPR_VERBOSITY >
-  0``.
+- ``PRINT_FRACTIONS``:
+  Controls whether numbers in a ``repr`` are printed as fractions. Numbers are
+  still printed as decimals if the fraction's denominator would be large. This
+  only has an effect if ``REPR_VERBOSITY > 0``.
 
     >>> defaults['PRINT_FRACTIONS']
     True
 
-- ``pyphi.config.PARTITION_TYPE``: Controls the type of partition used for
-  |small_phi| computations.
-
-  If set to ``'BI'``, partitions will have two parts.
-
-  If set to ``'TRI'``, partitions will have three parts. In addition,
-  computations will only consider partitions that strictly partition the
-  mechanism. That is, for the mechanism ``(A, B)`` and purview ``(B, C, D)``
-  the partition ::
-
-    A,B   []
-    ─── ✕ ───
-     B    C,D
-
-  is not considered, but ::
-
-     A     B
-    ─── ✕ ───
-     B    C,D
-
-  is. The following is also valid::
-
-    A,B    []
-    ─── ✕ ─────
-    []    B,C,D
-
-  In addition, this option introduces wedge tripartitions of the form ::
-
-     A     B    []
-    ─── ✕ ─── ✕ ───
-     B     C     D
-
-  where the mechanism in the third part is always empty.
-
-  In addition, in the case of a |small_phi|-tie when computing MICE,
-  The ``'TRIPARTITION'`` setting choses the MIP with smallest purview instead of
-  the largest (which is the default.)
-
-  Finally, if set to ``'ALL'``, all possible partitions will be tested.
-
-    >>> defaults['PARTITION_TYPE']
-    'BI'
-
-- ``pyphi.config.PICK_SMALLEST_PURVIEW``: When computing MICE, it is possible
-  for several MIPs to have the same |small_phi| value. If this options is set to
-  ``True`` the MIP with the smallest purview will be chosen; otherwise, the MIP
-  with the largest purview will be selected.
-
-    >>> defaults['PICK_SMALLEST_PURVIEW']
-    False
-
-- ``pyphi.config.USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE``: If set
-  to ``True``, the distance between constellations (when computing |BigMip|) is
-  calculated using the difference between the sum of |small_phi| in the
-  constellations instead of the extended EMD.
-
 -------------------------------------------------------------------------------
-"""
+'''
 
 import contextlib
 import logging
@@ -440,7 +468,7 @@ DEFAULTS = {
     'REPR_VERBOSITY': 2,
     # Print numbers as fractions if the denominator isn't too big.
     'PRINT_FRACTIONS': True,
-    # Control the number of parts in a partition.
+    # Controls the number of parts in a partition.
     'PARTITION_TYPE': 'BI',
     # Controls how to pick MIPs in the case of phi-ties.
     'PICK_SMALLEST_PURVIEW': False,
@@ -454,52 +482,46 @@ this_module = sys.modules[__name__]
 
 
 def load_config_dict(config):
-    """Load configuration values.
+    '''Load configuration values.
 
     Args:
         config (dict): The dict of config to load.
-    """
+    '''
     this_module.__dict__.update(config)
 
 
 def load_config_file(filename):
-    """Load config from a YAML file."""
+    '''Load config from a YAML file.'''
     with open(filename) as f:
         load_config_dict(yaml.load(f))
 
 
 def load_config_default():
-    """Load default config values."""
+    '''Load default config values.'''
     load_config_dict(DEFAULTS)
 
 
 def get_config_string():
-    """Return a string representation of the currently loaded configuration."""
+    '''Return a string representation of the currently loaded configuration.'''
     config = {key: this_module.__dict__[key] for key in DEFAULTS.keys()}
     return pprint.pformat(config, indent=2)
 
 
 def print_config():
-    """Print the current configuration."""
+    '''Print the current configuration.'''
     print('Current PyPhi configuration:\n', get_config_string())
 
 
+# TODO: call this in `config.override`?
 def configure_logging():
-    """Configure PyPhi logging based on the loaded configuration.
-
-    Note: if PyPhi config options that control logging are changed after they
-    are loaded (eg. in testing), the Python logging configuration will stay
-    the same unless you manually reconfigure the logging by calling this
-    function.
-
-    TODO: call this in `config.override`?
-    """
+    '''Reconfigure PyPhi logging based on the current configuration.'''
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
         'formatters': {
             'standard': {
-                'format': '%(asctime)s [%(name)s] %(levelname)s %(processName)s: %(message)s'
+                'format': '%(asctime)s [%(name)s] %(levelname)s'
+                          '%(processName)s: %(message)s'
             }
         },
         'handlers': {
@@ -524,12 +546,12 @@ def configure_logging():
 
 
 class override(contextlib.ContextDecorator):
-    """Decorator and context manager to override config values.
+    '''Decorator and context manager to override configuration values.
 
     The initial configuration values are reset after the decorated function
-    returns or the context manager completes it block, even if the function
-    or block raises an exception. This is intended to be used by testcases
-    which require specific configuration values.
+    returns or the context manager completes it block, even if the function or
+    block raises an exception. This is intended to be used by tests which
+    require specific configuration values.
 
     Example:
         >>> from pyphi import config
@@ -541,18 +563,18 @@ class override(contextlib.ContextDecorator):
         >>> with config.override(PRECISION=100):
         ...     assert config.PRECISION == 100
         ...
-    """
+    '''
     def __init__(self, **new_conf):
         self.new_conf = new_conf
 
     def __enter__(self):
-        """Save original config values; override with new ones."""
+        '''Save original config values; override with new ones.'''
         self.initial_conf = {opt_name: this_module.__dict__[opt_name]
                              for opt_name in self.new_conf}
         load_config_dict(self.new_conf)
 
     def __exit__(self, *exc):
-        """Reset config to initial values; reraise any exceptions."""
+        '''Reset config to initial values; reraise any exceptions.'''
         load_config_dict(self.initial_conf)
         return False
 
@@ -575,7 +597,7 @@ configure_logging()
 if this_module.LOG_CONFIG_ON_IMPORT:
     log = logging.getLogger(__name__)
 
-    log.info('PyPhi version %s', __about__.__version__)
+    log.info('PyPhi v%s', __about__.__version__)
     if file_loaded:
         log.info('Loaded configuration from '
                  '`./%s`', PYPHI_CONFIG_FILENAME)

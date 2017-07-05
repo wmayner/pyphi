@@ -12,7 +12,7 @@
 #        _|
 #      _|_|_|
 
-"""
+'''
 =====
 PyPhi
 =====
@@ -55,7 +55,7 @@ You can download an example configuration file `here
 
 See the documentation for the |config| module for a description of the options
 and their defaults.
-"""
+'''
 
 from .__about__ import *
 from . import (config, constants, convert, db, examples, jsonify, macro,

@@ -49,9 +49,9 @@ def degenerate():
 
 @pytest.fixture
 def propogation_delay():
-    """The basic_subsystem with COPY gates on each of the connections in the
+    '''The basic_subsystem with COPY gates on each of the connections in the
     original network.
-    """
+    '''
     nodes = 8
     tpm = np.zeros((2 ** nodes, nodes))
 

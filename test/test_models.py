@@ -623,7 +623,7 @@ def test_indent():
 
 
 class ReadableReprClass:
-    """Dummy class for make_repr tests"""
+    '''Dummy class for make_repr tests'''
     some_attr = 3.14
 
     def __repr__(self):
@@ -662,7 +662,7 @@ def test_bipartition_properties(bipartition):
 
 def test_bipartition_str(bipartition):
     assert str(bipartition) == (
-        ' 0    [] \n'
+        ' 0     ∅ \n'
         '─── ✕ ───\n'
         '0,4    1 ')
 
@@ -682,7 +682,7 @@ def test_tripartion_properties(tripartition):
 
 def test_tripartion_str(tripartition):
     assert str(tripartition) == (
-        ' 0    []     2 \n'
+        ' 0     ∅     2 \n'
         '─── ✕ ─── ✕ ───\n'
         '0,4    1     2 ')
 

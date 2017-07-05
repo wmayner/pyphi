@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 # utils/connectivity.py
 
-"""
+'''
 Functions for determining network connectivity properties.
-"""
+'''
 
 import numpy as np
 from scipy.sparse.csgraph import connected_components
 
 
 def apply_boundary_conditions_to_cm(external_indices, cm):
-    """Remove connections to or from external nodes."""
+    '''Remove connections to or from external nodes.'''
     cm = cm.copy()
     for i in external_indices:
         # Zero-out row
@@ -22,17 +22,17 @@ def apply_boundary_conditions_to_cm(external_indices, cm):
 
 
 def get_inputs_from_cm(index, cm):
-    """Return indices of inputs to the node with the given index."""
+    '''Return indices of inputs to the node with the given index.'''
     return tuple(i for i in range(cm.shape[0]) if cm[i][index])
 
 
 def get_outputs_from_cm(index, cm):
-    """Return indices of the outputs of node with the given index."""
+    '''Return indices of the outputs of node with the given index.'''
     return tuple(i for i in range(cm.shape[0]) if cm[index][i])
 
 
 def causally_significant_nodes(cm):
-    """Return indices of nodes that have both inputs and outputs."""
+    '''Return indices of nodes that have both inputs and outputs.'''
     inputs = cm.sum(0)
     outputs = cm.sum(1)
     nodes_with_inputs_and_outputs = np.logical_and(inputs > 0, outputs > 0)
@@ -41,7 +41,7 @@ def causally_significant_nodes(cm):
 
 # TODO: better name?
 def relevant_connections(n, _from, to):
-    """Construct a connectivity matrix.
+    '''Construct a connectivity matrix.
 
     Args:
         n (int): The dimensions of the matrix
@@ -49,9 +49,9 @@ def relevant_connections(n, _from, to):
         to (tuple[int]): Nodes with incoming connections from ``_from``
 
     Returns:
-        np.ndarray: An |n x n| connectivity matrix with the |i,jth| entry set
-        to ``1`` if |i| is in ``_from`` and |j| is in ``to``.
-    """
+        np.ndarray: An |n x n| connectivity matrix with the |i,jth| entry is
+        ``1`` if |i| is in ``_from`` and |j| is in ``to``, and 0 otherwise.
+    '''
     cm = np.zeros((n, n))
 
     # Don't try and index with empty arrays. Older versions of NumPy
@@ -64,7 +64,7 @@ def relevant_connections(n, _from, to):
 
 
 def block_cm(cm):
-    """Return whether ``cm`` can be arranged as a block connectivity matrix.
+    '''Return whether ``cm`` can be arranged as a block connectivity matrix.
 
     If so, the corresponding mechanism/purview is trivially reducible.
     Technically, only square matrices are "block diagonal", but the notion of
@@ -86,14 +86,14 @@ def block_cm(cm):
       C [0, 0, 1, 1]
 
     Since nodes |AB| only connect to nodes |DE|, and node |C| only connects to
-    nodes |FG|, the subgraph is reducible; the cut ::
+    nodes |FG|, the subgraph is reducible, because the cut ::
 
       A,B    C
       ─── ✕ ───
       D,E   F,G
 
     does not change the structure of the graph.
-    """
+    '''
     if np.any(cm.sum(1) == 0):
         return True
     if np.all(cm.sum(1) == 1):
@@ -136,13 +136,13 @@ def block_cm(cm):
 # TODO: simplify the conditional validation here and in block_cm
 # TODO: combine with fully_connected
 def block_reducible(cm, nodes1, nodes2):
-    """Return whether connections from ``nodes1`` to ``nodes2`` are reducible.
+    '''Return whether connections from ``nodes1`` to ``nodes2`` are reducible.
 
     Args:
         cm (np.ndarray): The network's connectivity matrix.
         nodes1 (tuple[int]): Source nodes
         nodes2 (tuple[int]): Sink nodes
-    """
+    '''
     # Trivial case
     if not nodes1 or not nodes2:
         return True
@@ -158,7 +158,7 @@ def block_reducible(cm, nodes1, nodes2):
 
 
 def _connected(cm, nodes, connection):
-    """Test connectivity for the connectivity matrix."""
+    '''Test connectivity for the connectivity matrix.'''
     if nodes is not None:
         cm = cm[np.ix_(nodes, nodes)]
 
@@ -167,33 +167,31 @@ def _connected(cm, nodes, connection):
 
 
 def is_strong(cm, nodes=None):
-    """Return whether the connectivity matrix is strongly connected.
+    '''Return whether the connectivity matrix is strongly connected.
 
     Args:
         cm (np.ndarray): A square connectivity matrix.
 
     Keyword Args:
-        nodes (tuple[int]): An optional subset of node indices to test strong
-            connectivity over.
-    """
+        nodes (tuple[int]): A subset of nodes to consider.
+    '''
     return _connected(cm, nodes, 'strong')
 
 
 def is_weak(cm, nodes=None):
-    """Return whether the connectivity matrix is weakly connected.
+    '''Return whether the connectivity matrix is weakly connected.
 
     Args:
         cm (np.ndarray): A square connectivity matrix.
 
     Keyword Args:
-        nodes (tuple[int]): An optional subset of node indices to test weak
-            connectivity over.
-    """
+        nodes (tuple[int]): A subset of nodes to consider.
+    '''
     return _connected(cm, nodes, 'weak')
 
 
 def is_full(cm, nodes1, nodes2):
-    """Test connectivity of one set of nodes to another.
+    '''Test connectivity of one set of nodes to another.
 
     Args:
         cm (``np.ndarrray``): The connectivity matrix
@@ -203,11 +201,11 @@ def is_full(cm, nodes1, nodes2):
             be tested.
 
     Returns:
-        bool: Returns ``True`` if all elements in ``nodes1`` output to some
-        element in ``nodes2`` AND all elements in ``nodes2`` have an input from
-        some element in ``nodes1``. Otherwise return ``False``. Return ``True``
-        if either set of nodes is empty.
-    """
+        bool: ``True`` if all elements in ``nodes1`` output to some element in
+        ``nodes2`` and all elements in ``nodes2`` have an input from some
+        element in ``nodes1``, or if either set of nodes is empty; ``False``
+        otherwise.
+    '''
     if not nodes1 or not nodes2:
         return True
 

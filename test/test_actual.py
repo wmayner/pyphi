@@ -145,7 +145,7 @@ def test_coefficients(context):
 
 
 def test_ac_ex1_context(context):
-    """Basic regression test for ac_ex1 example."""
+    '''Basic regression test for ac_ex1 example.'''
 
     cause_account = actual.directed_account(context, Direction.PAST)
     assert len(cause_account) == 1
@@ -187,7 +187,7 @@ def test_ac_ex1_context(context):
 # TODO: fix unreachable state issue
 @pytest.mark.xfail
 def test_ac_ex3_context():
-    """Regression test for ac_ex3 example"""
+    '''Regression test for ac_ex3 example'''
     context = examples.ac_ex3_context()
 
     cause_account = actual.directed_account(context, Direction.PAST)

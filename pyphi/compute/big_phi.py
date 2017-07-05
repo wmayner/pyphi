@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # compute/big_phi.py
 
-"""
+'''
 Functions for computing concepts, constellations, and integrated information.
-"""
+'''
 
 import functools
 import logging
@@ -22,19 +21,18 @@ from ..subsystem import Subsystem
 log = logging.getLogger(__name__)
 
 
-# Expose `compute.evaluate_cut` to public API
 def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
-    """Find the |BigMip| for a given cut.
+    '''Find the |BigMip| for a given cut.
 
     Args:
-        uncut_subsystem (|Subsystem|): The subsystem without the cut applied.
-        cut (|Cut|): The cut to evaluate.
-        unpartitioned_constellation (|Constellation|): The constellation of the
+        uncut_subsystem (Subsystem): The subsystem without the cut applied.
+        cut (Cut): The cut to evaluate.
+        unpartitioned_constellation (Constellation): The constellation of the
             uncut subsystem.
 
     Returns:
-        |BigMip|: The |BigMip| for that cut.
-    """
+        BigMip: The |BigMip| for that cut.
+    '''
     log.debug('Evaluating %s...', cut)
 
     cut_subsystem = uncut_subsystem.apply_cut(cut)
@@ -71,20 +69,20 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
 
 
 class FindMip(MapReduce):
-    """Computation engine for finding the minimal ``BigMip``."""
+    '''Computation engine for finding the minimal |BigMip|.'''
     description = 'Evaluating \u03D5 cuts'
 
     def empty_result(self, subsystem, unpartitioned_constellation):
-        """Begin with a mip with infinite phi; all actual mips will have less
-        phi."""
+        '''Begin with a mip with infinite |big_phi|; all actual mips will have
+        less.'''
         return _null_bigmip(subsystem, phi=float('inf'))
 
     def compute(self, cut, subsystem, unpartitioned_constellation):
-        """Evaluate a cut."""
+        '''Evaluate a cut.'''
         return evaluate_cut(subsystem, cut, unpartitioned_constellation)
 
     def process_result(self, new_mip, min_mip):
-        """Check if the new mip has smaller phi than the standing result."""
+        '''Check if the new mip has smaller phi than the standing result.'''
         if new_mip.phi == 0:
             self.done = True  # Short-circuit
             return new_mip
@@ -96,15 +94,15 @@ class FindMip(MapReduce):
 
 
 def big_mip_bipartitions(nodes):
-    """Return all |big_phi| cuts for the given nodes.
+    '''Return all |big_phi| cuts for the given nodes.
 
-    This value changes based on `config.CUT_ONE_APPROXIMATION`.
+    This value changes based on :const:`config.CUT_ONE_APPROXIMATION`.
 
     Args:
         nodes (tuple[int]): The node indices to partition.
     Returns:
-        list[|Cut|]: All unidirectional partitions.
-    """
+        list[Cut]: All unidirectional partitions.
+    '''
     if config.CUT_ONE_APPROXIMATION:
         bipartitions = directed_bipartition_of_one(nodes)
     else:
@@ -118,16 +116,16 @@ def big_mip_bipartitions(nodes):
 # pylint: disable=unused-argument
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
-    """Return the minimal information partition of a subsystem.
+    '''Return the minimal information partition of a subsystem.
 
     Args:
         subsystem (Subsystem): The candidate set of nodes.
 
     Returns:
-        |BigMip|: A nested structure containing all the data from the
+        BigMip: A nested structure containing all the data from the
         intermediate calculations. The top level contains the basic MIP
         information for the given subsystem.
-    """
+    '''
     log.info('Calculating big-phi data for %s...', subsystem)
     start = time()
 
@@ -186,11 +184,11 @@ def _big_mip(cache_key, subsystem):
 
 
 def _big_mip_cache_key(subsystem):
-    """The cache key of the subsystem.
+    '''The cache key of the subsystem.
 
     This includes the native hash of the subsystem and all configuration values
     which change the results of ``big_mip``.
-    """
+    '''
     return (
         hash(subsystem),
         config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS,
@@ -212,15 +210,15 @@ def big_mip(subsystem):
 
 
 def big_phi(subsystem):
-    """Return the |big_phi| value of a subsystem."""
+    '''Return the |big_phi| value of a subsystem.'''
     return big_mip(subsystem).phi
 
 
 def subsystems(network, state):
-    """Return a generator of all **possible** subsystems of a network.
+    '''Return a generator of all **possible** subsystems of a network.
 
     Does not return subsystems that are in an impossible state.
-    """
+    '''
     validate.is_network(network)
 
     for subset in utils.powerset(network.node_indices, nonempty=True):
@@ -231,16 +229,16 @@ def subsystems(network, state):
 
 
 def all_complexes(network, state):
-    """Return a generator for all complexes of the network.
+    '''Return a generator for all complexes of the network.
 
-    Includes reducible, zero-phi complexes (which are not, strictly speaking,
-    complexes at all).
-    """
+    Includes reducible, zero-|big_phi| complexes (which are not, strictly
+    speaking, complexes at all).
+    '''
     return (big_mip(subsystem) for subsystem in subsystems(network, state))
 
 
 def possible_complexes(network, state):
-    """Return a generator of subsystems of a network that could be a complex.
+    '''Return a generator of subsystems of a network that could be a complex.
 
     This is the just powerset of the nodes that have at least one input and
     output (nodes with no inputs or no outputs cannot be part of a main
@@ -255,7 +253,7 @@ def possible_complexes(network, state):
 
     Yields:
         Subsystem: The next subsystem which could be a complex.
-    """
+    '''
     validate.is_network(network)
 
     for subset in utils.powerset(network.causally_significant_nodes,
@@ -268,7 +266,7 @@ def possible_complexes(network, state):
 
 
 class FindComplexes(MapReduce):
-    """Computation engine for computing irreducible complexes of a network."""
+    '''Computation engine for computing irreducible complexes of a network.'''
     description = 'Finding complexes'
 
     def empty_result(self):
@@ -284,13 +282,13 @@ class FindComplexes(MapReduce):
 
 
 def complexes(network, state):
-    """Return all irreducible complexes of the network."""
+    '''Return all irreducible complexes of the network.'''
     engine = FindComplexes(possible_complexes(network, state))
     return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
 
 
 def main_complex(network, state):
-    """Return the main complex of the network."""
+    '''Return the main complex of the network.'''
     log.info('Calculating main complex...')
 
     result = complexes(network, state)
@@ -306,7 +304,7 @@ def main_complex(network, state):
 
 
 def condensed(network, state):
-    """Return the set of maximal non-overlapping complexes."""
+    '''Return the set of maximal non-overlapping complexes.'''
     condensed = []
     covered_nodes = set()
 

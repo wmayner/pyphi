@@ -209,8 +209,8 @@ def bb():
 
 @pytest.fixture
 def cg_bb():
-    """A blackbox with multiple outputs for a box, which must be coarse-
-    grained."""
+    '''A blackbox with multiple outputs for a box, which must be coarse-
+    grained.'''
     partition = ((1, 3), (4,), (5,))
     output_indices = (1, 3, 4, 5)
     return macro.Blackbox(partition, output_indices)

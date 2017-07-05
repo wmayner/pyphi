@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # examples.py
 
-"""
+'''
 Example networks and subsystems to go along with the documentation.
-"""
+'''
 
 # pylint: disable=too-many-lines
 # flake8: noqa
@@ -22,7 +22,7 @@ LABELS = string.ascii_uppercase
 
 
 def basic_network(cm=False):
-    """A simple 3-node network with roughly two bits of |big_phi|.
+    '''A 3-node network of logic gates.
 
     Diagram::
 
@@ -75,7 +75,7 @@ def basic_network(cm=False):
 
     .. note::
         |CM[i][j] = 1| means that node |i| is connected to node |j|.
-    """
+    '''
     tpm = np.array([
         [0, 0, 0],
         [0, 0, 1],
@@ -98,8 +98,8 @@ def basic_network(cm=False):
 
 
 def basic_subsystem():
-    """A subsystem containing all the nodes of the
-    :func:`~pyphi.examples.basic_network`."""
+    '''A subsystem containing all the nodes of the
+    :func:`~pyphi.examples.basic_network`.'''
     net = basic_network()
     state = (1, 0, 0)
     return Subsystem(net, state, range(net.size))
@@ -107,7 +107,7 @@ def basic_subsystem():
 
 # TODO label nodes
 def residue_network():
-    """The network for the residue example.
+    '''The network for the residue example.
 
     Current and past state are all nodes off.
 
@@ -141,7 +141,7 @@ def residue_network():
     +---+---+---+---+---+---+
     | E | 0 | 1 | 0 | 0 | 0 |
     +---+---+---+---+---+---+
-    """
+    '''
     tpm = np.array([
         [int(s) for s in bin(x)[2:].zfill(5)[::-1]] for x in range(32)
     ])
@@ -158,8 +158,8 @@ def residue_network():
 
 
 def residue_subsystem():
-    """The subsystem containing all the nodes of the
-    :func:`~pyphi.examples.residue_network`."""
+    '''The subsystem containing all the nodes of the
+    :func:`~pyphi.examples.residue_network`.'''
     net = residue_network()
     state = (0, 0, 0, 0, 0)
 
@@ -167,7 +167,7 @@ def residue_subsystem():
 
 
 def xor_network():
-    """A fully connected system of three XOR gates. In the state ``(0, 0, 0)``,
+    '''A fully connected system of three XOR gates. In the state ``(0, 0, 0)``,
     none of the elementary mechanisms exist.
 
     Diagram::
@@ -193,7 +193,7 @@ def xor_network():
     +---+---+---+---+
     | C | 1 | 1 | 0 |
     +---+---+---+---+
-    """
+    '''
     tpm = np.array([
         [0, 0, 0],
         [0, 1, 1],
@@ -213,15 +213,15 @@ def xor_network():
 
 
 def xor_subsystem():
-    """The subsystem containing all the nodes of the
-    :func:`~pyphi.examples.xor_network`."""
+    '''The subsystem containing all the nodes of the
+    :func:`~pyphi.examples.xor_network`.'''
     net = xor_network()
     state = (0, 0, 0)
     return Subsystem(net, state, range(net.size))
 
 
 def cond_depend_tpm():
-    """A system of two general logic gates A and B such if they are in the same
+    '''A system of two general logic gates A and B such if they are in the same
     state they stay the same, but if they are in different states, they flip
     with probability 50%.
 
@@ -255,7 +255,7 @@ def cond_depend_tpm():
     +---+---+---+
     | B | 1 | 0 |
     +---+---+---+
-    """
+    '''
     tpm = np.array([
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 0.5, 0.5, 0.0],
@@ -266,7 +266,7 @@ def cond_depend_tpm():
 
 
 def cond_independ_tpm():
-    """A system of three general logic gates A, B and C such that: if A and B
+    '''A system of three general logic gates A, B and C such that: if A and B
     are in the same state then they stay the same; if they are in different
     states, they flip if C is **ON** and stay the same if C is **OFF**; and C
     is **ON** 50% of the time, independent of the previous state.
@@ -316,7 +316,7 @@ def cond_independ_tpm():
     +---+---+---+---+
     | C | 1 | 1 | 0 |
     +---+---+---+---+
-    """
+    '''
     tpm = np.array([
         [0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0],
         [0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0],
@@ -331,7 +331,7 @@ def cond_independ_tpm():
 
 
 def propagation_delay_network():
-    """A version of the primary example from the IIT 3.0 paper with
+    '''A version of the primary example from the IIT 3.0 paper with
     deterministic COPY gates on each connection. These copy gates essentially
     function as propagation delays on the signal between OR, AND and XOR gates
     from the original system.
@@ -396,7 +396,7 @@ def propagation_delay_network():
     advancing the propagation delay system two time steps, the current state
     ``(1, 0, 0, 0, 0, 0, 0, 0, 0)`` is achieved, with corresponding past state
     ``(0, 0, 1, 0, 1, 0, 0, 0, 0)``.
-    """
+    '''
     num_nodes = 9
     num_states = 2 ** num_nodes
 
@@ -435,9 +435,9 @@ def propagation_delay_network():
 
 
 def macro_network():
-    """A network of micro elements which has greater integrated information
+    '''A network of micro elements which has greater integrated information
     after coarse graining to a macro scale.
-    """
+    '''
     tpm = np.array([[0.3, 0.3, 0.3, 0.3],
                     [0.3, 0.3, 0.3, 0.3],
                     [0.3, 0.3, 0.3, 0.3],
@@ -464,7 +464,7 @@ def macro_subsystem():
 
 
 def blackbox_network():
-    """A micro-network to demonstrate blackboxing.
+    '''A micro-network to demonstrate blackboxing.
 
     Diagram::
 
@@ -487,27 +487,27 @@ def blackbox_network():
           +-------------------> + E (COPY) +-----------------+
                                 +----------+
 
-    Connectivity Matrix::
+    Connectivity Matrix:
 
-        +---+---+---+---+---+---+---+
-        | . | A | B | C | D | E | F |
-        +---+---+---+---+---+---+---+
-        | A | 0 | 0 | 1 | 0 | 0 | 0 |
-        +---+---+---+---+---+---+---+
-        | B | 0 | 0 | 1 | 0 | 0 | 0 |
-        +---+---+---+---+---+---+---+
-        | C | 0 | 0 | 0 | 1 | 1 | 0 |
-        +---+---+---+---+---+---+---+
-        | D | 0 | 0 | 0 | 0 | 0 | 1 |
-        +---+---+---+---+---+---+---+
-        | E | 0 | 0 | 0 | 0 | 0 | 1 |
-        +---+---+---+---+---+---+---+
-        | F | 1 | 1 | 0 | 0 | 0 | 0 |
-        +---+---+---+---+---+---+---+
+    +---+---+---+---+---+---+---+
+    | . | A | B | C | D | E | F |
+    +---+---+---+---+---+---+---+
+    | A | 0 | 0 | 1 | 0 | 0 | 0 |
+    +---+---+---+---+---+---+---+
+    | B | 0 | 0 | 1 | 0 | 0 | 0 |
+    +---+---+---+---+---+---+---+
+    | C | 0 | 0 | 0 | 1 | 1 | 0 |
+    +---+---+---+---+---+---+---+
+    | D | 0 | 0 | 0 | 0 | 0 | 1 |
+    +---+---+---+---+---+---+---+
+    | E | 0 | 0 | 0 | 0 | 0 | 1 |
+    +---+---+---+---+---+---+---+
+    | F | 1 | 1 | 0 | 0 | 0 | 0 |
+    +---+---+---+---+---+---+---+
 
 
     In the documentation example, the state is (0, 0, 0, 0, 0, 0).
-    """
+    '''
     num_nodes = 6
     num_states = 2 ** num_nodes
     tpm = np.zeros((num_states, num_nodes))
@@ -539,9 +539,9 @@ def blackbox_network():
 
 
 def rule110_network():
-    """A network of three elements which follows the logic of
+    '''A network of three elements which follows the logic of
     the Rule 110 cellular automaton with current and past
-    state (0, 0, 0). """
+    state (0, 0, 0). '''
     tpm = np.array([[0, 0, 0],
                     [1, 0, 1],
                     [1, 1, 0],
@@ -554,8 +554,8 @@ def rule110_network():
 
 
 def rule154_network():
-    """A network of three elements which follows the logic of the Rule 154
-    cellular automaton."""
+    '''A network of three elements which follows the logic of the Rule 154
+    cellular automaton.'''
     tpm = np.array([
         [0, 0, 0, 0, 0],
         [0, 1, 0, 0, 1],
@@ -601,7 +601,7 @@ def rule154_network():
 
 
 def fig1a():
-    """The network shown in Figure 1A of the 2014 IIT 3.0 paper."""
+    '''The network shown in Figure 1A of the 2014 IIT 3.0 paper.'''
     tpm = np.array([
         [0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0],
@@ -680,7 +680,7 @@ def fig1a():
 
 
 def fig3a():
-    """The network shown in Figure 3A of the 2014 IIT 3.0 paper."""
+    '''The network shown in Figure 3A of the 2014 IIT 3.0 paper.'''
     tpm = np.array([
         [0.5, 0, 0, 0],
         [0.5, 0, 0, 0],
@@ -709,7 +709,7 @@ def fig3a():
 
 
 def fig3b():
-    """The network shown in Figure 3B of the 2014 IIT 3.0 paper."""
+    '''The network shown in Figure 3B of the 2014 IIT 3.0 paper.'''
     tpm = np.array([
         [0, 0, 0, 0],
         [0, 0, 0, 0],
@@ -738,7 +738,7 @@ def fig3b():
 
 
 def fig4():
-    """The network shown in Figure 4 of the 2014 IIT 3.0 paper.
+    '''The network shown in Figure 4 of the 2014 IIT 3.0 paper.
 
     Diagram::
 
@@ -753,7 +753,7 @@ def fig4():
         | (AND) +~~~~~~>| (XOR) |
         +~~~~~~~+       +~~~~~~~+
 
-    """
+    '''
     tpm = np.array([
         [0, 0, 0],
         [0, 0, 1],
@@ -773,7 +773,7 @@ def fig4():
 
 
 def fig5a():
-    """The network shown in Figure 5A of the 2014 IIT 3.0 paper.
+    '''The network shown in Figure 5A of the 2014 IIT 3.0 paper.
 
     Diagram::
 
@@ -787,7 +787,7 @@ def fig5a():
         | (COPY) +~~~~~~>| (COPY) |
         +~~~~~~~~+       +~~~~~~~~+
 
-    """
+    '''
     tpm = np.array([
         [0, 0, 0],
         [0, 0, 0],
@@ -807,7 +807,7 @@ def fig5a():
 
 
 def fig5b():
-    """The network shown in Figure 5B of the 2014 IIT 3.0 paper.
+    '''The network shown in Figure 5B of the 2014 IIT 3.0 paper.
 
     Diagram::
 
@@ -821,7 +821,7 @@ def fig5b():
         | (COPY) +~~~~~~>| (COPY) |
         +~~~~~~~~+       +~~~~~~~~+
 
-    """
+    '''
     tpm = np.array([
         [1, 0, 0],
         [1, 1, 1],
@@ -848,7 +848,7 @@ fig14 = fig1a
 
 
 def fig16():
-    """The network shown in Figure 5B of the 2014 IIT 3.0 paper."""
+    '''The network shown in Figure 5B of the 2014 IIT 3.0 paper.'''
     tpm = np.array([
         [0, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 1, 0, 0],
@@ -999,7 +999,7 @@ def fig16():
 
 
 def ac_ex1_network():
-    """A network of three elements, an OR gate with two inputs. """
+    '''A network of three elements, an OR gate with two inputs. '''
     tpm = np.array([
         [0, 0.5, 0.5],
         [0, 0.5, 0.5],
@@ -1019,7 +1019,7 @@ def ac_ex1_network():
 
 
 def ac_ex1_context():
-    """ The OR gate is ON, others are OFF just so they conform to the tpm """
+    ''' The OR gate is ON, others are OFF just so they conform to the tpm '''
     net = ac_ex1_network()
     before_state = (0, 1, 1)
     after_state = (1, 0, 0)
@@ -1027,8 +1027,8 @@ def ac_ex1_context():
 
 
 def ac_ex2_network():
-    """A network of four elements, one 'output' with three 'inputs' (A B C).
-    The output turns ON if A AND B are ON or if C is ON."""
+    '''A network of four elements, one 'output' with three 'inputs' (A B C).
+    The output turns ON if A AND B are ON or if C is ON.'''
     tpm = np.array([
         [0, 0, 0, 0],
         [0, 0, 0, 0],
@@ -1057,7 +1057,7 @@ def ac_ex2_network():
 
 
 def ac_ex2_context():
-    """ The output is ON, others are OFF just so they conform to the tpm """
+    ''' The output is ON, others are OFF just so they conform to the tpm '''
     net = ac_ex2_network()
     before_state = (0, 1, 1, 0)
     after_state = (0, 0, 0, 1)
@@ -1065,8 +1065,8 @@ def ac_ex2_context():
 
 
 def ac_ex3_network():
-    """A network of three elements, an output that only turns ON for a specific
-    pattern of its input."""
+    '''A network of three elements, an output that only turns ON for a specific
+    pattern of its input.'''
     tpm = np.array([
         [0, 0, 0],
         [0, 0, 0],
@@ -1086,7 +1086,7 @@ def ac_ex3_network():
 
 
 def ac_ex3_context():
-    """ The output is OFF, the input are OFF just so they conform to the tpm """
+    ''' The output is OFF, the input are OFF just so they conform to the tpm '''
     net = ac_ex3_network()
     before_state = (0, 0, 1)
     after_state = (0, 0, 0)

@@ -335,7 +335,7 @@ parameter_string = "function,subsystem,mechanism,purview,expected"
 @pytest.mark.parametrize(parameter_string, scenarios)
 def test_cause_and_effect_repertoire(function, subsystem, mechanism, purview,
                                      expected):
-    """Test ``effect_repertoire`` or ``cause_repertoire``."""
+    '''Test ``effect_repertoire`` or ``cause_repertoire``.'''
 
     print("\nTesting " + function + " with subsystem \n" + str(subsystem))
 

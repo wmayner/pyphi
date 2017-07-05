@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # compute/distance.py
 
-"""
+'''
 Functions for computing distances between various PyPhi objects.
-"""
+'''
 
 import numpy as np
 
@@ -15,24 +15,24 @@ from ..distance import emd, entropy_difference, hamming_emd, l1
 BIG_NUMBER = 1000000
 
 
-def measure(d1, d2):
-    """Compute the distance between two repertoires.
+def measure(r1, r2):
+    '''Compute the distance between two repertoires.
 
     Args:
-        d1 (np.ndarray): The first repertoire.
-        d2 (np.ndarray): The second repertoire.
+        r1 (np.ndarray): The first repertoire.
+        r2 (np.ndarray): The second repertoire.
 
     Returns:
-        float: The distance between ``d1`` and ``d2``.
-    """
+        float: The distance between ``r1`` and ``r2``.
+    '''
     if config.MEASURE == EMD:
-        return hamming_emd(d1, d2)
+        return hamming_emd(r1, r2)
 
     elif config.MEASURE == L1:
-        return l1(d1, d2)
+        return l1(r1, r2)
 
     elif config.MEASURE == ENTROPY_DIFFERENCE:
-        return entropy_difference(d1, d2)
+        return entropy_difference(r1, r2)
 
     # If the distance is `inf` return a very large number instead so that
     # the generalized EMD can still operate on a KLD distance matrix.
@@ -43,34 +43,33 @@ def measure(d1, d2):
 
 
 def concept_distance(c1, c2):
-    """Return the distance between two concepts in concept-space.
+    '''Return the distance between two concepts in concept space.
 
     Args:
-        c1 (|Concept|): The first concept.
-        c2 (|Concept|): The second concept.
+        c1 (Concept): The first concept.
+        c2 (Concept): The second concept.
 
     Returns:
-        float: The distance between the two concepts in concept-space.
-    """
+        float: The distance between the two concepts in concept space.
+    '''
     # Calculate the sum of the past and future EMDs, expanding the repertoires
     # to the combined purview of the two concepts, so that the EMD signatures
     # are the same size.
     cause_purview = tuple(set(c1.cause.purview + c2.cause.purview))
     effect_purview = tuple(set(c1.effect.purview + c2.effect.purview))
-
-    return sum([
-        measure(c1.expand_cause_repertoire(cause_purview),
-                c2.expand_cause_repertoire(cause_purview)),
-        measure(c1.expand_effect_repertoire(effect_purview),
-                c2.expand_effect_repertoire(effect_purview))])
+    # Take the sum
+    return (measure(c1.expand_cause_repertoire(cause_purview),
+                    c2.expand_cause_repertoire(cause_purview)) +
+            measure(c1.expand_effect_repertoire(effect_purview),
+                    c2.expand_effect_repertoire(effect_purview)))
 
 
 def _constellation_distance_simple(C1, C2):
-    """Return the distance between two constellations in concept-space.
+    '''Return the distance between two constellations in concept space.
 
     Assumes the only difference between them is that some concepts have
     disappeared.
-    """
+    '''
     # Make C1 refer to the bigger constellation.
     if len(C2) > len(C1):
         C1, C2 = C2, C1
@@ -80,10 +79,10 @@ def _constellation_distance_simple(C1, C2):
 
 
 def _constellation_distance_emd(unique_C1, unique_C2):
-    """Return the distance between two constellations in concept-space.
+    '''Return the distance between two constellations in concept space.
 
     Uses the generalized EMD.
-    """
+    '''
     # Get the pairwise distances between the concepts in the unpartitioned and
     # partitioned constellations.
     distances = np.array([
@@ -144,21 +143,21 @@ def _constellation_distance_emd(unique_C1, unique_C2):
     # Calculate how much phi disappeared and assign it to the null concept.
     d2[-1] = sum(d1) - sum(d2)
     # The sum of the two signatures should be the same.
-    assert utils.phi_eq(sum(d1), sum(d2))
+    assert utils.eq(sum(d1), sum(d2))
     # Calculate!
     return emd(np.array(d1), np.array(d2), distance_matrix)
 
 
 def constellation_distance(C1, C2):
-    """Return the distance between two constellations in concept-space.
+    '''Return the distance between two constellations in concept space.
 
     Args:
-        C1 (|Constellation|): The first constellation.
-        C2 (|Constellation|): The second constellation.
+        C1 (Constellation): The first constellation.
+        C2 (Constellation): The second constellation.
 
     Returns:
-        float: The distance between the two constellations in concept-space.
-    """
+        float: The distance between the two constellations in concept space.
+    '''
     if config.USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE:
         return round(small_phi_constellation_distance(C1, C2), config.PRECISION)
 
@@ -178,5 +177,5 @@ def constellation_distance(C1, C2):
 
 
 def small_phi_constellation_distance(C1, C2):
-    """Return the difference in small phi between constellations."""
+    '''Return the difference in |small_phi| between constellations.'''
     return sum(c.phi for c in C1) - sum(c.phi for c in C2)

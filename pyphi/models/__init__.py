@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # models/__init__.py
 
-"""See |models.big_phi|, |models.concept|, and |models.cuts| for documentation.
+'''See |models.big_phi|, |models.concept|, and |models.cuts| for documentation.
 
 Attributes:
     BigMip: Alias for :class:`big_phi.BigMip`
@@ -19,7 +19,7 @@ Attributes:
     AcBigMip: Alias for :class:`actual_causation.AcBigMip`
     Account: Alias for :class:`actual_causation.Account`
     DirectedAccount: Alias for :class:`actual_causation.DirectedAccount`
-"""
+'''
 
 from .actual_causation import (AcBigMip, Occurence, AcMip, _null_ac_mip, Event,
                                _null_ac_bigmip, DirectedAccount, Account)

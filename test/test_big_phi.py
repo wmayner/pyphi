@@ -252,12 +252,12 @@ def test_concept_nonexistent(s, flushcache, restore_fs_cache):
 @patch('pyphi.compute.distance._constellation_distance_emd')
 def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
                                                    mock_simple_distance, s):
-    """Quick check that we use the correct constellation distance function.
+    '''Quick check that we use the correct constellation distance function.
 
     If the two constellations differ only in that some concepts have
     moved to the null concept and all other concepts are the same then
     we use the simple constellation distance. Otherwise, use the EMD.
-    """
+    '''
     mock_emd_distance.return_value = float()
     mock_simple_distance.return_value = float()
 
@@ -521,14 +521,14 @@ def test_rule152_complexes_no_caching(rule152):
         # Check the phi values of all complexes.
         zz = [(bigmip.phi, result['subsystem_phis'][perm[i]]) for i, bigmip in
             list(enumerate(complexes))]
-        diff = [utils.phi_eq(bigmip.phi, result['subsystem_phis'][perm[i]]) for
+        diff = [utils.eq(bigmip.phi, result['subsystem_phis'][perm[i]]) for
                 i, bigmip in list(enumerate(complexes))]
-        assert all(utils.phi_eq(bigmip.phi, result['subsystem_phis'][perm[i]])
+        assert all(utils.eq(bigmip.phi, result['subsystem_phis'][perm[i]])
                    for i, bigmip in list(enumerate(complexes))[:])
         # Check the main complex in particular.
         main = compute.main_complex(net)
         # Check the phi value of the main complex.
-        assert utils.phi_eq(main.phi, result['phi'])
+        assert utils.eq(main.phi, result['phi'])
         # Check that the nodes are the same.
         assert (main.subsystem.node_indices ==
                 complexes[result['main_complex'] - 1].subsystem.node_indices)
@@ -537,8 +537,8 @@ def test_rule152_complexes_no_caching(rule152):
                            if c['is_irreducible']]
         z = list(zip([c.phi for c in main.unpartitioned_constellation],
                      [c['phi'] for c in result_concepts]))
-        diff = [i for i in range(len(z)) if not utils.phi_eq(z[i][0], z[i][1])]
-        assert all(list(utils.phi_eq(c.phi, result_concepts[i]['phi']) for i, c
+        diff = [i for i in range(len(z)) if not utils.eq(z[i][0], z[i][1])]
+        assert all(list(utils.eq(c.phi, result_concepts[i]['phi']) for i, c
                         in enumerate(main.unpartitioned_constellation)))
         # Check that the minimal cut is the same.
         assert main.cut == result['cut']
