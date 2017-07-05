@@ -137,9 +137,9 @@ rst_prolog = """
 .. |ABC| replace:: :math:`ABC`
 .. |CDE| replace:: :math:`CDE`
 .. |DEF| replace:: :math:`DEF`
-.. |(AB / DE) x (∅ / C)| replace:: :math:`\\frac{AB}{DE} \\times \\frac{\left[\\;\\right]}{C}`
-.. |(A / CD) x (∅ / E)| replace:: :math:`\\frac{A}{CD} \\times \\frac{\left[\\;\\right]}{E}`
-.. |(∅ / C) x (A / D)| replace:: :math:`\\frac{\\left[\\;\\right]}{C} \\times \\frac{A}{D}`
+.. |(AB / DE) x (∅ / C)| replace:: :math:`\\frac{AB}{DE} \\times \\frac{\\varnothing}{C}`
+.. |(A / CD) x (∅ / E)| replace:: :math:`\\frac{A}{CD} \\times \\frac{\\varnothing}{E}`
+.. |(∅ / C) x (A / D)| replace:: :math:`\\frac{\\varnothing}{C} \\times \\frac{A}{D}`
 .. |small_phi = 1/6| replace:: :math:`\\varphi = \\frac{1}{6}`
 .. |small_phi = 1/10| replace:: :math:`\\varphi = \\frac{1}{10}`
 .. |t| replace:: :math:`t`
