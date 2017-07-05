@@ -7,8 +7,8 @@ Basic Usage
 Let's make a simple 3-node network and compute its |big_phi|.
 
 To make a network, we need a TPM and (optionally) a connectivity matrix. The
-TPM can be in more than one form; see the documentation for
-:class:`pyphi.network`. Here we'll use the 2-dimensional state-by-node form.
+TPM can be in more than one form; see the documentation for |Network|. Here
+we'll use the 2-dimensional state-by-node form.
 
     >>> import pyphi
     >>> import numpy as np
@@ -51,8 +51,8 @@ every node in the network in our subsystem:
 
     >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
 
-Now we use :func:`pyphi.compute.big_phi` function to compute the |big_phi| of
-our subsystem:
+Now we use |compute.big_phi| function to compute the |big_phi| of our
+subsystem:
 
     >>> phi = pyphi.compute.big_phi(subsystem)
     >>> phi
@@ -61,9 +61,9 @@ our subsystem:
 If we want to take a deeper look at the integrated-information-theoretic
 properties of our network, we can access all the intermediate quantities and
 structures that are calculated in the course of arriving at a final |big_phi|
-value by using :func:`pyphi.compute.big_mip`. This returns a deeply nested
-object, |BigMip|, that contains data about the subsystem's constellation of
-concepts, cause and effect repertoires, etc.
+value by using |compute.big_mip|. This returns a deeply nested object,
+|BigMip|, that contains data about the subsystem's constellation of concepts,
+cause and effect repertoires, etc.
 
     >>> mip = pyphi.compute.big_mip(subsystem)
 
@@ -72,8 +72,7 @@ For instance, we can see that this network has 4 concepts:
     >>> len(mip.unpartitioned_constellation)
     4
 
-The documentation for :mod:`pyphi.models` contains description of these
-structures.
+The documentation for |models| contains description of these structures.
 
 .. note::
     Networks can be constructed with an optional set of textual labels for each

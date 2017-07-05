@@ -8,9 +8,9 @@ Coarse-graining
 
 * :func:`pyphi.examples.macro_network`
 
-We'll use the :mod:`~pyphi.macro` module to explore alternate spatial scales of
-a network. The network under consideration is a 4-node non-deterministic
-network, available from the :mod:`~pyphi.examples` module.
+We'll use the |macro| module to explore alternate spatial scales of a network.
+The network under consideration is a 4-node non-deterministic network,
+available from the |examples| module.
 
     >>> import pyphi
     >>> network = pyphi.examples.macro_network()
@@ -23,7 +23,7 @@ The connectivity matrix is all-to-all:
            [ 1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.]])
 
-We'll set the state so that nodes are **OFF**.
+We'll set the state so that nodes are off.
 
     >>> state = (0, 0, 0, 0)
 
@@ -45,30 +45,27 @@ list of all possible coarse-grainings:
 We start by considering the first coarse grain:
 
     >>> coarse_grain = grains[0]
-    >>> coarse_grain
-    CoarseGrain(partition=((0, 1, 2), (3,)), grouping=(((0, 1, 2), (3,)), ((0,), (1,))))
 
-Each |CoarseGrain| specifies two fields: the ``partition`` of states into
-macro elements, and the ``grouping`` of micro-states into macro-states. Let's
-first look at the partition:
+Each |CoarseGrain| has two attributes: the ``partition`` of states into macro
+elements, and the ``grouping`` of micro-states into macro-states. Let's first
+look at the partition:
 
     >>> coarse_grain.partition
     ((0, 1, 2), (3,))
 
-There are two macro-elements in this partiion: one consists of
-micro-elements ``(0, 1, 2)`` and the other is simply micro-element ``3``.
+There are two macro-elements in this partition: one consists of micro-elements
+``(0, 1, 2)`` and the other is simply micro-element ``3``.
 
 We must then determine the relationship between micro-elements and
-macro-elements. When coarse-graining the system we assume that the
-resulting macro-elements do not differentiate the different micro-elements.
-Thus any correspondence between states must be stated solely in terms of the
-number of micro-elements which are on, and not depend on which micro-elements
-are on.
+macro-elements. When coarse-graining the system we assume that the resulting
+macro-elements do not differentiate the different micro-elements. Thus any
+correspondence between states must be stated solely in terms of the number of
+micro-elements which are on, and not depend on which micro-elements are on.
 
 For example, consider the macro-element ``(0, 1, 2)``. We may say that the
-macro-element is **ON** if at least one micro-element is on, or if all
-micro-elements are on; however, we may not say that the macro-element is **ON**
-if micro-element ``1`` is on, because this relationship involves identifying
+macro-element is on if at least one micro-element is on, or if all
+micro-elements are on; however, we may not say that the macro-element is on if
+micro-element ``1`` is on, because this relationship involves identifying
 specific micro-elements.
 
 The ``grouping`` attribute of the |CoarseGrain| describes how the state of
@@ -83,16 +80,15 @@ The grouping consists of two lists, one for each macro-element:
     >>> grouping[0]
     ((0, 1, 2), (3,))
 
-For the first macro-element, this grouping means that the element will be
-**OFF** if zero, one or two of its micro-elements are **ON**, and will be
-**ON** if all three micro-elements are **ON**.
+For the first macro-element, this grouping means that the element will be off
+if zero, one or two of its micro-elements are on, and will be on if all three
+micro-elements are on.
 
     >>> grouping[1]
     ((0,), (1,))
 
-For the second macro-element, the grouping means that the element will be
-**OFF** if its micro-element is **OFF**, and **ON** if its micro-element is
-**ON**.
+For the second macro-element, the grouping means that the element will be off
+if its micro-element is off, and on if its micro-element is on.
 
 One we have selected a partition and grouping for analysis, we can create a
 mapping between micro-states and macro-states:
@@ -101,7 +97,7 @@ mapping between micro-states and macro-states:
     >>> mapping
     array([0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3])
 
-The interpretation of the mapping uses the **LOLI** convention of indexing (see
+The interpretation of the mapping uses the LOLI convention of indexing (see
 :ref:`loli-convention`).
 
     >>> mapping[7]
@@ -116,12 +112,11 @@ This says that micro-state 7 corresponds to macro-state 1:
     (1, 0)
 
 In micro-state 7, all three elements corresponding to the first macro-element
-are **ON**, so that macro-element is **ON**. The micro-element corresponding to
-the second macro-element is **OFF**, so that macro-element is **OFF**.
+are on, so that macro-element is on. The micro-element corresponding to the
+second macro-element is off, so that macro-element is off.
 
-The |CoarseGrain| object uses the mapping internally to create a
-state-by-state TPM for the macro-system corresponding to the selected partition
-and grouping
+The |CoarseGrain| object uses the mapping internally to create a state-by-state
+TPM for the macro-system corresponding to the selected partition and grouping
 
     >>> coarse_grain.macro_tpm(network.tpm)
     Traceback (most recent call last):
@@ -129,10 +124,9 @@ and grouping
     pyphi.exceptions.ConditionallyDependentError...
 
 However, this macro-TPM does not satisfy the conditional independence
-assumption, so this particular partition and grouping combination is not a valid
-coarse-graining of the system. Constructing a |MacroSubsystem| with this
-coarse-graining will also raise
-:class:`~pyphi.exceptions.ConditionallyDependentError`.
+assumption, so this particular partition and grouping combination is not a
+valid coarse-graining of the system. Constructing a |MacroSubsystem| with this
+coarse-graining will also raise a |ConditionallyDependentError|.
 
 Let's consider a different coarse-graining instead.
 
@@ -194,8 +188,8 @@ Blackboxing
 
 * :func:`pyphi.examples.blackbox_network`
 
-The :mod:`~pyphi.macro` module also provides tools for studying the emergence
-of systems using blackboxing.
+The |macro| module also provides tools for studying the emergence of systems
+using blackboxing.
 
     >>> import pyphi
     >>> network = pyphi.examples.blackbox_network()
@@ -222,18 +216,18 @@ a partition of micro-elements:
     >>> output_indices = (2, 5)
     >>> blackbox = pyphi.macro.Blackbox(partition, output_indices)
 
-Blackboxes have a few convenience methods. The ``hidden_indices`` property
-returns the elements which are hidden within blackboxes:
+Blackboxes have a few convenient attributes and methods. The ``hidden_indices``
+attribute returns the elements which are hidden within blackboxes:
 
     >>> blackbox.hidden_indices
     (0, 1, 3, 4)
 
-The ``micro_indices`` property lists all the micro-elements in the box:
+The ``micro_indices`` attribute lists all the micro-elements in the box:
 
     >>> blackbox.micro_indices
     (0, 1, 2, 3, 4, 5)
 
-The ``macro_indices`` property generates a set of indices which index the
+The ``macro_indices`` attribute generates a set of indices which index the
 blackbox macro-elements. Since there are two blackboxes in our example, and
 each has one output element, there are two macro-indices:
 
@@ -241,8 +235,8 @@ each has one output element, there are two macro-indices:
     (0, 1)
 
 The ``macro_state`` method converts a state of the micro elements to the state
-of the macro-elements. The macro-state of a blackbox system is simply the
-state of the system's output elements:
+of the macro-elements. The macro-state of a blackbox system is simply the state
+of the system's output elements:
 
     >>> micro_state = (0, 0, 0, 0, 0, 1)
     >>> blackbox.macro_state(micro_state)
@@ -263,8 +257,8 @@ We can now compute |big_phi| for this macro system:
     0.638888
 
 We find that the macro subsystem has greater integrated information
-(:math:`\Phi = 0.638888`) than the micro system (:math:`\Phi =
-0.215278`)---the system demonstrates emergence.
+(:math:`\Phi = 0.638888`) than the micro system (:math:`\Phi = 0.215278`)---the
+system demonstrates emergence.
 
 
-.. todo:: TODO: demonstrate using``emergence`` for blackboxing
+.. TODO: demonstrate using``emergence`` for blackboxing

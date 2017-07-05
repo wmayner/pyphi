@@ -4,15 +4,15 @@ XOR Network
 * :func:`pyphi.examples.xor_network`
 * :func:`pyphi.examples.xor_subsystem`
 
-This example describes a system of three fully connected **XOR** nodes, |A|,
-|B| and |C| (no self-connections).
+This example describes a system of three fully connected XOR nodes, |A|, |B|
+and |C| (no self-connections).
 
 First let's create the XOR network:
 
     >>> import pyphi
     >>> network = pyphi.examples.xor_network()
 
-We'll consider the state with all nodes **OFF**.
+We'll consider the state with all nodes off.
 
     >>> state = (0, 0, 0)
 
@@ -74,12 +74,12 @@ and that the repertoire shows a :math:`0.5` of probability the past state being
     >>> concept.cause.repertoire[(1, 1, 1)]
     0.5
 
-This tells us that knowing both |A| and |B| are currently **OFF** means that
-the past state of the system was either all **OFF** or all **ON** with equal
+This tells us that knowing both |A| and |B| are currently off means that
+the past state of the system was either all off or all on with equal
 probability.
 
 For any reduced purview, we would still have the same information about the
-elements in the purview (either all **ON** or all **OFF**), but we would lose
+elements in the purview (either all on or all off), but we would lose
 the information about the elements outside the purview.
 
     >>> concept.effect.purview
@@ -88,29 +88,29 @@ the information about the elements outside the purview.
     array([[[ 1.,  0.]]])
 
 The effect purview of this concept is the node |C|. The mechanism |AB| is able
-to completely specify the next state of |C|. Since both nodes are **OFF**, the
-next state of |C| will be **OFF**.
+to completely specify the next state of |C|. Since both nodes are off, the
+next state of |C| will be off.
 
 The mechanism |AB| does not provide any information about the next state of
 either |A| or |B|, because the relationship depends on the value of |C|. That
-is, the next state of |A| (or |B|) may be either **ON** or **OFF**, depending
+is, the next state of |A| (or |B|) may be either on or off, depending
 on the value of |C|. Any purview larger than |C| would be reducible by pruning
 away the additional elements.
 
-+--------------------------------------------------------------------------+
-| Main Complex: |ABC| with :math:`\Phi = 1.875`                            |
-+===============+=================+===================+====================+
-| **Mechanism** | :math:`\varphi` | **Cause Purview** | **Effect Purview** |
-+---------------+-----------------+-------------------+--------------------+
-| |AB|          |  0.5            | |ABC|             | |C|                |
-+---------------+-----------------+-------------------+--------------------+
-| |AC|          |  0.5            | |ABC|             | |B|                |
-+---------------+-----------------+-------------------+--------------------+
-| |BC|          |  0.5            | |ABC|             | |A|                |
-+---------------+-----------------+-------------------+--------------------+
++------------------------------------------------------------------+
+| Main Complex: |ABC| with :math:`\Phi = 1.875`                    |
++---------------+-----------------+---------------+----------------+
+|   Mechanism   | :math:`\varphi` | Cause Purview | Effect Purview |
++===============+=================+===============+================+
+| |AB|          |  0.5            | |ABC|         | |C|            |
++---------------+-----------------+---------------+----------------+
+| |AC|          |  0.5            | |ABC|         | |B|            |
++---------------+-----------------+---------------+----------------+
+| |BC|          |  0.5            | |ABC|         | |A|            |
++---------------+-----------------+---------------+----------------+
 
 An analysis of the `intrinsic existence` of this system reveals that the main
-complex of the system is the entire network of **XOR** nodes. Furthermore, the
+complex of the system is the entire network of XOR nodes. Furthermore, the
 concepts which exist within the complex are those specified by the second-order
 mechanisms |AB|, |AC|, and |BC|.
 
@@ -118,11 +118,11 @@ To understand the notion of intrinsic existence, in addition to determining
 what exists for the system, it is useful to consider also what does not exist.
 
 Specifically, it may be surprising that none of the first order mechanisms |A|,
-|B| or |C| exist. This physical system of **XOR** gates is sitting on the table
-in front of me; I can touch the individual elements of the system, so how can
-it be that they do not exist?
+|B| or |C| exist. This physical system of XOR gates is sitting on the table in
+front of me; I can touch the individual elements of the system, so how can it
+be that they do not exist?
 
-That sort of existence is what we term `extrinsic existence`. The **XOR** gates
+That sort of existence is what we term `extrinsic existence`. The XOR gates
 exist for me as an observer, external to the system. I am able to manipulate
 them, and observe their causes and effects, but the question that matters for
 `intrinsic` existence is, do they have irreducible causes and effects within
@@ -154,12 +154,12 @@ have no effect power (having causal power is not enough).
 
 To see why this is true, consider the effect of |A|. There is no self-loop, so
 |A| can have no effect on itself. Without knowing the current state of |A|, in
-the next state |B| could be either **ON** or **OFF**. If we know that the
-current state of |A| is **ON**, then |B| could still be either **ON** or
-**OFF**, depending on the state of |C|. Thus, on its own, the current state of
-|A| does not provide any information about the next state of |B|. A similar
-result holds for the effect of |A| on |C|. Since |A| has no effect power over
-any element of the system, it does not exist from the intrinsic perspective.
+the next state |B| could be either on or off. If we know that the current state
+of |A| is on, then |B| could still be either on or off, depending on the state
+of |C|. Thus, on its own, the current state of |A| does not provide any
+information about the next state of |B|. A similar result holds for the effect
+of |A| on |C|. Since |A| has no effect power over any element of the system, it
+does not exist from the intrinsic perspective.
 
 To complete the discussion, we can also investigate the potential third order
 mechanism |ABC|. Consider the cause information over the purview |ABC|:
@@ -176,7 +176,7 @@ system—but is it irreducible?
    >>> mip.partition  # doctest: +NORMALIZE_WHITESPACE
     0     1,2
    ─── ✕ ─────
-   []    0,1,2
+    ∅    0,1,2
 
 The mechanism has :math:`ci = 0.75`, but it is completely reducible
 (:math:`\varphi = 0`) to the partition
@@ -184,10 +184,10 @@ The mechanism has :math:`ci = 0.75`, but it is completely reducible
 .. math::
     \frac{A}{\left[\,\right]} \times \frac{BC}{ABC}
 
-This result can be understood as follows: knowing that |B| and |C| are **OFF**
-in the current state is sufficient to know that |A|, |B|, and |C| were all
-**OFF** in the past state; there is no additional information gained by knowing
-that |A| is currently **OFF**.
+This result can be understood as follows: knowing that |B| and |C| are off in
+the current state is sufficient to know that |A|, |B|, and |C| were all off in
+the past state; there is no additional information gained by knowing that |A|
+is currently off.
 
 Similarly for any other potential purview, the current state of |B| and |C|
 being ``(0, 0)`` is always enough to fully specify the previous state, so the

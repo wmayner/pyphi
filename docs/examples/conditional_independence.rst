@@ -24,7 +24,7 @@ Consider a system of two binary nodes (|A| and |B|) which do not change if they
 have the same value, but flip with probability 50% if they have different
 values.
 
-We'll load the state-by-state TPM for such a system from the examples module:
+We'll load the state-by-state TPM for such a system from the |examples| module:
 
    >>> import pyphi
    >>> tpm = pyphi.examples.cond_depend_tpm()
