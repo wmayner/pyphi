@@ -122,6 +122,20 @@ ul.wy-breadcrumbs > li > code.docutils.literal {
 .wy-menu-vertical li.current > a {
     border: none;
 }
+.wy-side-nav-search > a img.logo {
+    background-image: url(./phi_144x144.png);
+    height: 144px;
+    width: 144px;
+}
+@media 
+(-webkit-min-device-pixel-ratio: 2), 
+(min-resolution: 192dpi) { 
+    /* Retina-specific stuff here */
+    .wy-side-nav-search > a img.logo {
+        background-image: url(./phi_288x288.png);
+        background-size: 144px 144px;
+    }
+}
 
 /* Napoleon style fixes (parameters, return type, etc.) */
 .wy-table td, .rst-content table.docutils td, .rst-content table.field-list td,
