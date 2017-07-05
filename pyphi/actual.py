@@ -545,8 +545,8 @@ def big_acmip(context, direction=None):
 
     Returns:
         AcBigMip: A nested structure containing all the data from the
-            intermediate calculations. The top level contains the basic MIP
-            information for the given subsystem.
+        intermediate calculations. The top level contains the basic MIP
+        information for the given subsystem.
     '''
     if not direction:
         direction = Direction.BIDIRECTIONAL
