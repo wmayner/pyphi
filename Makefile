@@ -35,7 +35,8 @@ rm-docs:
 
 build-docs:
 	cd $(docs) && make html
-	cp $(docs)/_static/* $(docs_html)/_static
+	cp $(docs)/_static/*.css $(docs_html)/_static
+	cp $(docs)/_static/*.png $(docs_html)/_static
 
 open-docs:
 	open $(docs_html)/index.html
