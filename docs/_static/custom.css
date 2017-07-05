@@ -123,7 +123,7 @@ ul.wy-breadcrumbs > li > code.docutils.literal {
     border: none;
 }
 .wy-side-nav-search > a img.logo {
-    background-image: url(./phi_144x144.png);
+    background-image: url(/_static/phi_144x144.png);
     height: 144px;
     width: 144px;
 }
@@ -132,7 +132,7 @@ ul.wy-breadcrumbs > li > code.docutils.literal {
 (min-resolution: 192dpi) { 
     /* Retina-specific stuff here */
     .wy-side-nav-search > a img.logo {
-        background-image: url(./phi_288x288.png);
+        background-image: url(/_static/phi_288x288.png);
         background-size: 144px 144px;
     }
 }
