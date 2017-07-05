@@ -1,6 +1,10 @@
-.. image:: http://wmayner.github.io/pyphi/_static/pyphi-icon-and-text-380x90.png
+.. image:: http://wmayner.github.io/pyphi/_static/pyphi-icon-and-text-760x180.png
     :target: http://pyphi.readthedocs.io/en/latest/
     :alt: PyPhi logo
+    :height: 90px
+    :width: 380px
+    :scale: 50%
+    :align: left
 
 |
 
@@ -12,7 +16,7 @@
     :target: https://pyphi.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation badge
 
-.. image:: https://img.shields.io/travis/wmayner/pyphi.svg?maxAge=601
+.. image:: https://img.shields.io/travis/wmayner/pyphi.svg?maxAge=600
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build badge
 
@@ -20,9 +24,13 @@
     :target: https://coveralls.io/github/wmayner/pyphi
     :alt: Coveralls.io badge
 
-.. image:: http://img.shields.io/badge/Python%203%20-compatible-brightgreen.svg
+.. image:: https://img.shields.io/github/license/wmayner/pyphi?maxAge=86400
+    :target: https://github.com/wmayner/pyphi/blob/master/LICENSE.md
+    :alt: License badge
+
+.. image:: https://img.shields.io/pypi/pyversions/pyphi.svg?maxAge=86400
     :target: https://wiki.python.org/moin/Python2orPython3
-    :alt: Python 3 compatible
+    :alt: Python versions badge
 
 |
 
