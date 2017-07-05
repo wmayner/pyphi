@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3 # -*- coding: utf-8 -*-
 #
 # PyPhi documentation build configuration file, created by
 # sphinx-quickstart on Fri Jan 17 11:15:55 2014.
@@ -12,6 +11,8 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
+
+# flake8: noqa
 
 import sys
 import os
@@ -58,7 +59,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'PyPhi'
-copyright = '2014 ' + __author__
+copyright = '2014–2017 {}'.format(__author__)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -99,7 +100,7 @@ exclude_patterns = ['_build', '_themes/README.rst']
 #show_authors = Fale
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'default'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -110,9 +111,16 @@ pygments_style = 'sphinx'
 # Substitutions for math elements to make docstrings more readable
 rst_prolog = """
 .. |big_phi| replace:: :math:`\\Phi`
+.. |big_phi > 0| replace:: :math:`\\Phi > 0`
 .. |big_phi_max| replace:: :math:`\\Phi^{\\textrm{max}}`
 .. |small_phi| replace:: :math:`\\varphi`
+.. |small_phi > 0| replace:: :math:`\\varphi > 0`
 .. |small_phi_max| replace:: :math:`\\varphi^{\\textrm{max}}`
+.. |big_alpha| replace:: :math:`A`
+.. |big_alpha > 0| replace:: :math:`A > 0`
+.. |alpha| replace:: :math:`\\alpha`
+.. |alpha > 0| replace:: :math:`\\alpha > 0`
+.. |L1| replace:: :math:`L_1`
 .. |A| replace:: :math:`A`
 .. |B| replace:: :math:`B`
 .. |C| replace:: :math:`C`
@@ -129,28 +137,17 @@ rst_prolog = """
 .. |ABC| replace:: :math:`ABC`
 .. |CDE| replace:: :math:`CDE`
 .. |DEF| replace:: :math:`DEF`
-.. |n0| replace:: :math:`n_{0}`
-.. |n1| replace:: :math:`n_{1}`
-.. |n2| replace:: :math:`n_{2}`
-.. |n0, n1| replace:: :math:`n_{0}n_{1}`
-.. |n0, n2| replace:: :math:`n_{0}n_{2}`
-.. |n0, n4| replace:: :math:`n_{0}n_{4}`
-.. |n1, n2| replace:: :math:`n_{1}n_{2}`
-.. |n0, n1, n2| replace:: :math:`n_{0}n_{1}n_{2}`
-.. |n0, n1, n4| replace:: :math:`n_{0}n_{1}n_{4}`
-.. |(AB / DE) x ([] / C)| replace:: :math:`\\frac{AB}{DE} \\times \\frac{\left[\\;\\right]}{C}`
-.. |(A / CD) x ([] / E)| replace:: :math:`\\frac{A}{CD} \\times \\frac{\left[\\;\\right]}{E}`
-.. |([] / C) x (A / D)| replace:: :math:`\\frac{\\left[\\;\\right]}{C} \\times \\frac{A}{D}`
+.. |(AB / DE) x (∅ / C)| replace:: :math:`\\frac{AB}{DE} \\times \\frac{\left[\\;\\right]}{C}`
+.. |(A / CD) x (∅ / E)| replace:: :math:`\\frac{A}{CD} \\times \\frac{\left[\\;\\right]}{E}`
+.. |(∅ / C) x (A / D)| replace:: :math:`\\frac{\\left[\\;\\right]}{C} \\times \\frac{A}{D}`
 .. |small_phi = 1/6| replace:: :math:`\\varphi = \\frac{1}{6}`
 .. |small_phi = 1/10| replace:: :math:`\\varphi = \\frac{1}{10}`
-.. |t_{-1}| replace:: :math:`t_{-1}`
-.. |t_0| replace:: :math:`t_0`
 .. |t| replace:: :math:`t`
 .. |t-1| replace:: :math:`t-1`
 .. |1,0,0| replace:: :math:`\{1,0,0\}`
 .. |0,1,0| replace:: :math:`\{0,1,0\}`
 .. |0,0,1| replace:: :math:`\{0,0,1\}`
-.. |N_0 = 0, N_1 = 0, N_2 = 1| replace:: :math:`\{N_0 = 0, N_1 = 0, N_2 = 1\}`
+.. |n0 = 0, n1 = 0, n2 = 1| replace:: :math:`(n_0 = 0, n_1 = 0, n_2 = 1)`
 .. |ith| replace:: :math:`i^{\\textrm{th}}`
 .. |jth| replace:: :math:`j^{\\textrm{th}}`
 .. |r| replace:: :math:`r`
@@ -160,19 +157,27 @@ rst_prolog = """
 .. |2^n x 2^n| replace:: :math:`2^N \\times 2^N`
 .. |i| replace:: :math:`i`
 .. |j| replace:: :math:`j`
-.. |i,jth| replace:: :math:`i,j^{\\textrm{th}}`
+.. |i,jth| replace:: :math:`(i,j)^{\\textrm{th}}`
 .. |k| replace:: :math:`k`
-.. |2-D| replace:: :math:`2`-:math:`D`
-.. |N-D| replace:: :math:`N`-:math:`D`
-.. |past| replace:: :const:`DIRECTIONS[PAST]`
-.. |future| replace:: :const:`DIRECTIONS[FUTURE]`
-.. |PRECISION| replace:: :const:`constants.PRECISION`
-.. |EPSILON| replace:: :const:`constants.EPSILON`
+.. |conventions| replace:: :ref:`conventions`
+.. |PAST| replace:: :const:`~pyphi.constants.Direction.PAST`
+.. |FUTURE| replace:: :const:`~pyphi.constants.Direction.FUTURE`
+.. |EPSILON| replace:: :const:`~pyphi.constants.EPSILON`
 .. |CM[i][j] = 1| replace:: :math:`CM_{i,j} = 1`
 .. |compute| replace:: :mod:`~pyphi.compute`
 .. |compute.concept| replace:: :mod:`~pyphi.compute.big_phi`
-.. |compute.big_phi| replace:: :mod:`~pyphi.compute.concept`
-.. |compute.distance| replace:: :mod:`~pyphi.compute.distance`
+.. |Subsystem.concept| replace:: :mod:`~pyphi.subsystem.Subsystem.concept`
+.. |Subsystem.core_cause| replace:: :mod:`~pyphi.subsystem.Subsystem.concept`
+.. |Subsystem.core_effect| replace:: :mod:`~pyphi.subsystem.Subsystem.concept`
+.. |compute.big_phi| replace:: :mod:`~pyphi.compute.concept.concept`
+.. |compute.distance| replace:: :mod:`~pyphi.compute.concept.distance`
+.. |compute.conceptual_information| replace:: :func:`~pyphi.compute.big_phi.conceptual_information`
+.. |compute.big_mip| replace:: :func:`~pyphi.compute.big_phi.big_mip`
+.. |compute.subsystems| replace:: :func:`~pyphi.compute.big_phi.subsystems`
+.. |compute.possible_complexes| replace:: :func:`~pyphi.compute.big_phi.possible_complexes`
+.. |compute.complexes| replace:: :func:`~pyphi.compute.big_phi.complexes`
+.. |compute.all_complexes| replace:: :func:`~pyphi.compute.big_phi.all_complexes`
+.. |compute.condensed| replace:: :func:`~pyphi.compute.big_phi.condensed`
 .. |models.big_phi| replace:: :mod:`~pyphi.models.big_phi`
 .. |models.concept| replace:: :mod:`~pyphi.models.concept`
 .. |models.cuts| replace:: :mod:`~pyphi.models.cuts`
@@ -187,14 +192,19 @@ rst_prolog = """
 .. |utils| replace:: :mod:`~pyphi.utils`
 .. |validate| replace:: :mod:`~pyphi.validate`
 .. |config| replace:: :mod:`~pyphi.config`
+.. |configure_logging| replace:: :func:`~pyphi.config.configure_logging`
 .. |Subsystem| replace:: :class:`~pyphi.subsystem.Subsystem`
 .. |MacroNetwork| replace:: :class:`~pyphi.macro.MacroNetwork`
 .. |MacroSubsystem| replace:: :class:`~pyphi.macro.MacroSubsystem`
+.. |ConditionallyDependentError| replace:: :class:`pyphi.exceptions.ConditionallyDependentError`
 .. |Network| replace:: :class:`~pyphi.network.Network`
 .. |BigMip| replace:: :class:`~pyphi.models.big_phi.BigMip`
 .. |Concept| replace:: :class:`~pyphi.models.concept.Concept`
 .. |Constellation| replace:: :class:`~pyphi.models.concept.Constellation`
 .. |Cut| replace:: :class:`~pyphi.models.cuts.Cut`
+.. |Cuts| replace:: :class:`~pyphi.models.cuts.Cut`
+.. |Part| replace:: :class:`~pyphi.models.cuts.Part`
+.. |Parts| replace:: :class:`~pyphi.models.cuts.Part`
 .. |Bipartition| replace:: :class:`~pyphi.models.cuts.Bipartition`
 .. |Mip| replace:: :class:`~pyphi.models.concept.Mip`
 .. |Mice| replace:: :class:`~pyphi.models.concept.Mice`
@@ -204,19 +214,21 @@ rst_prolog = """
 .. |CoarseGrains| replace:: :class:`~pyphi.macro.CoarseGrain`
 .. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
 .. |Context| replace:: :class:`~pyphi.actual.Context`
+.. |expand_repertoire| replace:: :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`
 .. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
 .. |find_mice| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
-.. |loli_index2state| replace:: :class:`~pyphi.convert.loli_index2state`
-.. |holi_index2state| replace:: :class:`~pyphi.convert.holi_index2state`
-.. |big_phi > 0| replace:: :math:`\\Phi > 0`
-.. |AcBigMip| replace:: :class:`~pyphi.models.AcBigMip`
-.. |Account| replace:: :class:`~pyphi.models.Account`
-.. |AcMip| replace:: :class:`~pyphi.models.AcMip`
-.. |modelsCut| replace:: :class:`~pyphi.models.modelsCut`
-.. |DirectedAccount| replace:: :class:`~pyphi.models.DirectedAccount`
-.. |Event| replace:: :class:`~pyphi.models.Event`
-.. |Occurence| replace:: :class:`~pyphi.models.Occurence`
-.. |Occurences| replace:: :class:`~pyphi.models.Occurence`
+.. |loli_index2state| replace:: :func:`~pyphi.convert.loli_index2state`
+.. |holi_index2state| replace:: :func:`~pyphi.convert.holi_index2state`
+.. |AcBigMip| replace:: :class:`~pyphi.models.actual_causation.AcBigMip`
+.. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
+.. |AcMip| replace:: :class:`~pyphi.models.actual_causation.AcMip`
+.. |DirectedAccount| replace:: :class:`~pyphi.models.actual_causation.DirectedAccount`
+.. |Event| replace:: :class:`~pyphi.models.actual_causation.Event`
+.. |Occurence| replace:: :class:`~pyphi.models.actual_causation.Occurence`
+.. |Occurences| replace:: :class:`~pyphi.models.actual_causation.Occurence`
+.. |PICK_SMALLEST_PURVIEW| replace:: :const:`~pyphi.config.PICK_SMALLEST_PURVIEW`
+.. |PARTITION_TYPE| replace:: :const:`~pyphi.config.PARTITION_TYPE`
+.. |PRECISION| replace:: :const:`~pyphi.config.PRECISION`
 """
 
 # -- Options for Napoleon (docstring format extension) --------------------
@@ -229,7 +241,7 @@ napoleon_use_admonition_for_notes = False
 napoleon_use_admonition_for_references = False
 napoleon_use_ivar = False
 napoleon_use_param = True
-napoleon_use_rtype = False
+napoleon_use_rtype = True
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -250,7 +262,9 @@ html_logo = "_static/phi.png"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    'navigation_depth': 3
+}
 
 html_sidebars = {'**': ['localtoc.html']}
 
@@ -304,7 +318,7 @@ html_last_updated_fmt = '%b %d, %Y'
 #html_show_sourcelink = True
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
-#html_show_sphinx = True
+html_show_sphinx = False
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
 #html_show_copyright = True
