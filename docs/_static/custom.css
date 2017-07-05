@@ -1,34 +1,158 @@
-@import url(//fonts.googleapis.com/css?family=Droid+Sans+Mono|Open+Sans:300,400,700);
-body {
-    font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+@import url(//fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,700);
+/* Layout */
+.wy-nav-content-wrap {
+    background: #fff;
+}
+@media screen and (min-width: 1400px) {
+    .wy-nav-content-wrap {
+        background: #f3f4f4;
+    }
 }
 .wy-nav-content {
     max-width: 900px;
+    background: #fff;
 }
-h1, h2 {
-    border-bottom: 1px solid #ddd;
+
+/* Font */
+body,
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+/* Headers */
+h2 {
+    border-bottom: 1px solid #eaecef;
     padding-bottom: 10px;
+    margin-top: 30px;
 }
-.rst-content dl:not(.docutils) tt.descname,
-.rst-content dl:not(.docutils) tt.descclassname,
-em, .docutils.literal,
-div.highlight pre {
-    font-family: 'Droid Sans Mono', 'Monaco', monospace;
+
+/* Paragraphs */
+p {
+    margin-bottom: 16px;
 }
-div.highlight pre {
-    font-size: 14px;
+
+/* Code */
+pre,
+code,
+tt,
+.highlight
+.docutils.literal,
+.rst-content pre,
+.rst-content tt,
+.rst-content code {
+    font-family: 'Roboto Mono', 'Monaco', monospace;
+    font-size: 85%;
+    border: none;
+    border-radius: 3px;
+    background: rgba(27, 31, 35, 0.05);
 }
-.wy-table td p,
-.rst-content table.docutils td p,
-.rst-content table.field-list td p {
-    font-size: inherit;
+
+/* Code literals */
+.rst-content code.literal {
+    font-weight: normal;
+    color: inherit;
+    padding-top: 0.2em;
+    padding-right: 0.5em;
+    padding-bottom: 0.2em;
+    padding-left: 0.5em;
 }
-p.rubric {
-    font-weight: bold;
+
+/* Code blocks */
+div[class^='highlight'] pre {
+    font-family: 'Roboto Mono', 'Monaco', monospace;
+    font-size: 90%;
+    background: none;
 }
-p.rubric:after {
-    content: ":"
+
+/* Highlighted blocks */
+div[class^='highlight'] {
+    border: none;
+    border-radius: 3px;
+    background: rgba(27, 31, 35, 0.05);
 }
-a.reference.internal > tt.docutils.literal:hover {
+/* Module headers */
+h1 > code.xref.py.py-mod.docutils.literal {
+    background: none;
+    padding-left: 0;
+    margin-left: 0;
+    font-size: 100%;
+}
+
+/* Lists with code items */
+ul.simple > li > a.reference.internal > code.literal {
+    line-height: 2.25;
+}
+
+/* Class/function headers */
+.rst-content dl:not(.docutils) dt {
+    border-top: none;
+    border-radius: 3px
+}
+.rst-content dl:not(.docutils) dt {
+    border-left: solid 3px #6ab0de;
+}
+
+/* Warnings, notes, etc. */
+div.admonition {
+    border-radius: 3px;
+}
+p.first.admonition-title {
+    border-radius: 3px 3px 0 0;
+}
+
+ /* Code links */
+a.reference.internal > code.docutils.literal {
+    color: inherit;
+}
+a.reference.internal > .docutils.literal:hover {
     text-decoration: underline;
+}
+
+/* Breadcrumbs */
+ul.wy-breadcrumbs > li > code.docutils.literal {
+    font-size: 90%;
+    background: none;
+}
+
+/* Navbar */
+.wy-menu.wy-menu-vertical a.reference.internal > .docutils.literal {
+    font-size: 90%;
+    margin: 5px;
+}
+.wy-menu-vertical li.current > a {
+    border: none;
+}
+
+/* Napoleon style fixes (parameters, return type, etc.) */
+.wy-table td, .rst-content table.docutils td, .rst-content table.field-list td,
+.wy-table th, .rst-content table.docutils th, .rst-content table.field-list th {
+    font-size: 100%
+}
+.rst-content table.field-list th {
+    padding-top: 5px;
+}
+.rst-content table.field-list td>strong {
+    margin-top: 0;
+}
+.rst-content dt > em {
+    font-size: 110%;
+}
+.rst-content dt > .sig-paren {
+    font-family: 'Roboto Mono', 'Monaco', monospace;
+    font-size: 100%;
+}
+table.field-list td.field-body > p {
+    line-height: 24px;
+}
+table.field-list td.field-body {
+    padding-top: 3px;
+}
+
+/* Table of contents */
+.toctree-wrapper ul > li {
+    line-height: 1.5;
+}
+
+.toctree-wrapper ul > li > a.reference.internal > code.literal {
+    line-height: 2.25;
 }
