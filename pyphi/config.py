@@ -533,7 +533,7 @@ def configure_logging():
             },
             'stdout': {
                 'level': this_module.LOG_STDOUT_LEVEL,
-                'class': 'pyphi.logging.ProgressBarHandler',
+                'class': 'pyphi.log.ProgressBarHandler',
                 'formatter': 'standard',
             }
         },

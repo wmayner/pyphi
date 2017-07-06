@@ -15,7 +15,7 @@ import threading
 from tblib import Traceback
 
 from .. import config
-from ..logging import ProgressBar
+from ..log import ProgressBar
 
 log = logging.getLogger(__name__)
 
