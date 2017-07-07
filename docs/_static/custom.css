@@ -76,7 +76,7 @@ div[class^='highlight'] pre {
     background: none;
 }
 
-/* Highlighted blocks */
+/* Syntax-highlighted blocks */
 div[class^='highlight'] {
     border: none;
     border-radius: 3px;
@@ -175,10 +175,14 @@ ul.wy-breadcrumbs > li > code.docutils.literal {
     font-size: 100%;
 }
 table.field-list td.field-body > p {
-    line-height: 24px;
+    line-height: 1.5;
 }
 table.field-list td.field-body {
     padding-top: 3px;
+}
+.section ul > li {
+    line-height: 1.5;
+    margin-bottom: 5px;
 }
 
 /* Table of contents */
@@ -188,4 +192,11 @@ table.field-list td.field-body {
 
 .toctree-wrapper ul > li > a.reference.internal > code.literal {
     line-height: 2.25;
+}
+
+/* Search result highlighting */
+.rst-content .highlighted {
+    background: yellow;
+    font-weight: inherit;
+    padding: 0;
 }
