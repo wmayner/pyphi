@@ -187,7 +187,7 @@ class Mice(cmp.Orderable):
         return self._mip.unpartitioned_repertoire
 
     @property
-    def partitioned_rertoire(self):
+    def partitioned_repertoire(self):
         '''np.ndarray: The partitioned repertoire of the mechanism over the
         purview.
         '''
