@@ -68,8 +68,8 @@ class Mip(cmp.Orderable):
 
     @property
     def partition(self):
-        '''Bipartition: The |Bipartition| that makes the least difference to
-        the mechanism's repertoire.'''
+        '''KPartition: The partition that makes the least difference to the
+        mechanism's repertoire.'''
         return self._partition
 
     @property
@@ -172,6 +172,12 @@ class Mice(cmp.Orderable):
         maximal.
         '''
         return self._mip.purview
+
+    @property
+    def partition(self):
+        '''KPartition: The partition that makes the least difference to the
+        mechanism's repertoire.'''
+        return self._mip.partition
 
     @property
     def repertoire(self):
