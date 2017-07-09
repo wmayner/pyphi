@@ -13,7 +13,7 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 # When evaluating the minimum information partition, only consider cuts that
 # cut off a single node. It is possible that the MIP cut will cut off multiple
 # nodes, but this approximation is usually correct, and at worst provides an
-# upper bound for integrated information. 
+# upper bound for integrated information.
 CUT_ONE_APPROXIMATION: false
 # The measure to use when computing phi ("EMD", "KLD", "L1")
 MEASURE: "EMD"
@@ -89,11 +89,13 @@ PROGRESS_BARS: true
 # The number of decimal places to which Phi values are considered accurate.
 PRECISION: 6
 
-# Miscellaneous 
+# Miscellaneous
 # ~~~~~~~~~~~~~
 # Controls whether a subsystem's state is validated when the subsystem is
 # created.
 VALIDATE_SUBSYSTEM_STATES: true
+# Controls whether a system is validated for conditional independence.
+VALIDATE_CONDITIONAL_INDEPENDENCE: true
 # In some applications of this library, you may prefer to define single-nodes
 # with a self-loop as having 0.5 Phi, a priori.
 SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false

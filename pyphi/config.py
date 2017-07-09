@@ -346,6 +346,12 @@ Miscellaneous
     >>> defaults['VALIDATE_SUBSYSTEM_STATES']
     True
 
+- ``VALIDATE_CONDITIONAL_INDEPENDENCE``:
+  Controls whether PyPhi checks if a system's TPM is conditionally
+  independent.
+
+    >>> defaults['VALIDATE_CONDITIONAL_INDEPENDENCE']
+    True
 
 - ``SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI``:
   If set to ``True``, this defines the Phi value of subsystems containing only
@@ -461,6 +467,8 @@ DEFAULTS = {
     # Controls whether a subsystem's state is validated when the subsystem is
     # created.
     'VALIDATE_SUBSYSTEM_STATES': True,
+    # Controls whether systems are checked for conditional independence.
+    'VALIDATE_CONDITIONAL_INDEPENDENCE': True,
     # In some applications of this library, the user may prefer to define
     # single-node subsystems as having 0.5 Phi.
     'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,

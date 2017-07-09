@@ -4,7 +4,8 @@
 import numpy as np
 import pytest
 
-from pyphi import Network, Subsystem, constants, exceptions, macro, validate
+from pyphi import (Network, Subsystem, config, constants, exceptions, macro,
+                   validate)
 
 
 def test_validate_direction():
@@ -32,6 +33,8 @@ def test_validate_tpm_conditional_independence():
         [0,  0,  0,  1],
     ])
     with pytest.raises(ValueError):
+        validate.conditionally_independent(tpm)
+    with config.override(VALIDATE_CONDITIONAL_INDEPENDENCE=False):
         validate.conditionally_independent(tpm)
     with pytest.raises(ValueError):
         validate.tpm(tpm)
