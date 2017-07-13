@@ -4,27 +4,27 @@
 
 |
 
-.. image:: https://zenodo.org/badge/doi/10.5281/zenodo.55692.svg
-    :target: http://dx.doi.org/10.5281/zenodo.55692
+.. image:: https://img.shields.io/badge/DOI-10.5281%20%2F%20zenodo.55692-blue.svg?style=flat-square&maxAge=86400
+    :target: https://doi.org/10.5281/zenodo.55692
     :alt: Zenodo DOI badge
 
-.. image:: https://readthedocs.org/projects/pyphi/badge/?version=latest
+.. image:: https://readthedocs.org/projects/pyphi/badge/?version=latest&style=flat-square
     :target: https://pyphi.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation badge
 
-.. image:: https://img.shields.io/travis/wmayner/pyphi.svg?maxAge=600
+.. image:: https://img.shields.io/travis/wmayner/pyphi.svg?style=flat-square&maxAge=600
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build badge
 
-.. image:: https://img.shields.io/coveralls/wmayner/pyphi/master.svg?maxAge=600
+.. image:: https://img.shields.io/coveralls/wmayner/pyphi/master.svg?style=flat-square&maxAge=600
     :target: https://coveralls.io/github/wmayner/pyphi
     :alt: Coveralls.io badge
 
-.. image:: https://img.shields.io/github/license/wmayner/pyphi.svg?maxAge=86400
+.. image:: https://img.shields.io/github/license/wmayner/pyphi.svg?style=flat-square&maxAge=86400
     :target: https://github.com/wmayner/pyphi/blob/master/LICENSE.md
     :alt: License badge
 
-.. image:: https://img.shields.io/pypi/pyversions/pyphi.svg?maxAge=86400
+.. image:: https://img.shields.io/pypi/pyversions/pyphi.svg?style=flat-square&maxAge=86400
     :target: https://wiki.python.org/moin/Python2orPython3
     :alt: Python versions badge
 
