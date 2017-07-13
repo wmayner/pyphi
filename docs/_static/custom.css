@@ -13,10 +13,16 @@
     background: #fff;
 }
 
-/* Font */
+/* Typography */
 body,
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Roboto', 'Helvetica Neue', sans-serif;
+}
+body {
+  font-size: 16px;
+}
+body p {
+  line-height: 1.5;
 }
 
 /* Headers */
@@ -63,9 +69,9 @@ tt,
 .rst-content code.literal {
     font-weight: normal;
     color: inherit;
-    padding-top: 0.2em;
+    padding-top: 0.15em;
     padding-right: 0.5em;
-    padding-bottom: 0.2em;
+    padding-bottom: 0.15em;
     padding-left: 0.5em;
 }
 
@@ -74,6 +80,7 @@ div[class^='highlight'] pre {
     font-family: 'Roboto Mono', 'Monaco', monospace;
     font-size: 90%;
     background: none;
+    padding: 16px;
 }
 
 /* Syntax-highlighted blocks */
