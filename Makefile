@@ -30,7 +30,7 @@ watch-docs: docs
 		--recursive --drop --ignore-directories \
 		--patterns="*.py;*.rst" $(src) $(docs)
 
-rm-docs:
+clean-docs:
 	rm -rf $(docs_build)
 
 build-docs:
