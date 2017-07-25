@@ -125,6 +125,11 @@ def s_noised():
     return example_networks.s_noised()
 
 
+@pytest.fixture()
+def noisy_selfloop_single():
+    return example_networks.noisy_selfloop_single()
+
+
 # Simple network and subsystems
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
