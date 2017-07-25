@@ -105,6 +105,59 @@ def basic_subsystem():
     return Subsystem(net, state, range(net.size))
 
 
+def basic_noisy_selfloop_network():
+    '''Based on the basic_network, but with added selfloops and noisy edges.
+
+    Nodes perform deterministic functions of their inputs, but those inputs 
+    may be flipped (i.e. what should be a 0 becomes a 1, and vice versa) with 
+    probability epsilon (eps = 0.1 here). 
+
+    Diagram::
+            
+                   +~~+
+                   |  v   
+                +~~~~~~~~+
+          +~~~~>|   A    |<~~~~+
+          |     |  (OR)  +~~~+ |
+          |     +~~~~~~~~+   | |
+          |                  | |
+          |                  v |
+        +~+~~~~~~+       +~~~~~+~+
+        |   B    |<~~~~~~+   C   |
+      +>| (COPY) +~~~~~~>| (XOR) |<+
+      | +~~~~~~~~+       +~~~~~~~+ |
+      |   |                    |   | 
+      +~~~+                    +~~~+
+
+    '''
+    tpm = np.array([
+        [0.271, 0.190, 0.244],
+        [0.919, 0.910, 0.756],
+        [0.919, 0.910, 0.756],
+        [0.991, 0.990, 0.244],
+        [0.919, 0.190, 0.756],
+        [0.991, 0.910, 0.244],
+        [0.991, 0.910, 0.244],
+        [0.999, 0.990, 0.756]
+    ])
+
+    cm = np.array([
+        [1, 0, 1],
+        [1, 1, 1],
+        [1, 1, 1]
+    ])
+
+    return Network(tpm, connectivity_matrix=cm)
+
+
+def basic_noisy_selfloop_subsystem():
+    '''A subsystem containing all the nodes of the 
+    :func:`~pyphi.examples.basic_noisy_selfloop_network`.'''
+    net = basic_noisy_selfloop_network()
+    state = (1, 0, 0)
+    return Subsystem(net, state, range(net.size))
+
+
 # TODO label nodes
 def residue_network():
     '''The network for the residue example.
