@@ -13,7 +13,7 @@ from .. import config, connectivity, exceptions, memory, utils, validate
 from .concept import constellation
 from .distance import constellation_distance
 from .parallel import MapReduce
-from ..models import BigMip, Cut, _null_bigmip, _single_node_bigmip
+from ..models import BigMip, Cut, _null_bigmip
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem
 
@@ -136,17 +136,11 @@ def _big_mip(cache_key, subsystem):
         bm.small_phi_time = round(small_phi_time, config.PRECISION)
         return bm
 
-    # Special case for single-node subsystems.
-    if len(subsystem) == 1:
-        log.info('Single-node %s; returning the hard-coded single-node MIP '
-                 'immediately.', subsystem)
-        return time_annotated(_single_node_bigmip(subsystem))
-
     # Check for degenerate cases
     # =========================================================================
     # Phi is necessarily zero if the subsystem is:
     #   - not strongly connected;
-    #   - empty; or
+    #   - empty; 
     #   - an elementary mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null MIP.
     if not subsystem:
@@ -158,7 +152,20 @@ def _big_mip(cache_key, subsystem):
         log.info('%s is not strongly connected; returning null MIP '
                  'immediately.', subsystem)
         return time_annotated(_null_bigmip(subsystem))
+
+    # Handle single-node / elementary mechanism cases.
+    if len(subsystem) == 1: 
+        # If the node lacks a self-loop, phi is trivially zero.
+        if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
+            log.info('Single nodes %s without selfloop cannot have phi; '
+                     'returning null MIP immediately.', subsystem)
+        # Even if the node has a self-loop, we may still define phi to be zero. 
+        elif not config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
+            log.info('Single node %s with selfloop cannot have phi; '
+                     'returning null MIP immediately.', subsystem)
+            return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
+
 
     log.debug('Finding unpartitioned constellation...')
     small_phi_start = time()
@@ -170,13 +177,16 @@ def _big_mip(cache_key, subsystem):
                  'immediately.')
         # Short-circuit if there are no concepts in the unpartitioned
         # constellation.
-        result = time_annotated(_null_bigmip(subsystem))
+        return time_annotated(_null_bigmip(subsystem))
+    
+    log.debug('Found unpartitioned constellation.')
+    if len(subsystem) == 1:
+        cuts = [Cut(subsystem.node_indices, subsystem.node_indices)]
     else:
-        log.debug('Found unpartitioned constellation.')
         cuts = big_mip_bipartitions(subsystem.cut_indices)
-        finder = FindMip(cuts, subsystem, unpartitioned_constellation)
-        min_mip = finder.run(config.PARALLEL_CUT_EVALUATION)
-        result = time_annotated(min_mip, small_phi_time)
+    finder = FindMip(cuts, subsystem, unpartitioned_constellation)
+    min_mip = finder.run(config.PARALLEL_CUT_EVALUATION)
+    result = time_annotated(min_mip, small_phi_time)
 
     log.info('Finished calculating big-phi data for %s.', subsystem)
 

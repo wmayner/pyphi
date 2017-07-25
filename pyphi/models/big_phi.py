@@ -5,7 +5,7 @@
 '''Objects that represent cause-effect structures.'''
 
 from . import cmp, fmt
-from .. import config, utils
+from .. import utils
 
 _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'partitioned_constellation', 'subsystem',
@@ -101,20 +101,3 @@ def _null_bigmip(subsystem, phi=0.0):
     '''
     return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=phi,
                   unpartitioned_constellation=(), partitioned_constellation=())
-
-
-def _single_node_bigmip(subsystem):
-    '''Return a |BigMip| of a single-node with a selfloop.
-
-    Whether these have |big_phi > 0| value depends on the PyPhi configuration.
-    '''
-    if config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
-        # TODO return the actual concept
-        return BigMip(
-            phi=0.5,
-            unpartitioned_constellation=(),
-            partitioned_constellation=(),
-            subsystem=subsystem,
-            cut_subsystem=subsystem)
-
-    return _null_bigmip(subsystem)
