@@ -354,9 +354,9 @@ Miscellaneous
     True
 
 - ``SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI``:
-  If set to ``True``, this defines the Phi value of subsystems containing only
-  a single node with a self-loop to be ``0.5``. If set to False, their
-  |big_phi| will be actually be computed (to be zero, in this implementation).
+  If set to ``True``, the Phi value of single-node subsystems is the difference 
+  between their unpartitioned constellation (a single concept) and the null 
+  concept. If set to False, their Phi is defined to be zero.  
 
     >>> defaults['SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI']
     False
