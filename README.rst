@@ -8,7 +8,7 @@
     :target: https://doi.org/10.5281/zenodo.55692
     :alt: Zenodo DOI badge
 
-.. image:: https://readthedocs.org/projects/pyphi/badge/?version=latest&style=flat-square
+.. image:: https://readthedocs.org/projects/pyphi/badge/?version=latest&style=flat-square&maxAge=600
     :target: https://pyphi.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation badge
 
@@ -114,7 +114,11 @@ Contributing
 ~~~~~~~~~~~~
 
 To help develop PyPhi, fork the project on GitHub and install the requirements
-with ``pip install -r requirements.txt``.
+with 
+
+.. code:: bash
+
+    pip install -r requirements.txt
 
 
 Development workflow
