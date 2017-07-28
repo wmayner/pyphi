@@ -76,6 +76,12 @@ def s_noised_complete():
     return Subsystem(n, state, range(n.size))
 
 
+def noisy_selfloop_single():
+    net = pyphi.examples.basic_noisy_selfloop_network()
+    state = (1, 0, 0)
+    return Subsystem(net, state, (1,))
+
+
 s_about_to_be_on = (0, 1, 1)
 s_just_turned_on = (1, 0, 0)
 s_all_off = (0, 0, 0)
