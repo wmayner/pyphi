@@ -96,9 +96,9 @@ PRECISION: 6
 VALIDATE_SUBSYSTEM_STATES: true
 # Controls whether a system is validated for conditional independence.
 VALIDATE_CONDITIONAL_INDEPENDENCE: true
-# In some applications of this library, you may want to allow single-nodes
+# In some applications of this library, you may want to allow single micro-nodes
 # with a self-loop to have nonzero Phi. See ``pyphi.config`` for details.
-SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
+SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 # Use pretty __str__-like formatting in repr calls.
 REPR_VERBOSITY: 2
 # Print numbers as fractions if the denominator isn't too big.

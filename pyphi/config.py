@@ -353,12 +353,13 @@ Miscellaneous
     >>> defaults['VALIDATE_CONDITIONAL_INDEPENDENCE']
     True
 
-- ``SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI``:
-  If set to ``True``, the Phi value of single-node subsystems is the difference 
-  between their unpartitioned constellation (a single concept) and the null 
-  concept. If set to False, their Phi is defined to be zero.  
+- ``SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI``:
+  If set to ``True``, the Phi value of single micro-node subsystems is the 
+  difference between their unpartitioned constellation (a single concept) and 
+  the null concept. If set to False, their Phi is defined to be zero. Single 
+  macro-node subsystems may always be cut, regardless of circumstances. 
 
-    >>> defaults['SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI']
+    >>> defaults['SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI']
     False
 
 
@@ -470,8 +471,8 @@ DEFAULTS = {
     # Controls whether systems are checked for conditional independence.
     'VALIDATE_CONDITIONAL_INDEPENDENCE': True,
     # In some applications of this library, the user may prefer to define
-    # single-node subsystems as having 0.5 Phi.
-    'SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
+    # single micro-node subsystems as having Phi.
+    'SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI': False,
     # Use prettier __str__-like formatting in `repr` calls.
     'REPR_VERBOSITY': 2,
     # Print numbers as fractions if the denominator isn't too big.

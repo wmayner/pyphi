@@ -141,7 +141,7 @@ def _big_mip(cache_key, subsystem):
     # Phi is necessarily zero if the subsystem is:
     #   - not strongly connected;
     #   - empty; 
-    #   - an elementary mechanism (i.e. no nontrivial bipartitions).
+    #   - an elementary micro mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null MIP.
     if not subsystem:
         log.info('Subsystem %s is empty; returning null MIP '
@@ -153,15 +153,17 @@ def _big_mip(cache_key, subsystem):
                  'immediately.', subsystem)
         return time_annotated(_null_bigmip(subsystem))
 
-    # Handle single-node / elementary mechanism cases.
-    if len(subsystem) == 1: 
+    # Handle elementary micro mechanism cases.
+    # Single macro element systems have nontrivial bipartitions because their 
+    #   bipartitions are over their micro elements.
+    if len(subsystem.cut_indices) == 1: 
         # If the node lacks a self-loop, phi is trivially zero.
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
-            log.info('Single nodes %s without selfloop cannot have phi; '
+            log.info('Single micro nodes %s without selfloops cannot have phi; '
                      'returning null MIP immediately.', subsystem)
         # Even if the node has a self-loop, we may still define phi to be zero. 
-        elif not config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
-            log.info('Single node %s with selfloop cannot have phi; '
+        elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
+            log.info('Single micro nodes %s with selfloops cannot have phi; '
                      'returning null MIP immediately.', subsystem)
             return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
@@ -180,8 +182,8 @@ def _big_mip(cache_key, subsystem):
         return time_annotated(_null_bigmip(subsystem))
     
     log.debug('Found unpartitioned constellation.')
-    if len(subsystem) == 1:
-        cuts = [Cut(subsystem.node_indices, subsystem.node_indices)]
+    if len(subsystem.cut_indices) == 1:
+        cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
     else:
         cuts = big_mip_bipartitions(subsystem.cut_indices)
     finder = FindMip(cuts, subsystem, unpartitioned_constellation)
@@ -206,7 +208,7 @@ def _big_mip_cache_key(subsystem):
         config.MEASURE,
         config.PRECISION,
         config.VALIDATE_SUBSYSTEM_STATES,
-        config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI
+        config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI
     )
 
 
