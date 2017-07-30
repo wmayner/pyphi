@@ -472,6 +472,19 @@ class Constellation(tuple):
     def to_json(self):
         return {'concepts': list(self)}
 
+    @property
+    def mechanisms(self):
+        '''The mechanism of each concept.'''
+        return [concept.mechanism for concept in self]
+
+    @property
+    def labeled_mechanisms(self):
+        '''The labeled mechanism of each concept.'''
+        if not self:
+            return []
+        label = self[0].subsystem.network.indices2labels
+        return list(map(label, self.mechanisms))
+
     @classmethod
     def from_json(cls, json):
         return cls(json['concepts'])
