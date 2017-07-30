@@ -361,7 +361,6 @@ Miscellaneous
     >>> defaults['SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI']
     False
 
-
 - ``REPR_VERBOSITY``:
   Controls the verbosity of ``__repr__`` methods on PyPhi objects. Can be set
   to ``0``, ``1``, or ``2``. If set to ``1``, calling ``repr`` on PyPhi objects
