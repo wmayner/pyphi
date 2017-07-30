@@ -6,7 +6,6 @@
 Functions for computing concepts and constellations of concepts.
 '''
 
-import multiprocessing
 from time import time
 
 from . import parallel
