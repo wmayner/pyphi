@@ -162,7 +162,10 @@ def _big_mip(cache_key, subsystem):
 
     log.debug('Finding unpartitioned constellation...')
     small_phi_start = time()
-    unpartitioned_constellation = constellation(subsystem)
+    # Parallelize the unpartitioned constellation if parallelizing cuts, since
+    # we have free processors because we're not computing any cuts yet.
+    unpartitioned_constellation = constellation(subsystem,
+                                                parallel=config.PARALLEL_CUT_EVALUATION)
     small_phi_time = round(time() - small_phi_start, config.PRECISION)
 
     if not unpartitioned_constellation:
