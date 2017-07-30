@@ -71,7 +71,7 @@ class ComputeConstellation(parallel.MapReduce):
 
 
 def constellation(subsystem, mechanisms=False, purviews=False,
-                  past_purviews=False, future_purviews=False):
+                  past_purviews=False, future_purviews=False, parallel=False):
     '''Return the conceptual structure of this subsystem, optionally restricted
     to concepts with the mechanisms and purviews given in keyword arguments.
 
@@ -88,6 +88,8 @@ def constellation(subsystem, mechanisms=False, purviews=False,
         purviews (tuple[tuple[int]]): Same as in :func:`concept`.
         past_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
         future_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
+        parallel (bool): Whether to compute concepts in parallel. If ``True``,
+            overrides :data:`config.PARALLEL_CONCEPT_EVALUATION`.
 
     Returns:
         Constellation: A tuple of every |Concept| in the constellation.
@@ -97,7 +99,8 @@ def constellation(subsystem, mechanisms=False, purviews=False,
 
     engine = ComputeConstellation(mechanisms, subsystem, purviews,
                                   past_purviews, future_purviews)
-    return models.Constellation(engine.run(config.PARALLEL_CONCEPT_EVALUATION))
+    return models.Constellation(engine.run(parallel or
+                                           config.PARALLEL_CONCEPT_EVALUATION))
 
 
 def conceptual_information(subsystem):
