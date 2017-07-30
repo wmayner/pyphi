@@ -356,8 +356,8 @@ class Subsystem:
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
         joint = np.ones(repertoire_shape(purview, self.tpm_size))
-        # The effect repertoire is the Kroneker product of the effect repertoires
-        # of the individual nodes.
+        # The effect repertoire is the product of the effect repertoires of the
+        # individual nodes.
         return joint * functools.reduce(np.multiply,
             [self._single_node_effect_repertoire(mechanism, p) for p in purview])
 
