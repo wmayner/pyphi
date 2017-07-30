@@ -14,6 +14,7 @@ pyphi/data/hamming_matrices/10.npy
 __pyphi_cache__
 dist
 build
+profiling
 docs/_build
 .coverage
 htmlcov
