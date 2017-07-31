@@ -345,25 +345,21 @@ def test_big_mip_wrappers(reducible, flushcache, restore_fs_cache):
 
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
 @config.override(MEASURE='EMD')
-def test_big_mip_single_micro_node_selfloops_have_phi(noisy_selfloop_single, 
-                                                      flushcache, 
-                                                      restore_fs_cache):
+def test_big_mip_single_micro_node_selfloops_have_phi( 
+        noisy_selfloop_single, flushcache, restore_fs_cache):
     flushcache()
     assert compute.big_mip(noisy_selfloop_single).phi == 0.0176
 
 
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False)
 def test_big_mip_single_micro_node_selfloops_dont_have_phi(
-                                                        noisy_selfloop_single, 
-                                                        flushcache, 
-                                                        restore_fs_cache):
+        noisy_selfloop_single, flushcache, restore_fs_cache):
     flushcache()
     assert compute.big_mip(noisy_selfloop_single).phi == 0.0
 
 
-def test_big_mip_single_micro_nodes_without_selfloops_dont_have_phi(s_single, 
-                                                            flushcache,
-                                                            restore_fs_cache):
+def test_big_mip_single_micro_nodes_without_selfloops_dont_have_phi(
+        s_single, flushcache, restore_fs_cache):
     flushcache()
     assert compute.big_mip(s_single).phi == 0.0
 
