@@ -361,6 +361,13 @@ def test_big_mip_single_micro_node_selfloops_dont_have_phi(
     assert compute.big_mip(noisy_selfloop_single).phi == 0.0
 
 
+def test_big_mip_single_micro_nodes_without_selfloops_dont_have_phi(s_single, 
+                                                            flushcache,
+                                                            restore_fs_cache):
+    flushcache()
+    assert compute.big_mip(s_single).phi == 0.0
+
+
 @pytest.fixture
 def standard_FindMip(s):
     unpartitioned_constellation = constellation(s)
