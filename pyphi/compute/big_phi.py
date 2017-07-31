@@ -161,6 +161,7 @@ def _big_mip(cache_key, subsystem):
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
             log.info('Single micro nodes %s without selfloops cannot have phi; '
                      'returning null MIP immediately.', subsystem)
+            return time_annotated(_null_bigmip(subsystem))
         # Even if the node has a self-loop, we may still define phi to be zero. 
         elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
             log.info('Single micro nodes %s with selfloops cannot have phi; '
