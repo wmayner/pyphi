@@ -21,7 +21,7 @@ from .tpm import marginalize_out, tpm_indices
 class Node:
     '''A node in a subsystem.
 
-    Attributes:
+    Args:
         tpm (np.ndarray):
             The TPM of the subsystem.
         cm (np.ndarray):
@@ -32,6 +32,14 @@ class Node:
             The state of this node.
         label (str):
             An optional label for the node.
+
+    Attributes:
+        tpm (np.ndarray):
+            The node tpm is a 2^(n_inputs)-by-2 matrix, where node.tpm[i][j] 
+            gives the marginal probability that the node is in state j at t+1 
+            if the state of its inputs is i at t. If the node is a single 
+            element with a cut selfloop, (i.e. it has no inputs), the tpm is 
+            simply its unconstrained effect repertoire. 
     '''
 
     def __init__(self, tpm, cm, index, state, label):
@@ -69,7 +77,10 @@ class Node:
         # than on.
         tpm_off = 1 - tpm_on
 
-        # Combine the on- and off-TPM in the last dimension.
+        # Combine the on- and off-TPM so that the first dimension is indexed by 
+        # the state of the node's inputs at t, and the last dimension is
+        # indexed by the node's state at t+1. This representaiton makes it easy 
+        # to condition on the node state. 
         self.tpm = np.moveaxis([tpm_off, tpm_on], 0, -1)
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

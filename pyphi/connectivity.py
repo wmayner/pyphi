@@ -169,6 +169,8 @@ def _connected(cm, nodes, connection):
 def is_strong(cm, nodes=None):
     '''Return whether the connectivity matrix is strongly connected.
 
+    Remember that a singleton graph is strongly connected. 
+
     Args:
         cm (np.ndarray): A square connectivity matrix.
 

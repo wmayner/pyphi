@@ -18,7 +18,7 @@ Next, we want to identify the spatial scale and main complex of the network:
 
     >>> macro = pyphi.macro.emergence(network, state)
     >>> print(macro.emergence)
-    -1.35708
+    -1.112671
 
 Since the emergence value is negative, there is no macro scale which has
 greater integrated information than the original micro scale. We can now
