@@ -533,9 +533,11 @@ def test_constellation_repr():
 
 
 def test_normalize_constellation():
-    c1 = models.Concept(mechanism=(2,))
-    c2 = models.Concept(mechanism=(1, 3))
-    assert (c2, c1) == models.normalize_constellation((c1, c2))
+    c1 = models.Concept(mechanism=(1,))
+    c2 = models.Concept(mechanism=(2,))
+    c3 = models.Concept(mechanism=(1, 3))
+    c4 = models.Concept(mechanism=(1, 2, 3))
+    assert (c1, c2, c3, c4) == models.normalize_constellation((c3, c4, c2, c1))
 
 # }}}
 
