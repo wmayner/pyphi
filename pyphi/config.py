@@ -14,7 +14,7 @@ The various options are listed here with their defaults.
     >>> import pyphi
     >>> defaults = pyphi.config.DEFAULTS
 
-Many options can be changed on-the-fly by simply assigning them a new value:
+Many options can be changed on the fly by simply assigning them a new value:
 
     >>> pyphi.config.PROGRESS_BARS = True
 
