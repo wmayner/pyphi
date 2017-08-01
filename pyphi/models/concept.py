@@ -490,6 +490,10 @@ class Constellation(tuple):
         return cls(json['concepts'])
 
 
+def _concept_sort_key(concept):
+    return (len(concept.mechanism), concept.mechanism)
+
+
 def normalize_constellation(constellation):
     '''Deterministically reorder the concepts in a constellation.
 
@@ -500,4 +504,4 @@ def normalize_constellation(constellation):
         Constellation: The constellation, ordered lexicographically by
         mechanism.
     '''
-    return Constellation(sorted(constellation, key=lambda c: c.mechanism))
+    return Constellation(sorted(constellation, key=_concept_sort_key))
