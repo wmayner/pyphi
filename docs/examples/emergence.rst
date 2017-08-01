@@ -6,8 +6,6 @@ Emergence (coarse-graining and blackboxing)
 Coarse-graining
 ~~~~~~~~~~~~~~~
 
-* :func:`pyphi.examples.macro_network`
-
 We'll use the |macro| module to explore alternate spatial scales of a network.
 The network under consideration is a 4-node non-deterministic network,
 available from the |examples| module.

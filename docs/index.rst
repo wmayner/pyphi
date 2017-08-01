@@ -8,49 +8,31 @@ To report issues, please use the issue tracker on the `GitHub repository
 welcome.
 
 
-Getting started
-~~~~~~~~~~~~~~~
-
-The best way to familiarize yourself with the software is by working through the examples:
-
 .. toctree::
+    :caption: Usage and Examples
     :glob:
-    :maxdepth: 2
+    :maxdepth: 1
 
     examples/index
-
-
-Configuration
-~~~~~~~~~~~~~
-
-PyPhi can be configured in various important ways; see the :mod:`~pyphi.config`
-module for details.
+    examples/*
 
 .. toctree::
+    :caption: Configuration
     :glob:
-    :maxdepth: 2
+    :maxdepth: 1
 
     configuration
 
-
-Conventions
-~~~~~~~~~~~
-
-PyPhi uses some conventions for TPM and connectivity matrix formats. These are
-important to keep in mind when setting up networks.
-
 .. toctree::
+    :caption: Conventions
     :glob:
-    :maxdepth: 2
+    :maxdepth: 1
 
     conventions
 
-
-API Reference
-~~~~~~~~~~~~~
-
 .. toctree::
+    :caption: API Reference
     :glob:
-    :maxdepth: 2
+    :maxdepth: 1
 
-    api/index
+    api/*

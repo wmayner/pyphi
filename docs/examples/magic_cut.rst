@@ -1,9 +1,6 @@
 Magic Cuts
 ==========
 
-* :func:`pyphi.examples.rule110_network`
-* :func:`pyphi.examples.rule154_network`
-
 This example explores a system of three fully connected elements |A|, |B| and
 |C|, which follow the logic of the Rule 110 cellular automaton. The point of
 this example is to highlight an unexpected behaviour of system cuts: that the
@@ -51,18 +48,18 @@ connections from elements |A| and |B| to |C|.
 
 Let's investigate the concepts in the unpartitioned constellation,
 
-    >>> [concept.mechanism for concept in constellation]
-    [(0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
-    >>> [concept.phi for concept in constellation]
+    >>> constellation.labeled_mechanisms
+    [['A'], ['B'], ['C'], ['A', 'B'], ['A', 'C'], ['B', 'C']]
+    >>> constellation.phis
     [0.125, 0.125, 0.125, 0.499999, 0.499999, 0.499999]
     >>> print(sum(_))
     1.874997
 
 and also the concepts of the partitioned constellation.
 
-    >>> [concept.mechanism for concept in cut_constellation]
-    [(0,), (1,), (2,), (0, 1), (1, 2), (0, 1, 2)]
-    >>> [concept.phi for concept in cut_constellation]
+    >>> cut_constellation.labeled_mechanisms
+    [['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C']]
+    >>> cut_constellation.phis
     [0.125, 0.125, 0.125, 0.499999, 0.266666, 0.333333]
     >>> print(sum(_))
     1.474998
@@ -181,10 +178,9 @@ This subsystem has a |big_phi| value of 0.15533, and the MIP cuts the
 connections from |AE| to |B|. Investigating the concepts in both the
 partitioned and unpartitioned constellations,
 
-    >>> unpartitioned_constellation = mip.unpartitioned_constellation
-    >>> [concept.mechanism for concept in unpartitioned_constellation]
-    [(0,), (1,), (0, 1)]
-    >>> [concept.phi for concept in unpartitioned_constellation]
+    >>> mip.unpartitioned_constellation.labeled_mechanisms
+    [['A'], ['B'], ['A', 'B']]
+    >>> mip.unpartitioned_constellation.phis
     [0.25, 0.166667, 0.178572]
     >>> print(sum(_))
     0.5952390000000001
@@ -192,19 +188,18 @@ partitioned and unpartitioned constellations,
 The unpartitioned constellation has mechanisms |A|, |B| and |AB| with
 :math:`\sum\varphi = 0.595239`.
 
-    >>> partitioned_constellation = mip.partitioned_constellation
-    >>> [concept.mechanism for concept in partitioned_constellation]
-    [(0, 1), (0,), (1,)]
-    >>> [concept.phi for concept in partitioned_constellation]
+    >>> mip.partitioned_constellation.labeled_mechanisms
+    [['A', 'B'], ['A'], ['B']]
+    >>> mip.partitioned_constellation.phis
     [0.214286, 0.25, 0.166667]
     >>> print(sum(_))
     0.630953
 
-The unpartitioned constellation has mechanisms |A|, |B| and |AB| with
+The partitioned constellation has mechanisms |A|, |B| and |AB| but with
 :math:`\sum\varphi = 0.630953`. There are the same number of concepts in both
 constellations, over the same mechanisms; however, the partitioned
 constellation has a greater |small_phi| value for the concept |AB|, resulting
-in an overall greater :math:`\sum\varphi` for the MIP constellation.
+in an overall greater :math:`\sum\varphi` for the partitioned constellation.
 
 Although situations described above are rare, they do occur, so one must be
 careful when analyzing the integrated information of physical systems not to

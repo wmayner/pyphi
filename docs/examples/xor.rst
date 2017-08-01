@@ -1,9 +1,6 @@
 XOR Network
 ===========
 
-* :func:`pyphi.examples.xor_network`
-* :func:`pyphi.examples.xor_subsystem`
-
 This example describes a system of three fully connected XOR nodes, |A|, |B|
 and |C| (no self-connections).
 
@@ -38,8 +35,8 @@ of concepts within the complex.
     >>> constellation = main_complex.unpartitioned_constellation
     >>> len(constellation)
     3
-    >>> [concept.mechanism for concept in constellation]
-    [(0, 1), (0, 2), (1, 2)]
+    >>> constellation.labeled_mechanisms
+    [['A', 'B'], ['A', 'C'], ['B', 'C']]
 
 There are three concepts in the constellation. They are all the possible second
 order mechanisms: |AB|, |AC| and |BC|.

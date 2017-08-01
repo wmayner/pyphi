@@ -518,11 +518,12 @@ the subsystem like so:
 
     >>> constellation = pyphi.compute.constellation(subsystem)
 
-And verify that the :math:`\varphi` values match (rounding to two decimal
-places):
+And verify that the :math:`\varphi` values match:
 
-    >>> [round(concept.phi, 2) for concept in constellation]
-    [0.17, 0.17, 0.25, 0.25, 0.33, 0.5]
+    >>> constellation.labeled_mechanisms
+    [['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C']]
+    >>> constellation.phis
+    [0.166667, 0.166667, 0.25, 0.25, 0.333334, 0.499999]
 
 The null concept (the small black cross shown in concept-space) is available as
 an attribute of the subsystem:

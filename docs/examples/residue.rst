@@ -1,9 +1,6 @@
 Residue
 =======
 
-* :func:`pyphi.examples.residue_network`
-* :func:`pyphi.examples.residue_subsystem`
-
 This example describes a system containing two AND gates, |A| and |B|, with a
 single overlapping input node.
 
