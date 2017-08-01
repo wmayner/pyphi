@@ -483,7 +483,7 @@ class Constellation(tuple):
         if not self:
             return []
         label = self[0].subsystem.network.indices2labels
-        return list(map(label, self.mechanisms))
+        return [list(label(mechanism)) for mechanism in self.mechanisms]
 
     @classmethod
     def from_json(cls, json):
