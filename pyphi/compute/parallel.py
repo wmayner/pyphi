@@ -79,9 +79,9 @@ class MapReduce:
 
     Any subclass of ``MapReduce`` must implement three methods::
 
-        * ``empty_result``,
-        * ``compute``, (map), and
-        * ``process_result`` (reduce).
+        - ``empty_result``,
+        - ``compute``, (map), and
+        - ``process_result`` (reduce).
 
     The engine includes a builtin ``tqdm`` progress bar; this can be disabled
     by setting ``pyphi.config.PROGRESS_BARS`` to ``False``.
