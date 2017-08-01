@@ -529,7 +529,7 @@ def test_constellation_is_still_a_tuple():
 @config.override(REPR_VERBOSITY=0)
 def test_constellation_repr():
     c = models.Constellation()
-    assert repr(c) == "Constellation(())"
+    assert repr(c) == "Constellation()"
 
 
 def test_normalize_constellation():
