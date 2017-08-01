@@ -164,12 +164,12 @@ rst_prolog = """
 .. |FUTURE| replace:: :const:`~pyphi.constants.Direction.FUTURE`
 .. |EPSILON| replace:: :const:`~pyphi.constants.EPSILON`
 .. |CM[i][j] = 1| replace:: :math:`CM_{i,j} = 1`
-.. |compute| replace:: :mod:`~pyphi.compute`
-.. |compute.concept| replace:: :mod:`~pyphi.compute.big_phi`
 .. |Subsystem.concept| replace:: :mod:`~pyphi.subsystem.Subsystem.concept`
 .. |Subsystem.core_cause| replace:: :mod:`~pyphi.subsystem.Subsystem.core_cause`
 .. |Subsystem.core_effect| replace:: :mod:`~pyphi.subsystem.Subsystem.core_effect`
-.. |compute.big_phi| replace:: :mod:`~pyphi.compute.concept.concept`
+.. |compute| replace:: :mod:`~pyphi.compute`
+.. |compute.concept| replace:: :mod:`~pyphi.compute.big_phi`
+.. |compute.big_phi| replace:: :mod:`~pyphi.compute.big_phi.big_phi`
 .. |compute.distance| replace:: :mod:`~pyphi.compute.concept.distance`
 .. |compute.conceptual_information| replace:: :func:`~pyphi.compute.big_phi.conceptual_information`
 .. |compute.big_mip| replace:: :func:`~pyphi.compute.big_phi.big_mip`
