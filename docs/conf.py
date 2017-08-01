@@ -247,13 +247,11 @@ napoleon_use_rtype = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    # Add any paths that contain custom themes here, relative to this
-    # directory.
-    html_theme_path = ['_themes'] + [sphinx_rtd_theme.get_html_theme_path()]
+import sphinx_rtd_theme
+html_theme = 'sphinx_rtd_theme'
+# Add any paths that contain custom themes here, relative to this
+# directory.
+html_theme_path = ['_themes'] + [sphinx_rtd_theme.get_html_theme_path()]
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.

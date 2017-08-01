@@ -5,3 +5,4 @@ wheel
 watchdog
 pylint
 isort
+git+https://github.com/wmayner/sphinx_rtd_theme.git
