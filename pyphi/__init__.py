@@ -57,7 +57,7 @@ See the documentation for the |config| module for a description of the options
 and their defaults.
 '''
 
-from .__about__ import *
+from .__about__ import *  # pylint: disable=wildcard-import
 from . import (config, constants, convert, db, examples, jsonify, macro,
                models, network, node, subsystem, utils, validate)
 from .network import Network
