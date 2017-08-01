@@ -77,6 +77,8 @@ Next Release
     - `sbs2sbn` is `state_by_state2state_by_node`
 - Added the `Constellation.mechanisms`, `Constellation.labeled_mechanisms`, and
   `Constellation.phis` properties.
+- Add `BigMip.print` method with optional `constellations` argument that allows
+  omitting the constellations.
 
 ### Refactor
 - Refactored the `utils` module into the `connectivity`, `distance`,
