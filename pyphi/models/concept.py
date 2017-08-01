@@ -463,7 +463,7 @@ class Constellation(tuple):
         if config.REPR_VERBOSITY > 0:
             return self.__str__()
 
-        return "Constellation({})".format(
+        return "Constellation{}".format(
             super().__repr__())
 
     def __str__(self):
