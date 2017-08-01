@@ -120,10 +120,6 @@ with
 
     pip install -r requirements.txt
 
-
-Development workflow
-````````````````````
-
 The ``Makefile`` defines some tasks to help with development:
 
 .. code:: bash
@@ -148,8 +144,8 @@ builds the HTML documentation.
 Developing on Linux
 ```````````````````
 
-Make sure you install the Python 3 C headers before installing the
-requirements:
+Make sure you install the C headers for Python 3, SciPy, and NumPy before
+installing the requirements:
 
 .. code:: bash
 
