@@ -2,7 +2,7 @@
 # compute/big_phi.py
 
 '''
-Functions for computing concepts, constellations, and integrated information.
+Functions for computing integrated information and finding complexes.
 '''
 
 import functools
@@ -140,7 +140,7 @@ def _big_mip(cache_key, subsystem):
     # =========================================================================
     # Phi is necessarily zero if the subsystem is:
     #   - not strongly connected;
-    #   - empty; 
+    #   - empty;
     #   - an elementary micro mechanism (i.e. no nontrivial bipartitions).
     # So in those cases we immediately return a null MIP.
     if not subsystem:
@@ -154,15 +154,15 @@ def _big_mip(cache_key, subsystem):
         return time_annotated(_null_bigmip(subsystem))
 
     # Handle elementary micro mechanism cases.
-    # Single macro element systems have nontrivial bipartitions because their 
+    # Single macro element systems have nontrivial bipartitions because their
     #   bipartitions are over their micro elements.
-    if len(subsystem.cut_indices) == 1: 
+    if len(subsystem.cut_indices) == 1:
         # If the node lacks a self-loop, phi is trivially zero.
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
             log.info('Single micro nodes %s without selfloops cannot have phi; '
                      'returning null MIP immediately.', subsystem)
             return time_annotated(_null_bigmip(subsystem))
-        # Even if the node has a self-loop, we may still define phi to be zero. 
+        # Even if the node has a self-loop, we may still define phi to be zero.
         elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
             log.info('Single micro nodes %s with selfloops cannot have phi; '
                      'returning null MIP immediately.', subsystem)
@@ -184,7 +184,7 @@ def _big_mip(cache_key, subsystem):
         # Short-circuit if there are no concepts in the unpartitioned
         # constellation.
         return time_annotated(_null_bigmip(subsystem))
-    
+
     log.debug('Found unpartitioned constellation.')
     if len(subsystem.cut_indices) == 1:
         cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
