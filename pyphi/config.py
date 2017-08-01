@@ -3,23 +3,21 @@
 # config.py
 
 '''
+Loading a configuration
+~~~~~~~~~~~~~~~~~~~~~~~
+
 Various aspects of PyPhi's behavior can be configured.
 
-The configuration is loaded upon import from a YAML file called
-``pyphi_config.yml`` that must be in the directory where Python was started. If
-no file is found, the default configuration is used.
+When PyPhi is imported, it checks for a YAML file named ``pyphi_config.yml`` in
+the current directory and automatically loads it if it exists; otherwise the
+default configuration is used.
 
-The various options are listed here with their defaults.
+The various settings are listed here with their defaults.
 
     >>> import pyphi
     >>> defaults = pyphi.config.DEFAULTS
 
-Many options can be changed on the fly by simply assigning them a new value:
-
-    >>> pyphi.config.PROGRESS_BARS = True
-
-It is also possible to manually load a YAML configuration file within your
-script:
+It is also possible to manually load a configuration file:
 
     >>> pyphi.config.load_config_file('pyphi_config.yml')
 
@@ -27,11 +25,16 @@ Or load a dictionary of configuration values:
 
     >>> pyphi.config.load_config_dict({'SOME_CONFIG': 'value'})
 
+Many settings can also be changed on the fly by simply assigning them a new
+value:
+
+    >>> pyphi.config.PROGRESS_BARS = True
+
 
 Approximations and theoretical options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These options control the algorithms PyPhi uses.
+These settings control the algorithms PyPhi uses.
 
 - ``ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS``:
   In certain cases, making a cut can actually cause a previously reducible
@@ -91,7 +94,7 @@ These options control the algorithms PyPhi uses.
     ─── ✕ ─────
      ∅    B,C,D
 
-  In addition, this option introduces "wedge" tripartitions of the form::
+  In addition, this setting introduces "wedge" tripartitions of the form::
 
      A     B     ∅
     ─── ✕ ─── ✕ ───
@@ -110,7 +113,7 @@ These options control the algorithms PyPhi uses.
 
 - ``PICK_SMALLEST_PURVIEW``:
   When computing MICE, it is possible for several MIPs to have the same
-  |small_phi| value. If this options is set to ``True`` the MIP with the
+  |small_phi| value. If this setting is set to ``True`` the MIP with the
   smallest purview is chosen; otherwise, the one with largest purview is
   chosen.
 
@@ -172,7 +175,7 @@ long time!), resulting in data loss.
 - ``MAXIMUM_CACHE_MEMORY_PERCENTAGE``:
   PyPhi employs several in-memory caches to speed up computation. However,
   these can quickly use a lot of memory for large networks or large numbers of
-  them; to avoid thrashing, this options limits the percentage of a system's
+  them; to avoid thrashing, this setting limits the percentage of a system's
   RAM that the caches can collectively use.
 
     >>> defaults['MAXIMUM_CACHE_MEMORY_PERCENTAGE']
@@ -267,7 +270,7 @@ See the `documentation on Python's logger
 <https://docs.python.org/3.4/library/logging.html>`_ for more information.
 
 .. important::
-    After PyPhi has been imported, changing these options will have no effect
+    After PyPhi has been imported, changing these settings will have no effect
     unless you call |configure_logging| afterwards.
 
 - ``LOG_STDOUT_LEVEL``:
@@ -282,7 +285,7 @@ See the `documentation on Python's logger
     'WARNING'
 
 - ``LOG_FILE_LEVEL``:
-  Controls the level of log messages written to the log file. This option has
+  Controls the level of log messages written to the log file. This setting has
   the same possible values as ``LOG_STDOUT_LEVEL``.
 
     >>> defaults['LOG_FILE_LEVEL']
@@ -303,7 +306,7 @@ See the `documentation on Python's logger
   .. tip::
       If this is enabled and ``LOG_FILE_LEVEL`` is ``INFO`` or higher, then
       the log file can serve as an automatic record of which configuration
-      options you used to obtain results.
+      settings you used to obtain results.
 
 - ``PROGRESS_BARS``:
   Controls whether to show progress bars on the console.
@@ -384,7 +387,8 @@ Miscellaneous
     >>> defaults['PRINT_FRACTIONS']
     True
 
--------------------------------------------------------------------------------
+The ``config`` API
+~~~~~~~~~~~~~~~~~~
 '''
 
 import contextlib
