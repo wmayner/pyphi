@@ -1,7 +1,6 @@
 __pycache__
 .cache
 .ropeproject
-node_modules
 .venv
 .env
 .pythonrc*
