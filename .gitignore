@@ -25,3 +25,4 @@ benchmarks/pyphi_config.yml
 profiling/pyphi_config.yml
 ignore
 .ignore
+startup.py
