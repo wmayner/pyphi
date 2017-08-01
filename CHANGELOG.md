@@ -75,6 +75,8 @@ Next Release
     - `l2h_sbs` is `loli2holi_state_by_state`
     - `sbn2sbs` is `state_by_node2state_by_state`
     - `sbs2sbn` is `state_by_state2state_by_node`
+- Added the `Constellation.mechanisms`, `Constellation.labeled_mechanisms`, and
+  `Constellation.phis` properties.
 
 ### Refactor
 - Refactored the `utils` module into the `connectivity`, `distance`,
