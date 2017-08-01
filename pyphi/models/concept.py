@@ -478,6 +478,11 @@ class Constellation(tuple):
         return [concept.mechanism for concept in self]
 
     @property
+    def phis(self):
+        '''The |small_phi| values of each concept.'''
+        return [concept.phi for concept in self]
+
+    @property
     def labeled_mechanisms(self):
         '''The labeled mechanism of each concept.'''
         if not self:
