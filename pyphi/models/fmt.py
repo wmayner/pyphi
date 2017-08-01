@@ -367,24 +367,27 @@ def fmt_cut(cut, subsystem=None):
         from_nodes=from_nodes, symbol=CUT_SYMBOL, to_nodes=to_nodes)
 
 
-def fmt_big_mip(big_mip):
+def fmt_big_mip(big_mip, constellations=True):
     '''Format a |BigMip|.'''
-    return (
+    formatted = (
         ' {BIG_PHI} = {phi}\n'
         ' {subsystem}\n'
-        ' {cut}\n'
-        '{unpartitioned_constellation}'
-        '{partitioned_constellation}'.format(
+        ' {cut}\n'.format(
             BIG_PHI=BIG_PHI,
             phi=fmt_number(big_mip.phi),
             subsystem=big_mip.subsystem,
-            cut=fmt_cut(big_mip.cut, big_mip.subsystem),
-            unpartitioned_constellation=fmt_constellation(
-                big_mip.unpartitioned_constellation,
-                'Unpartitioned Constellation'),
-            partitioned_constellation=fmt_constellation(
-                big_mip.partitioned_constellation,
-                'Partitioned Constellation')))
+            cut=fmt_cut(big_mip.cut, big_mip.subsystem)))
+    if constellations:
+        formatted += (
+            '{unpartitioned_constellation}'
+            '{partitioned_constellation}'.format(
+                unpartitioned_constellation=fmt_constellation(
+                    big_mip.unpartitioned_constellation,
+                    'Unpartitioned Constellation'),
+                partitioned_constellation=fmt_constellation(
+                    big_mip.partitioned_constellation,
+                    'Partitioned Constellation')))
+    return formatted
 
 
 def fmt_repertoire(r):
