@@ -317,17 +317,6 @@ class Concept(cmp.Orderable):
         return fmt.fmt_concept(self)
 
     @property
-    def location(self):
-        '''
-        tuple[np.ndarray]: The concept's location in concept space. The two
-        elements of the tuple are the cause and effect repertoires.
-        '''
-        if self.cause and self.effect:
-            return (self.cause.repertoire, self.effect.repertoire)
-        else:
-            return (self.cause, self.effect)
-
-    @property
     def cause_purview(self):
         '''tuple[int]: The cause purview.'''
         return getattr(self.cause, 'purview', None)
