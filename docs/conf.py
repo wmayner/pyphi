@@ -252,8 +252,9 @@ r"""
 .. |Occurence| replace:: :class:`~pyphi.models.actual_causation.Occurence`
 .. |Occurences| replace:: :class:`~pyphi.models.actual_causation.Occurence`
 
-.. |ConditionallyDependentError| replace:: :class:`pyphi.exceptions.ConditionallyDependentError`
+.. |ConditionallyDependentError| replace:: :class:`~pyphi.exceptions.ConditionallyDependentError`
 
+.. |MiceCache| replace:: :class:`~pyphi.cache.MiceCache`
 """,
 # Methods
 r"""
