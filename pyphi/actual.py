@@ -318,7 +318,7 @@ class Context:
     # Phi_max methods
     # =========================================================================
 
-    def _potential_purviews(self, direction, mechanism, purviews=False):
+    def potential_purviews(self, direction, mechanism, purviews=False):
         '''Return all purviews that could belong to the core cause/effect.
 
         Filters out trivially-reducible purviews.
@@ -331,7 +331,7 @@ class Context:
             purviews (tuple[int]): Optional subset of purviews of interest.
         '''
         system = self.system[direction]
-        return system._potential_purviews(direction, mechanism, purviews)
+        return system.potential_purviews(direction, mechanism, purviews)
 
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')
@@ -362,7 +362,7 @@ class Context:
             the pair of them.
         '''
 
-        purviews = self._potential_purviews(direction, mechanism, purviews)
+        purviews = self.potential_purviews(direction, mechanism, purviews)
 
         # Find the maximal MIP over the remaining purviews.
         if not purviews:

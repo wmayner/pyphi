@@ -78,11 +78,11 @@ class BenchmarkSubsystem():
     # Potential purviews benchmark.
     # TODO: this isn't representative of what actually happens.
     # Can we capture a sample run of multiple calls to
-    # subsys._potential_purviews?
+    # subsys.potential_purviews?
 
     def _do_potential_purviews(self):
         for i in range(100):
-            self.subsys._potential_purviews('past', self.idxs)
+            self.subsys.potential_purviews('past', self.idxs)
 
     def time_potential_purviews_no_cache(self):
         # Network purview caches disabled

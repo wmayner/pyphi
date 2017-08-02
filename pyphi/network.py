@@ -175,7 +175,7 @@ class Network:
     # TODO: this should really be a Subsystem method, but we're
     # interested in caching at the Network-level...
     @cache.method('purview_cache')
-    def _potential_purviews(self, direction, mechanism):
+    def potential_purviews(self, direction, mechanism):
         '''All purviews which are not clearly reducible for mechanism.
 
         Args:

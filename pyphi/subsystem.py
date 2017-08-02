@@ -625,7 +625,7 @@ class Subsystem:
     # Phi_max methods
     # =========================================================================
 
-    def _potential_purviews(self, direction, mechanism, purviews=False):
+    def potential_purviews(self, direction, mechanism, purviews=False):
         '''Return all purviews that could belong to the core cause/effect.
 
         Filters out trivially-reducible purviews.
@@ -638,12 +638,12 @@ class Subsystem:
             purviews (tuple[int]): Optional subset of purviews of interest.
         '''
         if purviews is False:
-            purviews = self.network._potential_purviews(direction, mechanism)
+            purviews = self.network.potential_purviews(direction, mechanism)
             # Filter out purviews that aren't in the subsystem
             purviews = [purview for purview in purviews
                         if set(purview).issubset(self.node_indices)]
 
-        # Purviews are already filtered in network._potential_purviews
+        # Purviews are already filtered in network.potential_purviews
         # over the full network connectivity matrix. However, since the cm
         # is cut/smaller we check again here.
         return irreducible_purviews(self.cm, direction, mechanism, purviews)
@@ -676,7 +676,7 @@ class Subsystem:
             |FUTURE|, i.e., we return a core cause or core effect, not the pair
             of them.
         '''
-        purviews = self._potential_purviews(direction, mechanism, purviews)
+        purviews = self.potential_purviews(direction, mechanism, purviews)
 
         if not purviews:
             max_mip = _null_mip(direction, mechanism, ())

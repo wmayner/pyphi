@@ -253,7 +253,7 @@ def test_mice_cache_respects_cache_memory_limits():
 
 @config.override(CACHE_POTENTIAL_PURVIEWS=True)
 def test_purview_cache(standard):
-    purviews = standard._potential_purviews(Direction.FUTURE, (0,))
+    purviews = standard.potential_purviews(Direction.FUTURE, (0,))
     assert standard.purview_cache.size() == 1
     assert purviews in standard.purview_cache.cache.values()
 

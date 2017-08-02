@@ -328,7 +328,7 @@ class MacroSubsystem(Subsystem):
             # TODO: is the MICE cache reusable?
             # mice_cache=self._mice_cache)
 
-    def _potential_purviews(self, direction, mechanism, purviews=False):
+    def potential_purviews(self, direction, mechanism, purviews=False):
         '''Override Subsystem implementation using Network-level indices.'''
         all_purviews = utils.powerset(self.node_indices)
         return irreducible_purviews(self.cm, direction, mechanism, all_purviews)
