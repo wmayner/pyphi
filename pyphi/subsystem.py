@@ -857,39 +857,48 @@ def wedge_partitions(mechanism, purview):
 
     yielded = set()
 
-    for n, d in itertools.product(numerators, denominators):
-        if ((n[0] or d[0]) and (n[1] or d[1]) and
-           ((n[0] and n[1]) or not d[0] or not d[1])):
+    # pylint: disable=too-many-boolean-expressions
+    def valid(factoring):
+        '''Return whether the factoring should be considered.'''
+        numerator, denominator = factoring
+        return (
+            (numerator[0] or denominator[0]) and
+            (numerator[1] or denominator[1]) and
+            ((numerator[0] and numerator[1]) or
+             not denominator[0] or
+             not denominator[1])
+        )
+    # pylint: enable=too-many-boolean-expressions
 
-            # Normalize order of parts to remove duplicates.
-            tripart = Tripartition(*sorted((
-                Part(n[0], d[0]),
-                Part(n[1], d[1]),
-                Part((),   d[2]))))
+    for n, d in filter(valid, itertools.product(numerators, denominators)):
+        # Normalize order of parts to remove duplicates.
+        tripart = Tripartition(*sorted((
+            Part(n[0], d[0]),
+            Part(n[1], d[1]),
+            Part((),   d[2]))))  # pylint: disable=bad-whitespace
 
-            def nonempty(part):
-                return part.mechanism or part.purview
+        def nonempty(part):
+            '''Check that the part is not empty.'''
+            return part.mechanism or part.purview
 
-            # Check if the tripartition can be transformed into a causally
-            # equivalent partition by combing two of its parts; eg.
-            # A/∅ x B/∅ x ∅/CD is equivalent to AB/∅ x ∅/CD so we don't
-            # include it.
-            def compressible(tripart):
-                pairs = [
-                    (tripart[0], tripart[1]),
-                    (tripart[0], tripart[2]),
-                    (tripart[1], tripart[2])]
+        def compressible(tripart):
+            '''Check if the tripartition can be transformed into a causally
+            equivalent partition by combing two of its parts; eg. A/∅ x B/∅ x
+            ∅/CD is equivalent to AB/∅ x ∅/CD so we don't include it. '''
+            pairs = [
+                (tripart[0], tripart[1]),
+                (tripart[0], tripart[2]),
+                (tripart[1], tripart[2])]
 
-                for x, y in pairs:
-                    if (nonempty(x) and nonempty(y) and
+            for x, y in pairs:
+                if (nonempty(x) and nonempty(y) and
                         (x.mechanism + y.mechanism == () or
                          x.purview + y.purview == ())):
-                        return True
+                    return True
 
-            if not compressible(tripart) and tripart not in yielded:
-                yielded.add(tripart)
-                yield tripart
-
+        if not compressible(tripart) and tripart not in yielded:
+            yielded.add(tripart)
+            yield tripart
 
 def all_partitions(mechanism, purview):
     '''Returns all possible partitions of a mechanism and purview.
