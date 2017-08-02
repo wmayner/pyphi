@@ -30,6 +30,7 @@ Next Release
   represented by `constants.Direction.PAST` and `constants.Direction.FUTURE`.
 - Simplifed logging config to use `config.LOG_STDOUT_LEVEL`,
   `config.LOG_FILE_LEVEL` and `config.LOG_FILE`.
+- Removed the `location` property of `Concept`.
 
 ### API Additions
 - Added `subsystem.evaluate_partition`. This returns the φ for a particular
