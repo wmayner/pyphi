@@ -26,7 +26,7 @@ def sametype(func):
     the inheritance tree.
     '''
     @functools.wraps(func)
-    def wrapper(self, other):
+    def wrapper(self, other):  # pylint: disable=missing-docstring
         if type(other) is not type(self):
             return NotImplemented
         return func(self, other)

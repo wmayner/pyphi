@@ -6,6 +6,10 @@
 A memory-limited cache decorator.
 '''
 
+# pylint: disable=redefined-builtin,redefined-outer-name,missing-docstring
+# pylint: disable=too-few-public-methods,no-self-use,arguments-differ,
+# pylint: disable=abstract-method
+
 import os
 import pickle
 from functools import namedtuple, update_wrapper, wraps
@@ -26,9 +30,9 @@ def memory_full():
 
 
 class _HashedSeq(list):
-    '''This class guarantees that hash() will be called no more than once
-    per element.  This is important because the lru_cache() will hash
-    the key multiple times on a cache miss.
+    '''This class guarantees that ``hash()`` will be called no more than once
+    per element.  This is important because the ``lru_cache()`` will hash the
+    key multiple times on a cache miss.
     '''
 
     __slots__ = ('hashvalue',)
@@ -240,7 +244,8 @@ class RedisCache:
     def clear(self):
         raise NotImplementedError
 
-    def size(self):
+    @staticmethod
+    def size():
         '''Size of the Redis cache.
 
         .. note:: This is the size of the entire Redis database.
@@ -280,10 +285,8 @@ class RedisCache:
 
 
 def validate_parent_cache(parent_cache):
-    # TODO: also validate that subsystem is a
-    # cut version of parent_cache.subsystem?
-    # Do we need to check this at all?
-
+    # TODO: also validate that subsystem is a cut version of
+    # parent_cache.subsystem? Do we need to check this at all?
     if parent_cache.subsystem.is_cut:
         raise ValueError("parent_cache must be from an uncut subsystem")
 
@@ -291,7 +294,7 @@ def validate_parent_cache(parent_cache):
 class RedisMiceCache(RedisCache):
     '''A Redis-backed cache for `Subsystem.find_mice`.
 
-    See :func:`MiceCache` for more info.
+    See |MiceCache| for more info.
     '''
     def __init__(self, subsystem, parent_cache=None):
         super().__init__()
@@ -348,7 +351,7 @@ class RedisMiceCache(RedisCache):
 class DictMiceCache(DictCache):
     '''A subsystem-local cache for |Mice| objects.
 
-    See :func:`MiceCache` for more info.
+    See |MiceCache| for more info.
     '''
     def __init__(self, subsystem, parent_cache=None):
         super().__init__()

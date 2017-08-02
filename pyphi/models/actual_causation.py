@@ -74,6 +74,7 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
         return hash(attrs)
 
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         d = self.__dict__
         return d
 
@@ -163,6 +164,7 @@ class Occurence(cmp.Orderable):
         return not utils.eq(self._mip.alpha, 0)
 
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         return {'acmip': self._mip}
 
 

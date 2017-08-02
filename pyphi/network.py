@@ -214,6 +214,7 @@ class Network:
         return hash((self._tpm_hash, self._cm_hash))
 
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         return {
             'tpm': self.tpm,
             'cm': self.cm,
@@ -222,8 +223,10 @@ class Network:
         }
 
     @classmethod
-    def from_json(cls, json):
-        return Network(json['tpm'], json['cm'], node_labels=json['labels'])
+    def from_json(cls, json_dict):
+        '''Return a |Network| object from a JSON dictionary representation.'''
+        return Network(json_dict['tpm'], json_dict['cm'],
+                       node_labels=json_dict['labels'])
 
 
 def irreducible_purviews(cm, direction, mechanism, purviews):
@@ -243,7 +246,7 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
         ValueError: If ``direction`` is invalid.
     '''
     def reducible(purview):
-        # Returns True if purview is trivially reducible.
+        '''Returns ``True`` if purview is trivially reducible.'''
         if direction == Direction.PAST:
             _from, to = purview, mechanism
         elif direction == Direction.FUTURE:

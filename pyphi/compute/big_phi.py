@@ -68,6 +68,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
         cut_subsystem=cut_subsystem)
 
 
+# pylint: disable=unused-argument,arguments-differ
 class FindMip(MapReduce):
     '''Computation engine for finding the minimal |BigMip|.'''
     description = 'Evaluating \u03D5 cuts'
@@ -91,6 +92,7 @@ class FindMip(MapReduce):
             return new_mip
 
         return min_mip
+# pylint: enable=unused-argument,arguments-differ
 
 
 def big_mip_bipartitions(nodes):
@@ -129,9 +131,12 @@ def _big_mip(cache_key, subsystem):
     log.info('Calculating big-phi data for %s...', subsystem)
     start = time()
 
-    # Annote a BigMip with the total elapsed calculation time, and optionally
-    # also with the time taken to calculate the unpartitioned constellation.
     def time_annotated(bm, small_phi_time=0.0):
+        '''Annote a BigMip with the total elapsed calculation time.
+
+        Optionally add the time taken to calculate the unpartitioned
+        constellation.
+        '''
         bm.time = round(time() - start, config.PRECISION)
         bm.small_phi_time = round(small_phi_time, config.PRECISION)
         return bm
@@ -221,7 +226,7 @@ def _big_mip_cache_key(subsystem):
 # changed. The cache is also keyed on configuration values which affect the
 # value of the computation.
 @functools.wraps(_big_mip)
-def big_mip(subsystem):
+def big_mip(subsystem):  # pylint: disable=missing-docstring
     return _big_mip(_big_mip_cache_key(subsystem), subsystem)
 
 
@@ -281,6 +286,7 @@ def possible_complexes(network, state):
             continue
 
 
+# pylint: disable=unused-argument,arguments-differ,redefined-outer-name
 class FindComplexes(MapReduce):
     '''Computation engine for computing irreducible complexes of a network.'''
     description = 'Finding complexes'
@@ -295,6 +301,7 @@ class FindComplexes(MapReduce):
         if new_big_mip.phi > 0:
             complexes.append(new_big_mip)
         return complexes
+# pylint: enable=unused-argument,arguments-differ,redefined-outer-name
 
 
 def complexes(network, state):
@@ -321,12 +328,12 @@ def main_complex(network, state):
 
 def condensed(network, state):
     '''Return the set of maximal non-overlapping complexes.'''
-    condensed = []
+    result = []
     covered_nodes = set()
 
     for c in reversed(sorted(complexes(network, state))):
         if not any(n in covered_nodes for n in c.subsystem.node_indices):
-            condensed.append(c)
+            result.append(c)
             covered_nodes = covered_nodes | set(c.subsystem.node_indices)
 
-    return condensed
+    return result

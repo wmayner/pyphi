@@ -4,6 +4,9 @@
 
 '''Represents a candidate system for |small_phi| and |big_phi| evaluation.'''
 
+# pylint: disable=too-many-instance-attributes,too-many-public-methods,
+# pylint: disable=too-many-public-methods,too-many-arguments
+
 import functools
 import itertools
 
@@ -41,7 +44,6 @@ class Subsystem:
             nodes.
         cm (np.ndarray): The connectivity matrix after applying the cut.
         state (tuple[int]): The state of the network.
-        nodes (tuple[Node]): The nodes of the subsystem.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
         cut (Cut): The cut that has been applied to this subsystem.
         cut_matrix (np.ndarray): A matrix of connections which have been
@@ -49,9 +51,8 @@ class Subsystem:
         null_cut (Cut): The cut object representing no cut.
     '''
 
-    def __init__(self, network, state, nodes, cut=None,
-                 mice_cache=None, repertoire_cache=None,
-                 single_node_repertoire_cache=None):
+    def __init__(self, network, state, nodes, cut=None, mice_cache=None,
+                 repertoire_cache=None, single_node_repertoire_cache=None):
         # The network this subsystem belongs to.
         validate.is_network(network)
         self.network = network
@@ -110,14 +111,17 @@ class Subsystem:
 
     @property
     def nodes(self):
+        '''tuple[Node]: The nodes in this |Subsystem|.'''
         return self._nodes
 
-    # Remap indices to nodes whenever nodes are changed, e.g. in the `macro`
-    # module
+    # pylint: disable=attribute-defined-outside-init
     @nodes.setter
     def nodes(self, value):
+        # Remap indices to nodes whenever nodes are changed, e.g. in the
+        # `macro` module
         self._nodes = value
         self._index2node = {node.index: node for node in self._nodes}
+    # pylint: enable=attribute-defined-outside-init
 
     @property
     def proper_state(self):
@@ -221,7 +225,7 @@ class Subsystem:
         return self._hash
 
     def to_json(self):
-        '''Return this Subsystem as a JSON object.'''
+        '''Return a JSON-serializable representation.'''
         return {
             'network': self.network,
             'state': self.state,
@@ -307,8 +311,10 @@ class Subsystem:
         joint = np.ones(repertoire_shape(purview, self.tpm_size))
         # The cause repertoire is the Kroneker product of the cause repertoires
         # of the individual nodes.
-        joint *= functools.reduce(np.multiply,
-            [self._single_node_cause_repertoire(m, purview) for m in mechanism])
+        joint *= functools.reduce(
+            np.multiply, [self._single_node_cause_repertoire(m, purview)
+                          for m in mechanism]
+        )
         # The resulting joint distribution is over past states, which are rows
         # in the TPM, so the distribution is a column. In a state-by-node TPM
         # the columns don't sum to 1, so we have to normalize.
@@ -358,8 +364,10 @@ class Subsystem:
         joint = np.ones(repertoire_shape(purview, self.tpm_size))
         # The effect repertoire is the product of the effect repertoires of the
         # individual nodes.
-        return joint * functools.reduce(np.multiply,
-            [self._single_node_effect_repertoire(mechanism, p) for p in purview])
+        return joint * functools.reduce(
+            np.multiply, [self._single_node_effect_repertoire(mechanism, p)
+                          for p in purview]
+        )
 
     def _repertoire(self, direction, mechanism, purview):
         '''Return the cause or effect repertoire based on a direction.

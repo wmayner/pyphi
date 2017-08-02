@@ -6,6 +6,8 @@
 Methods for coarse-graining systems to different levels of spatial analysis.
 '''
 
+# pylint: disable=too-few-public-methods,too-many-arguments
+
 import itertools
 import logging
 from collections import namedtuple
@@ -75,10 +77,10 @@ def run_tpm(system, steps, blackbox):
     node_tpms = []
     for node in system.nodes:
         node_tpm = node.tpm_on
-        for input in node.inputs:
-            if not blackbox.in_same_box(node.index, input):
-                if input in blackbox.output_indices:
-                    node_tpm = marginalize_out([input], node_tpm)
+        for input_node in node.inputs:
+            if not blackbox.in_same_box(node.index, input_node):
+                if input_node in blackbox.output_indices:
+                    node_tpm = marginalize_out([input_node], node_tpm)
 
         node_tpms.append(node_tpm)
 
@@ -138,10 +140,8 @@ class MacroSubsystem(Subsystem):
     # on their respective Blackbox and CoarseGrain objects? This would nicely
     # abstract the logic into a discrete, disconnected transformation.
 
-    def __init__(self, network, state, nodes, cut=None,
-                 mice_cache=None, time_scale=1, blackbox=None,
-                 coarse_grain=None):
-
+    def __init__(self, network, state, nodes, cut=None, mice_cache=None,
+                 time_scale=1, blackbox=None, coarse_grain=None):
         # Ensure indices are not a `range`
         node_indices = network.parse_node_indices(nodes)
 
@@ -229,9 +229,9 @@ class MacroSubsystem(Subsystem):
         node_tpms = []
         for node in system.nodes:
             node_tpm = node.tpm_on
-            for input in node.inputs:
-                if blackbox.hidden_from(input, node.index):
-                    node_tpm = marginalize_out([input], node_tpm)
+            for input_node in node.inputs:
+                if blackbox.hidden_from(input_node, node.index):
+                    node_tpm = marginalize_out([input_node], node_tpm)
 
             node_tpms.append(node_tpm)
 
@@ -240,7 +240,7 @@ class MacroSubsystem(Subsystem):
         return system._replace(tpm=tpm)
 
     @staticmethod
-    def _blackbox_time(time_scale, blackbox,  system):
+    def _blackbox_time(time_scale, blackbox, system):
         '''Black box the CM and TPM over the given time_scale.'''
         blackbox = blackbox.reindex()
 
@@ -257,7 +257,8 @@ class MacroSubsystem(Subsystem):
 
         Conditions the TPM on the current value of the hidden nodes. The CM is
         set to universal connectivity.
-        TODO: ^^ change this.
+
+        .. TODO: change this ^
 
         This shrinks the size of the TPM by the number of hidden indices; now
         there is only `len(output_indices)` dimensions in the TPM and in the
@@ -349,8 +350,7 @@ class MacroSubsystem(Subsystem):
             return from_partition(self._blackbox.partition, macro_indices)
         elif self._coarse_grain:
             return from_partition(self._coarse_grain.partition, macro_indices)
-        else:
-            return macro_indices
+        return macro_indices
 
     def macro2blackbox_outputs(self, macro_indices):
         '''Given a set of macro elements, return the blackbox output elements
@@ -373,13 +373,15 @@ class MacroSubsystem(Subsystem):
         '''Two macro systems are equal if each underlying |Subsystem| is equal
         and all macro attributes are equal.
         '''
-        if type(self) != type(other):
+        if type(self) != type(other):  # pylint: disable=unidiomatic-typecheck
             return False
 
+        # pylint: disable=protected-access
         return (super().__eq__(other) and
                 self._time_scale == other._time_scale and
                 self._blackbox == other._blackbox and
                 self._coarse_grain == other._coarse_grain)
+        # pylint: enable=protected-access
 
     def __hash__(self):
         return hash(
@@ -634,7 +636,7 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
 
     def hidden_from(self, a, b):
         '''Returns True if ``a`` is hidden in a different box than ``b``.'''
-        return (a in self.hidden_indices and not self.in_same_box(a, b))
+        return a in self.hidden_indices and not self.in_same_box(a, b)
 
 
 def _partitions_list(N):
@@ -693,7 +695,7 @@ def all_groupings(partition):
 
     TODO: document exactly how to interpret the grouping.
     '''
-    if not all(len(part) > 0 for part in partition):
+    if not all(partition):
         raise ValueError('Each part of the partition must have at least one '
                          'element.')
 
@@ -703,7 +705,7 @@ def all_groupings(partition):
     for grouping in itertools.product(*micro_groupings):
         if all(len(element) < 3 for element in grouping):
             yield tuple(tuple(tuple(tuple(state) for state in states)
-                        for states in grouping))
+                              for states in grouping))
 
 
 def all_coarse_grains(indices):
@@ -827,6 +829,7 @@ def coarse_grain(network, state, internal_indices):
     return (max_phi, max_coarse_grain)
 
 
+# TODO: refactor this
 def all_macro_systems(network, state, blackbox, coarse_grain, time_scales):
     '''Generator over all possible macro-systems for the network.'''
 

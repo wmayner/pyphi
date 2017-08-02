@@ -105,7 +105,7 @@ def purview_size(repertoire):
     return len(purview(repertoire))
 
 
-def repertoire_shape(purview, N):
+def repertoire_shape(purview, N):  # pylint: disable=redefined-outer-name
     '''Return the shape a repertoire.
 
     Args:

@@ -357,10 +357,10 @@ Miscellaneous
     True
 
 - ``SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI``:
-  If set to ``True``, the Phi value of single micro-node subsystems is the 
-  difference between their unpartitioned constellation (a single concept) and 
-  the null concept. If set to False, their Phi is defined to be zero. Single 
-  macro-node subsystems may always be cut, regardless of circumstances. 
+  If set to ``True``, the Phi value of single micro-node subsystems is the
+  difference between their unpartitioned constellation (a single concept) and
+  the null concept. If set to False, their Phi is defined to be zero. Single
+  macro-node subsystems may always be cut, regardless of circumstances.
 
     >>> defaults['SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI']
     False
@@ -391,6 +391,8 @@ Miscellaneous
 The ``config`` API
 ~~~~~~~~~~~~~~~~~~
 '''
+
+# pylint: disable=too-few-public-methods
 
 import contextlib
 import logging
@@ -515,7 +517,7 @@ def load_config_default():
 
 def get_config_string():
     '''Return a string representation of the currently loaded configuration.'''
-    config = {key: this_module.__dict__[key] for key in DEFAULTS.keys()}
+    config = {key: this_module.__dict__[key] for key in DEFAULTS}
     return pprint.pformat(config, indent=2)
 
 
@@ -578,11 +580,11 @@ class override(contextlib.ContextDecorator):
     '''
     def __init__(self, **new_conf):
         self.new_conf = new_conf
+        self.initial_conf = {opt_name: this_module.__dict__[opt_name]
+                             for opt_name in self.new_conf}
 
     def __enter__(self):
         '''Save original config values; override with new ones.'''
-        self.initial_conf = {opt_name: this_module.__dict__[opt_name]
-                             for opt_name in self.new_conf}
         load_config_dict(self.new_conf)
 
     def __exit__(self, *exc):

@@ -59,9 +59,9 @@ def test_cache_key_generation():
 # Test MICE caching
 # ========================
 
-'''Note: all subsystems are loaded from `examples` internally instead of by
-pytest fixture because they must be constructed with the correct cache config.
-'''
+# NOTE: All subsystems are loaded from `examples` internally instead of by
+# pytest fixture because they must be constructed with the correct cache
+# config.
 
 try:
     redis_available = cache.RedisConn().ping()
@@ -213,7 +213,6 @@ def test_cut_relevant_connections_mice_is_not_reusable(redis_cache, flush_redis)
 
 @all_caches
 def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, flush_redis):
-
     '''Cached Mice are saved from the parent cache if both
     the mechanism and the relevant connections are not cut.'''
     s = examples.basic_subsystem()

@@ -103,11 +103,11 @@ def block_cm(cm):
 
     # CM helpers:
     def outputs_of(nodes):
-        # All nodes that `nodes` connect to (output to)
+        """Return all nodes that `nodes` connect to (output to)."""
         return np.where(cm[nodes, :].sum(0))[0]
 
     def inputs_to(nodes):
-        # All nodes which connect to (input to) `nodes`
+        """Return all nodes which connect to (input to) `nodes`."""
         return np.where(cm[:, nodes].sum(1))[0]
 
     # Start: source node with most outputs
@@ -169,7 +169,7 @@ def _connected(cm, nodes, connection):
 def is_strong(cm, nodes=None):
     '''Return whether the connectivity matrix is strongly connected.
 
-    Remember that a singleton graph is strongly connected. 
+    Remember that a singleton graph is strongly connected.
 
     Args:
         cm (np.ndarray): A square connectivity matrix.

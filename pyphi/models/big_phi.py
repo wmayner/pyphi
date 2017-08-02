@@ -7,6 +7,8 @@
 from . import cmp, fmt
 from .. import utils
 
+# pylint: disable=too-many-arguments
+
 _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'partitioned_constellation', 'subsystem',
                       'cut_subsystem']
@@ -92,6 +94,7 @@ class BigMip(cmp.Orderable):
                      self.cut_subsystem))
 
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         return {
             attr: getattr(self, attr)
             for attr in _bigmip_attributes + ['time', 'small_phi_time']

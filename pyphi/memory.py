@@ -6,6 +6,8 @@
 Decorators and objects for memoization.
 '''
 
+# pylint: disable=missing-docstring
+
 import functools
 
 import joblib.func_inspect

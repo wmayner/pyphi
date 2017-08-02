@@ -106,6 +106,7 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes'])):
         return fmt.fmt_cut(self)
 
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         return {'from_nodes': self.from_nodes, 'to_nodes': self.to_nodes}
 
 
@@ -187,6 +188,7 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
     __slots__ = ()
 
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         return {'mechanism': self.mechanism, 'purview': self.purview}
 
 
@@ -237,6 +239,7 @@ class Bipartition(KPartition):
     __slots__ = ()
 
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         return {'part0': self[0], 'part1': self[1]}
 
     @classmethod

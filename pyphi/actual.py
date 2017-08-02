@@ -6,6 +6,8 @@
 Methods for computing actual causation of subsystems and mechanisms.
 '''
 
+# pylint: disable=too-many-instance-attributes,too-many-arguments
+
 import itertools
 import logging
 from math import log2
@@ -136,6 +138,7 @@ class Context:
         return len(self) > 0
 
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         return {
             'network': jsonify(self.network),
             'before_state': self.before_state,
@@ -255,6 +258,7 @@ class Context:
     # MIP methods
     # =========================================================================
 
+    # TODO: norm isn't actually used anywhere?
     def find_mip(self, direction, mechanism, purview,
                  norm=True, allow_neg=False):
         '''Find the coefficient minimum information partition for a mechanism

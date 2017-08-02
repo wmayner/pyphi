@@ -7,6 +7,8 @@
 Utilities for parallel computation.
 '''
 
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
+
 import sys
 import logging
 import multiprocessing
@@ -144,7 +146,7 @@ class MapReduce:
         return MapReduce._forked
 
     @forked.setter
-    def forked(self, value):
+    def forked(self, value):  # pylint: disable=no-self-use
         MapReduce._forked = value
 
     def worker(self, in_queue, out_queue, log_queue, *context):
@@ -181,8 +183,10 @@ class MapReduce:
         for obj in self.iterable:
             self.in_queue.put(obj)
 
+        # pylint: disable=unused-variable
         for i in range(self.number_of_processes):
             self.in_queue.put(POISON_PILL)
+        # pylint: enable=unused-variable
 
         args = (self.in_queue, self.out_queue, self.log_queue) + self.context
         self.processes = [

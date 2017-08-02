@@ -87,7 +87,7 @@ def _pop_metadata(dct):
     return dct.pop(CLASS_KEY), dct.pop(VERSION_KEY), dct.pop(ID_KEY)
 
 
-def jsonify(obj):
+def jsonify(obj):  # pylint: disable=too-many-return-statements
     '''Return a JSON-encodable representation of an object, recursively using
     any available ``to_json`` methods, converting NumPy arrays and datatypes to
     native lists and types along the way.'''
@@ -222,7 +222,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
         The object is memoized for reuse elsewhere in the object graph.
         '''
-        classname, version, id_ = _pop_metadata(dct)
+        classname, version, _ = _pop_metadata(dct)
 
         _check_version(version)
         cls = self._models[classname]

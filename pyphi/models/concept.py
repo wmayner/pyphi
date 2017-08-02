@@ -407,11 +407,11 @@ class Concept(cmp.Orderable):
             self.effect.mip.partitioned_repertoire)
 
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         dct = {
             attr: getattr(self, attr)
             for attr in _concept_attributes + ['time']
         }
-
         # These flattened, LOLI-order repertoires are passed to `vphi` via
         # `phiserver`.
         dct.update({
@@ -424,7 +424,6 @@ class Concept(cmp.Orderable):
             'expanded_partitioned_effect_repertoire': distribution.flatten(
                 self.expand_partitioned_effect_repertoire()),
         })
-
         return dct
 
     @classmethod

@@ -136,7 +136,7 @@ def directed_bipartition(seq, nontrivial=False):
          ((2, 3), (1,)),
          ((1, 2, 3), ())]
     '''
-    partitions = [
+    bipartitions = [
         (tuple(seq[i] for i in part0_idx), tuple(seq[j] for j in part1_idx))
         for part0_idx, part1_idx in directed_bipartition_indices(len(seq))
     ]
@@ -144,8 +144,8 @@ def directed_bipartition(seq, nontrivial=False):
         # The first and last partitions have a part that is empty; skip them.
         # NOTE: This depends on the implementation of
         # `directed_partition_indices`.
-        return partitions[1:-1]
-    return partitions
+        return bipartitions[1:-1]
+    return bipartitions
 
 
 def bipartition_of_one(seq):

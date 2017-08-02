@@ -22,7 +22,7 @@ VALUE_FIELD = 'v'
 client, database, collection = None, None, None
 # Connect to MongoDB if the caching backend is set to 'db'.
 if config.CACHING_BACKEND == 'db':
-    # TODO!!! use reconnect proxy
+    # TODO: use reconnect proxy
     client = pymongo.MongoClient(config.MONGODB_CONFIG['host'],
                                  config.MONGODB_CONFIG['port'])
     database = client[config.MONGODB_CONFIG['database_name']]
@@ -64,7 +64,7 @@ def insert(key, value):
         return None
 
 
-# TODO!!!: check this singleton tuple business
+# TODO: check this singleton tuple business
 def generate_key(filtered_args):
     '''Get a key from some input.
 
@@ -74,5 +74,4 @@ def generate_key(filtered_args):
     # with joblib.filtered_args.
     if isinstance(filtered_args, Iterable):
         return hash(tuple(filtered_args))
-    else:
-        return hash((filtered_args, ))
+    return hash((filtered_args, ))

@@ -6,6 +6,8 @@
 Functions for computing concepts and constellations of concepts.
 '''
 
+# pylint: disable=too-many-arguments,redefined-outer-name
+
 from time import time
 
 from . import parallel
@@ -38,16 +40,16 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
 
     # If the mechanism is empty, there is no concept.
     if not mechanism:
-        concept = subsystem.null_concept
+        result = subsystem.null_concept
     else:
-        concept = subsystem.concept(
+        result = subsystem.concept(
             mechanism, purviews=purviews, past_purviews=past_purviews,
             future_purviews=future_purviews)
 
-    concept.time = round(time() - start, config.PRECISION)
-    return concept
+    result.time = round(time() - start, config.PRECISION)
+    return result
 
-
+# pylint: disable=unused-argument,arguments-differ
 class ComputeConstellation(parallel.MapReduce):
     '''Engine for computing a constellation.'''
     description = 'Computing concepts'
@@ -68,6 +70,7 @@ class ComputeConstellation(parallel.MapReduce):
         if new_concept.phi > 0:
             concepts.append(new_concept)
         return concepts
+# pylint: enable=unused-argument,arguments-differ
 
 
 def constellation(subsystem, mechanisms=False, purviews=False,

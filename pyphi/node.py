@@ -7,6 +7,8 @@ Represents a node in a network. Each node has a unique index, its position in
 the network's list of nodes.
 '''
 
+# pylint: disable=too-many-arguments
+
 import functools
 
 import numpy as np
@@ -138,6 +140,7 @@ class Node:
 
     # TODO do we need more than the index?
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         return self.index
 
 
