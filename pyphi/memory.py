@@ -15,7 +15,7 @@ import joblib.func_inspect
 from . import config, constants, db
 
 
-def cache(ignore=[]):
+def cache(ignore=None):
     '''Decorator for memoizing a function using either the filesystem or a
     database.'''
 
@@ -45,7 +45,7 @@ class DbMemoizedFunc:
         # Store a reference to the raw function, without any memoization.
         self.func = func
         # The list of arguments to ignore when getting cache keys.
-        self.ignore = ignore
+        self.ignore = ignore if ignore is not None else []
 
         # This is the memoized function.
         @functools.wraps(func)
