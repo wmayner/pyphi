@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from pyphi.tpm import expand_tpm, is_state_by_state, marginalize_out
+from pyphi.tpm import expand_tpm, is_state_by_state, marginalize_out, infer_cm
 
 
 def test_is_state_by_state():
@@ -44,3 +44,6 @@ def test_marginalize_out(s):
     assert np.array_equal(marginalized_distribution,
                           np.array([[[[0.5, 0.0, 0.5],
                                       [1.0, 1.0, 0.5]]]]))
+
+def test_infer_cm(rule152):
+    assert np.array_equal(infer_cm(rule152.tpm), rule152.cm)

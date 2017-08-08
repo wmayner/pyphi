@@ -7,6 +7,8 @@ Functions for manipulating transition probability matrices.
 '''
 
 from itertools import chain
+from .utils import all_states
+from .constants import ON, OFF
 
 import numpy as np
 
@@ -63,3 +65,49 @@ def marginalize_out(indices, tpm):
     '''
     return tpm.sum(tuple(indices), keepdims=True) / (
         np.array(tpm.shape)[list(indices)].prod())
+
+
+def infer_edge(tpm, a, b):
+    '''Infer the presence or absence of an edge from node A to node B.
+
+    Let S be the set of all nodes in a network. Let A' = S - {A}.
+    We call the state of A' the context C of A.
+    There is an edge from A to B if there exists any context C(A) such that
+    p(B | C(A), A=0) =/= p(B | C(A), A=1).
+
+    Args:
+        tpm (np.ndarray): The TPM in state-by-node, n-dimensional form.
+        a (int): The index of the putative source node.
+        b (int): The index of the putative sink node.
+    Returns:
+        bool: True if the edge A->B exists, False otherwise.
+    '''
+
+    def a_in_context(context):
+        '''Given a context C(A), return the states of the full system with A
+        off and on, respectively.'''
+        a_off = context[:a] + OFF + context[a:]
+        a_on = context[:a] + ON + context[a:]
+        return (a_off, a_on)
+
+    def a_affects_b_in_context(context):
+        '''Returns True if A has an effect on B, given a context.'''
+        a_off, a_on = a_in_context(context)
+        return tpm[a_off][b] != tpm[a_on][b]
+
+    network_size = tpm.shape[-1]
+    all_contexts = all_states(network_size - 1)
+
+    return any(a_affects_b_in_context(context) for context in all_contexts)
+
+
+def infer_cm(tpm):
+    '''Infer the connectivity matrix associated with a state-by-node TPM in
+    n-dimensional form.'''
+
+    network_size = tpm.shape[-1]
+    cm = np.empty((network_size, network_size), dtype=int)
+    for a, b in np.ndindex(cm.shape):
+        cm[a][b] = infer_edge(tpm, a, b)
+
+    return cm

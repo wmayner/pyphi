@@ -54,3 +54,7 @@ ENTROPY_DIFFERENCE = 'ENTROPY_DIFFERENCE'
 
 #: A list of all available measures.
 MEASURES = [EMD, KLD, L1, ENTROPY_DIFFERENCE]
+
+#: Node states
+OFF = (0,)
+ON = (1,)
