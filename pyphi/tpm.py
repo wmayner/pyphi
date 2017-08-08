@@ -67,7 +67,7 @@ def marginalize_out(indices, tpm):
         np.array(tpm.shape)[list(indices)].prod())
 
 
-def infer_edge(tpm, a, b):
+def infer_edge(tpm, a, b, contexts):
     '''Infer the presence or absence of an edge from node A to node B.
 
     Let S be the set of all nodes in a network. Let A' = S - {A}.
@@ -95,10 +95,7 @@ def infer_edge(tpm, a, b):
         a_off, a_on = a_in_context(context)
         return tpm[a_off][b] != tpm[a_on][b]
 
-    network_size = tpm.shape[-1]
-    all_contexts = all_states(network_size - 1)
-
-    return any(a_affects_b_in_context(context) for context in all_contexts)
+    return any(a_affects_b_in_context(context) for context in contexts)
 
 
 def infer_cm(tpm):
@@ -106,8 +103,9 @@ def infer_cm(tpm):
     n-dimensional form.'''
 
     network_size = tpm.shape[-1]
+    all_contexts = all_states(network_size - 1)
     cm = np.empty((network_size, network_size), dtype=int)
     for a, b in np.ndindex(cm.shape):
-        cm[a][b] = infer_edge(tpm, a, b)
+        cm[a][b] = infer_edge(tpm, a, b, all_contexts)
 
     return cm
