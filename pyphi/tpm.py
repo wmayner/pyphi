@@ -7,10 +7,11 @@ Functions for manipulating transition probability matrices.
 '''
 
 from itertools import chain
-from .utils import all_states
-from .constants import ON, OFF
 
 import numpy as np
+
+from .constants import OFF, ON
+from .utils import all_states
 
 
 def tpm_indices(tpm):

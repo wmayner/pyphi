@@ -15,7 +15,7 @@ import numpy as np
 from . import cache, config, distance, distribution, utils, validate
 from .constants import EMD, ENTROPY_DIFFERENCE, KLD, L1, Direction
 from .distance import entropy_difference, kld, l1
-from .distribution import repertoire_shape, max_entropy_distribution
+from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
                      Tripartition, _null_mip)
 from .network import irreducible_purviews

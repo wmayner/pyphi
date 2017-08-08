@@ -11,7 +11,6 @@ from collections import namedtuple
 from . import cmp, fmt
 from .. import config, utils
 
-
 # TODO(slipperyhank): Why do we even need this?
 # TODO(slipperyhank): add second state
 _acmip_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',

@@ -13,7 +13,6 @@ import numpy as np
 
 from .. import utils
 
-
 # Rich comparison (ordering) helpers
 # =============================================================================
 

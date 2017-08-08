@@ -9,9 +9,9 @@ Utilities for parallel computation.
 
 # pylint: disable=too-few-public-methods,too-many-instance-attributes
 
-import sys
 import logging
 import multiprocessing
+import sys
 import threading
 
 from tblib import Traceback
