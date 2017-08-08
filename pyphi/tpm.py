@@ -95,9 +95,6 @@ def infer_edge(tpm, a, b, contexts):
         a_off, a_on = a_in_context(context)
         return tpm[a_off][b] != tpm[a_on][b]
 
-    network_size = tpm.shape[-1]
-    all_contexts = all_states(network_size - 1)
-
     return any(a_affects_b_in_context(context) for context in contexts)
 
 
