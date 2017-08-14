@@ -774,7 +774,8 @@ def mip_partitions(mechanism, purview):
     func = {
         'BI': mip_bipartitions,
         'TRI': wedge_partitions,
-        'ALL': all_partitions
+        'ALL': all_partitions,
+        'PURVIEW_DISCONNECTION': purview_disconnection_partitions
     }[config.PARTITION_TYPE]
 
     return func(mechanism, purview)

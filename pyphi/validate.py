@@ -267,7 +267,7 @@ def measure(value):
 
 def partition_type(value):
     '''Validate a type of partition.'''
-    options = ['BI', 'TRI', 'ALL']
+    options = ['BI', 'TRI', 'ALL', 'PURVIEW_DISCONNECTION']
     if value not in options:
         raise ValueError(
             "Invalid value `{}` for `config.PARTITION_TYPE`. "
