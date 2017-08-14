@@ -62,12 +62,6 @@ def test_to_n_dimensional():
         assert np.array_equal(result[state], state_by_node[i])
 
 
-def test_to_2_dimensional():
-    for tpm in [state_by_node, state_by_node_nondet]:
-        nd = convert.to_n_dimensional(tpm)
-        assert np.array_equal(convert.to_2_dimensional(nd), tpm)
-
-
 def test_state_by_state2state_by_node():
     result = convert.state_by_state2state_by_node(state_by_state)
     expected = convert.to_n_dimensional(state_by_node)
