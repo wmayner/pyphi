@@ -23,6 +23,7 @@ from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,
                         directed_tripartition, k_partitions, partitions)
 from .tpm import condition_tpm, marginalize_out
+from .utils import powerset
 
 
 class Subsystem:
@@ -938,6 +939,30 @@ def all_partitions(mechanism, purview):
                         continue
 
                     yield KPartition(*parts)
+
+
+def purview_disconnection_partitions(mechanism, purview):
+    '''Yields all partitions where every element of the purview has been cut
+    from at least one mechanism element.
+
+    Args:
+        mechanism (tuple[int]): A mechanism.
+        purview (tuple[int]): A purview.
+
+    Yields:
+        KPartition: A partition of this mechanism and purview into ``K`` parts,
+        where ``K`` is the number of purview elements.
+    '''
+    # Get all possible sets of mechanism elements where at least one element is
+    # missing (i.e. cut) from that part (i.e. purview element).
+    valid_mechanism_parts = itertools.islice(powerset(mechanism),
+                                             2 ** len(mechanism) - 1)
+    # Get all valid partitions of the mechanism elements into K parts.
+    mechanism_partitions = itertools.product(valid_mechanism_parts,
+                                             repeat=len(purview))
+    for mechanism_partition in mechanism_partitions:
+        parts = [Part(m, (p,)) for m, p in zip(mechanism_partition, purview)]
+        yield KPartition(*parts)
 
 
 def emd(direction, d1, d2):
