@@ -165,7 +165,7 @@ def test_partitioned_repertoire_with_tripartition(s):
         np.array([[[0.25, 0.25], [0.25, 0.25]]]))
 
 
-def test_tripartitions_choses_smallest_purview(s):
+def test_pick_smallest_purview(s):
     mechanism = (1, 2)
 
     with config.override(PICK_SMALLEST_PURVIEW=False):
