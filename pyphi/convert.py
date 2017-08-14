@@ -198,7 +198,9 @@ def to_2_dimensional(tpm):
     # Get the number of nodes.
     N = tpm.shape[-1]
     # Reshape.
-    return tpm.reshape([2**N, N]).astype(float)
+    tpm = tpm.reshape([2**N, N]).astype(float)
+    # Flip left/right to respect LOLI format.
+    return np.fliplr(tpm)
 
 
 def state_by_state2state_by_node(tpm):
