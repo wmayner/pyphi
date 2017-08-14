@@ -1045,6 +1045,143 @@ def fig16():
     return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
+def copy_xor_network():
+    '''A network whose mechanism (M1, M2) has an irreducible cause over
+    (P1, P2), even though P2 has no connection to M1.
+
+    M1 is a COPY, M2 is an XOR, and both elements should be ON.
+    '''
+    labels = ['M1', 'M2', 'P1', 'P2']
+    tpm = np.array([
+        [0,0,0,0],
+        [0,0,0,0],
+        [0,0,0,0],
+        [0,0,0,0],
+        [1,1,0,0],
+        [1,1,0,0],
+        [1,1,0,0],
+        [1,1,0,0],
+        [0,1,0,0],
+        [0,1,0,0],
+        [0,1,0,0],
+        [0,1,0,0],
+        [1,0,0,0],
+        [1,0,0,0],
+        [1,0,0,0],
+        [1,0,0,0]
+    ])
+    cm = np.array([
+        [0,0,0,0],
+        [0,0,0,0],
+        [1,1,0,0],
+        [0,1,0,0]
+    ])
+
+    return Network(tpm, cm, node_labels=labels)
+
+
+def copy_xor_subsystem():
+    '''See :func:`~pyphi.examples.copy_xor_network`.'''
+    net = copy_xor_network()
+    state = (1, 1, 0, 0)
+
+    return Subsystem(net, state, tuple(range(net.size)))
+
+
+def two_of_three_network():
+    '''A network with a 3-element mechanism and a 3-element purview, where each
+    mechanism element receives input from 2 of 3 purview elements, and vice
+    versa.
+
+    Each mechanism element is an AND gate that is ON.
+    '''
+    labels = ['M1', 'M2', 'M3', 'P1', 'P2', 'P3']
+    tpm = np.array([
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [1,0,0,0,0,0],
+        [1,0,0,0,0,0],
+        [1,0,0,0,0,0],
+        [1,0,0,0,0,0],
+        [1,0,0,0,0,0],
+        [1,0,0,0,0,0],
+        [1,0,0,0,0,0],
+        [1,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,1,0,0,0,0],
+        [0,1,0,0,0,0],
+        [0,1,0,0,0,0],
+        [0,1,0,0,0,0],
+        [0,1,0,0,0,0],
+        [0,1,0,0,0,0],
+        [0,1,0,0,0,0],
+        [0,1,0,0,0,0],
+        [0,0,1,0,0,0],
+        [0,0,1,0,0,0],
+        [0,0,1,0,0,0],
+        [0,0,1,0,0,0],
+        [0,0,1,0,0,0],
+        [0,0,1,0,0,0],
+        [0,0,1,0,0,0],
+        [0,0,1,0,0,0],
+        [1,1,1,0,0,0],
+        [1,1,1,0,0,0],
+        [1,1,1,0,0,0],
+        [1,1,1,0,0,0],
+        [1,1,1,0,0,0],
+        [1,1,1,0,0,0],
+        [1,1,1,0,0,0],
+        [1,1,1,0,0,0]
+    ])
+    cm = np.array([
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [0,0,0,0,0,0],
+        [1,1,0,0,0,0],
+        [1,0,1,0,0,0],
+        [0,1,1,0,0,0]
+    ])
+
+    return Network(tpm, cm, node_labels=labels)
+
+
+def two_of_three_subsystem():
+    ''' See :func:`~pyphi.examples.two_of_three_network`.'''
+    net = two_of_three_network()
+    state = (1, 1, 1, 0, 0, 0)
+
+    return Subsystem(net, state, tuple(range(net.size)))
+
+
 ###################################################################
 #                                                                 #
 #                      Actual Causation                           #
