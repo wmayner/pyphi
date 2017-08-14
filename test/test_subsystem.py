@@ -10,7 +10,7 @@ from pyphi import Network, config, exceptions
 from pyphi.constants import Direction
 from pyphi.models import Bipartition, Cut, Part, Tripartition, KPartition
 from pyphi.subsystem import (Subsystem, mip_bipartitions, wedge_partitions,
-                             all_partitions)
+                             all_partitions, purview_disconnection_partitions)
 
 
 @config.override(VALIDATE_SUBSYSTEM_STATES=True)
@@ -154,6 +154,24 @@ def test_wedge_partitions():
         Tripartition(Part((), (6,)), Part((3,), ()),     Part((4,), (5,))),
         Tripartition(Part((), (6,)), Part((3,), (5,)),   Part((4,), ())),
     ])
+
+
+def test_purview_disconnection_partitions():
+    mechanism = (0, 1)
+    purview = (2, 3)
+    answer = set([
+        KPartition(Part((), (2,)), Part((), (3,))),
+        KPartition(Part((), (2,)), Part((0,), (3,))),
+        KPartition(Part((), (2,)), Part((1,), (3,))),
+        KPartition(Part((0,), (2,)), Part((), (3,))),
+        KPartition(Part((0,), (2,)), Part((0,), (3,))),
+        KPartition(Part((0,), (2,)), Part((1,), (3,))),
+        KPartition(Part((1,), (2,)), Part((), (3,))),
+        KPartition(Part((1,), (2,)), Part((0,), (3,))),
+        KPartition(Part((1,), (2,)), Part((1,), (3,)))
+    ])
+
+    assert set(purview_disconnection_partitions(mechanism, purview)) == answer
 
 
 def test_partitioned_repertoire_with_tripartition(s):
