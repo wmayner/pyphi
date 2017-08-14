@@ -102,10 +102,6 @@ These settings control the algorithms PyPhi uses.
 
   where the mechanism in the third part is always empty.
 
-  In addition, in the case of a |small_phi|-tie when computing MICE, The
-  ``'TRIPARTITION'`` setting choses the MIP with smallest purview instead of
-  the largest (which is the default).
-
   Finally, if set to ``'ALL'``, all possible partitions will be tested.
 
     >>> defaults['PARTITION_TYPE']
