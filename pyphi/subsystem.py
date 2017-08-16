@@ -979,7 +979,6 @@ def measure(direction, d1, d2):
     Returns:
         float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
     '''
-
     if config.MEASURE == EMD:
         dist = emd(direction, d1, d2)
 

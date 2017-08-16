@@ -49,3 +49,13 @@ def test_kld():
     b = np.array([0.5, 0.5])
 
     assert distance.kld(a, b) == 1
+
+
+def test_psq2():
+    a = np.ones((2, 2, 2)) / 8
+    b = np.ones((2, 2, 2)) / 8
+    assert distance.psq2(a, b) == 0
+
+    a = np.array([[[1]], [[0]]])
+    b = np.array([[[0.25]], [[0.75]]])
+    assert distance.psq2(a, b) == 0.50839475603409934

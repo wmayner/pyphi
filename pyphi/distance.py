@@ -134,3 +134,18 @@ def entropy_difference(d1, d2):
     '''Return the difference in entropy between two distributions.'''
     d1, d2 = flatten(d1), flatten(d2)
     return abs(entropy(d1, base=2.0) - entropy(d2, base=2.0))
+
+
+def psq2(d1, d2):
+    '''Compute the PSQ2 measure.
+
+    Args:
+        d1 (np.ndarray): The first distribution.
+        d2 (np.ndarray): The second distribution.
+    '''
+    d1, d2 = flatten(d1), flatten(d2)
+
+    def f(p):
+        return sum((p ** 2) * np.nan_to_num(np.log(p * len(p))))
+
+    return abs(f(d1) - f(d2))
