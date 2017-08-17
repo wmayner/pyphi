@@ -12,8 +12,6 @@ from .. import config, utils, validate
 from ..constants import EMD, ENTROPY_DIFFERENCE, KLD, L1
 from ..distance import emd, entropy_difference, hamming_emd, l1
 
-BIG_NUMBER = 1000000
-
 
 def measure(r1, r2):
     '''Compute the distance between two repertoires.
@@ -34,8 +32,6 @@ def measure(r1, r2):
     elif config.MEASURE == ENTROPY_DIFFERENCE:
         return entropy_difference(r1, r2)
 
-    # If the distance is `inf` return a very large number instead so that
-    # the generalized EMD can still operate on a KLD distance matrix.
     elif config.MEASURE == KLD:
         raise ValueError("KLD is not supported as a big-phi measure.")
 
