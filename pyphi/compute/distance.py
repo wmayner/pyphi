@@ -10,7 +10,7 @@ import numpy as np
 
 from .. import config, utils, validate
 from ..constants import EMD, ENTROPY_DIFFERENCE, KLD, L1
-from ..distance import emd, entropy_difference, hamming_emd, l1
+from ..distance import ASYMMETRIC_MEASURES, emd, measure_dict
 
 
 def measure(r1, r2):
@@ -23,19 +23,14 @@ def measure(r1, r2):
     Returns:
         float: The distance between ``r1`` and ``r2``.
     '''
-    if config.MEASURE == EMD:
-        return hamming_emd(r1, r2)
+    if config.MEASURE in ASYMMETRIC_MEASURES:
+        raise ValueError("{} is not supported as a big-phi measure due to its "
+                         "asymmetry.".format(config.MEASURE))
 
-    elif config.MEASURE == L1:
-        return l1(r1, r2)
+    elif config.MEASURE not in measure_dict:
+        validate.measure(config.MEASURE)
 
-    elif config.MEASURE == ENTROPY_DIFFERENCE:
-        return entropy_difference(r1, r2)
-
-    elif config.MEASURE == KLD:
-        raise ValueError("KLD is not supported as a big-phi measure.")
-
-    validate.measure(config.MEASURE)
+    return measure_dict[config.MEASURE](r1, r2)
 
 
 def concept_distance(c1, c2):

@@ -52,8 +52,12 @@ L1 = 'L1'
 #: Entropy difference.
 ENTROPY_DIFFERENCE = 'ENTROPY_DIFFERENCE'
 
+PSQ2 = 'PSQ2'
+
+MP2Q = 'MP2Q'
+
 #: A list of all available measures.
-MEASURES = [EMD, KLD, L1, ENTROPY_DIFFERENCE]
+MEASURES = [EMD, KLD, L1, ENTROPY_DIFFERENCE, PSQ2, MP2Q]
 
 #: Node states
 OFF = (0,)

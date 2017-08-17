@@ -15,7 +15,7 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 # nodes, but this approximation is usually correct, and at worst provides an
 # upper bound for integrated information.
 CUT_ONE_APPROXIMATION: false
-# The measure to use when computing phi ("EMD", "KLD", "L1")
+# The measure to use when computing phi ("EMD", "KLD", "L1", ...)
 MEASURE: "EMD"
 
 # System resources

@@ -11,7 +11,7 @@ from pyemd import emd
 from scipy.spatial.distance import cdist
 from scipy.stats import entropy
 
-from . import constants, utils
+from . import constants, utils, validate
 from .distribution import flatten, marginal_zero
 
 # Load precomputed hamming matrices.
@@ -161,3 +161,17 @@ def mp2q(p, q):
     p, q = flatten(p), flatten(q)
     entropy_dist = 1 / len(p)
     return sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log(p / q)))
+
+
+#: Dictionary mapping measure names to functions
+measure_dict = {
+    constants.EMD: hamming_emd,
+    constants.KLD: kld,
+    constants.L1: l1,
+    constants.ENTROPY_DIFFERENCE: entropy_difference,
+    constants.PSQ2: psq2,
+    constants.MP2Q: mp2q
+}
+
+#: All asymmetric measures
+ASYMMETRIC_MEASURES = [constants.KLD, constants.MP2Q]

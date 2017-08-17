@@ -13,8 +13,8 @@ import itertools
 import numpy as np
 
 from . import cache, config, distance, distribution, utils, validate
-from .constants import EMD, ENTROPY_DIFFERENCE, KLD, L1, Direction
-from .distance import entropy_difference, kld, l1
+from .constants import EMD, Direction
+from .distance import measure_dict
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
                      Tripartition, _null_mip)
@@ -982,14 +982,8 @@ def measure(direction, d1, d2):
     if config.MEASURE == EMD:
         dist = emd(direction, d1, d2)
 
-    elif config.MEASURE == KLD:
-        dist = kld(d1, d2)
-
-    elif config.MEASURE == L1:
-        dist = l1(d1, d2)
-
-    elif config.MEASURE == ENTROPY_DIFFERENCE:
-        dist = entropy_difference(d1, d2)
+    elif config.MEASURE in measure_dict:
+        dist = measure_dict[config.MEASURE](d1, d2)
 
     else:
         validate.measure(config.MEASURE)
