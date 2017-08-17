@@ -58,12 +58,12 @@ These settings control the algorithms PyPhi uses.
 
 - ``MEASURE``:
   The measure to use when computing distances between repertoires and concepts.
-  The default is ``EMD``, the Earth Mover's Distance. ``KLD`` is the
-  Kullback-Leibler Divergence. ``L1`` is the |L1| distance.
-  ``ENTROPY_DIFFERENCE`` is the absolute value of the difference in entropy of
-  the two distributions, ``abs(entropy(a) - entropy(b))``. ``KLD`` cannot be
-  used as a measure when performing |big_phi| computations because of its
-  asymmetry.
+  The default is ``'EMD'``, the Earth Mover's Distance. ``'KLD'`` is the
+  Kullback-Leibler Divergence. ``'L1'`` is the |L1| distance.
+  ``'ENTROPY_DIFFERENCE'`` is the absolute value of the difference in entropy
+  of the two distributions, ``abs(entropy(a) - entropy(b))``. Also included are
+  ``'PSQ2'`` and ``'MP2Q'``. ``'KLD'`` and ``'MP2Q'`` cannot be used as
+  measures when performing |big_phi| computations because of their asymmetry.
 
     >>> defaults['MEASURE']
     'EMD'
