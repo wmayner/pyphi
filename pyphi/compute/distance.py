@@ -9,28 +9,7 @@ Functions for computing distances between various PyPhi objects.
 import numpy as np
 
 from .. import config, utils, validate
-from ..constants import EMD, ENTROPY_DIFFERENCE, KLD, L1
-from ..distance import ASYMMETRIC_MEASURES, emd, measure_dict
-
-
-def measure(r1, r2):
-    '''Compute the distance between two repertoires.
-
-    Args:
-        r1 (np.ndarray): The first repertoire.
-        r2 (np.ndarray): The second repertoire.
-
-    Returns:
-        float: The distance between ``r1`` and ``r2``.
-    '''
-    if config.MEASURE in ASYMMETRIC_MEASURES:
-        raise ValueError("{} is not supported as a big-phi measure due to its "
-                         "asymmetry.".format(config.MEASURE))
-
-    elif config.MEASURE not in measure_dict:
-        validate.measure(config.MEASURE)
-
-    return measure_dict[config.MEASURE](r1, r2)
+from ..distance import big_phi_measure as measure, emd
 
 
 def concept_distance(c1, c2):

@@ -13,8 +13,8 @@ import itertools
 import numpy as np
 
 from . import cache, config, distance, distribution, utils, validate
-from .constants import EMD, Direction
-from .distance import measure_dict
+from .constants import Direction
+from .distance import small_phi_measure as measure
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
                      Tripartition, _null_mip)
@@ -938,55 +938,3 @@ def all_partitions(mechanism, purview):
                         continue
 
                     yield KPartition(*parts)
-
-
-def emd(direction, d1, d2):
-    '''Compute the EMD between two repertoires for a given direction.
-
-    The full EMD computation is used for cause repertoires. A fast analytic
-    solution is used for effect repertoires.
-
-    Args:
-        direction (Direction): |PAST| or |FUTURE|.
-        d1 (np.ndarray): The first repertoire.
-        d2 (np.ndarray): The second repertoire.
-
-    Returns:
-        float: The EMD between ``d1`` and ``d2``, rounded to |PRECISION|.
-
-    Raises:
-        ValueError: If ``direction`` is invalid.
-    '''
-    if direction == Direction.PAST:
-        func = distance.hamming_emd
-    elif direction == Direction.FUTURE:
-        func = distance.effect_emd
-    else:
-        # TODO: test that ValueError is raised
-        validate.direction(direction)
-
-    return round(func(d1, d2), config.PRECISION)
-
-
-def measure(direction, d1, d2):
-    '''Compute the distance between two repertoires for the given direction.
-
-    Args:
-        direction (Direction): |PAST| or |FUTURE|.
-        d1 (np.ndarray): The first repertoire.
-        d2 (np.ndarray): The second repertoire.
-
-    Returns:
-        float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
-    '''
-    if config.MEASURE == EMD:
-        dist = emd(direction, d1, d2)
-
-    elif config.MEASURE in measure_dict:
-        dist = measure_dict[config.MEASURE](d1, d2)
-
-    else:
-        validate.measure(config.MEASURE)
-
-    # TODO do we actually need to round here?
-    return round(dist, config.PRECISION)
