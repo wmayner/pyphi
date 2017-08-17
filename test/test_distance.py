@@ -59,3 +59,13 @@ def test_psq2():
     a = np.array([[[1]], [[0]]])
     b = np.array([[[0.25]], [[0.75]]])
     assert distance.psq2(a, b) == 0.50839475603409934
+
+
+def test_mp2q():
+    a = np.ones((2, 2, 2)) / 8
+    b = np.ones((2, 2, 2)) / 8
+    assert distance.mp2q(a, b) == 0
+
+    a = np.array([[[1]], [[0]]])
+    b = np.array([[[0.25]], [[0.75]]])
+    assert distance.mp2q(a, b) == 2.7725887222397811

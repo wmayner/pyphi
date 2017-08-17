@@ -149,3 +149,15 @@ def psq2(d1, d2):
         return sum((p ** 2) * np.nan_to_num(np.log(p * len(p))))
 
     return abs(f(d1) - f(d2))
+
+
+def mp2q(p, q):
+    '''Compute the MP2Q measure.
+
+    Args:
+        p (np.ndarray): The unpartitioned repertoire
+        q (np.ndarray): The partitioned repertoire
+    '''
+    p, q = flatten(p), flatten(q)
+    entropy_dist = 1 / len(p)
+    return sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log(p / q)))
