@@ -32,7 +32,6 @@ def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
             subsystem=None):
     '''Build a ``Concept``.'''
     return models.Concept(
-        phi=phi,
         mechanism=mechanism,
         cause=mice(mech=mechanism, purv=cause_purview, phi=phi),
         effect=mice(mech=mechanism, purv=effect_purview, phi=phi),
@@ -431,11 +430,10 @@ def test_concept_equality_repertoires(s):
                  partitioned_repertoire=())
     mice2 = mice(phi=phi, unpartitioned_repertoire=np.array([0, 0]),
                  partitioned_repertoire=None)
-
     concept = models.Concept(mechanism=(), cause=mice1, effect=mice2,
-                             subsystem=s, phi=phi)
+                             subsystem=s)
     another = models.Concept(mechanism=(), cause=mice2, effect=mice1,
-                             subsystem=s, phi=phi)
+                             subsystem=s)
     assert concept != another
 
 

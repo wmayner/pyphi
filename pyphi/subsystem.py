@@ -731,8 +731,7 @@ class Subsystem:
         effect = Mice(_null_mip(Direction.FUTURE, (), (), effect_repertoire))
 
         # All together now...
-        return Concept(mechanism=(), phi=0, cause=cause, effect=effect,
-                       subsystem=self)
+        return Concept(mechanism=(), cause=cause, effect=effect, subsystem=self)
 
     def concept(self, mechanism, purviews=False, past_purviews=False,
                 future_purviews=False):
@@ -746,12 +745,10 @@ class Subsystem:
         # Calculate the maximally irreducible effect repertoire.
         effect = self.core_effect(mechanism,
                                   purviews=(future_purviews or purviews))
-        # Get the minimal phi between them.
-        phi = min(cause.phi, effect.phi)
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.
-        return Concept(mechanism=mechanism, phi=phi, cause=cause,
+        return Concept(mechanism=mechanism, cause=cause,
                        effect=effect, subsystem=self)
 
 

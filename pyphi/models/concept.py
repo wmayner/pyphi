@@ -292,8 +292,6 @@ class Concept(cmp.Orderable):
     |PICK_SMALLEST_PURVIEW| option in |config|.)
 
     Attributes:
-        phi (float): The size of the concept. This is the minimum of the
-            |small_phi| values of the concept's core cause and core effect.
         mechanism (tuple[int]): The mechanism that the concept consists of.
         cause (Mice): The |Mice| representing the core cause of this concept.
         effect (Mice): The |Mice| representing the core effect of this concept.
@@ -301,9 +299,8 @@ class Concept(cmp.Orderable):
         time (float): The number of seconds it took to calculate.
     '''
 
-    def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
+    def __init__(self, mechanism=None, cause=None, effect=None,
                  subsystem=None, time=None):
-        self.phi = phi
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
@@ -315,6 +312,15 @@ class Concept(cmp.Orderable):
 
     def __str__(self):
         return fmt.fmt_concept(self)
+
+    @property
+    def phi(self):
+        '''float: The size of the concept.
+
+        This is the minimum of the |small_phi| values of the concept's core
+        cause and core effect.
+        '''
+        return min(self.cause.phi, self.effect.phi)
 
     @property
     def cause_purview(self):
@@ -429,6 +435,7 @@ class Concept(cmp.Orderable):
     @classmethod
     def from_json(cls, dct):
         # Remove extra attributes
+        del dct['phi']
         del dct['expanded_cause_repertoire']
         del dct['expanded_effect_repertoire']
         del dct['expanded_partitioned_cause_repertoire']

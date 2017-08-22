@@ -239,7 +239,7 @@ def test_null_concept(s, flushcache, restore_fs_cache):
         phi=0, direction=Direction.FUTURE, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
     assert (s.null_concept ==
-            models.Concept(mechanism=(), phi=0, cause=cause, effect=effect,
+            models.Concept(mechanism=(), cause=cause, effect=effect,
                            subsystem=s))
 
 
@@ -262,7 +262,7 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     mock_simple_distance.return_value = float()
 
     make_mice = lambda: models.Mice(models.Mip(
-        phi=None, direction=None, mechanism=None,
+        phi=0, direction=None, mechanism=None,
         purview=None, partition=None,
         unpartitioned_repertoire=None,
         partitioned_repertoire=None))
