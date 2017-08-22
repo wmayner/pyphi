@@ -11,6 +11,34 @@ from pyphi import Subsystem, config, constants, models
 from pyphi.constants import Direction
 
 
+# Helper functions for constructing PyPhi objects
+# -----------------------------------------------
+
+def mip(phi=1.0, d=None, mech=(), purv=(), partition=None,
+        unpartitioned_repertoire=None, partitioned_repertoire=None):
+    '''Build a ``Mip``.'''
+    return models.Mip(phi=phi, direction=d, mechanism=mech,
+                      purview=purv, partition=partition,
+                      unpartitioned_repertoire=unpartitioned_repertoire,
+                      partitioned_repertoire=partitioned_repertoire)
+
+
+def mice(**kwargs):
+    '''Build a ``Mice``.'''
+    return models.Mice(mip(**kwargs))
+
+
+def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
+            subsystem=None):
+    '''Build a ``Concept``.'''
+    return models.Concept(
+        phi=phi,
+        mechanism=mechanism,
+        cause=mice(mech=mechanism, purv=cause_purview, phi=phi),
+        effect=mice(mech=mechanism, purv=effect_purview, phi=phi),
+        subsystem=subsystem)
+
+
 nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
 nt = namedtuple('nt', nt_attributes)
 a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
@@ -211,13 +239,6 @@ def test_apply_cut():
 # {{{
 
 
-def mip(phi=1.0, d=None, mech=(), purv=(), partition=None,
-        unpartitioned_repertoire=None, partitioned_repertoire=None):
-    return models.Mip(phi=phi, direction=d, mechanism=mech,
-                      purview=purv, partition=partition,
-                      unpartitioned_repertoire=unpartitioned_repertoire,
-                      partitioned_repertoire=partitioned_repertoire)
-
 
 def test_mip_ordering_and_equality():
     assert mip(phi=1.0) < mip(phi=2.0)
@@ -267,6 +288,7 @@ def test_mip_repr_str():
 
 # Test MICE
 # {{{
+
 
 def test_mice_ordering_by_phi():
     phi1 = models.Mice(mip())
@@ -356,33 +378,28 @@ def test_damaged(s):
 # Test Concept
 # {{{
 
+
 def test_concept_ordering(s, micro_s):
-    phi1 = models.Concept(
-        mechanism=(0, 1), cause=1, effect=None, subsystem=s,
-        phi=1.0)
-    different_phi1 = models.Concept(
-        mechanism=(0, 1), cause='different', effect=None, subsystem=micro_s,
-        phi=1.0)
-    phi2 = models.Concept(
-        mechanism=(0,), cause='stilldifferent', effect=None, subsystem=s,
-        phi=1.0 + constants.EPSILON * 2)
+    phi1 = concept(subsystem=s)
+    phi2 = concept(mechanism=(0,), phi=(1.0 + constants.EPSILON * 2),
+                   subsystem=s)
+
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
 
+    micro_phi1 = concept(subsystem=micro_s)
+
     with pytest.raises(TypeError):
-        phi1 <= different_phi1
+        phi1 <= micro_phi1
     with pytest.raises(TypeError):
-        phi1 > different_phi1
+        phi1 > micro_phi1
 
 
-def test_concept_odering_by_mechanism(s):
-    phi = 1.0
-    small = models.Concept(mechanism=(0, 1), cause=None, effect=None,
-                           subsystem=s, phi=phi)
-    big = models.Concept(mechanism=(0, 1, 3), cause=None, effect=None,
-                         subsystem=s, phi=phi)
+def test_concept_ordering_by_mechanism(s):
+    small = concept(mechanism=(0, 1), subsystem=s)
+    big = concept(mechanism=(0, 1, 3), subsystem=s)
     assert small < big
     assert small <= big
     assert big > small
@@ -391,61 +408,30 @@ def test_concept_odering_by_mechanism(s):
 
 
 def test_concept_equality(s):
-    phi = 1.0
-    concept = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=phi)
-    assert concept == another
+    assert concept(subsystem=s) == concept(subsystem=s)
 
 
 def test_concept_equality_phi(s):
-    concept = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=1.0)
-    another = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=0.0)
-    assert concept != another
-
-
-def test_concept_equality_mechanism(s):
-    phi = 1.0
-    concept = models.Concept(mechanism=(1,), cause=None, effect=None,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=phi)
-    assert concept != another
+    assert concept(phi=1.0, subsystem=s) != concept(phi=0.0, subsystem=s)
 
 
 def test_concept_equality_cause_purview_nodes(s):
-    phi = 1.0
-    mice1 = models.Mice(mip(phi=phi, purv=(1, 2)))
-    mice2 = models.Mice(mip(phi=phi, purv=(1,)))
-    concept = models.Concept(mechanism=(), cause=mice1, effect=None,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(), cause=mice2, effect=None,
-                             subsystem=s, phi=phi)
-    assert concept != another
+    assert (concept(cause_purview=(1, 2), subsystem=s) !=
+            concept(cause_purview=(1,), subsystem=s))
 
 
 def test_concept_equality_effect_purview_nodes(s):
-    phi = 1.0
-    mice1 = models.Mice(mip(phi=phi, purv=(1, 2)))
-    mice2 = models.Mice(mip(phi=phi, purv=(1,)))
-    concept = models.Concept(mechanism=(), cause=None, effect=mice1,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(), cause=None, effect=mice2,
-                             subsystem=s, phi=phi)
-    assert concept != another
+    assert (concept(effect_purview=(1, 2), subsystem=s) !=
+            concept(effect_purview=(1,), subsystem=s))
 
 
 def test_concept_equality_repertoires(s):
     phi = 1.0
-    mice1 = models.Mice(mip(phi=phi,
-                            unpartitioned_repertoire=np.array([1, 2]),
-                            partitioned_repertoire=()))
-    mice2 = models.Mice(mip(phi=phi,
-                            unpartitioned_repertoire=np.array([0, 0]),
-                            partitioned_repertoire=None))
+    mice1 = mice(phi=phi, unpartitioned_repertoire=np.array([1, 2]),
+                 partitioned_repertoire=())
+    mice2 = mice(phi=phi, unpartitioned_repertoire=np.array([0, 0]),
+                 partitioned_repertoire=None)
+
     concept = models.Concept(mechanism=(), cause=mice1, effect=mice2,
                              subsystem=s, phi=phi)
     another = models.Concept(mechanism=(), cause=mice2, effect=mice1,
@@ -454,64 +440,39 @@ def test_concept_equality_repertoires(s):
 
 
 def test_concept_equality_network(s, simple_subsys_all_off):
-    phi = 1.0
-    concept = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=simple_subsys_all_off, phi=phi)
-    another = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=phi)
-    assert concept != another
+    assert concept(subsystem=simple_subsys_all_off) != concept(subsystem=s)
 
 
 def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
-    phi = 1.0
-    mice = models.Mice(mip(mech=(), purv=(1, 2), phi=phi))
-    concept = models.Concept(mechanism=(2,), cause=mice, effect=mice,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(2,), cause=mice, effect=mice,
-                             subsystem=subsys_n1n2, phi=phi)
-    assert concept == another
+    assert concept(subsystem=s) == concept(subsystem=subsys_n1n2)
 
 
 def test_concept_repr_str():
-    mice = models.Mice(mip())
-    concept = models.Concept(mechanism=(), cause=mice, effect=mice,
-                             subsystem=None, phi=0.0)
-    print(repr(concept))
-    print(str(concept))
+    print(repr(concept()))
+    print(str(concept()))
 
 
 def test_concept_hashing(s):
-    mice = models.Mice(mip(mech=(0, 1, 2), purv=(0, 1, 2)))
-    concept = models.Concept(mechanism=(0, 1, 2), cause=mice, effect=mice,
-                             subsystem=s, phi=0.0)
-    hash(concept)
+    hash(concept(subsystem=s))
 
 
 def test_concept_hashing_one_subsystem_is_subset_of_another(s, subsys_n1n2):
-    phi = 1.0
-    mice = models.Mice(mip(mech=(), purv=(1, 2), phi=phi))
-    concept = models.Concept(mechanism=(2,), cause=mice, effect=mice,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(2,), cause=mice, effect=mice,
-                             subsystem=subsys_n1n2, phi=phi)
-    assert hash(concept) == hash(another)
-    assert len(set([concept, another])) == 1
+    c1 = concept(subsystem=s)
+    c2 = concept(subsystem=subsys_n1n2)
+    assert hash(c1) == hash(c2)
+    assert len(set([c1, c2])) == 1
 
 
 def test_concept_emd_eq(s, subsys_n1n2):
-    mice = models.Mice(mip(mech=(1,)))
-    concept = models.Concept(phi=1.0, mechanism=(1,), cause=mice, effect=mice,
-                             subsystem=s)
+    c1 = concept(subsystem=s)
 
     # Same repertoires, mechanism, phi
-    another = models.Concept(phi=1.0, mechanism=(1,), cause=mice, effect=mice,
-                             subsystem=subsys_n1n2)
-    assert concept.emd_eq(another)
+    c2 = concept(subsystem=subsys_n1n2)
+    assert c1.emd_eq(c2)
 
     # Everything equal except phi
-    another = models.Concept(phi=2.0, mechanism=(1,), cause=mice, effect=mice,
-                             subsystem=s)
-    assert not concept.emd_eq(another)
+    c3 = concept(phi=2.0, subsystem=s)
+    assert not c1.emd_eq(c3)
 
     # TODO: test other expectations...
 
