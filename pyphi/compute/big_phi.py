@@ -10,7 +10,8 @@ import logging
 from time import time
 
 from .. import config, connectivity, exceptions, memory, utils, validate
-from ..models import BigMip, Cut, _null_bigmip
+from ..constants import Direction
+from ..models import BigMip, Cut, _null_bigmip, Concept
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem
 from .concept import constellation
@@ -330,3 +331,81 @@ def condensed(network, state):
             covered_nodes = covered_nodes | set(c.subsystem.node_indices)
 
     return result
+
+
+class ConceptStyleSystem:
+    """A functional replacement for ``Subsystem`` implementing concept-style
+    system cuts.
+    """
+    def __init__(self, subsystem, direction, cut=None):
+        self.subsystem = subsystem
+        self.direction = direction
+        self.cut = cut
+        self.cut_system = subsystem.apply_cut(cut)
+
+    def apply_cut(self, cut):
+        return ConceptStyleSystem(self.subsystem, self.direction, cut)
+
+    def __getattr__(self, name):
+        """Pass attribute access through to the basic subsystem."""
+        return getattr(self.subsystem, name)
+
+    def __len__(self):
+        return len(self.subsystem)
+
+    def concept(self, mechanism, purviews=False, past_purviews=False,
+                future_purviews=False):
+
+        if self.direction == Direction.PAST:
+            cause_system = self.cut_system
+            effect_system = self.subsystem
+
+        elif self.direction == Direction.FUTURE:
+            cause_system = self.subsystem
+            effect_system = self.cut_system
+
+        cause = cause_system.core_cause(
+            mechanism, purviews=(past_purviews or purviews))
+        effect = effect_system.core_effect(
+            mechanism, purviews=(future_purviews or purviews))
+
+        return Concept(mechanism=mechanism, cause=cause, effect=effect,
+                       subsystem=self)
+
+
+def directional_big_mip(subsystem, direction):
+    """Calculate a concept-style BigMipPast or BigMipFuture."""
+
+    c_system = ConceptStyleSystem(subsystem, direction)
+
+    # This is the same as `constellation(subsystem)`
+    unpartitioned_constellation = constellation(c_system)
+
+    # TODO: implement K-Cuts
+    cuts = big_mip_bipartitions(subsystem.node_indices)
+
+    # Run the default MIP finder
+    # TODO: verify that short-cutting works correctly?
+    finder = FindMip(cuts, c_system, unpartitioned_constellation)
+    return finder.run(config.PARALLEL_CUT_EVALUATION)
+
+
+class BigMipConceptStyle:
+
+    def __init__(self, mip_past, mip_future):
+        self.big_mip_past = mip_past
+        self.big_mip_future = mip_future
+
+    @property
+    def phi(self):
+        return min(self.big_mip_past.phi, self.big_mip_future.phi)
+
+    def __str__(self):
+        return "Concept Style Big Mip: \u03A6 = {}".format(self.phi)
+
+
+def big_mip_concept_style(subsystem):
+    mip_past = directional_big_mip(subsystem, Direction.PAST)
+    mip_future = directional_big_mip(subsystem, Direction.FUTURE)
+
+    return BigMipConceptStyle(mip_past, mip_future)
