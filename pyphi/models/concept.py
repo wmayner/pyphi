@@ -92,6 +92,9 @@ class Mip(cmp.Orderable):
     unorderable_unless_eq = ['direction']
 
     def order_by(self):
+        if config.PICK_SMALLEST_PURVIEW:
+            return [self.phi, len(self.mechanism), -len(self.purview)]
+
         return [self.phi, len(self.mechanism), len(self.purview)]
 
     def __eq__(self, other):

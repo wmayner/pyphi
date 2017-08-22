@@ -255,6 +255,9 @@ def test_mip_ordering_and_equality():
     assert mip(d=Direction.PAST) != mip(d=Direction.FUTURE)
     assert mip(mech=(1,)) != mip(mech=(1, 2))
 
+    with config.override(PICK_SMALLEST_PURVIEW=True):
+        assert mip(purv=(1, 2)) < mip(purv=(1,))
+
     with pytest.raises(TypeError):
         mip(d=Direction.PAST) < mip(d=Direction.FUTURE)
 

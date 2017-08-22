@@ -681,9 +681,8 @@ class Subsystem:
         if not purviews:
             max_mip = _null_mip(direction, mechanism, ())
         else:
-            mips = [self.find_mip(direction, mechanism, purview)
-                    for purview in purviews]
-            max_mip = maximal_mip(mips)
+            max_mip = max(self.find_mip(direction, mechanism, purview)
+                          for purview in purviews)
 
         return Mice(max_mip)
 
@@ -750,16 +749,6 @@ class Subsystem:
         # remain un-expanded so the concept doesn't depend on the subsystem.
         return Concept(mechanism=mechanism, cause=cause,
                        effect=effect, subsystem=self)
-
-
-def maximal_mip(mips):
-    '''Pick the maximal mip out of a collection.'''
-    if config.PICK_SMALLEST_PURVIEW:
-        max_mip = max(mips, key=lambda m: (m.phi, -len(m.purview)))
-    else:
-        max_mip = max(mips)
-
-    return max_mip
 
 
 def mip_partitions(mechanism, purview):

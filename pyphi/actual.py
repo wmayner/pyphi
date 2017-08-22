@@ -21,7 +21,7 @@ from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, Occurence, _null_ac_bigmip, _null_ac_mip)
 from .partition import bipartition, directed_bipartition
-from .subsystem import Subsystem, maximal_mip, mip_partitions
+from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
 
@@ -370,9 +370,9 @@ class Context:
                                    direction, mechanism, None)
         else:
             # This max should be most positive
-            mips = [self.find_mip(direction, mechanism, purview, norm, allow_neg)
-                    for purview in purviews]
-            max_mip = maximal_mip(mips)
+            max_mip = max(self.find_mip(direction, mechanism, purview, norm,
+                                        allow_neg)
+                          for purview in purviews)
 
         # Construct the corresponding Occurence
         return Occurence(max_mip)
