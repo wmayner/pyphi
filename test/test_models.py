@@ -196,14 +196,14 @@ def test_cut_all_cut_mechanisms():
 def test_cut_matrix():
     cut = models.Cut((), (0,))
     matrix = np.array([[0]])
-    assert np.array_equal(cut.cut_matrix(), matrix)
+    assert np.array_equal(cut.cut_matrix(1), matrix)
 
     cut = models.Cut((0,), (1,))
     matrix = np.array([
         [0, 1],
         [0, 0],
     ])
-    assert np.array_equal(cut.cut_matrix(), matrix)
+    assert np.array_equal(cut.cut_matrix(2), matrix)
 
     cut = models.Cut((0, 2), (1, 2))
     matrix = np.array([
@@ -211,10 +211,10 @@ def test_cut_matrix():
         [0, 0, 0],
         [0, 1, 1],
     ])
-    assert np.array_equal(cut.cut_matrix(), matrix)
+    assert np.array_equal(cut.cut_matrix(3), matrix)
 
     cut = models.Cut((), ())
-    assert np.array_equal(cut.cut_matrix(), np.array([]))
+    assert np.array_equal(cut.cut_matrix(0), np.ndarray(shape=(0, 0)))
 
 
 def test_cut_indices():
@@ -359,8 +359,9 @@ def test_relevant_connections(s, subsys_n1n2):
 
     m = mice(mechanism=(1,), purview=(1, 2), direction=Direction.FUTURE)
     answer = np.array([
-        [1, 1],
-        [0, 0],
+        [0, 0, 0],
+        [0, 1, 1],
+        [0, 0, 0],
     ])
     assert np.array_equal(m._relevant_connections(subsys_n1n2), answer)
 

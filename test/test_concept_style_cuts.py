@@ -25,10 +25,11 @@ def test_apply_cut(kcut):
 
 
 def test_cut_matrix(kcut):
-    assert np.array_equal(kcut.cut_matrix(), np.array([
-        [0, 0, 1],
-        [1, 1, 1],
-        [1, 1, 0]]))
+    assert np.array_equal(kcut.cut_matrix(4), np.array([
+        [0, 1, 0, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 1],
+        [1, 1, 1, 0]]))
 
 
 def test_splits_mechanism(kcut):

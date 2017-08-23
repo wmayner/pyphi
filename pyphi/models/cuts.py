@@ -72,32 +72,23 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes'])):
 
         return cm
 
-    # TODO: pass in `size` arg and keep expanded to full network??
-    # TODO: memoize?
-    def cut_matrix(self):
+    def cut_matrix(self, n):
         '''Compute the cut matrix for this cut.
 
         The cut matrix is a square matrix which represents connections severed
-        by the cut. The matrix is shrunk to the size of the cut subsystem---not
-        necessarily the size of the entire network.
+        by the cut.
+
+        Args:
+           n (int): The size of the network.
 
         Example:
             >>> cut = Cut((1,), (2,))
-            >>> cut.cut_matrix()
-            array([[ 0.,  1.],
-                   [ 0.,  0.]])
+            >>> cut.cut_matrix(3)
+            array([[ 0.,  0.,  0.],
+                   [ 0.,  0.,  1.],
+                   [ 0.,  0.,  0.]])
         '''
-        cut_indices = self.indices
-
-        # Don't pass an empty tuple to `max`
-        if not cut_indices:
-            return np.array([])
-
-        # Construct a cut matrix large enough for all indices
-        # in the cut, then extract the relevant submatrix
-        n = max(cut_indices) + 1
-        matrix = connectivity.relevant_connections(n, self[0], self[1])
-        return matrix[np.ix_(cut_indices, cut_indices)]
+        return connectivity.relevant_connections(n, self[0], self[1])
 
     def __repr__(self):
         return fmt.make_repr(self, ['from_nodes', 'to_nodes'])
@@ -129,14 +120,14 @@ class KCut:
 
         return cm * mask
 
-    def cut_matrix(self):
-        n = max(self.indices) + 1
+    def cut_matrix(self, n):
+        '''The matrix of connections that are severed by this `Cut`'''
         cm = np.ones((n, n))
 
         for part in self.partition:
             cm[np.ix_(part.purview, part.mechanism)] = 0
 
-        return cm[np.ix_(self.indices, self.indices)]
+        return cm
 
     def splits_mechanism(self, mechanism):
         n = max(self.indices) + 1
@@ -193,7 +184,7 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
         return cm
 
     # TODO implement
-    def cut_matrix(self):
+    def cut_matrix(self, n):
         return "DUMMY MATRIX"
 
     def __repr__(self):

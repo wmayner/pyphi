@@ -87,7 +87,7 @@ def test_find_cut_matrix(s, big_subsys_0_thru_3):
     answer_s = np.array([
         [0, 1, 1],
         [0, 0, 0],
-        [0, 0, 0]
+        [0, 0, 0],
     ])
     assert np.array_equal(cut_s.cut_matrix, answer_s)
 
@@ -97,10 +97,11 @@ def test_find_cut_matrix(s, big_subsys_0_thru_3):
                         big_subsys_0_thru_3.node_indices,
                         cut=cut)
     answer_big = np.array([
-        [0, 0, 1, 1],
-        [0, 0, 1, 1],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0]
+        [0, 0, 1, 1, 0],
+        [0, 0, 1, 1, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
     ])
     assert np.array_equal(cut_big.cut_matrix, answer_big)
 
