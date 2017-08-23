@@ -243,3 +243,8 @@ def micro_s():
 @pytest.fixture()
 def micro_s_all_off():
     return example_networks.micro_s_all_off()
+
+
+@pytest.fixture()
+def propagation_delay():
+    return example_networks.propagation_delay()

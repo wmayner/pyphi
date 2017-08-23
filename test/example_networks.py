@@ -5,6 +5,8 @@
 import numpy as np
 
 import pyphi
+from pyphi import utils
+from pyphi.macro import Blackbox, MacroSubsystem
 from pyphi.network import Network
 from pyphi.subsystem import Subsystem
 
@@ -709,3 +711,59 @@ def micro_s_all_off():
     net = micro()
     state = [0] * 4
     return Subsystem(net, state, range(net.size))
+
+
+# TODO: move to pyphi.examples?
+def propagation_delay():
+    '''The basic PyPhi subsystem with COPY gates on each of the connections in
+    the original network, blackboxed over two time steps.
+    '''
+    nodes = 8
+    tpm = np.zeros((2 ** nodes, nodes))
+
+    for psi, ps in enumerate(utils.all_states(nodes)):
+        cs = [0 for i in range(nodes)]
+        if ps[5] == 1 or ps[7] == 1:
+            cs[0] = 1
+        if ps[0] == 1:
+            cs[1] = 1
+        if ps[1] ^ ps[6]:
+            cs[2] = 1
+        if ps[2] == 1:
+            cs[3] = 1
+            cs[7] = 1
+        if ps[3] == 1:
+            cs[4] = 1
+        if ps[4] == 1:
+            cs[5] = 1
+            cs[6] = 1
+        tpm[psi, :] = cs
+
+    cm = np.array([
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 1],
+        [0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 1, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0],
+    ])
+
+    # Current state has the OR gate ON
+    cs = (1, 0, 0, 0, 0, 0, 0, 0)
+
+    network = Network(tpm, cm)
+
+    # Elements 1, 3, 5, 6, 7 are the COPY gates
+    # 0, 2, and 4 correspond to the original OR, XOR, and COPY
+    partition = ((0, 5, 7), (3, 4), (1, 2, 6))
+    outputs = (0, 2, 4)
+    blackbox = Blackbox(partition, outputs)
+
+    # Over two time steps, the system is functionally the same as the basic
+    # system
+    time_scale = 2
+
+    return MacroSubsystem(network, cs, network.node_indices,
+                          time_scale=time_scale, blackbox=blackbox)

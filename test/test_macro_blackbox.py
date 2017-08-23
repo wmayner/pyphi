@@ -47,62 +47,6 @@ def degenerate():
                                 blackbox=blackbox, time_scale=time_scale)
 
 
-@pytest.fixture
-def propogation_delay():
-    '''The basic_subsystem with COPY gates on each of the connections in the
-    original network.
-    '''
-    nodes = 8
-    tpm = np.zeros((2 ** nodes, nodes))
-
-    for psi, ps in enumerate(utils.all_states(nodes)):
-        cs = [0 for i in range(nodes)]
-        if ps[5] == 1 or ps[7] == 1:
-            cs[0] = 1
-        if ps[0] == 1:
-            cs[1] = 1
-        if ps[1] ^ ps[6]:
-            cs[2] = 1
-        if ps[2] == 1:
-            cs[3] = 1
-            cs[7] = 1
-        if ps[3] == 1:
-            cs[4] = 1
-        if ps[4] == 1:
-            cs[5] = 1
-            cs[6] = 1
-        tpm[psi, :] = cs
-
-    cm = np.array([
-        [0, 1, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0, 1],
-        [0, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0, 1, 1, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0, 0],
-    ])
-
-    # Current state has the OR gate ON
-    cs = (1, 0, 0, 0, 0, 0, 0, 0)
-
-    net = Network(tpm, cm)
-
-    # Elements 1, 3, 5, 6, 7 are the COPY gates
-    # 0, 2, and 4 correspond to the original OR, XOR, and COPY
-    partition = ((0, 5, 7), (3, 4), (1, 2, 6))
-    outputs = (0, 2, 4)
-    blackbox = macro.Blackbox(partition, outputs)
-
-    # Over two time steps, the system is functionally the same as the basic
-    # system
-    time_step = 2
-
-    return macro.MacroSubsystem(net, cs, net.node_indices,
-                                time_scale=time_step, blackbox=blackbox)
-
-
 @pytest.mark.veryslow
 def test_basic_nor_or():
     # A system composed of NOR and OR (copy) gates, which mimics the basic
@@ -377,9 +321,9 @@ def test_degenerate(degenerate):
     assert mip.phi == 0.638888
 
 
-def test_basic_propogation_delay(s, propogation_delay):
+def test_basic_propagation_delay(s, propagation_delay):
     # bb_mip = compute.big_mip(bb_sub)
     # assert bb_mip.phi == 2.125
     # assert bb_mip.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
 
-    assert np.array_equal(propogation_delay.cm, s.cm)
+    assert np.array_equal(propagation_delay.cm, s.cm)
