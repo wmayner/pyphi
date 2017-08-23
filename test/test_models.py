@@ -289,24 +289,25 @@ def test_mip_repr_str():
 
 
 def test_mice_ordering_by_phi():
-    phi1 = models.Mice(mip())
-    different_phi1 = models.Mice(mip(direction='different'))
-    phi2 = models.Mice(mip(phi=(1.0 + constants.EPSILON * 2), partition=()))
+    phi1 = mice()
+    phi2 = mice(phi=(1.0 + constants.EPSILON * 2), partition=())
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
 
-    with pytest.raises(TypeError):
-        phi1 <= different_phi1
+    different_direction = mice(direction='different')
 
     with pytest.raises(TypeError):
-        phi1 >= different_phi1
+        phi1 <= different_direction
+
+    with pytest.raises(TypeError):
+        phi1 >= different_direction
 
 
 def test_mice_odering_by_mechanism():
-    small = models.Mice(mip(mechanism=(1,)))
-    big = models.Mice(mip(mechanism=(1, 2, 3)))
+    small = mice(mechanism=(1,))
+    big = mice(mechanism=(1, 2, 3))
     assert small < big
     assert small <= big
     assert big > small
@@ -315,8 +316,8 @@ def test_mice_odering_by_mechanism():
 
 
 def test_mice_ordering_by_purview():
-    small = models.Mice(mip(purview=(1, 2)))
-    big = models.Mice(mip(purview=(1, 2, 3)))
+    small = mice(purview=(1, 2))
+    big = mice(purview=(1, 2, 3))
     assert small < big
     assert small <= big
     assert big > small
@@ -324,50 +325,49 @@ def test_mice_ordering_by_purview():
 
 
 def test_mice_equality():
-    mice = models.Mice(mip(phi=1.0))
-    close_enough = models.Mice(mip(phi=(1.0 - constants.EPSILON / 2)))
-    not_quite = models.Mice(mip(phi=(1.0 - constants.EPSILON * 2)))
-    assert mice == close_enough
-    assert mice != not_quite
+    m = mice(phi=1.0)
+    close_enough = mice(phi=(1.0 - constants.EPSILON / 2))
+    not_quite = mice(phi=(1.0 - constants.EPSILON * 2))
+    assert m == close_enough
+    assert m != not_quite
 
 
 def test_mice_repr_str():
-    mice = models.Mice(mip())
-    print(repr(mice))
-    print(str(mice))
+    print(repr(mice()))
+    print(str(mice()))
 
 
 def test_relevant_connections(s, subsys_n1n2):
-    mice = models.Mice(mip(mechanism=(0,), purview=(1,), direction=Direction.PAST))
+    m = mice(mechanism=(0,), purview=(1,), direction=Direction.PAST)
     answer = np.array([
         [0, 0, 0],
         [1, 0, 0],
         [0, 0, 0],
     ])
-    assert np.array_equal(mice._relevant_connections(s), answer)
+    assert np.array_equal(m._relevant_connections(s), answer)
 
-    mice = models.Mice(mip(mechanism=(1,), purview=(1, 2), direction=Direction.FUTURE))
+    m = mice(mechanism=(1,), purview=(1, 2), direction=Direction.FUTURE)
     answer = np.array([
         [1, 1],
         [0, 0],
     ])
-    assert np.array_equal(mice._relevant_connections(subsys_n1n2), answer)
+    assert np.array_equal(m._relevant_connections(subsys_n1n2), answer)
 
 
 def test_damaged(s):
     # Build cut subsystem from s
     cut = models.Cut((0,), (1, 2))
-    subsys = Subsystem(s.network, s.state, s.node_indices, cut=cut)
+    cut_s = Subsystem(s.network, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:
-    mice = models.Mice(mip(mechanism=(0, 1), purview=(1, 2), direction=Direction.FUTURE))
-    assert mice.damaged_by_cut(subsys)
-    assert not mice.damaged_by_cut(s)
+    m1 = mice(mechanism=(0, 1), purview=(1, 2), direction=Direction.FUTURE)
+    assert m1.damaged_by_cut(cut_s)
+    assert not m1.damaged_by_cut(s)
 
     # Cut splits mechanism & purview (but not *only* mechanism)
-    mice = models.Mice(mip(mechanism=(0,), purview=(1, 2), direction=Direction.FUTURE))
-    assert mice.damaged_by_cut(subsys)
-    assert not mice.damaged_by_cut(s)
+    m2 = mice(mechanism=(0,), purview=(1, 2), direction=Direction.FUTURE)
+    assert m2.damaged_by_cut(cut_s)
+    assert not m2.damaged_by_cut(s)
 
 
 # }}}
