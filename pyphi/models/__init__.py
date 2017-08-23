@@ -26,4 +26,4 @@ from .actual_causation import (AcBigMip, Occurence, AcMip, _null_ac_mip, Event,
 from .big_phi import BigMip, _null_bigmip
 from .concept import (Mip, _null_mip, Mice, Concept, Constellation,
                       normalize_constellation)
-from .cuts import ActualCut, Cut, Part, Bipartition, Tripartition, KPartition
+from .cuts import ActualCut, Cut, Part, Bipartition, Tripartition, KPartition, KCut

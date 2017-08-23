@@ -110,6 +110,43 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes'])):
         return {'from_nodes': self.from_nodes, 'to_nodes': self.to_nodes}
 
 
+class KCut:
+    def __init__(self, partition):
+        assert partition.mechanism == partition.purview
+        self.partition = partition
+
+    @property
+    def indices(self):
+        return self.partition.mechanism
+
+    def apply_cut(self, cm):
+        '''Cut all connections except those between elements in the same
+        `Part`.'''
+        mask = np.zeros(cm.shape)
+
+        for part in self.partition:
+            mask[np.ix_(part.purview, part.mechanism)] = 1
+
+        return cm * mask
+
+    def cut_matrix(self):
+        n = max(self.indices) + 1
+        cm = np.ones((n, n))
+
+        for part in self.partition:
+            cm[np.ix_(part.purview, part.mechanism)] = 0
+
+        return cm[np.ix_(self.indices, self.indices)]
+
+    def splits_mechanism(self, mechanism):
+        n = max(self.indices) + 1
+        cm = np.ones((n, n))
+        return not self.apply_cut(cm)[np.ix_(mechanism, mechanism)].all()
+
+    def __str__(self):
+        return "KCut\n{}".format(self.partition)
+
+
 class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
                                          'effect_part1', 'effect_part2'])):
     '''Represents an cut for a |Context|.

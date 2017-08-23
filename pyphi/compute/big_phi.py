@@ -11,9 +11,9 @@ from time import time
 
 from .. import config, connectivity, exceptions, memory, utils, validate
 from ..constants import Direction
-from ..models import BigMip, Cut, _null_bigmip, Concept
+from ..models import BigMip, Cut, _null_bigmip, Concept, KCut
 from ..partition import directed_bipartition, directed_bipartition_of_one
-from ..subsystem import Subsystem
+from ..subsystem import Subsystem, all_partitions
 from .concept import constellation
 from .distance import constellation_distance
 from .parallel import MapReduce
@@ -373,6 +373,11 @@ class ConceptStyleSystem:
                        subsystem=self)
 
 
+def concept_cuts(node_indices):
+    for partition in all_partitions(node_indices, node_indices):
+        yield KCut(partition)
+
+
 def directional_big_mip(subsystem, direction):
     """Calculate a concept-style BigMipPast or BigMipFuture."""
 
@@ -381,8 +386,7 @@ def directional_big_mip(subsystem, direction):
     # This is the same as `constellation(subsystem)`
     unpartitioned_constellation = constellation(c_system)
 
-    # TODO: implement K-Cuts
-    cuts = big_mip_bipartitions(subsystem.node_indices)
+    cuts = concept_cuts(c_system.node_indices)
 
     # Run the default MIP finder
     # TODO: verify that short-cutting works correctly?
