@@ -886,6 +886,7 @@ def wedge_partitions(mechanism, purview):
             yielded.add(tripart)
             yield tripart
 
+
 def all_partitions(mechanism, purview):
     '''Returns all possible partitions of a mechanism and purview.
 

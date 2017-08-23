@@ -183,7 +183,6 @@ def test_cut_all_cut_mechanisms():
 
 
 def test_cut_matrix():
-
     cut = models.Cut((), (0,))
     matrix = np.array([[0]])
     assert np.array_equal(cut.cut_matrix(), matrix)
@@ -236,7 +235,6 @@ def test_apply_cut():
 
 # Test MIP
 # {{{
-
 
 
 def test_mip_ordering_and_equality():
