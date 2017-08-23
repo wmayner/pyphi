@@ -14,11 +14,11 @@ from pyphi.constants import Direction
 # Helper functions for constructing PyPhi objects
 # -----------------------------------------------
 
-def mip(phi=1.0, d=None, mech=(), purv=(), partition=None,
+def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
         unpartitioned_repertoire=None, partitioned_repertoire=None):
     '''Build a ``Mip``.'''
-    return models.Mip(phi=phi, direction=d, mechanism=mech,
-                      purview=purv, partition=partition,
+    return models.Mip(phi=phi, direction=direction, mechanism=mechanism,
+                      purview=purview, partition=partition,
                       unpartitioned_repertoire=unpartitioned_repertoire,
                       partitioned_repertoire=partitioned_repertoire)
 
@@ -33,8 +33,8 @@ def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
     '''Build a ``Concept``.'''
     return models.Concept(
         mechanism=mechanism,
-        cause=mice(mech=mechanism, purv=cause_purview, phi=phi),
-        effect=mice(mech=mechanism, purv=effect_purview, phi=phi),
+        cause=mice(mechanism=mechanism, purview=cause_purview, phi=phi),
+        effect=mice(mechanism=mechanism, purview=effect_purview, phi=phi),
         subsystem=subsystem)
 
 
@@ -60,9 +60,9 @@ def test_phi_mechanism_ordering():
         def __eq__(self, other):
             return self.phi == other.phi and self.mechanism == other.mechanism
 
-    # assert PhiThing(1.0, (1,)) == PhiThing(1.0, (1,))
-    # assert PhiThing(1.0, (1,)) == PhiThing(1.0, (1, 2))
-    # assert PhiThing(1.0, (1,)) != PhiThing(2.0, (1, 2))
+    assert PhiThing(1.0, (1,)) == PhiThing(1.0, (1,))
+    assert PhiThing(1.0, (1,)) != PhiThing(1.0, (1, 2))
+    assert PhiThing(1.0, (1,)) != PhiThing(2.0, (1, 2))
     assert PhiThing(1.0, (1,)) < PhiThing(2.0, (1,))
     assert PhiThing(1.0, (1,)) <= PhiThing(1.0, (1, 2))  # Smaller mechanism
     assert PhiThing(1.0, (1,)) <= PhiThing(2.0, (1,))
@@ -240,27 +240,25 @@ def test_apply_cut():
 def test_mip_ordering_and_equality():
     assert mip(phi=1.0) < mip(phi=2.0)
     assert mip(phi=2.0) > mip(phi=1.0)
-    assert mip(phi=1.0, mech=(1,)) < mip(phi=1.0, mech=(1, 2))
-    assert mip(phi=1.0, mech=(1, 2)) >= mip(phi=1.0, mech=(1,))
-    assert (mip(phi=1.0, mech=(1,), purv=(1,)) <
-            mip(phi=1.0, mech=(1,), purv=(1, 2)))
-    assert (mip(phi=1.0, mech=(1,), purv=(1, 2)) >=
-            mip(phi=1.0, mech=(1,), purv=(1,)))
+    assert mip(mechanism=(1,)) < mip(mechanism=(1, 2))
+    assert mip(mechanism=(1, 2)) >= mip(mechanism=(1,))
+    assert mip(purview=(1,)) < mip(purview=(1, 2))
+    assert mip(purview=(1, 2)) >= mip(purview=(1,))
 
     assert mip(phi=1.0) == mip(phi=1.0)
     assert mip(phi=1.0) == mip(phi=(1.0 - constants.EPSILON / 2))
     assert mip(phi=1.0) != mip(phi=(1.0 - constants.EPSILON * 2))
-    assert mip(d=Direction.PAST) != mip(d=Direction.FUTURE)
-    assert mip(mech=(1,)) != mip(mech=(1, 2))
+    assert mip(direction=Direction.PAST) != mip(direction=Direction.FUTURE)
+    assert mip(mechanism=(1,)) != mip(mechanism=(1, 2))
 
     with config.override(PICK_SMALLEST_PURVIEW=True):
-        assert mip(purv=(1, 2)) < mip(purv=(1,))
+        assert mip(purview=(1, 2)) < mip(purview=(1,))
 
     with pytest.raises(TypeError):
-        mip(d=Direction.PAST) < mip(d=Direction.FUTURE)
+        mip(direction=Direction.PAST) < mip(direction=Direction.FUTURE)
 
     with pytest.raises(TypeError):
-        mip(d=Direction.PAST) >= mip(d=Direction.FUTURE)
+        mip(direction=Direction.PAST) >= mip(direction=Direction.FUTURE)
 
 
 def test_null_mip():
@@ -292,7 +290,7 @@ def test_mip_repr_str():
 
 def test_mice_ordering_by_phi():
     phi1 = models.Mice(mip())
-    different_phi1 = models.Mice(mip(d='different'))
+    different_phi1 = models.Mice(mip(direction='different'))
     phi2 = models.Mice(mip(phi=(1.0 + constants.EPSILON * 2), partition=()))
     assert phi1 < phi2
     assert phi2 > phi1
@@ -307,8 +305,8 @@ def test_mice_ordering_by_phi():
 
 
 def test_mice_odering_by_mechanism():
-    small = models.Mice(mip(mech=(1,)))
-    big = models.Mice(mip(mech=(1, 2, 3)))
+    small = models.Mice(mip(mechanism=(1,)))
+    big = models.Mice(mip(mechanism=(1, 2, 3)))
     assert small < big
     assert small <= big
     assert big > small
@@ -317,8 +315,8 @@ def test_mice_odering_by_mechanism():
 
 
 def test_mice_ordering_by_purview():
-    small = models.Mice(mip(purv=(1, 2)))
-    big = models.Mice(mip(purv=(1, 2, 3)))
+    small = models.Mice(mip(purview=(1, 2)))
+    big = models.Mice(mip(purview=(1, 2, 3)))
     assert small < big
     assert small <= big
     assert big > small
@@ -340,7 +338,7 @@ def test_mice_repr_str():
 
 
 def test_relevant_connections(s, subsys_n1n2):
-    mice = models.Mice(mip(mech=(0,), purv=(1,), d=Direction.PAST))
+    mice = models.Mice(mip(mechanism=(0,), purview=(1,), direction=Direction.PAST))
     answer = np.array([
         [0, 0, 0],
         [1, 0, 0],
@@ -348,7 +346,7 @@ def test_relevant_connections(s, subsys_n1n2):
     ])
     assert np.array_equal(mice._relevant_connections(s), answer)
 
-    mice = models.Mice(mip(mech=(1,), purv=(1, 2), d=Direction.FUTURE))
+    mice = models.Mice(mip(mechanism=(1,), purview=(1, 2), direction=Direction.FUTURE))
     answer = np.array([
         [1, 1],
         [0, 0],
@@ -362,12 +360,12 @@ def test_damaged(s):
     subsys = Subsystem(s.network, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:
-    mice = models.Mice(mip(mech=(0, 1), purv=(1, 2), d=Direction.FUTURE))
+    mice = models.Mice(mip(mechanism=(0, 1), purview=(1, 2), direction=Direction.FUTURE))
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 
     # Cut splits mechanism & purview (but not *only* mechanism)
-    mice = models.Mice(mip(mech=(0,), purv=(1, 2), d=Direction.FUTURE))
+    mice = models.Mice(mip(mechanism=(0,), purview=(1, 2), direction=Direction.FUTURE))
     assert mice.damaged_by_cut(subsys)
     assert not mice.damaged_by_cut(s)
 
