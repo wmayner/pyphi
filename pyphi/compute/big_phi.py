@@ -38,13 +38,14 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanisms = {c.mechanism for c in unpartitioned_constellation}
+        mechanisms = unpartitioned_constellation.mechanisms
     else:
         # Mechanisms can only produce concepts if they were concepts in the
         # original system, or the cut divides the mechanism.
         mechanisms = set(
-            [c.mechanism for c in unpartitioned_constellation] +
+            unpartitioned_constellation.mechanisms +
             list(cut_subsystem.cut_mechanisms))
+
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
     log.debug('Finished evaluating %s.', cut)
