@@ -38,6 +38,17 @@ def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
         subsystem=subsystem)
 
 
+def bigmip(unpartitioned_constellation=(), partitioned_constellation=(),
+           subsystem=None, cut_subsystem=None, phi=1.0):
+    '''Build a ``BigMip``.'''
+    cut_subsystem = cut_subsystem or subsystem
+
+    return models.BigMip(
+        unpartitioned_constellation=unpartitioned_constellation,
+        partitioned_constellation=partitioned_constellation,
+        subsystem=subsystem, cut_subsystem=cut_subsystem, phi=phi)
+
+
 nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
 nt = namedtuple('nt', nt_attributes)
 a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
@@ -503,38 +514,25 @@ def test_normalize_constellation():
 # Test BigMip
 # {{{
 
+
 def test_bigmip_ordering(s, s_noised):
-    phi1 = models.BigMip(
-        unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=s, cut_subsystem=(),
-        phi=1.0)
-    different_phi1 = models.BigMip(
-        unpartitioned_constellation=0, partitioned_constellation=None,
-        subsystem=s_noised, cut_subsystem=(),
-        phi=1.0)
-    phi2 = models.BigMip(
-        unpartitioned_constellation='stilldifferent',
-        partitioned_constellation=None, subsystem=s, cut_subsystem=(),
-        phi=1.0 + constants.EPSILON * 2)
+    phi1 = bigmip(subsystem=s)
+    phi2 = bigmip(subsystem=s, phi=1.0 + constants.EPSILON * 2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
+
+    different_system = bigmip(subsystem=s_noised)
     with pytest.raises(TypeError):
-        phi1 <= different_phi1
+        phi1 <= different_system
     with pytest.raises(TypeError):
-        phi1 >= different_phi1
+        phi1 >= different_system
 
 
 def test_bigmip_ordering_by_subsystem_size(s, s_single):
-    small = models.BigMip(
-        unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=s_single, cut_subsystem=(),
-        phi=1.0)
-    big = models.BigMip(
-        unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=s, cut_subsystem=(),
-        phi=1.0)
+    small = bigmip(subsystem=s_single)
+    big = bigmip(subsystem=s)
     assert small < big
     assert small <= big
     assert big > small
@@ -543,29 +541,17 @@ def test_bigmip_ordering_by_subsystem_size(s, s_single):
 
 
 def test_bigmip_equality(s):
-    phi = 1.0
-    bigmip = models.BigMip(
-        unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=s, cut_subsystem=s,
-        phi=phi)
-    close_enough = models.BigMip(
-        unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=s, cut_subsystem=s,
-        phi=(phi - constants.EPSILON / 2))
-    not_quite = models.BigMip(
-        unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=s, cut_subsystem=s,
-        phi=(phi - constants.EPSILON * 2))
-    assert bigmip == close_enough
-    assert bigmip != not_quite
+    bm = bigmip(subsystem=s)
+    close_enough = bigmip(subsystem=s, phi=(1.0 - constants.EPSILON / 2))
+    not_quite = bigmip(subsystem=s, phi=(1.0 - constants.EPSILON * 2))
+    assert bm == close_enough
+    assert bm != not_quite
 
 
 def test_bigmip_repr_str(s):
-    bigmip = models.BigMip(
-        unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=s, cut_subsystem=s, phi=1.0)
-    print(repr(bigmip))
-    print(str(bigmip))
+    bm = bigmip(subsystem=s)
+    print(repr(bm))
+    print(str(bm))
 
 
 # }}}
