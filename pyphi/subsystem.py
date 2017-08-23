@@ -149,13 +149,18 @@ class Subsystem:
 
     @property
     def cut_indices(self):
-        '''tuple[int]: The nodes of this subsystem cut for |big_phi|
+        '''tuple[int]: The nodes of this subsystem to cut for |big_phi|
         computations.
 
         This was added to support ``MacroSubsystem``, which cuts indices other
         than ``node_indices``.
         '''
         return self.node_indices
+
+    @property
+    def cut_mechanisms(self):
+        '''list[tuple[int]]: The mechanisms that are cut in this system.'''
+        return self.cut.all_cut_mechanisms()
 
     @property
     def tpm_size(self):

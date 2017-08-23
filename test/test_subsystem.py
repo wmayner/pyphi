@@ -231,6 +231,12 @@ def test_cut_indices(s, subsys_n1n2):
     assert subsys_n1n2.cut_indices == (1, 2)
 
 
+def test_cut_mechanisms(s):
+    assert s.cut_mechanisms == ()
+    assert s.apply_cut(Cut((0, 1), (2,))).cut_mechanisms == (
+        (0, 2), (1, 2), (0, 1, 2))
+
+
 def test_specify_elements_with_labels(standard):
     network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
     subsystem = Subsystem(network, (0, 0, 0), ('B', 'C'))
