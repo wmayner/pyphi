@@ -221,6 +221,9 @@ def _big_mip_cache_key(subsystem):
 # value of the computation.
 @functools.wraps(_big_mip)
 def big_mip(subsystem):  # pylint: disable=missing-docstring
+    if config.SYSTEM_CUTS == 'CONCEPT_STYLE':
+        return big_mip_concept_style(subsystem)
+
     return _big_mip(_big_mip_cache_key(subsystem), subsystem)
 
 
@@ -416,6 +419,7 @@ class BigMipConceptStyle:
         return "Concept Style Big Mip: \u03A6 = {}".format(self.phi)
 
 
+# TODO: cache
 def big_mip_concept_style(subsystem):
     mip_past = directional_big_mip(subsystem, Direction.PAST)
     mip_future = directional_big_mip(subsystem, Direction.FUTURE)

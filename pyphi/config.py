@@ -126,6 +126,15 @@ These settings control the algorithms PyPhi uses.
   in the constellations instead of the extended EMD.
 
 
+- ``SYSTEM_CUTS``:
+  If set to ``'3.0_STYLE'``, then traditional IIT 3.0 cuts will be used when
+  computing big-phi. If set to ``'CONCEPT_STYLE'``, then experimental concept-
+  style system cuts will be used instead.
+
+    >>> defaults['SYSTEM_CUTS']
+    '3.0_STYLE'
+
+
 System resources
 ~~~~~~~~~~~~~~~~
 
@@ -488,6 +497,8 @@ DEFAULTS = {
     'PICK_SMALLEST_PURVIEW': False,
     # Use the difference in sum of small phi for the constellation distance
     'USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE': False,
+    # The type of system cuts to use
+    'SYSTEM_CUTS': '3.0_STYLE',
 }
 
 # Get a reference to this module's dictionary so we can set the configuration
