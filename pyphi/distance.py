@@ -67,7 +67,12 @@ class MeasureRegistry(Mapping):
         return len(self.store)
 
     def __getitem__(self, name):
-        return self.store[name]
+        try:
+            return self.store[name]
+        except KeyError:
+            raise KeyError(
+                'Measure "{}" not found. Current registered PyPhi measures '
+                'are {}'.format(name, self.all()))
 
 
 measures = MeasureRegistry()
@@ -222,20 +227,6 @@ def mp2q(p, q):
     return sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log(p / q)))
 
 
-#: Dictionary mapping measure names to functions
-measure_dict = {
-    constants.EMD: hamming_emd,
-    constants.KLD: kld,
-    constants.L1: l1,
-    constants.ENTROPY_DIFFERENCE: entropy_difference,
-    constants.PSQ2: psq2,
-    constants.MP2Q: mp2q
-}
-
-#: All asymmetric measures
-ASYMMETRIC_MEASURES = [constants.KLD, constants.MP2Q]
-
-
 def directional_emd(direction, d1, d2):
     '''Compute the EMD between two repertoires for a given direction.
 
@@ -277,12 +268,8 @@ def small_phi_measure(direction, d1, d2):
     '''
     if config.MEASURE == constants.EMD:
         dist = directional_emd(direction, d1, d2)
-
-    elif config.MEASURE in measure_dict:
-        dist = measure_dict[config.MEASURE](d1, d2)
-
     else:
-        validate.measure(config.MEASURE)
+        dist = measures[config.MEASURE](d1, d2)
 
     # TODO do we actually need to round here?
     return round(dist, config.PRECISION)
@@ -298,11 +285,8 @@ def big_phi_measure(r1, r2):
     Returns:
         float: The distance between ``r1`` and ``r2``.
     '''
-    if config.MEASURE in ASYMMETRIC_MEASURES:
+    if config.MEASURE in measures.asymmetric():
         raise ValueError("{} is not supported as a big-phi measure due to its "
                          "asymmetry.".format(config.MEASURE))
 
-    elif config.MEASURE not in measure_dict:
-        validate.measure(config.MEASURE)
-
-    return measure_dict[config.MEASURE](r1, r2)
+    return measures[config.MEASURE](r1, r2)
