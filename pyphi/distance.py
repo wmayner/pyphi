@@ -36,13 +36,19 @@ class MeasureRegistry(Mapping):
     '''
     def __init__(self):
         self.store = {}
+        self._asymmetric = []
 
-    def register(self, name):
+    def register(self, name, asymmetric=False):
         '''Decorator that stores the measure.'''
         def register_func(func):
+            if asymmetric:
+                self._asymmetric.append(name)
             self.store[name] = func
             return func
         return register_func
+
+    def asymmetric(self):
+        return self._asymmetric
 
     def all(self):
         return list(self)
@@ -158,7 +164,7 @@ def l1(d1, d2):
     return np.absolute(d1 - d2).sum()
 
 
-@measures.register('KLD')
+@measures.register('KLD', asymmetric=True)
 def kld(d1, d2):
     '''Return the Kullback-Leibler Divergence (KLD) between two distributions.
 
@@ -196,7 +202,7 @@ def psq2(d1, d2):
     return abs(f(d1) - f(d2))
 
 
-@measures.register('MP2Q')
+@measures.register('MP2Q', asymmetric=True)
 def mp2q(p, q):
     '''Compute the MP2Q measure.
 

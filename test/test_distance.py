@@ -97,3 +97,7 @@ def test_default_measures():
         'ENTROPY_DIFFERENCE',
         'PSQ2',
         'MP2Q'])
+
+
+def test_default_asymmetric_measures():
+    assert set(distance.measures.asymmetric()) == set(['KLD', 'MP2Q'])
