@@ -113,11 +113,7 @@ class KCut:
     def apply_cut(self, cm):
         '''Cut all connections except those between elements in the same
         `Part`.'''
-        mask = np.zeros(cm.shape)
-
-        for part in self.partition:
-            mask[np.ix_(part.purview, part.mechanism)] = 1
-
+        mask = np.logical_not(self.cut_matrix(cm.shape[0])).astype(int)
         return cm * mask
 
     def cut_matrix(self, n):
@@ -131,8 +127,7 @@ class KCut:
 
     def splits_mechanism(self, mechanism):
         n = max(self.indices) + 1
-        cm = np.ones((n, n))
-        return not self.apply_cut(cm)[np.ix_(mechanism, mechanism)].all()
+        return self.cut_matrix(n)[np.ix_(mechanism, mechanism)].any()
 
     def __str__(self):
         return "KCut\n{}".format(self.partition)
