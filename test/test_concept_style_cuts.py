@@ -37,3 +37,8 @@ def test_splits_mechanism(kcut):
     assert kcut.splits_mechanism((2, 3))
     assert not kcut.splits_mechanism((0,))
     assert not kcut.splits_mechanism((3,))
+
+
+def test_all_cut_mechanisms(kcut):
+    assert kcut.all_cut_mechanisms() == (
+        (2,), (0, 2), (0, 3), (2, 3), (0, 2, 3))
