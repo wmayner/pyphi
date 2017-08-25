@@ -160,9 +160,15 @@ class KCut(_CutBase):
         return "KCut\n{}".format(self.partition)
 
 
-class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
-                                         'effect_part1', 'effect_part2'])):
+actual_cut_attributes = ['cause_part1', 'cause_part2', 'effect_part1',
+                         'effect_part2']
+
+
+# TODO: this is a special case of KCut - refactor to reflect that?
+class ActualCut(namedtuple('ActualCut', actual_cut_attributes), _CutBase):
     '''Represents an cut for a |Context|.
+
+    This is a bipartition of the cause and effect elements.
 
     Attributes:
         cause_part1 (tuple[int]): Connections from this group to those in
@@ -174,7 +180,6 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
         effect_part2 (tuple[int]): Connections to this group from
             ``cause_part1`` are cut.
     '''
-
     __slots__ = ()
 
     @property
@@ -182,36 +187,15 @@ class ActualCut(namedtuple('ActualCut', ['cause_part1', 'cause_part2',
         '''tuple[int]: The indices in this cut.'''
         return tuple(sorted(set(chain.from_iterable(self))))
 
-    # TODO test
-    def apply_cut(self, cm):
-        '''Cut a connectivity matrix.
-
-        Args:
-            cm (np.ndarray): A connectivity matrix
-
-        Returns:
-            np.ndarray: A copy of the connectivity matrix with connections cut
-            across the cause and effect indices.
-        '''
-        cm = cm.copy()
-
-        for i in self.cause_part1:
-            for j in self.effect_part2:
-                cm[i][j] = 0
-
-        for i in self.cause_part2:
-            for j in self.effect_part1:
-                cm[i][j] = 0
-
+    def cut_matrix(self, n):
+        '''The matrix of connections severed by this cut.'''
+        cm = np.zeros((n, n))
+        cm[np.ix_(self.cause_part1, self.effect_part2)] = 1
+        cm[np.ix_(self.cause_part2, self.effect_part1)] = 1
         return cm
 
-    # TODO implement
-    def cut_matrix(self, n):
-        return "DUMMY MATRIX"
-
     def __repr__(self):
-        return fmt.make_repr(self, ['cause_part1', 'cause_part2',
-                                    'effect_part1', 'effect_part2'])
+        return fmt.make_repr(self, actual_cut_attributes)
 
     def __str__(self):
         return fmt.fmt_actual_cut(self)

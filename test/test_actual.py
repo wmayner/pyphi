@@ -234,6 +234,23 @@ def test_actual_cut_indices():
     assert cut.indices == (0, 2)
 
 
+def test_actual_apply_cut():
+    cut = models.ActualCut((0, 2), (), (0,), (2,))
+    cm = np.ones((3, 3))
+    assert np.array_equal(cut.apply_cut(cm), np.array([
+        [1, 1, 0],
+        [1, 1, 1],
+        [1, 1, 0]]))
+
+
+def test_actual_cut_matrix():
+    cut = models.ActualCut((0, 2), (), (0,), (2,))
+    assert np.array_equal(cut.cut_matrix(3), np.array([
+        [0, 0, 1],
+        [0, 0, 0],
+        [0, 0, 1]]))
+
+
 def test_big_acmip(context):
     bigmip = actual.big_acmip(context)
     assert bigmip.alpha == 0.33333333333333326
