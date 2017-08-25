@@ -353,20 +353,28 @@ class ConceptStyleSystem:
     def __len__(self):
         return len(self.subsystem)
 
+    @property
+    def cause_system(self):
+        return {
+            Direction.PAST: self.cut_system,
+            Direction.FUTURE: self.subsystem
+        }[self.direction]
+
+    @property
+    def effect_system(self):
+        return {
+            Direction.PAST: self.subsystem,
+            Direction.FUTURE: self.cut_system
+        }[self.direction]
+
     def concept(self, mechanism, purviews=False, past_purviews=False,
                 future_purviews=False):
-
-        if self.direction == Direction.PAST:
-            cause_system = self.cut_system
-            effect_system = self.subsystem
-
-        elif self.direction == Direction.FUTURE:
-            cause_system = self.subsystem
-            effect_system = self.cut_system
-
-        cause = cause_system.core_cause(
+        '''Compute a concept, using the appropriate system for each side of
+        the cut.'''
+        cause = self.cause_system.core_cause(
             mechanism, purviews=(past_purviews or purviews))
-        effect = effect_system.core_effect(
+
+        effect = self.effect_system.core_effect(
             mechanism, purviews=(future_purviews or purviews))
 
         return Concept(mechanism=mechanism, cause=cause, effect=effect,

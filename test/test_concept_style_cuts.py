@@ -1,7 +1,8 @@
 import pytest
 import numpy as np
 
-from pyphi.compute import concept_cuts
+from pyphi.constants import Direction
+from pyphi.compute import concept_cuts, ConceptStyleSystem
 from pyphi.models import KCut, KPartition, Part
 
 
@@ -42,3 +43,15 @@ def test_splits_mechanism(kcut):
 def test_all_cut_mechanisms(kcut):
     assert kcut.all_cut_mechanisms() == (
         (2,), (0, 2), (0, 3), (2, 3), (0, 2, 3))
+
+
+def test_system_accessors(s):
+    cut = KCut(KPartition(Part((0, 2), (0, 1)), Part((1,), (2,))))
+
+    cs_past = ConceptStyleSystem(s, Direction.PAST, cut)
+    assert cs_past.cause_system.cut == cut
+    assert cs_past.effect_system.cut == s.null_cut
+
+    cs_future = ConceptStyleSystem(s, Direction.FUTURE, cut)
+    assert cs_future.cause_system.cut == s.null_cut
+    assert cs_future.effect_system.cut == cut
