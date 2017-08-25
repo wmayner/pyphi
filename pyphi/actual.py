@@ -21,7 +21,7 @@ from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, Occurence, _null_ac_bigmip, _null_ac_mip)
 from .partition import bipartition, directed_bipartition
-from .subsystem import Subsystem, mip_partitions
+from .subsystem import Subsystem, mip_partitions, mip_bipartitions
 
 log = logging.getLogger(__name__)
 
@@ -525,21 +525,16 @@ def _evaluate_cut(context, cut, unpartitioned_account, direction=None):
 
 def _get_cuts(context):
     '''A list of possible cuts to a context.'''
-
     # TODO: Add one-cut approximation as an option.
     # if config.CUT_ONE_APPROXIMATION:
     #     bipartitions = directed_bipartition_of_one(subsystem.node_indices)
     # else:
-    cause_bipartitions = bipartition(context.cause_indices)
-    effect_bipartitions = directed_bipartition(context.effect_indices)
-    # The first element of the list is the null cut.
-    partitions = list(itertools.product(cause_bipartitions,
-                                        effect_bipartitions))[1:]
-    cuts = [ActualCut(part[0][0], part[0][1], part[1][0], part[1][1])
-            for part in partitions]
-    return cuts
+    for p in mip_bipartitions(context.cause_indices, context.effect_indices):
+        yield ActualCut(p[0].mechanism, p[1].mechanism,
+                        p[0].purview, p[1].purview)
 
 
+# TODO: implement with MapReduce
 def big_acmip(context, direction=None):
     '''Return the minimal information partition of a context in a specific
     direction.
@@ -566,7 +561,7 @@ def big_acmip(context, direction=None):
         log.info('%s is not strongly/weakly connected; returning null MIP '
                  'immediately.', context)
         return _null_ac_bigmip(context, direction)
-    cuts = _get_cuts(context)
+    cuts = list(_get_cuts(context))
 
     log.debug("Finding unpartitioned account...")
     unpartitioned_account = account(context, direction)
