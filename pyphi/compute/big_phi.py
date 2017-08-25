@@ -396,7 +396,7 @@ def directional_big_mip(subsystem, direction):
     # This is the same as `constellation(subsystem)`
     unpartitioned_constellation = constellation(c_system)
 
-    cuts = concept_cuts(c_system.node_indices)
+    cuts = concept_cuts(c_system.cut_indices)
 
     # Run the default MIP finder
     # TODO: verify that short-cutting works correctly?
