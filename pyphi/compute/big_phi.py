@@ -407,9 +407,10 @@ def directional_big_mip(subsystem, direction):
 
 class BigMipConceptStyle:
 
-    def __init__(self, mip_past, mip_future):
+    def __init__(self, mip_past, mip_future, subsystem):
         self.big_mip_past = mip_past
         self.big_mip_future = mip_future
+        self.subsystem = subsystem
 
     @property
     def phi(self):
@@ -424,4 +425,4 @@ def big_mip_concept_style(subsystem):
     mip_past = directional_big_mip(subsystem, Direction.PAST)
     mip_future = directional_big_mip(subsystem, Direction.FUTURE)
 
-    return BigMipConceptStyle(mip_past, mip_future)
+    return BigMipConceptStyle(mip_past, mip_future, subsystem)
