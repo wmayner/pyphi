@@ -384,6 +384,7 @@ class ConceptStyleSystem:
 
 
 def concept_cuts(node_indices):
+    '''Generator over all concept-syle cuts for these nodes.'''
     for partition in all_partitions(node_indices, node_indices):
         yield KCut(partition)
 
@@ -405,6 +406,7 @@ def directional_big_mip(subsystem, direction):
 
 
 class BigMipConceptStyle:
+    '''Represents a Big Mip computed using concept-style system cuts.'''
 
     def __init__(self, mip_past, mip_future, subsystem):
         self.big_mip_past = mip_past
@@ -424,6 +426,7 @@ class BigMipConceptStyle:
 
 # TODO: cache
 def big_mip_concept_style(subsystem):
+    '''Compute a concept-style Big Mip'''
     mip_past = directional_big_mip(subsystem, Direction.PAST)
     mip_future = directional_big_mip(subsystem, Direction.FUTURE)
 
