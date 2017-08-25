@@ -2,8 +2,9 @@ import pytest
 import numpy as np
 
 from pyphi.constants import Direction
-from pyphi.compute import concept_cuts, ConceptStyleSystem
+from pyphi.compute import concept_cuts, ConceptStyleSystem, BigMipConceptStyle
 from pyphi.models import KCut, KPartition, Part
+from test_models import bigmip
 
 
 @pytest.fixture()
@@ -55,3 +56,19 @@ def test_system_accessors(s):
     cs_future = ConceptStyleSystem(s, Direction.FUTURE, cut)
     assert cs_future.cause_system.cut == s.null_cut
     assert cs_future.effect_system.cut == cut
+
+
+def big_mip_cs(phi=1.0, subsystem=None):
+    return BigMipConceptStyle(
+        subsystem=subsystem,
+        mip_past=bigmip(subsystem=subsystem, phi=phi),
+        mip_future=bigmip(subsystem=subsystem, phi=phi))
+
+
+def test_big_mip_concept_style_ordering(s, subsys_n0n2, s_noised):
+    assert big_mip_cs(subsystem=s) == big_mip_cs(subsystem=s)
+    assert big_mip_cs(phi=1, subsystem=s) < big_mip_cs(phi=2, subsystem=s)
+    assert big_mip_cs(subsystem=s) >= big_mip_cs(subsystem=subsys_n0n2)
+
+    with pytest.raises(TypeError):
+        big_mip_cs(subsystem=s) < big_mip_cs(subsystem=s_noised)

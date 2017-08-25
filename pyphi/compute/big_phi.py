@@ -11,7 +11,7 @@ from time import time
 
 from .. import config, connectivity, exceptions, memory, utils, validate
 from ..constants import Direction
-from ..models import BigMip, Cut, _null_bigmip, Concept, KCut, fmt
+from ..models import BigMip, Cut, _null_bigmip, Concept, KCut, fmt, cmp
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem, all_partitions
 from .concept import constellation
@@ -405,7 +405,7 @@ def directional_big_mip(subsystem, direction):
     return finder.run(config.PARALLEL_CUT_EVALUATION)
 
 
-class BigMipConceptStyle:
+class BigMipConceptStyle(cmp.Orderable):
     '''Represents a Big Mip computed using concept-style system cuts.'''
 
     def __init__(self, mip_past, mip_future, subsystem):
@@ -416,6 +416,19 @@ class BigMipConceptStyle:
     @property
     def phi(self):
         return min(self.big_mip_past.phi, self.big_mip_future.phi)
+
+    @property
+    def network(self):
+        '''The network this BigMip belongs to.'''
+        return self.subsystem.network
+
+    def __eq__(self, other):
+        return cmp.general_eq(self, other, ['phi'])
+
+    unorderable_unless_eq = ['network']
+
+    def order_by(self):
+        return [self.phi, len(self.subsystem)]
 
     def __repr__(self):
         return fmt.make_repr(self, ['big_mip_past', 'big_mip_future'])
