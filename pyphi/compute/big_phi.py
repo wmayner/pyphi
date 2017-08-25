@@ -350,7 +350,12 @@ class ConceptStyleSystem:
 
     def __getattr__(self, name):
         """Pass attribute access through to the basic subsystem."""
-        return getattr(self.subsystem, name)
+        # Unpickling calls `__getattr__` before the object's dict is populated;
+        # check that `subsystem` exists to avoid a recursion error.
+        # See https://bugs.python.org/issue5370.
+        if 'subsystem' in self.__dict__:
+            return getattr(self.subsystem, name)
+        raise AttributeError(name)
 
     def __len__(self):
         return len(self.subsystem)
