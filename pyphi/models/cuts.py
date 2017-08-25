@@ -145,6 +145,10 @@ class KCut(_CutBase):
 
         return cm
 
+    def __repr__(self):
+        return fmt.make_repr(self, ['partition'])
+
+    # TODO: improve
     def __str__(self):
         return "KCut\n{}".format(self.partition)
 
