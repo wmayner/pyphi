@@ -39,7 +39,14 @@ class MeasureRegistry(Mapping):
         self._asymmetric = []
 
     def register(self, name, asymmetric=False):
-        '''Decorator that stores the measure.'''
+        '''Register a measure with PyPhi.
+
+        Args:
+            name (string): The name of the measure.
+
+        Keyword Args:
+            asymmetric (boolean): ``True`` if the measure is asymmetric.
+        '''
         def register_func(func):
             if asymmetric:
                 self._asymmetric.append(name)
