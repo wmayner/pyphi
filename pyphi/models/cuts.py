@@ -127,7 +127,14 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
 
 
 class KCut(_CutBase):
+    '''A cut that severs all connections between parts of a K-partition.
 
+    Note: since the ``KCut`` does not have a direction associated with it,
+    connectivity is always considered to be from the purview of partition to
+    the mechanism of the partition.
+
+    TODO: add a ``direction`` to the cut?
+    '''
     def __init__(self, partition):
         assert partition.mechanism == partition.purview
         self.partition = partition
@@ -137,7 +144,7 @@ class KCut(_CutBase):
         return self.partition.mechanism
 
     def cut_matrix(self, n):
-        '''The matrix of connections that are severed by this `Cut`'''
+        '''The matrix of connections that are severed by this cut.'''
         cm = np.ones((n, n))
 
         for part in self.partition:
