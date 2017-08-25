@@ -266,7 +266,7 @@ def small_phi_measure(direction, d1, d2):
     Returns:
         float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
     '''
-    if config.MEASURE == constants.EMD:
+    if config.MEASURE == 'EMD':
         dist = directional_emd(direction, d1, d2)
     else:
         dist = measures[config.MEASURE](d1, d2)
