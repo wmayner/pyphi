@@ -11,7 +11,7 @@ from time import time
 
 from .. import config, connectivity, exceptions, memory, utils, validate
 from ..constants import Direction
-from ..models import BigMip, Cut, _null_bigmip, Concept, KCut
+from ..models import BigMip, Cut, _null_bigmip, Concept, KCut, fmt
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem, all_partitions
 from .concept import constellation
@@ -415,6 +415,9 @@ class BigMipConceptStyle:
     @property
     def phi(self):
         return min(self.big_mip_past.phi, self.big_mip_future.phi)
+
+    def __repr__(self):
+        return fmt.make_repr(self, ['big_mip_past', 'big_mip_future'])
 
     def __str__(self):
         return "Concept Style Big Mip: \u03A6 = {}".format(self.phi)
