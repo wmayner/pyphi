@@ -5,6 +5,7 @@
 '''
 Functions for measuring distances.
 '''
+from collections.abc import Mapping
 
 import numpy as np
 from pyemd import emd
@@ -19,6 +20,44 @@ from .distribution import flatten, marginal_zero
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
 _hamming_matrices = utils.load_data('hamming_matrices',
                                     _NUM_PRECOMPUTED_HAMMING_MATRICES)
+
+
+class MeasureRegistry(Mapping):
+    '''Storage for measures registered with PyPhi.
+
+    Users can define custom measures:
+
+    Examples:
+        >>> @measures.register('ALWAYS_ZERO')  # doctest: +SKIP
+        ... def always_zero(a, b):
+        ...    return 0
+
+    And use them by setting ``config.MEASURE = 'ALWAYS_ZERO'``.
+    '''
+    def __init__(self):
+        self.store = {}
+
+    def register(self, name):
+        '''Decorator that stores the measure.'''
+        def register_func(func):
+            self.store[name] = func
+            return func
+        return register_func
+
+    def all(self):
+        return list(self)
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
+
+    def __getitem__(self, name):
+        return self.store[name]
+
+
+measures = MeasureRegistry()
 
 
 # TODO extend to nonbinary nodes
@@ -73,6 +112,7 @@ def _compute_hamming_matrix(N):
 
 
 # TODO extend to binary nodes
+@measures.register('EMD')
 def hamming_emd(d1, d2):
     '''Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node) using the Hamming distance between states
@@ -104,6 +144,7 @@ def effect_emd(d1, d2):
                for i in range(d1.ndim))
 
 
+@measures.register('L1')
 def l1(d1, d2):
     '''Return the L1 distance between two distributions.
 
@@ -117,6 +158,7 @@ def l1(d1, d2):
     return np.absolute(d1 - d2).sum()
 
 
+@measures.register('KLD')
 def kld(d1, d2):
     '''Return the Kullback-Leibler Divergence (KLD) between two distributions.
 
@@ -131,12 +173,14 @@ def kld(d1, d2):
     return entropy(d1, d2, 2.0)
 
 
+@measures.register('ENTROPY_DIFFERENCE')
 def entropy_difference(d1, d2):
     '''Return the difference in entropy between two distributions.'''
     d1, d2 = flatten(d1), flatten(d2)
     return abs(entropy(d1, base=2.0) - entropy(d2, base=2.0))
 
 
+@measures.register('PSQ2')
 def psq2(d1, d2):
     '''Compute the PSQ2 measure.
 
@@ -152,6 +196,7 @@ def psq2(d1, d2):
     return abs(f(d1) - f(d2))
 
 
+@measures.register('MP2Q')
 def mp2q(p, q):
     '''Compute the MP2Q measure.
 
