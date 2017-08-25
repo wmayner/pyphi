@@ -145,10 +145,12 @@ class KCut(_CutBase):
 
     def cut_matrix(self, n):
         '''The matrix of connections that are severed by this cut.'''
-        cm = np.ones((n, n))
+        cm = np.zeros((n, n))
 
         for part in self.partition:
-            cm[np.ix_(part.purview, part.mechanism)] = 0
+            # All indices external to this part
+            external = tuple(set(self.indices) - set(part.mechanism))
+            cm[np.ix_(part.purview, external)] = 1
 
         return cm
 

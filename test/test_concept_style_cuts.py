@@ -17,19 +17,19 @@ def test_cut_indices(kcut):
 def test_apply_cut(kcut):
     cm = np.ones((4, 4))
     cut_cm = np.array([
-        [1, 0, 1, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 1]])
+        [1, 1, 1, 0],
+        [1, 1, 1, 1],
+        [0, 1, 0, 0],
+        [0, 1, 0, 1]])
     assert np.array_equal(kcut.apply_cut(cm), cut_cm)
 
 
 def test_cut_matrix(kcut):
     assert np.array_equal(kcut.cut_matrix(4), np.array([
-        [0, 1, 0, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 0]]))
+        [0, 0, 0, 1],
+        [0, 0, 0, 0],
+        [1, 0, 1, 1],
+        [1, 0, 1, 0]]))
 
 
 def test_splits_mechanism(kcut):
