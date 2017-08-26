@@ -112,3 +112,18 @@ def test_default_measures():
 
 def test_default_asymmetric_measures():
     assert set(distance.measures.asymmetric()) == set(['KLD', 'MP2Q', 'BLD'])
+
+
+def test_suppress_np_warnings():
+    @distance.np_suppress()
+    def divide_by_zero():
+        np.ones((2,)) / np.zeros((2,))
+
+    @distance.np_suppress()
+    def multiply_by_nan():
+        np.array([1, 0]) * np.log(0)
+
+    # Try and trigger an error:
+    with np.errstate(divide='raise', invalid='raise'):
+        divide_by_zero()
+        multiply_by_nan()

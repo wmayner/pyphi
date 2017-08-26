@@ -6,6 +6,7 @@
 Functions for measuring distances.
 '''
 from collections.abc import Mapping
+from contextlib import ContextDecorator
 
 import numpy as np
 from pyemd import emd
@@ -76,6 +77,18 @@ class MeasureRegistry(Mapping):
 
 
 measures = MeasureRegistry()
+
+
+class np_suppress(np.errstate, ContextDecorator):
+    '''Decorator to suppress NumPy warnings about divide-by-zero and
+    multiplication of ``NaN``.
+
+    .. note::
+        This should only be used in cases where you are *sure* that these
+        warnings are not indicative of deeper issues in your code.
+    '''
+    def __init__(self, *args):
+        super().__init__(divide='ignore', invalid='ignore')
 
 
 # TODO extend to nonbinary nodes
@@ -199,6 +212,7 @@ def entropy_difference(d1, d2):
 
 
 @measures.register('PSQ2')
+@np_suppress()
 def psq2(d1, d2):
     '''Compute the PSQ2 measure.
 
@@ -215,6 +229,7 @@ def psq2(d1, d2):
 
 
 @measures.register('MP2Q', asymmetric=True)
+@np_suppress()
 def mp2q(p, q):
     '''Compute the MP2Q measure.
 
@@ -228,6 +243,7 @@ def mp2q(p, q):
 
 
 @measures.register('BLD', asymmetric=True)
+@np_suppress()
 def bld(p, q):
     '''Compute the Buzz Lightyear (Billy-Leo) Divergence.'''
     p, q = flatten(p), flatten(q)
