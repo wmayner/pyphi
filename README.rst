@@ -16,8 +16,8 @@
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build badge
 
-.. image:: https://img.shields.io/coveralls/wmayner/pyphi/master.svg?style=flat-square&maxAge=600
-    :target: https://coveralls.io/github/wmayner/pyphi
+.. image:: https://img.shields.io/coveralls/wmayner/pyphi/develop.svg?style=flat-square&maxAge=600
+    :target: https://coveralls.io/github/wmayner/pyphi?branch=develop
     :alt: Coveralls.io badge
 
 .. image:: https://img.shields.io/github/license/wmayner/pyphi.svg?style=flat-square&maxAge=86400
@@ -114,7 +114,7 @@ Contributing
 ~~~~~~~~~~~~
 
 To help develop PyPhi, fork the project on GitHub and install the requirements
-with 
+with
 
 .. code:: bash
 
