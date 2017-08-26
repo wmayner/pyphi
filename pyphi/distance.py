@@ -227,6 +227,13 @@ def mp2q(p, q):
     return sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log(p / q)))
 
 
+@measures.register('BLD', asymmetric=True)
+def bld(p, q):
+    '''Compute the Buzz Lightyear (Billy-Leo) Divergence.'''
+    p, q = flatten(p), flatten(q)
+    return max(abs(p * np.nan_to_num(np.log(p / q))))
+
+
 def directional_emd(direction, d1, d2):
     '''Compute the EMD between two repertoires for a given direction.
 
