@@ -271,7 +271,6 @@ def small_phi_measure(direction, d1, d2):
     else:
         dist = measures[config.MEASURE](d1, d2)
 
-    # TODO do we actually need to round here?
     return round(dist, config.PRECISION)
 
 
