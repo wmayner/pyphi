@@ -71,8 +71,8 @@ class MeasureRegistry(Mapping):
             return self.store[name]
         except KeyError:
             raise KeyError(
-                'Measure "{}" not found. Current registered PyPhi measures '
-                'are {}'.format(name, self.all()))
+                'Measure "{}" not found. Try using one of the installed '
+                'measures {} or register your own.'.format(name, self.all()))
 
 
 measures = MeasureRegistry()
@@ -286,7 +286,7 @@ def big_phi_measure(r1, r2):
         float: The distance between ``r1`` and ``r2``.
     '''
     if config.MEASURE in measures.asymmetric():
-        raise ValueError("{} is not supported as a big-phi measure due to its "
-                         "asymmetry.".format(config.MEASURE))
+        raise ValueError('{} is asymmetric and cannot be used as a big-phi '
+                         'measure.'.format(config.MEASURE))
 
     return measures[config.MEASURE](r1, r2)
