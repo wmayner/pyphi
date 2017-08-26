@@ -69,3 +69,35 @@ def test_mp2q():
     a = np.array([[[1]], [[0]]])
     b = np.array([[[0.25]], [[0.75]]])
     assert distance.mp2q(a, b) == 2.7725887222397811
+
+
+def test_MeasureRegistry():
+    registry = distance.MeasureRegistry()
+
+    assert 'DIFF' not in registry
+    assert len(registry) == 0
+
+    @registry.register('DIFF')
+    def difference(a, b):
+        return a - b
+
+    assert 'DIFF' in registry
+    assert len(registry) == 1
+    assert registry['DIFF'] == difference
+
+    with pytest.raises(KeyError):
+        registry['HEIGHT']
+
+
+def test_default_measures():
+    assert set(distance.measures.all()) == set([
+        'EMD',
+        'L1',
+        'KLD',
+        'ENTROPY_DIFFERENCE',
+        'PSQ2',
+        'MP2Q'])
+
+
+def test_default_asymmetric_measures():
+    assert set(distance.measures.asymmetric()) == set(['KLD', 'MP2Q'])

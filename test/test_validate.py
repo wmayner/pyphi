@@ -205,15 +205,6 @@ def test_validate_blackbox_and_coarsegrain():
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
 
-def test_measure():
-    validate.measure(constants.EMD)
-    validate.measure(constants.KLD)
-    validate.measure(constants.L1)
-
-    with pytest.raises(ValueError):
-        validate.measure('emd')
-
-
 def test_validate_partition_type():
     validate.partition_type('BI')
     validate.partition_type('TRI')

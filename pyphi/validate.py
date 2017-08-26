@@ -257,14 +257,6 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain):
                 'the same macro-element of the coarse-graining')
 
 
-def measure(value):
-    '''Validate a distance measure.'''
-    if value not in constants.MEASURES:
-        raise ValueError(
-            "Invalid value `{}` for `config.MEASURE`. "
-            "Choose one of {}".format(value, constants.MEASURES))
-
-
 def partition_type(value):
     '''Validate a type of partition.'''
     options = ['BI', 'TRI', 'ALL']
