@@ -117,26 +117,26 @@ def _hamming_matrix(N):
 
 @constants.joblib_memory.cache
 def _compute_hamming_matrix(N):
-    '''
-    Compute and store a Hamming matrix for |N| nodes.
+    '''Compute and store a Hamming matrix for |N| nodes.
 
-    Hamming matrices have the following sizes:
+    Hamming matrices have the following sizes::
 
-    n   MBs
-    ==  ===
-    9   2
-    10  8
-    11  32
-    12  128
-    13  512
+        N   MBs
+        ==  ===
+        9   2
+        10  8
+        11  32
+        12  128
+        13  512
 
     Given these sizes and the fact that large matrices are needed infrequently,
     we store computed matrices using the Joblib filesystem cache instead of
     adding computed matrices to the ``_hamming_matrices`` global and clogging
     up memory.
 
-    This function is only called when N > _NUM_PRECOMPUTED_HAMMING_MATRICES.
-    Don't call this function directly; use :func:`_hamming_matrix` instead.
+    This function is only called when |N| >
+    ``_NUM_PRECOMPUTED_HAMMING_MATRICES``. Don't call this function directly;
+    use |_hamming_matrix| instead.
     '''
     possible_states = np.array(list(utils.all_states((N))))
     return cdist(possible_states, possible_states, 'hamming') * N

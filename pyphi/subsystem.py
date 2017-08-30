@@ -314,15 +314,15 @@ class Subsystem:
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
         joint = np.ones(repertoire_shape(purview, self.tpm_size))
-        # The cause repertoire is the Kroneker product of the cause repertoires
-        # of the individual nodes.
+        # The cause repertoire is the product of the cause repertoires of the
+        # individual nodes.
         joint *= functools.reduce(
             np.multiply, [self._single_node_cause_repertoire(m, purview)
                           for m in mechanism]
         )
         # The resulting joint distribution is over past states, which are rows
         # in the TPM, so the distribution is a column. In a state-by-node TPM
-        # the columns don't sum to 1, so we have to normalize.
+        # the columns don't sum to 1, so we normalize.
         return distribution.normalize(joint)
 
     # TODO extend to nonbinary nodes

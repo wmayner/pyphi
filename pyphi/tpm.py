@@ -53,8 +53,7 @@ def expand_tpm(tpm):
 
 
 def marginalize_out(indices, tpm):
-    '''
-    Marginalize out a node from a TPM.
+    '''Marginalize out a node from a TPM.
 
     Args:
         indices (list[int]): The indices of nodes to be marginalized out.
@@ -102,11 +101,9 @@ def infer_edge(tpm, a, b, contexts):
 def infer_cm(tpm):
     '''Infer the connectivity matrix associated with a state-by-node TPM in
     n-dimensional form.'''
-
     network_size = tpm.shape[-1]
     all_contexts = tuple(all_states(network_size - 1))
     cm = np.empty((network_size, network_size), dtype=int)
     for a, b in np.ndindex(cm.shape):
         cm[a][b] = infer_edge(tpm, a, b, all_contexts)
-
     return cm
