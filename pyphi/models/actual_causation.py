@@ -270,10 +270,10 @@ class AcBigMip(cmp.Orderable):
                      self.cut))
 
 
-def _null_ac_bigmip(context, direction):
+def _null_ac_bigmip(context, direction, alpha=0.0):
     '''Returns an |AcBigMip| with zero |big_alpha| and empty constellations.'''
     return AcBigMip(context=context,
                     direction=direction,
-                    alpha=0.0,
+                    alpha=alpha,
                     unpartitioned_account=(),
                     partitioned_account=())

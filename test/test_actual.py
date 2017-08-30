@@ -242,6 +242,18 @@ def test_big_acmip(context):
     assert len(bigmip.partitioned_account) == 2
 
 
+def test_null_ac_bigmip(context):
+    bigmip = actual._null_ac_bigmip(context, Direction.PAST)
+#    assert bigmip.context == context
+    assert bigmip.direction == Direction.PAST
+    assert bigmip.unpartitioned_account == ()
+    assert bigmip.partitioned_account == ()
+    assert bigmip.alpha == 0.0
+
+    bigmip = actual._null_ac_bigmip(context, Direction.PAST, alpha=float('inf'))
+    assert bigmip.alpha == float('inf')
+
+
 def test_causal_nexus(standard):
     nexus = actual.causal_nexus(standard, (0, 0, 1), (1, 1, 0))
     assert nexus.alpha == 2.0

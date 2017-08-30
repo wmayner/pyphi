@@ -566,32 +566,44 @@ def big_acmip(context, direction=None):
         log.info('%s is not strongly/weakly connected; returning null MIP '
                  'immediately.', context)
         return _null_ac_bigmip(context, direction)
-    cuts = _get_cuts(context)
 
     log.debug("Finding unpartitioned account...")
     unpartitioned_account = account(context, direction)
     log.debug("Found unpartitioned account.")
 
     if not unpartitioned_account:
-        # Short-circuit if there are no actions in the unpartitioned
-        # account.
-        result = _null_ac_bigmip(context, direction)
-    else:
-        ac_mip = _null_ac_bigmip(context, direction)
-        ac_mip.alpha = float('inf')
-        for i, cut in enumerate(cuts):
-            new_ac_mip = _evaluate_cut(context, cut, unpartitioned_account,
-                                       direction)
-            log.debug("Finished %s of %s cuts.", i + 1, len(cuts))
-            if new_ac_mip < ac_mip:
-                ac_mip = new_ac_mip
-            # Short-circuit as soon as we find a MIP with effectively 0 phi.
-            if not ac_mip:
-                break
-        result = ac_mip
+        log.info('Empty account; returning null AC MIP immediately.')
+        return _null_ac_bigmip(context, direction)
+
+    cuts = _get_cuts(context)
+    finder = FindBigAcMip(cuts, context, direction, unpartitioned_account)
+    result = finder.run_sequential()
     log.info("Finished calculating big-ac-phi data for %s.", context)
     log.debug("RESULT: \n%s", result)
     return result
+
+
+class FindBigAcMip(compute.parallel.MapReduce):
+    """Computation engine for AC BigMips."""
+    description = 'Evaluating AC cuts'
+
+    def empty_result(self, context, direction, unpartitioned_account):
+        return _null_ac_bigmip(context, direction, alpha=float('inf'))
+
+    def compute(self, cut, context, direction, unpartitioned_account):
+        return _evaluate_cut(context, cut, unpartitioned_account, direction)
+
+    def process_result(self, new_mip, min_mip):
+        # Check a new result against the running minimum
+        if not new_mip:  # alpha == 0
+            self.done = True
+            return new_mip
+
+        elif new_mip < min_mip:
+            return new_mip
+
+        return min_mip
+
 
 # ============================================================================
 # Complexes
