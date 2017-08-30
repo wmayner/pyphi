@@ -394,14 +394,13 @@ def concept_cuts(node_indices):
         yield KCut(partition)
 
 
-def directional_big_mip(subsystem, direction):
+def directional_big_mip(subsystem, direction, unpartitioned_constellation=None):
     """Calculate a concept-style BigMipPast or BigMipFuture."""
 
+    if unpartitioned_constellation is None:
+        unpartitioned_constellation = constellation(subsystem)
+
     c_system = ConceptStyleSystem(subsystem, direction)
-
-    # This is the same as `constellation(subsystem)`
-    unpartitioned_constellation = constellation(c_system)
-
     cuts = concept_cuts(c_system.cut_indices)
 
     # Run the default MIP finder
@@ -445,7 +444,10 @@ class BigMipConceptStyle(cmp.Orderable):
 # TODO: cache
 def big_mip_concept_style(subsystem):
     '''Compute a concept-style Big Mip'''
-    mip_past = directional_big_mip(subsystem, Direction.PAST)
-    mip_future = directional_big_mip(subsystem, Direction.FUTURE)
+    unpartitioned_constellation = constellation(subsystem)
+    mip_past = directional_big_mip(subsystem, Direction.PAST,
+                                   unpartitioned_constellation)
+    mip_future = directional_big_mip(subsystem, Direction.FUTURE,
+                                     unpartitioned_constellation)
 
     return BigMipConceptStyle(mip_past, mip_future, subsystem)
