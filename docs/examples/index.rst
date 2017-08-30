@@ -40,9 +40,15 @@ there is a connection from node |i| to node |j|, and 0 otherwise.
     ...     [1, 1, 0]
     ... ])
 
+We'll also make labels for the network nodes so that PyPhi's output is easier
+to read.
+
+    >>> labels = ('A', 'B', 'C')
+
 Now we construct the network itself with the arguments we just created:
 
-    >>> network = pyphi.Network(tpm, connectivity_matrix=cm)
+    >>> network = pyphi.Network(tpm, connectivity_matrix=cm,
+    ...                         node_labels=labels)
 
 The next step is to define a subsystem for which we want to evaluate |big_phi|.
 To make a subsystem, we need the network that it belongs to, the state of that
@@ -59,6 +65,12 @@ every node in the network in our subsystem:
 
     >>> node_indices = (0, 1, 2)
     >>> subsystem = pyphi.Subsystem(network, state, node_indices)
+
+.. tip::
+    Node labels can be used instead of indices when constructing a |Subsystem|:
+
+        >>> pyphi.Subsystem(network, state, ('B', 'C'))
+        Subsystem(B, C)
 
 Now we use |compute.big_phi| function to compute the |big_phi| of our
 subsystem:
@@ -82,19 +94,6 @@ For instance, we can see that this network has 4 concepts:
 
 See the documentation for |BigMip| and |Concept| for more information on these
 objects.
-
-.. tip::
-    Networks can be constructed with an optional set of textual labels for each
-    node:
-
-        >>> labels = ('A', 'B', 'C')
-        >>> network = pyphi.Network(tpm, cm, node_labels=labels)
-
-    These labels must be unique. We can then use these labels when constructing
-    a |Subsystem|:
-
-        >>> pyphi.Subsystem(network, state, ('B', 'C'))
-        Subsystem(B, C)
 
 .. tip::
     The network and subsystem discussed here are returned by the
