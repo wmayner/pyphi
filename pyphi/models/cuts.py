@@ -22,7 +22,7 @@ class _CutBase:
     @property
     def indices(self):
         '''Return the indices of this cut.'''
-        return NotImplemented
+        raise NotImplementedError
 
     def cut_matrix(self, n):
         '''Return the cut matrix for this cut.
@@ -34,7 +34,7 @@ class _CutBase:
         Args:
            n (int): The size of the network.
         '''
-        return NotImplemented
+        raise NotImplementedError
 
     def apply_cut(self, cm):
         '''Return a modified connectivity matrix with all connections that are
