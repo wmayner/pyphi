@@ -51,12 +51,7 @@ class BigMip(cmp.Orderable):
         return fmt.make_repr(self, _bigmip_attributes)
 
     def __str__(self, constellations=True):
-        return '\n' + '\n'.join([
-            '\u250F' + '\u2501' * 8 + '\u2513',
-            '\u2503 BigMip \u2503',
-            '\u2517' + '\u2501' * 8 + '\u251B',
-            fmt.fmt_big_mip(self, constellations=constellations)
-        ])
+        return fmt.fmt_big_mip(self, constellations=constellations)
 
     def print(self, constellations=True):
         '''Print this ``BigMip``, optionally without constellations.'''

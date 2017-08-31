@@ -280,7 +280,7 @@ def fmt_constellation(c, title=None):
     title = '{} ({} concept{})'.format(
         title, len(c), '' if len(c) == 1 else 's')
 
-    return '\n' + header(title, concepts, HEADER_BAR_1, HEADER_BAR_1)
+    return header(title, concepts, HEADER_BAR_1, HEADER_BAR_1)
 
 
 def fmt_concept(concept):
@@ -369,16 +369,8 @@ def fmt_cut(cut, subsystem=None):
 
 def fmt_big_mip(big_mip, constellations=True):
     '''Format a |BigMip|.'''
-    formatted = (
-        ' {BIG_PHI} = {phi}\n'
-        ' {subsystem}\n'
-        ' {cut}\n'.format(
-            BIG_PHI=BIG_PHI,
-            phi=fmt_number(big_mip.phi),
-            subsystem=big_mip.subsystem,
-            cut=fmt_cut(big_mip.cut, big_mip.subsystem)))
     if constellations:
-        formatted += (
+        body = (
             '{unpartitioned_constellation}'
             '{partitioned_constellation}'.format(
                 unpartitioned_constellation=fmt_constellation(
@@ -387,7 +379,19 @@ def fmt_big_mip(big_mip, constellations=True):
                 partitioned_constellation=fmt_constellation(
                     big_mip.partitioned_constellation,
                     'Partitioned Constellation')))
-    return formatted
+        center_header = True
+    else:
+        body = ''
+        center_header = False
+
+    title = 'Big Mip: {BIG_PHI} = {phi}'.format(
+        BIG_PHI=BIG_PHI, phi=fmt_number(big_mip.phi))
+
+    cut = fmt_cut(big_mip.cut, big_mip.subsystem)
+
+    body = header(str(big_mip.subsystem), body, center=center_header)
+    body = header(fmt_cut(big_mip.cut), body, center=center_header)
+    return box(header(title, body, center=center_header))
 
 
 def fmt_repertoire(r):
