@@ -244,7 +244,7 @@ def test_big_acmip(context):
 
 def test_null_ac_bigmip(context):
     bigmip = actual._null_ac_bigmip(context, Direction.PAST)
-#    assert bigmip.context == context
+    assert bigmip.context == context
     assert bigmip.direction == Direction.PAST
     assert bigmip.unpartitioned_account == ()
     assert bigmip.partitioned_account == ()

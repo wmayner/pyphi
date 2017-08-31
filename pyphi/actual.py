@@ -122,7 +122,8 @@ class Context:
         return repr(self)
 
     def __eq__(self, other):
-        return (self.cause_indices == self.effect_indices
+        return (self.cause_indices == other.cause_indices
+                and self.effect_indices == other.effect_indices
                 and self.before_state == other.before_state
                 and self.after_state == other.after_state
                 and self.network == other.network
