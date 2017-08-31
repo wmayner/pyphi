@@ -166,6 +166,8 @@ def test_is_full():
     assert not connectivity.is_full(cm, (0,), (0, 1, 2))
     assert not connectivity.is_full(cm, (2,), (2,))
     assert not connectivity.is_full(cm, (0, 1), (1, 2))
+    assert connectivity.is_full(cm, (), (0, 1, 2))
+    assert connectivity.is_full(cm, (0,), ())
     assert connectivity.is_full(cm, (0, 1), (0, 2))
     assert connectivity.is_full(cm, (1, 2), (1, 2))
     assert connectivity.is_full(cm, (0, 1, 2), (0, 1, 2))
