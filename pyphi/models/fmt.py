@@ -99,6 +99,12 @@ def indent(lines, amount=2, char=' '):
     return padding + ('\n' + padding).join(lines.split('\n'))
 
 
+def margin(text, amount=2):
+    '''Add a margin to both ends of each line in the string.'''
+    lines = str(text).split('\n')
+    return '\n'.join('  {}  '.format(l) for l in lines)
+
+
 LINES_FORMAT_STR = VERTICAL_SIDE + ' {line:<{width}} ' + VERTICAL_SIDE
 
 
@@ -276,7 +282,7 @@ def fmt_constellation(c, title=None):
     if title is None:
         title = 'Constellation'
 
-    concepts = '\n'.join(indent(x) for x in c) + '\n'
+    concepts = '\n'.join(margin(x) for x in c) + '\n'
     title = '{} ({} concept{})'.format(
         title, len(c), '' if len(c) == 1 else 's')
 
