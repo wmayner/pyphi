@@ -33,6 +33,7 @@ HEADER_BAR_3        = '\u254D'
 DOTTED_HEADER       = '\u2574'
 CUT_SYMBOL          = '\u2501' * 2 + '/ /' + '\u2501' * 2 + '\u25B6'
 EMPTY_SET           = '\u2205'
+MULTIPLY            = '\u2715'
 
 NICE_DENOMINATORS   = list(range(16)) + [16, 32, 64, 128]
 
@@ -255,7 +256,7 @@ def fmt_bipartition(partition, subsystem=None):
     parts = [fmt_part(part, subsystem).split('\n') for part in partition]
 
     times = ('   ',
-             ' \u2715 ',
+             ' {} '.format(MULTIPLY),
              '   ')
     breaks = ('\n', '\n', '')  # No newline at the end of string
     between = [times] * (len(parts) - 1) + [breaks]
