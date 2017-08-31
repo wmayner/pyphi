@@ -11,33 +11,32 @@ from itertools import chain
 
 from .. import config, constants, utils
 
-# repr verbosity levels
+# pylint: disble=bad-whitespace
 
-LOW = 0
+# REPR_VERBOSITY levels
+LOW    = 0
 MEDIUM = 1
-HIGH = 2
+HIGH   = 2
 
-NICE_DENOMINATORS = list(range(16)) + [16, 32, 64, 128]
-
-SMALL_PHI = '\u03C6'
-BIG_PHI = '\u03A6'
-
-TOP_LEFT_CORNER = '\u250C'
-TOP_RIGHT_CORNER = '\u2510'
-BOTTOM_LEFT_CORNER = '\u2514'
+# Unicode symbols
+SMALL_PHI           = '\u03C6'
+BIG_PHI             = '\u03A6'
+TOP_LEFT_CORNER     = '\u250C'
+TOP_RIGHT_CORNER    = '\u2510'
+BOTTOM_LEFT_CORNER  = '\u2514'
 BOTTOM_RIGHT_CORNER = '\u2518'
-HORIZONTAL_BAR = '\u2500'
-VERTICAL_SIDE = '\u2502'
+HORIZONTAL_BAR      = '\u2500'
+VERTICAL_SIDE       = '\u2502'
+HEADER_BAR_1        = '\u2550'
+HEADER_BAR_2        = '\u2501'
+HEADER_BAR_3        = '\u254D'
+DOTTED_HEADER       = '\u2574'
+CUT_SYMBOL          = '\u2501' * 2 + '/ /' + '\u2501' * 2 + '\u25B6'
+EMPTY_SET           = '\u2205'
 
-HEADER_BAR_1 = '\u2550'
-HEADER_BAR_2 = '\u2501'
-HEADER_BAR_3 = '\u254D'
+NICE_DENOMINATORS   = list(range(16)) + [16, 32, 64, 128]
 
-DOTTED_HEADER = '\u2574'
-
-CUT_SYMBOL = '\u2501' * 2 + '/ /' + '\u2501' * 2 + '\u25B6'
-
-EMPTY_SET = '\u2205'
+# pylint: enable=bad-whitespace
 
 
 def make_repr(self, attrs):
