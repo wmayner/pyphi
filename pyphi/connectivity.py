@@ -13,11 +13,8 @@ from scipy.sparse.csgraph import connected_components
 def apply_boundary_conditions_to_cm(external_indices, cm):
     '''Remove connections to or from external nodes.'''
     cm = cm.copy()
-    for i in external_indices:
-        # Zero-out row
-        cm[i] = 0
-        # Zero-out column
-        cm[:, i] = 0
+    cm[external_indices, :] = 0  # Zero-out row
+    cm[:, external_indices] = 0  # Zero-out columnt
     return cm
 
 
