@@ -10,7 +10,7 @@ import logging
 from time import time
 
 from .. import config, connectivity, exceptions, memory, utils, validate
-from ..models import BigMip, Cut, _null_bigmip
+from ..models import fmt, BigMip, Cut, _null_bigmip
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem
 from .concept import constellation
@@ -64,7 +64,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
 # pylint: disable=unused-argument,arguments-differ
 class FindMip(MapReduce):
     '''Computation engine for finding the minimal |BigMip|.'''
-    description = 'Evaluating \u03D5 cuts'
+    description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
 
     def empty_result(self, subsystem, unpartitioned_constellation):
         '''Begin with a mip with infinite |big_phi|; all actual mips will have
