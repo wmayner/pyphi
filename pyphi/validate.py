@@ -33,8 +33,8 @@ def tpm(tpm, check_independence=True):
         * 2-dimensional state-by-node form, or
         * n-dimensional state-by-node form.
     '''
-    see_tpm_docs = ('See documentation for pyphi.Network for more information'
-                    'on TPM formats.')
+    see_tpm_docs = ('See documentation for `pyphi.Network` for more '
+                    'information on TPM formats.')
     # Cast to np.array.
     tpm = np.array(tpm)
     # Get the number of nodes from the state-by-node TPM.
