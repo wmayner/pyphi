@@ -57,8 +57,8 @@ def tpm(tpm, check_independence=True):
                     tpm.shape, ([2] * N) + [N], N, see_tpm_docs))
     else:
         raise ValueError(
-            'Invalid state-by-node TPM: TPM must be in either 2-dimensional '
-            'or n-dimensional form. {}'.format(see_tpm_docs))
+            'Invalid TPM: Must be either 2-dimensional or n-dimensional. '
+            '{}'.format(see_tpm_docs))
     return True
 
 
