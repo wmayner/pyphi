@@ -66,21 +66,17 @@ def conditionally_independent(tpm):
     '''Validate that the TPM is conditionally independent.'''
     if not config.VALIDATE_CONDITIONAL_INDEPENDENCE:
         return True
-
     tpm = np.array(tpm)
-    if tpm.ndim > 1:
-        if is_state_by_state(tpm):
-            there_and_back_again = convert.state_by_node2state_by_state(
-                convert.state_by_state2state_by_node(tpm))
-        else:
-            there_and_back_again = convert.state_by_state2state_by_node(
-                convert.state_by_node2state_by_state(tpm))
-
-        if np.any((tpm - there_and_back_again) >= EPSILON):
-            raise exceptions.ConditionallyDependentError(
-                'TPM is not conditionally independent. See the conditional '
-                'independence example in the documentation for more info.')
-
+    if is_state_by_state(tpm):
+        there_and_back_again = convert.state_by_node2state_by_state(
+            convert.state_by_state2state_by_node(tpm))
+    else:
+        there_and_back_again = convert.state_by_state2state_by_node(
+            convert.state_by_node2state_by_state(tpm))
+    if np.any((tpm - there_and_back_again) >= EPSILON):
+        raise exceptions.ConditionallyDependentError(
+            'TPM is not conditionally independent. See the conditional '
+            'independence example in the documentation for more info.')
     return True
 
 
