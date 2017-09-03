@@ -1,15 +1,209 @@
+@import url(//fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,700);
+/* Layout */
+.wy-nav-content-wrap {
+    background: #fff;
+}
+@media screen and (min-width: 1400px) {
+    .wy-nav-content-wrap {
+        background: #f3f4f4;
+    }
+}
+.wy-nav-content {
+    max-width: 900px;
+    background: #fff;
+}
+
+/* Typography */
+body,
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', 'Helvetica Neue', sans-serif;
+}
+body {
+  font-size: 16px;
+}
+body p {
+  line-height: 1.5;
+}
+
+/* Headers */
+h2 {
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 10px;
+    margin-top: 30px;
+}
+
+/* Paragraphs */
+p {
+    margin-bottom: 16px;
+}
+
+/* Code */
+pre,
+code,
+tt,
+.highlight
+.docutils.literal span.pre,
+.rst-content pre,
+.rst-content tt,
+.rst-content code {
+    font-family: 'Roboto Mono', 'Monaco', monospace;
+    font-size: 85%;
+    border: none;
+    border-radius: 3px;
+    background: rgba(27, 31, 35, 0.05);
+    font-weight: normal;
+}
+.rst-content dl:not(.docutils) tt.descclassname,
+.rst-content dl:not(.docutils) tt.descname,
+.rst-content dl:not(.docutils) code.descname,
+.rst-content dl:not(.docutils) tt.descclassname,
+.rst-content dl:not(.docutils) code.descclassname 
+.rst-content dl:not(.docutils) tt, 
+.rst-content dl:not(.docutils) tt, 
+.rst-content dl:not(.docutils) code
+{
+  font-weight: normal;
+}
+
+/* Code literals */
+.rst-content code.literal {
+    font-weight: normal;
+    color: inherit;
+    padding-top: 0.15em;
+    padding-right: 0.5em;
+    padding-bottom: 0.15em;
+    padding-left: 0.5em;
+}
+
+/* Code blocks */
+div[class^='highlight'] pre {
+    font-family: 'Roboto Mono', 'Monaco', monospace;
+    font-size: 90%;
+    background: none;
+    padding: 16px;
+}
+
+/* Syntax-highlighted blocks */
+div[class^='highlight'] {
+    border: none;
+    border-radius: 3px;
+    background: rgba(27, 31, 35, 0.05);
+}
+/* Module headers */
+h1 > code.xref.py.py-mod.docutils.literal {
+    background: none;
+    padding-left: 0;
+    margin-left: 0;
+    font-size: 100%;
+}
+code.xref.py.docutils.literal {
+  font-weight: normal;
+}
+
+/* Lists with code items */
+ul.simple > li > a.reference.internal > code.literal {
+    line-height: 2.25;
+}
+
+/* Class/function headers */
+.rst-content dl:not(.docutils) dt {
+    border-top: none;
+    border-radius: 3px;
+    border-left: solid 3px #6ab0de;
+    font-weight: normal;
+    font-size: 100%;
+}
+.rst-content dl.attribute:not(.docutils) dt,
+.rst-content dl.method:not(.docutils) dt {
+    font-size: 95%;
+}
+
+/* Warnings, notes, etc. */
+div.admonition {
+    border-radius: 3px;
+}
+p.first.admonition-title {
+    border-radius: 3px 3px 0 0;
+}
+
+ /* Code links */
+a.reference.internal > code.docutils.literal {
+    color: inherit;
+}
+a.reference.internal > .docutils.literal:hover {
+    text-decoration: underline;
+}
+
+/* Breadcrumbs */
+ul.wy-breadcrumbs > li > code.docutils.literal {
+    font-size: 100%;
+    background: none;
+}
+
+/* Navbar */
+.wy-menu.wy-menu-vertical a.reference.internal > .docutils.literal {
+    font-size: 100%;
+    margin: 5px;
+}
+.wy-menu-vertical li.current > a {
+    border: none;
+}
 .wy-side-nav-search > a img.logo {
     background-image: url(https://github.com/wmayner/pyphi/raw/develop/docs/_static/phi_144x144.png);
     background-size: 144px 144px;
     height: 144px;
     width: 144px;
 }
-
-/* Retina-specific */
 @media 
 (-webkit-min-device-pixel-ratio: 2), 
 (min-resolution: 192dpi) { 
+    /* Retina-specific stuff here */
     .wy-side-nav-search > a img.logo {
         background-image: url(https://github.com/wmayner/pyphi/raw/develop/docs/_static/phi_288x288.png);
     }
+}
+
+/* Napoleon style fixes (parameters, return type, etc.) */
+.wy-table td, .rst-content table.docutils td, .rst-content table.field-list td,
+.wy-table th, .rst-content table.docutils th, .rst-content table.field-list th {
+    font-size: 100%
+}
+.rst-content table.field-list th {
+    padding-top: 5px;
+}
+.rst-content table.field-list td>strong {
+    margin-top: 0;
+}
+.rst-content dt > em {
+    font-size: 100%;
+}
+.rst-content dt > .sig-paren {
+    font-family: 'Roboto Mono', 'Monaco', monospace;
+    font-size: 100%;
+}
+table.field-list td.field-body > p {
+    line-height: 1.5;
+}
+table.field-list td.field-body {
+    padding-top: 3px;
+}
+.section ul > li {
+    line-height: 1.5;
+    margin-top: 5px;
+}
+
+/* Table of contents */
+.toctree-wrapper ul > li {
+    line-height: 1.5;
+}
+
+.toctree-wrapper ul > li > a.reference.internal > code.literal {
+    line-height: 2.25;
+}
+
+/* Search result highlighting */
+.rst-content .highlighted {
+    background: yellow;
+    font-weight: inherit;
+    padding: 0;
 }
