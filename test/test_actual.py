@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyphi import Subsystem, actual, examples, models
+from pyphi import config, Subsystem, actual, examples, models
 from pyphi.constants import Direction
 
 
@@ -105,6 +105,9 @@ def test_acmip_ordering():
 
     with pytest.raises(TypeError):
         acmip(direction=Direction.PAST) < acmip(direction=Direction.FUTURE)
+
+    with config.override(PICK_SMALLEST_PURVIEW=True):
+        assert acmip(purview=(1,)) > acmip(purview=(0, 2))
 
 
 def test_acmip_hash():

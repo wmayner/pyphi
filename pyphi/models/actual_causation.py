@@ -54,6 +54,9 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
     unorderable_unless_eq = ['direction']
 
     def order_by(self):
+        if config.PICK_SMALLEST_PURVIEW:
+            return [self.alpha, len(self.mechanism), -len(self.purview)]
+
         return [self.alpha, len(self.mechanism), len(self.purview)]
 
     def __eq__(self, other):
