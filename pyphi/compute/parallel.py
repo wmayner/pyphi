@@ -217,6 +217,11 @@ class MapReduce:
             log.debug('Terminating worker process %s', process)
             process.terminate()
 
+        # Close all queues
+        self.log_queue.close()
+        self.in_queue.close()
+        self.out_queue.close()
+
     def run_parallel(self):
         '''Perform the computation in parallel, reading results from the output
         queue and passing them to ``process_result``.
