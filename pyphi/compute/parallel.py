@@ -206,6 +206,11 @@ class MapReduce:
         self.log_queue.put(POISON_PILL)
         self.log_thread.join()
 
+        # Close all queues
+        self.log_queue.close()
+        self.in_queue.close()
+        self.out_queue.close()
+
         # Remove the progress bar
         self.progress.close()
 
@@ -216,11 +221,6 @@ class MapReduce:
         for process in self.processes:
             log.debug('Terminating worker process %s', process)
             process.terminate()
-
-        # Close all queues
-        self.log_queue.close()
-        self.in_queue.close()
-        self.out_queue.close()
 
     def run_parallel(self):
         '''Perform the computation in parallel, reading results from the output
