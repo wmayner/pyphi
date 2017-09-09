@@ -544,7 +544,7 @@ def configure_logging():
         'disable_existing_loggers': False,
         'formatters': {
             'standard': {
-                'format': '%(asctime)s [%(name)s] %(levelname)s'
+                'format': '%(asctime)s [%(name)s] %(levelname)s '
                           '%(processName)s: %(message)s'
             }
         },
