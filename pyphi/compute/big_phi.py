@@ -72,7 +72,8 @@ class FindMip(MapReduce):
         less.'''
         return _null_bigmip(subsystem, phi=float('inf'))
 
-    def compute(self, cut, subsystem, unpartitioned_constellation):
+    @staticmethod
+    def compute(cut, subsystem, unpartitioned_constellation):
         '''Evaluate a cut.'''
         return evaluate_cut(subsystem, cut, unpartitioned_constellation)
 
@@ -290,7 +291,8 @@ class FindComplexes(MapReduce):
     def empty_result(self):
         return []
 
-    def compute(self, subsystem):
+    @staticmethod
+    def compute(subsystem):
         return big_mip(subsystem)
 
     def process_result(self, new_big_mip, complexes):

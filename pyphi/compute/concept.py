@@ -57,7 +57,8 @@ class ComputeConstellation(parallel.MapReduce):
     def empty_result(self, *args):
         return []
 
-    def compute(self, mechanism, subsystem, purviews, past_purviews,
+    @staticmethod
+    def compute(mechanism, subsystem, purviews, past_purviews,
                 future_purviews):
         '''Compute a concept for a mechanism, in this subsystem with the
         provided purviews.'''

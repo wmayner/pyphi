@@ -586,7 +586,8 @@ class FindBigAcMip(compute.parallel.MapReduce):
     def empty_result(self, context, direction, unpartitioned_account):
         return _null_ac_bigmip(context, direction, alpha=float('inf'))
 
-    def compute(self, cut, context, direction, unpartitioned_account):
+    @staticmethod
+    def compute(cut, context, direction, unpartitioned_account):
         return _evaluate_cut(context, cut, unpartitioned_account, direction)
 
     def process_result(self, new_mip, min_mip):
