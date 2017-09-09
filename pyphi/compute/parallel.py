@@ -106,7 +106,7 @@ class MapReduce:
 
         # Initialize a progress bar
         # Forked worker processes can't show progress bars.
-        disable = self.forked or not config.PROGRESS_BARS
+        disable = MapReduce._forked or not config.PROGRESS_BARS
         self.progress = ProgressBar(total=len(self.iterable), leave=False,
                                     disable=disable, desc=self.description)
 
@@ -139,16 +139,8 @@ class MapReduce:
         '''
         raise NotImplementedError
 
+    #: Is this process a subprocess in a parallel computation?
     _forked = False
-
-    @property
-    def forked(self):
-        '''Is this a subprocess of another MapReduce operation?'''
-        return MapReduce._forked
-
-    @forked.setter
-    def forked(self, value):  # pylint: disable=no-self-use
-        MapReduce._forked = value
 
     @staticmethod
     def worker(compute, in_queue, out_queue, log_queue, *context):
