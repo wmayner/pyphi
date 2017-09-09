@@ -25,7 +25,7 @@ PARALLEL_CONCEPT_EVALUATION: false
 # Controls whether cuts are evaluated in parallel, which requires more
 # memory. If cuts are evaluated sequentially, only two BigMips need to be
 # in memory at a time.
-PARALLEL_CUT_EVALUATION: false
+PARALLEL_CUT_EVALUATION: true
 # Controls whether complexes are evaluated in parallel.
 PARALLEL_COMPLEX_EVALUATION: false
 
