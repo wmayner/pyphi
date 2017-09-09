@@ -598,3 +598,11 @@ def test_big_mip_bipartitions():
                   models.Cut((1, 2, 4), (3,)),
                   models.Cut((1, 2, 3), (4,))]
         assert big_mip_bipartitions((1, 2, 3, 4)) == answer
+
+
+def test_system_cut_styles(s, flushcache, restore_fs_cache):
+    with config.override(SYSTEM_CUTS='3.0_STYLE'):
+        assert compute.big_phi(s) == 2.3125
+
+    with config.override(SYSTEM_CUTS='CONCEPT_STYLE'):
+        assert compute.big_phi(s) == 0.6875

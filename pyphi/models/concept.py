@@ -221,8 +221,6 @@ class Mice(cmp.Orderable):
     def to_json(self):
         return {'mip': self.mip}
 
-    # TODO: benchmark and memoize?
-    # TODO: pass in subsystem indices only?
     def _relevant_connections(self, subsystem):
         '''Identify connections that “matter” to this concept.
 
@@ -249,7 +247,7 @@ class Mice(cmp.Orderable):
 
         Returns:
             np.ndarray: A |N x N| matrix of connections, where |N| is the size
-            of the subsystem.
+            of the network.
 
         Raises:
             ValueError: If ``direction`` is invalid.
@@ -261,10 +259,8 @@ class Mice(cmp.Orderable):
         else:
             validate.direction(self.direction)
 
-        cm = connectivity.relevant_connections(subsystem.network.size,
-                                               _from, to)
-        # Submatrix for this subsystem's nodes
-        return cm[np.ix_(subsystem.node_indices, subsystem.node_indices)]
+        return connectivity.relevant_connections(subsystem.network.size,
+                                                 _from, to)
 
     # TODO: pass in `cut` instead? We can infer
     # subsystem indices from the cut itself, validate, and check.

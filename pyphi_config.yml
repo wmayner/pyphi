@@ -109,3 +109,5 @@ PARTITION_TYPE: "BI"
 PICK_SMALLEST_PURVIEW: false
 # Use the difference in sum of small phi for the constellation distance
 USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE: false
+# The type of system cuts to use
+SYSTEM_CUTS: "3.0_STYLE"

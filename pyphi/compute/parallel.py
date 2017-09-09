@@ -206,6 +206,11 @@ class MapReduce:
         self.log_queue.put(POISON_PILL)
         self.log_thread.join()
 
+        # Close all queues
+        self.log_queue.close()
+        self.in_queue.close()
+        self.out_queue.close()
+
         # Remove the progress bar
         self.progress.close()
 
