@@ -62,7 +62,7 @@ These settings control the algorithms PyPhi uses.
   ``pyphi.distance.measures.register`` decorator; see :mod:`~pyphi.distance`
   for examples. A full list of currently installed measures is available by
   calling ``print(pyphi.distance.measures.all())``. Note that some measures
-  cannot be used for calculating big-phi because they are asymmetric.
+  cannot be used for calculating |big_phi| because they are asymmetric.
 
     >>> defaults['MEASURE']
     'EMD'
@@ -127,8 +127,8 @@ These settings control the algorithms PyPhi uses.
 
 - ``SYSTEM_CUTS``:
   If set to ``'3.0_STYLE'``, then traditional IIT 3.0 cuts will be used when
-  computing big-phi. If set to ``'CONCEPT_STYLE'``, then experimental concept-
-  style system cuts will be used instead.
+  computing |big_phi|. If set to ``'CONCEPT_STYLE'``, then experimental
+  concept- style system cuts will be used instead.
 
     >>> defaults['SYSTEM_CUTS']
     '3.0_STYLE'
