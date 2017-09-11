@@ -14,7 +14,7 @@ To be properly serialized and deserialized, PyPhi objects must implement a
 values. These attributes should be the names of arguments passed to the object
 constructor. If the constructor takes additional, fewer, or different
 arguments, the object needs to implement a custom ``classmethod`` called
-``from_json`` taht takes a Python dictionary as an argument and returns a PyPhi
+``from_json`` that takes a Python dictionary as an argument and returns a PyPhi
 object. For example::
 
     class Phi:
