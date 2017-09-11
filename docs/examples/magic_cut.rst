@@ -42,7 +42,7 @@ There two equalivalent cuts for this system; for concreteness we sever all
 connections from elements |A| and |B| to |C|.
 
     >>> cut = pyphi.models.Cut(from_nodes=(0, 1), to_nodes=(2,))
-    >>> cut_subsystem = pyphi.Subsystem(network, state, range(network.size), 
+    >>> cut_subsystem = pyphi.Subsystem(network, state, range(network.size),
     ...                                 cut=cut)
     >>> cut_constellation = pyphi.compute.constellation(cut_subsystem)
 
@@ -80,7 +80,7 @@ constellation.
     0.749999
     >>> subsystem.effect_info(ABC, ABC)
     1.875
- 
+
 The mechanism has cause and effect power over the system, so it must be that
 this power is reducible.
 
@@ -90,7 +90,7 @@ this power is reducible.
     >>> mice_effect = subsystem.core_effect(ABC)
     >>> mice_effect.phi
     0.625
- 
+
 The reason ABC does not exist as a concept is that its cause is reducible.
 Looking at the TPM of the system, there are no possible states with two of the
 elements set to off. This means that knowing two elements are off is enough to
@@ -189,9 +189,9 @@ The unpartitioned constellation has mechanisms |A|, |B| and |AB| with
 :math:`\sum\varphi = 0.595239`.
 
     >>> mip.partitioned_constellation.labeled_mechanisms
-    [['A', 'B'], ['A'], ['B']]
+    [['A'], ['B'], ['A', 'B']]
     >>> mip.partitioned_constellation.phis
-    [0.214286, 0.25, 0.166667]
+    [0.25, 0.166667, 0.214286]
     >>> print(sum(_))
     0.630953
 

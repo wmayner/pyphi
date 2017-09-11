@@ -110,6 +110,7 @@ def constellation(subsystem, mechanisms=False, purviews=False,
 
     engine = ComputeConstellation(mechanisms, subsystem, purviews,
                                   past_purviews, future_purviews)
+
     return models.Constellation(engine.run(parallel or
                                            config.PARALLEL_CONCEPT_EVALUATION))
 

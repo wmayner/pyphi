@@ -453,6 +453,10 @@ class Constellation(tuple):
     '''
     # TODO: compare constellations using set equality
 
+    def __new__(cls, concepts=()):
+        '''Normalize the order of concepts in the constellation.'''
+        return super().__new__(cls, sorted(concepts, key=_concept_sort_key))
+
     def __repr__(self):
         if config.REPR_VERBOSITY > 0:
             return self.__str__()
@@ -493,6 +497,9 @@ def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
 
 
+# Maintained for backwards compatibility; constellations are always
+# ordered.
+# TODO: remove this.
 def normalize_constellation(constellation):
     '''Deterministically reorder the concepts in a constellation.
 
@@ -503,4 +510,4 @@ def normalize_constellation(constellation):
         Constellation: The constellation, ordered lexicographically by
         mechanism.
     '''
-    return Constellation(sorted(constellation, key=_concept_sort_key))
+    return Constellation(constellation)

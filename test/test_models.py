@@ -492,7 +492,7 @@ def test_concept_emd_eq(s, subsys_n1n2):
 # {{{
 
 def test_constellation_is_still_a_tuple():
-    c = models.Constellation([models.Concept()])
+    c = models.Constellation([concept()])
     assert len(c) == 1
 
 
@@ -508,6 +508,14 @@ def test_normalize_constellation():
     c3 = models.Concept(mechanism=(1, 3))
     c4 = models.Concept(mechanism=(1, 2, 3))
     assert (c1, c2, c3, c4) == models.normalize_constellation((c3, c4, c2, c1))
+
+
+def test_constellations_are_always_normalized():
+    c1 = models.Concept(mechanism=(1,))
+    c2 = models.Concept(mechanism=(2,))
+    c3 = models.Concept(mechanism=(1, 3))
+    c4 = models.Concept(mechanism=(1, 2, 3))
+    assert (c1, c2, c3, c4) == models.Constellation((c3, c4, c2, c1))
 
 # }}}
 
