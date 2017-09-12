@@ -13,6 +13,7 @@ import logging
 import multiprocessing
 import sys
 import threading
+from itertools import islice
 
 from tblib import Traceback
 
@@ -66,6 +67,7 @@ class ExceptionWrapper:
 
 
 POISON_PILL = None
+Q_MAX_SIZE =  multiprocessing.synchronize.SEM_VALUE_MAX
 
 
 class MapReduce:
@@ -169,30 +171,27 @@ class MapReduce:
         '''
         self.number_of_processes = get_num_processes()
 
-        self.in_queue = multiprocessing.Queue()
+        self.in_queue = multiprocessing.Queue(maxsize=Q_MAX_SIZE)
         self.out_queue = multiprocessing.Queue()
         self.log_queue = multiprocessing.Queue()
-
-        # Load all objects to perform the computation over
-        for obj in self.iterable:
-            self.in_queue.put(obj)
-
-        # pylint: disable=unused-variable
-        for i in range(self.number_of_processes):
-            self.in_queue.put(POISON_PILL)
-        # pylint: enable=unused-variable
 
         args = (self.compute, self.in_queue, self.out_queue, self.log_queue) + self.context
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
             for i in range(self.number_of_processes)]
 
-        self.log_thread = LogThread(self.log_queue)
-
         for process in self.processes:
             process.start()
 
+        self.log_thread = LogThread(self.log_queue)
         self.log_thread.start()
+
+        # Load the input queue to capacity. Overfilling causes a race
+        # condition because `queue.put` blocks until there's space.
+        # Add a poison pill to shutdown each process.
+        self.tasks = iter(self.iterable + [POISON_PILL] * self.number_of_processes)
+        for obj in islice(self.tasks, Q_MAX_SIZE):
+            self.in_queue.put(obj)
 
     def finish_parallel(self):
         '''Terminate all processes and the log thread.'''
@@ -226,6 +225,13 @@ class MapReduce:
 
         while not self.done:
             r = self.out_queue.get()
+
+            # Add another job to the queue, if possible.
+            try:
+                self.in_queue.put(next(self.tasks))
+            except StopIteration:
+                pass
+
             if r is POISON_PILL:
                 self.number_of_processes -= 1
                 if self.number_of_processes == 0:
@@ -236,6 +242,9 @@ class MapReduce:
             else:
                 result = self.process_result(r, result)
                 self.progress.update(1)
+
+        if self.number_of_processes > 0:
+            log.debug('Shortcircuit: terminating workers early')
 
         self.finish_parallel()
 
