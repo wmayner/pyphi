@@ -13,7 +13,7 @@ import logging
 import multiprocessing
 import sys
 import threading
-from itertools import islice
+from itertools import chain, islice
 
 from tblib import Traceback
 
@@ -102,15 +102,10 @@ class MapReduce:
     description = ''
 
     def __init__(self, iterable, *context):
-        self.iterable = list(iterable)
+        self.iterable = iterable
         self.context = context
         self.done = False
-
-        # Initialize a progress bar
-        # Forked worker processes can't show progress bars.
-        disable = MapReduce._forked or not config.PROGRESS_BARS
-        self.progress = ProgressBar(total=len(self.iterable), leave=False,
-                                    disable=disable, desc=self.description)
+        self.progress = self.init_progress_bar()
 
         # Attributes used by parallel computations
         self.in_queue = None
@@ -144,6 +139,23 @@ class MapReduce:
 
     #: Is this process a subprocess in a parallel computation?
     _forked = False
+
+    # TODO: pass size of iterable alongside?
+    def init_progress_bar(self):
+        '''Initialize and return a progress bar.'''
+        # Forked worker processes can't show progress bars.
+        disable = MapReduce._forked or not config.PROGRESS_BARS
+
+        # Don't materialize iterable unless we have to: huge iterables
+        # (e.g. of `KCuts`) eat memory.
+        if disable:
+            total = None
+        else:
+            self.iterable = list(self.iterable)
+            total = len(self.iterable)
+
+        return ProgressBar(total=total, disable=disable, leave=False,
+                           desc=self.description)
 
     @staticmethod
     def worker(compute, in_queue, out_queue, log_queue, *context):
@@ -198,7 +210,8 @@ class MapReduce:
         full, so further tasks are enqueued as results are returned.
         '''
         # Add a poison pill to shutdown each process.
-        self.tasks = iter(self.iterable + [POISON_PILL] * self.num_processes)
+        poison = [POISON_PILL] * self.num_processes
+        self.tasks = chain(self.iterable, poison)
         for obj in islice(self.tasks, Q_MAX_SIZE):
             self.in_queue.put(obj)
 
