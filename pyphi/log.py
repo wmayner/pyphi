@@ -16,6 +16,10 @@ class ProgressBar(tqdm.tqdm):
 
     _lock = threading.RLock()
 
+    def __new__(cls, *args, **kwargs):
+        with cls._lock:
+            return super().__new__(cls, *args, **kwargs)
+
     def __init__(self, *args, **kwargs):
         with self._lock:
             super().__init__(*args, **kwargs)
