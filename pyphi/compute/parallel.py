@@ -153,10 +153,7 @@ class MapReduce:
 
             configure_worker_logging(log_queue)
 
-            while True:
-                obj = in_queue.get()
-                if obj is POISON_PILL:
-                    break
+            for obj in iter(in_queue.get, POISON_PILL):
                 out_queue.put(compute(obj, *context))
 
             out_queue.put(POISON_PILL)
