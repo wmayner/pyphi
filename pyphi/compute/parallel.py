@@ -172,6 +172,11 @@ class MapReduce:
         self.number_of_processes = get_num_processes()
 
         self.in_queue = multiprocessing.Queue(maxsize=Q_MAX_SIZE)
+        # Don't print `BrokenPipeError` when workers are terminated and
+        # break the queue.
+        # TODO: this is a private implementation detail
+        self._ignore_epipe = True
+
         self.out_queue = multiprocessing.Queue()
         self.log_queue = multiprocessing.Queue()
 
