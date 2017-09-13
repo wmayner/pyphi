@@ -33,8 +33,8 @@ def tpm(tpm, check_independence=True):
         * 2-dimensional state-by-node form, or
         * n-dimensional state-by-node form.
     '''
-    see_tpm_docs = ('See documentation for pyphi.Network for more information'
-                    'on TPM formats.')
+    see_tpm_docs = ('See documentation for `pyphi.Network` for more '
+                    'information on TPM formats.')
     # Cast to np.array.
     tpm = np.array(tpm)
     # Get the number of nodes from the state-by-node TPM.
@@ -57,8 +57,8 @@ def tpm(tpm, check_independence=True):
                     tpm.shape, ([2] * N) + [N], N, see_tpm_docs))
     else:
         raise ValueError(
-            'Invalid state-by-node TPM: TPM must be in either 2-dimensional '
-            'or n-dimensional form. {}'.format(see_tpm_docs))
+            'Invalid TPM: Must be either 2-dimensional or n-dimensional. '
+            '{}'.format(see_tpm_docs))
     return True
 
 
@@ -66,21 +66,17 @@ def conditionally_independent(tpm):
     '''Validate that the TPM is conditionally independent.'''
     if not config.VALIDATE_CONDITIONAL_INDEPENDENCE:
         return True
-
     tpm = np.array(tpm)
-    if tpm.ndim > 1:
-        if is_state_by_state(tpm):
-            there_and_back_again = convert.state_by_node2state_by_state(
-                convert.state_by_state2state_by_node(tpm))
-        else:
-            there_and_back_again = convert.state_by_state2state_by_node(
-                convert.state_by_node2state_by_state(tpm))
-
-        if np.any((tpm - there_and_back_again) >= EPSILON):
-            raise exceptions.ConditionallyDependentError(
-                'TPM is not conditionally independent. See the conditional '
-                'independence example in the documentation for more info.')
-
+    if is_state_by_state(tpm):
+        there_and_back_again = convert.state_by_node2state_by_state(
+            convert.state_by_state2state_by_node(tpm))
+    else:
+        there_and_back_again = convert.state_by_state2state_by_node(
+            convert.state_by_node2state_by_state(tpm))
+    if np.any((tpm - there_and_back_again) >= EPSILON):
+        raise exceptions.ConditionallyDependentError(
+            'TPM is not conditionally independent. See the conditional '
+            'independence example in the documentation for more info.')
     return True
 
 
@@ -255,14 +251,6 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain):
             raise ValueError(
                 'Multiple outputs from a blackbox must be partitioned into '
                 'the same macro-element of the coarse-graining')
-
-
-def measure(value):
-    '''Validate a distance measure.'''
-    if value not in constants.MEASURES:
-        raise ValueError(
-            "Invalid value `{}` for `config.MEASURE`. "
-            "Choose one of {}".format(value, constants.MEASURES))
 
 
 def partition_type(value):

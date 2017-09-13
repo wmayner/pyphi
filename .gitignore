@@ -25,3 +25,4 @@ profiling/pyphi_config.yml
 ignore
 .ignore
 startup.py
+my_requirements.txt

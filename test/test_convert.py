@@ -28,7 +28,7 @@ state_by_node = np.array([
     [1, 0, 1],
     [0, 1, 1],
     [0, 0, 0]
-])
+], dtype=float)
 state_by_state = np.array([
     [1, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 1, 0],
@@ -38,7 +38,7 @@ state_by_state = np.array([
     [0, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 0, 0, 0, 0, 1, 0],
     [1, 0, 0, 0, 0, 0, 0, 0]
-])
+], dtype=float)
 state_by_node_nondet = np.array([
     [0.0, 0.0],
     [0.5, 0.5],
@@ -51,15 +51,77 @@ state_by_state_nondet = np.array([
     [0.25, 0.25, 0.25, 0.25],
     [0.00, 0.00, 0.00, 1.00]
 ])
+nd_state_by_node = np.array([
+    [[[[1, 0, 0, 1],
+       [1, 0, 1, 1]],
+
+      [[0, 0, 0, 0],
+       [0, 1, 1, 0]]],
+
+
+     [[[0, 0, 1, 0],
+       [0, 0, 0, 0]],
+
+      [[0, 0, 1, 1],
+       [0, 1, 0, 1]]]],
+
+
+
+    [[[[1, 0, 1, 1],
+       [1, 1, 0, 1]],
+
+      [[0, 1, 1, 0],
+       [0, 1, 0, 0]]],
+
+
+     [[[0, 0, 0, 0],
+       [0, 1, 1, 0]],
+
+      [[0, 1, 0, 1],
+       [0, 1, 1, 1]]]]
+], dtype=float)
+twod_state_by_node = np.array([
+    [1, 0, 0, 1],
+    [1, 0, 1, 1],
+    [0, 0, 1, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 1, 1, 0],
+    [0, 0, 1, 1],
+    [0, 1, 0, 1],
+    [1, 0, 1, 1],
+    [1, 1, 0, 1],
+    [0, 0, 0, 0],
+    [0, 1, 1, 0],
+    [0, 1, 1, 0],
+    [0, 1, 0, 0],
+    [0, 1, 0, 1],
+    [0, 1, 1, 1]
+])
 
 
 def test_to_n_dimensional():
-    N = state_by_node.shape[-1]
-    S = state_by_node.shape[0]
-    result = convert.to_n_dimensional(state_by_node)
-    for i in range(S):
-        state = convert.loli_index2state(i, N)
-        assert np.array_equal(result[state], state_by_node[i])
+    # Identity
+    assert np.array_equal(convert.to_n_dimensional(nd_state_by_node),
+                          nd_state_by_node)
+
+    for tpm in [state_by_node, twod_state_by_node]:
+        N = tpm.shape[-1]
+        S = tpm.shape[0]
+        result = convert.to_n_dimensional(tpm)
+        for i in range(S):
+            state = convert.loli_index2state(i, N)
+            assert np.array_equal(result[state], tpm[i])
+
+
+def test_to_2_dimensional():
+    # Identity
+    assert np.array_equal(convert.to_2_dimensional(state_by_node),
+                          state_by_node)
+    # Idempotency
+    for tpm in [state_by_node, state_by_node_nondet, twod_state_by_node]:
+        nd = convert.to_n_dimensional(tpm)
+        assert np.array_equal(convert.to_2_dimensional(nd), tpm)
 
 
 def test_state_by_state2state_by_node():

@@ -239,7 +239,7 @@ def test_null_concept(s, flushcache, restore_fs_cache):
         phi=0, direction=Direction.FUTURE, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
     assert (s.null_concept ==
-            models.Concept(mechanism=(), phi=0, cause=cause, effect=effect,
+            models.Concept(mechanism=(), cause=cause, effect=effect,
                            subsystem=s))
 
 
@@ -262,7 +262,7 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     mock_simple_distance.return_value = float()
 
     make_mice = lambda: models.Mice(models.Mip(
-        phi=None, direction=None, mechanism=None,
+        phi=0, direction=None, mechanism=None,
         purview=None, partition=None,
         unpartitioned_repertoire=None,
         partitioned_repertoire=None))
@@ -598,3 +598,11 @@ def test_big_mip_bipartitions():
                   models.Cut((1, 2, 4), (3,)),
                   models.Cut((1, 2, 3), (4,))]
         assert big_mip_bipartitions((1, 2, 3, 4)) == answer
+
+
+def test_system_cut_styles(s, flushcache, restore_fs_cache):
+    with config.override(SYSTEM_CUTS='3.0_STYLE'):
+        assert compute.big_phi(s) == 2.3125
+
+    with config.override(SYSTEM_CUTS='CONCEPT_STYLE'):
+        assert compute.big_phi(s) == 0.6875

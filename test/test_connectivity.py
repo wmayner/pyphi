@@ -166,6 +166,21 @@ def test_is_full():
     assert not connectivity.is_full(cm, (0,), (0, 1, 2))
     assert not connectivity.is_full(cm, (2,), (2,))
     assert not connectivity.is_full(cm, (0, 1), (1, 2))
+    assert connectivity.is_full(cm, (), (0, 1, 2))
+    assert connectivity.is_full(cm, (0,), ())
     assert connectivity.is_full(cm, (0, 1), (0, 2))
     assert connectivity.is_full(cm, (1, 2), (1, 2))
     assert connectivity.is_full(cm, (0, 1, 2), (0, 1, 2))
+
+
+def test_apply_boundary_conditions():
+    cm = np.array([
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 1, 0]])
+    answer = np.array([
+        [0, 0, 1],
+        [0, 0, 0],
+        [1, 0, 0]])
+    assert np.array_equal(
+        connectivity.apply_boundary_conditions_to_cm((1,), cm), answer)

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyphi import Subsystem, actual, examples, models
+from pyphi import config, Subsystem, actual, examples, models
 from pyphi.constants import Direction
 
 
@@ -105,6 +105,9 @@ def test_acmip_ordering():
 
     with pytest.raises(TypeError):
         acmip(direction=Direction.PAST) < acmip(direction=Direction.FUTURE)
+
+    with config.override(PICK_SMALLEST_PURVIEW=True):
+        assert acmip(purview=(1,)) > acmip(purview=(0, 2))
 
 
 def test_acmip_hash():
@@ -234,12 +237,41 @@ def test_actual_cut_indices():
     assert cut.indices == (0, 2)
 
 
+def test_actual_apply_cut():
+    cut = models.ActualCut((0, 2), (), (0,), (2,))
+    cm = np.ones((3, 3))
+    assert np.array_equal(cut.apply_cut(cm), np.array([
+        [1, 1, 0],
+        [1, 1, 1],
+        [1, 1, 0]]))
+
+
+def test_actual_cut_matrix():
+    cut = models.ActualCut((0, 2), (), (0,), (2,))
+    assert np.array_equal(cut.cut_matrix(3), np.array([
+        [0, 0, 1],
+        [0, 0, 0],
+        [0, 0, 1]]))
+
+
 def test_big_acmip(context):
     bigmip = actual.big_acmip(context)
     assert bigmip.alpha == 0.33333333333333326
     assert bigmip.cut == models.ActualCut((1,), (2,), (), (0,))
     assert len(bigmip.unpartitioned_account) == 3
     assert len(bigmip.partitioned_account) == 2
+
+
+def test_null_ac_bigmip(context):
+    bigmip = actual._null_ac_bigmip(context, Direction.PAST)
+    assert bigmip.context == context
+    assert bigmip.direction == Direction.PAST
+    assert bigmip.unpartitioned_account == ()
+    assert bigmip.partitioned_account == ()
+    assert bigmip.alpha == 0.0
+
+    bigmip = actual._null_ac_bigmip(context, Direction.PAST, alpha=float('inf'))
+    assert bigmip.alpha == float('inf')
 
 
 def test_causal_nexus(standard):

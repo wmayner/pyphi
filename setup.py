@@ -15,7 +15,7 @@ with open('./pyphi/__about__.py') as f:
     exec(f.read(), about)
 
 install_requires = [
-    'numpy >=1.8.1, <2.0.0',
+    'numpy >=1.11.0, <2.0.0',
     'scipy >=0.13.3, <1.0.0',
     'pyemd >=0.3.0, <1.0.0',
     'joblib >=0.8.0a3, <1.0.0',

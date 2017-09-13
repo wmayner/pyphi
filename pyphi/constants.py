@@ -40,21 +40,6 @@ PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL
 joblib_memory = joblib.Memory(cachedir=config.FS_CACHE_DIRECTORY,
                               verbose=config.FS_CACHE_VERBOSITY)
 
-#: Earth Mover's Distance.
-EMD = 'EMD'
-
-#: Kullback-Leibler Divergence.
-KLD = 'KLD'
-
-#: L1 distance.
-L1 = 'L1'
-
-#: Entropy difference.
-ENTROPY_DIFFERENCE = 'ENTROPY_DIFFERENCE'
-
-#: A list of all available measures.
-MEASURES = [EMD, KLD, L1, ENTROPY_DIFFERENCE]
-
 #: Node states
 OFF = (0,)
 ON = (1,)

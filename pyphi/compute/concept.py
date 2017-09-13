@@ -8,11 +8,15 @@ Functions for computing concepts and constellations of concepts.
 
 # pylint: disable=too-many-arguments,redefined-outer-name
 
+import logging
 from time import time
 
 from . import parallel
 from .. import config, models, utils
 from .distance import constellation_distance
+
+
+log = logging.getLogger(__name__)
 
 
 def concept(subsystem, mechanism, purviews=False, past_purviews=False,
@@ -37,6 +41,7 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
         that constitute the concept specified by the given mechanism.
     '''
     start = time()
+    log.debug('Computing concept %s...', mechanism)
 
     # If the mechanism is empty, there is no concept.
     if not mechanism:
@@ -47,7 +52,9 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
             future_purviews=future_purviews)
 
     result.time = round(time() - start, config.PRECISION)
+    log.debug('Found concept %s', mechanism)
     return result
+
 
 # pylint: disable=unused-argument,arguments-differ
 class ComputeConstellation(parallel.MapReduce):
@@ -57,7 +64,8 @@ class ComputeConstellation(parallel.MapReduce):
     def empty_result(self, *args):
         return []
 
-    def compute(self, mechanism, subsystem, purviews, past_purviews,
+    @staticmethod
+    def compute(mechanism, subsystem, purviews, past_purviews,
                 future_purviews):
         '''Compute a concept for a mechanism, in this subsystem with the
         provided purviews.'''
@@ -102,6 +110,7 @@ def constellation(subsystem, mechanisms=False, purviews=False,
 
     engine = ComputeConstellation(mechanisms, subsystem, purviews,
                                   past_purviews, future_purviews)
+
     return models.Constellation(engine.run(parallel or
                                            config.PARALLEL_CONCEPT_EVALUATION))
 

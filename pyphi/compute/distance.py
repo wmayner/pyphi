@@ -9,37 +9,7 @@ Functions for computing distances between various PyPhi objects.
 import numpy as np
 
 from .. import config, utils, validate
-from ..constants import EMD, ENTROPY_DIFFERENCE, KLD, L1
-from ..distance import emd, entropy_difference, hamming_emd, l1
-
-BIG_NUMBER = 1000000
-
-
-def measure(r1, r2):
-    '''Compute the distance between two repertoires.
-
-    Args:
-        r1 (np.ndarray): The first repertoire.
-        r2 (np.ndarray): The second repertoire.
-
-    Returns:
-        float: The distance between ``r1`` and ``r2``.
-    '''
-    if config.MEASURE == EMD:
-        return hamming_emd(r1, r2)
-
-    elif config.MEASURE == L1:
-        return l1(r1, r2)
-
-    elif config.MEASURE == ENTROPY_DIFFERENCE:
-        return entropy_difference(r1, r2)
-
-    # If the distance is `inf` return a very large number instead so that
-    # the generalized EMD can still operate on a KLD distance matrix.
-    elif config.MEASURE == KLD:
-        raise ValueError("KLD is not supported as a big-phi measure.")
-
-    validate.measure(config.MEASURE)
+from ..distance import big_phi_measure as measure, emd
 
 
 def concept_distance(c1, c2):

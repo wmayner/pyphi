@@ -11,6 +11,44 @@ from pyphi import Subsystem, config, constants, models
 from pyphi.constants import Direction
 
 
+# Helper functions for constructing PyPhi objects
+# -----------------------------------------------
+
+def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
+        unpartitioned_repertoire=None, partitioned_repertoire=None):
+    '''Build a ``Mip``.'''
+    return models.Mip(phi=phi, direction=direction, mechanism=mechanism,
+                      purview=purview, partition=partition,
+                      unpartitioned_repertoire=unpartitioned_repertoire,
+                      partitioned_repertoire=partitioned_repertoire)
+
+
+def mice(**kwargs):
+    '''Build a ``Mice``.'''
+    return models.Mice(mip(**kwargs))
+
+
+def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
+            subsystem=None):
+    '''Build a ``Concept``.'''
+    return models.Concept(
+        mechanism=mechanism,
+        cause=mice(mechanism=mechanism, purview=cause_purview, phi=phi),
+        effect=mice(mechanism=mechanism, purview=effect_purview, phi=phi),
+        subsystem=subsystem)
+
+
+def bigmip(unpartitioned_constellation=(), partitioned_constellation=(),
+           subsystem=None, cut_subsystem=None, phi=1.0):
+    '''Build a ``BigMip``.'''
+    cut_subsystem = cut_subsystem or subsystem
+
+    return models.BigMip(
+        unpartitioned_constellation=unpartitioned_constellation,
+        partitioned_constellation=partitioned_constellation,
+        subsystem=subsystem, cut_subsystem=cut_subsystem, phi=phi)
+
+
 nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
 nt = namedtuple('nt', nt_attributes)
 a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
@@ -33,9 +71,9 @@ def test_phi_mechanism_ordering():
         def __eq__(self, other):
             return self.phi == other.phi and self.mechanism == other.mechanism
 
-    # assert PhiThing(1.0, (1,)) == PhiThing(1.0, (1,))
-    # assert PhiThing(1.0, (1,)) == PhiThing(1.0, (1, 2))
-    # assert PhiThing(1.0, (1,)) != PhiThing(2.0, (1, 2))
+    assert PhiThing(1.0, (1,)) == PhiThing(1.0, (1,))
+    assert PhiThing(1.0, (1,)) != PhiThing(1.0, (1, 2))
+    assert PhiThing(1.0, (1,)) != PhiThing(2.0, (1, 2))
     assert PhiThing(1.0, (1,)) < PhiThing(2.0, (1,))
     assert PhiThing(1.0, (1,)) <= PhiThing(1.0, (1, 2))  # Smaller mechanism
     assert PhiThing(1.0, (1,)) <= PhiThing(2.0, (1,))
@@ -156,17 +194,16 @@ def test_cut_all_cut_mechanisms():
 
 
 def test_cut_matrix():
-
     cut = models.Cut((), (0,))
     matrix = np.array([[0]])
-    assert np.array_equal(cut.cut_matrix(), matrix)
+    assert np.array_equal(cut.cut_matrix(1), matrix)
 
     cut = models.Cut((0,), (1,))
     matrix = np.array([
         [0, 1],
         [0, 0],
     ])
-    assert np.array_equal(cut.cut_matrix(), matrix)
+    assert np.array_equal(cut.cut_matrix(2), matrix)
 
     cut = models.Cut((0, 2), (1, 2))
     matrix = np.array([
@@ -174,10 +211,10 @@ def test_cut_matrix():
         [0, 0, 0],
         [0, 1, 1],
     ])
-    assert np.array_equal(cut.cut_matrix(), matrix)
+    assert np.array_equal(cut.cut_matrix(3), matrix)
 
     cut = models.Cut((), ())
-    assert np.array_equal(cut.cut_matrix(), np.array([]))
+    assert np.array_equal(cut.cut_matrix(0), np.ndarray(shape=(0, 0)))
 
 
 def test_cut_indices():
@@ -211,35 +248,28 @@ def test_apply_cut():
 # {{{
 
 
-def mip(phi=1.0, d=None, mech=(), purv=(), partition=None,
-        unpartitioned_repertoire=None, partitioned_repertoire=None):
-    return models.Mip(phi=phi, direction=d, mechanism=mech,
-                      purview=purv, partition=partition,
-                      unpartitioned_repertoire=unpartitioned_repertoire,
-                      partitioned_repertoire=partitioned_repertoire)
-
-
 def test_mip_ordering_and_equality():
     assert mip(phi=1.0) < mip(phi=2.0)
     assert mip(phi=2.0) > mip(phi=1.0)
-    assert mip(phi=1.0, mech=(1,)) < mip(phi=1.0, mech=(1, 2))
-    assert mip(phi=1.0, mech=(1, 2)) >= mip(phi=1.0, mech=(1,))
-    assert (mip(phi=1.0, mech=(1,), purv=(1,)) <
-            mip(phi=1.0, mech=(1,), purv=(1, 2)))
-    assert (mip(phi=1.0, mech=(1,), purv=(1, 2)) >=
-            mip(phi=1.0, mech=(1,), purv=(1,)))
+    assert mip(mechanism=(1,)) < mip(mechanism=(1, 2))
+    assert mip(mechanism=(1, 2)) >= mip(mechanism=(1,))
+    assert mip(purview=(1,)) < mip(purview=(1, 2))
+    assert mip(purview=(1, 2)) >= mip(purview=(1,))
 
     assert mip(phi=1.0) == mip(phi=1.0)
     assert mip(phi=1.0) == mip(phi=(1.0 - constants.EPSILON / 2))
     assert mip(phi=1.0) != mip(phi=(1.0 - constants.EPSILON * 2))
-    assert mip(d=Direction.PAST) != mip(d=Direction.FUTURE)
-    assert mip(mech=(1,)) != mip(mech=(1, 2))
+    assert mip(direction=Direction.PAST) != mip(direction=Direction.FUTURE)
+    assert mip(mechanism=(1,)) != mip(mechanism=(1, 2))
+
+    with config.override(PICK_SMALLEST_PURVIEW=True):
+        assert mip(purview=(1, 2)) < mip(purview=(1,))
 
     with pytest.raises(TypeError):
-        mip(d=Direction.PAST) < mip(d=Direction.FUTURE)
+        mip(direction=Direction.PAST) < mip(direction=Direction.FUTURE)
 
     with pytest.raises(TypeError):
-        mip(d=Direction.PAST) >= mip(d=Direction.FUTURE)
+        mip(direction=Direction.PAST) >= mip(direction=Direction.FUTURE)
 
 
 def test_null_mip():
@@ -268,25 +298,27 @@ def test_mip_repr_str():
 # Test MICE
 # {{{
 
+
 def test_mice_ordering_by_phi():
-    phi1 = models.Mice(mip())
-    different_phi1 = models.Mice(mip(d='different'))
-    phi2 = models.Mice(mip(phi=(1.0 + constants.EPSILON * 2), partition=()))
+    phi1 = mice()
+    phi2 = mice(phi=(1.0 + constants.EPSILON * 2), partition=())
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
 
-    with pytest.raises(TypeError):
-        phi1 <= different_phi1
+    different_direction = mice(direction='different')
 
     with pytest.raises(TypeError):
-        phi1 >= different_phi1
+        phi1 <= different_direction
+
+    with pytest.raises(TypeError):
+        phi1 >= different_direction
 
 
 def test_mice_odering_by_mechanism():
-    small = models.Mice(mip(mech=(1,)))
-    big = models.Mice(mip(mech=(1, 2, 3)))
+    small = mice(mechanism=(1,))
+    big = mice(mechanism=(1, 2, 3))
     assert small < big
     assert small <= big
     assert big > small
@@ -295,8 +327,8 @@ def test_mice_odering_by_mechanism():
 
 
 def test_mice_ordering_by_purview():
-    small = models.Mice(mip(purv=(1, 2)))
-    big = models.Mice(mip(purv=(1, 2, 3)))
+    small = mice(purview=(1, 2))
+    big = mice(purview=(1, 2, 3))
     assert small < big
     assert small <= big
     assert big > small
@@ -304,50 +336,50 @@ def test_mice_ordering_by_purview():
 
 
 def test_mice_equality():
-    mice = models.Mice(mip(phi=1.0))
-    close_enough = models.Mice(mip(phi=(1.0 - constants.EPSILON / 2)))
-    not_quite = models.Mice(mip(phi=(1.0 - constants.EPSILON * 2)))
-    assert mice == close_enough
-    assert mice != not_quite
+    m = mice(phi=1.0)
+    close_enough = mice(phi=(1.0 - constants.EPSILON / 2))
+    not_quite = mice(phi=(1.0 - constants.EPSILON * 2))
+    assert m == close_enough
+    assert m != not_quite
 
 
 def test_mice_repr_str():
-    mice = models.Mice(mip())
-    print(repr(mice))
-    print(str(mice))
+    print(repr(mice()))
+    print(str(mice()))
 
 
 def test_relevant_connections(s, subsys_n1n2):
-    mice = models.Mice(mip(mech=(0,), purv=(1,), d=Direction.PAST))
+    m = mice(mechanism=(0,), purview=(1,), direction=Direction.PAST)
     answer = np.array([
         [0, 0, 0],
         [1, 0, 0],
         [0, 0, 0],
     ])
-    assert np.array_equal(mice._relevant_connections(s), answer)
+    assert np.array_equal(m._relevant_connections(s), answer)
 
-    mice = models.Mice(mip(mech=(1,), purv=(1, 2), d=Direction.FUTURE))
+    m = mice(mechanism=(1,), purview=(1, 2), direction=Direction.FUTURE)
     answer = np.array([
-        [1, 1],
-        [0, 0],
+        [0, 0, 0],
+        [0, 1, 1],
+        [0, 0, 0],
     ])
-    assert np.array_equal(mice._relevant_connections(subsys_n1n2), answer)
+    assert np.array_equal(m._relevant_connections(subsys_n1n2), answer)
 
 
 def test_damaged(s):
     # Build cut subsystem from s
     cut = models.Cut((0,), (1, 2))
-    subsys = Subsystem(s.network, s.state, s.node_indices, cut=cut)
+    cut_s = Subsystem(s.network, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:
-    mice = models.Mice(mip(mech=(0, 1), purv=(1, 2), d=Direction.FUTURE))
-    assert mice.damaged_by_cut(subsys)
-    assert not mice.damaged_by_cut(s)
+    m1 = mice(mechanism=(0, 1), purview=(1, 2), direction=Direction.FUTURE)
+    assert m1.damaged_by_cut(cut_s)
+    assert not m1.damaged_by_cut(s)
 
     # Cut splits mechanism & purview (but not *only* mechanism)
-    mice = models.Mice(mip(mech=(0,), purv=(1, 2), d=Direction.FUTURE))
-    assert mice.damaged_by_cut(subsys)
-    assert not mice.damaged_by_cut(s)
+    m2 = mice(mechanism=(0,), purview=(1, 2), direction=Direction.FUTURE)
+    assert m2.damaged_by_cut(cut_s)
+    assert not m2.damaged_by_cut(s)
 
 
 # }}}
@@ -356,33 +388,28 @@ def test_damaged(s):
 # Test Concept
 # {{{
 
+
 def test_concept_ordering(s, micro_s):
-    phi1 = models.Concept(
-        mechanism=(0, 1), cause=1, effect=None, subsystem=s,
-        phi=1.0)
-    different_phi1 = models.Concept(
-        mechanism=(0, 1), cause='different', effect=None, subsystem=micro_s,
-        phi=1.0)
-    phi2 = models.Concept(
-        mechanism=(0,), cause='stilldifferent', effect=None, subsystem=s,
-        phi=1.0 + constants.EPSILON * 2)
+    phi1 = concept(subsystem=s)
+    phi2 = concept(mechanism=(0,), phi=(1.0 + constants.EPSILON * 2),
+                   subsystem=s)
+
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
 
+    micro_phi1 = concept(subsystem=micro_s)
+
     with pytest.raises(TypeError):
-        phi1 <= different_phi1
+        phi1 <= micro_phi1
     with pytest.raises(TypeError):
-        phi1 > different_phi1
+        phi1 > micro_phi1
 
 
-def test_concept_odering_by_mechanism(s):
-    phi = 1.0
-    small = models.Concept(mechanism=(0, 1), cause=None, effect=None,
-                           subsystem=s, phi=phi)
-    big = models.Concept(mechanism=(0, 1, 3), cause=None, effect=None,
-                         subsystem=s, phi=phi)
+def test_concept_ordering_by_mechanism(s):
+    small = concept(mechanism=(0, 1), subsystem=s)
+    big = concept(mechanism=(0, 1, 3), subsystem=s)
     assert small < big
     assert small <= big
     assert big > small
@@ -391,127 +418,70 @@ def test_concept_odering_by_mechanism(s):
 
 
 def test_concept_equality(s):
-    phi = 1.0
-    concept = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=phi)
-    assert concept == another
+    assert concept(subsystem=s) == concept(subsystem=s)
 
 
 def test_concept_equality_phi(s):
-    concept = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=1.0)
-    another = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=0.0)
-    assert concept != another
-
-
-def test_concept_equality_mechanism(s):
-    phi = 1.0
-    concept = models.Concept(mechanism=(1,), cause=None, effect=None,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=phi)
-    assert concept != another
+    assert concept(phi=1.0, subsystem=s) != concept(phi=0.0, subsystem=s)
 
 
 def test_concept_equality_cause_purview_nodes(s):
-    phi = 1.0
-    mice1 = models.Mice(mip(phi=phi, purv=(1, 2)))
-    mice2 = models.Mice(mip(phi=phi, purv=(1,)))
-    concept = models.Concept(mechanism=(), cause=mice1, effect=None,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(), cause=mice2, effect=None,
-                             subsystem=s, phi=phi)
-    assert concept != another
+    assert (concept(cause_purview=(1, 2), subsystem=s) !=
+            concept(cause_purview=(1,), subsystem=s))
 
 
 def test_concept_equality_effect_purview_nodes(s):
-    phi = 1.0
-    mice1 = models.Mice(mip(phi=phi, purv=(1, 2)))
-    mice2 = models.Mice(mip(phi=phi, purv=(1,)))
-    concept = models.Concept(mechanism=(), cause=None, effect=mice1,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(), cause=None, effect=mice2,
-                             subsystem=s, phi=phi)
-    assert concept != another
+    assert (concept(effect_purview=(1, 2), subsystem=s) !=
+            concept(effect_purview=(1,), subsystem=s))
 
 
 def test_concept_equality_repertoires(s):
     phi = 1.0
-    mice1 = models.Mice(mip(phi=phi,
-                            unpartitioned_repertoire=np.array([1, 2]),
-                            partitioned_repertoire=()))
-    mice2 = models.Mice(mip(phi=phi,
-                            unpartitioned_repertoire=np.array([0, 0]),
-                            partitioned_repertoire=None))
+    mice1 = mice(phi=phi, unpartitioned_repertoire=np.array([1, 2]),
+                 partitioned_repertoire=())
+    mice2 = mice(phi=phi, unpartitioned_repertoire=np.array([0, 0]),
+                 partitioned_repertoire=None)
     concept = models.Concept(mechanism=(), cause=mice1, effect=mice2,
-                             subsystem=s, phi=phi)
+                             subsystem=s)
     another = models.Concept(mechanism=(), cause=mice2, effect=mice1,
-                             subsystem=s, phi=phi)
+                             subsystem=s)
     assert concept != another
 
 
 def test_concept_equality_network(s, simple_subsys_all_off):
-    phi = 1.0
-    concept = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=simple_subsys_all_off, phi=phi)
-    another = models.Concept(mechanism=(), cause=None, effect=None,
-                             subsystem=s, phi=phi)
-    assert concept != another
+    assert concept(subsystem=simple_subsys_all_off) != concept(subsystem=s)
 
 
 def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
-    phi = 1.0
-    mice = models.Mice(mip(mech=(), purv=(1, 2), phi=phi))
-    concept = models.Concept(mechanism=(2,), cause=mice, effect=mice,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(2,), cause=mice, effect=mice,
-                             subsystem=subsys_n1n2, phi=phi)
-    assert concept == another
+    assert concept(subsystem=s) == concept(subsystem=subsys_n1n2)
 
 
 def test_concept_repr_str():
-    mice = models.Mice(mip())
-    concept = models.Concept(mechanism=(), cause=mice, effect=mice,
-                             subsystem=None, phi=0.0)
-    print(repr(concept))
-    print(str(concept))
+    print(repr(concept()))
+    print(str(concept()))
 
 
 def test_concept_hashing(s):
-    mice = models.Mice(mip(mech=(0, 1, 2), purv=(0, 1, 2)))
-    concept = models.Concept(mechanism=(0, 1, 2), cause=mice, effect=mice,
-                             subsystem=s, phi=0.0)
-    hash(concept)
+    hash(concept(subsystem=s))
 
 
 def test_concept_hashing_one_subsystem_is_subset_of_another(s, subsys_n1n2):
-    phi = 1.0
-    mice = models.Mice(mip(mech=(), purv=(1, 2), phi=phi))
-    concept = models.Concept(mechanism=(2,), cause=mice, effect=mice,
-                             subsystem=s, phi=phi)
-    another = models.Concept(mechanism=(2,), cause=mice, effect=mice,
-                             subsystem=subsys_n1n2, phi=phi)
-    assert hash(concept) == hash(another)
-    assert len(set([concept, another])) == 1
+    c1 = concept(subsystem=s)
+    c2 = concept(subsystem=subsys_n1n2)
+    assert hash(c1) == hash(c2)
+    assert len(set([c1, c2])) == 1
 
 
 def test_concept_emd_eq(s, subsys_n1n2):
-    mice = models.Mice(mip(mech=(1,)))
-    concept = models.Concept(phi=1.0, mechanism=(1,), cause=mice, effect=mice,
-                             subsystem=s)
+    c1 = concept(subsystem=s)
 
     # Same repertoires, mechanism, phi
-    another = models.Concept(phi=1.0, mechanism=(1,), cause=mice, effect=mice,
-                             subsystem=subsys_n1n2)
-    assert concept.emd_eq(another)
+    c2 = concept(subsystem=subsys_n1n2)
+    assert c1.emd_eq(c2)
 
     # Everything equal except phi
-    another = models.Concept(phi=2.0, mechanism=(1,), cause=mice, effect=mice,
-                             subsystem=s)
-    assert not concept.emd_eq(another)
+    c3 = concept(phi=2.0, subsystem=s)
+    assert not c1.emd_eq(c3)
 
     # TODO: test other expectations...
 
@@ -522,7 +492,7 @@ def test_concept_emd_eq(s, subsys_n1n2):
 # {{{
 
 def test_constellation_is_still_a_tuple():
-    c = models.Constellation([models.Concept()])
+    c = models.Constellation([concept()])
     assert len(c) == 1
 
 
@@ -539,44 +509,39 @@ def test_normalize_constellation():
     c4 = models.Concept(mechanism=(1, 2, 3))
     assert (c1, c2, c3, c4) == models.normalize_constellation((c3, c4, c2, c1))
 
+
+def test_constellations_are_always_normalized():
+    c1 = models.Concept(mechanism=(1,))
+    c2 = models.Concept(mechanism=(2,))
+    c3 = models.Concept(mechanism=(1, 3))
+    c4 = models.Concept(mechanism=(1, 2, 3))
+    assert (c1, c2, c3, c4) == models.Constellation((c3, c4, c2, c1))
+
 # }}}
 
 
 # Test BigMip
 # {{{
 
+
 def test_bigmip_ordering(s, s_noised):
-    phi1 = models.BigMip(
-        unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=s, cut_subsystem=(),
-        phi=1.0)
-    different_phi1 = models.BigMip(
-        unpartitioned_constellation=0, partitioned_constellation=None,
-        subsystem=s_noised, cut_subsystem=(),
-        phi=1.0)
-    phi2 = models.BigMip(
-        unpartitioned_constellation='stilldifferent',
-        partitioned_constellation=None, subsystem=s, cut_subsystem=(),
-        phi=1.0 + constants.EPSILON * 2)
+    phi1 = bigmip(subsystem=s)
+    phi2 = bigmip(subsystem=s, phi=1.0 + constants.EPSILON * 2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
+
+    different_system = bigmip(subsystem=s_noised)
     with pytest.raises(TypeError):
-        phi1 <= different_phi1
+        phi1 <= different_system
     with pytest.raises(TypeError):
-        phi1 >= different_phi1
+        phi1 >= different_system
 
 
 def test_bigmip_ordering_by_subsystem_size(s, s_single):
-    small = models.BigMip(
-        unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=s_single, cut_subsystem=(),
-        phi=1.0)
-    big = models.BigMip(
-        unpartitioned_constellation=None,
-        partitioned_constellation=None, subsystem=s, cut_subsystem=(),
-        phi=1.0)
+    small = bigmip(subsystem=s_single)
+    big = bigmip(subsystem=s)
     assert small < big
     assert small <= big
     assert big > small
@@ -585,29 +550,17 @@ def test_bigmip_ordering_by_subsystem_size(s, s_single):
 
 
 def test_bigmip_equality(s):
-    phi = 1.0
-    bigmip = models.BigMip(
-        unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=s, cut_subsystem=s,
-        phi=phi)
-    close_enough = models.BigMip(
-        unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=s, cut_subsystem=s,
-        phi=(phi - constants.EPSILON / 2))
-    not_quite = models.BigMip(
-        unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=s, cut_subsystem=s,
-        phi=(phi - constants.EPSILON * 2))
-    assert bigmip == close_enough
-    assert bigmip != not_quite
+    bm = bigmip(subsystem=s)
+    close_enough = bigmip(subsystem=s, phi=(1.0 - constants.EPSILON / 2))
+    not_quite = bigmip(subsystem=s, phi=(1.0 - constants.EPSILON * 2))
+    assert bm == close_enough
+    assert bm != not_quite
 
 
 def test_bigmip_repr_str(s):
-    bigmip = models.BigMip(
-        unpartitioned_constellation=None, partitioned_constellation=None,
-        subsystem=s, cut_subsystem=s, phi=1.0)
-    print(repr(bigmip))
-    print(str(bigmip))
+    bm = bigmip(subsystem=s)
+    print(repr(bm))
+    print(str(bm))
 
 
 # }}}

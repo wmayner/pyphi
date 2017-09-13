@@ -58,12 +58,11 @@ These settings control the algorithms PyPhi uses.
 
 - ``MEASURE``:
   The measure to use when computing distances between repertoires and concepts.
-  The default is ``EMD``, the Earth Mover's Distance. ``KLD`` is the
-  Kullback-Leibler Divergence. ``L1`` is the |L1| distance.
-  ``ENTROPY_DIFFERENCE`` is the absolute value of the difference in entropy of
-  the two distributions, ``abs(entropy(a) - entropy(b))``. ``KLD`` cannot be
-  used as a measure when performing |big_phi| computations because of its
-  asymmetry.
+  Users can dynamically register new measures with the
+  ``pyphi.distance.measures.register`` decorator; see :mod:`~pyphi.distance`
+  for examples. A full list of currently installed measures is available by
+  calling ``print(pyphi.distance.measures.all())``. Note that some measures
+  cannot be used for calculating |big_phi| because they are asymmetric.
 
     >>> defaults['MEASURE']
     'EMD'
@@ -127,6 +126,15 @@ These settings control the algorithms PyPhi uses.
   If set to ``True``, the distance between constellations (when computing a
   |BigMip|) is calculated using the difference between the sum of |small_phi|
   in the constellations instead of the extended EMD.
+
+
+- ``SYSTEM_CUTS``:
+  If set to ``'3.0_STYLE'``, then traditional IIT 3.0 cuts will be used when
+  computing |big_phi|. If set to ``'CONCEPT_STYLE'``, then experimental
+  concept- style system cuts will be used instead.
+
+    >>> defaults['SYSTEM_CUTS']
+    '3.0_STYLE'
 
 
 System resources
@@ -491,6 +499,8 @@ DEFAULTS = {
     'PICK_SMALLEST_PURVIEW': False,
     # Use the difference in sum of small phi for the constellation distance
     'USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE': False,
+    # The type of system cuts to use
+    'SYSTEM_CUTS': '3.0_STYLE',
 }
 
 # Get a reference to this module's dictionary so we can set the configuration
@@ -537,7 +547,7 @@ def configure_logging():
         'disable_existing_loggers': False,
         'formatters': {
             'standard': {
-                'format': '%(asctime)s [%(name)s] %(levelname)s'
+                'format': '%(asctime)s [%(name)s] %(levelname)s '
                           '%(processName)s: %(message)s'
             }
         },

@@ -92,6 +92,9 @@ class Mip(cmp.Orderable):
     unorderable_unless_eq = ['direction']
 
     def order_by(self):
+        if config.PICK_SMALLEST_PURVIEW:
+            return [self.phi, len(self.mechanism), -len(self.purview)]
+
         return [self.phi, len(self.mechanism), len(self.purview)]
 
     def __eq__(self, other):
@@ -218,8 +221,6 @@ class Mice(cmp.Orderable):
     def to_json(self):
         return {'mip': self.mip}
 
-    # TODO: benchmark and memoize?
-    # TODO: pass in subsystem indices only?
     def _relevant_connections(self, subsystem):
         '''Identify connections that “matter” to this concept.
 
@@ -246,7 +247,7 @@ class Mice(cmp.Orderable):
 
         Returns:
             np.ndarray: A |N x N| matrix of connections, where |N| is the size
-            of the subsystem.
+            of the network.
 
         Raises:
             ValueError: If ``direction`` is invalid.
@@ -258,10 +259,8 @@ class Mice(cmp.Orderable):
         else:
             validate.direction(self.direction)
 
-        cm = connectivity.relevant_connections(subsystem.network.size,
-                                               _from, to)
-        # Submatrix for this subsystem's nodes
-        return cm[np.ix_(subsystem.node_indices, subsystem.node_indices)]
+        return connectivity.relevant_connections(subsystem.network.size,
+                                                 _from, to)
 
     # TODO: pass in `cut` instead? We can infer
     # subsystem indices from the cut itself, validate, and check.
@@ -292,8 +291,6 @@ class Concept(cmp.Orderable):
     |PICK_SMALLEST_PURVIEW| option in |config|.)
 
     Attributes:
-        phi (float): The size of the concept. This is the minimum of the
-            |small_phi| values of the concept's core cause and core effect.
         mechanism (tuple[int]): The mechanism that the concept consists of.
         cause (Mice): The |Mice| representing the core cause of this concept.
         effect (Mice): The |Mice| representing the core effect of this concept.
@@ -301,9 +298,8 @@ class Concept(cmp.Orderable):
         time (float): The number of seconds it took to calculate.
     '''
 
-    def __init__(self, phi=None, mechanism=None, cause=None, effect=None,
+    def __init__(self, mechanism=None, cause=None, effect=None,
                  subsystem=None, time=None):
-        self.phi = phi
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
@@ -315,6 +311,15 @@ class Concept(cmp.Orderable):
 
     def __str__(self):
         return fmt.fmt_concept(self)
+
+    @property
+    def phi(self):
+        '''float: The size of the concept.
+
+        This is the minimum of the |small_phi| values of the concept's core
+        cause and core effect.
+        '''
+        return min(self.cause.phi, self.effect.phi)
 
     @property
     def cause_purview(self):
@@ -429,6 +434,7 @@ class Concept(cmp.Orderable):
     @classmethod
     def from_json(cls, dct):
         # Remove extra attributes
+        del dct['phi']
         del dct['expanded_cause_repertoire']
         del dct['expanded_effect_repertoire']
         del dct['expanded_partitioned_cause_repertoire']
@@ -446,6 +452,10 @@ class Constellation(tuple):
     functions.
     '''
     # TODO: compare constellations using set equality
+
+    def __new__(cls, concepts=()):
+        '''Normalize the order of concepts in the constellation.'''
+        return super().__new__(cls, sorted(concepts, key=_concept_sort_key))
 
     def __repr__(self):
         if config.REPR_VERBOSITY > 0:
@@ -487,6 +497,9 @@ def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
 
 
+# Maintained for backwards compatibility; constellations are always
+# ordered.
+# TODO: remove this.
 def normalize_constellation(constellation):
     '''Deterministically reorder the concepts in a constellation.
 
@@ -497,4 +510,4 @@ def normalize_constellation(constellation):
         Constellation: The constellation, ordered lexicographically by
         mechanism.
     '''
-    return Constellation(sorted(constellation, key=_concept_sort_key))
+    return Constellation(constellation)

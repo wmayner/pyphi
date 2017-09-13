@@ -87,7 +87,7 @@ def test_find_cut_matrix(s, big_subsys_0_thru_3):
     answer_s = np.array([
         [0, 1, 1],
         [0, 0, 0],
-        [0, 0, 0]
+        [0, 0, 0],
     ])
     assert np.array_equal(cut_s.cut_matrix, answer_s)
 
@@ -97,10 +97,11 @@ def test_find_cut_matrix(s, big_subsys_0_thru_3):
                         big_subsys_0_thru_3.node_indices,
                         cut=cut)
     answer_big = np.array([
-        [0, 0, 1, 1],
-        [0, 0, 1, 1],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0]
+        [0, 0, 1, 1, 0],
+        [0, 0, 1, 1, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
     ])
     assert np.array_equal(cut_big.cut_matrix, answer_big)
 
@@ -247,6 +248,12 @@ def test_apply_cut(s):
 def test_cut_indices(s, subsys_n1n2):
     assert s.cut_indices == (0, 1, 2)
     assert subsys_n1n2.cut_indices == (1, 2)
+
+
+def test_cut_mechanisms(s):
+    assert s.cut_mechanisms == ()
+    assert s.apply_cut(Cut((0, 1), (2,))).cut_mechanisms == (
+        (0, 2), (1, 2), (0, 1, 2))
 
 
 def test_specify_elements_with_labels(standard):

@@ -21,7 +21,7 @@ from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, Occurence, _null_ac_bigmip, _null_ac_mip)
 from .partition import bipartition, directed_bipartition
-from .subsystem import Subsystem, maximal_mip, mip_partitions
+from .subsystem import Subsystem, mip_partitions, mip_bipartitions
 
 log = logging.getLogger(__name__)
 
@@ -122,7 +122,8 @@ class Context:
         return repr(self)
 
     def __eq__(self, other):
-        return (self.cause_indices == self.effect_indices
+        return (self.cause_indices == other.cause_indices
+                and self.effect_indices == other.effect_indices
                 and self.before_state == other.before_state
                 and self.after_state == other.after_state
                 and self.network == other.network
@@ -370,9 +371,9 @@ class Context:
                                    direction, mechanism, None)
         else:
             # This max should be most positive
-            mips = [self.find_mip(direction, mechanism, purview, norm, allow_neg)
-                    for purview in purviews]
-            max_mip = maximal_mip(mips)
+            max_mip = max(self.find_mip(direction, mechanism, purview, norm,
+                                        allow_neg)
+                          for purview in purviews)
 
         # Construct the corresponding Occurence
         return Occurence(max_mip)
@@ -525,21 +526,16 @@ def _evaluate_cut(context, cut, unpartitioned_account, direction=None):
 
 def _get_cuts(context):
     '''A list of possible cuts to a context.'''
-
     # TODO: Add one-cut approximation as an option.
     # if config.CUT_ONE_APPROXIMATION:
     #     bipartitions = directed_bipartition_of_one(subsystem.node_indices)
     # else:
-    cause_bipartitions = bipartition(context.cause_indices)
-    effect_bipartitions = directed_bipartition(context.effect_indices)
-    # The first element of the list is the null cut.
-    partitions = list(itertools.product(cause_bipartitions,
-                                        effect_bipartitions))[1:]
-    cuts = [ActualCut(part[0][0], part[0][1], part[1][0], part[1][1])
-            for part in partitions]
-    return cuts
+    for p in mip_bipartitions(context.cause_indices, context.effect_indices):
+        yield ActualCut(p[0].mechanism, p[1].mechanism,
+                        p[0].purview, p[1].purview)
 
 
+# TODO: implement with MapReduce
 def big_acmip(context, direction=None):
     '''Return the minimal information partition of a context in a specific
     direction.
@@ -566,32 +562,45 @@ def big_acmip(context, direction=None):
         log.info('%s is not strongly/weakly connected; returning null MIP '
                  'immediately.', context)
         return _null_ac_bigmip(context, direction)
-    cuts = _get_cuts(context)
 
     log.debug("Finding unpartitioned account...")
     unpartitioned_account = account(context, direction)
     log.debug("Found unpartitioned account.")
 
     if not unpartitioned_account:
-        # Short-circuit if there are no actions in the unpartitioned
-        # account.
-        result = _null_ac_bigmip(context, direction)
-    else:
-        ac_mip = _null_ac_bigmip(context, direction)
-        ac_mip.alpha = float('inf')
-        for i, cut in enumerate(cuts):
-            new_ac_mip = _evaluate_cut(context, cut, unpartitioned_account,
-                                       direction)
-            log.debug("Finished %s of %s cuts.", i + 1, len(cuts))
-            if new_ac_mip < ac_mip:
-                ac_mip = new_ac_mip
-            # Short-circuit as soon as we find a MIP with effectively 0 phi.
-            if not ac_mip:
-                break
-        result = ac_mip
+        log.info('Empty account; returning null AC MIP immediately.')
+        return _null_ac_bigmip(context, direction)
+
+    cuts = _get_cuts(context)
+    finder = FindBigAcMip(cuts, context, direction, unpartitioned_account)
+    result = finder.run_sequential()
     log.info("Finished calculating big-ac-phi data for %s.", context)
     log.debug("RESULT: \n%s", result)
     return result
+
+
+class FindBigAcMip(compute.parallel.MapReduce):
+    """Computation engine for AC BigMips."""
+    description = 'Evaluating AC cuts'
+
+    def empty_result(self, context, direction, unpartitioned_account):
+        return _null_ac_bigmip(context, direction, alpha=float('inf'))
+
+    @staticmethod
+    def compute(cut, context, direction, unpartitioned_account):
+        return _evaluate_cut(context, cut, unpartitioned_account, direction)
+
+    def process_result(self, new_mip, min_mip):
+        # Check a new result against the running minimum
+        if not new_mip:  # alpha == 0
+            self.done = True
+            return new_mip
+
+        elif new_mip < min_mip:
+            return new_mip
+
+        return min_mip
+
 
 # ============================================================================
 # Complexes

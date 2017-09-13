@@ -45,6 +45,15 @@ def test_cut_indices(macro_subsystem, s):
     assert micro.cut_indices == (0, 1, 2)
 
 
+def test_cut_mechanisms(macro_subsystem, propagation_delay):
+    cut = models.Cut((0,), (1, 2, 3))
+    assert macro_subsystem.apply_cut(cut).cut_mechanisms == ((0,), (0, 1))
+
+    cut = models.Cut((1, 3), (0, 2, 4, 5, 6, 7))
+    assert propagation_delay.apply_cut(cut).cut_mechanisms == (
+        (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2))
+
+
 def test_pass_node_indices_as_a_range(s):
     # Test that node_indices can be a `range`
     macro.MacroSubsystem(s.network, s.state, range(s.size))

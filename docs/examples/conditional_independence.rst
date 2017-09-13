@@ -65,7 +65,7 @@ state-by-node TPM back to state-by-state form:
     [ 0.    0.    0.    1.  ]]
 
 A system which does not satisfy the conditional independence assumption
-exhibits “instantaneous causality.” In such situations, there must either be
+exhibits “instantaneous causality.” In such situations, there must be
 additional exogenous variable(s) which explain the dependence.
 
 Consider the above example, but with the addition of a third node (|C|) which

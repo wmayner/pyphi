@@ -25,6 +25,7 @@ Attributes:
 
 from .big_phi import (all_complexes, big_mip, big_phi, complexes, condensed,
                       evaluate_cut, main_complex, possible_complexes,
-                      subsystems)
+                      subsystems, ConceptStyleSystem, big_mip_concept_style,
+                      concept_cuts, BigMipConceptStyle)
 from .concept import concept, conceptual_information, constellation
 from .distance import concept_distance, constellation_distance

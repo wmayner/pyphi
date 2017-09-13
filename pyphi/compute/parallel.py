@@ -106,7 +106,7 @@ class MapReduce:
 
         # Initialize a progress bar
         # Forked worker processes can't show progress bars.
-        disable = self.forked or not config.PROGRESS_BARS
+        disable = MapReduce._forked or not config.PROGRESS_BARS
         self.progress = ProgressBar(total=len(self.iterable), leave=False,
                                     disable=disable, desc=self.description)
 
@@ -122,7 +122,8 @@ class MapReduce:
         '''Return the default result with which to begin the computation.'''
         raise NotImplementedError
 
-    def compute(self, obj, *context):
+    @staticmethod
+    def compute(obj, *context):
         '''Map over a single object from ``self.iterable``.'''
         raise NotImplementedError
 
@@ -138,21 +139,14 @@ class MapReduce:
         '''
         raise NotImplementedError
 
+    #: Is this process a subprocess in a parallel computation?
     _forked = False
 
-    @property
-    def forked(self):
-        '''Is this a subprocess of another MapReduce operation?'''
-        return MapReduce._forked
-
-    @forked.setter
-    def forked(self, value):  # pylint: disable=no-self-use
-        MapReduce._forked = value
-
-    def worker(self, in_queue, out_queue, log_queue, *context):
+    @staticmethod
+    def worker(compute, in_queue, out_queue, log_queue, *context):
         '''A worker process, run by ``multiprocessing.Process``.'''
         try:
-            self.forked = True
+            MapReduce._forked = True
             log.debug('Worker process starting...')
 
             configure_worker_logging(log_queue)
@@ -161,7 +155,7 @@ class MapReduce:
                 obj = in_queue.get()
                 if obj is POISON_PILL:
                     break
-                out_queue.put(self.compute(obj, *context))
+                out_queue.put(compute(obj, *context))
 
             out_queue.put(POISON_PILL)
             log.debug('Worker process exiting - no more jobs')
@@ -188,7 +182,7 @@ class MapReduce:
             self.in_queue.put(POISON_PILL)
         # pylint: enable=unused-variable
 
-        args = (self.in_queue, self.out_queue, self.log_queue) + self.context
+        args = (self.compute, self.in_queue, self.out_queue, self.log_queue) + self.context
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
             for i in range(self.number_of_processes)]
@@ -205,6 +199,11 @@ class MapReduce:
         # Shutdown the log thread
         self.log_queue.put(POISON_PILL)
         self.log_thread.join()
+
+        # Close all queues
+        self.log_queue.close()
+        self.in_queue.close()
+        self.out_queue.close()
 
         # Remove the progress bar
         self.progress.close()

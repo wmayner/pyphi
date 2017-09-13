@@ -11,7 +11,7 @@ figures, in order to become more familiar with both the theory and the
 software.
 
 Install `IPython <https://ipython.org/install.html>`_ by running ``pip install
-ipython`` on the command line. Then run it with the command ``ipython``. 
+ipython`` on the command line. Then run it with the command ``ipython``.
 
 Lines of code beginning with ``>>>`` and ``...`` can be pasted directly into
 IPython.
@@ -529,7 +529,7 @@ The null concept (the small black cross shown in concept-space) is available as
 an attribute of the subsystem:
 
     >>> subsystem.null_concept.phi
-    0
+    0.0
 
 
 Figure 11

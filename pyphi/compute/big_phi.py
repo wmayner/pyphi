@@ -10,9 +10,10 @@ import logging
 from time import time
 
 from .. import config, connectivity, exceptions, memory, utils, validate
-from ..models import BigMip, Cut, _null_bigmip
+from ..constants import Direction
+from ..models import BigMip, Cut, _null_bigmip, Concept, KCut, fmt, cmp
 from ..partition import directed_bipartition, directed_bipartition_of_one
-from ..subsystem import Subsystem
+from ..subsystem import Subsystem, all_partitions
 from .concept import constellation
 from .distance import constellation_distance
 from .parallel import MapReduce
@@ -37,22 +38,15 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
 
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
-    from .. import macro
-
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanisms = {c.mechanism for c in unpartitioned_constellation}
-
-    elif isinstance(uncut_subsystem, macro.MacroSubsystem):
-        mechanisms = {c.mechanism for c in unpartitioned_constellation}
-        for mechanism in utils.powerset(uncut_subsystem.node_indices,
-                                        nonempty=True):
-            micro_mechanism = uncut_subsystem.macro2micro(mechanism)
-            if cut.splits_mechanism(micro_mechanism):
-                mechanisms.add(mechanism)
+        mechanisms = unpartitioned_constellation.mechanisms
     else:
+        # Mechanisms can only produce concepts if they were concepts in the
+        # original system, or the cut divides the mechanism.
         mechanisms = set(
-            [c.mechanism for c in unpartitioned_constellation] +
-            list(cut.all_cut_mechanisms()))
+            unpartitioned_constellation.mechanisms +
+            list(cut_subsystem.cut_mechanisms))
+
     partitioned_constellation = constellation(cut_subsystem, mechanisms)
 
     log.debug('Finished evaluating %s.', cut)
@@ -71,14 +65,15 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
 # pylint: disable=unused-argument,arguments-differ
 class FindMip(MapReduce):
     '''Computation engine for finding the minimal |BigMip|.'''
-    description = 'Evaluating \u03D5 cuts'
+    description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
 
     def empty_result(self, subsystem, unpartitioned_constellation):
         '''Begin with a mip with infinite |big_phi|; all actual mips will have
         less.'''
         return _null_bigmip(subsystem, phi=float('inf'))
 
-    def compute(self, cut, subsystem, unpartitioned_constellation):
+    @staticmethod
+    def compute(cut, subsystem, unpartitioned_constellation):
         '''Evaluate a cut.'''
         return evaluate_cut(subsystem, cut, unpartitioned_constellation)
 
@@ -174,13 +169,12 @@ def _big_mip(cache_key, subsystem):
             return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
 
-
     log.debug('Finding unpartitioned constellation...')
     small_phi_start = time()
     # Parallelize the unpartitioned constellation if parallelizing cuts, since
     # we have free processors because we're not computing any cuts yet.
-    unpartitioned_constellation = constellation(subsystem,
-                                                parallel=config.PARALLEL_CUT_EVALUATION)
+    unpartitioned_constellation = constellation(
+        subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
     small_phi_time = round(time() - small_phi_start, config.PRECISION)
 
     if not unpartitioned_constellation:
@@ -227,6 +221,9 @@ def _big_mip_cache_key(subsystem):
 # value of the computation.
 @functools.wraps(_big_mip)
 def big_mip(subsystem):  # pylint: disable=missing-docstring
+    if config.SYSTEM_CUTS == 'CONCEPT_STYLE':
+        return big_mip_concept_style(subsystem)
+
     return _big_mip(_big_mip_cache_key(subsystem), subsystem)
 
 
@@ -294,7 +291,8 @@ class FindComplexes(MapReduce):
     def empty_result(self):
         return []
 
-    def compute(self, subsystem):
+    @staticmethod
+    def compute(subsystem):
         return big_mip(subsystem)
 
     def process_result(self, new_big_mip, complexes):
@@ -337,3 +335,121 @@ def condensed(network, state):
             covered_nodes = covered_nodes | set(c.subsystem.node_indices)
 
     return result
+
+
+class ConceptStyleSystem:
+    """A functional replacement for ``Subsystem`` implementing concept-style
+    system cuts.
+    """
+    def __init__(self, subsystem, direction, cut=None):
+        self.subsystem = subsystem
+        self.direction = direction
+        self.cut = cut
+        self.cut_system = subsystem.apply_cut(cut)
+
+    def apply_cut(self, cut):
+        return ConceptStyleSystem(self.subsystem, self.direction, cut)
+
+    def __getattr__(self, name):
+        """Pass attribute access through to the basic subsystem."""
+        # Unpickling calls `__getattr__` before the object's dict is populated;
+        # check that `subsystem` exists to avoid a recursion error.
+        # See https://bugs.python.org/issue5370.
+        if 'subsystem' in self.__dict__:
+            return getattr(self.subsystem, name)
+        raise AttributeError(name)
+
+    def __len__(self):
+        return len(self.subsystem)
+
+    @property
+    def cause_system(self):
+        return {
+            Direction.PAST: self.cut_system,
+            Direction.FUTURE: self.subsystem
+        }[self.direction]
+
+    @property
+    def effect_system(self):
+        return {
+            Direction.PAST: self.subsystem,
+            Direction.FUTURE: self.cut_system
+        }[self.direction]
+
+    def concept(self, mechanism, purviews=False, past_purviews=False,
+                future_purviews=False):
+        '''Compute a concept, using the appropriate system for each side of
+        the cut.'''
+        cause = self.cause_system.core_cause(
+            mechanism, purviews=(past_purviews or purviews))
+
+        effect = self.effect_system.core_effect(
+            mechanism, purviews=(future_purviews or purviews))
+
+        return Concept(mechanism=mechanism, cause=cause, effect=effect,
+                       subsystem=self)
+
+
+def concept_cuts(node_indices):
+    '''Generator over all concept-syle cuts for these nodes.'''
+    for partition in all_partitions(node_indices, node_indices):
+        yield KCut(partition)
+
+
+def directional_big_mip(subsystem, direction, unpartitioned_constellation=None):
+    """Calculate a concept-style BigMipPast or BigMipFuture."""
+
+    if unpartitioned_constellation is None:
+        unpartitioned_constellation = constellation(subsystem)
+
+    c_system = ConceptStyleSystem(subsystem, direction)
+    cuts = concept_cuts(c_system.cut_indices)
+
+    # Run the default MIP finder
+    # TODO: verify that short-cutting works correctly?
+    finder = FindMip(cuts, c_system, unpartitioned_constellation)
+    return finder.run(config.PARALLEL_CUT_EVALUATION)
+
+
+class BigMipConceptStyle(cmp.Orderable):
+    '''Represents a Big Mip computed using concept-style system cuts.'''
+
+    def __init__(self, mip_past, mip_future, subsystem):
+        self.big_mip_past = mip_past
+        self.big_mip_future = mip_future
+        self.subsystem = subsystem
+
+    @property
+    def phi(self):
+        return min(self.big_mip_past.phi, self.big_mip_future.phi)
+
+    @property
+    def network(self):
+        '''The network this BigMip belongs to.'''
+        return self.subsystem.network
+
+    def __eq__(self, other):
+        return cmp.general_eq(self, other, ['phi'])
+
+    unorderable_unless_eq = ['network']
+
+    def order_by(self):
+        return [self.phi, len(self.subsystem)]
+
+    def __repr__(self):
+        return fmt.make_repr(self, ['big_mip_past', 'big_mip_future'])
+
+    def __str__(self):
+        return "Concept Style Big Mip: \u03A6 = {}".format(self.phi)
+
+
+# TODO: cache
+def big_mip_concept_style(subsystem):
+    '''Compute a concept-style Big Mip'''
+    unpartitioned_constellation = constellation(subsystem)
+    mip_past = directional_big_mip(subsystem, Direction.PAST,
+                                   unpartitioned_constellation)
+    mip_future = directional_big_mip(subsystem, Direction.FUTURE,
+                                     unpartitioned_constellation)
+
+    return BigMipConceptStyle(mip_past, mip_future, subsystem)

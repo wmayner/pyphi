@@ -15,7 +15,7 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 # nodes, but this approximation is usually correct, and at worst provides an
 # upper bound for integrated information.
 CUT_ONE_APPROXIMATION: false
-# The measure to use when computing phi ("EMD", "KLD", "L1")
+# The measure to use when computing phi ("EMD", "KLD", "L1", ...)
 MEASURE: "EMD"
 
 # System resources
@@ -25,7 +25,7 @@ PARALLEL_CONCEPT_EVALUATION: false
 # Controls whether cuts are evaluated in parallel, which requires more
 # memory. If cuts are evaluated sequentially, only two BigMips need to be
 # in memory at a time.
-PARALLEL_CUT_EVALUATION: false
+PARALLEL_CUT_EVALUATION: true
 # Controls whether complexes are evaluated in parallel.
 PARALLEL_COMPLEX_EVALUATION: false
 
@@ -109,3 +109,5 @@ PARTITION_TYPE: "BI"
 PICK_SMALLEST_PURVIEW: false
 # Use the difference in sum of small phi for the constellation distance
 USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE: false
+# The type of system cuts to use
+SYSTEM_CUTS: "3.0_STYLE"
