@@ -1145,3 +1145,22 @@ def ac_ex3_context():
     before_state = (0, 0, 1)
     after_state = (0, 0, 0)
     return Context(net, before_state, after_state, (1, 2), (0,))
+
+
+def actual_causation():
+    '''The actual causation example network.'''
+    n = 4
+    tpm = np.zeros((2**n, n))
+    for psi, ps in enumerate(all_states(n)):
+        cs = [0.5 for i in range(n)]
+        cs[2] = ps[0] + ps[1] > 0
+        cs[3] = ps[0] + ps[1] > 1
+        tpm[psi, :] = cs
+
+    cm = np.array([
+        [0, 0, 1, 1],
+        [0, 0, 1, 1],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]])
+
+    return Network(tpm, connectivity_matrix=cm)

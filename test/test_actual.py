@@ -352,3 +352,33 @@ def test_extrinsic_events(standard):
     assert true_effect.mechanism == (2,)
     assert true_effect.purview == (1,)
     assert true_effect.direction == Direction.FUTURE
+
+
+@pytest.fixture
+def ac_net():
+    return examples.actual_causation()
+
+
+def test_actual_causation_example(ac_net):
+    assert np.array_equal(ac_net.cm, np.array([
+        [0, 0, 1, 1],
+        [0, 0, 1, 1],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]]))
+    assert np.array_equal(ac_net.tpm, [
+        [[[[ 0.5,  0.5,  0. ,  0. ],
+           [ 0.5,  0.5,  0. ,  0. ]],
+          [[ 0.5,  0.5,  0. ,  0. ],
+           [ 0.5,  0.5,  0. ,  0. ]]],
+         [[[ 0.5,  0.5,  1. ,  0. ],
+           [ 0.5,  0.5,  1. ,  0. ]],
+          [[ 0.5,  0.5,  1. ,  0. ],
+           [ 0.5,  0.5,  1. ,  0. ]]]],
+        [[[[ 0.5,  0.5,  1. ,  0. ],
+           [ 0.5,  0.5,  1. ,  0. ]],
+          [[ 0.5,  0.5,  1. ,  0. ],
+           [ 0.5,  0.5,  1. ,  0. ]]],
+         [[[ 0.5,  0.5,  1. ,  1. ],
+           [ 0.5,  0.5,  1. ,  1. ]],
+          [[ 0.5,  0.5,  1. ,  1. ],
+           [ 0.5,  0.5,  1. ,  1. ]]]]])
