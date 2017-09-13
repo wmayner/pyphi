@@ -110,6 +110,12 @@ def big_mip_bipartitions(nodes):
             for bipartition in bipartitions]
 
 
+def _unpartitioned_constellation(subsystem):
+    '''Parallelize the unpartitioned constellation if parallelizing cuts,
+    since we have free processors because we're not computing any cuts yet.'''
+    return constellation(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
+
+
 # pylint: disable=unused-argument
 @memory.cache(ignore=["subsystem"])
 def _big_mip(cache_key, subsystem):
@@ -171,10 +177,7 @@ def _big_mip(cache_key, subsystem):
 
     log.debug('Finding unpartitioned constellation...')
     small_phi_start = time()
-    # Parallelize the unpartitioned constellation if parallelizing cuts, since
-    # we have free processors because we're not computing any cuts yet.
-    unpartitioned_constellation = constellation(
-        subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
+    unpartitioned_constellation = _unpartitioned_constellation(subsystem)
     small_phi_time = round(time() - small_phi_start, config.PRECISION)
 
     if not unpartitioned_constellation:
@@ -398,9 +401,8 @@ def concept_cuts(node_indices):
 
 def directional_big_mip(subsystem, direction, unpartitioned_constellation=None):
     """Calculate a concept-style BigMipPast or BigMipFuture."""
-
     if unpartitioned_constellation is None:
-        unpartitioned_constellation = constellation(subsystem)
+        unpartitioned_constellation = _unpartitioned_constellation(subsystem)
 
     c_system = ConceptStyleSystem(subsystem, direction)
     cuts = concept_cuts(c_system.cut_indices)
@@ -446,7 +448,8 @@ class BigMipConceptStyle(cmp.Orderable):
 # TODO: cache
 def big_mip_concept_style(subsystem):
     '''Compute a concept-style Big Mip'''
-    unpartitioned_constellation = constellation(subsystem)
+    unpartitioned_constellation = _unpartitioned_constellation(subsystem)
+
     mip_past = directional_big_mip(subsystem, Direction.PAST,
                                    unpartitioned_constellation)
     mip_future = directional_big_mip(subsystem, Direction.FUTURE,
