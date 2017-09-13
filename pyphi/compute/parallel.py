@@ -118,7 +118,8 @@ class MapReduce:
         self.log_queue = None
         self.log_thread = None
         self.processes = None
-        self.number_of_processes = None
+        self.num_processes = None
+        self.tasks = None
 
     def empty_result(self, *context):
         '''Return the default result with which to begin the computation.'''
@@ -166,7 +167,7 @@ class MapReduce:
         '''Initialize all queues and start the worker processes and the log
         thread.
         '''
-        self.number_of_processes = get_num_processes()
+        self.num_processes = get_num_processes()
 
         self.in_queue = multiprocessing.Queue(maxsize=Q_MAX_SIZE)
         # Don't print `BrokenPipeError` when workers are terminated and
@@ -180,7 +181,7 @@ class MapReduce:
         args = (self.compute, self.in_queue, self.out_queue, self.log_queue) + self.context
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
-            for i in range(self.number_of_processes)]
+            for i in range(self.num_processes)]
 
         for process in self.processes:
             process.start()
@@ -188,12 +189,56 @@ class MapReduce:
         self.log_thread = LogThread(self.log_queue)
         self.log_thread.start()
 
-        # Load the input queue to capacity. Overfilling causes a race
-        # condition because `queue.put` blocks until there's space.
+        self.initialize_tasks()
+
+    def initialize_tasks(self):
+        '''Load the input queue to capacity.
+
+        Overfilling causes a deadlock when `queue.put` blocks when
+        full, so further tasks are enqueued as results are returned.
+        '''
         # Add a poison pill to shutdown each process.
-        self.tasks = iter(self.iterable + [POISON_PILL] * self.number_of_processes)
+        self.tasks = iter(self.iterable + [POISON_PILL] * self.num_processes)
         for obj in islice(self.tasks, Q_MAX_SIZE):
             self.in_queue.put(obj)
+
+    def maybe_put_task(self):
+        '''Enqueue the next task, if there are any waiting.'''
+        try:
+            self.in_queue.put(next(self.tasks))
+        except StopIteration:
+            pass
+
+    def run_parallel(self):
+        '''Perform the computation in parallel, reading results from the output
+        queue and passing them to ``process_result``.
+        '''
+        self.start_parallel()
+
+        result = self.empty_result(*self.context)
+
+        while not self.done:
+            r = self.out_queue.get()
+            self.maybe_put_task()
+
+            if r is POISON_PILL:
+                self.num_processes -= 1
+                if self.num_processes == 0:
+                    break
+
+            elif isinstance(r, ExceptionWrapper):
+                r.reraise()
+
+            else:
+                result = self.process_result(r, result)
+                self.progress.update(1)
+
+        if self.num_processes > 0:
+            log.debug('Shortcircuit: terminating workers early')
+
+        self.finish_parallel()
+
+        return result
 
     def finish_parallel(self):
         '''Terminate all processes and the log thread.'''
@@ -216,41 +261,6 @@ class MapReduce:
         for process in self.processes:
             log.debug('Terminating worker process %s', process)
             process.terminate()
-
-    def run_parallel(self):
-        '''Perform the computation in parallel, reading results from the output
-        queue and passing them to ``process_result``.
-        '''
-        self.start_parallel()
-
-        result = self.empty_result(*self.context)
-
-        while not self.done:
-            r = self.out_queue.get()
-
-            # Add another job to the queue, if possible.
-            try:
-                self.in_queue.put(next(self.tasks))
-            except StopIteration:
-                pass
-
-            if r is POISON_PILL:
-                self.number_of_processes -= 1
-                if self.number_of_processes == 0:
-                    break
-            elif isinstance(r, ExceptionWrapper):
-                r.reraise()
-
-            else:
-                result = self.process_result(r, result)
-                self.progress.update(1)
-
-        if self.number_of_processes > 0:
-            log.debug('Shortcircuit: terminating workers early')
-
-        self.finish_parallel()
-
-        return result
 
     def run_sequential(self):
         '''Perform the computation sequentially, only holding two computed
