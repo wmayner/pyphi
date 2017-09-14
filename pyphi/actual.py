@@ -477,16 +477,12 @@ def _evaluate_cut(context, cut, unpartitioned_account,
 
 def _get_cuts(context):
     '''A list of possible cuts to a context.'''
-    # TODO: Add one-cut approximation as an option.
-    # if config.CUT_ONE_APPROXIMATION:
-    #     bipartitions = directed_bipartition_of_one(subsystem.node_indices)
-    # else:
+    # TODO: implement CUT_ONE approximation?
     for p in mip_bipartitions(context.cause_indices, context.effect_indices):
         yield ActualCut(p[0].mechanism, p[1].mechanism,
                         p[0].purview, p[1].purview)
 
 
-# TODO: implement with MapReduce
 def big_acmip(context, direction=Direction.BIDIRECTIONAL):
     '''Return the minimal information partition of a context in a specific
     direction.
