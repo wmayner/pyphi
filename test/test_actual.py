@@ -145,6 +145,21 @@ def test_repertoires(direction, mechanism, purview, repertoire, context):
         repertoire)
 
 
+@pytest.mark.parametrize('direction,mechanism,purview,probability', [
+    (Direction.PAST, (0,), (1,), 0.66666667),
+    (Direction.PAST, (0,), (2,), 0.66666667),
+    (Direction.PAST, (0,), (1, 2), 0.3333333),
+    (Direction.PAST, (1,), (1,), 0.5),
+    (Direction.FUTURE, (1,), (0,), 1),
+    (Direction.FUTURE, (2,), (0,), 1),
+    (Direction.FUTURE, (1, 2), (0,), 1),
+    (Direction.FUTURE, (0,), (1,), 0.5)
+])
+def test_probability(direction, mechanism, purview, probability, context):
+    assert np.isclose(context.probability(direction, mechanism, purview),
+                      probability)
+
+
 def test_coefficients(context):
     A, B, C = (0, 1, 2)
 
