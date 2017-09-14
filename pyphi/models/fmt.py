@@ -11,7 +11,7 @@ from itertools import chain
 
 from .. import config, constants, utils
 
-# pylint: disble=bad-whitespace
+# pylint: disable=bad-whitespace
 
 # REPR_VERBOSITY levels
 LOW    = 0
