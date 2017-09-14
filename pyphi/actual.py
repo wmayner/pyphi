@@ -232,22 +232,6 @@ class Context:
 
         return probability / self.unconstrained_probability(direction, purview)
 
-    def _coefficient(self, direction, mechanism, purview, norm=True):
-        '''Return the cause or effect coefficient of a mechanism over a
-        purview.'''
-        p = self.probability(direction, mechanism, purview)
-        return self._normalize(p, direction, purview, norm)
-
-    def cause_coefficient(self, mechanism, purview, norm=True):
-        ''' Return the cause coefficient for a mechanism in a state over a
-        purview in the actual past state '''
-        return self._coefficient(Direction.PAST, mechanism, purview, norm)
-
-    def effect_coefficient(self, mechanism, purview, norm=True):
-        ''' Return the effect coefficient for a mechanism in a state over a
-        purview in the actual future state '''
-        return self._coefficient(Direction.FUTURE, mechanism, purview, norm)
-
     def partitioned_repertoire(self, direction, partition):
         '''Compute the repertoire over the partition in the given direction.'''
         system = self.system[direction]
