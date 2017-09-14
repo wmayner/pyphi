@@ -179,16 +179,19 @@ class Context:
         return system._repertoire(direction, mechanism, purview)
 
     def state_probability(self, direction, repertoire, purview,):
-        ''' The dimensions of the repertoire that correspond to the fixed nodes
-        are collapsed onto their state. All other dimension should be singular
-        already (repertoire size and fixed_nodes need to match), and thus
-        should receive 0 as the conditioning index. A single probability is
-        returned.
+        '''Compute the probability of the purview in its current state given
+        the repertoire.
+
+        Collapses the dimensions of the repertoire that correspond to the
+        purview nodes onto their state. All other dimension are already
+        singular and thus receive 0 as the conditioning index.
+
+        Returns a single probabilty.
         '''
         purview_state = self.purview_state(direction)
 
-        index = tuple(purview_state[i] if i in purview else 0
-                      for i in range(len(purview_state)))
+        index = tuple(node_state if node in purview else 0
+                      for node, node_state in enumerate(purview_state))
         return repertoire[index]
 
     def probability(self, direction, mechanism, purview):
