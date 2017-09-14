@@ -129,6 +129,22 @@ def test_action_ordering():
         action(direction=Direction.PAST) < action(direction=Direction.FUTURE)
 
 
+@pytest.mark.parametrize('direction,mechanism,purview,repertoire', [
+    (Direction.PAST, (0,), (1,), [[[0.3333333], [0.66666667]]]),
+    (Direction.PAST, (0,), (2,), [[[0.3333333, 0.66666667]]]),
+    (Direction.PAST, (0,), (1, 2), [[[0, 0.3333333], [0.3333333, 0.3333333]]]),
+    (Direction.PAST, (1,), (1,), [[[.5], [.5]]]),
+    (Direction.FUTURE, (1,), (0,), [[[0]], [[1]]]),
+    (Direction.FUTURE, (2,), (0,), [[[0]], [[1]]]),
+    (Direction.FUTURE, (1, 2), (0,), [[[0]], [[1]]]),
+    (Direction.FUTURE, (0,), (1,), [[[0.5], [0.5]]])
+])
+def test_repertoires(direction, mechanism, purview, repertoire, context):
+    np.testing.assert_array_almost_equal(
+        context._repertoire(direction, mechanism, purview),
+        repertoire)
+
+
 def test_coefficients(context):
     A, B, C = (0, 1, 2)
 
