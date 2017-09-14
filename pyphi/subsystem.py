@@ -23,7 +23,7 @@ from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,
                         directed_tripartition, k_partitions, partitions)
 from .tpm import condition_tpm, marginalize_out
-from .utils import powerset
+from .utils import combs
 
 
 class Subsystem:
@@ -764,7 +764,7 @@ def mip_partitions(mechanism, purview):
         'BI': mip_bipartitions,
         'TRI': wedge_partitions,
         'ALL': all_partitions,
-        'PURVIEW_DISCONNECTION': purview_disconnection_partitions
+        'PD': purview_disconnection_partitions
     }[config.PARTITION_TYPE]
 
     return func(mechanism, purview)
@@ -941,16 +941,30 @@ def purview_disconnection_partitions(mechanism, purview):
         purview (tuple[int]): A purview.
 
     Yields:
-        KPartition: A partition of this mechanism and purview into ``K`` parts,
-        where ``K`` is the number of purview elements.
+        KPartition: A partition of this mechanism and purview into ``P+1`` parts,
+        where ``P`` is the number of purview elements.
     '''
-    # Get all possible sets of mechanism elements where at least one element is
-    # missing (i.e. cut) from that part (i.e. purview element).
-    valid_mechanism_parts = itertools.islice(powerset(mechanism),
-                                             2 ** len(mechanism) - 1)
-    # Get all valid partitions of the mechanism elements into K parts.
-    mechanism_partitions = itertools.product(valid_mechanism_parts,
-                                             repeat=len(purview))
-    for mechanism_partition in mechanism_partitions:
-        parts = [Part(m, (p,)) for m, p in zip(mechanism_partition, purview)]
+    # Optimization: All the MIPs will be such that every purview element is cut
+    # from at MOST one mechanism element, since these are the most causally
+    # constraining partitions that satisfy the cut criteria.
+
+    # Get the shortlisted subsets of mechanism elements that each purview
+    # element might remain attached to.
+    if len(mechanism) > 1: # High-order mechanisms
+        valid_mechanism_remainders = \
+            [tuple(x) for x in combs(mechanism, len(mechanism) - 1)]
+    elif len(mechanism) == 1: # First-order mechanisms require special handling.
+        # The approach above would return [], rather than [()].
+        valid_mechanism_remainders = [()]
+    else:
+        raise ValueError("Cannot have an empty mechanism.")
+
+    # Get all ways assign the remainders to the purview elements.
+    remainder_assignments = itertools.product(valid_mechanism_remainders,
+                                              repeat=len(purview))
+    for remainder_assignment in remainder_assignments:
+        parts = [Part(m, (p,)) for m, p in zip(remainder_assignment, purview)]
+        # Null part makes any mechanism elements cut from all purviews explicit.
+        unassigned = set(mechanism) - set(itertools.chain(*remainder_assignment))
+        parts.append(Part(tuple(unassigned), ()))
         yield KPartition(*parts)

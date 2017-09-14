@@ -9,7 +9,7 @@ import shutil
 import pytest
 
 import example_networks
-from pyphi import config, constants, db
+from pyphi import config, constants, db, examples
 
 log = logging.getLogger()
 
@@ -248,3 +248,14 @@ def micro_s_all_off():
 @pytest.fixture()
 def propagation_delay():
     return example_networks.propagation_delay()
+
+
+# Purview disconnection partition networks
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+@pytest.fixture()
+def copy_xor():
+    return examples.copy_xor_subsystem()
+
+@pytest.fixture()
+def two_of_three():
+    return examples.two_of_three_subsystem()

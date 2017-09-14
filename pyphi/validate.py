@@ -255,7 +255,7 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain):
 
 def partition_type(value):
     '''Validate a type of partition.'''
-    options = ['BI', 'TRI', 'ALL', 'PURVIEW_DISCONNECTION']
+    options = ['BI', 'TRI', 'ALL', 'PD']
     if value not in options:
         raise ValueError(
             "Invalid value `{}` for `config.PARTITION_TYPE`. "

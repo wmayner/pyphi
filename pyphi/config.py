@@ -101,12 +101,12 @@ These settings control the algorithms PyPhi uses.
 
   where the mechanism in the third part is always empty.
 
-  If set to ``PURVIEW_DISCONNECTION``, partitions will be such that every
-  purview element is cut from at least one mechanism element. Each partition
-  consists of ``K`` parts, where ``K`` is the number of purview elements. When
-  computing MICE using this setting, you should break |small_phi| ties by
-  choosing the MIP with the smallest purview, rather than  the largest. You can
-  do this by setting ``PICK_SMALLEST_PURVIEW`` to ``True``.
+  If set to ``PD``, partitions will be such that every purview element is cut
+  from at least one mechanism element. Each partition consists of ``P+1`` parts,
+  where ``P`` is the number of purview elements. When computing MICE using this
+  setting, you should break |small_phi| ties by choosing the MIP with the
+  smallest purview, rather than  the largest. You can do this by setting
+  ``PICK_SMALLEST_PURVIEW`` to ``True``.
 
   Finally, if set to ``'ALL'``, all possible partitions will be tested.
 

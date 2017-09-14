@@ -157,22 +157,15 @@ def test_wedge_partitions():
     ])
 
 
-def test_purview_disconnection_partitions():
-    mechanism = (0, 1)
-    purview = (2, 3)
-    answer = set([
-        KPartition(Part((), (2,)), Part((), (3,))),
-        KPartition(Part((), (2,)), Part((0,), (3,))),
-        KPartition(Part((), (2,)), Part((1,), (3,))),
-        KPartition(Part((0,), (2,)), Part((), (3,))),
-        KPartition(Part((0,), (2,)), Part((0,), (3,))),
-        KPartition(Part((0,), (2,)), Part((1,), (3,))),
-        KPartition(Part((1,), (2,)), Part((), (3,))),
-        KPartition(Part((1,), (2,)), Part((0,), (3,))),
-        KPartition(Part((1,), (2,)), Part((1,), (3,)))
-    ])
 
-    assert set(purview_disconnection_partitions(mechanism, purview)) == answer
+def test_purview_disconnection_partitions(copy_xor, two_of_three):
+    with config.override(PARTITION_TYPE='PD', PICK_SMALLEST_PURVIEW=True):
+        mechanism, purview = (0, 1), (2, 3)
+        assert(copy_xor.phi_mip_past(mechanism, purview) > 0)
+
+    with config.override(PARTITION_TYPE='PD', PICK_SMALLEST_PURVIEW=True):
+        mechanism, purview = (0, 1, 2), (3, 4, 5)
+        assert(two_of_three.phi_mip_past(mechanism, purview) == 0)
 
 
 def test_partitioned_repertoire_with_tripartition(s):
