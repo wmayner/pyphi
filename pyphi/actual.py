@@ -19,7 +19,7 @@ from . import compute, config, connectivity, exceptions, utils, validate
 from .constants import EPSILON, Direction
 from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
-                     Event, Occurence, _null_ac_bigmip, _null_ac_mip)
+                     Event, CausalLink, _null_ac_bigmip, _null_ac_mip)
 from .partition import bipartition, directed_bipartition
 from .subsystem import Subsystem, mip_partitions, mip_bipartitions
 
@@ -252,7 +252,7 @@ class Context:
     # =========================================================================
 
     def find_mip(self, direction, mechanism, purview, allow_neg=False):
-        '''Find the coefficient minimum information partition for a mechanism
+        '''Find the ratio minimum information partition for a mechanism
         over a purview.
 
         Args:
@@ -321,9 +321,9 @@ class Context:
 
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')
-    def find_occurence(self, direction, mechanism, purviews=False,
-                       allow_neg=False):
-        '''Return the maximally irreducible cause or effect coefficient for a mechanism.
+    def find_causal_link(self, direction, mechanism, purviews=False,
+                         allow_neg=False):
+        '''Return the maximally irreducible cause or effect ratio for a mechanism.
 
         Args:
             direction (str): The temporal direction, specifying cause or
@@ -338,16 +338,8 @@ class Context:
                 nodes.
 
         Returns:
-            Occurence: The maximally-irreducible actual cause or effect.
-
-        .. note::
-            Strictly speaking, the |Occurence| is a pair of coefficients: the
-            actual cause and actual effect of a mechanism. Here, we return only
-            information corresponding to one direction, |PAST| or |FUTURE|,
-            i.e., we return an actual cause or actual effect coefficient, not
-            the pair of them.
+            CausalLink: The maximally-irreducible actual cause or effect.
         '''
-
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
         # Find the maximal MIP over the remaining purviews.
@@ -360,12 +352,12 @@ class Context:
                                         allow_neg)
                           for purview in purviews)
 
-        # Construct the corresponding Occurence
-        return Occurence(max_mip)
+        # Construct the corresponding CausalLink
+        return CausalLink(max_mip)
 
     def find_mice(self, *args, **kwargs):
-        '''Backwards-compatible alias for :func:`find_occurence`.'''
-        return self.find_occurence(*args, **kwargs)
+        '''Backwards-compatible alias for :func:`find_causal_link`.'''
+        return self.find_causal_link(*args, **kwargs)
 
 
 # ===========================================================================
@@ -421,7 +413,7 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
 
 def directed_account(context, direction, mechanisms=False, purviews=False,
                      allow_neg=False):
-    '''Return the set of all |Occurences| of the specified direction.'''
+    '''Return the set of all |CausalLinks| of the specified direction.'''
     if mechanisms is False:
         # TODO? don't consider the empty mechanism
         # (pass `nonempty=True` to powerset)
@@ -430,7 +422,7 @@ def directed_account(context, direction, mechanisms=False, purviews=False,
         elif direction == Direction.FUTURE:
             mechanisms = utils.powerset(context.cause_indices)
 
-    actions = [context.find_occurence(direction, mechanism, purviews=purviews,
+    actions = [context.find_causal_link(direction, mechanism, purviews=purviews,
                                       allow_neg=allow_neg)
                for mechanism in mechanisms]
 

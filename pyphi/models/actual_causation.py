@@ -98,7 +98,7 @@ def _null_ac_mip(state, direction, mechanism, purview):
                  alpha=0.0)
 
 
-class Occurence(cmp.Orderable):
+class CausalLink(cmp.Orderable):
     '''A maximally irreducible actual cause or effect.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -148,7 +148,7 @@ class Occurence(cmp.Orderable):
         return fmt.make_repr(self, ['mip'])
 
     def __str__(self):
-        return "Occurence\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
+        return "CausalLink\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
 
     unorderable_unless_eq = AcMip.unorderable_unless_eq
 
@@ -159,10 +159,10 @@ class Occurence(cmp.Orderable):
         return self.mip == other.mip
 
     def __hash__(self):
-        return hash(('Occurence', self._mip))
+        return hash(('CausalLink', self._mip))
 
     def __bool__(self):
-        '''An |Occurence| is ``True`` if |alpha > 0|.'''
+        '''An |CausalLink| is ``True`` if |alpha > 0|.'''
         return not utils.eq(self._mip.alpha, 0)
 
     def to_json(self):
@@ -174,8 +174,8 @@ class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
     '''A mechanism which has both an actual cause and an actual effect.
 
     Attributes:
-        actual_cause (Occurence): The actual cause of the mechanism.
-        actual_effect (Occurence): The actual effect of the mechanism.
+        actual_cause (CausalLink): The actual cause of the mechanism.
+        actual_effect (CausalLink): The actual effect of the mechanism.
     '''
 
     @property

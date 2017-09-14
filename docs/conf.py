@@ -249,8 +249,8 @@ r"""
 .. |AcMip| replace:: :class:`~pyphi.models.actual_causation.AcMip`
 .. |DirectedAccount| replace:: :class:`~pyphi.models.actual_causation.DirectedAccount`
 .. |Event| replace:: :class:`~pyphi.models.actual_causation.Event`
-.. |Occurence| replace:: :class:`~pyphi.models.actual_causation.Occurence`
-.. |Occurences| replace:: :class:`~pyphi.models.actual_causation.Occurence`
+.. |CausalLink| replace:: :class:`~pyphi.models.actual_causation.CausalLink`
+.. |CausalLinks| replace:: :class:`~pyphi.models.actual_causation.CausalLink`
 
 .. |ConditionallyDependentError| replace:: :class:`~pyphi.exceptions.ConditionallyDependentError`
 

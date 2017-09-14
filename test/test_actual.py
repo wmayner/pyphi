@@ -94,7 +94,7 @@ def acmip(**kwargs):
 
 
 def action(**kwargs):
-    return models.Occurence(acmip(**kwargs))
+    return models.CausalLink(acmip(**kwargs))
 
 
 def test_acmip_ordering():
