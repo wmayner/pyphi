@@ -225,6 +225,18 @@ class Context:
         ``direction``.'''
         return self.system[direction].state
 
+    def _ratio(self, direction, mechanism, purview):
+        return log2(self.probability(direction, mechanism, purview) /
+                    self.unconstrained_probability(direction, purview))
+
+    def cause_ratio(self, mechanism, purview):
+        '''The cause ratio of the ``purview`` given ``mechanism``.'''
+        return self._ratio(Direction.PAST, mechanism, purview)
+
+    def effect_ratio(self, mechanism, purview):
+        '''The effect ratio of the ``purview`` given ``mechanism``.'''
+        return self._ratio(Direction.FUTURE, mechanism, purview)
+
     def _normalize(self, probability, direction, purview, norm=True):
         '''Normalize the probability of a purview in the given direction.'''
         if not norm:

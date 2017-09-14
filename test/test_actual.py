@@ -165,6 +165,26 @@ def test_unconstrained_probability(context):
     assert context.unconstrained_probability(Direction.FUTURE, (0,)) == 0.75
 
 
+@pytest.mark.parametrize('mechanism,purview,ratio', [
+    ((0,), (1,), 0.41504),
+    ((0,), (2,), 0.41504),
+    ((0,), (1,2), 0.41504),
+    ((1,), (1,), 0)
+])
+def test_cause_ratio(mechanism, purview, ratio, context):
+    assert np.isclose(context.cause_ratio(mechanism, purview), ratio)
+
+
+@pytest.mark.parametrize('mechanism,purview,ratio', [
+    ((1,), (0,), 0.41504),
+    ((2,), (0,), 0.41504),
+    ((1, 2), (0,), 0.41504),
+    ((0,), (1,), 0)
+])
+def test_effect_ratio(mechanism, purview, ratio, context):
+    assert np.isclose(context.effect_ratio(mechanism, purview), ratio)
+
+
 def test_ac_ex1_context(context):
     '''Basic regression test for ac_ex1 example.'''
 
