@@ -25,7 +25,6 @@ def greater_than_zero(alpha):
 
 
 class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
-
     '''A minimum information partition for ac_coef calculation.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -216,23 +215,17 @@ _acbigmip_attributes = ['alpha', 'direction', 'unpartitioned_account',
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
 # take the smaller?
 class AcBigMip(cmp.Orderable):
-
     '''A minimum information partition for |big_alpha| calculation.
 
-    These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |alpha| values are compared. Then, if these are equal
-    up to |PRECISION|, the size of the mechanism is compared.
-
     Attributes:
-        alpha (float): The |big_alpha| value for the subsystem when taken
+        alpha (float): The |big_alpha| value for the transition when taken
             against this MIP, *i.e.* the difference between the unpartitioned
-            constellation and this MIP's partitioned constellation.
-        unpartitioned_constellation (tuple[Concept]): The constellation of the
-            whole subsystem.
-        partitioned_constellation (tuple[Concept]): The constellation when the
-            subsystem is cut.
-        subsystem (Subsystem): The subsystem this MIP was calculated for.
-        cut: The minimal cut.
+            account and this MIP's partitioned account.
+        unpartitioned_account (Account): The account of the whole transition.
+        partitioned_account (Account): The account of the partitioned
+            transition.
+        context (Context): The context this MIP was calculated for.
+        cut (ActualCut): The minimal partition.
     '''
 
     def __init__(self, alpha=None, direction=None, unpartitioned_account=None,
@@ -279,7 +272,7 @@ class AcBigMip(cmp.Orderable):
 
 
 def _null_ac_bigmip(context, direction, alpha=0.0):
-    '''Returns an |AcBigMip| with zero |big_alpha| and empty constellations.'''
+    '''Returns an |AcBigMip| with zero |big_alpha| and empty accounts.'''
     return AcBigMip(context=context,
                     direction=direction,
                     alpha=alpha,
