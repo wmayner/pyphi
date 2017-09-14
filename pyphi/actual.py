@@ -430,7 +430,7 @@ def directed_account(context, direction, mechanisms=False, purviews=False,
     return DirectedAccount(filter(None, actions))
 
 
-def account(context, direction):
+def account(context, direction=Direction.BIDIRECTIONAL):
     if direction == Direction.BIDIRECTIONAL:
         return Account(directed_account(context, Direction.PAST) +
                        directed_account(context, Direction.FUTURE))
@@ -479,13 +479,10 @@ def _evaluate_cut_directed(context, cut, account, direction):
     return partitioned_account
 
 
-def _evaluate_cut(context, cut, unpartitioned_account, direction=None):
+def _evaluate_cut(context, cut, unpartitioned_account,
+                  direction=Direction.BIDIRECTIONAL):
     '''Find the |AcBigMip| for a given cut.'''
     cut_context = context.apply_cut(cut)
-
-    if not direction:
-        direction = Direction.BIDIRECTIONAL
-
     partitioned_account = account(cut_context, direction)
 
     log.debug("Finished evaluating %s.", cut)
@@ -512,7 +509,7 @@ def _get_cuts(context):
 
 
 # TODO: implement with MapReduce
-def big_acmip(context, direction=None):
+def big_acmip(context, direction=Direction.BIDIRECTIONAL):
     '''Return the minimal information partition of a context in a specific
     direction.
 
@@ -524,8 +521,6 @@ def big_acmip(context, direction=None):
         intermediate calculations. The top level contains the basic MIP
         information for the given subsystem.
     '''
-    if not direction:
-        direction = Direction.BIDIRECTIONAL
     validate.direction(direction)
     log.info("Calculating big-alpha for %s...", context)
 
@@ -607,24 +602,20 @@ def contexts(network, before_state, after_state):
                     pass
 
 
-def nexus(network, before_state, after_state, direction=None):
+def nexus(network, before_state, after_state,
+          direction=Direction.BIDIRECTIONAL):
     '''Return a generator for all irreducible nexus of the network.
        Direction options are past, future, bidirectional. '''
     validate.is_network(network)
-
-    if not direction:
-        direction = Direction.BIDIRECTIONAL
 
     return tuple(filter(None, (big_acmip(context, direction) for context in
                                contexts(network, before_state, after_state))))
 
 
-def causal_nexus(network, before_state, after_state, direction=None):
+def causal_nexus(network, before_state, after_state,
+                 direction=Direction.BIDIRECTIONAL):
     '''Return the causal nexus of the network.'''
     validate.is_network(network)
-
-    if not direction:
-        direction = Direction.BIDIRECTIONAL
 
     log.info("Calculating causal nexus...")
     result = nexus(network, before_state, after_state, direction)
