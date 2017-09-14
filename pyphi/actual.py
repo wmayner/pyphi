@@ -237,13 +237,6 @@ class Context:
         '''The effect ratio of the ``purview`` given ``mechanism``.'''
         return self._ratio(Direction.FUTURE, mechanism, purview)
 
-    def _normalize(self, probability, direction, purview, norm=True):
-        '''Normalize the probability of a purview in the given direction.'''
-        if not norm:
-            return probability
-
-        return probability / self.unconstrained_probability(direction, purview)
-
     def partitioned_repertoire(self, direction, partition):
         '''Compute the repertoire over the partition in the given direction.'''
         system = self.system[direction]
@@ -258,9 +251,7 @@ class Context:
     # MIP methods
     # =========================================================================
 
-    # TODO: norm isn't actually used anywhere?
-    def find_mip(self, direction, mechanism, purview,
-                 norm=True, allow_neg=False):
+    def find_mip(self, direction, mechanism, purview, allow_neg=False):
         '''Find the coefficient minimum information partition for a mechanism
         over a purview.
 
@@ -270,7 +261,6 @@ class Context:
             purview (tuple[int]): A purview.
 
         Keyword Args:
-            norm (boolean): If true, probabilities will be normalized.
             allow_neg (boolean): If true, ``alpha`` is allowed to be negative.
                 Otherwise, negative values of ``alpha`` will be treated as if
                 they were 0.
@@ -332,7 +322,7 @@ class Context:
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')
     def find_occurence(self, direction, mechanism, purviews=False,
-                       norm=True, allow_neg=False):
+                       allow_neg=False):
         '''Return the maximally irreducible cause or effect coefficient for a mechanism.
 
         Args:
@@ -366,7 +356,7 @@ class Context:
                                    direction, mechanism, None)
         else:
             # This max should be most positive
-            max_mip = max(self.find_mip(direction, mechanism, purview, norm,
+            max_mip = max(self.find_mip(direction, mechanism, purview,
                                         allow_neg)
                           for purview in purviews)
 
@@ -401,8 +391,7 @@ def nice_ac_composition(account):
 
 def multiple_states_nice_ac_composition(network, transitions, cause_indices,
                                         effect_indices, mechanisms=False,
-                                        purviews=False, norm=True,
-                                        allow_neg=False):
+                                        purviews=False, allow_neg=False):
     '''Print a nice composition for multiple pairs of states.
 
     Args:
@@ -414,9 +403,9 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
         context = Context(network, transition[0], transition[1], cause_indices,
                           effect_indices)
         cause_account = directed_account(context, Direction.PAST, mechanisms,
-                                         purviews, norm, allow_neg)
+                                         purviews, allow_neg)
         effect_account = directed_account(context, Direction.FUTURE,
-                                          mechanisms, purviews, norm, allow_neg)
+                                          mechanisms, purviews, allow_neg)
         print('#####################################')
         print(transition)
         print('- cause coefs ----------------------')
@@ -431,7 +420,7 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
 
 
 def directed_account(context, direction, mechanisms=False, purviews=False,
-                     norm=True, allow_neg=False):
+                     allow_neg=False):
     '''Return the set of all |Occurences| of the specified direction.'''
     if mechanisms is False:
         # TODO? don't consider the empty mechanism
@@ -442,7 +431,7 @@ def directed_account(context, direction, mechanisms=False, purviews=False,
             mechanisms = utils.powerset(context.cause_indices)
 
     actions = [context.find_occurence(direction, mechanism, purviews=purviews,
-                                      norm=norm, allow_neg=allow_neg)
+                                      allow_neg=allow_neg)
                for mechanism in mechanisms]
 
     # Filter out MICE with zero alpha
