@@ -160,6 +160,11 @@ def test_probability(direction, mechanism, purview, probability, context):
                       probability)
 
 
+def test_unconstrained_probability(context):
+    assert context.unconstrained_probability(Direction.PAST, (1,)) == 0.5
+    assert context.unconstrained_probability(Direction.FUTURE, (0,)) == 0.75
+
+
 def test_ac_ex1_context(context):
     '''Basic regression test for ac_ex1 example.'''
 
