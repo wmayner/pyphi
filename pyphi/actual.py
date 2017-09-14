@@ -457,28 +457,6 @@ def account_distance(A1, A2):
             - sum([action.alpha for action in A2]))
 
 
-# TODO: single node BigMip
-def _evaluate_cut_directed(context, cut, account, direction):
-    ''' Returns partitioned constellation for one direction past/future of the
-    transition. For direction = bidirectional, the uncut subsystem is
-    subsystem_past and uncut_subsystem2_or_actual_state is subsystem_future. To
-    make cut subsystem: To have the right background, the init state for the
-    subsystem should always be the past_state. In past direction after
-    subsystem is created the actual state and the system state need to be
-    swapped.'''
-
-    cut_context = context.apply_cut(cut)
-
-    # TODO: Implement shortcuts to avoid recomputing actions?
-    # if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-    #     mechanisms = set([c.mechanism for c in unpartitioned_constellation])
-    # else:
-    # mechanisms = set([c.mechanism for c in unpartitioned_constellation] +
-    #                      list(cut_mechanism_indices(uncut_subsystem, cut)))
-    partitioned_account = directed_account(cut_context, direction)
-    return partitioned_account
-
-
 def _evaluate_cut(context, cut, unpartitioned_account,
                   direction=Direction.BIDIRECTIONAL):
     '''Find the |AcBigMip| for a given cut.'''
