@@ -103,6 +103,10 @@ def test_acmip_ordering():
     assert acmip(alpha=0.0, mechanism=(1, 2)) <= acmip(alpha=1.0, mechanism=(1,))
     assert acmip(alpha=0.0, mechanism=(1, 2)) > acmip(alpha=0.0, mechanism=(1,))
 
+    assert bool(acmip(alpha=1.0)) is True
+    assert bool(acmip(alpha=0.0)) is False
+    assert bool(acmip(alpha=-1)) is False
+
     with pytest.raises(TypeError):
         acmip(direction=Direction.PAST) < acmip(direction=Direction.FUTURE)
 
@@ -127,6 +131,10 @@ def test_action_ordering():
 
     with pytest.raises(TypeError):
         action(direction=Direction.PAST) < action(direction=Direction.FUTURE)
+
+    assert bool(action(alpha=1.0)) is True
+    assert bool(action(alpha=0.0)) is False
+    assert bool(action(alpha=-1)) is False
 
 
 @pytest.mark.parametrize('direction,mechanism,purview,repertoire', [

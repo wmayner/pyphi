@@ -18,6 +18,11 @@ _acmip_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',
 _acmip_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
                             'purview', 'probability']
 
+def greater_than_zero(alpha):
+    '''Return ``True`` if alpha is greater than zero, accounting for
+    numerical errors.'''
+    return alpha > 0 and not utils.eq(alpha, 0)
+
 
 class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
 
@@ -65,7 +70,7 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
 
     def __bool__(self):
         '''An |AcMip| is ``True`` if it has |alpha > 0|.'''
-        return not utils.eq(self.alpha, 0)
+        return greater_than_zero(self.alpha)
 
     @property
     def phi(self):
@@ -163,7 +168,7 @@ class CausalLink(cmp.Orderable):
 
     def __bool__(self):
         '''An |CausalLink| is ``True`` if |alpha > 0|.'''
-        return not utils.eq(self._mip.alpha, 0)
+        return greater_than_zero(self.alpha)
 
     def to_json(self):
         '''Return a JSON-serializable representation.'''
@@ -265,7 +270,7 @@ class AcBigMip(cmp.Orderable):
 
     def __bool__(self):
         '''An |AcBigMip| is ``True`` if it has |big_alpha > 0|.'''
-        return not utils.eq(self.alpha, 0)
+        return greater_than_zero(self.alpha)
 
     def __hash__(self):
         return hash((self.alpha, self.unpartitioned_account,
