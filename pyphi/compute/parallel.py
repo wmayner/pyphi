@@ -13,6 +13,7 @@ import logging
 import multiprocessing
 import sys
 import threading
+from itertools import chain, islice
 
 from tblib import Traceback
 
@@ -66,6 +67,7 @@ class ExceptionWrapper:
 
 
 POISON_PILL = None
+Q_MAX_SIZE =  multiprocessing.synchronize.SEM_VALUE_MAX
 
 
 class MapReduce:
@@ -100,15 +102,10 @@ class MapReduce:
     description = ''
 
     def __init__(self, iterable, *context):
-        self.iterable = list(iterable)
+        self.iterable = iterable
         self.context = context
         self.done = False
-
-        # Initialize a progress bar
-        # Forked worker processes can't show progress bars.
-        disable = MapReduce._forked or not config.PROGRESS_BARS
-        self.progress = ProgressBar(total=len(self.iterable), leave=False,
-                                    disable=disable, desc=self.description)
+        self.progress = self.init_progress_bar()
 
         # Attributes used by parallel computations
         self.in_queue = None
@@ -116,7 +113,8 @@ class MapReduce:
         self.log_queue = None
         self.log_thread = None
         self.processes = None
-        self.number_of_processes = None
+        self.num_processes = None
+        self.tasks = None
 
     def empty_result(self, *context):
         '''Return the default result with which to begin the computation.'''
@@ -142,6 +140,23 @@ class MapReduce:
     #: Is this process a subprocess in a parallel computation?
     _forked = False
 
+    # TODO: pass size of iterable alongside?
+    def init_progress_bar(self):
+        '''Initialize and return a progress bar.'''
+        # Forked worker processes can't show progress bars.
+        disable = MapReduce._forked or not config.PROGRESS_BARS
+
+        # Don't materialize iterable unless we have to: huge iterables
+        # (e.g. of `KCuts`) eat memory.
+        if disable:
+            total = None
+        else:
+            self.iterable = list(self.iterable)
+            total = len(self.iterable)
+
+        return ProgressBar(total=total, disable=disable, leave=False,
+                           desc=self.description)
+
     @staticmethod
     def worker(compute, in_queue, out_queue, log_queue, *context):
         '''A worker process, run by ``multiprocessing.Process``.'''
@@ -151,10 +166,7 @@ class MapReduce:
 
             configure_worker_logging(log_queue)
 
-            while True:
-                obj = in_queue.get()
-                if obj is POISON_PILL:
-                    break
+            for obj in iter(in_queue.get, POISON_PILL):
                 out_queue.put(compute(obj, *context))
 
             out_queue.put(POISON_PILL)
@@ -167,32 +179,79 @@ class MapReduce:
         '''Initialize all queues and start the worker processes and the log
         thread.
         '''
-        self.number_of_processes = get_num_processes()
+        self.num_processes = get_num_processes()
 
-        self.in_queue = multiprocessing.Queue()
+        self.in_queue = multiprocessing.Queue(maxsize=Q_MAX_SIZE)
+        # Don't print `BrokenPipeError` when workers are terminated and
+        # break the queue.
+        # TODO: this is a private implementation detail
+        self.in_queue._ignore_epipe = True
+
         self.out_queue = multiprocessing.Queue()
         self.log_queue = multiprocessing.Queue()
-
-        # Load all objects to perform the computation over
-        for obj in self.iterable:
-            self.in_queue.put(obj)
-
-        # pylint: disable=unused-variable
-        for i in range(self.number_of_processes):
-            self.in_queue.put(POISON_PILL)
-        # pylint: enable=unused-variable
 
         args = (self.compute, self.in_queue, self.out_queue, self.log_queue) + self.context
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
-            for i in range(self.number_of_processes)]
-
-        self.log_thread = LogThread(self.log_queue)
+            for i in range(self.num_processes)]
 
         for process in self.processes:
             process.start()
 
+        self.log_thread = LogThread(self.log_queue)
         self.log_thread.start()
+
+        self.initialize_tasks()
+
+    def initialize_tasks(self):
+        '''Load the input queue to capacity.
+
+        Overfilling causes a deadlock when `queue.put` blocks when
+        full, so further tasks are enqueued as results are returned.
+        '''
+        # Add a poison pill to shutdown each process.
+        poison = [POISON_PILL] * self.num_processes
+        self.tasks = chain(self.iterable, poison)
+        for obj in islice(self.tasks, Q_MAX_SIZE):
+            self.in_queue.put(obj)
+
+    def maybe_put_task(self):
+        '''Enqueue the next task, if there are any waiting.'''
+        try:
+            self.in_queue.put(next(self.tasks))
+        except StopIteration:
+            pass
+
+    def run_parallel(self):
+        '''Perform the computation in parallel, reading results from the output
+        queue and passing them to ``process_result``.
+        '''
+        self.start_parallel()
+
+        result = self.empty_result(*self.context)
+
+        while not self.done:
+            r = self.out_queue.get()
+            self.maybe_put_task()
+
+            if r is POISON_PILL:
+                self.num_processes -= 1
+                if self.num_processes == 0:
+                    break
+
+            elif isinstance(r, ExceptionWrapper):
+                r.reraise()
+
+            else:
+                result = self.process_result(r, result)
+                self.progress.update(1)
+
+        if self.num_processes > 0:
+            log.debug('Shortcircuit: terminating workers early')
+
+        self.finish_parallel()
+
+        return result
 
     def finish_parallel(self):
         '''Terminate all processes and the log thread.'''
@@ -215,31 +274,6 @@ class MapReduce:
         for process in self.processes:
             log.debug('Terminating worker process %s', process)
             process.terminate()
-
-    def run_parallel(self):
-        '''Perform the computation in parallel, reading results from the output
-        queue and passing them to ``process_result``.
-        '''
-        self.start_parallel()
-
-        result = self.empty_result(*self.context)
-
-        while not self.done:
-            r = self.out_queue.get()
-            if r is POISON_PILL:
-                self.number_of_processes -= 1
-                if self.number_of_processes == 0:
-                    break
-            elif isinstance(r, ExceptionWrapper):
-                r.reraise()
-
-            else:
-                result = self.process_result(r, result)
-                self.progress.update(1)
-
-        self.finish_parallel()
-
-        return result
 
     def run_sequential(self):
         '''Perform the computation sequentially, only holding two computed

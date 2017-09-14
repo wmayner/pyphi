@@ -39,3 +39,33 @@ def test_num_processes():
     # Ok
     with config.override(NUMBER_OF_CORES=1):
         assert parallel.get_num_processes() == 1
+
+
+class MapSquare(parallel.MapReduce):
+
+    def empty_result(self):
+        return set()
+
+    @staticmethod
+    def compute(num):
+        return num ** 2
+
+    def process_result(self, new, previous):
+        previous.add(new)
+        return previous
+
+
+def test_map_square():
+    engine = MapSquare([1, 2, 3])
+    assert engine.run_parallel() == {1, 4, 9}
+    assert engine.run_sequential() == {1, 4, 9}
+
+
+def test_materialize_list_only_when_needed():
+    with config.override(PROGRESS_BARS=False):
+        engine = MapSquare(iter([1, 2, 3]))
+        assert not isinstance(engine.iterable, list)
+
+    with config.override(PROGRESS_BARS=True):
+        engine = MapSquare(iter([1, 2, 3]))
+        assert isinstance(engine.iterable, list)
