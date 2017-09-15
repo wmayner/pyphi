@@ -168,7 +168,7 @@ actual_cut_attributes = ['cause_part1', 'cause_part2', 'effect_part1',
 
 # TODO: this is a special case of KCut - refactor to reflect that?
 class ActualCut(namedtuple('ActualCut', actual_cut_attributes), _CutBase):
-    '''Represents an cut for a |Context|.
+    '''Represents an cut for a |Transition|.
 
     This is a bipartition of the cause and effect elements.
 

@@ -204,12 +204,12 @@ class Account(tuple):
 
 class DirectedAccount(Account):
     '''The set of occurences with |alpha > 0| for one direction of a
-    context.'''
+    transition.'''
     pass
 
 
 _acbigmip_attributes = ['alpha', 'direction', 'unpartitioned_account',
-                        'partitioned_account', 'context', 'cut']
+                        'partitioned_account', 'transition', 'cut']
 
 
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
@@ -224,17 +224,17 @@ class AcBigMip(cmp.Orderable):
         unpartitioned_account (Account): The account of the whole transition.
         partitioned_account (Account): The account of the partitioned
             transition.
-        context (Context): The context this MIP was calculated for.
+        transition (Transition): The transition this MIP was calculated for.
         cut (ActualCut): The minimal partition.
     '''
 
     def __init__(self, alpha=None, direction=None, unpartitioned_account=None,
-                 partitioned_account=None, context=None, cut=None):
+                 partitioned_account=None, transition=None, cut=None):
         self.alpha = alpha
         self.direction = direction
         self.unpartitioned_account = unpartitioned_account
         self.partitioned_account = partitioned_account
-        self.context = context
+        self.transition = transition
         self.cut = cut
 
     def __repr__(self):
@@ -245,18 +245,18 @@ class AcBigMip(cmp.Orderable):
 
     @property
     def before_state(self):
-        '''Return the actual past state of the |Context|.'''
-        return self.context.before_state
+        '''Return the actual past state of the |Transition|.'''
+        return self.transition.before_state
 
     @property
     def after_state(self):
-        '''Return the actual current state of the |Context|.'''
-        return self.context.after_state
+        '''Return the actual current state of the |Transition|.'''
+        return self.transition.after_state
 
     unorderable_unless_eq = ['direction']
 
     def order_by(self):
-        return [self.alpha, len(self.context)]
+        return [self.alpha, len(self.transition)]
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, _acbigmip_attributes)
@@ -267,13 +267,13 @@ class AcBigMip(cmp.Orderable):
 
     def __hash__(self):
         return hash((self.alpha, self.unpartitioned_account,
-                     self.partitioned_account, self.context,
+                     self.partitioned_account, self.transition,
                      self.cut))
 
 
-def _null_ac_bigmip(context, direction, alpha=0.0):
+def _null_ac_bigmip(transition, direction, alpha=0.0):
     '''Returns an |AcBigMip| with zero |big_alpha| and empty accounts.'''
-    return AcBigMip(context=context,
+    return AcBigMip(transition=transition,
                     direction=direction,
                     alpha=alpha,
                     unpartitioned_account=(),

@@ -458,7 +458,7 @@ def fmt_ac_big_mip(ac_big_mip):
     return (
         '{alpha}\n'
         'direction: {ac_big_mip.direction}\n'
-        'context: {ac_big_mip.context}\n'
+        'transition: {ac_big_mip.transition}\n'
         'past_state: {ac_big_mip.before_state}\n'
         'current_state: {ac_big_mip.after_state}\n'
         'cut: {ac_big_mip.cut}\n'

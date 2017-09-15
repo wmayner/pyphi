@@ -26,10 +26,10 @@ from .subsystem import Subsystem, mip_partitions, mip_bipartitions
 log = logging.getLogger(__name__)
 
 
-class Context:
+class Transition:
     '''A set of nodes in a network, with state transitions.
 
-    A |Context| contains two |Subsystem| objects - one representing the system
+    A |Transition| contains two |Subsystem| objects - one representing the system
     at time |t-1| used to compute effect coefficients, and another
     representing the system at time |t| which is used to compute cause
     coefficients. These subsystems are accessed with the ``effect_system`` and
@@ -61,7 +61,7 @@ class Context:
         cause_system (Subsystem):
         system (dict): A dictionary mapping causal directions to the system
             used to compute repertoires in that direction.
-        cut (ActualCut): The cut that has been applied to this context.
+        cut (ActualCut): The cut that has been applied to this transition.
 
     .. note::
         During initialization, both the cause and effect systems are
@@ -114,7 +114,7 @@ class Context:
             self.after_state, self.network, self.cut))
 
     def __repr__(self):
-        return "Context(cause: {}, effect: {})".format(
+        return "Transition(cause: {}, effect: {})".format(
             self.cause_system.indices2nodes(self.cause_indices),
             self.effect_system.indices2nodes(self.effect_indices))
 
@@ -150,9 +150,9 @@ class Context:
         }
 
     def apply_cut(self, cut):
-        '''Return a cut version of this context.'''
-        return Context(self.network, self.before_state, self.after_state,
-                       self.cause_indices, self.effect_indices, cut)
+        '''Return a cut version of this transition.'''
+        return Transition(self.network, self.before_state, self.after_state,
+                          self.cause_indices, self.effect_indices, cut)
 
     # TODO: remove these named repertoire methods and just use `_repertoire`?
     def cause_repertoire(self, mechanism, purview):
@@ -373,8 +373,8 @@ def nice_ac_composition(account):
             dir_arrow = '-->'
         else:
             validate.direction(account.direction)
-        actions = [["{0:.4f}".format(round(action.alpha, 4)),
-                    action.mechanism, dir_arrow, action.purview]
+            actions = [["{0:.4f}".format(round(action.alpha, 4)),
+                        action.mechanism, dir_arrow, action.purview]
                    for action in account]
         return actions
     else:
@@ -392,11 +392,11 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
             second state. Vice versa for "future"
     '''
     for transition in transitions:
-        context = Context(network, transition[0], transition[1], cause_indices,
-                          effect_indices)
-        cause_account = directed_account(context, Direction.PAST, mechanisms,
+        transition = Transition(network, transition[0], transition[1],
+                                cause_indices, effect_indices)
+        cause_account = directed_account(transition, Direction.PAST, mechanisms,
                                          purviews, allow_neg)
-        effect_account = directed_account(context, Direction.FUTURE,
+        effect_account = directed_account(transition, Direction.FUTURE,
                                           mechanisms, purviews, allow_neg)
         print('#####################################')
         print(transition)
@@ -411,30 +411,31 @@ def multiple_states_nice_ac_composition(network, transitions, cause_indices,
 # ============================================================================
 
 
-def directed_account(context, direction, mechanisms=False, purviews=False,
+def directed_account(transition, direction, mechanisms=False, purviews=False,
                      allow_neg=False):
     '''Return the set of all |CausalLinks| of the specified direction.'''
     if mechanisms is False:
         # TODO? don't consider the empty mechanism
         # (pass `nonempty=True` to powerset)
         if direction == Direction.PAST:
-            mechanisms = utils.powerset(context.effect_indices)
+            mechanisms = utils.powerset(transition.effect_indices)
         elif direction == Direction.FUTURE:
-            mechanisms = utils.powerset(context.cause_indices)
+            mechanisms = utils.powerset(transition.cause_indices)
 
-    actions = [context.find_causal_link(direction, mechanism, purviews=purviews,
-                                      allow_neg=allow_neg)
-               for mechanism in mechanisms]
+    actions = [
+        transition.find_causal_link(direction, mechanism, purviews=purviews,
+                                    allow_neg=allow_neg)
+        for mechanism in mechanisms]
 
     # Filter out MICE with zero alpha
     return DirectedAccount(filter(None, actions))
 
 
-def account(context, direction=Direction.BIDIRECTIONAL):
+def account(transition, direction=Direction.BIDIRECTIONAL):
     if direction == Direction.BIDIRECTIONAL:
-        return Account(directed_account(context, Direction.PAST) +
-                       directed_account(context, Direction.FUTURE))
-    return directed_account(context, direction)
+        return Account(directed_account(transition, Direction.PAST) +
+                       directed_account(transition, Direction.FUTURE))
+    return directed_account(transition, direction)
 
 
 # ============================================================================
@@ -457,11 +458,11 @@ def account_distance(A1, A2):
             - sum([action.alpha for action in A2]))
 
 
-def _evaluate_cut(context, cut, unpartitioned_account,
+def _evaluate_cut(transition, cut, unpartitioned_account,
                   direction=Direction.BIDIRECTIONAL):
     '''Find the |AcBigMip| for a given cut.'''
-    cut_context = context.apply_cut(cut)
-    partitioned_account = account(cut_context, direction)
+    cut_transition = transition.apply_cut(cut)
+    partitioned_account = account(cut_transition, direction)
 
     log.debug("Finished evaluating %s.", cut)
     alpha = account_distance(unpartitioned_account, partitioned_account)
@@ -471,24 +472,25 @@ def _evaluate_cut(context, cut, unpartitioned_account,
         direction=direction,
         unpartitioned_account=unpartitioned_account,
         partitioned_account=partitioned_account,
-        context=context,
+        transition=transition,
         cut=cut)
 
 
-def _get_cuts(context):
-    '''A list of possible cuts to a context.'''
+def _get_cuts(transition):
+    '''A list of possible cuts to a transition.'''
     # TODO: implement CUT_ONE approximation?
-    for p in mip_bipartitions(context.cause_indices, context.effect_indices):
+    for p in mip_bipartitions(transition.cause_indices,
+                              transition.effect_indices):
         yield ActualCut(p[0].mechanism, p[1].mechanism,
                         p[0].purview, p[1].purview)
 
 
-def big_acmip(context, direction=Direction.BIDIRECTIONAL):
-    '''Return the minimal information partition of a context in a specific
+def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
+    '''Return the minimal information partition of a transition in a specific
     direction.
 
     Args:
-        context (Context): The candidate system.
+        transition (Transition): The candidate system.
 
     Returns:
         AcBigMip: A nested structure containing all the data from the
@@ -496,30 +498,30 @@ def big_acmip(context, direction=Direction.BIDIRECTIONAL):
         information for the given subsystem.
     '''
     validate.direction(direction)
-    log.info("Calculating big-alpha for %s...", context)
+    log.info("Calculating big-alpha for %s...", transition)
 
-    if not context:
-        log.info('Context %s is empty; returning null MIP '
-                 'immediately.', context)
-        return _null_ac_bigmip(context, direction)
+    if not transition:
+        log.info('Transition %s is empty; returning null MIP '
+                 'immediately.', transition)
+        return _null_ac_bigmip(transition, direction)
 
-    if not connectivity.is_weak(context.network.cm, context.node_indices):
+    if not connectivity.is_weak(transition.network.cm, transition.node_indices):
         log.info('%s is not strongly/weakly connected; returning null MIP '
-                 'immediately.', context)
-        return _null_ac_bigmip(context, direction)
+                 'immediately.', transition)
+        return _null_ac_bigmip(transition, direction)
 
     log.debug("Finding unpartitioned account...")
-    unpartitioned_account = account(context, direction)
+    unpartitioned_account = account(transition, direction)
     log.debug("Found unpartitioned account.")
 
     if not unpartitioned_account:
         log.info('Empty account; returning null AC MIP immediately.')
-        return _null_ac_bigmip(context, direction)
+        return _null_ac_bigmip(transition, direction)
 
-    cuts = _get_cuts(context)
-    finder = FindBigAcMip(cuts, context, direction, unpartitioned_account)
+    cuts = _get_cuts(transition)
+    finder = FindBigAcMip(cuts, transition, direction, unpartitioned_account)
     result = finder.run_sequential()
-    log.info("Finished calculating big-ac-phi data for %s.", context)
+    log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
     return result
 
@@ -528,12 +530,12 @@ class FindBigAcMip(compute.parallel.MapReduce):
     """Computation engine for AC BigMips."""
     description = 'Evaluating AC cuts'
 
-    def empty_result(self, context, direction, unpartitioned_account):
-        return _null_ac_bigmip(context, direction, alpha=float('inf'))
+    def empty_result(self, transition, direction, unpartitioned_account):
+        return _null_ac_bigmip(transition, direction, alpha=float('inf'))
 
     @staticmethod
-    def compute(cut, context, direction, unpartitioned_account):
-        return _evaluate_cut(context, cut, unpartitioned_account, direction)
+    def compute(cut, transition, direction, unpartitioned_account):
+        return _evaluate_cut(transition, cut, unpartitioned_account, direction)
 
     def process_result(self, new_mip, min_mip):
         # Check a new result against the running minimum
@@ -553,8 +555,8 @@ class FindBigAcMip(compute.parallel.MapReduce):
 
 
 # TODO: Fix this to test whether the transition is possible
-def contexts(network, before_state, after_state):
-    '''Return a generator of all **possible** contexts of a network.
+def transitions(network, before_state, after_state):
+    '''Return a generator of all **possible** transitions of a network.
     '''
     # TODO: Does not return subsystems that are in an impossible transitions.
 
@@ -570,8 +572,8 @@ def contexts(network, before_state, after_state):
 
             if cause_subset and effect_subset:
                 try:
-                    yield Context(network, before_state, after_state,
-                                  cause_subset, effect_subset)
+                    yield Transition(network, before_state, after_state,
+                                     cause_subset, effect_subset)
                 except exceptions.StateUnreachableError:
                     pass
 
@@ -582,8 +584,10 @@ def nexus(network, before_state, after_state,
        Direction options are past, future, bidirectional. '''
     validate.is_network(network)
 
-    return tuple(filter(None, (big_acmip(context, direction) for context in
-                               contexts(network, before_state, after_state))))
+    mips = (big_acmip(transition, direction) for transition in
+            transitions(network, before_state, after_state))
+
+    return tuple(filter(None, mips))
 
 
 def causal_nexus(network, before_state, after_state,
@@ -596,8 +600,9 @@ def causal_nexus(network, before_state, after_state,
     if result:
         result = max(result)
     else:
-        empty_context = Context(network, before_state, after_state, (), ())
-        result = _null_ac_bigmip(empty_context, direction)
+        null_transition = Transition(network, before_state, after_state, (), ())
+        result = _null_ac_bigmip(null_transition, direction)
+
     log.info("Finished calculating causal nexus.")
     log.debug("RESULT: \n%s", result)
     return result
@@ -631,17 +636,17 @@ def nice_true_constellation(true_constellation):
 def _actual_causes(network, past_state, current_state, nodes,
                    mechanisms=False):
     log.info("Calculating true causes ...")
-    context = Context(network, past_state, current_state, nodes, nodes)
+    transition = Transition(network, past_state, current_state, nodes, nodes)
 
-    return directed_account(context, Direction.PAST, mechanisms=mechanisms)
+    return directed_account(transition, Direction.PAST, mechanisms=mechanisms)
 
 
 def _actual_effects(network, current_state, future_state, nodes,
                     mechanisms=False):
     log.info("Calculating true effects ...")
-    context = Context(network, current_state, future_state, nodes, nodes)
+    transition = Transition(network, current_state, future_state, nodes, nodes)
 
-    return directed_account(context, Direction.FUTURE, mechanisms=mechanisms)
+    return directed_account(transition, Direction.FUTURE, mechanisms=mechanisms)
 
 
 def events(network, past_state, current_state, future_state, nodes,

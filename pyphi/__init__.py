@@ -62,7 +62,7 @@ from . import (config, constants, convert, db, examples, jsonify, macro,
                models, network, node, subsystem, utils, validate)
 from .network import Network
 from .subsystem import Subsystem
-from .actual import Context
+from .actual import Transition
 
 __all__ = ['Network', 'Subsystem', 'config', 'constants', 'convert', 'db',
            'examples', 'jsonify', 'macro', 'models', 'network', 'node',

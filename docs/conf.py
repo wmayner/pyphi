@@ -243,7 +243,7 @@ r"""
 .. |CoarseGrains| replace:: :class:`~pyphi.macro.CoarseGrain`
 .. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
 
-.. |Context| replace:: :class:`~pyphi.actual.Context`
+.. |Transition| replace:: :class:`~pyphi.actual.Transition`
 .. |AcBigMip| replace:: :class:`~pyphi.models.actual_causation.AcBigMip`
 .. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
 .. |AcMip| replace:: :class:`~pyphi.models.actual_causation.AcMip`

@@ -13,7 +13,7 @@ import string
 
 import numpy as np
 
-from .actual import Context
+from .actual import Transition
 from .network import Network
 from .subsystem import Subsystem
 from .utils import all_states
@@ -1072,12 +1072,12 @@ def ac_ex1_network():
     return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
 
 
-def ac_ex1_context():
+def ac_ex1_transition():
     ''' The OR gate is ON, others are OFF just so they conform to the tpm '''
     net = ac_ex1_network()
     before_state = (0, 1, 1)
     after_state = (1, 0, 0)
-    return Context(net, before_state, after_state, (1, 2), (0,))
+    return Transition(net, before_state, after_state, (1, 2), (0,))
 
 
 def ac_ex2_network():
@@ -1110,12 +1110,12 @@ def ac_ex2_network():
     return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
 
 
-def ac_ex2_context():
+def ac_ex2_transition():
     ''' The output is ON, others are OFF just so they conform to the tpm '''
     net = ac_ex2_network()
     before_state = (0, 1, 1, 0)
     after_state = (0, 0, 0, 1)
-    return Context(net, before_state, after_state, (1,), (3,))
+    return Transition(net, before_state, after_state, (1,), (3,))
 
 
 def ac_ex3_network():
@@ -1139,12 +1139,12 @@ def ac_ex3_network():
     return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
 
 
-def ac_ex3_context():
+def ac_ex3_transition():
     ''' The output is OFF, the input are OFF just so they conform to the tpm '''
     net = ac_ex3_network()
     before_state = (0, 0, 1)
     after_state = (0, 0, 0)
-    return Context(net, before_state, after_state, (1, 2), (0,))
+    return Transition(net, before_state, after_state, (1, 2), (0,))
 
 
 def actual_causation():
