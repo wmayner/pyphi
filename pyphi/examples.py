@@ -1161,4 +1161,4 @@ def actual_causation():
         [1, 1],
         [1, 1]
     ])
-    return Network(tpm, cm)
+    return Network(tpm, cm, node_labels=('OR', 'AND'))
