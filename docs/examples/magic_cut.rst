@@ -172,7 +172,7 @@ Calculating the MIP of the system,
     >>> mip.phi
     0.217829
     >>> mip.cut
-    Cut [0, 4] ━━/ /━━▶ [1]
+    Cut [0, 4] ━━/ /━━➤ [1]
 
 This subsystem has a |big_phi| value of 0.15533, and the MIP cuts the
 connections from |AE| to |B|. Investigating the concepts in both the

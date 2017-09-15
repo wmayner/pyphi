@@ -569,7 +569,7 @@ shown in the figure:
     >>> big_mip.phi
     1.9166650000000001
     >>> big_mip.cut
-    Cut [0, 1] ━━/ /━━▶ [2]
+    Cut [0, 1] ━━/ /━━➤ [2]
 
 .. note::
 
