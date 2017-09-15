@@ -58,12 +58,13 @@ and their defaults.
 '''
 
 from .__about__ import *  # pylint: disable=wildcard-import
-from . import (config, constants, convert, db, examples, jsonify, macro,
+from . import (actual, config, constants, convert, db, examples, jsonify, macro,
                models, network, node, subsystem, utils, validate)
 from .network import Network
 from .subsystem import Subsystem
 from .actual import Transition
 
-__all__ = ['Network', 'Subsystem', 'config', 'constants', 'convert', 'db',
-           'examples', 'jsonify', 'macro', 'models', 'network', 'node',
+
+__all__ = ['Network', 'Subsystem', 'actual', 'config', 'constants', 'convert',
+           'db', 'examples', 'jsonify', 'macro', 'models', 'network', 'node',
            'subsystem', 'utils', 'validate']
