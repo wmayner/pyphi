@@ -88,10 +88,6 @@ class Subsystem:
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
 
-        # Only compute hash once.
-        self._hash = hash((self.network, self.node_indices, self.state,
-                           self.cut))
-
         # Reusable cache for core causes & effects
         self._mice_cache = cache.MiceCache(self, mice_cache)
 
@@ -225,7 +221,7 @@ class Subsystem:
         return len(self.node_indices)
 
     def __hash__(self):
-        return self._hash
+        return hash((self.network, self.node_indices, self.state, self.cut))
 
     def to_json(self):
         '''Return a JSON-serializable representation.'''
