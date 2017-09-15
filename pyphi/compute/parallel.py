@@ -56,7 +56,7 @@ class ExceptionWrapper:
     Args:
         exception (Exception): The exception to wrap.
     '''
-    def __init__(self, exception):
+    def __init__(self, exception):  # coverage: disable
         self.exception = exception
         _, _, tb = sys.exc_info()
         self.tb = Traceback(tb)
@@ -157,7 +157,7 @@ class MapReduce:
         return ProgressBar(total=total, disable=disable, leave=False,
                            desc=self.description)
 
-    @staticmethod
+    @staticmethod  # coverage: disable
     def worker(compute, in_queue, out_queue, log_queue, *context):
         '''A worker process, run by ``multiprocessing.Process``.'''
         try:
@@ -330,7 +330,7 @@ class LogThread(threading.Thread):
         log.debug('Log thread exiting')
 
 
-def configure_worker_logging(queue):
+def configure_worker_logging(queue):  # coverage: disable
     '''Configure a worker process to log all messages to ``queue``.'''
     logging.config.dictConfig({
         'version': 1,
