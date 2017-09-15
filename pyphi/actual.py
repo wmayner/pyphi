@@ -367,7 +367,7 @@ def nice_ac_composition(account):
             dir_arrow = '-->'
         else:
             validate.direction(account.direction)
-            actions = [["{0:.4f}".format(round(action.alpha, 4)),
+        actions = [["{0:.4f}".format(round(action.alpha, 4)),
                         action.mechanism, dir_arrow, action.purview]
                    for action in account]
         return actions

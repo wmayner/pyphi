@@ -9,7 +9,8 @@ Helper functions for formatting pretty representations of PyPhi models.
 from fractions import Fraction
 from itertools import chain
 
-from .. import config, constants, utils
+from .. import config, utils
+from ..constants import Direction, EPSILON
 
 # pylint: disble=bad-whitespace
 
@@ -21,6 +22,7 @@ HIGH   = 2
 # Unicode symbols
 SMALL_PHI           = '\u03C6'
 BIG_PHI             = '\u03A6'
+ALPHA               = '\u03B1'
 TOP_LEFT_CORNER     = '\u250C'
 TOP_RIGHT_CORNER    = '\u2510'
 BOTTOM_LEFT_CORNER  = '\u2514'
@@ -205,7 +207,7 @@ def fmt_number(p):
     fraction = Fraction(p)
     nice = fraction.limit_denominator(128)
     return (
-        str(nice) if (abs(fraction - nice) < constants.EPSILON and
+        str(nice) if (abs(fraction - nice) < EPSILON and
                       nice.denominator in NICE_DENOMINATORS)
         else formatted
     )
@@ -428,29 +430,22 @@ def fmt_repertoire(r):
     return box('\n'.join(lines))
 
 
-def fmt_ac_mip(acmip, verbose=True):
-    '''Helper function to format a nice Mip string'''
-
-    if acmip is False or acmip is None:  # mips can be Falsy
+def fmt_ac_mip(mip):
+    '''Format an AcMip.'''
+    if mip is None:
         return ''
 
-    mechanism = 'mechanism: {}\t'.format(acmip.mechanism) if verbose else ''
-    direction = 'direction: {}\n'.format(acmip.direction) if verbose else ''
-    return (
-        '{alpha}\t'
-        '{mechanism}'
-        'purview: {acmip.purview}\t'
-        '{direction}'
-        'partition:\n{partition}\n'
-        'probability:\t{probability}\t'
-        'partitioned_probability:\t{partitioned_probability}\n').format(
-            alpha='{0:.4f}'.format(round(acmip.alpha, 4)),
-            mechanism=mechanism,
-            direction=direction,
-            acmip=acmip,
-            partition=indent(fmt_bipartition(acmip.partition)),
-            probability=indent(acmip.probability),
-            partitioned_probability=indent(acmip.partitioned_probability))
+    causality = {
+        # TODO: use node labels
+        Direction.PAST: (str(mip.purview), '<--', str(mip.mechanism)),
+        Direction.FUTURE: (str(mip.mechanism), '-->', str(mip.purview))
+    }[mip.direction]
+    causality = ' '.join(causality)
+
+    return '{ALPHA} = {alpha}  {causality}'.format(
+        ALPHA=ALPHA,
+        alpha=round(mip.alpha, 4),
+        causality=causality)
 
 
 def fmt_ac_big_mip(ac_big_mip):
