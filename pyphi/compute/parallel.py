@@ -67,7 +67,7 @@ class ExceptionWrapper:
 
 
 POISON_PILL = None
-Q_MAX_SIZE =  multiprocessing.synchronize.SEM_VALUE_MAX
+Q_MAX_SIZE = multiprocessing.synchronize.SEM_VALUE_MAX
 
 
 class MapReduce:
