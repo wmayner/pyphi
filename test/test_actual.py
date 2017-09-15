@@ -61,6 +61,11 @@ def test_transition_bool(transition, empty_transition):
     assert not bool(empty_transition)
 
 
+def test_transition_equal(transition, empty_transition):
+    assert transition != empty_transition
+    assert hash(transition) != hash(empty_transition)
+
+
 def test_transition_apply_cut(transition):
     cut = models.ActualCut((1,), (2,), (), (0,))
     cut_transition = transition.apply_cut(cut)

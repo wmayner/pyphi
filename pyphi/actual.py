@@ -107,10 +107,6 @@ class Transition:
             Direction.FUTURE: self.effect_system
         }
 
-        self._hash = hash((
-            self.cause_indices, self.effect_indices, self.before_state,
-            self.after_state, self.network, self.cut))
-
     def __repr__(self):
         return "Transition(cause: {}, effect: {})".format(
             self.cause_system.indices2nodes(self.cause_indices),
@@ -128,7 +124,8 @@ class Transition:
                 and self.cut == other.cut)
 
     def __hash__(self):
-        return self._hash
+        return hash((self.cause_indices, self.effect_indices, self.before_state,
+                     self.after_state, self.network, self.cut))
 
     def __len__(self):
         return len(self.node_indices)
