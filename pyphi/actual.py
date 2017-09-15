@@ -27,14 +27,14 @@ log = logging.getLogger(__name__)
 
 
 class Transition:
-    '''A set of nodes in a network, with state transitions.
+    '''A state transition between two sets of nodes in a network.
 
-    A |Transition| contains two |Subsystem| objects - one representing the system
-    at time |t-1| used to compute effect coefficients, and another
-    representing the system at time |t| which is used to compute cause
-    coefficients. These subsystems are accessed with the ``effect_system`` and
-    ``cause_system`` attributes, and are mapped to the causal directions via
-    the ``system`` attribute.
+    A |Transition| is implemented with two |Subsystem| objects - one
+    representing the system at time |t-1| used to compute effect coefficients,
+    and another representing the system at time |t| which is used to compute
+    cause coefficients. These subsystems are accessed with the
+    ``effect_system`` and ``cause_system`` attributes, and are mapped to the
+    causal directions via the ``system`` attribute.
 
     Args:
         network (Network): The network the subsystem belongs to.
@@ -50,10 +50,8 @@ class Transition:
     Attributes:
         node_indices (tuple[int]): The indices of the nodes in the system.
         network (Network): The network the system belongs to.
-        before_state (tuple[int]): The state of the network at
-            time |t-1|.
-        after_state (tuple[int]): The state of the network at
-            time |t|.
+        before_state (tuple[int]): The state of the network at time |t-1|.
+        after_state (tuple[int]): The state of the network at time |t|.
         effect_system (Subsystem): The system in ``before_state`` used to
             compute effect repertoires and coefficients.
         cause_system (Subsystem): The system in ``after_state`` used to compute
@@ -65,7 +63,7 @@ class Transition:
 
     .. note::
         During initialization, both the cause and effect systems are
-        conditioned on the ``before_state`` as the background state. After
+        conditioned on ``before_state`` as the background state. After
         conditioning the ``effect_system`` is then properly reset to
         ``after_state``.
     '''
