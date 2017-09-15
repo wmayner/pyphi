@@ -149,7 +149,6 @@ class Transition:
         return Transition(self.network, self.before_state, self.after_state,
                           self.cause_indices, self.effect_indices, cut)
 
-    # TODO: remove these named repertoire methods and just use `_repertoire`?
     def cause_repertoire(self, mechanism, purview):
         return self.cause_system.cause_repertoire(mechanism, purview)
 
