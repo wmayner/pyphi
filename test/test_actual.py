@@ -151,6 +151,11 @@ def test_account_irreducible_causes_and_effects():
     assert account.irreducible_effects == (effect,)
 
 
+def test_account_repr_and_str():
+    str(models.Account())
+    repr(models.Account())
+
+
 @pytest.mark.parametrize('direction,mechanism,purview,repertoire', [
     (Direction.PAST, (0,), (1,), [[[0.3333333], [0.66666667]]]),
     (Direction.PAST, (0,), (2,), [[[0.3333333, 0.66666667]]]),

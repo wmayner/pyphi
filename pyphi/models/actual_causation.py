@@ -203,7 +203,7 @@ class Account(tuple):
                      if link.direction is Direction.FUTURE)
 
     def __repr__(self):
-        if config.READABLE_REPRS:
+        if config.REPR_VERBOSITY > 0:
             return self.__str__()
         return "{0}({1})".format(
             self.__class__.__name__, super().__repr__())
