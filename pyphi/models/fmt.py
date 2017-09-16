@@ -448,6 +448,24 @@ def fmt_ac_mip(mip):
         causality=causality)
 
 
+def fmt_account(account, title=None):
+    '''Format an Account or a DirectedAccount.'''
+
+    if title is None:
+        title = account.__class__.__name__  # `Account` or `DirectedAccount`
+
+    title = '{} ({} causal link{})'.format(
+        title, len(account), '' if len(account) == 1 else 's')
+
+    body = ''
+    body += 'Irreducible effects\n'
+    body += '\n'.join(fmt_ac_mip(m) for m in account.irreducible_effects)
+    body += '\nIrreducible causes\n'
+    body += '\n'.join(fmt_ac_mip(m) for m in account.irreducible_causes)
+
+    return '\n' + header(title, body, under_char='*')
+
+
 def fmt_ac_big_mip(ac_big_mip):
     '''Format a AcBigMip.'''
     return (
@@ -465,20 +483,6 @@ def fmt_ac_big_mip(ac_big_mip):
                 ac_big_mip.unpartitioned_account, 'Unpartitioned Account'),
             partitioned_account=fmt_account(
                 ac_big_mip.partitioned_account, 'Partitioned Account')))
-
-
-def fmt_account(account, title=None):
-    '''Format an Account or a DirectedAccount.'''
-
-    if title is None:
-        title = account.__class__.__name__  # `Account` or `DirectedAccount`
-
-    title = '{} ({} coefficient{})'.format(
-        title, len(account), '' if len(account) == 1 else 's')
-
-    content = '\n'.join(str(m) for m in account)
-
-    return '\n' + header(title, content, under_char='*')
 
 
 def fmt_actual_cut(cut):
