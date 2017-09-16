@@ -350,6 +350,14 @@ class Transition:
         # Construct the corresponding CausalLink
         return CausalLink(max_mip)
 
+    def find_actual_cause(self, mechanism, purviews=False):
+        '''Return the actual cause of a mechanism.'''
+        return self.find_causal_link(Direction.PAST, mechanism, purviews)
+
+    def find_actual_effect(self, mechanism, purviews=False):
+        '''Return the actual effect of a mechanism.'''
+        return self.find_causal_link(Direction.FUTURE, mechanism, purviews)
+
     def find_mice(self, *args, **kwargs):
         '''Backwards-compatible alias for :func:`find_causal_link`.'''
         return self.find_causal_link(*args, **kwargs)

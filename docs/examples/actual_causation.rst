@@ -106,15 +106,12 @@ positive |alpha|:
    >>> link.alpha
    0.16992500144231237
 
-   >>> link.partition  # doctest: +NORMALIZE_WHITESPACE
-    0     1
-   ─── ✕ ───
-    0     1
+To find the actual cause or actual effect of a particular occurence, use the
+``find_actual_cause`` or ``find_actual_effect`` methods:
 
-# Note 8: To find the actual cause/effect of a particular occurrence, do this
-# (compare Fig. 4, bottom):
-
-   >>> actual_link = transition.find_causal_link(Direction.PAST, (OR, AND))
+   >>> transition.find_actual_cause((OR, AND))
+   CausalLink
+     α = 0.1699  (0, 1) <-- (0, 1)
 
 # Accounts
 
