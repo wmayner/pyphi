@@ -354,52 +354,6 @@ class Transition:
         return self.find_causal_link(*args, **kwargs)
 
 
-# ===========================================================================
-# Printed Results
-# ============================================================================
-
-
-def nice_ac_composition(account):
-    if account:
-        if account[0].direction == Direction.PAST:
-            dir_arrow = '<--'
-        elif account[0].direction == Direction.FUTURE:
-            dir_arrow = '-->'
-        else:
-            validate.direction(account.direction)
-        actions = [["{0:.4f}".format(round(action.alpha, 4)),
-                        action.mechanism, dir_arrow, action.purview]
-                   for action in account]
-        return actions
-    else:
-        return None
-
-
-def multiple_states_nice_ac_composition(network, transitions, cause_indices,
-                                        effect_indices, mechanisms=False,
-                                        purviews=False, allow_neg=False):
-    '''Print a nice composition for multiple pairs of states.
-
-    Args:
-        transitions (list(2 state-tuples)): The first is past the second
-            current. For 'past' current belongs to subsystem and past is the
-            second state. Vice versa for "future"
-    '''
-    for transition in transitions:
-        transition = Transition(network, transition[0], transition[1],
-                                cause_indices, effect_indices)
-        cause_account = directed_account(transition, Direction.PAST, mechanisms,
-                                         purviews, allow_neg)
-        effect_account = directed_account(transition, Direction.FUTURE,
-                                          mechanisms, purviews, allow_neg)
-        print('#####################################')
-        print(transition)
-        print('- cause coefs ----------------------')
-        pprint(nice_ac_composition(cause_account))
-        print('- effect coefs ----------------------')
-        pprint(nice_ac_composition(effect_account))
-        print('---------------------------')
-
 # ============================================================================
 # Average over mechanisms - constellations
 # ============================================================================
