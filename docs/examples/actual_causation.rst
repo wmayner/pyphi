@@ -78,16 +78,38 @@ And the cause ratio of |Y_t = {OR = 1}| constraining |X_t-1 = {OR, AND}|
    >>> transition.cause_ratio((OR,), (OR, AND))
    0.41503749927884376
 
-# Note 7: To evaluate alpha for a particular pair of occurrences, do this
-(compare Fig. 3 C, right):
+We can evaluate |alpha| for a particular pair of occurences, as in Figure 3C.
+For example, to find the irreducible effect ratio of |{OR, AND} -> {OR, AND}|,
+we use the ``find_mip`` method:
+
+   >>> link = transition.find_mip(Direction.FUTURE, (OR, AND), (OR, AND))
+
+This returns a |AcMip| object, with a number of useful properties. This
+particular MIP is reducible, as we can see by checking the value of |alpha|:
+
+   >>> link.alpha
+   0.0
+
+The ``partition`` property shows the minimum information partition that
+reduces the occurence and candidate effect:
+
+   >>> link.partition  # doctest: +NORMALIZE_WHITESPACE
+    0     1
+   ─── ✕ ───
+    0     1
+
+Let's look at the MIP for the irreducible occurence |Y_t = {OR, AND}|
+constraining |X_t-1 = {OR, AND}| (Figure 3D). This candidate causal link has
+positive |alpha|:
 
    >>> link = transition.find_mip(Direction.PAST, (OR, AND), (OR, AND))
    >>> link.alpha
    0.16992500144231237
 
-   >>> link = transition.find_mip(Direction.FUTURE, (OR, AND), (OR, AND))
-   >>> link.alpha
-   0.0
+   >>> link.partition  # doctest: +NORMALIZE_WHITESPACE
+    0     1
+   ─── ✕ ───
+    0     1
 
 # Note 8: To find the actual cause/effect of a particular occurrence, do this
 # (compare Fig. 4, bottom):
@@ -95,6 +117,9 @@ And the cause ratio of |Y_t = {OR = 1}| constraining |X_t-1 = {OR, AND}|
    >>> actual_link = transition.find_causal_link(Direction.PAST, (OR, AND))
 
 # Accounts
+
+   >>> account = actual.account(transition)
+
 # Note 9: The irreducibility of the causal account of our transition of
 # interest can be evaluated using the following function:
 

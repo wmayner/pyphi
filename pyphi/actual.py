@@ -245,6 +245,7 @@ class Transition:
     # MIP methods
     # =========================================================================
 
+    # TODO: alias to `irreducible_cause/effect ratio?
     def find_mip(self, direction, mechanism, purview, allow_neg=False):
         '''Find the ratio minimum information partition for a mechanism
         over a purview.
