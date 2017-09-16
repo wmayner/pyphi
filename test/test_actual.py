@@ -142,6 +142,15 @@ def test_causal_link_ordering():
     assert bool(causal_link(alpha=-1)) is False
 
 
+def test_account_irreducible_causes_and_effects():
+    cause = causal_link(direction=Direction.PAST)
+    effect = causal_link(direction=Direction.FUTURE)
+    account = models.Account((cause, effect))
+
+    assert account.irreducible_causes == (cause,)
+    assert account.irreducible_effects == (effect,)
+
+
 @pytest.mark.parametrize('direction,mechanism,purview,repertoire', [
     (Direction.PAST, (0,), (1,), [[[0.3333333], [0.66666667]]]),
     (Direction.PAST, (0,), (2,), [[[0.3333333, 0.66666667]]]),

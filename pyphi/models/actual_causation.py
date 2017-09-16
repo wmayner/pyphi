@@ -10,6 +10,7 @@ from collections import namedtuple
 
 from . import cmp, fmt
 from .. import config, utils
+from ..constants import Direction
 
 # TODO(slipperyhank): Why do we even need this?
 # TODO(slipperyhank): add second state
@@ -191,6 +192,15 @@ class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
 class Account(tuple):
     '''The set of occurences with |alpha > 0| for both |PAST| and
     |FUTURE|.'''
+
+    @property
+    def irreducible_causes(self):
+        return tuple(link for link in self if link.direction is Direction.PAST)
+
+    @property
+    def irreducible_effects(self):
+        return tuple(link for link in self
+                     if link.direction is Direction.FUTURE)
 
     def __repr__(self):
         if config.READABLE_REPRS:
