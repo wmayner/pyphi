@@ -98,7 +98,7 @@ def acmip(**kwargs):
     return models.AcMip(**defaults)
 
 
-def action(**kwargs):
+def causal_link(**kwargs):
     return models.CausalLink(acmip(**kwargs))
 
 
@@ -127,19 +127,19 @@ def test_acmip_phi_alias():
     assert acmip(alpha=3.3).phi == 3.3
 
 
-def test_action_ordering():
-    assert action() == action()
+def test_causal_link_ordering():
+    assert causal_link() == causal_link()
 
-    assert action(alpha=0.0) < action(alpha=1.0)
-    assert action(alpha=0.0, mechanism=(1, 2)) <= action(alpha=1.0, mechanism=(1,))
-    assert action(alpha=0.0, mechanism=(1, 2)) > action(alpha=0.0, mechanism=(1,))
+    assert causal_link(alpha=0.0) < causal_link(alpha=1.0)
+    assert causal_link(alpha=0.0, mechanism=(1, 2)) <= causal_link(alpha=1.0, mechanism=(1,))
+    assert causal_link(alpha=0.0, mechanism=(1, 2)) > causal_link(alpha=0.0, mechanism=(1,))
 
     with pytest.raises(TypeError):
-        action(direction=Direction.PAST) < action(direction=Direction.FUTURE)
+        causal_link(direction=Direction.PAST) < causal_link(direction=Direction.FUTURE)
 
-    assert bool(action(alpha=1.0)) is True
-    assert bool(action(alpha=0.0)) is False
-    assert bool(action(alpha=-1)) is False
+    assert bool(causal_link(alpha=1.0)) is True
+    assert bool(causal_link(alpha=0.0)) is False
+    assert bool(causal_link(alpha=-1)) is False
 
 
 @pytest.mark.parametrize('direction,mechanism,purview,repertoire', [

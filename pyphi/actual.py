@@ -416,13 +416,13 @@ def directed_account(transition, direction, mechanisms=False, purviews=False,
         elif direction == Direction.FUTURE:
             mechanisms = utils.powerset(transition.cause_indices)
 
-    actions = [
+    links = [
         transition.find_causal_link(direction, mechanism, purviews=purviews,
                                     allow_neg=allow_neg)
         for mechanism in mechanisms]
 
-    # Filter out MICE with zero alpha
-    return DirectedAccount(filter(None, actions))
+    # Filter out causal links with zero alpha
+    return DirectedAccount(filter(None, links))
 
 
 def account(transition, direction=Direction.BIDIRECTIONAL):
