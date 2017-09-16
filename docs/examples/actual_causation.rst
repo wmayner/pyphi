@@ -113,14 +113,57 @@ To find the actual cause or actual effect of a particular occurence, use the
    CausalLink
      α = 0.1699  (0, 1) <-- (0, 1)
 
-# Accounts
+
+Accounts
+~~~~~~~~
+
+The complete causal account of our transition can be computed with the
+``account`` function:
 
    >>> account = actual.account(transition)
+   >>> print(account)  # doctest: +NORMALIZE_WHITESPACE
+   <BLANKLINE>
+      Account (5 causal links)
+   *****************************
+   Irreducible effects
+   α = 0.415  (0,) --> (0,)
+   α = 0.415  (1,) --> (1,)
+   Irreducible causes
+   α = 0.415  (0,) <-- (0,)
+   α = 0.415  (1,) <-- (1,)
+   α = 0.1699  (0, 1) <-- (0, 1)
 
-# Note 9: The irreducibility of the causal account of our transition of
-# interest can be evaluated using the following function:
+We see that this function produces the causal links shown in Figure 4. The
+|Account| object is a subclass of tuple, and can manipulated the same:
 
-   >>> account = actual.big_acmip(transition)
+   >>> len(account)
+   5
+
+The irreducibility of the causal account of our transition of interest can be
+evaluated using the following function:
+
+   >>> big_mip = actual.big_acmip(transition)
+   >>> big_mip.alpha
+   0.16992500144231237
+
+As shown in Figure 4, the second order occurence |Y_t = {OR, AND = 10}| is
+destroyed by the MIP:
+
+   >>> big_mip.partitioned_account  # doctest: +NORMALIZE_WHITESPACE
+   <BLANKLINE>
+   Account (4 causal links)
+   ************************
+   Irreducible effects
+   α = 0.415  (0,) --> (0,)
+   α = 0.415  (1,) --> (1,)
+   Irreducible causes
+   α = 0.415  (0,) <-- (0,)
+   α = 0.415  (1,) <-- (1,)
+
+The partition of the MIP is available in the ``cut`` property:
+
+   >>> big_mip.cut
+   (0,) ━━/ /━━▶ (1,) && (1,) ━━/ /━━▶ (0,)
 
 # Note 10: Find all irreducible accounts within the transition of interest
 

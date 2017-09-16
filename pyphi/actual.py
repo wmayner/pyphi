@@ -364,7 +364,7 @@ class Transition:
 
 
 # ============================================================================
-# Average over mechanisms - constellations
+# Accounts
 # ============================================================================
 
 
@@ -389,6 +389,15 @@ def directed_account(transition, direction, mechanisms=False, purviews=False,
 
 
 def account(transition, direction=Direction.BIDIRECTIONAL):
+    '''Return the set of all causal links for a |Transition|.
+
+    Args:
+        transition (Transition): The transition of interest.
+
+    Keyword Args:
+        direction (Direction): By default the account contains actual causes
+            and actual effects.
+    '''
     if direction == Direction.BIDIRECTIONAL:
         return Account(directed_account(transition, Direction.PAST) +
                        directed_account(transition, Direction.FUTURE))

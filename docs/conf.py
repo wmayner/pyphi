@@ -248,6 +248,7 @@ r"""
 .. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
 .. |AcMip| replace:: :class:`~pyphi.models.actual_causation.AcMip`
 .. |DirectedAccount| replace:: :class:`~pyphi.models.actual_causation.DirectedAccount`
+.. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
 .. |Event| replace:: :class:`~pyphi.models.actual_causation.Event`
 .. |CausalLink| replace:: :class:`~pyphi.models.actual_causation.CausalLink`
 .. |CausalLinks| replace:: :class:`~pyphi.models.actual_causation.CausalLink`
