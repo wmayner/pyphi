@@ -200,8 +200,11 @@ To find all irreducible accounts within the transition of interest, use
 This computes |big_alpha| for all permutations of of elements in |X_t-1| and
 |Y_t| and returns a ``tuple`` of all ``BigAcMip`` objects with |big_alpha > 0|:
 
-   >>> [[n.transition.cause_indices, n.transition.effect_indices, n.alpha] for n in all_accounts]
-   [[(0,), (0,), 2.0], [(1,), (1,), 2.0], [(0, 1), (0, 1), 0.16992500144231237]]
+   >>> for n in all_accounts:
+   ...     print(n.transition, n.alpha)
+   Transition((OR,) --> (OR,)) 2.0
+   Transition((AND,) --> (AND,)) 2.0
+   Transition((OR, AND) --> (OR, AND)) 0.16992500144231237
 
 The ``causal_nexus`` function computes the maximally irreducible account for
 the transition of interest:
@@ -210,4 +213,4 @@ the transition of interest:
    >>> causal_nexus.alpha
    2.0
    >>> causal_nexus.transition
-   Transition(cause: (OR,), effect: (OR,))
+   Transition((OR,) --> (OR,))

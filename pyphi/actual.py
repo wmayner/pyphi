@@ -106,7 +106,7 @@ class Transition:
         }
 
     def __repr__(self):
-        return "Transition(cause: {}, effect: {})".format(
+        return "Transition({} --> {})".format(
             self.cause_system.indices2nodes(self.cause_indices),
             self.effect_system.indices2nodes(self.effect_indices))
 
