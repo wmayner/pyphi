@@ -44,6 +44,16 @@ def test_l1_distance():
     assert distance.l1(a, b) == 5.5
 
 
+def test_entropy_difference():
+    a = np.ones((2, 2, 2)) / 8
+    b = np.ones((2, 2, 2)) / 8
+    assert distance.entropy_difference(a, b) == 0
+
+    a = np.array([0, 1, 2])
+    b = np.array([2, 2, 4.5])
+    assert distance.entropy_difference(a, b) == 0.54979494760874348
+
+
 def test_kld():
     a = np.array([0, 1.0])
     b = np.array([0.5, 0.5])
