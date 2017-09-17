@@ -163,6 +163,9 @@ We see that this function produces the causal links shown in Figure 4. The
    >>> len(account)
    5
 
+Irreducible Accounts
+~~~~~~~~~~~~~~~~~~~~
+
 The irreducibility of the causal account of our transition of interest can be
 evaluated using the following function:
 
@@ -189,15 +192,23 @@ The partition of the MIP is available in the ``cut`` property:
    >>> big_mip.cut
    (0,) ━━/ /━━▶ (1,) && (1,) ━━/ /━━▶ (0,)
 
-# Note 10: Find all irreducible accounts within the transition of interest
+To find all irreducible accounts within the transition of interest, use
+``nexus``:
 
    >>> all_accounts = pyphi.actual.nexus(network, X_state, Y_state)
 
-# @BO: Probably they are already sorted from largest to smallest, but I'm not sure
+This computes |big_alpha| for all permutations of of elements in |X_t-1| and
+|Y_t| and returns a ``tuple`` of all ``BigAcMip`` objects with |big_alpha > 0|:
+
    >>> all_accounts = sorted(all_accounts, key=lambda nexus: nexus.alpha, reverse=True)
-
-# Print transition info and Alpha of all irreducible accounts
-
-   >>> transitions_all_accounts = [[n.transition.cause_indices, n.transition.effect_indices, n.alpha] for n in all_accounts]
-   >>> print(transitions_all_accounts)
+   >>> [[n.transition.cause_indices, n.transition.effect_indices, n.alpha] for n in all_accounts]
    [[(0,), (0,), 2.0], [(1,), (1,), 2.0], [(0, 1), (0, 1), 0.16992500144231237]]
+
+The ``causal_nexus`` function computes the maximally irreducible account for
+the transition of interest:
+
+   >>> causal_nexus = actual.causal_nexus(network, X_state, Y_state)
+   >>> causal_nexus.alpha
+   2.0
+   >>> causal_nexus.transition
+   Transition(cause: (OR,), effect: (OR,))

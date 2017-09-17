@@ -549,8 +549,7 @@ def transitions(network, before_state, after_state):
 
 def nexus(network, before_state, after_state,
           direction=Direction.BIDIRECTIONAL):
-    '''Return a generator for all irreducible nexus of the network.
-       Direction options are past, future, bidirectional. '''
+    '''Return a tuple of all irreducible nexus of the network.'''
     validate.is_network(network)
 
     mips = (big_acmip(transition, direction) for transition in
