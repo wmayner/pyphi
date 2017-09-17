@@ -1,11 +1,35 @@
 Actual Causation
 ================
 
-This section demonstrates how to use ``pyphi`` to compute actual causation.
+This section demonstrates how to use PyPhi to evaluate actual causation.
+# TODO: add paper reference
 
     >>> import pyphi
-    >>> from pyphi import actual
+    >>> from pyphi import actual, config
     >>> from pyphi.constants import Direction
+
+Configuration
+~~~~~~~~~~~~~
+
+Before we begin we need to set some configuration values. The correct way of
+partitioning for actual causation is using the ``'ALL'`` partitions setting;
+``'TRI'``-partitions are a reasonable approximation. In case of ties the smaller
+purview should be chosen. IIT 3.0 style bipartitions will give incorrect
+results.
+
+    >>> config.PARTITION_TYPE = 'TRI'
+    >>> config.PICK_SMALLEST_PURVIEW = True
+
+When calculating a causal account of the transition between a set of elements
+|X| at |t-1| and a set of elements |Y| at |t|, with |X| and |Y| being subsets
+of the same system, the transition should be valid according to the system's
+TPM. However, the state of |X| at |t-1| does not necessarily need to have a
+valid past state so we can disable state validation:
+
+   >>> config.VALIDATE_SUBSYSTEM_STATES = False
+
+Computation
+~~~~~~~~~~~
 
 We will look at how to perform computations over the basic `OR-AND` network
 introduced in ``Fig 1`` of the paper.
@@ -94,9 +118,9 @@ The ``partition`` property shows the minimum information partition that
 reduces the occurence and candidate effect:
 
    >>> link.partition  # doctest: +NORMALIZE_WHITESPACE
-    0     1
-   ─── ✕ ───
-    0     1
+    ∅     0     1
+   ─── ✕ ─── ✕ ───
+    ∅     0     1
 
 Let's look at the MIP for the irreducible occurence |Y_t = {OR, AND}|
 constraining |X_t-1 = {OR, AND}| (Figure 3D). This candidate causal link has
