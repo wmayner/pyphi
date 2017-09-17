@@ -499,6 +499,6 @@ def fmt_actual_cut(cut):
 def fmt_transition(t):
     '''Format a |Transition|.'''
     return "Transition({} {} {})".format(
-        t.cause_system.indices2nodes(t.cause_indices),
+        fmt_mechanism(t.cause_indices, t.cause_system),
         ARROW_RIGHT,
-        t.effect_system.indices2nodes(t.effect_indices))
+        fmt_mechanism(t.effect_indices, t.effect_system))
