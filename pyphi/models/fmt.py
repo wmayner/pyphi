@@ -33,11 +33,12 @@ HEADER_BAR_1        = '\u2550'
 HEADER_BAR_2        = '\u2501'
 HEADER_BAR_3        = '\u254D'
 DOTTED_HEADER       = '\u2574'
-CUT_SYMBOL          = '\u2501' * 2 + '/ /' + '\u2501' * 2 + '\u25B6'
+LINE                = '\u2501'
+CUT_SYMBOL          = LINE * 2 + '/ /' + LINE * 2 + '\u25B6'
 EMPTY_SET           = '\u2205'
 MULTIPLY            = '\u2715'
-ARROW_LEFT          = '\u25C0' + '\u2501' * 2
-ARROW_RIGHT         = '\u2501' * 2 + '\u25B6'
+ARROW_LEFT          = '\u25C0' + LINE * 2
+ARROW_RIGHT         = LINE * 2 + '\u25B6'
 
 NICE_DENOMINATORS   = list(range(16)) + [16, 32, 64, 128]
 
