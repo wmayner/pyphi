@@ -5,7 +5,7 @@
 import numpy as np
 import pytest
 
-from pyphi import distance
+from pyphi import config, distance
 
 
 def test_hamming_matrix():
@@ -122,6 +122,14 @@ def test_default_measures():
 
 def test_default_asymmetric_measures():
     assert set(distance.measures.asymmetric()) == set(['KLD', 'MP2Q', 'BLD'])
+
+
+def test_big_phi_measure_must_be_symmetric():
+    a = np.ones((2, 2, 2)) / 8
+    b = np.ones((2, 2, 2)) / 8
+    with config.override(MEASURE='KLD'):
+        with pytest.raises(ValueError):
+            distance.big_phi_measure(a, b)
 
 
 def test_suppress_np_warnings():
