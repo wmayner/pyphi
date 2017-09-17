@@ -1118,35 +1118,6 @@ def ac_ex2_transition():
     return Transition(net, before_state, after_state, (1,), (3,))
 
 
-def ac_ex3_network():
-    '''A network of three elements, an output that only turns ON for a specific
-    pattern of its input.'''
-    tpm = np.array([
-        [0, 0, 0],
-        [0, 0, 0],
-        [1, 0, 0],
-        [1, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]
-    ])
-    cm = np.array([
-        [0, 0, 0],
-        [1, 0, 0],
-        [1, 0, 0]
-    ])
-    return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
-
-
-def ac_ex3_transition():
-    ''' The output is OFF, the input are OFF just so they conform to the tpm '''
-    net = ac_ex3_network()
-    before_state = (0, 0, 1)
-    after_state = (0, 0, 0)
-    return Transition(net, before_state, after_state, (1, 2), (0,))
-
-
 def actual_causation():
     '''The actual causation example network, consisting of an ``OR`` and
     ``AND`` gate with self-loops.

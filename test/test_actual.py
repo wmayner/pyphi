@@ -291,49 +291,6 @@ def test_ac_ex1_transition(transition):
     assert emip1.partition == (((), (0,)), ((2,), ()))
 
 
-# TODO: fix unreachable state issue
-@pytest.mark.xfail
-def test_ac_ex3_transition():
-    '''Regression test for ac_ex3 example'''
-    transition = examples.ac_ex3_transition()
-
-    cause_account = actual.directed_account(transition, Direction.PAST)
-    assert len(cause_account) == 1
-    cmip = cause_account[0].mip
-
-    assert cmip.mechanism == (0,)
-    assert cmip.purview == (2,)
-    assert cmip.direction == Direction.PAST
-    assert cmip.state == (0, 0, 0)
-    assert cmip.alpha == 0.33333333333333326
-    assert cmip.probability == 0.66666666666666663
-    assert cmip.partitioned_probability == 0.5
-    assert cmip.partition == (((), (2,)), ((0,), ()))
-
-    effect_account = actual.directed_account(transition, Direction.FUTURE)
-    assert len(effect_account) == 2
-    emip0 = effect_account[0].mip
-    emip1 = effect_account[1].mip
-
-    assert emip0.mechanism == (1,)
-    assert emip0.purview == (0,)
-    assert emip0.direction == Direction.FUTURE
-    assert emip0.state == (0, 0, 1)
-    assert emip0.alpha == 0.33333333333333331
-    assert emip0.probability == 1.0
-    assert emip0.partitioned_probability == 0.75
-    assert emip0.partition == (((), (0,)), ((1,), ()))
-
-    assert emip1.mechanism == (2,)
-    assert emip1.purview == (0,)
-    assert emip1.direction == Direction.FUTURE
-    assert emip1.state == (0, 0, 1)
-    assert emip1.alpha == 0.33333333333333331
-    assert emip1.probability == 1.0
-    assert emip1.partitioned_probability == 0.75
-    assert emip1.partition == (((), (0,)), ((2,), ()))
-
-
 def test_actual_cut_indices():
     cut = models.ActualCut((0,), (4,), (2,), (5,))
     assert cut.indices == (0, 2, 4, 5)
