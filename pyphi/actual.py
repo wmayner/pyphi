@@ -398,10 +398,11 @@ def account(transition, direction=Direction.BIDIRECTIONAL):
         direction (Direction): By default the account contains actual causes
             and actual effects.
     '''
-    if direction == Direction.BIDIRECTIONAL:
-        return Account(directed_account(transition, Direction.PAST) +
-                       directed_account(transition, Direction.FUTURE))
-    return directed_account(transition, direction)
+    if direction != Direction.BIDIRECTIONAL:
+        return directed_account(transition, direction)
+
+    return Account(directed_account(transition, Direction.PAST) +
+                   directed_account(transition, Direction.FUTURE))
 
 
 # ============================================================================
