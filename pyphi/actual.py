@@ -375,10 +375,8 @@ def directed_account(transition, direction, mechanisms=False, purviews=False,
                      allow_neg=False):
     '''Return the set of all |CausalLinks| of the specified direction.'''
     if mechanisms is False:
-        # TODO? don't consider the empty mechanism
-        # (pass `nonempty=True` to powerset)
-        mechanisms = utils.powerset(transition.mechanism_indices(direction))
-
+        mechanisms = utils.powerset(transition.mechanism_indices(direction),
+                                    nonempty=True)
     links = [
         transition.find_causal_link(direction, mechanism, purviews=purviews,
                                     allow_neg=allow_neg)
@@ -532,17 +530,13 @@ def transitions(network, before_state, after_state):
     possible_causes = np.where(np.sum(network.connectivity_matrix, 1) > 0)[0]
     possible_effects = np.where(np.sum(network.connectivity_matrix, 0) > 0)[0]
 
-    # TODO? don't consider the empty set here
-    # (pass `nonempty=True` to `powerset`)
-    for cause_subset in utils.powerset(possible_causes):
-        for effect_subset in utils.powerset(possible_effects):
-
-            if cause_subset and effect_subset:
-                try:
-                    yield Transition(network, before_state, after_state,
-                                     cause_subset, effect_subset)
-                except exceptions.StateUnreachableError:
-                    pass
+    for cause_subset in utils.powerset(possible_causes, nonempty=True):
+        for effect_subset in utils.powerset(possible_effects, nonempty=True):
+            try:
+                yield Transition(network, before_state, after_state,
+                                 cause_subset, effect_subset)
+            except exceptions.StateUnreachableError:
+                pass
 
 
 def nexus(network, before_state, after_state,
