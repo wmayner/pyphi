@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pyphi import config, Subsystem, actual, examples, models
+from pyphi import config, Subsystem, Network, actual, examples, models
 from pyphi.constants import Direction
 
 
@@ -14,10 +14,28 @@ from pyphi.constants import Direction
 # Fixtures
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 @pytest.fixture
 def transition():
-    return examples.ac_ex1_transition()
+    '''An OR gate with two inputs. The OR gate is ON, others are OFF.'''
+    tpm = np.array([
+        [0, 0.5, 0.5],
+        [0, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5]
+    ])
+    cm = np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [1, 0, 0]
+    ])
+    network = Network(tpm, cm)
+    before_state = (0, 1, 1)
+    after_state = (1, 0, 0)
+    return actual.Transition(network, before_state, after_state, (1, 2), (0,))
 
 
 @pytest.fixture
