@@ -107,6 +107,23 @@ def causal_link(**kwargs):
     return models.CausalLink(acmip(**kwargs))
 
 
+def account(links=()):
+    return models.Account(links)
+
+
+def ac_bigmip(**kwargs):
+    defaults = {
+        'alpha': 0.0,
+        'direction': Direction.BIDIRECTIONAL,
+        'unpartitioned_account': account(),
+        'partitioned_account': account(),
+        'transition': None,
+        'cut': None
+    }
+    defaults.update(kwargs)
+    return models.AcBigMip(**defaults)
+
+
 def test_acmip_ordering():
     assert acmip() == acmip()
     assert acmip(alpha=0.0) < acmip(alpha=1.0)
@@ -159,6 +176,16 @@ def test_account_irreducible_causes_and_effects():
 def test_account_repr_and_str():
     str(models.Account())
     repr(models.Account())
+
+
+def test_ac_big_mip_ordering(transition, empty_transition):
+    assert ac_bigmip() == ac_bigmip()
+    assert hash(ac_bigmip()) == hash(ac_bigmip())
+
+    assert (ac_bigmip(alpha=1.0, transition=transition) >
+            ac_bigmip(alpha=0.5, transition=transition))
+    assert (ac_bigmip(alpha=1.0, transition=empty_transition) <=
+            ac_bigmip(alpha=1.0, transition=transition))
 
 
 @pytest.mark.parametrize('direction,mechanism,purview,repertoire', [

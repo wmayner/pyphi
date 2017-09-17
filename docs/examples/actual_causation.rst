@@ -200,7 +200,6 @@ To find all irreducible accounts within the transition of interest, use
 This computes |big_alpha| for all permutations of of elements in |X_t-1| and
 |Y_t| and returns a ``tuple`` of all ``BigAcMip`` objects with |big_alpha > 0|:
 
-   >>> all_accounts = sorted(all_accounts, key=lambda nexus: nexus.alpha, reverse=True)
    >>> [[n.transition.cause_indices, n.transition.effect_indices, n.alpha] for n in all_accounts]
    [[(0,), (0,), 2.0], [(1,), (1,), 2.0], [(0, 1), (0, 1), 0.16992500144231237]]
 

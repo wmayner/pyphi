@@ -555,7 +555,7 @@ def nexus(network, before_state, after_state,
     mips = (big_acmip(transition, direction) for transition in
             transitions(network, before_state, after_state))
 
-    return tuple(filter(None, mips))
+    return tuple(sorted(filter(None, mips), reverse=True))
 
 
 def causal_nexus(network, before_state, after_state,

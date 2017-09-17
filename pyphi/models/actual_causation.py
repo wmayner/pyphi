@@ -265,6 +265,7 @@ class AcBigMip(cmp.Orderable):
 
     unorderable_unless_eq = ['direction']
 
+    # TODO: shouldn't the minimal irreducible account be chosen?
     def order_by(self):
         return [self.alpha, len(self.transition)]
 
