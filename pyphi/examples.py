@@ -1080,9 +1080,12 @@ def ac_ex1_transition():
     return Transition(net, before_state, after_state, (1, 2), (0,))
 
 
-def ac_ex2_network():
-    '''A network of four elements, one 'output' with three 'inputs' (A B C).
-    The output turns ON if A AND B are ON or if C is ON.'''
+def disjunction_conjunction_network():
+    '''The disjunction-conjunction example from Actual Causation Figure 7.
+
+    A network of four elements, one output ``D`` with three inputs ``A B C``.
+    The output turns ON if ``A`` AND ``B`` are ON or if ``C`` is ON.
+    '''
     tpm = np.array([
         [0, 0, 0, 0],
         [0, 0, 0, 0],
@@ -1108,14 +1111,6 @@ def ac_ex2_network():
         [0, 0, 0, 1]
     ])
     return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
-
-
-def ac_ex2_transition():
-    ''' The output is ON, others are OFF just so they conform to the tpm '''
-    net = ac_ex2_network()
-    before_state = (0, 1, 1, 0)
-    after_state = (0, 0, 0, 1)
-    return Transition(net, before_state, after_state, (1,), (3,))
 
 
 def actual_causation():

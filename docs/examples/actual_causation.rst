@@ -195,7 +195,7 @@ The partition of the MIP is available in the ``cut`` property:
 To find all irreducible accounts within the transition of interest, use
 ``nexus``:
 
-   >>> all_accounts = pyphi.actual.nexus(network, X_state, Y_state)
+   >>> all_accounts = actual.nexus(network, X_state, Y_state)
 
 This computes |big_alpha| for all permutations of of elements in |X_t-1| and
 |Y_t| and returns a ``tuple`` of all ``BigAcMip`` objects with |big_alpha > 0|:
@@ -209,8 +209,26 @@ This computes |big_alpha| for all permutations of of elements in |X_t-1| and
 The ``causal_nexus`` function computes the maximally irreducible account for
 the transition of interest:
 
-   >>> causal_nexus = actual.causal_nexus(network, X_state, Y_state)
-   >>> causal_nexus.alpha
+   >>> cn = actual.causal_nexus(network, X_state, Y_state)
+   >>> cn.alpha
    2.0
-   >>> causal_nexus.transition
+   >>> cn.transition
    Transition([OR] ━━▶ [OR])
+
+
+Disjunction of conjunctions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are interested in exploring further, the disjunction of conjunctions
+network from Figure 7 is provided as well:
+
+   >>> network = pyphi.examples.disjunction_conjunction_network()
+   >>> cn = actual.causal_nexus(network, (1, 0, 1, 0), (0, 0, 0, 1))
+
+The only irreducible transition is from |X_t-1 = C| to |Y_t = D|, with
+|big_alpha| of 2.0:
+
+   >>> cn.transition
+   Transition([C] ━━▶ [D])
+   >>> cn.alpha
+   2.0
