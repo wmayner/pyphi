@@ -80,8 +80,6 @@ class Transition:
         self.effect_indices = parse_nodes(effect_indices)
         self.node_indices = parse_nodes(cause_indices + effect_indices)
 
-        # TODO: clarify that `ActualCut` is implemented correctly (esp.
-        # cutting connections)
         self.null_cut = ActualCut((), self.cause_indices,
                                   (), self.effect_indices)
         self.cut = cut if cut is not None else self.null_cut
