@@ -36,6 +36,8 @@ DOTTED_HEADER       = '\u2574'
 CUT_SYMBOL          = '\u2501' * 2 + '/ /' + '\u2501' * 2 + '\u25B6'
 EMPTY_SET           = '\u2205'
 MULTIPLY            = '\u2715'
+ARROW_LEFT          = '\u25C0' + '\u2501' * 2
+ARROW_RIGHT         = '\u2501' * 2 + '\u25B6'
 
 NICE_DENOMINATORS   = list(range(16)) + [16, 32, 64, 128]
 
@@ -437,8 +439,8 @@ def fmt_ac_mip(mip):
 
     causality = {
         # TODO: use node labels
-        Direction.PAST: (str(mip.purview), '<--', str(mip.mechanism)),
-        Direction.FUTURE: (str(mip.mechanism), '-->', str(mip.purview))
+        Direction.PAST: (str(mip.purview), ARROW_LEFT, str(mip.mechanism)),
+        Direction.FUTURE: (str(mip.mechanism), ARROW_RIGHT, str(mip.purview))
     }[mip.direction]
     causality = ' '.join(causality)
 
@@ -491,3 +493,11 @@ def fmt_actual_cut(cut):
         '{cut.cause_part1} {symbol} {cut.effect_part2} && '
         '{cut.cause_part2} {symbol} {cut.effect_part1}'
     ).format(cut=cut, symbol=CUT_SYMBOL)
+
+
+def fmt_transition(t):
+    '''Format a |Transition|.'''
+    return "Transition({} {} {})".format(
+        t.cause_system.indices2nodes(t.cause_indices),
+        ARROW_RIGHT,
+        t.effect_system.indices2nodes(t.effect_indices))

@@ -135,7 +135,7 @@ To find the actual cause or actual effect of a particular occurence, use the
 
    >>> transition.find_actual_cause((OR, AND))
    CausalLink
-     α = 0.1699  (0, 1) <-- (0, 1)
+     α = 0.1699  (0, 1) ◀━━ (0, 1)
 
 
 Accounts
@@ -150,12 +150,12 @@ The complete causal account of our transition can be computed with the
       Account (5 causal links)
    *****************************
    Irreducible effects
-   α = 0.415  (0,) --> (0,)
-   α = 0.415  (1,) --> (1,)
+   α = 0.415  (0,) ━━▶ (0,)
+   α = 0.415  (1,) ━━▶ (1,)
    Irreducible causes
-   α = 0.415  (0,) <-- (0,)
-   α = 0.415  (1,) <-- (1,)
-   α = 0.1699  (0, 1) <-- (0, 1)
+   α = 0.415  (0,) ◀━━ (0,)
+   α = 0.415  (1,) ◀━━ (1,)
+   α = 0.1699  (0, 1) ◀━━ (0, 1)
 
 We see that this function produces the causal links shown in Figure 4. The
 |Account| object is a subclass of tuple, and can manipulated the same:
@@ -181,11 +181,11 @@ destroyed by the MIP:
    Account (4 causal links)
    ************************
    Irreducible effects
-   α = 0.415  (0,) --> (0,)
-   α = 0.415  (1,) --> (1,)
+   α = 0.415  (0,) ━━▶ (0,)
+   α = 0.415  (1,) ━━▶ (1,)
    Irreducible causes
-   α = 0.415  (0,) <-- (0,)
-   α = 0.415  (1,) <-- (1,)
+   α = 0.415  (0,) ◀━━ (0,)
+   α = 0.415  (1,) ◀━━ (1,)
 
 The partition of the MIP is available in the ``cut`` property:
 
@@ -202,9 +202,9 @@ This computes |big_alpha| for all permutations of of elements in |X_t-1| and
 
    >>> for n in all_accounts:
    ...     print(n.transition, n.alpha)
-   Transition((OR,) --> (OR,)) 2.0
-   Transition((AND,) --> (AND,)) 2.0
-   Transition((OR, AND) --> (OR, AND)) 0.16992500144231237
+   Transition((OR,) ━━▶ (OR,)) 2.0
+   Transition((AND,) ━━▶ (AND,)) 2.0
+   Transition((OR, AND) ━━▶ (OR, AND)) 0.16992500144231237
 
 The ``causal_nexus`` function computes the maximally irreducible account for
 the transition of interest:
@@ -213,4 +213,4 @@ the transition of interest:
    >>> causal_nexus.alpha
    2.0
    >>> causal_nexus.transition
-   Transition((OR,) --> (OR,))
+   Transition((OR,) ━━▶ (OR,))

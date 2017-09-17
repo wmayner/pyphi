@@ -19,7 +19,7 @@ from . import compute, config, connectivity, exceptions, utils, validate
 from .constants import EPSILON, Direction
 from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
-                     Event, CausalLink, _null_ac_bigmip, _null_ac_mip)
+                     Event, CausalLink, _null_ac_bigmip, _null_ac_mip, fmt)
 from .partition import bipartition, directed_bipartition
 from .subsystem import Subsystem, mip_partitions, mip_bipartitions
 
@@ -106,9 +106,7 @@ class Transition:
         }
 
     def __repr__(self):
-        return "Transition({} --> {})".format(
-            self.cause_system.indices2nodes(self.cause_indices),
-            self.effect_system.indices2nodes(self.effect_indices))
+        return fmt.fmt_transition(self)
 
     def __str__(self):
         return repr(self)
