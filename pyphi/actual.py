@@ -219,6 +219,13 @@ class Transition:
         ``direction``.'''
         return self.system[direction].state
 
+    def mechanism_indices(self, direction):
+        '''The indices of nodes in the mechanism system.'''
+        return {
+            Direction.PAST: self.effect_indices,
+            Direction.FUTURE: self.cause_indices
+        }[direction]
+
     def _ratio(self, direction, mechanism, purview):
         return log2(self.probability(direction, mechanism, purview) /
                     self.unconstrained_probability(direction, purview))
@@ -374,10 +381,7 @@ def directed_account(transition, direction, mechanisms=False, purviews=False,
     if mechanisms is False:
         # TODO? don't consider the empty mechanism
         # (pass `nonempty=True` to powerset)
-        if direction == Direction.PAST:
-            mechanisms = utils.powerset(transition.effect_indices)
-        elif direction == Direction.FUTURE:
-            mechanisms = utils.powerset(transition.cause_indices)
+        mechanisms = utils.powerset(transition.mechanism_indices(direction))
 
     links = [
         transition.find_causal_link(direction, mechanism, purviews=purviews,
