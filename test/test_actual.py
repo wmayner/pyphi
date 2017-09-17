@@ -204,6 +204,13 @@ def test_repertoires(direction, mechanism, purview, repertoire, transition):
         repertoire)
 
 
+def test_unconstrained_repertoires(transition):
+    np.testing.assert_array_equal(
+        transition.unconstrained_cause_repertoire((0,)), [[[0.5]], [[0.5]]])
+    np.testing.assert_array_equal(
+        transition.unconstrained_effect_repertoire((2,)), [[[0.5, 0.5]]])
+
+
 @pytest.mark.parametrize('direction,mechanism,purview,probability', [
     (Direction.PAST, (0,), (1,), 0.66666667),
     (Direction.PAST, (0,), (2,), 0.66666667),
@@ -247,7 +254,7 @@ def test_effect_ratio(mechanism, purview, ratio, transition):
 def test_ac_ex1_transition(transition):
     '''Basic regression test for ac_ex1 example.'''
 
-    cause_account = actual.directed_account(transition, Direction.PAST)
+    cause_account = actual.account(transition, Direction.PAST)
     assert len(cause_account) == 1
     cmip = cause_account[0].mip
 
@@ -260,7 +267,7 @@ def test_ac_ex1_transition(transition):
     assert cmip.partitioned_probability == 0.5
     assert cmip.partition == (((), (1,)), ((0,), ()))
 
-    effect_account = actual.directed_account(transition, Direction.FUTURE)
+    effect_account = actual.account(transition, Direction.FUTURE)
     assert len(effect_account) == 2
     emip0 = effect_account[0].mip
     emip1 = effect_account[1].mip
