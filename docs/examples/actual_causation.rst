@@ -21,10 +21,10 @@ results.
     >>> config.PICK_SMALLEST_PURVIEW = True
 
 When calculating a causal account of the transition between a set of elements
-|X| at |t-1| and a set of elements |Y| at |t|, with |X| and |Y| being subsets
-of the same system, the transition should be valid according to the system's
-TPM. However, the state of |X| at |t-1| does not necessarily need to have a
-valid past state so we can disable state validation:
+|X| at time |t-1| and a set of elements |Y| at time |t|, with |X| and |Y| being
+subsets of the same system, the transition should be valid according to the
+system's TPM. However, the state of |X| at |t-1| does not necessarily need to
+have a valid past state so we can disable state validation:
 
    >>> config.VALIDATE_SUBSYSTEM_STATES = False
 
@@ -57,10 +57,10 @@ off in both observations:
    >>> X_state = Y_state = (1, 0)
 
 The |Transition| object is the core of all actual causation calculations. To
-instantiate a |Transition|, we pass it a |Network|, the state of the network
-at |t-1| and |t|, and elements of interest at |t-1| and |t|. Note that
-``pyphi`` requires the state to be the state of the entire network,
-not just the state of the nodes in the transition.
+instantiate a |Transition|, we pass it a |Network|, the state of the network at
+|t-1| and |t|, and elements of interest at |t-1| and |t|. Note that ``pyphi``
+requires the state to be the state of the entire network, not just the state of
+the nodes in the transition.
 
    >>> transition = actual.Transition(network, X_state, Y_state, X, Y)
 

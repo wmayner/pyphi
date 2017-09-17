@@ -165,6 +165,22 @@ r"""
 .. |i,jth| replace:: :math:`(i,j)^{\textrm{th}}`
 .. |k| replace:: :math:`k`
 .. |CM[i][j] = 1| replace:: :math:`CM_{i,j} = 1`
+.. |X| replace:: :math:`X`
+.. |X_t-1| replace:: :math:`X_{t-1}`
+.. |X_t-1 = {OR}| replace:: :math:`X_{t-1} = \{OR\}`
+.. |X_t-1 = {OR = 1}| replace:: :math:`X_{t-1} = \{OR = 1\}`
+.. |X_t-1 = {OR, AND}| replace:: :math:`X_{t-1} = \{OR, AND\}`
+.. |X_t-1 = C| replace:: :math:`X_{t-1} = C`
+.. |Y| replace:: :math:`Y`
+.. |Y_t| replace:: :math:`Y_t`
+.. |Y_t = {AND}| replace:: :math:`Y_t = \{AND\}`
+.. |Y_t = {OR}| replace:: :math:`Y_t = \{OR\}`
+.. |Y_t = {OR = 1}| replace:: :math:`Y_t = \{OR = 1\}`
+.. |Y_t = {OR, AND}| replace:: :math:`Y_t = \{OR, AND\}`
+.. |Y_t = {OR, AND = 10}| replace:: :math:`Y_t = \{OR, AND = 10\}`
+.. |Y_t = D| replace:: :math:`Y_t = D`
+.. |{OR, AND} -> {OR, AND}| replace:: :math:`\{OR, AND\} \rightarrow \{OR, AND\}`
+
 """,
 # Constants
 r"""
@@ -245,7 +261,6 @@ r"""
 
 .. |Transition| replace:: :class:`~pyphi.actual.Transition`
 .. |AcBigMip| replace:: :class:`~pyphi.models.actual_causation.AcBigMip`
-.. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
 .. |AcMip| replace:: :class:`~pyphi.models.actual_causation.AcMip`
 .. |DirectedAccount| replace:: :class:`~pyphi.models.actual_causation.DirectedAccount`
 .. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
