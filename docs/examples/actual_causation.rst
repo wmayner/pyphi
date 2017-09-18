@@ -1,7 +1,7 @@
 Actual Causation
 ================
 
-This section demonstrates how to use PyPhi to evaluate actual causation.
+This section demonstrates how to evaluate actual causation with PyPhi.
 # TODO: add paper reference
 
     >>> import pyphi
@@ -32,11 +32,11 @@ Computation
 ~~~~~~~~~~~
 
 We will look at how to perform computations over the basic `OR-AND` network
-introduced in ``Fig 1`` of the paper.
+introduced in Figure 1 of the paper.
 
    >>> network = pyphi.examples.actual_causation()
 
-This is a standard ``pyphi`` |Network|, and we can see its state-by-state TPM.
+This is a standard PyPhi |Network| so we can look at its TPM:
 
    >>> pyphi.convert.state_by_node2state_by_state(network.tpm)
    array([[ 1.,  0.,  0.,  0.],
@@ -58,7 +58,7 @@ off in both observations:
 
 The |Transition| object is the core of all actual causation calculations. To
 instantiate a |Transition|, we pass it a |Network|, the state of the network at
-|t-1| and |t|, and elements of interest at |t-1| and |t|. Note that ``pyphi``
+|t-1| and |t|, and elements of interest at |t-1| and |t|. Note that PyPhi
 requires the state to be the state of the entire network, not just the state of
 the nodes in the transition.
 
@@ -158,7 +158,7 @@ The complete causal account of our transition can be computed with the
    α = 0.1699  (0, 1) ◀━━ (0, 1)
 
 We see that this function produces the causal links shown in Figure 4. The
-|Account| object is a subclass of tuple, and can manipulated the same:
+|Account| object is a subclass of ``tuple``, and can manipulated the same:
 
    >>> len(account)
    5

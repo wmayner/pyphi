@@ -121,8 +121,8 @@ r"""
 .. |small_phi| replace:: :math:`\varphi`
 .. |small_phi > 0| replace:: :math:`\varphi > 0`
 .. |small_phi_max| replace:: :math:`\varphi^{\textrm{max}}`
-.. |big_alpha| replace:: :math:`A`
-.. |big_alpha > 0| replace:: :math:`A > 0`
+.. |big_alpha| replace:: :math:`\mathcal{A}`
+.. |big_alpha > 0| replace:: :math:`\mathcal{A} > 0`
 .. |alpha| replace:: :math:`\alpha`
 .. |alpha > 0| replace:: :math:`\alpha > 0`
 .. |L1| replace:: :math:`L_1`
