@@ -8,6 +8,14 @@ This section demonstrates how to evaluate actual causation with PyPhi.
     >>> from pyphi import actual, config
     >>> from pyphi.constants import Direction
 
+.. only:: never
+
+    This py.test fixture resets PyPhi config back to defaults after running
+    this doctest. This will not be shown in the output markup.
+
+    >>> getfixture('restore_config_afterwards')
+
+
 Configuration
 ~~~~~~~~~~~~~
 
@@ -27,6 +35,7 @@ system's TPM. However, the state of |X| at |t-1| does not necessarily need to
 have a valid past state so we can disable state validation:
 
    >>> config.VALIDATE_SUBSYSTEM_STATES = False
+
 
 Computation
 ~~~~~~~~~~~
