@@ -5,6 +5,8 @@ import os
 
 import pytest
 
+import pyphi
+
 collect_ignore = [
     "setup.py",
     ".pythonrc.py"
@@ -36,3 +38,14 @@ def pytest_runtest_setup(item):
         if ('veryslow' in item.keywords and
                 not item.config.getoption("--veryslow")):
             pytest.skip("need --veryslow option to run")
+
+
+# TODO: refactor config to enable easier snapshotting and restore
+@pytest.fixture(scope='function')
+def restore_config_after_test(request):
+    '''Reset PyPhi configuration after a test.
+
+    Useful for doctests that can't be decorated with `config.override`.
+    '''
+    yield
+    pyphi.config.initialize()

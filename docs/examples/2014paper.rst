@@ -21,6 +21,7 @@ We begin by importing PyPhi and NumPy:
     >>> import pyphi
     >>> import numpy as np
 
+
 Figure 1
 ~~~~~~~~
 
