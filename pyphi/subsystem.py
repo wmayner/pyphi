@@ -372,7 +372,7 @@ class Subsystem:
                           for p in purview]
         )
 
-    def _repertoire(self, direction, mechanism, purview):
+    def repertoire(self, direction, mechanism, purview):
         '''Return the cause or effect repertoire based on a direction.
 
         Args:
@@ -399,7 +399,7 @@ class Subsystem:
 
     def _unconstrained_repertoire(self, direction, purview):
         '''Return the unconstrained cause/effect repertoire over a purview.'''
-        return self._repertoire(direction, (), purview)
+        return self.repertoire(direction, (), purview)
 
     def unconstrained_cause_repertoire(self, purview):
         '''Return the unconstrained cause repertoire for a purview.
@@ -418,7 +418,7 @@ class Subsystem:
     def partitioned_repertoire(self, direction, partition):
         '''Compute the repertoire of a partitioned mechanism and purview.'''
         repertoires = [
-            self._repertoire(direction, part.mechanism, part.purview)
+            self.repertoire(direction, part.mechanism, part.purview)
             for part in partition
         ]
         return functools.reduce(np.multiply, repertoires)
@@ -516,8 +516,8 @@ class Subsystem:
             partitioned repertoires, and the partitioned repertoire.
         '''
         if unpartitioned_repertoire is None:
-            unpartitioned_repertoire = self._repertoire(direction, mechanism,
-                                                        purview)
+            unpartitioned_repertoire = self.repertoire(direction, mechanism,
+                                                       purview)
 
         partitioned_repertoire = self.partitioned_repertoire(direction,
                                                              partition)
@@ -548,8 +548,8 @@ class Subsystem:
         phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones.
-        unpartitioned_repertoire = self._repertoire(direction, mechanism,
-                                                    purview)
+        unpartitioned_repertoire = self.repertoire(direction, mechanism,
+                                                   purview)
 
         def _mip(phi, partition, partitioned_repertoire):
             # Prototype of MIP with already known data

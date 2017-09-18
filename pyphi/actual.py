@@ -159,7 +159,7 @@ class Transition:
         '''Return the unconstrained effect repertoire of the occurence.'''
         return self.effect_repertoire((), purview)
 
-    def _repertoire(self, direction, mechanism, purview):
+    def repertoire(self, direction, mechanism, purview):
         '''Returns the cause or effect repertoire function based on a
         direction.
 
@@ -168,7 +168,7 @@ class Transition:
                 effect repertoire.
         '''
         system = self.system[direction]
-        return system._repertoire(direction, mechanism, purview)
+        return system.repertoire(direction, mechanism, purview)
 
     def state_probability(self, direction, repertoire, purview,):
         '''Compute the probability of the purview in its current state given
@@ -189,7 +189,7 @@ class Transition:
     def probability(self, direction, mechanism, purview):
         '''Probability that the purview is in it's current state given the
         state of the mechanism.'''
-        repertoire = self._repertoire(direction, mechanism, purview)
+        repertoire = self.repertoire(direction, mechanism, purview)
 
         return self.state_probability(direction, repertoire, purview)
 

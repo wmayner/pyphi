@@ -218,8 +218,7 @@ def test_ac_big_mip_ordering(transition, empty_transition):
 ])
 def test_repertoires(direction, mechanism, purview, repertoire, transition):
     np.testing.assert_array_almost_equal(
-        transition._repertoire(direction, mechanism, purview),
-        repertoire)
+        transition.repertoire(direction, mechanism, purview), repertoire)
 
 
 def test_unconstrained_repertoires(transition):
