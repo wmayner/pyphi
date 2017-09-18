@@ -74,6 +74,7 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
 
     @property
     def phi(self):
+        '''Alias for |alpha| for PyPhi utility functions.'''
         return self.alpha
 
     def __hash__(self):
@@ -121,10 +122,9 @@ class CausalLink(cmp.Orderable):
         '''
         return self._mip.alpha
 
-    # TODO(slipperyhank): Define property phi == alpha, to make use of existing
-    # util functions
     @property
     def phi(self):
+        '''Alias for |alpha| for PyPhi utility functions.'''
         return self.alpha
 
     @property
@@ -182,23 +182,25 @@ class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
         actual_cause (CausalLink): The actual cause of the mechanism.
         actual_effect (CausalLink): The actual effect of the mechanism.
     '''
-
     @property
     def mechanism(self):
+        '''The mechanism of the event.'''
         assert self.actual_cause.mechanism == self.actual_effect.mechanism
         return self.actual_cause.mechanism
 
 
 class Account(tuple):
-    '''The set of occurences with |alpha > 0| for both |PAST| and
-    |FUTURE|.'''
+    '''The set of |CausalLinks| with |alpha > 0|. This includes both actual
+    causes and actual effects.'''
 
     @property
     def irreducible_causes(self):
+        '''The set of irreducible causes in this |Account|.'''
         return tuple(link for link in self if link.direction is Direction.PAST)
 
     @property
     def irreducible_effects(self):
+        '''The set of irreducible effects in this |Account|.'''
         return tuple(link for link in self
                      if link.direction is Direction.FUTURE)
 
@@ -213,7 +215,7 @@ class Account(tuple):
 
 
 class DirectedAccount(Account):
-    '''The set of occurences with |alpha > 0| for one direction of a
+    '''The set of |CausalLinks| with |alpha > 0| for one direction of a
     transition.'''
     pass
 

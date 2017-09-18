@@ -146,15 +146,19 @@ class Transition:
                           self.cause_indices, self.effect_indices, cut)
 
     def cause_repertoire(self, mechanism, purview):
+        '''Return the cause repertoire.'''
         return self.cause_system.cause_repertoire(mechanism, purview)
 
     def effect_repertoire(self, mechanism, purview):
+        '''Return the effect repertoire.'''
         return self.effect_system.effect_repertoire(mechanism, purview)
 
     def unconstrained_cause_repertoire(self, purview):
+        '''Return the unconstrained cause repertoire of the occurence.'''
         return self.cause_repertoire((), purview)
 
     def unconstrained_effect_repertoire(self, purview):
+        '''Return the unconstrained effect repertoire of the occurence.'''
         return self.effect_repertoire((), purview)
 
     def _repertoire(self, direction, mechanism, purview):
@@ -572,8 +576,9 @@ def causal_nexus(network, before_state, after_state,
 # ============================================================================
 
 
+# TODO: move this to __str__
 def nice_true_constellation(true_constellation):
-    # TODO: Make sure the past and future purviews are ordered in the same way
+    '''Format a true constellation.'''
     past_list = []
     future_list = []
     cause = '<--'
