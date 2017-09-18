@@ -397,7 +397,7 @@ class Subsystem:
             # TODO: test that ValueError is raised
             validate.direction(direction)
 
-    def _unconstrained_repertoire(self, direction, purview):
+    def unconstrained_repertoire(self, direction, purview):
         '''Return the unconstrained cause/effect repertoire over a purview.'''
         return self.repertoire(direction, (), purview)
 
@@ -406,14 +406,14 @@ class Subsystem:
 
         This is just the cause repertoire in the absence of any mechanism.
         '''
-        return self._unconstrained_repertoire(Direction.PAST, purview)
+        return self.unconstrained_repertoire(Direction.PAST, purview)
 
     def unconstrained_effect_repertoire(self, purview):
         '''Return the unconstrained effect repertoire for a purview.
 
         This is just the effect repertoire in the absence of any mechanism.
         '''
-        return self._unconstrained_repertoire(Direction.FUTURE, purview)
+        return self.unconstrained_repertoire(Direction.FUTURE, purview)
 
     def partitioned_repertoire(self, direction, partition):
         '''Compute the repertoire of a partitioned mechanism and purview.'''
@@ -456,7 +456,7 @@ class Subsystem:
 
         # Get the unconstrained repertoire over the other nodes in the network.
         non_purview_indices = tuple(set(new_purview) - set(purview))
-        uc = self._unconstrained_repertoire(direction, non_purview_indices)
+        uc = self.unconstrained_repertoire(direction, non_purview_indices)
         # Multiply the given repertoire by the unconstrained one to get a
         # distribution over all the nodes in the network.
         expanded_repertoire = repertoire * uc
