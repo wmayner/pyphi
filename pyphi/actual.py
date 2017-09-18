@@ -8,19 +8,16 @@ Methods for computing actual causation of subsystems and mechanisms.
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments
 
-import itertools
 import logging
 from math import log2
-from pprint import pprint
 
 import numpy as np
 
-from . import compute, config, connectivity, exceptions, utils, validate
+from . import compute, connectivity, exceptions, utils, validate
 from .constants import EPSILON, Direction
 from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, CausalLink, _null_ac_bigmip, _null_ac_mip, fmt)
-from .partition import bipartition, directed_bipartition
 from .subsystem import Subsystem, mip_partitions, mip_bipartitions
 
 log = logging.getLogger(__name__)
