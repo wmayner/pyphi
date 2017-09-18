@@ -6,7 +6,8 @@
 Methods for computing actual causation of subsystems and mechanisms.
 '''
 
-# pylint: disable=too-many-instance-attributes,too-many-arguments
+# pylint: disable=too-many-instance-attributes, too-many-arguments
+# pylint: disable=too-many-public-methods
 
 import logging
 from math import log2
@@ -492,8 +493,10 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
     return result
 
 
+# pylint: disable=unused-argument,arguments-differ
 class FindBigAcMip(compute.parallel.MapReduce):
     """Computation engine for AC BigMips."""
+
     description = 'Evaluating AC cuts'
 
     def empty_result(self, transition, direction, unpartitioned_account):
@@ -513,6 +516,7 @@ class FindBigAcMip(compute.parallel.MapReduce):
             return new_mip
 
         return min_mip
+# pylint: enable=unused-argument,arguments-differ
 
 
 # ============================================================================
@@ -574,13 +578,13 @@ def causal_nexus(network, before_state, after_state,
 
 
 # TODO: move this to __str__
-def nice_true_constellation(true_constellation):
+def nice_true_constellation(tc):
     '''Format a true constellation.'''
     past_list = []
     future_list = []
     cause = '<--'
     effect = '-->'
-    for event in true_constellation:
+    for event in tc:
         if event.direction == Direction.PAST:
             past_list.append(["{0:.4f}".format(round(event.alpha, 4)),
                               event.mechanism, cause, event.purview])
