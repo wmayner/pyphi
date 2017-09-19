@@ -165,6 +165,10 @@ def test_general_eq_different_mechanism_and_purview_order():
     assert models.cmp.general_eq(a, b, nt_attributes)
 
 
+def test_general_eq_purview_mechanism_none():
+    b = nt(a.this, a.that, a.phi, None, None)
+    assert models.cmp.general_eq(b, b, nt_attributes)
+
 # }}}
 
 # Test Cut
