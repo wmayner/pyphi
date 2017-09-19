@@ -23,6 +23,13 @@ class Direction(Enum):
     FUTURE = 1
     BIDIRECTIONAL = 2
 
+    def to_json(self):
+        return {'direction': self.value}
+
+    @classmethod
+    def from_json(cls, dct):
+        return cls(dct['direction'])
+
 
 #: The threshold below which we consider differences in phi values to be zero.
 EPSILON = 10 ** - config.PRECISION

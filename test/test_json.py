@@ -8,7 +8,7 @@ import tempfile
 import numpy as np
 import pytest
 
-from pyphi import compute, exceptions, jsonify, models, network
+from pyphi import compute, constants, exceptions, jsonify, models, network
 
 
 def test_jsonify_native():
@@ -45,6 +45,7 @@ def test_jsonify_numpy():
 
 def test_json_deserialization(s):
     objects = [
+        constants.Direction.PAST,
         s.network,  # Network
         s,  # Subsystem
         models.Bipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
