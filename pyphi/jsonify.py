@@ -67,6 +67,12 @@ def _loadable_models():
         pyphi.models.Concept,
         pyphi.models.Constellation,
         pyphi.models.BigMip,
+        pyphi.Transition,
+        pyphi.models.ActualCut,
+        pyphi.models.AcMip,
+        pyphi.models.CausalLink,
+        pyphi.models.Account,
+        pyphi.models.AcBigMip
     ]
     return {cls.__name__: cls for cls in classes}
 

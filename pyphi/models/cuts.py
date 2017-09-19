@@ -202,6 +202,9 @@ class ActualCut(namedtuple('ActualCut', actual_cut_attributes), _CutBase):
     def __str__(self):
         return fmt.fmt_actual_cut(self)
 
+    def to_json(self):
+        return {attr: getattr(self, attr) for attr in actual_cut_attributes}
+
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
     '''Represents one part of a |Bipartition|.

@@ -85,8 +85,7 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
 
     def to_json(self):
         '''Return a JSON-serializable representation.'''
-        d = self.__dict__
-        return d
+        return {attr: getattr(self, attr) for attr in _acmip_attributes}
 
     def __repr__(self):
         return fmt.make_repr(self, _acmip_attributes)
@@ -174,7 +173,7 @@ class CausalLink(cmp.Orderable):
 
     def to_json(self):
         '''Return a JSON-serializable representation.'''
-        return {'acmip': self._mip}
+        return {'mip': self.mip}
 
 
 class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
@@ -214,6 +213,13 @@ class Account(tuple):
 
     def __str__(self):
         return fmt.fmt_account(self)
+
+    def to_json(self):
+        return {'causal_links': tuple(self)}
+
+    @classmethod
+    def from_json(cls, dct):
+        return cls(dct['causal_links'])
 
 
 class DirectedAccount(Account):
@@ -284,6 +290,9 @@ class AcBigMip(cmp.Orderable):
         return hash((self.alpha, self.unpartitioned_account,
                      self.partitioned_account, self.transition,
                      self.cut))
+
+    def to_json(self):
+        return {attr: getattr(self, attr) for attr in _acbigmip_attributes}
 
 
 def _null_ac_bigmip(transition, direction, alpha=0.0):

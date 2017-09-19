@@ -16,7 +16,6 @@ import numpy as np
 
 from . import compute, connectivity, exceptions, utils, validate
 from .constants import EPSILON, Direction
-from .jsonify import jsonify
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, CausalLink, _null_ac_bigmip, _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions, mip_bipartitions
@@ -130,12 +129,12 @@ class Transition:
     def to_json(self):
         '''Return a JSON-serializable representation.'''
         return {
-            'network': jsonify(self.network),
+            'network': self.network,
             'before_state': self.before_state,
             'after_state': self.after_state,
             'cause_indices': self.cause_indices,
             'effect_indices': self.effect_indices,
-            'cut': jsonify(self.cut),
+            'cut': self.cut
         }
 
     def apply_cut(self, cut):
