@@ -78,9 +78,13 @@ def _push_metadata(dct, obj):
     dct.update({
         CLASS_KEY: obj.__class__.__name__,
         VERSION_KEY: pyphi.__version__,
-        ID_KEY: id(obj)
+        ID_KEY: hash(obj)
     })
     return dct
+
+
+def _get_metadata(dct):
+    return dct[CLASS_KEY], dct[VERSION_KEY], dct[ID_KEY]
 
 
 def _pop_metadata(dct):
@@ -179,7 +183,7 @@ def _is_model(dct):
 class _ObjectCache(cache.DictCache):
     '''Cache mapping ids to loaded objects, keyed by the id of the object.'''
     def key(self, dct, **kwargs):  # pylint: disable=arguments-differ
-        return dct[ID_KEY]
+        return _get_metadata(dct)
 
 
 class PyPhiJSONDecoder(json.JSONDecoder):

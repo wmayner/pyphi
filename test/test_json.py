@@ -8,7 +8,7 @@ import tempfile
 import numpy as np
 import pytest
 
-from pyphi import compute, exceptions, jsonify, models, network
+from pyphi import compute, config, exceptions, jsonify, models, network
 
 
 def test_jsonify_native():
@@ -58,20 +58,24 @@ def test_json_deserialization(s):
         assert loaded == o
 
 
-# TODO: subsystems from parallel computations have different ids.
-# Either replace the remote system with the local one, or don't add
-# the system to computed objects.
-@pytest.mark.xfail
 def test_deserialization_memoizes_duplicate_objects(s):
-    big_mip = compute.big_mip(s)
+    with config.override(PARALLEL_CUT_EVALUATION=True):
+        big_mip = compute.big_mip(s)
 
-    def check_subsystems(big_mip):
-        assert (big_mip.subsystem is
-            big_mip.unpartitioned_constellation[0].subsystem)
+    s1 = big_mip.subsystem
+    # Computed in a parallel process, so has a different id
+    s2 = big_mip.unpartitioned_constellation[0].subsystem
+    assert not s1 is s2
+    assert s1 == s2
+    assert hash(s1) == hash(s2)
 
-    check_subsystems(big_mip)
     loaded = jsonify.loads(jsonify.dumps(big_mip))
-    check_subsystems(loaded)
+
+    l1 = loaded.subsystem
+    l2 = loaded.unpartitioned_constellation[0].subsystem
+    assert l1 == l2
+    assert hash(l1) == hash(l2)
+    assert l1 is l2
 
 
 def test_network_from_json(s):

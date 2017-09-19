@@ -6,6 +6,9 @@ branch = True
 [report]
 # Regexes for lines to exclude from consideration
 exclude_lines =
+    # Match pylint syntax
+    coverage: disable
+
     # Have to re-enable the standard pragma
     pragma: no cover
 
@@ -17,7 +20,6 @@ exclude_lines =
     if DEBUG
     def print_
     def dprint
-
 
     # Don't complain if tests don't hit defensive assertion code:
     raise AssertionError

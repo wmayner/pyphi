@@ -11,7 +11,7 @@ from itertools import chain
 
 from .. import config, constants, utils
 
-# pylint: disble=bad-whitespace
+# pylint: disable=bad-whitespace
 
 # REPR_VERBOSITY levels
 LOW    = 0
@@ -31,7 +31,7 @@ HEADER_BAR_1        = '\u2550'
 HEADER_BAR_2        = '\u2501'
 HEADER_BAR_3        = '\u254D'
 DOTTED_HEADER       = '\u2574'
-CUT_SYMBOL          = '\u2501' * 2 + '/ /' + '\u2501' * 2 + '\u25B6'
+CUT_SYMBOL          = '\u2501' * 2 + '/ /' + '\u2501' * 2 + '\u27A4'
 EMPTY_SET           = '\u2205'
 MULTIPLY            = '\u2715'
 

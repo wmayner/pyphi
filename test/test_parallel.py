@@ -69,3 +69,15 @@ def test_materialize_list_only_when_needed():
     with config.override(PROGRESS_BARS=True):
         engine = MapSquare(iter([1, 2, 3]))
         assert isinstance(engine.iterable, list)
+
+
+class MapError(MapSquare):
+    '''Raise an exception in the worker process.'''
+    @staticmethod
+    def compute(num):
+        raise Exception("I don't wanna!")
+
+
+def test_parallel_exception_handling():
+    with pytest.raises(Exception, match=r"I don't wanna!"):
+        MapError([1]).run(parallel=True)
