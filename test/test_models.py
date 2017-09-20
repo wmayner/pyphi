@@ -49,12 +49,6 @@ def bigmip(unpartitioned_constellation=(), partitioned_constellation=(),
         subsystem=subsystem, cut_subsystem=cut_subsystem, phi=phi)
 
 
-nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
-nt = namedtuple('nt', nt_attributes)
-a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
-       mechanism=(0, 1, 2), purview=(2, 4))
-
-
 # Test equality helpers
 # {{{
 
@@ -109,6 +103,12 @@ def test_sametype_decorator():
             return True
 
     assert Thing().do_it(object()) == NotImplemented
+
+
+nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
+nt = namedtuple('nt', nt_attributes)
+a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
+       mechanism=(0, 1, 2), purview=(2, 4))
 
 
 def test_numpy_aware_eq_noniterable():
@@ -168,6 +168,17 @@ def test_general_eq_different_mechanism_and_purview_order():
 def test_general_eq_purview_mechanism_none():
     b = nt(a.this, a.that, a.phi, None, None)
     assert models.cmp.general_eq(b, b, nt_attributes)
+    c = nt(a.this, a.that, a.phi, a.mechanism, None)
+    assert not models.cmp.general_eq(a, b, nt_attributes)
+    c = nt(a.this, a.that, a.phi, None, a.purview)
+    assert not models.cmp.general_eq(a, c, nt_attributes)
+
+
+def test_general_eq_attribute_missing():
+    b = namedtuple('no_purview', nt_attributes[:-1])(
+        a.this, a.that, a.phi, a.mechanism)
+    assert not models.cmp.general_eq(a, b, nt_attributes)
+
 
 # }}}
 
