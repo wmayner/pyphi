@@ -166,9 +166,3 @@ def load_data(directory, num):
         return os.path.join(root, 'data', directory, str(i) + '.npy')
 
     return [np.load(get_path(i)) for i in range(num)]
-
-
-def to_string(array):
-    s = np.array2string(array, separator=', ')
-    lines = s.split('\n')
-    return '\n'.join(l for l in lines if l)
