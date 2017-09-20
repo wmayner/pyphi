@@ -937,8 +937,8 @@ def purview_disconnection_partitions(mechanism, purview):
         purview (tuple[int]): A purview.
 
     Yields:
-        KPartition: A partition of this mechanism and purview into ``P+1`` parts,
-        where ``P`` is the number of purview elements.
+        KPartition: A partition of this mechanism and purview into ``K`` parts,
+        where ``K`` is the number of mechanism elements.
     '''
     # Optimization: All the MIPs will be such that every purview element is cut
     # from at MOST one mechanism element, since these are the most causally
@@ -963,4 +963,4 @@ def purview_disconnection_partitions(mechanism, purview):
         # Null part makes any mechanism elements cut from all purviews explicit.
         unassigned = set(mechanism) - set(itertools.chain(*remainder_assignment))
         parts.append(Part(tuple(unassigned), ()))
-        yield KPartition(*parts)
+        yield KPartition(*parts).simplified()
