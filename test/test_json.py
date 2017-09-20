@@ -8,7 +8,9 @@ import tempfile
 import numpy as np
 import pytest
 
-from pyphi import compute, config, exceptions, jsonify, models, network
+from pyphi import (actual, compute, config, constants, exceptions, jsonify,
+                   models, network)
+from test_actual import transition
 
 
 def test_jsonify_native():
@@ -43,15 +45,20 @@ def test_jsonify_numpy():
     assert answer == json.loads(jsonify.dumps(x))
 
 
-def test_json_deserialization(s):
+def test_json_deserialization(s, transition):
     objects = [
+        constants.Direction.PAST,
         s.network,  # Network
         s,  # Subsystem
         models.Bipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
         s.concept((1, 2)),
         s.concept((1,)),
         compute.constellation(s),
-        compute.big_mip(s)
+        compute.big_mip(s),
+        transition,
+        transition.find_actual_cause((0,), (0,)),
+        actual.account(transition),
+        actual.big_acmip(transition)
     ]
     for o in objects:
         loaded = jsonify.loads(jsonify.dumps(o))

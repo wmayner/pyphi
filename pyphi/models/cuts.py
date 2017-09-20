@@ -168,7 +168,7 @@ actual_cut_attributes = ['cause_part1', 'cause_part2', 'effect_part1',
 
 # TODO: this is a special case of KCut - refactor to reflect that?
 class ActualCut(namedtuple('ActualCut', actual_cut_attributes), _CutBase):
-    '''Represents an cut for a |Context|.
+    '''Represents an cut for a |Transition|.
 
     This is a bipartition of the cause and effect elements.
 
@@ -201,6 +201,9 @@ class ActualCut(namedtuple('ActualCut', actual_cut_attributes), _CutBase):
 
     def __str__(self):
         return fmt.fmt_actual_cut(self)
+
+    def to_json(self):
+        return {attr: getattr(self, attr) for attr in actual_cut_attributes}
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):

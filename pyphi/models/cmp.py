@@ -119,9 +119,10 @@ def general_eq(a, b, attributes):
             if attr in ['phi', 'alpha']:
                 if not utils.eq(_a, _b):
                     return False
-            elif (attr == 'mechanism' or attr == 'purview'):
-                if _a is None or _b is None and not _a == _b:
-                    return False
+            elif attr in ['mechanism', 'purview']:
+                if _a is None or _b is None:
+                    if _a != _b:
+                        return False
                 elif not set(_a) == set(_b):
                     return False
             else:

@@ -368,7 +368,7 @@ class Subsystem:
                           for p in purview]
         )
 
-    def _repertoire(self, direction, mechanism, purview):
+    def repertoire(self, direction, mechanism, purview):
         '''Return the cause or effect repertoire based on a direction.
 
         Args:
@@ -393,28 +393,28 @@ class Subsystem:
             # TODO: test that ValueError is raised
             validate.direction(direction)
 
-    def _unconstrained_repertoire(self, direction, purview):
+    def unconstrained_repertoire(self, direction, purview):
         '''Return the unconstrained cause/effect repertoire over a purview.'''
-        return self._repertoire(direction, (), purview)
+        return self.repertoire(direction, (), purview)
 
     def unconstrained_cause_repertoire(self, purview):
         '''Return the unconstrained cause repertoire for a purview.
 
         This is just the cause repertoire in the absence of any mechanism.
         '''
-        return self._unconstrained_repertoire(Direction.PAST, purview)
+        return self.unconstrained_repertoire(Direction.PAST, purview)
 
     def unconstrained_effect_repertoire(self, purview):
         '''Return the unconstrained effect repertoire for a purview.
 
         This is just the effect repertoire in the absence of any mechanism.
         '''
-        return self._unconstrained_repertoire(Direction.FUTURE, purview)
+        return self.unconstrained_repertoire(Direction.FUTURE, purview)
 
     def partitioned_repertoire(self, direction, partition):
         '''Compute the repertoire of a partitioned mechanism and purview.'''
         repertoires = [
-            self._repertoire(direction, part.mechanism, part.purview)
+            self.repertoire(direction, part.mechanism, part.purview)
             for part in partition
         ]
         return functools.reduce(np.multiply, repertoires)
@@ -452,7 +452,7 @@ class Subsystem:
 
         # Get the unconstrained repertoire over the other nodes in the network.
         non_purview_indices = tuple(set(new_purview) - set(purview))
-        uc = self._unconstrained_repertoire(direction, non_purview_indices)
+        uc = self.unconstrained_repertoire(direction, non_purview_indices)
         # Multiply the given repertoire by the unconstrained one to get a
         # distribution over all the nodes in the network.
         expanded_repertoire = repertoire * uc
@@ -512,8 +512,8 @@ class Subsystem:
             partitioned repertoires, and the partitioned repertoire.
         '''
         if unpartitioned_repertoire is None:
-            unpartitioned_repertoire = self._repertoire(direction, mechanism,
-                                                        purview)
+            unpartitioned_repertoire = self.repertoire(direction, mechanism,
+                                                       purview)
 
         partitioned_repertoire = self.partitioned_repertoire(direction,
                                                              partition)
@@ -544,8 +544,8 @@ class Subsystem:
         phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones.
-        unpartitioned_repertoire = self._repertoire(direction, mechanism,
-                                                    purview)
+        unpartitioned_repertoire = self.repertoire(direction, mechanism,
+                                                   purview)
 
         def _mip(phi, partition, partitioned_repertoire):
             # Prototype of MIP with already known data

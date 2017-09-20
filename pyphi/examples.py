@@ -13,7 +13,7 @@ import string
 
 import numpy as np
 
-from .actual import Context
+from .actual import Transition
 from .network import Network
 from .subsystem import Subsystem
 from .utils import all_states
@@ -1052,37 +1052,29 @@ def fig16():
 ###################################################################
 
 
-def ac_ex1_network():
-    '''A network of three elements, an OR gate with two inputs. '''
+def actual_causation():
+    '''The actual causation example network, consisting of an ``OR`` and
+    ``AND`` gate with self-loops.
+    '''
     tpm = np.array([
-        [0, 0.5, 0.5],
-        [0, 0.5, 0.5],
-        [1, 0.5, 0.5],
-        [1, 0.5, 0.5],
-        [1, 0.5, 0.5],
-        [1, 0.5, 0.5],
-        [1, 0.5, 0.5],
-        [1, 0.5, 0.5]
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 1]
     ])
     cm = np.array([
-        [0, 0, 0],
-        [1, 0, 0],
-        [1, 0, 0]
+        [1, 1],
+        [1, 1]
     ])
-    return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm, cm, node_labels=('OR', 'AND'))
 
 
-def ac_ex1_context():
-    ''' The OR gate is ON, others are OFF just so they conform to the tpm '''
-    net = ac_ex1_network()
-    before_state = (0, 1, 1)
-    after_state = (1, 0, 0)
-    return Context(net, before_state, after_state, (1, 2), (0,))
+def disjunction_conjunction_network():
+    '''The disjunction-conjunction example from Actual Causation Figure 7.
 
-
-def ac_ex2_network():
-    '''A network of four elements, one 'output' with three 'inputs' (A B C).
-    The output turns ON if A AND B are ON or if C is ON.'''
+    A network of four elements, one output ``D`` with three inputs ``A B C``.
+    The output turns ON if ``A`` AND ``B`` are ON or if ``C`` is ON.
+    '''
     tpm = np.array([
         [0, 0, 0, 0],
         [0, 0, 0, 0],
@@ -1108,40 +1100,3 @@ def ac_ex2_network():
         [0, 0, 0, 1]
     ])
     return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
-
-
-def ac_ex2_context():
-    ''' The output is ON, others are OFF just so they conform to the tpm '''
-    net = ac_ex2_network()
-    before_state = (0, 1, 1, 0)
-    after_state = (0, 0, 0, 1)
-    return Context(net, before_state, after_state, (1,), (3,))
-
-
-def ac_ex3_network():
-    '''A network of three elements, an output that only turns ON for a specific
-    pattern of its input.'''
-    tpm = np.array([
-        [0, 0, 0],
-        [0, 0, 0],
-        [1, 0, 0],
-        [1, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0]
-    ])
-    cm = np.array([
-        [0, 0, 0],
-        [1, 0, 0],
-        [1, 0, 0]
-    ])
-    return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
-
-
-def ac_ex3_context():
-    ''' The output is OFF, the input are OFF just so they conform to the tpm '''
-    net = ac_ex3_network()
-    before_state = (0, 0, 1)
-    after_state = (0, 0, 0)
-    return Context(net, before_state, after_state, (1, 2), (0,))

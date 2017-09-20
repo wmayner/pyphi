@@ -6,10 +6,13 @@
 Objects that represent structures used in actual causation.
 '''
 
+# pylint: disable=too-many-arguments
+
 from collections import namedtuple
 
 from . import cmp, fmt
 from .. import config, utils
+from ..constants import Direction
 
 # TODO(slipperyhank): Why do we even need this?
 # TODO(slipperyhank): add second state
@@ -18,9 +21,13 @@ _acmip_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',
 _acmip_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
                             'purview', 'probability']
 
+def greater_than_zero(alpha):
+    '''Return ``True`` if alpha is greater than zero, accounting for
+    numerical errors.'''
+    return alpha > 0 and not utils.eq(alpha, 0)
+
 
 class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
-
     '''A minimum information partition for ac_coef calculation.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -65,10 +72,11 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
 
     def __bool__(self):
         '''An |AcMip| is ``True`` if it has |alpha > 0|.'''
-        return not utils.eq(self.alpha, 0)
+        return greater_than_zero(self.alpha)
 
     @property
     def phi(self):
+        '''Alias for |alpha| for PyPhi utility functions.'''
         return self.alpha
 
     def __hash__(self):
@@ -77,8 +85,7 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
 
     def to_json(self):
         '''Return a JSON-serializable representation.'''
-        d = self.__dict__
-        return d
+        return {attr: getattr(self, attr) for attr in _acmip_attributes}
 
     def __repr__(self):
         return fmt.make_repr(self, _acmip_attributes)
@@ -98,7 +105,7 @@ def _null_ac_mip(state, direction, mechanism, purview):
                  alpha=0.0)
 
 
-class Occurence(cmp.Orderable):
+class CausalLink(cmp.Orderable):
     '''A maximally irreducible actual cause or effect.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -116,10 +123,9 @@ class Occurence(cmp.Orderable):
         '''
         return self._mip.alpha
 
-    # TODO(slipperyhank): Define property phi == alpha, to make use of existing
-    # util functions
     @property
     def phi(self):
+        '''Alias for |alpha| for PyPhi utility functions.'''
         return self.alpha
 
     @property
@@ -148,7 +154,7 @@ class Occurence(cmp.Orderable):
         return fmt.make_repr(self, ['mip'])
 
     def __str__(self):
-        return "Occurence\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
+        return "CausalLink\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
 
     unorderable_unless_eq = AcMip.unorderable_unless_eq
 
@@ -159,37 +165,48 @@ class Occurence(cmp.Orderable):
         return self.mip == other.mip
 
     def __hash__(self):
-        return hash(('Occurence', self._mip))
+        return hash(('CausalLink', self._mip))
 
     def __bool__(self):
-        '''An |Occurence| is ``True`` if |alpha > 0|.'''
-        return not utils.eq(self._mip.alpha, 0)
+        '''An |CausalLink| is ``True`` if |alpha > 0|.'''
+        return greater_than_zero(self.alpha)
 
     def to_json(self):
         '''Return a JSON-serializable representation.'''
-        return {'acmip': self._mip}
+        return {'mip': self.mip}
 
 
 class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
     '''A mechanism which has both an actual cause and an actual effect.
 
     Attributes:
-        actual_cause (Occurence): The actual cause of the mechanism.
-        actual_effect (Occurence): The actual effect of the mechanism.
+        actual_cause (CausalLink): The actual cause of the mechanism.
+        actual_effect (CausalLink): The actual effect of the mechanism.
     '''
-
     @property
     def mechanism(self):
+        '''The mechanism of the event.'''
         assert self.actual_cause.mechanism == self.actual_effect.mechanism
         return self.actual_cause.mechanism
 
 
 class Account(tuple):
-    '''The set of occurences with |alpha > 0| for both |PAST| and
-    |FUTURE|.'''
+    '''The set of |CausalLinks| with |alpha > 0|. This includes both actual
+    causes and actual effects.'''
+
+    @property
+    def irreducible_causes(self):
+        '''The set of irreducible causes in this |Account|.'''
+        return tuple(link for link in self if link.direction is Direction.PAST)
+
+    @property
+    def irreducible_effects(self):
+        '''The set of irreducible effects in this |Account|.'''
+        return tuple(link for link in self
+                     if link.direction is Direction.FUTURE)
 
     def __repr__(self):
-        if config.READABLE_REPRS:
+        if config.REPR_VERBOSITY > 0:
             return self.__str__()
         return "{0}({1})".format(
             self.__class__.__name__, super().__repr__())
@@ -197,85 +214,90 @@ class Account(tuple):
     def __str__(self):
         return fmt.fmt_account(self)
 
+    def to_json(self):
+        return {'causal_links': tuple(self)}
+
+    @classmethod
+    def from_json(cls, dct):
+        return cls(dct['causal_links'])
+
 
 class DirectedAccount(Account):
-    '''The set of occurences with |alpha > 0| for one direction of a
-    context.'''
+    '''The set of |CausalLinks| with |alpha > 0| for one direction of a
+    transition.'''
     pass
 
 
 _acbigmip_attributes = ['alpha', 'direction', 'unpartitioned_account',
-                        'partitioned_account', 'context', 'cut']
+                        'partitioned_account', 'transition', 'cut']
 
 
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
 # take the smaller?
 class AcBigMip(cmp.Orderable):
-
     '''A minimum information partition for |big_alpha| calculation.
 
-    These can be compared with the built-in Python comparison operators (``<``,
-    ``>``, etc.). First, |alpha| values are compared. Then, if these are equal
-    up to |PRECISION|, the size of the mechanism is compared.
-
     Attributes:
-        alpha (float): The |big_alpha| value for the subsystem when taken
+        alpha (float): The |big_alpha| value for the transition when taken
             against this MIP, *i.e.* the difference between the unpartitioned
-            constellation and this MIP's partitioned constellation.
-        unpartitioned_constellation (tuple[Concept]): The constellation of the
-            whole subsystem.
-        partitioned_constellation (tuple[Concept]): The constellation when the
-            subsystem is cut.
-        subsystem (Subsystem): The subsystem this MIP was calculated for.
-        cut: The minimal cut.
+            account and this MIP's partitioned account.
+        unpartitioned_account (Account): The account of the whole transition.
+        partitioned_account (Account): The account of the partitioned
+            transition.
+        transition (Transition): The transition this MIP was calculated for.
+        cut (ActualCut): The minimal partition.
     '''
 
     def __init__(self, alpha=None, direction=None, unpartitioned_account=None,
-                 partitioned_account=None, context=None, cut=None):
+                 partitioned_account=None, transition=None, cut=None):
         self.alpha = alpha
         self.direction = direction
         self.unpartitioned_account = unpartitioned_account
         self.partitioned_account = partitioned_account
-        self.context = context
+        self.transition = transition
         self.cut = cut
 
     def __repr__(self):
         return fmt.make_repr(self, _acbigmip_attributes)
 
     def __str__(self):
-        return "\nAcBigMip\n======\n" + fmt.fmt_ac_big_mip(self)
+        return fmt.fmt_ac_big_mip(self)
 
     @property
     def before_state(self):
-        '''Return the actual past state of the |Context|.'''
-        return self.context.before_state
+        '''Return the actual past state of the |Transition|.'''
+        return self.transition.before_state
 
     @property
     def after_state(self):
-        '''Return the actual current state of the |Context|.'''
-        return self.context.after_state
+        '''Return the actual current state of the |Transition|.'''
+        return self.transition.after_state
 
     unorderable_unless_eq = ['direction']
 
+    # TODO: shouldn't the minimal irreducible account be chosen?
     def order_by(self):
-        return [self.alpha, len(self.context)]
+        return [self.alpha, len(self.transition)]
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, _acbigmip_attributes)
 
     def __bool__(self):
         '''An |AcBigMip| is ``True`` if it has |big_alpha > 0|.'''
-        return not utils.eq(self.alpha, 0)
+        return greater_than_zero(self.alpha)
 
     def __hash__(self):
         return hash((self.alpha, self.unpartitioned_account,
-                     self.partitioned_account, self.context,
+                     self.partitioned_account, self.transition,
                      self.cut))
 
+    def to_json(self):
+        return {attr: getattr(self, attr) for attr in _acbigmip_attributes}
 
-def _null_ac_bigmip(context, direction, alpha=0.0):
-    '''Returns an |AcBigMip| with zero |big_alpha| and empty constellations.'''
-    return AcBigMip(context=context,
+
+def _null_ac_bigmip(transition, direction, alpha=0.0):
+    '''Returns an |AcBigMip| with zero |big_alpha| and empty accounts.'''
+    return AcBigMip(transition=transition,
                     direction=direction,
                     alpha=alpha,
                     unpartitioned_account=(),
