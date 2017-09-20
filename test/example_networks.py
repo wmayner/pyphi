@@ -634,6 +634,10 @@ def rule152_s_complete():
     state = [0] * 5
     return Subsystem(net, state, range(net.size))
 
+def rule232_s():
+    net = pyphi.examples.rule232_network()
+    state = (0, 0, 0, 0, 0)
+    return Subsystem(net, state, tuple(range(net.size)))
 
 def macro(cm=False):
     tpm = np.array([

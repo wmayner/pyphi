@@ -259,3 +259,7 @@ def copy_xor():
 @pytest.fixture()
 def two_of_three():
     return examples.two_of_three_subsystem()
+
+@pytest.fixture()
+def rule232():
+    return example_networks.rule232_s()
