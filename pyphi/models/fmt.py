@@ -471,21 +471,24 @@ def fmt_account(account, title=None):
 
 def fmt_ac_big_mip(ac_big_mip):
     '''Format a AcBigMip.'''
-    return (
-        '{alpha}\n'
+    body = (
+        '{ALPHA} = {alpha}\n'
         'direction: {ac_big_mip.direction}\n'
         'transition: {ac_big_mip.transition}\n'
-        'past_state: {ac_big_mip.before_state}\n'
-        'current_state: {ac_big_mip.after_state}\n'
+        'before state: {ac_big_mip.before_state}\n'
+        'after state: {ac_big_mip.after_state}\n'
         'cut: {ac_big_mip.cut}\n'
-        '{unpartitioned_account}'
+        '{unpartitioned_account}\n'
         '{partitioned_account}'.format(
-            alpha='{0:.4f}'.format(round(ac_big_mip.alpha, 4)),
+            ALPHA=ALPHA,
+            alpha=round(ac_big_mip.alpha, 4),
             ac_big_mip=ac_big_mip,
             unpartitioned_account=fmt_account(
                 ac_big_mip.unpartitioned_account, 'Unpartitioned Account'),
             partitioned_account=fmt_account(
                 ac_big_mip.partitioned_account, 'Partitioned Account')))
+
+    return box(header('AcBigMip', body, under_char=HORIZONTAL_BAR))
 
 
 def fmt_actual_cut(cut):

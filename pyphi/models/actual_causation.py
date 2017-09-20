@@ -261,7 +261,7 @@ class AcBigMip(cmp.Orderable):
         return fmt.make_repr(self, _acbigmip_attributes)
 
     def __str__(self):
-        return "\nAcBigMip\n======\n" + fmt.fmt_ac_big_mip(self)
+        return fmt.fmt_ac_big_mip(self)
 
     @property
     def before_state(self):
