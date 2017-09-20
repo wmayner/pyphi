@@ -6,6 +6,7 @@
 
 from collections import namedtuple
 from itertools import chain
+from functools import reduce
 
 import numpy as np
 
@@ -243,14 +244,14 @@ class KPartition(tuple):
     @property
     def mechanism(self):
         '''tuple[int]: The nodes of the mechanism in the partition.'''
-        return tuple(sorted(
-            chain.from_iterable(part.mechanism for part in self)))
+        return tuple(sorted(set(
+            chain.from_iterable(part.mechanism for part in self))))
 
     @property
     def purview(self):
         '''tuple[int]: The nodes of the purview in the partition.'''
-        return tuple(sorted(
-            chain.from_iterable(part.purview for part in self)))
+        return tuple(sorted(set(
+            chain.from_iterable(part.purview for part in self))))
 
     def __str__(self):
         return fmt.fmt_bipartition(self)
@@ -260,6 +261,24 @@ class KPartition(tuple):
             return str(self)
 
         return '{}{}'.format(self.__class__.__name__, super().__repr__())
+
+    def simplified(self):
+        ''' Return a simplified version of the partition, with the minimum
+        number of parts necessary for a correct repertoire.'''
+        simplified_parts = []
+        for m in self.mechanism + ():
+            m_parts = filter(lambda part: m in part.mechanism, self)
+            simple_part = reduce(lambda x, y: Part((m,), x.purview + y.purview),
+                                 m_parts)
+            simplified_parts.append(simple_part)
+
+        # Create a part with null numerator, if necessary
+        leftover_purview_elements = set(self.purview) - set(
+                chain.from_iterable(part.purview for part in simplified_parts))
+        if leftover_purview_elements:
+            simplified_parts.append(Part((), tuple(leftover_purview_elements)))
+
+        return KPartition(*simplified_parts)
 
     def to_json(self):
         raise NotImplementedError
