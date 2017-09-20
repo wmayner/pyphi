@@ -208,6 +208,8 @@ class Transition:
             purview_state = self.before_state
         elif direction == Direction.FUTURE:
             purview_state = self.after_state
+        else:
+            validate.direction(direction)
 
         return purview_state
 
@@ -463,7 +465,7 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
         intermediate calculations. The top level contains the basic MIP
         information for the given subsystem.
     '''
-    validate.direction(direction)
+    validate.direction(direction, allow_bi=True)
     log.info("Calculating big-alpha for %s...", transition)
 
     if not transition:

@@ -8,19 +8,26 @@ Methods for validating arguments.
 
 import numpy as np
 
-from . import config, constants, convert, exceptions
+from . import config, convert, exceptions
 from .constants import EPSILON, Direction
 from .tpm import is_state_by_state
 
 # pylint: disable=redefined-outer-name
 
 
-def direction(direction):
-    '''Validate that the given direction is one of the allowed constants.'''
-    if direction not in Direction:
-        raise ValueError(
-            '`direction` must be either `pyphi.constants.Direction.PAST` '
-            'or `pyphi.constants.Direction.FUTURE`')
+def direction(direction, allow_bi=False):
+    '''Validate that the given direction is one of the allowed constants.
+
+    If ``allow_bi`` is ``True`` then ``Direction.BIDIRECTIONAL`` is
+    acceptable.
+    '''
+    valid = [Direction.PAST, Direction.FUTURE]
+    if allow_bi:
+        valid.append(Direction.BIDIRECTIONAL)
+
+    if direction not in valid:
+        raise ValueError('`direction` must be one of {}'.format(valid))
+
     return True
 
 
