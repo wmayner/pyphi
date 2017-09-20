@@ -98,18 +98,18 @@ ratios. For example, the effect ratio of |X_t-1 = {OR = 1}| constraining
 |Y_t = {OR}| (as shown in Figure 3A) is computed as follows:
 
    >>> transition.effect_ratio((OR,), (OR,))
-   0.41503749927884376
+   0.415037
 
 The effect ratio of |X_t-1 = {OR = 1}| constraining |Y_t = {AND}| is negative:
 
    >>> transition.effect_ratio((OR,), (AND,))
-   -0.5849625007211563
+   -0.584963
 
 And the cause ratio of |Y_t = {OR = 1}| constraining |X_t-1 = {OR, AND}|
 (Figure 3B) is:
 
    >>> transition.cause_ratio((OR,), (OR, AND))
-   0.41503749927884376
+   0.415037
 
 We can evaluate |alpha| for a particular pair of occurences, as in Figure 3C.
 For example, to find the irreducible effect ratio of |{OR, AND} -> {OR, AND}|,
@@ -137,7 +137,7 @@ positive |alpha|:
 
    >>> link = transition.find_mip(Direction.PAST, (OR, AND), (OR, AND))
    >>> link.alpha
-   0.16992500144231237
+   0.169925
 
 To find the actual cause or actual effect of a particular occurence, use the
 ``find_actual_cause`` or ``find_actual_effect`` methods:
@@ -180,7 +180,7 @@ evaluated using the following function:
 
    >>> big_mip = actual.big_acmip(transition)
    >>> big_mip.alpha
-   0.16992500144231237
+   0.169925
 
 As shown in Figure 4, the second order occurence |Y_t = {OR, AND = 10}| is
 destroyed by the MIP:
@@ -207,13 +207,13 @@ To find all irreducible accounts within the transition of interest, use
    >>> all_accounts = actual.nexus(network, X_state, Y_state)
 
 This computes |big_alpha| for all permutations of of elements in |X_t-1| and
-|Y_t| and returns a ``tuple`` of all ``BigAcMip`` objects with |big_alpha > 0|:
+|Y_t| and returns a ``tuple`` of all |AcBigMip| objects with |big_alpha > 0|:
 
    >>> for n in all_accounts:
    ...     print(n.transition, n.alpha)
    Transition([OR] ━━▶ [OR]) 2.0
    Transition([AND] ━━▶ [AND]) 2.0
-   Transition([OR, AND] ━━▶ [OR, AND]) 0.16992500144231237
+   Transition([OR, AND] ━━▶ [OR, AND]) 0.169925
 
 The ``causal_nexus`` function computes the maximally irreducible account for
 the transition of interest:

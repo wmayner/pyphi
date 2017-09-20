@@ -10,17 +10,23 @@ Methods for computing actual causation of subsystems and mechanisms.
 # pylint: disable=too-many-public-methods
 
 import logging
-from math import log2
+from math import log2 as _log2
 
 import numpy as np
 
 from . import compute, connectivity, exceptions, utils, validate
+from .config import PRECISION
 from .constants import EPSILON, Direction
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, CausalLink, _null_ac_bigmip, _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions, mip_bipartitions
 
 log = logging.getLogger(__name__)
+
+
+def log2(x):
+    '''Rounded version of ``log2``.'''
+    return round(_log2(x), PRECISION)
 
 
 class Transition:
@@ -436,7 +442,7 @@ def _evaluate_cut(transition, cut, unpartitioned_account,
     alpha = account_distance(unpartitioned_account, partitioned_account)
 
     return AcBigMip(
-        alpha=alpha,
+        alpha=round(alpha, PRECISION),
         direction=direction,
         unpartitioned_account=unpartitioned_account,
         partitioned_account=partitioned_account,

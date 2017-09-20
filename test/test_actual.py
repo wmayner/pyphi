@@ -279,7 +279,7 @@ def test_ac_ex1_transition(transition):
     assert cmip.purview == (1,)
     assert cmip.direction == Direction.PAST
     assert cmip.state == (1, 0, 0)
-    assert cmip.alpha == 0.41503749927884376
+    assert cmip.alpha == 0.415037
     assert cmip.probability == 0.66666666666666663
     assert cmip.partitioned_probability == 0.5
     assert cmip.partition == (((), (1,)), ((0,), ()))
@@ -293,7 +293,7 @@ def test_ac_ex1_transition(transition):
     assert emip0.purview == (0,)
     assert emip0.direction == Direction.FUTURE
     assert emip0.state == (0, 1, 1)
-    assert emip0.alpha == 0.41503749927884376
+    assert emip0.alpha == 0.415037
     assert emip0.probability == 1.0
     assert emip0.partitioned_probability == 0.75
     assert emip0.partition == (((), (0,)), ((1,), ()))
@@ -302,7 +302,7 @@ def test_ac_ex1_transition(transition):
     assert emip1.purview == (0,)
     assert emip1.direction == Direction.FUTURE
     assert emip1.state == (0, 1, 1)
-    assert emip1.alpha == 0.41503749927884376
+    assert emip1.alpha == 0.415037
     assert emip1.probability == 1.0
     assert emip1.partitioned_probability == 0.75
     assert emip1.partition == (((), (0,)), ((2,), ()))
@@ -334,7 +334,7 @@ def test_actual_cut_matrix():
 
 def test_big_acmip(transition):
     bigmip = actual.big_acmip(transition)
-    assert bigmip.alpha == 0.4150374992788438
+    assert bigmip.alpha == 0.415037
     assert bigmip.cut == models.ActualCut((1,), (2,), (), (0,))
     assert len(bigmip.unpartitioned_account) == 3
     assert len(bigmip.partitioned_account) == 2
