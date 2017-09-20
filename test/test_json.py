@@ -65,6 +65,15 @@ def test_json_deserialization(s, transition):
         assert loaded == o
 
 
+def test_json_deserialization_non_pyphi_clasess():
+    class OtherObject:
+        def __init__(self, x):
+            self.x = x
+
+    loaded = jsonify.loads(jsonify.dumps(OtherObject(1)))
+    assert loaded == {'x': 1}
+
+
 def test_deserialization_memoizes_duplicate_objects(s):
     with config.override(PARALLEL_CUT_EVALUATION=True):
         big_mip = compute.big_mip(s)
@@ -85,13 +94,22 @@ def test_deserialization_memoizes_duplicate_objects(s):
     assert l1 is l2
 
 
-def test_network_from_json(s):
-    f = tempfile.NamedTemporaryFile(mode='wt')
-    jsonify.dump(s.network, f)
+@pytest.fixture
+def network_file(standard):
+    f = tempfile.NamedTemporaryFile(mode='w+')
+    jsonify.dump(standard, f)
     f.seek(0)
-    loaded_network = network.from_json(f.name)
-    assert loaded_network == s.network
-    assert np.array_equal(loaded_network.node_labels, s.network.node_labels)
+    return f
+
+
+def test_load(network_file, standard):
+    assert jsonify.load(network_file) == standard
+
+
+def test_network_from_json(network_file, standard):
+    loaded_network = network.from_json(network_file.name)
+    assert loaded_network == standard
+    assert np.array_equal(loaded_network.node_labels, standard.node_labels)
 
 
 def test_version_check_during_deserialization(s):
