@@ -5,6 +5,7 @@ __pycache__
 .env
 .pythonrc*
 .agignore
+.projectile
 **/*.pyc
 **/*.egg-info
 **/*.log
