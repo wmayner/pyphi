@@ -567,7 +567,7 @@ class Subsystem:
             return _mip(0, None, None)
 
         # Loop over possible MIP partitions
-        for partition in mip_partitions(mechanism, purview):
+        for partition in mip_partitions(mechanism, purview, direction):
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(
@@ -751,19 +751,21 @@ class Subsystem:
                        effect=effect, subsystem=self)
 
 
-def mip_partitions(mechanism, purview):
+def mip_partitions(mechanism, purview, direction=None):
     '''Return a generator over all MIP partitions, based on the current
     configuration.'''
     validate.partition_type(config.PARTITION_TYPE)
 
-    func = {
-        'BI': mip_bipartitions,
-        'TRI': wedge_partitions,
-        'ALL': all_partitions,
-        'PD': purview_disconnection_partitions
-    }[config.PARTITION_TYPE]
-
-    return func(mechanism, purview)
+    if config.PARTITION_TYPE == 'PD':
+        return purview_disconnection_partitions(mechanism, purview, direction)
+    else:
+        func = {
+            'BI': mip_bipartitions,
+            'TRI': wedge_partitions,
+            'ALL': all_partitions,
+            'PD': purview_disconnection_partitions
+        }[config.PARTITION_TYPE]
+        return func(mechanism, purview)
 
 
 def mip_bipartitions(mechanism, purview):
@@ -928,39 +930,55 @@ def all_partitions(mechanism, purview):
                     yield KPartition(*parts)
 
 
-def purview_disconnection_partitions(mechanism, purview):
-    '''Yields all partitions where every element of the purview has been cut
-    from at least one mechanism element.
+def purview_disconnection_partitions(mechanism, purview, direction):
+    '''A partition is a purview disconnection partition (PDP) if every element
+    of the purview has been cut from at least one mechanism element.
+
+    Optimization: The MIP always belongs to a restricted class of PDPs where
+    every purview element is cut from EXACTLY one mechanism element. Therefore,
+    we only return these restricted PDPs.
+
+    Implementation note: Although a given PDP does not change from |PAST| to
+    |FUTURE| (the mechanism element that each purview element is cut from does
+    not change), the repertoires that must be multiplied together in order to
+    achieve this effect do. This is a consequence of the fact that PDPs can cut
+    individual connections. In the |FUTURE|, the purview can always be
+    parititoned into disjoint subsets, but the mechanism cannot. In the |PAST|,
+    the opposite is true.
 
     Args:
         mechanism (tuple[int]): A mechanism.
         purview (tuple[int]): A purview.
+        direction (Direction): |PAST| or |FUTURE|.
 
     Yields:
-        KPartition: A partition of this mechanism and purview into ``K`` parts,
-        where ``K`` is the number of mechanism elements.
+        KPartition: A partition of this mechanism and purview into ``K`` parts.
+        If ``direction`` is |PAST|, ``K`` is the number of mechanism elements.
+        If ``direction`` is |FUTURE|, ``K`` is the number of purview elements.
     '''
-    # Optimization: All the MIPs will be such that every purview element is cut
-    # from at MOST one mechanism element, since these are the most causally
-    # constraining partitions that satisfy the cut criteria.
-
-    # Get the shortlisted subsets of mechanism elements that each purview
-    # element might remain attached to.
-    if len(mechanism) > 1: # High-order mechanisms
-        valid_mechanism_remainders = \
+    # Get all subsets of the mechanism with exactly one element missing. These
+    # represent the possible "remainders": mechanism elements left uncut from
+    # each purview element. First order mechanisms have no valid remainders.
+    remainders = [()] if len(mechanism) == 1 else \
             [tuple(x) for x in combs(mechanism, len(mechanism) - 1)]
-    elif len(mechanism) == 1: # First-order mechanisms require special handling.
-        # The approach above would return [], rather than [()].
-        valid_mechanism_remainders = [()]
-    else:
-        raise ValueError("Cannot have an empty mechanism.")
 
     # Get all ways assign the remainders to the purview elements.
-    remainder_assignments = itertools.product(valid_mechanism_remainders,
-                                              repeat=len(purview))
-    for remainder_assignment in remainder_assignments:
-        parts = [Part(m, (p,)) for m, p in zip(remainder_assignment, purview)]
-        # Null part makes any mechanism elements cut from all purviews explicit.
-        unassigned = set(mechanism) - set(itertools.chain(*remainder_assignment))
-        parts.append(Part(tuple(unassigned), ()))
-        yield KPartition(*parts).simplified()
+    all_assignments = itertools.product(remainders, repeat=len(purview))
+
+    # Make a partition for each possible assignment.
+    for assignment in all_assignments:
+        parts = [Part(m, (p,)) for m, p in zip(assignment, purview)]
+        # Create a part with a null denominator, if necessary.
+        leftover_mechanism_elements = set(mechanism) - set(
+                itertools.chain.from_iterable(part.mechanism for part in parts))
+        if leftover_mechanism_elements:
+            parts.append(Part(tuple(leftover_mechanism_elements), ()))
+
+        # How the partition should be factorized depends on direction.
+        # Partitions are factorized by purview (suitable for |FUTURE|) already.
+        if direction == Direction.PAST:
+            yield KPartition(*parts).refactor_by_mechanism()
+        elif direction == Direction.FUTURE:
+            yield KPartition(*parts)
+        else:
+            validate.direction(direction)
