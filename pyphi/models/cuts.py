@@ -262,23 +262,25 @@ class KPartition(tuple):
 
         return '{}{}'.format(self.__class__.__name__, super().__repr__())
 
-    def simplified(self):
-        ''' Return a simplified version of the partition, with the minimum
-        number of parts necessary for a correct repertoire.'''
-        simplified_parts = []
+    def refactor_by_mechanism(self):
+        ''' Return a refactored version of the partition with one part per
+        mechanism element, plus an additional part with a null numerator if
+        necessary.'''
+
+        refactored_parts = []
         for m in self.mechanism + ():
             m_parts = filter(lambda part: m in part.mechanism, self)
-            simple_part = reduce(lambda x, y: Part((m,), x.purview + y.purview),
-                                 m_parts)
-            simplified_parts.append(simple_part)
+            new_part = reduce(lambda x, y: Part((m,), x.purview + y.purview),
+                              m_parts, Part((m,), ()))
+            refactored_parts.append(new_part)
 
         # Create a part with null numerator, if necessary
         leftover_purview_elements = set(self.purview) - set(
-                chain.from_iterable(part.purview for part in simplified_parts))
+                chain.from_iterable(part.purview for part in refactored_parts))
         if leftover_purview_elements:
-            simplified_parts.append(Part((), tuple(leftover_purview_elements)))
+            refactored_parts.append(Part((), tuple(leftover_purview_elements)))
 
-        return KPartition(*simplified_parts)
+        return KPartition(*refactored_parts)
 
     def to_json(self):
         raise NotImplementedError
