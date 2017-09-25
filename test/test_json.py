@@ -51,6 +51,9 @@ def test_json_deserialization(s, transition):
         s.network,  # Network
         s,  # Subsystem
         models.Bipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
+        models.KPartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
+        models.Tripartition(models.Part((0,), ()), models.Part((1,), (2, 3)),
+                            models.Part((3,), (4,))),
         s.concept((1, 2)),
         s.concept((1,)),
         compute.constellation(s),

@@ -198,8 +198,10 @@ destroyed by the MIP:
 
 The partition of the MIP is available in the ``cut`` property:
 
-   >>> big_mip.cut
-   (0,) ━━/ /━━➤ (1,) && (1,) ━━/ /━━➤ (0,)
+   >>> big_mip.cut  # doctest: +NORMALIZE_WHITESPACE
+    ∅     0     1
+   ─── ✕ ─── ✕ ───
+    ∅     0     1
 
 To find all irreducible accounts within the transition of interest, use
 ``nexus``:

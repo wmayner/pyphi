@@ -857,10 +857,10 @@ def wedge_partitions(mechanism, purview):
 
     for n, d in filter(valid, itertools.product(numerators, denominators)):
         # Normalize order of parts to remove duplicates.
-        tripart = Tripartition(*sorted((
+        tripart = Tripartition(
             Part(n[0], d[0]),
             Part(n[1], d[1]),
-            Part((),   d[2]))))  # pylint: disable=bad-whitespace
+            Part((),   d[2])).normalize()  # pylint: disable=bad-whitespace
 
         def nonempty(part):
             '''Check that the part is not empty.'''

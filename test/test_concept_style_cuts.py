@@ -47,6 +47,13 @@ def test_all_cut_mechanisms(kcut):
         (2,), (0, 2), (0, 3), (2, 3), (0, 2, 3))
 
 
+def test_kcut_equality(kcut):
+    other = KCut(KPartition(Part((0, 2), (0,)), Part((), (2,)), Part((3,), (3,))))
+    assert kcut == other
+    assert hash(kcut) == hash(other)
+    assert hash(kcut) != hash(kcut.partition)
+
+
 def test_system_accessors(s):
     cut = KCut(KPartition(Part((0, 2), (0, 1)), Part((1,), (2,))))
 
