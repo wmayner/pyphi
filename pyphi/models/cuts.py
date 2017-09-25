@@ -265,7 +265,7 @@ class KPartition(tuple):
 
     @classmethod
     def from_json(cls, dct):
-        return KPartition(*dct['parts'])
+        return cls(*dct['parts'])
 
 
 class Bipartition(KPartition):

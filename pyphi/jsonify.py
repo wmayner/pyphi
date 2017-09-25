@@ -63,6 +63,7 @@ def _loadable_models():
         pyphi.models.Part,
         pyphi.models.Bipartition,
         pyphi.models.KPartition,
+        pyphi.models.Tripartition,
         pyphi.models.Mip,
         pyphi.models.Mice,
         pyphi.models.Concept,
