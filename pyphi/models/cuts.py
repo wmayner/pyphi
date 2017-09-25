@@ -196,11 +196,11 @@ class ActualCut(KCut):
         '''Normalize this cut.'''
         return ActualCut(self.partition.normalize())
 
-    # def __repr__(self):
-    #     return fmt.make_repr(self, actual_cut_attributes)
+    def __repr__(self):
+        return fmt.make_repr(self, actual_cut_attributes)
 
-    # def __str__(self):
-    #     return fmt.fmt_actual_cut(self)
+    def __str__(self):
+        return str(self.partition)
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):

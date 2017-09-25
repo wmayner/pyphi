@@ -477,7 +477,7 @@ def fmt_ac_big_mip(ac_big_mip):
         'transition: {ac_big_mip.transition}\n'
         'before state: {ac_big_mip.before_state}\n'
         'after state: {ac_big_mip.after_state}\n'
-        'cut: {ac_big_mip.cut}\n'
+        'cut:\n{ac_big_mip.cut}\n'
         '{unpartitioned_account}\n'
         '{partitioned_account}'.format(
             ALPHA=ALPHA,
@@ -489,14 +489,6 @@ def fmt_ac_big_mip(ac_big_mip):
                 ac_big_mip.partitioned_account, 'Partitioned Account')))
 
     return box(header('AcBigMip', body, under_char=HORIZONTAL_BAR))
-
-
-def fmt_actual_cut(cut):
-    '''Format an ActualCut.'''
-    return (
-        '{cut.cause_part1} {symbol} {cut.effect_part2} && '
-        '{cut.cause_part2} {symbol} {cut.effect_part1}'
-    ).format(cut=cut, symbol=CUT_SYMBOL)
 
 
 def fmt_transition(t):
