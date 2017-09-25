@@ -333,6 +333,12 @@ def test_actual_cut_matrix():
         [0, 0, 1]]))
 
 
+def test_actual_cut_invert():
+    cut = models.ActualCut(KPartition(Part((0,), (0, 2)), Part((2,), ())))
+    inverted = models.ActualCut(KPartition(Part((0, 2), (0,)), Part((), (2,))))
+    assert cut.invert() == inverted
+
+
 def test_get_actual_cuts(transition):
     np.testing.assert_array_equal(list(actual._get_cuts(transition)), [
         models.ActualCut(KPartition(Part((), (1,)), Part((0,), (2,)))),

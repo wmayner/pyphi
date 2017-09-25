@@ -184,12 +184,19 @@ class ActualCut(KCut):
     def to_json(self):
         return {'partition': self.partition}
 
+    def invert(self):
+        '''Return a cut representing the cut in the opposite direction.
+
+        This is a hacky way to deal with the directionality of actual cuts.
+        '''
+        return ActualCut(type(self.partition)(
+            *(Part(part.purview, part.mechanism) for part in self.partition)))
+
     # def __repr__(self):
     #     return fmt.make_repr(self, actual_cut_attributes)
 
     # def __str__(self):
     #     return fmt.fmt_actual_cut(self)
-
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
