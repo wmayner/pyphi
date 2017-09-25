@@ -339,12 +339,25 @@ def test_actual_cut_invert():
     assert cut.invert() == inverted
 
 
-def test_get_actual_cuts(transition):
-    np.testing.assert_array_equal(list(actual._get_cuts(transition)), [
-        models.ActualCut(KPartition(Part((), (1,)), Part((0,), (2,)))),
-        models.ActualCut(KPartition(Part((), (2,)), Part((0,), (1,)))),
-        models.ActualCut(KPartition(Part((), (1, 2)), Part((0,), ())))
-    ])
+def ac_cut(*parts):
+    return models.ActualCut(KPartition(*parts))
+
+
+@config.override(PARTITION_TYPE='TRI')
+@pytest.mark.parametrize('direction,answer', [
+    (Direction.BIDIRECTIONAL, [
+        ac_cut(Part((), ()), Part((), (1, 2)), Part((0,), ())),
+        ac_cut(Part((), ()), Part((), (2,)), Part((0,), (1,))),
+        ac_cut(Part((), ()), Part((), (1,)), Part((0,), (2,)))]),
+    (Direction.PAST, [
+        ac_cut(Part((), ()), Part((), (1, 2)), Part((0,), ()))]),
+    (Direction.FUTURE, [
+        ac_cut(Part((), ()), Part((0,), ()), Part((), (1, 2))),
+        ac_cut(Part((), ()), Part((0,), (1,)), Part((), (2,))),
+        ac_cut(Part((), ()), Part((), (1,)), Part((0,), (2,)))])])
+def test_get_actual_cuts(direction, answer, transition):
+    cuts = actual._get_cuts(transition, direction)
+    np.testing.assert_array_equal(list(cuts), answer)
 
 
 def test_big_acmip(transition):

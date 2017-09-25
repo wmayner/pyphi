@@ -192,6 +192,9 @@ class ActualCut(KCut):
         return ActualCut(type(self.partition)(
             *(Part(part.purview, part.mechanism) for part in self.partition)))
 
+    def normalize(self):
+        return ActualCut(type(self.partition)(*sorted(self.partition)))
+
     # def __repr__(self):
     #     return fmt.make_repr(self, actual_cut_attributes)
 

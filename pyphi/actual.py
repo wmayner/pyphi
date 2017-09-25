@@ -10,6 +10,7 @@ Methods for computing actual causation of subsystems and mechanisms.
 # pylint: disable=too-many-public-methods
 
 import logging
+from itertools import chain
 from math import log2 as _log2
 
 import numpy as np
@@ -20,7 +21,7 @@ from .constants import EPSILON, Direction
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, CausalLink, _null_ac_bigmip, _null_ac_mip, fmt)
 from .models import KPartition, Part
-from .subsystem import Subsystem, mip_partitions, mip_bipartitions
+from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
 
@@ -451,13 +452,31 @@ def _evaluate_cut(transition, cut, unpartitioned_account,
         cut=cut)
 
 
-def _get_cuts(transition):
+def _get_cuts(transition, direction=Direction.BIDIRECTIONAL):
     '''A list of possible cuts to a transition.'''
     # TODO: implement CUT_ONE approximation?
-    for p in mip_bipartitions(transition.effect_indices,
-                              transition.cause_indices):
-        yield ActualCut(p)
+    # Cuts go from Partition.purview -/-> partition.mechanism
 
+    if direction is Direction.BIDIRECTIONAL:
+        already = set()
+        for p in chain(_get_cuts(transition, Direction.PAST),
+                       _get_cuts(transition, Direction.FUTURE)):
+            p = p.normalize()
+            if p not in already:
+                already.add(p)
+                yield(p)
+
+    elif direction is Direction.FUTURE:
+        m = transition.cause_indices
+        p = transition.effect_indices
+        for p in mip_partitions(m, p):
+            yield ActualCut(p).invert()
+
+    elif direction is Direction.PAST:
+        m = transition.effect_indices
+        p = transition.cause_indices
+        for p in mip_partitions(m, p):
+            yield ActualCut(p)
 
 
 def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
