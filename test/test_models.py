@@ -656,6 +656,24 @@ def test_tripartion_str(tripartition):
         '─── ✕ ─── ✕ ───\n'
         '0,4    1     2 ')
 
+
+@pytest.fixture
+def k_partition():
+    return models.KPartition(
+        models.Part((0,), (0, 4)),
+        models.Part((), (1,)),
+        models.Part((6,), (5,)),
+        models.Part((2,), (2,)))
+
+
+def test_partition_normalize(k_partition):
+    assert k_partition.normalize() == models.KPartition(
+        models.Part((), (1,)),
+        models.Part((0,), (0, 4)),
+        models.Part((2,), (2,)),
+        models.Part((6,), (5,)))
+
+
 # }}}
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :

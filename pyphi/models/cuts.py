@@ -193,7 +193,8 @@ class ActualCut(KCut):
             *(Part(part.purview, part.mechanism) for part in self.partition)))
 
     def normalize(self):
-        return ActualCut(type(self.partition)(*sorted(self.partition)))
+        '''Normalize this cut.'''
+        return ActualCut(self.partition.normalize())
 
     # def __repr__(self):
     #     return fmt.make_repr(self, actual_cut_attributes)
@@ -250,6 +251,10 @@ class KPartition(tuple):
         '''tuple[int]: The nodes of the purview in the partition.'''
         return tuple(sorted(
             chain.from_iterable(part.purview for part in self)))
+
+    def normalize(self):
+        '''Normalize the order of parts in the partition.'''
+        return type(self)(*sorted(self))
 
     def __str__(self):
         return fmt.fmt_bipartition(self)
