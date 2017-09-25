@@ -62,6 +62,7 @@ def _loadable_models():
         pyphi.models.Cut,
         pyphi.models.Part,
         pyphi.models.Bipartition,
+        pyphi.models.KPartition,
         pyphi.models.Mip,
         pyphi.models.Mice,
         pyphi.models.Concept,

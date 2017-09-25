@@ -181,14 +181,15 @@ class ActualCut(KCut):
         return tuple(sorted(set(self.partition.mechanism +
                                 self.partition.purview)))
 
+    def to_json(self):
+        return {'partition': self.partition}
+
     # def __repr__(self):
     #     return fmt.make_repr(self, actual_cut_attributes)
 
     # def __str__(self):
     #     return fmt.fmt_actual_cut(self)
 
-    # def to_json(self):
-    #     return {attr: getattr(self, attr) for attr in actual_cut_attributes}
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
@@ -250,7 +251,11 @@ class KPartition(tuple):
         return '{}{}'.format(self.__class__.__name__, super().__repr__())
 
     def to_json(self):
-        raise NotImplementedError
+        return {'parts': list(self)}
+
+    @classmethod
+    def from_json(cls, dct):
+        return KPartition(*dct['parts'])
 
 
 class Bipartition(KPartition):
