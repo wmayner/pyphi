@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from pyphi import config, Subsystem, Network, actual, examples, models
+from pyphi.models import Part, KPartition
 from pyphi.constants import Direction
 
 
@@ -90,7 +91,7 @@ def test_transition_equal(transition, empty_transition):
 
 
 def test_transition_apply_cut(transition):
-    cut = models.ActualCut((1,), (2,), (), (0,))
+    cut = models.ActualCut(KPartition(Part((1,), (2,)), Part((), (0,))))
     cut_transition = transition.apply_cut(cut)
     assert cut_transition.before_state == transition.before_state
     assert cut_transition.after_state == transition.after_state
@@ -309,14 +310,14 @@ def test_ac_ex1_transition(transition):
 
 
 def test_actual_cut_indices():
-    cut = models.ActualCut((0,), (4,), (2,), (5,))
+    cut = models.ActualCut(KPartition(Part((0,), (2,)), Part((4,), (5,))))
     assert cut.indices == (0, 2, 4, 5)
-    cut = models.ActualCut((0, 2), (), (0, 2), ())
+    cut = models.ActualCut(KPartition(Part((0, 2), (0, 2)), Part((), ())))
     assert cut.indices == (0, 2)
 
 
 def test_actual_apply_cut():
-    cut = models.ActualCut((0, 2), (), (0,), (2,))
+    cut = models.ActualCut(KPartition(Part((0,), (0, 2)), Part((2,), ())))
     cm = np.ones((3, 3))
     assert np.array_equal(cut.apply_cut(cm), np.array([
         [1, 1, 0],
@@ -325,17 +326,26 @@ def test_actual_apply_cut():
 
 
 def test_actual_cut_matrix():
-    cut = models.ActualCut((0, 2), (), (0,), (2,))
+    cut = models.ActualCut(KPartition(Part((0,), (0, 2)), Part((2,), ())))
     assert np.array_equal(cut.cut_matrix(3), np.array([
         [0, 0, 1],
         [0, 0, 0],
         [0, 0, 1]]))
 
 
+def test_get_actual_cuts(transition):
+    np.testing.assert_array_equal(list(actual._get_cuts(transition)), [
+        models.ActualCut(KPartition(Part((), (1,)), Part((0,), (2,)))),
+        models.ActualCut(KPartition(Part((), (2,)), Part((0,), (1,)))),
+        models.ActualCut(KPartition(Part((), (1, 2)), Part((0,), ())))
+    ])
+
+
 def test_big_acmip(transition):
     bigmip = actual.big_acmip(transition)
     assert bigmip.alpha == 0.415037
-    assert bigmip.cut == models.ActualCut((1,), (2,), (), (0,))
+    assert bigmip.cut == models.ActualCut(KPartition(Part((), (1,)),
+                                                     Part((0,), (2,))))
     assert len(bigmip.unpartitioned_account) == 3
     assert len(bigmip.partitioned_account) == 2
 

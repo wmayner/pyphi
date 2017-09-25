@@ -19,6 +19,7 @@ from .config import PRECISION
 from .constants import EPSILON, Direction
 from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
                      Event, CausalLink, _null_ac_bigmip, _null_ac_mip, fmt)
+from .models import KPartition, Part
 from .subsystem import Subsystem, mip_partitions, mip_bipartitions
 
 log = logging.getLogger(__name__)
@@ -83,8 +84,8 @@ class Transition:
         self.effect_indices = parse_nodes(effect_indices)
         self.node_indices = parse_nodes(cause_indices + effect_indices)
 
-        self.null_cut = ActualCut((), self.cause_indices,
-                                  (), self.effect_indices)
+        self.null_cut = ActualCut(
+            KPartition(Part(self.effect_indices, self.cause_indices)))
         self.cut = cut if cut is not None else self.null_cut
 
         # Both are conditioned on the `before_state`, but we then change the
@@ -453,10 +454,10 @@ def _evaluate_cut(transition, cut, unpartitioned_account,
 def _get_cuts(transition):
     '''A list of possible cuts to a transition.'''
     # TODO: implement CUT_ONE approximation?
-    for p in mip_bipartitions(transition.cause_indices,
-                              transition.effect_indices):
-        yield ActualCut(p[0].mechanism, p[1].mechanism,
-                        p[0].purview, p[1].purview)
+    for p in mip_bipartitions(transition.effect_indices,
+                              transition.cause_indices):
+        yield ActualCut(p)
+
 
 
 def big_acmip(transition, direction=Direction.BIDIRECTIONAL):

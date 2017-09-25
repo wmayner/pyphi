@@ -9,7 +9,7 @@ from itertools import chain
 
 import numpy as np
 
-from . import fmt
+from . import cmp, fmt
 from .. import config, connectivity, utils
 
 
@@ -136,11 +136,11 @@ class KCut(_CutBase):
     TODO: add a ``direction`` to the cut?
     '''
     def __init__(self, partition):
-        assert partition.mechanism == partition.purview
         self.partition = partition
 
     @property
     def indices(self):
+        assert self.partition.mechanism == self.partition.purview
         return self.partition.mechanism
 
     def cut_matrix(self, n):
@@ -154,6 +154,13 @@ class KCut(_CutBase):
 
         return cm
 
+    @cmp.sametype
+    def __eq__(self, other):
+        return self.partition == other.partition
+
+    def __hash__(self):
+        return hash(('KCut', self.partition))
+
     def __repr__(self):
         return fmt.make_repr(self, ['partition'])
 
@@ -166,44 +173,22 @@ actual_cut_attributes = ['cause_part1', 'cause_part2', 'effect_part1',
                          'effect_part2']
 
 
-# TODO: this is a special case of KCut - refactor to reflect that?
-class ActualCut(namedtuple('ActualCut', actual_cut_attributes), _CutBase):
-    '''Represents an cut for a |Transition|.
-
-    This is a bipartition of the cause and effect elements.
-
-    Attributes:
-        cause_part1 (tuple[int]): Connections from this group to those in
-            ``effect_part2`` are cut.
-        cause_part2 (tuple[int]): Connections from this group to those in
-            ``effect_part1`` are cut.
-        effect_part1 (tuple[int]): Connections to this group from
-            ``cause_part2`` are cut.
-        effect_part2 (tuple[int]): Connections to this group from
-            ``cause_part1`` are cut.
-    '''
-    __slots__ = ()
+class ActualCut(KCut):
+    '''Represents an cut for a |Transition|.'''
 
     @property
     def indices(self):
-        '''tuple[int]: The indices in this cut.'''
-        return tuple(sorted(set(chain.from_iterable(self))))
+        return tuple(sorted(set(self.partition.mechanism +
+                                self.partition.purview)))
 
-    def cut_matrix(self, n):
-        '''The matrix of connections severed by this cut.'''
-        cm = np.zeros((n, n))
-        cm[np.ix_(self.cause_part1, self.effect_part2)] = 1
-        cm[np.ix_(self.cause_part2, self.effect_part1)] = 1
-        return cm
+    # def __repr__(self):
+    #     return fmt.make_repr(self, actual_cut_attributes)
 
-    def __repr__(self):
-        return fmt.make_repr(self, actual_cut_attributes)
+    # def __str__(self):
+    #     return fmt.fmt_actual_cut(self)
 
-    def __str__(self):
-        return fmt.fmt_actual_cut(self)
-
-    def to_json(self):
-        return {attr: getattr(self, attr) for attr in actual_cut_attributes}
+    # def to_json(self):
+    #     return {attr: getattr(self, attr) for attr in actual_cut_attributes}
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
