@@ -472,15 +472,15 @@ def _get_cuts(transition, direction):
                 yield(p)
 
     elif direction is Direction.FUTURE:
-        m = transition.cause_indices
-        p = transition.effect_indices
-        for p in mip_partitions(m, p):
+        mechanism = transition.cause_indices
+        purview = transition.effect_indices
+        for p in mip_partitions(mechanism, purview):
             yield ActualCut(Direction.FUTURE, p)
 
     elif direction is Direction.PAST:
-        m = transition.effect_indices
-        p = transition.cause_indices
-        for p in mip_partitions(m, p):
+        mechanism = transition.effect_indices
+        purview = transition.cause_indices
+        for p in mip_partitions(mechanism, purview):
             yield ActualCut(Direction.PAST, p)
 
 
