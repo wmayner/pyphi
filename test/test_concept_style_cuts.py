@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from pyphi import config, compute
-from pyphi.constants import Direction
+from pyphi import Direction
 from pyphi.compute import concept_cuts, ConceptStyleSystem, BigMipConceptStyle
 from pyphi.models import KCut, KPartition, Part
 from test_models import bigmip

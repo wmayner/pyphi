@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from pyphi import Subsystem, config, constants, models
-from pyphi.constants import Direction
+from pyphi import Direction
 
 
 # Helper functions for constructing PyPhi objects

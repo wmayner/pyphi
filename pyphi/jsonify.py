@@ -42,7 +42,7 @@ import numpy as np
 
 import pyphi
 from pyphi import cache
-from pyphi.constants import Direction
+from pyphi import Direction
 
 CLASS_KEY = '__class__'
 VERSION_KEY = '__version__'

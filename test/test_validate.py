@@ -6,7 +6,7 @@ import pytest
 
 from pyphi import (Network, Subsystem, config, constants, exceptions, macro,
                    validate)
-from pyphi.constants import Direction
+from pyphi import Direction
 
 
 def test_validate_direction():

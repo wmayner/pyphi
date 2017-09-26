@@ -5,7 +5,7 @@ import pytest
 import redis
 
 from pyphi import Subsystem, cache, config, examples, models
-from pyphi.constants import Direction
+from pyphi import Direction
 
 
 def test_cache():

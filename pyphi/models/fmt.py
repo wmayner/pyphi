@@ -9,8 +9,7 @@ Helper functions for formatting pretty representations of PyPhi models.
 from fractions import Fraction
 from itertools import chain
 
-from .. import config, utils
-from ..constants import Direction, EPSILON
+from .. import config, constants, utils, Direction
 
 # pylint: disable=bad-whitespace
 
@@ -210,7 +209,7 @@ def fmt_number(p):
     fraction = Fraction(p)
     nice = fraction.limit_denominator(128)
     return (
-        str(nice) if (abs(fraction - nice) < EPSILON and
+        str(nice) if (abs(fraction - nice) < constants.EPSILON and
                       nice.denominator in NICE_DENOMINATORS)
         else formatted
     )

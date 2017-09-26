@@ -5,8 +5,7 @@ This section demonstrates how to evaluate actual causation with PyPhi.
 # TODO: add paper reference
 
     >>> import pyphi
-    >>> from pyphi import actual, config
-    >>> from pyphi.constants import Direction
+    >>> from pyphi import actual, config, Direction
 
 .. only:: never
 

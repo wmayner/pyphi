@@ -3,7 +3,7 @@ import pytest
 
 from pyphi import config, Subsystem, Network, actual, examples, models
 from pyphi.models import Part, KPartition
-from pyphi.constants import Direction
+from pyphi import Direction
 
 
 # TODO

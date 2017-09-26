@@ -12,7 +12,7 @@ from collections import namedtuple
 
 from . import cmp, fmt
 from .. import config, utils
-from ..constants import Direction
+from .. import Direction
 
 # TODO(slipperyhank): Why do we even need this?
 # TODO(slipperyhank): add second state

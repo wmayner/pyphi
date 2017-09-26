@@ -10,7 +10,7 @@ from itertools import chain
 import numpy as np
 
 from . import cmp, fmt
-from ..constants import Direction
+from .. import Direction
 from .. import config, connectivity, utils
 
 

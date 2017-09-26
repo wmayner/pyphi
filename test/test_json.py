@@ -10,7 +10,7 @@ import pytest
 
 from pyphi import (actual, compute, config, constants, exceptions, jsonify,
                    models, network)
-from pyphi.constants import Direction
+from pyphi import Direction
 from test_actual import transition
 
 
