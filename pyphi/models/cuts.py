@@ -174,10 +174,6 @@ class KCut(_CutBase):
         return fmt.fmt_kcut(self)
 
 
-actual_cut_attributes = ['cause_part1', 'cause_part2', 'effect_part1',
-                         'effect_part2']
-
-
 class ActualCut(KCut):
     '''Represents an cut for a |Transition|.'''
 
@@ -194,18 +190,12 @@ class ActualCut(KCut):
 
         This is a hacky way to deal with the directionality of actual cuts.
         '''
-        return ActualCut(type(self.partition)(
+        return ActualCut(self.direction, type(self.partition)(
             *(Part(part.purview, part.mechanism) for part in self.partition)))
 
     def normalize(self):
         '''Normalize this cut.'''
-        return ActualCut(self.partition.normalize())
-
-    def __repr__(self):
-        return fmt.make_repr(self, actual_cut_attributes)
-
-    def __str__(self):
-        return str(self.partition)
+        return ActualCut(self.direction, self.partition.normalize())
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):

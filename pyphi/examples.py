@@ -1100,3 +1100,29 @@ def disjunction_conjunction_network():
         [0, 0, 0, 1]
     ])
     return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
+
+
+def prevention():
+    '''The |Transition| for the prevention example from Actual Causation
+    Figure 5D.
+    '''
+    tpm = np.array([
+        [0.5, 0.5, 1],
+        [0.5, 0.5, 0],
+        [0.5, 0.5, 1],
+        [0.5, 0.5, 1],
+        [0.5, 0.5, 1],
+        [0.5, 0.5, 0],
+        [0.5, 0.5, 1],
+        [0.5, 0.5, 1]
+    ])
+    cm = np.array([
+        [0, 0, 1],
+        [0, 0, 1],
+        [0, 0, 0]
+    ])
+    network = Network(tpm, cm, node_labels=['A', 'B', 'F'])
+    x_state = (1, 1, 1)
+    y_state = (1, 1, 1)
+
+    return Transition(network, x_state, y_state, (0, 1), (2,))

@@ -86,6 +86,8 @@ class Transition:
         self.node_indices = parse_nodes(cause_indices + effect_indices)
 
         self.null_cut = ActualCut(
+            # TODO: should really be BIDIRECTIONAL
+            Direction.PAST,
             KPartition(Part(self.effect_indices, self.cause_indices)))
         self.cut = cut if cut is not None else self.null_cut
 
@@ -452,31 +454,34 @@ def _evaluate_cut(transition, cut, unpartitioned_account,
         cut=cut)
 
 
-def _get_cuts(transition, direction=Direction.BIDIRECTIONAL):
+# TODO: implement CUT_ONE approximation?
+def _get_cuts(transition, direction):
     '''A list of possible cuts to a transition.'''
-    # TODO: implement CUT_ONE approximation?
-    # Cuts go from Partition.purview -/-> partition.mechanism
 
     if direction is Direction.BIDIRECTIONAL:
-        already = set()
+        already = {}
         for p in chain(_get_cuts(transition, Direction.PAST),
                        _get_cuts(transition, Direction.FUTURE)):
-            p = p.normalize()
-            if p not in already:
-                already.add(p)
+
+            cm = p.cut_matrix(transition.network.size)
+            hsh = utils.np_hash(cm)
+
+            # TODO: handle hash collisions
+            if hsh not in already:
+                already[hsh] = cm
                 yield(p)
 
     elif direction is Direction.FUTURE:
         m = transition.cause_indices
         p = transition.effect_indices
         for p in mip_partitions(m, p):
-            yield ActualCut(p).invert()
+            yield ActualCut(Direction.FUTURE, p)
 
     elif direction is Direction.PAST:
         m = transition.effect_indices
         p = transition.cause_indices
         for p in mip_partitions(m, p):
-            yield ActualCut(p)
+            yield ActualCut(Direction.PAST, p)
 
 
 def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
@@ -512,7 +517,7 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
         log.info('Empty account; returning null AC MIP immediately.')
         return _null_ac_bigmip(transition, direction)
 
-    cuts = _get_cuts(transition)
+    cuts = _get_cuts(transition, direction)
     finder = FindBigAcMip(cuts, transition, direction, unpartitioned_account)
     result = finder.run_sequential()
     log.info("Finished calculating big-ac-phi data for %s.", transition)

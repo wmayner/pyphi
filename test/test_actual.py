@@ -45,6 +45,12 @@ def empty_transition(transition):
                              transition.after_state, (), ())
 
 
+@pytest.fixture
+def prevention():
+    return examples.prevention()
+
+
+
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -91,7 +97,7 @@ def test_transition_equal(transition, empty_transition):
 
 
 def test_transition_apply_cut(transition):
-    cut = models.ActualCut(KPartition(Part((1,), (2,)), Part((), (0,))))
+    cut = ac_cut(Direction.PAST, Part((1,), (2,)), Part((), (0,)))
     cut_transition = transition.apply_cut(cut)
     assert cut_transition.before_state == transition.before_state
     assert cut_transition.after_state == transition.after_state
@@ -310,14 +316,14 @@ def test_ac_ex1_transition(transition):
 
 
 def test_actual_cut_indices():
-    cut = models.ActualCut(KPartition(Part((0,), (2,)), Part((4,), (5,))))
+    cut = ac_cut(Direction.PAST, Part((0,), (2,)), Part((4,), (5,)))
     assert cut.indices == (0, 2, 4, 5)
-    cut = models.ActualCut(KPartition(Part((0, 2), (0, 2)), Part((), ())))
+    cut = ac_cut(Direction.FUTURE, Part((0, 2), (0, 2)), Part((), ()))
     assert cut.indices == (0, 2)
 
 
 def test_actual_apply_cut():
-    cut = models.ActualCut(KPartition(Part((0,), (0, 2)), Part((2,), ())))
+    cut = ac_cut(Direction.PAST, Part((0,), (0, 2)), Part((2,), ()))
     cm = np.ones((3, 3))
     assert np.array_equal(cut.apply_cut(cm), np.array([
         [1, 1, 0],
@@ -326,7 +332,7 @@ def test_actual_apply_cut():
 
 
 def test_actual_cut_matrix():
-    cut = models.ActualCut(KPartition(Part((0,), (0, 2)), Part((2,), ())))
+    cut = ac_cut(Direction.PAST, Part((0,), (0, 2)), Part((2,), ()))
     assert np.array_equal(cut.cut_matrix(3), np.array([
         [0, 0, 1],
         [0, 0, 0],
@@ -334,37 +340,37 @@ def test_actual_cut_matrix():
 
 
 def test_actual_cut_invert():
-    cut = models.ActualCut(KPartition(Part((0,), (0, 2)), Part((2,), ())))
-    inverted = models.ActualCut(KPartition(Part((0, 2), (0,)), Part((), (2,))))
+    cut = ac_cut(Direction.PAST, Part((0,), (0, 2)), Part((2,), ()))
+    inverted = ac_cut(Direction.PAST, Part((0, 2), (0,)), Part((), (2,)))
     assert cut.invert() == inverted
 
 
-def ac_cut(*parts):
-    return models.ActualCut(KPartition(*parts))
+def ac_cut(direction, *parts):
+    return models.ActualCut(direction, KPartition(*parts))
 
 
 @config.override(PARTITION_TYPE='TRI')
 @pytest.mark.parametrize('direction,answer', [
     (Direction.BIDIRECTIONAL, [
-        ac_cut(Part((), ()), Part((), (1, 2)), Part((0,), ())),
-        ac_cut(Part((), ()), Part((), (2,)), Part((0,), (1,))),
-        ac_cut(Part((), ()), Part((), (1,)), Part((0,), (2,)))]),
+        ac_cut(Direction.PAST, Part((), ()), Part((), (1, 2)), Part((0,), ())),
+        ac_cut(Direction.FUTURE, Part((), ()), Part((1,), (0,)), Part((2,), ())),
+        ac_cut(Direction.FUTURE, Part((), ()), Part((1,), ()), Part((2,), (0,)))]),
     (Direction.PAST, [
-        ac_cut(Part((), ()), Part((), (1, 2)), Part((0,), ()))]),
+        ac_cut(Direction.PAST, Part((), ()), Part((), (1, 2)), Part((0,), ()))]),
     (Direction.FUTURE, [
-        ac_cut(Part((), ()), Part((0,), ()), Part((), (1, 2))),
-        ac_cut(Part((), ()), Part((0,), (1,)), Part((), (2,))),
-        ac_cut(Part((), ()), Part((), (1,)), Part((0,), (2,)))])])
+        ac_cut(Direction.FUTURE, Part((), ()), Part((), (0,)), Part((1, 2), ())),
+        ac_cut(Direction.FUTURE, Part((), ()), Part((1,), (0,)), Part((2,), ())),
+        ac_cut(Direction.FUTURE, Part((), ()), Part((1,), ()), Part((2,), (0,)))])])
 def test_get_actual_cuts(direction, answer, transition):
-    cuts = actual._get_cuts(transition, direction)
-    np.testing.assert_array_equal(list(cuts), answer)
+    cuts = list(actual._get_cuts(transition, direction))
+    print(cuts, answer)
+    np.testing.assert_array_equal(cuts, answer)
 
 
 def test_big_acmip(transition):
     bigmip = actual.big_acmip(transition)
     assert bigmip.alpha == 0.415037
-    assert bigmip.cut == models.ActualCut(KPartition(Part((), (1,)),
-                                                     Part((0,), (2,))))
+    assert bigmip.cut == ac_cut(Direction.PAST, Part((), (1,)), Part((0,), (2,)))
     assert len(bigmip.unpartitioned_account) == 3
     assert len(bigmip.partitioned_account) == 2
 
@@ -379,6 +385,13 @@ def test_null_ac_bigmip(transition):
 
     bigmip = actual._null_ac_bigmip(transition, Direction.PAST, alpha=float('inf'))
     assert bigmip.alpha == float('inf')
+
+
+@config.override(PARTITION_TYPE='TRI')
+def test_prevention(prevention):
+    assert actual.big_acmip(prevention, Direction.PAST).alpha == 0.415037
+    assert actual.big_acmip(prevention, Direction.FUTURE).alpha == 0.0
+    assert actual.big_acmip(prevention, Direction.BIDIRECTIONAL).alpha == 0.0
 
 
 def test_causal_nexus(standard):
