@@ -185,18 +185,6 @@ class ActualCut(KCut):
     def to_json(self):
         return {'partition': self.partition}
 
-    def invert(self):
-        '''Return a cut representing the cut in the opposite direction.
-
-        This is a hacky way to deal with the directionality of actual cuts.
-        '''
-        return ActualCut(self.direction, type(self.partition)(
-            *(Part(part.purview, part.mechanism) for part in self.partition)))
-
-    def normalize(self):
-        '''Normalize this cut.'''
-        return ActualCut(self.direction, self.partition.normalize())
-
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
     '''Represents one part of a |Bipartition|.

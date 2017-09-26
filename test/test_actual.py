@@ -339,12 +339,6 @@ def test_actual_cut_matrix():
         [0, 0, 1]]))
 
 
-def test_actual_cut_invert():
-    cut = ac_cut(Direction.PAST, Part((0,), (0, 2)), Part((2,), ()))
-    inverted = ac_cut(Direction.PAST, Part((0, 2), (0,)), Part((), (2,)))
-    assert cut.invert() == inverted
-
-
 def ac_cut(direction, *parts):
     return models.ActualCut(direction, KPartition(*parts))
 
