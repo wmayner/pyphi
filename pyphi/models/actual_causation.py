@@ -11,8 +11,7 @@ Objects that represent structures used in actual causation.
 from collections import namedtuple
 
 from . import cmp, fmt
-from .. import config, utils
-from .. import Direction
+from .. import Direction, config, utils
 
 # TODO(slipperyhank): Why do we even need this?
 # TODO(slipperyhank): add second state

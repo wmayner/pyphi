@@ -8,13 +8,12 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from pyphi import Network, Subsystem, compute, config, constants, models, utils
+from pyphi import (Direction, Network, Subsystem, compute, config, constants,
+                   models, utils)
 from pyphi.compute import constellation
 from pyphi.compute.big_phi import FindMip, big_mip_bipartitions
-from pyphi import Direction
 from pyphi.models import Cut, _null_bigmip
 from pyphi.partition import directed_bipartition
-
 
 # pylint: disable=unused-argument
 

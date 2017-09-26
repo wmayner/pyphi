@@ -1,9 +1,8 @@
-import pytest
 import numpy as np
+import pytest
 
-from pyphi import config, compute
-from pyphi import Direction
-from pyphi.compute import concept_cuts, ConceptStyleSystem, BigMipConceptStyle
+from pyphi import Direction, compute, config
+from pyphi.compute import BigMipConceptStyle, ConceptStyleSystem, concept_cuts
 from pyphi.models import KCut, KPartition, Part
 from test_models import bigmip
 

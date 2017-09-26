@@ -15,7 +15,6 @@ from . import parallel
 from .. import config, models, utils
 from .distance import constellation_distance
 
-
 log = logging.getLogger(__name__)
 
 

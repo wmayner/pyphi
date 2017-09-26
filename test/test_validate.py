@@ -4,9 +4,8 @@
 import numpy as np
 import pytest
 
-from pyphi import (Network, Subsystem, config, constants, exceptions, macro,
-                   validate)
-from pyphi import Direction
+from pyphi import (Direction, Network, Subsystem, config, constants,
+                   exceptions, macro, validate)
 
 
 def test_validate_direction():

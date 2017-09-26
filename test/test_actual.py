@@ -1,10 +1,9 @@
 import numpy as np
 import pytest
 
-from pyphi import config, Subsystem, Network, actual, examples, models
-from pyphi.models import Part, KPartition
-from pyphi import Direction
-
+from pyphi import (Direction, Network, Subsystem, actual, config, examples,
+                   models)
+from pyphi.models import KPartition, Part
 
 # TODO
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

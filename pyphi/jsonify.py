@@ -41,8 +41,7 @@ import json
 import numpy as np
 
 import pyphi
-from pyphi import cache
-from pyphi import Direction
+from pyphi import Direction, cache
 
 CLASS_KEY = '__class__'
 VERSION_KEY = '__version__'

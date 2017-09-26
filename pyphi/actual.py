@@ -18,9 +18,9 @@ import numpy as np
 from . import compute, connectivity, exceptions, utils, validate
 from .config import PRECISION
 from .constants import EPSILON, Direction
-from .models import (AcBigMip, Account, AcMip, ActualCut, DirectedAccount,
-                     Event, CausalLink, _null_ac_bigmip, _null_ac_mip, fmt)
-from .models import KPartition, Part
+from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
+                     DirectedAccount, Event, KPartition, Part, _null_ac_bigmip,
+                     _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)

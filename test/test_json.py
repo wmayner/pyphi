@@ -8,9 +8,8 @@ import tempfile
 import numpy as np
 import pytest
 
-from pyphi import (actual, compute, config, constants, exceptions, jsonify,
-                   models, network)
-from pyphi import Direction
+from pyphi import (Direction, actual, compute, config, constants, exceptions,
+                   jsonify, models, network)
 from test_actual import transition
 
 

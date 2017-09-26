@@ -8,7 +8,6 @@ import pytest
 from pyphi import convert, macro
 from pyphi.exceptions import ConditionallyDependentError
 
-
 # flake8: noqa
 
 

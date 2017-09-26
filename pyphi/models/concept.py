@@ -7,8 +7,7 @@
 import numpy as np
 
 from . import cmp, fmt
-from .. import config, connectivity, distribution, utils, validate
-from .. import Direction
+from .. import Direction, config, connectivity, distribution, utils, validate
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']

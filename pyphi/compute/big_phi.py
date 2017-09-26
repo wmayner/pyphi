@@ -9,8 +9,9 @@ import functools
 import logging
 from time import time
 
-from .. import config, connectivity, exceptions, memory, utils, validate, Direction
-from ..models import BigMip, Cut, _null_bigmip, Concept, KCut, fmt, cmp
+from .. import (Direction, config, connectivity, exceptions, memory, utils,
+                validate)
+from ..models import BigMip, Concept, Cut, KCut, _null_bigmip, cmp, fmt
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem, mip_partitions
 from .concept import constellation

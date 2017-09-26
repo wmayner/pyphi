@@ -4,8 +4,7 @@ from unittest import mock
 import pytest
 import redis
 
-from pyphi import Subsystem, cache, config, examples, models
-from pyphi import Direction
+from pyphi import Direction, Subsystem, cache, config, examples, models
 
 
 def test_cache():

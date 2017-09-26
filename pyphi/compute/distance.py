@@ -9,7 +9,8 @@ Functions for computing distances between various PyPhi objects.
 import numpy as np
 
 from .. import config, utils, validate
-from ..distance import big_phi_measure as measure, emd
+from ..distance import big_phi_measure as measure
+from ..distance import emd
 
 
 def concept_distance(c1, c2):
