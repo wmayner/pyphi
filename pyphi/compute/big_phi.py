@@ -13,7 +13,7 @@ from .. import config, connectivity, exceptions, memory, utils, validate
 from ..constants import Direction
 from ..models import BigMip, Cut, _null_bigmip, Concept, KCut, fmt, cmp
 from ..partition import directed_bipartition, directed_bipartition_of_one
-from ..subsystem import Subsystem, all_partitions
+from ..subsystem import Subsystem, mip_partitions
 from .concept import constellation
 from .distance import constellation_distance
 from .parallel import MapReduce
@@ -395,7 +395,7 @@ class ConceptStyleSystem:
 
 def concept_cuts(node_indices):
     '''Generator over all concept-syle cuts for these nodes.'''
-    for partition in all_partitions(node_indices, node_indices):
+    for partition in mip_partitions(node_indices, node_indices):
         yield KCut(partition)
 
 
