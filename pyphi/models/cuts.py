@@ -173,6 +173,9 @@ class KCut(_CutBase):
     def __str__(self):
         return fmt.fmt_kcut(self)
 
+    def to_json(self):
+        return {'direction': self.direction, 'partition': self.partition}
+
 
 class ActualCut(KCut):
     '''Represents an cut for a |Transition|.'''
@@ -181,9 +184,6 @@ class ActualCut(KCut):
     def indices(self):
         return tuple(sorted(set(self.partition.mechanism +
                                 self.partition.purview)))
-
-    def to_json(self):
-        return {'partition': self.partition}
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):

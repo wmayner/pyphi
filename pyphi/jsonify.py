@@ -60,6 +60,7 @@ def _loadable_models():
         pyphi.Network,
         pyphi.Subsystem,
         pyphi.models.Cut,
+        pyphi.models.KCut,
         pyphi.models.Part,
         pyphi.models.Bipartition,
         pyphi.models.KPartition,

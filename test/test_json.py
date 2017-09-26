@@ -10,6 +10,7 @@ import pytest
 
 from pyphi import (actual, compute, config, constants, exceptions, jsonify,
                    models, network)
+from pyphi.constants import Direction
 from test_actual import transition
 
 
@@ -47,13 +48,15 @@ def test_jsonify_numpy():
 
 def test_json_deserialization(s, transition):
     objects = [
-        constants.Direction.PAST,
+        Direction.PAST,
         s.network,  # Network
         s,  # Subsystem
         models.Bipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
         models.KPartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
         models.Tripartition(models.Part((0,), ()), models.Part((1,), (2, 3)),
                             models.Part((3,), (4,))),
+        models.KCut(Direction.PAST, models.KPartition(models.Part((0,), ()),
+                                                      models.Part((1,), (2, 3)))),
         s.concept((1, 2)),
         s.concept((1,)),
         compute.constellation(s),
