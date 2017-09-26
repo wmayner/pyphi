@@ -10,6 +10,7 @@ from itertools import chain
 import numpy as np
 
 from . import cmp, fmt
+from ..constants import Direction
 from .. import config, connectivity, utils
 
 
@@ -127,15 +128,10 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
 
 
 class KCut(_CutBase):
-    '''A cut that severs all connections between parts of a K-partition.
+    '''A cut that severs all connections between parts of a K-partition.'''
 
-    Note: since the ``KCut`` does not have a direction associated with it,
-    connectivity is always considered to be from the purview of partition to
-    the mechanism of the partition.
-
-    TODO: add a ``direction`` to the cut?
-    '''
-    def __init__(self, partition):
+    def __init__(self, direction, partition):
+        self.direction = direction
         self.partition = partition
 
     @property
@@ -148,18 +144,27 @@ class KCut(_CutBase):
         cm = np.zeros((n, n))
 
         for part in self.partition:
+            if self.direction is Direction.PAST:
+                from_ = part.purview
+                to = part.mechanism
+
+            elif self.direction is Direction.FUTURE:
+                from_ = part.mechanism
+                to = part.purview
+
             # All indices external to this part
-            external = tuple(set(self.indices) - set(part.mechanism))
-            cm[np.ix_(part.purview, external)] = 1
+            external = tuple(set(self.indices) - set(to))
+            cm[np.ix_(from_, external)] = 1
 
         return cm
 
     @cmp.sametype
     def __eq__(self, other):
-        return self.partition == other.partition
+        return (self.partition == other.partition and
+                self.direction == other.direction)
 
     def __hash__(self):
-        return hash(('KCut', self.partition))
+        return hash((self.direction, self.partition))
 
     def __repr__(self):
         return fmt.make_repr(self, ['partition'])

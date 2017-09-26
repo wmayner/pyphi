@@ -393,10 +393,10 @@ class ConceptStyleSystem:
                        subsystem=self)
 
 
-def concept_cuts(node_indices):
+def concept_cuts(direction, node_indices):
     '''Generator over all concept-syle cuts for these nodes.'''
     for partition in mip_partitions(node_indices, node_indices):
-        yield KCut(partition)
+        yield KCut(direction, partition)
 
 
 def directional_big_mip(subsystem, direction, unpartitioned_constellation=None):
@@ -405,7 +405,7 @@ def directional_big_mip(subsystem, direction, unpartitioned_constellation=None):
         unpartitioned_constellation = _unpartitioned_constellation(subsystem)
 
     c_system = ConceptStyleSystem(subsystem, direction)
-    cuts = concept_cuts(c_system.cut_indices)
+    cuts = concept_cuts(direction, c_system.cut_indices)
 
     # Run the default MIP finder
     # TODO: verify that short-cutting works correctly?
