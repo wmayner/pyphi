@@ -166,7 +166,7 @@ class KCut(_CutBase):
         return hash((self.direction, self.partition))
 
     def __repr__(self):
-        return fmt.make_repr(self, ['partition'])
+        return fmt.make_repr(self, ['direction', 'partition'])
 
     # TODO: improve
     def __str__(self):
