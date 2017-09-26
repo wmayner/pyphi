@@ -362,6 +362,11 @@ def fmt_mip(mip, verbose=True):
 
 def fmt_cut(cut, subsystem=None):
     '''Format a |Cut|.'''
+    # HACK HACK
+    from .cuts import KCut
+    if isinstance(cut, KCut):
+        return fmt_kcut(cut)
+
     # Cut indices cannot be converted to labels for macro systems since macro
     # systems are cut at the micro label. Avoid this error by using micro
     # indices directly in the representation.
@@ -376,6 +381,11 @@ def fmt_cut(cut, subsystem=None):
 
     return 'Cut {from_nodes} {symbol} {to_nodes}'.format(
         from_nodes=from_nodes, symbol=CUT_SYMBOL, to_nodes=to_nodes)
+
+
+def fmt_kcut(cut, subsystem=None):
+    '''Format a |KCut|.'''
+    return 'KCut {}\n{}'.format(cut.direction, cut.partition)
 
 
 def fmt_big_mip(big_mip, constellations=True):

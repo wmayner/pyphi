@@ -171,7 +171,7 @@ class KCut(_CutBase):
 
     # TODO: improve
     def __str__(self):
-        return "KCut\n{}".format(self.partition)
+        return fmt.fmt_kcut(self)
 
 
 actual_cut_attributes = ['cause_part1', 'cause_part2', 'effect_part1',
