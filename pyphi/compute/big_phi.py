@@ -392,6 +392,9 @@ class ConceptStyleSystem:
         return Concept(mechanism=mechanism, cause=cause, effect=effect,
                        subsystem=self)
 
+    def __str__(self):
+        return 'ConceptStyleSystem{}'.format(self.node_indices)
+
 
 def concept_cuts(direction, node_indices):
     '''Generator over all concept-syle cuts for these nodes.'''
