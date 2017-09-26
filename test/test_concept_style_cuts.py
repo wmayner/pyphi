@@ -107,18 +107,26 @@ def test_system_accessors(s):
 
 def big_mip_cs(phi=1.0, subsystem=None):
     return BigMipConceptStyle(
-        subsystem=subsystem,
-        mip_past=bigmip(subsystem=subsystem, phi=phi),
-        mip_future=bigmip(subsystem=subsystem, phi=phi))
+        mip_past=bigmip(phi=phi, subsystem=subsystem),
+        mip_future=bigmip(phi=phi, subsystem=subsystem))
 
 
 def test_big_mip_concept_style_ordering(s, subsys_n0n2, s_noised):
     assert big_mip_cs(subsystem=s) == big_mip_cs(subsystem=s)
     assert big_mip_cs(phi=1, subsystem=s) < big_mip_cs(phi=2, subsystem=s)
+
     assert big_mip_cs(subsystem=s) >= big_mip_cs(subsystem=subsys_n0n2)
 
     with pytest.raises(TypeError):
         big_mip_cs(subsystem=s) < big_mip_cs(subsystem=s_noised)
+
+
+def test_big_mip_concept_style(s):
+    mip = compute.big_mip_concept_style(s)
+    assert mip.min_mip is mip.big_mip_future
+    for attr in ['phi', 'unpartitioned_constellation', 'cut', 'subsystem',
+                 'cut_subsystem', 'network', 'partitioned_constellation']:
+        assert getattr(mip, attr) is getattr(mip.big_mip_future, attr)
 
 
 @config.override(SYSTEM_CUTS='CONCEPT_STYLE', PARALLEL_CUT_EVALUATION=True)

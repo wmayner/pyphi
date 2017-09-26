@@ -416,22 +416,21 @@ def directional_big_mip(subsystem, direction, unpartitioned_constellation=None):
     return finder.run(config.PARALLEL_CUT_EVALUATION)
 
 
+# TODO: only return the minimal mip, instead of both
 class BigMipConceptStyle(cmp.Orderable):
     '''Represents a Big Mip computed using concept-style system cuts.'''
 
-    def __init__(self, mip_past, mip_future, subsystem):
+    def __init__(self, mip_past, mip_future):
         self.big_mip_past = mip_past
         self.big_mip_future = mip_future
-        self.subsystem = subsystem
 
     @property
-    def phi(self):
-        return min(self.big_mip_past.phi, self.big_mip_future.phi)
+    def min_mip(self):
+        return min(self.big_mip_past, self.big_mip_future, key=lambda m: m.phi)
 
-    @property
-    def network(self):
-        '''The network this BigMip belongs to.'''
-        return self.subsystem.network
+    def __getattr__(self, name):
+        '''Pass attribute access through to the minimal mip.'''
+        return getattr(self.min_mip, name)
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, ['phi'])
@@ -442,10 +441,10 @@ class BigMipConceptStyle(cmp.Orderable):
         return [self.phi, len(self.subsystem)]
 
     def __repr__(self):
-        return fmt.make_repr(self, ['big_mip_past', 'big_mip_future'])
+        return repr(self.min_mip)
 
     def __str__(self):
-        return "Concept Style Big Mip: \u03A6 = {}".format(self.phi)
+        return str(self.min_mip)
 
 
 # TODO: cache
@@ -458,4 +457,4 @@ def big_mip_concept_style(subsystem):
     mip_future = directional_big_mip(subsystem, Direction.FUTURE,
                                      unpartitioned_constellation)
 
-    return BigMipConceptStyle(mip_past, mip_future, subsystem)
+    return BigMipConceptStyle(mip_past, mip_future)
