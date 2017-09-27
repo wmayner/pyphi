@@ -214,14 +214,10 @@ class Transition:
         in ``after_state``, the direction is``PAST`` and the ``purview_state``
         is ``before_state``.
         '''
-        if direction == Direction.PAST:
-            purview_state = self.before_state
-        elif direction == Direction.FUTURE:
-            purview_state = self.after_state
-        else:
-            validate.direction(direction)
-
-        return purview_state
+        return {
+            Direction.PAST: self.before_state,
+            Direction.FUTURE: self.after_state
+        }[direction]
 
     def mechanism_state(self, direction):
         '''The state of the mechanism when we are computing coefficients in
