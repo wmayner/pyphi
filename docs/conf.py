@@ -121,8 +121,8 @@ r"""
 .. |small_phi| replace:: :math:`\varphi`
 .. |small_phi > 0| replace:: :math:`\varphi > 0`
 .. |small_phi_max| replace:: :math:`\varphi^{\textrm{max}}`
-.. |big_alpha| replace:: :math:`A`
-.. |big_alpha > 0| replace:: :math:`A > 0`
+.. |big_alpha| replace:: :math:`\mathcal{A}`
+.. |big_alpha > 0| replace:: :math:`\mathcal{A} > 0`
 .. |alpha| replace:: :math:`\alpha`
 .. |alpha > 0| replace:: :math:`\alpha > 0`
 .. |L1| replace:: :math:`L_1`
@@ -165,6 +165,22 @@ r"""
 .. |i,jth| replace:: :math:`(i,j)^{\textrm{th}}`
 .. |k| replace:: :math:`k`
 .. |CM[i][j] = 1| replace:: :math:`CM_{i,j} = 1`
+.. |X| replace:: :math:`X`
+.. |X_t-1| replace:: :math:`X_{t-1}`
+.. |X_t-1 = {OR}| replace:: :math:`X_{t-1} = \{OR\}`
+.. |X_t-1 = {OR = 1}| replace:: :math:`X_{t-1} = \{OR = 1\}`
+.. |X_t-1 = {OR, AND}| replace:: :math:`X_{t-1} = \{OR, AND\}`
+.. |X_t-1 = C| replace:: :math:`X_{t-1} = C`
+.. |Y| replace:: :math:`Y`
+.. |Y_t| replace:: :math:`Y_t`
+.. |Y_t = {AND}| replace:: :math:`Y_t = \{AND\}`
+.. |Y_t = {OR}| replace:: :math:`Y_t = \{OR\}`
+.. |Y_t = {OR = 1}| replace:: :math:`Y_t = \{OR = 1\}`
+.. |Y_t = {OR, AND}| replace:: :math:`Y_t = \{OR, AND\}`
+.. |Y_t = {OR, AND = 10}| replace:: :math:`Y_t = \{OR, AND = 10\}`
+.. |Y_t = D| replace:: :math:`Y_t = D`
+.. |{OR, AND} -> {OR, AND}| replace:: :math:`\{OR, AND\} \rightarrow \{OR, AND\}`
+
 """,
 # Constants
 r"""
@@ -243,14 +259,14 @@ r"""
 .. |CoarseGrains| replace:: :class:`~pyphi.macro.CoarseGrain`
 .. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
 
-.. |Context| replace:: :class:`~pyphi.actual.Context`
+.. |Transition| replace:: :class:`~pyphi.actual.Transition`
 .. |AcBigMip| replace:: :class:`~pyphi.models.actual_causation.AcBigMip`
-.. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
 .. |AcMip| replace:: :class:`~pyphi.models.actual_causation.AcMip`
 .. |DirectedAccount| replace:: :class:`~pyphi.models.actual_causation.DirectedAccount`
+.. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
 .. |Event| replace:: :class:`~pyphi.models.actual_causation.Event`
-.. |Occurence| replace:: :class:`~pyphi.models.actual_causation.Occurence`
-.. |Occurences| replace:: :class:`~pyphi.models.actual_causation.Occurence`
+.. |CausalLink| replace:: :class:`~pyphi.models.actual_causation.CausalLink`
+.. |CausalLinks| replace:: :class:`~pyphi.models.actual_causation.CausalLink`
 
 .. |ConditionallyDependentError| replace:: :class:`~pyphi.exceptions.ConditionallyDependentError`
 

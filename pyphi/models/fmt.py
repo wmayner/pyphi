@@ -9,7 +9,7 @@ Helper functions for formatting pretty representations of PyPhi models.
 from fractions import Fraction
 from itertools import chain
 
-from .. import config, constants, utils
+from .. import Direction, config, constants, utils
 
 # pylint: disable=bad-whitespace
 
@@ -21,6 +21,7 @@ HIGH   = 2
 # Unicode symbols
 SMALL_PHI           = '\u03C6'
 BIG_PHI             = '\u03A6'
+ALPHA               = '\u03B1'
 TOP_LEFT_CORNER     = '\u250C'
 TOP_RIGHT_CORNER    = '\u2510'
 BOTTOM_LEFT_CORNER  = '\u2514'
@@ -31,9 +32,12 @@ HEADER_BAR_1        = '\u2550'
 HEADER_BAR_2        = '\u2501'
 HEADER_BAR_3        = '\u254D'
 DOTTED_HEADER       = '\u2574'
-CUT_SYMBOL          = '\u2501' * 2 + '/ /' + '\u2501' * 2 + '\u27A4'
+LINE                = '\u2501'
+CUT_SYMBOL          = LINE * 2 + '/ /' + LINE * 2 + '\u27A4'
 EMPTY_SET           = '\u2205'
 MULTIPLY            = '\u2715'
+ARROW_LEFT          = '\u25C0' + LINE * 2
+ARROW_RIGHT         = LINE * 2 + '\u25B6'
 
 NICE_DENOMINATORS   = list(range(16)) + [16, 32, 64, 128]
 
@@ -357,6 +361,15 @@ def fmt_mip(mip, verbose=True):
 
 def fmt_cut(cut, subsystem=None):
     '''Format a |Cut|.'''
+    # HACK HACK
+    # TODO: fix this mess.
+    from .cuts import KCut, NullCut
+    if isinstance(cut, KCut):
+        return fmt_kcut(cut)
+
+    elif isinstance(cut, NullCut):
+        return str(cut)
+
     # Cut indices cannot be converted to labels for macro systems since macro
     # systems are cut at the micro label. Avoid this error by using micro
     # indices directly in the representation.
@@ -371,6 +384,11 @@ def fmt_cut(cut, subsystem=None):
 
     return 'Cut {from_nodes} {symbol} {to_nodes}'.format(
         from_nodes=from_nodes, symbol=CUT_SYMBOL, to_nodes=to_nodes)
+
+
+def fmt_kcut(cut, subsystem=None):
+    '''Format a |KCut|.'''
+    return 'KCut {}\n{}'.format(cut.direction, cut.partition)
 
 
 def fmt_big_mip(big_mip, constellations=True):
@@ -428,48 +446,22 @@ def fmt_repertoire(r):
     return box('\n'.join(lines))
 
 
-def fmt_ac_mip(acmip, verbose=True):
-    '''Helper function to format a nice Mip string'''
-
-    if acmip is False or acmip is None:  # mips can be Falsy
+def fmt_ac_mip(mip):
+    '''Format an AcMip.'''
+    if mip is None:
         return ''
 
-    mechanism = 'mechanism: {}\t'.format(acmip.mechanism) if verbose else ''
-    direction = 'direction: {}\n'.format(acmip.direction) if verbose else ''
-    return (
-        '{alpha}\t'
-        '{mechanism}'
-        'purview: {acmip.purview}\t'
-        '{direction}'
-        'partition:\n{partition}\n'
-        'probability:\t{probability}\t'
-        'partitioned_probability:\t{partitioned_probability}\n').format(
-            alpha='{0:.4f}'.format(round(acmip.alpha, 4)),
-            mechanism=mechanism,
-            direction=direction,
-            acmip=acmip,
-            partition=indent(fmt_bipartition(acmip.partition)),
-            probability=indent(acmip.probability),
-            partitioned_probability=indent(acmip.partitioned_probability))
+    causality = {
+        # TODO: use node labels
+        Direction.PAST: (str(mip.purview), ARROW_LEFT, str(mip.mechanism)),
+        Direction.FUTURE: (str(mip.mechanism), ARROW_RIGHT, str(mip.purview))
+    }[mip.direction]
+    causality = ' '.join(causality)
 
-
-def fmt_ac_big_mip(ac_big_mip):
-    '''Format a AcBigMip.'''
-    return (
-        '{alpha}\n'
-        'direction: {ac_big_mip.direction}\n'
-        'context: {ac_big_mip.context}\n'
-        'past_state: {ac_big_mip.before_state}\n'
-        'current_state: {ac_big_mip.after_state}\n'
-        'cut: {ac_big_mip.cut}\n'
-        '{unpartitioned_account}'
-        '{partitioned_account}'.format(
-            alpha='{0:.4f}'.format(round(ac_big_mip.alpha, 4)),
-            ac_big_mip=ac_big_mip,
-            unpartitioned_account=fmt_account(
-                ac_big_mip.unpartitioned_account, 'Unpartitioned Account'),
-            partitioned_account=fmt_account(
-                ac_big_mip.partitioned_account, 'Partitioned Account')))
+    return '{ALPHA} = {alpha}  {causality}'.format(
+        ALPHA=ALPHA,
+        alpha=round(mip.alpha, 4),
+        causality=causality)
 
 
 def fmt_account(account, title=None):
@@ -478,17 +470,43 @@ def fmt_account(account, title=None):
     if title is None:
         title = account.__class__.__name__  # `Account` or `DirectedAccount`
 
-    title = '{} ({} coefficient{})'.format(
+    title = '{} ({} causal link{})'.format(
         title, len(account), '' if len(account) == 1 else 's')
 
-    content = '\n'.join(str(m) for m in account)
+    body = ''
+    body += 'Irreducible effects\n'
+    body += '\n'.join(fmt_ac_mip(m) for m in account.irreducible_effects)
+    body += '\nIrreducible causes\n'
+    body += '\n'.join(fmt_ac_mip(m) for m in account.irreducible_causes)
 
-    return '\n' + header(title, content, under_char='*')
+    return '\n' + header(title, body, under_char='*')
 
 
-def fmt_actual_cut(cut):
-    '''Format an ActualCut.'''
-    return (
-        '{cut.cause_part1} {symbol} {cut.effect_part2} && '
-        '{cut.cause_part2} {symbol} {cut.effect_part1}'
-    ).format(cut=cut, symbol=CUT_SYMBOL)
+def fmt_ac_big_mip(ac_big_mip):
+    '''Format a AcBigMip.'''
+    body = (
+        '{ALPHA} = {alpha}\n'
+        'direction: {ac_big_mip.direction}\n'
+        'transition: {ac_big_mip.transition}\n'
+        'before state: {ac_big_mip.before_state}\n'
+        'after state: {ac_big_mip.after_state}\n'
+        'cut:\n{ac_big_mip.cut}\n'
+        '{unpartitioned_account}\n'
+        '{partitioned_account}'.format(
+            ALPHA=ALPHA,
+            alpha=round(ac_big_mip.alpha, 4),
+            ac_big_mip=ac_big_mip,
+            unpartitioned_account=fmt_account(
+                ac_big_mip.unpartitioned_account, 'Unpartitioned Account'),
+            partitioned_account=fmt_account(
+                ac_big_mip.partitioned_account, 'Partitioned Account')))
+
+    return box(header('AcBigMip', body, under_char=HORIZONTAL_BAR))
+
+
+def fmt_transition(t):
+    '''Format a |Transition|.'''
+    return "Transition({} {} {})".format(
+        fmt_mechanism(t.cause_indices, t.cause_system),
+        ARROW_RIGHT,
+        fmt_mechanism(t.effect_indices, t.effect_system))

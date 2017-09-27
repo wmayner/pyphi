@@ -5,7 +5,7 @@
 import numpy as np
 import pytest
 
-from pyphi import distance
+from pyphi import config, distance
 
 
 def test_hamming_matrix():
@@ -42,6 +42,16 @@ def test_l1_distance():
     a = np.array([0, 1, 2])
     b = np.array([2, 2, 4.5])
     assert distance.l1(a, b) == 5.5
+
+
+def test_entropy_difference():
+    a = np.ones((2, 2, 2)) / 8
+    b = np.ones((2, 2, 2)) / 8
+    assert distance.entropy_difference(a, b) == 0
+
+    a = np.array([0, 1, 2])
+    b = np.array([2, 2, 4.5])
+    assert distance.entropy_difference(a, b) == 0.54979494760874348
 
 
 def test_kld():
@@ -112,6 +122,14 @@ def test_default_measures():
 
 def test_default_asymmetric_measures():
     assert set(distance.measures.asymmetric()) == set(['KLD', 'MP2Q', 'BLD'])
+
+
+def test_big_phi_measure_must_be_symmetric():
+    a = np.ones((2, 2, 2)) / 8
+    b = np.ones((2, 2, 2)) / 8
+    with config.override(MEASURE='KLD'):
+        with pytest.raises(ValueError):
+            distance.big_phi_measure(a, b)
 
 
 def test_suppress_np_warnings():

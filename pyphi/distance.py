@@ -13,8 +13,7 @@ from pyemd import emd
 from scipy.spatial.distance import cdist
 from scipy.stats import entropy
 
-from . import config, constants, utils, validate
-from .constants import Direction
+from . import Direction, config, constants, utils, validate
 from .distribution import flatten, marginal_zero
 
 # Load precomputed hamming matrices.

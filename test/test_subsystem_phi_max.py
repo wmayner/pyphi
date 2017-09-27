@@ -6,8 +6,7 @@ from itertools import chain
 import pytest
 
 import example_networks
-from pyphi import Subsystem
-from pyphi.constants import Direction
+from pyphi import Direction, Subsystem
 from pyphi.models import Cut, Mice, _null_mip
 from pyphi.utils import eq
 

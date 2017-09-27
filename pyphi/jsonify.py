@@ -41,8 +41,7 @@ import json
 import numpy as np
 
 import pyphi
-from pyphi import cache
-from pyphi.constants import Direction
+from pyphi import Direction, cache
 
 CLASS_KEY = '__class__'
 VERSION_KEY = '__version__'
@@ -56,16 +55,27 @@ def _loadable_models():
     circular import issues.
     '''
     classes = [
+        Direction,
         pyphi.Network,
         pyphi.Subsystem,
         pyphi.models.Cut,
+        pyphi.models.KCut,
+        pyphi.models.NullCut,
         pyphi.models.Part,
         pyphi.models.Bipartition,
+        pyphi.models.KPartition,
+        pyphi.models.Tripartition,
         pyphi.models.Mip,
         pyphi.models.Mice,
         pyphi.models.Concept,
         pyphi.models.Constellation,
         pyphi.models.BigMip,
+        pyphi.Transition,
+        pyphi.models.ActualCut,
+        pyphi.models.AcMip,
+        pyphi.models.CausalLink,
+        pyphi.models.Account,
+        pyphi.models.AcBigMip
     ]
     return {cls.__name__: cls for cls in classes}
 
@@ -95,13 +105,6 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
     '''Return a JSON-encodable representation of an object, recursively using
     any available ``to_json`` methods, converting NumPy arrays and datatypes to
     native lists and types along the way.'''
-
-    # Represent Directions as strings.
-    if isinstance(obj, Direction):
-        if obj == Direction.PAST:
-            return 'past'
-        if obj == Direction.FUTURE:
-            return 'future'
 
     # Call the `to_json` method if available and add metadata.
     if hasattr(obj, 'to_json'):

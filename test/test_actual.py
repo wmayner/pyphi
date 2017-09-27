@@ -1,79 +1,118 @@
 import numpy as np
 import pytest
 
-from pyphi import config, Subsystem, actual, examples, models
-from pyphi.constants import Direction
-
+from pyphi import (Direction, Network, Subsystem, actual, config, examples,
+                   models)
+from pyphi.models import KPartition, Part
 
 # TODO
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#   * test context equality/hash
+#   * test transition equality/hash
 #   * state_probability
 
 
 # Fixtures
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+@pytest.fixture
+def transition():
+    '''An OR gate with two inputs. The OR gate is ON, others are OFF.'''
+    tpm = np.array([
+        [0, 0.5, 0.5],
+        [0, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5],
+        [1, 0.5, 0.5]
+    ])
+    cm = np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [1, 0, 0]
+    ])
+    network = Network(tpm, cm)
+    before_state = (0, 1, 1)
+    after_state = (1, 0, 0)
+    return actual.Transition(network, before_state, after_state, (1, 2), (0,))
+
 
 @pytest.fixture
-def context():
-    return examples.ac_ex1_context()
+def empty_transition(transition):
+    return actual.Transition(transition.network, transition.before_state,
+                             transition.after_state, (), ())
 
 
 @pytest.fixture
-def empty_context(context):
-    return actual.Context(context.network, context.before_state,
-                          context.after_state, (), ())
+def prevention():
+    return examples.prevention()
+
 
 
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def test_context_initialization(context):
-    assert context.effect_system.state == (0, 1, 1)
-    assert context.cause_system.state == (1, 0, 0)
-    assert tuple(n.state for n in context.cause_system.nodes) == (1, 0, 0)
+def test_transition_initialization(transition):
+    assert transition.effect_system.state == (0, 1, 1)
+    assert transition.cause_system.state == (1, 0, 0)
+    assert tuple(n.state for n in transition.cause_system.nodes) == (1, 0, 0)
 
 
-def test_purview_state(context):
-    assert context.purview_state(Direction.PAST) == (0, 1, 1)
-    assert context.purview_state(Direction.FUTURE) == (1, 0, 0)
+def test_purview_state(transition):
+    assert transition.purview_state(Direction.PAST) == (0, 1, 1)
+    assert transition.purview_state(Direction.FUTURE) == (1, 0, 0)
 
 
-def test_mechanism_state(context):
-    assert context.mechanism_state(Direction.PAST) == (1, 0, 0)
-    assert context.mechanism_state(Direction.FUTURE) == (0, 1, 1)
+def test_mechanism_state(transition):
+    assert transition.mechanism_state(Direction.PAST) == (1, 0, 0)
+    assert transition.mechanism_state(Direction.FUTURE) == (0, 1, 1)
 
 
-def test_system_dict(context):
-    assert context.system[Direction.PAST] == context.cause_system
-    assert context.system[Direction.FUTURE] == context.effect_system
+def test_mechanism_indices(transition):
+    assert transition.mechanism_indices(Direction.PAST) == (0,)
+    assert transition.mechanism_indices(Direction.FUTURE) == (1, 2)
 
 
-def test_context_len(context, empty_context):
-    assert len(context) == 3
-    assert len(empty_context) == 0
+def test_purview_indices(transition):
+    assert transition.purview_indices(Direction.PAST) == (1, 2)
+    assert transition.purview_indices(Direction.FUTURE) == (0,)
 
 
-def test_context_bool(context, empty_context):
-    assert bool(context)
-    assert not bool(empty_context)
+def test_system_dict(transition):
+    assert transition.system[Direction.PAST] == transition.cause_system
+    assert transition.system[Direction.FUTURE] == transition.effect_system
 
 
-def test_context_apply_cut(context):
-    cut = models.ActualCut((1,), (2,), (), (0,))
-    cut_context = context.apply_cut(cut)
-    assert cut_context.before_state == context.before_state
-    assert cut_context.after_state == context.after_state
-    assert cut_context.cause_indices == context.cause_indices
-    assert cut_context.effect_indices == context.effect_indices
-    assert cut_context.cut == cut
-    assert cut_context != context
+def test_transition_len(transition, empty_transition):
+    assert len(transition) == 3
+    assert len(empty_transition) == 0
 
 
-def test_to_json(context):
-    context.to_json()
+def test_transition_bool(transition, empty_transition):
+    assert bool(transition)
+    assert not bool(empty_transition)
+
+
+def test_transition_equal(transition, empty_transition):
+    assert transition != empty_transition
+    assert hash(transition) != hash(empty_transition)
+
+
+def test_transition_apply_cut(transition):
+    cut = ac_cut(Direction.PAST, Part((1,), (2,)), Part((), (0,)))
+    cut_transition = transition.apply_cut(cut)
+    assert cut_transition.before_state == transition.before_state
+    assert cut_transition.after_state == transition.after_state
+    assert cut_transition.cause_indices == transition.cause_indices
+    assert cut_transition.effect_indices == transition.effect_indices
+    assert cut_transition.cut == cut
+    assert cut_transition != transition
+
+
+def test_to_json(transition):
+    transition.to_json()
 
 # Test AC models
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,8 +132,25 @@ def acmip(**kwargs):
     return models.AcMip(**defaults)
 
 
-def action(**kwargs):
-    return models.Occurence(acmip(**kwargs))
+def causal_link(**kwargs):
+    return models.CausalLink(acmip(**kwargs))
+
+
+def account(links=()):
+    return models.Account(links)
+
+
+def ac_bigmip(**kwargs):
+    defaults = {
+        'alpha': 0.0,
+        'direction': Direction.BIDIRECTIONAL,
+        'unpartitioned_account': account(),
+        'partitioned_account': account(),
+        'transition': None,
+        'cut': None
+    }
+    defaults.update(kwargs)
+    return models.AcBigMip(**defaults)
 
 
 def test_acmip_ordering():
@@ -102,6 +158,10 @@ def test_acmip_ordering():
     assert acmip(alpha=0.0) < acmip(alpha=1.0)
     assert acmip(alpha=0.0, mechanism=(1, 2)) <= acmip(alpha=1.0, mechanism=(1,))
     assert acmip(alpha=0.0, mechanism=(1, 2)) > acmip(alpha=0.0, mechanism=(1,))
+
+    assert bool(acmip(alpha=1.0)) is True
+    assert bool(acmip(alpha=0.0)) is False
+    assert bool(acmip(alpha=-1)) is False
 
     with pytest.raises(TypeError):
         acmip(direction=Direction.PAST) < acmip(direction=Direction.FUTURE)
@@ -118,39 +178,111 @@ def test_acmip_phi_alias():
     assert acmip(alpha=3.3).phi == 3.3
 
 
-def test_action_ordering():
-    assert action() == action()
+def test_causal_link_ordering():
+    assert causal_link() == causal_link()
 
-    assert action(alpha=0.0) < action(alpha=1.0)
-    assert action(alpha=0.0, mechanism=(1, 2)) <= action(alpha=1.0, mechanism=(1,))
-    assert action(alpha=0.0, mechanism=(1, 2)) > action(alpha=0.0, mechanism=(1,))
+    assert causal_link(alpha=0.0) < causal_link(alpha=1.0)
+    assert causal_link(alpha=0.0, mechanism=(1, 2)) <= causal_link(alpha=1.0, mechanism=(1,))
+    assert causal_link(alpha=0.0, mechanism=(1, 2)) > causal_link(alpha=0.0, mechanism=(1,))
 
     with pytest.raises(TypeError):
-        action(direction=Direction.PAST) < action(direction=Direction.FUTURE)
+        causal_link(direction=Direction.PAST) < causal_link(direction=Direction.FUTURE)
+
+    assert bool(causal_link(alpha=1.0)) is True
+    assert bool(causal_link(alpha=0.0)) is False
+    assert bool(causal_link(alpha=-1)) is False
 
 
-def test_coefficients(context):
-    A, B, C = (0, 1, 2)
+def test_account_irreducible_causes_and_effects():
+    cause = causal_link(direction=Direction.PAST)
+    effect = causal_link(direction=Direction.FUTURE)
+    account = models.Account((cause, effect))
 
-    assert context.cause_coefficient((A,), (B, C), norm=False) == 1/3
-    assert context.cause_coefficient((A,), (B,), norm=False) == 2/3
-    assert context.cause_coefficient((A,), (C,), norm=False) == 2/3
-    assert context.effect_coefficient((B, C), (A,), norm=False) == 1
-    assert context.effect_coefficient((A,), (B, C), norm=False) == 1/4
-    # ...
-
-    assert context.cause_coefficient((A,), (B, C)) == 4/3
-    assert context.cause_coefficient((A,), (B,)) == 4/3
-    assert context.cause_coefficient((A,), (C,)) == 4/3
-    assert context.effect_coefficient((B, C), (A,)) == 4/3
-    assert context.effect_coefficient((A,), (B, C)) == 1
-    # ...
+    assert account.irreducible_causes == (cause,)
+    assert account.irreducible_effects == (effect,)
 
 
-def test_ac_ex1_context(context):
+def test_account_repr_and_str():
+    str(models.Account())
+    repr(models.Account())
+
+
+def test_ac_big_mip_ordering(transition, empty_transition):
+    assert ac_bigmip() == ac_bigmip()
+    assert hash(ac_bigmip()) == hash(ac_bigmip())
+
+    assert (ac_bigmip(alpha=1.0, transition=transition) >
+            ac_bigmip(alpha=0.5, transition=transition))
+    assert (ac_bigmip(alpha=1.0, transition=empty_transition) <=
+            ac_bigmip(alpha=1.0, transition=transition))
+
+
+@pytest.mark.parametrize('direction,mechanism,purview,repertoire', [
+    (Direction.PAST, (0,), (1,), [[[0.3333333], [0.66666667]]]),
+    (Direction.PAST, (0,), (2,), [[[0.3333333, 0.66666667]]]),
+    (Direction.PAST, (0,), (1, 2), [[[0, 0.3333333], [0.3333333, 0.3333333]]]),
+    (Direction.PAST, (1,), (1,), [[[.5], [.5]]]),
+    (Direction.FUTURE, (1,), (0,), [[[0]], [[1]]]),
+    (Direction.FUTURE, (2,), (0,), [[[0]], [[1]]]),
+    (Direction.FUTURE, (1, 2), (0,), [[[0]], [[1]]]),
+    (Direction.FUTURE, (0,), (1,), [[[0.5], [0.5]]])
+])
+def test_repertoires(direction, mechanism, purview, repertoire, transition):
+    np.testing.assert_array_almost_equal(
+        transition.repertoire(direction, mechanism, purview), repertoire)
+
+
+def test_unconstrained_repertoires(transition):
+    np.testing.assert_array_equal(
+        transition.unconstrained_cause_repertoire((0,)), [[[0.5]], [[0.5]]])
+    np.testing.assert_array_equal(
+        transition.unconstrained_effect_repertoire((2,)), [[[0.5, 0.5]]])
+
+
+@pytest.mark.parametrize('direction,mechanism,purview,probability', [
+    (Direction.PAST, (0,), (1,), 0.66666667),
+    (Direction.PAST, (0,), (2,), 0.66666667),
+    (Direction.PAST, (0,), (1, 2), 0.3333333),
+    (Direction.PAST, (1,), (1,), 0.5),
+    (Direction.FUTURE, (1,), (0,), 1),
+    (Direction.FUTURE, (2,), (0,), 1),
+    (Direction.FUTURE, (1, 2), (0,), 1),
+    (Direction.FUTURE, (0,), (1,), 0.5)
+])
+def test_probability(direction, mechanism, purview, probability, transition):
+    assert np.isclose(transition.probability(direction, mechanism, purview),
+                      probability)
+
+
+def test_unconstrained_probability(transition):
+    assert transition.unconstrained_probability(Direction.PAST, (1,)) == 0.5
+    assert transition.unconstrained_probability(Direction.FUTURE, (0,)) == 0.75
+
+
+@pytest.mark.parametrize('mechanism,purview,ratio', [
+    ((0,), (1,), 0.41504),
+    ((0,), (2,), 0.41504),
+    ((0,), (1,2), 0.41504),
+    ((1,), (1,), 0)
+])
+def test_cause_ratio(mechanism, purview, ratio, transition):
+    assert np.isclose(transition.cause_ratio(mechanism, purview), ratio)
+
+
+@pytest.mark.parametrize('mechanism,purview,ratio', [
+    ((1,), (0,), 0.41504),
+    ((2,), (0,), 0.41504),
+    ((1, 2), (0,), 0.41504),
+    ((0,), (1,), 0)
+])
+def test_effect_ratio(mechanism, purview, ratio, transition):
+    assert np.isclose(transition.effect_ratio(mechanism, purview), ratio)
+
+
+def test_ac_ex1_transition(transition):
     '''Basic regression test for ac_ex1 example.'''
 
-    cause_account = actual.directed_account(context, Direction.PAST)
+    cause_account = actual.account(transition, Direction.PAST)
     assert len(cause_account) == 1
     cmip = cause_account[0].mip
 
@@ -158,12 +290,12 @@ def test_ac_ex1_context(context):
     assert cmip.purview == (1,)
     assert cmip.direction == Direction.PAST
     assert cmip.state == (1, 0, 0)
-    assert cmip.alpha == 0.33333333333333326
+    assert cmip.alpha == 0.415037
     assert cmip.probability == 0.66666666666666663
     assert cmip.partitioned_probability == 0.5
     assert cmip.partition == (((), (1,)), ((0,), ()))
 
-    effect_account = actual.directed_account(context, Direction.FUTURE)
+    effect_account = actual.account(transition, Direction.FUTURE)
     assert len(effect_account) == 2
     emip0 = effect_account[0].mip
     emip1 = effect_account[1].mip
@@ -172,7 +304,7 @@ def test_ac_ex1_context(context):
     assert emip0.purview == (0,)
     assert emip0.direction == Direction.FUTURE
     assert emip0.state == (0, 1, 1)
-    assert emip0.alpha == 0.33333333333333331
+    assert emip0.alpha == 0.415037
     assert emip0.probability == 1.0
     assert emip0.partitioned_probability == 0.75
     assert emip0.partition == (((), (0,)), ((1,), ()))
@@ -181,64 +313,21 @@ def test_ac_ex1_context(context):
     assert emip1.purview == (0,)
     assert emip1.direction == Direction.FUTURE
     assert emip1.state == (0, 1, 1)
-    assert emip1.alpha == 0.33333333333333331
-    assert emip1.probability == 1.0
-    assert emip1.partitioned_probability == 0.75
-    assert emip1.partition == (((), (0,)), ((2,), ()))
-
-
-# TODO: fix unreachable state issue
-@pytest.mark.xfail
-def test_ac_ex3_context():
-    '''Regression test for ac_ex3 example'''
-    context = examples.ac_ex3_context()
-
-    cause_account = actual.directed_account(context, Direction.PAST)
-    assert len(cause_account) == 1
-    cmip = cause_account[0].mip
-
-    assert cmip.mechanism == (0,)
-    assert cmip.purview == (2,)
-    assert cmip.direction == Direction.PAST
-    assert cmip.state == (0, 0, 0)
-    assert cmip.alpha == 0.33333333333333326
-    assert cmip.probability == 0.66666666666666663
-    assert cmip.partitioned_probability == 0.5
-    assert cmip.partition == (((), (2,)), ((0,), ()))
-
-    effect_account = actual.directed_account(context, Direction.FUTURE)
-    assert len(effect_account) == 2
-    emip0 = effect_account[0].mip
-    emip1 = effect_account[1].mip
-
-    assert emip0.mechanism == (1,)
-    assert emip0.purview == (0,)
-    assert emip0.direction == Direction.FUTURE
-    assert emip0.state == (0, 0, 1)
-    assert emip0.alpha == 0.33333333333333331
-    assert emip0.probability == 1.0
-    assert emip0.partitioned_probability == 0.75
-    assert emip0.partition == (((), (0,)), ((1,), ()))
-
-    assert emip1.mechanism == (2,)
-    assert emip1.purview == (0,)
-    assert emip1.direction == Direction.FUTURE
-    assert emip1.state == (0, 0, 1)
-    assert emip1.alpha == 0.33333333333333331
+    assert emip1.alpha == 0.415037
     assert emip1.probability == 1.0
     assert emip1.partitioned_probability == 0.75
     assert emip1.partition == (((), (0,)), ((2,), ()))
 
 
 def test_actual_cut_indices():
-    cut = models.ActualCut((0,), (4,), (2,), (5,))
+    cut = ac_cut(Direction.PAST, Part((0,), (2,)), Part((4,), (5,)))
     assert cut.indices == (0, 2, 4, 5)
-    cut = models.ActualCut((0, 2), (), (0, 2), ())
+    cut = ac_cut(Direction.FUTURE, Part((0, 2), (0, 2)), Part((), ()))
     assert cut.indices == (0, 2)
 
 
 def test_actual_apply_cut():
-    cut = models.ActualCut((0, 2), (), (0,), (2,))
+    cut = ac_cut(Direction.PAST, Part((0,), (0, 2)), Part((2,), ()))
     cm = np.ones((3, 3))
     assert np.array_equal(cut.apply_cut(cm), np.array([
         [1, 1, 0],
@@ -247,39 +336,68 @@ def test_actual_apply_cut():
 
 
 def test_actual_cut_matrix():
-    cut = models.ActualCut((0, 2), (), (0,), (2,))
+    cut = ac_cut(Direction.PAST, Part((0,), (0, 2)), Part((2,), ()))
     assert np.array_equal(cut.cut_matrix(3), np.array([
         [0, 0, 1],
         [0, 0, 0],
         [0, 0, 1]]))
 
 
-def test_big_acmip(context):
-    bigmip = actual.big_acmip(context)
-    assert bigmip.alpha == 0.33333333333333326
-    assert bigmip.cut == models.ActualCut((1,), (2,), (), (0,))
+def ac_cut(direction, *parts):
+    return models.ActualCut(direction, KPartition(*parts))
+
+
+@config.override(PARTITION_TYPE='TRI')
+@pytest.mark.parametrize('direction,answer', [
+    (Direction.BIDIRECTIONAL, [
+        ac_cut(Direction.PAST, Part((), ()), Part((), (1, 2)), Part((0,), ())),
+        ac_cut(Direction.FUTURE, Part((), ()), Part((1,), (0,)), Part((2,), ())),
+        ac_cut(Direction.FUTURE, Part((), ()), Part((1,), ()), Part((2,), (0,)))]),
+    (Direction.PAST, [
+        ac_cut(Direction.PAST, Part((), ()), Part((), (1, 2)), Part((0,), ()))]),
+    (Direction.FUTURE, [
+        ac_cut(Direction.FUTURE, Part((), ()), Part((), (0,)), Part((1, 2), ())),
+        ac_cut(Direction.FUTURE, Part((), ()), Part((1,), (0,)), Part((2,), ())),
+        ac_cut(Direction.FUTURE, Part((), ()), Part((1,), ()), Part((2,), (0,)))])])
+def test_get_actual_cuts(direction, answer, transition):
+    cuts = list(actual._get_cuts(transition, direction))
+    print(cuts, answer)
+    np.testing.assert_array_equal(cuts, answer)
+
+
+def test_big_acmip(transition):
+    bigmip = actual.big_acmip(transition)
+    assert bigmip.alpha == 0.415037
+    assert bigmip.cut == ac_cut(Direction.PAST, Part((), (1,)), Part((0,), (2,)))
     assert len(bigmip.unpartitioned_account) == 3
     assert len(bigmip.partitioned_account) == 2
 
 
-def test_null_ac_bigmip(context):
-    bigmip = actual._null_ac_bigmip(context, Direction.PAST)
-    assert bigmip.context == context
+def test_null_ac_bigmip(transition):
+    bigmip = actual._null_ac_bigmip(transition, Direction.PAST)
+    assert bigmip.transition == transition
     assert bigmip.direction == Direction.PAST
     assert bigmip.unpartitioned_account == ()
     assert bigmip.partitioned_account == ()
     assert bigmip.alpha == 0.0
 
-    bigmip = actual._null_ac_bigmip(context, Direction.PAST, alpha=float('inf'))
+    bigmip = actual._null_ac_bigmip(transition, Direction.PAST, alpha=float('inf'))
     assert bigmip.alpha == float('inf')
+
+
+@config.override(PARTITION_TYPE='TRI')
+def test_prevention(prevention):
+    assert actual.big_acmip(prevention, Direction.PAST).alpha == 0.415037
+    assert actual.big_acmip(prevention, Direction.FUTURE).alpha == 0.0
+    assert actual.big_acmip(prevention, Direction.BIDIRECTIONAL).alpha == 0.0
 
 
 def test_causal_nexus(standard):
     nexus = actual.causal_nexus(standard, (0, 0, 1), (1, 1, 0))
     assert nexus.alpha == 2.0
     assert nexus.direction == Direction.BIDIRECTIONAL
-    assert nexus.context.cause_indices == (0, 1)
-    assert nexus.context.effect_indices == (2,)
+    assert nexus.transition.cause_indices == (0, 1)
+    assert nexus.transition.effect_indices == (2,)
 
 
 def test_true_events(standard):

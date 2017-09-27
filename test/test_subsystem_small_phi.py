@@ -7,8 +7,7 @@ import numpy as np
 import pytest
 
 import example_networks
-from pyphi import constants
-from pyphi.constants import Direction
+from pyphi import Direction, constants
 from pyphi.models import Mip, Part
 
 s = example_networks.s()

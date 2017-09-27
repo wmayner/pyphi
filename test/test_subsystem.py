@@ -6,11 +6,10 @@ import numpy as np
 import pytest
 
 import example_networks
-from pyphi import Network, config, exceptions
-from pyphi.constants import Direction
-from pyphi.models import Bipartition, Cut, Part, Tripartition, KPartition
-from pyphi.subsystem import (Subsystem, mip_bipartitions, wedge_partitions,
-                             all_partitions, purview_disconnection_partitions)
+from pyphi import Direction, Network, config, exceptions
+from pyphi.models import Bipartition, Cut, KPartition, Part, Tripartition
+from pyphi.subsystem import (Subsystem, all_partitions, mip_bipartitions,
+                             wedge_partitions, purview_disconnection_partitions)
 
 
 @config.override(VALIDATE_SUBSYSTEM_STATES=True)

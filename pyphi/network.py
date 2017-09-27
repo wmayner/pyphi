@@ -11,8 +11,7 @@ import json
 
 import numpy as np
 
-from . import cache, connectivity, convert, utils, validate
-from .constants import Direction
+from . import Direction, cache, connectivity, convert, utils, validate
 from .node import default_labels
 from .tpm import is_state_by_state
 

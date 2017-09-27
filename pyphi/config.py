@@ -608,27 +608,33 @@ class override(contextlib.ContextDecorator):
 
 PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
 
-# Load the default config
-load_config_default()
 
-# Then try and load the config file
-file_loaded = False
-if os.path.exists(PYPHI_CONFIG_FILENAME):
-    load_config_file(PYPHI_CONFIG_FILENAME)
-    file_loaded = True
+def initialize():
+    '''Initialize PyPhi config.'''
+    # Load the default config
+    load_config_default()
 
-# Setup logging
-configure_logging()
+    # Then try and load the config file
+    file_loaded = False
+    if os.path.exists(PYPHI_CONFIG_FILENAME):
+        load_config_file(PYPHI_CONFIG_FILENAME)
+        file_loaded = True
 
-# Log the PyPhi version and loaded configuration
-if this_module.LOG_CONFIG_ON_IMPORT:
-    log = logging.getLogger(__name__)
+    # Setup logging
+    configure_logging()
 
-    log.info('PyPhi v%s', __about__.__version__)
-    if file_loaded:
-        log.info('Loaded configuration from '
-                 '`./%s`', PYPHI_CONFIG_FILENAME)
-    else:
-        log.info('Using default configuration (no config file provided)')
+    # Log the PyPhi version and loaded configuration
+    if this_module.LOG_CONFIG_ON_IMPORT:
+        log = logging.getLogger(__name__)
 
-    log.info('Current PyPhi configuration:\n %s', get_config_string())
+        log.info('PyPhi v%s', __about__.__version__)
+        if file_loaded:
+            log.info('Loaded configuration from '
+                     '`./%s`', PYPHI_CONFIG_FILENAME)
+        else:
+            log.info('Using default configuration (no config file provided)')
+
+        log.info('Current PyPhi configuration:\n %s', get_config_string())
+
+
+initialize()

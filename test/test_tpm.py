@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from pyphi.tpm import expand_tpm, is_state_by_state, marginalize_out, infer_cm
+from pyphi.tpm import expand_tpm, infer_cm, is_state_by_state, marginalize_out
 
 
 def test_is_state_by_state():

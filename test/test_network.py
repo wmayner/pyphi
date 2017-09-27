@@ -5,7 +5,7 @@
 import numpy as np
 import pytest
 
-from pyphi.constants import Direction
+from pyphi import Direction
 from pyphi.network import Network
 
 

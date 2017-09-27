@@ -10,8 +10,8 @@ from functools import reduce
 
 import numpy as np
 
-from . import fmt
-from .. import config, connectivity, utils
+from . import cmp, fmt
+from .. import Direction, config, connectivity, utils
 
 
 class _CutBase:
@@ -36,6 +36,14 @@ class _CutBase:
            n (int): The size of the network.
         '''
         raise NotImplementedError
+
+    @property
+    def is_null(self):
+        '''Is this cut a null cut?
+
+        All concrete cuts should return ``False``.
+        '''
+        return False
 
     def apply_cut(self, cm):
         '''Return a modified connectivity matrix with all connections that are
@@ -78,6 +86,43 @@ class _CutBase:
         '''
         all_mechanisms = utils.powerset(self.indices, nonempty=True)
         return tuple(m for m in all_mechanisms if self.splits_mechanism(m))
+
+
+class NullCut(_CutBase):
+    '''The cut that does nothing.'''
+
+    def __init__(self, indices):
+        self._indices = indices
+
+    @property
+    def is_null(self):
+        '''This is the only cut where ``is_null == True``.'''
+        return True
+
+    @property
+    def indices(self):
+        '''Indices of the cut.'''
+        return self._indices
+
+    def cut_matrix(self, n):
+        '''Return a matrix of zeros.'''
+        return np.zeros((n, n))
+
+    def to_json(self):
+        return {'indices': self.indices}
+
+    def __repr__(self):
+        return fmt.make_repr(self, ['indices'])
+
+    def __str__(self):
+        return 'NullCut({})'.format(self.indices)
+
+    @cmp.sametype
+    def __eq__(self, other):
+        return self.indices == other.indices
+
+    def __hash__(self):
+        return hash(('NullCut', self.indices))
 
 
 class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
@@ -128,20 +173,15 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
 
 
 class KCut(_CutBase):
-    '''A cut that severs all connections between parts of a K-partition.
+    '''A cut that severs all connections between parts of a K-partition.'''
 
-    Note: since the ``KCut`` does not have a direction associated with it,
-    connectivity is always considered to be from the purview of partition to
-    the mechanism of the partition.
-
-    TODO: add a ``direction`` to the cut?
-    '''
-    def __init__(self, partition):
-        assert partition.mechanism == partition.purview
+    def __init__(self, direction, partition):
+        self.direction = direction
         self.partition = partition
 
     @property
     def indices(self):
+        assert self.partition.mechanism == self.partition.purview
         return self.partition.mechanism
 
     def cut_matrix(self, n):
@@ -149,59 +189,46 @@ class KCut(_CutBase):
         cm = np.zeros((n, n))
 
         for part in self.partition:
+            if self.direction is Direction.PAST:
+                from_ = part.purview
+                to = part.mechanism
+
+            elif self.direction is Direction.FUTURE:
+                from_ = part.mechanism
+                to = part.purview
+
             # All indices external to this part
-            external = tuple(set(self.indices) - set(part.mechanism))
-            cm[np.ix_(part.purview, external)] = 1
+            external = tuple(set(self.indices) - set(to))
+            cm[np.ix_(from_, external)] = 1
 
         return cm
 
+    @cmp.sametype
+    def __eq__(self, other):
+        return (self.partition == other.partition and
+                self.direction == other.direction)
+
+    def __hash__(self):
+        return hash((self.direction, self.partition))
+
     def __repr__(self):
-        return fmt.make_repr(self, ['partition'])
+        return fmt.make_repr(self, ['direction', 'partition'])
 
     # TODO: improve
     def __str__(self):
-        return "KCut\n{}".format(self.partition)
+        return fmt.fmt_kcut(self)
+
+    def to_json(self):
+        return {'direction': self.direction, 'partition': self.partition}
 
 
-actual_cut_attributes = ['cause_part1', 'cause_part2', 'effect_part1',
-                         'effect_part2']
-
-
-# TODO: this is a special case of KCut - refactor to reflect that?
-class ActualCut(namedtuple('ActualCut', actual_cut_attributes), _CutBase):
-    '''Represents an cut for a |Context|.
-
-    This is a bipartition of the cause and effect elements.
-
-    Attributes:
-        cause_part1 (tuple[int]): Connections from this group to those in
-            ``effect_part2`` are cut.
-        cause_part2 (tuple[int]): Connections from this group to those in
-            ``effect_part1`` are cut.
-        effect_part1 (tuple[int]): Connections to this group from
-            ``cause_part2`` are cut.
-        effect_part2 (tuple[int]): Connections to this group from
-            ``cause_part1`` are cut.
-    '''
-    __slots__ = ()
+class ActualCut(KCut):
+    '''Represents an cut for a |Transition|.'''
 
     @property
     def indices(self):
-        '''tuple[int]: The indices in this cut.'''
-        return tuple(sorted(set(chain.from_iterable(self))))
-
-    def cut_matrix(self, n):
-        '''The matrix of connections severed by this cut.'''
-        cm = np.zeros((n, n))
-        cm[np.ix_(self.cause_part1, self.effect_part2)] = 1
-        cm[np.ix_(self.cause_part2, self.effect_part1)] = 1
-        return cm
-
-    def __repr__(self):
-        return fmt.make_repr(self, actual_cut_attributes)
-
-    def __str__(self):
-        return fmt.fmt_actual_cut(self)
+        return tuple(sorted(set(self.partition.mechanism +
+                                self.partition.purview)))
 
 
 class Part(namedtuple('Part', ['mechanism', 'purview'])):
@@ -253,6 +280,10 @@ class KPartition(tuple):
         return tuple(sorted(set(
             chain.from_iterable(part.purview for part in self))))
 
+    def normalize(self):
+        '''Normalize the order of parts in the partition.'''
+        return type(self)(*sorted(self))
+
     def __str__(self):
         return fmt.fmt_bipartition(self)
 
@@ -283,7 +314,11 @@ class KPartition(tuple):
         return KPartition(*refactored_parts)
 
     def to_json(self):
-        raise NotImplementedError
+        return {'parts': list(self)}
+
+    @classmethod
+    def from_json(cls, dct):
+        return cls(*dct['parts'])
 
 
 class Bipartition(KPartition):

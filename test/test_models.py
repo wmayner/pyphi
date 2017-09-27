@@ -7,9 +7,7 @@ from collections import namedtuple
 import numpy as np
 import pytest
 
-from pyphi import Subsystem, config, constants, models
-from pyphi.constants import Direction
-
+from pyphi import Direction, Subsystem, config, constants, models
 
 # Helper functions for constructing PyPhi objects
 # -----------------------------------------------
@@ -47,12 +45,6 @@ def bigmip(unpartitioned_constellation=(), partitioned_constellation=(),
         unpartitioned_constellation=unpartitioned_constellation,
         partitioned_constellation=partitioned_constellation,
         subsystem=subsystem, cut_subsystem=cut_subsystem, phi=phi)
-
-
-nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
-nt = namedtuple('nt', nt_attributes)
-a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
-       mechanism=(0, 1, 2), purview=(2, 4))
 
 
 # Test equality helpers
@@ -111,6 +103,12 @@ def test_sametype_decorator():
     assert Thing().do_it(object()) == NotImplemented
 
 
+nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
+nt = namedtuple('nt', nt_attributes)
+a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
+       mechanism=(0, 1, 2), purview=(2, 4))
+
+
 def test_numpy_aware_eq_noniterable():
     b = 1
     assert not models.cmp.numpy_aware_eq(a, b)
@@ -163,6 +161,21 @@ def test_general_eq_different_purview_order():
 def test_general_eq_different_mechanism_and_purview_order():
     b = nt(a.this, a.that, a.phi, a.mechanism[::-1], a.purview[::-1])
     assert models.cmp.general_eq(a, b, nt_attributes)
+
+
+def test_general_eq_purview_mechanism_none():
+    b = nt(a.this, a.that, a.phi, None, None)
+    assert models.cmp.general_eq(b, b, nt_attributes)
+    c = nt(a.this, a.that, a.phi, a.mechanism, None)
+    assert not models.cmp.general_eq(a, b, nt_attributes)
+    c = nt(a.this, a.that, a.phi, None, a.purview)
+    assert not models.cmp.general_eq(a, c, nt_attributes)
+
+
+def test_general_eq_attribute_missing():
+    b = namedtuple('no_purview', nt_attributes[:-1])(
+        a.this, a.that, a.phi, a.mechanism)
+    assert not models.cmp.general_eq(a, b, nt_attributes)
 
 
 # }}}
@@ -240,6 +253,29 @@ def test_apply_cut():
     ])
     assert np.array_equal(cut.apply_cut(cm), cut_cm)
 
+
+def test_cut_is_null():
+    cut = models.Cut((0,), (1, 2))
+    assert not cut.is_null
+
+
+def test_null_cut():
+    cut = models.NullCut((2, 3))
+    assert cut.indices == (2, 3)
+    assert cut.is_null
+    assert np.array_equal(cut.cut_matrix(4), np.zeros((4, 4)))
+
+
+def test_null_cut_str():
+    cut = models.NullCut((2, 3))
+    assert str(cut) == 'NullCut((2, 3))'
+
+
+def test_null_cut_equality():
+    cut = models.NullCut((2, 3))
+    other = models.NullCut((2, 3))
+    assert cut == other
+    assert hash(cut) == hash(other)
 
 # }}}
 
@@ -640,6 +676,24 @@ def test_tripartion_str(tripartition):
         ' 0     ∅     2 \n'
         '─── ✕ ─── ✕ ───\n'
         '0,4    1     2 ')
+
+
+@pytest.fixture
+def k_partition():
+    return models.KPartition(
+        models.Part((0,), (0, 4)),
+        models.Part((), (1,)),
+        models.Part((6,), (5,)),
+        models.Part((2,), (2,)))
+
+
+def test_partition_normalize(k_partition):
+    assert k_partition.normalize() == models.KPartition(
+        models.Part((), (1,)),
+        models.Part((0,), (0, 4)),
+        models.Part((2,), (2,)),
+        models.Part((6,), (5,)))
+
 
 # }}}
 

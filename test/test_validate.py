@@ -4,13 +4,20 @@
 import numpy as np
 import pytest
 
-from pyphi import (Network, Subsystem, config, constants, exceptions, macro,
-                   validate)
+from pyphi import (Direction, Network, Subsystem, config, constants,
+                   exceptions, macro, validate)
 
 
 def test_validate_direction():
+    validate.direction(Direction.PAST)
+    validate.direction(Direction.FUTURE)
+
     with pytest.raises(ValueError):
-        assert validate.direction("dogeeeee")
+        validate.direction("dogeeeee")
+
+    validate.direction(Direction.BIDIRECTIONAL, allow_bi=True)
+    with pytest.raises(ValueError):
+        validate.direction(Direction.BIDIRECTIONAL)
 
 
 def test_validate_tpm_wrong_shape():

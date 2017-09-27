@@ -9,11 +9,11 @@ import functools
 import logging
 from time import time
 
-from .. import config, connectivity, exceptions, memory, utils, validate
-from ..constants import Direction
-from ..models import BigMip, Cut, _null_bigmip, Concept, KCut, fmt, cmp
+from .. import (Direction, config, connectivity, exceptions, memory, utils,
+                validate)
+from ..models import BigMip, Concept, Cut, KCut, _null_bigmip, cmp, fmt
 from ..partition import directed_bipartition, directed_bipartition_of_one
-from ..subsystem import Subsystem, all_partitions
+from ..subsystem import Subsystem, mip_partitions
 from .concept import constellation
 from .distance import constellation_distance
 from .parallel import MapReduce
@@ -392,11 +392,14 @@ class ConceptStyleSystem:
         return Concept(mechanism=mechanism, cause=cause, effect=effect,
                        subsystem=self)
 
+    def __str__(self):
+        return 'ConceptStyleSystem{}'.format(self.node_indices)
 
-def concept_cuts(node_indices):
+
+def concept_cuts(direction, node_indices):
     '''Generator over all concept-syle cuts for these nodes.'''
-    for partition in all_partitions(node_indices, node_indices):
-        yield KCut(partition)
+    for partition in mip_partitions(node_indices, node_indices):
+        yield KCut(direction, partition)
 
 
 def directional_big_mip(subsystem, direction, unpartitioned_constellation=None):
@@ -405,7 +408,7 @@ def directional_big_mip(subsystem, direction, unpartitioned_constellation=None):
         unpartitioned_constellation = _unpartitioned_constellation(subsystem)
 
     c_system = ConceptStyleSystem(subsystem, direction)
-    cuts = concept_cuts(c_system.cut_indices)
+    cuts = concept_cuts(direction, c_system.cut_indices)
 
     # Run the default MIP finder
     # TODO: verify that short-cutting works correctly?
@@ -413,22 +416,21 @@ def directional_big_mip(subsystem, direction, unpartitioned_constellation=None):
     return finder.run(config.PARALLEL_CUT_EVALUATION)
 
 
+# TODO: only return the minimal mip, instead of both
 class BigMipConceptStyle(cmp.Orderable):
     '''Represents a Big Mip computed using concept-style system cuts.'''
 
-    def __init__(self, mip_past, mip_future, subsystem):
+    def __init__(self, mip_past, mip_future):
         self.big_mip_past = mip_past
         self.big_mip_future = mip_future
-        self.subsystem = subsystem
 
     @property
-    def phi(self):
-        return min(self.big_mip_past.phi, self.big_mip_future.phi)
+    def min_mip(self):
+        return min(self.big_mip_past, self.big_mip_future, key=lambda m: m.phi)
 
-    @property
-    def network(self):
-        '''The network this BigMip belongs to.'''
-        return self.subsystem.network
+    def __getattr__(self, name):
+        '''Pass attribute access through to the minimal mip.'''
+        return getattr(self.min_mip, name)
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, ['phi'])
@@ -439,10 +441,10 @@ class BigMipConceptStyle(cmp.Orderable):
         return [self.phi, len(self.subsystem)]
 
     def __repr__(self):
-        return fmt.make_repr(self, ['big_mip_past', 'big_mip_future'])
+        return repr(self.min_mip)
 
     def __str__(self):
-        return "Concept Style Big Mip: \u03A6 = {}".format(self.phi)
+        return str(self.min_mip)
 
 
 # TODO: cache
@@ -455,4 +457,4 @@ def big_mip_concept_style(subsystem):
     mip_future = directional_big_mip(subsystem, Direction.FUTURE,
                                      unpartitioned_constellation)
 
-    return BigMipConceptStyle(mip_past, mip_future, subsystem)
+    return BigMipConceptStyle(mip_past, mip_future)
