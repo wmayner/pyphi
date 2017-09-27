@@ -271,7 +271,7 @@ class Mice(cmp.Orderable):
         '''
         return (subsystem.cut.splits_mechanism(self.mechanism) or
                 np.any(self._relevant_connections(subsystem) *
-                       subsystem.cut_matrix == 1))
+                       subsystem.cut.cut_matrix(subsystem.network.size) == 1))
 
 
 # =============================================================================

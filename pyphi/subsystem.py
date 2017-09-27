@@ -46,8 +46,6 @@ class Subsystem:
         state (tuple[int]): The state of the network.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
         cut (Cut): The cut that has been applied to this subsystem.
-        cut_matrix (np.ndarray): A matrix of connections which have been
-            severed by the cut.
         null_cut (Cut): The cut object representing no cut.
     '''
 
@@ -77,10 +75,6 @@ class Subsystem:
 
         # The unidirectional cut applied for phi evaluation
         self.cut = cut if cut is not None else NullCut(self.node_indices)
-
-        # The matrix of connections which are severed due to the cut
-        # TODO: save/memoize on the cut so we just say self.cut.matrix()?
-        self.cut_matrix = self.cut.cut_matrix(self.network.size)
 
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)

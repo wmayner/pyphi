@@ -80,38 +80,6 @@ def test_hash(s):
     print(hash(s))
 
 
-def test_find_cut_matrix(s, big_subsys_0_thru_3):
-    cut = Cut((0, ), (1, 2))
-    cut_s = Subsystem(s.network, s.state, s.node_indices, cut=cut)
-    answer_s = np.array([
-        [0, 1, 1],
-        [0, 0, 0],
-        [0, 0, 0],
-    ])
-    assert np.array_equal(cut_s.cut_matrix, answer_s)
-
-    cut = Cut((0, 1), (2, 3))
-    cut_big = Subsystem(big_subsys_0_thru_3.network,
-                        big_subsys_0_thru_3.state,
-                        big_subsys_0_thru_3.node_indices,
-                        cut=cut)
-    answer_big = np.array([
-        [0, 0, 1, 1, 0],
-        [0, 0, 1, 1, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-    ])
-    assert np.array_equal(cut_big.cut_matrix, answer_big)
-
-    null_cut_matrix = np.array([
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-    ])
-    assert np.array_equal(s.cut_matrix, null_cut_matrix)
-
-
 def test_indices2nodes(s):
     subsys = s  # 3-node subsystem
     assert subsys.indices2nodes(()) == ()
