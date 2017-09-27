@@ -207,6 +207,12 @@ def test_account_repr_and_str():
     repr(models.Account())
 
 
+def test_ac_big_mip_repr_and_str(transition):
+    bm = ac_bigmip(transition=transition)
+    str(bm)
+    repr(bm)
+
+
 def test_ac_big_mip_ordering(transition, empty_transition):
     assert ac_bigmip() == ac_bigmip()
     assert hash(ac_bigmip()) == hash(ac_bigmip())
