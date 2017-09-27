@@ -246,13 +246,7 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
     '''
     def reducible(purview):
         '''Returns ``True`` if purview is trivially reducible.'''
-        if direction == Direction.PAST:
-            _from, to = purview, mechanism
-        elif direction == Direction.FUTURE:
-            _from, to = mechanism, purview
-        else:
-            # TODO: test that ValueError is raised
-            validate.direction(direction)
+        _from, to = direction.order(mechanism, purview)
         return connectivity.block_reducible(cm, _from, to)
 
     return [purview for purview in purviews if not reducible(purview)]

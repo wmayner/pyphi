@@ -30,6 +30,21 @@ class Direction(Enum):
     def from_json(cls, dct):
         return cls(dct['direction'])
 
+    def order(self, mechanism, purview):
+        '''Order the mechanism and purview in time.
+
+        If the direction is ``PAST``, then the ``purview`` is at |t-1| and the
+        ``mechanism`` is at time |t|. If the direction is ``FUTURE``, then
+        the ``mechanism`` is at time |t| and the purview is at |t+1|.
+        '''
+        if self is self.PAST:
+            return purview, mechanism
+        elif self is self.FUTURE:
+            return mechanism, purview
+
+        from . import validate
+        validate.direction(self)
+
 
 #: The threshold below which we consider differences in phi values to be zero.
 EPSILON = 10 ** - config.PRECISION
