@@ -104,7 +104,12 @@ def indent(lines, amount=2, char=' '):
 
 
 def margin(text, amount=2):
-    '''Add a margin to both ends of each line in the string.'''
+    '''Add a margin to both ends of each line in the string.
+
+    Example:
+        >>> margin('line1\\nline2')
+        '  line1  \\n  line2  '
+    '''
     lines = str(text).split('\n')
     return '\n'.join('  {}  '.format(l) for l in lines)
 
