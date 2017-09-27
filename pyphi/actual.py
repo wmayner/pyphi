@@ -15,9 +15,8 @@ from math import log2 as _log2
 
 import numpy as np
 
-from . import compute, connectivity, exceptions, utils, validate
-from .config import PRECISION
-from .constants import EPSILON, Direction
+from . import (Direction, compute, config, connectivity, constants, exceptions,
+               utils, validate)
 from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
                      DirectedAccount, Event, KPartition, Part, _null_ac_bigmip,
                      _null_ac_mip, fmt)
@@ -28,7 +27,7 @@ log = logging.getLogger(__name__)
 
 def log2(x):
     '''Rounded version of ``log2``.'''
-    return round(_log2(x), PRECISION)
+    return round(_log2(x), config.PRECISION)
 
 
 class Transition:
@@ -296,7 +295,7 @@ class Transition:
                              partitioned_probability=partitioned_probability,
                              alpha=0.0)
             # Then take closest to 0
-            if (abs(alpha_min) - abs(alpha)) > EPSILON:
+            if (abs(alpha_min) - abs(alpha)) > constants.EPSILON:
                 alpha_min = alpha
                 acmip = AcMip(state=self.mechanism_state(direction),
                               direction=direction,
@@ -442,7 +441,7 @@ def _evaluate_cut(transition, cut, unpartitioned_account,
     alpha = account_distance(unpartitioned_account, partitioned_account)
 
     return AcBigMip(
-        alpha=round(alpha, PRECISION),
+        alpha=round(alpha, config.PRECISION),
         direction=direction,
         unpartitioned_account=unpartitioned_account,
         partitioned_account=partitioned_account,
