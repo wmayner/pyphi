@@ -28,7 +28,7 @@ before_install:
 
 # Install packages
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy gcc
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy gcc_linux-64
   - pip install -r requirements.txt
   - pip install coveralls
   - pip freeze
