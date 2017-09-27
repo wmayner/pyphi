@@ -36,6 +36,14 @@ class _CutBase:
         '''
         raise NotImplementedError
 
+    @property
+    def is_null(self):
+        '''Is this cut a null cut?
+
+        All concrete cuts should return ``False``.
+        '''
+        return False
+
     def apply_cut(self, cm):
         '''Return a modified connectivity matrix with all connections that are
         severed by this cut removed.
@@ -77,6 +85,43 @@ class _CutBase:
         '''
         all_mechanisms = utils.powerset(self.indices, nonempty=True)
         return tuple(m for m in all_mechanisms if self.splits_mechanism(m))
+
+
+class NullCut(_CutBase):
+    '''The cut that does nothing.'''
+
+    def __init__(self, indices):
+        self._indices = indices
+
+    @property
+    def is_null(self):
+        '''This is the only cut where ``is_null == True``.'''
+        return True
+
+    @property
+    def indices(self):
+        '''Indices of the cut.'''
+        return self._indices
+
+    def cut_matrix(self, n):
+        '''Return a matrix of zeros.'''
+        return np.zeros((n, n))
+
+    def to_json(self):
+        return {'indices': self.indices}
+
+    def __repr__(self):
+        return fmt.make_repr(self, ['indices'])
+
+    def __str__(self):
+        return 'NullCut({})'.format(self.indices)
+
+    @cmp.sametype
+    def __eq__(self, other):
+        return self.indices == other.indices
+
+    def __hash__(self):
+        return hash(('NullCut', self.indices))
 
 
 class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):

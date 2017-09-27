@@ -362,9 +362,13 @@ def fmt_mip(mip, verbose=True):
 def fmt_cut(cut, subsystem=None):
     '''Format a |Cut|.'''
     # HACK HACK
-    from .cuts import KCut
+    # TODO: fix this mess.
+    from .cuts import KCut, NullCut
     if isinstance(cut, KCut):
         return fmt_kcut(cut)
+
+    elif isinstance(cut, NullCut):
+        return str(cut)
 
     # Cut indices cannot be converted to labels for macro systems since macro
     # systems are cut at the micro label. Avoid this error by using micro

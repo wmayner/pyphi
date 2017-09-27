@@ -254,6 +254,29 @@ def test_apply_cut():
     assert np.array_equal(cut.apply_cut(cm), cut_cm)
 
 
+def test_cut_is_null():
+    cut = models.Cut((0,), (1, 2))
+    assert not cut.is_null
+
+
+def test_null_cut():
+    cut = models.NullCut((2, 3))
+    assert cut.indices == (2, 3)
+    assert cut.is_null
+    assert np.array_equal(cut.cut_matrix(4), np.zeros((4, 4)))
+
+
+def test_null_cut_str():
+    cut = models.NullCut((2, 3))
+    assert str(cut) == 'NullCut((2, 3))'
+
+
+def test_null_cut_equality():
+    cut = models.NullCut((2, 3))
+    other = models.NullCut((2, 3))
+    assert cut == other
+    assert hash(cut) == hash(other)
+
 # }}}
 
 

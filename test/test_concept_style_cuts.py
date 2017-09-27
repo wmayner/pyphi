@@ -95,12 +95,12 @@ def test_system_accessors(s):
                                                Part((1,), (2,))))
     cs_past = ConceptStyleSystem(s, Direction.PAST, cut_past)
     assert cs_past.cause_system.cut == cut_past
-    assert cs_past.effect_system.cut == s.null_cut
+    assert not cs_past.effect_system.is_cut
 
     cut_future = KCut(Direction.FUTURE, KPartition(Part((0, 2), (0, 1)),
                                                    Part((1,), (2,))))
     cs_future = ConceptStyleSystem(s, Direction.FUTURE, cut_future)
-    assert cs_future.cause_system.cut == s.null_cut
+    assert not cs_future.cause_system.is_cut
     assert cs_future.effect_system.cut == cut_future
 
 

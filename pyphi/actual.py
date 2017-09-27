@@ -18,7 +18,7 @@ import numpy as np
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
 from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
-                     DirectedAccount, Event, KPartition, Part, _null_ac_bigmip,
+                     DirectedAccount, Event, KPartition, NullCut, Part, _null_ac_bigmip,
                      _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions
 
@@ -84,11 +84,7 @@ class Transition:
         self.effect_indices = parse_nodes(effect_indices)
         self.node_indices = parse_nodes(cause_indices + effect_indices)
 
-        self.null_cut = ActualCut(
-            # TODO: should really be BIDIRECTIONAL
-            Direction.PAST,
-            KPartition(Part(self.effect_indices, self.cause_indices)))
-        self.cut = cut if cut is not None else self.null_cut
+        self.cut = cut if cut is not None else NullCut(self.node_indices)
 
         # Both are conditioned on the `before_state`, but we then change the
         # state of the cause context to `after_state` to reflect the fact that
@@ -579,7 +575,6 @@ def nexus(network, before_state, after_state,
 
     mips = (big_acmip(transition, direction) for transition in
             transitions(network, before_state, after_state))
-
     return tuple(sorted(filter(None, mips), reverse=True))
 
 

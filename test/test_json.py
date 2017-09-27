@@ -54,6 +54,8 @@ def test_json_deserialization(s, transition):
         models.KPartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
         models.Tripartition(models.Part((0,), ()), models.Part((1,), (2, 3)),
                             models.Part((3,), (4,))),
+        models.Cut((0,), (2,)),
+        models.NullCut((0, 1)),
         models.KCut(Direction.PAST, models.KPartition(models.Part((0,), ()),
                                                       models.Part((1,), (2, 3)))),
         s.concept((1, 2)),

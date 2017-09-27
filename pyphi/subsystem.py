@@ -16,7 +16,7 @@ from . import cache, config, distance, distribution, utils, validate
 from .constants import Direction
 from .distance import small_phi_measure as measure
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Bipartition, Concept, Cut, KPartition, Mice, Mip, Part,
+from .models import (Bipartition, Concept, NullCut, KPartition, Mice, Mip, Part,
                      Tripartition, _null_mip)
 from .network import irreducible_purviews
 from .node import generate_nodes
@@ -75,11 +75,8 @@ class Subsystem:
         self.tpm = condition_tpm(
             self.network.tpm, self.external_indices, self.state)
 
-        # The null cut (that leaves the system intact)
-        self.null_cut = Cut((), self.cut_indices)
-
         # The unidirectional cut applied for phi evaluation
-        self.cut = cut if cut is not None else self.null_cut
+        self.cut = cut if cut is not None else NullCut(self.node_indices)
 
         # The matrix of connections which are severed due to the cut
         # TODO: save/memoize on the cut so we just say self.cut.matrix()?
@@ -139,7 +136,7 @@ class Subsystem:
     @property
     def is_cut(self):
         '''bool: ``True`` if this Subsystem has a cut applied to it.'''
-        return self.cut != self.null_cut
+        return not self.cut.is_null
 
     @property
     def cut_indices(self):
@@ -197,7 +194,6 @@ class Subsystem:
                 and self.state == other.state
                 and self.network == other.network
                 and self.cut == other.cut)
-
 
     def __ne__(self, other):
         return not self.__eq__(other)
