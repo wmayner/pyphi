@@ -455,18 +455,15 @@ def _evaluate_cut(transition, cut, unpartitioned_account,
 # TODO: implement CUT_ONE approximation?
 def _get_cuts(transition, direction):
     '''A list of possible cuts to a transition.'''
+    n = transition.network.size
 
     if direction is Direction.BIDIRECTIONAL:
-        already = {}
+        yielded = set()
         for cut in chain(_get_cuts(transition, Direction.PAST),
                          _get_cuts(transition, Direction.FUTURE)):
-
-            cm = cut.cut_matrix(transition.network.size)
-            hsh = utils.np_hash(cm)
-
-            # TODO: handle hash collisions
-            if hsh not in already:
-                already[hsh] = cm
+            cm = utils.np_hashable(cut.cut_matrix(n))
+            if cm not in yielded:
+                yielded.add(cm)
                 yield(cut)
 
     else:
