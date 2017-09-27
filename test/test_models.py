@@ -538,6 +538,12 @@ def test_constellation_repr():
     assert repr(c) == "Constellation()"
 
 
+def test_constellation_repr_str():
+    c = models.Constellation([concept()])
+    repr(c)
+    str(c)
+
+
 def test_normalize_constellation():
     c1 = models.Concept(mechanism=(1,))
     c2 = models.Concept(mechanism=(2,))
