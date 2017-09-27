@@ -230,6 +230,13 @@ class Transition:
             Direction.FUTURE: self.cause_indices
         }[direction]
 
+    def purview_indices(self, direction):
+        '''The indices of nodes in the purview system.'''
+        return {
+            Direction.PAST: self.cause_indices,
+            Direction.FUTURE: self.effect_indices
+        }[direction]
+
     def _ratio(self, direction, mechanism, purview):
         return log2(self.probability(direction, mechanism, purview) /
                     self.unconstrained_probability(direction, purview))
@@ -455,28 +462,22 @@ def _get_cuts(transition, direction):
 
     if direction is Direction.BIDIRECTIONAL:
         already = {}
-        for p in chain(_get_cuts(transition, Direction.PAST),
-                       _get_cuts(transition, Direction.FUTURE)):
+        for cut in chain(_get_cuts(transition, Direction.PAST),
+                         _get_cuts(transition, Direction.FUTURE)):
 
-            cm = p.cut_matrix(transition.network.size)
+            cm = cut.cut_matrix(transition.network.size)
             hsh = utils.np_hash(cm)
 
             # TODO: handle hash collisions
             if hsh not in already:
                 already[hsh] = cm
-                yield(p)
+                yield(cut)
 
-    elif direction is Direction.FUTURE:
-        mechanism = transition.cause_indices
-        purview = transition.effect_indices
-        for p in mip_partitions(mechanism, purview):
-            yield ActualCut(Direction.FUTURE, p)
-
-    elif direction is Direction.PAST:
-        mechanism = transition.effect_indices
-        purview = transition.cause_indices
-        for p in mip_partitions(mechanism, purview):
-            yield ActualCut(Direction.PAST, p)
+    else:
+        mechanism = transition.mechanism_indices(direction)
+        purview = transition.purview_indices(direction)
+        for partition in mip_partitions(mechanism, purview):
+            yield ActualCut(direction, partition)
 
 
 def big_acmip(transition, direction=Direction.BIDIRECTIONAL):

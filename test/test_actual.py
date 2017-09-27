@@ -75,6 +75,11 @@ def test_mechanism_indices(transition):
     assert transition.mechanism_indices(Direction.FUTURE) == (1, 2)
 
 
+def test_purview_indices(transition):
+    assert transition.purview_indices(Direction.PAST) == (1, 2)
+    assert transition.purview_indices(Direction.FUTURE) == (0,)
+
+
 def test_system_dict(transition):
     assert transition.system[Direction.PAST] == transition.cause_system
     assert transition.system[Direction.FUTURE] == transition.effect_system
