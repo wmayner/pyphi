@@ -16,8 +16,8 @@ from . import cache, config, distance, distribution, utils, validate
 from .constants import Direction
 from .distance import small_phi_measure as measure
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Bipartition, Concept, NullCut, KPartition, Mice, Mip, Part,
-                     Tripartition, _null_mip)
+from .models import (Bipartition, Concept, KPartition, Mice, Mip, NullCut,
+                     Part, Tripartition, _null_mip)
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,

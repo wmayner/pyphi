@@ -18,8 +18,8 @@ import numpy as np
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
 from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
-                     DirectedAccount, Event, KPartition, NullCut, Part, _null_ac_bigmip,
-                     _null_ac_mip, fmt)
+                     DirectedAccount, Event, KPartition, NullCut, Part,
+                     _null_ac_bigmip, _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
