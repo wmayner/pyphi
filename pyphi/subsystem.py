@@ -98,14 +98,14 @@ class Subsystem:
         '''tuple[Node]: The nodes in this |Subsystem|.'''
         return self._nodes
 
-    # pylint: disable=attribute-defined-outside-init
     @nodes.setter
     def nodes(self, value):
-        # Remap indices to nodes whenever nodes are changed, e.g. in the
-        # `macro` module
+        '''Remap indices to nodes whenever nodes are changed, e.g. in the
+        `macro` module.
+        '''
+        # pylint: disable=attribute-defined-outside-init
         self._nodes = value
         self._index2node = {node.index: node for node in self._nodes}
-    # pylint: enable=attribute-defined-outside-init
 
     @property
     def proper_state(self):
@@ -831,9 +831,9 @@ def wedge_partitions(mechanism, purview):
 
     yielded = set()
 
-    # pylint: disable=too-many-boolean-expressions
     def valid(factoring):
         '''Return whether the factoring should be considered.'''
+        # pylint: disable=too-many-boolean-expressions
         numerator, denominator = factoring
         return (
             (numerator[0] or denominator[0]) and
@@ -842,7 +842,6 @@ def wedge_partitions(mechanism, purview):
              not denominator[0] or
              not denominator[1])
         )
-    # pylint: enable=too-many-boolean-expressions
 
     for n, d in filter(valid, itertools.product(numerators, denominators)):
         # Normalize order of parts to remove duplicates.
