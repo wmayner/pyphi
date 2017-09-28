@@ -11,7 +11,7 @@ from functools import reduce
 import numpy as np
 
 from . import cmp, fmt
-from .. import Direction, config, connectivity, utils
+from .. import config, connectivity, utils
 
 
 class _CutBase:
@@ -189,14 +189,7 @@ class KCut(_CutBase):
         cm = np.zeros((n, n))
 
         for part in self.partition:
-            if self.direction is Direction.PAST:
-                from_ = part.purview
-                to = part.mechanism
-
-            elif self.direction is Direction.FUTURE:
-                from_ = part.mechanism
-                to = part.purview
-
+            from_, to = self.direction.order(part.mechanism, part.purview)
             # All indices external to this part
             external = tuple(set(self.indices) - set(to))
             cm[np.ix_(from_, external)] = 1
@@ -335,8 +328,8 @@ class Bipartition(KPartition):
         return {'part0': self[0], 'part1': self[1]}
 
     @classmethod
-    def from_json(cls, json):
-        return cls(json['part0'], json['part1'])
+    def from_json(cls, dct):
+        return cls(dct['part0'], dct['part1'])
 
 
 class Tripartition(KPartition):

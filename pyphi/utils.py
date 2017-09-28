@@ -61,6 +61,22 @@ def np_hash(a):
     return int(hashlib.sha1(a.view(a.dtype)).hexdigest(), 16)
 
 
+class np_hashable:
+    '''A hashable wrapper around a NumPy array.'''
+    # pylint: disable=protected-access,too-few-public-methods
+    def __init__(self, array):
+        self._array = np_immutable(array.copy())
+
+    def __hash__(self):
+        return np_hash(self._array)
+
+    def __eq__(self, other):
+        return np.array_equal(self._array, other._array)
+
+    def __repr__(self):
+        return repr(self._array)
+
+
 def eq(x, y):
     '''Compare two values up to |PRECISION|.'''
     return abs(x - y) <= constants.EPSILON

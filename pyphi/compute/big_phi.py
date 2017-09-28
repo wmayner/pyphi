@@ -62,9 +62,10 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
         cut_subsystem=cut_subsystem)
 
 
-# pylint: disable=unused-argument,arguments-differ
 class FindMip(MapReduce):
     '''Computation engine for finding the minimal |BigMip|.'''
+    # pylint: disable=unused-argument,arguments-differ
+
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
 
     def empty_result(self, subsystem, unpartitioned_constellation):
@@ -87,7 +88,6 @@ class FindMip(MapReduce):
             return new_mip
 
         return min_mip
-# pylint: enable=unused-argument,arguments-differ
 
 
 def big_mip_bipartitions(nodes):
@@ -286,9 +286,10 @@ def possible_complexes(network, state):
             continue
 
 
-# pylint: disable=unused-argument,arguments-differ,redefined-outer-name
 class FindComplexes(MapReduce):
     '''Computation engine for computing irreducible complexes of a network.'''
+    # pylint: disable=unused-argument,arguments-differ
+
     description = 'Finding complexes'
 
     def empty_result(self):
@@ -298,11 +299,10 @@ class FindComplexes(MapReduce):
     def compute(subsystem):
         return big_mip(subsystem)
 
-    def process_result(self, new_big_mip, complexes):
+    def process_result(self, new_big_mip, big_mips):
         if new_big_mip.phi > 0:
-            complexes.append(new_big_mip)
-        return complexes
-# pylint: enable=unused-argument,arguments-differ,redefined-outer-name
+            big_mips.append(new_big_mip)
+        return big_mips
 
 
 def complexes(network, state):
@@ -430,7 +430,10 @@ class BigMipConceptStyle(cmp.Orderable):
 
     def __getattr__(self, name):
         '''Pass attribute access through to the minimal mip.'''
-        return getattr(self.min_mip, name)
+        if ('big_mip_past' in self.__dict__ and
+                'big_mip_future' in self.__dict__):
+            return getattr(self.min_mip, name)
+        raise AttributeError(name)
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, ['phi'])

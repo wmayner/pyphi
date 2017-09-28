@@ -12,12 +12,11 @@ import itertools
 
 import numpy as np
 
-from . import cache, config, distance, distribution, utils, validate
-from .constants import Direction
+from . import Direction, cache, config, distribution, utils, validate
 from .distance import small_phi_measure as measure
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Bipartition, Concept, NullCut, KPartition, Mice, Mip, Part,
-                     Tripartition, _null_mip)
+from .models import (Bipartition, Concept, KPartition, Mice, Mip, NullCut,
+                     Part, Tripartition, _null_mip)
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,
@@ -47,8 +46,6 @@ class Subsystem:
         state (tuple[int]): The state of the network.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
         cut (Cut): The cut that has been applied to this subsystem.
-        cut_matrix (np.ndarray): A matrix of connections which have been
-            severed by the cut.
         null_cut (Cut): The cut object representing no cut.
     '''
 
@@ -79,10 +76,6 @@ class Subsystem:
         # The unidirectional cut applied for phi evaluation
         self.cut = cut if cut is not None else NullCut(self.node_indices)
 
-        # The matrix of connections which are severed due to the cut
-        # TODO: save/memoize on the cut so we just say self.cut.matrix()?
-        self.cut_matrix = self.cut.cut_matrix(self.network.size)
-
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
 
@@ -106,14 +99,14 @@ class Subsystem:
         '''tuple[Node]: The nodes in this |Subsystem|.'''
         return self._nodes
 
-    # pylint: disable=attribute-defined-outside-init
     @nodes.setter
     def nodes(self, value):
-        # Remap indices to nodes whenever nodes are changed, e.g. in the
-        # `macro` module
+        '''Remap indices to nodes whenever nodes are changed, e.g. in the
+        `macro` module.
+        '''
+        # pylint: disable=attribute-defined-outside-init
         self._nodes = value
         self._index2node = {node.index: node for node in self._nodes}
-    # pylint: enable=attribute-defined-outside-init
 
     @property
     def proper_state(self):
@@ -842,9 +835,9 @@ def wedge_partitions(mechanism, purview):
 
     yielded = set()
 
-    # pylint: disable=too-many-boolean-expressions
     def valid(factoring):
         '''Return whether the factoring should be considered.'''
+        # pylint: disable=too-many-boolean-expressions
         numerator, denominator = factoring
         return (
             (numerator[0] or denominator[0]) and
@@ -853,7 +846,6 @@ def wedge_partitions(mechanism, purview):
              not denominator[0] or
              not denominator[1])
         )
-    # pylint: enable=too-many-boolean-expressions
 
     for n, d in filter(valid, itertools.product(numerators, denominators)):
         # Normalize order of parts to remove duplicates.

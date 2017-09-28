@@ -7,29 +7,11 @@ Package-wide constants.
 '''
 
 import pickle
-from enum import Enum
 
 import joblib
 
-from . import config
-
-
-class Direction(Enum):
-    '''Constants that parametrize cause and effect methods.
-
-    Accessed using ``Direction.PAST`` and ``Direction.FUTURE``, etc.
-    '''
-    PAST = 0
-    FUTURE = 1
-    BIDIRECTIONAL = 2
-
-    def to_json(self):
-        return {'direction': self.value}
-
-    @classmethod
-    def from_json(cls, dct):
-        return cls(dct['direction'])
-
+# Import Direction for backwards compatibility
+from . import config, Direction
 
 #: The threshold below which we consider differences in phi values to be zero.
 EPSILON = 10 ** - config.PRECISION

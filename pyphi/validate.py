@@ -8,8 +8,8 @@ Methods for validating arguments.
 
 import numpy as np
 
-from . import config, convert, exceptions
-from .constants import EPSILON, Direction
+from . import Direction, config, convert, exceptions
+from .constants import EPSILON
 from .tpm import is_state_by_state
 
 # pylint: disable=redefined-outer-name

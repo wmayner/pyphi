@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 
 from pyphi.compute import big_mip
-from pyphi.constants import EPSILON, Direction
+from pyphi.constants import EPSILON
+from pyphi import Direction
 
 CD = (2, 3)
 BCD = (1, 2, 3)

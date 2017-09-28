@@ -7,7 +7,9 @@
 import numpy as np
 
 from . import cmp, fmt
-from .. import Direction, config, connectivity, distribution, utils, validate
+from .. import config, connectivity, distribution, utils
+
+# pylint: disable=too-many-arguments,too-many-instance-attributes
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']
@@ -251,13 +253,7 @@ class Mice(cmp.Orderable):
         Raises:
             ValueError: If ``direction`` is invalid.
         '''
-        if self.direction == Direction.PAST:
-            _from, to = self.purview, self.mechanism
-        elif self.direction == Direction.FUTURE:
-            _from, to = self.mechanism, self.purview
-        else:
-            validate.direction(self.direction)
-
+        _from, to = self.direction.order(self.mechanism, self.purview)
         return connectivity.relevant_connections(subsystem.network.size,
                                                  _from, to)
 
@@ -271,7 +267,7 @@ class Mice(cmp.Orderable):
         '''
         return (subsystem.cut.splits_mechanism(self.mechanism) or
                 np.any(self._relevant_connections(subsystem) *
-                       subsystem.cut_matrix == 1))
+                       subsystem.cut.cut_matrix(subsystem.network.size) == 1))
 
 
 # =============================================================================

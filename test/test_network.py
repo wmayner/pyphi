@@ -82,6 +82,10 @@ def test_parse_node_indices(standard):
         network.parse_node_indices((0, 'A'))
 
 
+def test_num_states(standard):
+    assert standard.num_states == 8
+
+
 def test_repr(standard):
     print(repr(standard))
 

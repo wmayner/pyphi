@@ -55,9 +55,10 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
     return result
 
 
-# pylint: disable=unused-argument,arguments-differ
 class ComputeConstellation(parallel.MapReduce):
     '''Engine for computing a constellation.'''
+    # pylint: disable=unused-argument,arguments-differ
+
     description = 'Computing concepts'
 
     def empty_result(self, *args):
@@ -77,7 +78,6 @@ class ComputeConstellation(parallel.MapReduce):
         if new_concept.phi > 0:
             concepts.append(new_concept)
         return concepts
-# pylint: enable=unused-argument,arguments-differ
 
 
 def constellation(subsystem, mechanisms=False, purviews=False,

@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 import pytest
 
@@ -128,6 +130,12 @@ def test_big_mip_concept_style(s):
         assert getattr(mip, attr) is getattr(mip.big_mip_future, attr)
 
 
-@config.override(SYSTEM_CUTS='CONCEPT_STYLE', PARALLEL_CUT_EVALUATION=True)
-def test_unpickling_in_parallel_computations(s, flushcache, restore_fs_cache):
+@config.override(SYSTEM_CUTS='CONCEPT_STYLE')
+def test_unpickle(s, flushcache, restore_fs_cache):
+    bm = compute.big_mip(s)
+    pickle.loads(pickle.dumps(bm))
+
+
+@config.override(SYSTEM_CUTS='CONCEPT_STYLE')
+def test_concept_style_phi(s, flushcache, restore_fs_cache):
     assert compute.big_phi(s) == 0.6875

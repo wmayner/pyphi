@@ -8,7 +8,7 @@ Functions for computing distances between various PyPhi objects.
 
 import numpy as np
 
-from .. import config, utils, validate
+from .. import config, utils
 from ..distance import big_phi_measure as measure
 from ..distance import emd
 

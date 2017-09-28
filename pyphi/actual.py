@@ -18,8 +18,8 @@ import numpy as np
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
 from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
-                     DirectedAccount, Event, KPartition, NullCut, Part, _null_ac_bigmip,
-                     _null_ac_mip, fmt)
+                     DirectedAccount, Event, NullCut,
+                     _null_ac_bigmip, _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
@@ -455,19 +455,16 @@ def _evaluate_cut(transition, cut, unpartitioned_account,
 # TODO: implement CUT_ONE approximation?
 def _get_cuts(transition, direction):
     '''A list of possible cuts to a transition.'''
+    n = transition.network.size
 
     if direction is Direction.BIDIRECTIONAL:
-        already = {}
+        yielded = set()
         for cut in chain(_get_cuts(transition, Direction.PAST),
                          _get_cuts(transition, Direction.FUTURE)):
-
-            cm = cut.cut_matrix(transition.network.size)
-            hsh = utils.np_hash(cm)
-
-            # TODO: handle hash collisions
-            if hsh not in already:
-                already[hsh] = cm
-                yield(cut)
+            cm = utils.np_hashable(cut.cut_matrix(n))
+            if cm not in yielded:
+                yielded.add(cm)
+                yield cut
 
     else:
         mechanism = transition.mechanism_indices(direction)
@@ -517,9 +514,9 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
     return result
 
 
-# pylint: disable=unused-argument,arguments-differ
 class FindBigAcMip(compute.parallel.MapReduce):
     """Computation engine for AC BigMips."""
+    # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating AC cuts'
 
@@ -540,7 +537,6 @@ class FindBigAcMip(compute.parallel.MapReduce):
             return new_mip
 
         return min_mip
-# pylint: enable=unused-argument,arguments-differ
 
 
 # ============================================================================

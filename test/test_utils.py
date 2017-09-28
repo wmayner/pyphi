@@ -65,3 +65,23 @@ def test_comb_indices():
 def test_powerset():
     a = np.arange(2)
     assert list(utils.powerset(a)) == [(), (0,), (1,), (0, 1)]
+
+
+def test_np_hashable():
+    a = np.ones((2, 2))
+    a_hashable = utils.np_hashable(a)
+    s = set([a_hashable])
+    assert a_hashable in s
+    s.add(a_hashable)
+    assert len(s) == 1
+
+    b = np.zeros((2, 2))
+    b_hashable = utils.np_hashable(b)
+    assert b_hashable not in s
+    s.add(b_hashable)
+    assert len(s) == 2
+
+    c = np.zeros((2, 2))
+    c_hashable = utils.np_hashable(c)
+    assert c_hashable == b_hashable
+    assert c_hashable in s
