@@ -7,44 +7,11 @@ Package-wide constants.
 '''
 
 import pickle
-from enum import Enum
 
 import joblib
 
-from . import config
-
-
-class Direction(Enum):
-    '''Constants that parametrize cause and effect methods.
-
-    Accessed using ``Direction.PAST`` and ``Direction.FUTURE``, etc.
-    '''
-    PAST = 0
-    FUTURE = 1
-    BIDIRECTIONAL = 2
-
-    def to_json(self):
-        return {'direction': self.value}
-
-    @classmethod
-    def from_json(cls, dct):
-        return cls(dct['direction'])
-
-    def order(self, mechanism, purview):
-        '''Order the mechanism and purview in time.
-
-        If the direction is ``PAST``, then the ``purview`` is at |t-1| and the
-        ``mechanism`` is at time |t|. If the direction is ``FUTURE``, then
-        the ``mechanism`` is at time |t| and the purview is at |t+1|.
-        '''
-        if self is self.PAST:
-            return purview, mechanism
-        elif self is self.FUTURE:
-            return mechanism, purview
-
-        from . import validate
-        validate.direction(self)
-
+# Import Direction for backwards compatibility
+from . import config, Direction
 
 #: The threshold below which we consider differences in phi values to be zero.
 EPSILON = 10 ** - config.PRECISION

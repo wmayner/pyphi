@@ -149,6 +149,7 @@ r"""
 .. |small_phi = 1/10| replace:: :math:`\varphi = \frac{1}{10}`
 .. |t| replace:: :math:`t`
 .. |t-1| replace:: :math:`t-1`
+.. |t+1| replace:: :math:`t+1`
 .. |1,0,0| replace:: :math:`\{1,0,0\}`
 .. |0,1,0| replace:: :math:`\{0,1,0\}`
 .. |0,0,1| replace:: :math:`\{0,0,1\}`
@@ -184,8 +185,8 @@ r"""
 """,
 # Constants
 r"""
-.. |PAST| replace:: :const:`~pyphi.constants.Direction.PAST`
-.. |FUTURE| replace:: :const:`~pyphi.constants.Direction.FUTURE`
+.. |PAST| replace:: :const:`~pyphi.direction.Direction.PAST`
+.. |FUTURE| replace:: :const:`~pyphi.direction.Direction.FUTURE`
 .. |EPSILON| replace:: :const:`~pyphi.constants.EPSILON`
 .. |PICK_SMALLEST_PURVIEW| replace:: :const:`~pyphi.config.PICK_SMALLEST_PURVIEW`
 .. |PARTITION_TYPE| replace:: :const:`~pyphi.config.PARTITION_TYPE`

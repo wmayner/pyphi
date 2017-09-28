@@ -3,9 +3,8 @@
 # test/test_utils.py
 
 import numpy as np
-import pytest
 
-from pyphi import constants, Direction, utils
+from pyphi import constants, utils
 
 
 def test_all_states():
@@ -66,16 +65,6 @@ def test_comb_indices():
 def test_powerset():
     a = np.arange(2)
     assert list(utils.powerset(a)) == [(), (0,), (1,), (0, 1)]
-
-
-def test_direction_order():
-    mechanism = (0,)
-    purview = (1, 2)
-    assert Direction.PAST.order(mechanism, purview) == (purview, mechanism)
-    assert Direction.FUTURE.order(mechanism, purview) == (mechanism, purview)
-
-    with pytest.raises(ValueError):
-        Direction.BIDIRECTIONAL.order(mechanism, purview)
 
 
 def test_np_hashable():
