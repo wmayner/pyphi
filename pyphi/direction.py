@@ -32,9 +32,9 @@ class Direction(Enum):
         ``mechanism`` is at time |t|. If the direction is ``FUTURE``, then
         the ``mechanism`` is at time |t| and the purview is at |t+1|.
         '''
-        if self is self.PAST:
+        if self is Direction.PAST:
             return purview, mechanism
-        elif self is self.FUTURE:
+        elif self is Direction.FUTURE:
             return mechanism, purview
 
         from . import validate
