@@ -430,7 +430,10 @@ class BigMipConceptStyle(cmp.Orderable):
 
     def __getattr__(self, name):
         '''Pass attribute access through to the minimal mip.'''
-        return getattr(self.min_mip, name)
+        if ('big_mip_past' in self.__dict__ and
+                'big_mip_future' in self.__dict__):
+            return getattr(self.min_mip, name)
+        raise AttributeError(name)
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, ['phi'])
