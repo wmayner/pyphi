@@ -18,7 +18,7 @@ import numpy as np
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
 from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
-                     DirectedAccount, Event, KPartition, NullCut, Part,
+                     DirectedAccount, Event, NullCut,
                      _null_ac_bigmip, _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions
 
@@ -464,7 +464,7 @@ def _get_cuts(transition, direction):
             cm = utils.np_hashable(cut.cut_matrix(n))
             if cm not in yielded:
                 yielded.add(cm)
-                yield(cut)
+                yield cut
 
     else:
         mechanism = transition.mechanism_indices(direction)
@@ -514,9 +514,9 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
     return result
 
 
-# pylint: disable=unused-argument,arguments-differ
 class FindBigAcMip(compute.parallel.MapReduce):
     """Computation engine for AC BigMips."""
+    # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating AC cuts'
 
@@ -537,7 +537,6 @@ class FindBigAcMip(compute.parallel.MapReduce):
             return new_mip
 
         return min_mip
-# pylint: enable=unused-argument,arguments-differ
 
 
 # ============================================================================

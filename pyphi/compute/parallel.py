@@ -185,7 +185,7 @@ class MapReduce:
         # Don't print `BrokenPipeError` when workers are terminated and
         # break the queue.
         # TODO: this is a private implementation detail
-        self.in_queue._ignore_epipe = True
+        self.in_queue._ignore_epipe = True  # pylint: disable=protected-access
 
         self.out_queue = multiprocessing.Queue()
         self.log_queue = multiprocessing.Queue()

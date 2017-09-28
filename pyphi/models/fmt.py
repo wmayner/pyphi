@@ -103,7 +103,7 @@ def indent(lines, amount=2, char=' '):
     return padding + ('\n' + padding).join(lines.split('\n'))
 
 
-def margin(text, amount=2):
+def margin(text):
     '''Add a margin to both ends of each line in the string.
 
     Example:
@@ -391,7 +391,7 @@ def fmt_cut(cut, subsystem=None):
         from_nodes=from_nodes, symbol=CUT_SYMBOL, to_nodes=to_nodes)
 
 
-def fmt_kcut(cut, subsystem=None):
+def fmt_kcut(cut):
     '''Format a |KCut|.'''
     return 'KCut {}\n{}'.format(cut.direction, cut.partition)
 
@@ -419,7 +419,7 @@ def fmt_big_mip(big_mip, constellations=True):
     cut = fmt_cut(big_mip.cut, big_mip.subsystem)
 
     body = header(str(big_mip.subsystem), body, center=center_header)
-    body = header(fmt_cut(big_mip.cut), body, center=center_header)
+    body = header(cut, body, center=center_header)
     return box(header(title, body, center=center_header))
 
 

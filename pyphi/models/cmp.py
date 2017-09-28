@@ -46,6 +46,7 @@ class Orderable:
     example: it doesn't make sense to compare ``Concepts`` unless they are
     from the same ``Subsystem`` or compare ``Mips`` with different directions.
     '''
+    # pylint: disable=too-few-public-methods
 
     # The object is not orderable unless these attributes are all equal
     unorderable_unless_eq = []

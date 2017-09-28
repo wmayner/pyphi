@@ -39,7 +39,7 @@ class MeasureRegistry(Mapping):
         self._asymmetric = []
 
     def register(self, name, asymmetric=False):
-        '''Register a measure with PyPhi.
+        '''Decorator for registering a measure with PyPhi.
 
         Args:
             name (string): The name of the measure.
@@ -55,9 +55,11 @@ class MeasureRegistry(Mapping):
         return register_func
 
     def asymmetric(self):
+        '''Return a list of asymmetric measures.'''
         return self._asymmetric
 
     def all(self):
+        '''Return a list of all registered measures.'''
         return list(self)
 
     def __iter__(self):
@@ -86,7 +88,8 @@ class np_suppress(np.errstate, ContextDecorator):
         This should only be used in cases where you are *sure* that these
         warnings are not indicative of deeper issues in your code.
     '''
-    def __init__(self, *args):
+    # pylint: disable=too-few-public-methods
+    def __init__(self):
         super().__init__(divide='ignore', invalid='ignore')
 
 

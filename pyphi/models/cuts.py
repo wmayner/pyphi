@@ -307,8 +307,8 @@ class Bipartition(KPartition):
         return {'part0': self[0], 'part1': self[1]}
 
     @classmethod
-    def from_json(cls, json):
-        return cls(json['part0'], json['part1'])
+    def from_json(cls, dct):
+        return cls(dct['part0'], dct['part1'])
 
 
 class Tripartition(KPartition):

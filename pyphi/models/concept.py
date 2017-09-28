@@ -7,7 +7,9 @@
 import numpy as np
 
 from . import cmp, fmt
-from .. import config, connectivity, distribution, utils, validate
+from .. import config, connectivity, distribution, utils
+
+# pylint: disable=too-many-arguments,too-many-instance-attributes
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'unpartitioned_repertoire', 'partitioned_repertoire']

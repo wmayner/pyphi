@@ -12,7 +12,7 @@ import itertools
 
 import numpy as np
 
-from . import Direction, cache, config, distance, distribution, utils, validate
+from . import Direction, cache, config, distribution, utils, validate
 from .distance import small_phi_measure as measure
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, KPartition, Mice, Mip, NullCut,
