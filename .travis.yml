@@ -24,7 +24,8 @@ before_install:
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda3/bin:$PATH
   # Update conda itself
-  - conda update --yes conda
+  # Temporary workaround for conda/conda#6030
+  # - conda update --yes conda
 
 # Install packages
 install:
