@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # test_config.py
 
+import logging
 import os
 
 from pyphi import config
@@ -61,3 +62,17 @@ def test_load_config_file():
     config.load_config_file(EXAMPLE_CONFIG_FILE)
     assert config.PRECISION == 100
     assert config.SOME_OTHER_CONFIG == 'loaded'
+
+
+def test_log_through_progress_handler(capsys):
+    log = logging.getLogger('pyphi.config')
+    with config.override(LOG_STDOUT_LEVEL='INFO'):
+        config.configure_logging()
+        log.warning('Just a warning, folks.')
+
+    out, err = capsys.readouterr()
+    assert 'Just a warning, folks.' in err
+
+    # Reset logging
+    # TODO: handle automatically
+    config.configure_logging()
