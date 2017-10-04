@@ -408,6 +408,7 @@ import logging.config
 import os
 import pprint
 import sys
+from copy import copy
 
 import yaml
 
@@ -536,105 +537,24 @@ def print_config():
     print('Current PyPhi configuration:\n', get_config_string())
 
 
-# TODO: call this in `config.override`?
-def configure_logging():
-    '''Reconfigure PyPhi logging based on the current configuration.'''
-    logging.config.dictConfig({
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'standard': {
-                'format': '%(asctime)s [%(name)s] %(levelname)s '
-                          '%(processName)s: %(message)s'
-            }
-        },
-        'handlers': {
-            'file': {
-                'level': this_module.LOG_FILE_LEVEL,
-                'filename': this_module.LOG_FILE,
-                'class': 'logging.FileHandler',
-                'formatter': 'standard',
-            },
-            'stdout': {
-                'level': this_module.LOG_STDOUT_LEVEL,
-                'class': 'pyphi.log.ProgressBarHandler',
-                'formatter': 'standard',
-            }
-        },
-        'root': {
-            'level': 'DEBUG',
-            'handlers': (['file'] if this_module.LOG_FILE_LEVEL else []) +
-                        (['stdout'] if this_module.LOG_STDOUT_LEVEL else [])
-        }
-    })
 
 
-class override(contextlib.ContextDecorator):
-    '''Decorator and context manager to override configuration values.
+class _override(contextlib.ContextDecorator):
+    '''See ``Config.override`` for usage.'''
 
-    The initial configuration values are reset after the decorated function
-    returns or the context manager completes it block, even if the function or
-    block raises an exception. This is intended to be used by tests which
-    require specific configuration values.
-
-    Example:
-        >>> from pyphi import config
-        >>> @config.override(PRECISION=20000)
-        ... def test_something():
-        ...     assert config.PRECISION == 20000
-        ...
-        >>> test_something()
-        >>> with config.override(PRECISION=100):
-        ...     assert config.PRECISION == 100
-        ...
-    '''
-    def __init__(self, **new_conf):
+    def __init__(self, config, **new_conf):
+        self.config = config
         self.new_conf = new_conf
-        self.initial_conf = {opt_name: this_module.__dict__[opt_name]
-                             for opt_name in self.new_conf}
+        self.initial_conf = config.snapshot()
 
     def __enter__(self):
         '''Save original config values; override with new ones.'''
-        load_config_dict(self.new_conf)
+        self.config.load_config_dict(self.new_conf)
 
     def __exit__(self, *exc):
         '''Reset config to initial values; reraise any exceptions.'''
-        load_config_dict(self.initial_conf)
+        self.config.load_config_dict(self.initial_conf)
         return False
-
-
-PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
-
-
-def initialize():
-    '''Initialize PyPhi config.'''
-    # Load the default config
-    load_config_default()
-
-    # Then try and load the config file
-    file_loaded = False
-    if os.path.exists(PYPHI_CONFIG_FILENAME):
-        load_config_file(PYPHI_CONFIG_FILENAME)
-        file_loaded = True
-
-    # Setup logging
-    configure_logging()
-
-    # Log the PyPhi version and loaded configuration
-    if this_module.LOG_CONFIG_ON_IMPORT:
-        log = logging.getLogger(__name__)
-
-        log.info('PyPhi v%s', __about__.__version__)
-        if file_loaded:
-            log.info('Loaded configuration from '
-                     '`./%s`', PYPHI_CONFIG_FILENAME)
-        else:
-            log.info('Using default configuration (no config file provided)')
-
-        log.info('Current PyPhi configuration:\n %s', get_config_string())
-
-
-initialize()
 
 
 class Config:
@@ -643,6 +563,8 @@ class Config:
         self._values = {}
 
     def __getattr__(self, name):
+        if name.startswith('_'):
+            return super().__getattr__(name)
         return self._values[name]
 
     def __setattr__(self, name, value):
@@ -658,3 +580,99 @@ class Config:
         '''Load config from a YAML file.'''
         with open(filename) as f:
             self._values.update(yaml.load(f))
+
+    def snapshot(self):
+        return copy(self._values)
+
+    def get_config_string(self):
+        pass
+
+    def override(self, **new_config):
+        '''Decorator and context manager to override configuration values.
+
+        The initial configuration values are reset after the decorated function
+        returns or the context manager completes it block, even if the function
+        or block raises an exception. This is intended to be used by tests
+        which require specific configuration values.
+
+        Example:
+            >>> from pyphi import config
+            >>> @config.override(PRECISION=20000)
+            ... def test_something():
+            ...     assert config.PRECISION == 20000
+            ...
+            >>> test_something()
+            >>> with config.override(PRECISION=100):
+            ...     assert config.PRECISION == 100
+            ...
+        '''
+        return _override(self, **new_config)
+
+    # TODO: call this in `config.override`?
+    def configure_logging(self):
+        '''Reconfigure PyPhi logging based on the current configuration.'''
+        logging.config.dictConfig({
+            'version': 1,
+            'disable_existing_loggers': False,
+            'formatters': {
+                'standard': {
+                    'format': '%(asctime)s [%(name)s] %(levelname)s '
+                              '%(processName)s: %(message)s'
+                }
+            },
+            'handlers': {
+                'file': {
+                    'level': self.LOG_FILE_LEVEL,
+                    'filename': self.LOG_FILE,
+                    'class': 'logging.FileHandler',
+                    'formatter': 'standard',
+                },
+                'stdout': {
+                    'level': self.LOG_STDOUT_LEVEL,
+                    'class': 'pyphi.log.ProgressBarHandler',
+                    'formatter': 'standard',
+                }
+            },
+            'root': {
+                'level': 'DEBUG',
+                'handlers': (['file'] if self.LOG_FILE_LEVEL else []) +
+                            (['stdout'] if self.LOG_STDOUT_LEVEL else [])
+            }
+        })
+
+
+
+PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
+
+config = Config()
+
+
+def initialize():
+    '''Initialize PyPhi config.'''
+    # Load the default config
+    config.load_config_dict(DEFAULTS)
+
+    # Then try and load the config file
+    file_loaded = False
+    if os.path.exists(PYPHI_CONFIG_FILENAME):
+        config.load_config_file(PYPHI_CONFIG_FILENAME)
+        file_loaded = True
+
+    # Setup logging
+    config.configure_logging()
+
+    # Log the PyPhi version and loaded configuration
+    if config.LOG_CONFIG_ON_IMPORT:
+        log = logging.getLogger(__name__)
+
+        log.info('PyPhi v%s', __about__.__version__)
+        if file_loaded:
+            log.info('Loaded configuration from '
+                     '`./%s`', PYPHI_CONFIG_FILENAME)
+        else:
+            log.info('Using default configuration (no config file provided)')
+
+        log.info('Current PyPhi configuration:\n %s', config.get_config_string())
+
+
+initialize()

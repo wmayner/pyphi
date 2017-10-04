@@ -66,6 +66,15 @@ def test_load_config_dict():
     assert c.KEY == 'VALUE'
 
 
+def test_snapshot():
+    c = Config()
+    c.KEY = 'VALUE'
+    snapshot = c.snapshot()
+    assert snapshot == {'KEY': 'VALUE'}
+    c.KEY = 'ANOTHER'
+    assert snapshot == {'KEY': 'VALUE'}
+
+
 EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    'example_config.yml')
 
