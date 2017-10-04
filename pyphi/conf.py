@@ -501,56 +501,6 @@ DEFAULTS = {
     'SYSTEM_CUTS': '3.0_STYLE',
 }
 
-# Get a reference to this module's dictionary so we can set the configuration
-# directly in the `pyphi.config` namespace
-this_module = sys.modules[__name__]
-
-
-def load_config_dict(config):
-    '''Load configuration values.
-
-    Args:
-        config (dict): The dict of config to load.
-    '''
-    this_module.__dict__.update(config)
-
-
-def load_config_file(filename):
-    '''Load config from a YAML file.'''
-    with open(filename) as f:
-        load_config_dict(yaml.load(f))
-
-
-def load_config_default():
-    '''Load default config values.'''
-    load_config_dict(DEFAULTS)
-
-
-
-def print_config():
-    '''Print the current configuration.'''
-    print('Current PyPhi configuration:\n', get_config_string())
-
-
-
-
-class _override(contextlib.ContextDecorator):
-    '''See ``Config.override`` for usage.'''
-
-    def __init__(self, config, **new_conf):
-        self.config = config
-        self.new_conf = new_conf
-        self.initial_conf = config.snapshot()
-
-    def __enter__(self):
-        '''Save original config values; override with new ones.'''
-        self.config.load_config_dict(self.new_conf)
-
-    def __exit__(self, *exc):
-        '''Reset config to initial values; reraise any exceptions.'''
-        self.config.load_config_dict(self.initial_conf)
-        return False
-
 
 class Config:
 
@@ -635,6 +585,28 @@ class Config:
             }
         })
 
+
+class _override(contextlib.ContextDecorator):
+    '''See ``Config.override`` for usage.'''
+
+    def __init__(self, config, **new_conf):
+        self.config = config
+        self.new_conf = new_conf
+        self.initial_conf = config.snapshot()
+
+    def __enter__(self):
+        '''Save original config values; override with new ones.'''
+        self.config.load_config_dict(self.new_conf)
+
+    def __exit__(self, *exc):
+        '''Reset config to initial values; reraise any exceptions.'''
+        self.config.load_config_dict(self.initial_conf)
+        return False
+
+
+def print_config():
+    '''Print the current configuration.'''
+    print('Current PyPhi configuration:\n', str(config))
 
 
 PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
