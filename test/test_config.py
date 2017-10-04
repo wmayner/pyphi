@@ -6,6 +6,7 @@ import logging
 import os
 
 from pyphi import config
+from pyphi.conf import Config
 
 
 def test_override_config():
@@ -53,15 +54,26 @@ def test_override_config_is_a_context_manager():
     assert config.TEST_CONFIG == 1
 
 
+def test_direct_assignment():
+    c = Config()
+    c.KEY = 'VALUE'
+    assert c._values['KEY'] == 'VALUE'
+
+
+def test_load_config_dict():
+    c = Config()
+    c.load_config_dict({'KEY': 'VALUE'})
+    assert c.KEY == 'VALUE'
+
+
 EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    'example_config.yml')
 
-
-@config.override(PRECISION=6)
 def test_load_config_file():
-    config.load_config_file(EXAMPLE_CONFIG_FILE)
-    assert config.PRECISION == 100
-    assert config.SOME_OTHER_CONFIG == 'loaded'
+    c = Config()
+    c.load_config_file(EXAMPLE_CONFIG_FILE)
+    assert c.PRECISION == 100
+    assert c.SOME_OTHER_CONFIG == 'loaded'
 
 
 def test_log_through_progress_handler(capsys):
