@@ -526,11 +526,6 @@ def load_config_default():
     load_config_dict(DEFAULTS)
 
 
-def get_config_string():
-    '''Return a string representation of the currently loaded configuration.'''
-    config = {key: this_module.__dict__[key] for key in DEFAULTS}
-    return pprint.pformat(config, indent=2)
-
 
 def print_config():
     '''Print the current configuration.'''
@@ -572,6 +567,9 @@ class Config:
             return super().__setattr__(name, value)
         self._values[name] = value
 
+    def __str__(self):
+        return pprint.pformat(self._values, indent=2)
+
     def load_config_dict(self, dct):
         '''Load a dictionary of configuration values.'''
         self._values.update(dct)
@@ -583,9 +581,6 @@ class Config:
 
     def snapshot(self):
         return copy(self._values)
-
-    def get_config_string(self):
-        pass
 
     def override(self, **new_config):
         '''Decorator and context manager to override configuration values.
@@ -672,7 +667,7 @@ def initialize():
         else:
             log.info('Using default configuration (no config file provided)')
 
-        log.info('Current PyPhi configuration:\n %s', config.get_config_string())
+        log.info('Current PyPhi configuration:\n %s', str(config))
 
 
 initialize()

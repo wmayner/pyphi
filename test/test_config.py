@@ -45,6 +45,10 @@ def test_load_config_file(c):
     assert c.SOME_OTHER_CONFIG == 'loaded'
 
 
+def test_str(c):
+    c.KEY = 'VALUE'
+    assert str(c) == "{'KEY': 'VALUE'}"
+
 
 def test_override(c):
     # Given some config value
