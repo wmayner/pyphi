@@ -5,69 +5,29 @@
 import logging
 import os
 
+import pytest
+
 from pyphi import config
 from pyphi.conf import Config
 
 
-def test_override_config():
-    # Given some config value
-    config.TEST_CONFIG = 1
-
-    @config.override(TEST_CONFIG=1000)
-    def return_test_config(arg, kwarg=None):
-        # Decorator should still pass args
-        assert arg == 'arg'
-        assert kwarg == 3
-        return config.TEST_CONFIG
-
-    # Should override config value in function
-    assert return_test_config('arg', kwarg=3) == 1000
-    # and revert the initial config value
-    assert config.TEST_CONFIG == 1
+@pytest.fixture
+def c():
+    return Config()
 
 
-def test_override_config_cleans_up_after_exception():
-    config.TEST_CONFIG = 1
-
-    @config.override(TEST_CONFIG=1000)
-    def raise_exception():
-        raise ValueError('elephants')
-
-    try:
-        raise_exception()
-    except ValueError as e:
-        # Decorator should reraise original exception
-        assert e.args == ('elephants',)
-
-    # and reset original config value
-    assert config.TEST_CONFIG == 1
-
-
-def test_override_config_is_a_context_manager():
-    config.TEST_CONFIG = 1
-
-    with config.override(TEST_CONFIG=1000):
-        # Overriden
-        assert config.TEST_CONFIG == 1000
-
-    # Reverts original value
-    assert config.TEST_CONFIG == 1
-
-
-def test_direct_assignment():
-    c = Config()
+def test_direct_assignment(c):
     c.KEY = 'VALUE'
+    assert c.KEY == 'VALUE'
     assert c._values['KEY'] == 'VALUE'
 
 
-def test_load_config_dict():
-    c = Config()
+def test_load_config_dict(c):
     c.load_config_dict({'KEY': 'VALUE'})
     assert c.KEY == 'VALUE'
 
 
-def test_snapshot():
-    c = Config()
+def test_snapshot(c):
     c.KEY = 'VALUE'
     snapshot = c.snapshot()
     assert snapshot == {'KEY': 'VALUE'}
@@ -78,11 +38,57 @@ def test_snapshot():
 EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    'example_config.yml')
 
-def test_load_config_file():
-    c = Config()
+
+def test_load_config_file(c):
     c.load_config_file(EXAMPLE_CONFIG_FILE)
     assert c.PRECISION == 100
     assert c.SOME_OTHER_CONFIG == 'loaded'
+
+
+
+def test_override(c):
+    # Given some config value
+    c.TEST_CONFIG = 1
+
+    @c.override(TEST_CONFIG=1000)
+    def return_test_config(arg, kwarg=None):
+        # Decorator should still pass args
+        assert arg == 'arg'
+        assert kwarg == 3
+        return c.TEST_CONFIG
+
+    # Should override config value in function
+    assert return_test_config('arg', kwarg=3) == 1000
+    # and revert the initial config value
+    assert c.TEST_CONFIG == 1
+
+
+def test_override_cleans_up_after_exception(c):
+    c.TEST_CONFIG = 1
+
+    @c.override(TEST_CONFIG=1000)
+    def raise_exception():
+        raise ValueError('elephants')
+
+    try:
+        raise_exception()
+    except ValueError as e:
+        # Decorator should reraise original exception
+        assert e.args == ('elephants',)
+
+    # and reset original config value
+    assert c.TEST_CONFIG == 1
+
+
+def test_override_config_is_a_context_manager(c):
+    c.TEST_CONFIG = 1
+
+    with c.override(TEST_CONFIG=1000):
+        # Overriden
+        assert c.TEST_CONFIG == 1000
+
+    # Reverts original value
+    assert c.TEST_CONFIG == 1
 
 
 def test_log_through_progress_handler(capsys):
