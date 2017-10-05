@@ -504,33 +504,20 @@ DEFAULTS = {
 
 class Config:
 
-    def __init__(self):
-        self._values = {}
-
-    def __getattr__(self, name):
-        if name.startswith('_'):
-            return super().__getattr__(name)
-        return self._values[name]
-
-    def __setattr__(self, name, value):
-        if name == '_values':
-            return super().__setattr__(name, value)
-        self._values[name] = value
-
     def __str__(self):
-        return pprint.pformat(self._values, indent=2)
+        return pprint.pformat(self.__dict__, indent=2)
 
     def load_config_dict(self, dct):
         '''Load a dictionary of configuration values.'''
-        self._values.update(dct)
+        self.__dict__.update(dct)
 
     def load_config_file(self, filename):
         '''Load config from a YAML file.'''
         with open(filename) as f:
-            self._values.update(yaml.load(f))
+            self.__dict__.update(yaml.load(f))
 
     def snapshot(self):
-        return copy(self._values)
+        return copy(self.__dict__)
 
     def override(self, **new_config):
         '''Decorator and context manager to override configuration values.

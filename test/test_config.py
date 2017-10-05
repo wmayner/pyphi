@@ -16,12 +16,6 @@ def c():
     return Config()
 
 
-def test_direct_assignment(c):
-    c.KEY = 'VALUE'
-    assert c.KEY == 'VALUE'
-    assert c._values['KEY'] == 'VALUE'
-
-
 def test_load_config_dict(c):
     c.load_config_dict({'KEY': 'VALUE'})
     assert c.KEY == 'VALUE'
