@@ -40,12 +40,11 @@ def pytest_runtest_setup(item):
             pytest.skip("need --veryslow option to run")
 
 
-# TODO: refactor config to enable easier snapshotting and restore
 @pytest.fixture(scope='function')
 def restore_config_afterwards(request):
     '''Reset PyPhi configuration after a test.
 
     Useful for doctests that can't be decorated with `config.override`.
     '''
-    yield
-    pyphi.config.initialize()
+    with pyphi.config.override():
+        yield
