@@ -8,7 +8,7 @@ import os
 import pytest
 
 from pyphi import config
-from pyphi.conf import Config
+from pyphi.conf import Config, option
 
 
 @pytest.fixture
@@ -87,6 +87,23 @@ def test_override_config_is_a_context_manager(c):
 
     # Reverts original value
     assert c.TEST_CONFIG == 1
+
+
+class ExampleConfig(Config):
+    SPEED = option('default', values=['default', 'slow', 'fast'])
+
+
+def test_option_descriptor():
+    c = ExampleConfig()
+    assert c.SPEED == 'default'
+
+    assert c.__class__.__dict__['SPEED'].name == 'SPEED'
+
+    c.SPEED = 'slow'
+    assert c.SPEED == 'slow'
+
+    with pytest.raises(ValueError):
+        c.SPEED = 'medium'
 
 
 def test_log_through_progress_handler(capsys):

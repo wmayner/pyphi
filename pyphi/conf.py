@@ -502,7 +502,41 @@ DEFAULTS = {
 }
 
 
+class option:
+    '''A descriptor implementing PyPhi configuration options.'''
+    def __init__(self, default, values=None):
+        self.default = default
+        self.values = values
+
+        # Set during config initialization
+        self.name = None
+
+    def __get__(self, obj, type=None):
+        r = obj.__dict__.setdefault(self.name, self.default)
+        print('getting', self.name, r)
+        return r
+
+    def __set__(self, obj, value):
+        print('setting', self.name, value)
+
+        if value not in self.values:
+            raise ValueError(
+                '{} is not a valid value for {}'.format(value, self.name))
+
+        obj.__dict__[self.name] = value
+
+
 class Config:
+
+    def __new__(cls):
+        instance = super().__new__(cls)
+
+        # Set each option's name
+        for k, v in cls.__dict__.items():
+            if isinstance(v, option):
+                v.name = k
+
+        return instance
 
     def __str__(self):
         return pprint.pformat(self.__dict__, indent=2)
@@ -571,6 +605,19 @@ class Config:
                             (['stdout'] if self.LOG_STDOUT_LEVEL else [])
             }
         })
+
+
+class PyphiConfig(Config):
+
+    SYSTEM_CUTS = option(
+        default='3.0_STYLE',
+        values=['3.0_STYLE', 'CONCEPT_STYLE'])
+
+    LOG_STDOUT_LEVEL = option(
+        default='INFO')
+
+    VALIDATE_SUBSYSTEM_STATES = option(
+        default=False)
 
 
 class _override(contextlib.ContextDecorator):
