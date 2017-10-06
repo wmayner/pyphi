@@ -504,9 +504,10 @@ DEFAULTS = {
 
 class option:
     '''A descriptor implementing PyPhi configuration options.'''
-    def __init__(self, default, values=None):
+    def __init__(self, default, values=None, on_change=None):
         self.default = default
         self.values = values
+        self.on_change = on_change
 
         # Set during config initialization
         self.name = None
@@ -519,11 +520,16 @@ class option:
     def __set__(self, obj, value):
         print('setting', self.name, value)
 
-        if value not in self.values:
+        # Validate the new value
+        if self.values and value not in self.values:
             raise ValueError(
                 '{} is not a valid value for {}'.format(value, self.name))
 
         obj.__dict__[self.name] = value
+
+        # Trigger any callbacks
+        if self.on_change is not None:
+            self.on_change(value)
 
 
 class Config:
@@ -543,12 +549,13 @@ class Config:
 
     def load_config_dict(self, dct):
         '''Load a dictionary of configuration values.'''
-        self.__dict__.update(dct)
+        for k, v in dct.items():
+            setattr(self, k, v)
 
     def load_config_file(self, filename):
         '''Load config from a YAML file.'''
         with open(filename) as f:
-            self.__dict__.update(yaml.load(f))
+            self.load_config_dict(yaml.load(f))
 
     def snapshot(self):
         return copy(self.__dict__)

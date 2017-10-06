@@ -106,6 +106,23 @@ def test_option_descriptor():
         c.SPEED = 'medium'
 
 
+def test_option_on_change():
+    class Event:
+        def notify(self, speed):
+            self.notified = speed
+    event = Event()
+
+    class AnotherConfig(Config):
+        SPEED = option('default', on_change=event.notify)
+
+    c = AnotherConfig()
+    c.SPEED = 'slow'
+    assert event.notified == 'slow'
+
+    c.load_config_dict({'SPEED': 'fast'})
+    assert event.notified == 'fast'
+
+
 def test_log_through_progress_handler(capsys):
     log = logging.getLogger('pyphi.config')
     with config.override(LOG_STDOUT_LEVEL='INFO'):
