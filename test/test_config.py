@@ -1,4 +1,4 @@
-cr#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # test_config.py
 
@@ -76,7 +76,7 @@ def test_override_cleans_up_after_exception(c):
     assert c.SPEED == 'default'
 
 
-def test_override_config_is_a_context_manager(c):
+def test_override_is_a_context_manager(c):
     c.SPEED = 'slow'
 
     with c.override(SPEED='fast'):
@@ -87,10 +87,8 @@ def test_override_config_is_a_context_manager(c):
     assert c.SPEED == 'slow'
 
 
-def test_option_descriptor():
-    c = ExampleConfig()
+def test_option_descriptor(c):
     assert c.SPEED == 'default'
-
     assert c.__class__.__dict__['SPEED'].name == 'SPEED'
 
     c.SPEED = 'slow'
@@ -100,19 +98,18 @@ def test_option_descriptor():
         c.SPEED = 'medium'
 
 
-def test_config_defaults():
-    c = ExampleConfig()
+def test_defaults(c):
     assert c.defaults() == {'SPEED': 'default'}
     c.SPEED = 'slow'
     assert c.defaults() == {'SPEED': 'default'}
 
 
-def test_must_be_valid_option(c):
+def test_option_validation(c):
     with pytest.raises(ValueError):
         c.KEY = 2
 
 
-def test_option_on_change():
+def test_on_change():
     class Event:
         def notify(self, config):
             self.notified = config.SPEED
@@ -129,7 +126,7 @@ def test_option_on_change():
     assert event.notified == 'fast'
 
 
-def test_logging_is_reconfigured_on_change(capsys):
+def test_reconfigure_logging_on_change(capsys):
     log = logging.getLogger('pyphi.config')
 
     with config.override(LOG_STDOUT_LEVEL='WARNING'):
