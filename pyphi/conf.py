@@ -615,16 +615,88 @@ class Config:
 
 
 class PyphiConfig(Config):
+    # Assumptions that speed up computation at the cost of theoretical
+    # accuracy.
+    ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = option(False)
+    # Only check single nodes cuts for the MIP. 2**n cuts instead of n.
+    CUT_ONE_APPROXIMATION = option(False)
+    # The measure to use when computing phi ('EMD', 'KLD', 'L1')
+    MEASURE = option('EMD')
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Controls whether concepts are evaluated in parallel.
+    PARALLEL_CONCEPT_EVALUATION = option(False)
+    # # Controls whether cuts are evaluated in parallel, which requires more
+    # # memory. If cuts are evaluated sequentially, only two BigMips need to be
+    # # in memory at a time.
+    PARALLEL_CUT_EVALUATION = option(True)
+    # # Controls whether systems are evaluated in parallel when searching for
+    # # complexes.
+    PARALLEL_COMPLEX_EVALUATION = option(False)
+    # # The number of CPU cores to use in parallel cut evaluation. -1 means all
+    # # available cores, -2 means all but one available cores, etc.
+    NUMBER_OF_CORES = option(-1)
+    # # The maximum percentage of RAM that PyPhi should use for caching.
+    MAXIMUM_CACHE_MEMORY_PERCENTAGE = option(50)
+    # # Controls whether BigMips are cached and retreived.
+    CACHE_BIGMIPS = option(False)
+    # # Controls whether the potential purviews of the mechanisms of a network
+    # # are cached. Speeds up calculations, but takes up additional memory.
+    CACHE_POTENTIAL_PURVIEWS = option(True)
+    # # The caching system to use. "fs" means cache results in a subdirectory of
+    # # the current directory; "db" means connect to a database and store the
+    # # results there.
+    CACHING_BACKEND = option('fs')
+    # # joblib.Memory verbosity.
+    FS_CACHE_VERBOSITY = option(0)
+    # # Directory for the persistent joblib Memory cache.
+    FS_CACHE_DIRECTORY = option('__pyphi_cache__')
+    # # MongoDB configuration.
+    MONGODB_CONFIG = option({
+        'host': 'localhost',
+        'port': 27017,
+        'database_name': 'pyphi',
+        'collection_name': 'cache'
+    })
 
-    SYSTEM_CUTS = option(
-        default='3.0_STYLE',
-        values=['3.0_STYLE', 'CONCEPT_STYLE'])
-
-    LOG_STDOUT_LEVEL = option(
-        default='INFO')
-
-    VALIDATE_SUBSYSTEM_STATES = option(
-        default=False)
+    # # Use Redis to cache Mice
+    REDIS_CACHE = option(False)
+    # # Redis configuration
+    REDIS_CONFIG = option({
+        'host': 'localhost',
+        'port': 6379,
+    })
+    # # The file to log to
+    LOG_FILE = option('pyphi.log')
+    # # The log level to write to `LOG_FILE`
+    LOG_FILE_LEVEL = option('INFO')
+    # # The log level to write to stdout
+    LOG_STDOUT_LEVEL = option('WARNING')
+    # # Controls whether the current configuration is logged upon import.
+    LOG_CONFIG_ON_IMPORT = option(True)
+    # # Enable/disable progress bars
+    PROGRESS_BARS = option(True)
+    # # The number of decimal points to which phi values are considered accurate.
+    PRECISION = option(6)
+    # # Controls whether a subsystem's state is validated when the subsystem is
+    # # created.
+    VALIDATE_SUBSYSTEM_STATES = option(True)
+    # # Controls whether systems are checked for conditional independence.
+    VALIDATE_CONDITIONAL_INDEPENDENCE = option(True)
+    # # In some applications of this library, the user may prefer to define
+    # # single micro-node subsystems as having Phi.
+    SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = option(False)
+    # # Use prettier __str__-like formatting in `repr` calls.
+    REPR_VERBOSITY = option(2)
+    # # Print numbers as fractions if the denominator isn't too big.
+    PRINT_FRACTIONS = option(True)
+    # # Controls the number of parts in a partition.
+    PARTITION_TYPE = option('BI')
+    # # Controls how to pick MIPs in the case of phi-ties.
+    PICK_SMALLEST_PURVIEW = option(False)
+    # # Use the difference in sum of small phi for the constellation distance
+    USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE = option(False)
+    # # The type of system cuts to use
+    SYSTEM_CUTS = option('3.0_STYLE')
 
 
 class _override(contextlib.ContextDecorator):
@@ -652,15 +724,13 @@ def print_config():
 
 PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
 
-config = Config()
+config = PyphiConfig()
 
 
 def initialize():
     '''Initialize PyPhi config.'''
-    # Load the default config
-    config.load_config_dict(DEFAULTS)
 
-    # Then try and load the config file
+    # Try and load the config file
     file_loaded = False
     if os.path.exists(PYPHI_CONFIG_FILENAME):
         config.load_config_file(PYPHI_CONFIG_FILENAME)
