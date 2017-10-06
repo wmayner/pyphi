@@ -106,6 +106,13 @@ def test_option_descriptor():
         c.SPEED = 'medium'
 
 
+def test_config_defaults():
+    c = ExampleConfig()
+    assert c.defaults() == {'SPEED': 'default'}
+    c.SPEED = 'slow'
+    assert c.defaults() == {'SPEED': 'default'}
+
+
 def test_option_on_change():
     class Event:
         def notify(self, speed):

@@ -15,7 +15,7 @@ default configuration is used.
 The various settings are listed here with their defaults.
 
     >>> import pyphi
-    >>> defaults = pyphi.config.DEFAULTS
+    >>> defaults = pyphi.config.defaults()
 
 It is also possible to manually load a configuration file:
 
@@ -534,14 +534,21 @@ class Config:
         instance = super().__new__(cls)
 
         # Set each option's name
-        for k, v in cls.__dict__.items():
-            if isinstance(v, option):
-                v.name = k
+        for k, v in cls.options().items():
+            v.name = k
 
         return instance
 
     def __str__(self):
         return pprint.pformat(self.__dict__, indent=2)
+
+    @classmethod
+    def options(cls):
+        '''Return the dictionary ``option`` objects for this class.'''
+        return {k: v for k, v in cls.__dict__.items() if isinstance(v, option)}
+
+    def defaults(self):
+        return {k: v.default for k, v in self.options().items()}
 
     def load_config_dict(self, dct):
         '''Load a dictionary of configuration values.'''
