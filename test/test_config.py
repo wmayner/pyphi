@@ -11,22 +11,26 @@ from pyphi import config
 from pyphi.conf import Config, option
 
 
+class ExampleConfig(Config):
+    SPEED = option('default', values=['default', 'slow', 'fast'])
+
+
 @pytest.fixture
 def c():
-    return Config()
+    return ExampleConfig()
 
 
 def test_load_config_dict(c):
-    c.load_config_dict({'KEY': 'VALUE'})
-    assert c.KEY == 'VALUE'
+    c.load_config_dict({'SPEED': 'slow'})
+    assert c.SPEED == 'slow'
 
 
 def test_snapshot(c):
-    c.KEY = 'VALUE'
+    c.SPEED = 'slow'
     snapshot = c.snapshot()
-    assert snapshot == {'KEY': 'VALUE'}
-    c.KEY = 'ANOTHER'
-    assert snapshot == {'KEY': 'VALUE'}
+    assert snapshot == {'SPEED': 'slow'}
+    c.SPEED = 'fast'
+    assert snapshot == {'SPEED': 'slow'}
 
 
 EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -35,36 +39,30 @@ EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 def test_load_config_file(c):
     c.load_config_file(EXAMPLE_CONFIG_FILE)
-    assert c.PRECISION == 100
-    assert c.SOME_OTHER_CONFIG == 'loaded'
+    assert c.SPEED == 'slow'
 
 
 def test_str(c):
-    c.KEY = 'VALUE'
-    assert str(c) == "{'KEY': 'VALUE'}"
+    c.SPEED = 'slow'
+    assert str(c) == "{'SPEED': 'slow'}"
 
 
 def test_override(c):
-    # Given some config value
-    c.TEST_CONFIG = 1
-
-    @c.override(TEST_CONFIG=1000)
+    @c.override(SPEED='slow')
     def return_test_config(arg, kwarg=None):
         # Decorator should still pass args
         assert arg == 'arg'
         assert kwarg == 3
-        return c.TEST_CONFIG
+        return c.SPEED
 
     # Should override config value in function
-    assert return_test_config('arg', kwarg=3) == 1000
+    assert return_test_config('arg', kwarg=3) == 'slow'
     # and revert the initial config value
-    assert c.TEST_CONFIG == 1
+    assert c.SPEED == 'default'
 
 
 def test_override_cleans_up_after_exception(c):
-    c.TEST_CONFIG = 1
-
-    @c.override(TEST_CONFIG=1000)
+    @c.override(SPEED='slow')
     def raise_exception():
         raise ValueError('elephants')
 
@@ -75,22 +73,18 @@ def test_override_cleans_up_after_exception(c):
         assert e.args == ('elephants',)
 
     # and reset original config value
-    assert c.TEST_CONFIG == 1
+    assert c.SPEED == 'default'
 
 
 def test_override_config_is_a_context_manager(c):
-    c.TEST_CONFIG = 1
+    c.SPEED = 'slow'
 
-    with c.override(TEST_CONFIG=1000):
+    with c.override(SPEED='fast'):
         # Overriden
-        assert c.TEST_CONFIG == 1000
+        assert c.SPEED == 'fast'
 
     # Reverts original value
-    assert c.TEST_CONFIG == 1
-
-
-class ExampleConfig(Config):
-    SPEED = option('default', values=['default', 'slow', 'fast'])
+    assert c.SPEED == 'slow'
 
 
 def test_option_descriptor():
@@ -111,6 +105,11 @@ def test_config_defaults():
     assert c.defaults() == {'SPEED': 'default'}
     c.SPEED = 'slow'
     assert c.defaults() == {'SPEED': 'default'}
+
+
+def test_must_be_valid_option(c):
+    with pytest.raises(ValueError):
+        c.KEY = 2
 
 
 def test_option_on_change():

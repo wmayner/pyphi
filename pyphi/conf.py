@@ -455,6 +455,12 @@ class Config:
     def __str__(self):
         return pprint.pformat(self.__dict__, indent=2)
 
+    def __setattr__(self, name, value):
+        '''Before setting, check that the option is value.'''
+        if name not in self.options().keys():
+            raise ValueError('{} is not a valid config option'.format(name))
+        super().__setattr__(name, value)
+
     @classmethod
     def options(cls):
         '''Return the dictionary ``option`` objects for this class.'''
