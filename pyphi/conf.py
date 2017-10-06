@@ -415,7 +415,7 @@ import yaml
 from . import __about__
 
 
-class option:
+class Option:
     '''A descriptor implementing PyPhi configuration options.'''
     def __init__(self, default, values=None, on_change=None):
         self.default = default
@@ -444,7 +444,7 @@ class option:
 class Config:
 
     def __init__(self):
-        # Set each option's name and default value
+        # Set each Option's name and default value
         for k, v in self.options().items():
             v.name = k
             self.__dict__[k] = v.default
@@ -461,7 +461,7 @@ class Config:
     @classmethod
     def options(cls):
         '''Return the dictionary ``option`` objects for this class.'''
-        return {k: v for k, v in cls.__dict__.items() if isinstance(v, option)}
+        return {k: v for k, v in cls.__dict__.items() if isinstance(v, Option)}
 
     def defaults(self):
         return {k: v.default for k, v in self.options().items()}
@@ -536,41 +536,41 @@ def configure_logging(config):
 class PyphiConfig(Config):
     # Assumptions that speed up computation at the cost of theoretical
     # accuracy.
-    ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = option(False)
+    ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(False)
     # Only check single nodes cuts for the MIP. 2**n cuts instead of n.
-    CUT_ONE_APPROXIMATION = option(False)
+    CUT_ONE_APPROXIMATION = Option(False)
     # The measure to use when computing phi ('EMD', 'KLD', 'L1')
-    MEASURE = option('EMD')
+    MEASURE = Option('EMD')
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Controls whether concepts are evaluated in parallel.
-    PARALLEL_CONCEPT_EVALUATION = option(False)
+    PARALLEL_CONCEPT_EVALUATION = Option(False)
     # # Controls whether cuts are evaluated in parallel, which requires more
     # # memory. If cuts are evaluated sequentially, only two BigMips need to be
     # # in memory at a time.
-    PARALLEL_CUT_EVALUATION = option(True)
+    PARALLEL_CUT_EVALUATION = Option(True)
     # # Controls whether systems are evaluated in parallel when searching for
     # # complexes.
-    PARALLEL_COMPLEX_EVALUATION = option(False)
+    PARALLEL_COMPLEX_EVALUATION = Option(False)
     # # The number of CPU cores to use in parallel cut evaluation. -1 means all
     # # available cores, -2 means all but one available cores, etc.
-    NUMBER_OF_CORES = option(-1)
+    NUMBER_OF_CORES = Option(-1)
     # # The maximum percentage of RAM that PyPhi should use for caching.
-    MAXIMUM_CACHE_MEMORY_PERCENTAGE = option(50)
+    MAXIMUM_CACHE_MEMORY_PERCENTAGE = Option(50)
     # # Controls whether BigMips are cached and retreived.
-    CACHE_BIGMIPS = option(False)
+    CACHE_BIGMIPS = Option(False)
     # # Controls whether the potential purviews of the mechanisms of a network
     # # are cached. Speeds up calculations, but takes up additional memory.
-    CACHE_POTENTIAL_PURVIEWS = option(True)
+    CACHE_POTENTIAL_PURVIEWS = Option(True)
     # # The caching system to use. "fs" means cache results in a subdirectory of
     # # the current directory; "db" means connect to a database and store the
     # # results there.
-    CACHING_BACKEND = option('fs')
+    CACHING_BACKEND = Option('fs')
     # # joblib.Memory verbosity.
-    FS_CACHE_VERBOSITY = option(0)
+    FS_CACHE_VERBOSITY = Option(0)
     # # Directory for the persistent joblib Memory cache.
-    FS_CACHE_DIRECTORY = option('__pyphi_cache__')
+    FS_CACHE_DIRECTORY = Option('__pyphi_cache__')
     # # MongoDB configuration.
-    MONGODB_CONFIG = option({
+    MONGODB_CONFIG = Option({
         'host': 'localhost',
         'port': 27017,
         'database_name': 'pyphi',
@@ -578,44 +578,44 @@ class PyphiConfig(Config):
     })
 
     # # Use Redis to cache Mice
-    REDIS_CACHE = option(False)
+    REDIS_CACHE = Option(False)
     # # Redis configuration
-    REDIS_CONFIG = option({
+    REDIS_CONFIG = Option({
         'host': 'localhost',
         'port': 6379,
     })
     # # The file to log to
-    LOG_FILE = option('pyphi.log', on_change=configure_logging)
+    LOG_FILE = Option('pyphi.log', on_change=configure_logging)
     # # The log level to write to `LOG_FILE`
-    LOG_FILE_LEVEL = option('INFO', on_change=configure_logging)
+    LOG_FILE_LEVEL = Option('INFO', on_change=configure_logging)
     # # The log level to write to stdout
-    LOG_STDOUT_LEVEL = option('WARNING', on_change=configure_logging)
+    LOG_STDOUT_LEVEL = Option('WARNING', on_change=configure_logging)
     # # Controls whether the current configuration is logged upon import.
-    LOG_CONFIG_ON_IMPORT = option(True)
+    LOG_CONFIG_ON_IMPORT = Option(True)
     # # Enable/disable progress bars
-    PROGRESS_BARS = option(True)
+    PROGRESS_BARS = Option(True)
     # # The number of decimal points to which phi values are considered accurate.
-    PRECISION = option(6)
+    PRECISION = Option(6)
     # # Controls whether a subsystem's state is validated when the subsystem is
     # # created.
-    VALIDATE_SUBSYSTEM_STATES = option(True)
+    VALIDATE_SUBSYSTEM_STATES = Option(True)
     # # Controls whether systems are checked for conditional independence.
-    VALIDATE_CONDITIONAL_INDEPENDENCE = option(True)
+    VALIDATE_CONDITIONAL_INDEPENDENCE = Option(True)
     # # In some applications of this library, the user may prefer to define
     # # single micro-node subsystems as having Phi.
-    SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = option(False)
+    SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = Option(False)
     # # Use prettier __str__-like formatting in `repr` calls.
-    REPR_VERBOSITY = option(2)
+    REPR_VERBOSITY = Option(2)
     # # Print numbers as fractions if the denominator isn't too big.
-    PRINT_FRACTIONS = option(True)
+    PRINT_FRACTIONS = Option(True)
     # # Controls the number of parts in a partition.
-    PARTITION_TYPE = option('BI')
+    PARTITION_TYPE = Option('BI')
     # # Controls how to pick MIPs in the case of phi-ties.
-    PICK_SMALLEST_PURVIEW = option(False)
+    PICK_SMALLEST_PURVIEW = Option(False)
     # # Use the difference in sum of small phi for the constellation distance
-    USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE = option(False)
+    USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE = Option(False)
     # # The type of system cuts to use
-    SYSTEM_CUTS = option('3.0_STYLE')
+    SYSTEM_CUTS = Option('3.0_STYLE')
 
 
 class _override(contextlib.ContextDecorator):

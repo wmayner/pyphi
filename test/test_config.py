@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+cr#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # test_config.py
 
@@ -8,11 +8,11 @@ import os
 import pytest
 
 from pyphi import config
-from pyphi.conf import Config, option
+from pyphi.conf import Config, Option
 
 
 class ExampleConfig(Config):
-    SPEED = option('default', values=['default', 'slow', 'fast'])
+    SPEED = Option('default', values=['default', 'slow', 'fast'])
 
 
 @pytest.fixture
@@ -119,7 +119,7 @@ def test_option_on_change():
     event = Event()
 
     class AnotherConfig(Config):
-        SPEED = option('default', on_change=event.notify)
+        SPEED = Option('default', on_change=event.notify)
 
     c = AnotherConfig()
     c.SPEED = 'slow'
