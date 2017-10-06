@@ -115,8 +115,8 @@ def test_config_defaults():
 
 def test_option_on_change():
     class Event:
-        def notify(self, speed):
-            self.notified = speed
+        def notify(self, config):
+            self.notified = config.SPEED
     event = Event()
 
     class AnotherConfig(Config):
@@ -130,15 +130,15 @@ def test_option_on_change():
     assert event.notified == 'fast'
 
 
-def test_log_through_progress_handler(capsys):
+def test_logging_is_reconfigured_on_change(capsys):
     log = logging.getLogger('pyphi.config')
-    with config.override(LOG_STDOUT_LEVEL='INFO'):
-        config.configure_logging()
-        log.warning('Just a warning, folks.')
 
+    with config.override(LOG_STDOUT_LEVEL='WARNING'):
+        log.warning('Just a warning, folks.')
     out, err = capsys.readouterr()
     assert 'Just a warning, folks.' in err
 
-    # Reset logging
-    # TODO: handle automatically
-    config.configure_logging()
+    with config.override(LOG_STDOUT_LEVEL='ERROR'):
+        log.warning('Another warning.')
+    out, err = capsys.readouterr()
+    assert err == ''

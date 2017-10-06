@@ -438,7 +438,7 @@ class option:
 
         # Trigger any callbacks
         if self.on_change is not None:
-            self.on_change(value)
+            self.on_change(obj)
 
 
 class Config:
@@ -497,37 +497,37 @@ class Config:
         '''
         return _override(self, **new_config)
 
-    # TODO: call this in `config.override`?
-    def configure_logging(self):
-        '''Reconfigure PyPhi logging based on the current configuration.'''
-        logging.config.dictConfig({
-            'version': 1,
-            'disable_existing_loggers': False,
-            'formatters': {
-                'standard': {
-                    'format': '%(asctime)s [%(name)s] %(levelname)s '
-                              '%(processName)s: %(message)s'
-                }
-            },
-            'handlers': {
-                'file': {
-                    'level': self.LOG_FILE_LEVEL,
-                    'filename': self.LOG_FILE,
-                    'class': 'logging.FileHandler',
-                    'formatter': 'standard',
-                },
-                'stdout': {
-                    'level': self.LOG_STDOUT_LEVEL,
-                    'class': 'pyphi.log.ProgressBarHandler',
-                    'formatter': 'standard',
-                }
-            },
-            'root': {
-                'level': 'DEBUG',
-                'handlers': (['file'] if self.LOG_FILE_LEVEL else []) +
-                            (['stdout'] if self.LOG_STDOUT_LEVEL else [])
+
+def configure_logging(config):
+    '''Reconfigure PyPhi logging based on the current configuration.'''
+    logging.config.dictConfig({
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'standard': {
+                'format': '%(asctime)s [%(name)s] %(levelname)s '
+                          '%(processName)s: %(message)s'
             }
-        })
+        },
+        'handlers': {
+            'file': {
+                'level': config.LOG_FILE_LEVEL,
+                'filename': config.LOG_FILE,
+                'class': 'logging.FileHandler',
+                'formatter': 'standard',
+            },
+            'stdout': {
+                'level': config.LOG_STDOUT_LEVEL,
+                'class': 'pyphi.log.ProgressBarHandler',
+                'formatter': 'standard',
+            }
+        },
+        'root': {
+            'level': 'DEBUG',
+            'handlers': (['file'] if config.LOG_FILE_LEVEL else []) +
+                        (['stdout'] if config.LOG_STDOUT_LEVEL else [])
+        }
+    })
 
 
 class PyphiConfig(Config):
@@ -582,11 +582,11 @@ class PyphiConfig(Config):
         'port': 6379,
     })
     # # The file to log to
-    LOG_FILE = option('pyphi.log')
+    LOG_FILE = option('pyphi.log', on_change=configure_logging)
     # # The log level to write to `LOG_FILE`
-    LOG_FILE_LEVEL = option('INFO')
+    LOG_FILE_LEVEL = option('INFO', on_change=configure_logging)
     # # The log level to write to stdout
-    LOG_STDOUT_LEVEL = option('WARNING')
+    LOG_STDOUT_LEVEL = option('WARNING', on_change=configure_logging)
     # # Controls whether the current configuration is logged upon import.
     LOG_CONFIG_ON_IMPORT = option(True)
     # # Enable/disable progress bars
@@ -645,7 +645,6 @@ config = PyphiConfig()
 
 def initialize():
     '''Initialize PyPhi config.'''
-
     # Try and load the config file
     file_loaded = False
     if os.path.exists(PYPHI_CONFIG_FILENAME):
@@ -653,7 +652,7 @@ def initialize():
         file_loaded = True
 
     # Setup logging
-    config.configure_logging()
+    configure_logging(config)
 
     # Log the PyPhi version and loaded configuration
     if config.LOG_CONFIG_ON_IMPORT:
