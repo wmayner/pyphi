@@ -513,13 +513,9 @@ class option:
         self.name = None
 
     def __get__(self, obj, type=None):
-        r = obj.__dict__.setdefault(self.name, self.default)
-        print('getting', self.name, r)
-        return r
+        return obj.__dict__.setdefault(self.name, self.default)
 
     def __set__(self, obj, value):
-        print('setting', self.name, value)
-
         # Validate the new value
         if self.values and value not in self.values:
             raise ValueError(
