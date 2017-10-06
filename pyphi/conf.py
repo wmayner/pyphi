@@ -426,7 +426,7 @@ class option:
         self.name = None
 
     def __get__(self, obj, type=None):
-        return obj.__dict__.setdefault(self.name, self.default)
+        return obj.__dict__[self.name]
 
     def __set__(self, obj, value):
         # Validate the new value
@@ -443,14 +443,11 @@ class option:
 
 class Config:
 
-    def __new__(cls):
-        instance = super().__new__(cls)
-
-        # Set each option's name
-        for k, v in cls.options().items():
+    def __init__(self):
+        # Set each option's name and default value
+        for k, v in self.options().items():
             v.name = k
-
-        return instance
+            self.__dict__[k] = v.default
 
     def __str__(self):
         return pprint.pformat(self.__dict__, indent=2)
