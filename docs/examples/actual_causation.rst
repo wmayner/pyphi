@@ -215,10 +215,6 @@ This computes |big_alpha| for all permutations of of elements in |X_t-1| and
    ...     print(n.transition, n.alpha)
    Transition([OR] ━━▶ [OR]) 2.0
    Transition([AND] ━━▶ [AND]) 2.0
-   Transition([OR] ━━▶ [AND]) 1.0
-   Transition([AND] ━━▶ [OR]) 1.0
-   Transition([OR, AND] ━━▶ [OR]) 0.415037
-   Transition([OR, AND] ━━▶ [AND]) 0.415037
    Transition([OR, AND] ━━▶ [OR, AND]) 0.169925
 
 The ``causal_nexus`` function computes the maximally irreducible account for

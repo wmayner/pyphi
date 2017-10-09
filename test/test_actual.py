@@ -93,16 +93,9 @@ def test_background_conditions(transition, direction, mechanism, purview, ratio)
     assert transition()._ratio(direction, mechanism, purview) == ratio
 
 
-@pytest.mark.parametrize('before_state,after_state,condition', [
-    # If C = 1, then AB over AC should be reducible.
-    ((1, 1, 1), (1, 1, 1), lambda alpha: alpha == 0.0),
-    # If C = 0, then AB over AC should be irreducible.
-    ((1, 1, 0), (1, 1, 1), lambda alpha: alpha > 0.0)])
-def test_background_3_node(before_state, after_state, condition):
-    '''A is MAJ(ABC). B is OR(A, C). C is COPY(A).
-
-    Looking at transition (AB = 11) -> (AC = 11)
-    '''
+@pytest.fixture
+def background_3_node():
+    '''A is MAJ(ABC). B is OR(A, C). C is COPY(A).'''
     tpm = np.array([
         [0, 0, 0],
         [0, 1, 1],
@@ -113,10 +106,32 @@ def test_background_3_node(before_state, after_state, condition):
         [1, 1, 0],
         [1, 1, 1]
     ])
-    network = Network(tpm)
-    transition = actual.Transition(network, before_state, after_state, (0, 1), (0, 2))
+    return Network(tpm)
+
+
+@pytest.mark.parametrize('before_state,purview,alpha', [
+    # If C = 1, then AB over AC should be reducible.
+    ((1, 1, 1), (0, 2), 0.0),
+    # If C = 0, then AB over AC should be irreducible.
+    ((1, 1, 0), (0, 2), 1.0)])
+def test_background_3_node(before_state, purview, alpha, background_3_node):
+    '''Looking at transition (AB = 11) -> (AC = 11)'''
+    after_state = (1, 1, 1)
+    transition = actual.Transition(background_3_node, before_state, after_state,
+                                   (0, 1), (0, 2))
     causal_link = transition.find_causal_link(Direction.FUTURE, (0, 1))
-    assert condition(causal_link.alpha)
+    assert causal_link.purview == purview
+    assert causal_link.alpha == alpha
+
+
+def test_potential_purviews(background_3_node):
+    '''Purviews must be a subset of the corresponding cause/effect system.'''
+    transition = actual.Transition(background_3_node, (1, 1, 1), (1, 1, 1),
+                                   (0, 1), (0, 2))
+    assert transition.potential_purviews(Direction.PAST, (0, 2)) == [
+        (0,), (1,), (0, 1)]
+    assert transition.potential_purviews(Direction.FUTURE, (0, 1)) == [
+        (0,), (2,), (0, 2)]
 
 
 # Tests

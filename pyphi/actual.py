@@ -337,11 +337,13 @@ class Transition:
             direction (str): Either |PAST| or |FUTURE|.
             mechanism (tuple[int]): The mechanism of interest.
 
-        Keyword Argss:
+        Keyword Args:
             purviews (tuple[int]): Optional subset of purviews of interest.
         '''
         system = self.system[direction]
-        return system.potential_purviews(direction, mechanism, purviews)
+        return [purview for purview in system.potential_purviews(
+                    direction, mechanism, purviews)
+                if set(purview).issubset(self.purview_indices(direction))]
 
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')
