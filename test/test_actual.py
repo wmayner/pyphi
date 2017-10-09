@@ -49,6 +49,75 @@ def prevention():
     return examples.prevention()
 
 
+# Testing background conditions
+#
+
+@pytest.fixture
+def background_all_on():
+    '''Two OR gates, both ON.
+
+    If we look at the transition A -> B, then B should be frozen at t-1, and
+    A should have no effect on B.
+    '''
+    tpm = np.array([
+        [0, 0],
+        [1, 1],
+        [1, 1],
+        [1, 1]
+    ])
+    network = Network(tpm)
+    state = (1, 1)
+    return actual.Transition(network, state, state, (0,), (1,))
+
+
+@pytest.fixture
+def background_all_off():
+    '''Two OR gates, both OFF.'''
+    tpm = np.array([
+        [0, 0],
+        [1, 1],
+        [1, 1],
+        [1, 1]
+    ])
+    network = Network(tpm)
+    state = (0, 0)
+    return actual.Transition(network, state, state, (0,), (1,))
+
+
+@pytest.mark.parametrize('transition,direction,mechanism,purview,ratio', [
+    (background_all_off, Direction.FUTURE, (0,), (1,), 1),
+    (background_all_off, Direction.PAST, (1,), (0,), 1),
+    (background_all_on, Direction.FUTURE, (0,), (1,), 0),
+    (background_all_on, Direction.PAST, (1,), (0,), 0)])
+def test_background_conditions(transition, direction, mechanism, purview, ratio):
+    assert transition()._ratio(direction, mechanism, purview) == ratio
+
+
+@pytest.mark.parametrize('before_state,after_state,condition', [
+    # If C = 1, then AB over AC should be reducible.
+    ((1, 1, 1), (1, 1, 1), lambda alpha: alpha == 0.0),
+    # If C = 0, then AB over AC should be irreducible.
+    ((1, 1, 0), (1, 1, 1), lambda alpha: alpha > 0.0)])
+def test_background_3_node(before_state, after_state, condition):
+    '''A is MAJ(ABC). B is OR(A, C). C is COPY(A).
+
+    Looking at transition (AB = 11) -> (AC = 11)
+    '''
+    tpm = np.array([
+        [0, 0, 0],
+        [0, 1, 1],
+        [0, 0, 0],
+        [1, 1, 1],
+        [0, 1, 0],
+        [1, 1, 1],
+        [1, 1, 0],
+        [1, 1, 1]
+    ])
+    network = Network(tpm)
+    transition = actual.Transition(network, before_state, after_state, (0, 1), (0, 2))
+    causal_link = transition.find_causal_link(Direction.FUTURE, (0, 1))
+    assert condition(causal_link.alpha)
+
 
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
