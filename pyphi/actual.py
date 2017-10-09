@@ -164,11 +164,11 @@ class Transition:
 
     def cause_repertoire(self, mechanism, purview):
         '''Return the cause repertoire.'''
-        return self.cause_system.cause_repertoire(mechanism, purview)
+        return self.repertoire(Direction.PAST, mechanism, purview)
 
     def effect_repertoire(self, mechanism, purview):
         '''Return the effect repertoire.'''
-        return self.effect_system.effect_repertoire(mechanism, purview)
+        return self.repertoire(Direction.FUTURE, mechanism, purview)
 
     def unconstrained_cause_repertoire(self, purview):
         '''Return the unconstrained cause repertoire of the occurence.'''
@@ -187,6 +187,15 @@ class Transition:
                 effect repertoire.
         '''
         system = self.system[direction]
+
+        if not set(purview).issubset(self.purview_indices(direction)):
+            raise ValueError('{} is not a {} purview in {}'.format(
+                fmt.fmt_mechanism(purview, system), direction, self))
+
+        if not set(mechanism).issubset(self.mechanism_indices(direction)):
+            raise ValueError('{} is no a {} mechanism in {}'.format(
+                fmt.fmt_mechanism(mechanism, system), direction, self))
+
         return system.repertoire(direction, mechanism, purview)
 
     def state_probability(self, direction, repertoire, purview,):

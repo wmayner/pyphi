@@ -311,33 +311,45 @@ def test_ac_big_mip_ordering(transition, empty_transition):
     (Direction.PAST, (0,), (1,), [[[0.3333333], [0.66666667]]]),
     (Direction.PAST, (0,), (2,), [[[0.3333333, 0.66666667]]]),
     (Direction.PAST, (0,), (1, 2), [[[0, 0.3333333], [0.3333333, 0.3333333]]]),
-    (Direction.PAST, (1,), (1,), [[[.5], [.5]]]),
     (Direction.FUTURE, (1,), (0,), [[[0]], [[1]]]),
     (Direction.FUTURE, (2,), (0,), [[[0]], [[1]]]),
     (Direction.FUTURE, (1, 2), (0,), [[[0]], [[1]]]),
-    (Direction.FUTURE, (0,), (1,), [[[0.5], [0.5]]])
 ])
 def test_repertoires(direction, mechanism, purview, repertoire, transition):
     np.testing.assert_array_almost_equal(
         transition.repertoire(direction, mechanism, purview), repertoire)
 
 
+def test_invalid_repertoires(transition):
+    '''Check that elements outside the transition cannot be passed in
+    the mechanism or purview.'''
+    with pytest.raises(ValueError):
+        transition.effect_repertoire((1, 2), (0, 1))
+
+    with pytest.raises(ValueError):
+        transition.effect_repertoire((0, 1, 2), (0,))
+
+    with pytest.raises(ValueError):
+        transition.cause_repertoire((0,), (0, 1, 2))
+
+    with pytest.raises(ValueError):
+        transition.cause_repertoire((0, 1), (1, 2))
+
+
 def test_unconstrained_repertoires(transition):
     np.testing.assert_array_equal(
-        transition.unconstrained_cause_repertoire((0,)), [[[0.5]], [[0.5]]])
+        transition.unconstrained_cause_repertoire((2,)), [[[0.5, 0.5]]])
     np.testing.assert_array_equal(
-        transition.unconstrained_effect_repertoire((2,)), [[[0.5, 0.5]]])
+        transition.unconstrained_effect_repertoire((0,)), [[[0.25]], [[0.75]]])
 
 
 @pytest.mark.parametrize('direction,mechanism,purview,probability', [
     (Direction.PAST, (0,), (1,), 0.66666667),
     (Direction.PAST, (0,), (2,), 0.66666667),
     (Direction.PAST, (0,), (1, 2), 0.3333333),
-    (Direction.PAST, (1,), (1,), 0.5),
     (Direction.FUTURE, (1,), (0,), 1),
     (Direction.FUTURE, (2,), (0,), 1),
     (Direction.FUTURE, (1, 2), (0,), 1),
-    (Direction.FUTURE, (0,), (1,), 0.5)
 ])
 def test_probability(direction, mechanism, purview, probability, transition):
     assert np.isclose(transition.probability(direction, mechanism, purview),
@@ -352,8 +364,7 @@ def test_unconstrained_probability(transition):
 @pytest.mark.parametrize('mechanism,purview,ratio', [
     ((0,), (1,), 0.41504),
     ((0,), (2,), 0.41504),
-    ((0,), (1,2), 0.41504),
-    ((1,), (1,), 0)
+    ((0,), (1, 2), 0.41504),
 ])
 def test_cause_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.cause_ratio(mechanism, purview), ratio)
@@ -363,7 +374,6 @@ def test_cause_ratio(mechanism, purview, ratio, transition):
     ((1,), (0,), 0.41504),
     ((2,), (0,), 0.41504),
     ((1, 2), (0,), 0.41504),
-    ((0,), (1,), 0)
 ])
 def test_effect_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.effect_ratio(mechanism, purview), ratio)
