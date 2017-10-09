@@ -22,7 +22,7 @@ from . import (Direction, compute, config, connectivity, constants, exceptions,
 from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
                      DirectedAccount, Event, NullCut,
                      _null_ac_bigmip, _null_ac_mip, fmt)
-from .node import Node
+from .node import generate_nodes
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
@@ -31,13 +31,6 @@ log = logging.getLogger(__name__)
 def log2(x):
     '''Rounded version of ``log2``.'''
     return round(_log2(x), config.PRECISION)
-
-
-def generate_ac_nodes(tpm, cm, network_state, indices):
-    labels = pyphi.node.default_labels(indices)
-    node_state = pyphi.utils.state_of(indices, network_state)
-    return tuple(Node(tpm, cm, index, state, label=label)
-                 for index, state, label in zip(indices, node_state, labels))
 
 
 class Transition:
@@ -126,11 +119,11 @@ class Transition:
 
         # update the TPM and nodes for the cause subsystem
         self.cause_system.tpm = tpm
-        self.cause_system.nodes = generate_ac_nodes(tpm, cm, after_state, indices)
+        self.cause_system.nodes = generate_nodes(tpm, cm, after_state, indices)
 
         # update the TPM and nodes for the effect subsystem
         self.effect_system.tpm = tpm
-        self.effect_system.nodes = generate_ac_nodes(tpm, cm, before_state, indices)
+        self.effect_system.nodes = generate_nodes(tpm, cm, before_state, indices)
 
     def __repr__(self):
         return fmt.fmt_transition(self)

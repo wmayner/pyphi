@@ -105,7 +105,8 @@ class SystemAttrs(namedtuple('SystemAttrs',
     @property
     def nodes(self):
         labels = node_labels(self.node_indices)
-        return generate_nodes(self.tpm, self.cm, self.state, labels)
+        return generate_nodes(self.tpm, self.cm, self.state, self.node_indices,
+                              labels)
 
     @staticmethod
     def pack(system):
@@ -214,7 +215,7 @@ class MacroSubsystem(Subsystem):
 
         # Re-index the subsystem nodes with the external nodes removed
         node_indices = reindex(internal_indices)
-        nodes = generate_nodes(tpm, cm, state)
+        nodes = generate_nodes(tpm, cm, state, node_indices)
 
         # Re-calcuate the tpm based on the results of the cut
         tpm = rebuild_system_tpm(node.tpm_on for node in nodes)
