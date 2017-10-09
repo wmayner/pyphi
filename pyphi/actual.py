@@ -126,11 +126,11 @@ class Transition:
 
         # update the TPM and nodes for the cause subsystem
         self.cause_system.tpm = tpm
-        self.cause_system.nodes = generate_ac_nodes(tpm, cm, before_state, indices)
+        self.cause_system.nodes = generate_ac_nodes(tpm, cm, after_state, indices)
 
         # update the TPM and nodes for the effect subsystem
         self.effect_system.tpm = tpm
-        self.effect_system.nodes = generate_ac_nodes(tpm, cm, after_state, indices)
+        self.effect_system.nodes = generate_ac_nodes(tpm, cm, before_state, indices)
 
     def __repr__(self):
         return fmt.fmt_transition(self)
