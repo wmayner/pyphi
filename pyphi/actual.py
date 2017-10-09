@@ -15,11 +15,14 @@ from math import log2 as _log2
 
 import numpy as np
 
+import pyphi
+
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
 from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
                      DirectedAccount, Event, NullCut,
                      _null_ac_bigmip, _null_ac_mip, fmt)
+from .node import Node
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
@@ -28,6 +31,13 @@ log = logging.getLogger(__name__)
 def log2(x):
     '''Rounded version of ``log2``.'''
     return round(_log2(x), config.PRECISION)
+
+
+def generate_ac_nodes(tpm, cm, network_state, indices):
+    labels = pyphi.node.default_labels(indices)
+    node_state = pyphi.utils.state_of(indices, network_state)
+    return tuple(Node(tpm, cm, index, state, label=label)
+                 for index, state, label in zip(indices, node_state, labels))
 
 
 class Transition:
@@ -106,6 +116,21 @@ class Transition:
             Direction.PAST: self.cause_system,
             Direction.FUTURE: self.effect_system
         }
+
+        # tpm with non-cause-indices as background
+        external_indices = tuple(set(network.node_indices) - set(cause_indices))
+
+        tpm = pyphi.tpm.condition_tpm(network.tpm, external_indices, before_state)
+        cm = network.connectivity_matrix
+        indices = tuple(sorted(set(cause_indices).union(effect_indices)))
+
+        # update the TPM and nodes for the cause subsystem
+        self.cause_system.tpm = tpm
+        self.cause_system.nodes = generate_ac_nodes(tpm, cm, before_state, indices)
+
+        # update the TPM and nodes for the effect subsystem
+        self.effect_system.tpm = tpm
+        self.effect_system.nodes = generate_ac_nodes(tpm, cm, after_state, indices)
 
     def __repr__(self):
         return fmt.fmt_transition(self)
