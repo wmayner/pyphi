@@ -22,7 +22,6 @@ from . import (Direction, compute, config, connectivity, constants, exceptions,
 from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
                      DirectedAccount, Event, NullCut,
                      _null_ac_bigmip, _null_ac_mip, fmt)
-from .node import generate_nodes
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
@@ -89,19 +88,32 @@ class Transition:
 
         self.cut = cut if cut is not None else NullCut(self.node_indices)
 
+        # Indices external to the cause system.
+        # The TPMs of both systems are conditioned on these background
+        # conditions.
+        external_indices = tuple(sorted(
+            set(network.node_indices) - set(cause_indices)))
+
         # Both are conditioned on the `before_state`, but we then change the
         # state of the cause context to `after_state` to reflect the fact that
         # that we are computing cause repertoires of mechanisms in that state.
-        # TODO: should we not validate the state of effect system since we
-        # never compute cause repertoires for it and therefore do not have to
-        # worry about invalid repertoires?
-        self.effect_system = Subsystem(network, before_state,
-                                       self.node_indices, self.cut)
-        self.cause_system = Subsystem(network, before_state,
-                                      self.node_indices, self.cut)
+        with config.override(VALIDATE_SUBSYSTEM_STATES=False):
+            self.effect_system = Subsystem(network, before_state,
+                                           self.node_indices, self.cut,
+                                           _external_indices=external_indices)
+
+            self.cause_system = Subsystem(network, before_state,
+                                          self.node_indices, self.cut,
+                                          _external_indices=external_indices)
+
         self.cause_system.state = after_state
         for node in self.cause_system.nodes:
             node.state = after_state[node.index]
+
+        # Validate the cause system
+        # The state of the effect system does not need to be reachable
+        # because cause repertoires are never computed for that system.
+        validate.state_reachable(self.cause_system)
 
         # Dictionary mapping causal directions to the system which is used to
         # compute repertoires in that direction
@@ -109,21 +121,6 @@ class Transition:
             Direction.PAST: self.cause_system,
             Direction.FUTURE: self.effect_system
         }
-
-        # tpm with non-cause-indices as background
-        external_indices = tuple(set(network.node_indices) - set(cause_indices))
-
-        tpm = pyphi.tpm.condition_tpm(network.tpm, external_indices, before_state)
-        cm = network.connectivity_matrix
-        indices = tuple(sorted(set(cause_indices).union(effect_indices)))
-
-        # update the TPM and nodes for the cause subsystem
-        self.cause_system.tpm = tpm
-        self.cause_system.nodes = generate_nodes(tpm, cm, after_state, indices)
-
-        # update the TPM and nodes for the effect subsystem
-        self.effect_system.tpm = tpm
-        self.effect_system.nodes = generate_nodes(tpm, cm, before_state, indices)
 
     def __repr__(self):
         return fmt.fmt_transition(self)
