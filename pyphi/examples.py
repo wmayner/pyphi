@@ -97,11 +97,16 @@ def basic_network(cm=False):
     return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
+def basic_state():
+    '''The state of nodes in :func:`~pyphi.examples.basic_network`.'''
+    return (1, 0, 0)
+
+
 def basic_subsystem():
     '''A subsystem containing all the nodes of the
     :func:`~pyphi.examples.basic_network`.'''
     net = basic_network()
-    state = (1, 0, 0)
+    state = basic_state()
     return Subsystem(net, state, range(net.size))
 
 
@@ -154,7 +159,7 @@ def basic_noisy_selfloop_subsystem():
     '''A subsystem containing all the nodes of the
     :func:`~pyphi.examples.basic_noisy_selfloop_network`.'''
     net = basic_noisy_selfloop_network()
-    state = (1, 0, 0)
+    state = basic_state()
     return Subsystem(net, state, range(net.size))
 
 
