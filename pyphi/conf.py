@@ -623,7 +623,7 @@ class PyphiConfig(Config):
     # # single micro-node subsystems as having Phi.
     SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = Option(False)
     # # Use prettier __str__-like formatting in `repr` calls.
-    REPR_VERBOSITY = Option(2)
+    REPR_VERBOSITY = Option(2, values=[0, 1, 2])
     # # Print numbers as fractions if the denominator isn't too big.
     PRINT_FRACTIONS = Option(True)
     # # Controls the number of parts in a partition.
