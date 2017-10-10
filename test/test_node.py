@@ -70,7 +70,7 @@ def test_expand_tpm():
 
 
 def test_generate_nodes(s):
-    nodes = generate_nodes(s.tpm, s.cm, s.state)
+    nodes = generate_nodes(s.tpm, s.cm, s.state, s.node_indices)
 
     node0_tpm = np.array([
         [[[1, 0],

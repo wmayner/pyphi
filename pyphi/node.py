@@ -154,13 +154,14 @@ def default_labels(indices):
     return tuple(default_label(i) for i in indices)
 
 
-def generate_nodes(tpm, cm, network_state, labels=None):
+def generate_nodes(tpm, cm, network_state, indices, labels=None):
     '''Generate |Node| objects for a subsystem.
 
     Args:
         tpm (np.ndarray): The system's TPM
         cm (np.ndarray): The corresponding CM.
         network_state (tuple): The state of the network.
+        indices (tuple[int]): Indices to generate nodes for.
 
     Keyword Args:
         labels (tuple[str]): Textual labels for each node.
@@ -168,9 +169,6 @@ def generate_nodes(tpm, cm, network_state, labels=None):
     Returns:
         tuple[Node]: The nodes of the system.
     '''
-    # Indices in the TPM
-    indices = tpm_indices(tpm)
-
     if labels is None:
         labels = default_labels(indices)
     else:

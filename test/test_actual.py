@@ -49,6 +49,90 @@ def prevention():
     return examples.prevention()
 
 
+# Testing background conditions
+#
+
+@pytest.fixture
+def background_all_on():
+    '''Two OR gates, both ON.
+
+    If we look at the transition A -> B, then B should be frozen at t-1, and
+    A should have no effect on B.
+    '''
+    tpm = np.array([
+        [0, 0],
+        [1, 1],
+        [1, 1],
+        [1, 1]
+    ])
+    network = Network(tpm)
+    state = (1, 1)
+    return actual.Transition(network, state, state, (0,), (1,))
+
+
+@pytest.fixture
+def background_all_off():
+    '''Two OR gates, both OFF.'''
+    tpm = np.array([
+        [0, 0],
+        [1, 1],
+        [1, 1],
+        [1, 1]
+    ])
+    network = Network(tpm)
+    state = (0, 0)
+    return actual.Transition(network, state, state, (0,), (1,))
+
+
+@pytest.mark.parametrize('transition,direction,mechanism,purview,ratio', [
+    (background_all_off, Direction.FUTURE, (0,), (1,), 1),
+    (background_all_off, Direction.PAST, (1,), (0,), 1),
+    (background_all_on, Direction.FUTURE, (0,), (1,), 0),
+    (background_all_on, Direction.PAST, (1,), (0,), 0)])
+def test_background_conditions(transition, direction, mechanism, purview, ratio):
+    assert transition()._ratio(direction, mechanism, purview) == ratio
+
+
+@pytest.fixture
+def background_3_node():
+    '''A is MAJ(ABC). B is OR(A, C). C is COPY(A).'''
+    tpm = np.array([
+        [0, 0, 0],
+        [0, 1, 1],
+        [0, 0, 0],
+        [1, 1, 1],
+        [0, 1, 0],
+        [1, 1, 1],
+        [1, 1, 0],
+        [1, 1, 1]
+    ])
+    return Network(tpm)
+
+
+@pytest.mark.parametrize('before_state,purview,alpha', [
+    # If C = 1, then AB over AC should be reducible.
+    ((1, 1, 1), (0, 2), 0.0),
+    # If C = 0, then AB over AC should be irreducible.
+    ((1, 1, 0), (0, 2), 1.0)])
+def test_background_3_node(before_state, purview, alpha, background_3_node):
+    '''Looking at transition (AB = 11) -> (AC = 11)'''
+    after_state = (1, 1, 1)
+    transition = actual.Transition(background_3_node, before_state, after_state,
+                                   (0, 1), (0, 2))
+    causal_link = transition.find_causal_link(Direction.FUTURE, (0, 1))
+    assert causal_link.purview == purview
+    assert causal_link.alpha == alpha
+
+
+def test_potential_purviews(background_3_node):
+    '''Purviews must be a subset of the corresponding cause/effect system.'''
+    transition = actual.Transition(background_3_node, (1, 1, 1), (1, 1, 1),
+                                   (0, 1), (0, 2))
+    assert transition.potential_purviews(Direction.PAST, (0, 2)) == [
+        (0,), (1,), (0, 1)]
+    assert transition.potential_purviews(Direction.FUTURE, (0, 1)) == [
+        (0,), (2,), (0, 2)]
+
 
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -227,33 +311,45 @@ def test_ac_big_mip_ordering(transition, empty_transition):
     (Direction.PAST, (0,), (1,), [[[0.3333333], [0.66666667]]]),
     (Direction.PAST, (0,), (2,), [[[0.3333333, 0.66666667]]]),
     (Direction.PAST, (0,), (1, 2), [[[0, 0.3333333], [0.3333333, 0.3333333]]]),
-    (Direction.PAST, (1,), (1,), [[[.5], [.5]]]),
     (Direction.FUTURE, (1,), (0,), [[[0]], [[1]]]),
     (Direction.FUTURE, (2,), (0,), [[[0]], [[1]]]),
     (Direction.FUTURE, (1, 2), (0,), [[[0]], [[1]]]),
-    (Direction.FUTURE, (0,), (1,), [[[0.5], [0.5]]])
 ])
 def test_repertoires(direction, mechanism, purview, repertoire, transition):
     np.testing.assert_array_almost_equal(
         transition.repertoire(direction, mechanism, purview), repertoire)
 
 
+def test_invalid_repertoires(transition):
+    '''Check that elements outside the transition cannot be passed in
+    the mechanism or purview.'''
+    with pytest.raises(ValueError):
+        transition.effect_repertoire((1, 2), (0, 1))
+
+    with pytest.raises(ValueError):
+        transition.effect_repertoire((0, 1, 2), (0,))
+
+    with pytest.raises(ValueError):
+        transition.cause_repertoire((0,), (0, 1, 2))
+
+    with pytest.raises(ValueError):
+        transition.cause_repertoire((0, 1), (1, 2))
+
+
 def test_unconstrained_repertoires(transition):
     np.testing.assert_array_equal(
-        transition.unconstrained_cause_repertoire((0,)), [[[0.5]], [[0.5]]])
+        transition.unconstrained_cause_repertoire((2,)), [[[0.5, 0.5]]])
     np.testing.assert_array_equal(
-        transition.unconstrained_effect_repertoire((2,)), [[[0.5, 0.5]]])
+        transition.unconstrained_effect_repertoire((0,)), [[[0.25]], [[0.75]]])
 
 
 @pytest.mark.parametrize('direction,mechanism,purview,probability', [
     (Direction.PAST, (0,), (1,), 0.66666667),
     (Direction.PAST, (0,), (2,), 0.66666667),
     (Direction.PAST, (0,), (1, 2), 0.3333333),
-    (Direction.PAST, (1,), (1,), 0.5),
     (Direction.FUTURE, (1,), (0,), 1),
     (Direction.FUTURE, (2,), (0,), 1),
     (Direction.FUTURE, (1, 2), (0,), 1),
-    (Direction.FUTURE, (0,), (1,), 0.5)
 ])
 def test_probability(direction, mechanism, purview, probability, transition):
     assert np.isclose(transition.probability(direction, mechanism, purview),
@@ -268,8 +364,7 @@ def test_unconstrained_probability(transition):
 @pytest.mark.parametrize('mechanism,purview,ratio', [
     ((0,), (1,), 0.41504),
     ((0,), (2,), 0.41504),
-    ((0,), (1,2), 0.41504),
-    ((1,), (1,), 0)
+    ((0,), (1, 2), 0.41504),
 ])
 def test_cause_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.cause_ratio(mechanism, purview), ratio)
@@ -279,7 +374,6 @@ def test_cause_ratio(mechanism, purview, ratio, transition):
     ((1,), (0,), 0.41504),
     ((2,), (0,), 0.41504),
     ((1, 2), (0,), 0.41504),
-    ((0,), (1,), 0)
 ])
 def test_effect_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.effect_ratio(mechanism, purview), ratio)

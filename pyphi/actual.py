@@ -15,6 +15,8 @@ from math import log2 as _log2
 
 import numpy as np
 
+import pyphi
+
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
 from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
@@ -86,19 +88,32 @@ class Transition:
 
         self.cut = cut if cut is not None else NullCut(self.node_indices)
 
+        # Indices external to the cause system.
+        # The TPMs of both systems are conditioned on these background
+        # conditions.
+        external_indices = tuple(sorted(
+            set(network.node_indices) - set(cause_indices)))
+
         # Both are conditioned on the `before_state`, but we then change the
         # state of the cause context to `after_state` to reflect the fact that
         # that we are computing cause repertoires of mechanisms in that state.
-        # TODO: should we not validate the state of effect system since we
-        # never compute cause repertoires for it and therefore do not have to
-        # worry about invalid repertoires?
-        self.effect_system = Subsystem(network, before_state,
-                                       self.node_indices, self.cut)
-        self.cause_system = Subsystem(network, before_state,
-                                      self.node_indices, self.cut)
+        with config.override(VALIDATE_SUBSYSTEM_STATES=False):
+            self.effect_system = Subsystem(network, before_state,
+                                           self.node_indices, self.cut,
+                                           _external_indices=external_indices)
+
+            self.cause_system = Subsystem(network, before_state,
+                                          self.node_indices, self.cut,
+                                          _external_indices=external_indices)
+
         self.cause_system.state = after_state
         for node in self.cause_system.nodes:
             node.state = after_state[node.index]
+
+        # Validate the cause system
+        # The state of the effect system does not need to be reachable
+        # because cause repertoires are never computed for that system.
+        validate.state_reachable(self.cause_system)
 
         # Dictionary mapping causal directions to the system which is used to
         # compute repertoires in that direction
@@ -149,11 +164,11 @@ class Transition:
 
     def cause_repertoire(self, mechanism, purview):
         '''Return the cause repertoire.'''
-        return self.cause_system.cause_repertoire(mechanism, purview)
+        return self.repertoire(Direction.PAST, mechanism, purview)
 
     def effect_repertoire(self, mechanism, purview):
         '''Return the effect repertoire.'''
-        return self.effect_system.effect_repertoire(mechanism, purview)
+        return self.repertoire(Direction.FUTURE, mechanism, purview)
 
     def unconstrained_cause_repertoire(self, purview):
         '''Return the unconstrained cause repertoire of the occurence.'''
@@ -172,6 +187,15 @@ class Transition:
                 effect repertoire.
         '''
         system = self.system[direction]
+
+        if not set(purview).issubset(self.purview_indices(direction)):
+            raise ValueError('{} is not a {} purview in {}'.format(
+                fmt.fmt_mechanism(purview, system), direction, self))
+
+        if not set(mechanism).issubset(self.mechanism_indices(direction)):
+            raise ValueError('{} is no a {} mechanism in {}'.format(
+                fmt.fmt_mechanism(mechanism, system), direction, self))
+
         return system.repertoire(direction, mechanism, purview)
 
     def state_probability(self, direction, repertoire, purview,):
@@ -322,11 +346,13 @@ class Transition:
             direction (str): Either |PAST| or |FUTURE|.
             mechanism (tuple[int]): The mechanism of interest.
 
-        Keyword Argss:
+        Keyword Args:
             purviews (tuple[int]): Optional subset of purviews of interest.
         '''
         system = self.system[direction]
-        return system.potential_purviews(direction, mechanism, purviews)
+        return [purview for purview in system.potential_purviews(
+                    direction, mechanism, purviews)
+                if set(purview).issubset(self.purview_indices(direction))]
 
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')
