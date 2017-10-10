@@ -501,6 +501,24 @@ class Config:
         return _override(self, **new_config)
 
 
+class _override(contextlib.ContextDecorator):
+    '''See ``Config.override`` for usage.'''
+
+    def __init__(self, config, **new_conf):
+        self.config = config
+        self.new_conf = new_conf
+        self.initial_conf = config.snapshot()
+
+    def __enter__(self):
+        '''Save original config values; override with new ones.'''
+        self.config.load_config_dict(self.new_conf)
+
+    def __exit__(self, *exc):
+        '''Reset config to initial values; reraise any exceptions.'''
+        self.config.load_config_dict(self.initial_conf)
+        return False
+
+
 def configure_logging(config):
     '''Reconfigure PyPhi logging based on the current configuration.'''
     logging.config.dictConfig({
@@ -616,24 +634,6 @@ class PyphiConfig(Config):
     USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE = Option(False)
     # # The type of system cuts to use
     SYSTEM_CUTS = Option('3.0_STYLE')
-
-
-class _override(contextlib.ContextDecorator):
-    '''See ``Config.override`` for usage.'''
-
-    def __init__(self, config, **new_conf):
-        self.config = config
-        self.new_conf = new_conf
-        self.initial_conf = config.snapshot()
-
-    def __enter__(self):
-        '''Save original config values; override with new ones.'''
-        self.config.load_config_dict(self.new_conf)
-
-    def __exit__(self, *exc):
-        '''Reset config to initial values; reraise any exceptions.'''
-        self.config.load_config_dict(self.initial_conf)
-        return False
 
 
 def print_config():
