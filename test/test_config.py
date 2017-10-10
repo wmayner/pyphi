@@ -141,10 +141,13 @@ def test_reconfigure_logging_on_change(capsys):
 
 
 @config.override()
-def test_validate_partition_type():
-    config.PARTITION_TYPE = 'BI'
-    config.PARTITION_TYPE = 'TRI'
-    config.PARTITION_TYPE = 'ALL'
+@pytest.mark.parametrize('name,valid,invalid', [
+    ('PARTITION_TYPE', ['BI', 'TRI', 'ALL'], ['QUAD']),
+    ('SYSTEM_CUTS', ['3.0_STYLE', 'CONCEPT_STYLE'], ['OTHER'])])
+def test_config_validation(name, valid, invalid):
+    for value in valid:
+        setattr(config, name, value)
 
-    with pytest.raises(ValueError):
-        config.PARTITION_TYPE = 'QUAD'
+    for value in invalid:
+        with pytest.raises(ValueError):
+            setattr(config, name, value)

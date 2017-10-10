@@ -633,7 +633,7 @@ class PyphiConfig(Config):
     # # Use the difference in sum of small phi for the constellation distance
     USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE = Option(False)
     # # The type of system cuts to use
-    SYSTEM_CUTS = Option('3.0_STYLE')
+    SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'])
 
 
 def print_config():
