@@ -138,3 +138,13 @@ def test_reconfigure_logging_on_change(capsys):
         log.warning('Another warning.')
     out, err = capsys.readouterr()
     assert err == ''
+
+
+@config.override()
+def test_validate_partition_type():
+    config.PARTITION_TYPE = 'BI'
+    config.PARTITION_TYPE = 'TRI'
+    config.PARTITION_TYPE = 'ALL'
+
+    with pytest.raises(ValueError):
+        config.PARTITION_TYPE = 'QUAD'

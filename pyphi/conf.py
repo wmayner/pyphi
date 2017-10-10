@@ -627,7 +627,7 @@ class PyphiConfig(Config):
     # # Print numbers as fractions if the denominator isn't too big.
     PRINT_FRACTIONS = Option(True)
     # # Controls the number of parts in a partition.
-    PARTITION_TYPE = Option('BI')
+    PARTITION_TYPE = Option('BI', values=['BI', 'TRI', 'ALL'])
     # # Controls how to pick MIPs in the case of phi-ties.
     PICK_SMALLEST_PURVIEW = Option(False)
     # # Use the difference in sum of small phi for the constellation distance

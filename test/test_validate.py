@@ -210,12 +210,3 @@ def test_validate_blackbox_and_coarsegrain():
     coarse_grain = macro.CoarseGrain(((0,), (1, 2)), ((0, 1), (2,)))
     with pytest.raises(ValueError):
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
-
-
-def test_validate_partition_type():
-    validate.partition_type('BI')
-    validate.partition_type('TRI')
-    validate.partition_type('ALL')
-
-    with pytest.raises(ValueError):
-        validate.partition_type('WEDGE')
