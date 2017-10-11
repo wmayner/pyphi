@@ -562,32 +562,32 @@ class PyphiConfig(Config):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Controls whether concepts are evaluated in parallel.
     PARALLEL_CONCEPT_EVALUATION = Option(False)
-    # # Controls whether cuts are evaluated in parallel, which requires more
-    # # memory. If cuts are evaluated sequentially, only two BigMips need to be
-    # # in memory at a time.
+    # Controls whether cuts are evaluated in parallel, which requires more
+    # memory. If cuts are evaluated sequentially, only two BigMips need to be
+    # in memory at a time.
     PARALLEL_CUT_EVALUATION = Option(True)
-    # # Controls whether systems are evaluated in parallel when searching for
-    # # complexes.
+    # Controls whether systems are evaluated in parallel when searching for
+    # complexes.
     PARALLEL_COMPLEX_EVALUATION = Option(False)
-    # # The number of CPU cores to use in parallel cut evaluation. -1 means all
-    # # available cores, -2 means all but one available cores, etc.
+    # The number of CPU cores to use in parallel cut evaluation. -1 means all
+    # available cores, -2 means all but one available cores, etc.
     NUMBER_OF_CORES = Option(-1)
-    # # The maximum percentage of RAM that PyPhi should use for caching.
+    # The maximum percentage of RAM that PyPhi should use for caching.
     MAXIMUM_CACHE_MEMORY_PERCENTAGE = Option(50)
-    # # Controls whether BigMips are cached and retreived.
+    # Controls whether BigMips are cached and retreived.
     CACHE_BIGMIPS = Option(False)
-    # # Controls whether the potential purviews of the mechanisms of a network
-    # # are cached. Speeds up calculations, but takes up additional memory.
+    # Controls whether the potential purviews of the mechanisms of a network
+    # are cached. Speeds up calculations, but takes up additional memory.
     CACHE_POTENTIAL_PURVIEWS = Option(True)
-    # # The caching system to use. "fs" means cache results in a subdirectory of
-    # # the current directory; "db" means connect to a database and store the
-    # # results there.
+    # The caching system to use. "fs" means cache results in a subdirectory of
+    # the current directory; "db" means connect to a database and store the
+    # results there.
     CACHING_BACKEND = Option('fs')
-    # # joblib.Memory verbosity.
+    # joblib.Memory verbosity.
     FS_CACHE_VERBOSITY = Option(0)
-    # # Directory for the persistent joblib Memory cache.
+    # Directory for the persistent joblib Memory cache.
     FS_CACHE_DIRECTORY = Option('__pyphi_cache__')
-    # # MongoDB configuration.
+    # MongoDB configuration.
     MONGODB_CONFIG = Option({
         'host': 'localhost',
         'port': 27017,
@@ -595,44 +595,44 @@ class PyphiConfig(Config):
         'collection_name': 'cache'
     })
 
-    # # Use Redis to cache Mice
+    # Use Redis to cache Mice
     REDIS_CACHE = Option(False)
-    # # Redis configuration
+    # Redis configuration
     REDIS_CONFIG = Option({
         'host': 'localhost',
         'port': 6379,
     })
-    # # The file to log to
+    # The file to log to
     LOG_FILE = Option('pyphi.log', on_change=configure_logging)
-    # # The log level to write to `LOG_FILE`
+    # The log level to write to `LOG_FILE`
     LOG_FILE_LEVEL = Option('INFO', on_change=configure_logging)
-    # # The log level to write to stdout
+    # The log level to write to stdout
     LOG_STDOUT_LEVEL = Option('WARNING', on_change=configure_logging)
-    # # Controls whether the current configuration is logged upon import.
+    # Controls whether the current configuration is logged upon import.
     LOG_CONFIG_ON_IMPORT = Option(True)
-    # # Enable/disable progress bars
+    # Enable/disable progress bars
     PROGRESS_BARS = Option(True)
-    # # The number of decimal points to which phi values are considered accurate.
+    # The number of decimal points to which phi values are considered accurate.
     PRECISION = Option(6)
-    # # Controls whether a subsystem's state is validated when the subsystem is
-    # # created.
+    # Controls whether a subsystem's state is validated when the subsystem is
+    # created.
     VALIDATE_SUBSYSTEM_STATES = Option(True)
-    # # Controls whether systems are checked for conditional independence.
+    # Controls whether systems are checked for conditional independence.
     VALIDATE_CONDITIONAL_INDEPENDENCE = Option(True)
-    # # In some applications of this library, the user may prefer to define
-    # # single micro-node subsystems as having Phi.
+    # In some applications of this library, the user may prefer to define
+    # single micro-node subsystems as having Phi.
     SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = Option(False)
-    # # Use prettier __str__-like formatting in `repr` calls.
+    # Use prettier __str__-like formatting in `repr` calls.
     REPR_VERBOSITY = Option(2, values=[0, 1, 2])
-    # # Print numbers as fractions if the denominator isn't too big.
+    # Print numbers as fractions if the denominator isn't too big.
     PRINT_FRACTIONS = Option(True)
-    # # Controls the number of parts in a partition.
+    # Controls the number of parts in a partition.
     PARTITION_TYPE = Option('BI', values=['BI', 'TRI', 'ALL'])
-    # # Controls how to pick MIPs in the case of phi-ties.
+    # Controls how to pick MIPs in the case of phi-ties.
     PICK_SMALLEST_PURVIEW = Option(False)
-    # # Use the difference in sum of small phi for the constellation distance
+    # Use the difference in sum of small phi for the constellation distance
     USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE = Option(False)
-    # # The type of system cuts to use
+    # The type of system cuts to use
     SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'])
 
 
