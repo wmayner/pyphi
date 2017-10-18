@@ -53,6 +53,10 @@ class Transition:
         effect_indices (tuple[int] or tuple[str]): Indices of nodes in the
             effect system. (TODO: clarify)
 
+    Keyword Args:
+        noise_background (bool): If ``True``, background conditions are
+            noised instead of frozen.
+
     Attributes:
         node_indices (tuple[int]): The indices of the nodes in the system.
         network (Network): The network the system belongs to.
@@ -75,7 +79,7 @@ class Transition:
     '''
 
     def __init__(self, network, before_state, after_state, cause_indices,
-                 effect_indices, cut=None):
+                 effect_indices, cut=None, noise_background=False):
 
         self.network = network
         self.before_state = before_state
@@ -91,8 +95,15 @@ class Transition:
         # Indices external to the cause system.
         # The TPMs of both systems are conditioned on these background
         # conditions.
-        external_indices = tuple(sorted(
-            set(network.node_indices) - set(cause_indices)))
+
+        if noise_background:
+            # Freeze nothing. Background conditions are noised during
+            # repertoire computation
+            external_indices = ()
+        else:
+            # Otherwise, freeze the background conditions.
+            external_indices = tuple(sorted(
+                set(network.node_indices) - set(cause_indices)))
 
         # Both are conditioned on the `before_state`, but we then change the
         # state of the cause context to `after_state` to reflect the fact that

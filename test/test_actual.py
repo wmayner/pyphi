@@ -93,6 +93,28 @@ def test_background_conditions(transition, direction, mechanism, purview, ratio)
     assert transition()._ratio(direction, mechanism, purview) == ratio
 
 
+def test_background_noised():
+    tpm = np.array([
+        [0, 0],
+        [1, 1],
+        [1, 1],
+        [1, 1]
+    ])
+    network = Network(tpm)
+    state = (1, 1)
+    transition = actual.Transition(network, state, state, (0,), (1,),
+                                   noise_background=True)
+
+    assert transition._ratio(Direction.FUTURE, (0,), (1,)) == 0.415037
+    assert transition._ratio(Direction.PAST, (1,), (0,)) == 0.415037
+
+    # Elements outside the transition are also frozen
+    transition = actual.Transition(network, state, state, (0,), (0,),
+                                   noise_background=True)
+    assert np.array_equal(transition.cause_system.tpm, network.tpm)
+    assert np.array_equal(transition.effect_system.tpm, network.tpm)
+
+
 @pytest.fixture
 def background_3_node():
     '''A is MAJ(ABC). B is OR(A, C). C is COPY(A).'''
