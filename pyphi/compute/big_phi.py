@@ -235,28 +235,25 @@ def big_phi(subsystem):
     return big_mip(subsystem).phi
 
 
-def subsystems(network, state):
-    '''Return a generator of all **possible** subsystems of a network.
-
-    Does not return subsystems that are in an impossible state.
-    '''
+def _reachable_subsystems(network, indices, state):
+    '''A generator over all subsystems in a valid state.'''
     validate.is_network(network)
 
-    for subset in utils.powerset(network.node_indices, nonempty=True,
-                                 reverse=True):
+    # Return subsystems largest to smallest to optimize parallel
+    # resource usage.
+    for subset in utils.powerset(indices, nonempty=True, reverse=True):
         try:
             yield Subsystem(network, state, subset)
         except exceptions.StateUnreachableError:
             pass
 
 
-def all_complexes(network, state):
-    '''Return a generator for all complexes of the network.
+def subsystems(network, state):
+    '''Return a generator of all **possible** subsystems of a network.
 
-    Includes reducible, zero-|big_phi| complexes (which are not, strictly
-    speaking, complexes at all).
+    Does not return subsystems that are in an impossible state.
     '''
-    return (big_mip(subsystem) for subsystem in subsystems(network, state))
+    return _reachable_subsystems(network, network.node_indices, state)
 
 
 def possible_complexes(network, state):
@@ -276,17 +273,17 @@ def possible_complexes(network, state):
     Yields:
         Subsystem: The next subsystem which could be a complex.
     '''
-    validate.is_network(network)
+    return _reachable_subsystems(network, network.causally_significant_nodes,
+                                 state)
 
-    # Return subsystems largest to smallest to optimize parallel
-    # resource usage.
-    for subset in utils.powerset(network.causally_significant_nodes,
-                                 nonempty=True, reverse=True):
-        # Don't return subsystems that are in an impossible state.
-        try:
-            yield Subsystem(network, state, subset)
-        except exceptions.StateUnreachableError:
-            continue
+
+def all_complexes(network, state):
+    '''Return a generator for all complexes of the network.
+
+    Includes reducible, zero-|big_phi| complexes (which are not, strictly
+    speaking, complexes at all).
+    '''
+    return (big_mip(subsystem) for subsystem in subsystems(network, state))
 
 
 class FindComplexes(MapReduce):
