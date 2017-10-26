@@ -139,30 +139,43 @@ def comb_indices(n, k):
     return indices.reshape(-1, k)
 
 
-# TODO? implement this with numpy
 # From https://docs.python.org/3/library/itertools.html#itertools-recipes
-def powerset(iterable, nonempty=False):
+def powerset(iterable, nonempty=False, reverse=False):
     '''Generate the power set of an iterable.
 
     Args:
         iterable (Iterable): The iterable from which to generate the power set.
+
+    Keyword Args:
+        nonempty (boolean): If True, don't include the empty set.
+        reverse (boolean): If True, reverse the order of the powerset.
 
     Returns:
         generator: An chained generator over the power set.
 
     Example:
         >>> ps = powerset(np.arange(2))
-        >>> print(list(ps))
+        >>> list(ps)
         [(), (0,), (1,), (0, 1)]
         >>> ps = powerset(np.arange(2), nonempty=True)
-        >>> print(list(ps))
+        >>> list(ps)
         [(0,), (1,), (0, 1)]
+        >>> ps = powerset(np.arange(2), nonempty=True, reverse=True)
+        >>> list(ps)
+        [(1, 0), (1,), (0,)]
     '''
-    result = chain.from_iterable(combinations(iterable, r) for r in
-                                 range(len(iterable) + 1))
-    if nonempty:
-        return islice(result, 1, None)
-    return result
+    if nonempty: # Don't include 0-length subsets
+        start = 1
+    else:
+        start = 0
+
+    seq_sizes = range(start, len(iterable) + 1)
+
+    if reverse:
+        seq_sizes = reversed(seq_sizes)
+        iterable = list(reversed(iterable))
+
+    return chain.from_iterable(combinations(iterable, r) for r in seq_sizes)
 
 
 def load_data(directory, num):
