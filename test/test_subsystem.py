@@ -51,6 +51,8 @@ def test_empty_init(s):
 def test_eq(subsys_n0n2, subsys_n1n2):
     assert subsys_n0n2 == subsys_n0n2
     assert subsys_n0n2 != subsys_n1n2
+    assert subsys_n0n2 != None
+    assert None != subsys_n1n2
 
 
 def test_cmp(subsys_n0n2, subsys_n1n2, s):

@@ -16,7 +16,7 @@ from . import Direction, cache, config, distribution, utils, validate
 from .distance import small_phi_measure as measure
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, KPartition, Mice, Mip, NullCut,
-                     Part, Tripartition, _null_mip)
+                     Part, Tripartition, _null_mip, cmp)
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,
@@ -188,6 +188,9 @@ class Subsystem:
         Two Subsystems are equal if their sets of nodes, networks, and cuts are
         equal.
         '''
+        if type(self) != type(other):
+            return False
+
         return (set(self.node_indices) == set(other.node_indices)
                 and self.state == other.state
                 and self.network == other.network
