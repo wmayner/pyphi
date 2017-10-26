@@ -529,15 +529,15 @@ def test_true_events(standard):
     assert len(events) == 2
 
     true_cause1, true_effect1 = events[0]
-    assert events[0].mechanism == (0,)
+    assert events[0].mechanism == (1,)
 
     assert true_cause1.alpha == 1.0
-    assert true_cause1.mechanism == (0,)
+    assert true_cause1.mechanism == (1,)
     assert true_cause1.purview == (2,)
     assert true_cause1.direction == Direction.PAST
 
     assert true_effect1.alpha == 1.0
-    assert true_effect1.mechanism == (0,)
+    assert true_effect1.mechanism == (1,)
     assert true_effect1.purview == (2,)
     assert true_effect1.direction == Direction.FUTURE
 
@@ -546,12 +546,12 @@ def test_true_events(standard):
 
     assert true_cause2.alpha == 1.0
     assert true_cause2.mechanism == (2,)
-    assert true_cause2.purview == (0,)
+    assert true_cause2.purview == (1,)
     assert true_cause2.direction == Direction.PAST
 
     assert true_effect2.alpha == 1.0
     assert true_effect2.mechanism == (2,)
-    assert true_effect2.purview == (0,)
+    assert true_effect2.purview == (1,)
     assert true_effect2.direction == Direction.FUTURE
 
 
