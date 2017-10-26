@@ -434,25 +434,25 @@ def test_find_mip_sequential_micro(micro_s_FindMip, flushcache,
 
 def test_possible_complexes(s):
     assert list(compute.possible_complexes(s.network, s.state)) == [
-        Subsystem(s.network, s.state, (1,)),
-        Subsystem(s.network, s.state, (0, 1)),
-        Subsystem(s.network, s.state, (0, 2)),
-        Subsystem(s.network, s.state, (1, 2)),
         Subsystem(s.network, s.state, (0, 1, 2)),
+        Subsystem(s.network, s.state, (1, 2)),
+        Subsystem(s.network, s.state, (0, 2)),
+        Subsystem(s.network, s.state, (0, 1)),
+        Subsystem(s.network, s.state, (1,)),
     ]
 
 
 def test_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
     complexes = list(compute.complexes(s.network, s.state))
-    check_mip(complexes[2], standard_answer)
+    check_mip(complexes[0], standard_answer)
 
 
 # TODO!! add more assertions for the smaller subsystems
 def test_all_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
     complexes = list(compute.all_complexes(s.network, s.state))
-    check_mip(complexes[-1], standard_answer)
+    check_mip(complexes[0], standard_answer)
 
 
 def test_big_mip_complete_graph_standard_example(s_complete):

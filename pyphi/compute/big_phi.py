@@ -242,7 +242,8 @@ def subsystems(network, state):
     '''
     validate.is_network(network)
 
-    for subset in utils.powerset(network.node_indices, nonempty=True):
+    for subset in utils.powerset(network.node_indices, nonempty=True,
+                                 reverse=True):
         try:
             yield Subsystem(network, state, subset)
         except exceptions.StateUnreachableError:
@@ -277,8 +278,10 @@ def possible_complexes(network, state):
     '''
     validate.is_network(network)
 
+    # Return subsystems largest to smallest to optimize parallel
+    # resource usage.
     for subset in utils.powerset(network.causally_significant_nodes,
-                                 nonempty=True):
+                                 nonempty=True, reverse=True):
         # Don't return subsystems that are in an impossible state.
         try:
             yield Subsystem(network, state, subset)
