@@ -455,6 +455,18 @@ def test_all_complexes_standard(s, flushcache, restore_fs_cache):
     check_mip(complexes[0], standard_answer)
 
 
+@config.override(PARALLEL_CUT_EVALUATION=False)
+def test_all_complexes_parallelization(s, flushcache, restore_fs_cache):
+    flushcache()
+    with config.override(PARALLEL_COMPLEX_EVALUATION=False):
+        serial = compute.all_complexes(s.network, s.state)
+
+    with config.override(PARALLEL_COMPLEX_EVALUATION=True):
+        parallel = compute.all_complexes(s.network, s.state)
+
+    assert sorted(serial) == sorted(parallel)
+
+
 def test_big_mip_complete_graph_standard_example(s_complete):
     mip = compute.big_mip(s_complete)
     check_mip(mip, standard_answer)

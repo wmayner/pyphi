@@ -276,20 +276,9 @@ def possible_complexes(network, state):
     return _reachable_subsystems(network, network.causally_significant_nodes,
                                  state)
 
-
-def all_complexes(network, state):
-    '''Return a generator for all complexes of the network.
-
-    Includes reducible, zero-|big_phi| complexes (which are not, strictly
-    speaking, complexes at all).
-    '''
-    return (big_mip(subsystem) for subsystem in subsystems(network, state))
-
-
-class FindComplexes(MapReduce):
-    '''Computation engine for computing irreducible complexes of a network.'''
+class FindAllComplexes(MapReduce):
+    '''Computation engine for computing all complexes'''
     # pylint: disable=unused-argument,arguments-differ
-
     description = 'Finding complexes'
 
     def empty_result(self):
@@ -300,6 +289,24 @@ class FindComplexes(MapReduce):
         return big_mip(subsystem)
 
     def process_result(self, new_big_mip, big_mips):
+        big_mips.append(new_big_mip)
+        return big_mips
+
+
+def all_complexes(network, state):
+    '''Return a generator for all complexes of the network.
+
+    Includes reducible, zero-|big_phi| complexes (which are not, strictly
+    speaking, complexes at all).
+    '''
+    engine = FindAllComplexes(subsystems(network, state))
+    return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
+
+
+class FindIrreducibleComplexes(FindAllComplexes):
+    '''Computation engine for computing irreducible complexes of a network.'''
+
+    def process_result(self, new_big_mip, big_mips):
         if new_big_mip.phi > 0:
             big_mips.append(new_big_mip)
         return big_mips
@@ -307,7 +314,7 @@ class FindComplexes(MapReduce):
 
 def complexes(network, state):
     '''Return all irreducible complexes of the network.'''
-    engine = FindComplexes(possible_complexes(network, state))
+    engine = FindIrreducibleComplexes(possible_complexes(network, state))
     return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
 
 
