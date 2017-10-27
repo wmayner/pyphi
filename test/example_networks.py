@@ -16,8 +16,7 @@ use_connectivity_matrices = True
 
 standard = pyphi.examples.basic_network
 s = pyphi.examples.basic_subsystem
-
-s_state = s().state
+s_state = pyphi.examples.basic_state()
 
 
 def s_empty():

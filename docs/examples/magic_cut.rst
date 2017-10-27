@@ -25,8 +25,7 @@ greater integrated information than the original micro scale. We can now
 analyze the micro scale to determine the main complex of the system:
 
     >>> main_complex = pyphi.compute.main_complex(network, state)
-    >>> subsystem = main_complex.subsystem
-    >>> subsystem
+    >>> main_complex.subsystem
     Subsystem(A, B, C)
     >>> print(main_complex.phi)
     1.35708
@@ -38,7 +37,7 @@ effect of the MIP.
 
     >>> constellation = main_complex.unpartitioned_constellation
 
-There two equalivalent cuts for this system; for concreteness we sever all
+There two equivalent cuts for this system; for concreteness we sever all
 connections from elements |A| and |B| to |C|.
 
     >>> cut = pyphi.models.Cut(from_nodes=(0, 1), to_nodes=(2,))
