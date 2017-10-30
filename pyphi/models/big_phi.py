@@ -72,7 +72,7 @@ class BigMip(cmp.Orderable):
     unorderable_unless_eq = ['network']
 
     def order_by(self):
-        return [self.phi, len(self.subsystem)]
+        return [self.phi, len(self.subsystem), self.subsystem.node_indices]
 
     def __eq__(self, other):
         return cmp.general_eq(self, other, _bigmip_attributes)

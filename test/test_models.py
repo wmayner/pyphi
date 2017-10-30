@@ -566,13 +566,15 @@ def test_constellations_are_always_normalized():
 # {{{
 
 
-def test_bigmip_ordering(s, s_noised):
+def test_bigmip_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
     phi1 = bigmip(subsystem=s)
     phi2 = bigmip(subsystem=s, phi=1.0 + constants.EPSILON * 2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
+
+    assert bigmip(subsystem=subsys_n0n2) < bigmip(subsystem=subsys_n1n2)
 
     different_system = bigmip(subsystem=s_noised)
     with pytest.raises(TypeError):
