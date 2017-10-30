@@ -164,6 +164,8 @@ def powerset(iterable, nonempty=False, reverse=False):
         >>> list(ps)
         [(1, 0), (1,), (0,)]
     '''
+    iterable = list(iterable)
+
     if nonempty: # Don't include 0-length subsets
         start = 1
     else:
@@ -173,7 +175,7 @@ def powerset(iterable, nonempty=False, reverse=False):
 
     if reverse:
         seq_sizes = reversed(seq_sizes)
-        iterable = list(reversed(iterable))
+        iterable.reverse()
 
     return chain.from_iterable(combinations(iterable, r) for r in seq_sizes)
 

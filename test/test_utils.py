@@ -67,6 +67,11 @@ def test_powerset():
     assert list(utils.powerset(a)) == [(), (0,), (1,), (0, 1)]
 
 
+def test_powerset_takes_iterable():
+    a = iter([0, 1])
+    assert list(utils.powerset(a)) ==[(), (0,), (1,), (0, 1)]
+
+
 def test_np_hashable():
     a = np.ones((2, 2))
     a_hashable = utils.np_hashable(a)
