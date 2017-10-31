@@ -201,6 +201,8 @@ def _big_mip(cache_key, subsystem):
     return result
 
 
+# TODO(maintainance): don't forget to add any new configuration options here if
+# they can change big-phi values
 def _big_mip_cache_key(subsystem):
     '''The cache key of the subsystem.
 
@@ -214,7 +216,8 @@ def _big_mip_cache_key(subsystem):
         config.MEASURE,
         config.PRECISION,
         config.VALIDATE_SUBSYSTEM_STATES,
-        config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI
+        config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI,
+        config.PARTITION_TYPE,
     )
 
 
