@@ -220,7 +220,7 @@ class Config:
     def snapshot(self):
         return copy(self.__dict__)
 
-    def override(self, **new_config):
+    def override(self, **new_values):
         '''Decorator and context manager to override configuration values.
 
         The initial configuration values are reset after the decorated function
@@ -239,24 +239,24 @@ class Config:
             ...     assert config.PRECISION == 100
             ...
         '''
-        return _override(self, **new_config)
+        return _override(self, **new_values)
 
 
 class _override(contextlib.ContextDecorator):
     '''See ``Config.override`` for usage.'''
 
-    def __init__(self, config, **new_conf):
+    def __init__(self, config, **new_values):
         self.config = config
-        self.new_conf = new_conf
-        self.initial_conf = config.snapshot()
+        self.new_values = new_values
+        self.initial_values = config.snapshot()
 
     def __enter__(self):
         '''Save original config values; override with new ones.'''
-        self.config.load_config_dict(self.new_conf)
+        self.config.load_config_dict(self.new_values)
 
     def __exit__(self, *exc):
         '''Reset config to initial values; reraise any exceptions.'''
-        self.config.load_config_dict(self.initial_conf)
+        self.config.load_config_dict(self.initial_values)
         return False
 
 
