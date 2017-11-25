@@ -143,11 +143,11 @@ from . import __about__
 
 class Option:
     '''A descriptor implementing PyPhi configuration options.'''
-    def __init__(self, default, values=None, on_change=None, description=None):
+    def __init__(self, default, values=None, on_change=None, doc=None):
         self.default = default
         self.values = values
         self.on_change = on_change
-        self.description = description
+        self.doc = doc
 
         # Set during config initialization
         self.name = None
@@ -158,7 +158,7 @@ class Option:
             repr(self.values)) if self.values is not None else ''
 
         return '``default={}``{}\n{}'.format(
-            repr(self.default), values, self.description)
+            repr(self.default), values, self.doc)
 
     def __get__(self, obj, type=None):
         if obj is None:
@@ -294,13 +294,13 @@ def configure_logging(config):
 
 class PyphiConfig(Config):
 
-    ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(False, description="""
+    ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(False, doc="""
     In certain cases, making a cut can actually cause a previously reducible
     concept to become a proper, irreducible concept. Assuming this can never
     happen can increase performance significantly, however the obtained results
     are not strictly accurate.  """)
 
-    CUT_ONE_APPROXIMATION = Option(False, description="""
+    CUT_ONE_APPROXIMATION = Option(False, doc="""
     When determining the MIP for |big_phi|, this restricts the set of system
     cuts that are considered to only those that cut the inputs or outputs of a
     single node. This restricted set of cuts scales linearly with the size of
@@ -309,7 +309,7 @@ class PyphiConfig(Config):
     accurate results with modular, sparsely-connected, or homogeneous
     networks.""")
 
-    MEASURE = Option('EMD', description="""
+    MEASURE = Option('EMD', doc="""
     The measure to use when computing distances between repertoires and
     concepts.  Users can dynamically register new measures with the
     ``pyphi.distance.measures.register`` decorator; see :mod:`~pyphi.distance`
@@ -317,49 +317,49 @@ class PyphiConfig(Config):
     calling ``print(pyphi.distance.measures.all())``. Note that some measures
     cannot be used for calculating |big_phi| because they are asymmetric.""")
 
-    PARALLEL_CONCEPT_EVALUATION = Option(False, description="""
+    PARALLEL_CONCEPT_EVALUATION = Option(False, doc="""
     Controls whether concepts are evaluated in parallel when computing
     constellations.""")
 
-    PARALLEL_CUT_EVALUATION = Option(True, description="""
+    PARALLEL_CUT_EVALUATION = Option(True, doc="""
     Controls whether system cuts are evaluated in parallel, which is faster but
     requires more memory. If cuts are evaluated sequentially, only two |BigMip|
     instances need to be in memory at once.""")
 
-    PARALLEL_COMPLEX_EVALUATION = Option(False, description="""
+    PARALLEL_COMPLEX_EVALUATION = Option(False, doc="""
     Controls whether systems are evaluated in parallel when computing
     complexes.""")
 
-    NUMBER_OF_CORES = Option(-1, description="""
+    NUMBER_OF_CORES = Option(-1, doc="""
     Controls the number of CPU cores used to evaluate unidirectional cuts.
     Negative numbers count backwards from the total number of available cores,
     with ``-1`` meaning "use all available cores.""")
 
-    MAXIMUM_CACHE_MEMORY_PERCENTAGE = Option(50, description="""
+    MAXIMUM_CACHE_MEMORY_PERCENTAGE = Option(50, doc="""
     PyPhi employs several in-memory caches to speed up computation. However,
     these can quickly use a lot of memory for large networks or large numbers
     of them; to avoid thrashing, this setting limits the percentage of a
     system's RAM that the caches can collectively use.""")
 
-    CACHE_BIGMIPS = Option(False, description="""
+    CACHE_BIGMIPS = Option(False, doc="""
     Controls whether |BigMip| objects are cached and automatically
     retrieved.""")
 
-    CACHE_POTENTIAL_PURVIEWS = Option(True, description="""
+    CACHE_POTENTIAL_PURVIEWS = Option(True, doc="""
     Controls whether the potential purviews of mechanisms of a network are
     cached. Caching speeds up computations by not recomputing expensive
     reducibility checks, but uses additional memory.""")
 
-    CACHING_BACKEND = Option('fs', description="""
+    CACHING_BACKEND = Option('fs', doc="""
     Controls whether precomputed results are stored and read from a local
     filesystem-based cache in the current directory or from a database. Set
     this to ``'fs'`` for the filesystem, ``'db'`` for the database.""")
 
-    FS_CACHE_VERBOSITY = Option(0, description="""
+    FS_CACHE_VERBOSITY = Option(0, doc="""
     Controls how much caching information is printed if the filesystem cache is
     used. Takes a value between ``0`` and ``11``.""")
 
-    FS_CACHE_DIRECTORY = Option('__pyphi_cache__', description="""
+    FS_CACHE_DIRECTORY = Option('__pyphi_cache__', doc="""
     If the filesystem is used for caching, the cache will be stored in this
     directory. This directory can be copied and moved around if you want to
     reuse results *e.g.* on a another computer, but it must be in the same
@@ -370,29 +370,29 @@ class PyphiConfig(Config):
         'port': 27017,
         'database_name': 'pyphi',
         'collection_name': 'cache'
-    }, description="""
+    }, doc="""
     Set the configuration for the MongoDB database backend (only has an
     effect if ``CACHING_BACKEND`` is ``'db'``).""")
 
-    REDIS_CACHE = Option(False, description="""
+    REDIS_CACHE = Option(False, doc="""
     Specifies whether to use Redis to cache |Mice|.""")
 
     REDIS_CONFIG = Option({
         'host': 'localhost',
         'port': 6379,
-    }, description="""
+    }, doc="""
     Configure the Redis database backend. These are the defaults in the
     provided ``redis.conf`` file.""")
 
-    LOG_FILE = Option('pyphi.log', on_change=configure_logging, description="""
+    LOG_FILE = Option('pyphi.log', on_change=configure_logging, doc="""
     Controls the name of the log file.""")
 
-    LOG_FILE_LEVEL = Option('INFO', on_change=configure_logging, description="""
+    LOG_FILE_LEVEL = Option('INFO', on_change=configure_logging, doc="""
     Controls the level of log messages written to the log
     file. This setting has the same possible values as
     ``LOG_STDOUT_LEVEL``.""")
 
-    LOG_STDOUT_LEVEL = Option('WARNING', on_change=configure_logging, description="""
+    LOG_STDOUT_LEVEL = Option('WARNING', on_change=configure_logging, doc="""
     Controls the level of log messages written to standard
     output. Can be one of ``'DEBUG'``, ``'INFO'``, ``'WARNING'``, ``'ERROR'``,
     ``'CRITICAL'``, or ``None``. ``'DEBUG'`` is the least restrictive level and
@@ -400,7 +400,7 @@ class PyphiConfig(Config):
     level and will only display information about fatal errors. If set to
     ``None``, logging to standard output will be disabled entirely.""")
 
-    LOG_CONFIG_ON_IMPORT = Option(True, description="""
+    LOG_CONFIG_ON_IMPORT = Option(True, doc="""
     Controls whether the configuration is printed when PyPhi is imported.
 
       .. tip::
@@ -409,14 +409,14 @@ class PyphiConfig(Config):
         the log file can serve as an automatic record of which configuration
         settings you used to obtain results.""")
 
-    PROGRESS_BARS = Option(True, description="""
+    PROGRESS_BARS = Option(True, doc="""
     Controls whether to show progress bars on the console.
 
       .. tip::
         If you are iterating over many systems rather than doing one long-running
         calculation, consider disabling this for speed.""")
 
-    PRECISION = Option(6, description="""
+    PRECISION = Option(6, doc="""
     If ``MEASURE`` is ``EMD``, then the Earth Mover's Distance is calculated
     with an external C++ library that a numerical optimizer to find a good
     approximation. Consequently, systems with analytically zero |big_phi| will
@@ -426,7 +426,7 @@ class PyphiConfig(Config):
     will be considered insignificant and treated as zero. The default value is
     about as accurate as the EMD computations get.""")
 
-    VALIDATE_SUBSYSTEM_STATES = Option(True, description="""
+    VALIDATE_SUBSYSTEM_STATES = Option(True, doc="""
     Controls whether PyPhi checks if the subsystems's state is possible
     (reachable with nonzero probability from some past state), given the
     subsystem's TPM (**which is conditioned on background conditions**). If
@@ -434,17 +434,17 @@ class PyphiConfig(Config):
     valid**, since they may be associated with a subsystem that could never be
     in the given state.""")
 
-    VALIDATE_CONDITIONAL_INDEPENDENCE = Option(True, description="""
+    VALIDATE_CONDITIONAL_INDEPENDENCE = Option(True, doc="""
     Controls whether PyPhi checks if a system's TPM is conditionally
     independent.""")
 
-    SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = Option(False, description="""
+    SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = Option(False, doc="""
     If set to ``True``, the Phi value of single micro-node subsystems is the
     difference between their unpartitioned constellation (a single concept) and
     the null concept. If set to False, their Phi is defined to be zero. Single
     macro-node subsystems may always be cut, regardless of circumstances.""")
 
-    REPR_VERBOSITY = Option(2, values=[0, 1, 2], description="""
+    REPR_VERBOSITY = Option(2, values=[0, 1, 2], doc="""
     Controls the verbosity of ``__repr__`` methods on PyPhi objects. Can be set
     to ``0``, ``1``, or ``2``. If set to ``1``, calling ``repr`` on PyPhi
     objects will return pretty-formatted and legible strings, excluding
@@ -457,12 +457,12 @@ class PyphiConfig(Config):
     REPL. If set to ``0``, ``repr`` returns more traditional object
     representations.""")
 
-    PRINT_FRACTIONS = Option(True, description="""
+    PRINT_FRACTIONS = Option(True, doc="""
     Controls whether numbers in a ``repr`` are printed as fractions. Numbers
     are still printed as decimals if the fraction's denominator would be
     large. This only has an effect if ``REPR_VERBOSITY > 0``.""")
 
-    PARTITION_TYPE = Option('BI', values=['BI', 'TRI', 'ALL'], description="""
+    PARTITION_TYPE = Option('BI', values=['BI', 'TRI', 'ALL'], doc="""
     Controls the type of partition used for |small_phi| computations.
 
     If set to ``'BI'``, partitions will have two parts.
@@ -502,18 +502,18 @@ class PyphiConfig(Config):
 
     Finally, if set to ``'ALL'``, all possible partitions will be tested.""")
 
-    PICK_SMALLEST_PURVIEW = Option(False, description="""
+    PICK_SMALLEST_PURVIEW = Option(False, doc="""
     When computing MICE, it is possible for several MIPs to have the same
     |small_phi| value. If this setting is set to ``True`` the MIP with the
     smallest purview is chosen; otherwise, the one with largest purview is
     chosen.""")
 
-    USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE = Option(False, description="""
+    USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE = Option(False, doc="""
     If set to ``True``, the distance between constellations
     (when computing a |BigMip|) is calculated using the difference between the
     sum of |small_phi| in the constellations instead of the extended EMD.""")
 
-    SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'], description="""
+    SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'], doc="""
     If set to ``'3.0_STYLE'``, then traditional IIT 3.0 cuts will be used when
     computing |big_phi|. If set to ``'CONCEPT_STYLE'``, then experimental
     concept- style system cuts will be used instead.""")
