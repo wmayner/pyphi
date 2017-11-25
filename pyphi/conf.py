@@ -166,14 +166,18 @@ class Option:
         return obj.__dict__[self.name]
 
     def __set__(self, obj, value):
-        # Validate the new value
+        self._validate(value)
+        obj.__dict__[self.name] = value
+        self._callback(obj)
+
+    def _validate(self, value):
+        '''Validate the new value.'''
         if self.values and value not in self.values:
             raise ValueError(
                 '{} is not a valid value for {}'.format(value, self.name))
 
-        obj.__dict__[self.name] = value
-
-        # Trigger any callbacks
+    def _callback(self, obj):
+        '''Trigger any callbacks.'''
         if self.on_change is not None:
             self.on_change(obj)
 
