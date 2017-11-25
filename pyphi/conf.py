@@ -149,7 +149,7 @@ class Option:
         self.on_change = on_change
         self.doc = doc
 
-        # Set during config initialization
+        # Set during ``Config`` initialization
         self.name = None
 
     @property
@@ -184,6 +184,7 @@ class Option:
 
 class Config:
 
+    # TODO: use a metaclass to set Option.name at class creation?
     def __init__(self):
         # Set each Option's name and default value
         for k, v in self.options().items():
@@ -194,17 +195,18 @@ class Config:
         return pprint.pformat(self.__dict__, indent=2)
 
     def __setattr__(self, name, value):
-        '''Before setting, check that the option is value.'''
+        # Only set ``Options``
         if name not in self.options().keys():
             raise ValueError('{} is not a valid config option'.format(name))
         super().__setattr__(name, value)
 
     @classmethod
     def options(cls):
-        '''Return the dictionary ``option`` objects for this class.'''
+        '''Return a dictionary the ``Option`` objects for this config'''
         return {k: v for k, v in cls.__dict__.items() if isinstance(v, Option)}
 
     def defaults(self):
+        '''Return the default values of this configuration.'''
         return {k: v.default for k, v in self.options().items()}
 
     def load_config_dict(self, dct):
@@ -218,6 +220,7 @@ class Config:
             self.load_config_dict(yaml.load(f))
 
     def snapshot(self):
+        '''Return a snapshot of the current values of this configuration.'''
         return copy(self.__dict__)
 
     def override(self, **new_values):

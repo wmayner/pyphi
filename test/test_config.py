@@ -104,9 +104,9 @@ def test_defaults(c):
     assert c.defaults() == {'SPEED': 'default'}
 
 
-def test_option_validation(c):
+def test_only_set_option_attributes(c):
     with pytest.raises(ValueError):
-        c.KEY = 2
+        c.another_attribute = 2
 
 
 def test_on_change():
