@@ -104,9 +104,14 @@ def test_defaults(c):
     assert c.defaults() == {'SPEED': 'default'}
 
 
-def test_only_set_option_attributes(c):
+def test_only_set_public__attributes_that_are_options(c):
     with pytest.raises(ValueError):
         c.another_attribute = 2
+
+
+def test_can_set_private_attributes(c):
+    c._private = 2
+    assert c._private == 2
 
 
 def test_on_change():

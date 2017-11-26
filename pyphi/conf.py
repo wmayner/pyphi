@@ -163,11 +163,11 @@ class Option:
     def __get__(self, obj, type=None):
         if obj is None:
             return self
-        return obj.__dict__[self.name]
+        return obj._values[self.name]
 
     def __set__(self, obj, value):
         self._validate(value)
-        obj.__dict__[self.name] = value
+        obj._values[self.name] = value
         self._callback(obj)
 
     def _validate(self, value):
@@ -186,19 +186,21 @@ class Config:
 
     # TODO: use a metaclass to set Option.name at class creation?
     def __init__(self):
+        self._values = {}
+
         # Set each Option's name and default value
         for k, v in self.options().items():
             v.name = k
-            self.__dict__[k] = v.default
+            self._values[k] = v.default
 
     def __str__(self):
-        return pprint.pformat(self.__dict__, indent=2)
+        return pprint.pformat(self._values, indent=2)
 
     def __setattr__(self, name, value):
-        # Only set ``Options``
-        if name not in self.options().keys():
+        if name.startswith('_') or name in self.options().keys():
+            super().__setattr__(name, value)
+        else:
             raise ValueError('{} is not a valid config option'.format(name))
-        super().__setattr__(name, value)
 
     @classmethod
     def options(cls):
@@ -221,7 +223,7 @@ class Config:
 
     def snapshot(self):
         '''Return a snapshot of the current values of this configuration.'''
-        return copy(self.__dict__)
+        return copy(self._values)
 
     def override(self, **new_values):
         '''Decorator and context manager to override configuration values.
