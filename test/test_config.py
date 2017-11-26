@@ -40,6 +40,7 @@ EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 def test_load_config_file(c):
     c.load_config_file(EXAMPLE_CONFIG_FILE)
     assert c.SPEED == 'slow'
+    assert c._loaded_files == [EXAMPLE_CONFIG_FILE]
 
 
 def test_str(c):

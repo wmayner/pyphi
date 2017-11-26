@@ -187,6 +187,7 @@ class Config:
     # TODO: use a metaclass to set Option.name at class creation?
     def __init__(self):
         self._values = {}
+        self._loaded_files = []
 
         # Set each Option's name and default value
         for k, v in self.options().items():
@@ -218,8 +219,12 @@ class Config:
 
     def load_config_file(self, filename):
         '''Load config from a YAML file.'''
+        filename = os.path.abspath(filename)
+
         with open(filename) as f:
             self.load_config_dict(yaml.load(f))
+
+        self._loaded_files.append(filename)
 
     def snapshot(self):
         '''Return a snapshot of the current values of this configuration.'''
@@ -532,10 +537,8 @@ config = PyphiConfig()
 def initialize():
     '''Initialize PyPhi config.'''
     # Try and load the config file
-    file_loaded = False
     if os.path.exists(PYPHI_CONFIG_FILENAME):
         config.load_config_file(PYPHI_CONFIG_FILENAME)
-        file_loaded = True
 
     # Setup logging
     configure_logging(config)
@@ -545,9 +548,8 @@ def initialize():
         log = logging.getLogger(__name__)
 
         log.info('PyPhi v%s', __about__.__version__)
-        if file_loaded:
-            log.info('Loaded configuration from '
-                     '`./%s`', PYPHI_CONFIG_FILENAME)
+        if config._loaded_files:
+            log.info('Loaded configuration from %s', config._loaded_files)
         else:
             log.info('Using default configuration (no config file provided)')
 
