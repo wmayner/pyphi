@@ -533,27 +533,21 @@ PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
 
 config = PyphiConfig()
 
+# Try and load the config file
+if os.path.exists(PYPHI_CONFIG_FILENAME):
+    config.load_config_file(PYPHI_CONFIG_FILENAME)
 
-def initialize():
-    '''Initialize PyPhi config.'''
-    # Try and load the config file
-    if os.path.exists(PYPHI_CONFIG_FILENAME):
-        config.load_config_file(PYPHI_CONFIG_FILENAME)
+# Setup logging
+configure_logging(config)
 
-    # Setup logging
-    configure_logging(config)
+# Log the PyPhi version and loaded configuration
+if config.LOG_CONFIG_ON_IMPORT:
+    log = logging.getLogger(__name__)
 
-    # Log the PyPhi version and loaded configuration
-    if config.LOG_CONFIG_ON_IMPORT:
-        log = logging.getLogger(__name__)
+    log.info('PyPhi v%s', __about__.__version__)
+    if config._loaded_files:
+        log.info('Loaded configuration from %s', config._loaded_files)
+    else:
+        log.info('Using default configuration (no config file provided)')
 
-        log.info('PyPhi v%s', __about__.__version__)
-        if config._loaded_files:
-            log.info('Loaded configuration from %s', config._loaded_files)
-        else:
-            log.info('Using default configuration (no config file provided)')
-
-        log.info('Current PyPhi configuration:\n %s', str(config))
-
-
-initialize()
+    log.info('Current PyPhi configuration:\n %s', str(config))
