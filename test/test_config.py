@@ -125,6 +125,8 @@ def test_on_change():
         SPEED = Option('default', on_change=event.notify)
 
     c = AnotherConfig()
+    assert event.notified == 'default'
+
     c.SPEED = 'slow'
     assert event.notified == 'slow'
 

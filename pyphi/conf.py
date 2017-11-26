@@ -190,9 +190,16 @@ class Config:
         self._loaded_files = []
 
         # Set each Option's name and default value
-        for k, v in self.options().items():
-            v.name = k
-            self._values[k] = v.default
+        for name, opt in self.options().items():
+            opt.name = name
+            opt._validate(opt.default)
+            self._values[name] = opt.default
+
+        # Call hooks for each Option
+        # (This must happen *after* all default values are set so that
+        # logging can be properly configured.
+        for opt in self.options().values():
+            opt._callback(self)
 
     def __str__(self):
         return pprint.pformat(self._values, indent=2)
@@ -536,9 +543,6 @@ config = PyphiConfig()
 # Try and load the config file
 if os.path.exists(PYPHI_CONFIG_FILENAME):
     config.load_config_file(PYPHI_CONFIG_FILENAME)
-
-# Setup logging
-configure_logging(config)
 
 # Log the PyPhi version and loaded configuration
 if config.LOG_CONFIG_ON_IMPORT:
