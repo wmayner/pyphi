@@ -522,11 +522,6 @@ class PyphiConfig(Config):
     concept- style system cuts will be used instead.""")
 
 
-def print_config():
-    '''Print the current configuration.'''
-    print('Current PyPhi configuration:\n', str(config))
-
-
 PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
 
 config = PyphiConfig()
