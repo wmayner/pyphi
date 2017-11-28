@@ -182,16 +182,31 @@ class Option:
             self.on_change(obj)
 
 
-class Config:
+class ConfigMeta(type):
+    '''Metaclass for ``Config``.
 
-    # TODO: use a metaclass to set Option.name at class creation?
+    Responsible for setting the name of each ``Option`` when a subclass of
+    ``Config`` is created; because ``Option`` objects are defined on the class,
+    not the instance, their name should only be set once.
+
+    Python 3.6 handles this exact need with the special descriptor method
+    ``__set_name__`` (see PEP 487). We should use that once we drop support
+    for 3.4 & 3.5.
+    '''
+    def __init__(self, name, bases, namespace):
+        super().__init__(name, bases, namespace)
+        for name, opt in self.options().items():
+            opt.name = name
+
+
+class Config(metaclass=ConfigMeta):
+
     def __init__(self):
         self._values = {}
         self._loaded_files = []
 
-        # Set each Option's name and default value
+        # Set the default value of each ``Option``
         for name, opt in self.options().items():
-            opt.name = name
             opt._validate(opt.default)
             self._values[name] = opt.default
 
