@@ -58,6 +58,7 @@ These settings control the algorithms PyPhi uses.
 - :attr:`~pyphi.conf.PyphiConfig.PICK_SMALLEST_PURVIEW`
 - :attr:`~pyphi.conf.PyphiConfig.USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
+- :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
 
 
 System resources
@@ -88,12 +89,7 @@ long time!), resulting in data loss.
 Caching
 ~~~~~~~
 
-PyPhi is equipped with a transparent caching system for |BigMip| objects which
-stores them as they are computed to avoid having to recompute them later. This
-makes it easy to play around interactively with the program, or to accumulate
-results with minimal effort. For larger projects, however, it is recommended
-that you manage the results explicitly, rather than relying on the cache. For
-this reason it is disabled by default.
+PyPhi provides a number of ways to cache intermediate results.
 
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_BIGMIPS`
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_POTENTIAL_PURVIEWS`
@@ -134,7 +130,6 @@ Miscellaneous
 
 - :attr:`~pyphi.conf.PyphiConfig.VALIDATE_SUBSYSTEM_STATES`
 - :attr:`~pyphi.conf.PyphiConfig.VALIDATE_CONDITIONAL_INDEPENDENCE`
-- :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
 
 
 The ``config`` API
@@ -361,6 +356,7 @@ def configure_logging(config):
 
 
 class PyphiConfig(Config):
+    '''``pyphi.config`` is an instance of this class.'''
 
     ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(False, doc="""
     In certain cases, making a cut can actually cause a previously reducible
@@ -410,8 +406,12 @@ class PyphiConfig(Config):
     system's RAM that the caches can collectively use.""")
 
     CACHE_BIGMIPS = Option(False, doc="""
-    Controls whether |BigMip| objects are cached and automatically
-    retrieved.""")
+    PyPhi is equipped with a transparent caching system for |BigMip| objects which
+    stores them as they are computed to avoid having to recompute them later. This
+    makes it easy to play around interactively with the program, or to accumulate
+    results with minimal effort. For larger projects, however, it is recommended
+    that you manage the results explicitly, rather than relying on the cache. For
+    this reason it is disabled by default.""")
 
     CACHE_POTENTIAL_PURVIEWS = Option(True, doc="""
     Controls whether the potential purviews of mechanisms of a network are
