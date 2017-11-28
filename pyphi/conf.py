@@ -168,11 +168,15 @@ class Option:
 
     @property
     def __doc__(self):
-        values = '\n``values={}``'.format(
-            repr(self.values)) if self.values is not None else ''
+        default = '``default={}``'.format(repr(self.default))
 
-        return '``default={}``{}\n{}'.format(
-            repr(self.default), values, self.doc)
+        values = (', ``values={}``'.format(repr(self.values))
+                  if self.values is not None else '')
+
+        on_change = (', ``on_change={}``'.format(self.on_change.__name__)
+                     if self.on_change is not None else '')
+
+        return '{}{}{}\n{}'.format(default, values, on_change, self.doc or '')
 
     def __get__(self, obj, type=None):
         if obj is None:
