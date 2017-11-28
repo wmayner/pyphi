@@ -12,10 +12,30 @@ When PyPhi is imported, it checks for a YAML file named ``pyphi_config.yml`` in
 the current directory and automatically loads it if it exists; otherwise the
 default configuration is used.
 
+.. only:: never
+
+    This py.test fixture resets PyPhi config back to defaults after running
+    this doctest. This will not be shown in the output markup.
+
+    >>> getfixture('restore_config_afterwards')
+
 The various settings are listed here with their defaults.
 
     >>> import pyphi
     >>> defaults = pyphi.config.defaults()
+
+Print the ``config`` object to see the current settings:
+
+    >>> print(pyphi.config)  # doctest: +SKIP
+    { 'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
+      'CACHE_BIGMIPS': False,
+      'CACHE_POTENTIAL_PURVIEWS': True,
+      'CACHING_BACKEND': 'fs',
+      ...
+
+Setting can be changed on the fly by assigning them a new value:
+
+    >>> pyphi.config.PROGRESS_BARS = False
 
 It is also possible to manually load a configuration file:
 
@@ -23,12 +43,7 @@ It is also possible to manually load a configuration file:
 
 Or load a dictionary of configuration values:
 
-    >>> pyphi.config.load_config_dict({'SOME_CONFIG': 'value'})
-
-Many settings can also be changed on the fly by simply assigning them a new
-value:
-
-    >>> pyphi.config.PROGRESS_BARS = True
+    >>> pyphi.config.load_config_dict({'PRECISION': 1})
 
 
 Approximations and theoretical options
@@ -569,7 +584,7 @@ class PyphiConfig(Config):
     SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'], doc="""
     If set to ``'3.0_STYLE'``, then traditional IIT 3.0 cuts will be used when
     computing |big_phi|. If set to ``'CONCEPT_STYLE'``, then experimental
-    concept- style system cuts will be used instead.""")
+    concept-style system cuts will be used instead.""")
 
 
 PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
