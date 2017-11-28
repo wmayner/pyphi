@@ -136,19 +136,20 @@ The ``config`` API
 ~~~~~~~~~~~~~~~~~~
 '''
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods,protected-access
 
 import contextlib
 import logging
 import logging.config
 import os
 import pprint
-import sys
 from copy import copy
 
 import yaml
 
 from . import __about__
+
+log = logging.getLogger(__name__)
 
 
 class Option:
@@ -188,7 +189,7 @@ class Option:
 
         return '{}{}{}\n{}'.format(default, values, on_change, self.doc or '')
 
-    def __get__(self, obj, type=None):
+    def __get__(self, obj, cls=None):
         if obj is None:
             return self
         return obj._values[self.name]
@@ -221,9 +222,9 @@ class ConfigMeta(type):
     ``__set_name__`` (see PEP 487). We should use that once we drop support
     for 3.4 & 3.5.
     '''
-    def __init__(self, name, bases, namespace):
-        super().__init__(name, bases, namespace)
-        for name, opt in self.options().items():
+    def __init__(cls, cls_name, bases, namespace):
+        super().__init__(cls_name, bases, namespace)
+        for name, opt in cls.options().items():
             opt.name = name
 
 
@@ -308,22 +309,22 @@ class Config(metaclass=ConfigMeta):
 class _override(contextlib.ContextDecorator):
     '''See ``Config.override`` for usage.'''
 
-    def __init__(self, config, **new_values):
-        self.config = config
+    def __init__(self, conf, **new_values):
+        self.conf = conf
         self.new_values = new_values
-        self.initial_values = config.snapshot()
+        self.initial_values = conf.snapshot()
 
     def __enter__(self):
         '''Save original config values; override with new ones.'''
-        self.config.load_config_dict(self.new_values)
+        self.conf.load_config_dict(self.new_values)
 
     def __exit__(self, *exc):
         '''Reset config to initial values; reraise any exceptions.'''
-        self.config.load_config_dict(self.initial_values)
+        self.conf.load_config_dict(self.initial_values)
         return False
 
 
-def configure_logging(config):
+def configure_logging(conf):
     '''Reconfigure PyPhi logging based on the current configuration.'''
     logging.config.dictConfig({
         'version': 1,
@@ -336,21 +337,21 @@ def configure_logging(config):
         },
         'handlers': {
             'file': {
-                'level': config.LOG_FILE_LEVEL,
-                'filename': config.LOG_FILE,
+                'level': conf.LOG_FILE_LEVEL,
+                'filename': conf.LOG_FILE,
                 'class': 'logging.FileHandler',
                 'formatter': 'standard',
             },
             'stdout': {
-                'level': config.LOG_STDOUT_LEVEL,
+                'level': conf.LOG_STDOUT_LEVEL,
                 'class': 'pyphi.log.ProgressBarHandler',
                 'formatter': 'standard',
             }
         },
         'root': {
             'level': 'DEBUG',
-            'handlers': (['file'] if config.LOG_FILE_LEVEL else []) +
-                        (['stdout'] if config.LOG_STDOUT_LEVEL else [])
+            'handlers': (['file'] if conf.LOG_FILE_LEVEL else []) +
+                        (['stdout'] if conf.LOG_STDOUT_LEVEL else [])
         }
     })
 
@@ -586,6 +587,15 @@ class PyphiConfig(Config):
     computing |big_phi|. If set to ``'CONCEPT_STYLE'``, then experimental
     concept-style system cuts will be used instead.""")
 
+    def log(self):
+        '''Log current settings.'''
+        log.info('PyPhi v%s', __about__.__version__)
+        if self._loaded_files:
+            log.info('Loaded configuration from %s', self._loaded_files)
+        else:
+            log.info('Using default configuration (no config file provided)')
+        log.info('Current PyPhi configuration:\n %s', str(config))
+
 
 PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
 
@@ -597,12 +607,4 @@ if os.path.exists(PYPHI_CONFIG_FILENAME):
 
 # Log the PyPhi version and loaded configuration
 if config.LOG_CONFIG_ON_IMPORT:
-    log = logging.getLogger(__name__)
-
-    log.info('PyPhi v%s', __about__.__version__)
-    if config._loaded_files:
-        log.info('Loaded configuration from %s', config._loaded_files)
-    else:
-        log.info('Using default configuration (no config file provided)')
-
-    log.info('Current PyPhi configuration:\n %s', str(config))
+    config.log()
