@@ -170,7 +170,6 @@ class Option:
             of the option is changed. The ``Config`` instance is passed as
             the only argument to the callback.
         doc (str): Optional docstring for the option.
-
     '''
     def __init__(self, default, values=None, on_change=None, doc=None):
         self.default = default
@@ -181,8 +180,9 @@ class Option:
         # Set during ``Config`` class creation
         self.name = None
 
-    @property
-    def __doc__(self):
+        self.__doc__ = self._docstring()
+
+    def _docstring(self):
         default = '``default={}``'.format(repr(self.default))
 
         values = (', ``values={}``'.format(repr(self.values))
