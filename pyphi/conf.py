@@ -142,14 +142,28 @@ from . import __about__
 
 
 class Option:
-    '''A descriptor implementing PyPhi configuration options.'''
+    '''A descriptor implementing PyPhi configuration options.
+
+    Args:
+        default: The default value of this ``Option``.
+
+    Keyword Args:
+        values (list): Allowed values for this option. A ``ValueError`` will
+            be raised if ``values`` is not ``None`` and the option is set to
+            be a value not in the list.
+        on_change (function): Optional callback that is called when the value
+            of the option is changed. The ``Config`` instance is passed as
+            the only argument to the callback.
+        doc (str): Optional docstring for the option.
+
+    '''
     def __init__(self, default, values=None, on_change=None, doc=None):
         self.default = default
         self.values = values
         self.on_change = on_change
         self.doc = doc
 
-        # Set during ``Config`` initialization
+        # Set during ``Config`` class creation
         self.name = None
 
     @property
@@ -200,7 +214,10 @@ class ConfigMeta(type):
 
 
 class Config(metaclass=ConfigMeta):
+    '''Base configuration object.
 
+    See ``PyphiConfig`` for usage.
+    '''
     def __init__(self):
         self._values = {}
         self._loaded_files = []
