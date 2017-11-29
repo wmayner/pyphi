@@ -58,8 +58,12 @@ and their defaults.
 '''
 
 from .__about__ import *  # pylint: disable=wildcard-import
+
+# Initialize config object
+from .conf import config
+
 from .direction import Direction
-from . import (actual, config, constants, convert, db, examples, jsonify, macro,
+from . import (actual, constants, convert, db, examples, jsonify, macro,
                models, network, node, subsystem, utils, validate)
 from .network import Network
 from .subsystem import Subsystem

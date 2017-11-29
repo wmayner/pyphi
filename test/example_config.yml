@@ -1,3 +1,2 @@
 # Test config file
-PRECISION: 100
-SOME_OTHER_CONFIG: 'loaded'
+SPEED: 'slow'

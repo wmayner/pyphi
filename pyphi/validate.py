@@ -258,12 +258,3 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain):
             raise ValueError(
                 'Multiple outputs from a blackbox must be partitioned into '
                 'the same macro-element of the coarse-graining')
-
-
-def partition_type(value):
-    '''Validate a type of partition.'''
-    options = ['BI', 'TRI', 'ALL']
-    if value not in options:
-        raise ValueError(
-            "Invalid value `{}` for `config.PARTITION_TYPE`. "
-            "Choose one of {}".format(value, options))

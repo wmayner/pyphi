@@ -5,30 +5,65 @@
 import logging
 import os
 
+import pytest
+
 from pyphi import config
+from pyphi.conf import Config, Option
 
 
-def test_override_config():
-    # Given some config value
-    config.TEST_CONFIG = 1
+class ExampleConfig(Config):
+    SPEED = Option('default', values=['default', 'slow', 'fast'])
 
-    @config.override(TEST_CONFIG=1000)
+
+@pytest.fixture
+def c():
+    return ExampleConfig()
+
+
+def test_load_config_dict(c):
+    c.load_config_dict({'SPEED': 'slow'})
+    assert c.SPEED == 'slow'
+
+
+def test_snapshot(c):
+    c.SPEED = 'slow'
+    snapshot = c.snapshot()
+    assert snapshot == {'SPEED': 'slow'}
+    c.SPEED = 'fast'
+    assert snapshot == {'SPEED': 'slow'}
+
+
+EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   'example_config.yml')
+
+
+def test_load_config_file(c):
+    c.load_config_file(EXAMPLE_CONFIG_FILE)
+    assert c.SPEED == 'slow'
+    assert c._loaded_files == [EXAMPLE_CONFIG_FILE]
+
+
+def test_str(c):
+    c.SPEED = 'slow'
+    assert str(c) == "{'SPEED': 'slow'}"
+
+
+def test_override(c):
+    @c.override(SPEED='slow')
     def return_test_config(arg, kwarg=None):
         # Decorator should still pass args
         assert arg == 'arg'
         assert kwarg == 3
-        return config.TEST_CONFIG
+        return c.SPEED
 
     # Should override config value in function
-    assert return_test_config('arg', kwarg=3) == 1000
+    assert return_test_config('arg', kwarg=3) == 'slow'
     # and revert the initial config value
-    assert config.TEST_CONFIG == 1
+    assert c.SPEED == 'default'
 
 
-def test_override_config_cleans_up_after_exception():
-    config.TEST_CONFIG = 1
-
-    @config.override(TEST_CONFIG=1000)
+def test_override_cleans_up_after_exception(c):
+    @c.override(SPEED='slow')
     def raise_exception():
         raise ValueError('elephants')
 
@@ -39,40 +74,89 @@ def test_override_config_cleans_up_after_exception():
         assert e.args == ('elephants',)
 
     # and reset original config value
-    assert config.TEST_CONFIG == 1
+    assert c.SPEED == 'default'
 
 
-def test_override_config_is_a_context_manager():
-    config.TEST_CONFIG = 1
+def test_override_is_a_context_manager(c):
+    c.SPEED = 'slow'
 
-    with config.override(TEST_CONFIG=1000):
+    with c.override(SPEED='fast'):
         # Overriden
-        assert config.TEST_CONFIG == 1000
+        assert c.SPEED == 'fast'
 
     # Reverts original value
-    assert config.TEST_CONFIG == 1
+    assert c.SPEED == 'slow'
 
 
-EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                   'example_config.yml')
+def test_option_descriptor(c):
+    assert c.SPEED == 'default'
+    assert c.__class__.__dict__['SPEED'].name == 'SPEED'
+
+    c.SPEED = 'slow'
+    assert c.SPEED == 'slow'
+
+    with pytest.raises(ValueError):
+        c.SPEED = 'medium'
 
 
-@config.override(PRECISION=6)
-def test_load_config_file():
-    config.load_config_file(EXAMPLE_CONFIG_FILE)
-    assert config.PRECISION == 100
-    assert config.SOME_OTHER_CONFIG == 'loaded'
+def test_defaults(c):
+    assert c.defaults() == {'SPEED': 'default'}
+    c.SPEED = 'slow'
+    assert c.defaults() == {'SPEED': 'default'}
 
 
-def test_log_through_progress_handler(capsys):
+def test_only_set_public__attributes_that_are_options(c):
+    with pytest.raises(ValueError):
+        c.another_attribute = 2
+
+
+def test_can_set_private_attributes(c):
+    c._private = 2
+    assert c._private == 2
+
+
+def test_on_change():
+    class Event:
+        def notify(self, config):
+            self.notified = config.SPEED
+    event = Event()
+
+    class AnotherConfig(Config):
+        SPEED = Option('default', on_change=event.notify)
+
+    c = AnotherConfig()
+    assert event.notified == 'default'
+
+    c.SPEED = 'slow'
+    assert event.notified == 'slow'
+
+    c.load_config_dict({'SPEED': 'fast'})
+    assert event.notified == 'fast'
+
+
+def test_reconfigure_logging_on_change(capsys):
     log = logging.getLogger('pyphi.config')
-    with config.override(LOG_STDOUT_LEVEL='INFO'):
-        config.configure_logging()
-        log.warning('Just a warning, folks.')
 
+    with config.override(LOG_STDOUT_LEVEL='WARNING'):
+        log.warning('Just a warning, folks.')
     out, err = capsys.readouterr()
     assert 'Just a warning, folks.' in err
 
-    # Reset logging
-    # TODO: handle automatically
-    config.configure_logging()
+    with config.override(LOG_STDOUT_LEVEL='ERROR'):
+        log.warning('Another warning.')
+    out, err = capsys.readouterr()
+    assert err == ''
+
+
+@config.override()
+@pytest.mark.parametrize('name,valid,invalid', [
+    ('PARTITION_TYPE', ['BI', 'TRI', 'ALL'], ['QUAD']),
+    ('SYSTEM_CUTS', ['3.0_STYLE', 'CONCEPT_STYLE'], ['OTHER']),
+    ('REPR_VERBOSITY', [0, 1, 2], [-1, 3])])
+def test_config_validation(name, valid, invalid):
+    for value in valid:
+        setattr(config, name, value)
+
+    for value in invalid:
+        with pytest.raises(ValueError):
+            setattr(config, name, value)

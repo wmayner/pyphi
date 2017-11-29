@@ -750,8 +750,6 @@ class Subsystem:
 def mip_partitions(mechanism, purview):
     '''Return a generator over all MIP partitions, based on the current
     configuration.'''
-    validate.partition_type(config.PARTITION_TYPE)
-
     func = {
         'BI': mip_bipartitions,
         'TRI': wedge_partitions,
