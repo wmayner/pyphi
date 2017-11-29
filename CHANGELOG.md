@@ -90,6 +90,8 @@ Next Release
   a format which can be loaded to reproduce the full object graph of PyPhi
   objects. This causes backwards incompatible changes to the JSON format of
   some model representations.
+- Refactored `pyphi.config` to be an object. Added validation and callbacks for
+  config options.
 
 ### Optimizations
 - Added an analytic solution for the EMD computation between effect
