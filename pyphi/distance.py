@@ -280,7 +280,7 @@ def directional_emd(direction, d1, d2):
     return round(func(d1, d2), config.PRECISION)
 
 
-def small_phi_measure(direction, d1, d2):
+def mechanism_repertoire_distance(direction, d1, d2):
     '''Compute the distance between two repertoires for the given direction.
 
     Args:
@@ -299,7 +299,7 @@ def small_phi_measure(direction, d1, d2):
     return round(dist, config.PRECISION)
 
 
-def big_phi_measure(r1, r2):
+def system_repertoire_distance(r1, r2):
     '''Compute the distance between two repertoires.
 
     Args:

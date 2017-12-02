@@ -13,7 +13,7 @@ import itertools
 import numpy as np
 
 from . import Direction, cache, config, distribution, utils, validate
-from .distance import small_phi_measure as measure
+from .distance import mechanism_repertoire_distance as repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, KPartition, Mice, Mip, NullCut,
                      Part, Tripartition, _null_mip, cmp)
@@ -468,15 +468,15 @@ class Subsystem:
 
     def cause_info(self, mechanism, purview):
         '''Return the cause information for a mechanism over a purview.'''
-        return measure(Direction.PAST,
-                       self.cause_repertoire(mechanism, purview),
-                       self.unconstrained_cause_repertoire(purview))
+        return repertoire_distance(Direction.PAST,
+                                   self.cause_repertoire(mechanism, purview),
+                                   self.unconstrained_cause_repertoire(purview))
 
     def effect_info(self, mechanism, purview):
         '''Return the effect information for a mechanism over a purview.'''
-        return measure(Direction.FUTURE,
-                       self.effect_repertoire(mechanism, purview),
-                       self.unconstrained_effect_repertoire(purview))
+        return repertoire_distance(Direction.FUTURE,
+                                   self.effect_repertoire(mechanism, purview),
+                                   self.unconstrained_effect_repertoire(purview))
 
     def cause_effect_info(self, mechanism, purview):
         '''Return the cause-effect information for a mechanism over a purview.
@@ -515,8 +515,8 @@ class Subsystem:
         partitioned_repertoire = self.partitioned_repertoire(direction,
                                                              partition)
 
-        phi = measure(direction, unpartitioned_repertoire,
-                      partitioned_repertoire)
+        phi = repertoire_distance(
+            direction, unpartitioned_repertoire, partitioned_repertoire)
 
         return (phi, partitioned_repertoire)
 

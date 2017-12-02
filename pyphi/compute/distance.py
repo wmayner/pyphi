@@ -9,7 +9,7 @@ Functions for computing distances between various PyPhi objects.
 import numpy as np
 
 from .. import config, utils
-from ..distance import big_phi_measure as measure
+from ..distance import system_repertoire_distance as repertoire_distance
 from ..distance import emd
 
 
@@ -29,10 +29,10 @@ def concept_distance(c1, c2):
     cause_purview = tuple(set(c1.cause.purview + c2.cause.purview))
     effect_purview = tuple(set(c1.effect.purview + c2.effect.purview))
     # Take the sum
-    return (measure(c1.expand_cause_repertoire(cause_purview),
-                    c2.expand_cause_repertoire(cause_purview)) +
-            measure(c1.expand_effect_repertoire(effect_purview),
-                    c2.expand_effect_repertoire(effect_purview)))
+    return (repertoire_distance(c1.expand_cause_repertoire(cause_purview),
+                                c2.expand_cause_repertoire(cause_purview)) +
+            repertoire_distance(c1.expand_effect_repertoire(effect_purview),
+                                c2.expand_effect_repertoire(effect_purview)))
 
 
 def _constellation_distance_simple(C1, C2):
