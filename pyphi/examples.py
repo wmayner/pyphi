@@ -74,7 +74,9 @@ def basic_network(cm=False):
     +---+---+---+---+
 
     .. note::
-        |CM[i][j] = 1| means that node |i| is connected to node |j|.
+        |CM[i][j] = 1| means that there is a directed edge |(i,j)| from node
+        |i| to node |j| and |CM[i][j] = 0| means there is no edge from |i| to
+        |j|.
     '''
     tpm = np.array([
         [0, 0, 0],

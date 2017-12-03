@@ -156,6 +156,7 @@ r"""
 .. |n0 = 0, n1 = 0, n2 = 1| replace:: :math:`(n_0 = 0, n_1 = 0, n_2 = 1)`
 .. |ith| replace:: :math:`i^{\textrm{th}}`
 .. |jth| replace:: :math:`j^{\textrm{th}}`
+.. |(i,j)| replace:: :math:`(i,j)`
 .. |r| replace:: :math:`r`
 .. |n| replace:: :math:`n`
 .. |N| replace:: :math:`N`
@@ -165,7 +166,9 @@ r"""
 .. |j| replace:: :math:`j`
 .. |i,jth| replace:: :math:`(i,j)^{\textrm{th}}`
 .. |k| replace:: :math:`k`
-.. |CM[i][j] = 1| replace:: :math:`CM_{i,j} = 1`
+.. |CM[i][j] = 1| replace:: :math:`[CM]_{i,j} = 1`
+.. |CM[i][j] = 0| replace:: :math:`[CM]_{i,j} = 0`
+.. |CM| replace:: :math:`CM`
 .. |X| replace:: :math:`X`
 .. |X_t-1| replace:: :math:`X_{t-1}`
 .. |X_t-1 = {OR}| replace:: :math:`X_{t-1} = \{OR\}`
