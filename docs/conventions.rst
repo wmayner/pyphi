@@ -14,13 +14,10 @@ For example, this network of four nodes
 
 has the following connectivity matrix:
 
-    >>> cm = np.array([
-    ...     [0, 0, 1, 0],
-    ...     [1, 0, 1, 0],
-    ...     [0, 1, 0, 1],
-    ...     [0, 0, 0, 1],
-    ... ])
-
+    >>> cm = [[0, 0, 1, 0],
+    ...       [1, 0, 1, 0],
+    ...       [0, 1, 0, 1],
+    ...       [0, 0, 0, 1]]
 
 .. _loli-convention:
 
