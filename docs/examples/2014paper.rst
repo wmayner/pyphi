@@ -43,10 +43,10 @@ we'll start by defining its TPM.
     module and the explanation of :ref:`loli-convention`.
 
 In the figure, the TPM is shown only for the candidate set. We'll define the
-entire network's TPM. Also, nodes :math:`D, E` and :math:`F` are not assigned
-mechanisms; for the purposes of this example we will assume they are OR gates.
-With that assumption, we get the following TPM (before copying and pasting, see
-note below):
+entire network's TPM. Also, nodes |D|, |E| and |F| are not assigned mechanisms;
+for the purposes of this example we will assume they are OR gates. With that
+assumption, we get the following TPM (before copying and pasting, see note
+below):
 
     >>> tpm = np.array([
     ...     [0, 0, 0, 0, 0, 0],
@@ -145,11 +145,10 @@ running ``help(network)`` or by consulting the `API
 documentation for |Network|.
 
 The next step is to define the candidate set shown in the figure, consisting of
-nodes :math:`A, B` and :math:`C`. In PyPhi, a candidate set for |big_phi|
-evaluation is represented by the |Subsystem| class. Subsystems are built by
-giving the network it is a part of, the state of the network, and indices of
-the nodes to be included in the subsystem. So, we define our candidate set like
-so:
+nodes |A|, |B| and |C|. In PyPhi, a candidate set for |big_phi| evaluation is
+represented by the |Subsystem| class. Subsystems are built by giving the
+network it is a part of, the state of the network, and indices of the nodes to
+be included in the subsystem. So, we define our candidate set like so:
 
     >>> state = (1, 0, 0, 0, 1, 0)
     >>> ABC = pyphi.Subsystem(network, state, [0, 1, 2])
@@ -179,7 +178,7 @@ nodes. In this case, the subsystem is just the entire network.
     >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C, D = subsystem.node_indices
 
-Since the connections are noisy, we see that :math:`A = 1` is unselective; all
+Since the connections are noisy, we see that |A = 1| is unselective; all
 past states are equally likely:
 
     >>> subsystem.cause_repertoire((A,), (B, C, D))
@@ -204,7 +203,7 @@ The same as (A) but without noisy connections:
     >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C, D = subsystem.node_indices
 
-Now, :math:`A`'s cause repertoire is maximally selective.
+Now, |A|'s cause repertoire is maximally selective.
 
     >>> cr = subsystem.cause_repertoire((A,), (B, C, D))
     >>> cr
@@ -215,19 +214,19 @@ Now, :math:`A`'s cause repertoire is maximally selective.
              [ 0.,  1.]]]])
 
 
-Since the cause repertoire is over the purview :math:`BCD`, the first dimension
-(which corresponds to :math:`A`'s states) is a singleton. We can squeeze out
-:math:`A`'s singleton dimension with
+Since the cause repertoire is over the purview |BCD|, the first dimension
+(which corresponds to |A|'s states) is a singleton. We can squeeze out |A|'s
+singleton dimension with
 
     >>> cr = cr.squeeze()
 
-and now we can see that the probability of :math:`B, C,` and :math:`D` having
-been all on is 1:
+and now we can see that the probability of |B|, |C|, and |D| having been all on
+is 1:
 
     >>> cr[(1, 1, 1)]
     1.0
 
-Now the cause information specified by :math:`A = 1` is :math:`1.5`:
+Now the cause information specified by |A = 1| is |1.5|:
 
     >>> subsystem.cause_info((A,), (B, C, D))
     1.5
@@ -236,14 +235,14 @@ Now the cause information specified by :math:`A = 1` is :math:`1.5`:
 (C)
 ```
 
-The same as (B) but with :math:`A = 0`:
+The same as (B) but with |A = 0|:
 
     >>> state = (0, 0, 0, 0)
     >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C, D = subsystem.node_indices
 
 And here the cause repertoire is minimally selective, only ruling out the state
-where :math:`B, C,` and :math:`D` were all on:
+where |B|, |C|, and |D| were all on:
 
     >>> subsystem.cause_repertoire((A,), (B, C, D))
     array([[[[ 0.14285714,  0.14285714],
@@ -272,8 +271,8 @@ label the nodes, as usual:
     >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C = subsystem.node_indices
 
-Then we'll compute the cause and effect repertoires of mechanism :math:`A` over
-purview :math:`ABC`:
+Then we'll compute the cause and effect repertoires of mechanism |A| over
+purview |ABC|:
 
     >>> subsystem.cause_repertoire((A,), (A, B, C))
     array([[[ 0.        ,  0.16666667],
@@ -330,7 +329,7 @@ selective effects within the system.**
     >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C = subsystem.node_indices
 
-:math:`A` has inputs, so its cause repertoire is selective and it has cause
+|A| has inputs, so its cause repertoire is selective and it has cause
 information:
 
     >>> subsystem.cause_repertoire((A,), (A, B, C))
@@ -364,8 +363,8 @@ And thus its cause effect information is zero.
     >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C = subsystem.node_indices
 
-Symmetrically, :math:`A` now has outputs, so its effect repertoire is selective
-and it has effect information:
+Symmetrically, |A| now has outputs, so its effect repertoire is selective and
+it has effect information:
 
     >>> subsystem.effect_repertoire((A,), (A, B, C))
     array([[[ 0.,  0.],
@@ -434,7 +433,7 @@ Note that the minimal partition found for the past is
     \frac{A^{c}}{\varnothing} \times \frac{BC^{c}}{ABC^{p}},
 
 rather than the one shown in the figure. However, both partitions result in a
-difference of :math:`0.5` between the unpartitioned and partitioned cause
+difference of |0.5| between the unpartitioned and partitioned cause
 repertoires. So we see that in small networks like this, there can be multiple
 choices of partition that yield the same, minimal
 :math:`\varphi^{\textrm{MIP}}`. In these cases, which partition the software
@@ -519,7 +518,7 @@ the subsystem like so:
 
     >>> constellation = pyphi.compute.constellation(subsystem)
 
-And verify that the :math:`\varphi` values match:
+And verify that the |small_phi| values match:
 
     >>> constellation.labeled_mechanisms
     [['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C']]
@@ -584,7 +583,7 @@ Figure 13
 subset has both causes and effects in the rest of the set.**
 
 It is left as an exercise for the reader to demonstrate that of the networks
-shown, only **(B)** has :math:`\Phi > 0`.
+shown, only **(B)** has |big_phi > 0|.
 
 
 Figure 14
@@ -600,8 +599,7 @@ function of that name, which returns a |BigMip| object:
 
     >>> main_complex = pyphi.compute.main_complex(network, state)
 
-And we see that the nodes in the complex are indeed :math:`A, B,` and
-:math:`C`:
+And we see that the nodes in the complex are indeed |A|, |B|, and |C|:
 
     >>> main_complex.subsystem.nodes
     (A, B, C)
@@ -626,7 +624,7 @@ Figure 16
 **A system can condense into a major complex and minor complexes that may or
 may not interact with it.**
 
-For this figure, we omit nodes :math:`H, I, J, K` and :math:`L`, since the TPM
+For this figure, we omit nodes |H|, |I|, |J|, |K| and |L|, since the TPM
 of the full 12-node network is very large, and the point can be illustrated
 without them.
 
@@ -638,12 +636,12 @@ into, use |compute.condensed|:
 
     >>> condensed = pyphi.compute.condensed(network, state)
 
-We find that there are 2 complexes: the major complex :math:`ABC` with
-:math:`\Phi \approx 1.92`, and a minor complex `FG` with :math:`\Phi \approx
-0.069` (note that there is typo in the figure: :math:`FG`'s :math:`\Phi` value
-should be :math:`0.069`). Furthermore, the program has been updated to only
-consider background conditions of current states, not past states; as a result
-the minor complex :math:`DE` shown in the paper no longer exists.
+We find that there are two complexes: the major complex |ABC| with :math:`\Phi
+\approx 1.92`, and a minor complex |FG| with :math:`\Phi \approx 0.069` (note
+that there is typo in the figure: |FG|'s |big_phi| value should be |0.069|).
+Furthermore, the program has been updated to only consider background
+conditions of current states, not past states; as a result the minor complex
+|DE| shown in the paper no longer exists.
 
     >>> len(condensed)
     2
@@ -656,3 +654,11 @@ the minor complex :math:`DE` shown in the paper no longer exists.
 There are several other functions available for working with complexes; see the
 documentation for |compute.subsystems|, |compute.all_complexes|,
 |compute.possible_complexes|, and |compute.complexes|.
+
+.. |H| replace:: :math:`H`
+.. |L| replace:: :math:`L`
+.. |A = 1| replace:: :math:`A = 1`
+.. |A = 0| replace:: :math:`A = 0`
+.. |1.5| replace:: :math:`1.5`
+.. |0.5| replace:: :math:`0.5`
+.. |0.069| replace:: :math:`0.069`

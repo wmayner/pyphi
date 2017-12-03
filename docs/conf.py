@@ -140,6 +140,7 @@ r"""
 .. |DE| replace:: :math:`DE`
 .. |FG| replace:: :math:`FG`
 .. |ABC| replace:: :math:`ABC`
+.. |BCD| replace:: :math:`BCD`
 .. |CDE| replace:: :math:`CDE`
 .. |DEF| replace:: :math:`DEF`
 .. |(AB / DE) x (∅ / C)| replace:: :math:`\frac{AB}{DE} \times \frac{\varnothing}{C}`
