@@ -278,12 +278,11 @@ _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem']
 # TODO: make mechanism a property
 # TODO: make phi a property
 class Concept(cmp.Orderable):
-    '''A the maximally irreducible cause and effect specified by a mechanism.
+    '''The maximally irreducible cause and effect specified by a mechanism.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |small_phi| values are compared. Then, if these are
-    equal up to |PRECISION|, the size of the mechanism is compared (see the
-    |PICK_SMALLEST_PURVIEW| option in |config|.)
+    equal up to |PRECISION|, the size of the mechanism is compared.
 
     Attributes:
         mechanism (tuple[int]): The mechanism that the concept consists of.
