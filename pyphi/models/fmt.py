@@ -280,13 +280,13 @@ def fmt_bipartition(partition, subsystem=None):
     return ''.join(chain.from_iterable(zip(*elements)))
 
 
-def fmt_constellation(c, title=None):
-    '''Format a constellation.'''
+def fmt_ces(c, title=None):
+    '''Format a |CauseEffectStructure|.'''
     if not c:
         return '()\n'
 
     if title is None:
-        title = 'Constellation'
+        title = 'Cause-effect structure'
 
     concepts = '\n'.join(margin(x) for x in c) + '\n'
     title = '{} ({} concept{})'.format(
@@ -393,18 +393,18 @@ def fmt_kcut(cut):
     return 'KCut {}\n{}'.format(cut.direction, cut.partition)
 
 
-def fmt_big_mip(big_mip, constellations=True):
+def fmt_big_mip(big_mip, ces=True):
     '''Format a |BigMip|.'''
-    if constellations:
+    if ces:
         body = (
-            '{unpartitioned_constellation}'
-            '{partitioned_constellation}'.format(
-                unpartitioned_constellation=fmt_constellation(
-                    big_mip.unpartitioned_constellation,
-                    'Unpartitioned Constellation'),
-                partitioned_constellation=fmt_constellation(
-                    big_mip.partitioned_constellation,
-                    'Partitioned Constellation')))
+            '{unpartitioned_ces}'
+            '{partitioned_ces}'.format(
+                unpartitioned_ces=fmt_ces(
+                    big_mip.unpartitioned_ces,
+                    'Cause-effect structure'),
+                partitioned_ces=fmt_ces(
+                    big_mip.partitioned_ces,
+                    'Partitioned cause-effect structure')))
         center_header = True
     else:
         body = ''

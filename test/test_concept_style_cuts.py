@@ -125,8 +125,8 @@ def test_big_mip_concept_style_ordering(s, subsys_n0n2, s_noised):
 def test_big_mip_concept_style(s):
     mip = compute.big_mip_concept_style(s)
     assert mip.min_mip is mip.big_mip_future
-    for attr in ['phi', 'unpartitioned_constellation', 'cut', 'subsystem',
-                 'cut_subsystem', 'network', 'partitioned_constellation']:
+    for attr in ['phi', 'unpartitioned_ces', 'cut', 'subsystem',
+                 'cut_subsystem', 'network', 'partitioned_ces']:
         assert getattr(mip, attr) is getattr(mip.big_mip_future, attr)
 
 

@@ -10,7 +10,6 @@ import pytest
 
 from pyphi import (Direction, Network, Subsystem, compute, config, constants,
                    models, utils)
-from pyphi.compute import constellation
 from pyphi.compute.big_phi import FindMip, big_mip_bipartitions
 from pyphi.models import Cut, _null_bigmip
 from pyphi.partition import directed_bipartition
@@ -30,7 +29,7 @@ standard_answer = {
         (0, 1): 0.333333,
         (0, 1, 2): 0.5
     },
-    'len_partitioned_constellation': 1,
+    'len_partitioned_ces': 1,
     'sum_partitioned_small_phis': 0.5,
     'cut': models.Cut(from_nodes=(1, 2), to_nodes=(0,))
 }
@@ -47,7 +46,7 @@ noised_answer = {
         (1, 2): 0.263847,
         (0, 1, 2): 0.35
     },
-    'len_partitioned_constellation': 7,
+    'len_partitioned_ces': 7,
     'sum_partitioned_small_phis': 0.504906,
     'cut': models.Cut(from_nodes=(1, 2), to_nodes=(0,))
 }
@@ -87,7 +86,7 @@ big_answer = {
         (0, 2, 3, 4): 0.185709,
         (1, 2, 3, 4): 0.185709
     },
-    'len_partitioned_constellation': 17,
+    'len_partitioned_ces': 17,
     'sum_partitioned_small_phis': 3.564909,
     'cut': models.Cut(from_nodes=(2, 4), to_nodes=(0, 1, 3))
 }
@@ -103,7 +102,7 @@ big_subsys_0_thru_3_answer = {
         (0, 1): 0.133333,
         (1, 2): 0.133333
     },
-    'len_partitioned_constellation': 5,
+    'len_partitioned_ces': 5,
     'sum_partitioned_small_phis': 0.883334,
     'cut': models.Cut(from_nodes=(1, 3), to_nodes=(0, 2))
 }
@@ -144,7 +143,7 @@ rule152_answer = {
         (1, 2, 3, 4): 0.25,
         (0, 1, 2, 3, 4): 0.25
     },
-    'len_partitioned_constellation': 24,
+    'len_partitioned_ces': 24,
     'sum_partitioned_small_phis': 4.185363,
     'cuts': [
         models.Cut(from_nodes=(0, 1, 2, 3), to_nodes=(4,)),
@@ -192,18 +191,18 @@ macro_answer = {
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def check_unpartitioned_small_phis(small_phis, unpartitioned_constellation):
-    assert len(small_phis) == len(unpartitioned_constellation)
-    for c in unpartitioned_constellation:
+def check_unpartitioned_small_phis(small_phis, unpartitioned_ces):
+    assert len(small_phis) == len(unpartitioned_ces)
+    for c in unpartitioned_ces:
         assert c.phi == small_phis[c.mechanism]
 
 
-def check_partitioned_small_phis(answer, partitioned_constellation):
-    if 'len_partitioned_constellation' in answer:
-        assert (answer['len_partitioned_constellation'] ==
-                len(partitioned_constellation))
+def check_partitioned_small_phis(answer, partitioned_ces):
+    if 'len_partitioned_ces' in answer:
+        assert (answer['len_partitioned_ces'] ==
+                len(partitioned_ces))
     if 'sum_partitioned_small_phis' in answer:
-        assert (round(sum(c.phi for c in partitioned_constellation),
+        assert (round(sum(c.phi for c in partitioned_ces),
                       config.PRECISION) ==
                 answer['sum_partitioned_small_phis'])
 
@@ -211,12 +210,12 @@ def check_partitioned_small_phis(answer, partitioned_constellation):
 def check_mip(mip, answer):
     # Check big phi value.
     assert mip.phi == answer['phi']
-    # Check small phis of unpartitioned constellation.
+    # Check small phis of unpartitioned CES.
     check_unpartitioned_small_phis(answer['unpartitioned_small_phis'],
-                                   mip.unpartitioned_constellation)
-    # Check sum of small phis of partitioned constellation if answer is
+                                   mip.unpartitioned_ces)
+    # Check sum of small phis of partitioned CES if answer is
     # available.
-    check_partitioned_small_phis(answer, mip.partitioned_constellation)
+    check_partitioned_small_phis(answer, mip.partitioned_ces)
     # Check cut.
     if 'cut' in answer:
         assert mip.cut == answer['cut']
@@ -247,15 +246,15 @@ def test_concept_nonexistent(s, flushcache, restore_fs_cache):
     assert not compute.concept(s, (0, 2))
 
 
-@patch('pyphi.compute.distance._constellation_distance_simple')
-@patch('pyphi.compute.distance._constellation_distance_emd')
-def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
+@patch('pyphi.compute.distance._ces_distance_simple')
+@patch('pyphi.compute.distance._ces_distance_emd')
+def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
                                                    mock_simple_distance, s):
-    '''Quick check that we use the correct constellation distance function.
+    '''Quick check that we use the correct CES distance function.
 
-    If the two constellations differ only in that some concepts have
+    If the two CESs differ only in that some concepts have
     moved to the null concept and all other concepts are the same then
-    we use the simple constellation distance. Otherwise, use the EMD.
+    we use the simple CES distance. Otherwise, use the EMD.
     '''
     mock_emd_distance.return_value = float()
     mock_simple_distance.return_value = float()
@@ -269,31 +268,30 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     lone_concept = models.Concept(cause=make_mice(), effect=make_mice(),
                                   mechanism=(0, 1))
     # lone concept -> null concept
-    compute.constellation_distance((lone_concept,), ())
+    compute.ces_distance((lone_concept,), ())
     assert mock_emd_distance.called is False
     assert mock_simple_distance.called is True
     mock_simple_distance.reset_mock()
 
     other_concept = models.Concept(cause=make_mice(), effect=make_mice(),
                                    mechanism=(0, 1, 2))
-    # different concepts in constellation
-    compute.constellation_distance((lone_concept,), (other_concept,))
+    # different concepts in CES
+    compute.ces_distance((lone_concept,), (other_concept,))
     assert mock_emd_distance.called is True
     assert mock_simple_distance.called is False
 
 
-def test_constellation_distance_switches_to_small_phi_difference(s):
+def test_ces_distance_switches_to_small_phi_difference(s):
     mip = compute.big_mip(s)
-    constellations = (mip.unpartitioned_constellation,
-                      mip.partitioned_constellation)
+    ce_structures = (mip.unpartitioned_ces, mip.partitioned_ces)
 
     with config.override(
-            USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE=False):
-        assert 2.3125 == compute.constellation_distance(*constellations)
+            USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=False):
+        assert 2.3125 == compute.ces_distance(*ce_structures)
 
     with config.override(
-            USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE=True):
-        assert 1.083333 == compute.constellation_distance(*constellations)
+            USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=True):
+        assert 1.083333 == compute.ces_distance(*ce_structures)
 
 
 @config.override(CACHE_BIGMIPS=True)
@@ -319,8 +317,8 @@ def test_big_mip_empty_subsystem(s_empty, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.big_mip(s_empty) ==
             models.BigMip(phi=0.0,
-                          unpartitioned_constellation=(),
-                          partitioned_constellation=(),
+                          unpartitioned_ces=(),
+                          partitioned_ces=(),
                           subsystem=s_empty,
                           cut_subsystem=s_empty))
 
@@ -329,16 +327,14 @@ def test_big_mip_disconnected_network(reducible, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.big_mip(reducible) ==
             models.BigMip(subsystem=reducible, cut_subsystem=reducible,
-                          phi=0.0, unpartitioned_constellation=[],
-                          partitioned_constellation=[]))
+                          phi=0.0, unpartitioned_ces=[], partitioned_ces=[]))
 
 
 def test_big_mip_wrappers(reducible, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.big_mip(reducible) ==
             models.BigMip(subsystem=reducible, cut_subsystem=reducible,
-                          phi=0.0, unpartitioned_constellation=[],
-                          partitioned_constellation=[]))
+                          phi=0.0, unpartitioned_ces=[], partitioned_ces=[]))
     assert compute.big_phi(reducible) == 0.0
 
 
@@ -365,9 +361,9 @@ def test_big_mip_single_micro_nodes_without_selfloops_dont_have_phi(
 
 @pytest.fixture
 def standard_FindMip(s):
-    unpartitioned_constellation = constellation(s)
+    unpartitioned_ces = compute.ces(s)
     cuts = big_mip_bipartitions(s.node_indices)
-    return FindMip(cuts, s, unpartitioned_constellation)
+    return FindMip(cuts, s, unpartitioned_ces)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
@@ -388,9 +384,9 @@ def test_find_mip_parallel_standard_example(standard_FindMip, flushcache,
 
 @pytest.fixture
 def s_noised_FindMip(s_noised):
-    unpartitioned_constellation = constellation(s_noised)
+    unpartitioned_ces = compute.ces(s_noised)
     cuts = big_mip_bipartitions(s_noised.node_indices)
-    return FindMip(cuts, s_noised, unpartitioned_constellation)
+    return FindMip(cuts, s_noised, unpartitioned_ces)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
@@ -411,9 +407,9 @@ def test_find_mip_parallel_noised_example(s_noised_FindMip, flushcache,
 
 @pytest.fixture
 def micro_s_FindMip(micro_s):
-    unpartitioned_constellation = constellation(micro_s)
+    unpartitioned_ces = compute.ces(micro_s)
     cuts = big_mip_bipartitions(micro_s.node_indices)
-    return FindMip(cuts, micro_s, unpartitioned_constellation)
+    return FindMip(cuts, micro_s, unpartitioned_ces)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True)
@@ -553,11 +549,11 @@ def test_rule152_complexes_no_caching(rule152):
         # Check that the concept's phi values are the same.
         result_concepts = [c for c in result['concepts']
                            if c['is_irreducible']]
-        z = list(zip([c.phi for c in main.unpartitioned_constellation],
+        z = list(zip([c.phi for c in main.unpartitioned_ces],
                      [c['phi'] for c in result_concepts]))
         diff = [i for i in range(len(z)) if not utils.eq(z[i][0], z[i][1])]
         assert all(list(utils.eq(c.phi, result_concepts[i]['phi']) for i, c
-                        in enumerate(main.unpartitioned_constellation)))
+                        in enumerate(main.unpartitioned_ces)))
         # Check that the minimal cut is the same.
         assert main.cut == result['cut']
 
@@ -569,16 +565,16 @@ def test_big_mip_macro(macro_s, flushcache, restore_fs_cache):
     check_mip(mip, macro_answer)
 
 
-def test_parallel_and_sequential_constellations_are_equal(s, micro_s, macro_s):
+def test_parallel_and_sequential_ces_are_equal(s, micro_s, macro_s):
     with config.override(PARALLEL_CONCEPT_EVALUATION=False):
-        c = compute.constellation(s)
-        c_micro = compute.constellation(micro_s)
-        c_macro = compute.constellation(macro_s)
+        c = compute.ces(s)
+        c_micro = compute.ces(micro_s)
+        c_macro = compute.ces(macro_s)
 
     with config.override(PARALLEL_CONCEPT_EVALUATION=True):
-        assert set(c) == set(compute.constellation(s))
-        assert set(c_micro) == set(compute.constellation(micro_s))
-        assert set(c_macro) == set(compute.constellation(macro_s))
+        assert set(c) == set(compute.ces(s))
+        assert set(c_micro) == set(compute.ces(micro_s))
+        assert set(c_macro) == set(compute.ces(macro_s))
 
 
 def test_big_mip_bipartitions():

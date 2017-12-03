@@ -9,7 +9,7 @@ Attributes:
     Mip: Alias for :class:`concept.Mip`
     Mice: Alias for :class:`concept.Mice`
     Concept: Alias for :class:`concept.Concept`
-    Constellation: Alias for :class:`concept.Constellation`
+    CauseEffectStructure: Alias for :class:`concept.CauseEffectStructure`
     Cut: Alias for :class:`cuts.Cut`
     Part: Alias for :class:`cuts.Part`
     Bipartition: Alias for :class:`cuts.Bipartition`
@@ -21,9 +21,11 @@ Attributes:
     DirectedAccount: Alias for :class:`actual_causation.DirectedAccount`
 '''
 
-from .actual_causation import (AcBigMip, CausalLink, AcMip, _null_ac_mip, Event,
-                               _null_ac_bigmip, DirectedAccount, Account)
+from .actual_causation import (AcBigMip, CausalLink, AcMip, _null_ac_mip,
+                               Event, _null_ac_bigmip, DirectedAccount,
+                               Account)
 from .big_phi import BigMip, _null_bigmip
-from .concept import (Mip, _null_mip, Mice, Concept, Constellation,
-                      normalize_constellation)
-from .cuts import ActualCut, Cut, Part, Bipartition, NullCut, Tripartition, KPartition, KCut
+from .concept import (Mip, _null_mip, Mice, Concept, CauseEffectStructure,
+                      normalize_ces)
+from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,
+                   KPartition, KCut)

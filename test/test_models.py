@@ -36,14 +36,14 @@ def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
         subsystem=subsystem)
 
 
-def bigmip(unpartitioned_constellation=(), partitioned_constellation=(),
+def bigmip(unpartitioned_ces=(), partitioned_ces=(),
            subsystem=None, cut_subsystem=None, phi=1.0):
     '''Build a ``BigMip``.'''
     cut_subsystem = cut_subsystem or subsystem
 
     return models.BigMip(
-        unpartitioned_constellation=unpartitioned_constellation,
-        partitioned_constellation=partitioned_constellation,
+        unpartitioned_ces=unpartitioned_ces,
+        partitioned_ces=partitioned_ces,
         subsystem=subsystem, cut_subsystem=cut_subsystem, phi=phi)
 
 
@@ -524,40 +524,40 @@ def test_concept_emd_eq(s, subsys_n1n2):
 # }}}
 
 
-# Test Constellation
+# Test CauseEffectStructure
 # {{{
 
-def test_constellation_is_still_a_tuple():
-    c = models.Constellation([concept()])
+def test_ces_is_still_a_tuple():
+    c = models.CauseEffectStructure([concept()])
     assert len(c) == 1
 
 
 @config.override(REPR_VERBOSITY=0)
-def test_constellation_repr():
-    c = models.Constellation()
-    assert repr(c) == "Constellation()"
+def test_ces_repr():
+    c = models.CauseEffectStructure()
+    assert repr(c) == "CauseEffectStructure()"
 
 
-def test_constellation_repr_str():
-    c = models.Constellation([concept()])
+def test_ces_repr_str():
+    c = models.CauseEffectStructure([concept()])
     repr(c)
     str(c)
 
 
-def test_normalize_constellation():
+def test_normalize_ces():
     c1 = models.Concept(mechanism=(1,))
     c2 = models.Concept(mechanism=(2,))
     c3 = models.Concept(mechanism=(1, 3))
     c4 = models.Concept(mechanism=(1, 2, 3))
-    assert (c1, c2, c3, c4) == models.normalize_constellation((c3, c4, c2, c1))
+    assert (c1, c2, c3, c4) == models.normalize_ces((c3, c4, c2, c1))
 
 
-def test_constellations_are_always_normalized():
+def test_ces_are_always_normalized():
     c1 = models.Concept(mechanism=(1,))
     c2 = models.Concept(mechanism=(2,))
     c3 = models.Concept(mechanism=(1, 3))
     c4 = models.Concept(mechanism=(1, 2, 3))
-    assert (c1, c2, c3, c4) == models.Constellation((c3, c4, c2, c1))
+    assert (c1, c2, c3, c4) == models.CauseEffectStructure((c3, c4, c2, c1))
 
 # }}}
 

@@ -244,7 +244,7 @@ r"""
 .. |BigMip| replace:: :class:`~pyphi.models.big_phi.BigMip`
 
 .. |Concept| replace:: :class:`~pyphi.models.concept.Concept`
-.. |Constellation| replace:: :class:`~pyphi.models.concept.Constellation`
+.. |CauseEffectStructure| replace:: :class:`~pyphi.models.concept.CauseEffectStructure`
 
 .. |Cut| replace:: :class:`~pyphi.models.cuts.Cut`
 .. |Cuts| replace:: :class:`~pyphi.models.cuts.Cut`

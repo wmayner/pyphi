@@ -56,7 +56,7 @@ These settings control the algorithms PyPhi uses.
 - :attr:`~pyphi.conf.PyphiConfig.MEASURE`
 - :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE`
 - :attr:`~pyphi.conf.PyphiConfig.PICK_SMALLEST_PURVIEW`
-- :attr:`~pyphi.conf.PyphiConfig.USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE`
+- :attr:`~pyphi.conf.PyphiConfig.USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
 - :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
 
@@ -79,9 +79,9 @@ long time!), resulting in data loss.
     and ``PARALLEL_COMPLEX_EVALUATION`` can be set to ``True`` at a time. For
     maximal efficiency, you should parallelize the highest level computations
     possible, *e.g.*, parallelize complex evaluation instead of cut evaluation,
-    but only if you are actually computing complexes. You should only
-    parallelize concept evaluation if you are just computing constellations.
-
+    but only if you are actually computing a complex. You should only
+    parallelize concept evaluation if you are just computing a
+    |CauseEffectStructure|.
 - :attr:`~pyphi.conf.PyphiConfig.NUMBER_OF_CORES`
 - :attr:`~pyphi.conf.PyphiConfig.MAXIMUM_CACHE_MEMORY_PERCENTAGE`
 
@@ -384,7 +384,7 @@ class PyphiConfig(Config):
 
     PARALLEL_CONCEPT_EVALUATION = Option(False, doc="""
     Controls whether concepts are evaluated in parallel when computing
-    constellations.""")
+    cause-effect structures.""")
 
     PARALLEL_CUT_EVALUATION = Option(True, doc="""
     Controls whether system cuts are evaluated in parallel, which is faster but
@@ -508,10 +508,11 @@ class PyphiConfig(Config):
     independent.""")
 
     SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = Option(False, doc="""
-    If set to ``True``, the Phi value of single micro-node subsystems is the
-    difference between their unpartitioned constellation (a single concept) and
-    the null concept. If set to False, their Phi is defined to be zero. Single
-    macro-node subsystems may always be cut, regardless of circumstances.""")
+    If set to ``True``, the |big_phi| value of single micro-node subsystems is
+    the difference between their unpartitioned |CauseEffectStructure| (a single
+    concept) and the null concept. If set to False, their |big_phi| is defined
+    to be zero. Single macro-node subsystems may always be cut, regardless of
+    circumstances.""")
 
     REPR_VERBOSITY = Option(2, values=[0, 1, 2], doc="""
     Controls the verbosity of ``__repr__`` methods on PyPhi objects. Can be set
@@ -577,12 +578,13 @@ class PyphiConfig(Config):
     smallest purview is chosen; otherwise, the one with largest purview is
     chosen.""")
 
-    USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE = Option(False, doc="""
-    If set to ``True``, the distance between constellations
-    (when computing a |BigMip|) is calculated using the difference between the
-    sum of |small_phi| in the constellations instead of the extended EMD.""")
+    USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE = Option(False, doc="""
+    If set to ``True``, the distance between cause-effect structures (when
+    computing a |BigMip|) is calculated using the difference between the sum of
+    |small_phi| in the cause-effect structures instead of the extended EMD.""")
 
-    SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'], doc="""
+    SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'],
+                         doc="""
     If set to ``'3.0_STYLE'``, then traditional IIT 3.0 cuts will be used when
     computing |big_phi|. If set to ``'CONCEPT_STYLE'``, then experimental
     concept-style system cuts will be used instead.""")

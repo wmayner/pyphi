@@ -555,16 +555,16 @@ def test_true_events(standard):
     assert true_effect2.direction == Direction.FUTURE
 
 
-def test_true_constellation(standard):
+def test_true_ces(standard):
     past_state = (1, 0, 0)
     current_state = (0, 0, 1)
     future_state = (1, 1, 0)
     subsystem = Subsystem(standard, current_state, standard.node_indices)
 
-    constellation = actual.true_constellation(subsystem, past_state, future_state)
+    ces = actual.true_ces(subsystem, past_state, future_state)
 
-    assert len(constellation) == 2
-    actual_cause, actual_effect = constellation
+    assert len(ces) == 2
+    actual_cause, actual_effect = ces
 
     assert actual_cause.purview == (0, 1)
     assert actual_cause.mechanism == (2,)

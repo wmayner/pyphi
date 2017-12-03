@@ -68,7 +68,7 @@ def _loadable_models():
         pyphi.models.Mip,
         pyphi.models.Mice,
         pyphi.models.Concept,
-        pyphi.models.Constellation,
+        pyphi.models.CauseEffectStructure,
         pyphi.models.BigMip,
         pyphi.Transition,
         pyphi.models.ActualCut,

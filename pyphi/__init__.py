@@ -40,8 +40,8 @@ The |Subsystem| object is the secondary object; it represents a subsystem of a
 network. |big_phi| is a function of subsystems.
 
 The |compute| module is the main entry-point for the library. It contains
-methods for calculating concepts, constellations, complexes, etc. See its
-documentation for details.
+methods for calculating concepts, cause-effect structures, complexes, etc. See
+its documentation for details.
 
 
 Configuration (optional)

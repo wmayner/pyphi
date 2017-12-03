@@ -634,8 +634,8 @@ def causal_nexus(network, before_state, after_state,
 
 
 # TODO: move this to __str__
-def nice_true_constellation(tc):
-    '''Format a true constellation.'''
+def nice_true_ces(tc):
+    '''Format a true |CauseEffectStructure|.'''
     past_list = []
     future_list = []
     cause = '<--'
@@ -700,12 +700,12 @@ def events(network, past_state, current_state, future_state, nodes,
 
 
 # TODO: do we need this? it's just a re-structuring of the `events` results
-# TODO: rename to `actual_constellation`?
-def true_constellation(subsystem, past_state, future_state):
+# TODO: rename to `actual_ces`?
+def true_ces(subsystem, past_state, future_state):
     '''Set of all sets of elements that have true causes and true effects.
 
     .. note::
-        Since the true constellation is always about the full system,
+        Since the true |CauseEffectStructure| is always about the full system,
         the background conditions don't matter and the subsystem should be
         conditioned on the current state.
     '''

@@ -8,28 +8,27 @@ Functions for computing integrated information and finding complexes.
 import functools
 import logging
 from time import time
-
 from .. import (Direction, config, connectivity, exceptions, memory, utils,
                 validate)
 from ..models import BigMip, Concept, Cut, KCut, _null_bigmip, cmp, fmt
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem, mip_partitions
-from .concept import constellation
-from .distance import constellation_distance
+from .concept import ces
+from .distance import ces_distance
 from .parallel import MapReduce
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
 
-def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
+def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
     '''Find the |BigMip| for a given cut.
 
     Args:
         uncut_subsystem (Subsystem): The subsystem without the cut applied.
         cut (Cut): The cut to evaluate.
-        unpartitioned_constellation (Constellation): The constellation of the
-            uncut subsystem.
+        unpartitioned_ces (CauseEffectStructure): The cause-effect structure of
+            the uncut subsystem.
 
     Returns:
         BigMip: The |BigMip| for that cut.
@@ -39,25 +38,25 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_constellation):
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanisms = unpartitioned_constellation.mechanisms
+        mechanisms = unpartitioned_ces.mechanisms
     else:
         # Mechanisms can only produce concepts if they were concepts in the
         # original system, or the cut divides the mechanism.
         mechanisms = set(
-            unpartitioned_constellation.mechanisms +
+            unpartitioned_ces.mechanisms +
             list(cut_subsystem.cut_mechanisms))
 
-    partitioned_constellation = constellation(cut_subsystem, mechanisms)
+    partitioned_ces = ces(cut_subsystem, mechanisms)
 
     log.debug('Finished evaluating %s.', cut)
 
-    phi = constellation_distance(unpartitioned_constellation,
-                                 partitioned_constellation)
+    phi = ces_distance(unpartitioned_ces,
+                       partitioned_ces)
 
     return BigMip(
         phi=phi,
-        unpartitioned_constellation=unpartitioned_constellation,
-        partitioned_constellation=partitioned_constellation,
+        unpartitioned_ces=unpartitioned_ces,
+        partitioned_ces=partitioned_ces,
         subsystem=uncut_subsystem,
         cut_subsystem=cut_subsystem)
 
@@ -68,15 +67,15 @@ class FindMip(MapReduce):
 
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
 
-    def empty_result(self, subsystem, unpartitioned_constellation):
+    def empty_result(self, subsystem, unpartitioned_ces):
         '''Begin with a mip with infinite |big_phi|; all actual mips will have
         less.'''
         return _null_bigmip(subsystem, phi=float('inf'))
 
     @staticmethod
-    def compute(cut, subsystem, unpartitioned_constellation):
+    def compute(cut, subsystem, unpartitioned_ces):
         '''Evaluate a cut.'''
-        return evaluate_cut(subsystem, cut, unpartitioned_constellation)
+        return evaluate_cut(subsystem, cut, unpartitioned_ces)
 
     def process_result(self, new_mip, min_mip):
         '''Check if the new mip has smaller phi than the standing result.'''
@@ -110,10 +109,11 @@ def big_mip_bipartitions(nodes):
             for bipartition in bipartitions]
 
 
-def _unpartitioned_constellation(subsystem):
-    '''Parallelize the unpartitioned constellation if parallelizing cuts,
-    since we have free processors because we're not computing any cuts yet.'''
-    return constellation(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
+def _unpartitioned_ces(subsystem):
+    '''Parallelize the unpartitioned |CauseEffectStructure| if parallelizing
+    cuts, since we have free processors because we're not computing any cuts
+    yet.'''
+    return ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
 
 
 # pylint: disable=unused-argument
@@ -136,7 +136,7 @@ def _big_mip(cache_key, subsystem):
         '''Annote a BigMip with the total elapsed calculation time.
 
         Optionally add the time taken to calculate the unpartitioned
-        constellation.
+        |CauseEffectStructure|.
         '''
         bm.time = round(time() - start, config.PRECISION)
         bm.small_phi_time = round(small_phi_time, config.PRECISION)
@@ -175,24 +175,23 @@ def _big_mip(cache_key, subsystem):
             return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
 
-    log.debug('Finding unpartitioned constellation...')
+    log.debug('Finding unpartitioned CauseEffectStructure...')
     small_phi_start = time()
-    unpartitioned_constellation = _unpartitioned_constellation(subsystem)
+    unpartitioned_ces = _unpartitioned_ces(subsystem)
     small_phi_time = round(time() - small_phi_start, config.PRECISION)
 
-    if not unpartitioned_constellation:
-        log.info('Empty unpartitioned constellation; returning null MIP '
+    if not unpartitioned_ces:
+        log.info('Empty unpartitioned CauseEffectStructure; returning null MIP '
                  'immediately.')
-        # Short-circuit if there are no concepts in the unpartitioned
-        # constellation.
+        # Short-circuit if there are no concepts in the unpartitioned CES.
         return time_annotated(_null_bigmip(subsystem))
 
-    log.debug('Found unpartitioned constellation.')
+    log.debug('Found unpartitioned CauseEffectStructure.')
     if len(subsystem.cut_indices) == 1:
         cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
     else:
         cuts = big_mip_bipartitions(subsystem.cut_indices)
-    finder = FindMip(cuts, subsystem, unpartitioned_constellation)
+    finder = FindMip(cuts, subsystem, unpartitioned_ces)
     min_mip = finder.run(config.PARALLEL_CUT_EVALUATION)
     result = time_annotated(min_mip, small_phi_time)
 
@@ -412,17 +411,17 @@ def concept_cuts(direction, node_indices):
         yield KCut(direction, partition)
 
 
-def directional_big_mip(subsystem, direction, unpartitioned_constellation=None):
+def directional_big_mip(subsystem, direction, unpartitioned_ces=None):
     """Calculate a concept-style BigMipPast or BigMipFuture."""
-    if unpartitioned_constellation is None:
-        unpartitioned_constellation = _unpartitioned_constellation(subsystem)
+    if unpartitioned_ces is None:
+        unpartitioned_ces = _unpartitioned_ces(subsystem)
 
     c_system = ConceptStyleSystem(subsystem, direction)
     cuts = concept_cuts(direction, c_system.cut_indices)
 
     # Run the default MIP finder
     # TODO: verify that short-cutting works correctly?
-    finder = FindMip(cuts, c_system, unpartitioned_constellation)
+    finder = FindMip(cuts, c_system, unpartitioned_ces)
     return finder.run(config.PARALLEL_CUT_EVALUATION)
 
 
@@ -463,11 +462,11 @@ class BigMipConceptStyle(cmp.Orderable):
 # TODO: cache
 def big_mip_concept_style(subsystem):
     '''Compute a concept-style Big Mip'''
-    unpartitioned_constellation = _unpartitioned_constellation(subsystem)
+    unpartitioned_ces = _unpartitioned_ces(subsystem)
 
     mip_past = directional_big_mip(subsystem, Direction.PAST,
-                                   unpartitioned_constellation)
+                                   unpartitioned_ces)
     mip_future = directional_big_mip(subsystem, Direction.FUTURE,
-                                     unpartitioned_constellation)
+                                     unpartitioned_ces)
 
     return BigMipConceptStyle(mip_past, mip_future)

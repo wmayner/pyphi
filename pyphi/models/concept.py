@@ -437,29 +437,23 @@ class Concept(cmp.Orderable):
         return cls(**dct)
 
 
-class Constellation(tuple):
-    '''A constellation of concepts.
-
-    This is a wrapper around a tuple to provide a nice string representation
-    and place to put constellation methods. Previously, constellations were
-    represented as a ``tuple[concept]``; this usage still works in all
-    functions.
-    '''
-    # TODO: compare constellations using set equality
+class CauseEffectStructure(tuple):
+    '''A collection of concepts.'''
+    # TODO: compare CESs using set equality
 
     def __new__(cls, concepts=()):
-        '''Normalize the order of concepts in the constellation.'''
+        '''Normalize the order of concepts in the |CauseEffectStructure|.'''
         return super().__new__(cls, sorted(concepts, key=_concept_sort_key))
 
     def __repr__(self):
         if config.REPR_VERBOSITY > 0:
             return self.__str__()
 
-        return "Constellation{}".format(
+        return "CauseEffectStructure{}".format(
             super().__repr__())
 
     def __str__(self):
-        return fmt.fmt_constellation(self)
+        return fmt.fmt_ces(self)
 
     def to_json(self):
         return {'concepts': list(self)}
@@ -490,18 +484,17 @@ class Constellation(tuple):
 def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
 
-
-# Maintained for backwards compatibility; constellations are always
+# Maintained for backwards compatibility; CESs are always
 # ordered.
 # TODO: remove this.
-def normalize_constellation(constellation):
-    '''Deterministically reorder the concepts in a constellation.
+def normalize_ces(ces):
+    '''Deterministically reorder the concepts in a |CauseEffectStructure|.
 
     Args:
-        constellation (Constellation): The constellation in question.
+        ces (CauseEffectStructure): The cause-effect structure in question.
 
     Returns:
-        Constellation: The constellation, ordered lexicographically by
-        mechanism.
+        CauseEffectStructure: The cause-effect structure, ordered
+        lexicographically by mechanism.
     '''
-    return Constellation(constellation)
+    return CauseEffectStructure(ces)

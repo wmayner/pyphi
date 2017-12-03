@@ -32,20 +32,20 @@ and it consists of the entire network:
 Knowing what exists at the system level, we can now investigate the existence
 of concepts within the complex.
 
-    >>> constellation = main_complex.unpartitioned_constellation
-    >>> len(constellation)
+    >>> ces = main_complex.unpartitioned_ces
+    >>> len(ces)
     3
-    >>> constellation.labeled_mechanisms
+    >>> ces.labeled_mechanisms
     [['A', 'B'], ['A', 'C'], ['B', 'C']]
 
-There are three concepts in the constellation. They are all the possible second
-order mechanisms: |AB|, |AC| and |BC|.
+There are three concepts in the cause-effect structure. They are all the
+possible second order mechanisms: |AB|, |AC| and |BC|.
 
 Focusing on the concept specified by mechanism |AB|, we investigate existence,
 and the irreducible cause and effect. Based on the symmetry of the network, the
 results will be similar for the other second order mechanisms.
 
-    >>> concept = constellation[0]
+    >>> concept = ces[0]
     >>> concept.mechanism
     (0, 1)
     >>> concept.phi

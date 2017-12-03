@@ -60,7 +60,7 @@ def test_json_deserialization(s, transition):
                                                       models.Part((1,), (2, 3)))),
         s.concept((1, 2)),
         s.concept((1,)),
-        compute.constellation(s),
+        compute.ces(s),
         compute.big_mip(s),
         transition,
         transition.find_actual_cause((0,), (0,)),
@@ -87,7 +87,7 @@ def test_deserialization_memoizes_duplicate_objects(s):
 
     s1 = big_mip.subsystem
     # Computed in a parallel process, so has a different id
-    s2 = big_mip.unpartitioned_constellation[0].subsystem
+    s2 = big_mip.unpartitioned_ces[0].subsystem
     assert not s1 is s2
     assert s1 == s2
     assert hash(s1) == hash(s2)
@@ -95,7 +95,7 @@ def test_deserialization_memoizes_duplicate_objects(s):
     loaded = jsonify.loads(jsonify.dumps(big_mip))
 
     l1 = loaded.subsystem
-    l2 = loaded.unpartitioned_constellation[0].subsystem
+    l2 = loaded.unpartitioned_ces[0].subsystem
     assert l1 == l2
     assert hash(l1) == hash(l2)
     assert l1 is l2
