@@ -31,11 +31,11 @@ class Node:
         label (str): An optional label for the node.
 
     Attributes:
-        tpm (np.ndarray): The node TPM is an array with shape 2^(n_inputs)-by-2
-            matrix, where node.tpm[i][j] gives the marginal probability that
-            the node is in state j at t+1 if the state of its inputs is i at t.
-            If the node is a single element with a cut selfloop, (i.e. it has
-            no inputs), the tpm is simply its unconstrained effect repertoire.
+        tpm (np.ndarray): The node TPM is a 2^(n_inputs)-by-2 matrix, where
+            node.tpm[i][j] gives the marginal probability that the node is in
+            state j at t+1 if the state of its inputs is i at t. If the node is
+            a single element with a cut selfloop, (i.e. it has no inputs), the
+            tpm is simply its unconstrained effect repertoire.
     '''
 
     def __init__(self, tpm, cm, index, state, label):
