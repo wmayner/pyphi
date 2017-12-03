@@ -18,6 +18,14 @@ class Direction(Enum):
     FUTURE = 1
     BIDIRECTIONAL = 2
 
+    def __str__(self):
+        if self is Direction.PAST:
+            return 'PAST'
+        elif self is Direction.FUTURE:
+            return 'FUTURE'
+        elif self is Direction.BIDIRECTIONAL:
+            return 'BIDIRECTIONAL'
+
     def to_json(self):
         return {'direction': self.value}
 
