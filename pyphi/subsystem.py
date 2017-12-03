@@ -312,8 +312,8 @@ class Subsystem:
                           for m in mechanism]
         )
         # The resulting joint distribution is over past states, which are rows
-        # in the TPM, so the distribution is a column. In a state-by-node TPM
-        # the columns don't sum to 1, so we normalize.
+        # in the TPM, so the distribution is a column. The columns of a TPM
+        # don't necessarily sum to 1, so we normalize.
         return distribution.normalize(joint)
 
     # TODO extend to nonbinary nodes
