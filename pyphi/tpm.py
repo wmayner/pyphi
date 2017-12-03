@@ -52,19 +52,19 @@ def expand_tpm(tpm):
     return tpm * uc
 
 
-def marginalize_out(indices, tpm):
-    '''Marginalize out a node from a TPM.
+def marginalize_out(node_indices, tpm):
+    '''Marginalize out nodes from a TPM.
 
     Args:
-        indices (list[int]): The indices of nodes to be marginalized out.
+        node_indices (list[int]): The indices of nodes to be marginalized out.
         tpm (np.ndarray): The TPM to marginalize the node out of.
 
     Returns:
         np.ndarray: A TPM with the same number of dimensions, with the nodes
         marginalized out.
     '''
-    return tpm.sum(tuple(indices), keepdims=True) / (
-        np.array(tpm.shape)[list(indices)].prod())
+    return tpm.sum(tuple(node_indices), keepdims=True) / (
+        np.array(tpm.shape)[list(node_indices)].prod())
 
 
 def infer_edge(tpm, a, b, contexts):
