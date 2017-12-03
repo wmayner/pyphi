@@ -303,8 +303,8 @@ def fmt_concept(concept):
             return ''
         return box(indent(fmt_mip(x.mip, verbose=False), amount=1))
 
-    cause = header('Cause', fmt_cause_or_effect(concept.cause))
-    effect = header('Effect', fmt_cause_or_effect(concept.effect))
+    cause = header('Maximally-irreducible cause', fmt_cause_or_effect(concept.cause))
+    effect = header('Maximally-irreducible effect', fmt_cause_or_effect(concept.effect))
     ce = side_by_side(cause, effect)
 
     mechanism = fmt_mechanism(concept.mechanism, concept.subsystem)
