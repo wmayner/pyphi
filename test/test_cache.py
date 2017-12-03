@@ -141,7 +141,7 @@ def test_mice_cache_keys(s):
     assert c.key(Direction.PAST, (0,), purviews=(0, 1)) == answer
 
     c = cache.RedisMiceCache(s)
-    answer = 'subsys:{}:None:Direction.PAST:(0,):(0, 1)'.format(hash(s))
+    answer = 'subsys:{}:None:PAST:(0,):(0, 1)'.format(hash(s))
     assert c.key(Direction.PAST, (0,), purviews=(0, 1)) == answer
 
 

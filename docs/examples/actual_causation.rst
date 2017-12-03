@@ -198,7 +198,7 @@ destroyed by the MIP:
 The partition of the MIP is available in the ``cut`` property:
 
    >>> big_mip.cut  # doctest: +NORMALIZE_WHITESPACE
-   KCut Direction.PAST
+   KCut PAST
     ∅     0     1
    ─── ✕ ─── ✕ ───
     ∅     0     1
