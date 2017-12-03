@@ -398,7 +398,7 @@ class PyphiConfig(Config):
     NUMBER_OF_CORES = Option(-1, doc="""
     Controls the number of CPU cores used to evaluate unidirectional cuts.
     Negative numbers count backwards from the total number of available cores,
-    with ``-1`` meaning "use all available cores.""")
+    with ``-1`` meaning 'use all available cores.'""")
 
     MAXIMUM_CACHE_MEMORY_PERCENTAGE = Option(50, doc="""
     PyPhi employs several in-memory caches to speed up computation. However,
@@ -541,27 +541,27 @@ class PyphiConfig(Config):
     mechanism the mechanism. That is, for the mechanism ``(A, B)`` and purview
     ``(B, C, D)`` the partition::
 
-      A,B     ∅
+      A,B    ∅
       ─── ✕ ───
-       B     C,D
+       B    C,D
 
     is not considered, but::
 
-       A      B
+       A     B
       ─── ✕ ───
-       B     C,D
+       B    C,D
 
     is. The following is also valid::
 
-      A,B      ∅
+      A,B     ∅
       ─── ✕ ─────
-       ∅     B,C,D
+       ∅    B,C,D
 
     In addition, this setting introduces "wedge" tripartitions of the form::
 
-       A      B     ∅
+       A     B     ∅
       ─── ✕ ─── ✕ ───
-       B      C     D
+       B     C     D
 
     where the mechanism in the third part is always empty.
 
