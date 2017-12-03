@@ -1,6 +1,5 @@
 Sphinx
 sphinxcontrib-napoleon
-sphinx_rtd_theme
 wheel
 watchdog
 pylint
