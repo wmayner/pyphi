@@ -1,8 +1,9 @@
 Changelog
 =========
 
-Next Release
-------------------
+0.9.0
+-----
+_2017-12-04_
 
 ### API changes:
 - Many functions have been refactored to different modules; see the "Refactor"
