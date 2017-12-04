@@ -26,6 +26,9 @@ To report issues, please use the issue tracker on the `GitHub repository
 <https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
 welcome.
 
+For general discussion, you are welcome to join the `pyphi-users group
+<https://groups.google.com/forum/#!forum/pyphi-users>`_.
+
 
 Usage
 ~~~~~
