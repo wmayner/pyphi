@@ -61,8 +61,8 @@ These settings control the algorithms PyPhi uses.
 - :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
 
 
-System resources
-~~~~~~~~~~~~~~~~
+Parallelization and system resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 These settings control how much processing power and memory is available for
 PyPhi to use. The default values may not be appropriate for your use-case or
@@ -86,8 +86,8 @@ long time!), resulting in data loss.
 - :attr:`~pyphi.conf.PyphiConfig.MAXIMUM_CACHE_MEMORY_PERCENTAGE`
 
 
-Caching
-~~~~~~~
+Memoization and caching
+~~~~~~~~~~~~~~~~~~~~~~~
 
 PyPhi provides a number of ways to cache intermediate results.
 

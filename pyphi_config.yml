@@ -3,8 +3,8 @@
 # See the documentation for ``pyphi.config`` for more info.
 ---
 
-# Theoretical approximations
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Approximations and theoretical options
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # In certain cases, making a cut can actually cause a previously reducible
 # concept to become a proper, irreducible concept. Assuming this can never
 # happen can increase performance significantly, however the obtained results
@@ -17,9 +17,21 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 CUT_ONE_APPROXIMATION: false
 # The measure to use when computing phi ("EMD", "KLD", "L1", ...)
 MEASURE: "EMD"
+# Controls the number of parts in a partition.
+PARTITION_TYPE: "BI"
+# Controls how to resolve phi-ties when computing MICE.
+PICK_SMALLEST_PURVIEW: false
+# Use the difference in sum of small phi for the constellation distance
+USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE: false
+# The type of system cuts to use
+SYSTEM_CUTS: "3.0_STYLE"
+# In some applications of this library, you may want to allow single
+# micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
+# details.
+SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 
-# System resources
-# ~~~~~~~~~~~~~~~~
+# Parallelization and system resources
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Controls whether concepts are evaluated in parallel.
 PARALLEL_CONCEPT_EVALUATION: false
 # Controls whether cuts are evaluated in parallel, which requires more
@@ -28,7 +40,6 @@ PARALLEL_CONCEPT_EVALUATION: false
 PARALLEL_CUT_EVALUATION: true
 # Controls whether complexes are evaluated in parallel.
 PARALLEL_COMPLEX_EVALUATION: false
-
 # The number of CPU cores to use in parallel cut evaluation. -1 means all
 # available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
@@ -36,8 +47,8 @@ NUMBER_OF_CORES: -1
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 
-# Caching
-# ~~~~~~~
+# Memoization and caching
+# ~~~~~~~~~~~~~~~~~~~~~~~
 # Controls whether BigMips are cached and retreived.
 CACHE_BIGMIPS: false
 # Controls whether the potential purviews of the mechanisms of a network are
@@ -61,7 +72,6 @@ MONGODB_CONFIG:
     port: 27017
     database_name: "pyphi"
     collection_name: "test"
-
 # Use a Redis server as a Mice cache
 REDIS_CACHE: false
 # Redis connection configuration
@@ -83,6 +93,10 @@ LOG_STDOUT_LEVEL: "WARNING"
 LOG_CONFIG_ON_IMPORT: true
 # Enable/disable progress bars
 PROGRESS_BARS: true
+# Use pretty __str__-like formatting in repr calls.
+REPR_VERBOSITY: 2
+# Print numbers as fractions if the denominator isn't too big.
+PRINT_FRACTIONS: true
 
 # Numerical precision
 # ~~~~~~~~~~~~~~~~~~~
@@ -96,18 +110,3 @@ PRECISION: 6
 VALIDATE_SUBSYSTEM_STATES: true
 # Controls whether a system is validated for conditional independence.
 VALIDATE_CONDITIONAL_INDEPENDENCE: true
-# In some applications of this library, you may want to allow single micro-nodes
-# with a self-loop to have nonzero Phi. See ``pyphi.config`` for details.
-SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
-# Use pretty __str__-like formatting in repr calls.
-REPR_VERBOSITY: 2
-# Print numbers as fractions if the denominator isn't too big.
-PRINT_FRACTIONS: true
-# Control the number of parts in a partition.
-PARTITION_TYPE: "BI"
-# Controls how to resolve phi-ties when computing MICE.
-PICK_SMALLEST_PURVIEW: false
-# Use the difference in sum of small phi for the constellation distance
-USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE: false
-# The type of system cuts to use
-SYSTEM_CUTS: "3.0_STYLE"
