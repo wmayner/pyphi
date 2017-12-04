@@ -1,8 +1,9 @@
 Getting started
 ===============
 
-Install `IPython <https://ipython.org/install.html>`_ by running ``pip install
-ipython`` on the command line. Then run it with the command ``ipython``. 
+To explore the following examples, install `IPython
+<https://ipython.org/install.html>`_ by running ``pip install ipython`` on the
+command line. Then run it with the command ``ipython``. 
 
 Lines of code beginning with ``>>>`` and ``...`` can be pasted directly into
 IPython.
