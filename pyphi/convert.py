@@ -5,8 +5,8 @@
 '''
 Conversion functions.
 
-See the documentation on PyPhi |conventions| for information on the different
-representations that these functions convert between.
+See the documentation on PyPhi :ref:`tpm-conventions` for information on the
+different representations that these functions convert between.
 '''
 
 import logging
@@ -216,7 +216,7 @@ def state_by_state2state_by_node(tpm):
         The indices of the rows and columns of the state-by-state TPM are
         assumed to follow the LOLI convention. The indices of the rows of the
         resulting state-by-node TPM also follow the LOLI convention. See the
-        documentation on PyPhi |conventions| more information.
+        documentation on PyPhi the :ref:`tpm-conventions` more information.
 
     Args:
         tpm (list[list] or np.ndarray): A square state-by-state TPM with row
@@ -278,7 +278,7 @@ def state_by_node2state_by_state(tpm):
         the LOLI convention, while the indices of the columns follow the HOLI
         convention. The indices of the rows and columns of the resulting
         state-by-state TPM both follow the HOLI convention. See the
-        documentation on PyPhi |conventions| for more info.
+        documentation on PyPhi :ref:`tpm-conventions` for more info.
 
     Args:
         tpm (list[list] or np.ndarray): A state-by-node TPM with row indices

@@ -1,7 +1,7 @@
-.. _conventions:
+.. _cm-conventions:
 
-Connectivity Matrices
-~~~~~~~~~~~~~~~~~~~~~
+Connectivity matrix conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Throughout PyPhi, if |CM| is a connectivity matrix, then |CM[i][j] = 1| means
 that there is a directed edge |(i,j)| from node |i| to node |j|, and 
@@ -19,15 +19,16 @@ has the following connectivity matrix:
     ...       [0, 1, 0, 1],
     ...       [0, 0, 0, 1]]
 
-.. _loli-convention:
 
-LOLI: Low-Order bits correspond to Low-Index nodes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _tpm-conventions:
 
-There are several ways to write down a TPM. With both state-by-state and
-state-by-node TPMs, one is confronted with a choice about which rows correspond
-to which states. In state-by-state TPMs, this choice must also be made for the
-columns.
+Transition probability matrix conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are several ways to write down a transition probability matrix (TPM).
+With both state-by-state and state-by-node TPMs, one is confronted with a
+choice about which rows correspond to which states. In state-by-state TPMs,
+this choice must also be made for the columns.
 
 Either the first node changes state every other row (**LOLI**):
 

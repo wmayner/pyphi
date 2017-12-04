@@ -27,7 +27,7 @@ class Network:
             The TPM can be provided in either state-by-node (either
             2-dimensional or n-dimensional) or state-by-state form. In either
             form, row indices must follow the LOLI convention (see
-            :ref:`loli-convention`). In state-by-state form column indices must
+            :ref:`tpm-conventions`). In state-by-state form column indices must
             also follow the LOLI convention.
 
             If given in state-by-node form, the TPM can be either

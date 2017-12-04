@@ -285,11 +285,7 @@ r"""
 .. |expand_repertoire| replace:: :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`
 .. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
 .. |find_mice| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
-""",
-# Arbitrary references
-r"""
-.. |conventions| replace:: :ref:`conventions`
-""",
+"""
 ])
 
 # -- Options for Napoleon (docstring format extension) --------------------

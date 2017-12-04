@@ -96,7 +96,7 @@ mapping between micro-states and macro-states:
     array([0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3])
 
 The interpretation of the mapping uses the LOLI convention of indexing (see
-:ref:`loli-convention`).
+:ref:`tpm-conventions`).
 
     >>> mapping[7]
     1
