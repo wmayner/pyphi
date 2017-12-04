@@ -4,8 +4,8 @@
 
 |
 
-.. image:: https://img.shields.io/badge/DOI-10.5281%20%2F%20zenodo.55692-blue.svg?style=flat-square&maxAge=86400
-    :target: https://doi.org/10.5281/zenodo.55692
+.. image:: https://img.shields.io/badge/DOI-10.5281%20%2F%20zenodo.636912-blue.svg?style=flat-square&maxAge=86400
+    :target: https://doi.org/10.5281/zenodo.636912
     :alt: Zenodo DOI badge
 
 .. image:: https://readthedocs.org/projects/pyphi/badge/?version=latest&style=flat-square&maxAge=600
@@ -37,10 +37,10 @@ associated quantities and objects.
 <http://dx.doi.org/10.1371/journal.pcbi.1003588>`_.
 
 To cite the code, use the Zenodo DOI for the verison you used. The latest one
-is `10.5281/zenodo.55692 <http://dx.doi.org/10.5281/zenodo.55692>`_.
+is `10.5281/zenodo.636912 <http://dx.doi.org/10.5281/zenodo.636912>`_.
 For example::
 
-    Mayner, William GP et al. (2016). PyPhi: 0.9.0. Zenodo. 10.5281/zenodo.595866
+    Mayner, William GP et al. (2017). PyPhi: 0.9.0. Zenodo. 10.5281/zenodo.636912
 
 Or in BibTeX::
 
@@ -50,9 +50,9 @@ Or in BibTeX::
                 Marchman, Bo},
       title  = {PyPhi: 0.9.0},
       month  = Feb,
-      year   = 2016,
-      doi    = {10.5281/zenodo.55692},
-      url    = {http://dx.doi.org/10.5281/zenodo.55692}
+      year   = 2017,
+      doi    = {10.5281/zenodo.636912},
+      url    = {http://dx.doi.org/10.5281/zenodo.636912}
     }
 
 (Just make sure to use the version number, DOI, and URL for the version you
