@@ -1,7 +1,7 @@
-.. _config:
+.. _conf:
 
-:mod:`config`
-=============
+:mod:`conf`
+===========
 
 .. automodule:: pyphi.conf
     :members:
