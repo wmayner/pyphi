@@ -1,4 +1,7 @@
 Sphinx
 sphinxcontrib-napoleon
-sphinx_rtd_theme
 wheel
+watchdog
+pylint
+isort
+git+https://github.com/wmayner/sphinx_rtd_theme.git

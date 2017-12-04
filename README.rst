@@ -1,34 +1,71 @@
-.. image:: https://zenodo.org/badge/doi/10.5281/zenodo.55692.svg
-    :target: http://dx.doi.org/10.5281/zenodo.55692
+.. raw:: html
+
+    <a href="http://pyphi.readthedocs.io/en/latest/"><img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-logo-text-760x180.png" height="90px" width="380px" style="max-width:100%;"></a>
+
+|
+
+.. image:: https://img.shields.io/badge/DOI-10.5281%20%2F%20zenodo.636912-blue.svg?style=flat-square&maxAge=86400
+    :target: https://doi.org/10.5281/zenodo.636912
     :alt: Zenodo DOI badge
 
-.. image:: https://travis-ci.org/wmayner/pyphi.svg?branch=master
+.. image:: https://readthedocs.org/projects/pyphi/badge/?version=latest&style=flat-square&maxAge=600
+    :target: https://pyphi.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation badge
+
+.. image:: https://img.shields.io/travis/wmayner/pyphi.svg?style=flat-square&maxAge=600
     :target: https://travis-ci.org/wmayner/pyphi
     :alt: Travis build badge
 
-.. image:: https://coveralls.io/repos/wmayner/pyphi/badge.svg?branch=master&service=github
-    :target: https://coveralls.io/r/wmayner/pyphi?branch=master
+.. image:: https://img.shields.io/coveralls/wmayner/pyphi/develop.svg?style=flat-square&maxAge=600
+    :target: https://coveralls.io/github/wmayner/pyphi?branch=develop
     :alt: Coveralls.io badge
 
-***********************
-PyPhi: |phi| for Python
-***********************
+.. image:: https://img.shields.io/github/license/wmayner/pyphi.svg?style=flat-square&maxAge=86400
+    :target: https://github.com/wmayner/pyphi/blob/master/LICENSE.md
+    :alt: License badge
 
-PyPhi is a Python 3 library for computing integrated information (|phi|), and
-the associated quantities and objects.
+.. image:: https://img.shields.io/pypi/pyversions/pyphi.svg?style=flat-square&maxAge=86400
+    :target: https://wiki.python.org/moin/Python2orPython3
+    :alt: Python versions badge
 
-If you use this code, please cite both this repository (DOI
-`10.5281/zenodo.55692 <http://dx.doi.org/10.5281/zenodo.55692>`_) and the IIT
-3.0 paper (DOI `10.1371/journal.pcbi.1003588
-<http://dx.doi.org/10.1371/journal.pcbi.1003588>`_).
+|
+
+PyPhi is a Python library for computing integrated information (|phi|), and the
+associated quantities and objects.
+
+**If you use this code, please cite it, as well as the** `IIT 3.0 paper
+<http://dx.doi.org/10.1371/journal.pcbi.1003588>`_.
+
+To cite the code, use the Zenodo DOI for the verison you used. The latest one
+is `10.5281/zenodo.636912 <http://dx.doi.org/10.5281/zenodo.636912>`_.
+For example::
+
+    Mayner, William GP et al. (2017). PyPhi: 0.9.0. Zenodo. 10.5281/zenodo.636912
+
+Or in BibTeX::
+
+    @misc{pyphi,
+      author = {Mayner, William Gerald Paul and
+                Marshall, William and
+                Marchman, Bo},
+      title  = {PyPhi: 0.9.0},
+      month  = Feb,
+      year   = 2017,
+      doi    = {10.5281/zenodo.636912},
+      url    = {http://dx.doi.org/10.5281/zenodo.636912}
+    }
+
+(Just make sure to use the version number, DOI, and URL for the version you
+actually used.)
 
 
 Usage, Examples, and API documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Check out the `documentation for the latest release
-<http://pyphi.readthedocs.io/en/stable/>`_, or the `documentation for the latest
-development version <http://pyphi.readthedocs.io/en/latest/>`_.
+Check out the `documentation for the latest stable release
+<http://pyphi.readthedocs.io/en/stable/>`_, or the `documentation for the
+latest (potentially unstable) development version
+<http://pyphi.readthedocs.io/en/latest/>`_.
 
 The documentation is also available within the Python interpreter with the
 ``help`` function.
@@ -51,7 +88,7 @@ have bugs, run:
     pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
 
 **Note:** this software has only been tested on the Mac OS X and Linux
-operating systems. Windows is not supported, though it might work on with minor
+operating systems. Windows is not supported, though it might work with minor
 modifications. If you do get it to work, a writeup of the steps would be much
 appreciated!
 
@@ -62,90 +99,53 @@ Detailed installation guide for Mac OS X
 `See here <https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.md>`_.
 
 
-Optional: caching with MongoDb
-`````````````````````````````````
+Discussion
+~~~~~~~~~~
 
-PyPhi stores the results of |Phi| calculations as they're computed in order to
-avoid expensive re-computation. These results can be stored locally on the
-filesystem (the default setting), or in a full-fledged database.
+For technical issues with PyPhi or feature requests, please use the `issues
+page <https://github.com/wmayner/pyphi/issues>`_.
 
-Using the default caching system is easier and works out of the box, but using
-a database is more robust.
-
-To use the database-backed caching system, you must install `MongoDB
-<http://www.mongodb.org/>`_. Please see their `installation guide
-<http://docs.mongodb.org/manual/installation/>`_ for instructions.
-
-Once you have MongoDB installed, use ``mongod`` to start the MongoDB server.
-Make sure the ``mongod`` configuration matches the PyPhi's database
-configuration settings in ``pyphi_config.yml`` (see the `configuration section
-<https://pythonhosted.org/pyphi/index.html#configuration>`_ of PyPhi's
-documentation).
-
-You can also check out MongoDB's `Getting Started guide
-<http://docs.mongodb.org/manual/tutorial/getting-started/>`_ or the full
-`manual <http://docs.mongodb.org/manual/>`_.
-
-
-Optional: caching with Redis
-`````````````````````````````
-
-PyPhi can also use Redis as a fast in-memory global LRU cache to store Mice
-objects, reducing the memory load on PyPhi processes.
-
-`Install Redis <http://redis.io/download>`_. The `redis.conf` file provided with
-PyPhi includes the minimum settings needed to run Redis as an LRU cache:
-
-.. code:: bash
-
-    redis-server /path/to/pyphi/redis.conf
-
-Once the server is running you can enable Redis caching by setting
-``REDIS_CACHE: true`` in your ``pyphi_config.yml``.
-
-**Note:** PyPhi currently flushes the connected Redis database at the start of 
-every execution. If you are running Redis for another application be sure PyPhi
-connects to its own Redis server.
+For discussion about the software or integrated information theory in general,
+you can join the `PyPhi users group
+<https://groups.google.com/forum/#!forum/pyphi-users>`_.
 
 
 Contributing
 ~~~~~~~~~~~~
 
 To help develop PyPhi, fork the project on GitHub and install the requirements
-with ``pip install -r requirements.txt``.
-
-Development workflow
-````````````````````
-
-``Gruntfile.js`` defines some tasks to help with development. These are run
-with `Grunt.js <http:gruntjs.com>`_.
-
-To get ``grunt``, first install `Node.js <http://nodejs.org/>`_. Then, within
-the ``pyphi`` directory, run ``npm install`` to install the local ``npm``
-dependencies, then run ``sudo npm install -g grunt grunt-cli`` to install the
-``grunt`` command to your system. Now you should be able to run tasks with
-``grunt``, *e.g.*
+with
 
 .. code:: bash
 
-    grunt test
+    pip install -r requirements.txt
 
-which will run the unit tests every time you change the source code. Similarly,
+The ``Makefile`` defines some tasks to help with development:
 
 .. code:: bash
 
-    grunt docs
+    make test
 
-will rebuild the HTML documentation on every change.
+runs the unit tests every time you change the source code.
 
-At some point I'll try to use a Makefile instead, since many more people have
-access to ``make``.
+.. code:: bash
+
+    make benchmark
+
+runs performance benchmarks.
+
+.. code:: bash
+
+    make docs
+
+builds the HTML documentation.
+
 
 Developing on Linux
 ```````````````````
 
-Make sure you install the Python 3 C headers before installing the
-requirements:
+Make sure you install the C headers for Python 3, SciPy, and NumPy before
+installing the requirements:
 
 .. code:: bash
 

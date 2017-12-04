@@ -2,14 +2,12 @@
 # -*- coding: utf-8 -*-
 # test_subsystem_cause_and_effect_repertoire.py
 
-import pytest
 import numpy as np
-
-from pyphi.models import Cut
-from pyphi import Subsystem
+import pytest
 
 import example_networks
-
+from pyphi import Subsystem
+from pyphi.models import Cut
 
 # Get example networks
 standard = example_networks.standard()
@@ -337,7 +335,7 @@ parameter_string = "function,subsystem,mechanism,purview,expected"
 @pytest.mark.parametrize(parameter_string, scenarios)
 def test_cause_and_effect_repertoire(function, subsystem, mechanism, purview,
                                      expected):
-    """Test ``effect_repertoire`` or ``cause_repertoire``."""
+    '''Test ``effect_repertoire`` or ``cause_repertoire``.'''
 
     print("\nTesting " + function + " with subsystem \n" + str(subsystem))
 

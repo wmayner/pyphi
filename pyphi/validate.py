@@ -2,39 +2,46 @@
 # -*- coding: utf-8 -*-
 # validate.py
 
-"""
-Methods for validating common types of input.
-"""
+'''
+Methods for validating arguments.
+'''
 
 import numpy as np
 
-from . import config, constants, convert
+from . import Direction, config, convert, exceptions
 from .constants import EPSILON
+from .tpm import is_state_by_state
+
+# pylint: disable=redefined-outer-name
 
 
-class StateUnreachableError(ValueError):
-    """Raised when the current state cannot be reached from any past state."""
+def direction(direction, allow_bi=False):
+    '''Validate that the given direction is one of the allowed constants.
 
-    def __init__(self, state, message):
-        self.state = state
-        self.message = message
+    If ``allow_bi`` is ``True`` then ``Direction.BIDIRECTIONAL`` is
+    acceptable.
+    '''
+    valid = [Direction.PAST, Direction.FUTURE]
+    if allow_bi:
+        valid.append(Direction.BIDIRECTIONAL)
 
-    def __str__(self):
-        return self.message
+    if direction not in valid:
+        raise ValueError('`direction` must be one of {}'.format(valid))
 
-
-def direction(direction):
-    """Validate that the given direction is one of the allowed constants."""
-    if direction not in constants.DIRECTIONS:
-        raise ValueError('Direction must be one of '
-                         '{}.'.format(constants.DIRECTIONS))
     return True
 
 
-def tpm(tpm):
-    """Validate a TPM."""
-    see_tpm_docs = ('See documentation for pyphi.Network for more information '
-                    'TPM formats.')
+def tpm(tpm, check_independence=True):
+    '''Validate a TPM.
+
+    The TPM can be in
+
+        * 2-dimensional state-by-state form,
+        * 2-dimensional state-by-node form, or
+        * n-dimensional state-by-node form.
+    '''
+    see_tpm_docs = ('See documentation for `pyphi.Network` for more '
+                    'information on TPM formats.')
     # Cast to np.array.
     tpm = np.array(tpm)
     # Get the number of nodes from the state-by-node TPM.
@@ -47,38 +54,45 @@ def tpm(tpm):
                 'there must be ' '2^N rows and N columns, where N is the '
                 'number of nodes. State-by-state TPM must be square. '
                 '{}'.format(tpm.shape, see_tpm_docs))
-        if (tpm.shape[0] == tpm.shape[1]
-                and not conditionally_independent(tpm)):
-            raise ValueError('TPM is not conditionally independent. See the '
-                             'conditional independence example in the '
-                             'documentation for more information.')
+        if tpm.shape[0] == tpm.shape[1] and check_independence:
+            conditionally_independent(tpm)
     elif tpm.ndim == (N + 1):
-        if not (tpm.shape == tuple([2] * N + [N])):
+        if tpm.shape != tuple([2] * N + [N]):
             raise ValueError(
-                'Invalid shape for N-D state-by-node TPM: {}\nThe shape '
-                'should be {} for {} nodes.'.format(
+                'Invalid shape for n-dimensional state-by-node TPM: {}\nThe '
+                'shape should be {} for {} nodes. {}'.format(
                     tpm.shape, ([2] * N) + [N], N, see_tpm_docs))
     else:
         raise ValueError(
-            'Invalid state-by-node TPM: TPM must be in either 2-D or N-D '
-            'form. {}'.format(see_tpm_docs))
+            'Invalid TPM: Must be either 2-dimensional or n-dimensional. '
+            '{}'.format(see_tpm_docs))
     return True
 
 
 def conditionally_independent(tpm):
-    """Validate that the TPM is conditionally independent."""
+    '''Validate that the TPM is conditionally independent.'''
+    if not config.VALIDATE_CONDITIONAL_INDEPENDENCE:
+        return True
     tpm = np.array(tpm)
-    there_and_back_again = convert.state_by_node2state_by_state(
-        convert.state_by_state2state_by_node(tpm))
-    return np.all((tpm - there_and_back_again) < EPSILON)
+    if is_state_by_state(tpm):
+        there_and_back_again = convert.state_by_node2state_by_state(
+            convert.state_by_state2state_by_node(tpm))
+    else:
+        there_and_back_again = convert.state_by_state2state_by_node(
+            convert.state_by_node2state_by_state(tpm))
+    if np.any((tpm - there_and_back_again) >= EPSILON):
+        raise exceptions.ConditionallyDependentError(
+            'TPM is not conditionally independent. See the conditional '
+            'independence example in the documentation for more info.')
+    return True
 
 
 def connectivity_matrix(cm):
-    """Validate the given connectivity matrix."""
+    '''Validate the given connectivity matrix.'''
     # Special case for empty matrices.
     if cm.size == 0:
         return True
-    if (cm.ndim != 2):
+    if cm.ndim != 2:
         raise ValueError("Connectivity matrix must be 2-dimensional.")
     if cm.shape[0] != cm.shape[1]:
         raise ValueError("Connectivity matrix must be square.")
@@ -88,40 +102,51 @@ def connectivity_matrix(cm):
     return True
 
 
-# TODO test
-def perturb_vector(pv, size):
-    """Validate a network's pertubation vector."""
-    if pv.size != size:
-        raise ValueError("Perturbation vector must have one element per node.")
-    if np.any(pv > 1) or np.any(pv < 0):
-        raise ValueError("Perturbation vector elements must be probabilities, "
-                         "between 0 and 1.")
-    return True
+def node_labels(node_labels, node_indices):
+    '''Validate that there is a label for each node.'''
+    if node_labels is None:
+        return
+
+    if len(node_labels) != len(node_indices):
+        raise ValueError("Labels {0} must label every node {1}.".format(
+            node_labels, node_indices))
+
+    if len(node_labels) != len(set(node_labels)):
+        raise ValueError("Labels {0} must be unique.".format(node_labels))
 
 
 def network(n):
-    """Validate a |Network|.
+    '''Validate a |Network|.
 
-    Checks the TPM, connectivity matrix, and perturbation vector.
-    """
+    Checks the TPM and connectivity matrix.
+    '''
     tpm(n.tpm)
-    connectivity_matrix(n.connectivity_matrix)
-    perturb_vector(n.perturb_vector, n.size)
-    if n.connectivity_matrix.shape[0] != n.size:
+    connectivity_matrix(n.cm)
+    node_labels(n.node_labels, n.node_indices)
+    if n.cm.shape[0] != n.size:
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")
     return True
 
 
+def is_network(network):
+    '''Validate that the argument is a |Network|.'''
+    from . import Network
+
+    if not isinstance(network, Network):
+        raise ValueError(
+            "Input must be a Network (perhaps you passed a Subsystem instead?")
+
+
 def node_states(state):
-    """Check that the state contains only zeros and ones."""
-    if not all([n in (0, 1) for n in state]):
+    '''Check that the state contains only zeros and ones.'''
+    if not all(n in (0, 1) for n in state):
         raise ValueError(
             'Invalid state: states must consist of only zeros and ones.')
 
 
 def state_length(state, size):
-    """Check that the state is the given size."""
+    '''Check that the state is the given size.'''
     if len(state) != size:
         raise ValueError('Invalid state: there must be one entry per '
                          'node in the network; this state has {} entries, but '
@@ -130,13 +155,7 @@ def state_length(state, size):
 
 
 def state_reachable(subsystem):
-    """Return whether a state can be reached according to the network's TPM.
-
-    If ``constrained_nodes`` is provided, then nodes not in
-    ``constrained_nodes`` will be left free (their state will not considered
-    restricted by the TPM). Otherwise, any nodes without inputs will be left
-    free.
-    """
+    '''Return whether a state can be reached according to the network's TPM.'''
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
@@ -144,27 +163,98 @@ def state_reachable(subsystem):
     # the nodes that are actually in the subsystem...
     tpm = subsystem.tpm[..., subsystem.node_indices]
     # Then we do the subtraction and test.
-    test = tpm - np.array(subsystem.state)[list(subsystem.node_indices)]
+    test = tpm - np.array(subsystem.proper_state)
     if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
-        raise StateUnreachableError(
-            subsystem.state, 'This state cannot be reached according to the '
-                             'given TPM.')
+        raise exceptions.StateUnreachableError(subsystem.state)
 
 
 def cut(cut, node_indices):
-    """Check that the cut is for only the given nodes."""
-    if set(cut[0] + cut[1]) != set(node_indices):
+    '''Check that the cut is for only the given nodes.'''
+    if cut.indices != node_indices:
         raise ValueError('{} nodes are not equal to subsystem nodes '
                          '{}'.format(cut, node_indices))
 
 
 def subsystem(s):
-    """Validate a |Subsystem|.
+    '''Validate a |Subsystem|.
 
     Checks its state and cut.
-    """
+    '''
     node_states(s.state)
-    cut(s.cut, s.node_indices)
+    cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)
     return True
+
+
+def time_scale(time_scale):
+    '''Validate a macro temporal time scale.'''
+    if time_scale <= 0 or isinstance(time_scale, float):
+        raise ValueError('time scale must be a positive integer')
+
+
+def partition(partition):
+    '''Validate a partition - used by blackboxes and coarse grains.'''
+    nodes = set()
+    for part in partition:
+        for node in part:
+            if node in nodes:
+                raise ValueError(
+                    'Micro-element {} may not be partitioned into multiple '
+                    'macro-elements'.format(node))
+            nodes.add(node)
+
+
+def coarse_grain(coarse_grain):
+    '''Validate a macro coarse-graining.'''
+    partition(coarse_grain.partition)
+
+    if len(coarse_grain.partition) != len(coarse_grain.grouping):
+        raise ValueError('output and state groupings must be the same size')
+
+    for part, group in zip(coarse_grain.partition, coarse_grain.grouping):
+        if set(range(len(part) + 1)) != set(group[0] + group[1]):
+            # Check that all elements in the partition are in one of the two
+            # state groupings
+            raise ValueError('elements in output grouping {0} do not match '
+                             'elements in state grouping {1}'.format(
+                                 part, group))
+
+
+def blackbox(blackbox):
+    '''Validate a macro blackboxing.'''
+
+    if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
+        raise ValueError('Output indices {} must be ordered'.format(
+            blackbox.output_indices))
+
+    partition(blackbox.partition)
+
+    for part in blackbox.partition:
+        if not set(part) & set(blackbox.output_indices):
+            raise ValueError(
+                'Every blackbox must have an output - {} does not'.format(
+                    part))
+
+
+def blackbox_and_coarse_grain(blackbox, coarse_grain):
+    '''Validate that a coarse-graining properly combines the outputs of a
+    blackboxing.'''
+
+    if blackbox is None:
+        return
+
+    for box in blackbox.partition:
+        # Outputs of the box
+        outputs = set(box) & set(blackbox.output_indices)
+
+        if coarse_grain is None and len(outputs) > 1:
+            raise ValueError(
+                'A blackboxing with multiple outputs per box must be '
+                'coarse-grained.')
+
+        if (coarse_grain and not any(outputs.issubset(part)
+                                     for part in coarse_grain.partition)):
+            raise ValueError(
+                'Multiple outputs from a blackbox must be partitioned into '
+                'the same macro-element of the coarse-graining')

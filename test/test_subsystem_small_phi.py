@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import pytest
 from pprint import pprint
-import numpy as np
 
-from pyphi import constants
-from pyphi.models import Mip, Part
+import numpy as np
+import pytest
 
 import example_networks
-
+from pyphi import Direction, constants
+from pyphi.models import Mip, Part
 
 s = example_networks.s()
 
@@ -20,7 +19,7 @@ s = example_networks.s()
 # Test scenario structure:
 #
 # (
-#     direction of MIP ('past' or 'future'),
+#     direction of MIP (Direction.PAST or Direction.FUTURE),
 #     subsystem, cut,
 #     mechanism,
 #     purview,
@@ -42,7 +41,7 @@ scenarios = [
     # No cut {{{
     # ----------
     (
-        'past',
+        Direction.PAST,
         s, None,
         (0,),
         (0,),
@@ -59,7 +58,7 @@ scenarios = [
     # With cut {{{
     # ------------
     (
-        'past',
+        Direction.PAST,
         s, (0, (1, 2)),
         (1,),
         (2,),
@@ -79,7 +78,7 @@ scenarios = [
     # No cut {{{
     # ----------
     (
-        'future',
+        Direction.FUTURE,
         s, None,
         (0, 1, 2),
         (0, 1, 2),
@@ -132,7 +131,7 @@ scenarios = [
     # With cut {{{
     # ------------
     (
-        'future',
+        Direction.FUTURE,
         s, ((1, 2), 0),
         (2,),
         (1,),
@@ -145,7 +144,7 @@ scenarios = [
             np.array([1., 0.]).reshape(1, 2, 1),
          'phi': 0.5}
     ), (
-        'future',
+        Direction.FUTURE,
         s, ((0, 2), 1),
         (2,),
         (0,),
@@ -158,7 +157,7 @@ scenarios = [
             np.array([0.5, 0.5]).reshape(2, 1, 1),
          'phi': 0.25}
     ), (
-        'future',
+        Direction.FUTURE,
         s, ((0, 2), 1),
         (0, 1, 2),
         (0, 2),
@@ -185,7 +184,7 @@ scenarios = [
             np.array([0., 1., 0., 0.]).reshape(2, 1, 2),
         'phi': 0.5}
     ), (
-        'future',
+        Direction.FUTURE,
         s, ((0, 1), 2),
         (1,),
         (0,),
@@ -252,14 +251,14 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
 def test_mip_past(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    mip_past = s.find_mip('past', mechanism, purview)
+    mip_past = s.find_mip(Direction.PAST, mechanism, purview)
     assert mip_past == s.mip_past(mechanism, purview)
 
 
 def test_mip_future(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    mip_future = s.find_mip('future', mechanism, purview)
+    mip_future = s.find_mip(Direction.FUTURE, mechanism, purview)
     assert mip_future == s.mip_future(mechanism, purview)
 
 

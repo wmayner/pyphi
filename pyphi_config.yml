@@ -3,8 +3,8 @@
 # See the documentation for ``pyphi.config`` for more info.
 ---
 
-# Theoretical approximations
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Approximations and theoretical options
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # In certain cases, making a cut can actually cause a previously reducible
 # concept to become a proper, irreducible concept. Assuming this can never
 # happen can increase performance significantly, however the obtained results
@@ -15,15 +15,31 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 # nodes, but this approximation is usually correct, and at worst provides an
 # upper bound for integrated information.
 CUT_ONE_APPROXIMATION: false
+# The measure to use when computing phi ("EMD", "KLD", "L1", ...)
+MEASURE: "EMD"
+# Controls the number of parts in a partition.
+PARTITION_TYPE: "BI"
+# Controls how to resolve phi-ties when computing MICE.
+PICK_SMALLEST_PURVIEW: false
+# Use the difference in sum of small phi for the constellation distance
+USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE: false
+# The type of system cuts to use
+SYSTEM_CUTS: "3.0_STYLE"
+# In some applications of this library, you may want to allow single
+# micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
+# details.
+SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 
-# System resources
-# ~~~~~~~~~~~~~~~~
+# Parallelization and system resources
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Controls whether concepts are evaluated in parallel.
+PARALLEL_CONCEPT_EVALUATION: false
 # Controls whether cuts are evaluated in parallel, which requires more
 # memory. If cuts are evaluated sequentially, only two BigMips need to be
 # in memory at a time.
 PARALLEL_CUT_EVALUATION: true
-# Controls whether concepts are evaluated in parallel.
-PARALLEL_CONCEPT_EVALUATION: false
+# Controls whether complexes are evaluated in parallel.
+PARALLEL_COMPLEX_EVALUATION: false
 # The number of CPU cores to use in parallel cut evaluation. -1 means all
 # available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
@@ -31,18 +47,14 @@ NUMBER_OF_CORES: -1
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 
-# Caching
-# ~~~~~~~
+# Memoization and caching
+# ~~~~~~~~~~~~~~~~~~~~~~~
 # Controls whether BigMips are cached and retreived.
 CACHE_BIGMIPS: false
 # Controls whether the potential purviews of the mechanisms of a network are
 # cached. Speeds up calculations when the same network is used repeatedly, but
 # takes up additional memory, and makes network initialization slow.
 CACHE_POTENTIAL_PURVIEWS: true
-# Controls whether concepts should be normalized before being cached.
-# Normalization increases the chances that a precomputed concept can be used
-# again, but is expensive.
-NORMALIZE_TPMS: true
 # The caching system to use. "fs" means cache the results on the local
 # filesystem, in a subdirectory of the current directory; "db" means connect to
 # a database and store the results there.
@@ -60,7 +72,6 @@ MONGODB_CONFIG:
     port: 27017
     database_name: "pyphi"
     collection_name: "test"
-
 # Use a Redis server as a Mice cache
 REDIS_CACHE: false
 # Redis connection configuration
@@ -71,19 +82,21 @@ REDIS_CONFIG:
 # Logging
 # ~~~~~~~
 # These are the settings for PyPhi logging.
-LOGGING_CONFIG:
-    format: "%(asctime)s [%(name)s.%(funcName)s] %(levelname)s: %(message)s"
-    # `level` can be "DEBUG", "INFO", "WARNING", "ERROR", or "CRITICAL".
-    file:
-        enabled: true
-        level: "INFO"
-        filename: "pyphi.log"
-    stdout:
-        enabled: true
-        level: "WARNING"
+# The file to log to
+LOG_FILE: "pyphi.log"
+# The log level to write to `LOG_FILE`
+LOG_FILE_LEVEL: "INFO"
+# The log level to write to stdout
+LOG_STDOUT_LEVEL: "WARNING"
 # Log the current configuration when PyPhi is imported. This is useful for
 # checking what settings were used for a previous calculation.
 LOG_CONFIG_ON_IMPORT: true
+# Enable/disable progress bars
+PROGRESS_BARS: true
+# Use pretty __str__-like formatting in repr calls.
+REPR_VERBOSITY: 2
+# Print numbers as fractions if the denominator isn't too big.
+PRINT_FRACTIONS: true
 
 # Numerical precision
 # ~~~~~~~~~~~~~~~~~~~
@@ -95,8 +108,5 @@ PRECISION: 6
 # Controls whether a subsystem's state is validated when the subsystem is
 # created.
 VALIDATE_SUBSYSTEM_STATES: true
-# In some applications of this library, you may prefer to define single-nodes
-# with a self-loop as having 0.5 Phi, a priori.
-SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI: false
-# Use pretty __str__-like formatting in repr calls
-READABLE_REPRS: true
+# Controls whether a system is validated for conditional independence.
+VALIDATE_CONDITIONAL_INDEPENDENCE: true

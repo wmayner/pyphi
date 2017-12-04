@@ -1,0 +1,15 @@
+[MESSAGES CONTROL]
+
+disable=
+  bad-whitespace,
+  missing-docstring,
+  redefined-outer-name,
+  too-few-public-methods,
+  no-member,
+  invalid-name,
+  protected-access,
+  expression-not-assigned,
+  pointless-statement,
+  unused-argument,
+  too-many-arguments,
+  no-self-use,

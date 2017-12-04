@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3 # -*- coding: utf-8 -*-
 #
 # PyPhi documentation build configuration file, created by
 # sphinx-quickstart on Fri Jan 17 11:15:55 2014.
@@ -12,6 +11,11 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
+
+# flake8: noqa
+# pylint: disable=invalid-name,bad-continuation,no-name-in-module
+# pylint: disable=wrong-import-position,missing-docstring,redefined-builtin
+
 
 import sys
 import os
@@ -40,7 +44,9 @@ extensions = [
     'sphinxcontrib.napoleon'
 ]
 
-mathjax_path = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
+mathjax_path = ('https://cdnjs.cloudflare.com'
+                '/ajax/libs/mathjax/2.7.1/MathJax.js'
+                '?config=TeX-AMS-MML_HTMLorMML')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -55,8 +61,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'PyPhi v' + __version__
-copyright = '2014 ' + __author__
+project = 'PyPhi'
+copyright = '2014–2017 {}'.format(__author__)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -79,7 +85,7 @@ release = version
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', '_themes/README.rst']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -97,7 +103,7 @@ exclude_patterns = ['_build']
 #show_authors = Fale
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'default'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -105,84 +111,182 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
-# Substitutions for math elements to make docstrings more readable
-rst_prolog = """
-.. |big_phi| replace:: :math:`\\Phi`
-.. |big_phi_max| replace:: :math:`\\Phi^{\\textrm{max}}`
-.. |small_phi| replace:: :math:`\\varphi`
-.. |small_phi_max| replace:: :math:`\\varphi^{\\textrm{max}}`
+# Global substitutions
+rst_prolog = ''.join([
+# Math
+r"""
+.. |big_phi| replace:: :math:`\Phi`
+.. |big_phi > 0| replace:: :math:`\Phi > 0`
+.. |big_phi_max| replace:: :math:`\Phi^{\textrm{max}}`
+.. |small_phi| replace:: :math:`\varphi`
+.. |small_phi > 0| replace:: :math:`\varphi > 0`
+.. |small_phi_max| replace:: :math:`\varphi^{\textrm{max}}`
+.. |big_alpha| replace:: :math:`\mathcal{A}`
+.. |big_alpha > 0| replace:: :math:`\mathcal{A} > 0`
+.. |alpha| replace:: :math:`\alpha`
+.. |alpha > 0| replace:: :math:`\alpha > 0`
+.. |L1| replace:: :math:`L_1`
 .. |A| replace:: :math:`A`
 .. |B| replace:: :math:`B`
 .. |C| replace:: :math:`C`
 .. |D| replace:: :math:`D`
 .. |E| replace:: :math:`E`
+.. |F| replace:: :math:`F`
 .. |AB| replace:: :math:`AB`
+.. |AC| replace:: :math:`AC`
+.. |AE| replace:: :math:`AE`
+.. |BC| replace:: :math:`BC`
 .. |CD| replace:: :math:`CD`
 .. |DE| replace:: :math:`DE`
 .. |FG| replace:: :math:`FG`
 .. |ABC| replace:: :math:`ABC`
+.. |BCD| replace:: :math:`BCD`
 .. |CDE| replace:: :math:`CDE`
-.. |n0| replace:: :math:`n_{0}`
-.. |n1| replace:: :math:`n_{1}`
-.. |n2| replace:: :math:`n_{2}`
-.. |n0, n1| replace:: :math:`n_{0}n_{1}`
-.. |n0, n2| replace:: :math:`n_{0}n_{2}`
-.. |n1, n2| replace:: :math:`n_{1}n_{2}`
-.. |n0, n1, n2| replace:: :math:`n_{0}n_{1}n_{2}`
-.. |(AB / DE) x ([] / C)| replace:: :math:`\\frac{AB}{DE} \\times \\frac{\left[\\;\\right]}{C}`
-.. |(A / CD) x ([] / E)| replace:: :math:`\\frac{A}{CD} \\times \\frac{\left[\\;\\right]}{E}`
-.. |([] / C) x (A / D)| replace:: :math:`\\frac{\\left[\\;\\right]}{C} \\times \\frac{A}{D}`
-.. |small_phi = 1/6| replace:: :math:`\\varphi = \\frac{1}{6}`
-.. |small_phi = 1/10| replace:: :math:`\\varphi = \\frac{1}{10}`
-.. |t_{-1}| replace:: :math:`t_{-1}`
-.. |t_0| replace:: :math:`t_0`
+.. |DEF| replace:: :math:`DEF`
+.. |(AB / DE) x (∅ / C)| replace:: :math:`\frac{AB}{DE} \times \frac{\varnothing}{C}`
+.. |(A / CD) x (∅ / E)| replace:: :math:`\frac{A}{CD} \times \frac{\varnothing}{E}`
+.. |(∅ / C) x (A / D)| replace:: :math:`\frac{\varnothing}{C} \times \frac{A}{D}`
+.. |small_phi = 1/6| replace:: :math:`\varphi = \frac{1}{6}`
+.. |small_phi = 1/10| replace:: :math:`\varphi = \frac{1}{10}`
+.. |t| replace:: :math:`t`
+.. |t-1| replace:: :math:`t-1`
+.. |t+1| replace:: :math:`t+1`
 .. |1,0,0| replace:: :math:`\{1,0,0\}`
 .. |0,1,0| replace:: :math:`\{0,1,0\}`
 .. |0,0,1| replace:: :math:`\{0,0,1\}`
-.. |N_0 = 0, N_1 = 0, N_2 = 1| replace:: :math:`\{N_0 = 0, N_1 = 0, N_2 = 1\}`
-.. |ith| replace:: :math:`i^{\\textrm{th}}`
-.. |jth| replace:: :math:`j^{\\textrm{th}}`
+.. |n0 = 0, n1 = 0, n2 = 1| replace:: :math:`(n_0 = 0, n_1 = 0, n_2 = 1)`
+.. |ith| replace:: :math:`i^{\textrm{th}}`
+.. |jth| replace:: :math:`j^{\textrm{th}}`
+.. |(i,j)| replace:: :math:`(i,j)`
 .. |r| replace:: :math:`r`
 .. |n| replace:: :math:`n`
 .. |N| replace:: :math:`N`
-.. |n x n| replace:: :math:`N \\times N`
-.. |2^n x 2^n| replace:: :math:`2^N \\times 2^N`
+.. |n x n| replace:: :math:`N \times N`
+.. |2^n x 2^n| replace:: :math:`2^N \times 2^N`
 .. |i| replace:: :math:`i`
 .. |j| replace:: :math:`j`
-.. |i,jth| replace:: :math:`i,j^{\\textrm{th}}`
+.. |i,jth| replace:: :math:`(i,j)^{\textrm{th}}`
 .. |k| replace:: :math:`k`
-.. |past| replace:: :const:`DIRECTIONS[PAST]`
-.. |future| replace:: :const:`DIRECTIONS[FUTURE]`
-.. |PRECISION| replace:: :const:`constants.PRECISION`
-.. |EPSILON| replace:: :const:`constants.EPSILON`
-.. |CM[i][j] = 1| replace:: :math:`CM_{i,j} = 1`
+.. |CM[i][j] = 1| replace:: :math:`[CM]_{i,j} = 1`
+.. |CM[i][j] = 0| replace:: :math:`[CM]_{i,j} = 0`
+.. |CM| replace:: :math:`CM`
+.. |X| replace:: :math:`X`
+.. |X_t-1| replace:: :math:`X_{t-1}`
+.. |X_t-1 = {OR}| replace:: :math:`X_{t-1} = \{OR\}`
+.. |X_t-1 = {OR = 1}| replace:: :math:`X_{t-1} = \{OR = 1\}`
+.. |X_t-1 = {OR, AND}| replace:: :math:`X_{t-1} = \{OR, AND\}`
+.. |X_t-1 = C| replace:: :math:`X_{t-1} = C`
+.. |Y| replace:: :math:`Y`
+.. |Y_t| replace:: :math:`Y_t`
+.. |Y_t = {AND}| replace:: :math:`Y_t = \{AND\}`
+.. |Y_t = {OR}| replace:: :math:`Y_t = \{OR\}`
+.. |Y_t = {OR = 1}| replace:: :math:`Y_t = \{OR = 1\}`
+.. |Y_t = {OR, AND}| replace:: :math:`Y_t = \{OR, AND\}`
+.. |Y_t = {OR, AND = 10}| replace:: :math:`Y_t = \{OR, AND = 10\}`
+.. |Y_t = D| replace:: :math:`Y_t = D`
+.. |{OR, AND} -> {OR, AND}| replace:: :math:`\{OR, AND\} \rightarrow \{OR, AND\}`
+
+""",
+# Constants
+r"""
+.. |PAST| replace:: :const:`~pyphi.direction.Direction.PAST`
+.. |FUTURE| replace:: :const:`~pyphi.direction.Direction.FUTURE`
+.. |EPSILON| replace:: :const:`~pyphi.constants.EPSILON`
+.. |PICK_SMALLEST_PURVIEW| replace:: :const:`~pyphi.config.PICK_SMALLEST_PURVIEW`
+.. |PARTITION_TYPE| replace:: :const:`~pyphi.config.PARTITION_TYPE`
+.. |PRECISION| replace:: :const:`~pyphi.config.PRECISION`
+""",
+# Modules
+r"""
 .. |compute| replace:: :mod:`~pyphi.compute`
+.. |compute.distance| replace:: :mod:`~pyphi.compute.distance`
+.. |compute.subsystems| replace:: :func:`~pyphi.compute.big_phi.subsystems`
+.. |compute.possible_complexes| replace:: :func:`~pyphi.compute.big_phi.possible_complexes`
+.. |compute.complexes| replace:: :func:`~pyphi.compute.big_phi.complexes`
+.. |compute.all_complexes| replace:: :func:`~pyphi.compute.big_phi.all_complexes`
+.. |compute.condensed| replace:: :func:`~pyphi.compute.big_phi.condensed`
+
+.. |models.big_phi| replace:: :mod:`~pyphi.models.big_phi`
+.. |models.concept| replace:: :mod:`~pyphi.models.concept`
+.. |models.cuts| replace:: :mod:`~pyphi.models.cuts`
+
 .. |network| replace:: :mod:`~pyphi.network`
 .. |subsystem| replace:: :mod:`~pyphi.subsystem`
 .. |macro| replace:: :mod:`~pyphi.macro`
 .. |convert| replace:: :mod:`~pyphi.convert`
 .. |examples| replace:: :mod:`~pyphi.examples`
 .. |node| replace:: :mod:`~pyphi.node`
-.. |concept_caching| replace:: :mod:`~pyphi.concept_caching`
 .. |memory| replace:: :mod:`~pyphi.memory`
 .. |db| replace:: :mod:`~pyphi.db`
 .. |utils| replace:: :mod:`~pyphi.utils`
 .. |validate| replace:: :mod:`~pyphi.validate`
 .. |config| replace:: :mod:`~pyphi.config`
-.. |Subsystem| replace:: :class:`~pyphi.subsystem.Subsystem`
+""",
+# Functions
+r"""
+.. |compute.conceptual_information| replace:: :func:`~pyphi.compute.big_phi.conceptual_information`
+.. |compute.big_mip| replace:: :func:`~pyphi.compute.big_phi.big_mip`
+
+.. |compute.concept| replace:: :func:`~pyphi.compute.concept.concept`
+.. |compute.big_phi| replace:: :func:`~pyphi.compute.big_phi.big_phi`
+
+.. |configure_logging| replace:: :func:`~pyphi.config.configure_logging`
+
+.. |loli_index2state| replace:: :func:`~pyphi.convert.loli_index2state`
+.. |holi_index2state| replace:: :func:`~pyphi.convert.holi_index2state`
+""",
+# Classes
+r"""
 .. |Network| replace:: :class:`~pyphi.network.Network`
-.. |BigMip| replace:: :class:`~pyphi.models.BigMip`
-.. |Concept| replace:: :class:`~pyphi.models.Concept`
-.. |Cut| replace:: :class:`~pyphi.models.Cut`
-.. |Mip| replace:: :class:`~pyphi.models.Mip`
-.. |Mice| replace:: :class:`~pyphi.models.Mice`
+
+.. |Subsystem| replace:: :class:`~pyphi.subsystem.Subsystem`
+
+.. |BigMip| replace:: :class:`~pyphi.models.big_phi.BigMip`
+
+.. |Concept| replace:: :class:`~pyphi.models.concept.Concept`
+.. |Constellation| replace:: :class:`~pyphi.models.concept.Constellation`
+
+.. |Cut| replace:: :class:`~pyphi.models.cuts.Cut`
+.. |Cuts| replace:: :class:`~pyphi.models.cuts.Cut`
+.. |Part| replace:: :class:`~pyphi.models.cuts.Part`
+.. |Parts| replace:: :class:`~pyphi.models.cuts.Part`
+.. |Bipartition| replace:: :class:`~pyphi.models.cuts.Bipartition`
+
+.. |Mip| replace:: :class:`~pyphi.models.concept.Mip`
+.. |Mice| replace:: :class:`~pyphi.models.concept.Mice`
+
 .. |Node| replace:: :class:`~pyphi.node.Node`
+.. |Nodes| replace:: :class:`~pyphi.node.Node`
+
+.. |MacroNetwork| replace:: :class:`~pyphi.macro.MacroNetwork`
+.. |MacroSubsystem| replace:: :class:`~pyphi.macro.MacroSubsystem`
+.. |CoarseGrain| replace:: :class:`~pyphi.macro.CoarseGrain`
+.. |CoarseGrains| replace:: :class:`~pyphi.macro.CoarseGrain`
+.. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
+
+.. |Transition| replace:: :class:`~pyphi.actual.Transition`
+.. |AcBigMip| replace:: :class:`~pyphi.models.actual_causation.AcBigMip`
+.. |AcMip| replace:: :class:`~pyphi.models.actual_causation.AcMip`
+.. |DirectedAccount| replace:: :class:`~pyphi.models.actual_causation.DirectedAccount`
+.. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
+.. |Event| replace:: :class:`~pyphi.models.actual_causation.Event`
+.. |CausalLink| replace:: :class:`~pyphi.models.actual_causation.CausalLink`
+.. |CausalLinks| replace:: :class:`~pyphi.models.actual_causation.CausalLink`
+
+.. |ConditionallyDependentError| replace:: :class:`~pyphi.exceptions.ConditionallyDependentError`
+
+.. |MiceCache| replace:: :class:`~pyphi.cache.MiceCache`
+""",
+# Methods
+r"""
+.. |Subsystem.concept| replace:: :meth:`~pyphi.subsystem.Subsystem.concept`
+.. |Subsystem.core_cause| replace:: :meth:`~pyphi.subsystem.Subsystem.core_cause`
+.. |Subsystem.core_effect| replace:: :meth:`~pyphi.subsystem.Subsystem.core_effect`
+.. |expand_repertoire| replace:: :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`
 .. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
 .. |find_mice| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
-.. |loli_index2state| replace:: :class:`~pyphi.convert.loli_index2state`
-.. |holi_index2state| replace:: :class:`~pyphi.convert.holi_index2state`
-.. |big_phi > 0| replace:: :math:`\\Phi > 0`
 """
+])
 
 # -- Options for Napoleon (docstring format extension) --------------------
 napoleon_google_docstring = True
@@ -200,22 +304,22 @@ napoleon_use_rtype = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    # Add any paths that contain custom themes here, relative to this
-    # directory.
-    html_theme_path = ['_themes'] + [sphinx_rtd_theme.get_html_theme_path()]
+import sphinx_rtd_theme
+html_theme = 'sphinx_rtd_theme'
+# Add any paths that contain custom themes here, relative to this
+# directory.
+html_theme_path = ['_themes'] + [sphinx_rtd_theme.get_html_theme_path()]
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
-html_logo = "phi.png"
+html_logo = "_static/blank.png"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    'navigation_depth': 3
+}
 
 html_sidebars = {'**': ['localtoc.html']}
 
@@ -249,10 +353,6 @@ html_static_path = ['_static']
 # using the given strftime format.
 html_last_updated_fmt = '%b %d, %Y'
 
-# If true, SmartyPants will be used to convert quotes and dashes to
-# typographically correct entities.
-html_use_smartypants = True
-
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
 
@@ -273,7 +373,7 @@ html_use_smartypants = True
 #html_show_sourcelink = True
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
-#html_show_sphinx = True
+html_show_sphinx = False
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
 #html_show_copyright = True
@@ -307,8 +407,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'PyPhi.tex', 'PyPhi Documentation',
-   'Will Mayner', 'manual'),
+  ('index', 'PyPhi.tex', 'PyPhi Documentation', __author__, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -337,8 +436,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pyphi', 'PyPhi Documentation',
-     ['Will Mayner'], 1)
+    ('index', 'pyphi', 'PyPhi Documentation', [__author__], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -351,8 +449,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'PyPhi', 'PyPhi Documentation',
-   'Will Mayner', 'PyPhi',
+  ('index', 'PyPhi', 'PyPhi Documentation', __author__, 'PyPhi',
    'A Python module for computing integrated information',
    'Miscellaneous'),
 ]

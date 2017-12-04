@@ -3,15 +3,19 @@
 # test_big_phi.py
 
 import pickle
-import pytest
 from unittest.mock import patch
 
-from pyphi import constants, config, compute, models, utils, Network
-from pyphi.constants import DIRECTIONS, PAST, FUTURE
-from pyphi.models import Cut, _null_bigmip
+import numpy as np
+import pytest
+
+from pyphi import (Direction, Network, Subsystem, compute, config, constants,
+                   models, utils)
 from pyphi.compute import constellation
-from pyphi.compute.big_phi import (_find_mip_parallel, _find_mip_sequential,
-                                   big_mip_bipartitions)
+from pyphi.compute.big_phi import FindMip, big_mip_bipartitions
+from pyphi.models import Cut, _null_bigmip
+from pyphi.partition import directed_bipartition
+
+# pylint: disable=unused-argument
 
 # TODO: split these into `concept` and `big_phi` tests
 
@@ -28,7 +32,7 @@ standard_answer = {
     },
     'len_partitioned_constellation': 1,
     'sum_partitioned_small_phis': 0.5,
-    'cut': models.Cut(severed=(1, 2), intact=(0,))
+    'cut': models.Cut(from_nodes=(1, 2), to_nodes=(0,))
 }
 
 
@@ -45,7 +49,7 @@ noised_answer = {
     },
     'len_partitioned_constellation': 7,
     'sum_partitioned_small_phis': 0.504906,
-    'cut': models.Cut(severed=(1, 2), intact=(0,))
+    'cut': models.Cut(from_nodes=(1, 2), to_nodes=(0,))
 }
 
 
@@ -85,7 +89,7 @@ big_answer = {
     },
     'len_partitioned_constellation': 17,
     'sum_partitioned_small_phis': 3.564909,
-    'cut': models.Cut(severed=(2, 4), intact=(0, 1, 3))
+    'cut': models.Cut(from_nodes=(2, 4), to_nodes=(0, 1, 3))
 }
 
 
@@ -101,18 +105,18 @@ big_subsys_0_thru_3_answer = {
     },
     'len_partitioned_constellation': 5,
     'sum_partitioned_small_phis': 0.883334,
-    'cut': models.Cut(severed=(1, 3), intact=(0, 2))
+    'cut': models.Cut(from_nodes=(1, 3), to_nodes=(0, 2))
 }
 
 
 rule152_answer = {
-    'phi': 6.974953,
+    'phi': 6.952286,
     'unpartitioned_small_phis': {
-        (0,): 0.125002,
-        (1,): 0.125002,
-        (2,): 0.125002,
-        (3,): 0.125002,
-        (4,): 0.125002,
+        (0,): 0.125,
+        (1,): 0.125,
+        (2,): 0.125,
+        (3,): 0.125,
+        (4,): 0.125,
         (0, 1): 0.25,
         (0, 2): 0.184614,
         (0, 3): 0.184614,
@@ -141,11 +145,13 @@ rule152_answer = {
         (0, 1, 2, 3, 4): 0.25
     },
     'len_partitioned_constellation': 24,
-    'sum_partitioned_small_phis': 4.185367,
+    'sum_partitioned_small_phis': 4.185363,
     'cuts': [
-        models.Cut(severed=(0, 1, 2, 4), intact=(3,)),
-        models.Cut(severed=(0, 2, 3, 4), intact=(1,)),
-        models.Cut(severed=(1, 2, 3, 4), intact=(0,)),
+        models.Cut(from_nodes=(0, 1, 2, 3), to_nodes=(4,)),
+        models.Cut(from_nodes=(0, 1, 2, 4), to_nodes=(3,)),
+        models.Cut(from_nodes=(0, 1, 3, 4), to_nodes=(2,)),
+        models.Cut(from_nodes=(0, 2, 3, 4), to_nodes=(1,)),
+        models.Cut(from_nodes=(1, 2, 3, 4), to_nodes=(0,)),
         # TODO: are there other possible cuts?
     ]
 }
@@ -162,10 +168,10 @@ micro_answer = {
         (2, 3): 0.348114,
     },
     'cuts': [
-        models.Cut(severed=(0, 2), intact=(1, 3)),
-        models.Cut(severed=(1, 2), intact=(0, 3)),
-        models.Cut(severed=(0, 3), intact=(1, 2)),
-        models.Cut(severed=(1, 3), intact=(0, 2)),
+        models.Cut(from_nodes=(0, 2), to_nodes=(1, 3)),
+        models.Cut(from_nodes=(1, 2), to_nodes=(0, 3)),
+        models.Cut(from_nodes=(0, 3), to_nodes=(1, 2)),
+        models.Cut(from_nodes=(1, 3), to_nodes=(0, 2)),
     ]
 }
 
@@ -176,8 +182,8 @@ macro_answer = {
         (1,): 0.455,
     },
     'cuts': [
-        models.Cut(severed=(0,), intact=(1,)),
-        models.Cut(severed=(1,), intact=(0,)),
+        models.Cut(from_nodes=(0,), to_nodes=(1,)),
+        models.Cut(from_nodes=(1,), to_nodes=(0,)),
     ]
 }
 
@@ -225,14 +231,14 @@ def test_null_concept(s, flushcache, restore_fs_cache):
     flushcache()
     cause = models.Mice(models.Mip(
         unpartitioned_repertoire=s.unconstrained_cause_repertoire(()),
-        phi=0, direction=DIRECTIONS[PAST], mechanism=(), purview=(),
+        phi=0, direction=Direction.PAST, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
     effect = models.Mice(models.Mip(
         unpartitioned_repertoire=s.unconstrained_effect_repertoire(()),
-        phi=0, direction=DIRECTIONS[FUTURE], mechanism=(), purview=(),
+        phi=0, direction=Direction.FUTURE, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
     assert (s.null_concept ==
-            models.Concept(mechanism=(), phi=0, cause=cause, effect=effect,
+            models.Concept(mechanism=(), cause=cause, effect=effect,
                            subsystem=s))
 
 
@@ -241,20 +247,21 @@ def test_concept_nonexistent(s, flushcache, restore_fs_cache):
     assert not compute.concept(s, (0, 2))
 
 
-# TODO: fix this!
-@pytest.mark.xfail(reason="Mock import paths are messed up by `concept`")
-@patch('pyphi.compute.concept._constellation_distance_simple')
-@patch('pyphi.compute.concept._constellation_distance_emd')
+@patch('pyphi.compute.distance._constellation_distance_simple')
+@patch('pyphi.compute.distance._constellation_distance_emd')
 def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
                                                    mock_simple_distance, s):
-    """Quick check that we use the correct constellation distance function.
+    '''Quick check that we use the correct constellation distance function.
 
     If the two constellations differ only in that some concepts have
     moved to the null concept and all other concepts are the same then
     we use the simple constellation distance. Otherwise, use the EMD.
-    """
+    '''
+    mock_emd_distance.return_value = float()
+    mock_simple_distance.return_value = float()
+
     make_mice = lambda: models.Mice(models.Mip(
-        phi=None, direction=None, mechanism=None,
+        phi=0, direction=None, mechanism=None,
         purview=None, partition=None,
         unpartitioned_repertoire=None,
         partitioned_repertoire=None))
@@ -273,6 +280,34 @@ def test_constellation_distance_uses_simple_vs_emd(mock_emd_distance,
     compute.constellation_distance((lone_concept,), (other_concept,))
     assert mock_emd_distance.called is True
     assert mock_simple_distance.called is False
+
+
+def test_constellation_distance_switches_to_small_phi_difference(s):
+    mip = compute.big_mip(s)
+    constellations = (mip.unpartitioned_constellation,
+                      mip.partitioned_constellation)
+
+    with config.override(
+            USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE=False):
+        assert 2.3125 == compute.constellation_distance(*constellations)
+
+    with config.override(
+            USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE=True):
+        assert 1.083333 == compute.constellation_distance(*constellations)
+
+
+@config.override(CACHE_BIGMIPS=True)
+def test_big_mip_cache_key_includes_config_dependencies(s, flushcache,
+                                                        restore_fs_cache):
+    flushcache()
+
+    with config.override(MEASURE='EMD'):
+        emd_big_phi = compute.big_phi(s)
+
+    with config.override(MEASURE='L1'):
+        l1_big_phi = compute.big_phi(s)
+
+    assert l1_big_phi != emd_big_phi
 
 
 def test_conceptual_information(s, flushcache, restore_fs_cache):
@@ -307,86 +342,129 @@ def test_big_mip_wrappers(reducible, flushcache, restore_fs_cache):
     assert compute.big_phi(reducible) == 0.0
 
 
-@config.override(SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
-def test_big_mip_single_node_selfloops_have_phi(s_single, flushcache,
-                                                restore_fs_cache):
+@config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
+@config.override(MEASURE='EMD')
+def test_big_mip_single_micro_node_selfloops_have_phi(
+        noisy_selfloop_single, flushcache, restore_fs_cache):
     flushcache()
-    assert compute.big_mip(s_single).phi == 0.5
+    assert compute.big_mip(noisy_selfloop_single).phi == 0.2736
 
 
-@config.override(SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI=False)
-def test_big_mip_single_node_selfloops_dont_have_phi(s_single, flushcache,
-                                                     restore_fs_cache):
+@config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False)
+def test_big_mip_single_micro_node_selfloops_dont_have_phi(
+        noisy_selfloop_single, flushcache, restore_fs_cache):
+    flushcache()
+    assert compute.big_mip(noisy_selfloop_single).phi == 0.0
+
+
+def test_big_mip_single_micro_nodes_without_selfloops_dont_have_phi(
+        s_single, flushcache, restore_fs_cache):
     flushcache()
     assert compute.big_mip(s_single).phi == 0.0
 
 
-@config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_standard_example(s, flushcache, restore_fs_cache):
-    flushcache()
+@pytest.fixture
+def standard_FindMip(s):
     unpartitioned_constellation = constellation(s)
-    bipartitions = utils.directed_bipartition(s.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
-    min_mip = _null_bigmip(s)
-    min_mip.phi = float('inf')
-    mip = _find_mip_sequential(s, cuts, unpartitioned_constellation, min_mip)
+    cuts = big_mip_bipartitions(s.node_indices)
+    return FindMip(cuts, s, unpartitioned_constellation)
+
+
+@config.override(PARALLEL_CUT_EVALUATION=False)
+def test_find_mip_sequential_standard_example(standard_FindMip, flushcache,
+                                              restore_fs_cache):
+    flushcache()
+    mip = standard_FindMip.run_sequential()
     check_mip(mip, standard_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
-def test_find_mip_parallel_standard_example(s, flushcache, restore_fs_cache):
-    flushcache()
-    unpartitioned_constellation = constellation(s)
-    bipartitions = utils.directed_bipartition(s.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
-    min_mip = _null_bigmip(s)
-    min_mip.phi = float('inf')
-    mip = _find_mip_parallel(s, cuts, unpartitioned_constellation, min_mip)
-    check_mip(mip, standard_answer)
-
-
-@config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_noised_example(s_noised, flushcache,
+def test_find_mip_parallel_standard_example(standard_FindMip, flushcache,
                                             restore_fs_cache):
     flushcache()
-    unpartitioned_constellation = constellation(s_noised)
-    bipartitions = utils.directed_bipartition(s_noised.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
-    min_mip = _null_bigmip(s_noised)
-    min_mip.phi = float('inf')
-    mip = _find_mip_sequential(s_noised, cuts, unpartitioned_constellation, min_mip)
+    mip = standard_FindMip.run_parallel()
+    check_mip(mip, standard_answer)
 
+
+@pytest.fixture
+def s_noised_FindMip(s_noised):
+    unpartitioned_constellation = constellation(s_noised)
+    cuts = big_mip_bipartitions(s_noised.node_indices)
+    return FindMip(cuts, s_noised, unpartitioned_constellation)
+
+
+@config.override(PARALLEL_CUT_EVALUATION=False)
+def test_find_mip_sequential_noised_example(s_noised_FindMip, flushcache,
+                                            restore_fs_cache):
+    flushcache()
+    mip = s_noised_FindMip.run_sequential()
     check_mip(mip, noised_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
-def test_find_mip_parallel_noised_example(s_noised, flushcache,
+def test_find_mip_parallel_noised_example(s_noised_FindMip, flushcache,
                                           restore_fs_cache):
     flushcache()
-    unpartitioned_constellation = constellation(s_noised)
-    bipartitions = utils.directed_bipartition(s_noised.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
-    min_mip = _null_bigmip(s_noised)
-    min_mip.phi = float('inf')
-    mip = _find_mip_parallel(s_noised, cuts, unpartitioned_constellation, min_mip)
+    mip = s_noised_FindMip.run_parallel()
     check_mip(mip, noised_answer)
+
+
+@pytest.fixture
+def micro_s_FindMip(micro_s):
+    unpartitioned_constellation = constellation(micro_s)
+    cuts = big_mip_bipartitions(micro_s.node_indices)
+    return FindMip(cuts, micro_s, unpartitioned_constellation)
+
+
+@config.override(PARALLEL_CUT_EVALUATION=True)
+def test_find_mip_parallel_micro(micro_s_FindMip, flushcache,
+                                 restore_fs_cache):
+    flushcache()
+    mip = micro_s_FindMip.run_parallel()
+    check_mip(mip, micro_answer)
+
+
+@config.override(PARALLEL_CUT_EVALUATION=False)
+def test_find_mip_sequential_micro(micro_s_FindMip, flushcache,
+                                   restore_fs_cache):
+    flushcache()
+    mip = micro_s_FindMip.run_sequential()
+    check_mip(mip, micro_answer)
+
+
+def test_possible_complexes(s):
+    assert list(compute.possible_complexes(s.network, s.state)) == [
+        Subsystem(s.network, s.state, (0, 1, 2)),
+        Subsystem(s.network, s.state, (1, 2)),
+        Subsystem(s.network, s.state, (0, 2)),
+        Subsystem(s.network, s.state, (0, 1)),
+        Subsystem(s.network, s.state, (1,)),
+    ]
 
 
 def test_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
     complexes = list(compute.complexes(s.network, s.state))
-    check_mip(complexes[2], standard_answer)
+    check_mip(complexes[0], standard_answer)
 
 
 # TODO!! add more assertions for the smaller subsystems
 def test_all_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
     complexes = list(compute.all_complexes(s.network, s.state))
-    check_mip(complexes[-1], standard_answer)
+    check_mip(complexes[0], standard_answer)
+
+
+@config.override(PARALLEL_CUT_EVALUATION=False)
+def test_all_complexes_parallelization(s, flushcache, restore_fs_cache):
+    flushcache()
+    with config.override(PARALLEL_COMPLEX_EVALUATION=False):
+        serial = compute.all_complexes(s.network, s.state)
+
+    with config.override(PARALLEL_COMPLEX_EVALUATION=True):
+        parallel = compute.all_complexes(s.network, s.state)
+
+    assert sorted(serial) == sorted(parallel)
 
 
 def test_big_mip_complete_graph_standard_example(s_complete):
@@ -461,59 +539,30 @@ def test_rule152_complexes_no_caching(rule152):
         # Check the phi values of all complexes.
         zz = [(bigmip.phi, result['subsystem_phis'][perm[i]]) for i, bigmip in
             list(enumerate(complexes))]
-        diff = [utils.phi_eq(bigmip.phi, result['subsystem_phis'][perm[i]]) for
+        diff = [utils.eq(bigmip.phi, result['subsystem_phis'][perm[i]]) for
                 i, bigmip in list(enumerate(complexes))]
-        assert all(utils.phi_eq(bigmip.phi, result['subsystem_phis'][perm[i]])
-                for i, bigmip in list(enumerate(complexes))[:])
+        assert all(utils.eq(bigmip.phi, result['subsystem_phis'][perm[i]])
+                   for i, bigmip in list(enumerate(complexes))[:])
         # Check the main complex in particular.
         main = compute.main_complex(net)
         # Check the phi value of the main complex.
-        assert utils.phi_eq(main.phi, result['phi'])
+        assert utils.eq(main.phi, result['phi'])
         # Check that the nodes are the same.
         assert (main.subsystem.node_indices ==
                 complexes[result['main_complex'] - 1].subsystem.node_indices)
         # Check that the concept's phi values are the same.
-        result_concepts = [c for c in result['concepts'] if c['is_irreducible']]
+        result_concepts = [c for c in result['concepts']
+                           if c['is_irreducible']]
         z = list(zip([c.phi for c in main.unpartitioned_constellation],
-                    [c['phi'] for c in result_concepts]))
-        diff = [i for i in range(len(z)) if not utils.phi_eq(z[i][0], z[i][1])]
-        assert all(list(utils.phi_eq(c.phi, result_concepts[i]['phi']) for i, c
+                     [c['phi'] for c in result_concepts]))
+        diff = [i for i in range(len(z)) if not utils.eq(z[i][0], z[i][1])]
+        assert all(list(utils.eq(c.phi, result_concepts[i]['phi']) for i, c
                         in enumerate(main.unpartitioned_constellation)))
         # Check that the minimal cut is the same.
         assert main.cut == result['cut']
 
 
-@config.override(PARALLEL_CUT_EVALUATION=True)
-def test_find_mip_parallel_micro(micro_s, flushcache, restore_fs_cache):
-    flushcache()
-
-    unpartitioned_constellation = constellation(micro_s)
-    bipartitions = utils.directed_bipartition(micro_s.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
-    min_mip = _null_bigmip(micro_s)
-    min_mip.phi = float('inf')
-    mip = _find_mip_parallel(micro_s, cuts, unpartitioned_constellation,
-                             min_mip)
-    check_mip(mip, micro_answer)
-
-
-@config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_micro(micro_s, flushcache, restore_fs_cache):
-    flushcache()
-
-    unpartitioned_constellation = constellation(micro_s)
-    bipartitions = utils.directed_bipartition(micro_s.node_indices)[1:-1]
-    cuts = [Cut(bipartition[0], bipartition[1])
-            for bipartition in bipartitions]
-    min_mip = _null_bigmip(micro_s)
-    min_mip.phi = float('inf')
-    mip = _find_mip_sequential(micro_s, cuts, unpartitioned_constellation,
-                               min_mip)
-    check_mip(mip, micro_answer)
-
-
-@pytest.mark.filter
+@pytest.mark.dev
 def test_big_mip_macro(macro_s, flushcache, restore_fs_cache):
     flushcache()
     mip = compute.big_mip(macro_s)
@@ -554,9 +603,17 @@ def test_big_mip_bipartitions():
         answer = [models.Cut((1,), (2, 3, 4)),
                   models.Cut((2,), (1, 3, 4)),
                   models.Cut((3,), (1, 2, 4)),
-                  models.Cut((1, 2, 3), (4,)),
                   models.Cut((4,), (1, 2, 3)),
-                  models.Cut((1, 2, 4), (3,)),
+                  models.Cut((2, 3, 4), (1,)),
                   models.Cut((1, 3, 4), (2,)),
-                  models.Cut((2, 3, 4), (1,))]
+                  models.Cut((1, 2, 4), (3,)),
+                  models.Cut((1, 2, 3), (4,))]
         assert big_mip_bipartitions((1, 2, 3, 4)) == answer
+
+
+def test_system_cut_styles(s, flushcache, restore_fs_cache):
+    with config.override(SYSTEM_CUTS='3.0_STYLE'):
+        assert compute.big_phi(s) == 2.3125
+
+    with config.override(SYSTEM_CUTS='CONCEPT_STYLE'):
+        assert compute.big_phi(s) == 0.6875

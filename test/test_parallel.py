@@ -2,31 +2,82 @@
 # -*- coding: utf-8 -*-
 # test_parallel.py
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from pyphi import config
 from pyphi.compute import parallel
-
-
-@config.override(NUMBER_OF_CORES=0)
-def test_num_processes_number_of_cores_cant_be_0():
-    with pytest.raises(ValueError):
-        parallel.get_num_processes()
 
 
 def _mock_cpu_count():
     return 2
 
 
-@config.override(NUMBER_OF_CORES=-1)
 @patch('multiprocessing.cpu_count', _mock_cpu_count)
-def test_num_processes_with_negative_number_of_cores():
-    assert parallel.get_num_processes() == 2
+def test_num_processes():
+
+    # Can't have no processes
+    with config.override(NUMBER_OF_CORES=0):
+        with pytest.raises(ValueError):
+            parallel.get_num_processes()
+
+    # Negative numbers
+    with config.override(NUMBER_OF_CORES=-1):
+        assert parallel.get_num_processes() == 2
+
+    # Too negative
+    with config.override(NUMBER_OF_CORES=-3):
+        with pytest.raises(ValueError):
+            parallel.get_num_processes()
+
+    # Requesting too many cores
+    with config.override(NUMBER_OF_CORES=3):
+        with pytest.raises(ValueError):
+            parallel.get_num_processes()
+
+    # Ok
+    with config.override(NUMBER_OF_CORES=1):
+        assert parallel.get_num_processes() == 1
 
 
-@config.override(NUMBER_OF_CORES=3)
-@patch('multiprocessing.cpu_count', _mock_cpu_count)
-def test_num_processes_with_too_many_cores():
-    with pytest.raises(ValueError):
-        parallel.get_num_processes()
+class MapSquare(parallel.MapReduce):
+
+    def empty_result(self):
+        return set()
+
+    @staticmethod
+    def compute(num):
+        return num ** 2
+
+    def process_result(self, new, previous):
+        previous.add(new)
+        return previous
+
+
+def test_map_square():
+    engine = MapSquare([1, 2, 3])
+    assert engine.run_parallel() == {1, 4, 9}
+    assert engine.run_sequential() == {1, 4, 9}
+
+
+def test_materialize_list_only_when_needed():
+    with config.override(PROGRESS_BARS=False):
+        engine = MapSquare(iter([1, 2, 3]))
+        assert not isinstance(engine.iterable, list)
+
+    with config.override(PROGRESS_BARS=True):
+        engine = MapSquare(iter([1, 2, 3]))
+        assert isinstance(engine.iterable, list)
+
+
+class MapError(MapSquare):
+    '''Raise an exception in the worker process.'''
+    @staticmethod
+    def compute(num):
+        raise Exception("I don't wanna!")
+
+
+def test_parallel_exception_handling():
+    with pytest.raises(Exception, match=r"I don't wanna!"):
+        MapError([1]).run(parallel=True)

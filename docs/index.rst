@@ -7,62 +7,66 @@ To report issues, please use the issue tracker on the `GitHub repository
 <https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
 welcome.
 
+For general discussion, you are welcome to join the `pyphi-users group
+<https://groups.google.com/forum/#!forum/pyphi-users>`_.
 
-Getting started
-~~~~~~~~~~~~~~~
+.. important::
+    Each version of PyPhi has its own documentation—make sure you're looking
+    at the documentation for the version you're using. You can switch
+    documentation versions in the bottom-left corner.
 
-The :class:`~pyphi.network.Network` object is the main object on which
-computations are performed. It represents the network of interest.
+    The ``stable`` version of the documentation corresponds to the most recent
+    stable release of PyPhi; this is the version you have if you installed
+    PyPhi with ``pip install pyphi``. The ``latest`` version corresponds to the
+    most recent unreleased development version (which may have bugs). 
 
-The :class:`~pyphi.subsystem.Subsystem` object is the secondary object; it
-represents a subsystem of a network. |big_phi| is defined on subsystems.
+Installation
+~~~~~~~~~~~~
 
-The :mod:`~pyphi.compute` module is the main entry-point for the library. It
-contains methods for calculating concepts, constellations, complexes, etc.
+To install the latest stable release, run
 
-The best way to familiarize yourself with the software is to go through the
-examples. All the examples dicussed are available in the :mod:`~pyphi.examples`
-module, so you can follow along in a REPL. The relevant functions are listed at
-the beginning of each example.
+.. code-block:: bash
+
+    pip install pyphi
+
+To install the latest development version, which is a work in progress and may have bugs, run
+
+.. code-block:: bash
+
+    pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
+
+**For detailed instructions on how to install PyPhi on macOS, see the**
+`installation guide
+<https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.md>`_.
+
+.. note::
+    PyPhi is only supported on Linux and macOS operating systems; Windows is not supported.
 
 .. toctree::
+    :caption: Usage and Examples
     :glob:
-    :maxdepth: 2
+    :maxdepth: 1
 
     examples/index
-
-
-Configuration
-~~~~~~~~~~~~~
-
-PyPhi can be configured in various important ways; see the :mod:`~pyphi.config`
-module for details.
+    examples/*
 
 .. toctree::
+    :caption: Configuration
     :glob:
-    :maxdepth: 2
+    :maxdepth: 1
 
     configuration
 
-
-Conventions
-~~~~~~~~~~~
-
-PyPhi uses some conventions for TPM and connectivity matrix formats. These are
-important to keep in mind when setting up networks.
-
 .. toctree::
+    :caption: Conventions
     :glob:
-    :maxdepth: 2
+    :maxdepth: 1
 
     conventions
 
-
-API Reference
-~~~~~~~~~~~~~
-
 .. toctree::
+    :caption: API Reference
     :glob:
-    :maxdepth: 2
+    :maxdepth: 1
 
-    api/index
+    api/*

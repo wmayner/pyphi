@@ -1,24 +1,21 @@
 XOR Network
 ===========
 
-* :func:`pyphi.examples.xor_network`
-* :func:`pyphi.examples.xor_subsystem`
-
-This example describes a system of three fully connected **XOR** nodes, |n0|,
-|n1| and |n2| (no self-connections).
+This example describes a system of three fully connected XOR nodes, |A|, |B|
+and |C| (no self-connections).
 
 First let's create the XOR network:
 
     >>> import pyphi
     >>> network = pyphi.examples.xor_network()
 
-We'll consider the state with all nodes **OFF**.
+We'll consider the state with all nodes off.
 
     >>> state = (0, 0, 0)
 
-Existence is a top-down process; the whole is more important than its parts.
-The first step is to confirm the existence of the whole, by finding the main
-complex of the network:
+According to IIT, existence is a holistic notion; the whole is more important
+than its parts. The first step is to confirm the existence of the whole, by
+finding the main complex of the network:
 
     >>> main_complex = pyphi.compute.main_complex(network, state)
 
@@ -30,7 +27,7 @@ The main complex exists (|big_phi > 0|),
 and it consists of the entire network:
 
     >>> main_complex.subsystem
-    Subsystem((n0, n1, n2))
+    Subsystem(A, B, C)
 
 Knowing what exists at the system level, we can now investigate the existence
 of concepts within the complex.
@@ -38,15 +35,15 @@ of concepts within the complex.
     >>> constellation = main_complex.unpartitioned_constellation
     >>> len(constellation)
     3
-    >>> [concept.mechanism for concept in constellation]
-    [(0, 1), (0, 2), (1, 2)]
+    >>> constellation.labeled_mechanisms
+    [['A', 'B'], ['A', 'C'], ['B', 'C']]
 
-There are three concepts in the constellation. They are all the possible
-second order mechanisms: |n0, n1|, |n0, n2| and |n1, n2|.
+There are three concepts in the constellation. They are all the possible second
+order mechanisms: |AB|, |AC| and |BC|.
 
-Focusing on the concept specified by mechanism |n0, n1|, we investigate
-existence, and the irreducible cause and effect. Based on the symmetry of the
-network, the results will be similar for the other second order mechanisms.
+Focusing on the concept specified by mechanism |AB|, we investigate existence,
+and the irreducible cause and effect. Based on the symmetry of the network, the
+results will be similar for the other second order mechanisms.
 
     >>> concept = constellation[0]
     >>> concept.mechanism
@@ -65,21 +62,21 @@ The concept has :math:`\varphi = \frac{1}{2}`.
            [[ 0. ,  0. ],
             [ 0. ,  0.5]]])
 
-So we see that the cause purview of this mechanism is the whole system |n0, n1,
-n2|, and that the repertoire shows a :math:`0.5` of probability the past state
-being ``(0, 0, 0)`` and the same for ``(1, 1, 1)``:
+So we see that the cause purview of this mechanism is the whole system |ABC|,
+and that the repertoire shows a :math:`0.5` of probability the past state being
+``(0, 0, 0)`` and the same for ``(1, 1, 1)``:
 
     >>> concept.cause.repertoire[(0, 0, 0)]
     0.5
     >>> concept.cause.repertoire[(1, 1, 1)]
     0.5
 
-This tells us that knowing both |n0| and |n1| are currently **OFF** means that
-the past state of the system was either all **OFF** or all **ON** with equal
+This tells us that knowing both |A| and |B| are currently off means that
+the past state of the system was either all off or all on with equal
 probability.
 
 For any reduced purview, we would still have the same information about the
-elements in the purview (either all **ON** or all **OFF**), but we would lose
+elements in the purview (either all on or all off), but we would lose
 the information about the elements outside the purview.
 
     >>> concept.effect.purview
@@ -87,42 +84,42 @@ the information about the elements outside the purview.
     >>> concept.effect.repertoire
     array([[[ 1.,  0.]]])
 
-The effect purview of this concept is the node |n2|. The mechanism |n0, n1| is
-able to completely specify the next state of |n2|. Since both nodes are
-**OFF**, the next state of |n2| will be **OFF**.
+The effect purview of this concept is the node |C|. The mechanism |AB| is able
+to completely specify the next state of |C|. Since both nodes are off, the
+next state of |C| will be off.
 
-The mechanism |n0, n1| does not provide any information about the next state of
-either |n0| or |n1|, because the relationship depends on the value of |n2|.
-That is, the next state of |n0| (or |n1|) may be either **ON** or **OFF**,
-depending on the value of |n2|. Any purview larger than |n2| would be reducible
-by pruning away the additional elements.
+The mechanism |AB| does not provide any information about the next state of
+either |A| or |B|, because the relationship depends on the value of |C|. That
+is, the next state of |A| (or |B|) may be either on or off, depending
+on the value of |C|. Any purview larger than |C| would be reducible by pruning
+away the additional elements.
 
-+--------------------------------------------------------------------------+
-| Main Complex: |n0, n1, n2| with :math:`\Phi = 1.875`                     |
-+===============+=================+===================+====================+
-| **Mechanism** | :math:`\varphi` | **Cause Purview** | **Effect Purview** |
-+---------------+-----------------+-------------------+--------------------+
-| |n0, n1|      |  0.5            | |n0, n1, n2|      | |n2|               |
-+---------------+-----------------+-------------------+--------------------+
-| |n0, n2|      |  0.5            | |n0, n1, n2|      | |n1|               |
-+---------------+-----------------+-------------------+--------------------+
-| |n1, n2|      |  0.5            | |n0, n1, n2|      | |n0|               |
-+---------------+-----------------+-------------------+--------------------+
++------------------------------------------------------------------+
+| Main Complex: |ABC| with :math:`\Phi = 1.875`                    |
++---------------+-----------------+---------------+----------------+
+|   Mechanism   | :math:`\varphi` | Cause Purview | Effect Purview |
++===============+=================+===============+================+
+| |AB|          |  0.5            | |ABC|         | |C|            |
++---------------+-----------------+---------------+----------------+
+| |AC|          |  0.5            | |ABC|         | |B|            |
++---------------+-----------------+---------------+----------------+
+| |BC|          |  0.5            | |ABC|         | |A|            |
++---------------+-----------------+---------------+----------------+
 
 An analysis of the `intrinsic existence` of this system reveals that the main
-complex of the system is the entire network of **XOR** nodes. Furthermore, the
+complex of the system is the entire network of XOR nodes. Furthermore, the
 concepts which exist within the complex are those specified by the second-order
-mechanisms |n0, n1|, |n0, n2|, and |n1, n2|.
+mechanisms |AB|, |AC|, and |BC|.
 
 To understand the notion of intrinsic existence, in addition to determining
 what exists for the system, it is useful to consider also what does not exist.
 
-Specifically, it may be surprising that none of the first order mechanisms
-|n0|, |n1| or |n2| exist. This physical system of **XOR** gates is sitting on
-the table in front of me; I can touch the individual elements of the system, so
-how can it be that they do not exist?
+Specifically, it may be surprising that none of the first order mechanisms |A|,
+|B| or |C| exist. This physical system of XOR gates is sitting on the table in
+front of me; I can touch the individual elements of the system, so how can it
+be that they do not exist?
 
-That sort of existence is what we term `extrinsic existence`. The **XOR** gates
+That sort of existence is what we term `extrinsic existence`. The XOR gates
 exist for me as an observer, external to the system. I am able to manipulate
 them, and observe their causes and effects, but the question that matters for
 `intrinsic` existence is, do they have irreducible causes and effects within
@@ -132,18 +129,18 @@ there was no cause-effect power to begin with. In the case of elementary
 mechanisms, it must be the latter.
 
 To see this, again due to symmetry of the system, we will focus only on the
-mechanism |n0|.
+mechanism |A|.
 
    >>> subsystem = pyphi.examples.xor_subsystem()
-   >>> n0 = (0,)
-   >>> n0n1n2 = (0, 1, 2)
+   >>> A = (0,)
+   >>> ABC = (0, 1, 2)
 
 In order to exist, a mechanism must have irreducible cause and effect power
 within the system.
 
-   >>> subsystem.cause_info(n0, n0n1n2)
+   >>> subsystem.cause_info(A, ABC)
    0.5
-   >>> subsystem.effect_info(n0, n0n1n2)
+   >>> subsystem.effect_info(A, ABC)
    0.0
 
 The mechanism has no effect power over the entire subsystem, so it cannot have
@@ -152,43 +149,44 @@ has no effect power, it certainly has no irreducible effect power. The
 first-order mechanisms of this system do not exist intrinsically, because they
 have no effect power (having causal power is not enough).
 
-To see why this is true, consider the effect of |n0|. There is no self-loop, so
-|n0| can have no effect on itself. Without knowing the current state of |n0|,
-in the next state |n1| could be either **ON** or **OFF**. If we know that the
-current state of |n0| is **ON**, then |n1| could still be either **ON** or
-**OFF**, depending on the state of |n2|. Thus, on its own, the current state of
-|n0| does not provide any information about the next state of |n1|. A similar
-result holds for the effect of |n0| on |n2|. Since |n0| has no effect power
-over any element of the system, it does not exist from the intrinsic
-perspective.
+To see why this is true, consider the effect of |A|. There is no self-loop, so
+|A| can have no effect on itself. Without knowing the current state of |A|, in
+the next state |B| could be either on or off. If we know that the current state
+of |A| is on, then |B| could still be either on or off, depending on the state
+of |C|. Thus, on its own, the current state of |A| does not provide any
+information about the next state of |B|. A similar result holds for the effect
+of |A| on |C|. Since |A| has no effect power over any element of the system, it
+does not exist from the intrinsic perspective.
 
 To complete the discussion, we can also investigate the potential third order
-mechanism |n0, n1, n2|. Consider the cause information over the purview |n0,
-n1, n2|:
+mechanism |ABC|. Consider the cause information over the purview |ABC|:
 
-   >>> subsystem.cause_info(n0n1n2, n0n1n2)
+   >>> subsystem.cause_info(ABC, ABC)
    0.749999
 
 Since the mechanism has nonzero cause information, it has causal power over the
 system—but is it irreducible?
 
-   >>> mip = subsystem.mip_past(n0n1n2, n0n1n2)
+   >>> mip = subsystem.mip_past(ABC, ABC)
    >>> mip.phi
    0.0
-   >>> mip.partition
-   (Part(mechanism=(0,), purview=()), Part(mechanism=(1, 2), purview=(0, 1, 2)))
+   >>> mip.partition  # doctest: +NORMALIZE_WHITESPACE
+    0     1,2
+   ─── ✕ ─────
+    ∅    0,1,2
 
 The mechanism has :math:`ci = 0.75`, but it is completely reducible
-(:math:`\varphi = 0`) to the partition 
+(:math:`\varphi = 0`) to the partition
 
 .. math::
-    \frac{n_0}{\left[\,\right]} \times \frac{n_1n_2}{n_0n_1n_2}
 
-This result can be understood as follows: knowing that |n1| and |n2| are
-**OFF** in the current state is sufficient to know that |n0|, |n1|, and |n2|
-were all **OFF** in the past state; there is no additional information gained
-by knowing that |n0| is currently **OFF**.
+    \frac{A}{\varnothing} \times \frac{BC}{ABC}
 
-Similarly for any other potential purview, the current state of |n1| and |n2|
+This result can be understood as follows: knowing that |B| and |C| are off in
+the current state is sufficient to know that |A|, |B|, and |C| were all off in
+the past state; there is no additional information gained by knowing that |A|
+is currently off.
+
+Similarly for any other potential purview, the current state of |B| and |C|
 being ``(0, 0)`` is always enough to fully specify the previous state, so the
 mechanism is reducible for all possible purviews, and hence does not exist.

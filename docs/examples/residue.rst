@@ -1,11 +1,8 @@
 Residue
 =======
 
-* :func:`pyphi.examples.residue_network`
-* :func:`pyphi.examples.residue_subsystem`
-
-This example describes a system containing two **AND** nodes, |A| and |B|, with
-a single overlapping input node.
+This example describes a system containing two AND gates, |A| and |B|, with a
+single overlapping input node.
 
 First let's create the subsystem corresponding to the residue network, with all
 nodes off in the current and past states.
@@ -13,7 +10,8 @@ nodes off in the current and past states.
     >>> import pyphi
     >>> subsystem = pyphi.examples.residue_subsystem()
 
-Next, we can define the mechanisms of interest. Mechanisms and purviews are represented by tuples of node indices in the network:
+Next, we can define the mechanisms of interest. Mechanisms and purviews are
+represented by tuples of node indices in the network:
 
     >>> A = (0,)
     >>> B = (1,)
@@ -42,10 +40,10 @@ individual mechanisms. This contradicts the idea that |AB| should exist
 minimally in this system.
 
 Instead, we can quantify existence as the irreducible cause information of a
-mechanism. The **MIP** of a mechanism is the partition of mechanism and purview
+mechanism. The MIP of a mechanism is the partition of mechanism and purview
 which makes the least difference to the cause repertoire (see the documentation
-for the :class:`~pyphi.models.Mip` object). The irreducible cause information
-is the distance between the unpartitioned and partitioned repertoires.
+for the |Mip| object). The irreducible cause information is the distance
+between the unpartitioned and partitioned repertoires.
 
 To calculate the MIP structure of mechanism |AB|:
 
@@ -53,11 +51,13 @@ To calculate the MIP structure of mechanism |AB|:
 
 We can then determine what the specific partition is.
 
-    >>> mip_AB.partition
-    (Part(mechanism=(), purview=(2,)), Part(mechanism=(0, 1), purview=(3, 4)))
+    >>> mip_AB.partition  # doctest: +NORMALIZE_WHITESPACE
+     ∅    0,1
+    ─── ✕ ───
+     2    3,4
 
-The labels ``(n0, n1, n2, n3, n4)`` correspond to nodes :math:`A, B, C, D, E`
-respectively. Thus the MIP is |(AB / DE) x ([] / C)|, where :math:`[\,]`
+The indices ``(0, 1, 2, 3, 4)`` correspond to nodes :math:`A, B, C, D, E`
+respectively. Thus the MIP is |(AB / DE) x (∅ / C)|, where :math:`[\,]`
 denotes the empty mechanism.
 
 The partitioned repertoire of the MIP can also be retrieved:
@@ -80,12 +80,14 @@ cause information is what defines existence, we must also evaluate the
 irreducible cause information of the mechanisms |A| and |B|.
 
 The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
-([] / E)| because |E| has no effect on |A|, so it has zero |small_phi|.
+(∅ / E)| because |E| has no effect on |A|, so it has zero |small_phi|.
 
     >>> subsystem.mip_past(A, CDE).phi
     0.0
-    >>> subsystem.mip_past(A, CDE).partition
-    (Part(mechanism=(), purview=(4,)), Part(mechanism=(0,), purview=(2, 3)))
+    >>> subsystem.mip_past(A, CDE).partition  # doctest: +NORMALIZE_WHITESPACE
+     ∅     0
+    ─── ✕ ───
+     4    2,3
 
 Instead, we should evaluate |A| over the purview |CD|.
 
@@ -93,10 +95,12 @@ Instead, we should evaluate |A| over the purview |CD|.
 
 In this case, there is a well defined MIP
 
-    >>> mip_A.partition
-    (Part(mechanism=(), purview=(2,)), Part(mechanism=(0,), purview=(3,)))
+    >>> mip_A.partition  # doctest: +NORMALIZE_WHITESPACE
+     ∅     0
+    ─── ✕ ───
+     2     3
 
-which is |([] / C) x (A / D)|. It has partitioned repertoire
+which is |(∅ / C) x (A / D)|. It has partitioned repertoire
 
     >>> mip_A.partitioned_repertoire
     array([[[[[ 0.33333333],

@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 # conftest.py
 
-import pytest
+import logging
 import os
 import shutil
-from pyphi import constants, config, db
+
+import pytest
 
 import example_networks
+from pyphi import config, constants, db
 
-import logging
 log = logging.getLogger()
 
 # Cache management and fixtures
@@ -37,7 +38,7 @@ def _flush_database_cache():
 
 @pytest.fixture
 def flushcache():
-    """Flush the currently enabled cache."""
+    '''Flush the currently enabled cache.'''
     def cache_flusher():
         log.info("FLUSHING CACHE!")
         if config.CACHING_BACKEND == constants.DATABASE:
@@ -49,8 +50,8 @@ def flushcache():
 
 @pytest.fixture(scope="session")
 def restore_fs_cache(request):
-    """Temporarily backup, then restore, the user's joblib cache after each
-    testing session."""
+    '''Temporarily backup, then restore, the user's joblib cache after each
+    testing session.'''
     # Move the joblib cache to a backup location and create a fresh cache if
     # filesystem caching is enabled
     if config.CACHING_BACKEND == constants.FILESYSTEM:
@@ -122,6 +123,11 @@ def noised():
 @pytest.fixture()
 def s_noised():
     return example_networks.s_noised()
+
+
+@pytest.fixture()
+def noisy_selfloop_single():
+    return example_networks.noisy_selfloop_single()
 
 
 # Simple network and subsystems
@@ -237,3 +243,8 @@ def micro_s():
 @pytest.fixture()
 def micro_s_all_off():
     return example_networks.micro_s_all_off()
+
+
+@pytest.fixture()
+def propagation_delay():
+    return example_networks.propagation_delay()

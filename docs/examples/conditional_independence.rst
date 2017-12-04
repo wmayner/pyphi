@@ -1,9 +1,6 @@
 Conditional Independence
 ========================
 
-* :mod:`pyphi.examples.cond_depend_tpm()`
-* :mod:`pyphi.examples.cond_independ_tpm()`
-
 This example explores the assumption of conditional independence, and the
 behaviour of the program when it is not satisfied.
 
@@ -15,16 +12,16 @@ the corresponding conditionally independent state-by-state TPM.
 When a state-by-state TPM is given as input for a network, the state-by-state
 TPM is first converted to a state-by-node TPM. The program then assumes that
 the system corresponds to the unique conditionally independent representation
-of the state-by-node TPM. If a non-conditionally independent TPM is given, the
-analyzed system will not correspond to the original TPM. Note that every
+of the state-by-node TPM. **If a non-conditionally independent TPM is given,
+the analyzed system will not correspond to the original TPM**. Note that every
 deterministic state-by-state TPM will automatically satisfy the conditional
 independence assumption.
 
-Consider a system of two binary nodes(|A| and |B|) which do not change if they
+Consider a system of two binary nodes (|A| and |B|) which do not change if they
 have the same value, but flip with probability 50% if they have different
 values.
 
-We'll load the state-by-state TPM for such a system from the examples module:
+We'll load the state-by-state TPM for such a system from the |examples| module:
 
    >>> import pyphi
    >>> tpm = pyphi.examples.cond_depend_tpm()
@@ -67,9 +64,9 @@ state-by-node TPM back to state-by-state form:
     [ 0.25  0.25  0.25  0.25]
     [ 0.    0.    0.    1.  ]]
 
-A system which does not satisfy the conditional independence assumption shows
-“instantaneous causality.” In such situations, there must be additional
-exogenous variable(s) which explain the dependence.
+A system which does not satisfy the conditional independence assumption
+exhibits “instantaneous causality.” In such situations, there must be
+additional exogenous variable(s) which explain the dependence.
 
 Consider the above example, but with the addition of a third node (|C|) which
 is equally likely to be ON or OFF, and such that when nodes |A| and |B| are in
@@ -108,11 +105,11 @@ assumption.
 The node indices are ``0`` and ``1`` for |A| and |B|, and ``2`` for |C|:
 
    >>> AB = [0, 1]
-   >>> C = 2
+   >>> C = [2]
 
 From here, if we marginalize out the node |C|;
 
-   >>> tpm2_marginalizeC = pyphi.utils.marginalize_out(C, sbn_tpm2)
+   >>> tpm2_marginalizeC = pyphi.tpm.marginalize_out(C, sbn_tpm2)
 
 And then restrict the purview to only nodes |A| and |B|;
 

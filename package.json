@@ -1,5 +1,5 @@
 {
-  "author": "Will Mayner <wmayner@gmail.com> (http://willmayner.com)",
+  "author": "William GP Mayner <wmayner@gmail.com> (http://willmayner.com)",
   "scripts": {
     "test": "grunt test",
     "docs": "grunt docs"

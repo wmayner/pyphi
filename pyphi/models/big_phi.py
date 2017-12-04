@@ -2,23 +2,24 @@
 # -*- coding: utf-8 -*-
 # models/big_phi.py
 
+'''Objects that represent cause-effect structures.'''
 
-from .. import utils, config, jsonify
 from . import cmp, fmt
+from .. import utils
 
+# pylint: disable=too-many-arguments
 
 _bigmip_attributes = ['phi', 'unpartitioned_constellation',
                       'partitioned_constellation', 'subsystem',
                       'cut_subsystem']
 
 
-class BigMip(cmp._Orderable):
-    """A minimum information partition for |big_phi| calculation.
+class BigMip(cmp.Orderable):
+    '''A minimum information partition for |big_phi| calculation.
 
-    BigMips may be compared with the built-in Python comparison operators
-    (``<``, ``>``, etc.). First, ``phi`` values are compared. Then, if these
-    are equal up to |PRECISION|, the size of the subsystem is compared
-    (exclusion principle).
+    These can be compared with the built-in Python comparison operators (``<``,
+    ``>``, etc.). First, |big_phi| values are compared. Then, if these are
+    equal up to |PRECISION|, the one with the larger subsystem is greater.
 
     Attributes:
         phi (float): The |big_phi| value for the subsystem when taken against
@@ -33,51 +34,52 @@ class BigMip(cmp._Orderable):
         time (float): The number of seconds it took to calculate.
         small_phi_time (float): The number of seconds it took to calculate the
             unpartitioned constellation.
-    """
+    '''
 
     def __init__(self, phi=None, unpartitioned_constellation=None,
                  partitioned_constellation=None, subsystem=None,
-                 cut_subsystem=None):
+                 cut_subsystem=None, time=None, small_phi_time=None):
         self.phi = phi
         self.unpartitioned_constellation = unpartitioned_constellation
         self.partitioned_constellation = partitioned_constellation
         self.subsystem = subsystem
         self.cut_subsystem = cut_subsystem
-        self.time = None
-        self.small_phi_time = None
+        self.time = time
+        self.small_phi_time = small_phi_time
 
     def __repr__(self):
         return fmt.make_repr(self, _bigmip_attributes)
 
-    def __str__(self):
-        return "\nBigMip\n======\n" + fmt.fmt_big_mip(self)
+    def __str__(self, constellations=True):
+        return fmt.fmt_big_mip(self, constellations=constellations)
+
+    def print(self, constellations=True):
+        '''Print this ``BigMip``, optionally without constellations.'''
+        print(self.__str__(constellations=constellations))
 
     @property
     def cut(self):
-        """The unidirectional cut that makes the least difference to the
+        '''The unidirectional cut that makes the least difference to the
         subsystem.
-        """
+        '''
         return self.cut_subsystem.cut
 
     @property
     def network(self):
-        """The network this |BigMip| belongs to."""
+        '''The network this |BigMip| belongs to.'''
         return self.subsystem.network
 
-    _unorderable_unless_eq = ['network']
+    unorderable_unless_eq = ['network']
 
-    def _order_by(self):
-        return [self.phi, len(self.subsystem)]
+    def order_by(self):
+        return [self.phi, len(self.subsystem), self.subsystem.node_indices]
 
     def __eq__(self, other):
-        return cmp._general_eq(self, other, _bigmip_attributes)
+        return cmp.general_eq(self, other, _bigmip_attributes)
 
     def __bool__(self):
-        """A BigMip is truthy if it is not reducible.
-
-        (That is, if it has a significant amount of |big_phi|.)
-        """
-        return not utils.phi_eq(self.phi, 0)
+        '''A |BigMip| is ``True`` if it has |big_phi > 0|.'''
+        return not utils.eq(self.phi, 0)
 
     def __hash__(self):
         return hash((self.phi,
@@ -87,34 +89,17 @@ class BigMip(cmp._Orderable):
                      self.cut_subsystem))
 
     def to_json(self):
+        '''Return a JSON-serializable representation.'''
         return {
-            attr: jsonify.jsonify(getattr(self, attr))
+            attr: getattr(self, attr)
             for attr in _bigmip_attributes + ['time', 'small_phi_time']
         }
 
 
-# TODO document
-def _null_bigmip(subsystem):
-    """Return a |BigMip| with zero |big_phi| and empty constellations.
+def _null_bigmip(subsystem, phi=0.0):
+    '''Return a |BigMip| with zero |big_phi| and empty constellations.
 
     This is the MIP associated with a reducible subsystem.
-    """
-    return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=0.0,
+    '''
+    return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=phi,
                   unpartitioned_constellation=(), partitioned_constellation=())
-
-
-def _single_node_bigmip(subsystem):
-    """Return a |BigMip| of a single-node with a selfloop.
-
-    Whether these have a nonzero |Phi| value depends on the PyPhi constants.
-    """
-    if config.SINGLE_NODES_WITH_SELFLOOPS_HAVE_PHI:
-        # TODO return the actual concept
-        return BigMip(
-            phi=0.5,
-            unpartitioned_constellation=(),
-            partitioned_constellation=(),
-            subsystem=subsystem,
-            cut_subsystem=subsystem)
-    else:
-        return _null_bigmip(subsystem)

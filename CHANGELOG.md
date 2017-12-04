@@ -1,6 +1,110 @@
 Changelog
 =========
 
+0.9.0
+-----
+_2017-12-04_
+
+### API changes:
+- Many functions have been refactored to different modules; see the "Refactor"
+  section for details.
+- `compute.possible_complexes` no longer includes the empty subsystem.
+- Made `is_cut` a property.
+- Renamed `macro.list_all_partitions` and `macro.list_all_groupings` to
+  `all_partitions` and `all_groupings`. Both are now generators and return
+  nested tuples instead of lists.
+- Moved `macro.make_mapping` to `CoarseGrain.make_mapping`.
+- Moved `macro.make_macro_tpm` to `CoarseGrain.macro_tpm`.
+- Added blackbox functionality to `macro.emergence`. Blackboxing and coarse-
+  graining are now parametrized with the `blackbox` and `coarse_grain`
+  arguments.
+- Removed `utils.submatrix`.
+- Made `Network.tpm` and `Network.cm` immutable properties.
+- Removed the `purview` argument from `Subsystem.expand_repertoire`.
+- Moved `validate.StateUnreachableError` and `macro.ConditionallyDependentError`
+  to the `exceptions` module.
+- Removed perturbation vector support.
+- Changed `tpm.marginalize_out` to take a list of indices.
+- Fixed `macro.effective_info` to use the algorithm from the macro-micro paper.
+- Replace `constants.DIRECTIONS`, `constants.PAST`, and `constants.FUTURE` with
+  a proper `Enum` class: `constants.Direction`. Past and future are now
+  represented by `constants.Direction.PAST` and `constants.Direction.FUTURE`.
+- Simplifed logging config to use `config.LOG_STDOUT_LEVEL`,
+  `config.LOG_FILE_LEVEL` and `config.LOG_FILE`.
+- Removed the `location` property of `Concept`.
+
+### API Additions
+- Added `subsystem.evaluate_partition`. This returns the φ for a particular
+  partition.
+- Added `config.MEASURE` to choose between EMD, KLD, or L1 for distance
+  computations.
+- Added `macro.MacroSubsystem`. This subclass of `Subsystem` is used to performs
+  macro computations.
+- Added `macro.CoarseGrain` to represent coarse-grainings of a system.
+- Added `macro.Blackbox` to represent system blackboxes.
+- Added `validate.blackbox` and `validate.coarse_grain`.
+- Added `macro.all_coarse_grains` and `macro.all_blackboxes` generators.
+- Added `Subsystem.cut_indices` property.
+- Added `Subsystem.cm` connectivity matrix alias.
+- Added `utils.all_states`, a generator over all states of an `n`-element
+  system.
+- Added `tpm.is_state_by_state` for testing whether a TPM is in state-by-state
+  format.
+- `Network` now takes an optional `node_labels`  argument, allowing nodes to be
+  referenced by a canonical name other than their indices. The nodes of a
+  `Subsystem` can now be specified by either their index or their label.
+- Added `models.normalize_constellation` for deterministically ordering a
+  constellation.
+- Added a `Makefile`.
+- Added an `exceptions` module.
+- Added `distribution.purview` for computing the purview of a repertoire.
+- Added `distribution.repertoire_shape`.
+- Added `config.PARTITION_TYPE` to control the ways in which φ-partitions are
+  generated.
+- Added more functions to the `convert` module:
+  - `holi2loli` and `loli2holi` convert decimal indices between **HOLI** and
+    **LOLI** formats.
+  - `holi2loli_state_by_state` and `loli2holi_state_by_state` convert between
+    **HOLI** and **LOLI** formats for state-by-state TPMs.
+  - Added short aliases for some functions:
+    - `h2l` is `holi2loli`
+    - `l2h` is `loli2holi`
+    - `l2s` is `loli_index2state`
+    - `h2s` is `holi_index2state`
+    - `s2h` is `state2loli_index`
+    - `s2l` is `state2holi_index`
+    - `h2l_sbs` is `holi2loli_state_by_state`
+    - `l2h_sbs` is `loli2holi_state_by_state`
+    - `sbn2sbs` is `state_by_node2state_by_state`
+    - `sbs2sbn` is `state_by_state2state_by_node`
+- Added the `Constellation.mechanisms`, `Constellation.labeled_mechanisms`, and
+  `Constellation.phis` properties.
+- Add `BigMip.print` method with optional `constellations` argument that allows
+  omitting the constellations.
+
+### Refactor
+- Refactored the `utils` module into the `connectivity`, `distance`,
+  `distribution`, `partition`, `timescale`, and `tpm` modules.
+- Existing macro coarse-grain logic to use `MacroSubsystem` and `CoarseGrain`.
+- Improved string representations of PyPhi objects.
+- Refactored JSON support. The `jsonify` module now dumps PyPhi models to a
+  a format which can be loaded to reproduce the full object graph of PyPhi
+  objects. This causes backwards incompatible changes to the JSON format of
+  some model representations.
+- Refactored `pyphi.config` to be an object. Added validation and callbacks for
+  config options.
+
+### Optimizations
+- Added an analytic solution for the EMD computation between effect
+  repertoires.
+- Improved the time complexity of `directed_bipartition_of_one` from
+  exponential to linear.
+
+### Documentation
+- Updated documentation and examples to reflect changes made to the `macro` API
+  and usage.
+- Added documentation pages for new modules.
+
 
 0.8.1
 ------------------
@@ -41,8 +145,8 @@ _2016-02-06_
 - Disabled concept caching; removed the `config.CACHE_CONCEPTS` option.
 
 ### API Additions
-- Added `config.READABLE_REPRS` to control whether `__reprs__` of PyPhi models
-  default to using pretty string formatting.
+- Added `config.REPR_VERBOSITY` to control whether `__reprs__` of PyPhi models
+  use pretty string formatting and control the verbosity of the output.
 - Added a `Constellation` object.
 - Added `utils.submatrix` and `utils.relevant_connections` functions.
 - Added the `macro.effective_info` function.
@@ -68,7 +172,7 @@ _2016-02-06_
 - Updated documentation and examples to reflect node-to-index conversion.
 
 
-0.7.5
+0.7.5 [unreleased]
 ------------------
 _2015-11-02_
 
@@ -85,7 +189,7 @@ _2015-11-02_
   default but can be disabled via the `VALIDATE_SUBSYSTEM_STATES` option.
 
 
-0.7.4
+0.7.4 [unreleased]
 ------------------
 _2015-10-12_
 
@@ -94,7 +198,7 @@ _2015-10-12_
   value, leading to collisions.
 
 
-0.7.3
+0.7.3 [unreleased]
 ------------------
 _2015-09-08_
 
@@ -102,7 +206,7 @@ _2015-09-08_
 - Heavily refactored the `pyphi.json` module and renamed it to `pyphi.jsonify`.
 
 
-0.7.2
+0.7.2 [unreleased]
 ------------------
 _2015-07-01_
 
