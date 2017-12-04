@@ -37,7 +37,7 @@ The |Network| object is the main object on which computations are performed. It
 represents the network of interest.
 
 The |Subsystem| object is the secondary object; it represents a subsystem of a
-network. |big_phi| is defined on subsystems.
+network. |big_phi| is a function of subsystems.
 
 The |compute| module is the main entry-point for the library. It contains
 methods for calculating concepts, constellations, complexes, etc. See its
@@ -47,7 +47,7 @@ documentation for details.
 Configuration (optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are several module-level options that control aspects of the computation.
+There are several package-level options that control aspects of the computation.
 
 These are loaded from a YAML configuration file, ``pyphi_config.yml``. **This
 file must be in the directory where PyPhi is run**. If there is no such file,
