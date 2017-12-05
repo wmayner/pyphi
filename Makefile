@@ -57,6 +57,7 @@ test-dist: build-dist
 
 build-dist: clean-dist
 	python setup.py sdist bdist_wheel
+	python setup.py check -r -s
 
 clean-dist:
 	rm -r $(dist_dir)

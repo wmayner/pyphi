@@ -2,6 +2,7 @@ Sphinx
 sphinxcontrib-napoleon
 wheel
 twine
+readme_renderer
 watchdog
 pylint
 isort
