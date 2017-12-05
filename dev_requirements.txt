@@ -1,6 +1,7 @@
 Sphinx
 sphinxcontrib-napoleon
 wheel
+twine
 watchdog
 pylint
 isort
