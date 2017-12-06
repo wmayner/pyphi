@@ -139,17 +139,17 @@ def test_tripartitions_choses_smallest_purview(s):
     mechanism = (1, 2)
 
     with config.override(PICK_SMALLEST_PURVIEW=False):
-        effect = s.core_effect(mechanism)
-        assert effect.phi == 0.5
-        assert effect.purview == (0, 1)
+        mie = s.mie(mechanism)
+        assert mie.phi == 0.5
+        assert mie.purview == (0, 1)
 
     s.clear_caches()
 
     # In phi-tie, chose the smaller purview (0,)
     with config.override(PICK_SMALLEST_PURVIEW=True):
-        effect = s.core_effect(mechanism)
-        assert effect.phi == 0.5
-        assert effect.purview == (0,)
+        mie = s.mie(mechanism)
+        assert mie.phi == 0.5
+        assert mie.purview == (0,)
 
 
 def test_all_partitions():

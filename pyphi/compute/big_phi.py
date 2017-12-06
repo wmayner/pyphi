@@ -392,10 +392,10 @@ class ConceptStyleSystem:
                 future_purviews=False):
         '''Compute a concept, using the appropriate system for each side of
         the cut.'''
-        cause = self.cause_system.core_cause(
+        cause = self.cause_system.mic(
             mechanism, purviews=(past_purviews or purviews))
 
-        effect = self.effect_system.core_effect(
+        effect = self.effect_system.mie(
             mechanism, purviews=(future_purviews or purviews))
 
         return Concept(mechanism=mechanism, cause=cause, effect=effect,

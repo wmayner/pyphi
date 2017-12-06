@@ -140,9 +140,7 @@ constructor:
 
 Now the network shown in the figure is stored in a variable called ``network``.
 You can find more information about the network object we just created by
-running ``help(network)`` or by consulting the `API
-<http://en.wikipedia.org/wiki/Application_programming_interface>`_
-documentation for |Network|.
+running ``help(network)`` or by consulting the documentation for |Network|.
 
 The next step is to define the candidate set shown in the figure, consisting of
 nodes |A|, |B| and |C|. In PyPhi, a candidate set for |big_phi| evaluation is
@@ -153,7 +151,7 @@ be included in the subsystem. So, we define our candidate set like so:
     >>> state = (1, 0, 0, 0, 1, 0)
     >>> ABC = pyphi.Subsystem(network, state, [0, 1, 2])
 
-For more information on the subsystem object, see the API documentation for
+For more information on the subsystem object, see the documentation for
 |Subsystem|.
 
 That covers the basic workflow with PyPhi and introduces the two types of
@@ -424,7 +422,7 @@ attributes:
     ─── ✕ ─────
      1     0,2
 
-For more information on these objects, see the API documentation for the |Mip|
+For more information on these objects, see the documentation for the |Mip|
 class, or use ``help(mip_c)``.
 
 Note that the minimal partition found for the past is
@@ -473,16 +471,19 @@ the “core cause” specified by a mechanism.**
     >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
     >>> A, B, C = subsystem.node_indices
 
-To find the core cause of a mechanism over all purviews, we just use the
-subsystem method of that name:
+In PyPhi, the “core cause” is called the *maximally-irreducible cause* (MIC).
+To find the MIC of a mechanism over all purviews, use the |Subsystem.mic|
+method:
 
-    >>> core_cause = subsystem.core_cause((B, C))
-    >>> core_cause.phi
+    >>> mic = subsystem.mic((B, C))
+    >>> mic.phi
     0.333334
 
-For a detailed description of the objects returned by the
-|Subsystem.core_cause| and |Subsystem.core_effect| methods, see the API
-documentation for |Mice| or use ``help(subsystem.core_cause)``.
+Similarly, the |Subsystem.mie| method returns the “core effect” or *maximally-irreducible effect* (MIE). 
+
+For a detailed description of the MIC and MIE objects returned by these
+methods, see the documentation for |Mice| or use ``help(subsystem.mic)`` and
+``help(subsystem.mie)``.
 
 
 Figure 9
@@ -493,15 +494,15 @@ Figure 9
 This figure and the next few use the same network as in Figure 8, so we don't
 need to reassign the ``network`` and ``subsystem`` variables.
 
-Together, the core cause and core effect of a mechanism specify a “concept.” In
-PyPhi, this is represented by the |Concept| object. Concepts are computed using
-the |Subsystem.concept| method of a subsystem:
+Together, the MIC and MIE of a mechanism specify a *concept*. In PyPhi, this is
+represented by the |Concept| object. Concepts are computed using the
+|Subsystem.concept| method of a subsystem:
 
     >>> concept_A = subsystem.concept((A,))
     >>> concept_A.phi
     0.166667
 
-As usual, please consult the API documentation or use ``help(concept_A)`` for a
+As usual, please consult the documentation or use ``help(concept_A)`` for a
 detailed description of the |Concept| object.
 
 
@@ -562,7 +563,7 @@ the partitioned set :math:`C_{\rightarrow}^{\textrm{MIP}}`, the total
 calculation time, the calculation time for just the unpartitioned cause-effect
 structure, a reference to the subsystem that was analyzed, and a reference to
 the subsystem with the minimal unidirectional cut applied. For details see the
-API documentation for |BigMip| or use ``help(big_mip)``.
+documentation for |BigMip| or use ``help(big_mip)``.
 
 We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
 shown in the figure:

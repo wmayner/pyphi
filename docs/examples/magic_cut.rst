@@ -83,11 +83,11 @@ cause-effect structure.
 The mechanism has cause and effect power over the system, so it must be that
 this power is reducible.
 
-    >>> mice_cause = subsystem.core_cause(ABC)
-    >>> mice_cause.phi
+    >>> mic = subsystem.mic(ABC)
+    >>> mic.phi
     0.0
-    >>> mice_effect = subsystem.core_effect(ABC)
-    >>> mice_effect.phi
+    >>> mie = subsystem.mie(ABC)
+    >>> mie.phi
     0.625
 
 The reason ABC does not exist as a concept is that its cause is reducible.
@@ -135,9 +135,10 @@ C gives us additional information over and above knowing A and B.
 With this partition, the integrated information is :math:`\varphi = 0.5`, but
 we must check all possible partitions to find the MIP.
 
-    >>> cut_subsystem.core_cause(ABC).purview
+    >>> mic = cut_subsystem.mic(ABC)
+    >>> mic.purview
     (0, 1, 2)
-    >>> cut_subsystem.core_cause(ABC).phi
+    >>> mic.phi
     0.333333
 
 It turns out that the MIP is

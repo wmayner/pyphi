@@ -225,9 +225,9 @@ class Mice(cmp.Orderable):
     def _relevant_connections(self, subsystem):
         '''Identify connections that “matter” to this concept.
 
-        For a core cause, the important connections are those which connect the
-        purview to the mechanism; for a core effect they are the connections
-        from the mechanism to the purview.
+        For a |MIC|, the important connections are those which connect the
+        purview to the mechanism; for a |MIE| they are the connections from the
+        mechanism to the purview.
 
         Returns an |N x N| matrix, where `N` is the number of nodes in this
         corresponding subsystem, that identifies connections that “matter” to
@@ -286,8 +286,10 @@ class Concept(cmp.Orderable):
 
     Attributes:
         mechanism (tuple[int]): The mechanism that the concept consists of.
-        cause (Mice): The |Mice| representing the core cause of this concept.
-        effect (Mice): The |Mice| representing the core effect of this concept.
+        cause (Mice): The |Mice| representing the maximally-irreducible cause
+            of this concept.
+        effect (Mice): The |Mice| representing the maximally-irreducible effect
+            of this concept.
         subsystem (Subsystem): This concept's parent subsystem.
         time (float): The number of seconds it took to calculate.
     '''
@@ -310,8 +312,8 @@ class Concept(cmp.Orderable):
     def phi(self):
         '''float: The size of the concept.
 
-        This is the minimum of the |small_phi| values of the concept's core
-        cause and core effect.
+        This is the minimum of the |small_phi| values of the concept's |MIC|
+        and |MIE|.
         '''
         return min(self.cause.phi, self.effect.phi)
 

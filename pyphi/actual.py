@@ -349,7 +349,7 @@ class Transition:
     # =========================================================================
 
     def potential_purviews(self, direction, mechanism, purviews=False):
-        '''Return all purviews that could belong to the core cause/effect.
+        '''Return all purviews that could belong to the |MIC|/|MIE|.
 
         Filters out trivially-reducible purviews.
 

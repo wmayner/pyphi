@@ -82,7 +82,7 @@ class Subsystem:
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
 
-        # Reusable cache for core causes & effects
+        # Reusable cache for maximally-irreducible causes and effects
         self._mice_cache = cache.MiceCache(self, mice_cache)
 
         # Cause & effect repertoire caches
@@ -622,7 +622,7 @@ class Subsystem:
     # =========================================================================
 
     def potential_purviews(self, direction, mechanism, purviews=False):
-        '''Return all purviews that could belong to the core cause/effect.
+        '''Return all purviews that could belong to the |MIC|/|MIE|.
 
         Filters out trivially-reducible purviews.
 
@@ -662,15 +662,6 @@ class Subsystem:
         Returns:
             Mice: The maximally-irreducible cause or effect in one temporal
             direction.
-
-        .. note::
-            Strictly speaking, the MICE is a pair of repertoires: the core
-            cause repertoire and core effect repertoire of a mechanism, which
-            are maximally different than the unconstrained cause/effect
-            repertoires (*i.e.*, those that maximize |small_phi|). Here, we
-            return only information corresponding to one direction, |PAST| or
-            |FUTURE|, i.e., we return a core cause or core effect, not the pair
-            of them.
         '''
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
@@ -682,15 +673,15 @@ class Subsystem:
 
         return Mice(max_mip)
 
-    def core_cause(self, mechanism, purviews=False):
-        '''Return the core cause repertoire of a mechanism.
+    def mic(self, mechanism, purviews=False):
+        '''Return the mechanism's maximally-irreducible cause (|MIC|).
 
         Alias for |find_mice| with ``direction`` set to |PAST|.
         '''
         return self.find_mice(Direction.PAST, mechanism, purviews=purviews)
 
-    def core_effect(self, mechanism, purviews=False):
-        '''Return the core effect repertoire of a mechanism.
+    def mie(self, mechanism, purviews=False):
+        '''Return the mechanism's maximally-irreducible effect (|MIE|).
 
         Alias for |find_mice| with ``direction`` set to |PAST|.
         '''
@@ -701,8 +692,7 @@ class Subsystem:
 
         This is the maximum of |small_phi| taken over all possible purviews.
         '''
-        return min(self.core_cause(mechanism).phi,
-                   self.core_effect(mechanism).phi)
+        return min(self.mic(mechanism).phi, self.mie(mechanism).phi)
 
     # Big Phi methods
     # =========================================================================
@@ -735,11 +725,9 @@ class Subsystem:
         See :func:`pyphi.compute.concept` for more information.
         '''
         # Calculate the maximally irreducible cause repertoire.
-        cause = self.core_cause(mechanism,
-                                purviews=(past_purviews or purviews))
+        cause = self.mic(mechanism, purviews=(past_purviews or purviews))
         # Calculate the maximally irreducible effect repertoire.
-        effect = self.core_effect(mechanism,
-                                  purviews=(future_purviews or purviews))
+        effect = self.mie(mechanism, purviews=(future_purviews or purviews))
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.

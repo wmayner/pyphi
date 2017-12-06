@@ -114,12 +114,12 @@ def test_find_mice_empty(s):
 
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
-def test_core_cause_or_effect(cut, direction, expected):
+def test_mic_or_mie(cut, direction, expected):
     if direction == Direction.PAST:
-        core_ce = subsystem[cut].core_cause
+        mice = subsystem[cut].mic
     elif direction == Direction.FUTURE:
-        core_ce = subsystem[cut].core_effect
-    assert core_ce(expected.mechanism) == expected
+        mice = subsystem[cut].mie
+    assert mice(expected.mechanism) == expected
 
 
 phi_max_scenarios = [

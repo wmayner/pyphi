@@ -148,7 +148,7 @@ def test_mice_cache_keys(s):
 @all_caches
 def test_mice_cache(redis_cache, flush_redis):
     s = examples.basic_subsystem()
-    mechanism = (1,)  # has a core cause
+    mechanism = (1,)  # has a MIC
     mice = s.find_mice(Direction.PAST, mechanism)
     key = s._mice_cache.key(Direction.PAST, mechanism)
     assert s._mice_cache.get(key) == mice
@@ -168,7 +168,7 @@ def test_do_not_cache_phi_zero_mice():
 def test_only_cache_uncut_subsystem_mices(redis_cache, flush_redis, s):
     s = Subsystem(s.network, (1, 0, 0), s.node_indices,
                   cut=models.Cut((1,), (0, 2)))
-    mechanism = (1,)  # has a core cause
+    mechanism = (1,)  # has a MIC
     s.find_mice(Direction.PAST, mechanism)
     # don't cache anything because subsystem is cut
     assert s._mice_cache.size() == 0

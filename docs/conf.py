@@ -280,8 +280,8 @@ r"""
 # Methods
 r"""
 .. |Subsystem.concept| replace:: :meth:`~pyphi.subsystem.Subsystem.concept`
-.. |Subsystem.core_cause| replace:: :meth:`~pyphi.subsystem.Subsystem.core_cause`
-.. |Subsystem.core_effect| replace:: :meth:`~pyphi.subsystem.Subsystem.core_effect`
+.. |Subsystem.mic| replace:: :meth:`~pyphi.subsystem.Subsystem.mic`
+.. |Subsystem.mie| replace:: :meth:`~pyphi.subsystem.Subsystem.mie`
 .. |expand_repertoire| replace:: :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`
 .. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
 .. |find_mice| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
