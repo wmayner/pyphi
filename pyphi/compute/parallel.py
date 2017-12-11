@@ -167,7 +167,9 @@ class MapReduce:
             configure_worker_logging(log_queue)
 
             for obj in iter(in_queue.get, POISON_PILL):
+                log.debug('Worker got %s', obj)
                 out_queue.put(compute(obj, *context))
+                log.debug('Worker finished %s', obj)
 
             out_queue.put(POISON_PILL)
             log.debug('Worker process exiting - no more jobs')
@@ -213,14 +215,18 @@ class MapReduce:
         poison = [POISON_PILL] * self.num_processes
         self.tasks = chain(self.iterable, poison)
         for obj in islice(self.tasks, Q_MAX_SIZE):
+            log.debug('Putting %s on queue', obj)
             self.in_queue.put(obj)
 
     def maybe_put_task(self):
         '''Enqueue the next task, if there are any waiting.'''
         try:
-            self.in_queue.put(next(self.tasks))
+            task = next(self.tasks)
         except StopIteration:
             pass
+        else:
+            log.debug('Putting %s on queue', task)
+            self.in_queue.put(task)
 
     def run_parallel(self):
         '''Perform the computation in parallel, reading results from the output
@@ -256,15 +262,18 @@ class MapReduce:
     def finish_parallel(self):
         '''Terminate all processes and the log thread.'''
         # Shutdown the log thread
+        log.debug('Joining log thread')
         self.log_queue.put(POISON_PILL)
         self.log_thread.join()
 
         # Close all queues
+        log.debug('Closing queues')
         self.log_queue.close()
         self.in_queue.close()
         self.out_queue.close()
 
         # Remove the progress bar
+        log.debug('Removing progress bar')
         self.progress.close()
 
         # Terminating processes which are holding resources (open files, locks)
