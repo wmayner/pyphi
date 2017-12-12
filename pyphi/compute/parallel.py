@@ -115,6 +115,7 @@ class MapReduce:
         self.processes = None
         self.num_processes = None
         self.tasks = None
+        self.complete = None
 
     def empty_result(self, *context):
         '''Return the default result with which to begin the computation.'''
@@ -158,7 +159,7 @@ class MapReduce:
                            desc=self.description)
 
     @staticmethod  # coverage: disable
-    def worker(compute, in_queue, out_queue, log_queue, *context):
+    def worker(compute, in_queue, out_queue, log_queue, complete, *context):
         '''A worker process, run by ``multiprocessing.Process``.'''
         try:
             MapReduce._forked = True
@@ -167,6 +168,11 @@ class MapReduce:
             configure_worker_logging(log_queue)
 
             for obj in iter(in_queue.get, POISON_PILL):
+                if complete.is_set():
+                    out_queue.cancel_join_thread()
+                    log.debug('Worker received signal - exiting early')
+                    return
+
                 log.debug('Worker got %s', obj)
                 out_queue.put(compute(obj, *context))
                 log.debug('Worker finished %s', obj)
@@ -192,7 +198,9 @@ class MapReduce:
         self.out_queue = multiprocessing.Queue()
         self.log_queue = multiprocessing.Queue()
 
-        args = (self.compute, self.in_queue, self.out_queue, self.log_queue) + self.context
+        self.complete = multiprocessing.Event()
+
+        args = (self.compute, self.in_queue, self.out_queue, self.log_queue, self.complete) + self.context
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
             for i in range(self.num_processes)]
@@ -261,28 +269,23 @@ class MapReduce:
 
     def finish_parallel(self):
         '''Terminate all processes and the log thread.'''
+        # Signal worker to shutdown, if it is still running
+        self.complete.set()
+
         # Shutdown the log thread
         log.debug('Joining log thread')
         self.log_queue.put(POISON_PILL)
         self.log_thread.join()
+        self.log_queue.close()
 
         # Close all queues
         log.debug('Closing queues')
-        self.log_queue.close()
         self.in_queue.close()
         self.out_queue.close()
 
         # Remove the progress bar
         log.debug('Removing progress bar')
         self.progress.close()
-
-        # Terminating processes which are holding resources (open files, locks)
-        # can cause issues, so we make sure the log thread and progress bar
-        # are shut down before terminating.
-        # TODO: use an Event instead?
-        for process in self.processes:
-            log.debug('Terminating worker process %s', process)
-            process.terminate()
 
     def run_sequential(self):
         '''Perform the computation sequentially, only holding two computed
