@@ -39,6 +39,8 @@ script: coverage run --source=pyphi -m py.test --slow
 
 after_success: coveralls
 
+after_failure: cat $TRAVIS_BUILD_DIR/pyphi.log
+
 notifications:
   email: false
   slack:
