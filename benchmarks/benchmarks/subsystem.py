@@ -1,6 +1,7 @@
 import copy
 
 from pyphi import Subsystem, compute, config, examples
+from pyphi.direction import Direction
 
 
 """
@@ -82,7 +83,7 @@ class BenchmarkSubsystem():
 
     def _do_potential_purviews(self):
         for i in range(100):
-            self.subsys.potential_purviews('past', self.idxs)
+            self.subsys.potential_purviews(Direction.CAUSE, self.idxs)
 
     def time_potential_purviews_no_cache(self):
         # Network purview caches disabled
