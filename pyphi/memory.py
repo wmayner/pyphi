@@ -20,12 +20,12 @@ def cache(ignore=None):
     database.'''
 
     def joblib_decorator(func):
-        if func.__name__ == '_big_mip' and not config.CACHE_BIGMIPS:
+        if func.__name__ == '_sia' and not config.CACHE_BIGMIPS:
             return func
         return constants.joblib_memory.cache(func, ignore=ignore)
 
     def db_decorator(func):
-        if func.__name__ == '_big_mip' and not config.CACHE_BIGMIPS:
+        if func.__name__ == '_sia' and not config.CACHE_BIGMIPS:
             return func
         return DbMemoizedFunc(func, ignore)
 

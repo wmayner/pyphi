@@ -62,7 +62,7 @@ def test_json_deserialization(s, transition):
         s.concept((1, 2)),
         s.concept((1,)),
         compute.ces(s),
-        compute.big_mip(s),
+        compute.sia(s),
         transition,
         transition.find_actual_cause((0,), (0,)),
         actual.account(transition),
@@ -84,16 +84,16 @@ def test_json_deserialization_non_pyphi_clasess():
 
 def test_deserialization_memoizes_duplicate_objects(s):
     with config.override(PARALLEL_CUT_EVALUATION=True):
-        big_mip = compute.big_mip(s)
+        sia = compute.sia(s)
 
-    s1 = big_mip.subsystem
+    s1 = sia.subsystem
     # Computed in a parallel process, so has a different id
-    s2 = big_mip.unpartitioned_ces[0].subsystem
+    s2 = sia.unpartitioned_ces[0].subsystem
     assert not s1 is s2
     assert s1 == s2
     assert hash(s1) == hash(s2)
 
-    loaded = jsonify.loads(jsonify.dumps(big_mip))
+    loaded = jsonify.loads(jsonify.dumps(sia))
 
     l1 = loaded.subsystem
     l2 = loaded.unpartitioned_ces[0].subsystem

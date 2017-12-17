@@ -553,9 +553,9 @@ Figure 12
 **Assessing the integrated conceptual information Φ of a constellation C.**
 
 To calculate :math:`\Phi^{\textrm{MIP}}` for a candidate set, we use the
-function |compute.big_mip|:
+function |compute.sia|:
 
-    >>> big_mip = pyphi.compute.big_mip(subsystem)
+    >>> sia = pyphi.compute.sia(subsystem)
 
 The returned value is a large object containing the :math:`\Phi^{\textrm{MIP}}`
 value, the minimal cut, the cause-effect structure of the whole set and that of
@@ -563,14 +563,14 @@ the partitioned set :math:`C_{\rightarrow}^{\textrm{MIP}}`, the total
 calculation time, the calculation time for just the unpartitioned cause-effect
 structure, a reference to the subsystem that was analyzed, and a reference to
 the subsystem with the minimal unidirectional cut applied. For details see the
-documentation for |SystemIrreducibilityAnalysis| or use ``help(big_mip)``.
+documentation for |SystemIrreducibilityAnalysis| or use ``help(sia)``.
 
 We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
 shown in the figure:
 
-    >>> big_mip.phi
+    >>> sia.phi
     1.9166650000000001
-    >>> big_mip.cut
+    >>> sia.cut
     Cut [0, 1] ━━/ /━━➤ [2]
 
 .. note::

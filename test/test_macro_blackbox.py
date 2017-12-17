@@ -115,7 +115,7 @@ def test_basic_nor_or():
                                blackbox=blackbox, time_scale=time)
 
     with config.override(CUT_ONE_APPROXIMATION=True):
-        mip = compute.big_mip(sub)
+        mip = compute.sia(sub)
 
     assert mip.phi == 1.958332
     assert mip.cut == models.Cut((6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11))
@@ -177,9 +177,9 @@ def test_xor_propogation_delay():
     subsys = macro.MacroSubsystem(network, state, network.node_indices,
                                   blackbox=blackbox, time_scale=time)
 
-    big_mip = compute.big_mip(subsys)
-    assert big_mip.phi == 1.874999
-    assert big_mip.cut == models.Cut((0,), (1, 2, 3, 4, 5, 6, 7, 8))
+    sia = compute.sia(subsys)
+    assert sia.phi == 1.874999
+    assert sia.cut == models.Cut((0,), (1, 2, 3, 4, 5, 6, 7, 8))
 
 
 @pytest.mark.xfail
@@ -302,7 +302,7 @@ def test_coarsegrain_spatial_degenerate():
     sub = macro.MacroSubsystem(net, state, range(net.size),
                                coarse_grain=coarse)
 
-    mip = compute.big_mip(sub)
+    mip = compute.sia(sub)
     assert mip.phi == 0.834183
 
 
@@ -317,12 +317,12 @@ def test_degenerate(degenerate):
         [0, 1],
         [1, 0]
     ]))
-    mip = compute.big_mip(degenerate)
+    mip = compute.sia(degenerate)
     assert mip.phi == 0.638888
 
 
 def test_basic_propagation_delay(s, propagation_delay):
-    # bb_mip = compute.big_mip(bb_sub)
+    # bb_mip = compute.sia(bb_sub)
     # assert bb_mip.phi == 2.125
     # assert bb_mip.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
 

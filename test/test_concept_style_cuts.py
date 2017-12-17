@@ -107,33 +107,33 @@ def test_system_accessors(s):
     assert cs_future.effect_system.cut == cut_future
 
 
-def big_mip_cs(phi=1.0, subsystem=None):
+def sia_cs(phi=1.0, subsystem=None):
     return SystemIrreducibilityAnalysisConceptStyle(
         mip_past=bigmip(phi=phi, subsystem=subsystem),
         mip_future=bigmip(phi=phi, subsystem=subsystem))
 
 
-def test_big_mip_concept_style_ordering(s, subsys_n0n2, s_noised):
-    assert big_mip_cs(subsystem=s) == big_mip_cs(subsystem=s)
-    assert big_mip_cs(phi=1, subsystem=s) < big_mip_cs(phi=2, subsystem=s)
+def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
+    assert sia_cs(subsystem=s) == sia_cs(subsystem=s)
+    assert sia_cs(phi=1, subsystem=s) < sia_cs(phi=2, subsystem=s)
 
-    assert big_mip_cs(subsystem=s) >= big_mip_cs(subsystem=subsys_n0n2)
+    assert sia_cs(subsystem=s) >= sia_cs(subsystem=subsys_n0n2)
 
     with pytest.raises(TypeError):
-        big_mip_cs(subsystem=s) < big_mip_cs(subsystem=s_noised)
+        sia_cs(subsystem=s) < sia_cs(subsystem=s_noised)
 
 
-def test_big_mip_concept_style(s):
-    mip = compute.big_mip_concept_style(s)
-    assert mip.min_mip is mip.big_mip_future
+def test_sia_concept_style(s):
+    mip = compute.sia_concept_style(s)
+    assert mip.min_mip is mip.sia_future
     for attr in ['phi', 'unpartitioned_ces', 'cut', 'subsystem',
                  'cut_subsystem', 'network', 'partitioned_ces']:
-        assert getattr(mip, attr) is getattr(mip.big_mip_future, attr)
+        assert getattr(mip, attr) is getattr(mip.sia_future, attr)
 
 
 @config.override(SYSTEM_CUTS='CONCEPT_STYLE')
 def test_unpickle(s, flushcache, restore_fs_cache):
-    bm = compute.big_mip(s)
+    bm = compute.sia(s)
     pickle.loads(pickle.dumps(bm))
 
 

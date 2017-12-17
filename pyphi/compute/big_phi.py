@@ -89,7 +89,7 @@ class FindMip(MapReduce):
         return min_mip
 
 
-def big_mip_bipartitions(nodes):
+def sia_bipartitions(nodes):
     '''Return all |big_phi| cuts for the given nodes.
 
     This value changes based on :const:`config.CUT_ONE_APPROXIMATION`.
@@ -118,7 +118,7 @@ def _unpartitioned_ces(subsystem):
 
 # pylint: disable=unused-argument
 @memory.cache(ignore=["subsystem"])
-def _big_mip(cache_key, subsystem):
+def _sia(cache_key, subsystem):
     '''Return the minimal information partition of a subsystem.
 
     Args:
@@ -190,7 +190,7 @@ def _big_mip(cache_key, subsystem):
     if len(subsystem.cut_indices) == 1:
         cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
     else:
-        cuts = big_mip_bipartitions(subsystem.cut_indices)
+        cuts = sia_bipartitions(subsystem.cut_indices)
     finder = FindMip(cuts, subsystem, unpartitioned_ces)
     min_mip = finder.run(config.PARALLEL_CUT_EVALUATION)
     result = time_annotated(min_mip, small_phi_time)
@@ -202,11 +202,11 @@ def _big_mip(cache_key, subsystem):
 
 # TODO(maintainance): don't forget to add any new configuration options here if
 # they can change big-phi values
-def _big_mip_cache_key(subsystem):
+def _sia_cache_key(subsystem):
     '''The cache key of the subsystem.
 
     This includes the native hash of the subsystem and all configuration values
-    which change the results of ``big_mip``.
+    which change the results of ``sia``.
     '''
     return (
         hash(subsystem),
@@ -224,17 +224,17 @@ def _big_mip_cache_key(subsystem):
 # joblib doesn't mistakenly recompute things when the subsystem's MICE cache is
 # changed. The cache is also keyed on configuration values which affect the
 # value of the computation.
-@functools.wraps(_big_mip)
-def big_mip(subsystem):  # pylint: disable=missing-docstring
+@functools.wraps(_sia)
+def sia(subsystem):  # pylint: disable=missing-docstring
     if config.SYSTEM_CUTS == 'CONCEPT_STYLE':
-        return big_mip_concept_style(subsystem)
+        return sia_concept_style(subsystem)
 
-    return _big_mip(_big_mip_cache_key(subsystem), subsystem)
+    return _sia(_sia_cache_key(subsystem), subsystem)
 
 
 def big_phi(subsystem):
     '''Return the |big_phi| value of a subsystem.'''
-    return big_mip(subsystem).phi
+    return sia(subsystem).phi
 
 
 def _reachable_subsystems(network, indices, state):
@@ -288,11 +288,11 @@ class FindAllComplexes(MapReduce):
 
     @staticmethod
     def compute(subsystem):
-        return big_mip(subsystem)
+        return sia(subsystem)
 
-    def process_result(self, new_big_mip, big_mips):
-        big_mips.append(new_big_mip)
-        return big_mips
+    def process_result(self, new_sia, sias):
+        sias.append(new_sia)
+        return sias
 
 
 def all_complexes(network, state):
@@ -308,10 +308,10 @@ def all_complexes(network, state):
 class FindIrreducibleComplexes(FindAllComplexes):
     '''Computation engine for computing irreducible complexes of a network.'''
 
-    def process_result(self, new_big_mip, big_mips):
-        if new_big_mip.phi > 0:
-            big_mips.append(new_big_mip)
-        return big_mips
+    def process_result(self, new_sia, sias):
+        if new_sia.phi > 0:
+            sias.append(new_sia)
+        return sias
 
 
 def complexes(network, state):
@@ -411,7 +411,7 @@ def concept_cuts(direction, node_indices):
         yield KCut(direction, partition)
 
 
-def directional_big_mip(subsystem, direction, unpartitioned_ces=None):
+def directional_sia(subsystem, direction, unpartitioned_ces=None):
     """Calculate a concept-style SystemIrreducibilityAnalysisPast or SystemIrreducibilityAnalysisFuture."""
     if unpartitioned_ces is None:
         unpartitioned_ces = _unpartitioned_ces(subsystem)
@@ -430,17 +430,17 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
     '''Represents a Big Mip computed using concept-style system cuts.'''
 
     def __init__(self, mip_past, mip_future):
-        self.big_mip_past = mip_past
-        self.big_mip_future = mip_future
+        self.sia_past = mip_past
+        self.sia_future = mip_future
 
     @property
     def min_mip(self):
-        return min(self.big_mip_past, self.big_mip_future, key=lambda m: m.phi)
+        return min(self.sia_past, self.sia_future, key=lambda m: m.phi)
 
     def __getattr__(self, name):
         '''Pass attribute access through to the minimal mip.'''
-        if ('big_mip_past' in self.__dict__ and
-                'big_mip_future' in self.__dict__):
+        if ('sia_past' in self.__dict__ and
+                'sia_future' in self.__dict__):
             return getattr(self.min_mip, name)
         raise AttributeError(name)
 
@@ -460,13 +460,13 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
 
 
 # TODO: cache
-def big_mip_concept_style(subsystem):
+def sia_concept_style(subsystem):
     '''Compute a concept-style Big Mip'''
     unpartitioned_ces = _unpartitioned_ces(subsystem)
 
-    mip_past = directional_big_mip(subsystem, Direction.CAUSE,
+    mip_past = directional_sia(subsystem, Direction.CAUSE,
                                    unpartitioned_ces)
-    mip_future = directional_big_mip(subsystem, Direction.EFFECT,
+    mip_future = directional_sia(subsystem, Direction.EFFECT,
                                      unpartitioned_ces)
 
     return SystemIrreducibilityAnalysisConceptStyle(mip_past, mip_future)

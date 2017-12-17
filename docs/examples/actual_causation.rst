@@ -180,14 +180,14 @@ Irreducible Accounts
 The irreducibility of the causal account of our transition of interest can be
 evaluated using the following function:
 
-   >>> big_mip = actual.big_acmip(transition)
-   >>> big_mip.alpha
+   >>> sia = actual.big_acmip(transition)
+   >>> sia.alpha
    0.169925
 
 As shown in Figure 4, the second order occurence |Y_t = {OR, AND = 10}| is
 destroyed by the MIP:
 
-   >>> big_mip.partitioned_account  # doctest: +NORMALIZE_WHITESPACE
+   >>> sia.partitioned_account  # doctest: +NORMALIZE_WHITESPACE
    <BLANKLINE>
    Account (4 causal links)
    ************************
@@ -200,7 +200,7 @@ destroyed by the MIP:
 
 The partition of the MIP is available in the ``cut`` property:
 
-   >>> big_mip.cut  # doctest: +NORMALIZE_WHITESPACE
+   >>> sia.cut  # doctest: +NORMALIZE_WHITESPACE
    KCut CAUSE
     ∅     0     1
    ─── ✕ ─── ✕ ───

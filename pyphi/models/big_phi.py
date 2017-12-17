@@ -52,7 +52,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return fmt.make_repr(self, _bigmip_attributes)
 
     def __str__(self, ces=True):
-        return fmt.fmt_big_mip(self, ces=ces)
+        return fmt.fmt_sia(self, ces=ces)
 
     def print(self, ces=True):
         '''Print this |SystemIrreducibilityAnalysis|, optionally without cause-effect structures.'''

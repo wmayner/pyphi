@@ -169,7 +169,7 @@ of principle regardless.
 
 Calculating the MIP of the system,
 
-    >>> mip = pyphi.compute.big_mip(subsystem)
+    >>> mip = pyphi.compute.sia(subsystem)
     >>> mip.phi
     0.217829
     >>> mip.cut

@@ -5,7 +5,7 @@
 import numpy as np
 import pytest
 
-from pyphi.compute import big_mip
+from pyphi.compute import sia
 from pyphi.constants import EPSILON
 from pyphi import Direction
 
@@ -15,7 +15,7 @@ ABCD = (0, 1, 2, 3)
 
 
 def test_expand_cause_repertoire(micro_s_all_off):
-    mip = big_mip(micro_s_all_off)
+    mip = sia(micro_s_all_off)
     A = mip.unpartitioned_ces[0]
     cause = A.cause.mip.unpartitioned_repertoire
 
@@ -31,7 +31,7 @@ def test_expand_cause_repertoire(micro_s_all_off):
 
 
 def test_expand_effect_repertoire(micro_s_all_off):
-    mip = big_mip(micro_s_all_off)
+    mip = sia(micro_s_all_off)
     A = mip.unpartitioned_ces[0]
     effect = A.effect.mip.unpartitioned_repertoire
 

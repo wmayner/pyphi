@@ -225,7 +225,7 @@ r"""
 # Functions
 r"""
 .. |compute.conceptual_information| replace:: :func:`~pyphi.compute.big_phi.conceptual_information`
-.. |compute.big_mip| replace:: :func:`~pyphi.compute.big_phi.big_mip`
+.. |compute.sia| replace:: :func:`~pyphi.compute.big_phi.sia`
 
 .. |compute.concept| replace:: :func:`~pyphi.compute.concept.concept`
 .. |compute.big_phi| replace:: :func:`~pyphi.compute.big_phi.big_phi`

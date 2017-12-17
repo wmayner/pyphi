@@ -10,7 +10,7 @@ import pytest
 
 from pyphi import (Direction, Network, Subsystem, compute, config, constants,
                    models, utils)
-from pyphi.compute.big_phi import FindMip, big_mip_bipartitions
+from pyphi.compute.big_phi import FindMip, sia_bipartitions
 from pyphi.models import Cut, _null_bigmip
 from pyphi.partition import directed_bipartition
 
@@ -282,7 +282,7 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
 
 
 def test_ces_distance_switches_to_small_phi_difference(s):
-    mip = compute.big_mip(s)
+    mip = compute.sia(s)
     ce_structures = (mip.unpartitioned_ces, mip.partitioned_ces)
 
     with config.override(
@@ -295,7 +295,7 @@ def test_ces_distance_switches_to_small_phi_difference(s):
 
 
 @config.override(CACHE_BIGMIPS=True)
-def test_big_mip_cache_key_includes_config_dependencies(s, flushcache,
+def test_sia_cache_key_includes_config_dependencies(s, flushcache,
                                                         restore_fs_cache):
     flushcache()
 
@@ -313,9 +313,9 @@ def test_conceptual_information(s, flushcache, restore_fs_cache):
     assert compute.conceptual_information(s) == 2.8125
 
 
-def test_big_mip_empty_subsystem(s_empty, flushcache, restore_fs_cache):
+def test_sia_empty_subsystem(s_empty, flushcache, restore_fs_cache):
     flushcache()
-    assert (compute.big_mip(s_empty) ==
+    assert (compute.sia(s_empty) ==
             models.SystemIrreducibilityAnalysis(phi=0.0,
                           unpartitioned_ces=(),
                           partitioned_ces=(),
@@ -323,16 +323,16 @@ def test_big_mip_empty_subsystem(s_empty, flushcache, restore_fs_cache):
                           cut_subsystem=s_empty))
 
 
-def test_big_mip_disconnected_network(reducible, flushcache, restore_fs_cache):
+def test_sia_disconnected_network(reducible, flushcache, restore_fs_cache):
     flushcache()
-    assert (compute.big_mip(reducible) ==
+    assert (compute.sia(reducible) ==
             models.SystemIrreducibilityAnalysis(subsystem=reducible, cut_subsystem=reducible,
                           phi=0.0, unpartitioned_ces=[], partitioned_ces=[]))
 
 
-def test_big_mip_wrappers(reducible, flushcache, restore_fs_cache):
+def test_sia_wrappers(reducible, flushcache, restore_fs_cache):
     flushcache()
-    assert (compute.big_mip(reducible) ==
+    assert (compute.sia(reducible) ==
             models.SystemIrreducibilityAnalysis(subsystem=reducible, cut_subsystem=reducible,
                           phi=0.0, unpartitioned_ces=[], partitioned_ces=[]))
     assert compute.big_phi(reducible) == 0.0
@@ -340,29 +340,29 @@ def test_big_mip_wrappers(reducible, flushcache, restore_fs_cache):
 
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
 @config.override(MEASURE='EMD')
-def test_big_mip_single_micro_node_selfloops_have_phi(
+def test_sia_single_micro_node_selfloops_have_phi(
         noisy_selfloop_single, flushcache, restore_fs_cache):
     flushcache()
-    assert compute.big_mip(noisy_selfloop_single).phi == 0.2736
+    assert compute.sia(noisy_selfloop_single).phi == 0.2736
 
 
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False)
-def test_big_mip_single_micro_node_selfloops_dont_have_phi(
+def test_sia_single_micro_node_selfloops_dont_have_phi(
         noisy_selfloop_single, flushcache, restore_fs_cache):
     flushcache()
-    assert compute.big_mip(noisy_selfloop_single).phi == 0.0
+    assert compute.sia(noisy_selfloop_single).phi == 0.0
 
 
-def test_big_mip_single_micro_nodes_without_selfloops_dont_have_phi(
+def test_sia_single_micro_nodes_without_selfloops_dont_have_phi(
         s_single, flushcache, restore_fs_cache):
     flushcache()
-    assert compute.big_mip(s_single).phi == 0.0
+    assert compute.sia(s_single).phi == 0.0
 
 
 @pytest.fixture
 def standard_FindMip(s):
     unpartitioned_ces = compute.ces(s)
-    cuts = big_mip_bipartitions(s.node_indices)
+    cuts = sia_bipartitions(s.node_indices)
     return FindMip(cuts, s, unpartitioned_ces)
 
 
@@ -385,7 +385,7 @@ def test_find_mip_parallel_standard_example(standard_FindMip, flushcache,
 @pytest.fixture
 def s_noised_FindMip(s_noised):
     unpartitioned_ces = compute.ces(s_noised)
-    cuts = big_mip_bipartitions(s_noised.node_indices)
+    cuts = sia_bipartitions(s_noised.node_indices)
     return FindMip(cuts, s_noised, unpartitioned_ces)
 
 
@@ -408,7 +408,7 @@ def test_find_mip_parallel_noised_example(s_noised_FindMip, flushcache,
 @pytest.fixture
 def micro_s_FindMip(micro_s):
     unpartitioned_ces = compute.ces(micro_s)
-    cuts = big_mip_bipartitions(micro_s.node_indices)
+    cuts = sia_bipartitions(micro_s.node_indices)
     return FindMip(cuts, micro_s, unpartitioned_ces)
 
 
@@ -463,46 +463,46 @@ def test_all_complexes_parallelization(s, flushcache, restore_fs_cache):
     assert sorted(serial) == sorted(parallel)
 
 
-def test_big_mip_complete_graph_standard_example(s_complete):
-    mip = compute.big_mip(s_complete)
+def test_sia_complete_graph_standard_example(s_complete):
+    mip = compute.sia(s_complete)
     check_mip(mip, standard_answer)
 
 
-def test_big_mip_complete_graph_s_noised(s_noised_complete):
-    mip = compute.big_mip(s_noised_complete)
+def test_sia_complete_graph_s_noised(s_noised_complete):
+    mip = compute.sia(s_noised_complete)
     check_mip(mip, noised_answer)
 
 
 @pytest.mark.slow
-def test_big_mip_complete_graph_big_subsys_all(big_subsys_all_complete):
-    mip = compute.big_mip(big_subsys_all_complete)
+def test_sia_complete_graph_big_subsys_all(big_subsys_all_complete):
+    mip = compute.sia(big_subsys_all_complete)
     check_mip(mip, big_answer)
 
 
 @pytest.mark.slow
-def test_big_mip_complete_graph_rule152_s(rule152_s_complete):
-    mip = compute.big_mip(rule152_s_complete)
+def test_sia_complete_graph_rule152_s(rule152_s_complete):
+    mip = compute.sia(rule152_s_complete)
     check_mip(mip, rule152_answer)
 
 
 @pytest.mark.slow
-def test_big_mip_big_network(big_subsys_all, flushcache, restore_fs_cache):
+def test_sia_big_network(big_subsys_all, flushcache, restore_fs_cache):
     flushcache()
-    mip = compute.big_mip(big_subsys_all)
+    mip = compute.sia(big_subsys_all)
     check_mip(mip, big_answer)
 
 
-def test_big_mip_big_network_0_thru_3(big_subsys_0_thru_3, flushcache,
+def test_sia_big_network_0_thru_3(big_subsys_0_thru_3, flushcache,
                                       restore_fs_cache):
     flushcache()
-    mip = compute.big_mip(big_subsys_0_thru_3)
+    mip = compute.sia(big_subsys_0_thru_3)
     check_mip(mip, big_subsys_0_thru_3_answer)
 
 
 @pytest.mark.slow
-def test_big_mip_rule152(rule152_s, flushcache, restore_fs_cache):
+def test_sia_rule152(rule152_s, flushcache, restore_fs_cache):
     flushcache()
-    mip = compute.big_mip(rule152_s)
+    mip = compute.sia(rule152_s)
     check_mip(mip, rule152_answer)
 
 
@@ -559,9 +559,9 @@ def test_rule152_complexes_no_caching(rule152):
 
 
 @pytest.mark.dev
-def test_big_mip_macro(macro_s, flushcache, restore_fs_cache):
+def test_sia_macro(macro_s, flushcache, restore_fs_cache):
     flushcache()
-    mip = compute.big_mip(macro_s)
+    mip = compute.sia(macro_s)
     check_mip(mip, macro_answer)
 
 
@@ -577,7 +577,7 @@ def test_parallel_and_sequential_ces_are_equal(s, micro_s, macro_s):
         assert set(c_macro) == set(compute.ces(macro_s))
 
 
-def test_big_mip_bipartitions():
+def test_sia_bipartitions():
     with config.override(CUT_ONE_APPROXIMATION=False):
         answer = [models.Cut((1,), (2, 3, 4)),
                   models.Cut((2,), (1, 3, 4)),
@@ -593,7 +593,7 @@ def test_big_mip_bipartitions():
                   models.Cut((3, 4), (1, 2)),
                   models.Cut((1, 3, 4), (2,)),
                   models.Cut((2, 3, 4), (1,))]
-        assert big_mip_bipartitions((1, 2, 3, 4)) == answer
+        assert sia_bipartitions((1, 2, 3, 4)) == answer
 
     with config.override(CUT_ONE_APPROXIMATION=True):
         answer = [models.Cut((1,), (2, 3, 4)),
@@ -604,7 +604,7 @@ def test_big_mip_bipartitions():
                   models.Cut((1, 3, 4), (2,)),
                   models.Cut((1, 2, 4), (3,)),
                   models.Cut((1, 2, 3), (4,))]
-        assert big_mip_bipartitions((1, 2, 3, 4)) == answer
+        assert sia_bipartitions((1, 2, 3, 4)) == answer
 
 
 def test_system_cut_styles(s, flushcache, restore_fs_cache):

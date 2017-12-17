@@ -393,17 +393,17 @@ def fmt_kcut(cut):
     return 'KCut {}\n{}'.format(cut.direction, cut.partition)
 
 
-def fmt_big_mip(big_mip, ces=True):
+def fmt_sia(sia, ces=True):
     '''Format a |SystemIrreducibilityAnalysis|.'''
     if ces:
         body = (
             '{unpartitioned_ces}'
             '{partitioned_ces}'.format(
                 unpartitioned_ces=fmt_ces(
-                    big_mip.unpartitioned_ces,
+                    sia.unpartitioned_ces,
                     'Cause-effect structure'),
                 partitioned_ces=fmt_ces(
-                    big_mip.partitioned_ces,
+                    sia.partitioned_ces,
                     'Partitioned cause-effect structure')))
         center_header = True
     else:
@@ -411,11 +411,11 @@ def fmt_big_mip(big_mip, ces=True):
         center_header = False
 
     title = 'Big Mip: {BIG_PHI} = {phi}'.format(
-        BIG_PHI=BIG_PHI, phi=fmt_number(big_mip.phi))
+        BIG_PHI=BIG_PHI, phi=fmt_number(sia.phi))
 
-    cut = fmt_cut(big_mip.cut, big_mip.subsystem)
+    cut = fmt_cut(sia.cut, sia.subsystem)
 
-    body = header(str(big_mip.subsystem), body, center=center_header)
+    body = header(str(sia.subsystem), body, center=center_header)
     body = header(cut, body, center=center_header)
     return box(header(title, body, center=center_header))
 
@@ -484,24 +484,24 @@ def fmt_account(account, title=None):
     return '\n' + header(title, body, under_char='*')
 
 
-def fmt_ac_big_mip(ac_big_mip):
+def fmt_ac_sia(ac_sia):
     '''Format a AcSystemIrreducibilityAnalysis.'''
     body = (
         '{ALPHA} = {alpha}\n'
-        'direction: {ac_big_mip.direction}\n'
-        'transition: {ac_big_mip.transition}\n'
-        'before state: {ac_big_mip.before_state}\n'
-        'after state: {ac_big_mip.after_state}\n'
-        'cut:\n{ac_big_mip.cut}\n'
+        'direction: {ac_sia.direction}\n'
+        'transition: {ac_sia.transition}\n'
+        'before state: {ac_sia.before_state}\n'
+        'after state: {ac_sia.after_state}\n'
+        'cut:\n{ac_sia.cut}\n'
         '{unpartitioned_account}\n'
         '{partitioned_account}'.format(
             ALPHA=ALPHA,
-            alpha=round(ac_big_mip.alpha, 4),
-            ac_big_mip=ac_big_mip,
+            alpha=round(ac_sia.alpha, 4),
+            ac_sia=ac_sia,
             unpartitioned_account=fmt_account(
-                ac_big_mip.unpartitioned_account, 'Unpartitioned Account'),
+                ac_sia.unpartitioned_account, 'Unpartitioned Account'),
             partitioned_account=fmt_account(
-                ac_big_mip.partitioned_account, 'Partitioned Account')))
+                ac_sia.partitioned_account, 'Partitioned Account')))
 
     return box(header('AcSystemIrreducibilityAnalysis', body, under_char=HORIZONTAL_BAR))
 

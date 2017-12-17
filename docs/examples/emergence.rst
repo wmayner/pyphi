@@ -155,7 +155,7 @@ We can now construct a |MacroSubsystem| using this coarse-graining:
 We can then consider the integrated information of this macro-network and
 compare it to the micro-network.
 
-    >>> macro_mip = pyphi.compute.big_mip(macro_subsystem)
+    >>> macro_mip = pyphi.compute.sia(macro_subsystem)
     >>> macro_mip.phi
     0.597212
 
