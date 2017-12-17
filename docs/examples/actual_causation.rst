@@ -212,7 +212,7 @@ To find all irreducible accounts within the transition of interest, use
    >>> all_accounts = actual.nexus(network, X_state, Y_state)
 
 This computes |big_alpha| for all permutations of of elements in |X_t-1| and
-|Y_t| and returns a ``tuple`` of all |AcBigMip| objects with |big_alpha > 0|:
+|Y_t| and returns a ``tuple`` of all |AcSystemIrreducibilityAnalysis| objects with |big_alpha > 0|:
 
    >>> for n in all_accounts:
    ...     print(n.transition, n.alpha)

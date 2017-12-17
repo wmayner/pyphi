@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from pyphi import Direction, compute, config
-from pyphi.compute import BigMipConceptStyle, ConceptStyleSystem, concept_cuts
+from pyphi.compute import SystemIrreducibilityAnalysisConceptStyle, ConceptStyleSystem, concept_cuts
 from pyphi.models import KCut, KPartition, Part
 from test_models import bigmip
 
@@ -108,7 +108,7 @@ def test_system_accessors(s):
 
 
 def big_mip_cs(phi=1.0, subsystem=None):
-    return BigMipConceptStyle(
+    return SystemIrreducibilityAnalysisConceptStyle(
         mip_past=bigmip(phi=phi, subsystem=subsystem),
         mip_future=bigmip(phi=phi, subsystem=subsystem))
 

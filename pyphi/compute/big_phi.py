@@ -10,7 +10,7 @@ import logging
 from time import time
 from .. import (Direction, config, connectivity, exceptions, memory, utils,
                 validate)
-from ..models import BigMip, Concept, Cut, KCut, _null_bigmip, cmp, fmt
+from ..models import SystemIrreducibilityAnalysis, Concept, Cut, KCut, _null_bigmip, cmp, fmt
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem, mip_partitions
 from .concept import ces
@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 
 def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
-    '''Find the |BigMip| for a given cut.
+    '''Find the |SystemIrreducibilityAnalysis| for a given cut.
 
     Args:
         uncut_subsystem (Subsystem): The subsystem without the cut applied.
@@ -31,7 +31,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
             the uncut subsystem.
 
     Returns:
-        BigMip: The |BigMip| for that cut.
+        SystemIrreducibilityAnalysis: The |SystemIrreducibilityAnalysis| for that cut.
     '''
     log.debug('Evaluating %s...', cut)
 
@@ -53,7 +53,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
     phi = ces_distance(unpartitioned_ces,
                        partitioned_ces)
 
-    return BigMip(
+    return SystemIrreducibilityAnalysis(
         phi=phi,
         unpartitioned_ces=unpartitioned_ces,
         partitioned_ces=partitioned_ces,
@@ -62,7 +62,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
 
 
 class FindMip(MapReduce):
-    '''Computation engine for finding the minimal |BigMip|.'''
+    '''Computation engine for finding the minimal |SystemIrreducibilityAnalysis|.'''
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
@@ -125,7 +125,7 @@ def _big_mip(cache_key, subsystem):
         subsystem (Subsystem): The candidate set of nodes.
 
     Returns:
-        BigMip: A nested structure containing all the data from the
+        SystemIrreducibilityAnalysis: A nested structure containing all the data from the
         intermediate calculations. The top level contains the basic MIP
         information for the given subsystem.
     '''
@@ -133,7 +133,7 @@ def _big_mip(cache_key, subsystem):
     start = time()
 
     def time_annotated(bm, small_phi_time=0.0):
-        '''Annote a BigMip with the total elapsed calculation time.
+        '''Annote a SystemIrreducibilityAnalysis with the total elapsed calculation time.
 
         Optionally add the time taken to calculate the unpartitioned
         |CauseEffectStructure|.
@@ -412,7 +412,7 @@ def concept_cuts(direction, node_indices):
 
 
 def directional_big_mip(subsystem, direction, unpartitioned_ces=None):
-    """Calculate a concept-style BigMipPast or BigMipFuture."""
+    """Calculate a concept-style SystemIrreducibilityAnalysisPast or SystemIrreducibilityAnalysisFuture."""
     if unpartitioned_ces is None:
         unpartitioned_ces = _unpartitioned_ces(subsystem)
 
@@ -426,7 +426,7 @@ def directional_big_mip(subsystem, direction, unpartitioned_ces=None):
 
 
 # TODO: only return the minimal mip, instead of both
-class BigMipConceptStyle(cmp.Orderable):
+class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
     '''Represents a Big Mip computed using concept-style system cuts.'''
 
     def __init__(self, mip_past, mip_future):
@@ -469,4 +469,4 @@ def big_mip_concept_style(subsystem):
     mip_future = directional_big_mip(subsystem, Direction.EFFECT,
                                      unpartitioned_ces)
 
-    return BigMipConceptStyle(mip_past, mip_future)
+    return SystemIrreducibilityAnalysisConceptStyle(mip_past, mip_future)

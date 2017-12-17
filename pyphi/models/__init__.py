@@ -5,7 +5,7 @@
 '''See |models.big_phi|, |models.concept|, and |models.cuts| for documentation.
 
 Attributes:
-    BigMip: Alias for :class:`big_phi.BigMip`
+    SystemIrreducibilityAnalysis: Alias for :class:`big_phi.SystemIrreducibilityAnalysis`
     Mip: Alias for :class:`concept.Mip`
     Mice: Alias for :class:`concept.Mice`
     Concept: Alias for :class:`concept.Concept`
@@ -16,15 +16,15 @@ Attributes:
     ActualCut: Alias for :class:`cuts.ActualCut`
     AcMip: Alias for :class:`actual_causation.AcMip`
     CausalLink: Alias for :class:`actual_causation.CausalLink`
-    AcBigMip: Alias for :class:`actual_causation.AcBigMip`
+    AcSystemIrreducibilityAnalysis: Alias for :class:`actual_causation.AcSystemIrreducibilityAnalysis`
     Account: Alias for :class:`actual_causation.Account`
     DirectedAccount: Alias for :class:`actual_causation.DirectedAccount`
 '''
 
-from .actual_causation import (AcBigMip, CausalLink, AcMip, _null_ac_mip,
+from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink, AcMip, _null_ac_mip,
                                Event, _null_ac_bigmip, DirectedAccount,
                                Account)
-from .big_phi import BigMip, _null_bigmip
+from .big_phi import SystemIrreducibilityAnalysis, _null_bigmip
 from .concept import (Mip, _null_mip, Mice, Concept, CauseEffectStructure,
                       normalize_ces)
 from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,

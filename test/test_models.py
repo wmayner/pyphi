@@ -38,10 +38,10 @@ def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
 
 def bigmip(unpartitioned_ces=(), partitioned_ces=(),
            subsystem=None, cut_subsystem=None, phi=1.0):
-    '''Build a ``BigMip``.'''
+    '''Build a ``SystemIrreducibilityAnalysis``.'''
     cut_subsystem = cut_subsystem or subsystem
 
-    return models.BigMip(
+    return models.SystemIrreducibilityAnalysis(
         unpartitioned_ces=unpartitioned_ces,
         partitioned_ces=partitioned_ces,
         subsystem=subsystem, cut_subsystem=cut_subsystem, phi=phi)
@@ -562,7 +562,7 @@ def test_ces_are_always_normalized():
 # }}}
 
 
-# Test BigMip
+# Test SystemIrreducibilityAnalysis
 # {{{
 
 

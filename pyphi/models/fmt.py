@@ -394,7 +394,7 @@ def fmt_kcut(cut):
 
 
 def fmt_big_mip(big_mip, ces=True):
-    '''Format a |BigMip|.'''
+    '''Format a |SystemIrreducibilityAnalysis|.'''
     if ces:
         body = (
             '{unpartitioned_ces}'
@@ -485,7 +485,7 @@ def fmt_account(account, title=None):
 
 
 def fmt_ac_big_mip(ac_big_mip):
-    '''Format a AcBigMip.'''
+    '''Format a AcSystemIrreducibilityAnalysis.'''
     body = (
         '{ALPHA} = {alpha}\n'
         'direction: {ac_big_mip.direction}\n'
@@ -503,7 +503,7 @@ def fmt_ac_big_mip(ac_big_mip):
             partitioned_account=fmt_account(
                 ac_big_mip.partitioned_account, 'Partitioned Account')))
 
-    return box(header('AcBigMip', body, under_char=HORIZONTAL_BAR))
+    return box(header('AcSystemIrreducibilityAnalysis', body, under_char=HORIZONTAL_BAR))
 
 
 def fmt_transition(t):

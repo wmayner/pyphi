@@ -26,6 +26,6 @@ Attributes:
 from .big_phi import (all_complexes, big_mip, big_phi, complexes, condensed,
                       evaluate_cut, major_complex, possible_complexes,
                       subsystems, ConceptStyleSystem, big_mip_concept_style,
-                      concept_cuts, BigMipConceptStyle)
+                      concept_cuts, SystemIrreducibilityAnalysisConceptStyle)
 from .concept import concept, conceptual_information, ces
 from .distance import concept_distance, ces_distance

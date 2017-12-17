@@ -256,7 +256,7 @@ def ac_bigmip(**kwargs):
         'cut': None
     }
     defaults.update(kwargs)
-    return models.AcBigMip(**defaults)
+    return models.AcSystemIrreducibilityAnalysis(**defaults)
 
 
 def test_acmip_ordering():

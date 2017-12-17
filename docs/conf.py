@@ -241,7 +241,7 @@ r"""
 
 .. |Subsystem| replace:: :class:`~pyphi.subsystem.Subsystem`
 
-.. |BigMip| replace:: :class:`~pyphi.models.big_phi.BigMip`
+.. |SystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.big_phi.SystemIrreducibilityAnalysis`
 
 .. |Concept| replace:: :class:`~pyphi.models.concept.Concept`
 .. |CauseEffectStructure| replace:: :class:`~pyphi.models.concept.CauseEffectStructure`
@@ -265,7 +265,7 @@ r"""
 .. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
 
 .. |Transition| replace:: :class:`~pyphi.actual.Transition`
-.. |AcBigMip| replace:: :class:`~pyphi.models.actual_causation.AcBigMip`
+.. |AcSystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.actual_causation.AcSystemIrreducibilityAnalysis`
 .. |AcMip| replace:: :class:`~pyphi.models.actual_causation.AcMip`
 .. |DirectedAccount| replace:: :class:`~pyphi.models.actual_causation.DirectedAccount`
 .. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`

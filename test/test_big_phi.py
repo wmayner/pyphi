@@ -316,7 +316,7 @@ def test_conceptual_information(s, flushcache, restore_fs_cache):
 def test_big_mip_empty_subsystem(s_empty, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.big_mip(s_empty) ==
-            models.BigMip(phi=0.0,
+            models.SystemIrreducibilityAnalysis(phi=0.0,
                           unpartitioned_ces=(),
                           partitioned_ces=(),
                           subsystem=s_empty,
@@ -326,14 +326,14 @@ def test_big_mip_empty_subsystem(s_empty, flushcache, restore_fs_cache):
 def test_big_mip_disconnected_network(reducible, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.big_mip(reducible) ==
-            models.BigMip(subsystem=reducible, cut_subsystem=reducible,
+            models.SystemIrreducibilityAnalysis(subsystem=reducible, cut_subsystem=reducible,
                           phi=0.0, unpartitioned_ces=[], partitioned_ces=[]))
 
 
 def test_big_mip_wrappers(reducible, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.big_mip(reducible) ==
-            models.BigMip(subsystem=reducible, cut_subsystem=reducible,
+            models.SystemIrreducibilityAnalysis(subsystem=reducible, cut_subsystem=reducible,
                           phi=0.0, unpartitioned_ces=[], partitioned_ces=[]))
     assert compute.big_phi(reducible) == 0.0
 

@@ -14,7 +14,7 @@ _bigmip_attributes = ['phi', 'unpartitioned_ces',
                       'cut_subsystem']
 
 
-class BigMip(cmp.Orderable):
+class SystemIrreducibilityAnalysis(cmp.Orderable):
     '''A minimum information partition for |big_phi| calculation.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -55,7 +55,7 @@ class BigMip(cmp.Orderable):
         return fmt.fmt_big_mip(self, ces=ces)
 
     def print(self, ces=True):
-        '''Print this |BigMip|, optionally without cause-effect structures.'''
+        '''Print this |SystemIrreducibilityAnalysis|, optionally without cause-effect structures.'''
         print(self.__str__(ces=ces))
 
     @property
@@ -67,7 +67,7 @@ class BigMip(cmp.Orderable):
 
     @property
     def network(self):
-        '''The network this |BigMip| belongs to.'''
+        '''The network this |SystemIrreducibilityAnalysis| belongs to.'''
         return self.subsystem.network
 
     unorderable_unless_eq = ['network']
@@ -79,7 +79,7 @@ class BigMip(cmp.Orderable):
         return cmp.general_eq(self, other, _bigmip_attributes)
 
     def __bool__(self):
-        '''A |BigMip| is ``True`` if it has |big_phi > 0|.'''
+        '''A |SystemIrreducibilityAnalysis| is ``True`` if it has |big_phi > 0|.'''
         return not utils.eq(self.phi, 0)
 
     def __hash__(self):
@@ -98,9 +98,9 @@ class BigMip(cmp.Orderable):
 
 
 def _null_bigmip(subsystem, phi=0.0):
-    '''Return a |BigMip| with zero |big_phi| and empty cause-effect structures.
+    '''Return a |SystemIrreducibilityAnalysis| with zero |big_phi| and empty cause-effect structures.
 
     This is the MIP associated with a reducible subsystem.
     '''
-    return BigMip(subsystem=subsystem, cut_subsystem=subsystem, phi=phi,
+    return SystemIrreducibilityAnalysis(subsystem=subsystem, cut_subsystem=subsystem, phi=phi,
                   unpartitioned_ces=(), partitioned_ces=())

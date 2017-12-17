@@ -19,7 +19,7 @@ import pyphi
 
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
-from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
+from .models import (AcSystemIrreducibilityAnalysis, Account, AcMip, ActualCut, CausalLink,
                      DirectedAccount, Event, NullCut,
                      _null_ac_bigmip, _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions
@@ -452,7 +452,7 @@ def account(transition, direction=Direction.BIDIRECTIONAL):
 
 
 # ============================================================================
-# AcBigMips and System cuts
+# AcSystemIrreducibilityAnalysiss and System cuts
 # ============================================================================
 
 
@@ -473,14 +473,14 @@ def account_distance(A1, A2):
 
 def _evaluate_cut(transition, cut, unpartitioned_account,
                   direction=Direction.BIDIRECTIONAL):
-    '''Find the |AcBigMip| for a given cut.'''
+    '''Find the |AcSystemIrreducibilityAnalysis| for a given cut.'''
     cut_transition = transition.apply_cut(cut)
     partitioned_account = account(cut_transition, direction)
 
     log.debug("Finished evaluating %s.", cut)
     alpha = account_distance(unpartitioned_account, partitioned_account)
 
-    return AcBigMip(
+    return AcSystemIrreducibilityAnalysis(
         alpha=round(alpha, config.PRECISION),
         direction=direction,
         unpartitioned_account=unpartitioned_account,
@@ -518,7 +518,7 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
         transition (Transition): The candidate system.
 
     Returns:
-        AcBigMip: A nested structure containing all the data from the
+        AcSystemIrreducibilityAnalysis: A nested structure containing all the data from the
         intermediate calculations. The top level contains the basic MIP
         information for the given subsystem.
     '''
@@ -552,7 +552,7 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
 
 
 class FindBigAcMip(compute.parallel.MapReduce):
-    """Computation engine for AC BigMips."""
+    """Computation engine for AC SystemIrreducibilityAnalysiss."""
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating AC cuts'
@@ -740,7 +740,7 @@ def true_events(network, past_state, current_state, future_state, indices=None,
 
     Keyword Args:
         indices (tuple[int]): The indices of the main complex.
-        major_complex (AcBigMip): The main complex. If ``major_complex`` is given
+        major_complex (AcSystemIrreducibilityAnalysis): The main complex. If ``major_complex`` is given
             then ``indices`` is ignored.
 
     Returns:
@@ -772,7 +772,7 @@ def extrinsic_events(network, past_state, current_state, future_state,
 
     Keyword Args:
         indices (tuple[int]): The indices of the main complex.
-        major_complex (AcBigMip): The main complex. If ``major_complex`` is given
+        major_complex (AcSystemIrreducibilityAnalysis): The main complex. If ``major_complex`` is given
             then ``indices`` is ignored.
 
     Returns:

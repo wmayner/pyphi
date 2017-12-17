@@ -233,7 +233,7 @@ _acbigmip_attributes = ['alpha', 'direction', 'unpartitioned_account',
 
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
 # take the smaller?
-class AcBigMip(cmp.Orderable):
+class AcSystemIrreducibilityAnalysis(cmp.Orderable):
     '''A minimum information partition for |big_alpha| calculation.
 
     Attributes:
@@ -282,7 +282,7 @@ class AcBigMip(cmp.Orderable):
         return cmp.general_eq(self, other, _acbigmip_attributes)
 
     def __bool__(self):
-        '''An |AcBigMip| is ``True`` if it has |big_alpha > 0|.'''
+        '''An |AcSystemIrreducibilityAnalysis| is ``True`` if it has |big_alpha > 0|.'''
         return greater_than_zero(self.alpha)
 
     def __hash__(self):
@@ -295,8 +295,8 @@ class AcBigMip(cmp.Orderable):
 
 
 def _null_ac_bigmip(transition, direction, alpha=0.0):
-    '''Returns an |AcBigMip| with zero |big_alpha| and empty accounts.'''
-    return AcBigMip(transition=transition,
+    '''Returns an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and empty accounts.'''
+    return AcSystemIrreducibilityAnalysis(transition=transition,
                     direction=direction,
                     alpha=alpha,
                     unpartitioned_account=(),

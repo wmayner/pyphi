@@ -563,7 +563,7 @@ the partitioned set :math:`C_{\rightarrow}^{\textrm{MIP}}`, the total
 calculation time, the calculation time for just the unpartitioned cause-effect
 structure, a reference to the subsystem that was analyzed, and a reference to
 the subsystem with the minimal unidirectional cut applied. For details see the
-documentation for |BigMip| or use ``help(big_mip)``.
+documentation for |SystemIrreducibilityAnalysis| or use ``help(big_mip)``.
 
 We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
 shown in the figure:
@@ -597,7 +597,7 @@ Figure 14
     >>> state = (1, 0, 0, 0, 1, 0)
 
 To find the subsystem within a network that is the main complex, we use the
-function of that name, which returns a |BigMip| object:
+function of that name, which returns a |SystemIrreducibilityAnalysis| object:
 
     >>> major_complex = pyphi.compute.major_complex(network, state)
 

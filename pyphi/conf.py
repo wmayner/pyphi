@@ -388,7 +388,7 @@ class PyphiConfig(Config):
 
     PARALLEL_CUT_EVALUATION = Option(True, doc="""
     Controls whether system cuts are evaluated in parallel, which is faster but
-    requires more memory. If cuts are evaluated sequentially, only two |BigMip|
+    requires more memory. If cuts are evaluated sequentially, only two |SystemIrreducibilityAnalysis|
     instances need to be in memory at once.""")
 
     PARALLEL_COMPLEX_EVALUATION = Option(False, doc="""
@@ -407,7 +407,7 @@ class PyphiConfig(Config):
     system's RAM that the caches can collectively use.""")
 
     CACHE_BIGMIPS = Option(False, doc="""
-    PyPhi is equipped with a transparent caching system for |BigMip| objects which
+    PyPhi is equipped with a transparent caching system for |SystemIrreducibilityAnalysis| objects which
     stores them as they are computed to avoid having to recompute them later. This
     makes it easy to play around interactively with the program, or to accumulate
     results with minimal effort. For larger projects, however, it is recommended
@@ -580,7 +580,7 @@ class PyphiConfig(Config):
 
     USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE = Option(False, doc="""
     If set to ``True``, the distance between cause-effect structures (when
-    computing a |BigMip|) is calculated using the difference between the sum of
+    computing a |SystemIrreducibilityAnalysis|) is calculated using the difference between the sum of
     |small_phi| in the cause-effect structures instead of the extended EMD.""")
 
     SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'],

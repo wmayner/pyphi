@@ -69,13 +69,13 @@ def _loadable_models():
         pyphi.models.Mice,
         pyphi.models.Concept,
         pyphi.models.CauseEffectStructure,
-        pyphi.models.BigMip,
+        pyphi.models.SystemIrreducibilityAnalysis,
         pyphi.Transition,
         pyphi.models.ActualCut,
         pyphi.models.AcMip,
         pyphi.models.CausalLink,
         pyphi.models.Account,
-        pyphi.models.AcBigMip
+        pyphi.models.AcSystemIrreducibilityAnalysis
     ]
     return {cls.__name__: cls for cls in classes}
 
