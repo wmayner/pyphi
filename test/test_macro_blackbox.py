@@ -225,11 +225,11 @@ def test_soup():
 
     # State all OFF
     state = (0, 0, 0, 0, 0, 0)
-    assert compute.main_complex(network, state).phi == 0.125
+    assert compute.major_complex(network, state).phi == 0.125
 
     # With D ON (E must also be ON otherwise the state is unreachable)
     state = (0, 0, 0, 1, 1, 0)
-    assert compute.main_complex(network, state).phi == 0.215278
+    assert compute.major_complex(network, state).phi == 0.215278
 
     # Once the connection from D to B is frozen (with D in the ON state), we
     # recover the degeneracy example
@@ -292,7 +292,7 @@ def test_coarsegrain_spatial_degenerate():
 
     net = Network(tpm, cm)
 
-    mc = compute.main_complex(net, state)
+    mc = compute.major_complex(net, state)
     assert mc.phi == 0.194445
 
     partition = ((0, 1), (2, 3), (4, 5))

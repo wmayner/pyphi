@@ -909,7 +909,7 @@ def emergence(network, state, blackbox=False, coarse_grain=True,
         MacroNetwork: The maximal macro-system generated from the
         micro-system.
     '''
-    micro_phi = compute.main_complex(network, state).phi
+    micro_phi = compute.major_complex(network, state).phi
 
     max_phi = float('-inf')
     max_network = None

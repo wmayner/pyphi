@@ -18,13 +18,13 @@ Attributes:
     complexes: Alias for :func:`big_phi.complexes`.
     condensed: Alias for :func:`big_phi.condensed`.
     evaluate_cut: Alias for :func:`big_phi.evaluate_cut`.
-    main_complex: Alias for :func:`big_phi.main_complex`.
+    major_complex: Alias for :func:`big_phi.major_complex`.
     possible_complexes: Alias for :func:`big_phi.possible_complexes`.
     subsystems: Alias for :func:`big_phi.subsystems`.
 '''
 
 from .big_phi import (all_complexes, big_mip, big_phi, complexes, condensed,
-                      evaluate_cut, main_complex, possible_complexes,
+                      evaluate_cut, major_complex, possible_complexes,
                       subsystems, ConceptStyleSystem, big_mip_concept_style,
                       concept_cuts, BigMipConceptStyle)
 from .concept import concept, conceptual_information, ces

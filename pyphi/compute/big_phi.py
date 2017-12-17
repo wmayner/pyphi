@@ -320,7 +320,7 @@ def complexes(network, state):
     return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
 
 
-def main_complex(network, state):
+def major_complex(network, state):
     '''Return the main complex of the network.'''
     log.info('Calculating main complex...')
 

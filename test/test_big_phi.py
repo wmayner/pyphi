@@ -540,12 +540,12 @@ def test_rule152_complexes_no_caching(rule152):
         assert all(utils.eq(bigmip.phi, result['subsystem_phis'][perm[i]])
                    for i, bigmip in list(enumerate(complexes))[:])
         # Check the main complex in particular.
-        main = compute.main_complex(net)
+        main = compute.major_complex(net)
         # Check the phi value of the main complex.
         assert utils.eq(main.phi, result['phi'])
         # Check that the nodes are the same.
         assert (main.subsystem.node_indices ==
-                complexes[result['main_complex'] - 1].subsystem.node_indices)
+                complexes[result['major_complex'] - 1].subsystem.node_indices)
         # Check that the concept's phi values are the same.
         result_concepts = [c for c in result['concepts']
                            if c['is_irreducible']]

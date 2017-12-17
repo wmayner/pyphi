@@ -728,7 +728,7 @@ def true_ces(subsystem, past_state, future_state):
 
 
 def true_events(network, past_state, current_state, future_state, indices=None,
-                main_complex=None):
+                major_complex=None):
     '''Return all mechanisms that have true causes and true effects within the
     complex.
 
@@ -740,7 +740,7 @@ def true_events(network, past_state, current_state, future_state, indices=None,
 
     Keyword Args:
         indices (tuple[int]): The indices of the main complex.
-        main_complex (AcBigMip): The main complex. If ``main_complex`` is given
+        major_complex (AcBigMip): The main complex. If ``major_complex`` is given
             then ``indices`` is ignored.
 
     Returns:
@@ -748,19 +748,19 @@ def true_events(network, past_state, current_state, future_state, indices=None,
     '''
     # TODO: validate triplet of states
 
-    if main_complex:
-        nodes = main_complex.subsystem.node_indices
+    if major_complex:
+        nodes = major_complex.subsystem.node_indices
     elif indices:
         nodes = indices
     else:
-        main_complex = compute.main_complex(network, current_state)
-        nodes = main_complex.subsystem.node_indices
+        major_complex = compute.major_complex(network, current_state)
+        nodes = major_complex.subsystem.node_indices
 
     return events(network, past_state, current_state, future_state, nodes)
 
 
 def extrinsic_events(network, past_state, current_state, future_state,
-                     indices=None, main_complex=None):
+                     indices=None, major_complex=None):
     '''Set of all mechanisms that are in the main complex but which have true
     causes and effects within the entire network.
 
@@ -772,19 +772,19 @@ def extrinsic_events(network, past_state, current_state, future_state,
 
     Keyword Args:
         indices (tuple[int]): The indices of the main complex.
-        main_complex (AcBigMip): The main complex. If ``main_complex`` is given
+        major_complex (AcBigMip): The main complex. If ``major_complex`` is given
             then ``indices`` is ignored.
 
     Returns:
         tuple(actions): List of extrinsic events in the main complex.
     '''
-    if main_complex:
-        mc_nodes = main_complex.subsystem.node_indices
+    if major_complex:
+        mc_nodes = major_complex.subsystem.node_indices
     elif indices:
         mc_nodes = indices
     else:
-        main_complex = compute.main_complex(network, current_state)
-        mc_nodes = main_complex.subsystem.node_indices
+        major_complex = compute.major_complex(network, current_state)
+        mc_nodes = major_complex.subsystem.node_indices
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
     all_nodes = network.node_indices

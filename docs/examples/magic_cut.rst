@@ -24,10 +24,10 @@ Since the emergence value is negative, there is no macro scale which has
 greater integrated information than the original micro scale. We can now
 analyze the micro scale to determine the main complex of the system:
 
-    >>> main_complex = pyphi.compute.main_complex(network, state)
-    >>> main_complex.subsystem
+    >>> major_complex = pyphi.compute.major_complex(network, state)
+    >>> major_complex.subsystem
     Subsystem(A, B, C)
-    >>> print(main_complex.phi)
+    >>> print(major_complex.phi)
     1.35708
 
 The main complex of the system contains all three nodes of the system, and it
@@ -35,7 +35,7 @@ has integrated information :math:`\Phi = 1.35708`. Now that we have identified
 the main complex of the system, we can explore its conceptual structure and the
 effect of the MIP.
 
-    >>> ces = main_complex.unpartitioned_ces
+    >>> ces = major_complex.unpartitioned_ces
 
 There two equivalent cuts for this system; for concreteness we sever all
 connections from elements |A| and |B| to |C|.
@@ -73,7 +73,7 @@ Let's explore the concept which was created to determine why it does not exist
 in the unpartitioned cause-effect structure and what changed in the partitioned
 cause-effect structure.
 
-    >>> subsystem = main_complex.subsystem
+    >>> subsystem = major_complex.subsystem
     >>> ABC = subsystem.node_indices
     >>> subsystem.cause_info(ABC, ABC)
     0.749999

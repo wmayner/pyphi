@@ -28,8 +28,8 @@ We'll set the state so that nodes are off.
 At the “micro” spatial scale, we can compute the main complex, and determine
 the |big_phi| value:
 
-    >>> main_complex = pyphi.compute.main_complex(network, state)
-    >>> main_complex.phi
+    >>> major_complex = pyphi.compute.major_complex(network, state)
+    >>> major_complex.phi
     0.113889
 
 The question is whether there are other spatial scales which have greater

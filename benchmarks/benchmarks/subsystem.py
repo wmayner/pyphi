@@ -127,7 +127,7 @@ class BenchmarkEmdApproximation:
         config.PARALLEL_CUT_EVALUATION = False
 
     def time_L1_approximation(self, distance):
-        compute.main_complex(self.network, self.state)
+        compute.major_complex(self.network, self.state)
 
     def teardown(self, distance):
         config.__dict__.update(self.default_config)

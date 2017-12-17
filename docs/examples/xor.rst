@@ -17,22 +17,22 @@ According to IIT, existence is a holistic notion; the whole is more important
 than its parts. The first step is to confirm the existence of the whole, by
 finding the main complex of the network:
 
-    >>> main_complex = pyphi.compute.main_complex(network, state)
+    >>> major_complex = pyphi.compute.major_complex(network, state)
 
 The main complex exists (|big_phi > 0|),
 
-    >>> main_complex.phi
+    >>> major_complex.phi
     1.874999
 
 and it consists of the entire network:
 
-    >>> main_complex.subsystem
+    >>> major_complex.subsystem
     Subsystem(A, B, C)
 
 Knowing what exists at the system level, we can now investigate the existence
 of concepts within the complex.
 
-    >>> ces = main_complex.unpartitioned_ces
+    >>> ces = major_complex.unpartitioned_ces
     >>> len(ces)
     3
     >>> ces.labeled_mechanisms

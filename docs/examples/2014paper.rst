@@ -599,11 +599,11 @@ Figure 14
 To find the subsystem within a network that is the main complex, we use the
 function of that name, which returns a |BigMip| object:
 
-    >>> main_complex = pyphi.compute.main_complex(network, state)
+    >>> major_complex = pyphi.compute.major_complex(network, state)
 
 And we see that the nodes in the complex are indeed |A|, |B|, and |C|:
 
-    >>> main_complex.subsystem.nodes
+    >>> major_complex.subsystem.nodes
     (A, B, C)
 
 
