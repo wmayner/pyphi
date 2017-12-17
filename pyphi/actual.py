@@ -19,7 +19,7 @@ import pyphi
 
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
-from .models import (AcSystemIrreducibilityAnalysis, Account, AcMip, ActualCut,
+from .models import (Account, AcMip, AcSystemIrreducibilityAnalysis, ActualCut,
                      CausalLink, DirectedAccount, Event, NullCut,
                      _null_ac_bigmip, _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions

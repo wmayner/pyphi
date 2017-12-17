@@ -8,9 +8,10 @@ Functions for computing integrated information and finding complexes.
 import functools
 import logging
 from time import time
+
 from .. import (Direction, config, connectivity, exceptions, memory, utils,
                 validate)
-from ..models import (SystemIrreducibilityAnalysis, Concept, Cut, KCut,
+from ..models import (Concept, Cut, KCut, SystemIrreducibilityAnalysis,
                       _null_bigmip, cmp, fmt)
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem, mip_partitions

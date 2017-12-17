@@ -5,9 +5,9 @@
 import numpy as np
 import pytest
 
+from pyphi import Direction
 from pyphi.compute import sia
 from pyphi.constants import EPSILON
-from pyphi import Direction
 
 CD = (2, 3)
 BCD = (1, 2, 3)
