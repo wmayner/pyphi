@@ -47,7 +47,8 @@ its documentation for details.
 Configuration (optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are several package-level options that control aspects of the computation.
+There are several package-level options that control aspects of the
+computation.
 
 These are loaded from a YAML configuration file, ``pyphi_config.yml``. **This
 file must be in the directory where PyPhi is run**. If there is no such file,

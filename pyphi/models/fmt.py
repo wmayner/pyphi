@@ -303,8 +303,10 @@ def fmt_concept(concept):
             return ''
         return box(indent(fmt_mip(x.mip, verbose=False), amount=1))
 
-    cause = header('Maximally-irreducible cause', fmt_cause_or_effect(concept.cause))
-    effect = header('Maximally-irreducible effect', fmt_cause_or_effect(concept.effect))
+    cause = header('Maximally-irreducible cause',
+                   fmt_cause_or_effect(concept.cause))
+    effect = header('Maximally-irreducible effect',
+                    fmt_cause_or_effect(concept.effect))
     ce = side_by_side(cause, effect)
 
     mechanism = fmt_mechanism(concept.mechanism, concept.subsystem)
@@ -503,7 +505,9 @@ def fmt_ac_sia(ac_sia):
             partitioned_account=fmt_account(
                 ac_sia.partitioned_account, 'Partitioned Account')))
 
-    return box(header('AcSystemIrreducibilityAnalysis', body, under_char=HORIZONTAL_BAR))
+    return box(header('AcSystemIrreducibilityAnalysis',
+                      body,
+                      under_char=HORIZONTAL_BAR))
 
 
 def fmt_transition(t):

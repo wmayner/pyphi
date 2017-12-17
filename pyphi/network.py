@@ -71,8 +71,8 @@ class Network:
 
     @property
     def tpm(self):
-        '''np.ndarray: The network's transition probability matrix, in n-dimensional
-        form.'''
+        '''np.ndarray: The network's transition probability matrix, in
+        n-dimensional form.'''
         return self._tpm
 
     @staticmethod

@@ -89,7 +89,8 @@ def background_all_off():
     (background_all_off, Direction.CAUSE, (1,), (0,), 1),
     (background_all_on, Direction.EFFECT, (0,), (1,), 0),
     (background_all_on, Direction.CAUSE, (1,), (0,), 0)])
-def test_background_conditions(transition, direction, mechanism, purview, ratio):
+def test_background_conditions(transition, direction, mechanism, purview,
+                               ratio):
     assert transition()._ratio(direction, mechanism, purview) == ratio
 
 
@@ -139,8 +140,8 @@ def background_3_node():
 def test_background_3_node(before_state, purview, alpha, background_3_node):
     '''Looking at transition (AB = 11) -> (AC = 11)'''
     after_state = (1, 1, 1)
-    transition = actual.Transition(background_3_node, before_state, after_state,
-                                   (0, 1), (0, 2))
+    transition = actual.Transition(background_3_node, before_state,
+                                   after_state, (0, 1), (0, 2))
     causal_link = transition.find_causal_link(Direction.EFFECT, (0, 1))
     assert causal_link.purview == purview
     assert causal_link.alpha == alpha
@@ -262,8 +263,10 @@ def ac_bigmip(**kwargs):
 def test_acmip_ordering():
     assert acmip() == acmip()
     assert acmip(alpha=0.0) < acmip(alpha=1.0)
-    assert acmip(alpha=0.0, mechanism=(1, 2)) <= acmip(alpha=1.0, mechanism=(1,))
-    assert acmip(alpha=0.0, mechanism=(1, 2)) > acmip(alpha=0.0, mechanism=(1,))
+    assert (acmip(alpha=0.0, mechanism=(1, 2)) <=
+            acmip(alpha=1.0, mechanism=(1,)))
+    assert (acmip(alpha=0.0, mechanism=(1, 2)) >
+            acmip(alpha=0.0, mechanism=(1,)))
 
     assert bool(acmip(alpha=1.0)) is True
     assert bool(acmip(alpha=0.0)) is False
@@ -288,11 +291,14 @@ def test_causal_link_ordering():
     assert causal_link() == causal_link()
 
     assert causal_link(alpha=0.0) < causal_link(alpha=1.0)
-    assert causal_link(alpha=0.0, mechanism=(1, 2)) <= causal_link(alpha=1.0, mechanism=(1,))
-    assert causal_link(alpha=0.0, mechanism=(1, 2)) > causal_link(alpha=0.0, mechanism=(1,))
+    assert (causal_link(alpha=0.0, mechanism=(1, 2)) <=
+            causal_link(alpha=1.0, mechanism=(1,)))
+    assert (causal_link(alpha=0.0, mechanism=(1, 2)) >
+            causal_link(alpha=0.0, mechanism=(1,)))
 
     with pytest.raises(TypeError):
-        causal_link(direction=Direction.CAUSE) < causal_link(direction=Direction.EFFECT)
+        (causal_link(direction=Direction.CAUSE) <
+         causal_link(direction=Direction.EFFECT))
 
     assert bool(causal_link(alpha=1.0)) is True
     assert bool(causal_link(alpha=0.0)) is False
@@ -332,7 +338,8 @@ def test_ac_sia_ordering(transition, empty_transition):
 @pytest.mark.parametrize('direction,mechanism,purview,repertoire', [
     (Direction.CAUSE, (0,), (1,), [[[0.3333333], [0.66666667]]]),
     (Direction.CAUSE, (0,), (2,), [[[0.3333333, 0.66666667]]]),
-    (Direction.CAUSE, (0,), (1, 2), [[[0, 0.3333333], [0.3333333, 0.3333333]]]),
+    (Direction.CAUSE, (0,), (1, 2), [[[0, 0.3333333],
+                                      [0.3333333, 0.3333333]]]),
     (Direction.EFFECT, (1,), (0,), [[[0]], [[1]]]),
     (Direction.EFFECT, (2,), (0,), [[[0]], [[1]]]),
     (Direction.EFFECT, (1, 2), (0,), [[[0]], [[1]]]),
@@ -472,15 +479,22 @@ def ac_cut(direction, *parts):
 @config.override(PARTITION_TYPE='TRI')
 @pytest.mark.parametrize('direction,answer', [
     (Direction.BIDIRECTIONAL, [
-        ac_cut(Direction.CAUSE, Part((), ()), Part((), (1, 2)), Part((0,), ())),
-        ac_cut(Direction.EFFECT, Part((), ()), Part((1,), (0,)), Part((2,), ())),
-        ac_cut(Direction.EFFECT, Part((), ()), Part((1,), ()), Part((2,), (0,)))]),
+        ac_cut(Direction.CAUSE,
+               Part((), ()), Part((), (1, 2)), Part((0,), ())),
+        ac_cut(Direction.EFFECT,
+               Part((), ()), Part((1,), (0,)), Part((2,), ())),
+        ac_cut(Direction.EFFECT,
+               Part((), ()), Part((1,), ()), Part((2,), (0,)))]),
     (Direction.CAUSE, [
-        ac_cut(Direction.CAUSE, Part((), ()), Part((), (1, 2)), Part((0,), ()))]),
+        ac_cut(Direction.CAUSE,
+               Part((), ()), Part((), (1, 2)), Part((0,), ()))]),
     (Direction.EFFECT, [
-        ac_cut(Direction.EFFECT, Part((), ()), Part((), (0,)), Part((1, 2), ())),
-        ac_cut(Direction.EFFECT, Part((), ()), Part((1,), (0,)), Part((2,), ())),
-        ac_cut(Direction.EFFECT, Part((), ()), Part((1,), ()), Part((2,), (0,)))])])
+        ac_cut(Direction.EFFECT,
+               Part((), ()), Part((), (0,)), Part((1, 2), ())),
+        ac_cut(Direction.EFFECT,
+               Part((), ()), Part((1,), (0,)), Part((2,), ())),
+        ac_cut(Direction.EFFECT,
+               Part((), ()), Part((1,), ()), Part((2,), (0,)))])])
 def test_get_actual_cuts(direction, answer, transition):
     cuts = list(actual._get_cuts(transition, direction))
     print(cuts, answer)
@@ -490,7 +504,8 @@ def test_get_actual_cuts(direction, answer, transition):
 def test_big_acmip(transition):
     bigmip = actual.big_acmip(transition)
     assert bigmip.alpha == 0.415037
-    assert bigmip.cut == ac_cut(Direction.CAUSE, Part((), (1,)), Part((0,), (2,)))
+    assert bigmip.cut == ac_cut(Direction.CAUSE,
+                                Part((), (1,)), Part((0,), (2,)))
     assert len(bigmip.unpartitioned_account) == 3
     assert len(bigmip.partitioned_account) == 2
 

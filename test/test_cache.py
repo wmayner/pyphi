@@ -74,12 +74,14 @@ require_redis = pytest.mark.skipif(not redis_available,
 # Decorator to force a test to use the local cache
 local_cache = config.override(REDIS_CACHE=False)
 
-# Decorator to force a test to use Redis cache; skip test if Redis is not available
+# Decorator to force a test to use Redis cache; skip test if Redis is not
+# available
 redis_cache = lambda f: config.override(REDIS_CACHE=True)(require_redis(f))
 
 
 def all_caches(test_func):
-    '''Decorator to run a test twice: once with the local cache and once with Redis.
+    '''Decorator to run a test twice: once with the local cache and once with
+    Redis.
 
     Any decorated test must add a `redis_cache` argument.
     '''
@@ -193,7 +195,8 @@ def test_split_mechanism_mice_is_not_reusable(redis_cache, flush_redis):
 
 
 @all_caches
-def test_cut_relevant_connections_mice_is_not_reusable(redis_cache, flush_redis):
+def test_cut_relevant_connections_mice_is_not_reusable(redis_cache,
+                                                       flush_redis):
     '''If relevant connections are cut, cached mice are not usable
     when a cache is built from a parent cache.'''
     s = examples.basic_subsystem()
@@ -229,7 +232,8 @@ def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, flush_redis):
 
 
 @all_caches
-def test_inherited_cache_must_come_from_uncut_subsystem(redis_cache, flush_redis):
+def test_inherited_cache_must_come_from_uncut_subsystem(redis_cache,
+                                                        flush_redis):
     s = examples.basic_subsystem()
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=models.Cut((0, 2), (1,)))

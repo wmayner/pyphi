@@ -347,7 +347,8 @@ class MacroSubsystem(Subsystem):
     def potential_purviews(self, direction, mechanism, purviews=False):
         '''Override Subsystem implementation using Network-level indices.'''
         all_purviews = utils.powerset(self.node_indices)
-        return irreducible_purviews(self.cm, direction, mechanism, all_purviews)
+        return irreducible_purviews(
+            self.cm, direction, mechanism, all_purviews)
 
     def macro2micro(self, macro_indices):
         '''Returns all micro indices which compose the elements specified by

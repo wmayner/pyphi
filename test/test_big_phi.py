@@ -326,15 +326,21 @@ def test_sia_empty_subsystem(s_empty, flushcache, restore_fs_cache):
 def test_sia_disconnected_network(reducible, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.sia(reducible) ==
-            models.SystemIrreducibilityAnalysis(subsystem=reducible, cut_subsystem=reducible,
-                          phi=0.0, unpartitioned_ces=[], partitioned_ces=[]))
+            models.SystemIrreducibilityAnalysis(subsystem=reducible,
+                                                cut_subsystem=reducible,
+                                                phi=0.0,
+                                                unpartitioned_ces=[],
+                                                partitioned_ces=[]))
 
 
 def test_sia_wrappers(reducible, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.sia(reducible) ==
-            models.SystemIrreducibilityAnalysis(subsystem=reducible, cut_subsystem=reducible,
-                          phi=0.0, unpartitioned_ces=[], partitioned_ces=[]))
+            models.SystemIrreducibilityAnalysis(subsystem=reducible,
+                                                cut_subsystem=reducible,
+                                                phi=0.0,
+                                                unpartitioned_ces=[],
+                                                partitioned_ces=[]))
     assert compute.big_phi(reducible) == 0.0
 
 

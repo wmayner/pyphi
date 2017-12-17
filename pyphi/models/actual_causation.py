@@ -196,7 +196,8 @@ class Account(tuple):
     @property
     def irreducible_causes(self):
         '''The set of irreducible causes in this |Account|.'''
-        return tuple(link for link in self if link.direction is Direction.CAUSE)
+        return tuple(link for link in self
+                     if link.direction is Direction.CAUSE)
 
     @property
     def irreducible_effects(self):
@@ -282,7 +283,9 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         return cmp.general_eq(self, other, _acbigmip_attributes)
 
     def __bool__(self):
-        '''An |AcSystemIrreducibilityAnalysis| is ``True`` if it has |big_alpha > 0|.'''
+        '''An |AcSystemIrreducibilityAnalysis| is ``True`` if it has
+        |big_alpha > 0|.
+        '''
         return greater_than_zero(self.alpha)
 
     def __hash__(self):
@@ -295,7 +298,9 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
 
 
 def _null_ac_bigmip(transition, direction, alpha=0.0):
-    '''Returns an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and empty accounts.'''
+    '''Returns an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and
+    empty accounts.
+    '''
     return AcSystemIrreducibilityAnalysis(transition=transition,
                     direction=direction,
                     alpha=alpha,

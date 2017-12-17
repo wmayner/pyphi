@@ -190,7 +190,10 @@ class MapReduce:
         self.out_queue = multiprocessing.Queue()
         self.log_queue = multiprocessing.Queue()
 
-        args = (self.compute, self.in_queue, self.out_queue, self.log_queue) + self.context
+        args = (
+            (self.compute, self.in_queue, self.out_queue, self.log_queue) +
+            self.context
+        )
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
             for i in range(self.num_processes)]

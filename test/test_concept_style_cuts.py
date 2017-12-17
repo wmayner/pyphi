@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 from pyphi import Direction, compute, config
-from pyphi.compute import SystemIrreducibilityAnalysisConceptStyle, ConceptStyleSystem, concept_cuts
+from pyphi.compute import (SystemIrreducibilityAnalysisConceptStyle,
+                           ConceptStyleSystem, concept_cuts)
 from pyphi.models import KCut, KPartition, Part
 from test_models import bigmip
 

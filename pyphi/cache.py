@@ -209,7 +209,8 @@ class DictCache:
         return (_prefix,) + tuple(args)
 
 
-# TODO: confirm that a global connection/pool makes sense, esp for multiprocesssing
+# TODO: confirm that a global connection/pool makes sense, esp for
+# multiprocesssing
 # TODO: maybe just expose the connction `if REDIS_CACHE`, instead of with this
 # singleton business
 class RedisConn:
@@ -303,9 +304,9 @@ class RedisMiceCache(RedisCache):
 
         if parent_cache is not None:
             validate_parent_cache(parent_cache)
-            # Store the hash of the parent subsystem. We don't want to store the
-            # parent subsystem explicitly so that it does not need to be passed
-            # between processes.
+            # Store the hash of the parent subsystem. We don't want to store
+            # the parent subsystem explicitly so that it does not need to be
+            # passed between processes.
             self.parent_subsystem_hash = parent_cache.subsystem_hash
         else:
             self.parent_subsystem_hash = None

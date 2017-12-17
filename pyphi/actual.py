@@ -19,8 +19,8 @@ import pyphi
 
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
-from .models import (AcSystemIrreducibilityAnalysis, Account, AcMip, ActualCut, CausalLink,
-                     DirectedAccount, Event, NullCut,
+from .models import (AcSystemIrreducibilityAnalysis, Account, AcMip, ActualCut,
+                     CausalLink, DirectedAccount, Event, NullCut,
                      _null_ac_bigmip, _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions
 
@@ -148,8 +148,9 @@ class Transition:
                 and self.cut == other.cut)
 
     def __hash__(self):
-        return hash((self.cause_indices, self.effect_indices, self.before_state,
-                     self.after_state, self.network, self.cut))
+        return hash((self.cause_indices, self.effect_indices,
+                     self.before_state, self.after_state, self.network,
+                     self.cut))
 
     def __len__(self):
         return len(self.node_indices)
@@ -369,7 +370,8 @@ class Transition:
     # @cache.method('_mice_cache')
     def find_causal_link(self, direction, mechanism, purviews=False,
                          allow_neg=False):
-        '''Return the maximally irreducible cause or effect ratio for a mechanism.
+        '''Return the maximally irreducible cause or effect ratio for a
+        mechanism.
 
         Args:
             direction (str): The temporal direction, specifying cause or
@@ -414,9 +416,9 @@ class Transition:
         return self.find_causal_link(*args, **kwargs)
 
 
-# ============================================================================
+# =============================================================================
 # Accounts
-# ============================================================================
+# =============================================================================
 
 
 def directed_account(transition, direction, mechanisms=False, purviews=False,
@@ -451,9 +453,9 @@ def account(transition, direction=Direction.BIDIRECTIONAL):
                    directed_account(transition, Direction.EFFECT))
 
 
-# ============================================================================
+# =============================================================================
 # AcSystemIrreducibilityAnalysiss and System cuts
-# ============================================================================
+# =============================================================================
 
 
 def account_distance(A1, A2):
@@ -518,9 +520,9 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
         transition (Transition): The candidate system.
 
     Returns:
-        AcSystemIrreducibilityAnalysis: A nested structure containing all the data from the
-        intermediate calculations. The top level contains the basic MIP
-        information for the given subsystem.
+        AcSystemIrreducibilityAnalysis: A nested structure containing all the
+        data from the intermediate calculations. The top level contains the
+        basic MIP information for the given subsystem.
     '''
     validate.direction(direction, allow_bi=True)
     log.info("Calculating big-alpha for %s...", transition)
@@ -530,7 +532,8 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
                  'immediately.', transition)
         return _null_ac_bigmip(transition, direction)
 
-    if not connectivity.is_weak(transition.network.cm, transition.node_indices):
+    if not connectivity.is_weak(transition.network.cm,
+                                transition.node_indices):
         log.info('%s is not strongly/weakly connected; returning null MIP '
                  'immediately.', transition)
         return _null_ac_bigmip(transition, direction)
@@ -576,9 +579,9 @@ class FindBigAcMip(compute.parallel.MapReduce):
         return min_mip
 
 
-# ============================================================================
+# =============================================================================
 # Complexes
-# ============================================================================
+# =============================================================================
 
 
 # TODO: Fix this to test whether the transition is possible
@@ -621,16 +624,17 @@ def causal_nexus(network, before_state, after_state,
     if result:
         result = max(result)
     else:
-        null_transition = Transition(network, before_state, after_state, (), ())
+        null_transition = Transition(
+            network, before_state, after_state, (), ())
         result = _null_ac_bigmip(null_transition, direction)
 
     log.info("Finished calculating causal nexus.")
     log.debug("RESULT: \n%s", result)
     return result
 
-# ============================================================================
+# =============================================================================
 # True Causes
-# ============================================================================
+# =============================================================================
 
 
 # TODO: move this to __str__
@@ -668,7 +672,8 @@ def _actual_effects(network, current_state, future_state, nodes,
     log.info("Calculating true effects ...")
     transition = Transition(network, current_state, future_state, nodes, nodes)
 
-    return directed_account(transition, Direction.EFFECT, mechanisms=mechanisms)
+    return directed_account(
+        transition, Direction.EFFECT, mechanisms=mechanisms)
 
 
 def events(network, past_state, current_state, future_state, nodes,
@@ -740,8 +745,8 @@ def true_events(network, past_state, current_state, future_state, indices=None,
 
     Keyword Args:
         indices (tuple[int]): The indices of the main complex.
-        major_complex (AcSystemIrreducibilityAnalysis): The main complex. If ``major_complex`` is given
-            then ``indices`` is ignored.
+        major_complex (AcSystemIrreducibilityAnalysis): The main complex. If
+            ``major_complex`` is given then ``indices`` is ignored.
 
     Returns:
         tuple[Event]: List of true events in the main complex.
@@ -772,8 +777,8 @@ def extrinsic_events(network, past_state, current_state, future_state,
 
     Keyword Args:
         indices (tuple[int]): The indices of the main complex.
-        major_complex (AcSystemIrreducibilityAnalysis): The main complex. If ``major_complex`` is given
-            then ``indices`` is ignored.
+        major_complex (AcSystemIrreducibilityAnalysis): The main complex. If
+            ``major_complex`` is given then ``indices`` is ignored.
 
     Returns:
         tuple(actions): List of extrinsic events in the main complex.

@@ -87,40 +87,40 @@ scenarios = [
             # breaking ties
             (Part(mechanism=(2,), purview=()),
              Part(mechanism=(0, 1), purview=(0, 1, 2))):
-                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
+                    2,2,2, order="F"),
             (Part(mechanism=(), purview=(0,)),
              Part(mechanism=(0, 1, 2), purview=(1, 2))):
-                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
+                    2,2,2, order="F"),
             (Part(mechanism=(2,), purview=(0,)),
              Part(mechanism=(0, 1), purview=(1, 2))):
-                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
+                    2,2,2, order="F"),
             (Part(mechanism=(0,), purview=()),
              Part(mechanism=(1, 2), purview=(0, 1, 2))):
-                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
+                    2,2,2, order="F"),
             (Part(mechanism=(), purview=(1,)),
              Part(mechanism=(0, 1, 2), purview=(0, 2))):
-                np.array([0., 0., 0., 0., 0.5, 0., 0.5, 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0., 0., 0.5, 0., 0.5, 0.]).reshape(
+                    2,2,2, order="F"),
             (Part(mechanism=(2,), purview=(1,)),
              Part(mechanism=(0, 1), purview=(0, 2))):
-                np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(
+                    2,2,2, order="F"),
             (Part(mechanism=(), purview=(2,)),
              Part(mechanism=(0, 1, 2), purview=(0, 1))):
-                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
+                    2,2,2, order="F"),
             (Part(mechanism=(0,), purview=(2,)),
              Part(mechanism=(1, 2), purview=(0, 1))):
-                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
+                    2,2,2, order="F"),
             (Part(mechanism=(2,), purview=(0, 1)),
              Part(mechanism=(0, 1), purview=(2,))):
-                np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(
+                    2,2,2, order="F"),
          },
          'unpartitioned_repertoire':
             np.array([0., 1., 0., 0., 0., 0., 0., 0.]).reshape(2, 2, 2),
@@ -210,9 +210,9 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
 
     # IMPORTANT: Since several different ways of partitioning the system can
     # yield the same phi value, the partition used in finding the MIP is not
-    # unique. Thus, ``expected['partitions']`` is a dictionary that maps all the
-    # ways of partitioning the system that yeild the minimal phi value to their
-    # expected partitioned repertoires.
+    # unique. Thus, ``expected['partitions']`` is a dictionary that maps all
+    # the ways of partitioning the system that yeild the minimal phi value to
+    # their expected partitioned repertoires.
 
     if expected:
         # Construct expected list of possible MIPs

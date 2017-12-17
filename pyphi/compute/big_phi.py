@@ -10,7 +10,8 @@ import logging
 from time import time
 from .. import (Direction, config, connectivity, exceptions, memory, utils,
                 validate)
-from ..models import SystemIrreducibilityAnalysis, Concept, Cut, KCut, _null_bigmip, cmp, fmt
+from ..models import (SystemIrreducibilityAnalysis, Concept, Cut, KCut,
+                      _null_bigmip, cmp, fmt)
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem, mip_partitions
 from .concept import ces
@@ -31,7 +32,8 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
             the uncut subsystem.
 
     Returns:
-        SystemIrreducibilityAnalysis: The |SystemIrreducibilityAnalysis| for that cut.
+        SystemIrreducibilityAnalysis: The |SystemIrreducibilityAnalysis| for
+        that cut.
     '''
     log.debug('Evaluating %s...', cut)
 
@@ -62,7 +64,9 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
 
 
 class FindMip(MapReduce):
-    '''Computation engine for finding the minimal |SystemIrreducibilityAnalysis|.'''
+    '''Computation engine for finding the minimal
+    |SystemIrreducibilityAnalysis|.
+    '''
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
@@ -125,15 +129,16 @@ def _sia(cache_key, subsystem):
         subsystem (Subsystem): The candidate set of nodes.
 
     Returns:
-        SystemIrreducibilityAnalysis: A nested structure containing all the data from the
-        intermediate calculations. The top level contains the basic MIP
-        information for the given subsystem.
+        SystemIrreducibilityAnalysis: A nested structure containing all the
+        data from the intermediate calculations. The top level contains the
+        basic MIP information for the given subsystem.
     '''
     log.info('Calculating big-phi data for %s...', subsystem)
     start = time()
 
     def time_annotated(bm, small_phi_time=0.0):
-        '''Annote a SystemIrreducibilityAnalysis with the total elapsed calculation time.
+        '''Annote a |SystemIrreducibilityAnalysis| with the total elapsed
+        calculation time.
 
         Optionally add the time taken to calculate the unpartitioned
         |CauseEffectStructure|.
@@ -165,13 +170,13 @@ def _sia(cache_key, subsystem):
     if len(subsystem.cut_indices) == 1:
         # If the node lacks a self-loop, phi is trivially zero.
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
-            log.info('Single micro nodes %s without selfloops cannot have phi; '
-                     'returning null MIP immediately.', subsystem)
+            log.info('Single micro nodes %s without selfloops cannot have '
+                     'phi; returning null MIP immediately.', subsystem)
             return time_annotated(_null_bigmip(subsystem))
         # Even if the node has a self-loop, we may still define phi to be zero.
         elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
-            log.info('Single micro nodes %s with selfloops cannot have phi; '
-                     'returning null MIP immediately.', subsystem)
+            log.info('Single micro nodes %s with selfloops cannot have '
+                     'phi; returning null MIP immediately.', subsystem)
             return time_annotated(_null_bigmip(subsystem))
     # =========================================================================
 
@@ -181,8 +186,8 @@ def _sia(cache_key, subsystem):
     small_phi_time = round(time() - small_phi_start, config.PRECISION)
 
     if not unpartitioned_ces:
-        log.info('Empty unpartitioned CauseEffectStructure; returning null MIP '
-                 'immediately.')
+        log.info('Empty unpartitioned CauseEffectStructure; returning null '
+                 'MIP immediately.')
         # Short-circuit if there are no concepts in the unpartitioned CES.
         return time_annotated(_null_bigmip(subsystem))
 
@@ -412,7 +417,8 @@ def concept_cuts(direction, node_indices):
 
 
 def directional_sia(subsystem, direction, unpartitioned_ces=None):
-    """Calculate a concept-style SystemIrreducibilityAnalysisPast or SystemIrreducibilityAnalysisFuture."""
+    """Calculate a concept-style SystemIrreducibilityAnalysisPast or
+    SystemIrreducibilityAnalysisFuture."""
     if unpartitioned_ces is None:
         unpartitioned_ces = _unpartitioned_ces(subsystem)
 

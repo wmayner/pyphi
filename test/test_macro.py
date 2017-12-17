@@ -114,7 +114,8 @@ def test_make_macro_tpm():
     partition = ((0,), (1, 2))
     grouping = (((0,), (1,)), ((0, 1), (2,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
-    assert np.array_equal(coarse_grain.make_mapping(), [0, 1, 0, 1, 0, 1, 2, 3])
+    assert np.array_equal(coarse_grain.make_mapping(),
+                          [0, 1, 0, 1, 0, 1, 2, 3])
 
     micro_tpm = np.zeros((8, 3)) + 0.5
     macro_tpm = coarse_grain.macro_tpm(micro_tpm)

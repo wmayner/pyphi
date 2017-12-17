@@ -96,7 +96,9 @@ def basic_network(cm=False):
         ])
     else:
         cm = None
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 def basic_state():
@@ -213,7 +215,9 @@ def residue_network():
     cm[2:4, 0] = 1
     cm[3:, 1] = 1
 
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 def residue_subsystem():
@@ -268,7 +272,9 @@ def xor_network():
         [1, 0, 1],
         [1, 1, 0]
     ])
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 def xor_subsystem():
@@ -490,7 +496,9 @@ def propagation_delay_network():
                    [1, 0, 0, 0, 0, 0, 0, 0, 0],
                    [0, 0, 0, 0, 0, 0, 1, 0, 0]])
 
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 def macro_network():
@@ -658,7 +666,9 @@ def rule154_network():
         [0, 0, 1, 1, 1],
         [1, 0, 0, 1, 1]
     ])
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 def fig1a():
@@ -737,7 +747,9 @@ def fig1a():
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0]
     ])
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 def fig3a():
@@ -766,7 +778,9 @@ def fig3a():
         [1, 0, 0, 0],
         [1, 0, 0, 0]
     ])
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 def fig3b():
@@ -795,7 +809,9 @@ def fig3b():
         [1, 0, 0, 0],
         [1, 0, 0, 0]
     ])
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 def fig4():
@@ -830,7 +846,9 @@ def fig4():
         [1, 0, 1],
         [1, 1, 0],
     ])
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 def fig5a():
@@ -864,7 +882,9 @@ def fig5a():
         [1, 0, 1],
         [1, 1, 0]
     ])
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 def fig5b():
@@ -898,7 +918,9 @@ def fig5b():
         [0, 0, 1],
         [0, 1, 0]
     ])
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 # The networks in figures 4, 6 and 8 are the same.
@@ -1049,7 +1071,9 @@ def fig16():
         [0, 0, 0, 0, 0, 1, 1],
         [0, 0, 0, 0, 0, 1, 1]
     ])
-    return Network(tpm, connectivity_matrix=cm, node_labels=LABELS[:tpm.shape[1]])
+    return Network(tpm,
+                   connectivity_matrix=cm,
+                   node_labels=LABELS[:tpm.shape[1]])
 
 
 ###################################################################

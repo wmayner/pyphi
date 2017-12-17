@@ -83,7 +83,8 @@ def bipartition(seq):
         >>> bipartition((1,2,3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     '''
-    return [(tuple(seq[i] for i in part0_idx), tuple(seq[j] for j in part1_idx))
+    return [(tuple(seq[i] for i in part0_idx),
+             tuple(seq[j] for j in part1_idx))
             for part0_idx, part1_idx in bipartition_indices(len(seq))]
 
 

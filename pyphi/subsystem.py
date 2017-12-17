@@ -468,15 +468,19 @@ class Subsystem:
 
     def cause_info(self, mechanism, purview):
         '''Return the cause information for a mechanism over a purview.'''
-        return repertoire_distance(Direction.CAUSE,
-                                   self.cause_repertoire(mechanism, purview),
-                                   self.unconstrained_cause_repertoire(purview))
+        return repertoire_distance(
+            Direction.CAUSE,
+            self.cause_repertoire(mechanism, purview),
+            self.unconstrained_cause_repertoire(purview)
+        )
 
     def effect_info(self, mechanism, purview):
         '''Return the effect information for a mechanism over a purview.'''
-        return repertoire_distance(Direction.EFFECT,
-                                   self.effect_repertoire(mechanism, purview),
-                                   self.unconstrained_effect_repertoire(purview))
+        return repertoire_distance(
+            Direction.EFFECT,
+            self.effect_repertoire(mechanism, purview),
+            self.unconstrained_effect_repertoire(purview)
+        )
 
     def cause_effect_info(self, mechanism, purview):
         '''Return the cause-effect information for a mechanism over a purview.
@@ -716,7 +720,10 @@ class Subsystem:
         effect = Mice(_null_mip(Direction.EFFECT, (), (), effect_repertoire))
 
         # All together now...
-        return Concept(mechanism=(), cause=cause, effect=effect, subsystem=self)
+        return Concept(mechanism=(),
+                       cause=cause,
+                       effect=effect,
+                       subsystem=self)
 
     def concept(self, mechanism, purviews=False, past_purviews=False,
                 future_purviews=False):
@@ -894,11 +901,14 @@ def all_partitions(mechanism, purview):
                 purview_partition.extend([()] * n_empty)
 
                 # Unique permutations to avoid duplicates empties
-                for purview_permutation in set(itertools.permutations(purview_partition)):
+                for purview_permutation in set(
+                        itertools.permutations(purview_partition)):
 
                     parts = [
                         Part(tuple(m), tuple(p))
-                        for m, p in zip(mechanism_partition, purview_permutation)]
+                        for m, p in zip(mechanism_partition,
+                                        purview_permutation)
+                    ]
 
                     # Must partition the mechanism, unless the purview is fully
                     # cut away from the mechanism.
