@@ -377,15 +377,15 @@ class ConceptStyleSystem:
     @property
     def cause_system(self):
         return {
-            Direction.PAST: self.cut_system,
-            Direction.FUTURE: self.subsystem
+            Direction.CAUSE: self.cut_system,
+            Direction.EFFECT: self.subsystem
         }[self.direction]
 
     @property
     def effect_system(self):
         return {
-            Direction.PAST: self.subsystem,
-            Direction.FUTURE: self.cut_system
+            Direction.CAUSE: self.subsystem,
+            Direction.EFFECT: self.cut_system
         }[self.direction]
 
     def concept(self, mechanism, purviews=False, past_purviews=False,
@@ -464,9 +464,9 @@ def big_mip_concept_style(subsystem):
     '''Compute a concept-style Big Mip'''
     unpartitioned_ces = _unpartitioned_ces(subsystem)
 
-    mip_past = directional_big_mip(subsystem, Direction.PAST,
+    mip_past = directional_big_mip(subsystem, Direction.CAUSE,
                                    unpartitioned_ces)
-    mip_future = directional_big_mip(subsystem, Direction.FUTURE,
+    mip_future = directional_big_mip(subsystem, Direction.EFFECT,
                                      unpartitioned_ces)
 
     return BigMipConceptStyle(mip_past, mip_future)

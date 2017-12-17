@@ -21,7 +21,7 @@ def direction(direction, allow_bi=False):
     If ``allow_bi`` is ``True`` then ``Direction.BIDIRECTIONAL`` is
     acceptable.
     '''
-    valid = [Direction.PAST, Direction.FUTURE]
+    valid = [Direction.CAUSE, Direction.EFFECT]
     if allow_bi:
         valid.append(Direction.BIDIRECTIONAL)
 

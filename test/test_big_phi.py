@@ -230,11 +230,11 @@ def test_null_concept(s, flushcache, restore_fs_cache):
     flushcache()
     cause = models.Mice(models.Mip(
         unpartitioned_repertoire=s.unconstrained_cause_repertoire(()),
-        phi=0, direction=Direction.PAST, mechanism=(), purview=(),
+        phi=0, direction=Direction.CAUSE, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
     effect = models.Mice(models.Mip(
         unpartitioned_repertoire=s.unconstrained_effect_repertoire(()),
-        phi=0, direction=Direction.FUTURE, mechanism=(), purview=(),
+        phi=0, direction=Direction.EFFECT, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
     assert (s.null_concept ==
             models.Concept(mechanism=(), cause=cause, effect=effect,

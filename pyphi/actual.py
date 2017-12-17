@@ -129,8 +129,8 @@ class Transition:
         # Dictionary mapping causal directions to the system which is used to
         # compute repertoires in that direction
         self.system = {
-            Direction.PAST: self.cause_system,
-            Direction.FUTURE: self.effect_system
+            Direction.CAUSE: self.cause_system,
+            Direction.EFFECT: self.effect_system
         }
 
     def __repr__(self):
@@ -175,11 +175,11 @@ class Transition:
 
     def cause_repertoire(self, mechanism, purview):
         '''Return the cause repertoire.'''
-        return self.repertoire(Direction.PAST, mechanism, purview)
+        return self.repertoire(Direction.CAUSE, mechanism, purview)
 
     def effect_repertoire(self, mechanism, purview):
         '''Return the effect repertoire.'''
-        return self.repertoire(Direction.FUTURE, mechanism, purview)
+        return self.repertoire(Direction.EFFECT, mechanism, purview)
 
     def unconstrained_cause_repertoire(self, purview):
         '''Return the unconstrained cause repertoire of the occurence.'''
@@ -241,12 +241,12 @@ class Transition:
         ``direction``.
 
         For example, if we are computing the cause coefficient of a mechanism
-        in ``after_state``, the direction is``PAST`` and the ``purview_state``
+        in ``after_state``, the direction is``CAUSE`` and the ``purview_state``
         is ``before_state``.
         '''
         return {
-            Direction.PAST: self.before_state,
-            Direction.FUTURE: self.after_state
+            Direction.CAUSE: self.before_state,
+            Direction.EFFECT: self.after_state
         }[direction]
 
     def mechanism_state(self, direction):
@@ -257,15 +257,15 @@ class Transition:
     def mechanism_indices(self, direction):
         '''The indices of nodes in the mechanism system.'''
         return {
-            Direction.PAST: self.effect_indices,
-            Direction.FUTURE: self.cause_indices
+            Direction.CAUSE: self.effect_indices,
+            Direction.EFFECT: self.cause_indices
         }[direction]
 
     def purview_indices(self, direction):
         '''The indices of nodes in the purview system.'''
         return {
-            Direction.PAST: self.cause_indices,
-            Direction.FUTURE: self.effect_indices
+            Direction.CAUSE: self.cause_indices,
+            Direction.EFFECT: self.effect_indices
         }[direction]
 
     def _ratio(self, direction, mechanism, purview):
@@ -274,11 +274,11 @@ class Transition:
 
     def cause_ratio(self, mechanism, purview):
         '''The cause ratio of the ``purview`` given ``mechanism``.'''
-        return self._ratio(Direction.PAST, mechanism, purview)
+        return self._ratio(Direction.CAUSE, mechanism, purview)
 
     def effect_ratio(self, mechanism, purview):
         '''The effect ratio of the ``purview`` given ``mechanism``.'''
-        return self._ratio(Direction.FUTURE, mechanism, purview)
+        return self._ratio(Direction.EFFECT, mechanism, purview)
 
     def partitioned_repertoire(self, direction, partition):
         '''Compute the repertoire over the partition in the given direction.'''
@@ -300,7 +300,7 @@ class Transition:
         over a purview.
 
         Args:
-            direction (str): |PAST| or |FUTURE|
+            direction (str): |CAUSE| or |EFFECT|
             mechanism (tuple[int]): A mechanism.
             purview (tuple[int]): A purview.
 
@@ -354,7 +354,7 @@ class Transition:
         Filters out trivially-reducible purviews.
 
         Args:
-            direction (str): Either |PAST| or |FUTURE|.
+            direction (str): Either |CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The mechanism of interest.
 
         Keyword Args:
@@ -403,11 +403,11 @@ class Transition:
 
     def find_actual_cause(self, mechanism, purviews=False):
         '''Return the actual cause of a mechanism.'''
-        return self.find_causal_link(Direction.PAST, mechanism, purviews)
+        return self.find_causal_link(Direction.CAUSE, mechanism, purviews)
 
     def find_actual_effect(self, mechanism, purviews=False):
         '''Return the actual effect of a mechanism.'''
-        return self.find_causal_link(Direction.FUTURE, mechanism, purviews)
+        return self.find_causal_link(Direction.EFFECT, mechanism, purviews)
 
     def find_mice(self, *args, **kwargs):
         '''Backwards-compatible alias for :func:`find_causal_link`.'''
@@ -447,8 +447,8 @@ def account(transition, direction=Direction.BIDIRECTIONAL):
     if direction != Direction.BIDIRECTIONAL:
         return directed_account(transition, direction)
 
-    return Account(directed_account(transition, Direction.PAST) +
-                   directed_account(transition, Direction.FUTURE))
+    return Account(directed_account(transition, Direction.CAUSE) +
+                   directed_account(transition, Direction.EFFECT))
 
 
 # ============================================================================
@@ -496,8 +496,8 @@ def _get_cuts(transition, direction):
 
     if direction is Direction.BIDIRECTIONAL:
         yielded = set()
-        for cut in chain(_get_cuts(transition, Direction.PAST),
-                         _get_cuts(transition, Direction.FUTURE)):
+        for cut in chain(_get_cuts(transition, Direction.CAUSE),
+                         _get_cuts(transition, Direction.EFFECT)):
             cm = utils.np_hashable(cut.cut_matrix(n))
             if cm not in yielded:
                 yielded.add(cm)
@@ -641,10 +641,10 @@ def nice_true_ces(tc):
     cause = '<--'
     effect = '-->'
     for event in tc:
-        if event.direction == Direction.PAST:
+        if event.direction == Direction.CAUSE:
             past_list.append(["{0:.4f}".format(round(event.alpha, 4)),
                               event.mechanism, cause, event.purview])
-        elif event.direction == Direction.FUTURE:
+        elif event.direction == Direction.EFFECT:
             future_list.append(["{0:.4f}".format(round(event.alpha, 4)),
                                 event.mechanism, effect, event.purview])
         else:
@@ -660,7 +660,7 @@ def _actual_causes(network, past_state, current_state, nodes,
     log.info("Calculating true causes ...")
     transition = Transition(network, past_state, current_state, nodes, nodes)
 
-    return directed_account(transition, Direction.PAST, mechanisms=mechanisms)
+    return directed_account(transition, Direction.CAUSE, mechanisms=mechanisms)
 
 
 def _actual_effects(network, current_state, future_state, nodes,
@@ -668,7 +668,7 @@ def _actual_effects(network, current_state, future_state, nodes,
     log.info("Calculating true effects ...")
     transition = Transition(network, current_state, future_state, nodes, nodes)
 
-    return directed_account(transition, Direction.FUTURE, mechanisms=mechanisms)
+    return directed_account(transition, Direction.EFFECT, mechanisms=mechanisms)
 
 
 def events(network, past_state, current_state, future_state, nodes,

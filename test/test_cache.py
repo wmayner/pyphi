@@ -137,20 +137,20 @@ def test_use_dict_mice_cache(s):
 
 def test_mice_cache_keys(s):
     c = cache.DictMiceCache(s)
-    answer = (None, Direction.PAST, (0,), (0, 1))
-    assert c.key(Direction.PAST, (0,), purviews=(0, 1)) == answer
+    answer = (None, Direction.CAUSE, (0,), (0, 1))
+    assert c.key(Direction.CAUSE, (0,), purviews=(0, 1)) == answer
 
     c = cache.RedisMiceCache(s)
-    answer = 'subsys:{}:None:PAST:(0,):(0, 1)'.format(hash(s))
-    assert c.key(Direction.PAST, (0,), purviews=(0, 1)) == answer
+    answer = 'subsys:{}:None:CAUSE:(0,):(0, 1)'.format(hash(s))
+    assert c.key(Direction.CAUSE, (0,), purviews=(0, 1)) == answer
 
 
 @all_caches
 def test_mice_cache(redis_cache, flush_redis):
     s = examples.basic_subsystem()
     mechanism = (1,)  # has a MIC
-    mice = s.find_mice(Direction.PAST, mechanism)
-    key = s._mice_cache.key(Direction.PAST, mechanism)
+    mice = s.find_mice(Direction.CAUSE, mechanism)
+    key = s._mice_cache.key(Direction.CAUSE, mechanism)
     assert s._mice_cache.get(key) == mice
 
 
@@ -158,7 +158,7 @@ def test_mice_cache(redis_cache, flush_redis):
 def test_do_not_cache_phi_zero_mice():
     s = examples.basic_subsystem()
     mechanism = ()  # zero phi
-    mice = s.find_mice(Direction.PAST, mechanism)
+    mice = s.find_mice(Direction.CAUSE, mechanism)
     assert mice.phi == 0
     # don't cache anything because mice.phi == 0
     assert s._mice_cache.size() == 0
@@ -169,7 +169,7 @@ def test_only_cache_uncut_subsystem_mices(redis_cache, flush_redis, s):
     s = Subsystem(s.network, (1, 0, 0), s.node_indices,
                   cut=models.Cut((1,), (0, 2)))
     mechanism = (1,)  # has a MIC
-    s.find_mice(Direction.PAST, mechanism)
+    s.find_mice(Direction.CAUSE, mechanism)
     # don't cache anything because subsystem is cut
     assert s._mice_cache.size() == 0
 
@@ -180,7 +180,7 @@ def test_split_mechanism_mice_is_not_reusable(redis_cache, flush_redis):
     when a cache is built from a parent cache.'''
     s = examples.basic_subsystem()
     mechanism = (0, 1)
-    mice = s.find_mice(Direction.PAST, mechanism)
+    mice = s.find_mice(Direction.CAUSE, mechanism)
     assert s._mice_cache.size() == 1  # cached
     assert mice.purview == (1, 2)
 
@@ -188,7 +188,7 @@ def test_split_mechanism_mice_is_not_reusable(redis_cache, flush_redis):
     cut = models.Cut((0,), (1, 2))
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=cut, mice_cache=s._mice_cache)
-    key = cut_s._mice_cache.key(Direction.PAST, mechanism)
+    key = cut_s._mice_cache.key(Direction.CAUSE, mechanism)
     assert cut_s._mice_cache.get(key) is None
 
 
@@ -198,7 +198,7 @@ def test_cut_relevant_connections_mice_is_not_reusable(redis_cache, flush_redis)
     when a cache is built from a parent cache.'''
     s = examples.basic_subsystem()
     mechanism = (1,)
-    mice = s.find_mice(Direction.PAST, mechanism)
+    mice = s.find_mice(Direction.CAUSE, mechanism)
     assert s._mice_cache.size() == 1  # cached
     assert mice.purview == (2,)
 
@@ -206,7 +206,7 @@ def test_cut_relevant_connections_mice_is_not_reusable(redis_cache, flush_redis)
     cut = models.Cut((0, 2), (1,))
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=cut, mice_cache=s._mice_cache)
-    key = cut_s._mice_cache.key(Direction.PAST, mechanism)
+    key = cut_s._mice_cache.key(Direction.CAUSE, mechanism)
     assert cut_s._mice_cache.get(key) is None
 
 
@@ -216,7 +216,7 @@ def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, flush_redis):
     the mechanism and the relevant connections are not cut.'''
     s = examples.basic_subsystem()
     mechanism = (1,)
-    mice = s.find_mice(Direction.PAST, mechanism)
+    mice = s.find_mice(Direction.CAUSE, mechanism)
     assert s._mice_cache.size() == 1  # cached
     assert mice.purview == (2,)
 
@@ -224,7 +224,7 @@ def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, flush_redis):
     cut = models.Cut((0, 1), (2,))
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=cut, mice_cache=s._mice_cache)
-    key = cut_s._mice_cache.key(Direction.PAST, mechanism)
+    key = cut_s._mice_cache.key(Direction.CAUSE, mechanism)
     assert cut_s._mice_cache.get(key) == mice
 
 
@@ -243,7 +243,7 @@ def test_mice_cache_respects_cache_memory_limits():
     s = examples.basic_subsystem()
     c = cache.MiceCache(s)
     mice = mock.Mock(phi=1)  # dummy Mice
-    c.set(c.key(Direction.PAST, ()), mice)
+    c.set(c.key(Direction.CAUSE, ()), mice)
     assert c.size() == 0
 
 
@@ -252,7 +252,7 @@ def test_mice_cache_respects_cache_memory_limits():
 
 @config.override(CACHE_POTENTIAL_PURVIEWS=True)
 def test_purview_cache(standard):
-    purviews = standard.potential_purviews(Direction.FUTURE, (0,))
+    purviews = standard.potential_purviews(Direction.EFFECT, (0,))
     assert standard.purview_cache.size() == 1
     assert purviews in standard.purview_cache.cache.values()
 
@@ -260,5 +260,5 @@ def test_purview_cache(standard):
 @config.override(CACHE_POTENTIAL_PURVIEWS=False)
 def test_only_cache_purviews_if_configured():
     c = cache.PurviewCache()
-    c.set(c.key(Direction.PAST, (0,)), ('some purview'))
+    c.set(c.key(Direction.CAUSE, (0,)), ('some purview'))
     assert c.size() == 0

@@ -131,7 +131,7 @@ def test_partitioned_repertoire_with_tripartition(s):
     tripartition = Tripartition(Part((), (1,)), Part((0,), ()), Part((), (2,)))
 
     assert np.array_equal(
-        s.partitioned_repertoire(Direction.PAST, tripartition),
+        s.partitioned_repertoire(Direction.CAUSE, tripartition),
         np.array([[[0.25, 0.25], [0.25, 0.25]]]))
 
 

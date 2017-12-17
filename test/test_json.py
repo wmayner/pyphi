@@ -47,7 +47,7 @@ def test_jsonify_numpy():
 
 def test_json_deserialization(s, transition):
     objects = [
-        Direction.PAST,
+        Direction.CAUSE,
         s.network,  # Network
         s,  # Subsystem
         models.Bipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
@@ -56,8 +56,9 @@ def test_json_deserialization(s, transition):
                             models.Part((3,), (4,))),
         models.Cut((0,), (2,)),
         models.NullCut((0, 1)),
-        models.KCut(Direction.PAST, models.KPartition(models.Part((0,), ()),
-                                                      models.Part((1,), (2, 3)))),
+        models.KCut(Direction.CAUSE,
+                    models.KPartition(models.Part((0,), ()),
+                                      models.Part((1,), (2, 3)))),
         s.concept((1, 2)),
         s.concept((1,)),
         compute.ces(s),

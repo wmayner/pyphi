@@ -129,7 +129,7 @@ class CausalLink(cmp.Orderable):
 
     @property
     def direction(self):
-        '''Direction: Either |PAST| or |FUTURE|.'''
+        '''Direction: Either |CAUSE| or |EFFECT|.'''
         return self._mip.direction
 
     @property
@@ -196,13 +196,13 @@ class Account(tuple):
     @property
     def irreducible_causes(self):
         '''The set of irreducible causes in this |Account|.'''
-        return tuple(link for link in self if link.direction is Direction.PAST)
+        return tuple(link for link in self if link.direction is Direction.CAUSE)
 
     @property
     def irreducible_effects(self):
         '''The set of irreducible effects in this |Account|.'''
         return tuple(link for link in self
-                     if link.direction is Direction.FUTURE)
+                     if link.direction is Direction.EFFECT)
 
     def __repr__(self):
         if config.REPR_VERBOSITY > 0:

@@ -178,7 +178,7 @@ class Network:
         '''All purviews which are not clearly reducible for mechanism.
 
         Args:
-            direction (Direction): |PAST| or |FUTURE|.
+            direction (Direction): |CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The mechanism which all purviews are
                 checked for reducibility over.
 
@@ -233,7 +233,7 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
 
     Args:
         cm (np.ndarray): An |N x N| connectivity matrix.
-        direction (Direction): |PAST| or |FUTURE|.
+        direction (Direction): |CAUSE| or |EFFECT|.
         purviews (list[tuple[int]]): The purviews to check.
         mechanism (tuple[int]): The mechanism in question.
 

@@ -259,7 +259,7 @@ def directional_emd(direction, d1, d2):
     solution is used for effect repertoires.
 
     Args:
-        direction (Direction): |PAST| or |FUTURE|.
+        direction (Direction): |CAUSE| or |EFFECT|.
         d1 (np.ndarray): The first repertoire.
         d2 (np.ndarray): The second repertoire.
 
@@ -269,9 +269,9 @@ def directional_emd(direction, d1, d2):
     Raises:
         ValueError: If ``direction`` is invalid.
     '''
-    if direction == Direction.PAST:
+    if direction == Direction.CAUSE:
         func = hamming_emd
-    elif direction == Direction.FUTURE:
+    elif direction == Direction.EFFECT:
         func = effect_emd
     else:
         # TODO: test that ValueError is raised
@@ -284,7 +284,7 @@ def mechanism_repertoire_distance(direction, d1, d2):
     '''Compute the distance between two repertoires for the given direction.
 
     Args:
-        direction (Direction): |PAST| or |FUTURE|.
+        direction (Direction): |CAUSE| or |EFFECT|.
         d1 (np.ndarray): The first repertoire.
         d2 (np.ndarray): The second repertoire.
 

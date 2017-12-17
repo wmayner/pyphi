@@ -455,8 +455,8 @@ def fmt_ac_mip(mip):
 
     causality = {
         # TODO: use node labels
-        Direction.PAST: (str(mip.purview), ARROW_LEFT, str(mip.mechanism)),
-        Direction.FUTURE: (str(mip.mechanism), ARROW_RIGHT, str(mip.purview))
+        Direction.CAUSE: (str(mip.purview), ARROW_LEFT, str(mip.mechanism)),
+        Direction.EFFECT: (str(mip.mechanism), ARROW_RIGHT, str(mip.purview))
     }[mip.direction]
     causality = ' '.join(causality)
 

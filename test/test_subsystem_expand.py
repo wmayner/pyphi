@@ -55,4 +55,4 @@ def test_expand_repertoire_purview_must_be_subset_of_new_purview(s):
     new_purview = (1,)
     cause_repertoire = s.cause_repertoire(mechanism, purview)
     with pytest.raises(ValueError):
-        s.expand_repertoire(Direction.PAST, cause_repertoire, new_purview)
+        s.expand_repertoire(Direction.CAUSE, cause_repertoire, new_purview)

@@ -9,8 +9,8 @@ from pyphi import (Direction, Network, Subsystem, config, constants,
 
 
 def test_validate_direction():
-    validate.direction(Direction.PAST)
-    validate.direction(Direction.FUTURE)
+    validate.direction(Direction.CAUSE)
+    validate.direction(Direction.EFFECT)
 
     with pytest.raises(ValueError):
         validate.direction("dogeeeee")

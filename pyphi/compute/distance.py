@@ -8,7 +8,7 @@ Functions for computing distances between various PyPhi objects.
 
 import numpy as np
 
-from .. import config, utils
+from .. import config, utils, Direction
 from ..distance import system_repertoire_distance as repertoire_distance
 from ..distance import emd
 

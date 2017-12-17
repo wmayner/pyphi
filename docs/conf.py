@@ -189,8 +189,8 @@ r"""
 """,
 # Constants
 r"""
-.. |PAST| replace:: :const:`~pyphi.direction.Direction.PAST`
-.. |FUTURE| replace:: :const:`~pyphi.direction.Direction.FUTURE`
+.. |CAUSE| replace:: :const:`~pyphi.direction.Direction.CAUSE`
+.. |EFFECT| replace:: :const:`~pyphi.direction.Direction.EFFECT`
 .. |EPSILON| replace:: :const:`~pyphi.constants.EPSILON`
 .. |PICK_SMALLEST_PURVIEW| replace:: :const:`~pyphi.config.PICK_SMALLEST_PURVIEW`
 .. |PARTITION_TYPE| replace:: :const:`~pyphi.config.PARTITION_TYPE`

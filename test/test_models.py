@@ -295,21 +295,21 @@ def test_mip_ordering_and_equality():
     assert mip(phi=1.0) == mip(phi=1.0)
     assert mip(phi=1.0) == mip(phi=(1.0 - constants.EPSILON / 2))
     assert mip(phi=1.0) != mip(phi=(1.0 - constants.EPSILON * 2))
-    assert mip(direction=Direction.PAST) != mip(direction=Direction.FUTURE)
+    assert mip(direction=Direction.CAUSE) != mip(direction=Direction.EFFECT)
     assert mip(mechanism=(1,)) != mip(mechanism=(1, 2))
 
     with config.override(PICK_SMALLEST_PURVIEW=True):
         assert mip(purview=(1, 2)) < mip(purview=(1,))
 
     with pytest.raises(TypeError):
-        mip(direction=Direction.PAST) < mip(direction=Direction.FUTURE)
+        mip(direction=Direction.CAUSE) < mip(direction=Direction.EFFECT)
 
     with pytest.raises(TypeError):
-        mip(direction=Direction.PAST) >= mip(direction=Direction.FUTURE)
+        mip(direction=Direction.CAUSE) >= mip(direction=Direction.EFFECT)
 
 
 def test_null_mip():
-    direction = Direction.PAST
+    direction = Direction.CAUSE
     mechanism = (0,)
     purview = (1,)
     unpartitioned_repertoire = 'repertoire'
@@ -385,7 +385,7 @@ def test_mice_repr_str():
 
 
 def test_relevant_connections(s, subsys_n1n2):
-    m = mice(mechanism=(0,), purview=(1,), direction=Direction.PAST)
+    m = mice(mechanism=(0,), purview=(1,), direction=Direction.CAUSE)
     answer = np.array([
         [0, 0, 0],
         [1, 0, 0],
@@ -393,7 +393,7 @@ def test_relevant_connections(s, subsys_n1n2):
     ])
     assert np.array_equal(m._relevant_connections(s), answer)
 
-    m = mice(mechanism=(1,), purview=(1, 2), direction=Direction.FUTURE)
+    m = mice(mechanism=(1,), purview=(1, 2), direction=Direction.EFFECT)
     answer = np.array([
         [0, 0, 0],
         [0, 1, 1],
@@ -408,12 +408,12 @@ def test_damaged(s):
     cut_s = Subsystem(s.network, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:
-    m1 = mice(mechanism=(0, 1), purview=(1, 2), direction=Direction.FUTURE)
+    m1 = mice(mechanism=(0, 1), purview=(1, 2), direction=Direction.EFFECT)
     assert m1.damaged_by_cut(cut_s)
     assert not m1.damaged_by_cut(s)
 
     # Cut splits mechanism & purview (but not *only* mechanism)
-    m2 = mice(mechanism=(0,), purview=(1, 2), direction=Direction.FUTURE)
+    m2 = mice(mechanism=(0,), purview=(1, 2), direction=Direction.EFFECT)
     assert m2.damaged_by_cut(cut_s)
     assert not m2.damaged_by_cut(s)
 

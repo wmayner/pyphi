@@ -263,7 +263,7 @@ class Subsystem:
         return tuple(n.label for n in self.indices2nodes(indices))
 
     # TODO extend to nonbinary nodes
-    @cache.method('_single_node_repertoire_cache', Direction.PAST)
+    @cache.method('_single_node_repertoire_cache', Direction.CAUSE)
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):
         mechanism_node = self._index2node[mechanism_node_index]
         # We're conditioning on this node's state, so take the TPM for the node
@@ -274,7 +274,7 @@ class Subsystem:
         return marginalize_out((mechanism_node.inputs - purview), tpm)
 
     # TODO extend to nonbinary nodes
-    @cache.method('_repertoire_cache', Direction.PAST)
+    @cache.method('_repertoire_cache', Direction.CAUSE)
     def cause_repertoire(self, mechanism, purview):
         '''Return the cause repertoire of a mechanism over a purview.
 
@@ -317,7 +317,7 @@ class Subsystem:
         return distribution.normalize(joint)
 
     # TODO extend to nonbinary nodes
-    @cache.method('_single_node_repertoire_cache', Direction.FUTURE)
+    @cache.method('_single_node_repertoire_cache', Direction.EFFECT)
     def _single_node_effect_repertoire(self, mechanism, purview_node_index):
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the inputs that are in the mechanism.
@@ -330,7 +330,7 @@ class Subsystem:
         return tpm.reshape(repertoire_shape([purview_node.index],
                                             self.tpm_size))
 
-    @cache.method('_repertoire_cache', Direction.FUTURE)
+    @cache.method('_repertoire_cache', Direction.EFFECT)
     def effect_repertoire(self, mechanism, purview):
         '''Return the effect repertoire of a mechanism over a purview.
 
@@ -369,7 +369,7 @@ class Subsystem:
         '''Return the cause or effect repertoire based on a direction.
 
         Args:
-            direction (Direction): |PAST| or |FUTURE|.
+            direction (Direction): |CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The mechanism for which to calculate the
                 repertoire.
             purview (tuple[int]): The purview over which to calculate the
@@ -382,9 +382,9 @@ class Subsystem:
         Raises:
             ValueError: If ``direction`` is invalid.
         '''
-        if direction == Direction.PAST:
+        if direction == Direction.CAUSE:
             return self.cause_repertoire(mechanism, purview)
-        elif direction == Direction.FUTURE:
+        elif direction == Direction.EFFECT:
             return self.effect_repertoire(mechanism, purview)
         else:
             # TODO: test that ValueError is raised
@@ -399,14 +399,14 @@ class Subsystem:
 
         This is just the cause repertoire in the absence of any mechanism.
         '''
-        return self.unconstrained_repertoire(Direction.PAST, purview)
+        return self.unconstrained_repertoire(Direction.CAUSE, purview)
 
     def unconstrained_effect_repertoire(self, purview):
         '''Return the unconstrained effect repertoire for a purview.
 
         This is just the effect repertoire in the absence of any mechanism.
         '''
-        return self.unconstrained_repertoire(Direction.FUTURE, purview)
+        return self.unconstrained_repertoire(Direction.EFFECT, purview)
 
     def partitioned_repertoire(self, direction, partition):
         '''Compute the repertoire of a partitioned mechanism and purview.'''
@@ -420,7 +420,7 @@ class Subsystem:
         '''Distribute an effect repertoire over a larger purview.
 
         Args:
-            direction (Direction): |PAST| or |FUTURE|.
+            direction (Direction): |CAUSE| or |EFFECT|.
             repertoire (np.ndarray): The repertoire to expand.
 
         Keyword Args:
@@ -457,24 +457,24 @@ class Subsystem:
         return distribution.normalize(expanded_repertoire)
 
     def expand_cause_repertoire(self, repertoire, new_purview=None):
-        '''Same as |expand_repertoire| with ``direction`` set to |PAST|.'''
-        return self.expand_repertoire(Direction.PAST, repertoire,
+        '''Same as |expand_repertoire| with ``direction`` set to |CAUSE|.'''
+        return self.expand_repertoire(Direction.CAUSE, repertoire,
                                       new_purview)
 
     def expand_effect_repertoire(self, repertoire, new_purview=None):
-        '''Same as |expand_repertoire| with ``direction`` set to |FUTURE|.'''
-        return self.expand_repertoire(Direction.FUTURE, repertoire,
+        '''Same as |expand_repertoire| with ``direction`` set to |EFFECT|.'''
+        return self.expand_repertoire(Direction.EFFECT, repertoire,
                                       new_purview)
 
     def cause_info(self, mechanism, purview):
         '''Return the cause information for a mechanism over a purview.'''
-        return repertoire_distance(Direction.PAST,
+        return repertoire_distance(Direction.CAUSE,
                                    self.cause_repertoire(mechanism, purview),
                                    self.unconstrained_cause_repertoire(purview))
 
     def effect_info(self, mechanism, purview):
         '''Return the effect information for a mechanism over a purview.'''
-        return repertoire_distance(Direction.FUTURE,
+        return repertoire_distance(Direction.EFFECT,
                                    self.effect_repertoire(mechanism, purview),
                                    self.unconstrained_effect_repertoire(purview))
 
@@ -495,7 +495,7 @@ class Subsystem:
         partition.
 
         Args:
-            direction (Direction): |PAST| or |FUTURE|.
+            direction (Direction): |CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The nodes in the mechanism.
             purview (tuple[int]): The nodes in the purview.
             partition (Bipartition): The partition to evaluate.
@@ -525,7 +525,7 @@ class Subsystem:
         purview.
 
         Args:
-            direction (Direction): |PAST| or |FUTURE|.
+            direction (Direction): |CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The nodes in the mechanism.
             purview (tuple[int]): The nodes in the purview.
 
@@ -558,7 +558,7 @@ class Subsystem:
                        subsystem=self)
 
         # State is unreachable - return 0 instead of giving nonsense results
-        if (direction == Direction.PAST and
+        if (direction == Direction.CAUSE and
                 np.all(unpartitioned_repertoire == 0)):
             return _mip(0, None, None)
 
@@ -584,16 +584,16 @@ class Subsystem:
     def mip_past(self, mechanism, purview):
         '''Return the past minimum information partition.
 
-        Alias for |find_mip| with ``direction`` set to |PAST|.
+        Alias for |find_mip| with ``direction`` set to |CAUSE|.
         '''
-        return self.find_mip(Direction.PAST, mechanism, purview)
+        return self.find_mip(Direction.CAUSE, mechanism, purview)
 
     def mip_future(self, mechanism, purview):
         '''Return the future minimum information partition.
 
-        Alias for |find_mip| with ``direction`` set to |FUTURE|.
+        Alias for |find_mip| with ``direction`` set to |EFFECT|.
         '''
-        return self.find_mip(Direction.FUTURE, mechanism, purview)
+        return self.find_mip(Direction.EFFECT, mechanism, purview)
 
     def phi_mip_past(self, mechanism, purview):
         '''Return the |small_phi| of the past minimum information partition.
@@ -627,7 +627,7 @@ class Subsystem:
         Filters out trivially-reducible purviews.
 
         Args:
-            direction (Direction): |PAST| or |FUTURE|.
+            direction (Direction): |CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The mechanism of interest.
 
         Keyword Args:
@@ -649,7 +649,7 @@ class Subsystem:
         '''Return the maximally irreducible cause or effect for a mechanism.
 
         Args:
-            direction (Direction): :|PAST| or |FUTURE|.
+            direction (Direction): :|CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The mechanism to be tested for
                 irreducibility.
 
@@ -676,16 +676,16 @@ class Subsystem:
     def mic(self, mechanism, purviews=False):
         '''Return the mechanism's maximally-irreducible cause (|MIC|).
 
-        Alias for |find_mice| with ``direction`` set to |PAST|.
+        Alias for |find_mice| with ``direction`` set to |CAUSE|.
         '''
-        return self.find_mice(Direction.PAST, mechanism, purviews=purviews)
+        return self.find_mice(Direction.CAUSE, mechanism, purviews=purviews)
 
     def mie(self, mechanism, purviews=False):
         '''Return the mechanism's maximally-irreducible effect (|MIE|).
 
-        Alias for |find_mice| with ``direction`` set to |PAST|.
+        Alias for |find_mice| with ``direction`` set to |CAUSE|.
         '''
-        return self.find_mice(Direction.FUTURE, mechanism, purviews=purviews)
+        return self.find_mice(Direction.EFFECT, mechanism, purviews=purviews)
 
     def phi_max(self, mechanism):
         '''Return the |small_phi_max| of a mechanism.
@@ -711,9 +711,9 @@ class Subsystem:
         effect_repertoire = self.effect_repertoire((), ())
 
         # Null cause.
-        cause = Mice(_null_mip(Direction.PAST, (), (), cause_repertoire))
+        cause = Mice(_null_mip(Direction.CAUSE, (), (), cause_repertoire))
         # Null effect.
-        effect = Mice(_null_mip(Direction.FUTURE, (), (), effect_repertoire))
+        effect = Mice(_null_mip(Direction.EFFECT, (), (), effect_repertoire))
 
         # All together now...
         return Concept(mechanism=(), cause=cause, effect=effect, subsystem=self)

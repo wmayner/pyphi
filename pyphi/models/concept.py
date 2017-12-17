@@ -53,7 +53,7 @@ class Mip(cmp.Orderable):
 
     @property
     def direction(self):
-        '''Direction: |PAST| or |FUTURE|.'''
+        '''Direction: |CAUSE| or |EFFECT|.'''
         return self._direction
 
     @property
@@ -162,7 +162,7 @@ class Mice(cmp.Orderable):
 
     @property
     def direction(self):
-        '''Direction: |PAST| or |FUTURE|.'''
+        '''Direction: |CAUSE| or |EFFECT|.'''
         return self._mip.direction
 
     @property
@@ -233,12 +233,12 @@ class Mice(cmp.Orderable):
         corresponding subsystem, that identifies connections that “matter” to
         this |Mice|:
 
-        ``direction == Direction.PAST``:
+        ``direction == Direction.CAUSE``:
             ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
             cause purview and node ``j`` is in the mechanism (and ``0``
             otherwise).
 
-        ``direction == Direction.FUTURE``:
+        ``direction == Direction.EFFECT``:
             ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
             mechanism and node ``j`` is in the effect purview (and ``0``
             otherwise).

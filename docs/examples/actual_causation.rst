@@ -117,7 +117,7 @@ We can evaluate |alpha| for a particular pair of occurences, as in Figure 3C.
 For example, to find the irreducible effect ratio of |{OR, AND} -> {OR, AND}|,
 we use the ``find_mip`` method:
 
-   >>> link = transition.find_mip(Direction.FUTURE, (OR, AND), (OR, AND))
+   >>> link = transition.find_mip(Direction.EFFECT, (OR, AND), (OR, AND))
 
 This returns a |AcMip| object, with a number of useful properties. This
 particular MIP is reducible, as we can see by checking the value of |alpha|:
@@ -137,7 +137,7 @@ Let's look at the MIP for the irreducible occurence |Y_t = {OR, AND}|
 constraining |X_t-1 = {OR, AND}| (Figure 3D). This candidate causal link has
 positive |alpha|:
 
-   >>> link = transition.find_mip(Direction.PAST, (OR, AND), (OR, AND))
+   >>> link = transition.find_mip(Direction.CAUSE, (OR, AND), (OR, AND))
    >>> link.alpha
    0.169925
 
@@ -201,7 +201,7 @@ destroyed by the MIP:
 The partition of the MIP is available in the ``cut`` property:
 
    >>> big_mip.cut  # doctest: +NORMALIZE_WHITESPACE
-   KCut PAST
+   KCut CAUSE
     ∅     0     1
    ─── ✕ ─── ✕ ───
     ∅     0     1

@@ -14,7 +14,7 @@ from pyphi.utils import eq
 # ====================
 
 s = example_networks.s()
-directions = (Direction.PAST, Direction.FUTURE)
+directions = (Direction.CAUSE, Direction.EFFECT)
 cuts = (None, Cut((1, 2), (0,)))
 subsystem = {
     cut: Subsystem(s.network, s.state, s.node_indices, cut=cut)
@@ -23,13 +23,13 @@ subsystem = {
 
 expected_purview_indices = {
     cuts[0]: {
-        Direction.PAST: {
+        Direction.CAUSE: {
             (1,): (2,),
             (2,): (0, 1),
             (0, 1): (1, 2),
             (0, 1, 2): (0, 1, 2)
         },
-        Direction.FUTURE: {
+        Direction.EFFECT: {
             (1,): (0,),
             (2,): (1,),
             (0, 1): (2,),
@@ -37,13 +37,13 @@ expected_purview_indices = {
         }
     },
     cuts[1]: {
-        Direction.PAST: {
+        Direction.CAUSE: {
             (1,): (2,),
             (2,): (0, 1),
             (0, 1): (),
             (0, 1, 2): (),
         },
-        Direction.FUTURE: {
+        Direction.EFFECT: {
             (1,): (2,),
             (2,): (1,),
             (0, 1): (2,),
@@ -115,9 +115,9 @@ def test_find_mice_empty(s):
 
 @pytest.mark.parametrize(mice_parameter_string, mice_scenarios)
 def test_mic_or_mie(cut, direction, expected):
-    if direction == Direction.PAST:
+    if direction == Direction.CAUSE:
         mice = subsystem[cut].mic
-    elif direction == Direction.FUTURE:
+    elif direction == Direction.EFFECT:
         mice = subsystem[cut].mie
     assert mice(expected.mechanism) == expected
 
@@ -125,8 +125,8 @@ def test_mic_or_mie(cut, direction, expected):
 phi_max_scenarios = [
     [
         (cut, past.mechanism, min(past.phi, future.phi))
-        for past, future in zip(expected_mice[cut][Direction.PAST],
-                                expected_mice[cut][Direction.FUTURE])]
+        for past, future in zip(expected_mice[cut][Direction.CAUSE],
+                                expected_mice[cut][Direction.EFFECT])]
     for cut in cuts
 ]
 # Flatten singly-nested list of scenarios.

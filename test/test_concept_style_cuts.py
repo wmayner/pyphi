@@ -11,14 +11,16 @@ from test_models import bigmip
 
 @pytest.fixture()
 def kcut_past():
-    partition = KPartition(Part((0, 2), (0,)), Part((), (2,)), Part((3,), (3,)))
-    return KCut(Direction.PAST, partition)
+    partition = KPartition(
+        Part((0, 2), (0,)), Part((), (2,)), Part((3,), (3,)))
+    return KCut(Direction.CAUSE, partition)
 
 
 @pytest.fixture()
 def kcut_future():
-    partition = KPartition(Part((0, 2), (0,)), Part((), (2,)), Part((3,), (3,)))
-    return KCut(Direction.FUTURE, partition)
+    partition = KPartition(
+        Part((0, 2), (0,)), Part((), (2,)), Part((3,), (3,)))
+    return KCut(Direction.EFFECT, partition)
 
 
 def test_cut_indices(kcut_past, kcut_future):
@@ -72,18 +74,17 @@ def test_all_cut_mechanisms(kcut_past):
 
 @config.override(PARTITION_TYPE='TRI')
 def test_concept_style_cuts():
-    assert list(concept_cuts(Direction.PAST, (0,))) == [
-        KCut(Direction.PAST, KPartition(Part((), ()), Part((), (0,)),
-                                        Part((0,), ())))]
-
-    assert list(concept_cuts(Direction.FUTURE, (0,))) == [
-        KCut(Direction.FUTURE, KPartition(Part((), ()), Part((), (0,)),
-                                        Part((0,), ())))]
+    assert list(concept_cuts(Direction.CAUSE, (0,))) == [
+        KCut(Direction.CAUSE, KPartition(
+            Part((), ()), Part((), (0,)), Part((0,), ())))]
+    assert list(concept_cuts(Direction.EFFECT, (0,))) == [
+        KCut(Direction.EFFECT, KPartition(
+            Part((), ()), Part((), (0,)), Part((0,), ())))]
 
 
 def test_kcut_equality(kcut_past, kcut_future):
-    other = KCut(Direction.PAST, KPartition(Part((0, 2), (0,)), Part((), (2,)),
-                                            Part((3,), (3,))))
+    other = KCut(Direction.CAUSE, KPartition(
+        Part((0, 2), (0,)), Part((), (2,)), Part((3,), (3,))))
     assert kcut_past == other
     assert hash(kcut_past) == hash(other)
     assert hash(kcut_past) != hash(kcut_past.partition)
@@ -93,15 +94,15 @@ def test_kcut_equality(kcut_past, kcut_future):
 
 
 def test_system_accessors(s):
-    cut_past = KCut(Direction.PAST, KPartition(Part((0, 2), (0, 1)),
-                                               Part((1,), (2,))))
-    cs_past = ConceptStyleSystem(s, Direction.PAST, cut_past)
+    cut_past = KCut(Direction.CAUSE, KPartition(
+        Part((0, 2), (0, 1)), Part((1,), (2,))))
+    cs_past = ConceptStyleSystem(s, Direction.CAUSE, cut_past)
     assert cs_past.cause_system.cut == cut_past
     assert not cs_past.effect_system.is_cut
 
-    cut_future = KCut(Direction.FUTURE, KPartition(Part((0, 2), (0, 1)),
-                                                   Part((1,), (2,))))
-    cs_future = ConceptStyleSystem(s, Direction.FUTURE, cut_future)
+    cut_future = KCut(Direction.EFFECT, KPartition(
+        Part((0, 2), (0, 1)), Part((1,), (2,))))
+    cs_future = ConceptStyleSystem(s, Direction.EFFECT, cut_future)
     assert not cs_future.cause_system.is_cut
     assert cs_future.effect_system.cut == cut_future
 
