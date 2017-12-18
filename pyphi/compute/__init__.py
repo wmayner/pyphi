@@ -4,7 +4,7 @@
 
 """Maintains backwards compatability with the old ``compute`` API.
 
-See :mod:`compute.concept` and :mod:`compute.big_phi` for documentation.
+See :mod:`compute.concept` and :mod:`compute.system` for documentation.
 
 Attributes:
     concept: Alias for :func:`concept.concept`.
@@ -12,20 +12,20 @@ Attributes:
     ces: Alias for :func:`concept.ces`.
     concept_distance: Alias for :func:`distance.concept_distance`.
     ces_distance: Alias for :func:`distance.ces_distance`.
-    all_complexes: Alias for :func:`big_phi.all_complexes`.
-    sia: Alias for :func:`big_phi.sia`.
-    big_phi: Alias for :func:`big_phi.phi`.
-    complexes: Alias for :func:`big_phi.complexes`.
-    condensed: Alias for :func:`big_phi.condensed`.
-    evaluate_cut: Alias for :func:`big_phi.evaluate_cut`.
-    major_complex: Alias for :func:`big_phi.major_complex`.
-    possible_complexes: Alias for :func:`big_phi.possible_complexes`.
-    subsystems: Alias for :func:`big_phi.subsystems`.
+    all_complexes: Alias for :func:`system.all_complexes`.
+    sia: Alias for :func:`system.sia`.
+    system: Alias for :func:`system.phi`.
+    complexes: Alias for :func:`system.complexes`.
+    condensed: Alias for :func:`system.condensed`.
+    evaluate_cut: Alias for :func:`system.evaluate_cut`.
+    major_complex: Alias for :func:`system.major_complex`.
+    possible_complexes: Alias for :func:`system.possible_complexes`.
+    subsystems: Alias for :func:`system.subsystems`.
 """
 
-from .big_phi import (all_complexes, sia, phi, complexes, condensed,
-                      evaluate_cut, major_complex, possible_complexes,
-                      subsystems, ConceptStyleSystem, sia_concept_style,
-                      concept_cuts, SystemIrreducibilityAnalysisConceptStyle)
+from .system import (all_complexes, sia, phi, complexes, condensed,
+                     evaluate_cut, major_complex, possible_complexes,
+                     subsystems, ConceptStyleSystem, sia_concept_style,
+                     concept_cuts, SystemIrreducibilityAnalysisConceptStyle)
 from .concept import concept, conceptual_info, ces
 from .distance import concept_distance, ces_distance

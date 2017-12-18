@@ -10,7 +10,7 @@ import pytest
 
 from pyphi import (Direction, Network, Subsystem, compute, config, constants,
                    models, utils)
-from pyphi.compute.big_phi import ComputeSystemIrreducibility, sia_bipartitions
+from pyphi.compute.system import ComputeSystemIrreducibility, sia_bipartitions
 from pyphi.models import Cut, _null_sia
 from pyphi.partition import directed_bipartition
 
