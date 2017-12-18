@@ -725,9 +725,11 @@ class Subsystem:
         effect_repertoire = self.effect_repertoire((), ())
 
         # Null cause.
-        cause = MaximallyIrreducibleCause(_null_ria(Direction.CAUSE, (), (), cause_repertoire))
+        cause = MaximallyIrreducibleCause(
+            _null_ria(Direction.CAUSE, (), (), cause_repertoire))
         # Null effect.
-        effect = MaximallyIrreducibleEffect(_null_ria(Direction.EFFECT, (), (), effect_repertoire))
+        effect = MaximallyIrreducibleEffect(
+            _null_ria(Direction.EFFECT, (), (), effect_repertoire))
 
         # All together now...
         return Concept(mechanism=(),

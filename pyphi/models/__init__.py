@@ -35,7 +35,8 @@ from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
                                Event, _null_ac_sia, DirectedAccount, Account)
 from .big_phi import SystemIrreducibilityAnalysis, _null_sia
 from .concept import (RepertoireIrreducibilityAnalysis, _null_ria,
-                      MaximallyIrreducibleCauseOrEffect, MaximallyIrreducibleCause, MaximallyIrreducibleEffect, Concept,
-                      CauseEffectStructure)
+                      MaximallyIrreducibleCauseOrEffect,
+                      MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
+                      Concept, CauseEffectStructure)
 from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,
                    KPartition, KCut)

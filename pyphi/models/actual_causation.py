@@ -251,8 +251,8 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
 
     Attributes:
         alpha (float): The |big_alpha| value for the transition when taken
-            against this analysis, *i.e.* the difference between the unpartitioned
-            account and this analysis's partitioned account.
+            against this analysis, *i.e.* the difference between the
+            unpartitioned account and this analysis's partitioned account.
         account (Account): The account of the whole transition.
         partitioned_account (Account): The account of the partitioned
             transition.
