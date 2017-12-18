@@ -299,10 +299,10 @@ def test_sia_cache_key_includes_config_dependencies(s, flushcache,
     flushcache()
 
     with config.override(MEASURE='EMD'):
-        emd_big_phi = compute.big_phi(s)
+        emd_big_phi = compute.phi(s)
 
     with config.override(MEASURE='L1'):
-        l1_big_phi = compute.big_phi(s)
+        l1_big_phi = compute.phi(s)
 
     assert l1_big_phi != emd_big_phi
 
@@ -340,7 +340,7 @@ def test_sia_wrappers(reducible, flushcache, restore_fs_cache):
                                                 phi=0.0,
                                                 ces=[],
                                                 partitioned_ces=[]))
-    assert compute.big_phi(reducible) == 0.0
+    assert compute.phi(reducible) == 0.0
 
 
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
@@ -614,7 +614,7 @@ def test_sia_bipartitions():
 
 def test_system_cut_styles(s, flushcache, restore_fs_cache):
     with config.override(SYSTEM_CUTS='3.0_STYLE'):
-        assert compute.big_phi(s) == 2.3125
+        assert compute.phi(s) == 2.3125
 
     with config.override(SYSTEM_CUTS='CONCEPT_STYLE'):
-        assert compute.big_phi(s) == 0.6875
+        assert compute.phi(s) == 0.6875

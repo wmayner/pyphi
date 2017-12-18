@@ -240,7 +240,7 @@ def test_soup():
     time = 2
     sub = macro.MacroSubsystem(network, state, (0, 1, 2, 3, 4, 5),
                                blackbox=blackbox, time_scale=time)
-    assert compute.big_phi(sub) == 0.638888
+    assert compute.phi(sub) == 0.638888
 
     # When the connection from D to B is frozen (with D in the OFF state),
     # element B is inactivated and integration is compromised.
@@ -251,7 +251,7 @@ def test_soup():
     time = 2
     sub = macro.MacroSubsystem(network, state, (0, 1, 2, 3, 4, 5),
                                blackbox=blackbox, time_scale=time)
-    assert compute.big_phi(sub) == 0
+    assert compute.phi(sub) == 0
 
 
 @pytest.mark.slow

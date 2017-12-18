@@ -228,7 +228,7 @@ r"""
 .. |compute.sia| replace:: :func:`~pyphi.compute.big_phi.sia`
 
 .. |compute.concept| replace:: :func:`~pyphi.compute.concept.concept`
-.. |compute.big_phi| replace:: :func:`~pyphi.compute.big_phi.big_phi`
+.. |compute.phi| replace:: :func:`~pyphi.compute.big_phi.phi`
 
 .. |configure_logging| replace:: :func:`~pyphi.config.configure_logging`
 

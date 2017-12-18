@@ -73,10 +73,9 @@ every node in the network in our subsystem:
         >>> pyphi.Subsystem(network, state, ('B', 'C'))
         Subsystem(B, C)
 
-Now we use |compute.big_phi| function to compute the |big_phi| of our
-subsystem:
+Now we use |compute.phi| function to compute the |big_phi| of our subsystem:
 
-    >>> pyphi.compute.big_phi(subsystem)
+    >>> pyphi.compute.phi(subsystem)
     2.3125
 
 If we want to take a deeper look at the integrated-information-theoretic

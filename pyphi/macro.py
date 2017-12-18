@@ -838,7 +838,7 @@ def coarse_grain(network, state, internal_indices):
         except ConditionallyDependentError:
             continue
 
-        phi = compute.big_phi(subsystem)
+        phi = compute.phi(subsystem)
         if (phi - max_phi) > constants.EPSILON:
             max_phi = phi
             max_coarse_grain = coarse_grain
@@ -918,7 +918,7 @@ def emergence(network, state, blackbox=False, coarse_grain=True,
     for subsystem in all_macro_systems(network, state, blackbox=blackbox,
                                        coarse_grain=coarse_grain,
                                        time_scales=time_scales):
-        phi = compute.big_phi(subsystem)
+        phi = compute.phi(subsystem)
 
         if (phi - max_phi) > constants.EPSILON:
             max_phi = phi
@@ -940,7 +940,7 @@ def phi_by_grain(network, state):
     systems = utils.powerset(network.node_indices, nonempty=True)
     for system in systems:
         micro_subsystem = Subsystem(network, state, system)
-        phi = compute.big_phi(micro_subsystem)
+        phi = compute.phi(micro_subsystem)
         list_of_phi.append([len(micro_subsystem), phi, system, None])
 
         for coarse_grain in all_coarse_grains(system):
@@ -950,7 +950,7 @@ def phi_by_grain(network, state):
             except ConditionallyDependentError:
                 continue
 
-            phi = compute.big_phi(subsystem)
+            phi = compute.phi(subsystem)
             list_of_phi.append([len(subsystem), phi, system, coarse_grain])
     return list_of_phi
 

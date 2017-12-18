@@ -141,4 +141,4 @@ def test_unpickle(s, flushcache, restore_fs_cache):
 
 @config.override(SYSTEM_CUTS='CONCEPT_STYLE')
 def test_concept_style_phi(s, flushcache, restore_fs_cache):
-    assert compute.big_phi(s) == 0.6875
+    assert compute.phi(s) == 0.6875

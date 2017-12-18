@@ -200,7 +200,7 @@ We consider the state where all nodes are off:
 The system has minimal |big_phi| without blackboxing:
 
     >>> subsys = pyphi.Subsystem(network, state, all_nodes)
-    >>> pyphi.compute.big_phi(subsys)
+    >>> pyphi.compute.phi(subsys)
     0.215278
 
 We will consider the blackbox system consisting of two blackbox elements, |ABC|
@@ -251,7 +251,7 @@ As in the coarse-graining example, the blackbox and time scale are passed to
 
 We can now compute |big_phi| for this macro system:
 
-    >>> pyphi.compute.big_phi(macro_subsystem)
+    >>> pyphi.compute.phi(macro_subsystem)
     0.638888
 
 We find that the macro subsystem has greater integrated information

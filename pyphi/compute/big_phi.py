@@ -238,7 +238,7 @@ def sia(subsystem):  # pylint: disable=missing-docstring
     return _sia(_sia_cache_key(subsystem), subsystem)
 
 
-def big_phi(subsystem):
+def phi(subsystem):
     """Return the |big_phi| value of a subsystem."""
     return sia(subsystem).phi
 

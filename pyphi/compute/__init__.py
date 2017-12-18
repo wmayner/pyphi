@@ -14,7 +14,7 @@ Attributes:
     ces_distance: Alias for :func:`distance.ces_distance`.
     all_complexes: Alias for :func:`big_phi.all_complexes`.
     sia: Alias for :func:`big_phi.sia`.
-    big_phi: Alias for :func:`big_phi.big_phi`.
+    big_phi: Alias for :func:`big_phi.phi`.
     complexes: Alias for :func:`big_phi.complexes`.
     condensed: Alias for :func:`big_phi.condensed`.
     evaluate_cut: Alias for :func:`big_phi.evaluate_cut`.
@@ -23,7 +23,7 @@ Attributes:
     subsystems: Alias for :func:`big_phi.subsystems`.
 """
 
-from .big_phi import (all_complexes, sia, big_phi, complexes, condensed,
+from .big_phi import (all_complexes, sia, phi, complexes, condensed,
                       evaluate_cut, major_complex, possible_complexes,
                       subsystems, ConceptStyleSystem, sia_concept_style,
                       concept_cuts, SystemIrreducibilityAnalysisConceptStyle)
