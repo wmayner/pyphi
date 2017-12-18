@@ -11,7 +11,7 @@ import pytest
 from pyphi import (Direction, Network, Subsystem, compute, config, constants,
                    models, utils)
 from pyphi.compute.big_phi import FindMechanismIrreducibilityAnalysis, sia_bipartitions
-from pyphi.models import Cut, _null_bigmip
+from pyphi.models import Cut, _null_sia
 from pyphi.partition import directed_bipartition
 
 # pylint: disable=unused-argument
@@ -539,12 +539,12 @@ def test_rule152_complexes_no_caching(rule152):
         # since Matlab doesn't include it in results.
         complexes = list(compute.complexes(net))[1:]
         # Check the phi values of all complexes.
-        zz = [(bigmip.phi, result['subsystem_phis'][perm[i]]) for i, bigmip in
+        zz = [(sia.phi, result['subsystem_phis'][perm[i]]) for i, sia in
             list(enumerate(complexes))]
-        diff = [utils.eq(bigmip.phi, result['subsystem_phis'][perm[i]]) for
-                i, bigmip in list(enumerate(complexes))]
-        assert all(utils.eq(bigmip.phi, result['subsystem_phis'][perm[i]])
-                   for i, bigmip in list(enumerate(complexes))[:])
+        diff = [utils.eq(sia.phi, result['subsystem_phis'][perm[i]]) for
+                i, sia in list(enumerate(complexes))]
+        assert all(utils.eq(sia.phi, result['subsystem_phis'][perm[i]])
+                   for i, sia in list(enumerate(complexes))[:])
         # Check the main complex in particular.
         main = compute.major_complex(net)
         # Check the phi value of the main complex.

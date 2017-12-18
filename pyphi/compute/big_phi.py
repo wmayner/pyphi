@@ -12,7 +12,7 @@ from time import time
 from .. import (Direction, config, connectivity, exceptions, memory, utils,
                 validate)
 from ..models import (Concept, Cut, KCut, SystemIrreducibilityAnalysis,
-                      _null_bigmip, cmp, fmt)
+                      _null_sia, cmp, fmt)
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem, mip_partitions
 from .concept import ces
@@ -75,7 +75,7 @@ class FindMechanismIrreducibilityAnalysis(MapReduce):
     def empty_result(self, subsystem, unpartitioned_ces):
         """Begin with a mip with infinite |big_phi|; all actual mips will have
         less."""
-        return _null_bigmip(subsystem, phi=float('inf'))
+        return _null_sia(subsystem, phi=float('inf'))
 
     @staticmethod
     def compute(cut, subsystem, unpartitioned_ces):
@@ -158,12 +158,12 @@ def _sia(cache_key, subsystem):
     if not subsystem:
         log.info('Subsystem %s is empty; returning null MIP '
                  'immediately.', subsystem)
-        return time_annotated(_null_bigmip(subsystem))
+        return time_annotated(_null_sia(subsystem))
 
     if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
         log.info('%s is not strongly connected; returning null MIP '
                  'immediately.', subsystem)
-        return time_annotated(_null_bigmip(subsystem))
+        return time_annotated(_null_sia(subsystem))
 
     # Handle elementary micro mechanism cases.
     # Single macro element systems have nontrivial bipartitions because their
@@ -173,12 +173,12 @@ def _sia(cache_key, subsystem):
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
             log.info('Single micro nodes %s without selfloops cannot have '
                      'phi; returning null MIP immediately.', subsystem)
-            return time_annotated(_null_bigmip(subsystem))
+            return time_annotated(_null_sia(subsystem))
         # Even if the node has a self-loop, we may still define phi to be zero.
         elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
             log.info('Single micro nodes %s with selfloops cannot have '
                      'phi; returning null MIP immediately.', subsystem)
-            return time_annotated(_null_bigmip(subsystem))
+            return time_annotated(_null_sia(subsystem))
     # =========================================================================
 
     log.debug('Finding unpartitioned CauseEffectStructure...')
@@ -190,7 +190,7 @@ def _sia(cache_key, subsystem):
         log.info('Empty unpartitioned CauseEffectStructure; returning null '
                  'MIP immediately.')
         # Short-circuit if there are no concepts in the unpartitioned CES.
-        return time_annotated(_null_bigmip(subsystem))
+        return time_annotated(_null_sia(subsystem))
 
     log.debug('Found unpartitioned CauseEffectStructure.')
     if len(subsystem.cut_indices) == 1:
@@ -335,7 +335,7 @@ def major_complex(network, state):
         result = max(result)
     else:
         empty_subsystem = Subsystem(network, state, ())
-        result = _null_bigmip(empty_subsystem)
+        result = _null_sia(empty_subsystem)
 
     log.info("Finished calculating main complex.")
 

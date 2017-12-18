@@ -24,9 +24,9 @@ Attributes:
 """
 
 from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
-                               AcMechanismIrreducibilityAnalysis, _null_ac_mip, Event, _null_ac_bigmip,
+                               AcMechanismIrreducibilityAnalysis, _null_ac_mip, Event, _null_ac_sia,
                                DirectedAccount, Account)
-from .big_phi import SystemIrreducibilityAnalysis, _null_bigmip
+from .big_phi import SystemIrreducibilityAnalysis, _null_sia
 from .concept import (MechanismIrreducibilityAnalysis, _null_mip, Mice, Concept, CauseEffectStructure,
                       normalize_ces)
 from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,

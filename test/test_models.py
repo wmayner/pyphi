@@ -36,7 +36,7 @@ def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
         subsystem=subsystem)
 
 
-def bigmip(unpartitioned_ces=(), partitioned_ces=(),
+def sia(unpartitioned_ces=(), partitioned_ces=(),
            subsystem=None, cut_subsystem=None, phi=1.0):
     """Build a ``SystemIrreducibilityAnalysis``."""
     cut_subsystem = cut_subsystem or subsystem
@@ -566,26 +566,26 @@ def test_ces_are_always_normalized():
 # {{{
 
 
-def test_bigmip_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
-    phi1 = bigmip(subsystem=s)
-    phi2 = bigmip(subsystem=s, phi=1.0 + constants.EPSILON * 2)
+def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
+    phi1 = sia(subsystem=s)
+    phi2 = sia(subsystem=s, phi=1.0 + constants.EPSILON * 2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
 
-    assert bigmip(subsystem=subsys_n0n2) < bigmip(subsystem=subsys_n1n2)
+    assert sia(subsystem=subsys_n0n2) < sia(subsystem=subsys_n1n2)
 
-    different_system = bigmip(subsystem=s_noised)
+    different_system = sia(subsystem=s_noised)
     with pytest.raises(TypeError):
         phi1 <= different_system
     with pytest.raises(TypeError):
         phi1 >= different_system
 
 
-def test_bigmip_ordering_by_subsystem_size(s, s_single):
-    small = bigmip(subsystem=s_single)
-    big = bigmip(subsystem=s)
+def test_sia_ordering_by_subsystem_size(s, s_single):
+    small = sia(subsystem=s_single)
+    big = sia(subsystem=s)
     assert small < big
     assert small <= big
     assert big > small
@@ -593,16 +593,16 @@ def test_bigmip_ordering_by_subsystem_size(s, s_single):
     assert big != small
 
 
-def test_bigmip_equality(s):
-    bm = bigmip(subsystem=s)
-    close_enough = bigmip(subsystem=s, phi=(1.0 - constants.EPSILON / 2))
-    not_quite = bigmip(subsystem=s, phi=(1.0 - constants.EPSILON * 2))
+def test_sia_equality(s):
+    bm = sia(subsystem=s)
+    close_enough = sia(subsystem=s, phi=(1.0 - constants.EPSILON / 2))
+    not_quite = sia(subsystem=s, phi=(1.0 - constants.EPSILON * 2))
     assert bm == close_enough
     assert bm != not_quite
 
 
-def test_bigmip_repr_str(s):
-    bm = bigmip(subsystem=s)
+def test_sia_repr_str(s):
+    bm = sia(subsystem=s)
     print(repr(bm))
     print(str(bm))
 

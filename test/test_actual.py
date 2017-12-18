@@ -247,7 +247,7 @@ def account(links=()):
     return models.Account(links)
 
 
-def ac_bigmip(**kwargs):
+def ac_sia(**kwargs):
     defaults = {
         'alpha': 0.0,
         'direction': Direction.BIDIRECTIONAL,
@@ -320,19 +320,19 @@ def test_account_repr_and_str():
 
 
 def test_ac_sia_repr_and_str(transition):
-    bm = ac_bigmip(transition=transition)
+    bm = ac_sia(transition=transition)
     str(bm)
     repr(bm)
 
 
 def test_ac_sia_ordering(transition, empty_transition):
-    assert ac_bigmip() == ac_bigmip()
-    assert hash(ac_bigmip()) == hash(ac_bigmip())
+    assert ac_sia() == ac_sia()
+    assert hash(ac_sia()) == hash(ac_sia())
 
-    assert (ac_bigmip(alpha=1.0, transition=transition) >
-            ac_bigmip(alpha=0.5, transition=transition))
-    assert (ac_bigmip(alpha=1.0, transition=empty_transition) <=
-            ac_bigmip(alpha=1.0, transition=transition))
+    assert (ac_sia(alpha=1.0, transition=transition) >
+            ac_sia(alpha=0.5, transition=transition))
+    assert (ac_sia(alpha=1.0, transition=empty_transition) <=
+            ac_sia(alpha=1.0, transition=transition))
 
 
 @pytest.mark.parametrize('direction,mechanism,purview,repertoire', [
@@ -502,26 +502,26 @@ def test_get_actual_cuts(direction, answer, transition):
 
 
 def test_big_acmip(transition):
-    bigmip = actual.big_acmip(transition)
-    assert bigmip.alpha == 0.415037
-    assert bigmip.cut == ac_cut(Direction.CAUSE,
+    sia = actual.big_acmip(transition)
+    assert sia.alpha == 0.415037
+    assert sia.cut == ac_cut(Direction.CAUSE,
                                 Part((), (1,)), Part((0,), (2,)))
-    assert len(bigmip.unpartitioned_account) == 3
-    assert len(bigmip.partitioned_account) == 2
+    assert len(sia.unpartitioned_account) == 3
+    assert len(sia.partitioned_account) == 2
 
 
-def test_null_ac_bigmip(transition):
-    bigmip = actual._null_ac_bigmip(transition, Direction.CAUSE)
-    assert bigmip.transition == transition
-    assert bigmip.direction == Direction.CAUSE
-    assert bigmip.unpartitioned_account == ()
-    assert bigmip.partitioned_account == ()
-    assert bigmip.alpha == 0.0
+def test_null_ac_sia(transition):
+    sia = actual._null_ac_sia(transition, Direction.CAUSE)
+    assert sia.transition == transition
+    assert sia.direction == Direction.CAUSE
+    assert sia.unpartitioned_account == ()
+    assert sia.partitioned_account == ()
+    assert sia.alpha == 0.0
 
-    bigmip = actual._null_ac_bigmip(transition,
+    sia = actual._null_ac_sia(transition,
                                     Direction.CAUSE,
                                     alpha=float('inf'))
-    assert bigmip.alpha == float('inf')
+    assert sia.alpha == float('inf')
 
 
 @config.override(PARTITION_TYPE='TRI')

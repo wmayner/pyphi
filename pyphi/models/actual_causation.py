@@ -228,7 +228,7 @@ class DirectedAccount(Account):
     pass
 
 
-_acbigmip_attributes = ['alpha', 'direction', 'unpartitioned_account',
+_ac_sia_attributes = ['alpha', 'direction', 'unpartitioned_account',
                         'partitioned_account', 'transition', 'cut']
 
 
@@ -258,7 +258,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         self.cut = cut
 
     def __repr__(self):
-        return fmt.make_repr(self, _acbigmip_attributes)
+        return fmt.make_repr(self, _ac_sia_attributes)
 
     def __str__(self):
         return fmt.fmt_ac_sia(self)
@@ -280,7 +280,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         return [self.alpha, len(self.transition)]
 
     def __eq__(self, other):
-        return cmp.general_eq(self, other, _acbigmip_attributes)
+        return cmp.general_eq(self, other, _ac_sia_attributes)
 
     def __bool__(self):
         """An |AcSystemIrreducibilityAnalysis| is ``True`` if it has
@@ -294,10 +294,10 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
                      self.cut))
 
     def to_json(self):
-        return {attr: getattr(self, attr) for attr in _acbigmip_attributes}
+        return {attr: getattr(self, attr) for attr in _ac_sia_attributes}
 
 
-def _null_ac_bigmip(transition, direction, alpha=0.0):
+def _null_ac_sia(transition, direction, alpha=0.0):
     """Returns an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and
     empty accounts.
     """

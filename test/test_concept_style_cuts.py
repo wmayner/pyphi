@@ -8,7 +8,7 @@ from pyphi.compute import (ConceptStyleSystem,
                            SystemIrreducibilityAnalysisConceptStyle,
                            concept_cuts)
 from pyphi.models import KCut, KPartition, Part
-from test_models import bigmip
+from test_models import sia
 
 
 @pytest.fixture()
@@ -111,8 +111,8 @@ def test_system_accessors(s):
 
 def sia_cs(phi=1.0, subsystem=None):
     return SystemIrreducibilityAnalysisConceptStyle(
-        mip_past=bigmip(phi=phi, subsystem=subsystem),
-        mip_future=bigmip(phi=phi, subsystem=subsystem))
+        mip_past=sia(phi=phi, subsystem=subsystem),
+        mip_future=sia(phi=phi, subsystem=subsystem))
 
 
 def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):

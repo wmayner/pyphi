@@ -21,7 +21,7 @@ from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
 from .models import (Account, AcMechanismIrreducibilityAnalysis, AcSystemIrreducibilityAnalysis, ActualCut,
                      CausalLink, DirectedAccount, Event, NullCut,
-                     _null_ac_bigmip, _null_ac_mip, fmt)
+                     _null_ac_sia, _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
@@ -530,13 +530,13 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
     if not transition:
         log.info('Transition %s is empty; returning null MIP '
                  'immediately.', transition)
-        return _null_ac_bigmip(transition, direction)
+        return _null_ac_sia(transition, direction)
 
     if not connectivity.is_weak(transition.network.cm,
                                 transition.node_indices):
         log.info('%s is not strongly/weakly connected; returning null MIP '
                  'immediately.', transition)
-        return _null_ac_bigmip(transition, direction)
+        return _null_ac_sia(transition, direction)
 
     log.debug("Finding unpartitioned account...")
     unpartitioned_account = account(transition, direction)
@@ -544,7 +544,7 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
 
     if not unpartitioned_account:
         log.info('Empty account; returning null AC MIP immediately.')
-        return _null_ac_bigmip(transition, direction)
+        return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)
     finder = FindBigAcMechanismIrreducibilityAnalysis(cuts, transition, direction, unpartitioned_account)
@@ -561,7 +561,7 @@ class FindBigAcMechanismIrreducibilityAnalysis(compute.parallel.MapReduce):
     description = 'Evaluating AC cuts'
 
     def empty_result(self, transition, direction, unpartitioned_account):
-        return _null_ac_bigmip(transition, direction, alpha=float('inf'))
+        return _null_ac_sia(transition, direction, alpha=float('inf'))
 
     @staticmethod
     def compute(cut, transition, direction, unpartitioned_account):
@@ -626,7 +626,7 @@ def causal_nexus(network, before_state, after_state,
     else:
         null_transition = Transition(
             network, before_state, after_state, (), ())
-        result = _null_ac_bigmip(null_transition, direction)
+        result = _null_ac_sia(null_transition, direction)
 
     log.info("Finished calculating causal nexus.")
     log.debug("RESULT: \n%s", result)

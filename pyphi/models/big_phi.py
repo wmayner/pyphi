@@ -9,7 +9,7 @@ from .. import utils
 
 # pylint: disable=too-many-arguments
 
-_bigmip_attributes = ['phi', 'unpartitioned_ces',
+_sia_attributes = ['phi', 'unpartitioned_ces',
                       'partitioned_ces', 'subsystem',
                       'cut_subsystem']
 
@@ -49,7 +49,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         self.small_phi_time = small_phi_time
 
     def __repr__(self):
-        return fmt.make_repr(self, _bigmip_attributes)
+        return fmt.make_repr(self, _sia_attributes)
 
     def __str__(self, ces=True):
         return fmt.fmt_sia(self, ces=ces)
@@ -77,7 +77,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return [self.phi, len(self.subsystem), self.subsystem.node_indices]
 
     def __eq__(self, other):
-        return cmp.general_eq(self, other, _bigmip_attributes)
+        return cmp.general_eq(self, other, _sia_attributes)
 
     def __bool__(self):
         """A |SystemIrreducibilityAnalysis| is ``True`` if it has
@@ -96,11 +96,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         """Return a JSON-serializable representation."""
         return {
             attr: getattr(self, attr)
-            for attr in _bigmip_attributes + ['time', 'small_phi_time']
+            for attr in _sia_attributes + ['time', 'small_phi_time']
         }
 
 
-def _null_bigmip(subsystem, phi=0.0):
+def _null_sia(subsystem, phi=0.0):
     """Return a |SystemIrreducibilityAnalysis| with zero |big_phi| and empty
     cause-effect structures.
 
