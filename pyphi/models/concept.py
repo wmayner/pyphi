@@ -181,7 +181,7 @@ class Mice(cmp.Orderable):
         return self._mia.purview
 
     @property
-    def partition(self):
+    def mip(self):
         """KPartition: The partition that makes the least difference to the
         mechanism's repertoire."""
         return self._mia.partition
