@@ -167,7 +167,7 @@ mechanism |ABC|. Consider the cause information over the purview |ABC|:
 Since the mechanism has nonzero cause information, it has causal power over the
 system—but is it irreducible?
 
-   >>> mip = subsystem.mip_cause(ABC, ABC)
+   >>> mip = subsystem.cause_mip(ABC, ABC)
    >>> mip.phi
    0.0
    >>> mip.partition  # doctest: +NORMALIZE_WHITESPACE

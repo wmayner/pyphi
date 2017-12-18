@@ -47,7 +47,7 @@ between the unpartitioned and partitioned repertoires.
 
 To analyze the irreducibility of the mechanism |AB| on the cause side:
 
-    >>> mip_AB = subsystem.mip_cause(AB, CDE)
+    >>> mip_AB = subsystem.cause_mip(AB, CDE)
 
 We can then determine what the specific partition is.
 
@@ -82,16 +82,16 @@ irreducible cause information of the mechanisms |A| and |B|.
 The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
 (∅ / E)| because |E| has no effect on |A|, so it has zero |small_phi|.
 
-    >>> subsystem.mip_cause(A, CDE).phi
+    >>> subsystem.cause_mip(A, CDE).phi
     0.0
-    >>> subsystem.mip_cause(A, CDE).partition  # doctest: +NORMALIZE_WHITESPACE
+    >>> subsystem.cause_mip(A, CDE).partition  # doctest: +NORMALIZE_WHITESPACE
      ∅     0
     ─── ✕ ───
      4    2,3
 
 Instead, we should evaluate |A| over the purview |CD|.
 
-    >>> mip_A = subsystem.mip_cause(A, CD)
+    >>> mip_A = subsystem.cause_mip(A, CD)
 
 In this case, there is a well-defined MIP
 
