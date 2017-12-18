@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # models/actual_causation.py
 
-'''
+"""
 Objects that represent structures used in actual causation.
-'''
+"""
 
 # pylint: disable=too-many-arguments
 
@@ -21,13 +21,13 @@ _acmip_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
                             'purview', 'probability']
 
 def greater_than_zero(alpha):
-    '''Return ``True`` if alpha is greater than zero, accounting for
-    numerical errors.'''
+    """Return ``True`` if alpha is greater than zero, accounting for
+    numerical errors."""
     return alpha > 0 and not utils.eq(alpha, 0)
 
 
 class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
-    '''A minimum information partition for ac_coef calculation.
+    """A minimum information partition for ac_coef calculation.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |alpha| values are compared. Then, if these are equal
@@ -54,7 +54,7 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
             The probability of the state in the past/future.
         partitioned_probability (float):
             The probability of the state in the partitioned repertoire.
-    '''
+    """
     __slots__ = ()
 
     unorderable_unless_eq = ['direction']
@@ -70,12 +70,12 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
         return cmp.general_eq(self, other, _acmip_attributes_for_eq)
 
     def __bool__(self):
-        '''An |AcMip| is ``True`` if it has |alpha > 0|.'''
+        """An |AcMip| is ``True`` if it has |alpha > 0|."""
         return greater_than_zero(self.alpha)
 
     @property
     def phi(self):
-        '''Alias for |alpha| for PyPhi utility functions.'''
+        """Alias for |alpha| for PyPhi utility functions."""
         return self.alpha
 
     def __hash__(self):
@@ -83,7 +83,7 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
         return hash(attrs)
 
     def to_json(self):
-        '''Return a JSON-serializable representation.'''
+        """Return a JSON-serializable representation."""
         return {attr: getattr(self, attr) for attr in _acmip_attributes}
 
     def __repr__(self):
@@ -105,48 +105,48 @@ def _null_ac_mip(state, direction, mechanism, purview):
 
 
 class CausalLink(cmp.Orderable):
-    '''A maximally irreducible actual cause or effect.
+    """A maximally irreducible actual cause or effect.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |alpha| values are compared. Then, if these are equal
     up to |PRECISION|, the size of the mechanism is compared.
-    '''
+    """
 
     def __init__(self, mip):
         self._mip = mip
 
     @property
     def alpha(self):
-        '''float: The difference between the mechanism's unpartitioned and
+        """float: The difference between the mechanism's unpartitioned and
         partitioned actual probabilities.
-        '''
+        """
         return self._mip.alpha
 
     @property
     def phi(self):
-        '''Alias for |alpha| for PyPhi utility functions.'''
+        """Alias for |alpha| for PyPhi utility functions."""
         return self.alpha
 
     @property
     def direction(self):
-        '''Direction: Either |CAUSE| or |EFFECT|.'''
+        """Direction: Either |CAUSE| or |EFFECT|."""
         return self._mip.direction
 
     @property
     def mechanism(self):
-        '''list[int]: The mechanism for which the action is evaluated.'''
+        """list[int]: The mechanism for which the action is evaluated."""
         return self._mip.mechanism
 
     @property
     def purview(self):
-        '''list[int]: The purview over which this mechanism's |alpha| is
+        """list[int]: The purview over which this mechanism's |alpha| is
         maximal.
-        '''
+        """
         return self._mip.purview
 
     @property
     def mip(self):
-        '''AcMip: The minimum information partition for this mechanism.'''
+        """AcMip: The minimum information partition for this mechanism."""
         return self._mip
 
     def __repr__(self):
@@ -167,41 +167,41 @@ class CausalLink(cmp.Orderable):
         return hash(('CausalLink', self._mip))
 
     def __bool__(self):
-        '''An |CausalLink| is ``True`` if |alpha > 0|.'''
+        """An |CausalLink| is ``True`` if |alpha > 0|."""
         return greater_than_zero(self.alpha)
 
     def to_json(self):
-        '''Return a JSON-serializable representation.'''
+        """Return a JSON-serializable representation."""
         return {'mip': self.mip}
 
 
 class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
-    '''A mechanism which has both an actual cause and an actual effect.
+    """A mechanism which has both an actual cause and an actual effect.
 
     Attributes:
         actual_cause (CausalLink): The actual cause of the mechanism.
         actual_effect (CausalLink): The actual effect of the mechanism.
-    '''
+    """
     @property
     def mechanism(self):
-        '''The mechanism of the event.'''
+        """The mechanism of the event."""
         assert self.actual_cause.mechanism == self.actual_effect.mechanism
         return self.actual_cause.mechanism
 
 
 class Account(tuple):
-    '''The set of |CausalLinks| with |alpha > 0|. This includes both actual
-    causes and actual effects.'''
+    """The set of |CausalLinks| with |alpha > 0|. This includes both actual
+    causes and actual effects."""
 
     @property
     def irreducible_causes(self):
-        '''The set of irreducible causes in this |Account|.'''
+        """The set of irreducible causes in this |Account|."""
         return tuple(link for link in self
                      if link.direction is Direction.CAUSE)
 
     @property
     def irreducible_effects(self):
-        '''The set of irreducible effects in this |Account|.'''
+        """The set of irreducible effects in this |Account|."""
         return tuple(link for link in self
                      if link.direction is Direction.EFFECT)
 
@@ -223,8 +223,8 @@ class Account(tuple):
 
 
 class DirectedAccount(Account):
-    '''The set of |CausalLinks| with |alpha > 0| for one direction of a
-    transition.'''
+    """The set of |CausalLinks| with |alpha > 0| for one direction of a
+    transition."""
     pass
 
 
@@ -235,7 +235,7 @@ _acbigmip_attributes = ['alpha', 'direction', 'unpartitioned_account',
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
 # take the smaller?
 class AcSystemIrreducibilityAnalysis(cmp.Orderable):
-    '''A minimum information partition for |big_alpha| calculation.
+    """A minimum information partition for |big_alpha| calculation.
 
     Attributes:
         alpha (float): The |big_alpha| value for the transition when taken
@@ -246,7 +246,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
             transition.
         transition (Transition): The transition this MIP was calculated for.
         cut (ActualCut): The minimal partition.
-    '''
+    """
 
     def __init__(self, alpha=None, direction=None, unpartitioned_account=None,
                  partitioned_account=None, transition=None, cut=None):
@@ -265,12 +265,12 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
 
     @property
     def before_state(self):
-        '''Return the actual past state of the |Transition|.'''
+        """Return the actual past state of the |Transition|."""
         return self.transition.before_state
 
     @property
     def after_state(self):
-        '''Return the actual current state of the |Transition|.'''
+        """Return the actual current state of the |Transition|."""
         return self.transition.after_state
 
     unorderable_unless_eq = ['direction']
@@ -283,9 +283,9 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         return cmp.general_eq(self, other, _acbigmip_attributes)
 
     def __bool__(self):
-        '''An |AcSystemIrreducibilityAnalysis| is ``True`` if it has
+        """An |AcSystemIrreducibilityAnalysis| is ``True`` if it has
         |big_alpha > 0|.
-        '''
+        """
         return greater_than_zero(self.alpha)
 
     def __hash__(self):
@@ -298,9 +298,9 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
 
 
 def _null_ac_bigmip(transition, direction, alpha=0.0):
-    '''Returns an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and
+    """Returns an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and
     empty accounts.
-    '''
+    """
     return AcSystemIrreducibilityAnalysis(transition=transition,
                     direction=direction,
                     alpha=alpha,

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __about__.py
 
-'''PyPhi metadata.'''
+"""PyPhi metadata."""
 
 __title__ = 'pyphi'
 __version__ = '0.9.0'

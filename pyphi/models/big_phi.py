@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # models/big_phi.py
 
-'''Objects that represent cause-effect structures.'''
+"""Objects that represent cause-effect structures."""
 
 from . import cmp, fmt
 from .. import utils
@@ -15,7 +15,7 @@ _bigmip_attributes = ['phi', 'unpartitioned_ces',
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):
-    '''A minimum information partition for |big_phi| calculation.
+    """A minimum information partition for |big_phi| calculation.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |big_phi| values are compared. Then, if these are
@@ -35,7 +35,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         time (float): The number of seconds it took to calculate.
         small_phi_time (float): The number of seconds it took to calculate the
             unpartitioned cause-effect structure.
-    '''
+    """
 
     def __init__(self, phi=None, unpartitioned_ces=None,
                  partitioned_ces=None, subsystem=None,
@@ -55,20 +55,20 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return fmt.fmt_sia(self, ces=ces)
 
     def print(self, ces=True):
-        '''Print this |SystemIrreducibilityAnalysis|, optionally without
-        cause-effect structures.'''
+        """Print this |SystemIrreducibilityAnalysis|, optionally without
+        cause-effect structures."""
         print(self.__str__(ces=ces))
 
     @property
     def cut(self):
-        '''The unidirectional cut that makes the least difference to the
+        """The unidirectional cut that makes the least difference to the
         subsystem.
-        '''
+        """
         return self.cut_subsystem.cut
 
     @property
     def network(self):
-        '''The network this |SystemIrreducibilityAnalysis| belongs to.'''
+        """The network this |SystemIrreducibilityAnalysis| belongs to."""
         return self.subsystem.network
 
     unorderable_unless_eq = ['network']
@@ -80,9 +80,9 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return cmp.general_eq(self, other, _bigmip_attributes)
 
     def __bool__(self):
-        '''A |SystemIrreducibilityAnalysis| is ``True`` if it has
+        """A |SystemIrreducibilityAnalysis| is ``True`` if it has
         |big_phi > 0|.
-        '''
+        """
         return not utils.eq(self.phi, 0)
 
     def __hash__(self):
@@ -93,7 +93,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
                      self.cut_subsystem))
 
     def to_json(self):
-        '''Return a JSON-serializable representation.'''
+        """Return a JSON-serializable representation."""
         return {
             attr: getattr(self, attr)
             for attr in _bigmip_attributes + ['time', 'small_phi_time']
@@ -101,11 +101,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
 
 def _null_bigmip(subsystem, phi=0.0):
-    '''Return a |SystemIrreducibilityAnalysis| with zero |big_phi| and empty
+    """Return a |SystemIrreducibilityAnalysis| with zero |big_phi| and empty
     cause-effect structures.
 
     This is the MIP associated with a reducible subsystem.
-    '''
+    """
     return SystemIrreducibilityAnalysis(subsystem=subsystem,
                                         cut_subsystem=subsystem,
                                         phi=phi,

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # utils.py
 
-'''
+"""
 Functions used by more than one PyPhi module or class, or that might be of
 external use.
-'''
+"""
 
 import hashlib
 import os
@@ -18,12 +18,12 @@ from . import constants
 
 
 def state_of(nodes, network_state):
-    '''Return the state-tuple of the given nodes.'''
+    """Return the state-tuple of the given nodes."""
     return tuple(network_state[n] for n in nodes) if nodes else ()
 
 
 def all_states(n, holi=False):
-    '''Return all binary states for a system.
+    """Return all binary states for a system.
 
     Args:
         n (int): The number of elements in the system.
@@ -33,7 +33,7 @@ def all_states(n, holi=False):
     Yields:
         tuple[int]: The next state of an ``n``-element system, in LOLI order
         unless ``holi`` is ``True``.
-    '''
+    """
     if n == 0:
         return
 
@@ -45,13 +45,13 @@ def all_states(n, holi=False):
 
 
 def np_immutable(a):
-    '''Make a NumPy array immutable.'''
+    """Make a NumPy array immutable."""
     a.flags.writeable = False
     return a
 
 
 def np_hash(a):
-    '''Return a hash of a NumPy array.'''
+    """Return a hash of a NumPy array."""
     if a is None:
         return hash(None)
     # Ensure that hashes are equal whatever the ordering in memory (C or
@@ -62,7 +62,7 @@ def np_hash(a):
 
 
 class np_hashable:
-    '''A hashable wrapper around a NumPy array.'''
+    """A hashable wrapper around a NumPy array."""
     # pylint: disable=protected-access,too-few-public-methods
     def __init__(self, array):
         self._array = np_immutable(array.copy())
@@ -78,13 +78,13 @@ class np_hashable:
 
 
 def eq(x, y):
-    '''Compare two values up to |PRECISION|.'''
+    """Compare two values up to |PRECISION|."""
     return abs(x - y) <= constants.EPSILON
 
 
 # see http://stackoverflow.com/questions/16003217
 def combs(a, r):
-    '''NumPy implementation of ``itertools.combinations``.
+    """NumPy implementation of ``itertools.combinations``.
 
     Return successive ``r``-length combinations of elements in the array ``a``.
 
@@ -94,7 +94,7 @@ def combs(a, r):
 
     Returns:
         np.ndarray: An array of combinations.
-    '''
+    """
     # Special-case for 0-length combinations
     if r == 0:
         return np.asarray([])
@@ -107,7 +107,7 @@ def combs(a, r):
 
 # see http://stackoverflow.com/questions/16003217/
 def comb_indices(n, k):
-    '''``n``-dimensional version of itertools.combinations.
+    """``n``-dimensional version of itertools.combinations.
 
     Args:
         a (np.ndarray): The array from which to get combinations.
@@ -127,7 +127,7 @@ def comb_indices(n, k):
                [[3, 4],
                 [3, 5],
                 [4, 5]]])
-    '''
+    """
     # Count the number of combinations for preallocation
     count = comb(n, k, exact=True)
     # Get numpy iterable from ``itertools.combinations``
@@ -141,7 +141,7 @@ def comb_indices(n, k):
 
 # From https://docs.python.org/3/library/itertools.html#itertools-recipes
 def powerset(iterable, nonempty=False, reverse=False):
-    '''Generate the power set of an iterable.
+    """Generate the power set of an iterable.
 
     Args:
         iterable (Iterable): The iterable from which to generate the power set.
@@ -163,7 +163,7 @@ def powerset(iterable, nonempty=False, reverse=False):
         >>> ps = powerset(np.arange(2), nonempty=True, reverse=True)
         >>> list(ps)
         [(1, 0), (1,), (0,)]
-    '''
+    """
     iterable = list(iterable)
 
     if nonempty: # Don't include 0-length subsets
@@ -181,7 +181,7 @@ def powerset(iterable, nonempty=False, reverse=False):
 
 
 def load_data(directory, num):
-    '''Load numpy data from the data directory.
+    """Load numpy data from the data directory.
 
     The files should stored in ``../data/<dir>`` and named
     ``0.npy, 1.npy, ... <num - 1>.npy``.
@@ -189,7 +189,7 @@ def load_data(directory, num):
     Returns:
         list: A list of loaded data, such that ``list[i]`` contains the the
         contents of ``i.npy``.
-    '''
+    """
 
     root = os.path.abspath(os.path.dirname(__file__))
 

@@ -250,12 +250,12 @@ def test_concept_nonexistent(s, flushcache, restore_fs_cache):
 @patch('pyphi.compute.distance._ces_distance_emd')
 def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
                                                    mock_simple_distance, s):
-    '''Quick check that we use the correct CES distance function.
+    """Quick check that we use the correct CES distance function.
 
     If the two CESs differ only in that some concepts have
     moved to the null concept and all other concepts are the same then
     we use the simple CES distance. Otherwise, use the EMD.
-    '''
+    """
     mock_emd_distance.return_value = float()
     mock_simple_distance.return_value = float()
 

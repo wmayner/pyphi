@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # models/concept.py
 
-'''Objects that represent parts of cause-effect structures.'''
+"""Objects that represent parts of cause-effect structures."""
 
 import numpy as np
 
@@ -16,13 +16,13 @@ _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
 
 
 class Mip(cmp.Orderable):
-    '''A minimum information partition for |small_phi| calculation.
+    """A minimum information partition for |small_phi| calculation.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |small_phi| values are compared. Then, if these are
     equal up to |PRECISION|, the size of the mechanism is compared (see the
     |PICK_SMALLEST_PURVIEW| option in |config|.)
-    '''
+    """
 
     def __init__(self, phi, direction, mechanism, purview, partition,
                  unpartitioned_repertoire, partitioned_repertoire,
@@ -46,48 +46,48 @@ class Mip(cmp.Orderable):
 
     @property
     def phi(self):
-        '''float: This is the difference between the mechanism's unpartitioned
+        """float: This is the difference between the mechanism's unpartitioned
         and partitioned repertoires.
-        '''
+        """
         return self._phi
 
     @property
     def direction(self):
-        '''Direction: |CAUSE| or |EFFECT|.'''
+        """Direction: |CAUSE| or |EFFECT|."""
         return self._direction
 
     @property
     def mechanism(self):
-        '''tuple[int]: The mechanism over which to evaluate the MIP.'''
+        """tuple[int]: The mechanism over which to evaluate the MIP."""
         return self._mechanism
 
     @property
     def purview(self):
-        '''tuple[int]: The purview over which the unpartitioned repertoire
-        differs the least from the partitioned repertoire.'''
+        """tuple[int]: The purview over which the unpartitioned repertoire
+        differs the least from the partitioned repertoire."""
         return self._purview
 
     @property
     def partition(self):
-        '''KPartition: The partition that makes the least difference to the
-        mechanism's repertoire.'''
+        """KPartition: The partition that makes the least difference to the
+        mechanism's repertoire."""
         return self._partition
 
     @property
     def unpartitioned_repertoire(self):
-        '''np.ndarray: The unpartitioned repertoire of the mechanism.'''
+        """np.ndarray: The unpartitioned repertoire of the mechanism."""
         return self._unpartitioned_repertoire
 
     @property
     def partitioned_repertoire(self):
-        '''np.ndarray: The partitioned repertoire of the mechanism. This is the
+        """np.ndarray: The partitioned repertoire of the mechanism. This is the
         product of the repertoires of each part of the partition.
-        '''
+        """
         return self._partitioned_repertoire
 
     @property
     def subsystem(self):
-        '''Subsystem: The |Subsystem| this MIP belongs to.'''
+        """Subsystem: The |Subsystem| this MIP belongs to."""
         return self._subsystem
 
     unorderable_unless_eq = ['direction']
@@ -106,7 +106,7 @@ class Mip(cmp.Orderable):
         return cmp.general_eq(self, other, attrs)
 
     def __bool__(self):
-        '''A |Mip| is ``True`` if it has |small_phi > 0|.'''
+        """A |Mip| is ``True`` if it has |small_phi > 0|."""
         return not utils.eq(self.phi, 0)
 
     def __hash__(self):
@@ -127,7 +127,7 @@ class Mip(cmp.Orderable):
 
 
 def _null_mip(direction, mechanism, purview, unpartitioned_repertoire=None):
-    '''The null MIP (of a reducible mechanism).'''
+    """The null MIP (of a reducible mechanism)."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
     return Mip(direction=direction,
@@ -142,64 +142,64 @@ def _null_mip(direction, mechanism, purview, unpartitioned_repertoire=None):
 # =============================================================================
 
 class Mice(cmp.Orderable):
-    '''A maximally irreducible cause or effect.
+    """A maximally irreducible cause or effect.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |small_phi| values are compared. Then, if these are
     equal up to |PRECISION|, the size of the mechanism is compared (see the
     |PICK_SMALLEST_PURVIEW| option in |config|.)
-    '''
+    """
 
     def __init__(self, mip):
         self._mip = mip
 
     @property
     def phi(self):
-        '''float: The difference between the mechanism's unpartitioned and
+        """float: The difference between the mechanism's unpartitioned and
         partitioned repertoires.
-        '''
+        """
         return self._mip.phi
 
     @property
     def direction(self):
-        '''Direction: |CAUSE| or |EFFECT|.'''
+        """Direction: |CAUSE| or |EFFECT|."""
         return self._mip.direction
 
     @property
     def mechanism(self):
-        '''list[int]: The mechanism for which the MICE is evaluated.'''
+        """list[int]: The mechanism for which the MICE is evaluated."""
         return self._mip.mechanism
 
     @property
     def purview(self):
-        '''list[int]: The purview over which this mechanism's |small_phi| is
+        """list[int]: The purview over which this mechanism's |small_phi| is
         maximal.
-        '''
+        """
         return self._mip.purview
 
     @property
     def partition(self):
-        '''KPartition: The partition that makes the least difference to the
-        mechanism's repertoire.'''
+        """KPartition: The partition that makes the least difference to the
+        mechanism's repertoire."""
         return self._mip.partition
 
     @property
     def repertoire(self):
-        '''np.ndarray: The unpartitioned repertoire of the mechanism over the
+        """np.ndarray: The unpartitioned repertoire of the mechanism over the
         purview.
-        '''
+        """
         return self._mip.unpartitioned_repertoire
 
     @property
     def partitioned_repertoire(self):
-        '''np.ndarray: The partitioned repertoire of the mechanism over the
+        """np.ndarray: The partitioned repertoire of the mechanism over the
         purview.
-        '''
+        """
         return self._mip.partitioned_repertoire
 
     @property
     def mip(self):
-        '''MIP: The minimum information partition for this mechanism.'''
+        """MIP: The minimum information partition for this mechanism."""
         return self._mip
 
     def __repr__(self):
@@ -223,7 +223,7 @@ class Mice(cmp.Orderable):
         return {'mip': self.mip}
 
     def _relevant_connections(self, subsystem):
-        '''Identify connections that “matter” to this concept.
+        """Identify connections that “matter” to this concept.
 
         For a |MIC|, the important connections are those which connect the
         purview to the mechanism; for a |MIE| they are the connections from the
@@ -252,7 +252,7 @@ class Mice(cmp.Orderable):
 
         Raises:
             ValueError: If ``direction`` is invalid.
-        '''
+        """
         _from, to = self.direction.order(self.mechanism, self.purview)
         return connectivity.relevant_connections(subsystem.network.size,
                                                  _from, to)
@@ -260,11 +260,11 @@ class Mice(cmp.Orderable):
     # TODO: pass in `cut` instead? We can infer
     # subsystem indices from the cut itself, validate, and check.
     def damaged_by_cut(self, subsystem):
-        '''Return ``True`` if this |Mice| is affected by the subsystem's cut.
+        """Return ``True`` if this |Mice| is affected by the subsystem's cut.
 
         The cut affects the |Mice| if it either splits the |Mice|'s mechanism
         or splits the connections between the purview and mechanism.
-        '''
+        """
         return (subsystem.cut.splits_mechanism(self.mechanism) or
                 np.any(self._relevant_connections(subsystem) *
                        subsystem.cut.cut_matrix(subsystem.network.size) == 1))
@@ -278,7 +278,7 @@ _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem']
 # TODO: make mechanism a property
 # TODO: make phi a property
 class Concept(cmp.Orderable):
-    '''The maximally irreducible cause and effect specified by a mechanism.
+    """The maximally irreducible cause and effect specified by a mechanism.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |small_phi| values are compared. Then, if these are
@@ -292,7 +292,7 @@ class Concept(cmp.Orderable):
             of this concept.
         subsystem (Subsystem): This concept's parent subsystem.
         time (float): The number of seconds it took to calculate.
-    '''
+    """
 
     def __init__(self, mechanism=None, cause=None, effect=None,
                  subsystem=None, time=None):
@@ -310,31 +310,31 @@ class Concept(cmp.Orderable):
 
     @property
     def phi(self):
-        '''float: The size of the concept.
+        """float: The size of the concept.
 
         This is the minimum of the |small_phi| values of the concept's |MIC|
         and |MIE|.
-        '''
+        """
         return min(self.cause.phi, self.effect.phi)
 
     @property
     def cause_purview(self):
-        '''tuple[int]: The cause purview.'''
+        """tuple[int]: The cause purview."""
         return getattr(self.cause, 'purview', None)
 
     @property
     def effect_purview(self):
-        '''tuple[int]: The effect purview.'''
+        """tuple[int]: The effect purview."""
         return getattr(self.effect, 'purview', None)
 
     @property
     def cause_repertoire(self):
-        '''np.ndarray: The cause repertoire.'''
+        """np.ndarray: The cause repertoire."""
         return getattr(self.cause, 'repertoire', None)
 
     @property
     def effect_repertoire(self):
-        '''np.ndarray: The effect repertoire.'''
+        """np.ndarray: The effect repertoire."""
         return getattr(self.effect, 'repertoire', None)
 
     unorderable_unless_eq = ['subsystem']
@@ -363,52 +363,52 @@ class Concept(cmp.Orderable):
                      self.subsystem.network))
 
     def __bool__(self):
-        '''A concept is ``True`` if |small_phi > 0|.'''
+        """A concept is ``True`` if |small_phi > 0|."""
         return not utils.eq(self.phi, 0)
 
     def eq_repertoires(self, other):
-        '''Return whether this concept has the same repertoires as another.
+        """Return whether this concept has the same repertoires as another.
 
         .. warning::
             This only checks if the cause and effect repertoires are equal as
             arrays; mechanisms, purviews, or even the nodes that the mechanism
             and purview indices refer to, might be different.
-        '''
+        """
         return (
             np.array_equal(self.cause_repertoire, other.cause_repertoire) and
             np.array_equal(self.effect_repertoire, other.effect_repertoire))
 
     def emd_eq(self, other):
-        '''Return whether this concept is equal to another in the context of
+        """Return whether this concept is equal to another in the context of
         an EMD calculation.
-        '''
+        """
         return (self.phi == other.phi and
                 self.mechanism == other.mechanism and
                 self.eq_repertoires(other))
 
     # TODO Rename to expanded_cause_repertoire, etc
     def expand_cause_repertoire(self, new_purview=None):
-        '''See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`.'''
+        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
         return self.subsystem.expand_cause_repertoire(
             self.cause.repertoire, new_purview)
 
     def expand_effect_repertoire(self, new_purview=None):
-        '''See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`.'''
+        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
         return self.subsystem.expand_effect_repertoire(
             self.effect.repertoire, new_purview)
 
     def expand_partitioned_cause_repertoire(self):
-        '''See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`.'''
+        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
         return self.subsystem.expand_cause_repertoire(
             self.cause.mip.partitioned_repertoire)
 
     def expand_partitioned_effect_repertoire(self):
-        '''See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`.'''
+        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
         return self.subsystem.expand_effect_repertoire(
             self.effect.mip.partitioned_repertoire)
 
     def to_json(self):
-        '''Return a JSON-serializable representation.'''
+        """Return a JSON-serializable representation."""
         dct = {
             attr: getattr(self, attr)
             for attr in _concept_attributes + ['time']
@@ -440,11 +440,11 @@ class Concept(cmp.Orderable):
 
 
 class CauseEffectStructure(tuple):
-    '''A collection of concepts.'''
+    """A collection of concepts."""
     # TODO: compare CESs using set equality
 
     def __new__(cls, concepts=()):
-        '''Normalize the order of concepts in the |CauseEffectStructure|.'''
+        """Normalize the order of concepts in the |CauseEffectStructure|."""
         return super().__new__(cls, sorted(concepts, key=_concept_sort_key))
 
     def __repr__(self):
@@ -462,17 +462,17 @@ class CauseEffectStructure(tuple):
 
     @property
     def mechanisms(self):
-        '''The mechanism of each concept.'''
+        """The mechanism of each concept."""
         return [concept.mechanism for concept in self]
 
     @property
     def phis(self):
-        '''The |small_phi| values of each concept.'''
+        """The |small_phi| values of each concept."""
         return [concept.phi for concept in self]
 
     @property
     def labeled_mechanisms(self):
-        '''The labeled mechanism of each concept.'''
+        """The labeled mechanism of each concept."""
         if not self:
             return []
         label = self[0].subsystem.network.indices2labels
@@ -490,7 +490,7 @@ def _concept_sort_key(concept):
 # ordered.
 # TODO: remove this.
 def normalize_ces(ces):
-    '''Deterministically reorder the concepts in a |CauseEffectStructure|.
+    """Deterministically reorder the concepts in a |CauseEffectStructure|.
 
     Args:
         ces (CauseEffectStructure): The cause-effect structure in question.
@@ -498,5 +498,5 @@ def normalize_ces(ces):
     Returns:
         CauseEffectStructure: The cause-effect structure, ordered
         lexicographically by mechanism.
-    '''
+    """
     return CauseEffectStructure(ces)

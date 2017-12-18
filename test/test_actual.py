@@ -16,7 +16,7 @@ from pyphi.models import KPartition, Part
 
 @pytest.fixture
 def transition():
-    '''An OR gate with two inputs. The OR gate is ON, others are OFF.'''
+    """An OR gate with two inputs. The OR gate is ON, others are OFF."""
     tpm = np.array([
         [0, 0.5, 0.5],
         [0, 0.5, 0.5],
@@ -54,11 +54,11 @@ def prevention():
 
 @pytest.fixture
 def background_all_on():
-    '''Two OR gates, both ON.
+    """Two OR gates, both ON.
 
     If we look at the transition A -> B, then B should be frozen at t-1, and
     A should have no effect on B.
-    '''
+    """
     tpm = np.array([
         [0, 0],
         [1, 1],
@@ -72,7 +72,7 @@ def background_all_on():
 
 @pytest.fixture
 def background_all_off():
-    '''Two OR gates, both OFF.'''
+    """Two OR gates, both OFF."""
     tpm = np.array([
         [0, 0],
         [1, 1],
@@ -118,7 +118,7 @@ def test_background_noised():
 
 @pytest.fixture
 def background_3_node():
-    '''A is MAJ(ABC). B is OR(A, C). C is COPY(A).'''
+    """A is MAJ(ABC). B is OR(A, C). C is COPY(A)."""
     tpm = np.array([
         [0, 0, 0],
         [0, 1, 1],
@@ -138,7 +138,7 @@ def background_3_node():
     # If C = 0, then AB over AC should be irreducible.
     ((1, 1, 0), (0, 2), 1.0)])
 def test_background_3_node(before_state, purview, alpha, background_3_node):
-    '''Looking at transition (AB = 11) -> (AC = 11)'''
+    """Looking at transition (AB = 11) -> (AC = 11)"""
     after_state = (1, 1, 1)
     transition = actual.Transition(background_3_node, before_state,
                                    after_state, (0, 1), (0, 2))
@@ -148,7 +148,7 @@ def test_background_3_node(before_state, purview, alpha, background_3_node):
 
 
 def test_potential_purviews(background_3_node):
-    '''Purviews must be a subset of the corresponding cause/effect system.'''
+    """Purviews must be a subset of the corresponding cause/effect system."""
     transition = actual.Transition(background_3_node, (1, 1, 1), (1, 1, 1),
                                    (0, 1), (0, 2))
     assert transition.potential_purviews(Direction.CAUSE, (0, 2)) == [
@@ -350,8 +350,8 @@ def test_repertoires(direction, mechanism, purview, repertoire, transition):
 
 
 def test_invalid_repertoires(transition):
-    '''Check that elements outside the transition cannot be passed in
-    the mechanism or purview.'''
+    """Check that elements outside the transition cannot be passed in
+    the mechanism or purview."""
     with pytest.raises(ValueError):
         transition.effect_repertoire((1, 2), (0, 1))
 
@@ -409,7 +409,7 @@ def test_effect_ratio(mechanism, purview, ratio, transition):
 
 
 def test_ac_ex1_transition(transition):
-    '''Basic regression test for ac_ex1 example.'''
+    """Basic regression test for ac_ex1 example."""
 
     cause_account = actual.account(transition, Direction.CAUSE)
     assert len(cause_account) == 1

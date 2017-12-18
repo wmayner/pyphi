@@ -72,7 +72,7 @@ def test_materialize_list_only_when_needed():
 
 
 class MapError(MapSquare):
-    '''Raise an exception in the worker process.'''
+    """Raise an exception in the worker process."""
     @staticmethod
     def compute(num):
         raise Exception("I don't wanna!")

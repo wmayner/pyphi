@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # conf.py
 
-'''
+"""
 Loading a configuration
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -134,7 +134,7 @@ Miscellaneous
 
 The ``config`` API
 ~~~~~~~~~~~~~~~~~~
-'''
+"""
 
 # pylint: disable=too-few-public-methods,protected-access
 
@@ -153,7 +153,7 @@ log = logging.getLogger(__name__)
 
 
 class Option:
-    '''A descriptor implementing PyPhi configuration options.
+    """A descriptor implementing PyPhi configuration options.
 
     Args:
         default: The default value of this ``Option``.
@@ -166,7 +166,7 @@ class Option:
             of the option is changed. The ``Config`` instance is passed as
             the only argument to the callback.
         doc (str): Optional docstring for the option.
-    '''
+    """
     def __init__(self, default, values=None, on_change=None, doc=None):
         self.default = default
         self.values = values
@@ -200,19 +200,19 @@ class Option:
         self._callback(obj)
 
     def _validate(self, value):
-        '''Validate the new value.'''
+        """Validate the new value."""
         if self.values and value not in self.values:
             raise ValueError(
                 '{} is not a valid value for {}'.format(value, self.name))
 
     def _callback(self, obj):
-        '''Trigger any callbacks.'''
+        """Trigger any callbacks."""
         if self.on_change is not None:
             self.on_change(obj)
 
 
 class ConfigMeta(type):
-    '''Metaclass for ``Config``.
+    """Metaclass for ``Config``.
 
     Responsible for setting the name of each ``Option`` when a subclass of
     ``Config`` is created; because ``Option`` objects are defined on the class,
@@ -221,7 +221,7 @@ class ConfigMeta(type):
     Python 3.6 handles this exact need with the special descriptor method
     ``__set_name__`` (see PEP 487). We should use that once we drop support
     for 3.4 & 3.5.
-    '''
+    """
     def __init__(cls, cls_name, bases, namespace):
         super().__init__(cls_name, bases, namespace)
         for name, opt in cls.options().items():
@@ -229,10 +229,10 @@ class ConfigMeta(type):
 
 
 class Config(metaclass=ConfigMeta):
-    '''Base configuration object.
+    """Base configuration object.
 
     See ``PyphiConfig`` for usage.
-    '''
+    """
     def __init__(self):
         self._values = {}
         self._loaded_files = []
@@ -259,20 +259,20 @@ class Config(metaclass=ConfigMeta):
 
     @classmethod
     def options(cls):
-        '''Return a dictionary the ``Option`` objects for this config'''
+        """Return a dictionary the ``Option`` objects for this config"""
         return {k: v for k, v in cls.__dict__.items() if isinstance(v, Option)}
 
     def defaults(self):
-        '''Return the default values of this configuration.'''
+        """Return the default values of this configuration."""
         return {k: v.default for k, v in self.options().items()}
 
     def load_config_dict(self, dct):
-        '''Load a dictionary of configuration values.'''
+        """Load a dictionary of configuration values."""
         for k, v in dct.items():
             setattr(self, k, v)
 
     def load_config_file(self, filename):
-        '''Load config from a YAML file.'''
+        """Load config from a YAML file."""
         filename = os.path.abspath(filename)
 
         with open(filename) as f:
@@ -281,11 +281,11 @@ class Config(metaclass=ConfigMeta):
         self._loaded_files.append(filename)
 
     def snapshot(self):
-        '''Return a snapshot of the current values of this configuration.'''
+        """Return a snapshot of the current values of this configuration."""
         return copy(self._values)
 
     def override(self, **new_values):
-        '''Decorator and context manager to override configuration values.
+        """Decorator and context manager to override configuration values.
 
         The initial configuration values are reset after the decorated function
         returns or the context manager completes it block, even if the function
@@ -302,12 +302,12 @@ class Config(metaclass=ConfigMeta):
             >>> with config.override(PRECISION=100):
             ...     assert config.PRECISION == 100
             ...
-        '''
+        """
         return _override(self, **new_values)
 
 
 class _override(contextlib.ContextDecorator):
-    '''See ``Config.override`` for usage.'''
+    """See ``Config.override`` for usage."""
 
     def __init__(self, conf, **new_values):
         self.conf = conf
@@ -315,17 +315,17 @@ class _override(contextlib.ContextDecorator):
         self.initial_values = conf.snapshot()
 
     def __enter__(self):
-        '''Save original config values; override with new ones.'''
+        """Save original config values; override with new ones."""
         self.conf.load_config_dict(self.new_values)
 
     def __exit__(self, *exc):
-        '''Reset config to initial values; reraise any exceptions.'''
+        """Reset config to initial values; reraise any exceptions."""
         self.conf.load_config_dict(self.initial_values)
         return False
 
 
 def configure_logging(conf):
-    '''Reconfigure PyPhi logging based on the current configuration.'''
+    """Reconfigure PyPhi logging based on the current configuration."""
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
@@ -357,7 +357,7 @@ def configure_logging(conf):
 
 
 class PyphiConfig(Config):
-    '''``pyphi.config`` is an instance of this class.'''
+    """``pyphi.config`` is an instance of this class."""
 
     ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(False, doc="""
     In certain cases, making a cut can actually cause a previously reducible
@@ -590,7 +590,7 @@ class PyphiConfig(Config):
     concept-style system cuts will be used instead.""")
 
     def log(self):
-        '''Log current settings.'''
+        """Log current settings."""
         log.info('PyPhi v%s', __about__.__version__)
         if self._loaded_files:
             log.info('Loaded configuration from %s', self._loaded_files)

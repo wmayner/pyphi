@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # compute/distance.py
 
-'''
+"""
 Functions for computing distances between various PyPhi objects.
-'''
+"""
 
 import numpy as np
 
@@ -14,7 +14,7 @@ from ..distance import emd
 
 
 def concept_distance(c1, c2):
-    '''Return the distance between two concepts in concept space.
+    """Return the distance between two concepts in concept space.
 
     Args:
         c1 (Concept): The first concept.
@@ -22,7 +22,7 @@ def concept_distance(c1, c2):
 
     Returns:
         float: The distance between the two concepts in concept space.
-    '''
+    """
     # Calculate the sum of the past and future EMDs, expanding the repertoires
     # to the combined purview of the two concepts, so that the EMD signatures
     # are the same size.
@@ -36,11 +36,11 @@ def concept_distance(c1, c2):
 
 
 def _ces_distance_simple(C1, C2):
-    '''Return the distance between two cause-effect structures.
+    """Return the distance between two cause-effect structures.
 
     Assumes the only difference between them is that some concepts have
     disappeared.
-    '''
+    """
     # Make C1 refer to the bigger CES.
     if len(C2) > len(C1):
         C1, C2 = C2, C1
@@ -50,10 +50,10 @@ def _ces_distance_simple(C1, C2):
 
 
 def _ces_distance_emd(unique_C1, unique_C2):
-    '''Return the distance between two cause-effect structures.
+    """Return the distance between two cause-effect structures.
 
     Uses the generalized EMD.
-    '''
+    """
     # Get the pairwise distances between the concepts in the unpartitioned and
     # partitioned CESs.
     distances = np.array([
@@ -119,7 +119,7 @@ def _ces_distance_emd(unique_C1, unique_C2):
 
 
 def ces_distance(C1, C2):
-    '''Return the distance between two cause-effect structures.
+    """Return the distance between two cause-effect structures.
 
     Args:
         C1 (CauseEffectStructure): The first |CauseEffectStructure|.
@@ -128,7 +128,7 @@ def ces_distance(C1, C2):
     Returns:
         float: The distance between the two cause-effect structures in concept
         space.
-    '''
+    """
     if config.USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE:
         return round(small_phi_ces_distance(C1, C2), config.PRECISION)
 
@@ -147,5 +147,5 @@ def ces_distance(C1, C2):
 
 
 def small_phi_ces_distance(C1, C2):
-    '''Return the difference in |small_phi| between |CauseEffectStructure|.'''
+    """Return the difference in |small_phi| between |CauseEffectStructure|."""
     return sum(c.phi for c in C1) - sum(c.phi for c in C2)

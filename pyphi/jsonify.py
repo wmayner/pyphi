@@ -6,7 +6,7 @@
 # TODO: resolve schema issues with `vphi` and other external consumers
 # TODO: somehow check schema instead of version?
 
-'''
+"""
 PyPhi- and NumPy-aware JSON serialization.
 
 To be properly serialized and deserialized, PyPhi objects must implement a
@@ -34,7 +34,7 @@ The JSON encoder adds the name of the object and the current PyPhi version to
 the JSON stream. The JSON decoder uses this metadata to recursively deserialize
 the stream to a nested PyPhi object structure. The decoder will raise an
 exception if current PyPhi version doesn't match the version in the JSON data.
-'''
+"""
 
 import json
 
@@ -49,11 +49,11 @@ ID_KEY = '__id__'
 
 
 def _loadable_models():
-    '''A dictionary of loadable PyPhi models.
+    """A dictionary of loadable PyPhi models.
 
     These are stored in this function (instead of module scope) to resolve
     circular import issues.
-    '''
+    """
     classes = [
         Direction,
         pyphi.Network,
@@ -102,9 +102,9 @@ def _pop_metadata(dct):
 
 
 def jsonify(obj):  # pylint: disable=too-many-return-statements
-    '''Return a JSON-encodable representation of an object, recursively using
+    """Return a JSON-encodable representation of an object, recursively using
     any available ``to_json`` methods, converting NumPy arrays and datatypes to
-    native lists and types along the way.'''
+    native lists and types along the way."""
 
     # Call the `to_json` method if available and add metadata.
     if hasattr(obj, 'to_json'):
@@ -139,19 +139,19 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
 
 
 class PyPhiJSONEncoder(json.JSONEncoder):
-    '''JSONEncoder that allows serializing PyPhi objects with ``jsonify``.'''
+    """JSONEncoder that allows serializing PyPhi objects with ``jsonify``."""
 
     def encode(self, obj):  # pylint: disable=arguments-differ
-        '''Encode the output of ``jsonify`` with the default encoder.'''
+        """Encode the output of ``jsonify`` with the default encoder."""
         return super().encode(jsonify(obj))
 
     def iterencode(self, obj, **kwargs):  # pylint: disable=arguments-differ
-        '''Analog to `encode` used by json.dump.'''
+        """Analog to `encode` used by json.dump."""
         return super().iterencode(jsonify(obj), **kwargs)
 
 
 def _encoder_kwargs(user_kwargs):
-    '''Update kwargs for `dump` and `dumps` to use the PyPhi encoder.'''
+    """Update kwargs for `dump` and `dumps` to use the PyPhi encoder."""
     kwargs = {'separators': (',', ':'), 'cls': PyPhiJSONEncoder}
     kwargs.update(user_kwargs)
 
@@ -159,18 +159,18 @@ def _encoder_kwargs(user_kwargs):
 
 
 def dumps(obj, **user_kwargs):
-    '''Serialize ``obj`` as JSON-formatted stream.'''
+    """Serialize ``obj`` as JSON-formatted stream."""
     return json.dumps(obj, **_encoder_kwargs(user_kwargs))
 
 
 def dump(obj, fp, **user_kwargs):
-    '''Serialize ``obj`` as a JSON-formatted stream and write to ``fp`` (a
-    ``.write()``-supporting file-like object.'''
+    """Serialize ``obj`` as a JSON-formatted stream and write to ``fp`` (a
+    ``.write()``-supporting file-like object."""
     return json.dump(obj, fp, **_encoder_kwargs(user_kwargs))
 
 
 def _check_version(version):
-    '''Check whether the JSON version matches the PyPhi version.'''
+    """Check whether the JSON version matches the PyPhi version."""
     if version != pyphi.__version__:
         raise pyphi.exceptions.JSONVersionError(
             'Cannot load JSON from a different version of PyPhi. '
@@ -179,20 +179,20 @@ def _check_version(version):
 
 
 def _is_model(dct):
-    '''Check if ``dct`` is a PyPhi model serialization.'''
+    """Check if ``dct`` is a PyPhi model serialization."""
     return CLASS_KEY in dct
 
 
 class _ObjectCache(cache.DictCache):
-    '''Cache mapping ids to loaded objects, keyed by the id of the object.'''
+    """Cache mapping ids to loaded objects, keyed by the id of the object."""
     def key(self, dct, **kwargs):  # pylint: disable=arguments-differ
         return _get_metadata(dct)
 
 
 class PyPhiJSONDecoder(json.JSONDecoder):
-    '''Extension of the default encoder which automatically deserializes
+    """Extension of the default encoder which automatically deserializes
     PyPhi JSON to the appropriate model classes.
-    '''
+    """
     def __init__(self, *args, **kwargs):
         kwargs['object_hook'] = self._load_object
         super().__init__(*args, **kwargs)
@@ -204,14 +204,14 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         self._object_cache = _ObjectCache()
 
     def _load_object(self, obj):
-        '''Recursively load a PyPhi object.
+        """Recursively load a PyPhi object.
 
         PyPhi models are recursively loaded, using the model metadata to
         recreate the original object relations. Lists are cast to tuples
         because most objects in PyPhi which are serialized to lists (eg.
         mechanisms and purviews) are ultimately tuples. Other lists (tpms,
         repertoires) should be cast to the correct type in init methods.
-        '''
+        """
         if isinstance(obj, dict):
             obj = {k: self._load_object(v) for k, v in obj.items()}
             # Load a serialized PyPhi model
@@ -225,10 +225,10 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
     @cache.method('_object_cache')
     def _load_model(self, dct):
-        '''Load a serialized PyPhi model.
+        """Load a serialized PyPhi model.
 
         The object is memoized for reuse elsewhere in the object graph.
-        '''
+        """
         classname, version, _ = _pop_metadata(dct)
 
         _check_version(version)
@@ -243,10 +243,10 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
 
 def loads(string):
-    '''Deserialize a JSON string to a Python object.'''
+    """Deserialize a JSON string to a Python object."""
     return json.loads(string, cls=PyPhiJSONDecoder)
 
 
 def load(fp):
-    '''Deserialize a JSON stream to a Python object.'''
+    """Deserialize a JSON stream to a Python object."""
     return json.load(fp, cls=PyPhiJSONDecoder)

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # models/fmt.py
 
-'''
+"""
 Helper functions for formatting pretty representations of PyPhi models.
-'''
+"""
 
 from fractions import Fraction
 from itertools import chain
@@ -45,7 +45,7 @@ NICE_DENOMINATORS   = list(range(16)) + [16, 32, 64, 128]
 
 
 def make_repr(self, attrs):
-    '''Construct a repr string.
+    """Construct a repr string.
 
     If `config.REPR_VERBOSITY` is ``1`` or ``2``, this function calls the
     object's __str__ method. Although this breaks the convention that __repr__
@@ -60,7 +60,7 @@ def make_repr(self, attrs):
 
     Returns:
         str: the ``repr``esentation of the object
-    '''
+    """
     # TODO: change this to a closure so we can do
     # __repr__ = make_repr(attrs) ???
 
@@ -75,7 +75,7 @@ def make_repr(self, attrs):
 
 
 def indent(lines, amount=2, char=' '):
-    '''Indent a string.
+    """Indent a string.
 
     Prepends whitespace to every line in the passed string. (Lines are
     separated by newline characters.)
@@ -94,19 +94,19 @@ def indent(lines, amount=2, char=' '):
         >>> print(indent('line1\\nline2', char='*'))
         **line1
         **line2
-    '''
+    """
     lines = str(lines)
     padding = amount * char
     return padding + ('\n' + padding).join(lines.split('\n'))
 
 
 def margin(text):
-    '''Add a margin to both ends of each line in the string.
+    """Add a margin to both ends of each line in the string.
 
     Example:
         >>> margin('line1\\nline2')
         '  line1  \\n  line2  '
-    '''
+    """
     lines = str(text).split('\n')
     return '\n'.join('  {}  '.format(l) for l in lines)
 
@@ -115,7 +115,7 @@ LINES_FORMAT_STR = VERTICAL_SIDE + ' {line:<{width}} ' + VERTICAL_SIDE
 
 
 def box(text):
-    '''Wrap a chunk of text in a box.
+    """Wrap a chunk of text in a box.
 
     Example:
         >>> print(box('line1\\nline2'))
@@ -123,7 +123,7 @@ def box(text):
         │ line1 │
         │ line2 │
         └───────┘
-    '''
+    """
     lines = text.split('\n')
 
     width = max(len(l) for l in lines)
@@ -138,7 +138,7 @@ def box(text):
 
 
 def side_by_side(left, right):
-    '''Put two boxes next to each other.
+    """Put two boxes next to each other.
 
     Assumes that all lines in the boxes are the same width.
 
@@ -149,7 +149,7 @@ def side_by_side(left, right):
         A B
         C D
         <BLANKLINE>
-    '''
+    """
     left_lines = list(left.split('\n'))
     right_lines = list(right.split('\n'))
 
@@ -166,10 +166,10 @@ def side_by_side(left, right):
 
 
 def header(head, text, over_char=None, under_char=None, center=True):
-    '''Center a head over a block of text.
+    """Center a head over a block of text.
 
     The width of the text is the width of the longest line of the text.
-    '''
+    """
     lines = list(text.split('\n'))
     width = max(len(l) for l in lines)
 
@@ -191,18 +191,18 @@ def header(head, text, over_char=None, under_char=None, center=True):
 
 
 def labels(indices, subsystem=None):
-    '''Get the labels for a tuple of mechanism indices.'''
+    """Get the labels for a tuple of mechanism indices."""
     if subsystem is None:
         return tuple(map(str, indices))
     return subsystem.indices2labels(indices)
 
 
 def fmt_number(p):
-    '''Format a number.
+    """Format a number.
 
     It will be printed as a fraction if the denominator isn't too big and as a
     decimal otherwise.
-    '''
+    """
     formatted = '{:n}'.format(p)
 
     if not config.PRINT_FRACTIONS:
@@ -218,19 +218,19 @@ def fmt_number(p):
 
 
 def fmt_mechanism(indices, subsystem=None):
-    '''Format a mechanism or purview.'''
+    """Format a mechanism or purview."""
     return '[' + ', '.join(labels(indices, subsystem)) + ']'
 
 
 def fmt_part(part, subsystem=None):
-    '''Format a |Part|.
+    """Format a |Part|.
 
     The returned string looks like::
 
         0,1
         ───
          ∅
-    '''
+    """
     def nodes(x):  # pylint: disable=missing-docstring
         return ','.join(labels(x, subsystem)) if x else EMPTY_SET
 
@@ -248,7 +248,7 @@ def fmt_part(part, subsystem=None):
 
 
 def fmt_bipartition(partition, subsystem=None):
-    '''Format a |Bipartition|.
+    """Format a |Bipartition|.
 
     The returned string looks like::
 
@@ -261,7 +261,7 @@ def fmt_bipartition(partition, subsystem=None):
 
     Returns:
         str: A human-readable string representation of the partition.
-    '''
+    """
     if not partition:
         return ''
 
@@ -281,7 +281,7 @@ def fmt_bipartition(partition, subsystem=None):
 
 
 def fmt_ces(c, title=None):
-    '''Format a |CauseEffectStructure|.'''
+    """Format a |CauseEffectStructure|."""
     if not c:
         return '()\n'
 
@@ -296,7 +296,7 @@ def fmt_ces(c, title=None):
 
 
 def fmt_concept(concept):
-    '''Format a |Concept|.'''
+    """Format a |Concept|."""
 
     def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
         if not x:
@@ -320,7 +320,7 @@ def fmt_concept(concept):
 
 
 def fmt_mip(mip, verbose=True):
-    '''Format a |Mip|.'''
+    """Format a |Mip|."""
     if mip is False or mip is None:  # mips can be Falsy
         return ''
 
@@ -364,7 +364,7 @@ def fmt_mip(mip, verbose=True):
 
 
 def fmt_cut(cut, subsystem=None):
-    '''Format a |Cut|.'''
+    """Format a |Cut|."""
     # HACK HACK
     # TODO: fix this mess.
     from .cuts import KCut, NullCut
@@ -391,12 +391,12 @@ def fmt_cut(cut, subsystem=None):
 
 
 def fmt_kcut(cut):
-    '''Format a |KCut|.'''
+    """Format a |KCut|."""
     return 'KCut {}\n{}'.format(cut.direction, cut.partition)
 
 
 def fmt_sia(sia, ces=True):
-    '''Format a |SystemIrreducibilityAnalysis|.'''
+    """Format a |SystemIrreducibilityAnalysis|."""
     if ces:
         body = (
             '{unpartitioned_ces}'
@@ -423,7 +423,7 @@ def fmt_sia(sia, ces=True):
 
 
 def fmt_repertoire(r):
-    '''Format a repertoire.'''
+    """Format a repertoire."""
     # TODO: will this get unwieldy with large repertoires?
     if r is None:
         return ''
@@ -451,7 +451,7 @@ def fmt_repertoire(r):
 
 
 def fmt_ac_mip(mip):
-    '''Format an AcMip.'''
+    """Format an AcMip."""
     if mip is None:
         return ''
 
@@ -469,7 +469,7 @@ def fmt_ac_mip(mip):
 
 
 def fmt_account(account, title=None):
-    '''Format an Account or a DirectedAccount.'''
+    """Format an Account or a DirectedAccount."""
 
     if title is None:
         title = account.__class__.__name__  # `Account` or `DirectedAccount`
@@ -487,7 +487,7 @@ def fmt_account(account, title=None):
 
 
 def fmt_ac_sia(ac_sia):
-    '''Format a AcSystemIrreducibilityAnalysis.'''
+    """Format a AcSystemIrreducibilityAnalysis."""
     body = (
         '{ALPHA} = {alpha}\n'
         'direction: {ac_sia.direction}\n'
@@ -511,7 +511,7 @@ def fmt_ac_sia(ac_sia):
 
 
 def fmt_transition(t):
-    '''Format a |Transition|.'''
+    """Format a |Transition|."""
     return "Transition({} {} {})".format(
         fmt_mechanism(t.cause_indices, t.cause_system),
         ARROW_RIGHT,

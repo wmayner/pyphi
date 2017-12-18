@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # constants.py
 
-'''
+"""
 Package-wide constants.
-'''
+"""
 
 import pickle
 

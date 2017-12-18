@@ -14,7 +14,7 @@ from pyphi import Direction, Subsystem, config, constants, models
 
 def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
         unpartitioned_repertoire=None, partitioned_repertoire=None):
-    '''Build a ``Mip``.'''
+    """Build a ``Mip``."""
     return models.Mip(phi=phi, direction=direction, mechanism=mechanism,
                       purview=purview, partition=partition,
                       unpartitioned_repertoire=unpartitioned_repertoire,
@@ -22,13 +22,13 @@ def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
 
 
 def mice(**kwargs):
-    '''Build a ``Mice``.'''
+    """Build a ``Mice``."""
     return models.Mice(mip(**kwargs))
 
 
 def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
             subsystem=None):
-    '''Build a ``Concept``.'''
+    """Build a ``Concept``."""
     return models.Concept(
         mechanism=mechanism,
         cause=mice(mechanism=mechanism, purview=cause_purview, phi=phi),
@@ -38,7 +38,7 @@ def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
 
 def bigmip(unpartitioned_ces=(), partitioned_ces=(),
            subsystem=None, cut_subsystem=None, phi=1.0):
-    '''Build a ``SystemIrreducibilityAnalysis``.'''
+    """Build a ``SystemIrreducibilityAnalysis``."""
     cut_subsystem = cut_subsystem or subsystem
 
     return models.SystemIrreducibilityAnalysis(
@@ -622,7 +622,7 @@ def test_indent():
 
 
 class ReadableReprClass:
-    '''Dummy class for make_repr tests'''
+    """Dummy class for make_repr tests"""
     some_attr = 3.14
 
     def __repr__(self):

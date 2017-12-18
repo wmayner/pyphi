@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # network.py
 
-'''
+"""
 Represents the network of interest. This is the primary object of PyPhi and the
 context of all |small_phi| and |big_phi| computation.
-'''
+"""
 
 import json
 
@@ -17,7 +17,7 @@ from .tpm import is_state_by_state
 
 
 class Network:
-    '''A network of nodes.
+    """A network of nodes.
 
     Represents the network we're analyzing and holds auxilary data about it.
 
@@ -55,7 +55,7 @@ class Network:
         In a 3-node network, ``a_network.tpm[(0, 0, 1)]`` gives the transition
         probabilities for each node at |t| given that state at |t-1| was
         |n0 = 0, n1 = 0, n2 = 1|.
-    '''
+    """
 
     # TODO make tpm also optional when implementing logical network definition
     def __init__(self, tpm, connectivity_matrix=None, node_labels=None,
@@ -71,15 +71,15 @@ class Network:
 
     @property
     def tpm(self):
-        '''np.ndarray: The network's transition probability matrix, in
-        n-dimensional form.'''
+        """np.ndarray: The network's transition probability matrix, in
+        n-dimensional form."""
         return self._tpm
 
     @staticmethod
     def _build_tpm(tpm):
-        '''Validate the TPM passed by the user and convert to n-dimensional
+        """Validate the TPM passed by the user and convert to n-dimensional
         form.
-        '''
+        """
         tpm = np.array(tpm)
 
         validate.tpm(tpm)
@@ -96,16 +96,16 @@ class Network:
 
     @property
     def cm(self):
-        '''np.ndarray: The network's connectivity matrix.
+        """np.ndarray: The network's connectivity matrix.
 
         A square binary adjacency matrix indicating the connections between
         nodes in the network.
-        '''
+        """
         return self._cm
 
     def _build_cm(self, cm):
-        '''Convert the passed CM to the proper format, or construct the
-        unitary CM if none was provided.'''
+        """Convert the passed CM to the proper format, or construct the
+        unitary CM if none was provided."""
         if cm is None:
             # Assume all are connected.
             cm = np.ones((self.size, self.size))
@@ -118,51 +118,51 @@ class Network:
 
     @property
     def connectivity_matrix(self):
-        '''np.ndarray: Alias for ``cm``.'''
+        """np.ndarray: Alias for ``cm``."""
         return self._cm
 
     @property
     def causally_significant_nodes(self):
-        '''See :func:`pyphi.connectivity.causally_significant_nodes`.'''
+        """See :func:`pyphi.connectivity.causally_significant_nodes`."""
         return connectivity.causally_significant_nodes(self.cm)
 
     @property
     def size(self):
-        '''int: The number of nodes in the network.'''
+        """int: The number of nodes in the network."""
         return self.tpm.shape[-1]
 
     # TODO extend to nonbinary nodes
     @property
     def num_states(self):
-        '''int: The number of possible states of the network.'''
+        """int: The number of possible states of the network."""
         return 2 ** self.size
 
     @property
     def node_indices(self):
-        '''tuple[int]: The indices of nodes in the network.
+        """tuple[int]: The indices of nodes in the network.
 
         This is equivalent to ``tuple(range(network.size))``.
-        '''
+        """
         return self._node_indices
 
     @property
     def node_labels(self):
-        '''tuple[str]: The labels of nodes in the network.'''
+        """tuple[str]: The labels of nodes in the network."""
         return self._node_labels
 
     def labels2indices(self, labels):
-        '''Convert a tuple of node labels to node indices.'''
+        """Convert a tuple of node labels to node indices."""
         _map = dict(zip(self.node_labels, self.node_indices))
         return tuple(_map[label] for label in labels)
 
     def indices2labels(self, indices):
-        '''Convert a tuple of node indices to node labels.'''
+        """Convert a tuple of node indices to node labels."""
         _map = dict(zip(self.node_indices, self.node_labels))
         return tuple(_map[index] for index in indices)
 
     def parse_node_indices(self, nodes):
-        '''Returns the nodes indices for nodes, where ``nodes`` is either
-        already integer indices or node labels.'''
+        """Returns the nodes indices for nodes, where ``nodes`` is either
+        already integer indices or node labels."""
         if not nodes:
             indices = ()
         elif all(isinstance(node, str) for node in nodes):
@@ -175,7 +175,7 @@ class Network:
     # interested in caching at the Network-level...
     @cache.method('purview_cache')
     def potential_purviews(self, direction, mechanism):
-        '''All purviews which are not clearly reducible for mechanism.
+        """All purviews which are not clearly reducible for mechanism.
 
         Args:
             direction (Direction): |CAUSE| or |EFFECT|.
@@ -185,7 +185,7 @@ class Network:
         Returns:
             list[tuple[int]]: All purviews which are irreducible over
             ``mechanism``.
-        '''
+        """
         all_purviews = utils.powerset(self._node_indices)
         return irreducible_purviews(self.cm, direction, mechanism,
                                     all_purviews)
@@ -197,10 +197,10 @@ class Network:
         return self.__repr__()
 
     def __eq__(self, other):
-        '''Return whether this network equals the other object.
+        """Return whether this network equals the other object.
 
         Networks are equal if they have the same TPM and CM.
-        '''
+        """
         return (np.array_equal(self.tpm, other.tpm)
                 and np.array_equal(self.cm, other.cm)
                 if isinstance(other, type(self)) else False)
@@ -213,7 +213,7 @@ class Network:
         return hash((self._tpm_hash, self._cm_hash))
 
     def to_json(self):
-        '''Return a JSON-serializable representation.'''
+        """Return a JSON-serializable representation."""
         return {
             'tpm': self.tpm,
             'cm': self.cm,
@@ -223,13 +223,13 @@ class Network:
 
     @classmethod
     def from_json(cls, json_dict):
-        '''Return a |Network| object from a JSON dictionary representation.'''
+        """Return a |Network| object from a JSON dictionary representation."""
         return Network(json_dict['tpm'], json_dict['cm'],
                        node_labels=json_dict['labels'])
 
 
 def irreducible_purviews(cm, direction, mechanism, purviews):
-    '''Returns all purview which are irreducible for the mechanism.
+    """Returns all purview which are irreducible for the mechanism.
 
     Args:
         cm (np.ndarray): An |N x N| connectivity matrix.
@@ -243,9 +243,9 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
 
     Raises:
         ValueError: If ``direction`` is invalid.
-    '''
+    """
     def reducible(purview):
-        '''Returns ``True`` if purview is trivially reducible.'''
+        """Returns ``True`` if purview is trivially reducible."""
         _from, to = direction.order(mechanism, purview)
         return connectivity.block_reducible(cm, _from, to)
 
@@ -253,14 +253,14 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
 
 
 def from_json(filename):
-    '''Convert a JSON network to a PyPhi network.
+    """Convert a JSON network to a PyPhi network.
 
     Args:
         filename (str): A path to a JSON file representing a network.
 
     Returns:
        Network: The corresponding PyPhi network object.
-    '''
+    """
     with open(filename) as f:
         loaded = json.load(f)
 

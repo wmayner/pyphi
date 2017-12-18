@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # compute/big_phi.py
 
-'''
+"""
 Functions for computing integrated information and finding complexes.
-'''
+"""
 
 import functools
 import logging
@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 
 
 def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
-    '''Find the |SystemIrreducibilityAnalysis| for a given cut.
+    """Find the |SystemIrreducibilityAnalysis| for a given cut.
 
     Args:
         uncut_subsystem (Subsystem): The subsystem without the cut applied.
@@ -35,7 +35,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
     Returns:
         SystemIrreducibilityAnalysis: The |SystemIrreducibilityAnalysis| for
         that cut.
-    '''
+    """
     log.debug('Evaluating %s...', cut)
 
     cut_subsystem = uncut_subsystem.apply_cut(cut)
@@ -65,25 +65,25 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
 
 
 class FindMip(MapReduce):
-    '''Computation engine for finding the minimal
+    """Computation engine for finding the minimal
     |SystemIrreducibilityAnalysis|.
-    '''
+    """
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
 
     def empty_result(self, subsystem, unpartitioned_ces):
-        '''Begin with a mip with infinite |big_phi|; all actual mips will have
-        less.'''
+        """Begin with a mip with infinite |big_phi|; all actual mips will have
+        less."""
         return _null_bigmip(subsystem, phi=float('inf'))
 
     @staticmethod
     def compute(cut, subsystem, unpartitioned_ces):
-        '''Evaluate a cut.'''
+        """Evaluate a cut."""
         return evaluate_cut(subsystem, cut, unpartitioned_ces)
 
     def process_result(self, new_mip, min_mip):
-        '''Check if the new mip has smaller phi than the standing result.'''
+        """Check if the new mip has smaller phi than the standing result."""
         if new_mip.phi == 0:
             self.done = True  # Short-circuit
             return new_mip
@@ -95,7 +95,7 @@ class FindMip(MapReduce):
 
 
 def sia_bipartitions(nodes):
-    '''Return all |big_phi| cuts for the given nodes.
+    """Return all |big_phi| cuts for the given nodes.
 
     This value changes based on :const:`config.CUT_ONE_APPROXIMATION`.
 
@@ -103,7 +103,7 @@ def sia_bipartitions(nodes):
         nodes (tuple[int]): The node indices to partition.
     Returns:
         list[Cut]: All unidirectional partitions.
-    '''
+    """
     if config.CUT_ONE_APPROXIMATION:
         bipartitions = directed_bipartition_of_one(nodes)
     else:
@@ -115,16 +115,16 @@ def sia_bipartitions(nodes):
 
 
 def _unpartitioned_ces(subsystem):
-    '''Parallelize the unpartitioned |CauseEffectStructure| if parallelizing
+    """Parallelize the unpartitioned |CauseEffectStructure| if parallelizing
     cuts, since we have free processors because we're not computing any cuts
-    yet.'''
+    yet."""
     return ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
 
 
 # pylint: disable=unused-argument
 @memory.cache(ignore=["subsystem"])
 def _sia(cache_key, subsystem):
-    '''Return the minimal information partition of a subsystem.
+    """Return the minimal information partition of a subsystem.
 
     Args:
         subsystem (Subsystem): The candidate set of nodes.
@@ -133,17 +133,17 @@ def _sia(cache_key, subsystem):
         SystemIrreducibilityAnalysis: A nested structure containing all the
         data from the intermediate calculations. The top level contains the
         basic MIP information for the given subsystem.
-    '''
+    """
     log.info('Calculating big-phi data for %s...', subsystem)
     start = time()
 
     def time_annotated(bm, small_phi_time=0.0):
-        '''Annote a |SystemIrreducibilityAnalysis| with the total elapsed
+        """Annote a |SystemIrreducibilityAnalysis| with the total elapsed
         calculation time.
 
         Optionally add the time taken to calculate the unpartitioned
         |CauseEffectStructure|.
-        '''
+        """
         bm.time = round(time() - start, config.PRECISION)
         bm.small_phi_time = round(small_phi_time, config.PRECISION)
         return bm
@@ -209,11 +209,11 @@ def _sia(cache_key, subsystem):
 # TODO(maintainance): don't forget to add any new configuration options here if
 # they can change big-phi values
 def _sia_cache_key(subsystem):
-    '''The cache key of the subsystem.
+    """The cache key of the subsystem.
 
     This includes the native hash of the subsystem and all configuration values
     which change the results of ``sia``.
-    '''
+    """
     return (
         hash(subsystem),
         config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS,
@@ -239,12 +239,12 @@ def sia(subsystem):  # pylint: disable=missing-docstring
 
 
 def big_phi(subsystem):
-    '''Return the |big_phi| value of a subsystem.'''
+    """Return the |big_phi| value of a subsystem."""
     return sia(subsystem).phi
 
 
 def _reachable_subsystems(network, indices, state):
-    '''A generator over all subsystems in a valid state.'''
+    """A generator over all subsystems in a valid state."""
     validate.is_network(network)
 
     # Return subsystems largest to smallest to optimize parallel
@@ -257,15 +257,15 @@ def _reachable_subsystems(network, indices, state):
 
 
 def subsystems(network, state):
-    '''Return a generator of all **possible** subsystems of a network.
+    """Return a generator of all **possible** subsystems of a network.
 
     Does not return subsystems that are in an impossible state.
-    '''
+    """
     return _reachable_subsystems(network, network.node_indices, state)
 
 
 def possible_complexes(network, state):
-    '''Return a generator of subsystems of a network that could be a complex.
+    """Return a generator of subsystems of a network that could be a complex.
 
     This is the just powerset of the nodes that have at least one input and
     output (nodes with no inputs or no outputs cannot be part of a main
@@ -280,12 +280,12 @@ def possible_complexes(network, state):
 
     Yields:
         Subsystem: The next subsystem which could be a complex.
-    '''
+    """
     return _reachable_subsystems(network, network.causally_significant_nodes,
                                  state)
 
 class FindAllComplexes(MapReduce):
-    '''Computation engine for computing all complexes'''
+    """Computation engine for computing all complexes"""
     # pylint: disable=unused-argument,arguments-differ
     description = 'Finding complexes'
 
@@ -302,17 +302,17 @@ class FindAllComplexes(MapReduce):
 
 
 def all_complexes(network, state):
-    '''Return a generator for all complexes of the network.
+    """Return a generator for all complexes of the network.
 
     Includes reducible, zero-|big_phi| complexes (which are not, strictly
     speaking, complexes at all).
-    '''
+    """
     engine = FindAllComplexes(subsystems(network, state))
     return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
 
 
 class FindIrreducibleComplexes(FindAllComplexes):
-    '''Computation engine for computing irreducible complexes of a network.'''
+    """Computation engine for computing irreducible complexes of a network."""
 
     def process_result(self, new_sia, sias):
         if new_sia.phi > 0:
@@ -321,13 +321,13 @@ class FindIrreducibleComplexes(FindAllComplexes):
 
 
 def complexes(network, state):
-    '''Return all irreducible complexes of the network.'''
+    """Return all irreducible complexes of the network."""
     engine = FindIrreducibleComplexes(possible_complexes(network, state))
     return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
 
 
 def major_complex(network, state):
-    '''Return the main complex of the network.'''
+    """Return the main complex of the network."""
     log.info('Calculating main complex...')
 
     result = complexes(network, state)
@@ -343,7 +343,7 @@ def major_complex(network, state):
 
 
 def condensed(network, state):
-    '''Return the set of maximal non-overlapping complexes.'''
+    """Return the set of maximal non-overlapping complexes."""
     result = []
     covered_nodes = set()
 
@@ -396,8 +396,8 @@ class ConceptStyleSystem:
 
     def concept(self, mechanism, purviews=False, past_purviews=False,
                 future_purviews=False):
-        '''Compute a concept, using the appropriate system for each side of
-        the cut.'''
+        """Compute a concept, using the appropriate system for each side of
+        the cut."""
         cause = self.cause_system.mic(
             mechanism, purviews=(past_purviews or purviews))
 
@@ -412,7 +412,7 @@ class ConceptStyleSystem:
 
 
 def concept_cuts(direction, node_indices):
-    '''Generator over all concept-syle cuts for these nodes.'''
+    """Generator over all concept-syle cuts for these nodes."""
     for partition in mip_partitions(node_indices, node_indices):
         yield KCut(direction, partition)
 
@@ -434,7 +434,7 @@ def directional_sia(subsystem, direction, unpartitioned_ces=None):
 
 # TODO: only return the minimal mip, instead of both
 class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
-    '''Represents a Big Mip computed using concept-style system cuts.'''
+    """Represents a Big Mip computed using concept-style system cuts."""
 
     def __init__(self, mip_past, mip_future):
         self.sia_past = mip_past
@@ -445,7 +445,7 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
         return min(self.sia_past, self.sia_future, key=lambda m: m.phi)
 
     def __getattr__(self, name):
-        '''Pass attribute access through to the minimal mip.'''
+        """Pass attribute access through to the minimal mip."""
         if ('sia_past' in self.__dict__ and
                 'sia_future' in self.__dict__):
             return getattr(self.min_mip, name)
@@ -468,7 +468,7 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
 
 # TODO: cache
 def sia_concept_style(subsystem):
-    '''Compute a concept-style Big Mip'''
+    """Compute a concept-style Big Mip"""
     unpartitioned_ces = _unpartitioned_ces(subsystem)
 
     mip_past = directional_sia(subsystem, Direction.CAUSE,
