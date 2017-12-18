@@ -95,7 +95,7 @@ on the value of |C|. Any purview larger than |C| would be reducible by pruning
 away the additional elements.
 
 +------------------------------------------------------------------+
-| Major Complex: |ABC| with :math:`\Phi = 1.875`                    |
+| Major Complex: |ABC| with :math:`\Phi = 1.875`                   |
 +---------------+-----------------+---------------+----------------+
 |   Mechanism   | :math:`\varphi` | Cause Purview | Effect Purview |
 +===============+=================+===============+================+
