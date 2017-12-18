@@ -307,9 +307,9 @@ def test_sia_cache_key_includes_config_dependencies(s, flushcache,
     assert l1_big_phi != emd_big_phi
 
 
-def test_conceptual_information(s, flushcache, restore_fs_cache):
+def test_conceptual_info(s, flushcache, restore_fs_cache):
     flushcache()
-    assert compute.conceptual_information(s) == 2.8125
+    assert compute.conceptual_info(s) == 2.8125
 
 
 def test_sia_empty_subsystem(s_empty, flushcache, restore_fs_cache):

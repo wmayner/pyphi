@@ -541,9 +541,9 @@ Figure 11
 (constellation of concepts).**
 
 Conceptual information can be computed using the function named, as you might
-expect, |compute.conceptual_information|:
+expect, |compute.conceptual_info|:
 
-    >>> pyphi.compute.conceptual_information(subsystem)
+    >>> pyphi.compute.conceptual_info(subsystem)
     2.1111089999999999
 
 

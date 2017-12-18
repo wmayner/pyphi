@@ -116,7 +116,7 @@ def ces(subsystem, mechanisms=False, purviews=False, cause_purviews=False,
         engine.run(parallel or config.PARALLEL_CONCEPT_EVALUATION))
 
 
-def conceptual_information(subsystem):
+def conceptual_info(subsystem):
     """Return the conceptual information for a |Subsystem|.
 
     This is the distance from the subsystem's |CauseEffectStructure| to the

@@ -8,7 +8,7 @@ See :mod:`compute.concept` and :mod:`compute.big_phi` for documentation.
 
 Attributes:
     concept: Alias for :func:`concept.concept`.
-    conceptual_information: Alias for :func:`concept.conceptual_information`.
+    conceptual_info: Alias for :func:`concept.conceptual_info`.
     ces: Alias for :func:`concept.ces`.
     concept_distance: Alias for :func:`distance.concept_distance`.
     ces_distance: Alias for :func:`distance.ces_distance`.
@@ -27,5 +27,5 @@ from .big_phi import (all_complexes, sia, phi, complexes, condensed,
                       evaluate_cut, major_complex, possible_complexes,
                       subsystems, ConceptStyleSystem, sia_concept_style,
                       concept_cuts, SystemIrreducibilityAnalysisConceptStyle)
-from .concept import concept, conceptual_information, ces
+from .concept import concept, conceptual_info, ces
 from .distance import concept_distance, ces_distance
