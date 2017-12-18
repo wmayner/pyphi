@@ -17,7 +17,7 @@ from .distance import mechanism_repertoire_distance as repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, KPartition,
                      MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
-                     RepertoireIrreducibilityAnalysis, NullCut, Part,
+                     NullCut, Part, RepertoireIrreducibilityAnalysis,
                      Tripartition, _null_ria, cmp)
 from .network import irreducible_purviews
 from .node import generate_nodes

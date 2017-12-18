@@ -8,7 +8,7 @@ import pytest
 
 import example_networks
 from pyphi import Direction, constants
-from pyphi.models import RepertoireIrreducibilityAnalysis, Part
+from pyphi.models import Part, RepertoireIrreducibilityAnalysis
 
 s = example_networks.s()
 

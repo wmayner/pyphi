@@ -21,8 +21,8 @@ from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
 from .models import (Account, AcRepertoireIrreducibilityAnalysis,
                      AcSystemIrreducibilityAnalysis, ActualCut, CausalLink,
-                     DirectedAccount, Event, NullCut, _null_ac_sia,
-                     _null_ac_ria, fmt)
+                     DirectedAccount, Event, NullCut, _null_ac_ria,
+                     _null_ac_sia, fmt)
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)

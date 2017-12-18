@@ -7,7 +7,7 @@ from collections import namedtuple
 import numpy as np
 import pytest
 
-from pyphi import Direction, Subsystem, config, constants, models, exceptions
+from pyphi import Direction, Subsystem, config, constants, exceptions, models
 
 # Helper functions for constructing PyPhi objects
 # -----------------------------------------------
