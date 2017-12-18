@@ -2,7 +2,7 @@
 # compute/big_phi.py
 
 """
-Functions for computing integrated information and finding complexes.
+Functions for computing subsystem-level properties.
 """
 
 import functools
@@ -11,11 +11,10 @@ from time import time
 
 from .. import (Direction, config, connectivity, exceptions, memory, utils,
                 validate)
-from ..models import (Concept, Cut, KCut, SystemIrreducibilityAnalysis,
-                      _null_sia, cmp, fmt)
+from ..models import (CauseEffectStructure, Concept, Cut, KCut,
+                      SystemIrreducibilityAnalysis, _null_sia, cmp, fmt)
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem, mip_partitions
-from .concept import ces as compute_ces
 from .distance import ces_distance
 from .parallel import MapReduce
 
@@ -23,13 +22,85 @@ from .parallel import MapReduce
 log = logging.getLogger(__name__)
 
 
-def evaluate_cut(uncut_subsystem, cut, ces):
+class ComputeCauseEffectStructure(MapReduce):
+    """Engine for computing a |CauseEffectStructure|."""
+    # pylint: disable=unused-argument,arguments-differ
+
+    description = 'Computing concepts'
+
+    def empty_result(self, *args):
+        return []
+
+    @staticmethod
+    def compute(mechanism, subsystem, purviews, cause_purviews,
+                effect_purviews):
+        """Compute a |Concept| for a mechanism, in this |Subsystem| with the
+        provided purviews."""
+        return subsystem.concept(mechanism,
+                                 purviews=purviews,
+                                 cause_purviews=cause_purviews,
+                                 effect_purviews=effect_purviews)
+
+    def process_result(self, new_concept, concepts):
+        """Save all concepts with non-zero |small_phi| to the
+        |CauseEffectStructure|."""
+        if new_concept.phi > 0:
+            concepts.append(new_concept)
+        return concepts
+
+
+def ces(subsystem, mechanisms=False, purviews=False, cause_purviews=False,
+        effect_purviews=False, parallel=False):
+    """Return the conceptual structure of this subsystem, optionally restricted
+    to concepts with the mechanisms and purviews given in keyword arguments.
+
+    If you don't need the full |CauseEffectStructure|, restricting the possible
+    mechanisms and purviews can make this function much faster.
+
+    Args:
+        subsystem (Subsystem): The subsystem for which to determine the
+            |CauseEffectStructure|.
+
+    Keyword Args:
+        mechanisms (tuple[tuple[int]]): Restrict possible mechanisms to those
+            in this list.
+        purviews (tuple[tuple[int]]): Same as in :func:`concept`.
+        cause_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
+        effect_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
+        parallel (bool): Whether to compute concepts in parallel. If ``True``,
+            overrides :data:`config.PARALLEL_CONCEPT_EVALUATION`.
+
+    Returns:
+        CauseEffectStructure: A tuple of every |Concept| in the cause-effect
+        structure.
+    """
+    if mechanisms is False:
+        mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
+
+    engine = ComputeCauseEffectStructure(mechanisms, subsystem, purviews,
+                                         cause_purviews, effect_purviews)
+
+    return CauseEffectStructure(engine.run(parallel or
+                                           config.PARALLEL_CONCEPT_EVALUATION))
+
+
+def conceptual_info(subsystem):
+    """Return the conceptual information for a |Subsystem|.
+
+    This is the distance from the subsystem's |CauseEffectStructure| to the
+    null concept.
+    """
+    ci = ces_distance(ces(subsystem), ())
+    return round(ci, config.PRECISION)
+
+
+def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
     """Compute the system irreducibility for a given cut.
 
     Args:
         uncut_subsystem (Subsystem): The subsystem without the cut applied.
         cut (Cut): The cut to evaluate.
-        ces (CauseEffectStructure): The cause-effect structure of
+        unpartitioned_ces (CauseEffectStructure): The cause-effect structure of
             the uncut subsystem.
 
     Returns:
@@ -41,24 +112,24 @@ def evaluate_cut(uncut_subsystem, cut, ces):
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanisms = ces.mechanisms
+        mechanisms = unpartitioned_ces.mechanisms
     else:
         # Mechanisms can only produce concepts if they were concepts in the
         # original system, or the cut divides the mechanism.
         mechanisms = set(
-            ces.mechanisms +
+            unpartitioned_ces.mechanisms +
             list(cut_subsystem.cut_mechanisms))
 
-    partitioned_ces = compute_ces(cut_subsystem, mechanisms)
+    partitioned_ces = ces(cut_subsystem, mechanisms)
 
     log.debug('Finished evaluating %s.', cut)
 
-    phi = ces_distance(ces,
+    phi = ces_distance(unpartitioned_ces,
                        partitioned_ces)
 
     return SystemIrreducibilityAnalysis(
         phi=phi,
-        ces=ces,
+        ces=unpartitioned_ces,
         partitioned_ces=partitioned_ces,
         subsystem=uncut_subsystem,
         cut_subsystem=cut_subsystem)
@@ -113,11 +184,11 @@ def sia_bipartitions(nodes):
             for bipartition in bipartitions]
 
 
-def _compute_ces(subsystem):
+def _ces(subsystem):
     """Parallelize the unpartitioned |CauseEffectStructure| if parallelizing
     cuts, since we have free processors because we're not computing any cuts
     yet."""
-    return compute_ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
+    return ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
 
 
 # pylint: disable=unused-argument
@@ -182,10 +253,10 @@ def _sia(cache_key, subsystem):
 
     log.debug('Finding unpartitioned CauseEffectStructure...')
     small_phi_start = time()
-    ces = _compute_ces(subsystem)
+    unpartitioned_ces = _ces(subsystem)
     small_phi_time = round(time() - small_phi_start, config.PRECISION)
 
-    if not ces:
+    if not unpartitioned_ces:
         log.info('Empty unpartitioned CauseEffectStructure; returning null '
                  'SIA immediately.')
         # Short-circuit if there are no concepts in the unpartitioned CES.
@@ -197,7 +268,7 @@ def _sia(cache_key, subsystem):
     else:
         cuts = sia_bipartitions(subsystem.cut_indices)
     engine = ComputeSystemIrreducibility(
-        cuts, subsystem, ces)
+        cuts, subsystem, unpartitioned_ces)
     min_sia = engine.run(config.PARALLEL_CUT_EVALUATION)
     result = time_annotated(min_sia, small_phi_time)
 
@@ -420,8 +491,10 @@ def concept_cuts(direction, node_indices):
 def directional_sia(subsystem, direction, ces=None):
     """Calculate a concept-style SystemIrreducibilityAnalysisCause or
     SystemIrreducibilityAnalysisEffect."""
-    if ces is None:
-        ces = _compute_ces(subsystem)
+    unpartitioned_ces = ces
+
+    if unpartitioned_ces is None:
+        unpartitioned_ces = _ces(subsystem)
 
     c_system = ConceptStyleSystem(subsystem, direction)
     cuts = concept_cuts(direction, c_system.cut_indices)
@@ -429,7 +502,7 @@ def directional_sia(subsystem, direction, ces=None):
     # Run the default SIA engine
     # TODO: verify that short-cutting works correctly?
     engine = ComputeSystemIrreducibility(
-        cuts, c_system, ces)
+        cuts, c_system, unpartitioned_ces)
     return engine.run(config.PARALLEL_CUT_EVALUATION)
 
 
@@ -469,11 +542,11 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
 # TODO: cache
 def sia_concept_style(subsystem):
     """Compute a concept-style SystemIrreducibilityAnalysis"""
-    ces = _compute_ces(subsystem)
+    unpartitioned_ces = _ces(subsystem)
 
     sia_cause = directional_sia(subsystem, Direction.CAUSE,
-                                ces)
+                                unpartitioned_ces)
     sia_effect = directional_sia(subsystem, Direction.EFFECT,
-                                 ces)
+                                 unpartitioned_ces)
 
     return SystemIrreducibilityAnalysisConceptStyle(sia_cause, sia_effect)

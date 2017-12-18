@@ -228,8 +228,6 @@ r"""
 .. |compute.condensed()| replace:: :func:`~pyphi.compute.system.condensed`
 .. |compute.phi()| replace:: :func:`~pyphi.compute.system.phi`
 
-.. |compute.concept()| replace:: :func:`~pyphi.compute.concept.concept`
-
 .. |configure_logging()| replace:: :func:`~pyphi.config.configure_logging`
 
 .. |loli_index2state()| replace:: :func:`~pyphi.convert.loli_index2state`
