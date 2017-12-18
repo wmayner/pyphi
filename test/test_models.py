@@ -308,20 +308,20 @@ def test_mip_ordering_and_equality():
         mip(direction=Direction.CAUSE) >= mip(direction=Direction.EFFECT)
 
 
-def test_null_mip():
+def test_null_mia():
     direction = Direction.CAUSE
     mechanism = (0,)
     purview = (1,)
     repertoire = 'repertoire'
-    null_mip = models._null_mip(direction, mechanism, purview,
+    null_mia = models._null_mia(direction, mechanism, purview,
                                 repertoire)
-    assert null_mip.direction == direction
-    assert null_mip.mechanism == mechanism
-    assert null_mip.purview == purview
-    assert null_mip.partition is None
-    assert null_mip.repertoire == 'repertoire'
-    assert null_mip.partitioned_repertoire is None
-    assert null_mip.phi == 0
+    assert null_mia.direction == direction
+    assert null_mia.mechanism == mechanism
+    assert null_mia.purview == purview
+    assert null_mia.partition is None
+    assert null_mia.repertoire == 'repertoire'
+    assert null_mia.partitioned_repertoire is None
+    assert null_mia.phi == 0
 
 
 def test_mip_repr_str():

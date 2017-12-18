@@ -11,7 +11,7 @@ from .. import config, connectivity, distribution, utils
 
 # pylint: disable=too-many-arguments,too-many-instance-attributes
 
-_mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
+_mia_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'repertoire', 'partitioned_repertoire']
 
 
@@ -102,7 +102,7 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
 
     def __eq__(self, other):
         # We don't consider the partition and partitioned repertoire in
-        # checking for MIP equality.
+        # checking for MIA equality.
         attrs = ['phi', 'direction', 'mechanism', 'purview',
                  'repertoire']
         return cmp.general_eq(self, other, attrs)
@@ -120,16 +120,16 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
                      utils.np_hash(self.repertoire)))
 
     def __repr__(self):
-        return fmt.make_repr(self, _mip_attributes)
+        return fmt.make_repr(self, _mia_attributes)
 
     def __str__(self):
-        return "MIA\n" + fmt.indent(fmt.fmt_mip(self))
+        return "MIA\n" + fmt.indent(fmt.fmt_mia(self))
 
     def to_json(self):
-        return {attr: getattr(self, attr) for attr in _mip_attributes}
+        return {attr: getattr(self, attr) for attr in _mia_attributes}
 
 
-def _null_mip(direction, mechanism, purview, repertoire=None):
+def _null_mia(direction, mechanism, purview, repertoire=None):
     """The irreducibility analysis for a reducible mechanism."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
@@ -153,78 +153,80 @@ class Mice(cmp.Orderable):
     |PICK_SMALLEST_PURVIEW| option in |config|.)
     """
 
-    def __init__(self, mip):
-        self._mip = mip
+    def __init__(self, mia):
+        self._mia = mia
 
     @property
     def phi(self):
         """float: The difference between the mechanism's unpartitioned and
         partitioned repertoires.
         """
-        return self._mip.phi
+        return self._mia.phi
 
     @property
     def direction(self):
         """Direction: |CAUSE| or |EFFECT|."""
-        return self._mip.direction
+        return self._mia.direction
 
     @property
     def mechanism(self):
         """list[int]: The mechanism for which the MICE is evaluated."""
-        return self._mip.mechanism
+        return self._mia.mechanism
 
     @property
     def purview(self):
         """list[int]: The purview over which this mechanism's |small_phi| is
         maximal.
         """
-        return self._mip.purview
+        return self._mia.purview
 
     @property
     def partition(self):
         """KPartition: The partition that makes the least difference to the
         mechanism's repertoire."""
-        return self._mip.partition
+        return self._mia.partition
 
     @property
     def repertoire(self):
         """np.ndarray: The unpartitioned repertoire of the mechanism over the
         purview.
         """
-        return self._mip.repertoire
+        return self._mia.repertoire
 
     @property
     def partitioned_repertoire(self):
         """np.ndarray: The partitioned repertoire of the mechanism over the
         purview.
         """
-        return self._mip.partitioned_repertoire
+        return self._mia.partitioned_repertoire
 
     @property
-    def mip(self):
-        """MIP: The minimum information partition for this mechanism."""
-        return self._mip
+    def mia(self):
+        """MechanismIrreducibilityAnalysis: The irreducibility analysis for
+        this mechanism.
+        """
+        return self._mia
 
     def __repr__(self):
-        return fmt.make_repr(self, ['mip'])
+        return fmt.make_repr(self, ['mia'])
 
     def __str__(self):
-        return "Mice\n" + fmt.indent(fmt.fmt_mip(self.mip))
+        return "Mice\n" + fmt.indent(fmt.fmt_mia(self.mia))
 
     unorderable_unless_eq = \
         MechanismIrreducibilityAnalysis.unorderable_unless_eq
 
     def order_by(self):
-        return self.mip.order_by()
+        return self.mia.order_by()
 
     def __eq__(self, other):
-        return self.mip == other.mip
+        return self.mia == other.mia
 
     def __hash__(self):
-        return hash(('Mice', self._mip))
+        return hash(('Mice', self._mia))
 
     def to_json(self):
-        return {'mip': self.mip}
+        return {'mia': self.mia}
 
     def _relevant_connections(self, subsystem):
         """Identify connections that “matter” to this concept.
@@ -404,12 +406,12 @@ class Concept(cmp.Orderable):
     def expand_partitioned_cause_repertoire(self):
         """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
         return self.subsystem.expand_cause_repertoire(
-            self.cause.mip.partitioned_repertoire)
+            self.cause.mia.partitioned_repertoire)
 
     def expand_partitioned_effect_repertoire(self):
         """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
         return self.subsystem.expand_effect_repertoire(
-            self.effect.mip.partitioned_repertoire)
+            self.effect.mia.partitioned_repertoire)
 
     def to_json(self):
         """Return a JSON-serializable representation."""

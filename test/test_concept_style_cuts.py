@@ -111,8 +111,8 @@ def test_system_accessors(s):
 
 def sia_cs(phi=1.0, subsystem=None):
     return SystemIrreducibilityAnalysisConceptStyle(
-        mip_cause=sia(phi=phi, subsystem=subsystem),
-        mip_effect=sia(phi=phi, subsystem=subsystem))
+        sia_cause=sia(phi=phi, subsystem=subsystem),
+        sia_effect=sia(phi=phi, subsystem=subsystem))
 
 
 def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
@@ -127,7 +127,7 @@ def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
 
 def test_sia_concept_style(s):
     mip = compute.sia_concept_style(s)
-    assert mip.min_mip is mip.sia_effect
+    assert mip.min_sia is mip.sia_effect
     for attr in ['phi', 'ces', 'cut', 'subsystem',
                  'cut_subsystem', 'network', 'partitioned_ces']:
         assert getattr(mip, attr) is getattr(mip.sia_effect, attr)

@@ -15,9 +15,9 @@ from .. import Direction, config, utils
 
 # TODO(slipperyhank): Why do we even need this?
 # TODO(slipperyhank): add second state
-_acmip_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',
+_acmia_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',
                      'partition', 'probability', 'partitioned_probability']
-_acmip_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
+_acmia_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
                             'purview', 'probability']
 
 def greater_than_zero(alpha):
@@ -28,7 +28,7 @@ def greater_than_zero(alpha):
 
 class AcMechanismIrreducibilityAnalysis(
         cmp.Orderable, namedtuple('AcMechanismIrreducibilityAnalysis',
-                                  _acmip_attributes)):
+                                  _acmia_attributes)):
     """A minimum information partition for ac_coef calculation.
 
 
@@ -70,7 +70,7 @@ class AcMechanismIrreducibilityAnalysis(
 
     def __eq__(self, other):
         # TODO(slipperyhank): include 2nd state here?
-        return cmp.general_eq(self, other, _acmip_attributes_for_eq)
+        return cmp.general_eq(self, other, _acmia_attributes_for_eq)
 
     def __bool__(self):
         """An |AcMechanismIrreducibilityAnalysis| is ``True`` if it has
@@ -84,22 +84,22 @@ class AcMechanismIrreducibilityAnalysis(
         return self.alpha
 
     def __hash__(self):
-        attrs = tuple(getattr(self, attr) for attr in _acmip_attributes_for_eq)
+        attrs = tuple(getattr(self, attr) for attr in _acmia_attributes_for_eq)
         return hash(attrs)
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {attr: getattr(self, attr) for attr in _acmip_attributes}
+        return {attr: getattr(self, attr) for attr in _acmia_attributes}
 
     def __repr__(self):
-        return fmt.make_repr(self, _acmip_attributes)
+        return fmt.make_repr(self, _acmia_attributes)
 
     def __str__(self):
         return ("MechanismIrreducibilityAnalysis\n" +
-                fmt.indent(fmt.fmt_ac_mip(self)))
+                fmt.indent(fmt.fmt_ac_sia(self)))
 
 
-def _null_ac_mip(state, direction, mechanism, purview):
+def _null_ac_mia(state, direction, mechanism, purview):
     return AcMechanismIrreducibilityAnalysis(state=state,
                  direction=direction,
                  mechanism=mechanism,
@@ -118,15 +118,15 @@ class CausalLink(cmp.Orderable):
     up to |PRECISION|, the size of the mechanism is compared.
     """
 
-    def __init__(self, mip):
-        self._mip = mip
+    def __init__(self, mia):
+        self._mia = mia
 
     @property
     def alpha(self):
         """float: The difference between the mechanism's unpartitioned and
         partitioned actual probabilities.
         """
-        return self._mip.alpha
+        return self._mia.alpha
 
     @property
     def phi(self):
@@ -136,44 +136,44 @@ class CausalLink(cmp.Orderable):
     @property
     def direction(self):
         """Direction: Either |CAUSE| or |EFFECT|."""
-        return self._mip.direction
+        return self._mia.direction
 
     @property
     def mechanism(self):
         """list[int]: The mechanism for which the action is evaluated."""
-        return self._mip.mechanism
+        return self._mia.mechanism
 
     @property
     def purview(self):
         """list[int]: The purview over which this mechanism's |alpha| is
         maximal.
         """
-        return self._mip.purview
+        return self._mia.purview
 
     @property
-    def mip(self):
-        """AcMechanismIrreducibilityAnalysis: The minimum information partition
-        for this mechanism.
+    def mia(self):
+        """AcMechanismIrreducibilityAnalysis: The irreducibility analysis for
+        this mechanism.
         """
-        return self._mip
+        return self._mia
 
     def __repr__(self):
-        return fmt.make_repr(self, ['mip'])
+        return fmt.make_repr(self, ['mia'])
 
     def __str__(self):
-        return "CausalLink\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
+        return "CausalLink\n" + fmt.indent(fmt.fmt_ac_mia(self.mia))
 
     unorderable_unless_eq = \
         AcMechanismIrreducibilityAnalysis.unorderable_unless_eq
 
     def order_by(self):
-        return self.mip.order_by()
+        return self.mia.order_by()
 
     def __eq__(self, other):
-        return self.mip == other.mip
+        return self.mia == other.mia
 
     def __hash__(self):
-        return hash(('CausalLink', self._mip))
+        return hash(('CausalLink', self._mia))
 
     def __bool__(self):
         """An |CausalLink| is ``True`` if |alpha > 0|."""
@@ -181,7 +181,7 @@ class CausalLink(cmp.Orderable):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {'mip': self.mip}
+        return {'mia': self.mia}
 
 
 class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):

@@ -26,10 +26,10 @@ Attributes:
 """
 
 from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
-                               AcMechanismIrreducibilityAnalysis, _null_ac_mip,
+                               AcMechanismIrreducibilityAnalysis, _null_ac_mia,
                                Event, _null_ac_sia, DirectedAccount, Account)
 from .big_phi import SystemIrreducibilityAnalysis, _null_sia
-from .concept import (MechanismIrreducibilityAnalysis, _null_mip, Mice,
+from .concept import (MechanismIrreducibilityAnalysis, _null_mia, Mice,
                       Concept, CauseEffectStructure)
 from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,
                    KPartition, KCut)

@@ -71,7 +71,7 @@ class ComputeSystemIrreducibility(MapReduce):
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
 
     def empty_result(self, subsystem, ces):
-        """Begin with a mip with infinite |big_phi|; all actual mips will have
+        """Begin with a SIA with infinite |big_phi|; all actual SIAs will have
         less."""
         return _null_sia(subsystem, phi=float('inf'))
 
@@ -80,16 +80,17 @@ class ComputeSystemIrreducibility(MapReduce):
         """Evaluate a cut."""
         return evaluate_cut(subsystem, cut, ces)
 
-    def process_result(self, new_mip, min_mip):
-        """Check if the new mip has smaller phi than the standing result."""
-        if new_mip.phi == 0:
+    def process_result(self, new_sia, min_sia):
+        """Check if the new SIA has smaller |big_phi| than the standing
+        result."""
+        if new_sia.phi == 0:
             self.done = True  # Short-circuit
-            return new_mip
+            return new_sia
 
-        elif new_mip < min_mip:
-            return new_mip
+        elif new_sia < min_sia:
+            return new_sia
 
-        return min_mip
+        return min_sia
 
 
 def sia_bipartitions(nodes):
@@ -197,8 +198,8 @@ def _sia(cache_key, subsystem):
         cuts = sia_bipartitions(subsystem.cut_indices)
     engine = ComputeSystemIrreducibility(
         cuts, subsystem, ces)
-    min_mip = engine.run(config.PARALLEL_CUT_EVALUATION)
-    result = time_annotated(min_mip, small_phi_time)
+    min_sia = engine.run(config.PARALLEL_CUT_EVALUATION)
+    result = time_annotated(min_sia, small_phi_time)
 
     log.info('Finished calculating big-phi data for %s.', subsystem)
 
@@ -432,22 +433,22 @@ def directional_sia(subsystem, direction, ces=None):
     return engine.run(config.PARALLEL_CUT_EVALUATION)
 
 
-# TODO: only return the minimal mip, instead of both
+# TODO: only return the minimal SIA, instead of both
 class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
     """Represents a |SIA| computed using concept-style system cuts."""
 
-    def __init__(self, mip_cause, mip_effect):
-        self.sia_cause = mip_cause
-        self.sia_effect = mip_effect
+    def __init__(self, sia_cause, sia_effect):
+        self.sia_cause = sia_cause
+        self.sia_effect = sia_effect
 
     @property
-    def min_mip(self):
+    def min_sia(self):
         return min(self.sia_cause, self.sia_effect, key=lambda m: m.phi)
 
     def __getattr__(self, name):
-        """Pass attribute access through to the minimal mip."""
+        """Pass attribute access through to the minimal SIA."""
         if ('sia_cause' in self.__dict__ and 'sia_effect' in self.__dict__):
-            return getattr(self.min_mip, name)
+            return getattr(self.min_sia, name)
         raise AttributeError(name)
 
     def __eq__(self, other):
@@ -459,10 +460,10 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
         return [self.phi, len(self.subsystem)]
 
     def __repr__(self):
-        return repr(self.min_mip)
+        return repr(self.min_sia)
 
     def __str__(self):
-        return str(self.min_mip)
+        return str(self.min_sia)
 
 
 # TODO: cache
@@ -470,9 +471,9 @@ def sia_concept_style(subsystem):
     """Compute a concept-style SystemIrreducibilityAnalysis"""
     ces = _compute_ces(subsystem)
 
-    mip_cause = directional_sia(subsystem, Direction.CAUSE,
+    sia_cause = directional_sia(subsystem, Direction.CAUSE,
                                 ces)
-    mip_effect = directional_sia(subsystem, Direction.EFFECT,
+    sia_effect = directional_sia(subsystem, Direction.EFFECT,
                                  ces)
 
-    return SystemIrreducibilityAnalysisConceptStyle(mip_cause, mip_effect)
+    return SystemIrreducibilityAnalysisConceptStyle(sia_cause, sia_effect)

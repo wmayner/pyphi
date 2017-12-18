@@ -19,7 +19,7 @@ s = example_networks.s()
 # Test scenario structure:
 #
 # (
-#     direction of MIP (Direction.CAUSE or Direction.EFFECT),
+#     direction of MIA (Direction.CAUSE or Direction.EFFECT),
 #     subsystem, cut,
 #     mechanism,
 #     purview,
@@ -231,7 +231,7 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     print('Result:', '---------', '', result, '', sep='\n')
     print('Expected:',  '---------', '', sep='\n')
     if expected:
-        print(*[mip for mip in expected], sep='\n')
+        print(*[mia for mia in expected], sep='\n')
     else:
         print(expected)
     print('\n')
@@ -251,15 +251,15 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
 def test_mip_cause(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    mip_cause = s.find_mip(Direction.CAUSE, mechanism, purview)
-    assert mip_cause == s.mip_cause(mechanism, purview)
+    mia_cause = s.find_mip(Direction.CAUSE, mechanism, purview)
+    assert mia_cause == s.mip_cause(mechanism, purview)
 
 
 def test_mip_effect(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    mip_effect = s.find_mip(Direction.EFFECT, mechanism, purview)
-    assert mip_effect == s.mip_effect(mechanism, purview)
+    mia_effect = s.find_mip(Direction.EFFECT, mechanism, purview)
+    assert mia_effect == s.mip_effect(mechanism, purview)
 
 
 def test_phi_mip_cause(s):

@@ -413,7 +413,7 @@ def test_ac_ex1_transition(transition):
 
     cause_account = actual.account(transition, Direction.CAUSE)
     assert len(cause_account) == 1
-    cmip = cause_account[0].mip
+    cmip = cause_account[0].mia
 
     assert cmip.mechanism == (0,)
     assert cmip.purview == (1,)
@@ -426,8 +426,8 @@ def test_ac_ex1_transition(transition):
 
     effect_account = actual.account(transition, Direction.EFFECT)
     assert len(effect_account) == 2
-    emip0 = effect_account[0].mip
-    emip1 = effect_account[1].mip
+    emip0 = effect_account[0].mia
+    emip1 = effect_account[1].mia
 
     assert emip0.mechanism == (1,)
     assert emip0.purview == (0,)

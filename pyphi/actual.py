@@ -22,7 +22,7 @@ from . import (Direction, compute, config, connectivity, constants, exceptions,
 from .models import (Account, AcMechanismIrreducibilityAnalysis,
                      AcSystemIrreducibilityAnalysis, ActualCut, CausalLink,
                      DirectedAccount, Event, NullCut, _null_ac_sia,
-                     _null_ac_mip, fmt)
+                     _null_ac_mia, fmt)
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
@@ -340,7 +340,7 @@ class Transition:
             # Then take closest to 0
             if (abs(alpha_min) - abs(alpha)) > constants.EPSILON:
                 alpha_min = alpha
-                acmip = AcMechanismIrreducibilityAnalysis(
+                acmia = AcMechanismIrreducibilityAnalysis(
                     state=self.mechanism_state(direction),
                     direction=direction,
                     mechanism=mechanism,
@@ -350,7 +350,7 @@ class Transition:
                     partitioned_probability=partitioned_probability,
                     alpha=alpha_min
                 )
-        return acmip
+        return acmia
 
     # Phi_max methods
     # =========================================================================
@@ -396,18 +396,18 @@ class Transition:
         """
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
-        # Find the maximal MIP over the remaining purviews.
+        # Find the maximal MIA over the remaining purviews.
         if not purviews:
-            max_mip = _null_ac_mip(self.mechanism_state(direction),
+            max_mia = _null_ac_mia(self.mechanism_state(direction),
                                    direction, mechanism, None)
         else:
             # This max should be most positive
-            max_mip = max(self.find_mip(direction, mechanism, purview,
+            max_mia = max(self.find_mip(direction, mechanism, purview,
                                         allow_neg)
                           for purview in purviews)
 
         # Construct the corresponding CausalLink
-        return CausalLink(max_mip)
+        return CausalLink(max_mia)
 
     def find_actual_cause(self, mechanism, purviews=False):
         """Return the actual cause of a mechanism."""
@@ -534,13 +534,13 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
     log.info("Calculating big-alpha for %s...", transition)
 
     if not transition:
-        log.info('Transition %s is empty; returning null MIP '
+        log.info('Transition %s is empty; returning null SIA '
                  'immediately.', transition)
         return _null_ac_sia(transition, direction)
 
     if not connectivity.is_weak(transition.network.cm,
                                 transition.node_indices):
-        log.info('%s is not strongly/weakly connected; returning null MIP '
+        log.info('%s is not strongly/weakly connected; returning null SIA '
                  'immediately.', transition)
         return _null_ac_sia(transition, direction)
 
@@ -549,7 +549,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
     log.debug("Found unpartitioned account.")
 
     if not unpartitioned_account:
-        log.info('Empty unpartitioned account; returning null AC MIP '
+        log.info('Empty unpartitioned account; returning null AC SIA '
                  'immediately.')
         return _null_ac_sia(transition, direction)
 
@@ -575,16 +575,16 @@ class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
     def compute(cut, transition, direction, account):
         return _evaluate_cut(transition, cut, account, direction)
 
-    def process_result(self, new_mip, min_mip):
+    def process_result(self, new_sia, min_sia):
         # Check a new result against the running minimum
-        if not new_mip:  # alpha == 0
+        if not new_sia:  # alpha == 0
             self.done = True
-            return new_mip
+            return new_sia
 
-        elif new_mip < min_mip:
-            return new_mip
+        elif new_sia < min_sia:
+            return new_sia
 
-        return min_mip
+        return min_sia
 
 
 # =============================================================================
@@ -617,9 +617,9 @@ def nexus(network, before_state, after_state,
     """Return a tuple of all irreducible nexus of the network."""
     validate.is_network(network)
 
-    mips = (sia(transition, direction) for transition in
+    sias = (sia(transition, direction) for transition in
             transitions(network, before_state, after_state))
-    return tuple(sorted(filter(None, mips), reverse=True))
+    return tuple(sorted(filter(None, sias), reverse=True))
 
 
 def causal_nexus(network, before_state, after_state,
