@@ -35,9 +35,9 @@ SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Controls whether concepts are evaluated in parallel.
 PARALLEL_CONCEPT_EVALUATION: false
-# Controls whether cuts are evaluated in parallel, which requires more
-# memory. If cuts are evaluated sequentially, only two BigMips need to be
-# in memory at a time.
+# Controls whether cuts are evaluated in parallel, which requires more memory.
+# If cuts are evaluated sequentially, only two SIAs need to be in memory at a
+# time.
 PARALLEL_CUT_EVALUATION: true
 # Controls whether complexes are evaluated in parallel.
 PARALLEL_COMPLEX_EVALUATION: false
@@ -50,7 +50,7 @@ MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 
 # Memoization and caching
 # ~~~~~~~~~~~~~~~~~~~~~~~
-# Controls whether BigMips are cached and retreived.
+# Controls whether SIAs are cached and retreived.
 CACHE_BIGMIPS: false
 # Controls whether the potential purviews of the mechanisms of a network are
 # cached. Speeds up calculations when the same network is used repeatedly, but
