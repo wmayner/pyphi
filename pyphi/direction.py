@@ -36,9 +36,9 @@ class Direction(Enum):
     def order(self, mechanism, purview):
         """Order the mechanism and purview in time.
 
-        If the direction is ``CAUSE``, then the ``purview`` is at |t-1| and the
-        ``mechanism`` is at time |t|. If the direction is ``EFFECT``, then the
-        ``mechanism`` is at time |t| and the purview is at |t+1|.
+        If the direction is ``CAUSE``, then the purview is at |t-1| and the
+        mechanism is at time |t|. If the direction is ``EFFECT``, then the
+        mechanism is at time |t| and the purview is at |t+1|.
         """
         if self is Direction.CAUSE:
             return purview, mechanism
