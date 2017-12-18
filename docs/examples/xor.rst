@@ -15,11 +15,11 @@ We'll consider the state with all nodes off.
 
 According to IIT, existence is a holistic notion; the whole is more important
 than its parts. The first step is to confirm the existence of the whole, by
-finding the main complex of the network:
+finding the major complex of the network:
 
     >>> major_complex = pyphi.compute.major_complex(network, state)
 
-The main complex exists (|big_phi > 0|),
+The major complex exists (|big_phi > 0|),
 
     >>> major_complex.phi
     1.874999
@@ -95,7 +95,7 @@ on the value of |C|. Any purview larger than |C| would be reducible by pruning
 away the additional elements.
 
 +------------------------------------------------------------------+
-| Main Complex: |ABC| with :math:`\Phi = 1.875`                    |
+| Major Complex: |ABC| with :math:`\Phi = 1.875`                    |
 +---------------+-----------------+---------------+----------------+
 |   Mechanism   | :math:`\varphi` | Cause Purview | Effect Purview |
 +===============+=================+===============+================+
@@ -106,7 +106,7 @@ away the additional elements.
 | |BC|          |  0.5            | |ABC|         | |A|            |
 +---------------+-----------------+---------------+----------------+
 
-An analysis of the `intrinsic existence` of this system reveals that the main
+An analysis of the `intrinsic existence` of this system reveals that the major
 complex of the system is the entire network of XOR nodes. Furthermore, the
 concepts which exist within the complex are those specified by the second-order
 mechanisms |AB|, |AC|, and |BC|.

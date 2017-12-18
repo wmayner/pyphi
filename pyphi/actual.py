@@ -751,12 +751,12 @@ def true_events(network, previous_state, current_state, next_state,
         next_state (tuple[int]): The state of the network at ``t + 1``.
 
     Keyword Args:
-        indices (tuple[int]): The indices of the main complex.
-        major_complex (AcSystemIrreducibilityAnalysis): The main complex. If
+        indices (tuple[int]): The indices of the major complex.
+        major_complex (AcSystemIrreducibilityAnalysis): The major complex. If
             ``major_complex`` is given then ``indices`` is ignored.
 
     Returns:
-        tuple[Event]: List of true events in the main complex.
+        tuple[Event]: List of true events in the major complex.
     """
     # TODO: validate triplet of states
 
@@ -773,7 +773,7 @@ def true_events(network, previous_state, current_state, next_state,
 
 def extrinsic_events(network, previous_state, current_state, next_state,
                      indices=None, major_complex=None):
-    """Set of all mechanisms that are in the main complex but which have true
+    """Set of all mechanisms that are in the major complex but which have true
     causes and effects within the entire network.
 
     Args:
@@ -783,12 +783,12 @@ def extrinsic_events(network, previous_state, current_state, next_state,
         next_state (tuple[int]): The state of the network at ``t + 1``.
 
     Keyword Args:
-        indices (tuple[int]): The indices of the main complex.
-        major_complex (AcSystemIrreducibilityAnalysis): The main complex. If
+        indices (tuple[int]): The indices of the major complex.
+        major_complex (AcSystemIrreducibilityAnalysis): The major complex. If
             ``major_complex`` is given then ``indices`` is ignored.
 
     Returns:
-        tuple(actions): List of extrinsic events in the main complex.
+        tuple(actions): List of extrinsic events in the major complex.
     """
     if major_complex:
         mc_nodes = major_complex.subsystem.node_indices

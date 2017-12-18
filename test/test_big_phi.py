@@ -545,23 +545,23 @@ def test_rule152_complexes_no_caching(rule152):
                 i, sia in list(enumerate(complexes))]
         assert all(utils.eq(sia.phi, result['subsystem_phis'][perm[i]])
                    for i, sia in list(enumerate(complexes))[:])
-        # Check the main complex in particular.
-        main = compute.major_complex(net)
-        # Check the phi value of the main complex.
-        assert utils.eq(main.phi, result['phi'])
+        # Check the major complex in particular.
+        major = compute.major_complex(net)
+        # Check the phi value of the major complex.
+        assert utils.eq(major.phi, result['phi'])
         # Check that the nodes are the same.
-        assert (main.subsystem.node_indices ==
+        assert (major.subsystem.node_indices ==
                 complexes[result['major_complex'] - 1].subsystem.node_indices)
         # Check that the concept's phi values are the same.
         result_concepts = [c for c in result['concepts']
                            if c['is_irreducible']]
-        z = list(zip([c.phi for c in main.unpartitioned_ces],
+        z = list(zip([c.phi for c in major.unpartitioned_ces],
                      [c['phi'] for c in result_concepts]))
         diff = [i for i in range(len(z)) if not utils.eq(z[i][0], z[i][1])]
         assert all(list(utils.eq(c.phi, result_concepts[i]['phi']) for i, c
-                        in enumerate(main.unpartitioned_ces)))
+                        in enumerate(major.unpartitioned_ces)))
         # Check that the minimal cut is the same.
-        assert main.cut == result['cut']
+        assert major.cut == result['cut']
 
 
 @pytest.mark.dev

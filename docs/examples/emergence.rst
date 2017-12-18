@@ -25,7 +25,7 @@ We'll set the state so that nodes are off.
 
     >>> state = (0, 0, 0, 0)
 
-At the “micro” spatial scale, we can compute the main complex, and determine
+At the “micro” spatial scale, we can compute the major complex, and determine
 the |big_phi| value:
 
     >>> major_complex = pyphi.compute.major_complex(network, state)

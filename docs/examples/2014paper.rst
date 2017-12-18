@@ -596,7 +596,7 @@ Figure 14
     >>> network = pyphi.examples.fig14()
     >>> state = (1, 0, 0, 0, 1, 0)
 
-To find the subsystem within a network that is the main complex, we use the
+To find the subsystem within a network that is the major complex, we use the
 function of that name, which returns a |SystemIrreducibilityAnalysis| object:
 
     >>> major_complex = pyphi.compute.major_complex(network, state)

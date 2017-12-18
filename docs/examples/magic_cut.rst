@@ -14,7 +14,7 @@ state.
     >>> network = pyphi.examples.rule110_network()
     >>> state = (0, 0, 0)
 
-Next, we want to identify the spatial scale and main complex of the network:
+Next, we want to identify the spatial scale and major complex of the network:
 
     >>> macro = pyphi.macro.emergence(network, state)
     >>> print(macro.emergence)
@@ -22,7 +22,7 @@ Next, we want to identify the spatial scale and main complex of the network:
 
 Since the emergence value is negative, there is no macro scale which has
 greater integrated information than the original micro scale. We can now
-analyze the micro scale to determine the main complex of the system:
+analyze the micro scale to determine the major complex of the system:
 
     >>> major_complex = pyphi.compute.major_complex(network, state)
     >>> major_complex.subsystem
@@ -30,10 +30,10 @@ analyze the micro scale to determine the main complex of the system:
     >>> print(major_complex.phi)
     1.35708
 
-The main complex of the system contains all three nodes of the system, and it
+The major complex of the system contains all three nodes of the system, and it
 has integrated information :math:`\Phi = 1.35708`. Now that we have identified
-the main complex of the system, we can explore its conceptual structure and the
-effect of the MIP.
+the major complex of the system, we can explore its conceptual structure and
+the effect of the MIP.
 
     >>> ces = major_complex.unpartitioned_ces
 

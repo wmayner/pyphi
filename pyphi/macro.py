@@ -784,10 +784,10 @@ class MacroNetwork:
 
     Attributes:
         network (Network): The network object of the macro-system.
-        phi (float): The |big_phi| of the network's main complex.
+        phi (float): The |big_phi| of the network's major complex.
         micro_network (Network): The network object of the corresponding micro
             system.
-        micro_phi (float): The |big_phi| of the main complex of the
+        micro_phi (float): The |big_phi| of the major complex of the
             corresponding micro-system.
         coarse_grain (CoarseGrain): The coarse-graining of micro-elements
             into macro-elements.

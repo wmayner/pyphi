@@ -328,8 +328,8 @@ def complexes(network, state):
 
 
 def major_complex(network, state):
-    """Return the main complex of the network."""
-    log.info('Calculating main complex...')
+    """Return the major complex of the network."""
+    log.info('Calculating major complex...')
 
     result = complexes(network, state)
     if result:
@@ -338,7 +338,7 @@ def major_complex(network, state):
         empty_subsystem = Subsystem(network, state, ())
         result = _null_sia(empty_subsystem)
 
-    log.info("Finished calculating main complex.")
+    log.info("Finished calculating major complex.")
 
     return result
 
