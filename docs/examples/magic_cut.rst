@@ -80,8 +80,8 @@ cause-effect structure.
     >>> subsystem.effect_info(ABC, ABC)
     1.875
 
-The mechanism has cause and effect power over the system, so it must be that
-this power is reducible.
+The mechanism does have cause and effect power over the system. But, since it
+doesn't specify a concept, it must be that this power is reducible:
 
     >>> mic = subsystem.mic(ABC)
     >>> mic.phi
@@ -91,8 +91,8 @@ this power is reducible.
     0.625
 
 The reason ABC does not exist as a concept is that its cause is reducible.
-Looking at the TPM of the system, there are no possible states with two of the
-elements set to off. This means that knowing two elements are off is enough to
+Looking at the TPM of the system, there are no possible states where two
+elements are off. This means that knowing two elements are off is enough to
 know that the third element must also be off, and thus the third element can
 always be cut from the concept without a loss of information. This will be true
 for any purview, so the cause information is reducible.
@@ -111,20 +111,22 @@ into existence.
     >>> C = (2,)
     >>> AB = (0, 1)
 
-The cut applied to the subsystem severs the connections from |A| and |B| to
-|C|. In this circumstance, knowing |A| and |B| do not tell us anything about
-the state of |C|, only the past state of |C| can tell us about the future state
-of |C|. Here, ``past_tpm[1]`` gives us the probability of C being on in the
-next state, while ``past_tpm[0]`` would give us the probability of C being off.
+The cut applied to the subsystem severs the connections going to |C| from
+either |A| or |B|. In this circumstance, knowing the state of |A| or |B| does
+not tell us anything about the state of |C|; only the previous state of |C| can
+tell us about the next state of |C|. ``C_node.tpm_on`` gives us the probability
+of |C| being on in the next state, while ``C_node.tpm_off`` would give us the
+probability of |C| being off.
 
     >>> C_node = cut_subsystem.indices2nodes(C)[0]
     >>> C_node.tpm_on.flatten()
     array([ 0.5 ,  0.75])
 
-This states that A has a 50% chance of being on in the next state if it
+This states that |C| has a 50% chance of being on in the next state if it
 currently off, but a 75% chance of being on in the next state  if it is
-currently on. Thus unlike the unpartitioned case, knowing the current state of
-C gives us additional information over and above knowing A and B.
+currently on. Thus, unlike the unpartitioned case, knowing the current state of
+|C| gives us additional information over and above knowing the state of |A| or
+|B|.
 
     >>> repertoire = cut_subsystem.cause_repertoire(ABC, ABC)
     >>> cut_repertoire = (cut_subsystem.cause_repertoire(AB, ABC) *
@@ -133,7 +135,7 @@ C gives us additional information over and above knowing A and B.
     0.500001
 
 With this partition, the integrated information is :math:`\varphi = 0.5`, but
-we must check all possible partitions to find the MIP.
+we must check all possible partitions to find the MIP:
 
     >>> mic = cut_subsystem.mic(ABC)
     >>> mic.purview
@@ -146,7 +148,7 @@ It turns out that the MIP is
 .. math::
    \frac{AB}{[\,]} \times \frac{C}{ABC}
 
-and the integrated information of ABC is :math:`\varphi = 1/3`.
+and the integrated information of mechanism |ABC| is :math:`\varphi = 1/3`.
 
 Note that in order for a new concept to be created by a cut, there must be a
 within-mechanism connection severed by the cut.
@@ -154,15 +156,15 @@ within-mechanism connection severed by the cut.
 In the previous example, the MIP created a new concept, but the amount of
 |small_phi| in the cause-effect structure still decreased. This is not always
 the case. Next we will look at an example of system whoes MIP increases the
-amount of |small_phi|. This example is based on a five node network which
-follows the logic of the Rule 154 cellular automaton. Let's first load the
-network,
+amount of |small_phi|. This example is based on a five-node network that
+implements the logic of the Rule 154 cellular automaton. Let's first load the
+network:
 
     >>> network = pyphi.examples.rule154_network()
     >>> state = (1, 0, 0, 0, 0)
 
 For this example, it is the subsystem consisting of |A|, |B|, and |E| that we
-explore. This is not the main concept of the system, but it serves as a proof
+explore. This is not the major complex of the system, but it serves as a proof
 of principle regardless.
 
     >>> subsystem = pyphi.Subsystem(network, state, (0, 1, 4))
@@ -175,8 +177,8 @@ Calculating the MIP of the system,
     >>> mip.cut
     Cut [0, 4] ━━/ /━━➤ [1]
 
-This subsystem has a |big_phi| value of 0.15533, and the MIP cuts the
-connections from |AE| to |B|. Investigating the concepts in both the
+we see that this subsystem has a |big_phi| value of 0.15533, and the MIP cuts
+the connections from |AE| to |B|. Investigating the concepts in both the
 partitioned and unpartitioned cause-effect structures,
 
     >>> mip.unpartitioned_ces.labeled_mechanisms
@@ -186,8 +188,8 @@ partitioned and unpartitioned cause-effect structures,
     >>> print(sum(_))
     0.5952390000000001
 
-The unpartitioned cause-effect structure has mechanisms |A|, |B| and |AB| with
-:math:`\sum\varphi = 0.595239`.
+We see that the unpartitioned cause-effect structure has mechanisms |A|, |B|
+and |AB| with :math:`\sum\varphi = 0.595239`.
 
     >>> mip.partitioned_ces.labeled_mechanisms
     [['A'], ['B'], ['A', 'B']]
@@ -206,4 +208,4 @@ partitioned cause-effect structure.
 Although situations described above are rare, they do occur, so one must be
 careful when analyzing the integrated information of physical systems not to
 dismiss the possibility of partitions creating new concepts or increasing the
-amount of |small_phi|; otherwise, an incorrect main complex may be identified.
+amount of |small_phi|; otherwise, an incorrect major complex may be identified.

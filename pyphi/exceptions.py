@@ -6,7 +6,7 @@
 
 
 class StateUnreachableError(ValueError):
-    """The current state cannot be reached from any past state."""
+    """The current state cannot be reached from any previous state."""
 
     def __init__(self, state):
         self.state = state

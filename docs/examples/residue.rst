@@ -5,7 +5,7 @@ This example describes a system containing two AND gates, |A| and |B|, with a
 single overlapping input node.
 
 First let's create the subsystem corresponding to the residue network, with all
-nodes off in the current and past states.
+nodes off in the current and previous states.
 
     >>> import pyphi
     >>> subsystem = pyphi.examples.residue_subsystem()
@@ -17,14 +17,14 @@ represented by tuples of node indices in the network:
     >>> B = (1,)
     >>> AB = (0, 1)
 
-And the possible past purviews that we're interested in:
+And the possible cause purviews that we're interested in:
 
     >>> CD = (2, 3)
     >>> DE = (3, 4)
     >>> CDE = (2, 3, 4)
 
 We can then evaluate the cause information for each of the mechanisms over the
-past purview |CDE|.
+cause purview |CDE|.
 
     >>> subsystem.cause_info(A, CDE)
     0.333332
@@ -47,7 +47,7 @@ between the unpartitioned and partitioned repertoires.
 
 To calculate the MIP structure of mechanism |AB|:
 
-    >>> mip_AB = subsystem.mip_past(AB, CDE)
+    >>> mip_AB = subsystem.mip_cause(AB, CDE)
 
 We can then determine what the specific partition is.
 
@@ -82,16 +82,16 @@ irreducible cause information of the mechanisms |A| and |B|.
 The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
 (∅ / E)| because |E| has no effect on |A|, so it has zero |small_phi|.
 
-    >>> subsystem.mip_past(A, CDE).phi
+    >>> subsystem.mip_cause(A, CDE).phi
     0.0
-    >>> subsystem.mip_past(A, CDE).partition  # doctest: +NORMALIZE_WHITESPACE
+    >>> subsystem.mip_cause(A, CDE).partition  # doctest: +NORMALIZE_WHITESPACE
      ∅     0
     ─── ✕ ───
      4    2,3
 
 Instead, we should evaluate |A| over the purview |CD|.
 
-    >>> mip_A = subsystem.mip_past(A, CD)
+    >>> mip_A = subsystem.mip_cause(A, CD)
 
 In this case, there is a well defined MIP
 

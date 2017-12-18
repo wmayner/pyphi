@@ -63,8 +63,8 @@ The concept has :math:`\varphi = \frac{1}{2}`.
             [ 0. ,  0.5]]])
 
 So we see that the cause purview of this mechanism is the whole system |ABC|,
-and that the repertoire shows a :math:`0.5` of probability the past state being
-``(0, 0, 0)`` and the same for ``(1, 1, 1)``:
+and that the repertoire shows a :math:`0.5` of probability the previous state
+being ``(0, 0, 0)`` and the same for ``(1, 1, 1)``:
 
     >>> concept.cause.repertoire[(0, 0, 0)]
     0.5
@@ -72,7 +72,7 @@ and that the repertoire shows a :math:`0.5` of probability the past state being
     0.5
 
 This tells us that knowing both |A| and |B| are currently off means that
-the past state of the system was either all off or all on with equal
+the previous state of the system was either all off or all on with equal
 probability.
 
 For any reduced purview, we would still have the same information about the
@@ -167,7 +167,7 @@ mechanism |ABC|. Consider the cause information over the purview |ABC|:
 Since the mechanism has nonzero cause information, it has causal power over the
 system—but is it irreducible?
 
-   >>> mip = subsystem.mip_past(ABC, ABC)
+   >>> mip = subsystem.mip_cause(ABC, ABC)
    >>> mip.phi
    0.0
    >>> mip.partition  # doctest: +NORMALIZE_WHITESPACE
@@ -184,8 +184,8 @@ The mechanism has :math:`ci = 0.75`, but it is completely reducible
 
 This result can be understood as follows: knowing that |B| and |C| are off in
 the current state is sufficient to know that |A|, |B|, and |C| were all off in
-the past state; there is no additional information gained by knowing that |A|
-is currently off.
+the previous state; there is no additional information gained by knowing that
+|A| is currently off.
 
 Similarly for any other potential purview, the current state of |B| and |C|
 being ``(0, 0)`` is always enough to fully specify the previous state, so the

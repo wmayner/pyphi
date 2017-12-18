@@ -18,8 +18,8 @@ from .distance import ces_distance
 log = logging.getLogger(__name__)
 
 
-def concept(subsystem, mechanism, purviews=False, past_purviews=False,
-            future_purviews=False):
+def concept(subsystem, mechanism, purviews=False, cause_purviews=False,
+            effect_purviews=False):
     """Return the concept specified by a mechanism within a subsytem.
 
     Args:
@@ -30,9 +30,9 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
     Keyword Args:
         purviews (tuple[tuple[int]]): Restrict the possible purviews to those
             in this list.
-        past_purviews (tuple[tuple[int]]): Restrict the possible cause
+        cause_purviews (tuple[tuple[int]]): Restrict the possible cause
             purviews to those in this list. Takes precedence over ``purviews``.
-        future_purviews (tuple[tuple[int]]): Restrict the possible effect
+        effect_purviews (tuple[tuple[int]]): Restrict the possible effect
             purviews to those in this list. Takes precedence over ``purviews``.
 
     Returns:
@@ -47,8 +47,8 @@ def concept(subsystem, mechanism, purviews=False, past_purviews=False,
         result = subsystem.null_concept
     else:
         result = subsystem.concept(
-            mechanism, purviews=purviews, past_purviews=past_purviews,
-            future_purviews=future_purviews)
+            mechanism, purviews=purviews, cause_purviews=cause_purviews,
+            effect_purviews=effect_purviews)
 
     result.time = round(time() - start, config.PRECISION)
     log.debug('Found concept %s', mechanism)
@@ -65,13 +65,13 @@ class ComputeCauseEffectStructure(parallel.MapReduce):
         return []
 
     @staticmethod
-    def compute(mechanism, subsystem, purviews, past_purviews,
-                future_purviews):
+    def compute(mechanism, subsystem, purviews, cause_purviews,
+                effect_purviews):
         """Compute a |Concept| for a mechanism, in this |Subsystem| with the
         provided purviews."""
         return concept(subsystem, mechanism, purviews=purviews,
-                       past_purviews=past_purviews,
-                       future_purviews=future_purviews)
+                       cause_purviews=cause_purviews,
+                       effect_purviews=effect_purviews)
 
     def process_result(self, new_concept, concepts):
         """Save all concepts with non-zero |small_phi| to the
@@ -81,8 +81,8 @@ class ComputeCauseEffectStructure(parallel.MapReduce):
         return concepts
 
 
-def ces(subsystem, mechanisms=False, purviews=False,
-                  past_purviews=False, future_purviews=False, parallel=False):
+def ces(subsystem, mechanisms=False, purviews=False, cause_purviews=False,
+        effect_purviews=False, parallel=False):
     """Return the conceptual structure of this subsystem, optionally restricted
     to concepts with the mechanisms and purviews given in keyword arguments.
 
@@ -97,8 +97,8 @@ def ces(subsystem, mechanisms=False, purviews=False,
         mechanisms (tuple[tuple[int]]): Restrict possible mechanisms to those
             in this list.
         purviews (tuple[tuple[int]]): Same as in :func:`concept`.
-        past_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
-        future_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
+        cause_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
+        effect_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
         parallel (bool): Whether to compute concepts in parallel. If ``True``,
             overrides :data:`config.PARALLEL_CONCEPT_EVALUATION`.
 
@@ -110,7 +110,7 @@ def ces(subsystem, mechanisms=False, purviews=False,
         mechanisms = utils.powerset(subsystem.node_indices, nonempty=True)
 
     engine = ComputeCauseEffectStructure(mechanisms, subsystem, purviews,
-                                         past_purviews, future_purviews)
+                                         cause_purviews, effect_purviews)
 
     return models.CauseEffectStructure(
         engine.run(parallel or config.PARALLEL_CONCEPT_EVALUATION))

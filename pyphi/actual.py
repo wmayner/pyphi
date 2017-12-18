@@ -19,9 +19,10 @@ import pyphi
 
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
-from .models import (Account, AcMechanismIrreducibilityAnalysis, AcSystemIrreducibilityAnalysis, ActualCut,
-                     CausalLink, DirectedAccount, Event, NullCut,
-                     _null_ac_sia, _null_ac_mip, fmt)
+from .models import (Account, AcMechanismIrreducibilityAnalysis,
+                     AcSystemIrreducibilityAnalysis, ActualCut, CausalLink,
+                     DirectedAccount, Event, NullCut, _null_ac_sia,
+                     _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
@@ -325,25 +326,29 @@ class Transition:
             # First check for 0
             # Default: don't count contrary causes and effects
             if utils.eq(alpha, 0) or (alpha < 0 and not allow_neg):
-                return AcMechanismIrreducibilityAnalysis(state=self.mechanism_state(direction),
-                             direction=direction,
-                             mechanism=mechanism,
-                             purview=purview,
-                             partition=partition,
-                             probability=probability,
-                             partitioned_probability=partitioned_probability,
-                             alpha=0.0)
+                return AcMechanismIrreducibilityAnalysis(
+                    state=self.mechanism_state(direction),
+                    direction=direction,
+                    mechanism=mechanism,
+                    purview=purview,
+                    partition=partition,
+                    probability=probability,
+                    partitioned_probability=partitioned_probability,
+                    alpha=0.0
+                )
             # Then take closest to 0
             if (abs(alpha_min) - abs(alpha)) > constants.EPSILON:
                 alpha_min = alpha
-                acmip = AcMechanismIrreducibilityAnalysis(state=self.mechanism_state(direction),
-                              direction=direction,
-                              mechanism=mechanism,
-                              purview=purview,
-                              partition=partition,
-                              probability=probability,
-                              partitioned_probability=partitioned_probability,
-                              alpha=alpha_min)
+                acmip = AcMechanismIrreducibilityAnalysis(
+                    state=self.mechanism_state(direction),
+                    direction=direction,
+                    mechanism=mechanism,
+                    purview=purview,
+                    partition=partition,
+                    probability=probability,
+                    partitioned_probability=partitioned_probability,
+                    alpha=alpha_min
+                )
         return acmip
 
     # Phi_max methods
@@ -547,7 +552,8 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
         return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)
-    finder = FindBigAcMechanismIrreducibilityAnalysis(cuts, transition, direction, unpartitioned_account)
+    finder = FindBigAcMechanismIrreducibilityAnalysis(
+        cuts, transition, direction, unpartitioned_account)
     result = finder.run_sequential()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
@@ -640,49 +646,50 @@ def causal_nexus(network, before_state, after_state,
 # TODO: move this to __str__
 def nice_true_ces(tc):
     """Format a true |CauseEffectStructure|."""
-    past_list = []
-    future_list = []
+    cause_list = []
+    next_list = []
     cause = '<--'
     effect = '-->'
     for event in tc:
         if event.direction == Direction.CAUSE:
-            past_list.append(["{0:.4f}".format(round(event.alpha, 4)),
-                              event.mechanism, cause, event.purview])
+            cause_list.append(["{0:.4f}".format(round(event.alpha, 4)),
+                               event.mechanism, cause, event.purview])
         elif event.direction == Direction.EFFECT:
-            future_list.append(["{0:.4f}".format(round(event.alpha, 4)),
-                                event.mechanism, effect, event.purview])
+            next_list.append(["{0:.4f}".format(round(event.alpha, 4)),
+                              event.mechanism, effect, event.purview])
         else:
             validate.direction(event.direction)
 
-    true_list = [(past_list[event], future_list[event])
-                 for event in range(len(past_list))]
+    true_list = [(cause_list[event], next_list[event])
+                 for event in range(len(cause_list))]
     return true_list
 
 
-def _actual_causes(network, past_state, current_state, nodes,
+def _actual_causes(network, previous_state, current_state, nodes,
                    mechanisms=False):
     log.info("Calculating true causes ...")
-    transition = Transition(network, past_state, current_state, nodes, nodes)
+    transition = Transition(
+        network, previous_state, current_state, nodes, nodes)
 
     return directed_account(transition, Direction.CAUSE, mechanisms=mechanisms)
 
 
-def _actual_effects(network, current_state, future_state, nodes,
+def _actual_effects(network, current_state, next_state, nodes,
                     mechanisms=False):
     log.info("Calculating true effects ...")
-    transition = Transition(network, current_state, future_state, nodes, nodes)
+    transition = Transition(network, current_state, next_state, nodes, nodes)
 
     return directed_account(
         transition, Direction.EFFECT, mechanisms=mechanisms)
 
 
-def events(network, past_state, current_state, future_state, nodes,
+def events(network, previous_state, current_state, next_state, nodes,
            mechanisms=False):
     """Find all events (mechanisms with actual causes and actual effects."""
 
-    actual_causes = _actual_causes(network, past_state, current_state, nodes,
-                                   mechanisms)
-    actual_effects = _actual_effects(network, current_state, future_state,
+    actual_causes = _actual_causes(network, previous_state, current_state,
+                                   nodes, mechanisms)
+    actual_effects = _actual_effects(network, current_state, next_state,
                                      nodes, mechanisms)
 
     actual_mechanisms = (set(c.mechanism for c in actual_causes) &
@@ -706,7 +713,7 @@ def events(network, past_state, current_state, future_state, nodes,
 
 # TODO: do we need this? it's just a re-structuring of the `events` results
 # TODO: rename to `actual_ces`?
-def true_ces(subsystem, past_state, future_state):
+def true_ces(subsystem, previous_state, next_state):
     """Set of all sets of elements that have true causes and true effects.
 
     .. note::
@@ -718,7 +725,7 @@ def true_ces(subsystem, past_state, future_state):
     nodes = subsystem.node_indices
     state = subsystem.state
 
-    _events = events(network, past_state, state, future_state, nodes)
+    _events = events(network, previous_state, state, next_state, nodes)
 
     if not _events:
         log.info("Finished calculating, no echo events.")
@@ -732,16 +739,16 @@ def true_ces(subsystem, past_state, future_state):
     return result
 
 
-def true_events(network, past_state, current_state, future_state, indices=None,
-                major_complex=None):
+def true_events(network, previous_state, current_state, next_state,
+                indices=None, major_complex=None):
     """Return all mechanisms that have true causes and true effects within the
     complex.
 
     Args:
         network (Network): The network to analyze.
-        past_state (tuple[int]): The state of the network at ``t - 1``.
+        previous_state (tuple[int]): The state of the network at ``t - 1``.
         current_state (tuple[int]): The state of the network at ``t``.
-        future_state (tuple[int]): The state of the network at ``t + 1``.
+        next_state (tuple[int]): The state of the network at ``t + 1``.
 
     Keyword Args:
         indices (tuple[int]): The indices of the main complex.
@@ -761,19 +768,19 @@ def true_events(network, past_state, current_state, future_state, indices=None,
         major_complex = compute.major_complex(network, current_state)
         nodes = major_complex.subsystem.node_indices
 
-    return events(network, past_state, current_state, future_state, nodes)
+    return events(network, previous_state, current_state, next_state, nodes)
 
 
-def extrinsic_events(network, past_state, current_state, future_state,
+def extrinsic_events(network, previous_state, current_state, next_state,
                      indices=None, major_complex=None):
     """Set of all mechanisms that are in the main complex but which have true
     causes and effects within the entire network.
 
     Args:
         network (Network): The network to analyze.
-        past_state (tuple[int]): The state of the network at ``t - 1``.
+        previous_state (tuple[int]): The state of the network at ``t - 1``.
         current_state (tuple[int]): The state of the network at ``t``.
-        future_state (tuple[int]): The state of the network at ``t + 1``.
+        next_state (tuple[int]): The state of the network at ``t + 1``.
 
     Keyword Args:
         indices (tuple[int]): The indices of the main complex.
@@ -794,5 +801,5 @@ def extrinsic_events(network, past_state, current_state, future_state,
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
     all_nodes = network.node_indices
 
-    return events(network, past_state, current_state, future_state, all_nodes,
-                  mechanisms=mechanisms)
+    return events(network, previous_state, current_state, next_state,
+                  all_nodes, mechanisms=mechanisms)

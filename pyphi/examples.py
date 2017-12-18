@@ -170,7 +170,7 @@ def basic_noisy_selfloop_subsystem():
 def residue_network():
     """The network for the residue example.
 
-    Current and past state are all nodes off.
+    Current and previous state are all nodes off.
 
     Diagram::
 
@@ -401,9 +401,8 @@ def propagation_delay_network():
     function as propagation delays on the signal between OR, AND and XOR gates
     from the original system.
 
-    The current and past states of the network are also selected to mimic the
-    corresponding states from the IIT 3.0 paper.
-
+    The current and previous states of the network are also selected to mimic
+    the corresponding states from the IIT 3.0 paper.
 
     Diagram::
 
@@ -453,38 +452,39 @@ def propagation_delay_network():
 
     States:
 
-    In the IIT 3.0 paper example, the past state of the system has only the XOR
-    gate on. For the propagation delay network, this corresponds to a state of
+    In the IIT 3.0 paper example, the previous state of the system has only the
+    XOR gate on. For the propagation delay network, this corresponds to a state
+    of
     ``(0, 0, 0, 1, 0, 0, 0, 0, 0)``.
 
     The current state of the IIT 3.0 example has only the OR gate on. By
     advancing the propagation delay system two time steps, the current state
-    ``(1, 0, 0, 0, 0, 0, 0, 0, 0)`` is achieved, with corresponding past state
-    ``(0, 0, 1, 0, 1, 0, 0, 0, 0)``.
+    ``(1, 0, 0, 0, 0, 0, 0, 0, 0)`` is achieved, with corresponding previous
+    state ``(0, 0, 1, 0, 1, 0, 0, 0, 0)``.
     """
     num_nodes = 9
     num_states = 2 ** num_nodes
 
     tpm = np.zeros((num_states, num_nodes))
 
-    for past_state_index, past_state in enumerate(all_states(num_nodes)):
+    for previous_state_index, previous in enumerate(all_states(num_nodes)):
         current_state = [0 for i in range(num_nodes)]
-        if past_state[2] == 1 or past_state[7] == 1:
+        if previous[2] == 1 or previous[7] == 1:
             current_state[0] = 1
-        if past_state[0] == 1:
+        if previous[0] == 1:
             current_state[1] = 1
             current_state[8] = 1
-        if past_state[3] == 1:
+        if previous[3] == 1:
             current_state[2] = 1
             current_state[4] = 1
-        if past_state[1] == 1 ^ past_state[5] == 1:
+        if previous[1] == 1 ^ previous[5] == 1:
             current_state[3] = 1
-        if past_state[4] == 1 and past_state[8] == 1:
+        if previous[4] == 1 and previous[8] == 1:
             current_state[6] = 1
-        if past_state[6] == 1:
+        if previous[6] == 1:
             current_state[5] = 1
             current_state[7] = 1
-        tpm[past_state_index, :] = current_state
+        tpm[previous_state_index, :] = current_state
 
     cm = np.array([[0, 1, 0, 0, 0, 0, 0, 0, 1],
                    [0, 0, 0, 1, 0, 0, 0, 0, 0],
@@ -581,17 +581,17 @@ def blackbox_network():
     num_states = 2 ** num_nodes
     tpm = np.zeros((num_states, num_nodes))
 
-    for index, past_state in enumerate(all_states(num_nodes)):
+    for index, previous_state in enumerate(all_states(num_nodes)):
         current_state = [0 for i in range(num_nodes)]
-        if past_state[5] == 1:
+        if previous_state[5] == 1:
             current_state[0] = 1
             current_state[1] = 1
-        if past_state[0] == 1 and past_state[1]:
+        if previous_state[0] == 1 and previous_state[1]:
             current_state[2] = 1
-        if past_state[2] == 1:
+        if previous_state[2] == 1:
             current_state[3] = 1
             current_state[4] = 1
-        if past_state[3] == 1 and past_state[4] == 1:
+        if previous_state[3] == 1 and previous_state[4] == 1:
             current_state[5] = 1
         tpm[index, :] = current_state
 
@@ -608,9 +608,9 @@ def blackbox_network():
 
 
 def rule110_network():
-    """A network of three elements which follows the logic of
-    the Rule 110 cellular automaton with current and past
-    state (0, 0, 0). """
+    """A network of three elements which follows the logic of the Rule 110
+    cellular automaton with current and previous state (0, 0, 0).
+    """
     tpm = np.array([[0, 0, 0],
                     [1, 0, 1],
                     [1, 1, 0],

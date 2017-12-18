@@ -106,7 +106,8 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
         return cmp.general_eq(self, other, attrs)
 
     def __bool__(self):
-        """A |MechanismIrreducibilityAnalysis| is ``True`` if it has |small_phi > 0|."""
+        """A |MechanismIrreducibilityAnalysis| is ``True`` if it has |small_phi
+        > 0|."""
         return not utils.eq(self.phi, 0)
 
     def __hash__(self):
@@ -208,7 +209,8 @@ class Mice(cmp.Orderable):
     def __str__(self):
         return "Mice\n" + fmt.indent(fmt.fmt_mip(self.mip))
 
-    unorderable_unless_eq = MechanismIrreducibilityAnalysis.unorderable_unless_eq
+    unorderable_unless_eq = \
+        MechanismIrreducibilityAnalysis.unorderable_unless_eq
 
     def order_by(self):
         return self.mip.order_by()

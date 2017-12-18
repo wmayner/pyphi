@@ -122,7 +122,7 @@ scenarios = [
         simple_a_just_on,
         [0],
         [0],
-        # Cause repertoire is maximally selective; the past state must have
+        # Cause repertoire is maximally selective; the previous state must have
         # been {0,1,1}, so `expected[(0,1,1)]` should be 1 and everything else
         # should be 0
         np.array([1.0, 0.0]).reshape(2, 1, 1, order="F")

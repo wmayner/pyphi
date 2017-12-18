@@ -41,10 +41,11 @@ class Orderable:
 
     Subclasses can optionally set a value for `unorderable_unless_eq`. This
     attribute controls whether objects are orderable: if all attributes listed
-    in `unorderable_unless_eq` are not equal then the objects are not
-    orderable with respect to one another and a TypeError is raised. For
-    example: it doesn't make sense to compare ``Concepts`` unless they are
-    from the same ``Subsystem`` or compare ``MechanismIrreducibilityAnalysiss`` with different directions.
+    in `unorderable_unless_eq` are not equal then the objects are not orderable
+    with respect to one another and a TypeError is raised. For example: it
+    doesn't make sense to compare ``Concepts`` unless they are from the same
+    ``Subsystem`` or compare ``MechanismIrreducibilityAnalyses`` with different
+    directions.
     """
     # pylint: disable=too-few-public-methods
 

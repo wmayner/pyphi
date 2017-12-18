@@ -248,44 +248,44 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
 # ========================
 
 
-def test_mip_past(s):
+def test_mip_cause(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    mip_past = s.find_mip(Direction.CAUSE, mechanism, purview)
-    assert mip_past == s.mip_past(mechanism, purview)
+    mip_cause = s.find_mip(Direction.CAUSE, mechanism, purview)
+    assert mip_cause == s.mip_cause(mechanism, purview)
 
 
-def test_mip_future(s):
+def test_mip_effect(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    mip_future = s.find_mip(Direction.EFFECT, mechanism, purview)
-    assert mip_future == s.mip_future(mechanism, purview)
+    mip_effect = s.find_mip(Direction.EFFECT, mechanism, purview)
+    assert mip_effect == s.mip_effect(mechanism, purview)
 
 
-def test_phi_mip_past(s):
+def test_phi_mip_cause(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    assert (s.phi_mip_past(mechanism, purview) ==
-            s.mip_past(mechanism, purview).phi)
+    assert (s.phi_mip_cause(mechanism, purview) ==
+            s.mip_cause(mechanism, purview).phi)
 
 
-def test_phi_mip_past_reducible(s):
+def test_phi_mip_cause_reducible(s):
     mechanism = (1,)
     purview = (0,)
-    assert (0 == s.phi_mip_past(mechanism, purview))
+    assert (0 == s.phi_mip_cause(mechanism, purview))
 
 
-def test_phi_mip_future(s):
+def test_phi_mip_effect(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    assert (s.phi_mip_future(mechanism, purview) ==
-            s.mip_future(mechanism, purview).phi)
+    assert (s.phi_mip_effect(mechanism, purview) ==
+            s.mip_effect(mechanism, purview).phi)
 
 
-def test_phi_mip_future_reducible(s):
+def test_phi_mip_effect_reducible(s):
     mechanism = (0, 1)
     purview = (1, )
-    assert (0 == s.phi_mip_future(mechanism, purview))
+    assert (0 == s.phi_mip_effect(mechanism, purview))
 
 
 def test_phi(s):

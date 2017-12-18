@@ -124,10 +124,10 @@ def test_mic_or_mie(cut, direction, expected):
 
 phi_max_scenarios = [
     [
-        (cut, past.mechanism, min(past.phi, future.phi))
-        for past, future in zip(expected_mice[cut][Direction.CAUSE],
-                                expected_mice[cut][Direction.EFFECT])]
-    for cut in cuts
+        (cut, cause.mechanism, min(cause.phi, effect.phi))
+        for cause, effect in zip(expected_mice[cut][Direction.CAUSE],
+                                 expected_mice[cut][Direction.EFFECT])
+    ] for cut in cuts
 ]
 # Flatten singly-nested list of scenarios.
 phi_max_scenarios = list(chain(*phi_max_scenarios))

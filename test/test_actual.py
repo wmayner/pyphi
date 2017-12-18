@@ -573,12 +573,12 @@ def test_true_events(standard):
 
 
 def test_true_ces(standard):
-    past_state = (1, 0, 0)
+    previous_state = (1, 0, 0)
     current_state = (0, 0, 1)
-    future_state = (1, 1, 0)
+    next_state = (1, 1, 0)
     subsystem = Subsystem(standard, current_state, standard.node_indices)
 
-    ces = actual.true_ces(subsystem, past_state, future_state)
+    ces = actual.true_ces(subsystem, previous_state, next_state)
 
     assert len(ces) == 2
     actual_cause, actual_effect = ces

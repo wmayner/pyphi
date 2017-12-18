@@ -23,7 +23,7 @@ def concept_distance(c1, c2):
     Returns:
         float: The distance between the two concepts in concept space.
     """
-    # Calculate the sum of the past and future EMDs, expanding the repertoires
+    # Calculate the sum of the cause and effect EMDs, expanding the repertoires
     # to the combined purview of the two concepts, so that the EMD signatures
     # are the same size.
     cause_purview = tuple(set(c1.cause.purview + c2.cause.purview))

@@ -253,7 +253,7 @@ def state_by_state2state_by_node(tpm):
     node_on = np.array([[states[i][n] for i in range(S)] for n in range(N)])
     on_probabilities = [tpm * node_on[n] for n in range(N)]
     for i, state in states.items():
-        # Get the probability of each node being on given the past state i,
+        # Get the probability of each node being on given the previous state i,
         # i.e., a row of the state-by-node TPM.
         # Assign that row to the ith state in the state-by-node TPM.
         sbn_tpm[state] = [np.sum(on_probabilities[n][i]) for n in range(N)]
@@ -319,21 +319,21 @@ def state_by_node2state_by_state(tpm):
     sbs_tpm = np.zeros((S, S))
     if not np.any(np.logical_and(tpm < 1, tpm > 0)):
         # TPM is deterministic.
-        for past_state_index in range(S):
+        for previous_state_index in range(S):
             # Use the LOLI convention to get the row and column indices.
-            past_state = loli_index2state(past_state_index, N)
-            current_state_index = state2loli_index(tpm[past_state])
-            sbs_tpm[past_state_index, current_state_index] = 1
+            previous_state = loli_index2state(previous_state_index, N)
+            current_state_index = state2loli_index(tpm[previous_state])
+            sbs_tpm[previous_state_index, current_state_index] = 1
     else:
         # TPM is nondeterministic.
-        for past_state_index in range(S):
+        for previous_state_index in range(S):
             # Use the LOLI convention to get the row and column indices.
-            past_state = loli_index2state(past_state_index, N)
-            marginal_tpm = tpm[past_state]
+            previous_state = loli_index2state(previous_state_index, N)
+            marginal_tpm = tpm[previous_state]
             for current_state_index in range(S):
                 current_state = np.array(
                     [i for i in loli_index2state(current_state_index, N)])
-                sbs_tpm[past_state_index, current_state_index] = (
+                sbs_tpm[previous_state_index, current_state_index] = (
                     np.prod(marginal_tpm[current_state == 1]) *
                     np.prod(1 - marginal_tpm[current_state == 0]))
     return sbs_tpm

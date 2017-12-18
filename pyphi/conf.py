@@ -497,7 +497,7 @@ class PyphiConfig(Config):
 
     VALIDATE_SUBSYSTEM_STATES = Option(True, doc="""
     Controls whether PyPhi checks if the subsystems's state is possible
-    (reachable with nonzero probability from some past state), given the
+    (reachable with nonzero probability from some previous state), given the
     subsystem's TPM (**which is conditioned on background conditions**). If
     this is turned off, then **calculated** |big_phi| **values may not be
     valid**, since they may be associated with a subsystem that could never be

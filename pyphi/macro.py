@@ -526,12 +526,12 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         micro_states = range(2 ** len(self.micro_indices))
         micro_state_transitions = itertools.product(micro_states, repeat=2)
 
-        # For every possible micro-state transition, get the corresponding past
-        # and current macro-state using the mapping and add that probability to
-        # the state-by-state macro TPM.
-        for past_state, current_state in micro_state_transitions:
-            macro_tpm[mapping[past_state], mapping[current_state]] += (
-                state_by_state_micro_tpm[past_state, current_state])
+        # For every possible micro-state transition, get the corresponding
+        # previous and next macro-state using the mapping and add that
+        # probability to the state-by-state macro TPM.
+        for previous_state, current_state in micro_state_transitions:
+            macro_tpm[mapping[previous_state], mapping[current_state]] += (
+                state_by_state_micro_tpm[previous_state, current_state])
 
         # Re-normalize each row because we're going from larger to smaller TPM
         return np.array([distribution.normalize(row) for row in macro_tpm])

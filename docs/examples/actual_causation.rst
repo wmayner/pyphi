@@ -34,7 +34,7 @@ When calculating a causal account of the transition between a set of elements
 |X| at time |t-1| and a set of elements |Y| at time |t|, with |X| and |Y| being
 subsets of the same system, the transition should be valid according to the
 system's TPM. However, the state of |X| at |t-1| does not necessarily need to
-have a valid past state so we can disable state validation:
+have a valid previous state so we can disable state validation:
 
    >>> config.VALIDATE_SUBSYSTEM_STATES = False
 

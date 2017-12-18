@@ -15,8 +15,9 @@ import numpy as np
 from . import Direction, cache, config, distribution, utils, validate
 from .distance import mechanism_repertoire_distance as repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Bipartition, Concept, KPartition, Mice, MechanismIrreducibilityAnalysis, NullCut,
-                     Part, Tripartition, _null_mip, cmp)
+from .models import (Bipartition, Concept, KPartition, Mice,
+                     MechanismIrreducibilityAnalysis, NullCut, Part,
+                     Tripartition, _null_mip, cmp)
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,
@@ -295,8 +296,9 @@ class Subsystem:
         # multiplicative identity.
         if not purview:
             return np.array([1.0])
-        # If the mechanism is empty, nothing is specified about the past state
-        # of the purview; return the purview's maximum entropy distribution.
+        # If the mechanism is empty, nothing is specified about the previous
+        # state of the purview; return the purview's maximum entropy
+        # distribution.
         if not mechanism:
             return max_entropy_distribution(purview, self.tpm_size)
         # Use a frozenset so the arguments to `_single_node_cause_repertoire`
@@ -311,9 +313,9 @@ class Subsystem:
             np.multiply, [self._single_node_cause_repertoire(m, purview)
                           for m in mechanism]
         )
-        # The resulting joint distribution is over past states, which are rows
-        # in the TPM, so the distribution is a column. The columns of a TPM
-        # don't necessarily sum to 1, so we normalize.
+        # The resulting joint distribution is over previous states, which are
+        # rows in the TPM, so the distribution is a column. The columns of a
+        # TPM don't necessarily sum to 1, so we normalize.
         return distribution.normalize(joint)
 
     # TODO extend to nonbinary nodes
@@ -326,7 +328,7 @@ class Subsystem:
         # Marginalize-out the inputs that aren't in the mechanism.
         nonmechanism_inputs = (purview_node.inputs - mechanism)
         tpm = marginalize_out(nonmechanism_inputs, tpm)
-        # Reshape so that the distribution is over future states.
+        # Reshape so that the distribution is over next states.
         return tpm.reshape(repertoire_shape([purview_node.index],
                                             self.tpm_size))
 
@@ -534,7 +536,8 @@ class Subsystem:
             purview (tuple[int]): The nodes in the purview.
 
         Returns:
-            MechanismIrreducibilityAnalysis: The mininum-information partition in one temporal direction.
+            MechanismIrreducibilityAnalysis: The mininum-information partition
+                in one temporal direction.
         """
         # We default to the null MIP (the MIP of a reducible mechanism)
         mip = _null_mip(direction, mechanism, purview)
@@ -585,42 +588,42 @@ class Subsystem:
 
         return mip
 
-    def mip_past(self, mechanism, purview):
-        """Return the past minimum information partition.
+    def mip_cause(self, mechanism, purview):
+        """Return the cause minimum information partition.
 
         Alias for |find_mip| with ``direction`` set to |CAUSE|.
         """
         return self.find_mip(Direction.CAUSE, mechanism, purview)
 
-    def mip_future(self, mechanism, purview):
-        """Return the future minimum information partition.
+    def mip_effect(self, mechanism, purview):
+        """Return the effect minimum information partition.
 
         Alias for |find_mip| with ``direction`` set to |EFFECT|.
         """
         return self.find_mip(Direction.EFFECT, mechanism, purview)
 
-    def phi_mip_past(self, mechanism, purview):
-        """Return the |small_phi| of the past minimum information partition.
+    def phi_mip_cause(self, mechanism, purview):
+        """Return the |small_phi| of the cause minimum information partition.
 
         This is the distance between the unpartitioned cause repertoire and the
         MIP cause repertoire.
         """
-        mip = self.mip_past(mechanism, purview)
+        mip = self.mip_cause(mechanism, purview)
         return mip.phi if mip else 0
 
-    def phi_mip_future(self, mechanism, purview):
-        """Return the |small_phi| of the future minimum information partition.
+    def phi_mip_effect(self, mechanism, purview):
+        """Return the |small_phi| of the effect minimum information partition.
 
         This is the distance between the unpartitioned effect repertoire and
         the MIP cause repertoire.
         """
-        mip = self.mip_future(mechanism, purview)
+        mip = self.mip_effect(mechanism, purview)
         return mip.phi if mip else 0
 
     def phi(self, mechanism, purview):
         """Return the |small_phi| of a mechanism over a purview."""
-        return min(self.phi_mip_past(mechanism, purview),
-                   self.phi_mip_future(mechanism, purview))
+        return min(self.phi_mip_cause(mechanism, purview),
+                   self.phi_mip_effect(mechanism, purview))
 
     # Phi_max methods
     # =========================================================================
@@ -725,16 +728,16 @@ class Subsystem:
                        effect=effect,
                        subsystem=self)
 
-    def concept(self, mechanism, purviews=False, past_purviews=False,
-                future_purviews=False):
+    def concept(self, mechanism, purviews=False, cause_purviews=False,
+                effect_purviews=False):
         """Calculate a concept.
 
         See :func:`pyphi.compute.concept` for more information.
         """
         # Calculate the maximally irreducible cause repertoire.
-        cause = self.mic(mechanism, purviews=(past_purviews or purviews))
+        cause = self.mic(mechanism, purviews=(cause_purviews or purviews))
         # Calculate the maximally irreducible effect repertoire.
-        effect = self.mie(mechanism, purviews=(future_purviews or purviews))
+        effect = self.mie(mechanism, purviews=(effect_purviews or purviews))
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.

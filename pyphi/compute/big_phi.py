@@ -197,7 +197,8 @@ def _sia(cache_key, subsystem):
         cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
     else:
         cuts = sia_bipartitions(subsystem.cut_indices)
-    finder = FindMechanismIrreducibilityAnalysis(cuts, subsystem, unpartitioned_ces)
+    finder = FindMechanismIrreducibilityAnalysis(
+        cuts, subsystem, unpartitioned_ces)
     min_mip = finder.run(config.PARALLEL_CUT_EVALUATION)
     result = time_annotated(min_mip, small_phi_time)
 
@@ -270,7 +271,7 @@ def possible_complexes(network, state):
     This is the just powerset of the nodes that have at least one input and
     output (nodes with no inputs or no outputs cannot be part of a main
     complex, because they do not have a causal link with the rest of the
-    subsystem in the past or future, respectively).
+    subsystem in the previous or next timestep, respectively).
 
     Does not include subsystems in an impossible state.
 
@@ -394,15 +395,15 @@ class ConceptStyleSystem:
             Direction.EFFECT: self.cut_system
         }[self.direction]
 
-    def concept(self, mechanism, purviews=False, past_purviews=False,
-                future_purviews=False):
+    def concept(self, mechanism, purviews=False, cause_purviews=False,
+                effect_purviews=False):
         """Compute a concept, using the appropriate system for each side of
         the cut."""
         cause = self.cause_system.mic(
-            mechanism, purviews=(past_purviews or purviews))
+            mechanism, purviews=(cause_purviews or purviews))
 
         effect = self.effect_system.mie(
-            mechanism, purviews=(future_purviews or purviews))
+            mechanism, purviews=(effect_purviews or purviews))
 
         return Concept(mechanism=mechanism, cause=cause, effect=effect,
                        subsystem=self)
@@ -418,8 +419,8 @@ def concept_cuts(direction, node_indices):
 
 
 def directional_sia(subsystem, direction, unpartitioned_ces=None):
-    """Calculate a concept-style SystemIrreducibilityAnalysisPast or
-    SystemIrreducibilityAnalysisFuture."""
+    """Calculate a concept-style SystemIrreducibilityAnalysisCause or
+    SystemIrreducibilityAnalysisEffect."""
     if unpartitioned_ces is None:
         unpartitioned_ces = _unpartitioned_ces(subsystem)
 
@@ -428,26 +429,26 @@ def directional_sia(subsystem, direction, unpartitioned_ces=None):
 
     # Run the default MIP finder
     # TODO: verify that short-cutting works correctly?
-    finder = FindMechanismIrreducibilityAnalysis(cuts, c_system, unpartitioned_ces)
+    finder = FindMechanismIrreducibilityAnalysis(
+        cuts, c_system, unpartitioned_ces)
     return finder.run(config.PARALLEL_CUT_EVALUATION)
 
 
 # TODO: only return the minimal mip, instead of both
 class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
-    """Represents a Big MechanismIrreducibilityAnalysis computed using concept-style system cuts."""
+    """Represents a |SIA| computed using concept-style system cuts."""
 
-    def __init__(self, mip_past, mip_future):
-        self.sia_past = mip_past
-        self.sia_future = mip_future
+    def __init__(self, mip_cause, mip_effect):
+        self.sia_cause = mip_cause
+        self.sia_effect = mip_effect
 
     @property
     def min_mip(self):
-        return min(self.sia_past, self.sia_future, key=lambda m: m.phi)
+        return min(self.sia_cause, self.sia_effect, key=lambda m: m.phi)
 
     def __getattr__(self, name):
         """Pass attribute access through to the minimal mip."""
-        if ('sia_past' in self.__dict__ and
-                'sia_future' in self.__dict__):
+        if ('sia_cause' in self.__dict__ and 'sia_effect' in self.__dict__):
             return getattr(self.min_mip, name)
         raise AttributeError(name)
 
@@ -471,9 +472,9 @@ def sia_concept_style(subsystem):
     """Compute a concept-style Big MechanismIrreducibilityAnalysis"""
     unpartitioned_ces = _unpartitioned_ces(subsystem)
 
-    mip_past = directional_sia(subsystem, Direction.CAUSE,
-                                   unpartitioned_ces)
-    mip_future = directional_sia(subsystem, Direction.EFFECT,
-                                     unpartitioned_ces)
+    mip_cause = directional_sia(subsystem, Direction.CAUSE,
+                                unpartitioned_ces)
+    mip_effect = directional_sia(subsystem, Direction.EFFECT,
+                                 unpartitioned_ces)
 
-    return SystemIrreducibilityAnalysisConceptStyle(mip_past, mip_future)
+    return SystemIrreducibilityAnalysisConceptStyle(mip_cause, mip_effect)

@@ -12,32 +12,32 @@ from test_models import sia
 
 
 @pytest.fixture()
-def kcut_past():
+def kcut_cause():
     partition = KPartition(
         Part((0, 2), (0,)), Part((), (2,)), Part((3,), (3,)))
     return KCut(Direction.CAUSE, partition)
 
 
 @pytest.fixture()
-def kcut_future():
+def kcut_effect():
     partition = KPartition(
         Part((0, 2), (0,)), Part((), (2,)), Part((3,), (3,)))
     return KCut(Direction.EFFECT, partition)
 
 
-def test_cut_indices(kcut_past, kcut_future):
-    assert kcut_past.indices == (0, 2, 3)
-    assert kcut_future.indices == (0, 2, 3)
+def test_cut_indices(kcut_cause, kcut_effect):
+    assert kcut_cause.indices == (0, 2, 3)
+    assert kcut_effect.indices == (0, 2, 3)
 
 
-def test_apply_cut(kcut_past, kcut_future):
+def test_apply_cut(kcut_cause, kcut_effect):
     cm = np.ones((4, 4))
     cut_cm = np.array([
         [1, 1, 1, 0],
         [1, 1, 1, 1],
         [0, 1, 0, 0],
         [0, 1, 0, 1]])
-    assert np.array_equal(kcut_past.apply_cut(cm), cut_cm)
+    assert np.array_equal(kcut_cause.apply_cut(cm), cut_cm)
 
     cm = np.ones((4, 4))
     cut_cm = np.array([
@@ -45,32 +45,32 @@ def test_apply_cut(kcut_past, kcut_future):
         [1, 1, 1, 1],
         [1, 1, 0, 0],
         [0, 1, 0, 1]])
-    assert np.array_equal(kcut_future.apply_cut(cm), cut_cm)
+    assert np.array_equal(kcut_effect.apply_cut(cm), cut_cm)
 
 
-def test_cut_matrix(kcut_past, kcut_future):
-    assert np.array_equal(kcut_past.cut_matrix(4), np.array([
+def test_cut_matrix(kcut_cause, kcut_effect):
+    assert np.array_equal(kcut_cause.cut_matrix(4), np.array([
         [0, 0, 0, 1],
         [0, 0, 0, 0],
         [1, 0, 1, 1],
         [1, 0, 1, 0]]))
 
-    assert np.array_equal(kcut_future.cut_matrix(4), np.array([
+    assert np.array_equal(kcut_effect.cut_matrix(4), np.array([
         [0, 0, 1, 1],
         [0, 0, 0, 0],
         [0, 0, 1, 1],
         [1, 0, 1, 0]]))
 
 
-def test_splits_mechanism(kcut_past):
-    assert kcut_past.splits_mechanism((0, 3))
-    assert kcut_past.splits_mechanism((2, 3))
-    assert not kcut_past.splits_mechanism((0,))
-    assert not kcut_past.splits_mechanism((3,))
+def test_splits_mechanism(kcut_cause):
+    assert kcut_cause.splits_mechanism((0, 3))
+    assert kcut_cause.splits_mechanism((2, 3))
+    assert not kcut_cause.splits_mechanism((0,))
+    assert not kcut_cause.splits_mechanism((3,))
 
 
-def test_all_cut_mechanisms(kcut_past):
-    assert kcut_past.all_cut_mechanisms() == (
+def test_all_cut_mechanisms(kcut_cause):
+    assert kcut_cause.all_cut_mechanisms() == (
         (2,), (0, 2), (0, 3), (2, 3), (0, 2, 3))
 
 
@@ -84,35 +84,35 @@ def test_concept_style_cuts():
             Part((), ()), Part((), (0,)), Part((0,), ())))]
 
 
-def test_kcut_equality(kcut_past, kcut_future):
+def test_kcut_equality(kcut_cause, kcut_effect):
     other = KCut(Direction.CAUSE, KPartition(
         Part((0, 2), (0,)), Part((), (2,)), Part((3,), (3,))))
-    assert kcut_past == other
-    assert hash(kcut_past) == hash(other)
-    assert hash(kcut_past) != hash(kcut_past.partition)
+    assert kcut_cause == other
+    assert hash(kcut_cause) == hash(other)
+    assert hash(kcut_cause) != hash(kcut_cause.partition)
 
-    assert kcut_past != kcut_future
-    assert hash(kcut_past) != hash(kcut_future)
+    assert kcut_cause != kcut_effect
+    assert hash(kcut_cause) != hash(kcut_effect)
 
 
 def test_system_accessors(s):
-    cut_past = KCut(Direction.CAUSE, KPartition(
+    cut_cause = KCut(Direction.CAUSE, KPartition(
         Part((0, 2), (0, 1)), Part((1,), (2,))))
-    cs_past = ConceptStyleSystem(s, Direction.CAUSE, cut_past)
-    assert cs_past.cause_system.cut == cut_past
-    assert not cs_past.effect_system.is_cut
+    cs_cause = ConceptStyleSystem(s, Direction.CAUSE, cut_cause)
+    assert cs_cause.cause_system.cut == cut_cause
+    assert not cs_cause.effect_system.is_cut
 
-    cut_future = KCut(Direction.EFFECT, KPartition(
+    cut_effect = KCut(Direction.EFFECT, KPartition(
         Part((0, 2), (0, 1)), Part((1,), (2,))))
-    cs_future = ConceptStyleSystem(s, Direction.EFFECT, cut_future)
-    assert not cs_future.cause_system.is_cut
-    assert cs_future.effect_system.cut == cut_future
+    cs_effect = ConceptStyleSystem(s, Direction.EFFECT, cut_effect)
+    assert not cs_effect.cause_system.is_cut
+    assert cs_effect.effect_system.cut == cut_effect
 
 
 def sia_cs(phi=1.0, subsystem=None):
     return SystemIrreducibilityAnalysisConceptStyle(
-        mip_past=sia(phi=phi, subsystem=subsystem),
-        mip_future=sia(phi=phi, subsystem=subsystem))
+        mip_cause=sia(phi=phi, subsystem=subsystem),
+        mip_effect=sia(phi=phi, subsystem=subsystem))
 
 
 def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
@@ -127,10 +127,10 @@ def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
 
 def test_sia_concept_style(s):
     mip = compute.sia_concept_style(s)
-    assert mip.min_mip is mip.sia_future
+    assert mip.min_mip is mip.sia_effect
     for attr in ['phi', 'unpartitioned_ces', 'cut', 'subsystem',
                  'cut_subsystem', 'network', 'partitioned_ces']:
-        assert getattr(mip, attr) is getattr(mip.sia_future, attr)
+        assert getattr(mip, attr) is getattr(mip.sia_effect, attr)
 
 
 @config.override(SYSTEM_CUTS='CONCEPT_STYLE')

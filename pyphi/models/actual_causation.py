@@ -26,7 +26,9 @@ def greater_than_zero(alpha):
     return alpha > 0 and not utils.eq(alpha, 0)
 
 
-class AcMechanismIrreducibilityAnalysis(cmp.Orderable, namedtuple('AcMechanismIrreducibilityAnalysis', _acmip_attributes)):
+class AcMechanismIrreducibilityAnalysis(
+        cmp.Orderable, namedtuple('AcMechanismIrreducibilityAnalysis',
+                                  _acmip_attributes)):
     """A minimum information partition for ac_coef calculation.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -38,7 +40,7 @@ class AcMechanismIrreducibilityAnalysis(cmp.Orderable, namedtuple('AcMechanismIr
             This is the difference between the mechanism's unpartitioned and
             partitioned actual probability.
         state (tuple[int]):
-            state of system in specified direction (past, future)
+            state of system in specified direction (cause, effect)
         direction (str):
             The temporal direction specifiying whether this AcMIP should be
             calculated with cause or effect repertoires.
@@ -51,7 +53,7 @@ class AcMechanismIrreducibilityAnalysis(cmp.Orderable, namedtuple('AcMechanismIr
             The partition that makes the least difference to the mechanism's
             repertoire.
         probability (float):
-            The probability of the state in the past/future.
+            The probability of the state in the previous/next timestep.
         partitioned_probability (float):
             The probability of the state in the partitioned repertoire.
     """
@@ -70,7 +72,9 @@ class AcMechanismIrreducibilityAnalysis(cmp.Orderable, namedtuple('AcMechanismIr
         return cmp.general_eq(self, other, _acmip_attributes_for_eq)
 
     def __bool__(self):
-        """An |AcMechanismIrreducibilityAnalysis| is ``True`` if it has |alpha > 0|."""
+        """An |AcMechanismIrreducibilityAnalysis| is ``True`` if it has
+        |alpha > 0|.
+        """
         return greater_than_zero(self.alpha)
 
     @property
@@ -90,7 +94,8 @@ class AcMechanismIrreducibilityAnalysis(cmp.Orderable, namedtuple('AcMechanismIr
         return fmt.make_repr(self, _acmip_attributes)
 
     def __str__(self):
-        return "MechanismIrreducibilityAnalysis\n" + fmt.indent(fmt.fmt_ac_mip(self))
+        return ("MechanismIrreducibilityAnalysis\n" +
+                fmt.indent(fmt.fmt_ac_mip(self)))
 
 
 def _null_ac_mip(state, direction, mechanism, purview):
@@ -146,7 +151,9 @@ class CausalLink(cmp.Orderable):
 
     @property
     def mip(self):
-        """AcMechanismIrreducibilityAnalysis: The minimum information partition for this mechanism."""
+        """AcMechanismIrreducibilityAnalysis: The minimum information partition
+        for this mechanism.
+        """
         return self._mip
 
     def __repr__(self):
@@ -155,7 +162,8 @@ class CausalLink(cmp.Orderable):
     def __str__(self):
         return "CausalLink\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
 
-    unorderable_unless_eq = AcMechanismIrreducibilityAnalysis.unorderable_unless_eq
+    unorderable_unless_eq = \
+        AcMechanismIrreducibilityAnalysis.unorderable_unless_eq
 
     def order_by(self):
         return self.mip.order_by()
@@ -265,7 +273,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
 
     @property
     def before_state(self):
-        """Return the actual past state of the |Transition|."""
+        """Return the actual previous state of the |Transition|."""
         return self.transition.before_state
 
     @property
