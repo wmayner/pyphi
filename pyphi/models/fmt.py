@@ -320,7 +320,7 @@ def fmt_concept(concept):
 
 
 def fmt_mip(mip, verbose=True):
-    """Format a |Mip|."""
+    """Format a |MechanismIrreducibilityAnalysis|."""
     if mip is False or mip is None:  # mips can be Falsy
         return ''
 
@@ -412,7 +412,7 @@ def fmt_sia(sia, ces=True):
         body = ''
         center_header = False
 
-    title = 'Big Mip: {BIG_PHI} = {phi}'.format(
+    title = 'Big MechanismIrreducibilityAnalysis: {BIG_PHI} = {phi}'.format(
         BIG_PHI=BIG_PHI, phi=fmt_number(sia.phi))
 
     cut = fmt_cut(sia.cut, sia.subsystem)
@@ -451,7 +451,7 @@ def fmt_repertoire(r):
 
 
 def fmt_ac_mip(mip):
-    """Format an AcMip."""
+    """Format an AcMechanismIrreducibilityAnalysis."""
     if mip is None:
         return ''
 

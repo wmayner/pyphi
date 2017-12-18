@@ -42,7 +42,7 @@ minimally in this system.
 Instead, we can quantify existence as the irreducible cause information of a
 mechanism. The MIP of a mechanism is the partition of mechanism and purview
 which makes the least difference to the cause repertoire (see the documentation
-for the |Mip| object). The irreducible cause information is the distance
+for the |MechanismIrreducibilityAnalysis| object). The irreducible cause information is the distance
 between the unpartitioned and partitioned repertoires.
 
 To calculate the MIP structure of mechanism |AB|:

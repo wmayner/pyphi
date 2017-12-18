@@ -7,7 +7,7 @@
 Attributes:
     SystemIrreducibilityAnalysis: Alias for
         :class:`big_phi.SystemIrreducibilityAnalysis`
-    Mip: Alias for :class:`concept.Mip`
+    MechanismIrreducibilityAnalysis: Alias for :class:`concept.MechanismIrreducibilityAnalysis`
     Mice: Alias for :class:`concept.Mice`
     Concept: Alias for :class:`concept.Concept`
     CauseEffectStructure: Alias for :class:`concept.CauseEffectStructure`
@@ -15,7 +15,7 @@ Attributes:
     Part: Alias for :class:`cuts.Part`
     Bipartition: Alias for :class:`cuts.Bipartition`
     ActualCut: Alias for :class:`cuts.ActualCut`
-    AcMip: Alias for :class:`actual_causation.AcMip`
+    AcMechanismIrreducibilityAnalysis: Alias for :class:`actual_causation.AcMechanismIrreducibilityAnalysis`
     CausalLink: Alias for :class:`actual_causation.CausalLink`
     AcSystemIrreducibilityAnalysis: Alias for
         :class:`actual_causation.AcSystemIrreducibilityAnalysis`
@@ -24,10 +24,10 @@ Attributes:
 """
 
 from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
-                               AcMip, _null_ac_mip, Event, _null_ac_bigmip,
+                               AcMechanismIrreducibilityAnalysis, _null_ac_mip, Event, _null_ac_bigmip,
                                DirectedAccount, Account)
 from .big_phi import SystemIrreducibilityAnalysis, _null_bigmip
-from .concept import (Mip, _null_mip, Mice, Concept, CauseEffectStructure,
+from .concept import (MechanismIrreducibilityAnalysis, _null_mip, Mice, Concept, CauseEffectStructure,
                       normalize_ces)
 from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,
                    KPartition, KCut)

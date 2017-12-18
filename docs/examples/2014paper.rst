@@ -422,7 +422,7 @@ attributes:
     ─── ✕ ─────
      1     0,2
 
-For more information on these objects, see the documentation for the |Mip|
+For more information on these objects, see the documentation for the |MechanismIrreducibilityAnalysis|
 class, or use ``help(mip_c)``.
 
 Note that the minimal partition found for the past is

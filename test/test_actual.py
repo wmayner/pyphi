@@ -236,7 +236,7 @@ def acmip(**kwargs):
         'partitioned_probability': 0.0,
     }
     defaults.update(kwargs)
-    return models.AcMip(**defaults)
+    return models.AcMechanismIrreducibilityAnalysis(**defaults)
 
 
 def causal_link(**kwargs):

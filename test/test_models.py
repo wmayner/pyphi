@@ -14,8 +14,8 @@ from pyphi import Direction, Subsystem, config, constants, models
 
 def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
         unpartitioned_repertoire=None, partitioned_repertoire=None):
-    """Build a ``Mip``."""
-    return models.Mip(phi=phi, direction=direction, mechanism=mechanism,
+    """Build a ``MechanismIrreducibilityAnalysis``."""
+    return models.MechanismIrreducibilityAnalysis(phi=phi, direction=direction, mechanism=mechanism,
                       purview=purview, partition=partition,
                       unpartitioned_repertoire=unpartitioned_repertoire,
                       partitioned_repertoire=partitioned_repertoire)

@@ -19,7 +19,7 @@ import pyphi
 
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
-from .models import (Account, AcMip, AcSystemIrreducibilityAnalysis, ActualCut,
+from .models import (Account, AcMechanismIrreducibilityAnalysis, AcSystemIrreducibilityAnalysis, ActualCut,
                      CausalLink, DirectedAccount, Event, NullCut,
                      _null_ac_bigmip, _null_ac_mip, fmt)
 from .subsystem import Subsystem, mip_partitions
@@ -311,7 +311,7 @@ class Transition:
                 they were 0.
 
         Returns:
-            AcMip: The found MIP.
+            AcMechanismIrreducibilityAnalysis: The found MIP.
         """
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
@@ -325,7 +325,7 @@ class Transition:
             # First check for 0
             # Default: don't count contrary causes and effects
             if utils.eq(alpha, 0) or (alpha < 0 and not allow_neg):
-                return AcMip(state=self.mechanism_state(direction),
+                return AcMechanismIrreducibilityAnalysis(state=self.mechanism_state(direction),
                              direction=direction,
                              mechanism=mechanism,
                              purview=purview,
@@ -336,7 +336,7 @@ class Transition:
             # Then take closest to 0
             if (abs(alpha_min) - abs(alpha)) > constants.EPSILON:
                 alpha_min = alpha
-                acmip = AcMip(state=self.mechanism_state(direction),
+                acmip = AcMechanismIrreducibilityAnalysis(state=self.mechanism_state(direction),
                               direction=direction,
                               mechanism=mechanism,
                               purview=purview,
@@ -547,14 +547,14 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
         return _null_ac_bigmip(transition, direction)
 
     cuts = _get_cuts(transition, direction)
-    finder = FindBigAcMip(cuts, transition, direction, unpartitioned_account)
+    finder = FindBigAcMechanismIrreducibilityAnalysis(cuts, transition, direction, unpartitioned_account)
     result = finder.run_sequential()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
     return result
 
 
-class FindBigAcMip(compute.parallel.MapReduce):
+class FindBigAcMechanismIrreducibilityAnalysis(compute.parallel.MapReduce):
     """Computation engine for AC SystemIrreducibilityAnalysiss."""
     # pylint: disable=unused-argument,arguments-differ
 

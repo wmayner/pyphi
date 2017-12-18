@@ -15,7 +15,7 @@ import numpy as np
 from . import Direction, cache, config, distribution, utils, validate
 from .distance import mechanism_repertoire_distance as repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Bipartition, Concept, KPartition, Mice, Mip, NullCut,
+from .models import (Bipartition, Concept, KPartition, Mice, MechanismIrreducibilityAnalysis, NullCut,
                      Part, Tripartition, _null_mip, cmp)
 from .network import irreducible_purviews
 from .node import generate_nodes
@@ -534,7 +534,7 @@ class Subsystem:
             purview (tuple[int]): The nodes in the purview.
 
         Returns:
-            Mip: The mininum-information partition in one temporal direction.
+            MechanismIrreducibilityAnalysis: The mininum-information partition in one temporal direction.
         """
         # We default to the null MIP (the MIP of a reducible mechanism)
         mip = _null_mip(direction, mechanism, purview)
@@ -552,7 +552,7 @@ class Subsystem:
             # Prototype of MIP with already known data
             # TODO: Use properties here to infer mechanism and purview from
             # partition yet access them with `.mechanism` and `.purview`.
-            return Mip(phi=phi,
+            return MechanismIrreducibilityAnalysis(phi=phi,
                        direction=direction,
                        mechanism=mechanism,
                        purview=purview,

@@ -44,7 +44,7 @@ class Orderable:
     in `unorderable_unless_eq` are not equal then the objects are not
     orderable with respect to one another and a TypeError is raised. For
     example: it doesn't make sense to compare ``Concepts`` unless they are
-    from the same ``Subsystem`` or compare ``Mips`` with different directions.
+    from the same ``Subsystem`` or compare ``MechanismIrreducibilityAnalysiss`` with different directions.
     """
     # pylint: disable=too-few-public-methods
 

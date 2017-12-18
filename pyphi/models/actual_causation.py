@@ -26,7 +26,7 @@ def greater_than_zero(alpha):
     return alpha > 0 and not utils.eq(alpha, 0)
 
 
-class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
+class AcMechanismIrreducibilityAnalysis(cmp.Orderable, namedtuple('AcMechanismIrreducibilityAnalysis', _acmip_attributes)):
     """A minimum information partition for ac_coef calculation.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -70,7 +70,7 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
         return cmp.general_eq(self, other, _acmip_attributes_for_eq)
 
     def __bool__(self):
-        """An |AcMip| is ``True`` if it has |alpha > 0|."""
+        """An |AcMechanismIrreducibilityAnalysis| is ``True`` if it has |alpha > 0|."""
         return greater_than_zero(self.alpha)
 
     @property
@@ -90,11 +90,11 @@ class AcMip(cmp.Orderable, namedtuple('AcMip', _acmip_attributes)):
         return fmt.make_repr(self, _acmip_attributes)
 
     def __str__(self):
-        return "Mip\n" + fmt.indent(fmt.fmt_ac_mip(self))
+        return "MechanismIrreducibilityAnalysis\n" + fmt.indent(fmt.fmt_ac_mip(self))
 
 
 def _null_ac_mip(state, direction, mechanism, purview):
-    return AcMip(state=state,
+    return AcMechanismIrreducibilityAnalysis(state=state,
                  direction=direction,
                  mechanism=mechanism,
                  purview=purview,
@@ -146,7 +146,7 @@ class CausalLink(cmp.Orderable):
 
     @property
     def mip(self):
-        """AcMip: The minimum information partition for this mechanism."""
+        """AcMechanismIrreducibilityAnalysis: The minimum information partition for this mechanism."""
         return self._mip
 
     def __repr__(self):
@@ -155,7 +155,7 @@ class CausalLink(cmp.Orderable):
     def __str__(self):
         return "CausalLink\n" + fmt.indent(fmt.fmt_ac_mip(self.mip))
 
-    unorderable_unless_eq = AcMip.unorderable_unless_eq
+    unorderable_unless_eq = AcMechanismIrreducibilityAnalysis.unorderable_unless_eq
 
     def order_by(self):
         return self.mip.order_by()

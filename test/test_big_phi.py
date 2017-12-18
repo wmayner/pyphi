@@ -10,7 +10,7 @@ import pytest
 
 from pyphi import (Direction, Network, Subsystem, compute, config, constants,
                    models, utils)
-from pyphi.compute.big_phi import FindMip, sia_bipartitions
+from pyphi.compute.big_phi import FindMechanismIrreducibilityAnalysis, sia_bipartitions
 from pyphi.models import Cut, _null_bigmip
 from pyphi.partition import directed_bipartition
 
@@ -228,11 +228,11 @@ def check_mip(mip, answer):
 
 def test_null_concept(s, flushcache, restore_fs_cache):
     flushcache()
-    cause = models.Mice(models.Mip(
+    cause = models.Mice(models.MechanismIrreducibilityAnalysis(
         unpartitioned_repertoire=s.unconstrained_cause_repertoire(()),
         phi=0, direction=Direction.CAUSE, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
-    effect = models.Mice(models.Mip(
+    effect = models.Mice(models.MechanismIrreducibilityAnalysis(
         unpartitioned_repertoire=s.unconstrained_effect_repertoire(()),
         phi=0, direction=Direction.EFFECT, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
@@ -259,7 +259,7 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
     mock_emd_distance.return_value = float()
     mock_simple_distance.return_value = float()
 
-    make_mice = lambda: models.Mice(models.Mip(
+    make_mice = lambda: models.Mice(models.MechanismIrreducibilityAnalysis(
         phi=0, direction=None, mechanism=None,
         purview=None, partition=None,
         unpartitioned_repertoire=None,
@@ -366,71 +366,71 @@ def test_sia_single_micro_nodes_without_selfloops_dont_have_phi(
 
 
 @pytest.fixture
-def standard_FindMip(s):
+def standard_FindMechanismIrreducibilityAnalysis(s):
     unpartitioned_ces = compute.ces(s)
     cuts = sia_bipartitions(s.node_indices)
-    return FindMip(cuts, s, unpartitioned_ces)
+    return FindMechanismIrreducibilityAnalysis(cuts, s, unpartitioned_ces)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_standard_example(standard_FindMip, flushcache,
+def test_find_mip_sequential_standard_example(standard_FindMechanismIrreducibilityAnalysis, flushcache,
                                               restore_fs_cache):
     flushcache()
-    mip = standard_FindMip.run_sequential()
+    mip = standard_FindMechanismIrreducibilityAnalysis.run_sequential()
     check_mip(mip, standard_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
-def test_find_mip_parallel_standard_example(standard_FindMip, flushcache,
+def test_find_mip_parallel_standard_example(standard_FindMechanismIrreducibilityAnalysis, flushcache,
                                             restore_fs_cache):
     flushcache()
-    mip = standard_FindMip.run_parallel()
+    mip = standard_FindMechanismIrreducibilityAnalysis.run_parallel()
     check_mip(mip, standard_answer)
 
 
 @pytest.fixture
-def s_noised_FindMip(s_noised):
+def s_noised_FindMechanismIrreducibilityAnalysis(s_noised):
     unpartitioned_ces = compute.ces(s_noised)
     cuts = sia_bipartitions(s_noised.node_indices)
-    return FindMip(cuts, s_noised, unpartitioned_ces)
+    return FindMechanismIrreducibilityAnalysis(cuts, s_noised, unpartitioned_ces)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_noised_example(s_noised_FindMip, flushcache,
+def test_find_mip_sequential_noised_example(s_noised_FindMechanismIrreducibilityAnalysis, flushcache,
                                             restore_fs_cache):
     flushcache()
-    mip = s_noised_FindMip.run_sequential()
+    mip = s_noised_FindMechanismIrreducibilityAnalysis.run_sequential()
     check_mip(mip, noised_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
-def test_find_mip_parallel_noised_example(s_noised_FindMip, flushcache,
+def test_find_mip_parallel_noised_example(s_noised_FindMechanismIrreducibilityAnalysis, flushcache,
                                           restore_fs_cache):
     flushcache()
-    mip = s_noised_FindMip.run_parallel()
+    mip = s_noised_FindMechanismIrreducibilityAnalysis.run_parallel()
     check_mip(mip, noised_answer)
 
 
 @pytest.fixture
-def micro_s_FindMip(micro_s):
+def micro_s_FindMechanismIrreducibilityAnalysis(micro_s):
     unpartitioned_ces = compute.ces(micro_s)
     cuts = sia_bipartitions(micro_s.node_indices)
-    return FindMip(cuts, micro_s, unpartitioned_ces)
+    return FindMechanismIrreducibilityAnalysis(cuts, micro_s, unpartitioned_ces)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True)
-def test_find_mip_parallel_micro(micro_s_FindMip, flushcache,
+def test_find_mip_parallel_micro(micro_s_FindMechanismIrreducibilityAnalysis, flushcache,
                                  restore_fs_cache):
     flushcache()
-    mip = micro_s_FindMip.run_parallel()
+    mip = micro_s_FindMechanismIrreducibilityAnalysis.run_parallel()
     check_mip(mip, micro_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_micro(micro_s_FindMip, flushcache,
+def test_find_mip_sequential_micro(micro_s_FindMechanismIrreducibilityAnalysis, flushcache,
                                    restore_fs_cache):
     flushcache()
-    mip = micro_s_FindMip.run_sequential()
+    mip = micro_s_FindMechanismIrreducibilityAnalysis.run_sequential()
     check_mip(mip, micro_answer)
 
 

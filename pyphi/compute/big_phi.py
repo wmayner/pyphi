@@ -64,7 +64,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
         cut_subsystem=cut_subsystem)
 
 
-class FindMip(MapReduce):
+class FindMechanismIrreducibilityAnalysis(MapReduce):
     """Computation engine for finding the minimal
     |SystemIrreducibilityAnalysis|.
     """
@@ -197,7 +197,7 @@ def _sia(cache_key, subsystem):
         cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
     else:
         cuts = sia_bipartitions(subsystem.cut_indices)
-    finder = FindMip(cuts, subsystem, unpartitioned_ces)
+    finder = FindMechanismIrreducibilityAnalysis(cuts, subsystem, unpartitioned_ces)
     min_mip = finder.run(config.PARALLEL_CUT_EVALUATION)
     result = time_annotated(min_mip, small_phi_time)
 
@@ -428,13 +428,13 @@ def directional_sia(subsystem, direction, unpartitioned_ces=None):
 
     # Run the default MIP finder
     # TODO: verify that short-cutting works correctly?
-    finder = FindMip(cuts, c_system, unpartitioned_ces)
+    finder = FindMechanismIrreducibilityAnalysis(cuts, c_system, unpartitioned_ces)
     return finder.run(config.PARALLEL_CUT_EVALUATION)
 
 
 # TODO: only return the minimal mip, instead of both
 class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
-    """Represents a Big Mip computed using concept-style system cuts."""
+    """Represents a Big MechanismIrreducibilityAnalysis computed using concept-style system cuts."""
 
     def __init__(self, mip_past, mip_future):
         self.sia_past = mip_past
@@ -468,7 +468,7 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
 
 # TODO: cache
 def sia_concept_style(subsystem):
-    """Compute a concept-style Big Mip"""
+    """Compute a concept-style Big MechanismIrreducibilityAnalysis"""
     unpartitioned_ces = _unpartitioned_ces(subsystem)
 
     mip_past = directional_sia(subsystem, Direction.CAUSE,

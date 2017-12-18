@@ -119,7 +119,7 @@ we use the ``find_mip`` method:
 
    >>> link = transition.find_mip(Direction.EFFECT, (OR, AND), (OR, AND))
 
-This returns a |AcMip| object, with a number of useful properties. This
+This returns a |AcMechanismIrreducibilityAnalysis| object, with a number of useful properties. This
 particular MIP is reducible, as we can see by checking the value of |alpha|:
 
    >>> link.alpha

@@ -8,7 +8,7 @@ import pytest
 
 import example_networks
 from pyphi import Direction, constants
-from pyphi.models import Mip, Part
+from pyphi.models import MechanismIrreducibilityAnalysis, Part
 
 s = example_networks.s()
 
@@ -217,7 +217,7 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     if expected:
         # Construct expected list of possible MIPs
         expected = [
-            Mip(direction=direction,
+            MechanismIrreducibilityAnalysis(direction=direction,
                 partition=expected_partition,
                 mechanism=mechanism,
                 purview=purview,
