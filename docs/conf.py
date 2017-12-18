@@ -242,6 +242,7 @@ r"""
 .. |Subsystem| replace:: :class:`~pyphi.subsystem.Subsystem`
 
 .. |SystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.big_phi.SystemIrreducibilityAnalysis`
+.. |SIA| replace:: :class:`~pyphi.models.big_phi.SystemIrreducibilityAnalysis`
 
 .. |Concept| replace:: :class:`~pyphi.models.concept.Concept`
 .. |CauseEffectStructure| replace:: :class:`~pyphi.models.concept.CauseEffectStructure`
