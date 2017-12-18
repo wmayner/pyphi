@@ -496,7 +496,7 @@ class Subsystem:
     # =========================================================================
 
     def evaluate_partition(self, direction, mechanism, purview, partition,
-                           unpartitioned_repertoire=None):
+                           repertoire=None):
         """Return the |small_phi| of a mechanism over a purview for the given
         partition.
 
@@ -507,22 +507,22 @@ class Subsystem:
             partition (Bipartition): The partition to evaluate.
 
         Keyword Args:
-            unpartitioned_repertoire (np.array): The unpartitioned repertoire.
+            repertoire (np.array): The unpartitioned repertoire.
                 If not supplied, it will be computed.
 
         Returns:
             tuple[int, np.ndarray]: The distance between the unpartitioned and
             partitioned repertoires, and the partitioned repertoire.
         """
-        if unpartitioned_repertoire is None:
-            unpartitioned_repertoire = self.repertoire(direction, mechanism,
+        if repertoire is None:
+            repertoire = self.repertoire(direction, mechanism,
                                                        purview)
 
         partitioned_repertoire = self.partitioned_repertoire(direction,
                                                              partition)
 
         phi = repertoire_distance(
-            direction, unpartitioned_repertoire, partitioned_repertoire)
+            direction, repertoire, partitioned_repertoire)
 
         return (phi, partitioned_repertoire)
 
@@ -548,7 +548,7 @@ class Subsystem:
         phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones.
-        unpartitioned_repertoire = self.repertoire(direction, mechanism,
+        repertoire = self.repertoire(direction, mechanism,
                                                    purview)
 
         def _mip(phi, partition, partitioned_repertoire):
@@ -561,14 +561,14 @@ class Subsystem:
                 mechanism=mechanism,
                 purview=purview,
                 partition=partition,
-                unpartitioned_repertoire=unpartitioned_repertoire,
+                repertoire=repertoire,
                 partitioned_repertoire=partitioned_repertoire,
                 subsystem=self
             )
 
         # State is unreachable - return 0 instead of giving nonsense results
         if (direction == Direction.CAUSE and
-                np.all(unpartitioned_repertoire == 0)):
+                np.all(repertoire == 0)):
             return _mip(0, None, None)
 
         # Loop over possible MIP partitions
@@ -577,7 +577,7 @@ class Subsystem:
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(
                 direction, mechanism, purview, partition,
-                unpartitioned_repertoire=unpartitioned_repertoire)
+                repertoire=repertoire)
 
             # Return immediately if mechanism is reducible.
             if phi == 0:

@@ -335,13 +335,13 @@ def fmt_mip(mip, verbose=True):
     if config.REPR_VERBOSITY is HIGH:
         partition = '\nPartition:\n{}'.format(
             indent(fmt_bipartition(mip.partition, mip.subsystem)))
-        unpartitioned_repertoire = '\nUnpartitioned Repertoire:\n{}'.format(
-            indent(fmt_repertoire(mip.unpartitioned_repertoire)))
+        repertoire = '\nUnpartitioned Repertoire:\n{}'.format(
+            indent(fmt_repertoire(mip.repertoire)))
         partitioned_repertoire = '\nPartitioned Repertoire:\n{}'.format(
             indent(fmt_repertoire(mip.partitioned_repertoire)))
     else:
         partition = ''
-        unpartitioned_repertoire = ''
+        repertoire = ''
         partitioned_repertoire = ''
 
     # TODO? print the two repertoires side-by-side
@@ -351,7 +351,7 @@ def fmt_mip(mip, verbose=True):
         'Purview = {purview}'
         '{partition}'
         '{direction}'
-        '{unpartitioned_repertoire}'
+        '{repertoire}'
         '{partitioned_repertoire}').format(
             SMALL_PHI=SMALL_PHI,
             mechanism=mechanism,
@@ -359,7 +359,7 @@ def fmt_mip(mip, verbose=True):
             direction=direction,
             phi=fmt_number(mip.phi),
             partition=partition,
-            unpartitioned_repertoire=unpartitioned_repertoire,
+            repertoire=repertoire,
             partitioned_repertoire=partitioned_repertoire)
 
 

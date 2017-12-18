@@ -13,11 +13,11 @@ from pyphi import Direction, Subsystem, config, constants, models
 # -----------------------------------------------
 
 def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
-        unpartitioned_repertoire=None, partitioned_repertoire=None):
+        repertoire=None, partitioned_repertoire=None):
     """Build a ``MechanismIrreducibilityAnalysis``."""
     return models.MechanismIrreducibilityAnalysis(phi=phi, direction=direction, mechanism=mechanism,
                       purview=purview, partition=partition,
-                      unpartitioned_repertoire=unpartitioned_repertoire,
+                      repertoire=repertoire,
                       partitioned_repertoire=partitioned_repertoire)
 
 
@@ -312,14 +312,14 @@ def test_null_mip():
     direction = Direction.CAUSE
     mechanism = (0,)
     purview = (1,)
-    unpartitioned_repertoire = 'repertoire'
+    repertoire = 'repertoire'
     null_mip = models._null_mip(direction, mechanism, purview,
-                                unpartitioned_repertoire)
+                                repertoire)
     assert null_mip.direction == direction
     assert null_mip.mechanism == mechanism
     assert null_mip.purview == purview
     assert null_mip.partition is None
-    assert null_mip.unpartitioned_repertoire == 'repertoire'
+    assert null_mip.repertoire == 'repertoire'
     assert null_mip.partitioned_repertoire is None
     assert null_mip.phi == 0
 
@@ -473,9 +473,9 @@ def test_concept_equality_effect_purview_nodes(s):
 
 def test_concept_equality_repertoires(s):
     phi = 1.0
-    mice1 = mice(phi=phi, unpartitioned_repertoire=np.array([1, 2]),
+    mice1 = mice(phi=phi, repertoire=np.array([1, 2]),
                  partitioned_repertoire=())
-    mice2 = mice(phi=phi, unpartitioned_repertoire=np.array([0, 0]),
+    mice2 = mice(phi=phi, repertoire=np.array([0, 0]),
                  partitioned_repertoire=None)
     concept = models.Concept(mechanism=(), cause=mice1, effect=mice2,
                              subsystem=s)

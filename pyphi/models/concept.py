@@ -12,7 +12,7 @@ from .. import config, connectivity, distribution, utils
 # pylint: disable=too-many-arguments,too-many-instance-attributes
 
 _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
-                   'unpartitioned_repertoire', 'partitioned_repertoire']
+                   'repertoire', 'partitioned_repertoire']
 
 
 class MechanismIrreducibilityAnalysis(cmp.Orderable):
@@ -26,7 +26,7 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
     """
 
     def __init__(self, phi, direction, mechanism, purview, partition,
-                 unpartitioned_repertoire, partitioned_repertoire,
+                 repertoire, partitioned_repertoire,
                  subsystem=None):
         self._phi = phi
         self._direction = direction
@@ -39,7 +39,7 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
                 return None
             return np.array(repertoire)
 
-        self._unpartitioned_repertoire = _repertoire(unpartitioned_repertoire)
+        self._repertoire = _repertoire(repertoire)
         self._partitioned_repertoire = _repertoire(partitioned_repertoire)
 
         # Optional subsystem - only used to generate nice labeled reprs
@@ -75,10 +75,10 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
         return self._partition
 
     @property
-    def unpartitioned_repertoire(self):
+    def repertoire(self):
         """np.ndarray: The unpartitioned repertoire of the mechanism over the
         purview."""
-        return self._unpartitioned_repertoire
+        return self._repertoire
 
     @property
     def partitioned_repertoire(self):
@@ -105,7 +105,7 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
         # We don't consider the partition and partitioned repertoire in
         # checking for MIP equality.
         attrs = ['phi', 'direction', 'mechanism', 'purview',
-                 'unpartitioned_repertoire']
+                 'repertoire']
         return cmp.general_eq(self, other, attrs)
 
     def __bool__(self):
@@ -118,7 +118,7 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
                      self.direction,
                      self.mechanism,
                      self.purview,
-                     utils.np_hash(self.unpartitioned_repertoire)))
+                     utils.np_hash(self.repertoire)))
 
     def __repr__(self):
         return fmt.make_repr(self, _mip_attributes)
@@ -130,7 +130,7 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
         return {attr: getattr(self, attr) for attr in _mip_attributes}
 
 
-def _null_mip(direction, mechanism, purview, unpartitioned_repertoire=None):
+def _null_mip(direction, mechanism, purview, repertoire=None):
     """The irreducibility analysis for a reducible mechanism."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
@@ -138,7 +138,7 @@ def _null_mip(direction, mechanism, purview, unpartitioned_repertoire=None):
                mechanism=mechanism,
                purview=purview,
                partition=None,
-               unpartitioned_repertoire=unpartitioned_repertoire,
+               repertoire=repertoire,
                partitioned_repertoire=None,
                phi=0.0)
 
@@ -192,7 +192,7 @@ class Mice(cmp.Orderable):
         """np.ndarray: The unpartitioned repertoire of the mechanism over the
         purview.
         """
-        return self._mip.unpartitioned_repertoire
+        return self._mip.repertoire
 
     @property
     def partitioned_repertoire(self):

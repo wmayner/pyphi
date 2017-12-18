@@ -50,7 +50,7 @@ scenarios = [
              Part(mechanism=(0,), purview=())):
                 np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([0.5, 0.5]).reshape(2, 1, 1, order="F"),
          'phi': 0.0}
     ),
@@ -67,7 +67,7 @@ scenarios = [
              Part(mechanism=(1,), purview=())):
                 np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([1., 0.]).reshape(1, 1, 2),
          'phi': 0.5}
     ),
@@ -122,7 +122,7 @@ scenarios = [
                 np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(
                     2,2,2, order="F"),
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([0., 1., 0., 0., 0., 0., 0., 0.]).reshape(2, 2, 2),
          'phi': 0.5}
     ),
@@ -140,7 +140,7 @@ scenarios = [
              Part(mechanism=(2,), purview=())):
                 np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([1., 0.]).reshape(1, 2, 1),
          'phi': 0.5}
     ), (
@@ -153,7 +153,7 @@ scenarios = [
              Part(mechanism=(2,), purview=())):
                 np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([0.5, 0.5]).reshape(2, 1, 1),
          'phi': 0.25}
     ), (
@@ -180,7 +180,7 @@ scenarios = [
              Part(mechanism=(1, 2), purview=(0,))):
                 np.array([0.5, 0., 0.5, 0.]).reshape(2, 1, 2, order="F")
         },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([0., 1., 0., 0.]).reshape(2, 1, 2),
         'phi': 0.5}
     ), (
@@ -193,7 +193,7 @@ scenarios = [
              Part(mechanism=(1,), purview=())):
                 np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([0.5, 0.5]).reshape(2, 1, 1),
          'phi': 0.25}
     )
@@ -221,7 +221,7 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
                 partition=expected_partition,
                 mechanism=mechanism,
                 purview=purview,
-                unpartitioned_repertoire=expected['unpartitioned_repertoire'],
+                repertoire=expected['repertoire'],
                 partitioned_repertoire=expected_partitioned_repertoire,
                 phi=expected['phi'])
             for expected_partition, expected_partitioned_repertoire
