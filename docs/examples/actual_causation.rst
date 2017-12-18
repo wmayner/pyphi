@@ -180,7 +180,7 @@ Irreducible Accounts
 The irreducibility of the causal account of our transition of interest can be
 evaluated using the following function:
 
-   >>> sia = actual.big_acmip(transition)
+   >>> sia = actual.sia(transition)
    >>> sia.alpha
    0.169925
 

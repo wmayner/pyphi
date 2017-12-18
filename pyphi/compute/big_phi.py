@@ -469,7 +469,7 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
 
 # TODO: cache
 def sia_concept_style(subsystem):
-    """Compute a concept-style Big MechanismIrreducibilityAnalysis"""
+    """Compute a concept-style SystemIrreducibilityAnalysis"""
     unpartitioned_ces = _unpartitioned_ces(subsystem)
 
     mip_cause = directional_sia(subsystem, Direction.CAUSE,

@@ -66,7 +66,7 @@ def test_json_deserialization(s, transition):
         transition,
         transition.find_actual_cause((0,), (0,)),
         actual.account(transition),
-        actual.big_acmip(transition)
+        actual.sia(transition)
     ]
     for o in objects:
         loaded = jsonify.loads(jsonify.dumps(o))

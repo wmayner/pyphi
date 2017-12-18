@@ -517,7 +517,7 @@ def _get_cuts(transition, direction):
             yield ActualCut(direction, partition)
 
 
-def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
+def sia(transition, direction=Direction.BIDIRECTIONAL):
     """Return the minimal information partition of a transition in a specific
     direction.
 
@@ -552,7 +552,7 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
         return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)
-    finder = FindBigAcMechanismIrreducibilityAnalysis(
+    finder = FindAcSystemIrreducibilityAnalysis(
         cuts, transition, direction, unpartitioned_account)
     result = finder.run_sequential()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
@@ -560,8 +560,8 @@ def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
     return result
 
 
-class FindBigAcMechanismIrreducibilityAnalysis(compute.parallel.MapReduce):
-    """Computation engine for AC SystemIrreducibilityAnalysiss."""
+class FindAcSystemIrreducibilityAnalysis(compute.parallel.MapReduce):
+    """Computation engine for AC SIAs."""
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating AC cuts'
@@ -615,7 +615,7 @@ def nexus(network, before_state, after_state,
     """Return a tuple of all irreducible nexus of the network."""
     validate.is_network(network)
 
-    mips = (big_acmip(transition, direction) for transition in
+    mips = (sia(transition, direction) for transition in
             transitions(network, before_state, after_state))
     return tuple(sorted(filter(None, mips), reverse=True))
 

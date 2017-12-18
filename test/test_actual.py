@@ -501,8 +501,8 @@ def test_get_actual_cuts(direction, answer, transition):
     np.testing.assert_array_equal(cuts, answer)
 
 
-def test_big_acmip(transition):
-    sia = actual.big_acmip(transition)
+def test_sia(transition):
+    sia = actual.sia(transition)
     assert sia.alpha == 0.415037
     assert sia.cut == ac_cut(Direction.CAUSE,
                                 Part((), (1,)), Part((0,), (2,)))
@@ -526,9 +526,9 @@ def test_null_ac_sia(transition):
 
 @config.override(PARTITION_TYPE='TRI')
 def test_prevention(prevention):
-    assert actual.big_acmip(prevention, Direction.CAUSE).alpha == 0.415037
-    assert actual.big_acmip(prevention, Direction.EFFECT).alpha == 0.0
-    assert actual.big_acmip(prevention, Direction.BIDIRECTIONAL).alpha == 0.0
+    assert actual.sia(prevention, Direction.CAUSE).alpha == 0.415037
+    assert actual.sia(prevention, Direction.EFFECT).alpha == 0.0
+    assert actual.sia(prevention, Direction.BIDIRECTIONAL).alpha == 0.0
 
 
 def test_causal_nexus(standard):

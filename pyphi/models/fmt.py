@@ -412,7 +412,7 @@ def fmt_sia(sia, ces=True):
         body = ''
         center_header = False
 
-    title = 'Big MechanismIrreducibilityAnalysis: {BIG_PHI} = {phi}'.format(
+    title = 'SystemIrreducibilityAnalysis: {BIG_PHI} = {phi}'.format(
         BIG_PHI=BIG_PHI, phi=fmt_number(sia.phi))
 
     cut = fmt_cut(sia.cut, sia.subsystem)
