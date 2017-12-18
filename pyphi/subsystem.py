@@ -598,7 +598,7 @@ class Subsystem:
         """
         return self.find_mip(Direction.CAUSE, mechanism, purview)
 
-    def mip_effect(self, mechanism, purview):
+    def effect_mip(self, mechanism, purview):
         """Return the irreducibility analysis for the effect MIP.
 
         Alias for |find_mip| with ``direction`` set to |EFFECT|.
@@ -614,19 +614,19 @@ class Subsystem:
         mip = self.cause_mip(mechanism, purview)
         return mip.phi if mip else 0
 
-    def phi_mip_effect(self, mechanism, purview):
+    def phi_effect_mip(self, mechanism, purview):
         """Return the |small_phi| of the effect MIP.
 
         This is the distance between the unpartitioned effect repertoire and
         the MIP cause repertoire.
         """
-        mip = self.mip_effect(mechanism, purview)
+        mip = self.effect_mip(mechanism, purview)
         return mip.phi if mip else 0
 
     def phi(self, mechanism, purview):
         """Return the |small_phi| of a mechanism over a purview."""
         return min(self.phi_cause_mip(mechanism, purview),
-                   self.phi_mip_effect(mechanism, purview))
+                   self.phi_effect_mip(mechanism, purview))
 
     # Phi_max methods
     # =========================================================================

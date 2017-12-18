@@ -255,11 +255,11 @@ def test_cause_mip(s):
     assert ria_cause == s.cause_mip(mechanism, purview)
 
 
-def test_mip_effect(s):
+def test_effect_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices
     ria_effect = s.find_mip(Direction.EFFECT, mechanism, purview)
-    assert ria_effect == s.mip_effect(mechanism, purview)
+    assert ria_effect == s.effect_mip(mechanism, purview)
 
 
 def test_phi_cause_mip(s):
@@ -275,17 +275,17 @@ def test_phi_cause_mip_reducible(s):
     assert (0 == s.phi_cause_mip(mechanism, purview))
 
 
-def test_phi_mip_effect(s):
+def test_phi_effect_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    assert (s.phi_mip_effect(mechanism, purview) ==
-            s.mip_effect(mechanism, purview).phi)
+    assert (s.phi_effect_mip(mechanism, purview) ==
+            s.effect_mip(mechanism, purview).phi)
 
 
-def test_phi_mip_effect_reducible(s):
+def test_phi_effect_mip_reducible(s):
     mechanism = (0, 1)
     purview = (1, )
-    assert (0 == s.phi_mip_effect(mechanism, purview))
+    assert (0 == s.phi_effect_mip(mechanism, purview))
 
 
 def test_phi(s):

@@ -402,7 +402,7 @@ Here we demonstrate the functions that find the minimum information partition a
 mechanism over a purview:
 
     >>> mip_c = subsystem.cause_mip(ABC, ABC)
-    >>> mip_e = subsystem.mip_effect(ABC, ABC)
+    >>> mip_e = subsystem.effect_mip(ABC, ABC)
 
 These objects contain the :math:`\varphi^{\textrm{MIP}}_{\textrm{cause}}` and
 :math:`\varphi^{\textrm{MIP}}_{\textrm{effect}}` values in their respective
@@ -445,7 +445,7 @@ Figure 7
 causes and integrated effects.**
 
 It is left as an exercise for the reader to use the subsystem methods
-``cause_mip`` and ``mip_effect``, introduced in the previous section, to
+``cause_mip`` and ``effect_mip``, introduced in the previous section, to
 demonstrate the points made in Figure 7.
 
 To avoid building TPMs and connectivity matrices by hand, you can use the
