@@ -76,8 +76,7 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
 
     @property
     def repertoire(self):
-        """np.ndarray: The unpartitioned repertoire of the mechanism over the
-        purview."""
+        """np.ndarray: The repertoire of the mechanism over the purview."""
         return self._repertoire
 
     @property

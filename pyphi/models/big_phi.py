@@ -27,9 +27,9 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
     Attributes:
         phi (float): The |big_phi| value for the subsystem when taken against
-            this analysis, *i.e.* the difference between the unpartitioned
-            cause-effect structure and the partitioned cause-effect structure for
-            this analysis.
+            this analysis, *i.e.* the difference between the cause-effect
+            structure and the partitioned cause-effect structure for this
+            analysis.
         ces (CauseEffectStructure): The cause-effect structure of
             the whole subsystem.
         partitioned_ces (CauseEffectStructure): The cause-effect structure when
@@ -38,7 +38,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
         time (float): The number of seconds it took to calculate.
         small_phi_time (float): The number of seconds it took to calculate the
-            unpartitioned cause-effect structure.
+            cause-effect structure.
     """
 
     def __init__(self, phi=None, ces=None,

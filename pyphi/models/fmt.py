@@ -335,7 +335,7 @@ def fmt_mip(mip, verbose=True):
     if config.REPR_VERBOSITY is HIGH:
         partition = '\nPartition:\n{}'.format(
             indent(fmt_bipartition(mip.partition, mip.subsystem)))
-        repertoire = '\nUnpartitioned Repertoire:\n{}'.format(
+        repertoire = '\nRepertoire:\n{}'.format(
             indent(fmt_repertoire(mip.repertoire)))
         partitioned_repertoire = '\nPartitioned Repertoire:\n{}'.format(
             indent(fmt_repertoire(mip.partitioned_repertoire)))
@@ -501,7 +501,7 @@ def fmt_ac_sia(ac_sia):
             alpha=round(ac_sia.alpha, 4),
             ac_sia=ac_sia,
             account=fmt_account(
-                ac_sia.account, 'Unpartitioned Account'),
+                ac_sia.account, 'Account'),
             partitioned_account=fmt_account(
                 ac_sia.partitioned_account, 'Partitioned Account')))
 
