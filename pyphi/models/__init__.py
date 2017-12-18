@@ -30,6 +30,6 @@ from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
                                Event, _null_ac_sia, DirectedAccount, Account)
 from .big_phi import SystemIrreducibilityAnalysis, _null_sia
 from .concept import (MechanismIrreducibilityAnalysis, _null_mip, Mice,
-                      Concept, CauseEffectStructure, normalize_ces)
+                      Concept, CauseEffectStructure)
 from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,
                    KPartition, KCut)

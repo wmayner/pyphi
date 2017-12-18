@@ -488,18 +488,3 @@ class CauseEffectStructure(tuple):
 
 def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
-
-# Maintained for backwards compatibility; CESs are always
-# ordered.
-# TODO: remove this.
-def normalize_ces(ces):
-    """Deterministically reorder the concepts in a |CauseEffectStructure|.
-
-    Args:
-        ces (CauseEffectStructure): The cause-effect structure in question.
-
-    Returns:
-        CauseEffectStructure: The cause-effect structure, ordered
-        lexicographically by mechanism.
-    """
-    return CauseEffectStructure(ces)

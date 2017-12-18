@@ -544,14 +544,6 @@ def test_ces_repr_str():
     str(c)
 
 
-def test_normalize_ces():
-    c1 = models.Concept(mechanism=(1,))
-    c2 = models.Concept(mechanism=(2,))
-    c3 = models.Concept(mechanism=(1, 3))
-    c4 = models.Concept(mechanism=(1, 2, 3))
-    assert (c1, c2, c3, c4) == models.normalize_ces((c3, c4, c2, c1))
-
-
 def test_ces_are_always_normalized():
     c1 = models.Concept(mechanism=(1,))
     c2 = models.Concept(mechanism=(2,))
