@@ -316,7 +316,7 @@ class RedisMICECache(RedisCache):
     def get(self, key):
         """Get a value from the cache.
 
-        If the MICE cannot be found in this cache, try and find it in the
+        If the |MICE| cannot be found in this cache, try and find it in the
         parent cache.
         """
         mice = super().get(key)
@@ -365,8 +365,8 @@ class DictMICECache(DictCache):
     def _build(self, parent_cache):
         """Build the initial cache from the parent.
 
-        Only include the MICE which are unaffected by the subsystem cut.
-        A MICE is affected if either the cut splits the mechanism
+        Only include the |MICE| which are unaffected by the subsystem cut.
+        A |MICE| is affected if either the cut splits the mechanism
         or splits the connections between the purview and mechanism
         """
         for key, mice in parent_cache.cache.items():
@@ -397,7 +397,7 @@ class DictMICECache(DictCache):
 
 
 def MICECache(subsystem, parent_cache=None):
-    """Construct a MICE cache.
+    """Construct a |MICE| cache.
 
     Uses either a Redis-backed cache or a local dict cache on the object.
 

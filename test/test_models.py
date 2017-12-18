@@ -22,8 +22,8 @@ def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
 
 
 def mice(**kwargs):
-    """Build a ``MICE``."""
-    return models.MICE(mip(**kwargs))
+    """Build a ``MaximallyIrreducibleCauseOrEffect``."""
+    return models.MaximallyIrreducibleCauseOrEffect(mip(**kwargs))
 
 
 def mic(**kwargs):
@@ -343,7 +343,7 @@ def test_mip_repr_str():
 
 # }}}
 
-# Test MICE
+# Test MaximallyIrreducibleCauseOrEffect
 # {{{
 
 

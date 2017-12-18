@@ -15,7 +15,8 @@ import numpy as np
 from . import Direction, cache, config, distribution, utils, validate
 from .distance import mechanism_repertoire_distance as repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Bipartition, Concept, KPartition, MICE, MIC, MIE,
+from .models import (Bipartition, Concept, KPartition,
+                     MaximallyIrreducibleCauseOrEffect, MIC, MIE,
                      MechanismIrreducibilityAnalysis, NullCut, Part,
                      Tripartition, _null_mia, cmp)
 from .network import irreducible_purviews

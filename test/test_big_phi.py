@@ -259,11 +259,10 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
     mock_emd_distance.return_value = float()
     mock_simple_distance.return_value = float()
 
-    make_mice = lambda: models.MICE(models.MechanismIrreducibilityAnalysis(
-        phi=0, direction=None, mechanism=None,
-        purview=None, partition=None,
-        repertoire=None,
-        partitioned_repertoire=None))
+    make_mice = lambda: models.MaximallyIrreducibleCauseOrEffect(
+        models.MechanismIrreducibilityAnalysis(
+            phi=0, direction=None, mechanism=None, purview=None,
+            partition=None, repertoire=None, partitioned_repertoire=None))
 
     lone_concept = models.Concept(cause=make_mice(), effect=make_mice(),
                                   mechanism=(0, 1))

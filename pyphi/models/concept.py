@@ -146,8 +146,8 @@ def _null_mia(direction, mechanism, purview, repertoire=None):
 
 # =============================================================================
 
-class MICE(cmp.Orderable):
-    """A maximally irreducible cause or effect.
+class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
+    """A maximally irreducible cause or effect (MICE).
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |small_phi| values are compared. Then, if these are
@@ -242,7 +242,7 @@ class MICE(cmp.Orderable):
 
         Returns an |N x N| matrix, where `N` is the number of nodes in this
         corresponding subsystem, that identifies connections that “matter” to
-        this |MICE|:
+        this MICE:
 
         ``direction == Direction.CAUSE``:
             ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
@@ -255,7 +255,7 @@ class MICE(cmp.Orderable):
             otherwise).
 
         Args:
-            subsystem (Subsystem): The |Subsystem| of this |MICE|.
+            subsystem (Subsystem): The |Subsystem| of this MICE.
 
         Returns:
             np.ndarray: A |N x N| matrix of connections, where |N| is the size
@@ -271,9 +271,9 @@ class MICE(cmp.Orderable):
     # TODO: pass in `cut` instead? We can infer
     # subsystem indices from the cut itself, validate, and check.
     def damaged_by_cut(self, subsystem):
-        """Return ``True`` if this |MICE| is affected by the subsystem's cut.
+        """Return ``True`` if this MICE is affected by the subsystem's cut.
 
-        The cut affects the |MICE| if it either splits the |MICE|'s mechanism
+        The cut affects the MICE if it either splits the MICE's mechanism
         or splits the connections between the purview and mechanism.
         """
         return (subsystem.cut.splits_mechanism(self.mechanism) or
@@ -281,7 +281,7 @@ class MICE(cmp.Orderable):
                        subsystem.cut.cut_matrix(subsystem.network.size) == 1))
 
 
-class MIC(MICE):
+class MIC(MaximallyIrreducibleCauseOrEffect):
     """A maximally irreducible cause.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -302,7 +302,7 @@ class MIC(MICE):
         return self._mia.direction
 
 
-class MIE(MICE):
+class MIE(MaximallyIrreducibleCauseOrEffect):
     """A maximally irreducible effect.
 
     These can be compared with the built-in Python comparison operators (``<``,

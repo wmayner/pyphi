@@ -253,7 +253,8 @@ r"""
 .. |Bipartition| replace:: :class:`~pyphi.models.cuts.Bipartition`
 
 .. |MechanismIrreducibilityAnalysis| replace:: :class:`~pyphi.models.concept.MechanismIrreducibilityAnalysis`
-.. |MICE| replace:: :class:`~pyphi.models.concept.MICE`
+.. |MaximallyIrreducibleCauseOrEffect| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCauseOrEffect`
+.. |MICE| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCauseOrEffect`
 .. |MIC| replace:: :class:`~pyphi.models.concept.MIC`
 .. |MIE| replace:: :class:`~pyphi.models.concept.MIE`
 
