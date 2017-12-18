@@ -9,6 +9,8 @@
 
 import functools
 import itertools
+import logging
+from time import time
 
 import numpy as np
 
@@ -24,6 +26,8 @@ from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,
                         directed_tripartition, k_partitions, partitions)
 from .tpm import condition_tpm, marginalize_out
+
+log = logging.getLogger(__name__)
 
 
 class Subsystem:
@@ -739,20 +743,49 @@ class Subsystem:
 
     def concept(self, mechanism, purviews=False, cause_purviews=False,
                 effect_purviews=False):
-        """Calculate a concept.
+        """Return the concept specified by a mechanism within this subsytem.
 
-        See :func:`pyphi.compute.concept` for more information.
+        Args:
+            mechanism (tuple[int]): The candidate set of nodes.
+
+        Keyword Args:
+            purviews (tuple[tuple[int]]): Restrict the possible purviews to
+                those in this list.
+            cause_purviews (tuple[tuple[int]]): Restrict the possible cause
+                purviews to those in this list. Takes precedence over
+                ``purviews``.
+            effect_purviews (tuple[tuple[int]]): Restrict the possible effect
+                purviews to those in this list. Takes precedence over
+                ``purviews``.
+
+        Returns:
+            Concept: The pair of maximally irreducible cause/effect repertoires
+            that constitute the concept specified by the given mechanism.
         """
-        # Calculate the maximally irreducible cause repertoire.
-        cause = self.mic(mechanism, purviews=(cause_purviews or purviews))
-        # Calculate the maximally irreducible effect repertoire.
-        effect = self.mie(mechanism, purviews=(effect_purviews or purviews))
-        # NOTE: Make sure to expand the repertoires to the size of the
-        # subsystem when calculating concept distance. For now, they must
-        # remain un-expanded so the concept doesn't depend on the subsystem.
-        return Concept(mechanism=mechanism, cause=cause,
-                       effect=effect, subsystem=self)
+        start = time()
+        log.debug('Computing concept %s...', mechanism)
 
+        # If the mechanism is empty, there is no concept.
+        if not mechanism:
+            result = self.null_concept()
+        else:
+            # Calculate the maximally irreducible cause repertoire.
+            cause = self.mic(mechanism,
+                             purviews=(cause_purviews or purviews))
+            # Calculate the maximally irreducible effect repertoire.
+            effect = self.mie(mechanism,
+                              purviews=(effect_purviews or purviews))
+            # NOTE: Make sure to expand the repertoires to the size of the
+            # subsystem when calculating concept distance. For now, they must
+            # remain un-expanded so the concept doesn't depend on the
+            # subsystem.
+            result = Concept(mechanism=mechanism, cause=cause, effect=effect,
+                             subsystem=self)
+
+
+        result.time = round(time() - start, config.PRECISION)
+        log.debug('Found concept %s', mechanism)
+        return result
 
 def mip_partitions(mechanism, purview):
     """Return a generator over all mechanism-purview partitions, based on the

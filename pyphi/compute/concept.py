@@ -18,43 +18,6 @@ from .distance import ces_distance
 log = logging.getLogger(__name__)
 
 
-def concept(subsystem, mechanism, purviews=False, cause_purviews=False,
-            effect_purviews=False):
-    """Return the concept specified by a mechanism within a subsytem.
-
-    Args:
-        subsystem (Subsystem): The context in which the mechanism should be
-            considered.
-        mechanism (tuple[int]): The candidate set of nodes.
-
-    Keyword Args:
-        purviews (tuple[tuple[int]]): Restrict the possible purviews to those
-            in this list.
-        cause_purviews (tuple[tuple[int]]): Restrict the possible cause
-            purviews to those in this list. Takes precedence over ``purviews``.
-        effect_purviews (tuple[tuple[int]]): Restrict the possible effect
-            purviews to those in this list. Takes precedence over ``purviews``.
-
-    Returns:
-        Concept: The pair of maximally irreducible cause/effect repertoires
-        that constitute the concept specified by the given mechanism.
-    """
-    start = time()
-    log.debug('Computing concept %s...', mechanism)
-
-    # If the mechanism is empty, there is no concept.
-    if not mechanism:
-        result = subsystem.null_concept
-    else:
-        result = subsystem.concept(
-            mechanism, purviews=purviews, cause_purviews=cause_purviews,
-            effect_purviews=effect_purviews)
-
-    result.time = round(time() - start, config.PRECISION)
-    log.debug('Found concept %s', mechanism)
-    return result
-
-
 class ComputeCauseEffectStructure(parallel.MapReduce):
     """Engine for computing a |CauseEffectStructure|."""
     # pylint: disable=unused-argument,arguments-differ
@@ -69,9 +32,10 @@ class ComputeCauseEffectStructure(parallel.MapReduce):
                 effect_purviews):
         """Compute a |Concept| for a mechanism, in this |Subsystem| with the
         provided purviews."""
-        return concept(subsystem, mechanism, purviews=purviews,
-                       cause_purviews=cause_purviews,
-                       effect_purviews=effect_purviews)
+        return subsystem.concept(mechanism,
+                                 purviews=purviews,
+                                 cause_purviews=cause_purviews,
+                                 effect_purviews=effect_purviews)
 
     def process_result(self, new_concept, concepts):
         """Save all concepts with non-zero |small_phi| to the

@@ -243,7 +243,7 @@ def test_null_concept(s, flushcache, restore_fs_cache):
 
 def test_concept_nonexistent(s, flushcache, restore_fs_cache):
     flushcache()
-    assert not compute.concept(s, (0, 2))
+    assert not s.concept((0, 2))
 
 
 @patch('pyphi.compute.distance._ces_distance_simple')
