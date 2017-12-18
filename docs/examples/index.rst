@@ -73,7 +73,8 @@ every node in the network in our subsystem:
         >>> pyphi.Subsystem(network, state, ('B', 'C'))
         Subsystem(B, C)
 
-Now we use |compute.phi| function to compute the |big_phi| of our subsystem:
+Now we use the |compute.phi| function to compute the |big_phi| of our
+subsystem:
 
     >>> pyphi.compute.phi(subsystem)
     2.3125
