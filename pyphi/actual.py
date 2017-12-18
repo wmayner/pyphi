@@ -552,9 +552,9 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
         return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)
-    finder = FindAcSystemIrreducibilityAnalysis(
+    engine = FindAcSystemIrreducibilityAnalysis(
         cuts, transition, direction, unpartitioned_account)
-    result = finder.run_sequential()
+    result = engine.run_sequential()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
     return result

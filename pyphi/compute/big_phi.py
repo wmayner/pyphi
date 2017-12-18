@@ -197,9 +197,9 @@ def _sia(cache_key, subsystem):
         cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
     else:
         cuts = sia_bipartitions(subsystem.cut_indices)
-    finder = FindMechanismIrreducibilityAnalysis(
+    engine = FindMechanismIrreducibilityAnalysis(
         cuts, subsystem, unpartitioned_ces)
-    min_mip = finder.run(config.PARALLEL_CUT_EVALUATION)
+    min_mip = engine.run(config.PARALLEL_CUT_EVALUATION)
     result = time_annotated(min_mip, small_phi_time)
 
     log.info('Finished calculating big-phi data for %s.', subsystem)
@@ -427,11 +427,11 @@ def directional_sia(subsystem, direction, unpartitioned_ces=None):
     c_system = ConceptStyleSystem(subsystem, direction)
     cuts = concept_cuts(direction, c_system.cut_indices)
 
-    # Run the default MIP finder
+    # Run the default MIP engine
     # TODO: verify that short-cutting works correctly?
-    finder = FindMechanismIrreducibilityAnalysis(
+    engine = FindMechanismIrreducibilityAnalysis(
         cuts, c_system, unpartitioned_ces)
-    return finder.run(config.PARALLEL_CUT_EVALUATION)
+    return engine.run(config.PARALLEL_CUT_EVALUATION)
 
 
 # TODO: only return the minimal mip, instead of both
