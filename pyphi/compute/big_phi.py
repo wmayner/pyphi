@@ -130,7 +130,7 @@ def _sia(cache_key, subsystem):
     Returns:
         SystemIrreducibilityAnalysis: A nested structure containing all the
         data from the intermediate calculations. The top level contains the
-        basic MIP information for the given subsystem.
+        basic irreducibility information for the given subsystem.
     """
     log.info('Calculating big-phi data for %s...', subsystem)
     start = time()
@@ -152,14 +152,14 @@ def _sia(cache_key, subsystem):
     #   - not strongly connected;
     #   - empty;
     #   - an elementary micro mechanism (i.e. no nontrivial bipartitions).
-    # So in those cases we immediately return a null MIP.
+    # So in those cases we immediately return a null SIA.
     if not subsystem:
-        log.info('Subsystem %s is empty; returning null MIP '
+        log.info('Subsystem %s is empty; returning null SIA '
                  'immediately.', subsystem)
         return time_annotated(_null_sia(subsystem))
 
     if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
-        log.info('%s is not strongly connected; returning null MIP '
+        log.info('%s is not strongly connected; returning null SIA '
                  'immediately.', subsystem)
         return time_annotated(_null_sia(subsystem))
 
@@ -170,12 +170,12 @@ def _sia(cache_key, subsystem):
         # If the node lacks a self-loop, phi is trivially zero.
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
             log.info('Single micro nodes %s without selfloops cannot have '
-                     'phi; returning null MIP immediately.', subsystem)
+                     'phi; returning null SIA immediately.', subsystem)
             return time_annotated(_null_sia(subsystem))
         # Even if the node has a self-loop, we may still define phi to be zero.
         elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
             log.info('Single micro nodes %s with selfloops cannot have '
-                     'phi; returning null MIP immediately.', subsystem)
+                     'phi; returning null SIA immediately.', subsystem)
             return time_annotated(_null_sia(subsystem))
     # =========================================================================
 
@@ -186,7 +186,7 @@ def _sia(cache_key, subsystem):
 
     if not unpartitioned_ces:
         log.info('Empty unpartitioned CauseEffectStructure; returning null '
-                 'MIP immediately.')
+                 'SIA immediately.')
         # Short-circuit if there are no concepts in the unpartitioned CES.
         return time_annotated(_null_sia(subsystem))
 
@@ -425,7 +425,7 @@ def directional_sia(subsystem, direction, unpartitioned_ces=None):
     c_system = ConceptStyleSystem(subsystem, direction)
     cuts = concept_cuts(direction, c_system.cut_indices)
 
-    # Run the default MIP engine
+    # Run the default SIA engine
     # TODO: verify that short-cutting works correctly?
     engine = ComputeSystemIrreducibility(
         cuts, c_system, unpartitioned_ces)

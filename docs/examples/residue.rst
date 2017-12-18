@@ -45,7 +45,7 @@ which makes the least difference to the cause repertoire (see the documentation
 for the |MechanismIrreducibilityAnalysis| object). The irreducible cause information is the distance
 between the unpartitioned and partitioned repertoires.
 
-To calculate the MIP structure of mechanism |AB|:
+To analyze the irreducibility of the mechanism |AB| on the cause side:
 
     >>> mip_AB = subsystem.mip_cause(AB, CDE)
 
@@ -93,7 +93,7 @@ Instead, we should evaluate |A| over the purview |CD|.
 
     >>> mip_A = subsystem.mip_cause(A, CD)
 
-In this case, there is a well defined MIP
+In this case, there is a well-defined MIP
 
     >>> mip_A.partition  # doctest: +NORMALIZE_WHITESPACE
      ∅     0

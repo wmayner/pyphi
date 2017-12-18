@@ -43,10 +43,10 @@ class AcMechanismIrreducibilityAnalysis(
         state (tuple[int]):
             state of system in specified direction (cause, effect)
         direction (str):
-            The temporal direction specifiying whether this AcMIP should be
+            The temporal direction specifiying whether this analysis should be
             calculated with cause or effect repertoires.
         mechanism (tuple[int]):
-            The mechanism over which to evaluate the AcMIP.
+            The mechanism to analyze.
         purview (tuple[int]):
             The purview over which the unpartitioned actual probability differs
             the least from the actual probability of the partition.
@@ -251,12 +251,13 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
 
     Attributes:
         alpha (float): The |big_alpha| value for the transition when taken
-            against this MIP, *i.e.* the difference between the unpartitioned
-            account and this MIP's partitioned account.
+            against this analysis, *i.e.* the difference between the unpartitioned
+            account and this analysis's partitioned account.
         unpartitioned_account (Account): The account of the whole transition.
         partitioned_account (Account): The account of the partitioned
             transition.
-        transition (Transition): The transition this MIP was calculated for.
+        transition (Transition): The transition this analysis was calculated
+            for.
         cut (ActualCut): The minimal partition.
     """
 

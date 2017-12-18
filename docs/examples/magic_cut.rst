@@ -135,7 +135,7 @@ currently on. Thus, unlike the unpartitioned case, knowing the current state of
     0.500001
 
 With this partition, the integrated information is :math:`\varphi = 0.5`, but
-we must check all possible partitions to find the MIP:
+we must check all possible partitions to find the maximally-irreducible cause:
 
     >>> mic = cut_subsystem.mic(ABC)
     >>> mic.purview
@@ -143,7 +143,7 @@ we must check all possible partitions to find the MIP:
     >>> mic.phi
     0.333333
 
-It turns out that the MIP is
+It turns out that the MIP of the maximally-irreducible cause is
 
 .. math::
    \frac{AB}{[\,]} \times \frac{C}{ABC}

@@ -536,8 +536,8 @@ class Subsystem:
             purview (tuple[int]): The nodes in the purview.
 
         Returns:
-            MechanismIrreducibilityAnalysis: The mininum-information partition
-                in one temporal direction.
+            MechanismIrreducibilityAnalysis: The irreducibility analysis for
+            the mininum-information partition in one temporal direction.
         """
         # We default to the null MIP (the MIP of a reducible mechanism)
         mip = _null_mip(direction, mechanism, purview)
@@ -591,21 +591,21 @@ class Subsystem:
         return mip
 
     def mip_cause(self, mechanism, purview):
-        """Return the cause minimum information partition.
+        """Return the irreducibility analysis for the cause MIP.
 
         Alias for |find_mip| with ``direction`` set to |CAUSE|.
         """
         return self.find_mip(Direction.CAUSE, mechanism, purview)
 
     def mip_effect(self, mechanism, purview):
-        """Return the effect minimum information partition.
+        """Return the irreducibility analysis for the effect MIP.
 
         Alias for |find_mip| with ``direction`` set to |EFFECT|.
         """
         return self.find_mip(Direction.EFFECT, mechanism, purview)
 
     def phi_mip_cause(self, mechanism, purview):
-        """Return the |small_phi| of the cause minimum information partition.
+        """Return the |small_phi| of the cause MIP.
 
         This is the distance between the unpartitioned cause repertoire and the
         MIP cause repertoire.
@@ -614,7 +614,7 @@ class Subsystem:
         return mip.phi if mip else 0
 
     def phi_mip_effect(self, mechanism, purview):
-        """Return the |small_phi| of the effect minimum information partition.
+        """Return the |small_phi| of the effect MIP.
 
         This is the distance between the unpartitioned effect repertoire and
         the MIP cause repertoire.
@@ -748,8 +748,8 @@ class Subsystem:
 
 
 def mip_partitions(mechanism, purview):
-    """Return a generator over all MIP partitions, based on the current
-    configuration."""
+    """Return a generator over all mechanism-purview partitions, based on the
+    current configuration."""
     func = {
         'BI': mip_bipartitions,
         'TRI': wedge_partitions,

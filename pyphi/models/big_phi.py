@@ -27,14 +27,14 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
     Attributes:
         phi (float): The |big_phi| value for the subsystem when taken against
-            this MIP, *i.e.* the difference between the unpartitioned
-            cause-effect structure and this MIP's partitioned cause-effect
-            structure.
+            this analysis, *i.e.* the difference between the unpartitioned
+            cause-effect structure and the partitioned cause-effect structure for
+            this analysis.
         unpartitioned_ces (CauseEffectStructure): The cause-effect structure of
             the whole subsystem.
         partitioned_ces (CauseEffectStructure): The cause-effect structure when
             the subsystem is cut.
-        subsystem (Subsystem): The subsystem this MIP was calculated for.
+        subsystem (Subsystem): The subsystem this analysis was calculated for.
         cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
         time (float): The number of seconds it took to calculate.
         small_phi_time (float): The number of seconds it took to calculate the

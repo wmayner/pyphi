@@ -312,7 +312,8 @@ class Transition:
                 they were 0.
 
         Returns:
-            AcMechanismIrreducibilityAnalysis: The found MIP.
+            AcMechanismIrreducibilityAnalysis: The irreducibility analysis for
+            the mechanism.
         """
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
@@ -527,7 +528,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
     Returns:
         AcSystemIrreducibilityAnalysis: A nested structure containing all the
         data from the intermediate calculations. The top level contains the
-        basic MIP information for the given subsystem.
+        basic irreducibility information for the given subsystem.
     """
     validate.direction(direction, allow_bi=True)
     log.info("Calculating big-alpha for %s...", transition)

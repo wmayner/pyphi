@@ -59,36 +59,38 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
 
     @property
     def mechanism(self):
-        """tuple[int]: The mechanism over which to evaluate the MIP."""
+        """tuple[int]: The mechanism that was analyzed."""
         return self._mechanism
 
     @property
     def purview(self):
-        """tuple[int]: The purview over which the unpartitioned repertoire
-        differs the least from the partitioned repertoire."""
+        """tuple[int]: The purview over which the the mechanism was
+        analyzed."""
         return self._purview
 
     @property
     def partition(self):
-        """KPartition: The partition that makes the least difference to the
-        mechanism's repertoire."""
+        """KPartition: The partition of the mechanism-purview pair that was
+        analyzed."""
         return self._partition
 
     @property
     def unpartitioned_repertoire(self):
-        """np.ndarray: The unpartitioned repertoire of the mechanism."""
+        """np.ndarray: The unpartitioned repertoire of the mechanism over the
+        purview."""
         return self._unpartitioned_repertoire
 
     @property
     def partitioned_repertoire(self):
-        """np.ndarray: The partitioned repertoire of the mechanism. This is the
-        product of the repertoires of each part of the partition.
+        """np.ndarray: The partitioned repertoire of the mechanism over the
+        purview. This is the product of the repertoires of each part of the
+        partition.
         """
         return self._partitioned_repertoire
 
     @property
     def subsystem(self):
-        """Subsystem: The |Subsystem| this MIP belongs to."""
+        """Subsystem: The |Subsystem| the mechanism belongs to."""
         return self._subsystem
 
     unorderable_unless_eq = ['direction']
@@ -107,8 +109,8 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
         return cmp.general_eq(self, other, attrs)
 
     def __bool__(self):
-        """A |MechanismIrreducibilityAnalysis| is ``True`` if it has |small_phi
-        > 0|."""
+        """A |MechanismIrreducibilityAnalysis| evaluates to ``True`` if it has
+        |small_phi > 0|."""
         return not utils.eq(self.phi, 0)
 
     def __hash__(self):
@@ -122,14 +124,14 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
         return fmt.make_repr(self, _mip_attributes)
 
     def __str__(self):
-        return "MIP\n" + fmt.indent(fmt.fmt_mip(self))
+        return "MIA\n" + fmt.indent(fmt.fmt_mip(self))
 
     def to_json(self):
         return {attr: getattr(self, attr) for attr in _mip_attributes}
 
 
 def _null_mip(direction, mechanism, purview, unpartitioned_repertoire=None):
-    """The null MIP (of a reducible mechanism)."""
+    """The irreducibility analysis for a reducible mechanism."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
     return MechanismIrreducibilityAnalysis(direction=direction,
