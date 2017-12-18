@@ -32,7 +32,7 @@ analyze the micro scale to determine the major complex of the system:
 
 The major complex of the system contains all three nodes of the system, and it
 has integrated information :math:`\Phi = 1.35708`. Now that we have identified
-the major complex of the system, we can explore its conceptual structure and
+the major complex of the system, we can explore its cause-effect structure and
 the effect of the MIP.
 
     >>> ces = major_complex.ces
