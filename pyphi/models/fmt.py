@@ -303,9 +303,9 @@ def fmt_concept(concept):
             return ''
         return box(indent(fmt_mia(x.mia, verbose=False), amount=1))
 
-    cause = header('Maximally-irreducible cause',
+    cause = header('MIC',
                    fmt_cause_or_effect(concept.cause))
-    effect = header('Maximally-irreducible effect',
+    effect = header('MIE',
                     fmt_cause_or_effect(concept.effect))
     ce = side_by_side(cause, effect)
 

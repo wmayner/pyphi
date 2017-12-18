@@ -228,11 +228,11 @@ def check_mip(mip, answer):
 
 def test_null_concept(s, flushcache, restore_fs_cache):
     flushcache()
-    cause = models.MICE(models.MechanismIrreducibilityAnalysis(
+    cause = models.MIC(models.MechanismIrreducibilityAnalysis(
         repertoire=s.unconstrained_cause_repertoire(()),
         phi=0, direction=Direction.CAUSE, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
-    effect = models.MICE(models.MechanismIrreducibilityAnalysis(
+    effect = models.MIE(models.MechanismIrreducibilityAnalysis(
         repertoire=s.unconstrained_effect_repertoire(()),
         phi=0, direction=Direction.EFFECT, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))

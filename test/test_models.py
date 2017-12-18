@@ -7,7 +7,7 @@ from collections import namedtuple
 import numpy as np
 import pytest
 
-from pyphi import Direction, Subsystem, config, constants, models
+from pyphi import Direction, Subsystem, config, constants, models, exceptions
 
 # Helper functions for constructing PyPhi objects
 # -----------------------------------------------
@@ -26,13 +26,25 @@ def mice(**kwargs):
     return models.MICE(mip(**kwargs))
 
 
+def mic(**kwargs):
+    """Build a ``MIC``."""
+    return models.MIC(mip(**kwargs))
+
+
+def mie(**kwargs):
+    """Build a ``MIE``."""
+    return models.MIE(mip(**kwargs))
+
+
 def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
             subsystem=None):
     """Build a ``Concept``."""
     return models.Concept(
         mechanism=mechanism,
-        cause=mice(mechanism=mechanism, purview=cause_purview, phi=phi),
-        effect=mice(mechanism=mechanism, purview=effect_purview, phi=phi),
+        cause=mic(mechanism=mechanism, purview=cause_purview, phi=phi,
+                  direction=Direction.CAUSE),
+        effect=mie(mechanism=mechanism, purview=effect_purview, phi=phi,
+                   direction=Direction.EFFECT),
         subsystem=subsystem)
 
 
@@ -417,6 +429,21 @@ def test_damaged(s):
     assert m2.damaged_by_cut(cut_s)
     assert not m2.damaged_by_cut(s)
 
+
+# }}}
+
+
+# Test MIC and MIE {{{
+
+def test_mic_raises_wrong_direction():
+    mic(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
+    with pytest.raises(exceptions.WrongDirectionError):
+        mic(direction=Direction.EFFECT, mechanism=(0,), purview=(1,))
+
+def test_mie_raises_wrong_direction():
+    mie(direction=Direction.EFFECT, mechanism=(0,), purview=(1,))
+    with pytest.raises(exceptions.WrongDirectionError):
+        mie(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
 
 # }}}
 

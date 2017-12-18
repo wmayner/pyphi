@@ -8,6 +8,8 @@ import numpy as np
 
 from . import cmp, fmt
 from .. import config, connectivity, distribution, utils
+from ..direction import Direction
+from ..exceptions import WrongDirectionError
 
 # pylint: disable=too-many-arguments,too-many-instance-attributes
 
@@ -211,7 +213,10 @@ class MICE(cmp.Orderable):
         return fmt.make_repr(self, ['mia'])
 
     def __str__(self):
-        return "MICE\n" + fmt.indent(fmt.fmt_mia(self.mia))
+        return (
+            "Maximally-irreducible {}\n".format(str(self.direction).lower()) +
+            fmt.indent(fmt.fmt_mia(self.mia))
+        )
 
     unorderable_unless_eq = \
         MechanismIrreducibilityAnalysis.unorderable_unless_eq
@@ -276,6 +281,48 @@ class MICE(cmp.Orderable):
                        subsystem.cut.cut_matrix(subsystem.network.size) == 1))
 
 
+class MIC(MICE):
+    """A maximally irreducible cause.
+
+    These can be compared with the built-in Python comparison operators (``<``,
+    ``>``, etc.). First, |small_phi| values are compared. Then, if these are
+    equal up to |PRECISION|, the size of the mechanism is compared (see the
+    |PICK_SMALLEST_PURVIEW| option in |config|.)
+    """
+
+    def __init__(self, mia):
+        if mia.direction != Direction.CAUSE:
+            raise WrongDirectionError('A MIC must be initialized with a MIA '
+                                      'in the cause direction.')
+        self._mia = mia
+
+    @property
+    def direction(self):
+        """Direction: |CAUSE|."""
+        return self._mia.direction
+
+
+class MIE(MICE):
+    """A maximally irreducible effect.
+
+    These can be compared with the built-in Python comparison operators (``<``,
+    ``>``, etc.). First, |small_phi| values are compared. Then, if these are
+    equal up to |PRECISION|, the size of the mechanism is compared (see the
+    |PICK_SMALLEST_PURVIEW| option in |config|.)
+    """
+
+    def __init__(self, mia):
+        if mia.direction != Direction.EFFECT:
+            raise WrongDirectionError('A MIE must be initialized with a MIA '
+                                      'in the effect direction.')
+        self._mia = mia
+
+    @property
+    def direction(self):
+        """Direction: |EFFECT|."""
+        return self._mia.direction
+
+
 # =============================================================================
 
 _concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem']
@@ -292,9 +339,9 @@ class Concept(cmp.Orderable):
 
     Attributes:
         mechanism (tuple[int]): The mechanism that the concept consists of.
-        cause (MICE): The |MICE| representing the maximally-irreducible cause
+        cause (MIC): The |MIC| representing the maximally-irreducible cause
             of this concept.
-        effect (MICE): The |MICE| representing the maximally-irreducible effect
+        effect (MIE): The |MIE| representing the maximally-irreducible effect
             of this concept.
         subsystem (Subsystem): This concept's parent subsystem.
         time (float): The number of seconds it took to calculate.

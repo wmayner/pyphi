@@ -20,3 +20,7 @@ class ConditionallyDependentError(ValueError):
 
 class JSONVersionError(ValueError):
     """JSON was serialized with a different version of PyPhi."""
+
+
+class WrongDirectionError(ValueError):
+    """The wrong direction was provided."""

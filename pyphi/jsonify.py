@@ -67,6 +67,8 @@ def _loadable_models():
         pyphi.models.Tripartition,
         pyphi.models.MechanismIrreducibilityAnalysis,
         pyphi.models.MICE,
+        pyphi.models.MIC,
+        pyphi.models.MIE,
         pyphi.models.Concept,
         pyphi.models.CauseEffectStructure,
         pyphi.models.SystemIrreducibilityAnalysis,

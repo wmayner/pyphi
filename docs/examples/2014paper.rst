@@ -482,7 +482,7 @@ method:
 Similarly, the |Subsystem.mie| method returns the “core effect” or *maximally-irreducible effect* (MIE). 
 
 For a detailed description of the MIC and MIE objects returned by these
-methods, see the documentation for |MICE| or use ``help(subsystem.mic)`` and
+methods, see the documentation for |MIC| or use ``help(subsystem.mic)`` and
 ``help(subsystem.mie)``.
 
 

@@ -254,6 +254,8 @@ r"""
 
 .. |MechanismIrreducibilityAnalysis| replace:: :class:`~pyphi.models.concept.MechanismIrreducibilityAnalysis`
 .. |MICE| replace:: :class:`~pyphi.models.concept.MICE`
+.. |MIC| replace:: :class:`~pyphi.models.concept.MIC`
+.. |MIE| replace:: :class:`~pyphi.models.concept.MIE`
 
 .. |Node| replace:: :class:`~pyphi.node.Node`
 .. |Nodes| replace:: :class:`~pyphi.node.Node`
