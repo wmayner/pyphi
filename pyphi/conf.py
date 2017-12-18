@@ -566,16 +566,16 @@ class PyphiConfig(Config):
 
     where the mechanism in the third part is always empty.
 
-    In addition, in the case of a |small_phi|-tie when computing MICE, The
-    ``'TRIPARTITION'`` setting choses the MIP with smallest purview instead of
-    the largest (which is the default).
+    In addition, in the case of a |small_phi|-tie when computing a |MIC| or
+    |MIE|, The ``'TRIPARTITION'`` setting choses the MIP with smallest purview
+    instead of the largest (which is the default).
 
     Finally, if set to ``'ALL'``, all possible partitions will be tested.""")
 
     PICK_SMALLEST_PURVIEW = Option(False, doc="""
-    When computing MICE, it is possible for several MIPs to have the same
-    |small_phi| value. If this setting is set to ``True`` the MIP with the
-    smallest purview is chosen; otherwise, the one with largest purview is
+    When computing a |MIC| or |MIE|, it is possible for several MIPs to have
+    the same |small_phi| value. If this setting is set to ``True`` the MIP with
+    the smallest purview is chosen; otherwise, the one with largest purview is
     chosen.""")
 
     USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE = Option(False, doc="""

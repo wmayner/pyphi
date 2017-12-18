@@ -9,8 +9,10 @@ Attributes:
         :class:`big_phi.SystemIrreducibilityAnalysis`
     MechanismIrreducibilityAnalysis: Alias for
         :class:`concept.MechanismIrreducibilityAnalysis`
-    MIC: Alias for :class:`concept.MIC`
-    MIE: Alias for :class:`concept.MIE`
+    MaximallyIrreducibleCause: Alias for
+        :class:`concept.MaximallyIrreducibleCause`
+    MaximallyIrreducibleEffect: Alias for
+        :class:`concept.MaximallyIrreducibleEffect`
     MaximallyIrreducibleCauseOrEffect: Alias for
         :class:`concept.MaximallyIrreducibleCauseOrEffect`
     Concept: Alias for :class:`concept.Concept`
@@ -33,7 +35,7 @@ from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
                                Event, _null_ac_sia, DirectedAccount, Account)
 from .big_phi import SystemIrreducibilityAnalysis, _null_sia
 from .concept import (MechanismIrreducibilityAnalysis, _null_mia,
-                      MaximallyIrreducibleCauseOrEffect, MIC, MIE, Concept,
+                      MaximallyIrreducibleCauseOrEffect, MaximallyIrreducibleCause, MaximallyIrreducibleEffect, Concept,
                       CauseEffectStructure)
 from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,
                    KPartition, KCut)

@@ -28,12 +28,12 @@ def mice(**kwargs):
 
 def mic(**kwargs):
     """Build a ``MIC``."""
-    return models.MIC(mip(**kwargs))
+    return models.MaximallyIrreducibleCause(mip(**kwargs))
 
 
 def mie(**kwargs):
     """Build a ``MIE``."""
-    return models.MIE(mip(**kwargs))
+    return models.MaximallyIrreducibleEffect(mip(**kwargs))
 
 
 def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,

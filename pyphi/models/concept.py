@@ -281,8 +281,8 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
                        subsystem.cut.cut_matrix(subsystem.network.size) == 1))
 
 
-class MIC(MaximallyIrreducibleCauseOrEffect):
-    """A maximally irreducible cause.
+class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
+    """A maximally irreducible cause (MIC).
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |small_phi| values are compared. Then, if these are
@@ -302,8 +302,8 @@ class MIC(MaximallyIrreducibleCauseOrEffect):
         return self._mia.direction
 
 
-class MIE(MaximallyIrreducibleCauseOrEffect):
-    """A maximally irreducible effect.
+class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
+    """A maximally irreducible effect (MIE).
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |small_phi| values are compared. Then, if these are
@@ -339,10 +339,10 @@ class Concept(cmp.Orderable):
 
     Attributes:
         mechanism (tuple[int]): The mechanism that the concept consists of.
-        cause (MIC): The |MIC| representing the maximally-irreducible cause
-            of this concept.
-        effect (MIE): The |MIE| representing the maximally-irreducible effect
-            of this concept.
+        cause (MaximallyIrreducibleCause): The |MIC| representing the
+            maximally-irreducible cause of this concept.
+        effect (MaximallyIrreducibleEffect): The |MIE| representing the
+            maximally-irreducible effect of this concept.
         subsystem (Subsystem): This concept's parent subsystem.
         time (float): The number of seconds it took to calculate.
     """

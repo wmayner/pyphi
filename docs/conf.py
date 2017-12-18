@@ -256,8 +256,8 @@ r"""
 .. |MechanismIrreducibilityAnalysis| replace:: :class:`~pyphi.models.concept.MechanismIrreducibilityAnalysis`
 .. |MaximallyIrreducibleCauseOrEffect| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCauseOrEffect`
 .. |MICE| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCauseOrEffect`
-.. |MIC| replace:: :class:`~pyphi.models.concept.MIC`
-.. |MIE| replace:: :class:`~pyphi.models.concept.MIE`
+.. |MIC| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCause`
+.. |MIE| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleEffect`
 
 .. |Node| replace:: :class:`~pyphi.node.Node`
 .. |Nodes| replace:: :class:`~pyphi.node.Node`

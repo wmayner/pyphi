@@ -16,7 +16,7 @@ from . import Direction, cache, config, distribution, utils, validate
 from .distance import mechanism_repertoire_distance as repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, KPartition,
-                     MaximallyIrreducibleCauseOrEffect, MIC, MIE,
+                     MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
                      MechanismIrreducibilityAnalysis, NullCut, Part,
                      Tripartition, _null_mia, cmp)
 from .network import irreducible_purviews
@@ -656,7 +656,7 @@ class Subsystem:
 
     @cache.method('_mice_cache')
     def find_mice(self, direction, mechanism, purviews=False):
-        """Return the maximally irreducible cause or effect for a mechanism.
+        """Return the |MIC| or |MIE| for a mechanism.
 
         Args:
             direction (Direction): :|CAUSE| or |EFFECT|.
@@ -670,8 +670,7 @@ class Subsystem:
                 nodes.
 
         Returns:
-            MIC or MIE: The maximally-irreducible cause or effect in one
-            temporal direction.
+            MaximallyIrreducibleCauseOrEffect: The |MIC| or |MIE|.
         """
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
@@ -682,9 +681,9 @@ class Subsystem:
                           for purview in purviews)
 
         if direction == Direction.CAUSE:
-            return MIC(max_mip)
+            return MaximallyIrreducibleCause(max_mip)
         elif direction == Direction.EFFECT:
-            return MIE(max_mip)
+            return MaximallyIrreducibleEffect(max_mip)
         else:
             validate.direction(direction)
 
@@ -698,7 +697,7 @@ class Subsystem:
     def mie(self, mechanism, purviews=False):
         """Return the mechanism's maximally-irreducible effect (|MIE|).
 
-        Alias for |find_mice| with ``direction`` set to |CAUSE|.
+        Alias for |find_mice| with ``direction`` set to |EFFECT|.
         """
         return self.find_mice(Direction.EFFECT, mechanism, purviews=purviews)
 
@@ -726,9 +725,9 @@ class Subsystem:
         effect_repertoire = self.effect_repertoire((), ())
 
         # Null cause.
-        cause = MIC(_null_mia(Direction.CAUSE, (), (), cause_repertoire))
+        cause = MaximallyIrreducibleCause(_null_mia(Direction.CAUSE, (), (), cause_repertoire))
         # Null effect.
-        effect = MIE(_null_mia(Direction.EFFECT, (), (), effect_repertoire))
+        effect = MaximallyIrreducibleEffect(_null_mia(Direction.EFFECT, (), (), effect_repertoire))
 
         # All together now...
         return Concept(mechanism=(),
