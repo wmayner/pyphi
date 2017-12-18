@@ -31,6 +31,7 @@ class AcMechanismIrreducibilityAnalysis(
                                   _acmip_attributes)):
     """A minimum information partition for ac_coef calculation.
 
+
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |alpha| values are compared. Then, if these are equal
     up to |PRECISION|, the size of the mechanism is compared.
@@ -243,7 +244,10 @@ _ac_sia_attributes = ['alpha', 'direction', 'unpartitioned_account',
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
 # take the smaller?
 class AcSystemIrreducibilityAnalysis(cmp.Orderable):
-    """A minimum information partition for |big_alpha| calculation.
+    """An analysis of transition-level irreducibility (|big_alpha|).
+
+    Contains the |big_alpha| value of the |Transition|, the causal account, and
+    all the intermediate results obtained in the course of computing them.
 
     Attributes:
         alpha (float): The |big_alpha| value for the transition when taken

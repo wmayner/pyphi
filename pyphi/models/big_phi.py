@@ -15,7 +15,11 @@ _sia_attributes = ['phi', 'unpartitioned_ces',
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):
-    """A minimum information partition for |big_phi| calculation.
+    """An analysis of system irreducibility (|big_phi|).
+
+    Contains the |big_phi| value of the |Subsystem|, the cause-effect
+    structure, and all the intermediate results obtained in the course of
+    computing them.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |big_phi| values are compared. Then, if these are
@@ -68,7 +72,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
     @property
     def network(self):
-        """The network this |SystemIrreducibilityAnalysis| belongs to."""
+        """The network the subsystem belongs to."""
         return self.subsystem.network
 
     unorderable_unless_eq = ['network']
@@ -80,7 +84,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return cmp.general_eq(self, other, _sia_attributes)
 
     def __bool__(self):
-        """A |SystemIrreducibilityAnalysis| is ``True`` if it has
+        """A |SystemIrreducibilityAnalysis| evaluates to``True`` if it has
         |big_phi > 0|.
         """
         return not utils.eq(self.phi, 0)
@@ -104,7 +108,7 @@ def _null_sia(subsystem, phi=0.0):
     """Return a |SystemIrreducibilityAnalysis| with zero |big_phi| and empty
     cause-effect structures.
 
-    This is the MIP associated with a reducible subsystem.
+    This is the analysis result for a reducible subsystem.
     """
     return SystemIrreducibilityAnalysis(subsystem=subsystem,
                                         cut_subsystem=subsystem,
