@@ -7,7 +7,7 @@ import pytest
 
 import example_networks
 from pyphi import Direction, Subsystem
-from pyphi.models import Cut, MaximallyIrreducibleCauseOrEffect, _null_mia
+from pyphi.models import Cut, MaximallyIrreducibleCauseOrEffect, _null_ria
 from pyphi.utils import eq
 
 # Expected results {{{
@@ -102,7 +102,7 @@ def test_find_mice(cut, direction, expected):
 
 
 def test_find_mice_empty(s):
-    expected = [MaximallyIrreducibleCauseOrEffect(_null_mia(direction, (), ())) for direction in
+    expected = [MaximallyIrreducibleCauseOrEffect(_null_ria(direction, (), ())) for direction in
                 directions]
     assert all(s.find_mice(mice.direction, mice.mechanism) == mice
                for mice in expected)

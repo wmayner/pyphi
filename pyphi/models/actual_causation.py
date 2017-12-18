@@ -15,9 +15,9 @@ from .. import Direction, config, utils
 
 # TODO(slipperyhank): Why do we even need this?
 # TODO(slipperyhank): add second state
-_acmia_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',
+_acria_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',
                      'partition', 'probability', 'partitioned_probability']
-_acmia_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
+_acria_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
                             'purview', 'probability']
 
 def greater_than_zero(alpha):
@@ -26,9 +26,9 @@ def greater_than_zero(alpha):
     return alpha > 0 and not utils.eq(alpha, 0)
 
 
-class AcMechanismIrreducibilityAnalysis(
-        cmp.Orderable, namedtuple('AcMechanismIrreducibilityAnalysis',
-                                  _acmia_attributes)):
+class AcRepertoireIrreducibilityAnalysis(
+        cmp.Orderable, namedtuple('AcRepertoireIrreducibilityAnalysis',
+                                  _acria_attributes)):
     """A minimum information partition for ac_coef calculation.
 
 
@@ -70,10 +70,10 @@ class AcMechanismIrreducibilityAnalysis(
 
     def __eq__(self, other):
         # TODO(slipperyhank): include 2nd state here?
-        return cmp.general_eq(self, other, _acmia_attributes_for_eq)
+        return cmp.general_eq(self, other, _acria_attributes_for_eq)
 
     def __bool__(self):
-        """An |AcMechanismIrreducibilityAnalysis| is ``True`` if it has
+        """An |AcRepertoireIrreducibilityAnalysis| is ``True`` if it has
         |alpha > 0|.
         """
         return greater_than_zero(self.alpha)
@@ -84,23 +84,23 @@ class AcMechanismIrreducibilityAnalysis(
         return self.alpha
 
     def __hash__(self):
-        attrs = tuple(getattr(self, attr) for attr in _acmia_attributes_for_eq)
+        attrs = tuple(getattr(self, attr) for attr in _acria_attributes_for_eq)
         return hash(attrs)
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {attr: getattr(self, attr) for attr in _acmia_attributes}
+        return {attr: getattr(self, attr) for attr in _acria_attributes}
 
     def __repr__(self):
-        return fmt.make_repr(self, _acmia_attributes)
+        return fmt.make_repr(self, _acria_attributes)
 
     def __str__(self):
-        return ("MechanismIrreducibilityAnalysis\n" +
+        return ("RepertoireIrreducibilityAnalysis\n" +
                 fmt.indent(fmt.fmt_ac_sia(self)))
 
 
-def _null_ac_mia(state, direction, mechanism, purview):
-    return AcMechanismIrreducibilityAnalysis(state=state,
+def _null_ac_ria(state, direction, mechanism, purview):
+    return AcRepertoireIrreducibilityAnalysis(state=state,
                  direction=direction,
                  mechanism=mechanism,
                  purview=purview,
@@ -118,15 +118,15 @@ class CausalLink(cmp.Orderable):
     up to |PRECISION|, the size of the mechanism is compared.
     """
 
-    def __init__(self, mia):
-        self._mia = mia
+    def __init__(self, ria):
+        self._ria = ria
 
     @property
     def alpha(self):
         """float: The difference between the mechanism's unpartitioned and
         partitioned actual probabilities.
         """
-        return self._mia.alpha
+        return self._ria.alpha
 
     @property
     def phi(self):
@@ -136,44 +136,44 @@ class CausalLink(cmp.Orderable):
     @property
     def direction(self):
         """Direction: Either |CAUSE| or |EFFECT|."""
-        return self._mia.direction
+        return self._ria.direction
 
     @property
     def mechanism(self):
         """list[int]: The mechanism for which the action is evaluated."""
-        return self._mia.mechanism
+        return self._ria.mechanism
 
     @property
     def purview(self):
         """list[int]: The purview over which this mechanism's |alpha| is
         maximal.
         """
-        return self._mia.purview
+        return self._ria.purview
 
     @property
-    def mia(self):
-        """AcMechanismIrreducibilityAnalysis: The irreducibility analysis for
+    def ria(self):
+        """AcRepertoireIrreducibilityAnalysis: The irreducibility analysis for
         this mechanism.
         """
-        return self._mia
+        return self._ria
 
     def __repr__(self):
-        return fmt.make_repr(self, ['mia'])
+        return fmt.make_repr(self, ['ria'])
 
     def __str__(self):
-        return "CausalLink\n" + fmt.indent(fmt.fmt_ac_mia(self.mia))
+        return "CausalLink\n" + fmt.indent(fmt.fmt_ac_ria(self.ria))
 
     unorderable_unless_eq = \
-        AcMechanismIrreducibilityAnalysis.unorderable_unless_eq
+        AcRepertoireIrreducibilityAnalysis.unorderable_unless_eq
 
     def order_by(self):
-        return self.mia.order_by()
+        return self.ria.order_by()
 
     def __eq__(self, other):
-        return self.mia == other.mia
+        return self.ria == other.ria
 
     def __hash__(self):
-        return hash(('CausalLink', self._mia))
+        return hash(('CausalLink', self._ria))
 
     def __bool__(self):
         """An |CausalLink| is ``True`` if |alpha > 0|."""
@@ -181,7 +181,7 @@ class CausalLink(cmp.Orderable):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {'mia': self.mia}
+        return {'ria': self.ria}
 
 
 class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):

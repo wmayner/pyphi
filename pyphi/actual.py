@@ -19,10 +19,10 @@ import pyphi
 
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
-from .models import (Account, AcMechanismIrreducibilityAnalysis,
+from .models import (Account, AcRepertoireIrreducibilityAnalysis,
                      AcSystemIrreducibilityAnalysis, ActualCut, CausalLink,
                      DirectedAccount, Event, NullCut, _null_ac_sia,
-                     _null_ac_mia, fmt)
+                     _null_ac_ria, fmt)
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
@@ -312,7 +312,7 @@ class Transition:
                 they were 0.
 
         Returns:
-            AcMechanismIrreducibilityAnalysis: The irreducibility analysis for
+            AcRepertoireIrreducibilityAnalysis: The irreducibility analysis for
             the mechanism.
         """
         alpha_min = float('inf')
@@ -327,7 +327,7 @@ class Transition:
             # First check for 0
             # Default: don't count contrary causes and effects
             if utils.eq(alpha, 0) or (alpha < 0 and not allow_neg):
-                return AcMechanismIrreducibilityAnalysis(
+                return AcRepertoireIrreducibilityAnalysis(
                     state=self.mechanism_state(direction),
                     direction=direction,
                     mechanism=mechanism,
@@ -340,7 +340,7 @@ class Transition:
             # Then take closest to 0
             if (abs(alpha_min) - abs(alpha)) > constants.EPSILON:
                 alpha_min = alpha
-                acmia = AcMechanismIrreducibilityAnalysis(
+                acria = AcRepertoireIrreducibilityAnalysis(
                     state=self.mechanism_state(direction),
                     direction=direction,
                     mechanism=mechanism,
@@ -350,7 +350,7 @@ class Transition:
                     partitioned_probability=partitioned_probability,
                     alpha=alpha_min
                 )
-        return acmia
+        return acria
 
     # Phi_max methods
     # =========================================================================
@@ -396,18 +396,18 @@ class Transition:
         """
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
-        # Find the maximal MIA over the remaining purviews.
+        # Find the maximal RIA over the remaining purviews.
         if not purviews:
-            max_mia = _null_ac_mia(self.mechanism_state(direction),
+            max_ria = _null_ac_ria(self.mechanism_state(direction),
                                    direction, mechanism, None)
         else:
             # This max should be most positive
-            max_mia = max(self.find_mip(direction, mechanism, purview,
+            max_ria = max(self.find_mip(direction, mechanism, purview,
                                         allow_neg)
                           for purview in purviews)
 
         # Construct the corresponding CausalLink
-        return CausalLink(max_mia)
+        return CausalLink(max_ria)
 
     def find_actual_cause(self, mechanism, purviews=False):
         """Return the actual cause of a mechanism."""

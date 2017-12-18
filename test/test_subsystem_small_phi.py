@@ -8,7 +8,7 @@ import pytest
 
 import example_networks
 from pyphi import Direction, constants
-from pyphi.models import MechanismIrreducibilityAnalysis, Part
+from pyphi.models import RepertoireIrreducibilityAnalysis, Part
 
 s = example_networks.s()
 
@@ -19,7 +19,7 @@ s = example_networks.s()
 # Test scenario structure:
 #
 # (
-#     direction of MIA (Direction.CAUSE or Direction.EFFECT),
+#     direction of RIA (Direction.CAUSE or Direction.EFFECT),
 #     subsystem, cut,
 #     mechanism,
 #     purview,
@@ -217,7 +217,7 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     if expected:
         # Construct expected list of possible MIPs
         expected = [
-            MechanismIrreducibilityAnalysis(direction=direction,
+            RepertoireIrreducibilityAnalysis(direction=direction,
                 partition=expected_partition,
                 mechanism=mechanism,
                 purview=purview,
@@ -231,7 +231,7 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     print('Result:', '---------', '', result, '', sep='\n')
     print('Expected:',  '---------', '', sep='\n')
     if expected:
-        print(*[mia for mia in expected], sep='\n')
+        print(*[ria for ria in expected], sep='\n')
     else:
         print(expected)
     print('\n')
@@ -251,15 +251,15 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
 def test_mip_cause(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    mia_cause = s.find_mip(Direction.CAUSE, mechanism, purview)
-    assert mia_cause == s.mip_cause(mechanism, purview)
+    ria_cause = s.find_mip(Direction.CAUSE, mechanism, purview)
+    assert ria_cause == s.mip_cause(mechanism, purview)
 
 
 def test_mip_effect(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    mia_effect = s.find_mip(Direction.EFFECT, mechanism, purview)
-    assert mia_effect == s.mip_effect(mechanism, purview)
+    ria_effect = s.find_mip(Direction.EFFECT, mechanism, purview)
+    assert ria_effect == s.mip_effect(mechanism, purview)
 
 
 def test_phi_mip_cause(s):

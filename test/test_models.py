@@ -14,8 +14,8 @@ from pyphi import Direction, Subsystem, config, constants, models, exceptions
 
 def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
         repertoire=None, partitioned_repertoire=None):
-    """Build a ``MechanismIrreducibilityAnalysis``."""
-    return models.MechanismIrreducibilityAnalysis(phi=phi, direction=direction, mechanism=mechanism,
+    """Build a ``RepertoireIrreducibilityAnalysis``."""
+    return models.RepertoireIrreducibilityAnalysis(phi=phi, direction=direction, mechanism=mechanism,
                       purview=purview, partition=partition,
                       repertoire=repertoire,
                       partitioned_repertoire=partitioned_repertoire)
@@ -320,20 +320,20 @@ def test_mip_ordering_and_equality():
         mip(direction=Direction.CAUSE) >= mip(direction=Direction.EFFECT)
 
 
-def test_null_mia():
+def test_null_ria():
     direction = Direction.CAUSE
     mechanism = (0,)
     purview = (1,)
     repertoire = 'repertoire'
-    null_mia = models._null_mia(direction, mechanism, purview,
+    null_ria = models._null_ria(direction, mechanism, purview,
                                 repertoire)
-    assert null_mia.direction == direction
-    assert null_mia.mechanism == mechanism
-    assert null_mia.purview == purview
-    assert null_mia.partition is None
-    assert null_mia.repertoire == 'repertoire'
-    assert null_mia.partitioned_repertoire is None
-    assert null_mia.phi == 0
+    assert null_ria.direction == direction
+    assert null_ria.mechanism == mechanism
+    assert null_ria.purview == purview
+    assert null_ria.partition is None
+    assert null_ria.repertoire == 'repertoire'
+    assert null_ria.partitioned_repertoire is None
+    assert null_ria.phi == 0
 
 
 def test_mip_repr_str():

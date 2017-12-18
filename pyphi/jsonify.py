@@ -65,7 +65,7 @@ def _loadable_models():
         pyphi.models.Bipartition,
         pyphi.models.KPartition,
         pyphi.models.Tripartition,
-        pyphi.models.MechanismIrreducibilityAnalysis,
+        pyphi.models.RepertoireIrreducibilityAnalysis,
         pyphi.models.MaximallyIrreducibleCauseOrEffect,
         pyphi.models.MaximallyIrreducibleCause,
         pyphi.models.MaximallyIrreducibleEffect,
@@ -74,7 +74,7 @@ def _loadable_models():
         pyphi.models.SystemIrreducibilityAnalysis,
         pyphi.Transition,
         pyphi.models.ActualCut,
-        pyphi.models.AcMechanismIrreducibilityAnalysis,
+        pyphi.models.AcRepertoireIrreducibilityAnalysis,
         pyphi.models.CausalLink,
         pyphi.models.Account,
         pyphi.models.AcSystemIrreducibilityAnalysis

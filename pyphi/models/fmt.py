@@ -301,7 +301,7 @@ def fmt_concept(concept):
     def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
         if not x:
             return ''
-        return box(indent(fmt_mia(x.mia, verbose=False), amount=1))
+        return box(indent(fmt_ria(x.ria, verbose=False), amount=1))
 
     cause = header('MIC',
                    fmt_cause_or_effect(concept.cause))
@@ -319,26 +319,26 @@ def fmt_concept(concept):
     return header(title, ce, HEADER_BAR_2, HEADER_BAR_2, center=center)
 
 
-def fmt_mia(mia, verbose=True):
-    """Format a |MechanismIrreducibilityAnalysis|."""
-    if mia is False or mia is None:  # MIAs can be Falsy
+def fmt_ria(ria, verbose=True):
+    """Format a |RepertoireIrreducibilityAnalysis|."""
+    if ria is False or ria is None:  # RIAs can be Falsy
         return ''
 
     if verbose:
         mechanism = 'Mechanism: {}\n'.format(
-            fmt_mechanism(mia.mechanism, mia.subsystem))
-        direction = '\nDirection: {}\n'.format(mia.direction)
+            fmt_mechanism(ria.mechanism, ria.subsystem))
+        direction = '\nDirection: {}\n'.format(ria.direction)
     else:
         mechanism = ''
         direction = ''
 
     if config.REPR_VERBOSITY is HIGH:
         partition = '\nPartition:\n{}'.format(
-            indent(fmt_bipartition(mia.partition, mia.subsystem)))
+            indent(fmt_bipartition(ria.partition, ria.subsystem)))
         repertoire = '\nRepertoire:\n{}'.format(
-            indent(fmt_repertoire(mia.repertoire)))
+            indent(fmt_repertoire(ria.repertoire)))
         partitioned_repertoire = '\nPartitioned Repertoire:\n{}'.format(
-            indent(fmt_repertoire(mia.partitioned_repertoire)))
+            indent(fmt_repertoire(ria.partitioned_repertoire)))
     else:
         partition = ''
         repertoire = ''
@@ -355,9 +355,9 @@ def fmt_mia(mia, verbose=True):
         '{partitioned_repertoire}').format(
             SMALL_PHI=SMALL_PHI,
             mechanism=mechanism,
-            purview=fmt_mechanism(mia.purview, mia.subsystem),
+            purview=fmt_mechanism(ria.purview, ria.subsystem),
             direction=direction,
-            phi=fmt_number(mia.phi),
+            phi=fmt_number(ria.phi),
             partition=partition,
             repertoire=repertoire,
             partitioned_repertoire=partitioned_repertoire)
@@ -450,21 +450,21 @@ def fmt_repertoire(r):
     return box('\n'.join(lines))
 
 
-def fmt_ac_mia(mia):
-    """Format an AcMechanismIrreducibilityAnalysis."""
-    if mia is None:
+def fmt_ac_ria(ria):
+    """Format an AcRepertoireIrreducibilityAnalysis."""
+    if ria is None:
         return ''
 
     causality = {
         # TODO: use node labels
-        Direction.CAUSE: (str(mia.purview), ARROW_LEFT, str(mia.mechanism)),
-        Direction.EFFECT: (str(mia.mechanism), ARROW_RIGHT, str(mia.purview))
-    }[mia.direction]
+        Direction.CAUSE: (str(ria.purview), ARROW_LEFT, str(ria.mechanism)),
+        Direction.EFFECT: (str(ria.mechanism), ARROW_RIGHT, str(ria.purview))
+    }[ria.direction]
     causality = ' '.join(causality)
 
     return '{ALPHA} = {alpha}  {causality}'.format(
         ALPHA=ALPHA,
-        alpha=round(mia.alpha, 4),
+        alpha=round(ria.alpha, 4),
         causality=causality)
 
 
@@ -479,9 +479,9 @@ def fmt_account(account, title=None):
 
     body = ''
     body += 'Irreducible effects\n'
-    body += '\n'.join(fmt_ac_mia(m) for m in account.irreducible_effects)
+    body += '\n'.join(fmt_ac_ria(m) for m in account.irreducible_effects)
     body += '\nIrreducible causes\n'
-    body += '\n'.join(fmt_ac_mia(m) for m in account.irreducible_causes)
+    body += '\n'.join(fmt_ac_ria(m) for m in account.irreducible_causes)
 
     return '\n' + header(title, body, under_char='*')
 

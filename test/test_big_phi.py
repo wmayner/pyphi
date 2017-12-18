@@ -228,11 +228,11 @@ def check_mip(mip, answer):
 
 def test_null_concept(s, flushcache, restore_fs_cache):
     flushcache()
-    cause = models.MaximallyIrreducibleCause(models.MechanismIrreducibilityAnalysis(
+    cause = models.MaximallyIrreducibleCause(models.RepertoireIrreducibilityAnalysis(
         repertoire=s.unconstrained_cause_repertoire(()),
         phi=0, direction=Direction.CAUSE, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
-    effect = models.MaximallyIrreducibleEffect(models.MechanismIrreducibilityAnalysis(
+    effect = models.MaximallyIrreducibleEffect(models.RepertoireIrreducibilityAnalysis(
         repertoire=s.unconstrained_effect_repertoire(()),
         phi=0, direction=Direction.EFFECT, mechanism=(), purview=(),
         partition=None, partitioned_repertoire=None))
@@ -260,7 +260,7 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
     mock_simple_distance.return_value = float()
 
     make_mice = lambda: models.MaximallyIrreducibleCauseOrEffect(
-        models.MechanismIrreducibilityAnalysis(
+        models.RepertoireIrreducibilityAnalysis(
             phi=0, direction=None, mechanism=None, purview=None,
             partition=None, repertoire=None, partitioned_repertoire=None))
 

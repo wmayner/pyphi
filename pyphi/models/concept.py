@@ -13,11 +13,11 @@ from ..exceptions import WrongDirectionError
 
 # pylint: disable=too-many-arguments,too-many-instance-attributes
 
-_mia_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
+_ria_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'repertoire', 'partitioned_repertoire']
 
 
-class MechanismIrreducibilityAnalysis(cmp.Orderable):
+class RepertoireIrreducibilityAnalysis(cmp.Orderable):
     """An analysis of the irreducibility (|small_phi|) of a mechanism over a
     purview, for a given partition in one temporal direction.
 
@@ -104,13 +104,13 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
 
     def __eq__(self, other):
         # We don't consider the partition and partitioned repertoire in
-        # checking for MIA equality.
+        # checking for RIA equality.
         attrs = ['phi', 'direction', 'mechanism', 'purview',
                  'repertoire']
         return cmp.general_eq(self, other, attrs)
 
     def __bool__(self):
-        """A |MechanismIrreducibilityAnalysis| evaluates to ``True`` if it has
+        """A |RepertoireIrreducibilityAnalysis| evaluates to ``True`` if it has
         |small_phi > 0|."""
         return not utils.eq(self.phi, 0)
 
@@ -122,20 +122,20 @@ class MechanismIrreducibilityAnalysis(cmp.Orderable):
                      utils.np_hash(self.repertoire)))
 
     def __repr__(self):
-        return fmt.make_repr(self, _mia_attributes)
+        return fmt.make_repr(self, _ria_attributes)
 
     def __str__(self):
-        return "MIA\n" + fmt.indent(fmt.fmt_mia(self))
+        return "RIA\n" + fmt.indent(fmt.fmt_ria(self))
 
     def to_json(self):
-        return {attr: getattr(self, attr) for attr in _mia_attributes}
+        return {attr: getattr(self, attr) for attr in _ria_attributes}
 
 
-def _null_mia(direction, mechanism, purview, repertoire=None):
+def _null_ria(direction, mechanism, purview, repertoire=None):
     """The irreducibility analysis for a reducible mechanism."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
-    return MechanismIrreducibilityAnalysis(direction=direction,
+    return RepertoireIrreducibilityAnalysis(direction=direction,
                mechanism=mechanism,
                purview=purview,
                partition=None,
@@ -155,83 +155,83 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     |PICK_SMALLEST_PURVIEW| option in |config|.)
     """
 
-    def __init__(self, mia):
-        self._mia = mia
+    def __init__(self, ria):
+        self._ria = ria
 
     @property
     def phi(self):
         """float: The difference between the mechanism's unpartitioned and
         partitioned repertoires.
         """
-        return self._mia.phi
+        return self._ria.phi
 
     @property
     def direction(self):
         """Direction: |CAUSE| or |EFFECT|."""
-        return self._mia.direction
+        return self._ria.direction
 
     @property
     def mechanism(self):
         """list[int]: The mechanism for which the MICE is evaluated."""
-        return self._mia.mechanism
+        return self._ria.mechanism
 
     @property
     def purview(self):
         """list[int]: The purview over which this mechanism's |small_phi| is
         maximal.
         """
-        return self._mia.purview
+        return self._ria.purview
 
     @property
     def mip(self):
         """KPartition: The partition that makes the least difference to the
         mechanism's repertoire."""
-        return self._mia.partition
+        return self._ria.partition
 
     @property
     def repertoire(self):
         """np.ndarray: The unpartitioned repertoire of the mechanism over the
         purview.
         """
-        return self._mia.repertoire
+        return self._ria.repertoire
 
     @property
     def partitioned_repertoire(self):
         """np.ndarray: The partitioned repertoire of the mechanism over the
         purview.
         """
-        return self._mia.partitioned_repertoire
+        return self._ria.partitioned_repertoire
 
     @property
-    def mia(self):
-        """MechanismIrreducibilityAnalysis: The irreducibility analysis for
+    def ria(self):
+        """RepertoireIrreducibilityAnalysis: The irreducibility analysis for
         this mechanism.
         """
-        return self._mia
+        return self._ria
 
     def __repr__(self):
-        return fmt.make_repr(self, ['mia'])
+        return fmt.make_repr(self, ['ria'])
 
     def __str__(self):
         return (
             "Maximally-irreducible {}\n".format(str(self.direction).lower()) +
-            fmt.indent(fmt.fmt_mia(self.mia))
+            fmt.indent(fmt.fmt_ria(self.ria))
         )
 
     unorderable_unless_eq = \
-        MechanismIrreducibilityAnalysis.unorderable_unless_eq
+        RepertoireIrreducibilityAnalysis.unorderable_unless_eq
 
     def order_by(self):
-        return self.mia.order_by()
+        return self.ria.order_by()
 
     def __eq__(self, other):
-        return self.mia == other.mia
+        return self.ria == other.ria
 
     def __hash__(self):
-        return hash(('MICE', self._mia))
+        return hash(('MICE', self._ria))
 
     def to_json(self):
-        return {'mia': self.mia}
+        return {'ria': self.ria}
 
     def _relevant_connections(self, subsystem):
         """Identify connections that “matter” to this concept.
@@ -290,16 +290,16 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
     |PICK_SMALLEST_PURVIEW| option in |config|.)
     """
 
-    def __init__(self, mia):
-        if mia.direction != Direction.CAUSE:
-            raise WrongDirectionError('A MIC must be initialized with a MIA '
+    def __init__(self, ria):
+        if ria.direction != Direction.CAUSE:
+            raise WrongDirectionError('A MIC must be initialized with a RIA '
                                       'in the cause direction.')
-        self._mia = mia
+        self._ria = ria
 
     @property
     def direction(self):
         """Direction: |CAUSE|."""
-        return self._mia.direction
+        return self._ria.direction
 
 
 class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
@@ -311,16 +311,16 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
     |PICK_SMALLEST_PURVIEW| option in |config|.)
     """
 
-    def __init__(self, mia):
-        if mia.direction != Direction.EFFECT:
-            raise WrongDirectionError('A MIE must be initialized with a MIA '
+    def __init__(self, ria):
+        if ria.direction != Direction.EFFECT:
+            raise WrongDirectionError('A MIE must be initialized with a RIA '
                                       'in the effect direction.')
-        self._mia = mia
+        self._ria = ria
 
     @property
     def direction(self):
         """Direction: |EFFECT|."""
-        return self._mia.direction
+        return self._ria.direction
 
 
 # =============================================================================
@@ -453,12 +453,12 @@ class Concept(cmp.Orderable):
     def expand_partitioned_cause_repertoire(self):
         """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
         return self.subsystem.expand_cause_repertoire(
-            self.cause.mia.partitioned_repertoire)
+            self.cause.ria.partitioned_repertoire)
 
     def expand_partitioned_effect_repertoire(self):
         """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
         return self.subsystem.expand_effect_repertoire(
-            self.effect.mia.partitioned_repertoire)
+            self.effect.ria.partitioned_repertoire)
 
     def to_json(self):
         """Return a JSON-serializable representation."""

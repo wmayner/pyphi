@@ -17,8 +17,8 @@ from .distance import mechanism_repertoire_distance as repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, KPartition,
                      MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
-                     MechanismIrreducibilityAnalysis, NullCut, Part,
-                     Tripartition, _null_mia, cmp)
+                     RepertoireIrreducibilityAnalysis, NullCut, Part,
+                     Tripartition, _null_ria, cmp)
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,
@@ -537,11 +537,11 @@ class Subsystem:
             purview (tuple[int]): The nodes in the purview.
 
         Returns:
-            MechanismIrreducibilityAnalysis: The irreducibility analysis for
+            RepertoireIrreducibilityAnalysis: The irreducibility analysis for
             the mininum-information partition in one temporal direction.
         """
         # We default to the null MIP (the MIP of a reducible mechanism)
-        mip = _null_mia(direction, mechanism, purview)
+        mip = _null_ria(direction, mechanism, purview)
 
         if not purview:
             return mip
@@ -556,7 +556,7 @@ class Subsystem:
             # Prototype of MIP with already known data
             # TODO: Use properties here to infer mechanism and purview from
             # partition yet access them with `.mechanism` and `.purview`.
-            return MechanismIrreducibilityAnalysis(
+            return RepertoireIrreducibilityAnalysis(
                 phi=phi,
                 direction=direction,
                 mechanism=mechanism,
@@ -675,7 +675,7 @@ class Subsystem:
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
         if not purviews:
-            max_mip = _null_mia(direction, mechanism, ())
+            max_mip = _null_ria(direction, mechanism, ())
         else:
             max_mip = max(self.find_mip(direction, mechanism, purview)
                           for purview in purviews)
@@ -725,9 +725,9 @@ class Subsystem:
         effect_repertoire = self.effect_repertoire((), ())
 
         # Null cause.
-        cause = MaximallyIrreducibleCause(_null_mia(Direction.CAUSE, (), (), cause_repertoire))
+        cause = MaximallyIrreducibleCause(_null_ria(Direction.CAUSE, (), (), cause_repertoire))
         # Null effect.
-        effect = MaximallyIrreducibleEffect(_null_mia(Direction.EFFECT, (), (), effect_repertoire))
+        effect = MaximallyIrreducibleEffect(_null_ria(Direction.EFFECT, (), (), effect_repertoire))
 
         # All together now...
         return Concept(mechanism=(),
