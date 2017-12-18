@@ -541,7 +541,7 @@ Figure 11
 (constellation of concepts).**
 
 Conceptual information can be computed using the function named, as you might
-expect, |compute.conceptual_info|:
+expect, |compute.conceptual_info()|:
 
     >>> pyphi.compute.conceptual_info(subsystem)
     2.1111089999999999
@@ -553,7 +553,7 @@ Figure 12
 **Assessing the integrated conceptual information Φ of a constellation C.**
 
 To calculate :math:`\Phi^{\textrm{MIP}}` for a candidate set, we use the
-function |compute.sia|:
+function |compute.sia()|:
 
     >>> sia = pyphi.compute.sia(subsystem)
 
@@ -635,7 +635,7 @@ without them.
     >>> state = (1, 0, 0, 1, 1, 1, 0)
 
 To find the maximal set of non-overlapping complexes that a network condenses
-into, use |compute.condensed|:
+into, use |compute.condensed()|:
 
     >>> condensed = pyphi.compute.condensed(network, state)
 
@@ -655,8 +655,8 @@ conditions of current states, not previous states; as a result the minor complex
     ((F, G), 0.069445)
 
 There are several other functions available for working with complexes; see the
-documentation for |compute.subsystems|, |compute.all_complexes|,
-|compute.possible_complexes|, and |compute.complexes|.
+documentation for |compute.subsystems()|, |compute.all_complexes()|,
+|compute.possible_complexes()|, and |compute.complexes()|.
 
 .. |H| replace:: :math:`H`
 .. |L| replace:: :math:`L`

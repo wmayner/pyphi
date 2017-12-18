@@ -200,11 +200,6 @@ r"""
 r"""
 .. |compute| replace:: :mod:`~pyphi.compute`
 .. |compute.distance| replace:: :mod:`~pyphi.compute.distance`
-.. |compute.subsystems| replace:: :func:`~pyphi.compute.big_phi.subsystems`
-.. |compute.possible_complexes| replace:: :func:`~pyphi.compute.big_phi.possible_complexes`
-.. |compute.complexes| replace:: :func:`~pyphi.compute.big_phi.complexes`
-.. |compute.all_complexes| replace:: :func:`~pyphi.compute.big_phi.all_complexes`
-.. |compute.condensed| replace:: :func:`~pyphi.compute.big_phi.condensed`
 
 .. |models.big_phi| replace:: :mod:`~pyphi.models.big_phi`
 .. |models.concept| replace:: :mod:`~pyphi.models.concept`
@@ -224,16 +219,21 @@ r"""
 """,
 # Functions
 r"""
-.. |compute.conceptual_info| replace:: :func:`~pyphi.compute.big_phi.conceptual_info`
-.. |compute.sia| replace:: :func:`~pyphi.compute.big_phi.sia`
+.. |compute.conceptual_info()| replace:: :func:`~pyphi.compute.big_phi.conceptual_info`
+.. |compute.sia()| replace:: :func:`~pyphi.compute.big_phi.sia`
+.. |compute.subsystems()| replace:: :func:`~pyphi.compute.big_phi.subsystems`
+.. |compute.possible_complexes()| replace:: :func:`~pyphi.compute.big_phi.possible_complexes`
+.. |compute.complexes()| replace:: :func:`~pyphi.compute.big_phi.complexes`
+.. |compute.all_complexes()| replace:: :func:`~pyphi.compute.big_phi.all_complexes`
+.. |compute.condensed()| replace:: :func:`~pyphi.compute.big_phi.condensed`
+.. |compute.phi()| replace:: :func:`~pyphi.compute.big_phi.phi`
 
-.. |compute.concept| replace:: :func:`~pyphi.compute.concept.concept`
-.. |compute.phi| replace:: :func:`~pyphi.compute.big_phi.phi`
+.. |compute.concept()| replace:: :func:`~pyphi.compute.concept.concept`
 
-.. |configure_logging| replace:: :func:`~pyphi.config.configure_logging`
+.. |configure_logging()| replace:: :func:`~pyphi.config.configure_logging`
 
-.. |loli_index2state| replace:: :func:`~pyphi.convert.loli_index2state`
-.. |holi_index2state| replace:: :func:`~pyphi.convert.holi_index2state`
+.. |loli_index2state()| replace:: :func:`~pyphi.convert.loli_index2state`
+.. |holi_index2state()| replace:: :func:`~pyphi.convert.holi_index2state`
 """,
 # Classes
 r"""

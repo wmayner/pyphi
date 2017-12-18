@@ -96,7 +96,7 @@ def loli_index2state(i, number_of_nodes):
     """Convert a decimal integer to a PyPhi state tuple with the LOLI
     convention.
 
-    The output is the reverse of |holi_index2state|.
+    The output is the reverse of |holi_index2state()|.
 
     Args:
         i (int): A decimal integer corresponding to a network state under the
@@ -121,7 +121,7 @@ def holi_index2state(i, number_of_nodes):
     """Convert a decimal integer to a PyPhi state tuple using the HOLI
     convention that high-order bits correspond to low-index nodes.
 
-    The output is the reverse of |loli_index2state|.
+    The output is the reverse of |loli_index2state()|.
 
     Args:
         i (int): A decimal integer corresponding to a network state under the
