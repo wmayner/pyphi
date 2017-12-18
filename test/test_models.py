@@ -22,8 +22,8 @@ def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
 
 
 def mice(**kwargs):
-    """Build a ``Mice``."""
-    return models.Mice(mip(**kwargs))
+    """Build a ``MICE``."""
+    return models.MICE(mip(**kwargs))
 
 
 def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,

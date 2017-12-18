@@ -15,7 +15,7 @@ import numpy as np
 from . import Direction, cache, config, distribution, utils, validate
 from .distance import mechanism_repertoire_distance as repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Bipartition, Concept, KPartition, Mice,
+from .models import (Bipartition, Concept, KPartition, MICE,
                      MechanismIrreducibilityAnalysis, NullCut, Part,
                      Tripartition, _null_mia, cmp)
 from .network import irreducible_purviews
@@ -84,7 +84,7 @@ class Subsystem:
         self.cm = self.cut.apply_cut(network.cm)
 
         # Reusable cache for maximally-irreducible causes and effects
-        self._mice_cache = cache.MiceCache(self, mice_cache)
+        self._mice_cache = cache.MICECache(self, mice_cache)
 
         # Cause & effect repertoire caches
         # TODO: if repertoire caches are never reused, there's no reason to
@@ -669,7 +669,7 @@ class Subsystem:
                 nodes.
 
         Returns:
-            Mice: The maximally-irreducible cause or effect in one temporal
+            MICE: The maximally-irreducible cause or effect in one temporal
             direction.
         """
         purviews = self.potential_purviews(direction, mechanism, purviews)
@@ -680,7 +680,7 @@ class Subsystem:
             max_mip = max(self.find_mip(direction, mechanism, purview)
                           for purview in purviews)
 
-        return Mice(max_mip)
+        return MICE(max_mip)
 
     def mic(self, mechanism, purviews=False):
         """Return the mechanism's maximally-irreducible cause (|MIC|).
@@ -720,9 +720,9 @@ class Subsystem:
         effect_repertoire = self.effect_repertoire((), ())
 
         # Null cause.
-        cause = Mice(_null_mia(Direction.CAUSE, (), (), cause_repertoire))
+        cause = MICE(_null_mia(Direction.CAUSE, (), (), cause_repertoire))
         # Null effect.
-        effect = Mice(_null_mia(Direction.EFFECT, (), (), effect_repertoire))
+        effect = MICE(_null_mia(Direction.EFFECT, (), (), effect_repertoire))
 
         # All together now...
         return Concept(mechanism=(),

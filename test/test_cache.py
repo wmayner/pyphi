@@ -127,22 +127,22 @@ def test_redis_cache_info(flush_redis):
 
 @redis_cache
 def test_use_redis_mice_cache(s):
-    c = cache.MiceCache(s)
-    assert isinstance(c, cache.RedisMiceCache)
+    c = cache.MICECache(s)
+    assert isinstance(c, cache.RedisMICECache)
 
 
 @local_cache
 def test_use_dict_mice_cache(s):
-    c = cache.MiceCache(s)
-    assert isinstance(c, cache.DictMiceCache)
+    c = cache.MICECache(s)
+    assert isinstance(c, cache.DictMICECache)
 
 
 def test_mice_cache_keys(s):
-    c = cache.DictMiceCache(s)
+    c = cache.DictMICECache(s)
     answer = (None, Direction.CAUSE, (0,), (0, 1))
     assert c.key(Direction.CAUSE, (0,), purviews=(0, 1)) == answer
 
-    c = cache.RedisMiceCache(s)
+    c = cache.RedisMICECache(s)
     answer = 'subsys:{}:None:CAUSE:(0,):(0, 1)'.format(hash(s))
     assert c.key(Direction.CAUSE, (0,), purviews=(0, 1)) == answer
 
@@ -215,7 +215,7 @@ def test_cut_relevant_connections_mice_is_not_reusable(redis_cache,
 
 @all_caches
 def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, flush_redis):
-    """Cached Mice are saved from the parent cache if both
+    """Cached MICE are saved from the parent cache if both
     the mechanism and the relevant connections are not cut."""
     s = examples.basic_subsystem()
     mechanism = (1,)
@@ -238,15 +238,15 @@ def test_inherited_cache_must_come_from_uncut_subsystem(redis_cache,
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=models.Cut((0, 2), (1,)))
     with pytest.raises(ValueError):
-        cache.MiceCache(s, cut_s._mice_cache)
+        cache.MICECache(s, cut_s._mice_cache)
 
 
 @local_cache
 @config.override(MAXIMUM_CACHE_MEMORY_PERCENTAGE=0)
 def test_mice_cache_respects_cache_memory_limits():
     s = examples.basic_subsystem()
-    c = cache.MiceCache(s)
-    mice = mock.Mock(phi=1)  # dummy Mice
+    c = cache.MICECache(s)
+    mice = mock.Mock(phi=1)  # dummy MICE
     c.set(c.key(Direction.CAUSE, ()), mice)
     assert c.size() == 0
 

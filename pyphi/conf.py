@@ -444,7 +444,7 @@ class PyphiConfig(Config):
     effect if ``CACHING_BACKEND`` is ``'db'``).""")
 
     REDIS_CACHE = Option(False, doc="""
-    Specifies whether to use Redis to cache |Mice|.""")
+    Specifies whether to use Redis to cache |MICE|.""")
 
     REDIS_CONFIG = Option({
         'host': 'localhost',

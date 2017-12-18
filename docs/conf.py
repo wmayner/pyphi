@@ -253,7 +253,7 @@ r"""
 .. |Bipartition| replace:: :class:`~pyphi.models.cuts.Bipartition`
 
 .. |MechanismIrreducibilityAnalysis| replace:: :class:`~pyphi.models.concept.MechanismIrreducibilityAnalysis`
-.. |Mice| replace:: :class:`~pyphi.models.concept.Mice`
+.. |MICE| replace:: :class:`~pyphi.models.concept.MICE`
 
 .. |Node| replace:: :class:`~pyphi.node.Node`
 .. |Nodes| replace:: :class:`~pyphi.node.Node`
@@ -275,7 +275,7 @@ r"""
 
 .. |ConditionallyDependentError| replace:: :class:`~pyphi.exceptions.ConditionallyDependentError`
 
-.. |MiceCache| replace:: :class:`~pyphi.cache.MiceCache`
+.. |MICECache| replace:: :class:`~pyphi.cache.MICECache`
 """,
 # Methods
 r"""

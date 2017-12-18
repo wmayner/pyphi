@@ -7,7 +7,7 @@ import pytest
 
 import example_networks
 from pyphi import Direction, Subsystem
-from pyphi.models import Cut, Mice, _null_mia
+from pyphi.models import Cut, MICE, _null_mia
 from pyphi.utils import eq
 
 # Expected results {{{
@@ -72,7 +72,7 @@ expected_mips = {
 expected_mice = {
     cut: {
         direction: [
-            Mice(mip) for mechanism, mip in
+            MICE(mip) for mechanism, mip in
             expected_mips[cut][direction].items()
         ] for direction in directions
     } for cut in cuts
@@ -102,7 +102,7 @@ def test_find_mice(cut, direction, expected):
 
 
 def test_find_mice_empty(s):
-    expected = [Mice(_null_mia(direction, (), ())) for direction in
+    expected = [MICE(_null_mia(direction, (), ())) for direction in
                 directions]
     assert all(s.find_mice(mice.direction, mice.mechanism) == mice
                for mice in expected)

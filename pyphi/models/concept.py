@@ -144,7 +144,7 @@ def _null_mia(direction, mechanism, purview, repertoire=None):
 
 # =============================================================================
 
-class Mice(cmp.Orderable):
+class MICE(cmp.Orderable):
     """A maximally irreducible cause or effect.
 
     These can be compared with the built-in Python comparison operators (``<``,
@@ -211,7 +211,7 @@ class Mice(cmp.Orderable):
         return fmt.make_repr(self, ['mia'])
 
     def __str__(self):
-        return "Mice\n" + fmt.indent(fmt.fmt_mia(self.mia))
+        return "MICE\n" + fmt.indent(fmt.fmt_mia(self.mia))
 
     unorderable_unless_eq = \
         MechanismIrreducibilityAnalysis.unorderable_unless_eq
@@ -223,7 +223,7 @@ class Mice(cmp.Orderable):
         return self.mia == other.mia
 
     def __hash__(self):
-        return hash(('Mice', self._mia))
+        return hash(('MICE', self._mia))
 
     def to_json(self):
         return {'mia': self.mia}
@@ -237,7 +237,7 @@ class Mice(cmp.Orderable):
 
         Returns an |N x N| matrix, where `N` is the number of nodes in this
         corresponding subsystem, that identifies connections that “matter” to
-        this |Mice|:
+        this |MICE|:
 
         ``direction == Direction.CAUSE``:
             ``relevant_connections[i,j]`` is ``1`` if node ``i`` is in the
@@ -250,7 +250,7 @@ class Mice(cmp.Orderable):
             otherwise).
 
         Args:
-            subsystem (Subsystem): The |Subsystem| of this |Mice|.
+            subsystem (Subsystem): The |Subsystem| of this |MICE|.
 
         Returns:
             np.ndarray: A |N x N| matrix of connections, where |N| is the size
@@ -266,9 +266,9 @@ class Mice(cmp.Orderable):
     # TODO: pass in `cut` instead? We can infer
     # subsystem indices from the cut itself, validate, and check.
     def damaged_by_cut(self, subsystem):
-        """Return ``True`` if this |Mice| is affected by the subsystem's cut.
+        """Return ``True`` if this |MICE| is affected by the subsystem's cut.
 
-        The cut affects the |Mice| if it either splits the |Mice|'s mechanism
+        The cut affects the |MICE| if it either splits the |MICE|'s mechanism
         or splits the connections between the purview and mechanism.
         """
         return (subsystem.cut.splits_mechanism(self.mechanism) or
@@ -292,9 +292,9 @@ class Concept(cmp.Orderable):
 
     Attributes:
         mechanism (tuple[int]): The mechanism that the concept consists of.
-        cause (Mice): The |Mice| representing the maximally-irreducible cause
+        cause (MICE): The |MICE| representing the maximally-irreducible cause
             of this concept.
-        effect (Mice): The |Mice| representing the maximally-irreducible effect
+        effect (MICE): The |MICE| representing the maximally-irreducible effect
             of this concept.
         subsystem (Subsystem): This concept's parent subsystem.
         time (float): The number of seconds it took to calculate.
