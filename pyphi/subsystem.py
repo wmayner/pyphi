@@ -555,14 +555,16 @@ class Subsystem:
             # Prototype of MIP with already known data
             # TODO: Use properties here to infer mechanism and purview from
             # partition yet access them with `.mechanism` and `.purview`.
-            return MechanismIrreducibilityAnalysis(phi=phi,
-                       direction=direction,
-                       mechanism=mechanism,
-                       purview=purview,
-                       partition=partition,
-                       unpartitioned_repertoire=unpartitioned_repertoire,
-                       partitioned_repertoire=partitioned_repertoire,
-                       subsystem=self)
+            return MechanismIrreducibilityAnalysis(
+                phi=phi,
+                direction=direction,
+                mechanism=mechanism,
+                purview=purview,
+                partition=partition,
+                unpartitioned_repertoire=unpartitioned_repertoire,
+                partitioned_repertoire=partitioned_repertoire,
+                subsystem=self
+            )
 
         # State is unreachable - return 0 instead of giving nonsense results
         if (direction == Direction.CAUSE and

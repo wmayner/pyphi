@@ -16,7 +16,8 @@ _mip_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
 
 
 class MechanismIrreducibilityAnalysis(cmp.Orderable):
-    """A minimum information partition for |small_phi| calculation.
+    """An analysis of the irreducibility (|small_phi|) of a mechanism over a
+    purview, for a given partition in one temporal direction.
 
     These can be compared with the built-in Python comparison operators (``<``,
     ``>``, etc.). First, |small_phi| values are compared. Then, if these are
