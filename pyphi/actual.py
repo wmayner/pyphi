@@ -552,7 +552,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
         return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)
-    engine = FindAcSystemIrreducibilityAnalysis(
+    engine = ComputeACSystemIrreducibility(
         cuts, transition, direction, unpartitioned_account)
     result = engine.run_sequential()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
@@ -560,7 +560,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
     return result
 
 
-class FindAcSystemIrreducibilityAnalysis(compute.parallel.MapReduce):
+class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
     """Computation engine for AC SIAs."""
     # pylint: disable=unused-argument,arguments-differ
 

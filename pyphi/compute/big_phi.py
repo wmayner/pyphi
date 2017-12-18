@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 
 
 def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
-    """Find the |SystemIrreducibilityAnalysis| for a given cut.
+    """Compute the system irreducibility for a given cut.
 
     Args:
         uncut_subsystem (Subsystem): The subsystem without the cut applied.
@@ -64,10 +64,8 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
         cut_subsystem=cut_subsystem)
 
 
-class FindMechanismIrreducibilityAnalysis(MapReduce):
-    """Computation engine for finding the minimal
-    |SystemIrreducibilityAnalysis|.
-    """
+class ComputeSystemIrreducibility(MapReduce):
+    """Computation engine for system-level irreducibility."""
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
@@ -197,7 +195,7 @@ def _sia(cache_key, subsystem):
         cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
     else:
         cuts = sia_bipartitions(subsystem.cut_indices)
-    engine = FindMechanismIrreducibilityAnalysis(
+    engine = ComputeSystemIrreducibility(
         cuts, subsystem, unpartitioned_ces)
     min_mip = engine.run(config.PARALLEL_CUT_EVALUATION)
     result = time_annotated(min_mip, small_phi_time)
@@ -286,7 +284,7 @@ def possible_complexes(network, state):
                                  state)
 
 class FindAllComplexes(MapReduce):
-    """Computation engine for computing all complexes"""
+    """Computation engine for finding all complexes."""
     # pylint: disable=unused-argument,arguments-differ
     description = 'Finding complexes'
 
@@ -313,7 +311,7 @@ def all_complexes(network, state):
 
 
 class FindIrreducibleComplexes(FindAllComplexes):
-    """Computation engine for computing irreducible complexes of a network."""
+    """Computation engine for finding irreducible complexes of a network."""
 
     def process_result(self, new_sia, sias):
         if new_sia.phi > 0:
@@ -429,7 +427,7 @@ def directional_sia(subsystem, direction, unpartitioned_ces=None):
 
     # Run the default MIP engine
     # TODO: verify that short-cutting works correctly?
-    engine = FindMechanismIrreducibilityAnalysis(
+    engine = ComputeSystemIrreducibility(
         cuts, c_system, unpartitioned_ces)
     return engine.run(config.PARALLEL_CUT_EVALUATION)
 
