@@ -495,13 +495,13 @@ def fmt_ac_sia(ac_sia):
         'before state: {ac_sia.before_state}\n'
         'after state: {ac_sia.after_state}\n'
         'cut:\n{ac_sia.cut}\n'
-        '{unpartitioned_account}\n'
+        '{account}\n'
         '{partitioned_account}'.format(
             ALPHA=ALPHA,
             alpha=round(ac_sia.alpha, 4),
             ac_sia=ac_sia,
-            unpartitioned_account=fmt_account(
-                ac_sia.unpartitioned_account, 'Unpartitioned Account'),
+            account=fmt_account(
+                ac_sia.account, 'Unpartitioned Account'),
             partitioned_account=fmt_account(
                 ac_sia.partitioned_account, 'Partitioned Account')))
 

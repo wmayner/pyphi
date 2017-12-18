@@ -237,7 +237,7 @@ class DirectedAccount(Account):
     pass
 
 
-_ac_sia_attributes = ['alpha', 'direction', 'unpartitioned_account',
+_ac_sia_attributes = ['alpha', 'direction', 'account',
                         'partitioned_account', 'transition', 'cut']
 
 
@@ -253,7 +253,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         alpha (float): The |big_alpha| value for the transition when taken
             against this analysis, *i.e.* the difference between the unpartitioned
             account and this analysis's partitioned account.
-        unpartitioned_account (Account): The account of the whole transition.
+        account (Account): The account of the whole transition.
         partitioned_account (Account): The account of the partitioned
             transition.
         transition (Transition): The transition this analysis was calculated
@@ -261,11 +261,11 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         cut (ActualCut): The minimal partition.
     """
 
-    def __init__(self, alpha=None, direction=None, unpartitioned_account=None,
+    def __init__(self, alpha=None, direction=None, account=None,
                  partitioned_account=None, transition=None, cut=None):
         self.alpha = alpha
         self.direction = direction
-        self.unpartitioned_account = unpartitioned_account
+        self.account = account
         self.partitioned_account = partitioned_account
         self.transition = transition
         self.cut = cut
@@ -302,7 +302,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         return greater_than_zero(self.alpha)
 
     def __hash__(self):
-        return hash((self.alpha, self.unpartitioned_account,
+        return hash((self.alpha, self.account,
                      self.partitioned_account, self.transition,
                      self.cut))
 
@@ -317,5 +317,5 @@ def _null_ac_sia(transition, direction, alpha=0.0):
     return AcSystemIrreducibilityAnalysis(transition=transition,
                     direction=direction,
                     alpha=alpha,
-                    unpartitioned_account=(),
+                    account=(),
                     partitioned_account=())

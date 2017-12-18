@@ -491,7 +491,7 @@ def _evaluate_cut(transition, cut, unpartitioned_account,
     return AcSystemIrreducibilityAnalysis(
         alpha=round(alpha, config.PRECISION),
         direction=direction,
-        unpartitioned_account=unpartitioned_account,
+        account=unpartitioned_account,
         partitioned_account=partitioned_account,
         transition=transition,
         cut=cut)
@@ -549,7 +549,8 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
     log.debug("Found unpartitioned account.")
 
     if not unpartitioned_account:
-        log.info('Empty account; returning null AC MIP immediately.')
+        log.info('Empty unpartitioned account; returning null AC MIP '
+                 'immediately.')
         return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)
@@ -567,12 +568,12 @@ class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
 
     description = 'Evaluating AC cuts'
 
-    def empty_result(self, transition, direction, unpartitioned_account):
+    def empty_result(self, transition, direction, account):
         return _null_ac_sia(transition, direction, alpha=float('inf'))
 
     @staticmethod
-    def compute(cut, transition, direction, unpartitioned_account):
-        return _evaluate_cut(transition, cut, unpartitioned_account, direction)
+    def compute(cut, transition, direction, account):
+        return _evaluate_cut(transition, cut, account, direction)
 
     def process_result(self, new_mip, min_mip):
         # Check a new result against the running minimum

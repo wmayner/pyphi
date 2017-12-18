@@ -251,7 +251,7 @@ def ac_sia(**kwargs):
     defaults = {
         'alpha': 0.0,
         'direction': Direction.BIDIRECTIONAL,
-        'unpartitioned_account': account(),
+        'account': account(),
         'partitioned_account': account(),
         'transition': None,
         'cut': None
@@ -506,7 +506,7 @@ def test_sia(transition):
     assert sia.alpha == 0.415037
     assert sia.cut == ac_cut(Direction.CAUSE,
                                 Part((), (1,)), Part((0,), (2,)))
-    assert len(sia.unpartitioned_account) == 3
+    assert len(sia.account) == 3
     assert len(sia.partitioned_account) == 2
 
 
@@ -514,7 +514,7 @@ def test_null_ac_sia(transition):
     sia = actual._null_ac_sia(transition, Direction.CAUSE)
     assert sia.transition == transition
     assert sia.direction == Direction.CAUSE
-    assert sia.unpartitioned_account == ()
+    assert sia.account == ()
     assert sia.partitioned_account == ()
     assert sia.alpha == 0.0
 
