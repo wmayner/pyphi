@@ -28,7 +28,7 @@ Print the ``config`` object to see the current settings:
 
     >>> print(pyphi.config)  # doctest: +SKIP
     { 'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
-      'CACHE_BIGMIPS': False,
+      'CACHE_SIAS': False,
       'CACHE_POTENTIAL_PURVIEWS': True,
       'CACHING_BACKEND': 'fs',
       ...
@@ -91,7 +91,7 @@ Memoization and caching
 
 PyPhi provides a number of ways to cache intermediate results.
 
-- :attr:`~pyphi.conf.PyphiConfig.CACHE_BIGMIPS`
+- :attr:`~pyphi.conf.PyphiConfig.CACHE_SIAS`
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_POTENTIAL_PURVIEWS`
 - :attr:`~pyphi.conf.PyphiConfig.CACHING_BACKEND`
 - :attr:`~pyphi.conf.PyphiConfig.FS_CACHE_VERBOSITY`
@@ -406,7 +406,7 @@ class PyphiConfig(Config):
     of them; to avoid thrashing, this setting limits the percentage of a
     system's RAM that the caches can collectively use.""")
 
-    CACHE_BIGMIPS = Option(False, doc="""
+    CACHE_SIAS = Option(False, doc="""
     PyPhi is equipped with a transparent caching system for |SystemIrreducibilityAnalysis| objects which
     stores them as they are computed to avoid having to recompute them later. This
     makes it easy to play around interactively with the program, or to accumulate

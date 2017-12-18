@@ -105,7 +105,7 @@ class BenchmarkMainComplex():
         else:
             raise ValueError(cache)
 
-        config.CACHE_BIGMIPS = False
+        config.CACHE_SIAS = False
 
     def teardown(self, mode, network, cache):
         # Revert config

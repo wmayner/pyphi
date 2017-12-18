@@ -294,7 +294,7 @@ def test_ces_distance_switches_to_small_phi_difference(s):
         assert 1.083333 == compute.ces_distance(*ce_structures)
 
 
-@config.override(CACHE_BIGMIPS=True)
+@config.override(CACHE_SIAS=True)
 def test_sia_cache_key_includes_config_dependencies(s, flushcache,
                                                         restore_fs_cache):
     flushcache()

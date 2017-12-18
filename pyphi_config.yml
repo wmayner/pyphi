@@ -51,7 +51,7 @@ MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 # Memoization and caching
 # ~~~~~~~~~~~~~~~~~~~~~~~
 # Controls whether SIAs are cached and retreived.
-CACHE_BIGMIPS: false
+CACHE_SIAS: false
 # Controls whether the potential purviews of the mechanisms of a network are
 # cached. Speeds up calculations when the same network is used repeatedly, but
 # takes up additional memory, and makes network initialization slow.
