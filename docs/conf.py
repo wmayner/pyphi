@@ -253,7 +253,7 @@ r"""
 .. |Parts| replace:: :class:`~pyphi.models.cuts.Part`
 .. |Bipartition| replace:: :class:`~pyphi.models.cuts.Bipartition`
 
-.. |MechanismIrreducibilityAnalysis| replace:: :class:`~pyphi.models.concept.MechanismIrreducibilityAnalysis`
+.. |RepertoireIrreducibilityAnalysis| replace:: :class:`~pyphi.models.concept.RepertoireIrreducibilityAnalysis`
 .. |MaximallyIrreducibleCauseOrEffect| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCauseOrEffect`
 .. |MICE| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCauseOrEffect`
 .. |MIC| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCause`
@@ -270,7 +270,7 @@ r"""
 
 .. |Transition| replace:: :class:`~pyphi.actual.Transition`
 .. |AcSystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.actual_causation.AcSystemIrreducibilityAnalysis`
-.. |AcMechanismIrreducibilityAnalysis| replace:: :class:`~pyphi.models.actual_causation.AcMechanismIrreducibilityAnalysis`
+.. |AcRepertoireIrreducibilityAnalysis| replace:: :class:`~pyphi.models.actual_causation.AcRepertoireIrreducibilityAnalysis`
 .. |DirectedAccount| replace:: :class:`~pyphi.models.actual_causation.DirectedAccount`
 .. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
 .. |Event| replace:: :class:`~pyphi.models.actual_causation.Event`
