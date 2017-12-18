@@ -9,7 +9,7 @@ from .. import utils
 
 # pylint: disable=too-many-arguments
 
-_sia_attributes = ['phi', 'unpartitioned_ces',
+_sia_attributes = ['phi', 'ces',
                       'partitioned_ces', 'subsystem',
                       'cut_subsystem']
 
@@ -30,7 +30,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
             this analysis, *i.e.* the difference between the unpartitioned
             cause-effect structure and the partitioned cause-effect structure for
             this analysis.
-        unpartitioned_ces (CauseEffectStructure): The cause-effect structure of
+        ces (CauseEffectStructure): The cause-effect structure of
             the whole subsystem.
         partitioned_ces (CauseEffectStructure): The cause-effect structure when
             the subsystem is cut.
@@ -41,11 +41,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
             unpartitioned cause-effect structure.
     """
 
-    def __init__(self, phi=None, unpartitioned_ces=None,
+    def __init__(self, phi=None, ces=None,
                  partitioned_ces=None, subsystem=None,
                  cut_subsystem=None, time=None, small_phi_time=None):
         self.phi = phi
-        self.unpartitioned_ces = unpartitioned_ces
+        self.ces = ces
         self.partitioned_ces = partitioned_ces
         self.subsystem = subsystem
         self.cut_subsystem = cut_subsystem
@@ -91,7 +91,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
     def __hash__(self):
         return hash((self.phi,
-                     self.unpartitioned_ces,
+                     self.ces,
                      self.partitioned_ces,
                      self.subsystem,
                      self.cut_subsystem))
@@ -113,5 +113,5 @@ def _null_sia(subsystem, phi=0.0):
     return SystemIrreducibilityAnalysis(subsystem=subsystem,
                                         cut_subsystem=subsystem,
                                         phi=phi,
-                                        unpartitioned_ces=(),
+                                        ces=(),
                                         partitioned_ces=())

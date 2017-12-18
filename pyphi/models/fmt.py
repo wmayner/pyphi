@@ -399,10 +399,10 @@ def fmt_sia(sia, ces=True):
     """Format a |SystemIrreducibilityAnalysis|."""
     if ces:
         body = (
-            '{unpartitioned_ces}'
+            '{ces}'
             '{partitioned_ces}'.format(
-                unpartitioned_ces=fmt_ces(
-                    sia.unpartitioned_ces,
+                ces=fmt_ces(
+                    sia.ces,
                     'Cause-effect structure'),
                 partitioned_ces=fmt_ces(
                     sia.partitioned_ces,

@@ -90,7 +90,7 @@ repertoires, etc.
 
 For instance, we can see that this network has 4 concepts:
 
-    >>> len(mip.unpartitioned_ces)
+    >>> len(mip.ces)
     4
 
 See the documentation for |SystemIrreducibilityAnalysis| and |Concept| for more information on these

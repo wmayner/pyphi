@@ -15,7 +15,7 @@ from ..models import (Concept, Cut, KCut, SystemIrreducibilityAnalysis,
                       _null_sia, cmp, fmt)
 from ..partition import directed_bipartition, directed_bipartition_of_one
 from ..subsystem import Subsystem, mip_partitions
-from .concept import ces
+from .concept import ces as compute_ces
 from .distance import ces_distance
 from .parallel import MapReduce
 
@@ -23,13 +23,13 @@ from .parallel import MapReduce
 log = logging.getLogger(__name__)
 
 
-def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
+def evaluate_cut(uncut_subsystem, cut, ces):
     """Compute the system irreducibility for a given cut.
 
     Args:
         uncut_subsystem (Subsystem): The subsystem without the cut applied.
         cut (Cut): The cut to evaluate.
-        unpartitioned_ces (CauseEffectStructure): The cause-effect structure of
+        ces (CauseEffectStructure): The cause-effect structure of
             the uncut subsystem.
 
     Returns:
@@ -41,24 +41,24 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanisms = unpartitioned_ces.mechanisms
+        mechanisms = ces.mechanisms
     else:
         # Mechanisms can only produce concepts if they were concepts in the
         # original system, or the cut divides the mechanism.
         mechanisms = set(
-            unpartitioned_ces.mechanisms +
+            ces.mechanisms +
             list(cut_subsystem.cut_mechanisms))
 
-    partitioned_ces = ces(cut_subsystem, mechanisms)
+    partitioned_ces = compute_ces(cut_subsystem, mechanisms)
 
     log.debug('Finished evaluating %s.', cut)
 
-    phi = ces_distance(unpartitioned_ces,
+    phi = ces_distance(ces,
                        partitioned_ces)
 
     return SystemIrreducibilityAnalysis(
         phi=phi,
-        unpartitioned_ces=unpartitioned_ces,
+        ces=ces,
         partitioned_ces=partitioned_ces,
         subsystem=uncut_subsystem,
         cut_subsystem=cut_subsystem)
@@ -70,15 +70,15 @@ class ComputeSystemIrreducibility(MapReduce):
 
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
 
-    def empty_result(self, subsystem, unpartitioned_ces):
+    def empty_result(self, subsystem, ces):
         """Begin with a mip with infinite |big_phi|; all actual mips will have
         less."""
         return _null_sia(subsystem, phi=float('inf'))
 
     @staticmethod
-    def compute(cut, subsystem, unpartitioned_ces):
+    def compute(cut, subsystem, ces):
         """Evaluate a cut."""
-        return evaluate_cut(subsystem, cut, unpartitioned_ces)
+        return evaluate_cut(subsystem, cut, ces)
 
     def process_result(self, new_mip, min_mip):
         """Check if the new mip has smaller phi than the standing result."""
@@ -112,11 +112,11 @@ def sia_bipartitions(nodes):
             for bipartition in bipartitions]
 
 
-def _unpartitioned_ces(subsystem):
+def _compute_ces(subsystem):
     """Parallelize the unpartitioned |CauseEffectStructure| if parallelizing
     cuts, since we have free processors because we're not computing any cuts
     yet."""
-    return ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
+    return compute_ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
 
 
 # pylint: disable=unused-argument
@@ -181,10 +181,10 @@ def _sia(cache_key, subsystem):
 
     log.debug('Finding unpartitioned CauseEffectStructure...')
     small_phi_start = time()
-    unpartitioned_ces = _unpartitioned_ces(subsystem)
+    ces = _compute_ces(subsystem)
     small_phi_time = round(time() - small_phi_start, config.PRECISION)
 
-    if not unpartitioned_ces:
+    if not ces:
         log.info('Empty unpartitioned CauseEffectStructure; returning null '
                  'SIA immediately.')
         # Short-circuit if there are no concepts in the unpartitioned CES.
@@ -196,7 +196,7 @@ def _sia(cache_key, subsystem):
     else:
         cuts = sia_bipartitions(subsystem.cut_indices)
     engine = ComputeSystemIrreducibility(
-        cuts, subsystem, unpartitioned_ces)
+        cuts, subsystem, ces)
     min_mip = engine.run(config.PARALLEL_CUT_EVALUATION)
     result = time_annotated(min_mip, small_phi_time)
 
@@ -416,11 +416,11 @@ def concept_cuts(direction, node_indices):
         yield KCut(direction, partition)
 
 
-def directional_sia(subsystem, direction, unpartitioned_ces=None):
+def directional_sia(subsystem, direction, ces=None):
     """Calculate a concept-style SystemIrreducibilityAnalysisCause or
     SystemIrreducibilityAnalysisEffect."""
-    if unpartitioned_ces is None:
-        unpartitioned_ces = _unpartitioned_ces(subsystem)
+    if ces is None:
+        ces = _compute_ces(subsystem)
 
     c_system = ConceptStyleSystem(subsystem, direction)
     cuts = concept_cuts(direction, c_system.cut_indices)
@@ -428,7 +428,7 @@ def directional_sia(subsystem, direction, unpartitioned_ces=None):
     # Run the default SIA engine
     # TODO: verify that short-cutting works correctly?
     engine = ComputeSystemIrreducibility(
-        cuts, c_system, unpartitioned_ces)
+        cuts, c_system, ces)
     return engine.run(config.PARALLEL_CUT_EVALUATION)
 
 
@@ -468,11 +468,11 @@ class SystemIrreducibilityAnalysisConceptStyle(cmp.Orderable):
 # TODO: cache
 def sia_concept_style(subsystem):
     """Compute a concept-style SystemIrreducibilityAnalysis"""
-    unpartitioned_ces = _unpartitioned_ces(subsystem)
+    ces = _compute_ces(subsystem)
 
     mip_cause = directional_sia(subsystem, Direction.CAUSE,
-                                unpartitioned_ces)
+                                ces)
     mip_effect = directional_sia(subsystem, Direction.EFFECT,
-                                 unpartitioned_ces)
+                                 ces)
 
     return SystemIrreducibilityAnalysisConceptStyle(mip_cause, mip_effect)

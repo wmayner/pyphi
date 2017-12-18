@@ -35,7 +35,7 @@ has integrated information :math:`\Phi = 1.35708`. Now that we have identified
 the major complex of the system, we can explore its conceptual structure and
 the effect of the MIP.
 
-    >>> ces = major_complex.unpartitioned_ces
+    >>> ces = major_complex.ces
 
 There two equivalent cuts for this system; for concreteness we sever all
 connections from elements |A| and |B| to |C|.
@@ -181,9 +181,9 @@ we see that this subsystem has a |big_phi| value of 0.15533, and the MIP cuts
 the connections from |AE| to |B|. Investigating the concepts in both the
 partitioned and unpartitioned cause-effect structures,
 
-    >>> mip.unpartitioned_ces.labeled_mechanisms
+    >>> mip.ces.labeled_mechanisms
     [['A'], ['B'], ['A', 'B']]
-    >>> mip.unpartitioned_ces.phis
+    >>> mip.ces.phis
     [0.25, 0.166667, 0.178572]
     >>> print(sum(_))
     0.5952390000000001

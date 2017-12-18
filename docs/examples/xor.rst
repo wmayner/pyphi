@@ -32,7 +32,7 @@ and it consists of the entire network:
 Knowing what exists at the system level, we can now investigate the existence
 of concepts within the complex.
 
-    >>> ces = major_complex.unpartitioned_ces
+    >>> ces = major_complex.ces
     >>> len(ces)
     3
     >>> ces.labeled_mechanisms

@@ -16,7 +16,7 @@ ABCD = (0, 1, 2, 3)
 
 def test_expand_cause_repertoire(micro_s_all_off):
     mip = sia(micro_s_all_off)
-    A = mip.unpartitioned_ces[0]
+    A = mip.ces[0]
     cause = A.cause.mip.unpartitioned_repertoire
 
     assert np.all(abs(A.expand_cause_repertoire(CD) - cause) < EPSILON)
@@ -32,7 +32,7 @@ def test_expand_cause_repertoire(micro_s_all_off):
 
 def test_expand_effect_repertoire(micro_s_all_off):
     mip = sia(micro_s_all_off)
-    A = mip.unpartitioned_ces[0]
+    A = mip.ces[0]
     effect = A.effect.mip.unpartitioned_repertoire
 
     assert np.all(abs(A.expand_effect_repertoire(CD) - effect) < EPSILON)

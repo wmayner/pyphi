@@ -191,9 +191,9 @@ macro_answer = {
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-def check_unpartitioned_small_phis(small_phis, unpartitioned_ces):
-    assert len(small_phis) == len(unpartitioned_ces)
-    for c in unpartitioned_ces:
+def check_unpartitioned_small_phis(small_phis, ces):
+    assert len(small_phis) == len(ces)
+    for c in ces:
         assert c.phi == small_phis[c.mechanism]
 
 
@@ -212,7 +212,7 @@ def check_mip(mip, answer):
     assert mip.phi == answer['phi']
     # Check small phis of unpartitioned CES.
     check_unpartitioned_small_phis(answer['unpartitioned_small_phis'],
-                                   mip.unpartitioned_ces)
+                                   mip.ces)
     # Check sum of small phis of partitioned CES if answer is
     # available.
     check_partitioned_small_phis(answer, mip.partitioned_ces)
@@ -283,7 +283,7 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
 
 def test_ces_distance_switches_to_small_phi_difference(s):
     mip = compute.sia(s)
-    ce_structures = (mip.unpartitioned_ces, mip.partitioned_ces)
+    ce_structures = (mip.ces, mip.partitioned_ces)
 
     with config.override(
             USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=False):
@@ -317,7 +317,7 @@ def test_sia_empty_subsystem(s_empty, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.sia(s_empty) ==
             models.SystemIrreducibilityAnalysis(phi=0.0,
-                          unpartitioned_ces=(),
+                          ces=(),
                           partitioned_ces=(),
                           subsystem=s_empty,
                           cut_subsystem=s_empty))
@@ -329,7 +329,7 @@ def test_sia_disconnected_network(reducible, flushcache, restore_fs_cache):
             models.SystemIrreducibilityAnalysis(subsystem=reducible,
                                                 cut_subsystem=reducible,
                                                 phi=0.0,
-                                                unpartitioned_ces=[],
+                                                ces=[],
                                                 partitioned_ces=[]))
 
 
@@ -339,7 +339,7 @@ def test_sia_wrappers(reducible, flushcache, restore_fs_cache):
             models.SystemIrreducibilityAnalysis(subsystem=reducible,
                                                 cut_subsystem=reducible,
                                                 phi=0.0,
-                                                unpartitioned_ces=[],
+                                                ces=[],
                                                 partitioned_ces=[]))
     assert compute.big_phi(reducible) == 0.0
 
@@ -367,9 +367,9 @@ def test_sia_single_micro_nodes_without_selfloops_dont_have_phi(
 
 @pytest.fixture
 def standard_ComputeSystemIrreducibility(s):
-    unpartitioned_ces = compute.ces(s)
+    ces = compute.ces(s)
     cuts = sia_bipartitions(s.node_indices)
-    return ComputeSystemIrreducibility(cuts, s, unpartitioned_ces)
+    return ComputeSystemIrreducibility(cuts, s, ces)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
@@ -390,9 +390,9 @@ def test_find_mip_parallel_standard_example(standard_ComputeSystemIrreducibility
 
 @pytest.fixture
 def s_noised_ComputeSystemIrreducibility(s_noised):
-    unpartitioned_ces = compute.ces(s_noised)
+    ces = compute.ces(s_noised)
     cuts = sia_bipartitions(s_noised.node_indices)
-    return ComputeSystemIrreducibility(cuts, s_noised, unpartitioned_ces)
+    return ComputeSystemIrreducibility(cuts, s_noised, ces)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
@@ -413,9 +413,9 @@ def test_find_mip_parallel_noised_example(s_noised_ComputeSystemIrreducibility, 
 
 @pytest.fixture
 def micro_s_ComputeSystemIrreducibility(micro_s):
-    unpartitioned_ces = compute.ces(micro_s)
+    ces = compute.ces(micro_s)
     cuts = sia_bipartitions(micro_s.node_indices)
-    return ComputeSystemIrreducibility(cuts, micro_s, unpartitioned_ces)
+    return ComputeSystemIrreducibility(cuts, micro_s, ces)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True)
@@ -555,11 +555,11 @@ def test_rule152_complexes_no_caching(rule152):
         # Check that the concept's phi values are the same.
         result_concepts = [c for c in result['concepts']
                            if c['is_irreducible']]
-        z = list(zip([c.phi for c in major.unpartitioned_ces],
+        z = list(zip([c.phi for c in major.ces],
                      [c['phi'] for c in result_concepts]))
         diff = [i for i in range(len(z)) if not utils.eq(z[i][0], z[i][1])]
         assert all(list(utils.eq(c.phi, result_concepts[i]['phi']) for i, c
-                        in enumerate(major.unpartitioned_ces)))
+                        in enumerate(major.ces)))
         # Check that the minimal cut is the same.
         assert major.cut == result['cut']
 
