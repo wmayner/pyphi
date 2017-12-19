@@ -23,8 +23,9 @@ MEASURE: "EMD"
 PARTITION_TYPE: "BI"
 # Controls how to resolve phi-ties when computing MICE.
 PICK_SMALLEST_PURVIEW: false
-# Use the difference in sum of small phi for the constellation distance
-USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE: false
+# Use the difference in sum of small phi for the cause-effect structure
+# distance
+USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE: false
 # The type of system cuts to use
 SYSTEM_CUTS: "3.0_STYLE"
 # In some applications of this library, you may want to allow single
@@ -36,9 +37,9 @@ SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Controls whether concepts are evaluated in parallel.
 PARALLEL_CONCEPT_EVALUATION: false
-# Controls whether cuts are evaluated in parallel, which requires more
-# memory. If cuts are evaluated sequentially, only two BigMips need to be
-# in memory at a time.
+# Controls whether cuts are evaluated in parallel, which requires more memory.
+# If cuts are evaluated sequentially, only two SIAs need to be in memory at a
+# time.
 PARALLEL_CUT_EVALUATION: true
 # Controls whether complexes are evaluated in parallel.
 PARALLEL_COMPLEX_EVALUATION: false
@@ -51,8 +52,8 @@ MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
 
 # Memoization and caching
 # ~~~~~~~~~~~~~~~~~~~~~~~
-# Controls whether BigMips are cached and retreived.
-CACHE_BIGMIPS: false
+# Controls whether SIAs are cached and retreived.
+CACHE_SIAS: false
 # Controls whether the potential purviews of the mechanisms of a network are
 # cached. Speeds up calculations when the same network is used repeatedly, but
 # takes up additional memory, and makes network initialization slow.
@@ -74,7 +75,7 @@ MONGODB_CONFIG:
     port: 27017
     database_name: "pyphi"
     collection_name: "test"
-# Use a Redis server as a Mice cache
+# Use a Redis server as a MICE cache
 REDIS_CACHE: false
 # Redis connection configuration
 REDIS_CONFIG:

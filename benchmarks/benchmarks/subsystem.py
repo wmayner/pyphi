@@ -1,6 +1,7 @@
 import copy
 
 from pyphi import Subsystem, compute, config, examples
+from pyphi.direction import Direction
 
 
 """
@@ -82,7 +83,7 @@ class BenchmarkSubsystem():
 
     def _do_potential_purviews(self):
         for i in range(100):
-            self.subsys.potential_purviews('past', self.idxs)
+            self.subsys.potential_purviews(Direction.CAUSE, self.idxs)
 
     def time_potential_purviews_no_cache(self):
         # Network purview caches disabled
@@ -126,7 +127,7 @@ class BenchmarkEmdApproximation:
         config.PARALLEL_CUT_EVALUATION = False
 
     def time_L1_approximation(self, distance):
-        compute.main_complex(self.network, self.state)
+        compute.major_complex(self.network, self.state)
 
     def teardown(self, distance):
         config.__dict__.update(self.default_config)

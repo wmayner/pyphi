@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # validate.py
 
-'''
+"""
 Methods for validating arguments.
-'''
+"""
 
 import numpy as np
 
@@ -16,12 +16,12 @@ from .tpm import is_state_by_state
 
 
 def direction(direction, allow_bi=False):
-    '''Validate that the given direction is one of the allowed constants.
+    """Validate that the given direction is one of the allowed constants.
 
     If ``allow_bi`` is ``True`` then ``Direction.BIDIRECTIONAL`` is
     acceptable.
-    '''
-    valid = [Direction.PAST, Direction.FUTURE]
+    """
+    valid = [Direction.CAUSE, Direction.EFFECT]
     if allow_bi:
         valid.append(Direction.BIDIRECTIONAL)
 
@@ -32,14 +32,14 @@ def direction(direction, allow_bi=False):
 
 
 def tpm(tpm, check_independence=True):
-    '''Validate a TPM.
+    """Validate a TPM.
 
     The TPM can be in
 
         * 2-dimensional state-by-state form,
         * 2-dimensional state-by-node form, or
         * n-dimensional state-by-node form.
-    '''
+    """
     see_tpm_docs = ('See documentation for `pyphi.Network` for more '
                     'information on TPM formats.')
     # Cast to np.array.
@@ -70,7 +70,7 @@ def tpm(tpm, check_independence=True):
 
 
 def conditionally_independent(tpm):
-    '''Validate that the TPM is conditionally independent.'''
+    """Validate that the TPM is conditionally independent."""
     if not config.VALIDATE_CONDITIONAL_INDEPENDENCE:
         return True
     tpm = np.array(tpm)
@@ -88,7 +88,7 @@ def conditionally_independent(tpm):
 
 
 def connectivity_matrix(cm):
-    '''Validate the given connectivity matrix.'''
+    """Validate the given connectivity matrix."""
     # Special case for empty matrices.
     if cm.size == 0:
         return True
@@ -103,7 +103,7 @@ def connectivity_matrix(cm):
 
 
 def node_labels(node_labels, node_indices):
-    '''Validate that there is a label for each node.'''
+    """Validate that there is a label for each node."""
     if node_labels is None:
         return
 
@@ -116,10 +116,10 @@ def node_labels(node_labels, node_indices):
 
 
 def network(n):
-    '''Validate a |Network|.
+    """Validate a |Network|.
 
     Checks the TPM and connectivity matrix.
-    '''
+    """
     tpm(n.tpm)
     connectivity_matrix(n.cm)
     node_labels(n.node_labels, n.node_indices)
@@ -130,7 +130,7 @@ def network(n):
 
 
 def is_network(network):
-    '''Validate that the argument is a |Network|.'''
+    """Validate that the argument is a |Network|."""
     from . import Network
 
     if not isinstance(network, Network):
@@ -139,14 +139,14 @@ def is_network(network):
 
 
 def node_states(state):
-    '''Check that the state contains only zeros and ones.'''
+    """Check that the state contains only zeros and ones."""
     if not all(n in (0, 1) for n in state):
         raise ValueError(
             'Invalid state: states must consist of only zeros and ones.')
 
 
 def state_length(state, size):
-    '''Check that the state is the given size.'''
+    """Check that the state is the given size."""
     if len(state) != size:
         raise ValueError('Invalid state: there must be one entry per '
                          'node in the network; this state has {} entries, but '
@@ -155,7 +155,7 @@ def state_length(state, size):
 
 
 def state_reachable(subsystem):
-    '''Return whether a state can be reached according to the network's TPM.'''
+    """Return whether a state can be reached according to the network's TPM."""
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
@@ -169,17 +169,17 @@ def state_reachable(subsystem):
 
 
 def cut(cut, node_indices):
-    '''Check that the cut is for only the given nodes.'''
+    """Check that the cut is for only the given nodes."""
     if cut.indices != node_indices:
         raise ValueError('{} nodes are not equal to subsystem nodes '
                          '{}'.format(cut, node_indices))
 
 
 def subsystem(s):
-    '''Validate a |Subsystem|.
+    """Validate a |Subsystem|.
 
     Checks its state and cut.
-    '''
+    """
     node_states(s.state)
     cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
@@ -188,13 +188,13 @@ def subsystem(s):
 
 
 def time_scale(time_scale):
-    '''Validate a macro temporal time scale.'''
+    """Validate a macro temporal time scale."""
     if time_scale <= 0 or isinstance(time_scale, float):
         raise ValueError('time scale must be a positive integer')
 
 
 def partition(partition):
-    '''Validate a partition - used by blackboxes and coarse grains.'''
+    """Validate a partition - used by blackboxes and coarse grains."""
     nodes = set()
     for part in partition:
         for node in part:
@@ -206,7 +206,7 @@ def partition(partition):
 
 
 def coarse_grain(coarse_grain):
-    '''Validate a macro coarse-graining.'''
+    """Validate a macro coarse-graining."""
     partition(coarse_grain.partition)
 
     if len(coarse_grain.partition) != len(coarse_grain.grouping):
@@ -222,7 +222,7 @@ def coarse_grain(coarse_grain):
 
 
 def blackbox(blackbox):
-    '''Validate a macro blackboxing.'''
+    """Validate a macro blackboxing."""
 
     if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
         raise ValueError('Output indices {} must be ordered'.format(
@@ -238,8 +238,8 @@ def blackbox(blackbox):
 
 
 def blackbox_and_coarse_grain(blackbox, coarse_grain):
-    '''Validate that a coarse-graining properly combines the outputs of a
-    blackboxing.'''
+    """Validate that a coarse-graining properly combines the outputs of a
+    blackboxing."""
 
     if blackbox is None:
         return

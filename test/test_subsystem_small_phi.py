@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from pprint import pprint
-
 import numpy as np
 import pytest
 
 import example_networks
 from pyphi import Direction, constants
-from pyphi.models import Mip, Part
+from pyphi.models import Part, RepertoireIrreducibilityAnalysis
 
 s = example_networks.s()
 
@@ -19,7 +17,7 @@ s = example_networks.s()
 # Test scenario structure:
 #
 # (
-#     direction of MIP (Direction.PAST or Direction.FUTURE),
+#     direction of RIA (Direction.CAUSE or Direction.EFFECT),
 #     subsystem, cut,
 #     mechanism,
 #     purview,
@@ -36,12 +34,12 @@ s = example_networks.s()
 # }
 
 scenarios = [
-# Past {{{
+# Previous {{{
 # ~~~~~~~~
     # No cut {{{
     # ----------
     (
-        Direction.PAST,
+        Direction.CAUSE,
         s, None,
         (0,),
         (0,),
@@ -50,7 +48,7 @@ scenarios = [
              Part(mechanism=(0,), purview=())):
                 np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([0.5, 0.5]).reshape(2, 1, 1, order="F"),
          'phi': 0.0}
     ),
@@ -58,7 +56,7 @@ scenarios = [
     # With cut {{{
     # ------------
     (
-        Direction.PAST,
+        Direction.CAUSE,
         s, (0, (1, 2)),
         (1,),
         (2,),
@@ -67,18 +65,18 @@ scenarios = [
              Part(mechanism=(1,), purview=())):
                 np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([1., 0.]).reshape(1, 1, 2),
          'phi': 0.5}
     ),
     # }}}
 # }}}
-# Future {{{
+# Next {{{
 # ~~~~~~~~~~
     # No cut {{{
     # ----------
     (
-        Direction.FUTURE,
+        Direction.EFFECT,
         s, None,
         (0, 1, 2),
         (0, 1, 2),
@@ -87,42 +85,42 @@ scenarios = [
             # breaking ties
             (Part(mechanism=(2,), purview=()),
              Part(mechanism=(0, 1), purview=(0, 1, 2))):
-                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
+                    2, 2, 2, order="F"),
             (Part(mechanism=(), purview=(0,)),
              Part(mechanism=(0, 1, 2), purview=(1, 2))):
-                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
+                    2, 2, 2, order="F"),
             (Part(mechanism=(2,), purview=(0,)),
              Part(mechanism=(0, 1), purview=(1, 2))):
-                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
+                    2, 2, 2, order="F"),
             (Part(mechanism=(0,), purview=()),
              Part(mechanism=(1, 2), purview=(0, 1, 2))):
-                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
+                    2, 2, 2, order="F"),
             (Part(mechanism=(), purview=(1,)),
              Part(mechanism=(0, 1, 2), purview=(0, 2))):
-                np.array([0., 0., 0., 0., 0.5, 0., 0.5, 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0., 0., 0.5, 0., 0.5, 0.]).reshape(
+                    2, 2, 2, order="F"),
             (Part(mechanism=(2,), purview=(1,)),
              Part(mechanism=(0, 1), purview=(0, 2))):
-                np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(
+                    2, 2, 2, order="F"),
             (Part(mechanism=(), purview=(2,)),
              Part(mechanism=(0, 1, 2), purview=(0, 1))):
-                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
+                    2, 2, 2, order="F"),
             (Part(mechanism=(0,), purview=(2,)),
              Part(mechanism=(1, 2), purview=(0, 1))):
-                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
+                    2, 2, 2, order="F"),
             (Part(mechanism=(2,), purview=(0, 1)),
              Part(mechanism=(0, 1), purview=(2,))):
-                np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(2,2,2,
-                                                                     order="F"),
+                np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(
+                    2, 2, 2, order="F"),
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([0., 1., 0., 0., 0., 0., 0., 0.]).reshape(2, 2, 2),
          'phi': 0.5}
     ),
@@ -131,7 +129,7 @@ scenarios = [
     # With cut {{{
     # ------------
     (
-        Direction.FUTURE,
+        Direction.EFFECT,
         s, ((1, 2), 0),
         (2,),
         (1,),
@@ -140,11 +138,11 @@ scenarios = [
              Part(mechanism=(2,), purview=())):
                 np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([1., 0.]).reshape(1, 2, 1),
          'phi': 0.5}
     ), (
-        Direction.FUTURE,
+        Direction.EFFECT,
         s, ((0, 2), 1),
         (2,),
         (0,),
@@ -153,11 +151,11 @@ scenarios = [
              Part(mechanism=(2,), purview=())):
                 np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([0.5, 0.5]).reshape(2, 1, 1),
          'phi': 0.25}
     ), (
-        Direction.FUTURE,
+        Direction.EFFECT,
         s, ((0, 2), 1),
         (0, 1, 2),
         (0, 2),
@@ -180,11 +178,11 @@ scenarios = [
              Part(mechanism=(1, 2), purview=(0,))):
                 np.array([0.5, 0., 0.5, 0.]).reshape(2, 1, 2, order="F")
         },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([0., 1., 0., 0.]).reshape(2, 1, 2),
         'phi': 0.5}
     ), (
-        Direction.FUTURE,
+        Direction.EFFECT,
         s, ((0, 1), 2),
         (1,),
         (0,),
@@ -193,7 +191,7 @@ scenarios = [
              Part(mechanism=(1,), purview=())):
                 np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
          },
-         'unpartitioned_repertoire':
+         'repertoire':
             np.array([0.5, 0.5]).reshape(2, 1, 1),
          'phi': 0.25}
     )
@@ -210,20 +208,22 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
 
     # IMPORTANT: Since several different ways of partitioning the system can
     # yield the same phi value, the partition used in finding the MIP is not
-    # unique. Thus, ``expected['partitions']`` is a dictionary that maps all the
-    # ways of partitioning the system that yeild the minimal phi value to their
-    # expected partitioned repertoires.
+    # unique. Thus, ``expected['partitions']`` is a dictionary that maps all
+    # the ways of partitioning the system that yeild the minimal phi value to
+    # their expected partitioned repertoires.
 
     if expected:
         # Construct expected list of possible MIPs
         expected = [
-            Mip(direction=direction,
+            RepertoireIrreducibilityAnalysis(
+                direction=direction,
                 partition=expected_partition,
                 mechanism=mechanism,
                 purview=purview,
-                unpartitioned_repertoire=expected['unpartitioned_repertoire'],
+                repertoire=expected['repertoire'],
                 partitioned_repertoire=expected_partitioned_repertoire,
-                phi=expected['phi'])
+                phi=expected['phi']
+            )
             for expected_partition, expected_partitioned_repertoire
             in expected['partitions'].items()
         ]
@@ -231,7 +231,7 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     print('Result:', '---------', '', result, '', sep='\n')
     print('Expected:',  '---------', '', sep='\n')
     if expected:
-        print(*[mip for mip in expected], sep='\n')
+        print(*[ria for ria in expected], sep='\n')
     else:
         print(expected)
     print('\n')
@@ -248,44 +248,44 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
 # ========================
 
 
-def test_mip_past(s):
+def test_cause_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    mip_past = s.find_mip(Direction.PAST, mechanism, purview)
-    assert mip_past == s.mip_past(mechanism, purview)
+    ria_cause = s.find_mip(Direction.CAUSE, mechanism, purview)
+    assert ria_cause == s.cause_mip(mechanism, purview)
 
 
-def test_mip_future(s):
+def test_effect_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    mip_future = s.find_mip(Direction.FUTURE, mechanism, purview)
-    assert mip_future == s.mip_future(mechanism, purview)
+    ria_effect = s.find_mip(Direction.EFFECT, mechanism, purview)
+    assert ria_effect == s.effect_mip(mechanism, purview)
 
 
-def test_phi_mip_past(s):
+def test_phi_cause_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    assert (s.phi_mip_past(mechanism, purview) ==
-            s.mip_past(mechanism, purview).phi)
+    assert (s.phi_cause_mip(mechanism, purview) ==
+            s.cause_mip(mechanism, purview).phi)
 
 
-def test_phi_mip_past_reducible(s):
+def test_phi_cause_mip_reducible(s):
     mechanism = (1,)
     purview = (0,)
-    assert (0 == s.phi_mip_past(mechanism, purview))
+    assert s.phi_cause_mip(mechanism, purview) == 0
 
 
-def test_phi_mip_future(s):
+def test_phi_effect_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    assert (s.phi_mip_future(mechanism, purview) ==
-            s.mip_future(mechanism, purview).phi)
+    assert (s.phi_effect_mip(mechanism, purview) ==
+            s.effect_mip(mechanism, purview).phi)
 
 
-def test_phi_mip_future_reducible(s):
+def test_phi_effect_mip_reducible(s):
     mechanism = (0, 1)
     purview = (1, )
-    assert (0 == s.phi_mip_future(mechanism, purview))
+    assert s.phi_effect_mip(mechanism, purview) == 0
 
 
 def test_phi(s):

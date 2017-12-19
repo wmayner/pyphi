@@ -28,7 +28,7 @@ def test_network_init_validation(network):
 
 
 def test_network_creates_fully_connected_cm_by_default():
-    tpm = np.zeros((2*2*2, 3))
+    tpm = np.zeros((2 * 2 * 2, 3))
     network = Network(tpm, connectivity_matrix=None)
     target_cm = np.ones((3, 3))
     assert np.array_equal(network.connectivity_matrix, target_cm)
@@ -36,10 +36,10 @@ def test_network_creates_fully_connected_cm_by_default():
 
 def test_potential_purviews(s):
     mechanism = (0,)
-    assert (s.network.potential_purviews(Direction.PAST, mechanism)
-            == [(1,), (2,), (1, 2)])
-    assert (s.network.potential_purviews(Direction.FUTURE, mechanism)
-            == [(2,)])
+    assert (s.network.potential_purviews(Direction.CAUSE, mechanism) ==
+            [(1,), (2,), (1, 2)])
+    assert (s.network.potential_purviews(Direction.EFFECT, mechanism) ==
+            [(2,)])
 
 
 def test_node_labels(standard):

@@ -15,37 +15,37 @@ We'll consider the state with all nodes off.
 
 According to IIT, existence is a holistic notion; the whole is more important
 than its parts. The first step is to confirm the existence of the whole, by
-finding the main complex of the network:
+finding the major complex of the network:
 
-    >>> main_complex = pyphi.compute.main_complex(network, state)
+    >>> major_complex = pyphi.compute.major_complex(network, state)
 
-The main complex exists (|big_phi > 0|),
+The major complex exists (|big_phi > 0|),
 
-    >>> main_complex.phi
+    >>> major_complex.phi
     1.874999
 
 and it consists of the entire network:
 
-    >>> main_complex.subsystem
+    >>> major_complex.subsystem
     Subsystem(A, B, C)
 
 Knowing what exists at the system level, we can now investigate the existence
 of concepts within the complex.
 
-    >>> constellation = main_complex.unpartitioned_constellation
-    >>> len(constellation)
+    >>> ces = major_complex.ces
+    >>> len(ces)
     3
-    >>> constellation.labeled_mechanisms
+    >>> ces.labeled_mechanisms
     [['A', 'B'], ['A', 'C'], ['B', 'C']]
 
-There are three concepts in the constellation. They are all the possible second
-order mechanisms: |AB|, |AC| and |BC|.
+There are three concepts in the cause-effect structure. They are all the
+possible second order mechanisms: |AB|, |AC| and |BC|.
 
 Focusing on the concept specified by mechanism |AB|, we investigate existence,
 and the irreducible cause and effect. Based on the symmetry of the network, the
 results will be similar for the other second order mechanisms.
 
-    >>> concept = constellation[0]
+    >>> concept = ces[0]
     >>> concept.mechanism
     (0, 1)
     >>> concept.phi
@@ -63,8 +63,8 @@ The concept has :math:`\varphi = \frac{1}{2}`.
             [ 0. ,  0.5]]])
 
 So we see that the cause purview of this mechanism is the whole system |ABC|,
-and that the repertoire shows a :math:`0.5` of probability the past state being
-``(0, 0, 0)`` and the same for ``(1, 1, 1)``:
+and that the repertoire shows a :math:`0.5` of probability the previous state
+being ``(0, 0, 0)`` and the same for ``(1, 1, 1)``:
 
     >>> concept.cause.repertoire[(0, 0, 0)]
     0.5
@@ -72,7 +72,7 @@ and that the repertoire shows a :math:`0.5` of probability the past state being
     0.5
 
 This tells us that knowing both |A| and |B| are currently off means that
-the past state of the system was either all off or all on with equal
+the previous state of the system was either all off or all on with equal
 probability.
 
 For any reduced purview, we would still have the same information about the
@@ -95,7 +95,7 @@ on the value of |C|. Any purview larger than |C| would be reducible by pruning
 away the additional elements.
 
 +------------------------------------------------------------------+
-| Main Complex: |ABC| with :math:`\Phi = 1.875`                    |
+| Major Complex: |ABC| with :math:`\Phi = 1.875`                   |
 +---------------+-----------------+---------------+----------------+
 |   Mechanism   | :math:`\varphi` | Cause Purview | Effect Purview |
 +===============+=================+===============+================+
@@ -106,7 +106,7 @@ away the additional elements.
 | |BC|          |  0.5            | |ABC|         | |A|            |
 +---------------+-----------------+---------------+----------------+
 
-An analysis of the `intrinsic existence` of this system reveals that the main
+An analysis of the `intrinsic existence` of this system reveals that the major
 complex of the system is the entire network of XOR nodes. Furthermore, the
 concepts which exist within the complex are those specified by the second-order
 mechanisms |AB|, |AC|, and |BC|.
@@ -167,7 +167,7 @@ mechanism |ABC|. Consider the cause information over the purview |ABC|:
 Since the mechanism has nonzero cause information, it has causal power over the
 system—but is it irreducible?
 
-   >>> mip = subsystem.mip_past(ABC, ABC)
+   >>> mip = subsystem.cause_mip(ABC, ABC)
    >>> mip.phi
    0.0
    >>> mip.partition  # doctest: +NORMALIZE_WHITESPACE
@@ -184,8 +184,8 @@ The mechanism has :math:`ci = 0.75`, but it is completely reducible
 
 This result can be understood as follows: knowing that |B| and |C| are off in
 the current state is sufficient to know that |A|, |B|, and |C| were all off in
-the past state; there is no additional information gained by knowing that |A|
-is currently off.
+the previous state; there is no additional information gained by knowing that
+|A| is currently off.
 
 Similarly for any other potential purview, the current state of |B| and |C|
 being ``(0, 0)`` is always enough to fully specify the previous state, so the

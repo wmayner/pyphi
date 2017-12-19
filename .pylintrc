@@ -16,4 +16,9 @@ ignore=
 
 disable=
   no-member,
-  invalid-name
+  invalid-name,
+  fixme
+
+[FORMAT]
+
+max-line-length=79

@@ -2,28 +2,45 @@
 # -*- coding: utf-8 -*-
 # models/__init__.py
 
-'''See |models.big_phi|, |models.concept|, and |models.cuts| for documentation.
+"""
+See |models.subsystem|, |models.mechanism|, and |models.cuts| for
+documentation.
 
 Attributes:
-    BigMip: Alias for :class:`big_phi.BigMip`
-    Mip: Alias for :class:`concept.Mip`
-    Mice: Alias for :class:`concept.Mice`
-    Concept: Alias for :class:`concept.Concept`
-    Constellation: Alias for :class:`concept.Constellation`
+    SystemIrreducibilityAnalysis: Alias for
+        :class:`subsystem.SystemIrreducibilityAnalysis`
+    RepertoireIrreducibilityAnalysis: Alias for
+        :class:`mechanism.RepertoireIrreducibilityAnalysis`
+    MaximallyIrreducibleCause: Alias for
+        :class:`mechanism.MaximallyIrreducibleCause`
+    MaximallyIrreducibleEffect: Alias for
+        :class:`mechanism.MaximallyIrreducibleEffect`
+    MaximallyIrreducibleCauseOrEffect: Alias for
+        :class:`mechanism.MaximallyIrreducibleCauseOrEffect`
+    Concept: Alias for :class:`mechanism.Concept`
+    CauseEffectStructure: Alias for :class:`subsystem.CauseEffectStructure`
     Cut: Alias for :class:`cuts.Cut`
     Part: Alias for :class:`cuts.Part`
     Bipartition: Alias for :class:`cuts.Bipartition`
     ActualCut: Alias for :class:`cuts.ActualCut`
-    AcMip: Alias for :class:`actual_causation.AcMip`
+    AcRepertoireIrreducibilityAnalysis: Alias for
+        :class:`actual_causation.AcRepertoireIrreducibilityAnalysis`
     CausalLink: Alias for :class:`actual_causation.CausalLink`
-    AcBigMip: Alias for :class:`actual_causation.AcBigMip`
+    AcSystemIrreducibilityAnalysis: Alias for
+        :class:`actual_causation.AcSystemIrreducibilityAnalysis`
     Account: Alias for :class:`actual_causation.Account`
     DirectedAccount: Alias for :class:`actual_causation.DirectedAccount`
-'''
+"""
 
-from .actual_causation import (AcBigMip, CausalLink, AcMip, _null_ac_mip, Event,
-                               _null_ac_bigmip, DirectedAccount, Account)
-from .big_phi import BigMip, _null_bigmip
-from .concept import (Mip, _null_mip, Mice, Concept, Constellation,
-                      normalize_constellation)
-from .cuts import ActualCut, Cut, Part, Bipartition, NullCut, Tripartition, KPartition, KCut
+from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
+                               AcRepertoireIrreducibilityAnalysis,
+                               _null_ac_ria, Event, _null_ac_sia,
+                               DirectedAccount, Account)
+from .subsystem import (SystemIrreducibilityAnalysis, _null_sia,
+                        CauseEffectStructure)
+from .mechanism import (RepertoireIrreducibilityAnalysis, _null_ria,
+                        MaximallyIrreducibleCauseOrEffect,
+                        MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
+                        Concept)
+from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,
+                   KPartition, KCut)

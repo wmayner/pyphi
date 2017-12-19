@@ -2,27 +2,27 @@
 # -*- coding: utf-8 -*-
 # direction.py
 
-'''
+"""
 Causal directions.
-'''
+"""
 
 from enum import Enum
 
 
 class Direction(Enum):
-    '''Constant that parametrizes cause and effect methods.
+    """Constant that parametrizes cause and effect methods.
 
-    Accessed using ``Direction.PAST`` and ``Direction.FUTURE``, etc.
-    '''
-    PAST = 0
-    FUTURE = 1
+    Accessed using ``Direction.CAUSE`` and ``Direction.EFFECT``, etc.
+    """
+    CAUSE = 0
+    EFFECT = 1
     BIDIRECTIONAL = 2
 
     def __str__(self):
-        if self is Direction.PAST:
-            return 'PAST'
-        elif self is Direction.FUTURE:
-            return 'FUTURE'
+        if self is Direction.CAUSE:
+            return 'CAUSE'
+        elif self is Direction.EFFECT:
+            return 'EFFECT'
         elif self is Direction.BIDIRECTIONAL:
             return 'BIDIRECTIONAL'
 
@@ -34,16 +34,16 @@ class Direction(Enum):
         return cls(dct['direction'])
 
     def order(self, mechanism, purview):
-        '''Order the mechanism and purview in time.
+        """Order the mechanism and purview in time.
 
-        If the direction is ``PAST``, then the ``purview`` is at |t-1| and the
-        ``mechanism`` is at time |t|. If the direction is ``FUTURE``, then
-        the ``mechanism`` is at time |t| and the purview is at |t+1|.
-        '''
-        if self is Direction.PAST:
+        If the direction is ``CAUSE``, then the purview is at |t-1| and the
+        mechanism is at time |t|. If the direction is ``EFFECT``, then the
+        mechanism is at time |t| and the purview is at |t+1|.
+        """
+        if self is Direction.CAUSE:
             return purview, mechanism
-        elif self is Direction.FUTURE:
+        elif self is Direction.EFFECT:
             return mechanism, purview
 
         from . import validate
-        validate.direction(self)
+        return validate.direction(self)

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # time.py
 
-'''
+"""
 Functions for converting the timescale of a TPM.
-'''
+"""
 
 import numpy as np
 from scipy.sparse import csc_matrix
@@ -26,7 +26,7 @@ def dense_time(tpm, time_scale):
 
 
 def run_tpm(tpm, time_scale):
-    '''Iterate a TPM by the specified number of time steps.
+    """Iterate a TPM by the specified number of time steps.
 
     Args:
         tpm (np.ndarray): A state-by-node tpm.
@@ -34,7 +34,7 @@ def run_tpm(tpm, time_scale):
 
     Returns:
         np.ndarray
-    '''
+    """
     sbs_tpm = convert.state_by_node2state_by_state(tpm)
     if sparse(tpm):
         tpm = sparse_time(sbs_tpm, time_scale)
@@ -44,7 +44,7 @@ def run_tpm(tpm, time_scale):
 
 
 def run_cm(cm, time_scale):
-    '''Iterate a connectivity matrix the specified number of steps.
+    """Iterate a connectivity matrix the specified number of steps.
 
     Args:
         cm (np.ndarray): A connectivity matrix.
@@ -52,7 +52,7 @@ def run_cm(cm, time_scale):
 
     Returns:
         np.ndarray: The connectivity matrix at the new timescale.
-    '''
+    """
     cm = np.linalg.matrix_power(cm, time_scale)
     # Round non-unitary values back to 1
     cm[cm > 1] = 1

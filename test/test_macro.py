@@ -106,15 +106,16 @@ def test_make_mapping():
 
 def test_make_macro_tpm():
     answer_tpm = convert.state_by_state2state_by_node(np.array([
-        [0.375,  0.375,  0.125,  0.125],
-        [0.375,  0.375,  0.125,  0.125],
-        [0.375,  0.375,  0.125,  0.125],
-        [0.375,  0.375,  0.125,  0.125],
+        [0.375, 0.375, 0.125, 0.125],
+        [0.375, 0.375, 0.125, 0.125],
+        [0.375, 0.375, 0.125, 0.125],
+        [0.375, 0.375, 0.125, 0.125],
     ]))
     partition = ((0,), (1, 2))
     grouping = (((0,), (1,)), ((0, 1), (2,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
-    assert np.array_equal(coarse_grain.make_mapping(), [0, 1, 0, 1, 0, 1, 2, 3])
+    assert np.array_equal(coarse_grain.make_mapping(),
+                          [0, 1, 0, 1, 0, 1, 2, 3])
 
     micro_tpm = np.zeros((8, 3)) + 0.5
     macro_tpm = coarse_grain.macro_tpm(micro_tpm)
@@ -127,10 +128,10 @@ def test_make_macro_tpm():
 
 def test_make_macro_tpm_conditional_independence_check():
     micro_tpm = np.array([
-        [1,  0,  0,  0],
-        [0, .5, .5,  0],
-        [0, .5, .5,  0],
-        [0,  0,  0,  1],
+        [1, 0.0, 0.0, 0],
+        [0, 0.5, 0.5, 0],
+        [0, 0.5, 0.5, 0],
+        [0, 0.0, 0.0, 1],
     ])
     partition = ((0,), (1,))
     grouping = (((0,), (1,)), ((0,), (1,)))
@@ -143,14 +144,14 @@ def test_make_macro_tpm_conditional_independence_check():
 # TODO: make a fixture for this conditionally dependent TPM
 def test_macro_tpm_sbs():
     micro_tpm = np.array([
-        [1,  0,  0,  0,  0,  0,  0,  0],
-        [0, .5, .5,  0,  0,  0,  0,  0],
-        [0, .5, .5,  0,  0,  0,  0,  0],
-        [0,  0,  0,  1,  0,  0,  0,  0],
-        [1,  0,  0,  0,  0,  0,  0,  0],
-        [0, .5, .5,  0,  0,  0,  0,  0],
-        [0, .5, .5,  0,  0,  0,  0,  0],
-        [0,  0,  0,  1,  0,  0,  0,  0],
+        [1, 0.0, 0.0, 0, 0, 0, 0, 0],
+        [0, 0.5, 0.5, 0, 0, 0, 0, 0],
+        [0, 0.5, 0.5, 0, 0, 0, 0, 0],
+        [0, 0.0, 0.0, 1, 0, 0, 0, 0],
+        [1, 0.0, 0.0, 0, 0, 0, 0, 0],
+        [0, 0.5, 0.5, 0, 0, 0, 0, 0],
+        [0, 0.5, 0.5, 0, 0, 0, 0, 0],
+        [0, 0.0, 0.0, 1, 0, 0, 0, 0],
     ])
     answer_tpm = np.array([
         [1,   0,   0,   0  ],
@@ -208,8 +209,8 @@ def bb():
 
 @pytest.fixture
 def cg_bb():
-    '''A blackbox with multiple outputs for a box, which must be coarse-
-    grained.'''
+    """A blackbox with multiple outputs for a box, which must be coarse-
+    grained."""
     partition = ((1, 3), (4,), (5,))
     output_indices = (1, 3, 4, 5)
     return macro.Blackbox(partition, output_indices)

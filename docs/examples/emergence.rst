@@ -25,11 +25,11 @@ We'll set the state so that nodes are off.
 
     >>> state = (0, 0, 0, 0)
 
-At the “micro” spatial scale, we can compute the main complex, and determine
+At the “micro” spatial scale, we can compute the major complex, and determine
 the |big_phi| value:
 
-    >>> main_complex = pyphi.compute.main_complex(network, state)
-    >>> main_complex.phi
+    >>> major_complex = pyphi.compute.major_complex(network, state)
+    >>> major_complex.phi
     0.113889
 
 The question is whether there are other spatial scales which have greater
@@ -155,7 +155,7 @@ We can now construct a |MacroSubsystem| using this coarse-graining:
 We can then consider the integrated information of this macro-network and
 compare it to the micro-network.
 
-    >>> macro_mip = pyphi.compute.big_mip(macro_subsystem)
+    >>> macro_mip = pyphi.compute.sia(macro_subsystem)
     >>> macro_mip.phi
     0.597212
 
@@ -200,7 +200,7 @@ We consider the state where all nodes are off:
 The system has minimal |big_phi| without blackboxing:
 
     >>> subsys = pyphi.Subsystem(network, state, all_nodes)
-    >>> pyphi.compute.big_phi(subsys)
+    >>> pyphi.compute.phi(subsys)
     0.215278
 
 We will consider the blackbox system consisting of two blackbox elements, |ABC|
@@ -251,7 +251,7 @@ As in the coarse-graining example, the blackbox and time scale are passed to
 
 We can now compute |big_phi| for this macro system:
 
-    >>> pyphi.compute.big_phi(macro_subsystem)
+    >>> pyphi.compute.phi(macro_subsystem)
     0.638888
 
 We find that the macro subsystem has greater integrated information

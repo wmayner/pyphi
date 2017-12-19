@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # conf.py
 
-'''
+"""
 Loading a configuration
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -28,7 +28,7 @@ Print the ``config`` object to see the current settings:
 
     >>> print(pyphi.config)  # doctest: +SKIP
     { 'ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS': False,
-      'CACHE_BIGMIPS': False,
+      'CACHE_SIAS': False,
       'CACHE_POTENTIAL_PURVIEWS': True,
       'CACHING_BACKEND': 'fs',
       ...
@@ -56,7 +56,7 @@ These settings control the algorithms PyPhi uses.
 - :attr:`~pyphi.conf.PyphiConfig.MEASURE`
 - :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE`
 - :attr:`~pyphi.conf.PyphiConfig.PICK_SMALLEST_PURVIEW`
-- :attr:`~pyphi.conf.PyphiConfig.USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE`
+- :attr:`~pyphi.conf.PyphiConfig.USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
 - :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
 
@@ -79,9 +79,9 @@ long time!), resulting in data loss.
     and ``PARALLEL_COMPLEX_EVALUATION`` can be set to ``True`` at a time. For
     maximal efficiency, you should parallelize the highest level computations
     possible, *e.g.*, parallelize complex evaluation instead of cut evaluation,
-    but only if you are actually computing complexes. You should only
-    parallelize concept evaluation if you are just computing constellations.
-
+    but only if you are actually computing a complex. You should only
+    parallelize concept evaluation if you are just computing a
+    |CauseEffectStructure|.
 - :attr:`~pyphi.conf.PyphiConfig.NUMBER_OF_CORES`
 - :attr:`~pyphi.conf.PyphiConfig.MAXIMUM_CACHE_MEMORY_PERCENTAGE`
 
@@ -91,7 +91,7 @@ Memoization and caching
 
 PyPhi provides a number of ways to cache intermediate results.
 
-- :attr:`~pyphi.conf.PyphiConfig.CACHE_BIGMIPS`
+- :attr:`~pyphi.conf.PyphiConfig.CACHE_SIAS`
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_POTENTIAL_PURVIEWS`
 - :attr:`~pyphi.conf.PyphiConfig.CACHING_BACKEND`
 - :attr:`~pyphi.conf.PyphiConfig.FS_CACHE_VERBOSITY`
@@ -134,7 +134,7 @@ Miscellaneous
 
 The ``config`` API
 ~~~~~~~~~~~~~~~~~~
-'''
+"""
 
 # pylint: disable=too-few-public-methods,protected-access
 
@@ -153,7 +153,7 @@ log = logging.getLogger(__name__)
 
 
 class Option:
-    '''A descriptor implementing PyPhi configuration options.
+    """A descriptor implementing PyPhi configuration options.
 
     Args:
         default: The default value of this ``Option``.
@@ -166,7 +166,7 @@ class Option:
             of the option is changed. The ``Config`` instance is passed as
             the only argument to the callback.
         doc (str): Optional docstring for the option.
-    '''
+    """
     def __init__(self, default, values=None, on_change=None, doc=None):
         self.default = default
         self.values = values
@@ -200,19 +200,19 @@ class Option:
         self._callback(obj)
 
     def _validate(self, value):
-        '''Validate the new value.'''
+        """Validate the new value."""
         if self.values and value not in self.values:
             raise ValueError(
                 '{} is not a valid value for {}'.format(value, self.name))
 
     def _callback(self, obj):
-        '''Trigger any callbacks.'''
+        """Trigger any callbacks."""
         if self.on_change is not None:
             self.on_change(obj)
 
 
 class ConfigMeta(type):
-    '''Metaclass for ``Config``.
+    """Metaclass for ``Config``.
 
     Responsible for setting the name of each ``Option`` when a subclass of
     ``Config`` is created; because ``Option`` objects are defined on the class,
@@ -221,7 +221,7 @@ class ConfigMeta(type):
     Python 3.6 handles this exact need with the special descriptor method
     ``__set_name__`` (see PEP 487). We should use that once we drop support
     for 3.4 & 3.5.
-    '''
+    """
     def __init__(cls, cls_name, bases, namespace):
         super().__init__(cls_name, bases, namespace)
         for name, opt in cls.options().items():
@@ -229,10 +229,10 @@ class ConfigMeta(type):
 
 
 class Config(metaclass=ConfigMeta):
-    '''Base configuration object.
+    """Base configuration object.
 
     See ``PyphiConfig`` for usage.
-    '''
+    """
     def __init__(self):
         self._values = {}
         self._loaded_files = []
@@ -259,20 +259,20 @@ class Config(metaclass=ConfigMeta):
 
     @classmethod
     def options(cls):
-        '''Return a dictionary the ``Option`` objects for this config'''
+        """Return a dictionary the ``Option`` objects for this config"""
         return {k: v for k, v in cls.__dict__.items() if isinstance(v, Option)}
 
     def defaults(self):
-        '''Return the default values of this configuration.'''
+        """Return the default values of this configuration."""
         return {k: v.default for k, v in self.options().items()}
 
     def load_config_dict(self, dct):
-        '''Load a dictionary of configuration values.'''
+        """Load a dictionary of configuration values."""
         for k, v in dct.items():
             setattr(self, k, v)
 
     def load_config_file(self, filename):
-        '''Load config from a YAML file.'''
+        """Load config from a YAML file."""
         filename = os.path.abspath(filename)
 
         with open(filename) as f:
@@ -281,11 +281,11 @@ class Config(metaclass=ConfigMeta):
         self._loaded_files.append(filename)
 
     def snapshot(self):
-        '''Return a snapshot of the current values of this configuration.'''
+        """Return a snapshot of the current values of this configuration."""
         return copy(self._values)
 
     def override(self, **new_values):
-        '''Decorator and context manager to override configuration values.
+        """Decorator and context manager to override configuration values.
 
         The initial configuration values are reset after the decorated function
         returns or the context manager completes it block, even if the function
@@ -302,12 +302,12 @@ class Config(metaclass=ConfigMeta):
             >>> with config.override(PRECISION=100):
             ...     assert config.PRECISION == 100
             ...
-        '''
+        """
         return _override(self, **new_values)
 
 
 class _override(contextlib.ContextDecorator):
-    '''See ``Config.override`` for usage.'''
+    """See ``Config.override`` for usage."""
 
     def __init__(self, conf, **new_values):
         self.conf = conf
@@ -315,17 +315,17 @@ class _override(contextlib.ContextDecorator):
         self.initial_values = conf.snapshot()
 
     def __enter__(self):
-        '''Save original config values; override with new ones.'''
+        """Save original config values; override with new ones."""
         self.conf.load_config_dict(self.new_values)
 
     def __exit__(self, *exc):
-        '''Reset config to initial values; reraise any exceptions.'''
+        """Reset config to initial values; reraise any exceptions."""
         self.conf.load_config_dict(self.initial_values)
         return False
 
 
 def configure_logging(conf):
-    '''Reconfigure PyPhi logging based on the current configuration.'''
+    """Reconfigure PyPhi logging based on the current configuration."""
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
@@ -357,7 +357,7 @@ def configure_logging(conf):
 
 
 class PyphiConfig(Config):
-    '''``pyphi.config`` is an instance of this class.'''
+    """``pyphi.config`` is an instance of this class."""
 
     ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(False, doc="""
     In certain cases, making a cut can actually cause a previously reducible
@@ -384,12 +384,12 @@ class PyphiConfig(Config):
 
     PARALLEL_CONCEPT_EVALUATION = Option(False, doc="""
     Controls whether concepts are evaluated in parallel when computing
-    constellations.""")
+    cause-effect structures.""")
 
     PARALLEL_CUT_EVALUATION = Option(True, doc="""
     Controls whether system cuts are evaluated in parallel, which is faster but
-    requires more memory. If cuts are evaluated sequentially, only two |BigMip|
-    instances need to be in memory at once.""")
+    requires more memory. If cuts are evaluated sequentially, only two
+    |SystemIrreducibilityAnalysis| instances need to be in memory at once.""")
 
     PARALLEL_COMPLEX_EVALUATION = Option(False, doc="""
     Controls whether systems are evaluated in parallel when computing
@@ -406,13 +406,14 @@ class PyphiConfig(Config):
     of them; to avoid thrashing, this setting limits the percentage of a
     system's RAM that the caches can collectively use.""")
 
-    CACHE_BIGMIPS = Option(False, doc="""
-    PyPhi is equipped with a transparent caching system for |BigMip| objects which
-    stores them as they are computed to avoid having to recompute them later. This
-    makes it easy to play around interactively with the program, or to accumulate
-    results with minimal effort. For larger projects, however, it is recommended
-    that you manage the results explicitly, rather than relying on the cache. For
-    this reason it is disabled by default.""")
+    CACHE_SIAS = Option(False, doc="""
+    PyPhi is equipped with a transparent caching system for
+    |SystemIrreducibilityAnalysis| objects which stores them as they are
+    computed to avoid having to recompute them later. This makes it easy to
+    play around interactively with the program, or to accumulate results with
+    minimal effort. For larger projects, however, it is recommended that you
+    manage the results explicitly, rather than relying on the cache. For this
+    reason it is disabled by default.""")
 
     CACHE_POTENTIAL_PURVIEWS = Option(True, doc="""
     Controls whether the potential purviews of mechanisms of a network are
@@ -444,7 +445,7 @@ class PyphiConfig(Config):
     effect if ``CACHING_BACKEND`` is ``'db'``).""")
 
     REDIS_CACHE = Option(False, doc="""
-    Specifies whether to use Redis to cache |Mice|.""")
+    Specifies whether to use Redis to cache |MICE|.""")
 
     REDIS_CONFIG = Option({
         'host': 'localhost',
@@ -482,8 +483,8 @@ class PyphiConfig(Config):
     Controls whether to show progress bars on the console.
 
       .. tip::
-        If you are iterating over many systems rather than doing one long-running
-        calculation, consider disabling this for speed.""")
+        If you are iterating over many systems rather than doing one
+        long-running calculation, consider disabling this for speed.""")
 
     PRECISION = Option(6, doc="""
     If ``MEASURE`` is ``EMD``, then the Earth Mover's Distance is calculated
@@ -497,7 +498,7 @@ class PyphiConfig(Config):
 
     VALIDATE_SUBSYSTEM_STATES = Option(True, doc="""
     Controls whether PyPhi checks if the subsystems's state is possible
-    (reachable with nonzero probability from some past state), given the
+    (reachable with nonzero probability from some previous state), given the
     subsystem's TPM (**which is conditioned on background conditions**). If
     this is turned off, then **calculated** |big_phi| **values may not be
     valid**, since they may be associated with a subsystem that could never be
@@ -508,10 +509,11 @@ class PyphiConfig(Config):
     independent.""")
 
     SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = Option(False, doc="""
-    If set to ``True``, the Phi value of single micro-node subsystems is the
-    difference between their unpartitioned constellation (a single concept) and
-    the null concept. If set to False, their Phi is defined to be zero. Single
-    macro-node subsystems may always be cut, regardless of circumstances.""")
+    If set to ``True``, the |big_phi| value of single micro-node subsystems is
+    the difference between their unpartitioned |CauseEffectStructure| (a single
+    concept) and the null concept. If set to False, their |big_phi| is defined
+    to be zero. Single macro-node subsystems may always be cut, regardless of
+    circumstances.""")
 
     REPR_VERBOSITY = Option(2, values=[0, 1, 2], doc="""
     Controls the verbosity of ``__repr__`` methods on PyPhi objects. Can be set
@@ -565,30 +567,32 @@ class PyphiConfig(Config):
 
     where the mechanism in the third part is always empty.
 
-    In addition, in the case of a |small_phi|-tie when computing MICE, The
-    ``'TRIPARTITION'`` setting choses the MIP with smallest purview instead of
-    the largest (which is the default).
+    In addition, in the case of a |small_phi|-tie when computing a |MIC| or
+    |MIE|, The ``'TRIPARTITION'`` setting choses the MIP with smallest purview
+    instead of the largest (which is the default).
 
     Finally, if set to ``'ALL'``, all possible partitions will be tested.""")
 
     PICK_SMALLEST_PURVIEW = Option(False, doc="""
-    When computing MICE, it is possible for several MIPs to have the same
-    |small_phi| value. If this setting is set to ``True`` the MIP with the
-    smallest purview is chosen; otherwise, the one with largest purview is
+    When computing a |MIC| or |MIE|, it is possible for several MIPs to have
+    the same |small_phi| value. If this setting is set to ``True`` the MIP with
+    the smallest purview is chosen; otherwise, the one with largest purview is
     chosen.""")
 
-    USE_SMALL_PHI_DIFFERENCE_FOR_CONSTELLATION_DISTANCE = Option(False, doc="""
-    If set to ``True``, the distance between constellations
-    (when computing a |BigMip|) is calculated using the difference between the
-    sum of |small_phi| in the constellations instead of the extended EMD.""")
+    USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE = Option(False, doc="""
+    If set to ``True``, the distance between cause-effect structures (when
+    computing a |SystemIrreducibilityAnalysis|) is calculated using the
+    difference between the sum of |small_phi| in the cause-effect structures
+    instead of the extended EMD.""")
 
-    SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'], doc="""
+    SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'],
+                         doc="""
     If set to ``'3.0_STYLE'``, then traditional IIT 3.0 cuts will be used when
     computing |big_phi|. If set to ``'CONCEPT_STYLE'``, then experimental
     concept-style system cuts will be used instead.""")
 
     def log(self):
-        '''Log current settings.'''
+        """Log current settings."""
         log.info('PyPhi v%s', __about__.__version__)
         if self._loaded_files:
             log.info('Loaded configuration from %s', self._loaded_files)

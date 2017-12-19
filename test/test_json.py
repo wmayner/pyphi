@@ -8,8 +8,8 @@ import tempfile
 import numpy as np
 import pytest
 
-from pyphi import (Direction, actual, compute, config, constants, exceptions,
-                   jsonify, models, network)
+from pyphi import (Direction, actual, compute, config, exceptions, jsonify,
+                   models, network)
 from test_actual import transition
 
 
@@ -47,7 +47,7 @@ def test_jsonify_numpy():
 
 def test_json_deserialization(s, transition):
     objects = [
-        Direction.PAST,
+        Direction.CAUSE,
         s.network,  # Network
         s,  # Subsystem
         models.Bipartition(models.Part((0,), ()), models.Part((1,), (2, 3))),
@@ -56,16 +56,17 @@ def test_json_deserialization(s, transition):
                             models.Part((3,), (4,))),
         models.Cut((0,), (2,)),
         models.NullCut((0, 1)),
-        models.KCut(Direction.PAST, models.KPartition(models.Part((0,), ()),
-                                                      models.Part((1,), (2, 3)))),
+        models.KCut(Direction.CAUSE,
+                    models.KPartition(models.Part((0,), ()),
+                                      models.Part((1,), (2, 3)))),
         s.concept((1, 2)),
         s.concept((1,)),
-        compute.constellation(s),
-        compute.big_mip(s),
+        compute.ces(s),
+        compute.sia(s),
         transition,
         transition.find_actual_cause((0,), (0,)),
         actual.account(transition),
-        actual.big_acmip(transition)
+        actual.sia(transition)
     ]
     for o in objects:
         loaded = jsonify.loads(jsonify.dumps(o))
@@ -83,19 +84,19 @@ def test_json_deserialization_non_pyphi_clasess():
 
 def test_deserialization_memoizes_duplicate_objects(s):
     with config.override(PARALLEL_CUT_EVALUATION=True):
-        big_mip = compute.big_mip(s)
+        sia = compute.sia(s)
 
-    s1 = big_mip.subsystem
+    s1 = sia.subsystem
     # Computed in a parallel process, so has a different id
-    s2 = big_mip.unpartitioned_constellation[0].subsystem
-    assert not s1 is s2
+    s2 = sia.ces[0].subsystem
+    assert s1 is not s2
     assert s1 == s2
     assert hash(s1) == hash(s2)
 
-    loaded = jsonify.loads(jsonify.dumps(big_mip))
+    loaded = jsonify.loads(jsonify.dumps(sia))
 
     l1 = loaded.subsystem
-    l2 = loaded.unpartitioned_constellation[0].subsystem
+    l2 = loaded.ces[0].subsystem
     assert l1 == l2
     assert hash(l1) == hash(l2)
     assert l1 is l2

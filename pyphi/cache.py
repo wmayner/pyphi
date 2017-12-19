@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # cache.py
 
-'''
+"""
 A memory-limited cache decorator.
-'''
+"""
 
 # pylint: disable=redefined-builtin,redefined-outer-name,missing-docstring
 # pylint: disable=too-few-public-methods,no-self-use,arguments-differ,
@@ -23,17 +23,17 @@ _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
 
 
 def memory_full():
-    '''Check if the memory is too full for further caching.'''
+    """Check if the memory is too full for further caching."""
     current_process = psutil.Process(os.getpid())
     return (current_process.memory_percent() >
             config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
 
 
 class _HashedSeq(list):
-    '''This class guarantees that ``hash()`` will be called no more than once
+    """This class guarantees that ``hash()`` will be called no more than once
     per element.  This is important because the ``lru_cache()`` will hash the
     key multiple times on a cache miss.
-    '''
+    """
 
     __slots__ = ('hashvalue',)
 
@@ -51,7 +51,7 @@ def _make_key(args, kwds, typed,
               kwd_mark=(object(),),
               fasttypes={int, str, frozenset, type(None)},
               sorted=sorted, tuple=tuple, type=type, len=len):
-    '''Make a cache key from optionally typed positional and keyword arguments.
+    """Make a cache key from optionally typed positional and keyword arguments.
 
     The key is constructed in a way that is flat as possible rather than as a
     nested structure that would take more memory.
@@ -59,7 +59,7 @@ def _make_key(args, kwds, typed,
     If there is only a single argument and its data type is known to cache its
     hash value, then that argument is returned without a wrapper.  This saves
     space and improves lookup speed.
-    '''
+    """
     key = args
     if kwds:
         sorted_items = sorted(kwds.items())
@@ -77,7 +77,7 @@ def _make_key(args, kwds, typed,
 
 def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
           typed=False):
-    '''Memory-limited cache decorator.
+    """Memory-limited cache decorator.
 
     ``maxmem`` is a float between 0 and 100, inclusive, specifying the maximum
     percentage of physical memory that the cache can use.
@@ -91,7 +91,7 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
     View the cache statistics named tuple (hits, misses, currsize)
     with f.cache_info(). Clear the cache and statistics with f.cache_clear().
     Access the underlying function with f.__wrapped__.
-    '''
+    """
     # Constants shared by all lru cache instances:
     # Unique object used to signal cache misses.
     sentinel = object()
@@ -139,11 +139,11 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
                 return result
 
         def cache_info():
-            '''Report cache statistics.'''
+            """Report cache statistics."""
             return _CacheInfo(hits, misses, len(cache))
 
         def cache_clear():
-            '''Clear the cache and cache statistics.'''
+            """Clear the cache and cache statistics."""
             nonlocal hits, misses, full
             cache.clear()
             hits = misses = 0
@@ -157,10 +157,10 @@ def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
 
 
 class DictCache:
-    '''A generic dictionary-based cache.
+    """A generic dictionary-based cache.
 
     Intended to be used as an object-level cache of method results.
-    '''
+    """
     def __init__(self):
         self.cache = {}
         self.hits = 0
@@ -172,19 +172,19 @@ class DictCache:
         self.misses = 0
 
     def size(self):
-        '''Number of items in cache'''
+        """Number of items in cache"""
         return len(self.cache)
 
     def info(self):
-        '''Return info about cache hits, misses, and size'''
+        """Return info about cache hits, misses, and size"""
         return _CacheInfo(self.hits, self.misses, self.size())
 
     def get(self, key):
-        '''Get a value out of the cache.
+        """Get a value out of the cache.
 
         Returns None if the key is not in the cache. Updates cache
         statistics.
-        '''
+        """
         if key in self.cache:
             self.hits += 1
             return self.cache[key]
@@ -192,34 +192,35 @@ class DictCache:
         return None
 
     def set(self, key, value):
-        '''Set a value in the cache'''
+        """Set a value in the cache"""
         self.cache[key] = value
 
     # TODO: handle **kwarg keys if needed
     # See joblib.func_inspect.filter_args
     def key(self, *args, _prefix=None, **kwargs):
-        '''Get the cache key for the given function args.
+        """Get the cache key for the given function args.
 
         Kwargs:
            prefix: A constant to prefix to the key.
-        '''
+        """
         if kwargs:
             raise NotImplementedError(
                 'kwarg cache keys not implemented')
         return (_prefix,) + tuple(args)
 
 
-# TODO: confirm that a global connection/pool makes sense, esp for multiprocesssing
+# TODO: confirm that a global connection/pool makes sense, esp for
+# multiprocesssing
 # TODO: maybe just expose the connction `if REDIS_CACHE`, instead of with this
 # singleton business
 class RedisConn:
-    '''Singleton redis connection object.
+    """Singleton redis connection object.
 
     Expose the StrictRedis api, but only maintain one connection pool.
 
     Raises:
         redis.exceptions.ConnectionError: If the Redis server is not available.
-    '''
+    """
     instance = None
 
     def __init__(self):
@@ -233,7 +234,7 @@ class RedisConn:
             RedisConn.instance = conn
 
     def __getattr__(self, name):
-        '''Delegate lookup to ``StrictRedis``'''
+        """Delegate lookup to ``StrictRedis``"""
         return getattr(self.instance, name)
 
 
@@ -246,27 +247,27 @@ class RedisCache:
 
     @staticmethod
     def size():
-        '''Size of the Redis cache.
+        """Size of the Redis cache.
 
         .. note:: This is the size of the entire Redis database.
-        '''
+        """
         return RedisConn().dbsize()
 
     def info(self):
-        '''Return cache information.
+        """Return cache information.
 
         .. note:: This is not the cache info for the entire Redis key space.
-        '''
+        """
         info = RedisConn().info()
         return _CacheInfo(info['keyspace_hits'],
                           info['keyspace_misses'],
                           self.size())
 
     def get(self, key):
-        '''Get a value from the cache.
+        """Get a value from the cache.
 
         Returns None if the key is not in the cache.
-        '''
+        """
         value = RedisConn().get(key)
 
         if value is not None:
@@ -275,12 +276,12 @@ class RedisCache:
         return value
 
     def set(self, key, value):
-        '''Set a value in the cache.'''
+        """Set a value in the cache."""
         value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
         RedisConn().set(key, value)
 
     def key(self):
-        '''Delegate to subclasses.'''
+        """Delegate to subclasses."""
         raise NotImplementedError
 
 
@@ -291,11 +292,11 @@ def validate_parent_cache(parent_cache):
         raise ValueError("parent_cache must be from an uncut subsystem")
 
 
-class RedisMiceCache(RedisCache):
-    '''A Redis-backed cache for `Subsystem.find_mice`.
+class RedisMICECache(RedisCache):
+    """A Redis-backed cache for `Subsystem.find_mice`.
 
-    See |MiceCache| for more info.
-    '''
+    See |MICECache| for more info.
+    """
     def __init__(self, subsystem, parent_cache=None):
         super().__init__()
         self.subsystem = subsystem
@@ -303,9 +304,9 @@ class RedisMiceCache(RedisCache):
 
         if parent_cache is not None:
             validate_parent_cache(parent_cache)
-            # Store the hash of the parent subsystem. We don't want to store the
-            # parent subsystem explicitly so that it does not need to be passed
-            # between processes.
+            # Store the hash of the parent subsystem. We don't want to store
+            # the parent subsystem explicitly so that it does not need to be
+            # passed between processes.
             self.parent_subsystem_hash = parent_cache.subsystem_hash
         else:
             self.parent_subsystem_hash = None
@@ -313,11 +314,11 @@ class RedisMiceCache(RedisCache):
     # TODO: if the value is found in the parent cache, store it in this
     # cache so we don't have to call `damaged_by_cut` over and over?
     def get(self, key):
-        '''Get a value from the cache.
+        """Get a value from the cache.
 
-        If the Mice cannot be found in this cache, try and find it in the
+        If the |MICE| cannot be found in this cache, try and find it in the
         parent cache.
-        '''
+        """
         mice = super().get(key)
 
         if mice is not None:  # Hit
@@ -335,24 +336,24 @@ class RedisMiceCache(RedisCache):
         return None
 
     def set(self, key, value):
-        '''Only need to set if the subsystem is uncut.
+        """Only need to set if the subsystem is uncut.
 
         Caches are only inherited from uncut subsystems.
-        '''
+        """
         if not self.subsystem.is_cut:
             super().set(key, value)
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):
-        '''Cache key. This is the call signature of |find_mice|'''
+        """Cache key. This is the call signature of |find_mice|"""
         return "subsys:{}:{}:{}:{}:{}".format(
             self.subsystem_hash, _prefix, direction, mechanism, purviews)
 
 
-class DictMiceCache(DictCache):
-    '''A subsystem-local cache for |Mice| objects.
+class DictMICECache(DictCache):
+    """A subsystem-local cache for |MICE| objects.
 
-    See |MiceCache| for more info.
-    '''
+    See |MICECache| for more info.
+    """
     def __init__(self, subsystem, parent_cache=None):
         super().__init__()
         self.subsystem = subsystem
@@ -362,18 +363,18 @@ class DictMiceCache(DictCache):
             self._build(parent_cache)
 
     def _build(self, parent_cache):
-        '''Build the initial cache from the parent.
+        """Build the initial cache from the parent.
 
-        Only include the Mice which are unaffected by the subsystem cut.
-        A Mice is affected if either the cut splits the mechanism
+        Only include the |MICE| which are unaffected by the subsystem cut.
+        A |MICE| is affected if either the cut splits the mechanism
         or splits the connections between the purview and mechanism
-        '''
+        """
         for key, mice in parent_cache.cache.items():
             if not mice.damaged_by_cut(self.subsystem):
                 self.cache[key] = mice
 
     def set(self, key, mice):
-        '''Set a value in the cache.
+        """Set a value in the cache.
 
         Only cache if:
           - The subsystem is uncut (caches are only inherited from
@@ -385,18 +386,18 @@ class DictMiceCache(DictCache):
             between process. This will be changed once global caches are
             implemented.
           - Memory is not too full.
-        '''
-        if (not self.subsystem.is_cut and mice.phi > 0
-                and not memory_full()):
+        """
+        if (not self.subsystem.is_cut and mice.phi > 0 and
+                not memory_full()):
             self.cache[key] = mice
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):
-        '''Cache key. This is the call signature of |find_mice|'''
+        """Cache key. This is the call signature of |find_mice|"""
         return (_prefix, direction, mechanism, purviews)
 
 
-def MiceCache(subsystem, parent_cache=None):
-    '''Construct a Mice cache.
+def MICECache(subsystem, parent_cache=None):
+    """Construct a |MICE| cache.
 
     Uses either a Redis-backed cache or a local dict cache on the object.
 
@@ -404,29 +405,29 @@ def MiceCache(subsystem, parent_cache=None):
         subsystem (Subsystem): The subsystem that this is a cache for.
 
     Kwargs:
-        parent_cache (MiceCache): The cache generated by the uncut
-            version of ``subsystem``. Any cached |Mice| which are
+        parent_cache (MICECache): The cache generated by the uncut
+            version of ``subsystem``. Any cached |MICE| which are
             unaffected by the cut are reused in this cache. If None,
             the cache is initialized empty.
-    '''
+    """
     if config.REDIS_CACHE:
-        cls = RedisMiceCache
+        cls = RedisMICECache
     else:
-        cls = DictMiceCache
+        cls = DictMICECache
     return cls(subsystem, parent_cache=parent_cache)
 
 
 class PurviewCache(DictCache):
-    '''A network-level cache for possible purviews.'''
+    """A network-level cache for possible purviews."""
 
     def set(self, key, value):
-        '''Only set if purview caching is enabled'''
+        """Only set if purview caching is enabled"""
         if config.CACHE_POTENTIAL_PURVIEWS:
             self.cache[key] = value
 
 
 def method(cache_name, key_prefix=None):
-    '''Caching decorator for object-level method caches.
+    """Caching decorator for object-level method caches.
 
     Cache key generation is delegated to the cache.
 
@@ -436,7 +437,7 @@ def method(cache_name, key_prefix=None):
             of this method.
         *key_prefix: A constant to use as part of the cache key in addition
             to the method arguments.
-    '''
+    """
     def decorator(func):
         @wraps(func)
         def wrapper(obj, *args, **kwargs):

@@ -7,43 +7,57 @@ from collections import namedtuple
 import numpy as np
 import pytest
 
-from pyphi import Direction, Subsystem, config, constants, models
+from pyphi import Direction, Subsystem, config, constants, exceptions, models
+
 
 # Helper functions for constructing PyPhi objects
 # -----------------------------------------------
 
 def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
-        unpartitioned_repertoire=None, partitioned_repertoire=None):
-    '''Build a ``Mip``.'''
-    return models.Mip(phi=phi, direction=direction, mechanism=mechanism,
-                      purview=purview, partition=partition,
-                      unpartitioned_repertoire=unpartitioned_repertoire,
-                      partitioned_repertoire=partitioned_repertoire)
+        repertoire=None, partitioned_repertoire=None):
+    """Build a ``RepertoireIrreducibilityAnalysis``."""
+    return models.RepertoireIrreducibilityAnalysis(
+        phi=phi, direction=direction, mechanism=mechanism, purview=purview,
+        partition=partition, repertoire=repertoire,
+        partitioned_repertoire=partitioned_repertoire
+    )
 
 
 def mice(**kwargs):
-    '''Build a ``Mice``.'''
-    return models.Mice(mip(**kwargs))
+    """Build a ``MaximallyIrreducibleCauseOrEffect``."""
+    return models.MaximallyIrreducibleCauseOrEffect(mip(**kwargs))
+
+
+def mic(**kwargs):
+    """Build a ``MIC``."""
+    return models.MaximallyIrreducibleCause(mip(**kwargs))
+
+
+def mie(**kwargs):
+    """Build a ``MIE``."""
+    return models.MaximallyIrreducibleEffect(mip(**kwargs))
 
 
 def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
             subsystem=None):
-    '''Build a ``Concept``.'''
+    """Build a ``Concept``."""
     return models.Concept(
         mechanism=mechanism,
-        cause=mice(mechanism=mechanism, purview=cause_purview, phi=phi),
-        effect=mice(mechanism=mechanism, purview=effect_purview, phi=phi),
+        cause=mic(mechanism=mechanism, purview=cause_purview, phi=phi,
+                  direction=Direction.CAUSE),
+        effect=mie(mechanism=mechanism, purview=effect_purview, phi=phi,
+                   direction=Direction.EFFECT),
         subsystem=subsystem)
 
 
-def bigmip(unpartitioned_constellation=(), partitioned_constellation=(),
-           subsystem=None, cut_subsystem=None, phi=1.0):
-    '''Build a ``BigMip``.'''
+def sia(ces=(), partitioned_ces=(), subsystem=None, cut_subsystem=None,
+        phi=1.0):
+    """Build a ``SystemIrreducibilityAnalysis``."""
     cut_subsystem = cut_subsystem or subsystem
 
-    return models.BigMip(
-        unpartitioned_constellation=unpartitioned_constellation,
-        partitioned_constellation=partitioned_constellation,
+    return models.SystemIrreducibilityAnalysis(
+        ces=ces,
+        partitioned_ces=partitioned_ces,
         subsystem=subsystem, cut_subsystem=cut_subsystem, phi=phi)
 
 
@@ -295,33 +309,33 @@ def test_mip_ordering_and_equality():
     assert mip(phi=1.0) == mip(phi=1.0)
     assert mip(phi=1.0) == mip(phi=(1.0 - constants.EPSILON / 2))
     assert mip(phi=1.0) != mip(phi=(1.0 - constants.EPSILON * 2))
-    assert mip(direction=Direction.PAST) != mip(direction=Direction.FUTURE)
+    assert mip(direction=Direction.CAUSE) != mip(direction=Direction.EFFECT)
     assert mip(mechanism=(1,)) != mip(mechanism=(1, 2))
 
     with config.override(PICK_SMALLEST_PURVIEW=True):
         assert mip(purview=(1, 2)) < mip(purview=(1,))
 
     with pytest.raises(TypeError):
-        mip(direction=Direction.PAST) < mip(direction=Direction.FUTURE)
+        mip(direction=Direction.CAUSE) < mip(direction=Direction.EFFECT)
 
     with pytest.raises(TypeError):
-        mip(direction=Direction.PAST) >= mip(direction=Direction.FUTURE)
+        mip(direction=Direction.CAUSE) >= mip(direction=Direction.EFFECT)
 
 
-def test_null_mip():
-    direction = Direction.PAST
+def test_null_ria():
+    direction = Direction.CAUSE
     mechanism = (0,)
     purview = (1,)
-    unpartitioned_repertoire = 'repertoire'
-    null_mip = models._null_mip(direction, mechanism, purview,
-                                unpartitioned_repertoire)
-    assert null_mip.direction == direction
-    assert null_mip.mechanism == mechanism
-    assert null_mip.purview == purview
-    assert null_mip.partition is None
-    assert null_mip.unpartitioned_repertoire == 'repertoire'
-    assert null_mip.partitioned_repertoire is None
-    assert null_mip.phi == 0
+    repertoire = 'repertoire'
+    null_ria = models._null_ria(direction, mechanism, purview,
+                                repertoire)
+    assert null_ria.direction == direction
+    assert null_ria.mechanism == mechanism
+    assert null_ria.purview == purview
+    assert null_ria.partition is None
+    assert null_ria.repertoire == 'repertoire'
+    assert null_ria.partitioned_repertoire is None
+    assert null_ria.phi == 0
 
 
 def test_mip_repr_str():
@@ -331,7 +345,7 @@ def test_mip_repr_str():
 
 # }}}
 
-# Test MICE
+# Test MaximallyIrreducibleCauseOrEffect
 # {{{
 
 
@@ -385,7 +399,7 @@ def test_mice_repr_str():
 
 
 def test_relevant_connections(s, subsys_n1n2):
-    m = mice(mechanism=(0,), purview=(1,), direction=Direction.PAST)
+    m = mice(mechanism=(0,), purview=(1,), direction=Direction.CAUSE)
     answer = np.array([
         [0, 0, 0],
         [1, 0, 0],
@@ -393,7 +407,7 @@ def test_relevant_connections(s, subsys_n1n2):
     ])
     assert np.array_equal(m._relevant_connections(s), answer)
 
-    m = mice(mechanism=(1,), purview=(1, 2), direction=Direction.FUTURE)
+    m = mice(mechanism=(1,), purview=(1, 2), direction=Direction.EFFECT)
     answer = np.array([
         [0, 0, 0],
         [0, 1, 1],
@@ -408,15 +422,31 @@ def test_damaged(s):
     cut_s = Subsystem(s.network, s.state, s.node_indices, cut=cut)
 
     # Cut splits mechanism:
-    m1 = mice(mechanism=(0, 1), purview=(1, 2), direction=Direction.FUTURE)
+    m1 = mice(mechanism=(0, 1), purview=(1, 2), direction=Direction.EFFECT)
     assert m1.damaged_by_cut(cut_s)
     assert not m1.damaged_by_cut(s)
 
     # Cut splits mechanism & purview (but not *only* mechanism)
-    m2 = mice(mechanism=(0,), purview=(1, 2), direction=Direction.FUTURE)
+    m2 = mice(mechanism=(0,), purview=(1, 2), direction=Direction.EFFECT)
     assert m2.damaged_by_cut(cut_s)
     assert not m2.damaged_by_cut(s)
 
+
+# }}}
+
+
+# Test MIC and MIE {{{
+
+def test_mic_raises_wrong_direction():
+    mic(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
+    with pytest.raises(exceptions.WrongDirectionError):
+        mic(direction=Direction.EFFECT, mechanism=(0,), purview=(1,))
+
+
+def test_mie_raises_wrong_direction():
+    mie(direction=Direction.EFFECT, mechanism=(0,), purview=(1,))
+    with pytest.raises(exceptions.WrongDirectionError):
+        mie(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
 
 # }}}
 
@@ -473,9 +503,9 @@ def test_concept_equality_effect_purview_nodes(s):
 
 def test_concept_equality_repertoires(s):
     phi = 1.0
-    mice1 = mice(phi=phi, unpartitioned_repertoire=np.array([1, 2]),
+    mice1 = mice(phi=phi, repertoire=np.array([1, 2]),
                  partitioned_repertoire=())
-    mice2 = mice(phi=phi, unpartitioned_repertoire=np.array([0, 0]),
+    mice2 = mice(phi=phi, repertoire=np.array([0, 0]),
                  partitioned_repertoire=None)
     concept = models.Concept(mechanism=(), cause=mice1, effect=mice2,
                              subsystem=s)
@@ -524,68 +554,60 @@ def test_concept_emd_eq(s, subsys_n1n2):
 # }}}
 
 
-# Test Constellation
+# Test CauseEffectStructure
 # {{{
 
-def test_constellation_is_still_a_tuple():
-    c = models.Constellation([concept()])
+def test_ces_is_still_a_tuple():
+    c = models.CauseEffectStructure([concept()])
     assert len(c) == 1
 
 
 @config.override(REPR_VERBOSITY=0)
-def test_constellation_repr():
-    c = models.Constellation()
-    assert repr(c) == "Constellation()"
+def test_ces_repr():
+    c = models.CauseEffectStructure()
+    assert repr(c) == "CauseEffectStructure()"
 
 
-def test_constellation_repr_str():
-    c = models.Constellation([concept()])
+def test_ces_repr_str():
+    c = models.CauseEffectStructure([concept()])
     repr(c)
     str(c)
 
 
-def test_normalize_constellation():
+def test_ces_are_always_normalized():
     c1 = models.Concept(mechanism=(1,))
     c2 = models.Concept(mechanism=(2,))
     c3 = models.Concept(mechanism=(1, 3))
     c4 = models.Concept(mechanism=(1, 2, 3))
-    assert (c1, c2, c3, c4) == models.normalize_constellation((c3, c4, c2, c1))
-
-
-def test_constellations_are_always_normalized():
-    c1 = models.Concept(mechanism=(1,))
-    c2 = models.Concept(mechanism=(2,))
-    c3 = models.Concept(mechanism=(1, 3))
-    c4 = models.Concept(mechanism=(1, 2, 3))
-    assert (c1, c2, c3, c4) == models.Constellation((c3, c4, c2, c1))
+    assert (c1, c2, c3, c4) == models.CauseEffectStructure((c3, c4, c2, c1))
 
 # }}}
 
 
-# Test BigMip
+# Test SystemIrreducibilityAnalysis
 # {{{
 
 
-def test_bigmip_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
-    phi1 = bigmip(subsystem=s)
-    phi2 = bigmip(subsystem=s, phi=1.0 + constants.EPSILON * 2)
+def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
+    phi1 = sia(subsystem=s)
+    phi2 = sia(subsystem=s, phi=1.0 + constants.EPSILON * 2)
     assert phi1 < phi2
     assert phi2 > phi1
     assert phi1 <= phi2
     assert phi2 >= phi1
 
-    assert bigmip(subsystem=subsys_n0n2) < bigmip(subsystem=subsys_n1n2)
+    assert sia(subsystem=subsys_n0n2) < sia(subsystem=subsys_n1n2)
 
-    different_system = bigmip(subsystem=s_noised)
+    different_system = sia(subsystem=s_noised)
     with pytest.raises(TypeError):
         phi1 <= different_system
     with pytest.raises(TypeError):
         phi1 >= different_system
 
 
-def test_bigmip_ordering_by_subsystem_size(s, s_single):
-    small = bigmip(subsystem=s_single)
-    big = bigmip(subsystem=s)
+def test_sia_ordering_by_subsystem_size(s, s_single):
+    small = sia(subsystem=s_single)
+    big = sia(subsystem=s)
     assert small < big
     assert small <= big
     assert big > small
@@ -593,16 +615,16 @@ def test_bigmip_ordering_by_subsystem_size(s, s_single):
     assert big != small
 
 
-def test_bigmip_equality(s):
-    bm = bigmip(subsystem=s)
-    close_enough = bigmip(subsystem=s, phi=(1.0 - constants.EPSILON / 2))
-    not_quite = bigmip(subsystem=s, phi=(1.0 - constants.EPSILON * 2))
+def test_sia_equality(s):
+    bm = sia(subsystem=s)
+    close_enough = sia(subsystem=s, phi=(1.0 - constants.EPSILON / 2))
+    not_quite = sia(subsystem=s, phi=(1.0 - constants.EPSILON * 2))
     assert bm == close_enough
     assert bm != not_quite
 
 
-def test_bigmip_repr_str(s):
-    bm = bigmip(subsystem=s)
+def test_sia_repr_str(s):
+    bm = sia(subsystem=s)
     print(repr(bm))
     print(str(bm))
 
@@ -622,7 +644,7 @@ def test_indent():
 
 
 class ReadableReprClass:
-    '''Dummy class for make_repr tests'''
+    """Dummy class for make_repr tests"""
     some_attr = 3.14
 
     def __repr__(self):

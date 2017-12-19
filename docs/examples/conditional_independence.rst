@@ -32,8 +32,8 @@ We'll load the state-by-state TPM for such a system from the |examples| module:
     [ 0.   0.   0.   1. ]]
 
 This system does not satisfy the conditional independence assumption; given a
-past state of ``(1, 0)``, the current state of node |A| depends on whether or
-not |B| has flipped.
+previous state of ``(1, 0)``, the current state of node |A| depends on whether
+or not |B| has flipped.
 
 When creating a network, the program will convert this state-by-state TPM to a
 state-by-node form, and issue a warning if it does not satisfy the assumption:

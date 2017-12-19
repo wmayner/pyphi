@@ -410,7 +410,7 @@ if __name__ == "__main__":
                                PARALLEL_CUT_EVALUATION=False):
 
         s = eights_complete()
-        phi = pyphi.compute.big_phi(s)
+        phi = pyphi.compute.phi(s)
         assert phi > 0  # Ensure meaningful computation
 
     report()

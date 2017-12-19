@@ -106,20 +106,20 @@ def simple(cm=False):
 
     TPM:
 
-    +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
-    |  Past state ~~> Current state |
-    |~~~~~~~~~~~~~~+~~~~~~~~~~~~~~~~|
-    |   A, B, C    |    A, B, C     |
-    |~~~~~~~~~~~~~~+~~~~~~~~~~~~~~~~|
-    |  {0, 0, 0}   |   {0, 0, 0}    |
-    |  {0, 0, 1}   |   {0, 0, 0}    |
-    |  {0, 1, 0}   |   {0, 0, 0}    |
-    |  {0, 1, 1}   |   {1, 0, 0}    |
-    |  {1, 0, 0}   |   {0, 0, 0}    |
-    |  {1, 0, 1}   |   {0, 0, 0}    |
-    |  {1, 1, 0}   |   {0, 0, 0}    |
-    |  {1, 1, 1}   |   {0, 0, 0}    |
-    +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+    +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+    |  Previous state ~~> Current state |
+    |~~~~~~~~~~~~~~~~~~+~~~~~~~~~~~~~~~~|
+    |      A, B, C     |    A, B, C     |
+    |~~~~~~~~~~~~~~~~~~+~~~~~~~~~~~~~~~~|
+    |     {0, 0, 0}    |   {0, 0, 0}    |
+    |     {0, 0, 1}    |   {0, 0, 0}    |
+    |     {0, 1, 0}    |   {0, 0, 0}    |
+    |     {0, 1, 1}    |   {1, 0, 0}    |
+    |     {1, 0, 0}    |   {0, 0, 0}    |
+    |     {1, 0, 1}    |   {0, 0, 0}    |
+    |     {1, 1, 0}    |   {0, 0, 0}    |
+    |     {1, 1, 1}    |   {0, 0, 0}    |
+    +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
     """
     tpm = np.array([
         [0, 0, 0],
@@ -714,9 +714,9 @@ def micro_s_all_off():
 
 # TODO: move to pyphi.examples?
 def propagation_delay():
-    '''The basic PyPhi subsystem with COPY gates on each of the connections in
+    """The basic PyPhi subsystem with COPY gates on each of the connections in
     the original network, blackboxed over two time steps.
-    '''
+    """
     nodes = 8
     tpm = np.zeros((2 ** nodes, nodes))
 

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # memory.py
 
-'''
+"""
 Decorators and objects for memoization.
-'''
+"""
 
 # pylint: disable=missing-docstring
 
@@ -16,16 +16,16 @@ from . import config, constants, db
 
 
 def cache(ignore=None):
-    '''Decorator for memoizing a function using either the filesystem or a
-    database.'''
+    """Decorator for memoizing a function using either the filesystem or a
+    database."""
 
     def joblib_decorator(func):
-        if func.__name__ == '_big_mip' and not config.CACHE_BIGMIPS:
+        if func.__name__ == '_sia' and not config.CACHE_SIAS:
             return func
         return constants.joblib_memory.cache(func, ignore=ignore)
 
     def db_decorator(func):
-        if func.__name__ == '_big_mip' and not config.CACHE_BIGMIPS:
+        if func.__name__ == '_sia' and not config.CACHE_SIAS:
             return func
         return DbMemoizedFunc(func, ignore)
 
@@ -39,7 +39,7 @@ def cache(ignore=None):
 
 class DbMemoizedFunc:
 
-    '''A memoized function, with a databse backing the cache.'''
+    """A memoized function, with a databse backing the cache."""
 
     def __init__(self, func, ignore):
         # Store a reference to the raw function, without any memoization.
@@ -70,8 +70,8 @@ class DbMemoizedFunc:
 
     # TODO make this easier to use
     def get_output_key(self, args, kwargs):
-        '''Return the key that the output should be cached with, given
-        arguments, keyword arguments, and a list of arguments to ignore.'''
+        """Return the key that the output should be cached with, given
+        arguments, keyword arguments, and a list of arguments to ignore."""
         # Get a dictionary mapping argument names to argument values where
         # ignored arguments are omitted.
         filtered_args = joblib.func_inspect.filter_args(
@@ -82,5 +82,5 @@ class DbMemoizedFunc:
         return db.generate_key(filtered_args)
 
     def load_output(self, args, kwargs):
-        '''Return cached output.'''
+        """Return cached output."""
         return db.find(self.get_output_key(args, kwargs))
