@@ -225,12 +225,12 @@ r"""
 r"""
 .. |compute.conceptual_info()| replace:: :func:`~pyphi.compute.subsystem.conceptual_info`
 .. |compute.sia()| replace:: :func:`~pyphi.compute.subsystem.sia`
-.. |compute.subsystems()| replace:: :func:`~pyphi.compute.subsystem.subsystems`
-.. |compute.possible_complexes()| replace:: :func:`~pyphi.compute.subsystem.possible_complexes`
-.. |compute.complexes()| replace:: :func:`~pyphi.compute.subsystem.complexes`
-.. |compute.all_complexes()| replace:: :func:`~pyphi.compute.subsystem.all_complexes`
-.. |compute.condensed()| replace:: :func:`~pyphi.compute.subsystem.condensed`
 .. |compute.phi()| replace:: :func:`~pyphi.compute.subsystem.phi`
+.. |compute.subsystems()| replace:: :func:`~pyphi.compute.network.subsystems`
+.. |compute.possible_complexes()| replace:: :func:`~pyphi.compute.network.possible_complexes`
+.. |compute.complexes()| replace:: :func:`~pyphi.compute.network.complexes`
+.. |compute.all_complexes()| replace:: :func:`~pyphi.compute.network.all_complexes`
+.. |compute.condensed()| replace:: :func:`~pyphi.compute.network.condensed`
 
 .. |Subsystem.clear_caches()| replace:: :func:`~pyphi.subsystem.Subsystem.clear_caches`
 
