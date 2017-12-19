@@ -3,7 +3,7 @@
 # cache.py
 
 """
-A memory-limited cache decorator.
+Memoization and caching utilities.
 """
 
 # pylint: disable=redefined-builtin,redefined-outer-name,missing-docstring
