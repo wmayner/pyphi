@@ -7,7 +7,10 @@ import pytest
 
 import example_networks
 from pyphi import Direction, Network, config, exceptions
-from pyphi.models import Bipartition, Cut, KPartition, Part, Tripartition
+from pyphi.models import (Concept, Bipartition, Cut, KPartition, Part,
+                          Tripartition, MaximallyIrreducibleCause,
+                          MaximallyIrreducibleEffect,
+                          RepertoireIrreducibilityAnalysis)
 from pyphi.subsystem import (Subsystem, all_partitions, mip_bipartitions,
                              wedge_partitions)
 
@@ -217,3 +220,26 @@ def test_specify_elements_with_labels(standard):
 
 def test_indices2labels(s):
     assert s.indices2labels((1, 2)) == ('B', 'C')
+
+
+def test_null_concept(s):
+    cause = MaximallyIrreducibleCause(
+        RepertoireIrreducibilityAnalysis(
+            repertoire=s.unconstrained_cause_repertoire(()), phi=0,
+            direction=Direction.CAUSE, mechanism=(), purview=(),
+            partition=None, partitioned_repertoire=None))
+    effect = MaximallyIrreducibleEffect(
+        RepertoireIrreducibilityAnalysis(
+            repertoire=s.unconstrained_effect_repertoire(()), phi=0,
+            direction=Direction.EFFECT, mechanism=(), purview=(),
+            partition=None, partitioned_repertoire=None))
+    assert (s.null_concept ==
+            Concept(mechanism=(), cause=cause, effect=effect, subsystem=s))
+
+
+def test_concept_no_mechanism(s):
+    assert s.concept(()) == s.null_concept
+
+
+def test_concept_nonexistent(s):
+    assert not s.concept((0, 2))

@@ -767,7 +767,7 @@ class Subsystem:
 
         # If the mechanism is empty, there is no concept.
         if not mechanism:
-            result = self.null_concept()
+            result = self.null_concept
         else:
             # Calculate the maximally irreducible cause repertoire.
             cause = self.mic(mechanism,

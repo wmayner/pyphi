@@ -227,26 +227,6 @@ def check_mip(mip, answer):
 # Tests
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def test_null_concept(s, flushcache, restore_fs_cache):
-    flushcache()
-    cause = models.MaximallyIrreducibleCause(models.RepertoireIrreducibilityAnalysis(
-        repertoire=s.unconstrained_cause_repertoire(()),
-        phi=0, direction=Direction.CAUSE, mechanism=(), purview=(),
-        partition=None, partitioned_repertoire=None))
-    effect = models.MaximallyIrreducibleEffect(models.RepertoireIrreducibilityAnalysis(
-        repertoire=s.unconstrained_effect_repertoire(()),
-        phi=0, direction=Direction.EFFECT, mechanism=(), purview=(),
-        partition=None, partitioned_repertoire=None))
-    assert (s.null_concept ==
-            models.Concept(mechanism=(), cause=cause, effect=effect,
-                           subsystem=s))
-
-
-def test_concept_nonexistent(s, flushcache, restore_fs_cache):
-    flushcache()
-    assert not s.concept((0, 2))
-
-
 @patch('pyphi.compute.distance._ces_distance_simple')
 @patch('pyphi.compute.distance._ces_distance_emd')
 def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
