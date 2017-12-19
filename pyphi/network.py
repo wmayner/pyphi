@@ -74,12 +74,12 @@ class Network:
     @property
     def tpm(self):
         """np.ndarray: The network's transition probability matrix, in
-        n-dimensional form."""
+        multidimensional form."""
         return self._tpm
 
     @staticmethod
     def _build_tpm(tpm):
-        """Validate the TPM passed by the user and convert to n-dimensional
+        """Validate the TPM passed by the user and convert to multidimensional
         form.
         """
         tpm = np.array(tpm)
@@ -90,7 +90,7 @@ class Network:
         if is_state_by_state(tpm):
             tpm = convert.state_by_state2state_by_node(tpm)
         else:
-            tpm = convert.to_n_dimensional(tpm)
+            tpm = convert.to_multidimensional(tpm)
 
         utils.np_immutable(tpm)
 

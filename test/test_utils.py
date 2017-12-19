@@ -21,7 +21,7 @@ def test_all_states():
         (1, 1, 1),
     ]
     assert list(utils.all_states(3)) == states
-    assert list(utils.all_states(3, holi=True)) == [
+    assert list(utils.all_states(3, big_endian=True)) == [
         tuple(reversed(state)) for state in states
     ]
 

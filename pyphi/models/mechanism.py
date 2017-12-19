@@ -469,7 +469,7 @@ class Concept(cmp.Orderable):
             attr: getattr(self, attr)
             for attr in _concept_attributes + ['time']
         }
-        # These flattened, LOLI-order repertoires are passed to `vphi` via
+        # These flattened, little-endian repertoires are passed to `vphi` via
         # `phiserver`.
         dct.update({
             'expanded_cause_repertoire': distribution.flatten(

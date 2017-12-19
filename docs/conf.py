@@ -234,8 +234,8 @@ r"""
 
 .. |configure_logging()| replace:: :func:`~pyphi.config.configure_logging`
 
-.. |loli_index2state()| replace:: :func:`~pyphi.convert.loli_index2state`
-.. |holi_index2state()| replace:: :func:`~pyphi.convert.holi_index2state`
+.. |le_index2state()| replace:: :func:`~pyphi.convert.le_index2state`
+.. |be_index2state()| replace:: :func:`~pyphi.convert.be_index2state`
 """,
 # Classes
 r"""

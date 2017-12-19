@@ -12,7 +12,7 @@ def test_is_state_by_state():
     tpm = np.ones((8, 8))
     assert is_state_by_state(tpm)
 
-    # State-by-node, N-dimensional
+    # State-by-node, multidimensional
     tpm = np.ones((2, 2, 2, 3))
     assert not is_state_by_state(tpm)
 

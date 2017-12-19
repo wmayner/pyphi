@@ -307,7 +307,7 @@ def test_coarsegrain_spatial_degenerate():
 
 
 def test_degenerate(degenerate):
-    assert np.array_equal(degenerate.tpm, convert.to_n_dimensional(np.array([
+    assert np.array_equal(degenerate.tpm, convert.to_multidimensional(np.array([
         [0, 0],
         [0, 1],
         [1, 0],

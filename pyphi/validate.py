@@ -38,10 +38,12 @@ def tpm(tpm, check_independence=True):
 
         * 2-dimensional state-by-state form,
         * 2-dimensional state-by-node form, or
-        * n-dimensional state-by-node form.
+        * multidimensional state-by-node form.
     """
-    see_tpm_docs = ('See documentation for `pyphi.Network` for more '
-                    'information on TPM formats.')
+    see_tpm_docs = (
+        'See the documentation on TPM conventions and the `pyphi.Network` '
+        'object for more information on TPM forms.'
+    )
     # Cast to np.array.
     tpm = np.array(tpm)
     # Get the number of nodes from the state-by-node TPM.
@@ -59,12 +61,12 @@ def tpm(tpm, check_independence=True):
     elif tpm.ndim == (N + 1):
         if tpm.shape != tuple([2] * N + [N]):
             raise ValueError(
-                'Invalid shape for n-dimensional state-by-node TPM: {}\nThe '
+                'Invalid shape for multidimensional state-by-node TPM: {}\nThe '
                 'shape should be {} for {} nodes. {}'.format(
                     tpm.shape, ([2] * N) + [N], N, see_tpm_docs))
     else:
         raise ValueError(
-            'Invalid TPM: Must be either 2-dimensional or n-dimensional. '
+            'Invalid TPM: Must be either 2-dimensional or multidimensional. '
             '{}'.format(see_tpm_docs))
     return True
 

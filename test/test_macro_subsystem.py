@@ -190,7 +190,7 @@ def test_run_tpm():
         [1, 1, 1],
         [1, 1, 0],
     ])
-    answer = convert.to_n_dimensional(np.array([
+    answer = convert.to_multidimensional(np.array([
         [0, 0, 0],
         [1, 1, 0],
         [1, 1, 1],
@@ -373,7 +373,7 @@ def test_blackbox_partial_noise(s):
     # Noise connection from 2 -> 0
     assert np.array_equal(
         noised.tpm,
-        convert.to_n_dimensional(np.array([
+        convert.to_multidimensional(np.array([
             [.5, 0, 0],
             [.5, 0, 1],
             [1., 0, 1],
@@ -398,7 +398,7 @@ def test_blackbox_partial_noise(s):
 def test_blackbox_timescale():
     # System is an OR gate and a COPY gate; the OR gate is connected with a
     # self loop.
-    tpm = convert.to_n_dimensional(np.array([
+    tpm = convert.to_multidimensional(np.array([
         [0, 0],
         [1, 1],
         [1, 0],

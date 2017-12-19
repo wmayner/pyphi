@@ -76,7 +76,7 @@ def infer_edge(tpm, a, b, contexts):
     p(B | C(A), A=0) =/= p(B | C(A), A=1).
 
     Args:
-        tpm (np.ndarray): The TPM in state-by-node, n-dimensional form.
+        tpm (np.ndarray): The TPM in state-by-node, multidimensional form.
         a (int): The index of the putative source node.
         b (int): The index of the putative sink node.
     Returns:
@@ -100,7 +100,7 @@ def infer_edge(tpm, a, b, contexts):
 
 def infer_cm(tpm):
     """Infer the connectivity matrix associated with a state-by-node TPM in
-    n-dimensional form."""
+    multidimensional form."""
     network_size = tpm.shape[-1]
     all_contexts = tuple(all_states(network_size - 1))
     cm = np.empty((network_size, network_size), dtype=int)

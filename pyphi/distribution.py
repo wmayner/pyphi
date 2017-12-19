@@ -127,16 +127,17 @@ def repertoire_shape(purview, N):  # pylint: disable=redefined-outer-name
     return [2 if i in purview else 1 for i in range(N)]
 
 
-def flatten(repertoire, holi=False):
+def flatten(repertoire, big_endian=False):
     """Flatten a repertoire, removing empty dimensions.
 
-    By default, the flattened repertoire is returned in LOLI order.
+    By default, the flattened repertoire is returned in little-endian order.
 
     Args:
         repertoire (np.ndarray or None): A repertoire.
 
     Keyword Args:
-        holi (boolean): If ``True``, flatten the repertoire in HOLI order.
+        big_endian (boolean): If ``True``, flatten the repertoire in big-endian
+            order.
 
     Returns:
         np.ndarray: The flattened repertoire.
@@ -144,7 +145,7 @@ def flatten(repertoire, holi=False):
     if repertoire is None:
         return None
 
-    order = 'C' if holi else 'F'
+    order = 'C' if big_endian else 'F'
     # For efficiency, use `ravel` (which returns a view of the array) instead
     # of `np.flatten` (which copies the whole array).
     return repertoire.squeeze().ravel(order=order)

@@ -22,26 +22,26 @@ def state_of(nodes, network_state):
     return tuple(network_state[n] for n in nodes) if nodes else ()
 
 
-def all_states(n, holi=False):
+def all_states(n, big_endian=False):
     """Return all binary states for a system.
 
     Args:
         n (int): The number of elements in the system.
-        holi (bool): Whether to return the states in HOLI order instead of LOLI
-            order.
+        big_endian (bool): Whether to return the states in big-endian order
+            instead of little-endian order.
 
     Yields:
-        tuple[int]: The next state of an ``n``-element system, in LOLI order
-        unless ``holi`` is ``True``.
+        tuple[int]: The next state of an ``n``-element system, in little-endian
+        order unless ``big_endian`` is ``True``.
     """
     if n == 0:
         return
 
     for state in product((0, 1), repeat=n):
-        if holi:
+        if big_endian:
             yield state
         else:
-            yield state[::-1]  # Convert to LOLI-ordering
+            yield state[::-1]  # Convert to little-endian ordering
 
 
 def np_immutable(a):

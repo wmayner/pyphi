@@ -503,7 +503,7 @@ class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
         # Find the corresponding macro-state for each micro-state.
         # The i-th entry in the mapping is the macro-state corresponding to the
         # i-th micro-state.
-        mapping = [convert.state2loli_index(self.macro_state(micro_state))
+        mapping = [convert.state2le_index(self.macro_state(micro_state))
                    for micro_state in micro_states]
         return np.array(mapping)
 

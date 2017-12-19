@@ -103,10 +103,10 @@ The interpretation of the mapping uses the little-endian convention of indexing
 
 This says that micro-state 7 corresponds to macro-state 1:
 
-    >>> pyphi.convert.loli_index2state(7, 4)
+    >>> pyphi.convert.le_index2state(7, 4)
     (1, 1, 1, 0)
 
-    >>> pyphi.convert.loli_index2state(1, 2)
+    >>> pyphi.convert.le_index2state(1, 2)
     (1, 0)
 
 In micro-state 7, all three elements corresponding to the first macro-element
