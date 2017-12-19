@@ -8,8 +8,8 @@ import tempfile
 import numpy as np
 import pytest
 
-from pyphi import (Direction, actual, compute, config, constants, exceptions,
-                   jsonify, models, network)
+from pyphi import (Direction, actual, compute, config, exceptions, jsonify,
+                   models, network)
 from test_actual import transition
 
 
@@ -89,7 +89,7 @@ def test_deserialization_memoizes_duplicate_objects(s):
     s1 = sia.subsystem
     # Computed in a parallel process, so has a different id
     s2 = sia.ces[0].subsystem
-    assert not s1 is s2
+    assert s1 is not s2
     assert s1 == s2
     assert hash(s1) == hash(s2)
 

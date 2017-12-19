@@ -221,6 +221,7 @@ def test_transition_apply_cut(transition):
 def test_to_json(transition):
     transition.to_json()
 
+
 # Test AC models
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -504,8 +505,7 @@ def test_get_actual_cuts(direction, answer, transition):
 def test_sia(transition):
     sia = actual.sia(transition)
     assert sia.alpha == 0.415037
-    assert sia.cut == ac_cut(Direction.CAUSE,
-                                Part((), (1,)), Part((0,), (2,)))
+    assert sia.cut == ac_cut(Direction.CAUSE, Part((), (1,)), Part((0,), (2,)))
     assert len(sia.account) == 3
     assert len(sia.partitioned_account) == 2
 
@@ -518,9 +518,7 @@ def test_null_ac_sia(transition):
     assert sia.partitioned_account == ()
     assert sia.alpha == 0.0
 
-    sia = actual._null_ac_sia(transition,
-                                    Direction.CAUSE,
-                                    alpha=float('inf'))
+    sia = actual._null_ac_sia(transition, Direction.CAUSE, alpha=float('inf'))
     assert sia.alpha == float('inf')
 
 

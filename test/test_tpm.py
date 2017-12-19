@@ -45,5 +45,6 @@ def test_marginalize_out(s):
                           np.array([[[[0.5, 0.0, 0.5],
                                       [1.0, 1.0, 0.5]]]]))
 
+
 def test_infer_cm(rule152):
     assert np.array_equal(infer_cm(rule152.tpm), rule152.cm)

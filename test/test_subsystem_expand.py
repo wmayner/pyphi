@@ -22,10 +22,10 @@ def test_expand_cause_repertoire(micro_s_all_off):
     assert np.all(abs(A.expand_cause_repertoire(CD) - cause) < EPSILON)
     assert np.all(abs(
         A.expand_cause_repertoire(BCD).flatten(order='F') -
-        np.array([1/6 if i < 6 else 0 for i in range(8)])) < EPSILON)
+        np.array([1 / 6 if i < 6 else 0 for i in range(8)])) < EPSILON)
     assert np.all(abs(
         A.expand_cause_repertoire(ABCD).flatten(order='F') -
-        np.array([1/12 if i < 12 else 0 for i in range(16)])) < EPSILON)
+        np.array([1 / 12 if i < 12 else 0 for i in range(16)])) < EPSILON)
     assert np.all(abs(A.expand_cause_repertoire(ABCD) -
                       A.expand_cause_repertoire()) < EPSILON)
 

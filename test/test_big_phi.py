@@ -5,15 +5,12 @@
 import pickle
 from unittest.mock import patch
 
-import numpy as np
 import pytest
 
-from pyphi import (Direction, Network, Subsystem, compute, config, constants,
+from pyphi import (Network, Subsystem, compute, config, constants,
                    models, utils)
 from pyphi.compute.subsystem import (ComputeSystemIrreducibility,
                                      sia_bipartitions)
-from pyphi.models import (Cut, _null_sia)
-from pyphi.partition import directed_bipartition
 
 # pylint: disable=unused-argument
 
@@ -230,7 +227,7 @@ def check_mip(mip, answer):
 @patch('pyphi.compute.distance._ces_distance_simple')
 @patch('pyphi.compute.distance._ces_distance_emd')
 def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
-                                                   mock_simple_distance, s):
+                                         mock_simple_distance, s):
     """Quick check that we use the correct CES distance function.
 
     If the two CESs differ only in that some concepts have
@@ -265,18 +262,16 @@ def test_ces_distance_switches_to_small_phi_difference(s):
     mip = compute.sia(s)
     ce_structures = (mip.ces, mip.partitioned_ces)
 
-    with config.override(
-            USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=False):
-        assert 2.3125 == compute.ces_distance(*ce_structures)
+    with config.override(USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=False):
+        assert compute.ces_distance(*ce_structures) == 2.3125
 
-    with config.override(
-            USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=True):
-        assert 1.083333 == compute.ces_distance(*ce_structures)
+    with config.override(USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=True):
+        assert compute.ces_distance(*ce_structures) == 1.083333
 
 
 @config.override(CACHE_SIAS=True)
 def test_sia_cache_key_includes_config_dependencies(s, flushcache,
-                                                        restore_fs_cache):
+                                                    restore_fs_cache):
     flushcache()
 
     with config.override(MEASURE='EMD'):
@@ -296,11 +291,12 @@ def test_conceptual_info(s, flushcache, restore_fs_cache):
 def test_sia_empty_subsystem(s_empty, flushcache, restore_fs_cache):
     flushcache()
     assert (compute.sia(s_empty) ==
-            models.SystemIrreducibilityAnalysis(phi=0.0,
-                          ces=(),
-                          partitioned_ces=(),
-                          subsystem=s_empty,
-                          cut_subsystem=s_empty))
+            models.SystemIrreducibilityAnalysis(
+                phi=0.0,
+                ces=(),
+                partitioned_ces=(),
+                subsystem=s_empty,
+                cut_subsystem=s_empty))
 
 
 def test_sia_disconnected_network(reducible, flushcache, restore_fs_cache):
@@ -353,16 +349,16 @@ def standard_ComputeSystemIrreducibility(s):
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_standard_example(standard_ComputeSystemIrreducibility, flushcache,
-                                              restore_fs_cache):
+def test_find_mip_sequential_standard_example(
+        standard_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
     mip = standard_ComputeSystemIrreducibility.run_sequential()
     check_mip(mip, standard_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
-def test_find_mip_parallel_standard_example(standard_ComputeSystemIrreducibility, flushcache,
-                                            restore_fs_cache):
+def test_find_mip_parallel_standard_example(
+        standard_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
     mip = standard_ComputeSystemIrreducibility.run_parallel()
     check_mip(mip, standard_answer)
@@ -376,16 +372,16 @@ def s_noised_ComputeSystemIrreducibility(s_noised):
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_noised_example(s_noised_ComputeSystemIrreducibility, flushcache,
-                                            restore_fs_cache):
+def test_find_mip_sequential_noised_example(
+        s_noised_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
     mip = s_noised_ComputeSystemIrreducibility.run_sequential()
     check_mip(mip, noised_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
-def test_find_mip_parallel_noised_example(s_noised_ComputeSystemIrreducibility, flushcache,
-                                          restore_fs_cache):
+def test_find_mip_parallel_noised_example(
+        s_noised_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
     mip = s_noised_ComputeSystemIrreducibility.run_parallel()
     check_mip(mip, noised_answer)
@@ -399,16 +395,16 @@ def micro_s_ComputeSystemIrreducibility(micro_s):
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True)
-def test_find_mip_parallel_micro(micro_s_ComputeSystemIrreducibility, flushcache,
-                                 restore_fs_cache):
+def test_find_mip_parallel_micro(
+        micro_s_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
     mip = micro_s_ComputeSystemIrreducibility.run_parallel()
     check_mip(mip, micro_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_micro(micro_s_ComputeSystemIrreducibility, flushcache,
-                                   restore_fs_cache):
+def test_find_mip_sequential_micro(
+        micro_s_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
     mip = micro_s_ComputeSystemIrreducibility.run_sequential()
     check_mip(mip, micro_answer)
@@ -479,7 +475,7 @@ def test_sia_big_network(big_subsys_all, flushcache, restore_fs_cache):
 
 
 def test_sia_big_network_0_thru_3(big_subsys_0_thru_3, flushcache,
-                                      restore_fs_cache):
+                                  restore_fs_cache):
     flushcache()
     mip = compute.sia(big_subsys_0_thru_3)
     check_mip(mip, big_subsys_0_thru_3_answer)

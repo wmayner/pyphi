@@ -84,7 +84,7 @@ scenarios = [
                   cut=Cut((2,), (0, 1))),
         [0],
         [1],
-        np.array([1/3, 2/3]).reshape(1, 2, 1, order="F")
+        np.array([1 / 3, 2 / 3]).reshape(1, 2, 1, order="F")
     ),
         # }}}
         # Subset, with cut {{{
@@ -299,7 +299,7 @@ scenarios = [
         simple_a_just_on,
         [1],
         [0, 1, 2],
-        np.array([1., 0., 0., 0., 0., 0., 0., 0.]).reshape(2,2,2)
+        np.array([1., 0., 0., 0., 0., 0., 0., 0.]).reshape(2, 2, 2)
     ), (
         'effect_repertoire',
         simple_a_just_on,
@@ -321,7 +321,7 @@ scenarios = [
         simple_all_off,
         [0],
         [0, 1, 2],
-        np.array([0.75, 0., 0., 0., 0.25, 0., 0., 0.]).reshape(2,2,2)
+        np.array([0.75, 0., 0., 0., 0.25, 0., 0., 0.]).reshape(2, 2, 2)
     )
         # }}}
     # }}}
@@ -349,9 +349,9 @@ def test_cause_and_effect_repertoire(function, subsystem, mechanism, purview,
     print("\nMechanism:".rjust(12), mechanism, "\nPurview:".rjust(12), purview,
           "\nCut:".rjust(12), subsystem.cut, "\n")
 
-    print('-'*40, "Result:", result, "\nResult Shape:", result.shape, '-'*40,
-          "Expected:", expected, "\nExpected Shape:", expected.shape, '-'*40,
-          sep="\n")
+    print('-' * 40, "Result:", result, "\nResult Shape:", result.shape,
+          '-' * 40, "Expected:", expected, "\nExpected Shape:", expected.shape,
+          '-' * 40, sep="\n")
 
     assert np.array_equal(result, expected)
 

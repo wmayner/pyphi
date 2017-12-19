@@ -9,6 +9,7 @@ import pytest
 
 from pyphi import Direction, Subsystem, config, constants, exceptions, models
 
+
 # Helper functions for constructing PyPhi objects
 # -----------------------------------------------
 
@@ -49,8 +50,8 @@ def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
         subsystem=subsystem)
 
 
-def sia(ces=(), partitioned_ces=(),
-           subsystem=None, cut_subsystem=None, phi=1.0):
+def sia(ces=(), partitioned_ces=(), subsystem=None, cut_subsystem=None,
+        phi=1.0):
     """Build a ``SystemIrreducibilityAnalysis``."""
     cut_subsystem = cut_subsystem or subsystem
 
@@ -440,6 +441,7 @@ def test_mic_raises_wrong_direction():
     mic(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
     with pytest.raises(exceptions.WrongDirectionError):
         mic(direction=Direction.EFFECT, mechanism=(0,), purview=(1,))
+
 
 def test_mie_raises_wrong_direction():
     mie(direction=Direction.EFFECT, mechanism=(0,), purview=(1,))
