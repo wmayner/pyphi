@@ -1,25 +1,3 @@
-.. _cm-conventions:
-
-Connectivity matrix conventions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Throughout PyPhi, if |CM| is a connectivity matrix, then |CM[i][j] = 1| means
-that there is a directed edge |(i,j)| from node |i| to node |j|, and 
-|CM[i][j] = 0| means there is no edge from |i| to |j|.
-
-For example, this network of four nodes
-
-.. image:: _static/connectivity-matrix-example-network.png
-    :width: 150px
-
-has the following connectivity matrix:
-
-    >>> cm = [[0, 0, 1, 0],
-    ...       [1, 0, 1, 0],
-    ...       [0, 1, 0, 1],
-    ...       [0, 0, 0, 1]]
-
-
 .. _tpm-conventions:
 
 Transition probability matrix conventions
@@ -88,3 +66,27 @@ this property.
     There are various conversion functions available for converting between
     TPMs, states, and indices using different conventions: see the
     :mod:`pyphi.convert` module.
+
+
+.. _cm-conventions:
+
+Connectivity matrix conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Throughout PyPhi, if |CM| is a connectivity matrix, then |CM[i][j] = 1| means
+that there is a directed edge |(i,j)| from node |i| to node |j|, and 
+|CM[i][j] = 0| means there is no edge from |i| to |j|.
+
+For example, this network of four nodes
+
+.. image:: _static/connectivity-matrix-example-network.png
+    :width: 150px
+
+has the following connectivity matrix:
+
+    >>> cm = [[0, 0, 1, 0],
+    ...       [1, 0, 1, 0],
+    ...       [0, 1, 0, 1],
+    ...       [0, 0, 0, 1]]
+
+
