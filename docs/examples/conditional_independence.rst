@@ -14,7 +14,7 @@ This example explores the assumption of conditional independence, and the
 behaviour of the program when it is not satisfied.
 
 Every state-by-node TPM corresponds to a unique state-by-state TPM which
-satisfies the conditional independence assumption. If a state-by-node TPM is
+satisfies the conditional independence property. If a state-by-node TPM is
 given as input for a network, the program assumes that it is from a system with
 the corresponding conditionally independent state-by-state TPM.
 
@@ -24,7 +24,7 @@ the system corresponds to the unique conditionally independent representation
 of the state-by-node TPM. **If a non-conditionally independent TPM is given,
 the analyzed system will not correspond to the original TPM**. Note that every
 deterministic state-by-state TPM will automatically satisfy the conditional
-independence assumption.
+independence property.
 
 Consider a system of two binary nodes (|A| and |B|) which do not change if they
 have the same value, but flip with probability 50% if they have different
@@ -40,12 +40,12 @@ We'll load the state-by-state TPM for such a system from the |examples| module:
     [ 0.   0.5  0.5  0. ]
     [ 0.   0.   0.   1. ]]
 
-This system does not satisfy the conditional independence assumption; given a
+This system does not satisfy the conditional independence property; given a
 previous state of ``(1, 0)``, the current state of node |A| depends on whether
 or not |B| has flipped.
 
 When creating a network, the program will convert this state-by-state TPM to a
-state-by-node form, and issue a warning if it does not satisfy the assumption:
+state-by-node form, and issue a warning if it does not satisfy the property:
 
    >>> sbn_tpm = pyphi.convert.state_by_state2state_by_node(tpm)
 
@@ -73,9 +73,9 @@ state-by-node TPM back to state-by-state form:
     [ 0.25  0.25  0.25  0.25]
     [ 0.    0.    0.    1.  ]]
 
-A system which does not satisfy the conditional independence assumption
-exhibits “instantaneous causality.” In such situations, there must be
-additional exogenous variable(s) which explain the dependence.
+A system which does not satisfy the conditional independence property exhibits
+“instantaneous causality.” In such situations, there must be additional
+exogenous variable(s) which explain the dependence.
 
 Consider the above example, but with the addition of a third node (|C|) which
 is equally likely to be ON or OFF, and such that when nodes |A| and |B| are in
@@ -94,7 +94,7 @@ OFF.
     [ 0.   0.   0.   0.5  0.   0.   0.   0.5]]
 
 The resulting state-by-state TPM now satisfies the conditional independence
-assumption.
+property.
 
    >>> sbn_tpm2 = pyphi.convert.state_by_state2state_by_node(tpm2)
    >>> print(sbn_tpm2)
