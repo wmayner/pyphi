@@ -84,8 +84,9 @@ def conditionally_independent(tpm):
             convert.state_by_node2state_by_state(tpm))
     if np.any((tpm - there_and_back_again) >= EPSILON):
         raise exceptions.ConditionallyDependentError(
-            'TPM is not conditionally independent. See the conditional '
-            'independence example in the documentation for more info.')
+            'TPM is not conditionally independent.\n'
+            'See the conditional independence example in the documentation '
+            'for more info.')
     return True
 
 
