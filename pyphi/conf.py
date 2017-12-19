@@ -388,8 +388,8 @@ class PyphiConfig(Config):
 
     PARALLEL_CUT_EVALUATION = Option(True, doc="""
     Controls whether system cuts are evaluated in parallel, which is faster but
-    requires more memory. If cuts are evaluated sequentially, only two |SystemIrreducibilityAnalysis|
-    instances need to be in memory at once.""")
+    requires more memory. If cuts are evaluated sequentially, only two
+    |SystemIrreducibilityAnalysis| instances need to be in memory at once.""")
 
     PARALLEL_COMPLEX_EVALUATION = Option(False, doc="""
     Controls whether systems are evaluated in parallel when computing
@@ -407,12 +407,13 @@ class PyphiConfig(Config):
     system's RAM that the caches can collectively use.""")
 
     CACHE_SIAS = Option(False, doc="""
-    PyPhi is equipped with a transparent caching system for |SystemIrreducibilityAnalysis| objects which
-    stores them as they are computed to avoid having to recompute them later. This
-    makes it easy to play around interactively with the program, or to accumulate
-    results with minimal effort. For larger projects, however, it is recommended
-    that you manage the results explicitly, rather than relying on the cache. For
-    this reason it is disabled by default.""")
+    PyPhi is equipped with a transparent caching system for
+    |SystemIrreducibilityAnalysis| objects which stores them as they are
+    computed to avoid having to recompute them later. This makes it easy to
+    play around interactively with the program, or to accumulate results with
+    minimal effort. For larger projects, however, it is recommended that you
+    manage the results explicitly, rather than relying on the cache. For this
+    reason it is disabled by default.""")
 
     CACHE_POTENTIAL_PURVIEWS = Option(True, doc="""
     Controls whether the potential purviews of mechanisms of a network are
@@ -482,8 +483,8 @@ class PyphiConfig(Config):
     Controls whether to show progress bars on the console.
 
       .. tip::
-        If you are iterating over many systems rather than doing one long-running
-        calculation, consider disabling this for speed.""")
+        If you are iterating over many systems rather than doing one
+        long-running calculation, consider disabling this for speed.""")
 
     PRECISION = Option(6, doc="""
     If ``MEASURE`` is ``EMD``, then the Earth Mover's Distance is calculated
@@ -580,8 +581,9 @@ class PyphiConfig(Config):
 
     USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE = Option(False, doc="""
     If set to ``True``, the distance between cause-effect structures (when
-    computing a |SystemIrreducibilityAnalysis|) is calculated using the difference between the sum of
-    |small_phi| in the cause-effect structures instead of the extended EMD.""")
+    computing a |SystemIrreducibilityAnalysis|) is calculated using the
+    difference between the sum of |small_phi| in the cause-effect structures
+    instead of the extended EMD.""")
 
     SYSTEM_CUTS = Option('3.0_STYLE', values=['3.0_STYLE', 'CONCEPT_STYLE'],
                          doc="""

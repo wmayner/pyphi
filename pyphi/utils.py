@@ -166,7 +166,7 @@ def powerset(iterable, nonempty=False, reverse=False):
     """
     iterable = list(iterable)
 
-    if nonempty: # Don't include 0-length subsets
+    if nonempty:  # Don't include 0-length subsets
         start = 1
     else:
         start = 0

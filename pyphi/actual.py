@@ -139,12 +139,14 @@ class Transition:
         return repr(self)
 
     def __eq__(self, other):
-        return (self.cause_indices == other.cause_indices
-                and self.effect_indices == other.effect_indices
-                and self.before_state == other.before_state
-                and self.after_state == other.after_state
-                and self.network == other.network
-                and self.cut == other.cut)
+        return (
+            self.cause_indices == other.cause_indices and
+            self.effect_indices == other.effect_indices and
+            self.before_state == other.before_state and
+            self.after_state == other.after_state and
+            self.network == other.network and
+            self.cut == other.cut
+        )
 
     def __hash__(self):
         return hash((self.cause_indices, self.effect_indices,
@@ -475,8 +477,8 @@ def account_distance(A1, A2):
     Returns:
         float: The distance between the two accounts.
     """
-    return (sum([action.alpha for action in A1])
-            - sum([action.alpha for action in A2]))
+    return (sum([action.alpha for action in A1]) -
+            sum([action.alpha for action in A2]))
 
 
 def _evaluate_cut(transition, cut, unpartitioned_account,

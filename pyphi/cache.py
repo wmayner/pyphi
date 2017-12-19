@@ -387,8 +387,8 @@ class DictMICECache(DictCache):
             implemented.
           - Memory is not too full.
         """
-        if (not self.subsystem.is_cut and mice.phi > 0
-                and not memory_full()):
+        if (not self.subsystem.is_cut and mice.phi > 0 and
+                not memory_full()):
             self.cache[key] = mice
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):

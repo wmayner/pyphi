@@ -13,12 +13,12 @@ from collections import namedtuple
 from . import cmp, fmt
 from .. import Direction, config, utils
 
-# TODO(slipperyhank): Why do we even need this?
 # TODO(slipperyhank): add second state
 _acria_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',
                      'partition', 'probability', 'partitioned_probability']
 _acria_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
                             'purview', 'probability']
+
 
 def greater_than_zero(alpha):
     """Return ``True`` if alpha is greater than zero, accounting for

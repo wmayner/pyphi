@@ -56,8 +56,9 @@ def possible_complexes(network, state):
     Yields:
         Subsystem: The next subsystem which could be a complex.
     """
-    return _reachable_subsystems(network, network.causally_significant_nodes,
-                                 state)
+    return _reachable_subsystems(
+        network, network.causally_significant_nodes, state)
+
 
 class FindAllComplexes(MapReduce):
     """Computation engine for finding all complexes."""

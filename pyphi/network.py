@@ -201,9 +201,11 @@ class Network:
 
         Networks are equal if they have the same TPM and CM.
         """
-        return (np.array_equal(self.tpm, other.tpm)
-                and np.array_equal(self.cm, other.cm)
-                if isinstance(other, type(self)) else False)
+        return (
+            isinstance(other, Network) and
+            np.array_equal(self.tpm, other.tpm) and
+            np.array_equal(self.cm, other.cm)
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)

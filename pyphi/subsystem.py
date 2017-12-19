@@ -165,7 +165,7 @@ class Subsystem:
     def cache_info(self):
         """Report repertoire cache statistics."""
         return {
-            'single_node_repertoire': \
+            'single_node_repertoire':
                 self._single_node_repertoire_cache.info(),
             'repertoire': self._repertoire_cache.info(),
             'mice': self._mice_cache.info()
@@ -197,10 +197,12 @@ class Subsystem:
         if not isinstance(other, Subsystem):
             return False
 
-        return (set(self.node_indices) == set(other.node_indices)
-                and self.state == other.state
-                and self.network == other.network
-                and self.cut == other.cut)
+        return (
+            set(self.node_indices) == set(other.node_indices) and
+            self.state == other.state and
+            self.network == other.network and
+            self.cut == other.cut
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -777,10 +779,10 @@ class Subsystem:
             result = Concept(mechanism=mechanism, cause=cause, effect=effect,
                              subsystem=self)
 
-
         result.time = round(time() - start, config.PRECISION)
         log.debug('Found concept %s', mechanism)
         return result
+
 
 def mip_partitions(mechanism, purview):
     """Return a generator over all mechanism-purview partitions, based on the
