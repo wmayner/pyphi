@@ -8,29 +8,33 @@ documentation.
 
 Attributes:
     SystemIrreducibilityAnalysis: Alias for
-        :class:`subsystem.SystemIrreducibilityAnalysis`
+        :class:`pyphi.models.subsystem.SystemIrreducibilityAnalysis`.
     RepertoireIrreducibilityAnalysis: Alias for
-        :class:`mechanism.RepertoireIrreducibilityAnalysis`
+        :class:`pyphi.models.mechanism.RepertoireIrreducibilityAnalysis`.
     MaximallyIrreducibleCause: Alias for
-        :class:`mechanism.MaximallyIrreducibleCause`
+        :class:`pyphi.models.mechanism.MaximallyIrreducibleCause`.
     MaximallyIrreducibleEffect: Alias for
-        :class:`mechanism.MaximallyIrreducibleEffect`
+        :class:`pyphi.models.mechanism.MaximallyIrreducibleEffect`.
     MaximallyIrreducibleCauseOrEffect: Alias for
-        :class:`mechanism.MaximallyIrreducibleCauseOrEffect`
-    Concept: Alias for :class:`mechanism.Concept`
-    CauseEffectStructure: Alias for :class:`subsystem.CauseEffectStructure`
-    Cut: Alias for :class:`cuts.Cut`
-    Part: Alias for :class:`cuts.Part`
-    Bipartition: Alias for :class:`cuts.Bipartition`
-    ActualCut: Alias for :class:`cuts.ActualCut`
-    AcRepertoireIrreducibilityAnalysis: Alias for
-        :class:`actual_causation.AcRepertoireIrreducibilityAnalysis`
-    CausalLink: Alias for :class:`actual_causation.CausalLink`
+        :class:`pyphi.models.mechanism.MaximallyIrreducibleCauseOrEffect`.
+    Concept: Alias for :class:`pyphi.models.mechanism.Concept`.
+    CauseEffectStructure: Alias for
+        :class:`pyphi.models.subsystem.CauseEffectStructure`.
+    Cut: Alias for :class:`pyphi.models.cuts.Cut`.
+    Part: Alias for :class:`pyphi.models.cuts.Part`.
+    Bipartition: Alias for :class:`pyphi.models.cuts.Bipartition`.
+    ActualCut: Alias for :class:`pyphi.models.cuts.ActualCut`.
+    AcRepertoireIrreducibilityAnalysis: Alias for.
+     :class:`pyphi.models.actual_causation.AcRepertoireIrreducibilityAnalysis`.
+    CausalLink: Alias for :class:`pyphi.models.actual_causation.CausalLink`.
     AcSystemIrreducibilityAnalysis: Alias for
-        :class:`actual_causation.AcSystemIrreducibilityAnalysis`
-    Account: Alias for :class:`actual_causation.Account`
-    DirectedAccount: Alias for :class:`actual_causation.DirectedAccount`
+        :class:`pyphi.models.actual_causation.AcSystemIrreducibilityAnalysis`.
+    Account: Alias for :class:`pyphi.models.actual_causation.Account`.
+    DirectedAccount: Alias for
+        :class:`pyphi.models.actual_causation.DirectedAccount`.
 """
+
+# pylint: disable=unused-import
 
 from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
                                AcRepertoireIrreducibilityAnalysis,
