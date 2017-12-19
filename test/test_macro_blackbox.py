@@ -115,10 +115,10 @@ def test_basic_nor_or():
                                blackbox=blackbox, time_scale=time)
 
     with config.override(CUT_ONE_APPROXIMATION=True):
-        mip = compute.sia(sub)
+        sia = compute.sia(sub)
 
-    assert mip.phi == 1.958332
-    assert mip.cut == models.Cut((6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11))
+    assert sia.phi == 1.958332
+    assert sia.cut == models.Cut((6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11))
     # After performing the 'ONE_CUT_APPROXIMATION'
     # The cut disrupts half of the connection from A (OR) to C (XOR).
     # It is able to do this because A 'enters' C from two different locations
@@ -302,8 +302,8 @@ def test_coarsegrain_spatial_degenerate():
     sub = macro.MacroSubsystem(net, state, range(net.size),
                                coarse_grain=coarse)
 
-    mip = compute.sia(sub)
-    assert mip.phi == 0.834183
+    sia = compute.sia(sub)
+    assert sia.phi == 0.834183
 
 
 def test_degenerate(degenerate):
@@ -317,13 +317,13 @@ def test_degenerate(degenerate):
         [0, 1],
         [1, 0]
     ]))
-    mip = compute.sia(degenerate)
-    assert mip.phi == 0.638888
+    sia = compute.sia(degenerate)
+    assert sia.phi == 0.638888
 
 
 def test_basic_propagation_delay(s, propagation_delay):
-    # bb_mip = compute.sia(bb_sub)
-    # assert bb_mip.phi == 2.125
-    # assert bb_mip.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
+    # bb_sia = compute.sia(bb_sub)
+    # assert bb_sia.phi == 2.125
+    # assert bb_sia.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
 
     assert np.array_equal(propagation_delay.cm, s.cm)

@@ -13,7 +13,7 @@ from pyphi import Direction, Subsystem, config, constants, exceptions, models
 # Helper functions for constructing PyPhi objects
 # -----------------------------------------------
 
-def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
+def ria(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
         repertoire=None, partitioned_repertoire=None):
     """Build a ``RepertoireIrreducibilityAnalysis``."""
     return models.RepertoireIrreducibilityAnalysis(
@@ -25,17 +25,17 @@ def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
 
 def mice(**kwargs):
     """Build a ``MaximallyIrreducibleCauseOrEffect``."""
-    return models.MaximallyIrreducibleCauseOrEffect(mip(**kwargs))
+    return models.MaximallyIrreducibleCauseOrEffect(ria(**kwargs))
 
 
 def mic(**kwargs):
     """Build a ``MIC``."""
-    return models.MaximallyIrreducibleCause(mip(**kwargs))
+    return models.MaximallyIrreducibleCause(ria(**kwargs))
 
 
 def mie(**kwargs):
     """Build a ``MIE``."""
-    return models.MaximallyIrreducibleEffect(mip(**kwargs))
+    return models.MaximallyIrreducibleEffect(ria(**kwargs))
 
 
 def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
@@ -294,32 +294,32 @@ def test_null_cut_equality():
 # }}}
 
 
-# Test MIP
+# Test ria
 # {{{
 
 
-def test_mip_ordering_and_equality():
-    assert mip(phi=1.0) < mip(phi=2.0)
-    assert mip(phi=2.0) > mip(phi=1.0)
-    assert mip(mechanism=(1,)) < mip(mechanism=(1, 2))
-    assert mip(mechanism=(1, 2)) >= mip(mechanism=(1,))
-    assert mip(purview=(1,)) < mip(purview=(1, 2))
-    assert mip(purview=(1, 2)) >= mip(purview=(1,))
+def test_ria_ordering_and_equality():
+    assert ria(phi=1.0) < ria(phi=2.0)
+    assert ria(phi=2.0) > ria(phi=1.0)
+    assert ria(mechanism=(1,)) < ria(mechanism=(1, 2))
+    assert ria(mechanism=(1, 2)) >= ria(mechanism=(1,))
+    assert ria(purview=(1,)) < ria(purview=(1, 2))
+    assert ria(purview=(1, 2)) >= ria(purview=(1,))
 
-    assert mip(phi=1.0) == mip(phi=1.0)
-    assert mip(phi=1.0) == mip(phi=(1.0 - constants.EPSILON / 2))
-    assert mip(phi=1.0) != mip(phi=(1.0 - constants.EPSILON * 2))
-    assert mip(direction=Direction.CAUSE) != mip(direction=Direction.EFFECT)
-    assert mip(mechanism=(1,)) != mip(mechanism=(1, 2))
+    assert ria(phi=1.0) == ria(phi=1.0)
+    assert ria(phi=1.0) == ria(phi=(1.0 - constants.EPSILON / 2))
+    assert ria(phi=1.0) != ria(phi=(1.0 - constants.EPSILON * 2))
+    assert ria(direction=Direction.CAUSE) != ria(direction=Direction.EFFECT)
+    assert ria(mechanism=(1,)) != ria(mechanism=(1, 2))
 
     with config.override(PICK_SMALLEST_PURVIEW=True):
-        assert mip(purview=(1, 2)) < mip(purview=(1,))
+        assert ria(purview=(1, 2)) < ria(purview=(1,))
 
     with pytest.raises(TypeError):
-        mip(direction=Direction.CAUSE) < mip(direction=Direction.EFFECT)
+        ria(direction=Direction.CAUSE) < ria(direction=Direction.EFFECT)
 
     with pytest.raises(TypeError):
-        mip(direction=Direction.CAUSE) >= mip(direction=Direction.EFFECT)
+        ria(direction=Direction.CAUSE) >= ria(direction=Direction.EFFECT)
 
 
 def test_null_ria():
@@ -338,9 +338,9 @@ def test_null_ria():
     assert null_ria.phi == 0
 
 
-def test_mip_repr_str():
-    print(repr(mip()))
-    print(str(mip()))
+def test_ria_repr_str():
+    print(repr(ria()))
+    print(str(ria()))
 
 
 # }}}

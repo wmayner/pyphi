@@ -231,7 +231,7 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     print('Result:', '---------', '', result, '', sep='\n')
     print('Expected:',  '---------', '', sep='\n')
     if expected:
-        print(*[ria for ria in expected], sep='\n')
+        print(*[mip for mip in expected], sep='\n')
     else:
         print(expected)
     print('\n')
@@ -251,15 +251,15 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
 def test_cause_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    ria_cause = s.find_mip(Direction.CAUSE, mechanism, purview)
-    assert ria_cause == s.cause_mip(mechanism, purview)
+    mip_cause = s.find_mip(Direction.CAUSE, mechanism, purview)
+    assert mip_cause == s.cause_mip(mechanism, purview)
 
 
 def test_effect_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    ria_effect = s.find_mip(Direction.EFFECT, mechanism, purview)
-    assert ria_effect == s.effect_mip(mechanism, purview)
+    mip_effect = s.find_mip(Direction.EFFECT, mechanism, purview)
+    assert mip_effect == s.effect_mip(mechanism, purview)
 
 
 def test_phi_cause_mip(s):

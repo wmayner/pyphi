@@ -126,11 +126,11 @@ def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
 
 
 def test_sia_concept_style(s):
-    mip = compute.sia_concept_style(s)
-    assert mip.min_sia is mip.sia_effect
+    sia = compute.sia_concept_style(s)
+    assert sia.min_sia is sia.sia_effect
     for attr in ['phi', 'ces', 'cut', 'subsystem',
                  'cut_subsystem', 'network', 'partitioned_ces']:
-        assert getattr(mip, attr) is getattr(mip.sia_effect, attr)
+        assert getattr(sia, attr) is getattr(sia.sia_effect, attr)
 
 
 @config.override(SYSTEM_CUTS='CONCEPT_STYLE')

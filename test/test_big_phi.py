@@ -205,20 +205,20 @@ def check_partitioned_small_phis(answer, partitioned_ces):
                 answer['sum_partitioned_small_phis'])
 
 
-def check_mip(mip, answer):
+def check_sia(sia, answer):
     # Check big phi value.
-    assert mip.phi == answer['phi']
+    assert sia.phi == answer['phi']
     # Check small phis of unpartitioned CES.
     check_unpartitioned_small_phis(answer['unpartitioned_small_phis'],
-                                   mip.ces)
+                                   sia.ces)
     # Check sum of small phis of partitioned CES if answer is
     # available.
-    check_partitioned_small_phis(answer, mip.partitioned_ces)
+    check_partitioned_small_phis(answer, sia.partitioned_ces)
     # Check cut.
     if 'cut' in answer:
-        assert mip.cut == answer['cut']
+        assert sia.cut == answer['cut']
     elif 'cuts' in answer:
-        assert mip.cut in answer['cuts']
+        assert sia.cut in answer['cuts']
 
 
 # Tests
@@ -259,8 +259,8 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
 
 
 def test_ces_distance_switches_to_small_phi_difference(s):
-    mip = compute.sia(s)
-    ce_structures = (mip.ces, mip.partitioned_ces)
+    sia = compute.sia(s)
+    ce_structures = (sia.ces, sia.partitioned_ces)
 
     with config.override(USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=False):
         assert compute.ces_distance(*ce_structures) == 2.3125
@@ -365,19 +365,19 @@ def standard_ComputeSystemIrreducibility(s):
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_standard_example(
+def test_find_sia_sequential_standard_example(
         standard_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
-    mip = standard_ComputeSystemIrreducibility.run_sequential()
-    check_mip(mip, standard_answer)
+    sia = standard_ComputeSystemIrreducibility.run_sequential()
+    check_sia(sia, standard_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
-def test_find_mip_parallel_standard_example(
+def test_find_sia_parallel_standard_example(
         standard_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
-    mip = standard_ComputeSystemIrreducibility.run_parallel()
-    check_mip(mip, standard_answer)
+    sia = standard_ComputeSystemIrreducibility.run_parallel()
+    check_sia(sia, standard_answer)
 
 
 @pytest.fixture
@@ -388,19 +388,19 @@ def s_noised_ComputeSystemIrreducibility(s_noised):
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_noised_example(
+def test_find_sia_sequential_noised_example(
         s_noised_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
-    mip = s_noised_ComputeSystemIrreducibility.run_sequential()
-    check_mip(mip, noised_answer)
+    sia = s_noised_ComputeSystemIrreducibility.run_sequential()
+    check_sia(sia, noised_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
-def test_find_mip_parallel_noised_example(
+def test_find_sia_parallel_noised_example(
         s_noised_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
-    mip = s_noised_ComputeSystemIrreducibility.run_parallel()
-    check_mip(mip, noised_answer)
+    sia = s_noised_ComputeSystemIrreducibility.run_parallel()
+    check_sia(sia, noised_answer)
 
 
 @pytest.fixture
@@ -411,19 +411,19 @@ def micro_s_ComputeSystemIrreducibility(micro_s):
 
 
 @config.override(PARALLEL_CUT_EVALUATION=True)
-def test_find_mip_parallel_micro(
+def test_find_sia_parallel_micro(
         micro_s_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
-    mip = micro_s_ComputeSystemIrreducibility.run_parallel()
-    check_mip(mip, micro_answer)
+    sia = micro_s_ComputeSystemIrreducibility.run_parallel()
+    check_sia(sia, micro_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_find_mip_sequential_micro(
+def test_find_sia_sequential_micro(
         micro_s_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
     flushcache()
-    mip = micro_s_ComputeSystemIrreducibility.run_sequential()
-    check_mip(mip, micro_answer)
+    sia = micro_s_ComputeSystemIrreducibility.run_sequential()
+    check_sia(sia, micro_answer)
 
 
 def test_possible_complexes(s):
@@ -439,14 +439,14 @@ def test_possible_complexes(s):
 def test_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
     complexes = list(compute.complexes(s.network, s.state))
-    check_mip(complexes[0], standard_answer)
+    check_sia(complexes[0], standard_answer)
 
 
 # TODO!! add more assertions for the smaller subsystems
 def test_all_complexes_standard(s, flushcache, restore_fs_cache):
     flushcache()
     complexes = list(compute.all_complexes(s.network, s.state))
-    check_mip(complexes[0], standard_answer)
+    check_sia(complexes[0], standard_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
@@ -462,46 +462,46 @@ def test_all_complexes_parallelization(s, flushcache, restore_fs_cache):
 
 
 def test_sia_complete_graph_standard_example(s_complete):
-    mip = compute.sia(s_complete)
-    check_mip(mip, standard_answer)
+    sia = compute.sia(s_complete)
+    check_sia(sia, standard_answer)
 
 
 def test_sia_complete_graph_s_noised(s_noised_complete):
-    mip = compute.sia(s_noised_complete)
-    check_mip(mip, noised_answer)
+    sia = compute.sia(s_noised_complete)
+    check_sia(sia, noised_answer)
 
 
 @pytest.mark.slow
 def test_sia_complete_graph_big_subsys_all(big_subsys_all_complete):
-    mip = compute.sia(big_subsys_all_complete)
-    check_mip(mip, big_answer)
+    sia = compute.sia(big_subsys_all_complete)
+    check_sia(sia, big_answer)
 
 
 @pytest.mark.slow
 def test_sia_complete_graph_rule152_s(rule152_s_complete):
-    mip = compute.sia(rule152_s_complete)
-    check_mip(mip, rule152_answer)
+    sia = compute.sia(rule152_s_complete)
+    check_sia(sia, rule152_answer)
 
 
 @pytest.mark.slow
 def test_sia_big_network(big_subsys_all, flushcache, restore_fs_cache):
     flushcache()
-    mip = compute.sia(big_subsys_all)
-    check_mip(mip, big_answer)
+    sia = compute.sia(big_subsys_all)
+    check_sia(sia, big_answer)
 
 
 def test_sia_big_network_0_thru_3(big_subsys_0_thru_3, flushcache,
                                   restore_fs_cache):
     flushcache()
-    mip = compute.sia(big_subsys_0_thru_3)
-    check_mip(mip, big_subsys_0_thru_3_answer)
+    sia = compute.sia(big_subsys_0_thru_3)
+    check_sia(sia, big_subsys_0_thru_3_answer)
 
 
 @pytest.mark.slow
 def test_sia_rule152(rule152_s, flushcache, restore_fs_cache):
     flushcache()
-    mip = compute.sia(rule152_s)
-    check_mip(mip, rule152_answer)
+    sia = compute.sia(rule152_s)
+    check_sia(sia, rule152_answer)
 
 
 # TODO fix this horribly outdated mess that never worked in the first place :P
@@ -559,8 +559,8 @@ def test_rule152_complexes_no_caching(rule152):
 @pytest.mark.dev
 def test_sia_macro(macro_s, flushcache, restore_fs_cache):
     flushcache()
-    mip = compute.sia(macro_s)
-    check_mip(mip, macro_answer)
+    sia = compute.sia(macro_s)
+    check_sia(sia, macro_answer)
 
 
 def test_parallel_and_sequential_ces_are_equal(s, micro_s, macro_s):

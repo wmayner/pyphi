@@ -225,7 +225,7 @@ def test_to_json(transition):
 # Test AC models
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def acmip(**kwargs):
+def acria(**kwargs):
     defaults = {
         'alpha': 0.0,
         'state': None,
@@ -241,7 +241,7 @@ def acmip(**kwargs):
 
 
 def causal_link(**kwargs):
-    return models.CausalLink(acmip(**kwargs))
+    return models.CausalLink(acria(**kwargs))
 
 
 def account(links=()):
@@ -261,31 +261,31 @@ def ac_sia(**kwargs):
     return models.AcSystemIrreducibilityAnalysis(**defaults)
 
 
-def test_acmip_ordering():
-    assert acmip() == acmip()
-    assert acmip(alpha=0.0) < acmip(alpha=1.0)
-    assert (acmip(alpha=0.0, mechanism=(1, 2)) <=
-            acmip(alpha=1.0, mechanism=(1,)))
-    assert (acmip(alpha=0.0, mechanism=(1, 2)) >
-            acmip(alpha=0.0, mechanism=(1,)))
+def test_acria_ordering():
+    assert acria() == acria()
+    assert acria(alpha=0.0) < acria(alpha=1.0)
+    assert (acria(alpha=0.0, mechanism=(1, 2)) <=
+            acria(alpha=1.0, mechanism=(1,)))
+    assert (acria(alpha=0.0, mechanism=(1, 2)) >
+            acria(alpha=0.0, mechanism=(1,)))
 
-    assert bool(acmip(alpha=1.0)) is True
-    assert bool(acmip(alpha=0.0)) is False
-    assert bool(acmip(alpha=-1)) is False
+    assert bool(acria(alpha=1.0)) is True
+    assert bool(acria(alpha=0.0)) is False
+    assert bool(acria(alpha=-1)) is False
 
     with pytest.raises(TypeError):
-        acmip(direction=Direction.CAUSE) < acmip(direction=Direction.EFFECT)
+        acria(direction=Direction.CAUSE) < acria(direction=Direction.EFFECT)
 
     with config.override(PICK_SMALLEST_PURVIEW=True):
-        assert acmip(purview=(1,)) > acmip(purview=(0, 2))
+        assert acria(purview=(1,)) > acria(purview=(0, 2))
 
 
-def test_acmip_hash():
-    hash(acmip())
+def test_acria_hash():
+    hash(acria())
 
 
-def test_acmip_phi_alias():
-    assert acmip(alpha=3.3).phi == 3.3
+def test_acria_phi_alias():
+    assert acria(alpha=3.3).phi == 3.3
 
 
 def test_causal_link_ordering():
@@ -414,39 +414,39 @@ def test_ac_ex1_transition(transition):
 
     cause_account = actual.account(transition, Direction.CAUSE)
     assert len(cause_account) == 1
-    cmip = cause_account[0].ria
+    cria = cause_account[0].ria
 
-    assert cmip.mechanism == (0,)
-    assert cmip.purview == (1,)
-    assert cmip.direction == Direction.CAUSE
-    assert cmip.state == (1, 0, 0)
-    assert cmip.alpha == 0.415037
-    assert cmip.probability == 0.66666666666666663
-    assert cmip.partitioned_probability == 0.5
-    assert cmip.partition == (((), (1,)), ((0,), ()))
+    assert cria.mechanism == (0,)
+    assert cria.purview == (1,)
+    assert cria.direction == Direction.CAUSE
+    assert cria.state == (1, 0, 0)
+    assert cria.alpha == 0.415037
+    assert cria.probability == 0.66666666666666663
+    assert cria.partitioned_probability == 0.5
+    assert cria.partition == (((), (1,)), ((0,), ()))
 
     effect_account = actual.account(transition, Direction.EFFECT)
     assert len(effect_account) == 2
-    emip0 = effect_account[0].ria
-    emip1 = effect_account[1].ria
+    eria0 = effect_account[0].ria
+    eria1 = effect_account[1].ria
 
-    assert emip0.mechanism == (1,)
-    assert emip0.purview == (0,)
-    assert emip0.direction == Direction.EFFECT
-    assert emip0.state == (0, 1, 1)
-    assert emip0.alpha == 0.415037
-    assert emip0.probability == 1.0
-    assert emip0.partitioned_probability == 0.75
-    assert emip0.partition == (((), (0,)), ((1,), ()))
+    assert eria0.mechanism == (1,)
+    assert eria0.purview == (0,)
+    assert eria0.direction == Direction.EFFECT
+    assert eria0.state == (0, 1, 1)
+    assert eria0.alpha == 0.415037
+    assert eria0.probability == 1.0
+    assert eria0.partitioned_probability == 0.75
+    assert eria0.partition == (((), (0,)), ((1,), ()))
 
-    assert emip1.mechanism == (2,)
-    assert emip1.purview == (0,)
-    assert emip1.direction == Direction.EFFECT
-    assert emip1.state == (0, 1, 1)
-    assert emip1.alpha == 0.415037
-    assert emip1.probability == 1.0
-    assert emip1.partitioned_probability == 0.75
-    assert emip1.partition == (((), (0,)), ((2,), ()))
+    assert eria1.mechanism == (2,)
+    assert eria1.purview == (0,)
+    assert eria1.direction == Direction.EFFECT
+    assert eria1.state == (0, 1, 1)
+    assert eria1.alpha == 0.415037
+    assert eria1.probability == 1.0
+    assert eria1.partitioned_probability == 0.75
+    assert eria1.partition == (((), (0,)), ((2,), ()))
 
 
 def test_actual_cut_indices():
