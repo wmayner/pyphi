@@ -1,5 +1,5 @@
-Detailed installation guide for Mac OS X
-========================================
+Detailed installation guide for macOS
+=====================================
 
 This is a step-by-step guide intended for those unfamiliar with Python or the
 command-line (*a.k.a.* the “shell”).
@@ -13,7 +13,7 @@ convenient way of doing this is to use the OS X package manager
 [Homebrew](http://brew.sh/). Install Homebrew by running this command:
 
 ```bash
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
 Now you should have access to the `brew` command. First, we need to install
@@ -63,8 +63,8 @@ running this command:
 open -a TextEdit ~/.bash_profile
 ```
 
-If this doesn't work because the file doesn't exist, then run `touch
-~/.bash_profile` first.
+If you get an error that says the file doesn't exist, then run `touch
+~/.bash_profile` first to create it.
 
 Now, you'll add three lines to the shell startup file. These lines will set the
 location where the virtual environments will live, the location of your
@@ -103,9 +103,13 @@ it. Virtual environments can be manually activated with `workon
 **Important:** Remember to activate the virtual environment with the `workon`
 command **every time you begin working on your project**. Also, note that the
 currently active virtual environment is *not* associated with any particular
-folder; it is associated with a terminal shell. When a virtual environment is
-active, your command-line prompt will be prepended with the name of the virtual
-environment in parentheses.
+folder; it is associated with a terminal shell. In other words, each time you
+open a new Terminal tab or terminal window, you need to run `workon
+<name_of_your_project` (with some extra setup, this can be done automatically;
+see
+[here](https://virtualenvwrapper.readthedocs.io/en/latest/tips.html#automatically-run-workon-when-entering-a-directory)).
+When a virtual environment is active, your command-line prompt will be
+prepended with the name of the virtual environment in parentheses.
 
 Once you've checked that the new virtual environment is active, you're finally
 ready to install PyPhi into it (note that this may take a few minutes):
@@ -124,6 +128,12 @@ preceded by the `>>>` prompt), run
 import pyphi
 ```
 
-Please see the documentation for some
-[examples](http://pythonhosted.org/pyphi/examples/index.html) and information
-on how to [configure](http://pythonhosted.org/pyphi/configuration.html) it.
+Optionally, you can also install [IPython](https://ipython.org/) with `pip
+install ipython` to get a more useful Python interpreter that offers things
+like tab-completion. Once you've installed it, you can start the IPython
+interpreter with the command `ipython`.
+
+Next, please see the documentation for some
+[examples](https://pyphi.readthedocs.io/en/latest/) of how to use PyPhi and
+information on how to
+[configure](https://pyphi.readthedocs.io/en/latest/configuration.html) it.
