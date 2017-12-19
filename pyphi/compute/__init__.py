@@ -7,20 +7,20 @@ See |compute.subsystem|, |compute.network|, |compute.distance|, and
 |compute.parallel| for documentation.
 
 Attributes:
-    conceptual_info: Alias for :func:`pyphi.compute.subsystem.conceptual_info`.
+    all_complexes: Alias for :func:`pyphi.compute.network.all_complexes`.
     ces: Alias for :func:`pyphi.compute.subsystem.ces`.
+    ces_distance: Alias for :func:`pyphi.compute.distance.ces_distance`.
+    complexes: Alias for :func:`pyphi.compute.network.complexes`.
     concept_distance: Alias for
         :func:`pyphi.compute.distance.concept_distance`.
-    ces_distance: Alias for :func:`pyphi.compute.distance.ces_distance`.
-    all_complexes: Alias for :func:`pyphi.compute.network.all_complexes`.
-    sia: Alias for :func:`pyphi.compute.subsystem.sia`.
-    phi: Alias for :func:`pyphi.compute.subsystem.phi`.
-    complexes: Alias for :func:`pyphi.compute.network.complexes`.
+    conceptual_info: Alias for :func:`pyphi.compute.subsystem.conceptual_info`.
     condensed: Alias for :func:`pyphi.compute.network.condensed`.
     evaluate_cut: Alias for :func:`pyphi.compute.subsystem.evaluate_cut`.
     major_complex: Alias for :func:`pyphi.compute.network.major_complex`.
+    phi: Alias for :func:`pyphi.compute.subsystem.phi`.
     possible_complexes: Alias for
         :func:`pyphi.compute.network.possible_complexes`.
+    sia: Alias for :func:`pyphi.compute.subsystem.sia`.
     subsystems: Alias for :func:`pyphi.compute.network.subsystems`.
 """
 
