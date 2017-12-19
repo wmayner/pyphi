@@ -22,12 +22,14 @@ PyPhi is a Python library for computing integrated information.
 See the documentation for the |examples| module for information on how to use
 it.
 
-To report issues, please use the issue tracker on the `GitHub repository
-<https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
-welcome.
+Online documentation is available at `<https://pyphi.readthedocs.io/>`_.
 
 For general discussion, you are welcome to join the `pyphi-users group
 <https://groups.google.com/forum/#!forum/pyphi-users>`_.
+
+To report issues, please use the issue tracker on the `GitHub repository
+<https://github.com/wmayner/pyphi>`_. Bug reports and pull requests are
+welcome.
 
 
 Usage
