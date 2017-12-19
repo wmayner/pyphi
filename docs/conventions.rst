@@ -58,6 +58,17 @@ A TPM in **state-by-state form** is a matrix where the entry |(i,j)| gives the
 probability that the state at time |t+1| will be |j| if the state at time |t|
 is |i|.
 
+.. warning::
+    **When converting a state-by-state TPM to one of the other forms, information
+    may be lost!**
+
+    This is because the space of possible state-by-state TPMs is larger than
+    the space of state-by-node TPMs (so the conversion cannot be injective).
+    However, if we restrict the state-by-state TPMs to only those that satisfy
+    the conditional independence property, then the mapping becomes bijective.
+
+    See :ref:`conditional-independence` for a more detailed discussion.
+
 
 .. _little-endian-convention:
 
