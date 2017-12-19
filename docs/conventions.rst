@@ -56,7 +56,7 @@ State-by-state form
 
 A TPM in **state-by-state form** is a matrix where the entry |(i,j)| gives the
 probability that the state at time |t+1| will be |j| if the state at time |t|
-is |i|.
+is labeled by |i|.
 
 .. warning::
     **When converting a state-by-state TPM to one of the other forms, information
