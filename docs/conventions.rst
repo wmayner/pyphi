@@ -3,7 +3,7 @@
 Transition probability matrix conventions
 =========================================
 
-A |Network| can be built with a transition probability matrix (TPM) in any of
+A |Network| can be created with a transition probability matrix (TPM) in any of
 the three forms described below. However, in PyPhi the canonical TPM
 representation is **multidimensional state-by-node form**. The TPM will be
 converted to this form when the |Network| is built.
@@ -48,7 +48,8 @@ the for the next state, :math:`p(N_0 = 1) = 0.919`, :math:`p(N_1 = 1) = 0.91`
 and :math:`p(N_2 = 1) = 0.756`.
 
 .. important::
-    This is how TPMs are represented throughout PyPhi.
+    The multidimensional state-by-node form is used throughout PyPhi,
+    regardless of the form that was used to create the |Network|.
 
 .. _state-by-state-form:
 
