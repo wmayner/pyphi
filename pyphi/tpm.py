@@ -85,7 +85,7 @@ def infer_edge(tpm, a, b, contexts):
 
     def a_in_context(context):
         """Given a context C(A), return the states of the full system with A
-        off and on, respectively."""
+        OFF and ON, respectively."""
         a_off = context[:a] + OFF + context[a:]
         a_on = context[:a] + ON + context[a:]
         return (a_off, a_on)

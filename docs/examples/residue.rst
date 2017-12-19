@@ -5,7 +5,7 @@ This example describes a system containing two AND gates, |A| and |B|, with a
 single overlapping input node.
 
 First let's create the subsystem corresponding to the residue network, with all
-nodes off in the current and previous states.
+nodes OFF in the current and previous states.
 
     >>> import pyphi
     >>> subsystem = pyphi.examples.residue_subsystem()

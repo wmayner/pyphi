@@ -33,9 +33,9 @@ class Network:
 
             If the TPM is given in state-by-node form, it can be either
             2-dimensional, so that ``tpm[i]`` gives the probabilities of each
-            node being on if the previous state is encoded by |i| according to
+            node being ON if the previous state is encoded by |i| according to
             the little-endian convention, or in multidimensional form, so that
-            ``tpm[(0, 0, 1)]`` gives the probabilities of each node being on if
+            ``tpm[(0, 0, 1)]`` gives the probabilities of each node being ON if
             the previous state is |N_0 = 0, N_1 = 0, N_2 = 1|.
 
             The shape of the 2-dimensional form of a state-by-node TPM must be

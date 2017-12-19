@@ -19,7 +19,7 @@ State-by-node form
 ~~~~~~~~~~~~~~~~~~
 
 A TPM in **state-by-node form** is a matrix where the entry |(i,j)| gives the
-probability that the |jth| node will be on at time |t+1| if the system is in
+probability that the |jth| node will be ON at time |t+1| if the system is in
 the |ith| state at time |t|.
 
 
@@ -31,7 +31,7 @@ Multidimensional state-by-node form
 A TPM in **multidimensional state-by-node** form is a state-by-node form that
 has been reshaped so that it has |n+1| dimensions instead of two. The first |n|
 dimensions correspond to each of the |n| nodes at time |t|, while the last
-dimension corresponds to the probabilities of each node being on at |t+1|.
+dimension corresponds to the probabilities of each node being ON at |t+1|.
 
 With this form, we can take advantage of `NumPy array indexing
 <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_ and use a

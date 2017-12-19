@@ -21,7 +21,7 @@ The connectivity matrix is all-to-all:
            [ 1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.]])
 
-We'll set the state so that nodes are off.
+We'll set the state so that nodes are OFF.
 
     >>> state = (0, 0, 0, 0)
 
@@ -58,12 +58,12 @@ We must then determine the relationship between micro-elements and
 macro-elements. When coarse-graining the system we assume that the resulting
 macro-elements do not differentiate the different micro-elements. Thus any
 correspondence between states must be stated solely in terms of the number of
-micro-elements which are on, and not depend on which micro-elements are on.
+micro-elements which are ON, and not depend on which micro-elements are ON.
 
 For example, consider the macro-element ``(0, 1, 2)``. We may say that the
-macro-element is on if at least one micro-element is on, or if all
-micro-elements are on; however, we may not say that the macro-element is on if
-micro-element ``1`` is on, because this relationship involves identifying
+macro-element is ON if at least one micro-element is ON, or if all
+micro-elements are ON; however, we may not say that the macro-element is ON if
+micro-element ``1`` is ON, because this relationship involves identifying
 specific micro-elements.
 
 The ``grouping`` attribute of the |CoarseGrain| describes how the state of
@@ -78,15 +78,15 @@ The grouping consists of two lists, one for each macro-element:
     >>> grouping[0]
     ((0, 1, 2), (3,))
 
-For the first macro-element, this grouping means that the element will be off
-if zero, one or two of its micro-elements are on, and will be on if all three
-micro-elements are on.
+For the first macro-element, this grouping means that the element will be OFF
+if zero, one or two of its micro-elements are ON, and will be ON if all three
+micro-elements are ON.
 
     >>> grouping[1]
     ((0,), (1,))
 
-For the second macro-element, the grouping means that the element will be off
-if its micro-element is off, and on if its micro-element is on.
+For the second macro-element, the grouping means that the element will be OFF
+if its micro-element is OFF, and ON if its micro-element is ON.
 
 One we have selected a partition and grouping for analysis, we can create a
 mapping between micro-states and macro-states:
@@ -110,8 +110,8 @@ This says that micro-state 7 corresponds to macro-state 1:
     (1, 0)
 
 In micro-state 7, all three elements corresponding to the first macro-element
-are on, so that macro-element is on. The micro-element corresponding to the
-second macro-element is off, so that macro-element is off.
+are ON, so that macro-element is ON. The micro-element corresponding to the
+second macro-element is OFF, so that macro-element is OFF.
 
 The |CoarseGrain| object uses the mapping internally to create a state-by-state
 TPM for the macro-system corresponding to the selected partition and grouping
@@ -192,7 +192,7 @@ using blackboxing.
     >>> import pyphi
     >>> network = pyphi.examples.blackbox_network()
 
-We consider the state where all nodes are off:
+We consider the state where all nodes are OFF:
 
     >>> state = (0, 0, 0, 0, 0, 0)
     >>> all_nodes = (0, 1, 2, 3, 4, 5)

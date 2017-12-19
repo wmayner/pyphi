@@ -48,7 +48,7 @@ def uniform_distribution(number_of_nodes):
 
 
 def marginal_zero(repertoire, node_index):
-    """Return the marginal probability that the node is off."""
+    """Return the marginal probability that the node is OFF."""
     index = [slice(None)] * repertoire.ndim
     index[node_index] = 0
 

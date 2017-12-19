@@ -164,7 +164,7 @@ def effect_emd(d1, d2):
     Because the nodes are independent, the EMD between effect repertoires is
     equal to the sum of the EMDs between the marginal distributions of each
     node, and the EMD between marginal distribution for a node is the absolute
-    difference in the probabilities that the node is off.
+    difference in the probabilities that the node is OFF.
 
     Args:
         d1 (np.ndarray): The first repertoire.

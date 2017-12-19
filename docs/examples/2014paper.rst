@@ -38,7 +38,7 @@ we'll start by defining its TPM.
     and a column for each state. However, in PyPhi, we use a more compact
     representation: **state-by-node** form, in which there is a row for each
     state, but a column for each node. The |i,jth| entry gives the probability
-    that the |jth| node is on in the |ith| state. For more information on how
+    that the |jth| node is ON in the |ith| state. For more information on how
     TPMs are represented in PyPhi, see the documentation for the |network|
     module and the explanation of :ref:`tpm-conventions`.
 
@@ -218,7 +218,7 @@ singleton dimension with
 
     >>> cr = cr.squeeze()
 
-and now we can see that the probability of |B|, |C|, and |D| having been all on
+and now we can see that the probability of |B|, |C|, and |D| having been all ON
 is 1:
 
     >>> cr[(1, 1, 1)]
@@ -240,7 +240,7 @@ The same as (B) but with |A = 0|:
     >>> A, B, C, D = subsystem.node_indices
 
 And here the cause repertoire is minimally selective, only ruling out the state
-where |B|, |C|, and |D| were all on:
+where |B|, |C|, and |D| were all ON:
 
     >>> subsystem.cause_repertoire((A,), (B, C, D))
     array([[[[ 0.14285714,  0.14285714],

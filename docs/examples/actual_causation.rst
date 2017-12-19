@@ -62,8 +62,8 @@ network.
    >>> OR = 0
    >>> AND = 1
 
-We want to observe both elements at |t-1| and |t|, with ``OR`` on and ``AND``
-off in both observations:
+We want to observe both elements at |t-1| and |t|, with ``OR`` ON and ``AND``
+OFF in both observations:
 
    >>> X = Y = (OR, AND)
    >>> X_state = Y_state = (1, 0)

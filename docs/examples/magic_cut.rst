@@ -7,7 +7,7 @@ this example is to highlight an unexpected behaviour of system cuts: that the
 minimum information partition of a system can result in new concepts being
 created.
 
-First let's create the the Rule 110 network, with all nodes off in the current
+First let's create the the Rule 110 network, with all nodes OFF in the current
 state.
 
     >>> import pyphi
@@ -92,8 +92,8 @@ doesn't specify a concept, it must be that this power is reducible:
 
 The reason ABC does not exist as a concept is that its cause is reducible.
 Looking at the TPM of the system, there are no possible states where two
-elements are off. This means that knowing two elements are off is enough to
-know that the third element must also be off, and thus the third element can
+elements are OFF. This means that knowing two elements are OFF is enough to
+know that the third element must also be OFF, and thus the third element can
 always be cut from the concept without a loss of information. This will be true
 for any purview, so the cause information is reducible.
 
@@ -116,16 +116,16 @@ The cut applied to the subsystem severs the connections going to |C| from
 either |A| or |B|. In this circumstance, knowing the state of |A| or |B| does
 not tell us anything about the state of |C|; only the previous state of |C| can
 tell us about the next state of |C|. ``C_node.tpm_on`` gives us the probability
-of |C| being on in the next state, while ``C_node.tpm_off`` would give us the
-probability of |C| being off.
+of |C| being ON in the next state, while ``C_node.tpm_off`` would give us the
+probability of |C| being OFF.
 
     >>> C_node = cut_subsystem.indices2nodes(C)[0]
     >>> C_node.tpm_on.flatten()
     array([ 0.5 ,  0.75])
 
-This states that |C| has a 50% chance of being on in the next state if it
-currently off, but a 75% chance of being on in the next state  if it is
-currently on. Thus, unlike the unpartitioned case, knowing the current state of
+This states that |C| has a 50% chance of being ON in the next state if it
+currently OFF, but a 75% chance of being ON in the next state  if it is
+currently ON. Thus, unlike the unpartitioned case, knowing the current state of
 |C| gives us additional information over and above knowing the state of |A| or
 |B|.
 

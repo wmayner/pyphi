@@ -170,7 +170,7 @@ def basic_noisy_selfloop_subsystem():
 def residue_network():
     """The network for the residue example.
 
-    Current and previous state are all nodes off.
+    Current and previous state are all nodes OFF.
 
     Diagram::
 
@@ -333,8 +333,8 @@ def cond_depend_tpm():
 def cond_independ_tpm():
     """A system of three general logic gates A, B and C such that: if A and B
     are in the same state then they stay the same; if they are in different
-    states, they flip if C is **ON** and stay the same if C is **OFF**; and C
-    is **ON** 50% of the time, independent of the previous state.
+    states, they flip if C is ON and stay the same if C is OFF; and C is ON 50%
+    of the time, independent of the previous state.
 
     Diagram::
 
@@ -453,11 +453,11 @@ def propagation_delay_network():
     States:
 
     In the IIT 3.0 paper example, the previous state of the system has only the
-    XOR gate on. For the propagation delay network, this corresponds to a state
+    XOR gate ON. For the propagation delay network, this corresponds to a state
     of
     ``(0, 0, 0, 1, 0, 0, 0, 0, 0)``.
 
-    The current state of the IIT 3.0 example has only the OR gate on. By
+    The current state of the IIT 3.0 example has only the OR gate ON. By
     advancing the propagation delay system two time steps, the current state
     ``(1, 0, 0, 0, 0, 0, 0, 0, 0)`` is achieved, with corresponding previous
     state ``(0, 0, 1, 0, 1, 0, 0, 0, 0)``.
