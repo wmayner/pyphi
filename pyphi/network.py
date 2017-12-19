@@ -19,42 +19,44 @@ from .tpm import is_state_by_state
 class Network:
     """A network of nodes.
 
-    Represents the network we're analyzing and holds auxilary data about it.
+    Represents the network under analysis and holds auxilary data about it.
 
     Args:
         tpm (np.ndarray): The transition probability matrix of the network.
 
-            The TPM can be provided in either state-by-node (either
-            2-dimensional or n-dimensional) or state-by-state form. In either
-            form, row indices must follow the LOLI convention (see
-            :ref:`tpm-conventions`). In state-by-state form column indices must
-            also follow the LOLI convention.
+            The TPM can be provided in any of three forms: **state-by-state**,
+            **state-by-node**, or **multidimensional state-by-node** form.
+            In the state-by-node forms, row indices must follow the
+            little-endian convention (see :ref:`little-endian-convention`). In
+            state-by-state form, column indices must also follow the
+            little-endian convention.
 
-            If given in state-by-node form, the TPM can be either
+            If the TPM is given in state-by-node form, it can be either
             2-dimensional, so that ``tpm[i]`` gives the probabilities of each
             node being on if the previous state is encoded by |i| according to
-            LOLI, or in n-dimensional form, so that ``tpm[(0, 0, 1)]`` gives
-            the probabilities of each node being on if the previous state is
-            |n0 = 0, n1 = 0, n2 = 1|.
+            the little-endian convention, or in multidimensional form, so that
+            ``tpm[(0, 0, 1)]`` gives the probabilities of each node being on if
+            the previous state is |N_0 = 0, N_1 = 0, N_2 = 1|.
 
             The shape of the 2-dimensional form of a state-by-node TPM must be
-            ``(S, N)``, and the shape of the n-dimensional form of the TPM must
-            be ``[2] * N + [N]``, where ``S`` is the number of states and ``N``
-            is the number of nodes in the network.
+            ``(s, n)``, and the shape of the multidimensional form of the TPM
+            must be ``[2] * n + [n]``, where ``s`` is the number of states and
+            ``n`` is the number of nodes in the network.
 
     Keyword Args:
         connectivity_matrix (np.ndarray): A square binary adjacency matrix
             indicating the connections between nodes in the network.
             ``connectivity_matrix[i][j] == 1`` means that node |i| is connected
-            to node |j|. If no connectivity matrix is given, every node is
-            connected to every node **(including itself)**.
+            to node |j| (see :ref:`cm-conventions`). **If no connectivity
+            matrix is given, PyPhi assumes that every node is connected to
+            every node (including itself)**.
         node_labels (tuple[str]): Human-readable labels for each node in the
             network.
 
     Example:
-        In a 3-node network, ``a_network.tpm[(0, 0, 1)]`` gives the transition
-        probabilities for each node at |t| given that state at |t-1| was
-        |n0 = 0, n1 = 0, n2 = 1|.
+        In a 3-node network, ``the_network.tpm[(0, 0, 1)]`` gives the
+        transition probabilities for each node at |t| given that state at |t-1|
+        was |N_0 = 0, N_1 = 0, N_2 = 1|.
     """
 
     # TODO make tpm also optional when implementing logical network definition
@@ -84,7 +86,7 @@ class Network:
 
         validate.tpm(tpm)
 
-        # Convert to N-D state-by-node form
+        # Convert to multidimensional state-by-node form
         if is_state_by_state(tpm):
             tpm = convert.state_by_state2state_by_node(tpm)
         else:
@@ -231,7 +233,7 @@ class Network:
 
 
 def irreducible_purviews(cm, direction, mechanism, purviews):
-    """Returns all purview which are irreducible for the mechanism.
+    """Returns all purviews which are irreducible for the mechanism.
 
     Args:
         cm (np.ndarray): An |N x N| connectivity matrix.

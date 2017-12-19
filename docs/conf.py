@@ -151,10 +151,11 @@ r"""
 .. |t| replace:: :math:`t`
 .. |t-1| replace:: :math:`t-1`
 .. |t+1| replace:: :math:`t+1`
+.. |n+1| replace:: :math:`n+1`
 .. |1,0,0| replace:: :math:`\{1,0,0\}`
 .. |0,1,0| replace:: :math:`\{0,1,0\}`
 .. |0,0,1| replace:: :math:`\{0,0,1\}`
-.. |n0 = 0, n1 = 0, n2 = 1| replace:: :math:`(n_0 = 0, n_1 = 0, n_2 = 1)`
+.. |N_0 = 0, N_1 = 0, N_2 = 1| replace:: :math:`N_0 = 0, N_1 = 0, N_2 = 1`
 .. |ith| replace:: :math:`i^{\textrm{th}}`
 .. |jth| replace:: :math:`j^{\textrm{th}}`
 .. |(i,j)| replace:: :math:`(i,j)`
