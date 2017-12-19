@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# models/big_phi.py
+# models/subsystem.py
 
-"""Objects that represent cause-effect structures."""
+"""Subsystem-level objects."""
 
 from . import cmp, fmt
 from .. import utils

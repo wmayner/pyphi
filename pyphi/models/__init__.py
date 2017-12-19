@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 # models/__init__.py
 
-"""See |models.big_phi|, |models.concept|, and |models.cuts| for documentation.
+"""See |models.subsystem|, |models.concept|, and |models.cuts| for documentation.
 
 Attributes:
     SystemIrreducibilityAnalysis: Alias for
-        :class:`big_phi.SystemIrreducibilityAnalysis`
+        :class:`subsystem.SystemIrreducibilityAnalysis`
     RepertoireIrreducibilityAnalysis: Alias for
         :class:`concept.RepertoireIrreducibilityAnalysis`
     MaximallyIrreducibleCause: Alias for
@@ -33,7 +33,7 @@ Attributes:
 from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
                                AcRepertoireIrreducibilityAnalysis, _null_ac_ria,
                                Event, _null_ac_sia, DirectedAccount, Account)
-from .big_phi import SystemIrreducibilityAnalysis, _null_sia
+from .subsystem import SystemIrreducibilityAnalysis, _null_sia
 from .concept import (RepertoireIrreducibilityAnalysis, _null_ria,
                       MaximallyIrreducibleCauseOrEffect,
                       MaximallyIrreducibleCause, MaximallyIrreducibleEffect,

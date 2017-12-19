@@ -201,7 +201,7 @@ r"""
 .. |compute| replace:: :mod:`~pyphi.compute`
 .. |compute.distance| replace:: :mod:`~pyphi.compute.distance`
 
-.. |models.big_phi| replace:: :mod:`~pyphi.models.big_phi`
+.. |models.subsystem| replace:: :mod:`~pyphi.models.subsystem`
 .. |models.concept| replace:: :mod:`~pyphi.models.concept`
 .. |models.cuts| replace:: :mod:`~pyphi.models.cuts`
 
@@ -239,8 +239,8 @@ r"""
 
 .. |Subsystem| replace:: :class:`~pyphi.subsystem.Subsystem`
 
-.. |SystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.big_phi.SystemIrreducibilityAnalysis`
-.. |SIA| replace:: :class:`~pyphi.models.big_phi.SystemIrreducibilityAnalysis`
+.. |SystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.subsystem.SystemIrreducibilityAnalysis`
+.. |SIA| replace:: :class:`~pyphi.models.subsystem.SystemIrreducibilityAnalysis`
 
 .. |Concept| replace:: :class:`~pyphi.models.concept.Concept`
 .. |CauseEffectStructure| replace:: :class:`~pyphi.models.concept.CauseEffectStructure`
