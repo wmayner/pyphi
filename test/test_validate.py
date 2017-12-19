@@ -34,10 +34,10 @@ def test_validate_tpm_nonbinary_nodes():
 
 def test_validate_tpm_conditional_independence():
     tpm = np.array([
-        [1,  0,  0,  0],
-        [0, .5, .5,  0],
-        [0, .5, .5,  0],
-        [0,  0,  0,  1],
+        [1, 0.0, 0.0, 0],
+        [0, 0.5, 0.5, 0],
+        [0, 0.5, 0.5, 0],
+        [0, 0.0, 0.0, 1],
     ])
     with pytest.raises(ValueError):
         validate.conditionally_independent(tpm)

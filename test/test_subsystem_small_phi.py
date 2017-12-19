@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from pprint import pprint
-
 import numpy as np
 import pytest
 
@@ -88,39 +86,39 @@ scenarios = [
             (Part(mechanism=(2,), purview=()),
              Part(mechanism=(0, 1), purview=(0, 1, 2))):
                 np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
-                    2,2,2, order="F"),
+                    2, 2, 2, order="F"),
             (Part(mechanism=(), purview=(0,)),
              Part(mechanism=(0, 1, 2), purview=(1, 2))):
                 np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
-                    2,2,2, order="F"),
+                    2, 2, 2, order="F"),
             (Part(mechanism=(2,), purview=(0,)),
              Part(mechanism=(0, 1), purview=(1, 2))):
                 np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
-                    2,2,2, order="F"),
+                    2, 2, 2, order="F"),
             (Part(mechanism=(0,), purview=()),
              Part(mechanism=(1, 2), purview=(0, 1, 2))):
                 np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
-                    2,2,2, order="F"),
+                    2, 2, 2, order="F"),
             (Part(mechanism=(), purview=(1,)),
              Part(mechanism=(0, 1, 2), purview=(0, 2))):
                 np.array([0., 0., 0., 0., 0.5, 0., 0.5, 0.]).reshape(
-                    2,2,2, order="F"),
+                    2, 2, 2, order="F"),
             (Part(mechanism=(2,), purview=(1,)),
              Part(mechanism=(0, 1), purview=(0, 2))):
                 np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(
-                    2,2,2, order="F"),
+                    2, 2, 2, order="F"),
             (Part(mechanism=(), purview=(2,)),
              Part(mechanism=(0, 1, 2), purview=(0, 1))):
                 np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
-                    2,2,2, order="F"),
+                    2, 2, 2, order="F"),
             (Part(mechanism=(0,), purview=(2,)),
              Part(mechanism=(1, 2), purview=(0, 1))):
                 np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
-                    2,2,2, order="F"),
+                    2, 2, 2, order="F"),
             (Part(mechanism=(2,), purview=(0, 1)),
              Part(mechanism=(0, 1), purview=(2,))):
                 np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(
-                    2,2,2, order="F"),
+                    2, 2, 2, order="F"),
          },
          'repertoire':
             np.array([0., 1., 0., 0., 0., 0., 0., 0.]).reshape(2, 2, 2),
@@ -217,13 +215,15 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
     if expected:
         # Construct expected list of possible MIPs
         expected = [
-            RepertoireIrreducibilityAnalysis(direction=direction,
+            RepertoireIrreducibilityAnalysis(
+                direction=direction,
                 partition=expected_partition,
                 mechanism=mechanism,
                 purview=purview,
                 repertoire=expected['repertoire'],
                 partitioned_repertoire=expected_partitioned_repertoire,
-                phi=expected['phi'])
+                phi=expected['phi']
+            )
             for expected_partition, expected_partitioned_repertoire
             in expected['partitions'].items()
         ]
@@ -272,7 +272,7 @@ def test_phi_cause_mip(s):
 def test_phi_cause_mip_reducible(s):
     mechanism = (1,)
     purview = (0,)
-    assert (0 == s.phi_cause_mip(mechanism, purview))
+    assert 0 == s.phi_cause_mip(mechanism, purview)
 
 
 def test_phi_effect_mip(s):
@@ -285,7 +285,7 @@ def test_phi_effect_mip(s):
 def test_phi_effect_mip_reducible(s):
     mechanism = (0, 1)
     purview = (1, )
-    assert (0 == s.phi_effect_mip(mechanism, purview))
+    assert 0 == s.phi_effect_mip(mechanism, purview)
 
 
 def test_phi(s):

@@ -46,4 +46,4 @@ class Direction(Enum):
             return mechanism, purview
 
         from . import validate
-        validate.direction(self)
+        return validate.direction(self)

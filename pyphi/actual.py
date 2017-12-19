@@ -15,8 +15,6 @@ from math import log2 as _log2
 
 import numpy as np
 
-import pyphi
-
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
 from .models import (Account, AcRepertoireIrreducibilityAnalysis,
@@ -368,9 +366,11 @@ class Transition:
             purviews (tuple[int]): Optional subset of purviews of interest.
         """
         system = self.system[direction]
-        return [purview for purview in system.potential_purviews(
-                    direction, mechanism, purviews)
-                if set(purview).issubset(self.purview_indices(direction))]
+        return [
+            purview for purview in system.potential_purviews(
+                direction, mechanism, purviews)
+            if set(purview).issubset(self.purview_indices(direction))
+        ]
 
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')

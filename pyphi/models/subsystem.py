@@ -9,9 +9,8 @@ from .. import utils, config
 
 # pylint: disable=too-many-arguments
 
-_sia_attributes = ['phi', 'ces',
-                      'partitioned_ces', 'subsystem',
-                      'cut_subsystem']
+_sia_attributes = ['phi', 'ces', 'partitioned_ces', 'subsystem',
+                   'cut_subsystem']
 
 
 def _concept_sort_key(concept):

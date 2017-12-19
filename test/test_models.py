@@ -15,10 +15,11 @@ from pyphi import Direction, Subsystem, config, constants, exceptions, models
 def mip(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
         repertoire=None, partitioned_repertoire=None):
     """Build a ``RepertoireIrreducibilityAnalysis``."""
-    return models.RepertoireIrreducibilityAnalysis(phi=phi, direction=direction, mechanism=mechanism,
-                      purview=purview, partition=partition,
-                      repertoire=repertoire,
-                      partitioned_repertoire=partitioned_repertoire)
+    return models.RepertoireIrreducibilityAnalysis(
+        phi=phi, direction=direction, mechanism=mechanism, purview=purview,
+        partition=partition, repertoire=repertoire,
+        partitioned_repertoire=partitioned_repertoire
+    )
 
 
 def mice(**kwargs):

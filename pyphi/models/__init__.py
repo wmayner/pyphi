@@ -33,8 +33,9 @@ Attributes:
 """
 
 from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
-                               AcRepertoireIrreducibilityAnalysis, _null_ac_ria,
-                               Event, _null_ac_sia, DirectedAccount, Account)
+                               AcRepertoireIrreducibilityAnalysis,
+                               _null_ac_ria, Event, _null_ac_sia,
+                               DirectedAccount, Account)
 from .subsystem import (SystemIrreducibilityAnalysis, _null_sia,
                         CauseEffectStructure)
 from .mechanism import (RepertoireIrreducibilityAnalysis, _null_ria,

@@ -73,6 +73,8 @@ def make_repr(self, attrs):
             ', '.join(attr + '=' + repr(getattr(self, attr))
                       for attr in attrs))
 
+    raise ValueError('Invalid value for `config.REPR_VERBOSITY`')
+
 
 def indent(lines, amount=2, char=' '):
     """Indent a string.

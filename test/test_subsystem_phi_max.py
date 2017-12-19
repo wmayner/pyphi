@@ -102,8 +102,10 @@ def test_find_mice(cut, direction, expected):
 
 
 def test_find_mice_empty(s):
-    expected = [MaximallyIrreducibleCauseOrEffect(_null_ria(direction, (), ())) for direction in
-                directions]
+    expected = [
+        MaximallyIrreducibleCauseOrEffect(_null_ria(direction, (), ()))
+        for direction in directions
+    ]
     assert all(s.find_mice(mice.direction, mice.mechanism) == mice
                for mice in expected)
 

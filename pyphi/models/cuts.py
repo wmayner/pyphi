@@ -312,5 +312,6 @@ class Bipartition(KPartition):
 
 
 class Tripartition(KPartition):
+    """A partition with three parts."""
 
     __slots__ = ()

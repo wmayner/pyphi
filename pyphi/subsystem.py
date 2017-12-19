@@ -20,7 +20,7 @@ from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, KPartition,
                      MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
                      NullCut, Part, RepertoireIrreducibilityAnalysis,
-                     Tripartition, _null_ria, cmp)
+                     Tripartition, _null_ria)
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,
@@ -194,7 +194,7 @@ class Subsystem:
         Two Subsystems are equal if their sets of nodes, networks, and cuts are
         equal.
         """
-        if type(self) != type(other):
+        if not isinstance(other, Subsystem):
             return False
 
         return (set(self.node_indices) == set(other.node_indices)
@@ -393,9 +393,8 @@ class Subsystem:
             return self.cause_repertoire(mechanism, purview)
         elif direction == Direction.EFFECT:
             return self.effect_repertoire(mechanism, purview)
-        else:
-            # TODO: test that ValueError is raised
-            validate.direction(direction)
+        # TODO: test that ValueError is raised
+        return validate.direction(direction)
 
     def unconstrained_repertoire(self, direction, purview):
         """Return the unconstrained cause/effect repertoire over a purview."""
@@ -520,8 +519,7 @@ class Subsystem:
             partitioned repertoires, and the partitioned repertoire.
         """
         if repertoire is None:
-            repertoire = self.repertoire(direction, mechanism,
-                                                       purview)
+            repertoire = self.repertoire(direction, mechanism, purview)
 
         partitioned_repertoire = self.partitioned_repertoire(direction,
                                                              partition)
@@ -553,8 +551,7 @@ class Subsystem:
         phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones.
-        repertoire = self.repertoire(direction, mechanism,
-                                                   purview)
+        repertoire = self.repertoire(direction, mechanism, purview)
 
         def _mip(phi, partition, partitioned_repertoire):
             # Prototype of MIP with already known data
@@ -688,8 +685,7 @@ class Subsystem:
             return MaximallyIrreducibleCause(max_mip)
         elif direction == Direction.EFFECT:
             return MaximallyIrreducibleEffect(max_mip)
-        else:
-            validate.direction(direction)
+        return validate.direction(direction)
 
     def mic(self, mechanism, purviews=False):
         """Return the mechanism's maximally-irreducible cause (|MIC|).
@@ -715,7 +711,6 @@ class Subsystem:
     # Big Phi methods
     # =========================================================================
 
-    # TODO add `concept-space` section to the docs:
     @property
     def null_concept(self):
         """Return the null concept of this subsystem.
@@ -907,13 +902,14 @@ def wedge_partitions(mechanism, purview):
             pairs = [
                 (tripart[0], tripart[1]),
                 (tripart[0], tripart[2]),
-                (tripart[1], tripart[2])]
-
+                (tripart[1], tripart[2])
+            ]
             for x, y in pairs:
                 if (nonempty(x) and nonempty(y) and
                         (x.mechanism + y.mechanism == () or
                          x.purview + y.purview == ())):
                     return True
+            return False
 
         if not compressible(tripart) and tripart not in yielded:
             yielded.add(tripart)

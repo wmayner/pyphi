@@ -135,13 +135,15 @@ def _null_ria(direction, mechanism, purview, repertoire=None):
     """The irreducibility analysis for a reducible mechanism."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
-    return RepertoireIrreducibilityAnalysis(direction=direction,
-               mechanism=mechanism,
-               purview=purview,
-               partition=None,
-               repertoire=repertoire,
-               partitioned_repertoire=None,
-               phi=0.0)
+    return RepertoireIrreducibilityAnalysis(
+        direction=direction,
+        mechanism=mechanism,
+        purview=purview,
+        partition=None,
+        repertoire=repertoire,
+        partitioned_repertoire=None,
+        phi=0.0
+    )
 
 
 # =============================================================================

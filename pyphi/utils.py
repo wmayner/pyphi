@@ -9,7 +9,7 @@ external use.
 
 import hashlib
 import os
-from itertools import chain, combinations, islice, product
+from itertools import chain, combinations, product
 
 import numpy as np
 from scipy.misc import comb

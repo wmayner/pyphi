@@ -100,14 +100,16 @@ class AcRepertoireIrreducibilityAnalysis(
 
 
 def _null_ac_ria(state, direction, mechanism, purview):
-    return AcRepertoireIrreducibilityAnalysis(state=state,
-                 direction=direction,
-                 mechanism=mechanism,
-                 purview=purview,
-                 partition=None,
-                 probability=None,
-                 partitioned_probability=None,
-                 alpha=0.0)
+    return AcRepertoireIrreducibilityAnalysis(
+        state=state,
+        direction=direction,
+        mechanism=mechanism,
+        purview=purview,
+        partition=None,
+        probability=None,
+        partitioned_probability=None,
+        alpha=0.0
+    )
 
 
 class CausalLink(cmp.Orderable):
@@ -237,8 +239,8 @@ class DirectedAccount(Account):
     pass
 
 
-_ac_sia_attributes = ['alpha', 'direction', 'account',
-                        'partitioned_account', 'transition', 'cut']
+_ac_sia_attributes = ['alpha', 'direction', 'account', 'partitioned_account',
+                      'transition', 'cut']
 
 
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
@@ -314,8 +316,10 @@ def _null_ac_sia(transition, direction, alpha=0.0):
     """Returns an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and
     empty accounts.
     """
-    return AcSystemIrreducibilityAnalysis(transition=transition,
-                    direction=direction,
-                    alpha=alpha,
-                    account=(),
-                    partitioned_account=())
+    return AcSystemIrreducibilityAnalysis(
+        transition=transition,
+        direction=direction,
+        alpha=alpha,
+        account=(),
+        partitioned_account=()
+    )

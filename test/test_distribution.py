@@ -110,4 +110,4 @@ def test_flatten():
                           [0.1, 0.2, 0.0, 0.7])
     assert np.array_equal(distribution.flatten(repertoire, holi=True),
                           [0.1, 0.0, 0.2, 0.7])
-    assert distribution.flatten(None) == None
+    assert distribution.flatten(None) is None

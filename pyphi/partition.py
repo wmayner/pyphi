@@ -12,7 +12,7 @@ from .cache import cache
 
 
 # From stackoverflow.com/questions/19368375/set-partitions-in-python
-def partitions(collection):
+def partitions(collection):  # pylint: disable=inconsistent-return-statements
     """Generate all set partitions of a collection.
 
     Example:
