@@ -627,9 +627,9 @@ Figure 16
 **A system can condense into a major complex and minor complexes that may or
 may not interact with it.**
 
-For this figure, we omit nodes |H|, |I|, |J|, |K| and |L|, since the TPM
-of the full 12-node network is very large, and the point can be illustrated
-without them.
+For this figure, we omit nodes :math:`H`, :math:`I`, :math:`J`, :math:`K` and
+:math:`L`, since the TPM of the full 12-node network is very large, and the
+point can be illustrated without them.
 
     >>> network = pyphi.examples.fig16()
     >>> state = (1, 0, 0, 1, 1, 1, 0)
@@ -658,8 +658,6 @@ There are several other functions available for working with complexes; see the
 documentation for |compute.subsystems()|, |compute.all_complexes()|,
 |compute.possible_complexes()|, and |compute.complexes()|.
 
-.. |H| replace:: :math:`H`
-.. |L| replace:: :math:`L`
 .. |A = 1| replace:: :math:`A = 1`
 .. |A = 0| replace:: :math:`A = 0`
 .. |1.5| replace:: :math:`1.5`
