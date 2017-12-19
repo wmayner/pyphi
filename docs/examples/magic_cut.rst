@@ -146,7 +146,7 @@ we must check all possible partitions to find the maximally-irreducible cause:
 It turns out that the MIP of the maximally-irreducible cause is
 
 .. math::
-   \frac{AB}{[\,]} \times \frac{C}{ABC}
+   \frac{AB}{\varnothing} \times \frac{C}{ABC}
 
 and the integrated information of mechanism |ABC| is :math:`\varphi = 1/3`.
 

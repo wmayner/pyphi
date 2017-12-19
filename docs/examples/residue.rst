@@ -57,7 +57,7 @@ We can then determine what the specific partition is.
      2    3,4
 
 The indices ``(0, 1, 2, 3, 4)`` correspond to nodes :math:`A, B, C, D, E`
-respectively. Thus the MIP is |(AB / DE) x (∅ / C)|, where :math:`[\,]`
+respectively. Thus the MIP is |(AB / DE) x (∅ / C)|, where :math:`\varnothing`
 denotes the empty mechanism.
 
 The partitioned repertoire of the MIP can also be retrieved:
