@@ -202,7 +202,7 @@ r"""
 .. |compute.distance| replace:: :mod:`~pyphi.compute.distance`
 
 .. |models.subsystem| replace:: :mod:`~pyphi.models.subsystem`
-.. |models.concept| replace:: :mod:`~pyphi.models.concept`
+.. |models.mechanism| replace:: :mod:`~pyphi.models.mechanism`
 .. |models.cuts| replace:: :mod:`~pyphi.models.cuts`
 
 .. |network| replace:: :mod:`~pyphi.network`
@@ -242,8 +242,8 @@ r"""
 .. |SystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.subsystem.SystemIrreducibilityAnalysis`
 .. |SIA| replace:: :class:`~pyphi.models.subsystem.SystemIrreducibilityAnalysis`
 
-.. |Concept| replace:: :class:`~pyphi.models.concept.Concept`
-.. |CauseEffectStructure| replace:: :class:`~pyphi.models.concept.CauseEffectStructure`
+.. |Concept| replace:: :class:`~pyphi.models.mechanism.Concept`
+.. |CauseEffectStructure| replace:: :class:`~pyphi.models.mechanism.CauseEffectStructure`
 
 .. |Cut| replace:: :class:`~pyphi.models.cuts.Cut`
 .. |Cuts| replace:: :class:`~pyphi.models.cuts.Cut`
@@ -251,11 +251,11 @@ r"""
 .. |Parts| replace:: :class:`~pyphi.models.cuts.Part`
 .. |Bipartition| replace:: :class:`~pyphi.models.cuts.Bipartition`
 
-.. |RepertoireIrreducibilityAnalysis| replace:: :class:`~pyphi.models.concept.RepertoireIrreducibilityAnalysis`
-.. |MaximallyIrreducibleCauseOrEffect| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCauseOrEffect`
-.. |MICE| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCauseOrEffect`
-.. |MIC| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleCause`
-.. |MIE| replace:: :class:`~pyphi.models.concept.MaximallyIrreducibleEffect`
+.. |RepertoireIrreducibilityAnalysis| replace:: :class:`~pyphi.models.mechanism.RepertoireIrreducibilityAnalysis`
+.. |MaximallyIrreducibleCauseOrEffect| replace:: :class:`~pyphi.models.mechanism.MaximallyIrreducibleCauseOrEffect`
+.. |MICE| replace:: :class:`~pyphi.models.mechanism.MaximallyIrreducibleCauseOrEffect`
+.. |MIC| replace:: :class:`~pyphi.models.mechanism.MaximallyIrreducibleCause`
+.. |MIE| replace:: :class:`~pyphi.models.mechanism.MaximallyIrreducibleEffect`
 
 .. |Node| replace:: :class:`~pyphi.node.Node`
 .. |Nodes| replace:: :class:`~pyphi.node.Node`

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# models/concept.py
+# models/mechanism.py
 
-"""Objects that represent parts of cause-effect structures."""
+"""Mechanism-level objects."""
 
 import numpy as np
 

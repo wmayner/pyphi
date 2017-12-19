@@ -2,20 +2,22 @@
 # -*- coding: utf-8 -*-
 # models/__init__.py
 
-"""See |models.subsystem|, |models.concept|, and |models.cuts| for documentation.
+"""
+See |models.subsystem|, |models.mechanism|, and |models.cuts| for
+documentation.
 
 Attributes:
     SystemIrreducibilityAnalysis: Alias for
         :class:`subsystem.SystemIrreducibilityAnalysis`
     RepertoireIrreducibilityAnalysis: Alias for
-        :class:`concept.RepertoireIrreducibilityAnalysis`
+        :class:`mechanism.RepertoireIrreducibilityAnalysis`
     MaximallyIrreducibleCause: Alias for
-        :class:`concept.MaximallyIrreducibleCause`
+        :class:`mechanism.MaximallyIrreducibleCause`
     MaximallyIrreducibleEffect: Alias for
-        :class:`concept.MaximallyIrreducibleEffect`
+        :class:`mechanism.MaximallyIrreducibleEffect`
     MaximallyIrreducibleCauseOrEffect: Alias for
-        :class:`concept.MaximallyIrreducibleCauseOrEffect`
-    Concept: Alias for :class:`concept.Concept`
+        :class:`mechanism.MaximallyIrreducibleCauseOrEffect`
+    Concept: Alias for :class:`mechanism.Concept`
     CauseEffectStructure: Alias for :class:`subsystem.CauseEffectStructure`
     Cut: Alias for :class:`cuts.Cut`
     Part: Alias for :class:`cuts.Part`
@@ -35,9 +37,9 @@ from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
                                Event, _null_ac_sia, DirectedAccount, Account)
 from .subsystem import (SystemIrreducibilityAnalysis, _null_sia,
                         CauseEffectStructure)
-from .concept import (RepertoireIrreducibilityAnalysis, _null_ria,
-                      MaximallyIrreducibleCauseOrEffect,
-                      MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
-                      Concept)
+from .mechanism import (RepertoireIrreducibilityAnalysis, _null_ria,
+                        MaximallyIrreducibleCauseOrEffect,
+                        MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
+                        Concept)
 from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,
                    KPartition, KCut)
