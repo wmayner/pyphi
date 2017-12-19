@@ -296,7 +296,7 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
         if ria.direction != Direction.CAUSE:
             raise WrongDirectionError('A MIC must be initialized with a RIA '
                                       'in the cause direction.')
-        self._ria = ria
+        super().__init__()
 
     @property
     def direction(self):
@@ -317,7 +317,7 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
         if ria.direction != Direction.EFFECT:
             raise WrongDirectionError('A MIE must be initialized with a RIA '
                                       'in the effect direction.')
-        self._ria = ria
+        super().__init__()
 
     @property
     def direction(self):
