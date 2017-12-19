@@ -5,13 +5,61 @@
 """Subsystem-level objects."""
 
 from . import cmp, fmt
-from .. import utils
+from .. import utils, config
 
 # pylint: disable=too-many-arguments
 
 _sia_attributes = ['phi', 'ces',
                       'partitioned_ces', 'subsystem',
                       'cut_subsystem']
+
+
+def _concept_sort_key(concept):
+    return (len(concept.mechanism), concept.mechanism)
+
+
+class CauseEffectStructure(tuple):
+    """A collection of concepts."""
+    # TODO: compare CESs using set equality
+
+    def __new__(cls, concepts=()):
+        """Normalize the order of concepts in the |CauseEffectStructure|."""
+        return super().__new__(cls, sorted(concepts, key=_concept_sort_key))
+
+    def __repr__(self):
+        if config.REPR_VERBOSITY > 0:
+            return self.__str__()
+
+        return "CauseEffectStructure{}".format(
+            super().__repr__())
+
+    def __str__(self):
+        return fmt.fmt_ces(self)
+
+    def to_json(self):
+        return {'concepts': list(self)}
+
+    @property
+    def mechanisms(self):
+        """The mechanism of each concept."""
+        return [concept.mechanism for concept in self]
+
+    @property
+    def phis(self):
+        """The |small_phi| values of each concept."""
+        return [concept.phi for concept in self]
+
+    @property
+    def labeled_mechanisms(self):
+        """The labeled mechanism of each concept."""
+        if not self:
+            return []
+        label = self[0].subsystem.network.indices2labels
+        return [list(label(mechanism)) for mechanism in self.mechanisms]
+
+    @classmethod
+    def from_json(cls, json):
+        return cls(json['concepts'])
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):

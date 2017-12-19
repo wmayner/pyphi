@@ -16,7 +16,7 @@ Attributes:
     MaximallyIrreducibleCauseOrEffect: Alias for
         :class:`concept.MaximallyIrreducibleCauseOrEffect`
     Concept: Alias for :class:`concept.Concept`
-    CauseEffectStructure: Alias for :class:`concept.CauseEffectStructure`
+    CauseEffectStructure: Alias for :class:`subsystem.CauseEffectStructure`
     Cut: Alias for :class:`cuts.Cut`
     Part: Alias for :class:`cuts.Part`
     Bipartition: Alias for :class:`cuts.Bipartition`
@@ -33,10 +33,11 @@ Attributes:
 from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
                                AcRepertoireIrreducibilityAnalysis, _null_ac_ria,
                                Event, _null_ac_sia, DirectedAccount, Account)
-from .subsystem import SystemIrreducibilityAnalysis, _null_sia
+from .subsystem import (SystemIrreducibilityAnalysis, _null_sia,
+                        CauseEffectStructure)
 from .concept import (RepertoireIrreducibilityAnalysis, _null_ria,
                       MaximallyIrreducibleCauseOrEffect,
                       MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
-                      Concept, CauseEffectStructure)
+                      Concept)
 from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,
                    KPartition, KCut)
