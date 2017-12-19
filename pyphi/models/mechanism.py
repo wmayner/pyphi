@@ -110,8 +110,9 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return cmp.general_eq(self, other, attrs)
 
     def __bool__(self):
-        """A |RepertoireIrreducibilityAnalysis| evaluates to ``True`` if it has
-        |small_phi > 0|."""
+        """A |RepertoireIrreducibilityAnalysis| is ``True`` if it has
+        |small_phi > 0|.
+        """
         return not utils.eq(self.phi, 0)
 
     def __hash__(self):

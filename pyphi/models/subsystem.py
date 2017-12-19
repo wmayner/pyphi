@@ -131,7 +131,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return cmp.general_eq(self, other, _sia_attributes)
 
     def __bool__(self):
-        """A |SystemIrreducibilityAnalysis| evaluates to``True`` if it has
+        """A |SystemIrreducibilityAnalysis| is ``True`` if it has
         |big_phi > 0|.
         """
         return not utils.eq(self.phi, 0)
