@@ -42,8 +42,9 @@ minimally in this system.
 Instead, we can quantify existence as the irreducible cause information of a
 mechanism. The MIP of a mechanism is the partition of mechanism and purview
 which makes the least difference to the cause repertoire (see the documentation
-for the |RepertoireIrreducibilityAnalysis| object). The irreducible cause information is the distance
-between the unpartitioned and partitioned repertoires.
+for the |RepertoireIrreducibilityAnalysis| object). The irreducible cause
+information is the distance between the unpartitioned and partitioned
+repertoires.
 
 To analyze the irreducibility of the mechanism |AB| on the cause side:
 
@@ -79,8 +80,9 @@ One counterintuitive result that merits discussion is that since irreducible
 cause information is what defines existence, we must also evaluate the
 irreducible cause information of the mechanisms |A| and |B|.
 
-The mechanism |A| over the purview |CDE| is completely reducible to |(A / CD) x
-(∅ / E)| because |E| has no effect on |A|, so it has zero |small_phi|.
+The mechanism |A| over the purview |CDE| is completely reducible to 
+|(A / CD) x (∅ / E)| because |E| has no effect on |A|, so it has zero
+|small_phi|.
 
     >>> subsystem.cause_mip(A, CDE).phi
     0.0

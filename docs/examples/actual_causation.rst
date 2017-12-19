@@ -1,7 +1,8 @@
 Actual Causation
 ================
 
-This section demonstrates how to use PyPhi to evaluate actual causation as described in
+This section demonstrates how to use PyPhi to evaluate actual causation as
+described in
 
 `Albantakis L, Marshall W, Hoel E, Tononi G (2017). What caused what? An
 irreducible account of actual causation. arXiv:1708.06716 [cs.AI]
@@ -23,9 +24,9 @@ Configuration
 
 Before we begin we need to set some configuration values. The correct way of
 partitioning for actual causation is using the ``'ALL'`` partitions setting;
-``'TRI'``-partitions are a reasonable approximation. In case of ties the smaller
-purview should be chosen. IIT 3.0 style bipartitions will give incorrect
-results.
+``'TRI'``-partitions are a reasonable approximation. In case of ties the
+smaller purview should be chosen. IIT 3.0 style bipartitions will give
+incorrect results.
 
     >>> config.PARTITION_TYPE = 'TRI'
     >>> config.PICK_SMALLEST_PURVIEW = True
@@ -119,8 +120,9 @@ we use the ``find_mip`` method:
 
    >>> link = transition.find_mip(Direction.EFFECT, (OR, AND), (OR, AND))
 
-This returns a |AcRepertoireIrreducibilityAnalysis| object, with a number of useful properties. This
-particular MIP is reducible, as we can see by checking the value of |alpha|:
+This returns a |AcRepertoireIrreducibilityAnalysis| object, with a number of
+useful properties. This particular MIP is reducible, as we can see by checking
+the value of |alpha|:
 
    >>> link.alpha
    0.0
@@ -212,7 +214,8 @@ To find all irreducible accounts within the transition of interest, use
    >>> all_accounts = actual.nexus(network, X_state, Y_state)
 
 This computes |big_alpha| for all permutations of of elements in |X_t-1| and
-|Y_t| and returns a ``tuple`` of all |AcSystemIrreducibilityAnalysis| objects with |big_alpha > 0|:
+|Y_t| and returns a ``tuple`` of all |AcSystemIrreducibilityAnalysis| objects
+with |big_alpha > 0|:
 
    >>> for n in all_accounts:
    ...     print(n.transition, n.alpha)

@@ -82,9 +82,9 @@ subsystem:
 If we want to take a deeper look at the integrated-information-theoretic
 properties of our network, we can access all the intermediate quantities and
 structures that are calculated in the course of arriving at a final |big_phi|
-value by using |compute.sia()|. This returns a nested object, |SystemIrreducibilityAnalysis|, that
-contains data about the subsystem's cause-effect structure, cause and effect
-repertoires, etc.
+value by using |compute.sia()|. This returns a nested object,
+|SystemIrreducibilityAnalysis|, that contains data about the subsystem's
+cause-effect structure, cause and effect repertoires, etc.
 
     >>> mip = pyphi.compute.sia(subsystem)
 
@@ -93,8 +93,8 @@ For instance, we can see that this network has 4 concepts:
     >>> len(mip.ces)
     4
 
-See the documentation for |SystemIrreducibilityAnalysis| and |Concept| for more information on these
-objects.
+See the documentation for |SystemIrreducibilityAnalysis| and |Concept| for more
+information on these objects.
 
 .. tip::
     The network and subsystem discussed here are returned by the

@@ -247,7 +247,9 @@ Let us also define a time scale over which to perform our analysis:
 As in the coarse-graining example, the blackbox and time scale are passed to
 |MacroSubsystem|:
 
-    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, all_nodes, blackbox=blackbox, time_scale=time_scale)
+    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, all_nodes, 
+    ...                                              blackbox=blackbox, 
+    ...                                              time_scale=time_scale)
 
 We can now compute |big_phi| for this macro system:
 

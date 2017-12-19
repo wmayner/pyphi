@@ -422,8 +422,8 @@ attributes:
     ─── ✕ ─────
      1     0,2
 
-For more information on these objects, see the documentation for the |RepertoireIrreducibilityAnalysis|
-class, or use ``help(mip_c)``.
+For more information on these objects, see the documentation for the
+|RepertoireIrreducibilityAnalysis| class, or use ``help(mip_c)``.
 
 Note that the minimal partition found for the cause is
 
@@ -479,7 +479,8 @@ method:
     >>> mic.phi
     0.333334
 
-Similarly, the |Subsystem.mie| method returns the “core effect” or *maximally-irreducible effect* (MIE). 
+Similarly, the |Subsystem.mie| method returns the “core effect” or
+*maximally-irreducible effect* (MIE). 
 
 For a detailed description of the MIC and MIE objects returned by these
 methods, see the documentation for |MIC| or use ``help(subsystem.mic)`` and
@@ -643,8 +644,8 @@ We find that there are two complexes: the major complex |ABC| with :math:`\Phi
 \approx 1.92`, and a minor complex |FG| with :math:`\Phi \approx 0.069` (note
 that there is typo in the figure: |FG|'s |big_phi| value should be |0.069|).
 Furthermore, the program has been updated to only consider background
-conditions of current states, not previous states; as a result the minor complex
-|DE| shown in the paper no longer exists.
+conditions of current states, not previous states; as a result the minor
+complex |DE| shown in the paper no longer exists.
 
     >>> len(condensed)
     2

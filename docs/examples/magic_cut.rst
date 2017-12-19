@@ -100,7 +100,8 @@ for any purview, so the cause information is reducible.
     >>> BC = (1, 2)
     >>> A = (0,)
     >>> repertoire = subsystem.cause_repertoire(ABC, ABC)
-    >>> cut_repertoire = subsystem.cause_repertoire(BC, ABC) * subsystem.cause_repertoire(A, ())
+    >>> cut_repertoire = (subsystem.cause_repertoire(BC, ABC) * 
+    ...                   subsystem.cause_repertoire(A, ()))
     >>> pyphi.distance.hamming_emd(repertoire, cut_repertoire)
     0.0
 

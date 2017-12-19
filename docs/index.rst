@@ -29,7 +29,8 @@ To install the latest stable release, run
 
     pip install pyphi
 
-To install the latest development version, which is a work in progress and may have bugs, run
+To install the latest development version, which is a work in progress and may
+have bugs, run
 
 .. code-block:: bash
 
@@ -40,7 +41,8 @@ To install the latest development version, which is a work in progress and may h
 <https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.md>`_.
 
 .. note::
-    PyPhi is only supported on Linux and macOS operating systems; Windows is not supported.
+    PyPhi is only supported on Linux and macOS operating systems; Windows is
+    not supported.
 
 .. toctree::
     :caption: Usage and Examples
