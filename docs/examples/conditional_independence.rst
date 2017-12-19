@@ -1,5 +1,14 @@
+.. _conditional-independence:
+
 Conditional Independence
 ========================
+
+Conditional independence is the property of a TPM that *each node's state at
+time* |t+1| *must be independent of the state of the others, given the state of
+the network at time* |t|:
+
+.. math::
+    p(S_{t+1} \mid S_t = s_t) \;= \prod_{N \,\in\, S} p(N_{t+1} \mid S_t = s_t)
 
 This example explores the assumption of conditional independence, and the
 behaviour of the program when it is not satisfied.
