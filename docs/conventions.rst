@@ -37,10 +37,11 @@ With this form, we can take advantage of `NumPy array indexing
 <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_ and use a
 network state as an index directly:
 
-    >>> tpm = pyphi.examples.basic_noisy_selfloop_network().tpm
+    >>> from pyphi.examples import basic_noisy_selfloop_network
+    >>> tpm = basic_noisy_selfloop_network().tpm
     >>> state = (0, 0, 1)  # A network state is a binary tuple
     >>> tpm[state]
-    array([ 0.919,  0.91 ,  0.756 ])
+    array([ 0.919,  0.91 ,  0.756])
 
 This tells us that if the current state is |N_0 = 0, N_1 = 0, N_2 = 1|, then
 the for the next state, :math:`p(N_0 = 1) = 0.919`, :math:`p(N_1 = 1) = 0.91`
