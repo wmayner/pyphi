@@ -53,18 +53,18 @@ have bugs, run
     examples/*
 
 .. toctree::
-    :caption: Configuration
-    :glob:
-    :maxdepth: 1
-
-    configuration
-
-.. toctree::
     :caption: Conventions
     :glob:
     :maxdepth: 1
 
     conventions
+
+.. toctree::
+    :caption: Configuration
+    :glob:
+    :maxdepth: 1
+
+    configuration
 
 .. toctree::
     :caption: API Reference
