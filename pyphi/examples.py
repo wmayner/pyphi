@@ -1076,12 +1076,8 @@ def fig16():
                    node_labels=LABELS[:tpm.shape[1]])
 
 
-###################################################################
-#                                                                 #
-#                      Actual Causation                           #
-#                                                                 #
-###################################################################
-
+# Actual Causation
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 def actual_causation():
     """The actual causation example network, consisting of an ``OR`` and
