@@ -172,19 +172,19 @@ of principle regardless.
 
 Calculating the MIP of the system,
 
-    >>> mip = pyphi.compute.sia(subsystem)
-    >>> mip.phi
+    >>> sia = pyphi.compute.sia(subsystem)
+    >>> sia.phi
     0.217829
-    >>> mip.cut
+    >>> sia.cut
     Cut [0, 4] ━━/ /━━➤ [1]
 
 we see that this subsystem has a |big_phi| value of 0.15533, and the MIP cuts
 the connections from |AE| to |B|. Investigating the concepts in both the
 partitioned and unpartitioned cause-effect structures,
 
-    >>> mip.ces.labeled_mechanisms
+    >>> sia.ces.labeled_mechanisms
     [['A'], ['B'], ['A', 'B']]
-    >>> mip.ces.phis
+    >>> sia.ces.phis
     [0.25, 0.166667, 0.178572]
     >>> print(sum(_))
     0.5952390000000001
@@ -192,9 +192,9 @@ partitioned and unpartitioned cause-effect structures,
 We see that the unpartitioned cause-effect structure has mechanisms |A|, |B|
 and |AB| with :math:`\sum\varphi = 0.595239`.
 
-    >>> mip.partitioned_ces.labeled_mechanisms
+    >>> sia.partitioned_ces.labeled_mechanisms
     [['A'], ['B'], ['A', 'B']]
-    >>> mip.partitioned_ces.phis
+    >>> sia.partitioned_ces.phis
     [0.25, 0.166667, 0.214286]
     >>> print(sum(_))
     0.630953

@@ -86,11 +86,11 @@ value by using |compute.sia()|. This returns a nested object,
 |SystemIrreducibilityAnalysis|, that contains data about the subsystem's
 cause-effect structure, cause and effect repertoires, etc.
 
-    >>> mip = pyphi.compute.sia(subsystem)
+    >>> sia = pyphi.compute.sia(subsystem)
 
 For instance, we can see that this network has 4 concepts:
 
-    >>> len(mip.ces)
+    >>> len(sia.ces)
     4
 
 See the documentation for |SystemIrreducibilityAnalysis| and |Concept| for more
