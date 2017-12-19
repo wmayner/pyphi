@@ -439,6 +439,9 @@ def method(cache_name, key_prefix=None):
             to the method arguments.
     """
     def decorator(func):
+        if (func.__name__ in ['cause_repertoire', 'effect_repertoire'] and
+                not config.CACHE_REPERTOIRES):
+            return func
         @wraps(func)
         def wrapper(obj, *args, **kwargs):
             cache = getattr(obj, cache_name)

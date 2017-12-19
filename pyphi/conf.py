@@ -92,6 +92,7 @@ Memoization and caching
 PyPhi provides a number of ways to cache intermediate results.
 
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_SIAS`
+- :attr:`~pyphi.conf.PyphiConfig.CACHE_REPERTOIRES`
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_POTENTIAL_PURVIEWS`
 - :attr:`~pyphi.conf.PyphiConfig.CACHING_BACKEND`
 - :attr:`~pyphi.conf.PyphiConfig.FS_CACHE_VERBOSITY`
@@ -414,6 +415,11 @@ class PyphiConfig(Config):
     minimal effort. For larger projects, however, it is recommended that you
     manage the results explicitly, rather than relying on the cache. For this
     reason it is disabled by default.""")
+
+    CACHE_REPERTOIRES = Option(True, doc="""
+    PyPhi caches cause and effect repertoires. This greatly improves speed, but
+    can consume a significant amount of memory. If you are experiencing memory
+    issues, try disabling this.""")
 
     CACHE_POTENTIAL_PURVIEWS = Option(True, doc="""
     Controls whether the potential purviews of mechanisms of a network are

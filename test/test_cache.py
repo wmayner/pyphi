@@ -55,6 +55,49 @@ def test_cache_key_generation():
     assert c.key('arg', _prefix='CONSTANT') == ('CONSTANT', 'arg')
 
 
+def factory():
+    """This function is necessary because CACHE_REPERTOIRES does not have an
+    effect if changed at runtime.
+
+    .. TODO:
+        fix that
+    """
+    class SomeObject:
+        """Object for testing CACHE_REPERTOIRES config option"""
+        def __init__(self):
+            self.repertoire_cache = cache.DictCache()
+
+        @cache.method('repertoire_cache', 'cause')
+        def cause_repertoire(self, some_arg):
+            return 'expensive computation'
+
+        @cache.method('repertoire_cache', 'effect')
+        def effect_repertoire(self, some_arg):
+            return 'expensive computation'
+
+    return SomeObject
+
+def test_cache_repertoires_config_option():
+
+    with config.override(CACHE_REPERTOIRES=True):
+        SomeObject = factory()
+        o = SomeObject()
+        assert o.cause_repertoire(1) == 'expensive computation'
+        assert o.effect_repertoire(1) == 'expensive computation'
+        expected_key = ('cause', 1)
+        assert expected_key in o.repertoire_cache.cache
+        expected_key = ('effect', 1)
+        assert expected_key in o.repertoire_cache.cache
+
+    with config.override(CACHE_REPERTOIRES=False):
+        SomeObject = factory()
+        o = SomeObject()
+        assert o.cause_repertoire(1) == 'expensive computation'
+        assert o.effect_repertoire(1) == 'expensive computation'
+        # Repertoire cache should be empty
+        assert not o.repertoire_cache.cache
+
+
 # Test MICE caching
 # ========================
 
