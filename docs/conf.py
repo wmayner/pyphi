@@ -200,6 +200,9 @@ r"""
 r"""
 .. |compute| replace:: :mod:`~pyphi.compute`
 .. |compute.distance| replace:: :mod:`~pyphi.compute.distance`
+.. |compute.network| replace:: :mod:`~pyphi.compute.network`
+.. |compute.parallel| replace:: :mod:`~pyphi.compute.parallel`
+.. |compute.subsystem| replace:: :mod:`~pyphi.compute.subsystem`
 
 .. |models.subsystem| replace:: :mod:`~pyphi.models.subsystem`
 .. |models.mechanism| replace:: :mod:`~pyphi.models.mechanism`
