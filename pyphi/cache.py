@@ -380,7 +380,7 @@ class DictMICECache(DictCache):
           - The subsystem is uncut (caches are only inherited from
             uncut subsystems so there is no reason to cache on cut
             subsystems.)
-          - |phi| > 0. Ideally we would cache all mice, but the size
+          - |small_phi| > 0. Ideally we would cache all mice, but the size
             of the cache grows way too large, making parallel computations
             incredibly inefficient because the caches have to be passed
             between process. This will be changed once global caches are
