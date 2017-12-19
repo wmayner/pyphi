@@ -219,14 +219,14 @@ r"""
 """,
 # Functions
 r"""
-.. |compute.conceptual_info()| replace:: :func:`~pyphi.compute.system.conceptual_info`
-.. |compute.sia()| replace:: :func:`~pyphi.compute.system.sia`
-.. |compute.subsystems()| replace:: :func:`~pyphi.compute.system.subsystems`
-.. |compute.possible_complexes()| replace:: :func:`~pyphi.compute.system.possible_complexes`
-.. |compute.complexes()| replace:: :func:`~pyphi.compute.system.complexes`
-.. |compute.all_complexes()| replace:: :func:`~pyphi.compute.system.all_complexes`
-.. |compute.condensed()| replace:: :func:`~pyphi.compute.system.condensed`
-.. |compute.phi()| replace:: :func:`~pyphi.compute.system.phi`
+.. |compute.conceptual_info()| replace:: :func:`~pyphi.compute.subsystem.conceptual_info`
+.. |compute.sia()| replace:: :func:`~pyphi.compute.subsystem.sia`
+.. |compute.subsystems()| replace:: :func:`~pyphi.compute.subsystem.subsystems`
+.. |compute.possible_complexes()| replace:: :func:`~pyphi.compute.subsystem.possible_complexes`
+.. |compute.complexes()| replace:: :func:`~pyphi.compute.subsystem.complexes`
+.. |compute.all_complexes()| replace:: :func:`~pyphi.compute.subsystem.all_complexes`
+.. |compute.condensed()| replace:: :func:`~pyphi.compute.subsystem.condensed`
+.. |compute.phi()| replace:: :func:`~pyphi.compute.subsystem.phi`
 
 .. |configure_logging()| replace:: :func:`~pyphi.config.configure_logging`
 
