@@ -283,6 +283,22 @@ def test_sia_cache_key_includes_config_dependencies(s, flushcache,
     assert l1_big_phi != emd_big_phi
 
 
+def test_clear_subsystem_caches_after_computing_sia_config_option(s):
+    with config.override(CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA=False,
+                         PARALLEL_CONCEPT_EVALUATION=False,
+                         PARALLEL_CUT_EVALUATION=False,
+                         CACHE_REPERTOIRES=True):
+        sia = compute.sia(s)
+        assert s._repertoire_cache.cache
+
+    with config.override(CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA=True,
+                         PARALLEL_CONCEPT_EVALUATION=False,
+                         PARALLEL_CUT_EVALUATION=False,
+                         CACHE_REPERTOIRES=True):
+        sia = compute.sia(s)
+        assert not s._repertoire_cache.cache
+
+
 def test_conceptual_info(s, flushcache, restore_fs_cache):
     flushcache()
     assert compute.conceptual_info(s) == 2.8125

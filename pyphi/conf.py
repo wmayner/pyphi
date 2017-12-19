@@ -94,6 +94,7 @@ PyPhi provides a number of ways to cache intermediate results.
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_SIAS`
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_REPERTOIRES`
 - :attr:`~pyphi.conf.PyphiConfig.CACHE_POTENTIAL_PURVIEWS`
+- :attr:`~pyphi.conf.PyphiConfig.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA`
 - :attr:`~pyphi.conf.PyphiConfig.CACHING_BACKEND`
 - :attr:`~pyphi.conf.PyphiConfig.FS_CACHE_VERBOSITY`
 - :attr:`~pyphi.conf.PyphiConfig.FS_CACHE_DIRECTORY`
@@ -425,6 +426,13 @@ class PyphiConfig(Config):
     Controls whether the potential purviews of mechanisms of a network are
     cached. Caching speeds up computations by not recomputing expensive
     reducibility checks, but uses additional memory.""")
+
+    CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA = Option(False, doc="""
+    Controls whether a |Subsystem|'s repertoire and MICE caches are cleared
+    with |Subsystem.clear_caches()| after computing the
+    |SystemIrreducibilityAnalysis|. If you don't need to do any more
+    computations after running |compute.sia()|, then enabling this may help
+    conserve memory.""")
 
     CACHING_BACKEND = Option('fs', doc="""
     Controls whether precomputed results are stored and read from a local

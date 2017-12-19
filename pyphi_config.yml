@@ -60,6 +60,9 @@ CACHE_REPERTOIRES: true
 # cached. Speeds up calculations when the same network is used repeatedly, but
 # takes up additional memory, and makes network initialization slow.
 CACHE_POTENTIAL_PURVIEWS: true
+# Controls whether subsystem caches are automatically cleared after computing
+# the SIA for the subsystem.
+CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA: false
 # The caching system to use. "fs" means cache the results on the local
 # filesystem, in a subdirectory of the current directory; "db" means connect to
 # a database and store the results there.

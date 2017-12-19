@@ -232,6 +232,8 @@ r"""
 .. |compute.condensed()| replace:: :func:`~pyphi.compute.subsystem.condensed`
 .. |compute.phi()| replace:: :func:`~pyphi.compute.subsystem.phi`
 
+.. |Subsystem.clear_caches()| replace:: :func:`~pyphi.subsystem.Subsystem.clear_caches`
+
 .. |configure_logging()| replace:: :func:`~pyphi.config.configure_logging`
 
 .. |le_index2state()| replace:: :func:`~pyphi.convert.le_index2state`

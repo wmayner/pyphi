@@ -272,6 +272,10 @@ def _sia(cache_key, subsystem):
     min_sia = engine.run(config.PARALLEL_CUT_EVALUATION)
     result = time_annotated(min_sia, small_phi_time)
 
+    if config.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA:
+        log.debug('Clearing subsystem caches.')
+        subsystem.clear_caches()
+
     log.info('Finished calculating big-phi data for %s.', subsystem)
 
     return result
