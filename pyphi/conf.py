@@ -59,6 +59,8 @@ These settings control the algorithms PyPhi uses.
 - :attr:`~pyphi.conf.PyphiConfig.USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
 - :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
+- :attr:`~pyphi.conf.PyphiConfig.VALIDATE_SUBSYSTEM_STATES`
+- :attr:`~pyphi.conf.PyphiConfig.VALIDATE_CONDITIONAL_INDEPENDENCE`
 
 
 Parallelization and system resources
@@ -125,13 +127,6 @@ Numerical precision
 ~~~~~~~~~~~~~~~~~~~
 
 - :attr:`~pyphi.conf.PyphiConfig.PRECISION`
-
-
-Miscellaneous
-~~~~~~~~~~~~~
-
-- :attr:`~pyphi.conf.PyphiConfig.VALIDATE_SUBSYSTEM_STATES`
-- :attr:`~pyphi.conf.PyphiConfig.VALIDATE_CONDITIONAL_INDEPENDENCE`
 
 
 The ``config`` API
