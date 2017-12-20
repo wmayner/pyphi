@@ -303,7 +303,7 @@ def fmt_concept(concept):
     def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
         if not x:
             return ''
-        return box(indent(fmt_ria(x.ria, verbose=False), amount=1))
+        return box(indent(fmt_ria(x.ria, verbose=False, mip=True), amount=1))
 
     cause = header('MIC',
                    fmt_cause_or_effect(concept.cause))
@@ -321,7 +321,7 @@ def fmt_concept(concept):
     return header(title, ce, HEADER_BAR_2, HEADER_BAR_2, center=center)
 
 
-def fmt_ria(ria, verbose=True):
+def fmt_ria(ria, verbose=True, mip=False):
     """Format a |RepertoireIrreducibilityAnalysis|."""
     if ria is False or ria is None:  # RIAs can be Falsy
         return ''
@@ -335,7 +335,8 @@ def fmt_ria(ria, verbose=True):
         direction = ''
 
     if config.REPR_VERBOSITY is HIGH:
-        partition = '\nPartition:\n{}'.format(
+        partition = '\n{}:\n{}'.format(
+            ('MIP' if mip else 'Partition'),
             indent(fmt_bipartition(ria.partition, ria.subsystem)))
         repertoire = '\nRepertoire:\n{}'.format(
             indent(fmt_repertoire(ria.repertoire)))
