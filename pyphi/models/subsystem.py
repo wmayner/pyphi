@@ -54,7 +54,7 @@ class CauseEffectStructure(tuple):
         if not self:
             return []
         label = self[0].subsystem.network.indices2labels
-        return [list(label(mechanism)) for mechanism in self.mechanisms]
+        return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
     @classmethod
     def from_json(cls, json):
