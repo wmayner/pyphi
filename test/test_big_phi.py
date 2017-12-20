@@ -525,8 +525,7 @@ def test_rule152_complexes_no_caching(rule152):
         _flushdb()
         # Unpack the state from the results key.
         # Generate the network with the state we're testing.
-        net = Network(rule152.tpm, state,
-                      connectivity_matrix=rule152.connectivity_matrix)
+        net = Network(rule152.tpm, state, cm=rule152.cm)
         # Comptue all the complexes, leaving out the first (empty) subsystem
         # since Matlab doesn't include it in results.
         complexes = list(compute.complexes(net))[1:]

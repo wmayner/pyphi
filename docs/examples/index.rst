@@ -48,7 +48,7 @@ to read.
 
 Now we construct the network itself with the arguments we just created:
 
-    >>> network = pyphi.Network(tpm, connectivity_matrix=cm,
+    >>> network = pyphi.Network(tpm, cm=cm,
     ...                         node_labels=labels)
 
 The next step is to define a subsystem for which we want to evaluate |big_phi|.

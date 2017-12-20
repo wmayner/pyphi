@@ -29,9 +29,9 @@ def test_network_init_validation(network):
 
 def test_network_creates_fully_connected_cm_by_default():
     tpm = np.zeros((2 * 2 * 2, 3))
-    network = Network(tpm, connectivity_matrix=None)
+    network = Network(tpm, cm=None)
     target_cm = np.ones((3, 3))
-    assert np.array_equal(network.connectivity_matrix, target_cm)
+    assert np.array_equal(network.cm, target_cm)
 
 
 def test_potential_purviews(s):

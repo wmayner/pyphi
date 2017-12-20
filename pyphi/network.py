@@ -44,12 +44,11 @@ class Network:
             ``n`` is the number of nodes in the network.
 
     Keyword Args:
-        connectivity_matrix (np.ndarray): A square binary adjacency matrix
-            indicating the connections between nodes in the network.
-            ``connectivity_matrix[i][j] == 1`` means that node |i| is connected
-            to node |j| (see :ref:`cm-conventions`). **If no connectivity
-            matrix is given, PyPhi assumes that every node is connected to
-            every node (including itself)**.
+        cm (np.ndarray): A square binary adjacency matrix indicating the
+            connections between nodes in the network. ``cm[i][j] == 1`` means
+            that node |i| is connected to node |j| (see :ref:`cm-conventions`).
+            **If no connectivity matrix is given, PyPhi assumes that every node
+            is connected to every node (including itself)**.
         node_labels (tuple[str]): Human-readable labels for each node in the
             network.
 
@@ -60,11 +59,9 @@ class Network:
     """
 
     # TODO make tpm also optional when implementing logical network definition
-    def __init__(self, tpm, connectivity_matrix=None, node_labels=None,
-                 purview_cache=None):
-
+    def __init__(self, tpm, cm=None, node_labels=None, purview_cache=None):
         self._tpm, self._tpm_hash = self._build_tpm(tpm)
-        self._cm, self._cm_hash = self._build_cm(connectivity_matrix)
+        self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
         self._node_labels = node_labels or default_labels(self._node_indices)
         self.purview_cache = purview_cache or cache.PurviewCache()
@@ -193,7 +190,7 @@ class Network:
                                     all_purviews)
 
     def __repr__(self):
-        return 'Network({}, connectivity_matrix={})'.format(self.tpm, self.cm)
+        return 'Network({}, cm={})'.format(self.tpm, self.cm)
 
     def __str__(self):
         return self.__repr__()

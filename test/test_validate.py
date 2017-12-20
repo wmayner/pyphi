@@ -48,23 +48,23 @@ def test_validate_tpm_conditional_independence():
     validate.tpm(tpm, check_independence=False)
 
 
-def test_validate_cm_valid(s):
-    assert validate.connectivity_matrix(s.network.connectivity_matrix)
+def test_validate_connectivity_matrix_valid(s):
+    assert validate.connectivity_matrix(s.network.cm)
 
 
-def test_validate_cm_not_square():
+def test_validate_connectivity_matrix_not_square():
     cm = np.random.binomial(1, 0.5, (4, 5))
     with pytest.raises(ValueError):
         assert validate.connectivity_matrix(cm)
 
 
-def test_validate_cm_not_2D():
+def test_validate_connectivity_matrix_not_2D():
     cm = np.arange(8).reshape(2, 2, 2)
     with pytest.raises(ValueError):
         assert validate.connectivity_matrix(cm)
 
 
-def test_validate_cm_not_binary():
+def test_validate_connectivity_matrix_not_binary():
     cm = np.arange(16).reshape(4, 4)
     with pytest.raises(ValueError):
         assert validate.connectivity_matrix(cm)

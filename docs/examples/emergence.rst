@@ -15,7 +15,7 @@ available from the |examples| module.
 
 The connectivity matrix is all-to-all:
 
-    >>> network.connectivity_matrix
+    >>> network.cm
     array([[ 1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.],

@@ -602,8 +602,8 @@ def transitions(network, before_state, after_state):
 
     # Elements without inputs are reducibe effects,
     # elements without outputs are reducible causes.
-    possible_causes = np.where(np.sum(network.connectivity_matrix, 1) > 0)[0]
-    possible_effects = np.where(np.sum(network.connectivity_matrix, 0) > 0)[0]
+    possible_causes = np.where(np.sum(network.cm, 1) > 0)[0]
+    possible_effects = np.where(np.sum(network.cm, 0) > 0)[0]
 
     for cause_subset in utils.powerset(possible_causes, nonempty=True):
         for effect_subset in utils.powerset(possible_effects, nonempty=True):

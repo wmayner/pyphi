@@ -100,7 +100,7 @@ def test_basic_nor_or():
 
     state = (0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-    network = Network(tpm, connectivity_matrix=cm)
+    network = Network(tpm, cm=cm)
 
     # (0, 1, 2) compose the OR element,
     # (3, 4, 5) the COPY,
@@ -166,7 +166,7 @@ def test_xor_propogation_delay():
     # The state of the system is all OFF
     state = (0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-    network = Network(tpm, connectivity_matrix=cm)
+    network = Network(tpm, cm=cm)
 
     partition = ((0, 2, 7), (1, 3, 5), (4, 6, 8))
     output_indices = (0, 3, 6)

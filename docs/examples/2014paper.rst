@@ -135,7 +135,7 @@ this network's connectivity matrix is
 Now we can pass the TPM and connectivity matrix as arguments to the network
 constructor:
 
-    >>> network = pyphi.Network(tpm, connectivity_matrix=cm)
+    >>> network = pyphi.Network(tpm, cm=cm)
 
 Now the network shown in the figure is stored in a variable called ``network``.
 You can find more information about the network object we just created by
