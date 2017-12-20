@@ -226,6 +226,7 @@ r"""
 .. |compute.conceptual_info()| replace:: :func:`~pyphi.compute.subsystem.conceptual_info`
 .. |compute.sia()| replace:: :func:`~pyphi.compute.subsystem.sia`
 .. |compute.phi()| replace:: :func:`~pyphi.compute.subsystem.phi`
+
 .. |compute.subsystems()| replace:: :func:`~pyphi.compute.network.subsystems`
 .. |compute.possible_complexes()| replace:: :func:`~pyphi.compute.network.possible_complexes`
 .. |compute.complexes()| replace:: :func:`~pyphi.compute.network.complexes`
@@ -247,9 +248,9 @@ r"""
 
 .. |SystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.subsystem.SystemIrreducibilityAnalysis`
 .. |SIA| replace:: :class:`~pyphi.models.subsystem.SystemIrreducibilityAnalysis`
+.. |CauseEffectStructure| replace:: :class:`~pyphi.models.subsystem.CauseEffectStructure`
 
 .. |Concept| replace:: :class:`~pyphi.models.mechanism.Concept`
-.. |CauseEffectStructure| replace:: :class:`~pyphi.models.mechanism.CauseEffectStructure`
 
 .. |Cut| replace:: :class:`~pyphi.models.cuts.Cut`
 .. |Cuts| replace:: :class:`~pyphi.models.cuts.Cut`
@@ -273,6 +274,7 @@ r"""
 .. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
 
 .. |Transition| replace:: :class:`~pyphi.actual.Transition`
+
 .. |AcSystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.actual_causation.AcSystemIrreducibilityAnalysis`
 .. |AcRepertoireIrreducibilityAnalysis| replace:: :class:`~pyphi.models.actual_causation.AcRepertoireIrreducibilityAnalysis`
 .. |DirectedAccount| replace:: :class:`~pyphi.models.actual_causation.DirectedAccount`

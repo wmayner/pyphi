@@ -84,6 +84,7 @@ long time!), resulting in data loss.
     but only if you are actually computing a complex. You should only
     parallelize concept evaluation if you are just computing a
     |CauseEffectStructure|.
+
 - :attr:`~pyphi.conf.PyphiConfig.NUMBER_OF_CORES`
 - :attr:`~pyphi.conf.PyphiConfig.MAXIMUM_CACHE_MEMORY_PERCENTAGE`
 
