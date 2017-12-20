@@ -34,7 +34,7 @@ def log2(x):
 class Transition:
     """A state transition between two sets of nodes in a network.
 
-    A |Transition| is implemented with two |Subsystem| objects - one
+    A |Transition| is implemented with two |Subsystem| objects: one
     representing the system at time |t-1| used to compute effect coefficients,
     and another representing the system at time |t| which is used to compute
     cause coefficients. These subsystems are accessed with the
