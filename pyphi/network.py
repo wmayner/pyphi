@@ -71,7 +71,8 @@ class Network:
     @property
     def tpm(self):
         """np.ndarray: The network's transition probability matrix, in
-        multidimensional form."""
+        multidimensional form.
+        """
         return self._tpm
 
     @staticmethod
@@ -104,7 +105,8 @@ class Network:
 
     def _build_cm(self, cm):
         """Convert the passed CM to the proper format, or construct the
-        unitary CM if none was provided."""
+        unitary CM if none was provided.
+        """
         if cm is None:
             # Assume all are connected.
             cm = np.ones((self.size, self.size))
@@ -160,8 +162,9 @@ class Network:
         return tuple(_map[index] for index in indices)
 
     def parse_node_indices(self, nodes):
-        """Returns the nodes indices for nodes, where ``nodes`` is either
-        already integer indices or node labels."""
+        """Return the nodes indices for nodes, where ``nodes`` is either
+        already integer indices or node labels.
+        """
         if not nodes:
             indices = ()
         elif all(isinstance(node, str) for node in nodes):
@@ -230,7 +233,7 @@ class Network:
 
 
 def irreducible_purviews(cm, direction, mechanism, purviews):
-    """Returns all purviews which are irreducible for the mechanism.
+    """Return all purviews which are irreducible for the mechanism.
 
     Args:
         cm (np.ndarray): An |N x N| connectivity matrix.
@@ -246,7 +249,7 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
         ValueError: If ``direction`` is invalid.
     """
     def reducible(purview):
-        """Returns ``True`` if purview is trivially reducible."""
+        """Return ``True`` if purview is trivially reducible."""
         _from, to = direction.order(mechanism, purview)
         return connectivity.block_reducible(cm, _from, to)
 

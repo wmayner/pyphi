@@ -106,8 +106,8 @@ def _pop_metadata(dct):
 def jsonify(obj):  # pylint: disable=too-many-return-statements
     """Return a JSON-encodable representation of an object, recursively using
     any available ``to_json`` methods, converting NumPy arrays and datatypes to
-    native lists and types along the way."""
-
+    native lists and types along the way.
+    """
     # Call the `to_json` method if available and add metadata.
     if hasattr(obj, 'to_json'):
         d = obj.to_json()
@@ -167,7 +167,8 @@ def dumps(obj, **user_kwargs):
 
 def dump(obj, fp, **user_kwargs):
     """Serialize ``obj`` as a JSON-formatted stream and write to ``fp`` (a
-    ``.write()``-supporting file-like object."""
+    ``.write()``-supporting file-like object.
+    """
     return json.dump(obj, fp, **_encoder_kwargs(user_kwargs))
 
 
@@ -187,6 +188,7 @@ def _is_model(dct):
 
 class _ObjectCache(cache.DictCache):
     """Cache mapping ids to loaded objects, keyed by the id of the object."""
+
     def key(self, dct, **kwargs):  # pylint: disable=arguments-differ
         return _get_metadata(dct)
 
@@ -195,6 +197,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
     """Extension of the default encoder which automatically deserializes
     PyPhi JSON to the appropriate model classes.
     """
+
     def __init__(self, *args, **kwargs):
         kwargs['object_hook'] = self._load_object
         super().__init__(*args, **kwargs)

@@ -22,7 +22,8 @@ _acria_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
 
 def greater_than_zero(alpha):
     """Return ``True`` if alpha is greater than zero, accounting for
-    numerical errors."""
+    numerical errors.
+    """
     return alpha > 0 and not utils.eq(alpha, 0)
 
 
@@ -58,6 +59,7 @@ class AcRepertoireIrreducibilityAnalysis(
         partitioned_probability (float):
             The probability of the state in the partitioned repertoire.
     """
+
     __slots__ = ()
 
     unorderable_unless_eq = ['direction']
@@ -193,6 +195,7 @@ class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
         actual_cause (CausalLink): The actual cause of the mechanism.
         actual_effect (CausalLink): The actual effect of the mechanism.
     """
+
     @property
     def mechanism(self):
         """The mechanism of the event."""
@@ -202,7 +205,8 @@ class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
 
 class Account(tuple):
     """The set of |CausalLinks| with |alpha > 0|. This includes both actual
-    causes and actual effects."""
+    causes and actual effects.
+    """
 
     @property
     def irreducible_causes(self):
@@ -235,7 +239,9 @@ class Account(tuple):
 
 class DirectedAccount(Account):
     """The set of |CausalLinks| with |alpha > 0| for one direction of a
-    transition."""
+    transition.
+    """
+
     pass
 
 
@@ -313,7 +319,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
 
 
 def _null_ac_sia(transition, direction, alpha=0.0):
-    """Returns an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and
+    """Return an |AcSystemIrreducibilityAnalysis| with zero |big_alpha| and
     empty accounts.
     """
     return AcSystemIrreducibilityAnalysis(

@@ -19,9 +19,10 @@ class _CutBase:
     Concrete cut classes must implement a ``cut_matrix`` method and an
     ``indices`` property. See ``Cut`` for a concrete example.
     """
+
     @property
     def indices(self):
-        """Return the indices of this cut."""
+        """Indices of this cut."""
         raise NotImplementedError
 
     def cut_matrix(self, n):
@@ -135,11 +136,12 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
     """
     # Don't construct an attribute dictionary; see
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
+
     __slots__ = ()
 
     @property
     def indices(self):
-        """Returns the indices of this cut."""
+        """Indices of this cut."""
         return tuple(sorted(set(self[0] + self[1])))
 
     def cut_matrix(self, n):
@@ -250,6 +252,7 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
 
 class KPartition(tuple):
     """A partition with an arbitrary number of parts."""
+
     __slots__ = ()
 
     def __new__(cls, *args):
@@ -300,6 +303,7 @@ class Bipartition(KPartition):
         part0 (Part): The first part of the partition.
         part1 (Part): The second part of the partition.
     """
+
     __slots__ = ()
 
     def to_json(self):

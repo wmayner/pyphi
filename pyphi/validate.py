@@ -226,7 +226,6 @@ def coarse_grain(coarse_grain):
 
 def blackbox(blackbox):
     """Validate a macro blackboxing."""
-
     if tuple(sorted(blackbox.output_indices)) != blackbox.output_indices:
         raise ValueError('Output indices {} must be ordered'.format(
             blackbox.output_indices))
@@ -242,8 +241,8 @@ def blackbox(blackbox):
 
 def blackbox_and_coarse_grain(blackbox, coarse_grain):
     """Validate that a coarse-graining properly combines the outputs of a
-    blackboxing."""
-
+    blackboxing.
+    """
     if blackbox is None:
         return
 

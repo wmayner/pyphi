@@ -15,13 +15,14 @@ from .utils import all_states
 
 
 def tpm_indices(tpm):
-    """Indices of nodes in the TPM."""
+    """Return the indices of nodes in the TPM."""
     return tuple(np.where(np.array(tpm.shape[:-1]) == 2)[0])
 
 
 def is_state_by_state(tpm):
     """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
-    ``False``."""
+    ``False``.
+    """
     return tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]
 
 
@@ -47,9 +48,10 @@ def condition_tpm(tpm, fixed_nodes, state):
 
 def expand_tpm(tpm):
     """Broadcast a state-by-node TPM so that singleton dimensions are expanded
-    over the full network."""
-    uc = np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]])
-    return tpm * uc
+    over the full network.
+    """
+    unconstrained = np.ones([2] * (tpm.ndim - 1) + [tpm.shape[-1]])
+    return tpm * unconstrained
 
 
 def marginalize_out(node_indices, tpm):
@@ -85,13 +87,14 @@ def infer_edge(tpm, a, b, contexts):
 
     def a_in_context(context):
         """Given a context C(A), return the states of the full system with A
-        OFF and ON, respectively."""
+        OFF and ON, respectively.
+        """
         a_off = context[:a] + OFF + context[a:]
         a_on = context[:a] + ON + context[a:]
         return (a_off, a_on)
 
     def a_affects_b_in_context(context):
-        """Returns True if A has an effect on B, given a context."""
+        """Return ``True`` if A has an effect on B, given a context."""
         a_off, a_on = a_in_context(context)
         return tpm[a_off][b] != tpm[a_on][b]
 
@@ -100,7 +103,8 @@ def infer_edge(tpm, a, b, contexts):
 
 def infer_cm(tpm):
     """Infer the connectivity matrix associated with a state-by-node TPM in
-    multidimensional form."""
+    multidimensional form.
+    """
     network_size = tpm.shape[-1]
     all_contexts = tuple(all_states(network_size - 1))
     cm = np.empty((network_size, network_size), dtype=int)

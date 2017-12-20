@@ -17,7 +17,8 @@ from . import config, constants, db
 
 def cache(ignore=None):
     """Decorator for memoizing a function using either the filesystem or a
-    database."""
+    database.
+    """
 
     def joblib_decorator(func):
         if func.__name__ == '_sia' and not config.CACHE_SIAS:
@@ -38,7 +39,6 @@ def cache(ignore=None):
 
 
 class DbMemoizedFunc:
-
     """A memoized function, with a databse backing the cache."""
 
     def __init__(self, func, ignore):
@@ -71,7 +71,8 @@ class DbMemoizedFunc:
     # TODO make this easier to use
     def get_output_key(self, args, kwargs):
         """Return the key that the output should be cached with, given
-        arguments, keyword arguments, and a list of arguments to ignore."""
+        arguments, keyword arguments, and a list of arguments to ignore.
+        """
         # Get a dictionary mapping argument names to argument values where
         # ignored arguments are omitted.
         filtered_args = joblib.func_inspect.filter_args(

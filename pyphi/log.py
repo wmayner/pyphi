@@ -42,6 +42,7 @@ class ProgressBarHandler(logging.StreamHandler):
     """Logging handler that writes through ``tqdm`` in order to not break
     progress bars.
     """
+
     def emit(self, record):
         try:
             msg = self.format(record)

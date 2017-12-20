@@ -67,13 +67,15 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
     @property
     def purview(self):
         """tuple[int]: The purview over which the the mechanism was
-        analyzed."""
+        analyzed.
+        """
         return self._purview
 
     @property
     def partition(self):
         """KPartition: The partition of the mechanism-purview pair that was
-        analyzed."""
+        analyzed.
+        """
         return self._partition
 
     @property
@@ -189,7 +191,8 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     @property
     def mip(self):
         """KPartition: The partition that makes the least difference to the
-        mechanism's repertoire."""
+        mechanism's repertoire.
+        """
         return self._ria.partition
 
     @property

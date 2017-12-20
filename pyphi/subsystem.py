@@ -185,7 +185,8 @@ class Subsystem:
 
     def __bool__(self):
         """Return ``False`` if the Subsystem has no nodes, ``True``
-        otherwise."""
+        otherwise.
+        """
         return bool(self.nodes)
 
     def __eq__(self, other):
@@ -267,7 +268,7 @@ class Subsystem:
         return tuple(self._index2node[n] for n in indices)
 
     def indices2labels(self, indices):
-        """Returns the node labels for these indices."""
+        """Return the node labels for the given indices."""
         return tuple(n.label for n in self.indices2nodes(indices))
 
     # TODO extend to nonbinary nodes
@@ -786,7 +787,8 @@ class Subsystem:
 
 def mip_partitions(mechanism, purview):
     """Return a generator over all mechanism-purview partitions, based on the
-    current configuration."""
+    current configuration.
+    """
     func = {
         'BI': mip_bipartitions,
         'TRI': wedge_partitions,
@@ -797,7 +799,7 @@ def mip_partitions(mechanism, purview):
 
 
 def mip_bipartitions(mechanism, purview):
-    """Return an generator of all |small_phi| bipartitions of a mechanism over
+    r"""Return an generator of all |small_phi| bipartitions of a mechanism over
     a purview.
 
     Excludes all bipartitions where one half is entirely empty, *e.g*::
@@ -829,7 +831,7 @@ def mip_bipartitions(mechanism, purview):
         >>> mechanism = (0,)
         >>> purview = (2, 3)
         >>> for partition in mip_bipartitions(mechanism, purview):
-        ...     print(partition, '\\n')  # doctest: +NORMALIZE_WHITESPACE
+        ...     print(partition, '\n')  # doctest: +NORMALIZE_WHITESPACE
          ∅     0
         ─── ✕ ───
          2     3
@@ -899,8 +901,9 @@ def wedge_partitions(mechanism, purview):
 
         def compressible(tripart):
             """Check if the tripartition can be transformed into a causally
-            equivalent partition by combing two of its parts; eg. A/∅ x B/∅ x
-            ∅/CD is equivalent to AB/∅ x ∅/CD so we don't include it. """
+            equivalent partition by combing two of its parts; e.g., A/∅ × B/∅ ×
+            ∅/CD is equivalent to AB/∅ × ∅/CD so we don't include it.
+            """
             pairs = [
                 (tripart[0], tripart[1]),
                 (tripart[0], tripart[2]),
@@ -919,7 +922,7 @@ def wedge_partitions(mechanism, purview):
 
 
 def all_partitions(mechanism, purview):
-    """Returns all possible partitions of a mechanism and purview.
+    """Return all possible partitions of a mechanism and purview.
 
     Partitions can consist of any number of parts.
 

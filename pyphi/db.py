@@ -48,7 +48,8 @@ def find(key):
 def insert(key, value):
     """Store a value with a key.
 
-    If the key is already present in the database, this does nothing."""
+    If the key is already present in the database, this does nothing.
+    """
     # Pickle the value.
     value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
     # Store the value as binary data in a document.
@@ -69,9 +70,10 @@ def generate_key(filtered_args):
     """Get a key from some input.
 
     This function should be used whenever a key is needed, to keep keys
-    consistent."""
+    consistent.
+    """
     # Convert the value to a (potentially singleton) tuple to be consistent
     # with joblib.filtered_args.
     if isinstance(filtered_args, Iterable):
         return hash(tuple(filtered_args))
-    return hash((filtered_args, ))
+    return hash((filtered_args,))

@@ -106,7 +106,8 @@ def basic_state():
 
 def basic_subsystem():
     """A subsystem containing all the nodes of the
-    :func:`~pyphi.examples.basic_network`."""
+    :func:`~pyphi.examples.basic_network`.
+    """
     net = basic_network()
     state = basic_state()
     return Subsystem(net, state, range(net.size))
@@ -159,7 +160,8 @@ def basic_noisy_selfloop_network():
 
 def basic_noisy_selfloop_subsystem():
     """A subsystem containing all the nodes of the
-    :func:`~pyphi.examples.basic_noisy_selfloop_network`."""
+    :func:`~pyphi.examples.basic_noisy_selfloop_network`.
+    """
     net = basic_noisy_selfloop_network()
     state = basic_state()
     return Subsystem(net, state, range(net.size))
@@ -218,7 +220,8 @@ def residue_network():
 
 def residue_subsystem():
     """The subsystem containing all the nodes of the
-    :func:`~pyphi.examples.residue_network`."""
+    :func:`~pyphi.examples.residue_network`.
+    """
     net = residue_network()
     state = (0, 0, 0, 0, 0)
 
@@ -273,7 +276,8 @@ def xor_network():
 
 def xor_subsystem():
     """The subsystem containing all the nodes of the
-    :func:`~pyphi.examples.xor_network`."""
+    :func:`~pyphi.examples.xor_network`.
+    """
     net = xor_network()
     state = (0, 0, 0)
     return Subsystem(net, state, range(net.size))
@@ -518,7 +522,8 @@ def macro_network():
 
 def macro_subsystem():
     """A subsystem containing all the nodes of
-    :func:`~pyphi.examples.macro_network`."""
+    :func:`~pyphi.examples.macro_network`.
+    """
     net = macro_network()
     state = (0, 0, 0, 0)
     return Subsystem(net, state, range(net.size))
@@ -616,7 +621,8 @@ def rule110_network():
 
 def rule154_network():
     """A network of three elements which follows the logic of the Rule 154
-    cellular automaton."""
+    cellular automaton.
+    """
     tpm = np.array([
         [0, 0, 0, 0, 0],
         [0, 1, 0, 0, 1],

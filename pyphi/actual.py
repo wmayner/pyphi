@@ -192,8 +192,7 @@ class Transition:
         return self.effect_repertoire((), purview)
 
     def repertoire(self, direction, mechanism, purview):
-        """Returns the cause or effect repertoire function based on a
-        direction.
+        """Return the cause or effect repertoire function based on a direction.
 
         Args:
             direction (str): The temporal direction, specifiying the cause or
@@ -230,7 +229,8 @@ class Transition:
 
     def probability(self, direction, mechanism, purview):
         """Probability that the purview is in it's current state given the
-        state of the mechanism."""
+        state of the mechanism.
+        """
         repertoire = self.repertoire(direction, mechanism, purview)
 
         return self.state_probability(direction, repertoire, purview)
@@ -253,8 +253,9 @@ class Transition:
         }[direction]
 
     def mechanism_state(self, direction):
-        """The state of the mechanism when we are computing coefficients in
-        ``direction``."""
+        """The state of the mechanism when computing coefficients in
+        ``direction``.
+        """
         return self.system[direction].state
 
     def mechanism_indices(self, direction):
@@ -290,7 +291,8 @@ class Transition:
 
     def partitioned_probability(self, direction, partition):
         """Compute the probability of the mechanism over the purview in
-        the partition."""
+        the partition.
+        """
         repertoire = self.partitioned_repertoire(direction, partition)
         return self.state_probability(direction, repertoire, partition.purview)
 
@@ -567,6 +569,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
 
 class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
     """Computation engine for AC SIAs."""
+
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating AC cuts'
@@ -690,13 +693,11 @@ def _actual_effects(network, current_state, next_state, nodes,
 
 def events(network, previous_state, current_state, next_state, nodes,
            mechanisms=False):
-    """Find all events (mechanisms with actual causes and actual effects."""
-
+    """Find all events (mechanisms with actual causes and actual effects)."""
     actual_causes = _actual_causes(network, previous_state, current_state,
                                    nodes, mechanisms)
     actual_effects = _actual_effects(network, current_state, next_state,
                                      nodes, mechanisms)
-
     actual_mechanisms = (set(c.mechanism for c in actual_causes) &
                          set(c.mechanism for c in actual_effects))
 
@@ -704,8 +705,9 @@ def events(network, previous_state, current_state, next_state, nodes,
         return ()
 
     def index(actual_causes_or_effects):
-        """Filter out unidirectional occurences and return a
-        dictionary keyed by the mechanism of the cause or effect."""
+        """Filter out unidirectional occurences and return a dictionary keyed
+        by the mechanism of the cause or effect.
+        """
         return {o.mechanism: o for o in actual_causes_or_effects
                 if o.mechanism in actual_mechanisms}
 

@@ -202,7 +202,6 @@ def directed_tripartition_indices(N):
         >>> directed_tripartition_indices(N)
         [((0,), (), ()), ((), (0,), ()), ((), (), (0,))]
     """
-
     result = []
     if N <= 0:
         return result

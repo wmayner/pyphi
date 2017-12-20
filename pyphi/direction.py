@@ -14,6 +14,7 @@ class Direction(Enum):
 
     Accessed using ``Direction.CAUSE`` and ``Direction.EFFECT``, etc.
     """
+
     CAUSE = 0
     EFFECT = 1
     BIDIRECTIONAL = 2

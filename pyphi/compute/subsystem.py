@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 
 class ComputeCauseEffectStructure(MapReduce):
     """Engine for computing a |CauseEffectStructure|."""
+
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Computing concepts'
@@ -35,7 +36,8 @@ class ComputeCauseEffectStructure(MapReduce):
     def compute(mechanism, subsystem, purviews, cause_purviews,
                 effect_purviews):
         """Compute a |Concept| for a mechanism, in this |Subsystem| with the
-        provided purviews."""
+        provided purviews.
+        """
         return subsystem.concept(mechanism,
                                  purviews=purviews,
                                  cause_purviews=cause_purviews,
@@ -43,7 +45,8 @@ class ComputeCauseEffectStructure(MapReduce):
 
     def process_result(self, new_concept, concepts):
         """Save all concepts with non-zero |small_phi| to the
-        |CauseEffectStructure|."""
+        |CauseEffectStructure|.
+        """
         if new_concept.phi > 0:
             concepts.append(new_concept)
         return concepts
@@ -137,13 +140,15 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
 
 class ComputeSystemIrreducibility(MapReduce):
     """Computation engine for system-level irreducibility."""
+
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
 
     def empty_result(self, subsystem, ces):
-        """Begin with a SIA with infinite |big_phi|; all actual SIAs will have
-        less."""
+        """Begin with a |SIA| with infinite |big_phi|; all actual SIAs will
+        have less.
+        """
         return _null_sia(subsystem, phi=float('inf'))
 
     @staticmethod
@@ -153,7 +158,8 @@ class ComputeSystemIrreducibility(MapReduce):
 
     def process_result(self, new_sia, min_sia):
         """Check if the new SIA has smaller |big_phi| than the standing
-        result."""
+        result.
+        """
         if new_sia.phi == 0:
             self.done = True  # Short-circuit
             return new_sia
@@ -187,7 +193,8 @@ def sia_bipartitions(nodes):
 def _ces(subsystem):
     """Parallelize the unpartitioned |CauseEffectStructure| if parallelizing
     cuts, since we have free processors because we're not computing any cuts
-    yet."""
+    yet.
+    """
     return ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
 
 
@@ -322,6 +329,7 @@ class ConceptStyleSystem:
     """A functional replacement for ``Subsystem`` implementing concept-style
     system cuts.
     """
+
     def __init__(self, subsystem, direction, cut=None):
         self.subsystem = subsystem
         self.direction = direction
@@ -359,8 +367,9 @@ class ConceptStyleSystem:
 
     def concept(self, mechanism, purviews=False, cause_purviews=False,
                 effect_purviews=False):
-        """Compute a concept, using the appropriate system for each side of
-        the cut."""
+        """Compute a concept, using the appropriate system for each side of the
+        cut.
+        """
         cause = self.cause_system.mic(
             mechanism, purviews=(cause_purviews or purviews))
 
@@ -382,7 +391,8 @@ def concept_cuts(direction, node_indices):
 
 def directional_sia(subsystem, direction, ces=None):
     """Calculate a concept-style SystemIrreducibilityAnalysisCause or
-    SystemIrreducibilityAnalysisEffect."""
+    SystemIrreducibilityAnalysisEffect.
+    """
     unpartitioned_ces = ces
 
     if unpartitioned_ces is None:

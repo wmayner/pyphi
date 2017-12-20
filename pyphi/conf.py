@@ -165,6 +165,7 @@ class Option:
             the only argument to the callback.
         doc (str): Optional docstring for the option.
     """
+
     def __init__(self, default, values=None, on_change=None, doc=None):
         self.default = default
         self.values = values
@@ -220,6 +221,7 @@ class ConfigMeta(type):
     ``__set_name__`` (see PEP 487). We should use that once we drop support
     for 3.4 & 3.5.
     """
+
     def __init__(cls, cls_name, bases, namespace):
         super().__init__(cls_name, bases, namespace)
         for name, opt in cls.options().items():
@@ -231,6 +233,7 @@ class Config(metaclass=ConfigMeta):
 
     See ``PyphiConfig`` for usage.
     """
+
     def __init__(self):
         self._values = {}
         self._loaded_files = []

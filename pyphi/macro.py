@@ -62,14 +62,15 @@ def remove_singleton_dimensions(tpm):
 
 
 def node_labels(indices):
-    """Labels for macro nodes."""
+    """Return the labels for macro nodes."""
     return tuple("m{}".format(i) for i in indices)
 
 
 def run_tpm(system, steps, blackbox):
     """Iterate the TPM for the given number of timesteps.
 
-    Returns tpm * (noise_tpm^(t-1))
+    Returns:
+        np.ndarray: tpm * (noise_tpm^(t-1))
     """
     # Generate noised TPM
     # Noise the connections from every output element to elements in other
@@ -102,6 +103,7 @@ class SystemAttrs(namedtuple('SystemAttrs',
     Versions of this object are passed down the steps of the micro-to-macro
     pipeline.
     """
+
     @property
     def nodes(self):
         labels = node_labels(self.node_indices)
@@ -137,6 +139,7 @@ class MacroSubsystem(Subsystem):
     spatial coarse-graining) the TPM, CM, nodes, and state are updated so that
     they correctly represent the updated system.
     """
+
     # TODO refactor the _blackbox_space, _coarsegrain_space methods to methods
     # on their respective Blackbox and CoarseGrain objects? This would nicely
     # abstract the logic into a discrete, disconnected transformation.
@@ -225,7 +228,6 @@ class MacroSubsystem(Subsystem):
     @staticmethod
     def _blackbox_partial_noise(blackbox, system):
         """Noise connections from hidden elements to other boxes."""
-
         # Noise inputs from non-output elements hidden in other boxes
         node_tpms = []
         for node in system.nodes:
@@ -287,7 +289,6 @@ class MacroSubsystem(Subsystem):
     @staticmethod
     def _coarsegrain_space(coarse_grain, is_cut, system):
         """Spatially coarse-grain the TPM and CM."""
-
         tpm = coarse_grain.macro_tpm(
             system.tpm, check_independence=(not is_cut))
 
@@ -351,8 +352,9 @@ class MacroSubsystem(Subsystem):
             self.cm, direction, mechanism, all_purviews)
 
     def macro2micro(self, macro_indices):
-        """Returns all micro indices which compose the elements specified by
-        ``macro_indices``."""
+        """Return all micro indices which compose the elements specified by
+        ``macro_indices``.
+        """
         def from_partition(partition, macro_indices):
             micro_indices = itertools.chain.from_iterable(
                 partition[i] for i in macro_indices)
@@ -641,7 +643,7 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
         return utils.state_of(reindexed.output_indices, micro_state)
 
     def in_same_box(self, a, b):
-        """Returns ``True`` if nodes ``a`` and ``b``` are in the same box."""
+        """Return ``True`` if nodes ``a`` and ``b``` are in the same box."""
         assert a in self.micro_indices
         assert b in self.micro_indices
 
@@ -652,7 +654,7 @@ class Blackbox(namedtuple('Blackbox', ['partition', 'output_indices'])):
         return False
 
     def hidden_from(self, a, b):
-        """Returns True if ``a`` is hidden in a different box than ``b``."""
+        """Return True if ``a`` is hidden in a different box than ``b``."""
         return a in self.hidden_indices and not self.in_same_box(a, b)
 
 
@@ -796,6 +798,7 @@ class MacroNetwork:
         emergence (float): The difference between the |big_phi| of the macro-
             and the micro-system.
     """
+
     def __init__(self, network, system, macro_phi, micro_phi, coarse_grain,
                  time_scale=1, blackbox=None):
 
@@ -849,7 +852,6 @@ def coarse_grain(network, state, internal_indices):
 # TODO: refactor this
 def all_macro_systems(network, state, blackbox, coarse_grain, time_scales):
     """Generator over all possible macro-systems for the network."""
-
     if time_scales is None:
         time_scales = [1]
 

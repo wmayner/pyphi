@@ -77,7 +77,7 @@ def make_repr(self, attrs):
 
 
 def indent(lines, amount=2, char=' '):
-    """Indent a string.
+    r"""Indent a string.
 
     Prepends whitespace to every line in the passed string. (Lines are
     separated by newline characters.)
@@ -93,7 +93,7 @@ def indent(lines, amount=2, char=' '):
         str: The indented string.
 
     Example:
-        >>> print(indent('line1\\nline2', char='*'))
+        >>> print(indent('line1\nline2', char='*'))
         **line1
         **line2
     """
@@ -103,11 +103,11 @@ def indent(lines, amount=2, char=' '):
 
 
 def margin(text):
-    """Add a margin to both ends of each line in the string.
+    r"""Add a margin to both ends of each line in the string.
 
     Example:
-        >>> margin('line1\\nline2')
-        '  line1  \\n  line2  '
+        >>> margin('line1\nline2')
+        '  line1  \n  line2  '
     """
     lines = str(text).split('\n')
     return '\n'.join('  {}  '.format(l) for l in lines)
@@ -117,10 +117,10 @@ LINES_FORMAT_STR = VERTICAL_SIDE + ' {line:<{width}} ' + VERTICAL_SIDE
 
 
 def box(text):
-    """Wrap a chunk of text in a box.
+    r"""Wrap a chunk of text in a box.
 
     Example:
-        >>> print(box('line1\\nline2'))
+        >>> print(box('line1\nline2'))
         ┌───────┐
         │ line1 │
         │ line2 │
@@ -140,13 +140,13 @@ def box(text):
 
 
 def side_by_side(left, right):
-    """Put two boxes next to each other.
+    r"""Put two boxes next to each other.
 
     Assumes that all lines in the boxes are the same width.
 
     Example:
-        >>> left = 'A \\nC '
-        >>> right = 'B\\nD'
+        >>> left = 'A \nC '
+        >>> right = 'B\nD'
         >>> print(side_by_side(left, right))
         A B
         C D
@@ -472,7 +472,6 @@ def fmt_ac_ria(ria):
 
 def fmt_account(account, title=None):
     """Format an Account or a DirectedAccount."""
-
     if title is None:
         title = account.__class__.__name__  # `Account` or `DirectedAccount`
 

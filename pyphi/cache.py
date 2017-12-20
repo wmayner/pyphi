@@ -161,6 +161,7 @@ class DictCache:
 
     Intended to be used as an object-level cache of method results.
     """
+
     def __init__(self):
         self.cache = {}
         self.hits = 0
@@ -221,6 +222,7 @@ class RedisConn:
     Raises:
         redis.exceptions.ConnectionError: If the Redis server is not available.
     """
+
     instance = None
 
     def __init__(self):
@@ -297,6 +299,7 @@ class RedisMICECache(RedisCache):
 
     See |MICECache| for more info.
     """
+
     def __init__(self, subsystem, parent_cache=None):
         super().__init__()
         self.subsystem = subsystem
@@ -354,6 +357,7 @@ class DictMICECache(DictCache):
 
     See |MICECache| for more info.
     """
+
     def __init__(self, subsystem, parent_cache=None):
         super().__init__()
         self.subsystem = subsystem

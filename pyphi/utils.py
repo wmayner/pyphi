@@ -63,7 +63,9 @@ def np_hash(a):
 
 class np_hashable:
     """A hashable wrapper around a NumPy array."""
+
     # pylint: disable=protected-access,too-few-public-methods
+
     def __init__(self, array):
         self._array = np_immutable(array.copy())
 
@@ -190,7 +192,6 @@ def load_data(directory, num):
         list: A list of loaded data, such that ``list[i]`` contains the the
         contents of ``i.npy``.
     """
-
     root = os.path.abspath(os.path.dirname(__file__))
 
     def get_path(i):  # pylint: disable=missing-docstring

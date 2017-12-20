@@ -34,6 +34,7 @@ class MeasureRegistry(Mapping):
 
     And use them by setting ``config.MEASURE = 'ALWAYS_ZERO'``.
     """
+
     def __init__(self):
         self.store = {}
         self._asymmetric = []
@@ -89,6 +90,7 @@ class np_suppress(np.errstate, ContextDecorator):
         warnings are not indicative of deeper issues in your code.
     """
     # pylint: disable=too-few-public-methods
+
     def __init__(self):
         super().__init__(divide='ignore', invalid='ignore')
 

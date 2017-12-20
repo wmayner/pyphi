@@ -56,6 +56,7 @@ class ExceptionWrapper:
     Args:
         exception (Exception): The exception to wrap.
     """
+
     def __init__(self, exception):  # coverage: disable
         self.exception = exception
         _, _, tb = sys.exc_info()
@@ -98,6 +99,7 @@ class MapReduce:
     practice because it is typically most efficient to only parallelize the top
     level computation.
     """
+
     # Description for the tqdm progress bar
     description = ''
 
@@ -327,6 +329,7 @@ class LogThread(threading.Thread):
     It listens to an instance of ``multiprocessing.Queue``, rewriting log
     messages to the PyPhi log handler.
     """
+
     def __init__(self, q):
         self.q = q
         super().__init__()

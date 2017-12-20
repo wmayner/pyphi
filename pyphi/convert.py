@@ -44,7 +44,8 @@ def nodes2state(nodes):
 
 def be2le(i, n):
     """Convert between big-endian and little-endian for indices in
-    ``range(n)``."""
+    ``range(n)``.
+    """
     return reverse_bits(i, n)
 
 
