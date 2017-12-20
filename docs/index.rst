@@ -11,7 +11,7 @@ For general discussion, you are welcome to join the `pyphi-users group
 <https://groups.google.com/forum/#!forum/pyphi-users>`_.
 
 .. important::
-    Each version of PyPhi has its own documentation—make sure you're looking
+    Each version of PyPhi has its own documentation---make sure you're looking
     at the documentation for the version you're using. You can switch
     documentation versions in the bottom-left corner.
 

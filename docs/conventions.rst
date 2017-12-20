@@ -121,7 +121,7 @@ Note that the index |i| of a row in a TPM encodes a network state: convert the
 index to binary, and each bit gives the state of a node. The question is, which
 node?
 
-**Throughout PyPhi, we always choose the first convention—the state of the
+**Throughout PyPhi, we always choose the first convention---the state of the
 first node (the one with the lowest index) varies the fastest.** So, the
 least-signficant bit---the one's place---gives the state of the lowest-index
 node.
