@@ -1,6 +1,6 @@
 .. raw:: html
 
-    <a href="http://pyphi.readthedocs.io/en/latest/"><img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-logo-text-760x180.png" height="90px" width="380px" style="max-width:100%;"></a>
+    <a href="http://pyphi.readthedocs.io/"><img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-logo-text-760x180.png" height="90px" width="380px" style="max-width:100%;"></a>
 
 |
 
@@ -8,8 +8,8 @@
     :target: https://doi.org/10.5281/zenodo.636912
     :alt: Zenodo DOI badge
 
-.. image:: https://readthedocs.org/projects/pyphi/badge/?version=latest&style=flat-square&maxAge=600
-    :target: https://pyphi.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/pyphi/badge/?style=flat-square&maxAge=600
+    :target: https://pyphi.readthedocs.io/
     :alt: Documentation badge
 
 .. image:: https://img.shields.io/travis/wmayner/pyphi.svg?style=flat-square&maxAge=600

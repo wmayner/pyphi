@@ -40,13 +40,12 @@ Now that we're using our shiny new Python versions, it is highly recommended to
 set up a **virtual environment** in which to install PyPhi. Virtual
 environments allow different projects to isolate their dependencies from one
 another, so that they don't interact in unexpected ways. Please see `this guide
-<http://docs.python-guide.org/en/latest/dev/virtualenvs/>`__ for more
-information.
+<http://docs.python-guide.org/page/dev/virtualenvs/>`__ for more information.
 
 To do this, you must install ``virtualenvwrapper``, a `tool for manipulating
-virtual environments <http://virtualenvwrapper.readthedocs.org/en/latest/>`__.
-This tool is available on `PyPI <https://pypi.python.org/pypi>`__, the Python
-package index, and can be installed with ``pip``, the command-line utility for
+virtual environments <http://virtualenvwrapper.readthedocs.org/>`__. This tool
+is available on `PyPI <https://pypi.python.org/pypi>`__, the Python package
+index, and can be installed with ``pip``, the command-line utility for
 installing and managing Python packages (``pip`` was installed automatically
 with the brewed Python):
 
@@ -109,7 +108,7 @@ folder; it is associated with a terminal shell. In other words, each time you
 open a new Terminal tab or terminal window, you need to run ``workon
 <name_of_your_project`` (with some extra setup, this can be done automatically;
 see `here
-<https://virtualenvwrapper.readthedocs.io/en/latest/tips.html#automatically-run-workon-when-entering-a-directory>`__).
+<https://virtualenvwrapper.readthedocs.io/page/tips.html#automatically-run-workon-when-entering-a-directory>`__).
 When a virtual environment is active, your command-line prompt will be
 prepended with the name of the virtual environment in parentheses.
 
@@ -137,6 +136,5 @@ like tab-completion. Once you've installed it, you can start the IPython
 interpreter with the command ``ipython``.
 
 Next, please see the documentation for some `examples
-<https://pyphi.readthedocs.io/en/latest/>`__ of how to use PyPhi and
-information on how to `configure
-<https://pyphi.readthedocs.io/en/latest/configuration.html>`__ it.
+<https://pyphi.readthedocs.io/>`__ of how to use PyPhi and information on how
+to `configure <https://pyphi.readthedocs.io/page/configuration.html>`__ it.
