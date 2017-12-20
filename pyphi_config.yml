@@ -32,6 +32,11 @@ SYSTEM_CUTS: "3.0_STYLE"
 # micro-nodes with a self-loop to have nonzero Phi. See ``pyphi.config`` for
 # details.
 SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI: false
+# Controls whether a subsystem's state is validated when the subsystem is
+# created.
+VALIDATE_SUBSYSTEM_STATES: true
+# Controls whether a system is validated for conditional independence.
+VALIDATE_CONDITIONAL_INDEPENDENCE: true
 
 # Parallelization and system resources
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,13 +94,12 @@ REDIS_CONFIG:
 
 # Logging
 # ~~~~~~~
-# These are the settings for PyPhi logging.
+# The log level to write to stdout.
+LOG_STDOUT_LEVEL: "WARNING"
+# The log level to write to `LOG_FILE`.
+LOG_FILE_LEVEL: "DEBUG"
 # The file to log to
 LOG_FILE: "pyphi.log"
-# The log level to write to `LOG_FILE`
-LOG_FILE_LEVEL: "DEBUG"
-# The log level to write to stdout
-LOG_STDOUT_LEVEL: "WARNING"
 # Log the current configuration when PyPhi is imported. This is useful for
 # checking what settings were used for a previous calculation.
 LOG_CONFIG_ON_IMPORT: true
@@ -110,11 +114,3 @@ PRINT_FRACTIONS: true
 # ~~~~~~~~~~~~~~~~~~~
 # The number of decimal places to which Phi values are considered accurate.
 PRECISION: 6
-
-# Miscellaneous
-# ~~~~~~~~~~~~~
-# Controls whether a subsystem's state is validated when the subsystem is
-# created.
-VALIDATE_SUBSYSTEM_STATES: true
-# Controls whether a system is validated for conditional independence.
-VALIDATE_CONDITIONAL_INDEPENDENCE: true
