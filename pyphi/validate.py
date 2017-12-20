@@ -61,8 +61,8 @@ def tpm(tpm, check_independence=True):
     elif tpm.ndim == (N + 1):
         if tpm.shape != tuple([2] * N + [N]):
             raise ValueError(
-                'Invalid shape for multidimensional state-by-node TPM: {}\nThe '
-                'shape should be {} for {} nodes. {}'.format(
+                'Invalid shape for multidimensional state-by-node TPM: {}\n'
+                'The shape should be {} for {} nodes. {}'.format(
                     tpm.shape, ([2] * N) + [N], N, see_tpm_docs))
     else:
         raise ValueError(

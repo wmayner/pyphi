@@ -13,6 +13,7 @@ import numpy as np
 
 from .. import utils
 
+
 # Rich comparison (ordering) helpers
 # =============================================================================
 
@@ -99,8 +100,8 @@ def numpy_aware_eq(a, b):
     """
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
         return np.array_equal(a, b)
-    if ((isinstance(a, Iterable) and isinstance(b, Iterable))
-            and not isinstance(a, str) and not isinstance(b, str)):
+    if ((isinstance(a, Iterable) and isinstance(b, Iterable)) and
+            not isinstance(a, str) and not isinstance(b, str)):
         if len(a) != len(b):
             return False
         return all(numpy_aware_eq(x, y) for x, y in zip(a, b))

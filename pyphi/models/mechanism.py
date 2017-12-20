@@ -126,7 +126,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return fmt.make_repr(self, _ria_attributes)
 
     def __str__(self):
-        return "Repertoire irreducibility analysis\n" + fmt.indent(fmt.fmt_ria(self))
+        return ("Repertoire irreducibility analysis\n" +
+                fmt.indent(fmt.fmt_ria(self)))
 
     def to_json(self):
         return {attr: getattr(self, attr) for attr in _ria_attributes}
