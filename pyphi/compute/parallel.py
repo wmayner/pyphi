@@ -169,9 +169,8 @@ class MapReduce:
 
             for obj in iter(in_queue.get, POISON_PILL):
                 if complete.is_set():
-                    out_queue.cancel_join_thread()
                     log.debug('Worker received signal - exiting early')
-                    return
+                    break
 
                 log.debug('Worker got %s', obj)
                 out_queue.put(compute(obj, *context))
@@ -244,7 +243,7 @@ class MapReduce:
 
         result = self.empty_result(*self.context)
 
-        while not self.done:
+        while True:
             r = self.out_queue.get()
             self.maybe_put_task()
 
@@ -260,6 +259,9 @@ class MapReduce:
                 result = self.process_result(r, result)
                 self.progress.update(1)
 
+            if self.done:
+                self.complete.set()
+
         if self.num_processes > 0:
             log.debug('Shortcircuit: terminating workers early')
 
@@ -269,8 +271,8 @@ class MapReduce:
 
     def finish_parallel(self):
         '''Terminate all processes and the log thread.'''
-        # Signal worker to shutdown, if it is still running
-        self.complete.set()
+        for process in self.processes:
+            process.join()
 
         # Shutdown the log thread
         log.debug('Joining log thread')
