@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# time.py
+# timescale.py
 
 """
 Functions for converting the timescale of a TPM.

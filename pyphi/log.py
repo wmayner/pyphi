@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# logging.py
+# log.py
 
 """Utilities for logging and progress bars."""
 

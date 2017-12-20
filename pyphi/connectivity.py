@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# utils/connectivity.py
+# connectivity.py
 
 """
 Functions for determining network connectivity properties.

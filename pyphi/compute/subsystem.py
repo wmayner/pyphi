@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# compute/system.py
+# compute/subsystem.py
 
 """
 Functions for computing subsystem-level properties.
