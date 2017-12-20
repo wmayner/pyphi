@@ -5,6 +5,7 @@
 """
 Functions for measuring distances.
 """
+
 from collections.abc import Mapping
 from contextlib import ContextDecorator
 
@@ -282,27 +283,27 @@ def directional_emd(direction, d1, d2):
     return round(func(d1, d2), config.PRECISION)
 
 
-def mechanism_repertoire_distance(direction, d1, d2):
+def repertoire_distance(direction, r1, r2):
     """Compute the distance between two repertoires for the given direction.
 
     Args:
         direction (Direction): |CAUSE| or |EFFECT|.
-        d1 (np.ndarray): The first repertoire.
-        d2 (np.ndarray): The second repertoire.
+        r1 (np.ndarray): The first repertoire.
+        r2 (np.ndarray): The second repertoire.
 
     Returns:
         float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
     """
     if config.MEASURE == 'EMD':
-        dist = directional_emd(direction, d1, d2)
+        dist = directional_emd(direction, r1, r2)
     else:
-        dist = measures[config.MEASURE](d1, d2)
+        dist = measures[config.MEASURE](r1, r2)
 
     return round(dist, config.PRECISION)
 
 
 def system_repertoire_distance(r1, r2):
-    """Compute the distance between two repertoires.
+    """Compute the distance between two repertoires of a system.
 
     Args:
         r1 (np.ndarray): The first repertoire.
@@ -312,7 +313,8 @@ def system_repertoire_distance(r1, r2):
         float: The distance between ``r1`` and ``r2``.
     """
     if config.MEASURE in measures.asymmetric():
-        raise ValueError('{} is asymmetric and cannot be used as a big-phi '
-                         'measure.'.format(config.MEASURE))
+        raise ValueError(
+            '{} is asymmetric and cannot be used as a system-level '
+            'irreducibility measure.'.format(config.MEASURE))
 
     return measures[config.MEASURE](r1, r2)

@@ -15,7 +15,7 @@ from time import time
 import numpy as np
 
 from . import Direction, cache, config, distribution, utils, validate
-from .distance import mechanism_repertoire_distance as repertoire_distance
+from .distance import repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (Bipartition, Concept, KPartition,
                      MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
