@@ -9,6 +9,7 @@ the network at time* |t|:
 
 .. math::
     p(S_{t+1} \mid S_t = s_t) \;= \prod_{N \,\in\, S} p(N_{t+1} \mid S_t = s_t)
+    \;, \quad \forall \; s_t \in S.
 
 This example explores the assumption of conditional independence, and the
 behaviour of the program when it is not satisfied.
