@@ -569,7 +569,6 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
 
 class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
     """Computation engine for AC SIAs."""
-
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating AC cuts'

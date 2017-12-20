@@ -74,7 +74,6 @@ def possible_complexes(network, state):
 
 class FindAllComplexes(MapReduce):
     """Computation engine for finding all complexes."""
-
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Finding complexes'

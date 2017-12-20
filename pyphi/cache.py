@@ -7,7 +7,8 @@ Memoization and caching utilities.
 """
 
 # pylint: disable=redefined-builtin,redefined-outer-name,missing-docstring
-# pylint: disable=too-few-public-methods,no-self-use,arguments-differ,
+# pylint: disable=too-few-public-methods,no-self-use,arguments-differ
+# pylint: disable=dangerous-default-value,redefined-builtin,too-many-arguments
 # pylint: disable=abstract-method
 
 import os
@@ -46,7 +47,6 @@ class _HashedSeq(list):
         return self.hashvalue
 
 
-# pylint: disable=dangerous-default-value,redefined-builtin,too-many-arguments
 def _make_key(args, kwds, typed,
               kwd_mark=(object(),),
               fasttypes={int, str, frozenset, type(None)},

@@ -24,7 +24,6 @@ log = logging.getLogger(__name__)
 
 class ComputeCauseEffectStructure(MapReduce):
     """Engine for computing a |CauseEffectStructure|."""
-
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Computing concepts'
@@ -140,7 +139,6 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
 
 class ComputeSystemIrreducibility(MapReduce):
     """Computation engine for system-level irreducibility."""
-
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
@@ -198,7 +196,6 @@ def _ces(subsystem):
     return ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
 
 
-# pylint: disable=unused-argument
 @memory.cache(ignore=["subsystem"])
 def _sia(cache_key, subsystem):
     """Return the minimal information partition of a subsystem.
