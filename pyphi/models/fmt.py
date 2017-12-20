@@ -329,7 +329,7 @@ def fmt_ria(ria, verbose=True, mip=False):
     if verbose:
         mechanism = 'Mechanism: {}\n'.format(
             fmt_mechanism(ria.mechanism, ria.subsystem))
-        direction = '\nDirection: {}\n'.format(ria.direction)
+        direction = '\nDirection: {}'.format(ria.direction)
     else:
         mechanism = ''
         direction = ''
@@ -352,8 +352,8 @@ def fmt_ria(ria, verbose=True, mip=False):
         '{SMALL_PHI} = {phi}\n'
         '{mechanism}'
         'Purview = {purview}'
-        '{partition}'
         '{direction}'
+        '{partition}'
         '{repertoire}'
         '{partitioned_repertoire}').format(
             SMALL_PHI=SMALL_PHI,
