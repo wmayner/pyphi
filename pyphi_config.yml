@@ -48,7 +48,7 @@ PARALLEL_COMPLEX_EVALUATION: false
 NUMBER_OF_CORES: -1
 # Some functions are memoized using an in-memory cache. This is the maximum
 # percentage of memory that these caches can collectively use.
-MAXIMUM_CACHE_MEMORY_PERCENTAGE: 50
+MAXIMUM_CACHE_MEMORY_PERCENTAGE: 100
 
 # Memoization and caching
 # ~~~~~~~~~~~~~~~~~~~~~~~
