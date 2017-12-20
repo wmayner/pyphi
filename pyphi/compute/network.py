@@ -46,7 +46,7 @@ def subsystems(network, state):
         Subsystem: A |Subsystem| for each subset of nodes in the network,
         excluding subsystems that would be in an impossible state.
     """
-    return _reachablet_subsystems(network, network.node_indices, state)
+    return _reachable_subsystems(network, network.node_indices, state)
 
 
 def possible_complexes(network, state):
