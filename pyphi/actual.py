@@ -219,7 +219,8 @@ class Transition:
         purview nodes onto their state. All other dimension are already
         singular and thus receive 0 as the conditioning index.
 
-        Returns a single probabilty.
+        Returns:
+            float: A single probabilty.
         """
         purview_state = self.purview_state(direction)
 

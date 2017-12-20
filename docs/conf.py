@@ -117,6 +117,7 @@ rst_prolog = ''.join([
 r"""
 .. |big_phi| replace:: :math:`\Phi`
 .. |big_phi > 0| replace:: :math:`\Phi > 0`
+.. |big_phi = 0| replace:: :math:`\Phi = 0`
 .. |big_phi_max| replace:: :math:`\Phi^{\textrm{max}}`
 .. |small_phi| replace:: :math:`\varphi`
 .. |small_phi > 0| replace:: :math:`\varphi > 0`

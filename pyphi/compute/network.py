@@ -34,9 +34,19 @@ def _reachable_subsystems(network, indices, state):
 def subsystems(network, state):
     """Return a generator of all **possible** subsystems of a network.
 
-    Does not return subsystems that are in an impossible state.
+    .. note::
+        Does not return subsystems that are in an impossible state (after
+        conditioning the subsystem TPM on the state of the other nodes).
+
+    Args:
+        network (Network): The |Network| of interest.
+        state (tuple[int]): The state of the network (a binary tuple).
+
+    Yields:
+        Subsystem: A |Subsystem| for each subset of nodes in the network,
+        excluding subsystems that would be in an impossible state.
     """
-    return _reachable_subsystems(network, network.node_indices, state)
+    return _reachablet_subsystems(network, network.node_indices, state)
 
 
 def possible_complexes(network, state):
@@ -47,14 +57,16 @@ def possible_complexes(network, state):
     complex, because they do not have a causal link with the rest of the
     subsystem in the previous or next timestep, respectively).
 
-    Does not include subsystems in an impossible state.
+    .. note::
+        Does not return subsystems that are in an impossible state (after
+        conditioning the subsystem TPM on the state of the other nodes).
 
     Args:
-        network (Network): The network for which to return possible complexes.
-        state (tuple[int]): The state of the network.
+        network (Network): The |Network| of interest.
+        state (tuple[int]): The state of the network (a binary tuple).
 
     Yields:
-        Subsystem: The next subsystem which could be a complex.
+        Subsystem: The next subsystem that could be a complex.
     """
     return _reachable_subsystems(
         network, network.causally_significant_nodes, state)
@@ -80,8 +92,17 @@ class FindAllComplexes(MapReduce):
 def all_complexes(network, state):
     """Return a generator for all complexes of the network.
 
-    Includes reducible, zero-|big_phi| complexes (which are not, strictly
-    speaking, complexes at all).
+    .. note::
+        Includes reducible, zero-|big_phi| complexes (which are not, strictly
+        speaking, complexes at all).
+
+    Args:
+        network (Network): The |Network| of interest.
+        state (tuple[int]): The state of the network (a binary tuple).
+
+    Yields:
+        SystemIrreducibilityAnalysis: A |SIA| for each |Subsystem| of the
+        |Network|.
     """
     engine = FindAllComplexes(subsystems(network, state))
     return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
@@ -97,13 +118,31 @@ class FindIrreducibleComplexes(FindAllComplexes):
 
 
 def complexes(network, state):
-    """Return all irreducible complexes of the network."""
+    """Return all irreducible complexes of the network.
+
+    Args:
+        network (Network): The |Network| of interest.
+        state (tuple[int]): The state of the network (a binary tuple).
+
+    Yields:
+        SystemIrreducibilityAnalysis: A |SIA| for each |Subsystem| of the
+        |Network|, excluding those with |big_phi = 0|.
+    """
     engine = FindIrreducibleComplexes(possible_complexes(network, state))
     return engine.run(config.PARALLEL_COMPLEX_EVALUATION)
 
 
 def major_complex(network, state):
-    """Return the major complex of the network."""
+    """Return the major complex of the network.
+
+    Args:
+        network (Network): The |Network| of interest.
+        state (tuple[int]): The state of the network (a binary tuple).
+
+    Returns:
+        SystemIrreducibilityAnalysis: The |SIA| for the |Subsystem| with
+        maximal |big_phi|.
+    """
     log.info('Calculating major complex...')
 
     result = complexes(network, state)
@@ -119,7 +158,16 @@ def major_complex(network, state):
 
 
 def condensed(network, state):
-    """Return the set of maximal non-overlapping complexes."""
+    """Return a list of maximal non-overlapping complexes.
+
+    Args:
+        network (Network): The |Network| of interest.
+        state (tuple[int]): The state of the network (a binary tuple).
+
+    Returns:
+        list[SystemIrreducibilityAnalysis]: A list of |SIA| for non-overlapping
+        complexes with maximal |big_phi| values.
+    """
     result = []
     covered_nodes = set()
 
