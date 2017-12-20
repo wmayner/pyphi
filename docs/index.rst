@@ -31,7 +31,13 @@ For general discussion, you are welcome to join the `pyphi-users group
 
     installation.rst
     examples/index
-    examples/*
+    examples/2014paper
+    examples/conditional_independence
+    examples/xor
+    examples/emergence
+    examples/actual_causation
+    examples/residue
+    examples/magic_cut
     macos_installation
 
 .. toctree::
