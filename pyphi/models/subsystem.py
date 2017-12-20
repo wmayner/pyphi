@@ -107,7 +107,8 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
     def print(self, ces=True):
         """Print this |SystemIrreducibilityAnalysis|, optionally without
-        cause-effect structures."""
+        cause-effect structures.
+        """
         print(self.__str__(ces=ces))
 
     @property
