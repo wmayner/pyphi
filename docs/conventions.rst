@@ -44,8 +44,8 @@ network state as an index directly:
     array([ 0.919,  0.91 ,  0.756])
 
 This tells us that if the current state is |N_0 = 0, N_1 = 0, N_2 = 1|, then
-the for the next state, :math:`p(N_0 = 1) = 0.919`, :math:`p(N_1 = 1) = 0.91`
-and :math:`p(N_2 = 1) = 0.756`.
+the for the next state, :math:`P(N_0 = 1) = 0.919`, :math:`P(N_1 = 1) = 0.91`
+and :math:`P(N_2 = 1) = 0.756`.
 
 .. important::
     The multidimensional state-by-node form is used throughout PyPhi,
@@ -88,7 +88,7 @@ There are two possible choices for the rows. Either the first node changes
 state every other row:
 
     +--------------------+----------------------------------+
-    | State at :math:`t` | :math:`p(N = ON)` at :math:`t+1` |
+    | State at :math:`t` | :math:`P(N = ON)` at :math:`t+1` |
     +--------------------+-----+----------------------------+
     | A, B               |  A  |  B                         |
     +====================+=====+============================+
@@ -104,7 +104,7 @@ state every other row:
 Or the last node does:
 
     +--------------------+----------------------------------+
-    | State at :math:`t` | :math:`p(N = ON)` at :math:`t+1` |
+    | State at :math:`t` | :math:`P(N = ON)` at :math:`t+1` |
     +--------------------+-----+----------------------------+
     | A, B               |  A  |  B                         |
     +====================+=====+============================+

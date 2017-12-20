@@ -72,10 +72,9 @@ def marginalize_out(node_indices, tpm):
 def infer_edge(tpm, a, b, contexts):
     """Infer the presence or absence of an edge from node A to node B.
 
-    Let S be the set of all nodes in a network. Let A' = S - {A}.
-    We call the state of A' the context C of A.
-    There is an edge from A to B if there exists any context C(A) such that
-    p(B | C(A), A=0) =/= p(B | C(A), A=1).
+    Let S be the set of all nodes in a network. Let A' = S - {A}. We call the
+    state of A' the context C of A. There is an edge from A to B if there
+    exists any context C(A) such that P(B | C(A), A=0) =/= P(B | C(A), A=1).
 
     Args:
         tpm (np.ndarray): The TPM in state-by-node, multidimensional form.
