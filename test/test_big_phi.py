@@ -7,8 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from pyphi import (Network, Subsystem, compute, config, constants,
-                   models, utils)
+from pyphi import Network, Subsystem, compute, config, constants, models, utils
 from pyphi.compute.subsystem import (ComputeSystemIrreducibility,
                                      sia_bipartitions)
 

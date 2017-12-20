@@ -8,7 +8,7 @@ Functions for computing network-level properties.
 
 import logging
 
-from .. import (exceptions, validate, utils, config)
+from .. import config, exceptions, utils, validate
 from ..models import _null_sia
 from ..subsystem import Subsystem
 from .parallel import MapReduce

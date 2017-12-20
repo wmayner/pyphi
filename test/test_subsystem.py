@@ -7,10 +7,10 @@ import pytest
 
 import example_networks
 from pyphi import Direction, Network, config, exceptions
-from pyphi.models import (Concept, Bipartition, Cut, KPartition, Part,
-                          Tripartition, MaximallyIrreducibleCause,
-                          MaximallyIrreducibleEffect,
-                          RepertoireIrreducibilityAnalysis)
+from pyphi.models import (Bipartition, Concept, Cut, KPartition,
+                          MaximallyIrreducibleCause,
+                          MaximallyIrreducibleEffect, Part,
+                          RepertoireIrreducibilityAnalysis, Tripartition)
 from pyphi.subsystem import (Subsystem, all_partitions, mip_bipartitions,
                              wedge_partitions)
 

@@ -5,7 +5,7 @@
 """Subsystem-level objects."""
 
 from . import cmp, fmt
-from .. import utils, config
+from .. import config, utils
 
 # pylint: disable=too-many-arguments
 

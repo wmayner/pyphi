@@ -5,7 +5,7 @@
 import numpy as np
 import pytest
 
-from pyphi import compute, Direction
+from pyphi import Direction, compute
 from pyphi.constants import EPSILON
 
 CD = (2, 3)

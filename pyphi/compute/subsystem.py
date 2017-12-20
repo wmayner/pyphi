@@ -10,7 +10,7 @@ import functools
 import logging
 from time import time
 
-from .. import (Direction, config, connectivity, memory, utils)
+from .. import Direction, config, connectivity, memory, utils
 from ..models import (CauseEffectStructure, Concept, Cut, KCut,
                       SystemIrreducibilityAnalysis, _null_sia, cmp, fmt)
 from ..partition import directed_bipartition, directed_bipartition_of_one
