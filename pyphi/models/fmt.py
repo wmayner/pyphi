@@ -340,7 +340,7 @@ def fmt_ria(ria, verbose=True, mip=False):
             indent(fmt_bipartition(ria.partition, ria.subsystem)))
         repertoire = '\nRepertoire:\n{}'.format(
             indent(fmt_repertoire(ria.repertoire)))
-        partitioned_repertoire = '\nPartitioned Repertoire:\n{}'.format(
+        partitioned_repertoire = '\nPartitioned repertoire:\n{}'.format(
             indent(fmt_repertoire(ria.partitioned_repertoire)))
     else:
         partition = ''
