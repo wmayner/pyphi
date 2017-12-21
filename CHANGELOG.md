@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.9.1
+-----
+
+### Fixes
+- Refactored parallel processing support to fix an intermittent deadlock.
+
 0.9.0
 -----
 _2017-12-04_

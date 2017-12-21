@@ -1,5 +1,5 @@
 
-.PHONY: test docs
+.PHONY: test docs dist
 
 src = pyphi
 tests = test
@@ -7,6 +7,7 @@ docs = docs
 docs_build = docs/_build
 docs_html = docs/_build/html
 benchmarks = benchmarks
+dist_dir = dist
 
 test: coverage watch-tests
 
@@ -47,3 +48,18 @@ upload-docs: build-docs
 
 benchmark:
 	cd $(benchmarks) && asv continuous develop
+
+check-readme:
+	python setup.py check -r -s
+
+dist: build-dist check-readme
+	twine upload dist/*
+
+test-dist: build-dist check-readme
+	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+build-dist: clean-dist
+	python setup.py sdist bdist_wheel
+
+clean-dist:
+	rm -r $(dist_dir)

@@ -40,7 +40,7 @@ To cite the code, use the Zenodo DOI for the verison you used. The latest one
 is `10.5281/zenodo.636912 <http://dx.doi.org/10.5281/zenodo.636912>`_.
 For example::
 
-    Mayner, William GP et al. (2017). PyPhi: 0.9.0. Zenodo. 10.5281/zenodo.636912
+    Mayner, William GP et al. (2017). PyPhi: 0.9.1. Zenodo. 10.5281/zenodo.636912
 
 Or in BibTeX::
 
@@ -48,8 +48,8 @@ Or in BibTeX::
       author = {Mayner, William Gerald Paul and
                 Marshall, William and
                 Marchman, Bo},
-      title  = {PyPhi: 0.9.0},
-      month  = Feb,
+      title  = {PyPhi: 0.9.1},
+      month  = Dec,
       year   = 2017,
       doi    = {10.5281/zenodo.636912},
       url    = {http://dx.doi.org/10.5281/zenodo.636912}

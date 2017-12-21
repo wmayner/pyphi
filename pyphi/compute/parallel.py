@@ -108,13 +108,14 @@ class MapReduce:
         self.progress = self.init_progress_bar()
 
         # Attributes used by parallel computations
-        self.in_queue = None
-        self.out_queue = None
+        self.task_queue = None
+        self.result_queue = None
         self.log_queue = None
         self.log_thread = None
         self.processes = None
         self.num_processes = None
         self.tasks = None
+        self.complete = None
 
     def empty_result(self, *context):
         '''Return the default result with which to begin the computation.'''
@@ -158,7 +159,7 @@ class MapReduce:
                            desc=self.description)
 
     @staticmethod  # coverage: disable
-    def worker(compute, in_queue, out_queue, log_queue, *context):
+    def worker(compute, task_queue, result_queue, log_queue, complete, *context):
         '''A worker process, run by ``multiprocessing.Process``.'''
         try:
             MapReduce._forked = True
@@ -166,14 +167,20 @@ class MapReduce:
 
             configure_worker_logging(log_queue)
 
-            for obj in iter(in_queue.get, POISON_PILL):
-                out_queue.put(compute(obj, *context))
+            for obj in iter(task_queue.get, POISON_PILL):
+                if complete.is_set():
+                    log.debug('Worker received signal - exiting early')
+                    break
 
-            out_queue.put(POISON_PILL)
-            log.debug('Worker process exiting - no more jobs')
+                log.debug('Worker got %s', obj)
+                result_queue.put(compute(obj, *context))
+                log.debug('Worker finished %s', obj)
+
+            result_queue.put(POISON_PILL)
+            log.debug('Worker process exiting')
 
         except Exception as e:  # pylint: disable=broad-except
-            out_queue.put(ExceptionWrapper(e))
+            result_queue.put(ExceptionWrapper(e))
 
     def start_parallel(self):
         '''Initialize all queues and start the worker processes and the log
@@ -181,16 +188,16 @@ class MapReduce:
         '''
         self.num_processes = get_num_processes()
 
-        self.in_queue = multiprocessing.Queue(maxsize=Q_MAX_SIZE)
-        # Don't print `BrokenPipeError` when workers are terminated and
-        # break the queue.
-        # TODO: this is a private implementation detail
-        self.in_queue._ignore_epipe = True  # pylint: disable=protected-access
-
-        self.out_queue = multiprocessing.Queue()
+        self.task_queue = multiprocessing.Queue(maxsize=Q_MAX_SIZE)
+        self.result_queue = multiprocessing.Queue()
         self.log_queue = multiprocessing.Queue()
 
-        args = (self.compute, self.in_queue, self.out_queue, self.log_queue) + self.context
+        # Used to signal worker processes when a result is found that allows
+        # the computation to terminate early.
+        self.complete = multiprocessing.Event()
+
+        args = (self.compute, self.task_queue, self.result_queue,
+                self.log_queue, self.complete) + self.context
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
             for i in range(self.num_processes)]
@@ -210,17 +217,20 @@ class MapReduce:
         full, so further tasks are enqueued as results are returned.
         '''
         # Add a poison pill to shutdown each process.
-        poison = [POISON_PILL] * self.num_processes
-        self.tasks = chain(self.iterable, poison)
-        for obj in islice(self.tasks, Q_MAX_SIZE):
-            self.in_queue.put(obj)
+        self.tasks = chain(self.iterable, [POISON_PILL] * self.num_processes)
+        for task in islice(self.tasks, Q_MAX_SIZE):
+            log.debug('Putting %s on queue', task)
+            self.task_queue.put(task)
 
     def maybe_put_task(self):
         '''Enqueue the next task, if there are any waiting.'''
         try:
-            self.in_queue.put(next(self.tasks))
+            task = next(self.tasks)
         except StopIteration:
             pass
+        else:
+            log.debug('Putting %s on queue', task)
+            self.task_queue.put(task)
 
     def run_parallel(self):
         '''Perform the computation in parallel, reading results from the output
@@ -230,14 +240,12 @@ class MapReduce:
 
         result = self.empty_result(*self.context)
 
-        while not self.done:
-            r = self.out_queue.get()
+        while self.num_processes > 0:
+            r = self.result_queue.get()
             self.maybe_put_task()
 
             if r is POISON_PILL:
                 self.num_processes -= 1
-                if self.num_processes == 0:
-                    break
 
             elif isinstance(r, ExceptionWrapper):
                 r.reraise()
@@ -246,8 +254,9 @@ class MapReduce:
                 result = self.process_result(r, result)
                 self.progress.update(1)
 
-        if self.num_processes > 0:
-            log.debug('Shortcircuit: terminating workers early')
+                # Did `process_result` decide to terminate early?
+                if self.done:
+                    self.complete.set()
 
         self.finish_parallel()
 
@@ -255,25 +264,23 @@ class MapReduce:
 
     def finish_parallel(self):
         '''Terminate all processes and the log thread.'''
+        for process in self.processes:
+            process.join()
+
         # Shutdown the log thread
+        log.debug('Joining log thread')
         self.log_queue.put(POISON_PILL)
         self.log_thread.join()
+        self.log_queue.close()
 
         # Close all queues
-        self.log_queue.close()
-        self.in_queue.close()
-        self.out_queue.close()
+        log.debug('Closing queues')
+        self.task_queue.close()
+        self.result_queue.close()
 
         # Remove the progress bar
+        log.debug('Removing progress bar')
         self.progress.close()
-
-        # Terminating processes which are holding resources (open files, locks)
-        # can cause issues, so we make sure the log thread and progress bar
-        # are shut down before terminating.
-        # TODO: use an Event instead?
-        for process in self.processes:
-            log.debug('Terminating worker process %s', process)
-            process.terminate()
 
     def run_sequential(self):
         '''Perform the computation sequentially, only holding two computed

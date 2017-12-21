@@ -10,10 +10,12 @@
 # happen can increase performance significantly, however the obtained results
 # are not strictly accurate.
 ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
-# When evaluating the minimum information partition, only consider cuts that
-# cut off a single node. It is possible that the MIP cut will cut off multiple
-# nodes, but this approximation is usually correct, and at worst provides an
-# upper bound for integrated information.
+# When determining the MIP for Φ, this restricts the set of system cuts that
+# are considered to only those that cut the inputs or outputs of a single node.
+# This restricted set of cuts scales linearly with the size of the system; the
+# full set of all possible bipartitions scales exponentially. This
+# approximation is more likely to give theoretically accurate results with
+# modular, sparsely-connected, or homogeneous networks.
 CUT_ONE_APPROXIMATION: false
 # The measure to use when computing phi ("EMD", "KLD", "L1", ...)
 MEASURE: "EMD"
