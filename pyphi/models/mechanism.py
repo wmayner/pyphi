@@ -222,7 +222,7 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     def __str__(self):
         return (
             "Maximally-irreducible {}\n".format(str(self.direction).lower()) +
-            fmt.indent(fmt.fmt_ria(self.ria))
+            fmt.indent(fmt.fmt_ria(self.ria, mip=True))
         )
 
     unorderable_unless_eq = \
