@@ -77,7 +77,7 @@ class Node:
         # the state of the node's inputs at t, and the last dimension is
         # indexed by the node's state at t+1. This representation makes it easy
         # to condition on the node state.
-        self.tpm = np.moveaxis([tpm_off, tpm_on], 0, -1)
+        self.tpm = np.stack([tpm_off, tpm_on], axis=-1)
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # Make the TPM immutable (for hashing).
