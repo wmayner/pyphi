@@ -177,7 +177,7 @@ class MapReduce:
                 log.debug('Worker finished %s', obj)
 
             out_queue.put(POISON_PILL)
-            log.debug('Worker process exiting - no more jobs')
+            log.debug('Worker process exiting')
 
         except Exception as e:  # pylint: disable=broad-except
             out_queue.put(ExceptionWrapper(e))
@@ -189,17 +189,15 @@ class MapReduce:
         self.num_processes = get_num_processes()
 
         self.in_queue = multiprocessing.Queue(maxsize=Q_MAX_SIZE)
-        # Don't print `BrokenPipeError` when workers are terminated and
-        # break the queue.
-        # TODO: this is a private implementation detail
-        self.in_queue._ignore_epipe = True  # pylint: disable=protected-access
-
         self.out_queue = multiprocessing.Queue()
         self.log_queue = multiprocessing.Queue()
 
+        # Used to signal worker processes when a result is found that allows
+        # the computation to terminate early.
         self.complete = multiprocessing.Event()
 
-        args = (self.compute, self.in_queue, self.out_queue, self.log_queue, self.complete) + self.context
+        args = (self.compute, self.in_queue, self.out_queue, self.log_queue,
+                self.complete) + self.context
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
             for i in range(self.num_processes)]
@@ -219,11 +217,10 @@ class MapReduce:
         full, so further tasks are enqueued as results are returned.
         '''
         # Add a poison pill to shutdown each process.
-        poison = [POISON_PILL] * self.num_processes
-        self.tasks = chain(self.iterable, poison)
-        for obj in islice(self.tasks, Q_MAX_SIZE):
-            log.debug('Putting %s on queue', obj)
-            self.in_queue.put(obj)
+        self.tasks = chain(self.iterable, [POISON_PILL] * self.num_processes)
+        for task in islice(self.tasks, Q_MAX_SIZE):
+            log.debug('Putting %s on queue', task)
+            self.in_queue.put(task)
 
     def maybe_put_task(self):
         '''Enqueue the next task, if there are any waiting.'''
@@ -243,14 +240,12 @@ class MapReduce:
 
         result = self.empty_result(*self.context)
 
-        while True:
+        while self.num_processes > 0:
             r = self.out_queue.get()
             self.maybe_put_task()
 
             if r is POISON_PILL:
                 self.num_processes -= 1
-                if self.num_processes == 0:
-                    break
 
             elif isinstance(r, ExceptionWrapper):
                 r.reraise()
@@ -259,11 +254,9 @@ class MapReduce:
                 result = self.process_result(r, result)
                 self.progress.update(1)
 
-            if self.done:
-                self.complete.set()
-
-        if self.num_processes > 0:
-            log.debug('Shortcircuit: terminating workers early')
+                # Did `process_result` decide to terminate early?
+                if self.done:
+                    self.complete.set()
 
         self.finish_parallel()
 
