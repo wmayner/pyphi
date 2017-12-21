@@ -48,7 +48,7 @@ connections from elements |A| and |B| to |C|.
 Let's investigate the concepts in the unpartitioned cause-effect structure,
 
     >>> ces.labeled_mechanisms
-    [['A'], ['B'], ['C'], ['A', 'B'], ['A', 'C'], ['B', 'C']]
+    (['A'], ['B'], ['C'], ['A', 'B'], ['A', 'C'], ['B', 'C'])
     >>> ces.phis
     [0.125, 0.125, 0.125, 0.499999, 0.499999, 0.499999]
     >>> print(sum(_))
@@ -57,7 +57,7 @@ Let's investigate the concepts in the unpartitioned cause-effect structure,
 and also the concepts of the partitioned cause-effect structure.
 
     >>> cut_ces.labeled_mechanisms
-    [['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C']]
+    (['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C'])
     >>> cut_ces.phis
     [0.125, 0.125, 0.125, 0.499999, 0.266666, 0.333333]
     >>> print(sum(_))
@@ -183,7 +183,7 @@ the connections from |AE| to |B|. Investigating the concepts in both the
 partitioned and unpartitioned cause-effect structures,
 
     >>> sia.ces.labeled_mechanisms
-    [['A'], ['B'], ['A', 'B']]
+    (['A'], ['B'], ['A', 'B'])
     >>> sia.ces.phis
     [0.25, 0.166667, 0.178572]
     >>> print(sum(_))
@@ -193,7 +193,7 @@ We see that the unpartitioned cause-effect structure has mechanisms |A|, |B|
 and |AB| with :math:`\sum\varphi = 0.595239`.
 
     >>> sia.partitioned_ces.labeled_mechanisms
-    [['A'], ['B'], ['A', 'B']]
+    (['A'], ['B'], ['A', 'B'])
     >>> sia.partitioned_ces.phis
     [0.25, 0.166667, 0.214286]
     >>> print(sum(_))

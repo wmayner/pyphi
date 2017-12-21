@@ -523,7 +523,7 @@ cause-effect structure of the subsystem like so:
 And verify that the |small_phi| values match:
 
     >>> ces.labeled_mechanisms
-    [['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C']]
+    (['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C'])
     >>> ces.phis
     [0.166667, 0.166667, 0.25, 0.25, 0.333334, 0.499999]
 

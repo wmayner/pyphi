@@ -36,7 +36,7 @@ of concepts within the complex.
     >>> len(ces)
     3
     >>> ces.labeled_mechanisms
-    [['A', 'B'], ['A', 'C'], ['B', 'C']]
+    (['A', 'B'], ['A', 'C'], ['B', 'C'])
 
 There are three concepts in the cause-effect structure. They are all the
 possible second order mechanisms: |AB|, |AC| and |BC|.
