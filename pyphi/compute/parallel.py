@@ -108,8 +108,8 @@ class MapReduce:
         self.progress = self.init_progress_bar()
 
         # Attributes used by parallel computations
-        self.in_queue = None
-        self.out_queue = None
+        self.task_queue = None
+        self.result_queue = None
         self.log_queue = None
         self.log_thread = None
         self.processes = None
@@ -159,7 +159,7 @@ class MapReduce:
                            desc=self.description)
 
     @staticmethod  # coverage: disable
-    def worker(compute, in_queue, out_queue, log_queue, complete, *context):
+    def worker(compute, task_queue, result_queue, log_queue, complete, *context):
         '''A worker process, run by ``multiprocessing.Process``.'''
         try:
             MapReduce._forked = True
@@ -167,20 +167,20 @@ class MapReduce:
 
             configure_worker_logging(log_queue)
 
-            for obj in iter(in_queue.get, POISON_PILL):
+            for obj in iter(task_queue.get, POISON_PILL):
                 if complete.is_set():
                     log.debug('Worker received signal - exiting early')
                     break
 
                 log.debug('Worker got %s', obj)
-                out_queue.put(compute(obj, *context))
+                result_queue.put(compute(obj, *context))
                 log.debug('Worker finished %s', obj)
 
-            out_queue.put(POISON_PILL)
+            result_queue.put(POISON_PILL)
             log.debug('Worker process exiting')
 
         except Exception as e:  # pylint: disable=broad-except
-            out_queue.put(ExceptionWrapper(e))
+            result_queue.put(ExceptionWrapper(e))
 
     def start_parallel(self):
         '''Initialize all queues and start the worker processes and the log
@@ -188,16 +188,16 @@ class MapReduce:
         '''
         self.num_processes = get_num_processes()
 
-        self.in_queue = multiprocessing.Queue(maxsize=Q_MAX_SIZE)
-        self.out_queue = multiprocessing.Queue()
+        self.task_queue = multiprocessing.Queue(maxsize=Q_MAX_SIZE)
+        self.result_queue = multiprocessing.Queue()
         self.log_queue = multiprocessing.Queue()
 
         # Used to signal worker processes when a result is found that allows
         # the computation to terminate early.
         self.complete = multiprocessing.Event()
 
-        args = (self.compute, self.in_queue, self.out_queue, self.log_queue,
-                self.complete) + self.context
+        args = (self.compute, self.task_queue, self.result_queue,
+                self.log_queue, self.complete) + self.context
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
             for i in range(self.num_processes)]
@@ -220,7 +220,7 @@ class MapReduce:
         self.tasks = chain(self.iterable, [POISON_PILL] * self.num_processes)
         for task in islice(self.tasks, Q_MAX_SIZE):
             log.debug('Putting %s on queue', task)
-            self.in_queue.put(task)
+            self.task_queue.put(task)
 
     def maybe_put_task(self):
         '''Enqueue the next task, if there are any waiting.'''
@@ -230,7 +230,7 @@ class MapReduce:
             pass
         else:
             log.debug('Putting %s on queue', task)
-            self.in_queue.put(task)
+            self.task_queue.put(task)
 
     def run_parallel(self):
         '''Perform the computation in parallel, reading results from the output
@@ -241,7 +241,7 @@ class MapReduce:
         result = self.empty_result(*self.context)
 
         while self.num_processes > 0:
-            r = self.out_queue.get()
+            r = self.result_queue.get()
             self.maybe_put_task()
 
             if r is POISON_PILL:
@@ -275,8 +275,8 @@ class MapReduce:
 
         # Close all queues
         log.debug('Closing queues')
-        self.in_queue.close()
-        self.out_queue.close()
+        self.task_queue.close()
+        self.result_queue.close()
 
         # Remove the progress bar
         log.debug('Removing progress bar')
