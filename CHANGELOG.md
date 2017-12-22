@@ -1,17 +1,122 @@
 Changelog
 =========
 
+1.0.0
+-----
+
+### API changes
+
+#### Modules
+
+Renamed:
+  - `compute.big_phi` to `compute.network`
+  - `compute.concept` to `compute.subsystem`
+  - `models.big_phi` to `models.subsystem`
+  - `models.concept` to `models.mechanism`
+
+#### Functions
+
+- Renamed:
+  - `compute.main_complex()` to `compute.major_complex()`
+  - `compute.big_mip()` to `compute.sia()`
+  - `compute.big_phi()` to `compute.phi()`
+  - `compute.constellation()` to `compute.ces()`
+  - `compute.conceptual_information()` to `compute.conceptual_info()`
+  - `subsystem.core_cause()` to `subsystem.mic()`
+  - `subsystem.core_effect()` to `subsystem.mie()`
+  - `subsystem.mip_past()` to `subsystem.cause_mip()`
+  - `subsystem.phi_mip_past()` to `subsystem.phi_cause_mip()`
+  - `subsystem.phi_mip_future()` to `subsystem.phi_effect_mip()`
+  - `distance.small_phi_measure()` to `distance.repertoire_distance()`
+  - `distance.big_phi_measure()` to `distance.system_repertoire_distance()`
+  - For all functions in `convert`:
+    - `loli` to `le` (little-endian)
+    - `holi` to `be` (big-endian)
+- Removed `compute.concept()`; use `Subsystem.concept()` instead.
+
+#### Arguments
+
+- Renamed `connectivity_matrix` keyword argument of `Network()` to `cm`
+
+#### Objects
+
+- Renamed `BigMip` to `SystemIrreducibilityAnalysis`
+  - Renamed the `unpartitioned_constellation` attribute to `ces`
+  - `sia` is used throughout for attributes, variables, and function names
+    instead of `big_mip`
+- Renamed `Mip` to `RepertoireIrreducibilityAnalysis`
+  - Renamed the `unpartitioned_repertoire` attribute to `repertoire`
+  - `ria` is used throughout for attributes, variables, and function names
+    instead of `mip`
+- Renamed `Constellation` to `CauseEffectStructure`
+  - `ces` is used throughout for attributes, variables, and function names
+    instead of `constellation`
+- Renamed `Mice` to `MaximallyIrreducibleCauseOrEffect`
+  - `mic` or `mie` are used throughout for attributes, variables, and function
+    names instead of `mip`
+
+Similar changes were made to the `actual` and `models.actual_causation`
+modules.
+
+#### Configuration settings
+
+Changed configuration settings as necessary to use the new object names.
+
+#### Constants
+
+- Renamed `Direction.PAST` to `Direction.CAUSE`
+- Renamed `Direction.CAUSE` to `Direction.EFFECT`
+
+### API additions
+
+#### Configuration settings
+
+- Added `CACHE_REPERTOIRES` to control whether cause/effect repertoires are
+  cached. Single-node cause/effect repertoires are always cached.
+- Added `CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA` to control whether
+  subsystem caches are cleared after calling `compute.sia()`.
+
+#### Objects
+
+- Added two new objects, `MaximallyIrreducibleCause` and
+  `MaximallyIrreducibleEffect`, that are subclasses of
+  `MaximallyIrreducibleCauseOrEffect` with a fixed direction.
+
+### Refactor
+
+- Moved network-level functions in `compute.big_phi` to
+  `pyphi.compute.network`
+- Moved subsystem-level functions in `compute.big_phi` and `compute.concept` to
+  `compute.subsystem`
+
+### Documentation
+
+- Added a description of TPM representations.
+- Improved the explanation of conditional independence and updated the example
+  to reflect that PyPhi now raises an error if a conditionally-dependent TPM is
+  provided.
+- Added detailed installation instructions.
+- Little-endian and big-endian replace LOLI and HOLI terminology
+- Added documentation for the following modules:
+  - `distribution`
+  - `cache`
+  - `compute.parallel`
+  - `compute` top-level module
+  - `module` top-level module
+
+
 0.9.1
 -----
 
 ### Fixes
 - Refactored parallel processing support to fix an intermittent deadlock.
 
+
 0.9.0
 -----
 _2017-12-04_
 
-### API changes:
+### API changes
 - Many functions have been refactored to different modules; see the "Refactor"
   section for details.
 - `compute.possible_complexes` no longer includes the empty subsystem.
@@ -39,7 +144,7 @@ _2017-12-04_
   `config.LOG_FILE_LEVEL` and `config.LOG_FILE`.
 - Removed the `location` property of `Concept`.
 
-### API Additions
+### API additions
 - Added `subsystem.evaluate_partition`. This returns the φ for a particular
   partition.
 - Added `config.MEASURE` to choose between EMD, KLD, or L1 for distance
