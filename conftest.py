@@ -41,7 +41,7 @@ def pytest_runtest_setup(item):
 
 
 @pytest.fixture(scope='function')
-def restore_config_afterwards(request):
+def restore_config_afterwards(request):  # pylint: disable=unused-argument
     '''Reset PyPhi configuration after a test.
 
     Useful for doctests that can't be decorated with `config.override`.

@@ -12,7 +12,7 @@ def test_is_state_by_state():
     tpm = np.ones((8, 8))
     assert is_state_by_state(tpm)
 
-    # State-by-node, N-dimensional
+    # State-by-node, multidimensional
     tpm = np.ones((2, 2, 2, 3))
     assert not is_state_by_state(tpm)
 
@@ -44,6 +44,7 @@ def test_marginalize_out(s):
     assert np.array_equal(marginalized_distribution,
                           np.array([[[[0.5, 0.0, 0.5],
                                       [1.0, 1.0, 0.5]]]]))
+
 
 def test_infer_cm(rule152):
     assert np.array_equal(infer_cm(rule152.tpm), rule152.cm)

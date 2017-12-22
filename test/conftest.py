@@ -38,7 +38,7 @@ def _flush_database_cache():
 
 @pytest.fixture
 def flushcache():
-    '''Flush the currently enabled cache.'''
+    """Flush the currently enabled cache."""
     def cache_flusher():
         log.info("FLUSHING CACHE!")
         if config.CACHING_BACKEND == constants.DATABASE:
@@ -50,8 +50,8 @@ def flushcache():
 
 @pytest.fixture(scope="session")
 def restore_fs_cache(request):
-    '''Temporarily backup, then restore, the user's joblib cache after each
-    testing session.'''
+    """Temporarily backup, then restore, the user's joblib cache after each
+    testing session."""
     # Move the joblib cache to a backup location and create a fresh cache if
     # filesystem caching is enabled
     if config.CACHING_BACKEND == constants.FILESYSTEM:

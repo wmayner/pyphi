@@ -21,7 +21,7 @@ def test_all_states():
         (1, 1, 1),
     ]
     assert list(utils.all_states(3)) == states
-    assert list(utils.all_states(3, holi=True)) == [
+    assert list(utils.all_states(3, big_endian=True)) == [
         tuple(reversed(state)) for state in states
     ]
 
@@ -69,7 +69,7 @@ def test_powerset():
 
 def test_powerset_takes_iterable():
     a = iter([0, 1])
-    assert list(utils.powerset(a)) ==[(), (0,), (1,), (0, 1)]
+    assert list(utils.powerset(a)) == [(), (0,), (1,), (0, 1)]
 
 
 def test_np_hashable():

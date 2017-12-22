@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # actual.py
 
-'''
+"""
 Methods for computing actual causation of subsystems and mechanisms.
-'''
+"""
 
 # pylint: disable=too-many-instance-attributes, too-many-arguments
 # pylint: disable=too-many-public-methods
@@ -15,27 +15,26 @@ from math import log2 as _log2
 
 import numpy as np
 
-import pyphi
-
 from . import (Direction, compute, config, connectivity, constants, exceptions,
                utils, validate)
-from .models import (AcBigMip, Account, AcMip, ActualCut, CausalLink,
-                     DirectedAccount, Event, NullCut,
-                     _null_ac_bigmip, _null_ac_mip, fmt)
+from .models import (Account, AcRepertoireIrreducibilityAnalysis,
+                     AcSystemIrreducibilityAnalysis, ActualCut, CausalLink,
+                     DirectedAccount, Event, NullCut, _null_ac_ria,
+                     _null_ac_sia, fmt)
 from .subsystem import Subsystem, mip_partitions
 
 log = logging.getLogger(__name__)
 
 
 def log2(x):
-    '''Rounded version of ``log2``.'''
+    """Rounded version of ``log2``."""
     return round(_log2(x), config.PRECISION)
 
 
 class Transition:
-    '''A state transition between two sets of nodes in a network.
+    """A state transition between two sets of nodes in a network.
 
-    A |Transition| is implemented with two |Subsystem| objects - one
+    A |Transition| is implemented with two |Subsystem| objects: one
     representing the system at time |t-1| used to compute effect coefficients,
     and another representing the system at time |t| which is used to compute
     cause coefficients. These subsystems are accessed with the
@@ -76,7 +75,7 @@ class Transition:
         conditioned on ``before_state`` as the background state. After
         conditioning the ``effect_system`` is then properly reset to
         ``after_state``.
-    '''
+    """
 
     def __init__(self, network, before_state, after_state, cause_indices,
                  effect_indices, cut=None, noise_background=False):
@@ -129,8 +128,8 @@ class Transition:
         # Dictionary mapping causal directions to the system which is used to
         # compute repertoires in that direction
         self.system = {
-            Direction.PAST: self.cause_system,
-            Direction.FUTURE: self.effect_system
+            Direction.CAUSE: self.cause_system,
+            Direction.EFFECT: self.effect_system
         }
 
     def __repr__(self):
@@ -140,16 +139,19 @@ class Transition:
         return repr(self)
 
     def __eq__(self, other):
-        return (self.cause_indices == other.cause_indices
-                and self.effect_indices == other.effect_indices
-                and self.before_state == other.before_state
-                and self.after_state == other.after_state
-                and self.network == other.network
-                and self.cut == other.cut)
+        return (
+            self.cause_indices == other.cause_indices and
+            self.effect_indices == other.effect_indices and
+            self.before_state == other.before_state and
+            self.after_state == other.after_state and
+            self.network == other.network and
+            self.cut == other.cut
+        )
 
     def __hash__(self):
-        return hash((self.cause_indices, self.effect_indices, self.before_state,
-                     self.after_state, self.network, self.cut))
+        return hash((self.cause_indices, self.effect_indices,
+                     self.before_state, self.after_state, self.network,
+                     self.cut))
 
     def __len__(self):
         return len(self.node_indices)
@@ -158,7 +160,7 @@ class Transition:
         return len(self) > 0
 
     def to_json(self):
-        '''Return a JSON-serializable representation.'''
+        """Return a JSON-serializable representation."""
         return {
             'network': self.network,
             'before_state': self.before_state,
@@ -169,34 +171,33 @@ class Transition:
         }
 
     def apply_cut(self, cut):
-        '''Return a cut version of this transition.'''
+        """Return a cut version of this transition."""
         return Transition(self.network, self.before_state, self.after_state,
                           self.cause_indices, self.effect_indices, cut)
 
     def cause_repertoire(self, mechanism, purview):
-        '''Return the cause repertoire.'''
-        return self.repertoire(Direction.PAST, mechanism, purview)
+        """Return the cause repertoire."""
+        return self.repertoire(Direction.CAUSE, mechanism, purview)
 
     def effect_repertoire(self, mechanism, purview):
-        '''Return the effect repertoire.'''
-        return self.repertoire(Direction.FUTURE, mechanism, purview)
+        """Return the effect repertoire."""
+        return self.repertoire(Direction.EFFECT, mechanism, purview)
 
     def unconstrained_cause_repertoire(self, purview):
-        '''Return the unconstrained cause repertoire of the occurence.'''
+        """Return the unconstrained cause repertoire of the occurence."""
         return self.cause_repertoire((), purview)
 
     def unconstrained_effect_repertoire(self, purview):
-        '''Return the unconstrained effect repertoire of the occurence.'''
+        """Return the unconstrained effect repertoire of the occurence."""
         return self.effect_repertoire((), purview)
 
     def repertoire(self, direction, mechanism, purview):
-        '''Returns the cause or effect repertoire function based on a
-        direction.
+        """Return the cause or effect repertoire function based on a direction.
 
         Args:
             direction (str): The temporal direction, specifiying the cause or
                 effect repertoire.
-        '''
+        """
         system = self.system[direction]
 
         if not set(purview).issubset(self.purview_indices(direction)):
@@ -210,15 +211,16 @@ class Transition:
         return system.repertoire(direction, mechanism, purview)
 
     def state_probability(self, direction, repertoire, purview,):
-        '''Compute the probability of the purview in its current state given
+        """Compute the probability of the purview in its current state given
         the repertoire.
 
         Collapses the dimensions of the repertoire that correspond to the
         purview nodes onto their state. All other dimension are already
         singular and thus receive 0 as the conditioning index.
 
-        Returns a single probabilty.
-        '''
+        Returns:
+            float: A single probabilty.
+        """
         purview_state = self.purview_state(direction)
 
         index = tuple(node_state if node in purview else 0
@@ -226,46 +228,48 @@ class Transition:
         return repertoire[index]
 
     def probability(self, direction, mechanism, purview):
-        '''Probability that the purview is in it's current state given the
-        state of the mechanism.'''
+        """Probability that the purview is in it's current state given the
+        state of the mechanism.
+        """
         repertoire = self.repertoire(direction, mechanism, purview)
 
         return self.state_probability(direction, repertoire, purview)
 
     def unconstrained_probability(self, direction, purview):
-        '''Unconstrained probability of the purview.'''
+        """Unconstrained probability of the purview."""
         return self.probability(direction, (), purview)
 
     def purview_state(self, direction):
-        '''The state of the purview when we are computing coefficients in
+        """The state of the purview when we are computing coefficients in
         ``direction``.
 
         For example, if we are computing the cause coefficient of a mechanism
-        in ``after_state``, the direction is``PAST`` and the ``purview_state``
+        in ``after_state``, the direction is``CAUSE`` and the ``purview_state``
         is ``before_state``.
-        '''
+        """
         return {
-            Direction.PAST: self.before_state,
-            Direction.FUTURE: self.after_state
+            Direction.CAUSE: self.before_state,
+            Direction.EFFECT: self.after_state
         }[direction]
 
     def mechanism_state(self, direction):
-        '''The state of the mechanism when we are computing coefficients in
-        ``direction``.'''
+        """The state of the mechanism when computing coefficients in
+        ``direction``.
+        """
         return self.system[direction].state
 
     def mechanism_indices(self, direction):
-        '''The indices of nodes in the mechanism system.'''
+        """The indices of nodes in the mechanism system."""
         return {
-            Direction.PAST: self.effect_indices,
-            Direction.FUTURE: self.cause_indices
+            Direction.CAUSE: self.effect_indices,
+            Direction.EFFECT: self.cause_indices
         }[direction]
 
     def purview_indices(self, direction):
-        '''The indices of nodes in the purview system.'''
+        """The indices of nodes in the purview system."""
         return {
-            Direction.PAST: self.cause_indices,
-            Direction.FUTURE: self.effect_indices
+            Direction.CAUSE: self.cause_indices,
+            Direction.EFFECT: self.effect_indices
         }[direction]
 
     def _ratio(self, direction, mechanism, purview):
@@ -273,21 +277,22 @@ class Transition:
                     self.unconstrained_probability(direction, purview))
 
     def cause_ratio(self, mechanism, purview):
-        '''The cause ratio of the ``purview`` given ``mechanism``.'''
-        return self._ratio(Direction.PAST, mechanism, purview)
+        """The cause ratio of the ``purview`` given ``mechanism``."""
+        return self._ratio(Direction.CAUSE, mechanism, purview)
 
     def effect_ratio(self, mechanism, purview):
-        '''The effect ratio of the ``purview`` given ``mechanism``.'''
-        return self._ratio(Direction.FUTURE, mechanism, purview)
+        """The effect ratio of the ``purview`` given ``mechanism``."""
+        return self._ratio(Direction.EFFECT, mechanism, purview)
 
     def partitioned_repertoire(self, direction, partition):
-        '''Compute the repertoire over the partition in the given direction.'''
+        """Compute the repertoire over the partition in the given direction."""
         system = self.system[direction]
         return system.partitioned_repertoire(direction, partition)
 
     def partitioned_probability(self, direction, partition):
-        '''Compute the probability of the mechanism over the purview in
-        the partition.'''
+        """Compute the probability of the mechanism over the purview in
+        the partition.
+        """
         repertoire = self.partitioned_repertoire(direction, partition)
         return self.state_probability(direction, repertoire, partition.purview)
 
@@ -296,11 +301,11 @@ class Transition:
 
     # TODO: alias to `irreducible_cause/effect ratio?
     def find_mip(self, direction, mechanism, purview, allow_neg=False):
-        '''Find the ratio minimum information partition for a mechanism
+        """Find the ratio minimum information partition for a mechanism
         over a purview.
 
         Args:
-            direction (str): |PAST| or |FUTURE|
+            direction (str): |CAUSE| or |EFFECT|
             mechanism (tuple[int]): A mechanism.
             purview (tuple[int]): A purview.
 
@@ -310,8 +315,9 @@ class Transition:
                 they were 0.
 
         Returns:
-            AcMip: The found MIP.
-        '''
+            AcRepertoireIrreducibilityAnalysis: The irreducibility analysis for
+            the mechanism.
+        """
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
 
@@ -324,52 +330,59 @@ class Transition:
             # First check for 0
             # Default: don't count contrary causes and effects
             if utils.eq(alpha, 0) or (alpha < 0 and not allow_neg):
-                return AcMip(state=self.mechanism_state(direction),
-                             direction=direction,
-                             mechanism=mechanism,
-                             purview=purview,
-                             partition=partition,
-                             probability=probability,
-                             partitioned_probability=partitioned_probability,
-                             alpha=0.0)
+                return AcRepertoireIrreducibilityAnalysis(
+                    state=self.mechanism_state(direction),
+                    direction=direction,
+                    mechanism=mechanism,
+                    purview=purview,
+                    partition=partition,
+                    probability=probability,
+                    partitioned_probability=partitioned_probability,
+                    alpha=0.0
+                )
             # Then take closest to 0
             if (abs(alpha_min) - abs(alpha)) > constants.EPSILON:
                 alpha_min = alpha
-                acmip = AcMip(state=self.mechanism_state(direction),
-                              direction=direction,
-                              mechanism=mechanism,
-                              purview=purview,
-                              partition=partition,
-                              probability=probability,
-                              partitioned_probability=partitioned_probability,
-                              alpha=alpha_min)
-        return acmip
+                acria = AcRepertoireIrreducibilityAnalysis(
+                    state=self.mechanism_state(direction),
+                    direction=direction,
+                    mechanism=mechanism,
+                    purview=purview,
+                    partition=partition,
+                    probability=probability,
+                    partitioned_probability=partitioned_probability,
+                    alpha=alpha_min
+                )
+        return acria
 
     # Phi_max methods
     # =========================================================================
 
     def potential_purviews(self, direction, mechanism, purviews=False):
-        '''Return all purviews that could belong to the core cause/effect.
+        """Return all purviews that could belong to the |MIC|/|MIE|.
 
         Filters out trivially-reducible purviews.
 
         Args:
-            direction (str): Either |PAST| or |FUTURE|.
+            direction (str): Either |CAUSE| or |EFFECT|.
             mechanism (tuple[int]): The mechanism of interest.
 
         Keyword Args:
             purviews (tuple[int]): Optional subset of purviews of interest.
-        '''
+        """
         system = self.system[direction]
-        return [purview for purview in system.potential_purviews(
-                    direction, mechanism, purviews)
-                if set(purview).issubset(self.purview_indices(direction))]
+        return [
+            purview for purview in system.potential_purviews(
+                direction, mechanism, purviews)
+            if set(purview).issubset(self.purview_indices(direction))
+        ]
 
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')
     def find_causal_link(self, direction, mechanism, purviews=False,
                          allow_neg=False):
-        '''Return the maximally irreducible cause or effect ratio for a mechanism.
+        """Return the maximally irreducible cause or effect ratio for a
+        mechanism.
 
         Args:
             direction (str): The temporal direction, specifying cause or
@@ -385,43 +398,43 @@ class Transition:
 
         Returns:
             CausalLink: The maximally-irreducible actual cause or effect.
-        '''
+        """
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
-        # Find the maximal MIP over the remaining purviews.
+        # Find the maximal RIA over the remaining purviews.
         if not purviews:
-            max_mip = _null_ac_mip(self.mechanism_state(direction),
+            max_ria = _null_ac_ria(self.mechanism_state(direction),
                                    direction, mechanism, None)
         else:
             # This max should be most positive
-            max_mip = max(self.find_mip(direction, mechanism, purview,
+            max_ria = max(self.find_mip(direction, mechanism, purview,
                                         allow_neg)
                           for purview in purviews)
 
         # Construct the corresponding CausalLink
-        return CausalLink(max_mip)
+        return CausalLink(max_ria)
 
     def find_actual_cause(self, mechanism, purviews=False):
-        '''Return the actual cause of a mechanism.'''
-        return self.find_causal_link(Direction.PAST, mechanism, purviews)
+        """Return the actual cause of a mechanism."""
+        return self.find_causal_link(Direction.CAUSE, mechanism, purviews)
 
     def find_actual_effect(self, mechanism, purviews=False):
-        '''Return the actual effect of a mechanism.'''
-        return self.find_causal_link(Direction.FUTURE, mechanism, purviews)
+        """Return the actual effect of a mechanism."""
+        return self.find_causal_link(Direction.EFFECT, mechanism, purviews)
 
     def find_mice(self, *args, **kwargs):
-        '''Backwards-compatible alias for :func:`find_causal_link`.'''
+        """Backwards-compatible alias for :func:`find_causal_link`."""
         return self.find_causal_link(*args, **kwargs)
 
 
-# ============================================================================
+# =============================================================================
 # Accounts
-# ============================================================================
+# =============================================================================
 
 
 def directed_account(transition, direction, mechanisms=False, purviews=False,
                      allow_neg=False):
-    '''Return the set of all |CausalLinks| of the specified direction.'''
+    """Return the set of all |CausalLinks| of the specified direction."""
     if mechanisms is False:
         mechanisms = utils.powerset(transition.mechanism_indices(direction),
                                     nonempty=True)
@@ -435,7 +448,7 @@ def directed_account(transition, direction, mechanisms=False, purviews=False,
 
 
 def account(transition, direction=Direction.BIDIRECTIONAL):
-    '''Return the set of all causal links for a |Transition|.
+    """Return the set of all causal links for a |Transition|.
 
     Args:
         transition (Transition): The transition of interest.
@@ -443,21 +456,21 @@ def account(transition, direction=Direction.BIDIRECTIONAL):
     Keyword Args:
         direction (Direction): By default the account contains actual causes
             and actual effects.
-    '''
+    """
     if direction != Direction.BIDIRECTIONAL:
         return directed_account(transition, direction)
 
-    return Account(directed_account(transition, Direction.PAST) +
-                   directed_account(transition, Direction.FUTURE))
+    return Account(directed_account(transition, Direction.CAUSE) +
+                   directed_account(transition, Direction.EFFECT))
 
 
-# ============================================================================
-# AcBigMips and System cuts
-# ============================================================================
+# =============================================================================
+# AcSystemIrreducibilityAnalysiss and System cuts
+# =============================================================================
 
 
 def account_distance(A1, A2):
-    '''Return the distance between two accounts. Here that is just the
+    """Return the distance between two accounts. Here that is just the
     difference in sum(alpha)
 
     Args:
@@ -466,24 +479,24 @@ def account_distance(A1, A2):
 
     Returns:
         float: The distance between the two accounts.
-    '''
-    return (sum([action.alpha for action in A1])
-            - sum([action.alpha for action in A2]))
+    """
+    return (sum([action.alpha for action in A1]) -
+            sum([action.alpha for action in A2]))
 
 
 def _evaluate_cut(transition, cut, unpartitioned_account,
                   direction=Direction.BIDIRECTIONAL):
-    '''Find the |AcBigMip| for a given cut.'''
+    """Find the |AcSystemIrreducibilityAnalysis| for a given cut."""
     cut_transition = transition.apply_cut(cut)
     partitioned_account = account(cut_transition, direction)
 
     log.debug("Finished evaluating %s.", cut)
     alpha = account_distance(unpartitioned_account, partitioned_account)
 
-    return AcBigMip(
+    return AcSystemIrreducibilityAnalysis(
         alpha=round(alpha, config.PRECISION),
         direction=direction,
-        unpartitioned_account=unpartitioned_account,
+        account=unpartitioned_account,
         partitioned_account=partitioned_account,
         transition=transition,
         cut=cut)
@@ -491,13 +504,13 @@ def _evaluate_cut(transition, cut, unpartitioned_account,
 
 # TODO: implement CUT_ONE approximation?
 def _get_cuts(transition, direction):
-    '''A list of possible cuts to a transition.'''
+    """A list of possible cuts to a transition."""
     n = transition.network.size
 
     if direction is Direction.BIDIRECTIONAL:
         yielded = set()
-        for cut in chain(_get_cuts(transition, Direction.PAST),
-                         _get_cuts(transition, Direction.FUTURE)):
+        for cut in chain(_get_cuts(transition, Direction.CAUSE),
+                         _get_cuts(transition, Direction.EFFECT)):
             cm = utils.np_hashable(cut.cut_matrix(n))
             if cm not in yielded:
                 yielded.add(cm)
@@ -510,87 +523,90 @@ def _get_cuts(transition, direction):
             yield ActualCut(direction, partition)
 
 
-def big_acmip(transition, direction=Direction.BIDIRECTIONAL):
-    '''Return the minimal information partition of a transition in a specific
+def sia(transition, direction=Direction.BIDIRECTIONAL):
+    """Return the minimal information partition of a transition in a specific
     direction.
 
     Args:
         transition (Transition): The candidate system.
 
     Returns:
-        AcBigMip: A nested structure containing all the data from the
-        intermediate calculations. The top level contains the basic MIP
-        information for the given subsystem.
-    '''
+        AcSystemIrreducibilityAnalysis: A nested structure containing all the
+        data from the intermediate calculations. The top level contains the
+        basic irreducibility information for the given subsystem.
+    """
     validate.direction(direction, allow_bi=True)
     log.info("Calculating big-alpha for %s...", transition)
 
     if not transition:
-        log.info('Transition %s is empty; returning null MIP '
+        log.info('Transition %s is empty; returning null SIA '
                  'immediately.', transition)
-        return _null_ac_bigmip(transition, direction)
+        return _null_ac_sia(transition, direction)
 
-    if not connectivity.is_weak(transition.network.cm, transition.node_indices):
-        log.info('%s is not strongly/weakly connected; returning null MIP '
+    if not connectivity.is_weak(transition.network.cm,
+                                transition.node_indices):
+        log.info('%s is not strongly/weakly connected; returning null SIA '
                  'immediately.', transition)
-        return _null_ac_bigmip(transition, direction)
+        return _null_ac_sia(transition, direction)
 
     log.debug("Finding unpartitioned account...")
     unpartitioned_account = account(transition, direction)
     log.debug("Found unpartitioned account.")
 
     if not unpartitioned_account:
-        log.info('Empty account; returning null AC MIP immediately.')
-        return _null_ac_bigmip(transition, direction)
+        log.info('Empty unpartitioned account; returning null AC SIA '
+                 'immediately.')
+        return _null_ac_sia(transition, direction)
 
     cuts = _get_cuts(transition, direction)
-    finder = FindBigAcMip(cuts, transition, direction, unpartitioned_account)
-    result = finder.run_sequential()
+    engine = ComputeACSystemIrreducibility(
+        cuts, transition, direction, unpartitioned_account)
+    result = engine.run_sequential()
     log.info("Finished calculating big-ac-phi data for %s.", transition)
     log.debug("RESULT: \n%s", result)
     return result
 
 
-class FindBigAcMip(compute.parallel.MapReduce):
-    """Computation engine for AC BigMips."""
+class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
+    """Computation engine for AC SIAs."""
     # pylint: disable=unused-argument,arguments-differ
 
     description = 'Evaluating AC cuts'
 
-    def empty_result(self, transition, direction, unpartitioned_account):
-        return _null_ac_bigmip(transition, direction, alpha=float('inf'))
+    def empty_result(self, transition, direction, account):
+        return _null_ac_sia(transition, direction, alpha=float('inf'))
 
     @staticmethod
-    def compute(cut, transition, direction, unpartitioned_account):
-        return _evaluate_cut(transition, cut, unpartitioned_account, direction)
+    def compute(cut, transition, direction, account):
+        return _evaluate_cut(transition, cut, account, direction)
 
-    def process_result(self, new_mip, min_mip):
+    def process_result(self, new_sia, min_sia):
         # Check a new result against the running minimum
-        if not new_mip:  # alpha == 0
+        if not new_sia:  # alpha == 0
             self.done = True
-            return new_mip
+            return new_sia
 
-        elif new_mip < min_mip:
-            return new_mip
+        elif new_sia < min_sia:
+            return new_sia
 
-        return min_mip
+        return min_sia
 
 
-# ============================================================================
+# =============================================================================
 # Complexes
-# ============================================================================
+# =============================================================================
 
 
 # TODO: Fix this to test whether the transition is possible
 def transitions(network, before_state, after_state):
-    '''Return a generator of all **possible** transitions of a network.
-    '''
+    """Return a generator of all **possible** transitions of a network.
+    """
     # TODO: Does not return subsystems that are in an impossible transitions.
 
     # Elements without inputs are reducibe effects,
     # elements without outputs are reducible causes.
-    possible_causes = np.where(np.sum(network.connectivity_matrix, 1) > 0)[0]
-    possible_effects = np.where(np.sum(network.connectivity_matrix, 0) > 0)[0]
+    possible_causes = np.where(np.sum(network.cm, 1) > 0)[0]
+    possible_effects = np.where(np.sum(network.cm, 0) > 0)[0]
 
     for cause_subset in utils.powerset(possible_causes, nonempty=True):
         for effect_subset in utils.powerset(possible_effects, nonempty=True):
@@ -603,17 +619,17 @@ def transitions(network, before_state, after_state):
 
 def nexus(network, before_state, after_state,
           direction=Direction.BIDIRECTIONAL):
-    '''Return a tuple of all irreducible nexus of the network.'''
+    """Return a tuple of all irreducible nexus of the network."""
     validate.is_network(network)
 
-    mips = (big_acmip(transition, direction) for transition in
+    sias = (sia(transition, direction) for transition in
             transitions(network, before_state, after_state))
-    return tuple(sorted(filter(None, mips), reverse=True))
+    return tuple(sorted(filter(None, sias), reverse=True))
 
 
 def causal_nexus(network, before_state, after_state,
                  direction=Direction.BIDIRECTIONAL):
-    '''Return the causal nexus of the network.'''
+    """Return the causal nexus of the network."""
     validate.is_network(network)
 
     log.info("Calculating causal nexus...")
@@ -621,65 +637,66 @@ def causal_nexus(network, before_state, after_state,
     if result:
         result = max(result)
     else:
-        null_transition = Transition(network, before_state, after_state, (), ())
-        result = _null_ac_bigmip(null_transition, direction)
+        null_transition = Transition(
+            network, before_state, after_state, (), ())
+        result = _null_ac_sia(null_transition, direction)
 
     log.info("Finished calculating causal nexus.")
     log.debug("RESULT: \n%s", result)
     return result
 
-# ============================================================================
+# =============================================================================
 # True Causes
-# ============================================================================
+# =============================================================================
 
 
 # TODO: move this to __str__
-def nice_true_constellation(tc):
-    '''Format a true constellation.'''
-    past_list = []
-    future_list = []
+def nice_true_ces(tc):
+    """Format a true |CauseEffectStructure|."""
+    cause_list = []
+    next_list = []
     cause = '<--'
     effect = '-->'
     for event in tc:
-        if event.direction == Direction.PAST:
-            past_list.append(["{0:.4f}".format(round(event.alpha, 4)),
-                              event.mechanism, cause, event.purview])
-        elif event.direction == Direction.FUTURE:
-            future_list.append(["{0:.4f}".format(round(event.alpha, 4)),
-                                event.mechanism, effect, event.purview])
+        if event.direction == Direction.CAUSE:
+            cause_list.append(["{0:.4f}".format(round(event.alpha, 4)),
+                               event.mechanism, cause, event.purview])
+        elif event.direction == Direction.EFFECT:
+            next_list.append(["{0:.4f}".format(round(event.alpha, 4)),
+                              event.mechanism, effect, event.purview])
         else:
             validate.direction(event.direction)
 
-    true_list = [(past_list[event], future_list[event])
-                 for event in range(len(past_list))]
+    true_list = [(cause_list[event], next_list[event])
+                 for event in range(len(cause_list))]
     return true_list
 
 
-def _actual_causes(network, past_state, current_state, nodes,
+def _actual_causes(network, previous_state, current_state, nodes,
                    mechanisms=False):
     log.info("Calculating true causes ...")
-    transition = Transition(network, past_state, current_state, nodes, nodes)
+    transition = Transition(
+        network, previous_state, current_state, nodes, nodes)
 
-    return directed_account(transition, Direction.PAST, mechanisms=mechanisms)
+    return directed_account(transition, Direction.CAUSE, mechanisms=mechanisms)
 
 
-def _actual_effects(network, current_state, future_state, nodes,
+def _actual_effects(network, current_state, next_state, nodes,
                     mechanisms=False):
     log.info("Calculating true effects ...")
-    transition = Transition(network, current_state, future_state, nodes, nodes)
+    transition = Transition(network, current_state, next_state, nodes, nodes)
 
-    return directed_account(transition, Direction.FUTURE, mechanisms=mechanisms)
+    return directed_account(
+        transition, Direction.EFFECT, mechanisms=mechanisms)
 
 
-def events(network, past_state, current_state, future_state, nodes,
+def events(network, previous_state, current_state, next_state, nodes,
            mechanisms=False):
-    '''Find all events (mechanisms with actual causes and actual effects.'''
-
-    actual_causes = _actual_causes(network, past_state, current_state, nodes,
-                                   mechanisms)
-    actual_effects = _actual_effects(network, current_state, future_state,
+    """Find all events (mechanisms with actual causes and actual effects)."""
+    actual_causes = _actual_causes(network, previous_state, current_state,
+                                   nodes, mechanisms)
+    actual_effects = _actual_effects(network, current_state, next_state,
                                      nodes, mechanisms)
-
     actual_mechanisms = (set(c.mechanism for c in actual_causes) &
                          set(c.mechanism for c in actual_effects))
 
@@ -687,8 +704,9 @@ def events(network, past_state, current_state, future_state, nodes,
         return ()
 
     def index(actual_causes_or_effects):
-        '''Filter out unidirectional occurences and return a
-        dictionary keyed by the mechanism of the cause or effect.'''
+        """Filter out unidirectional occurences and return a dictionary keyed
+        by the mechanism of the cause or effect.
+        """
         return {o.mechanism: o for o in actual_causes_or_effects
                 if o.mechanism in actual_mechanisms}
 
@@ -700,20 +718,20 @@ def events(network, past_state, current_state, future_state, nodes,
 
 
 # TODO: do we need this? it's just a re-structuring of the `events` results
-# TODO: rename to `actual_constellation`?
-def true_constellation(subsystem, past_state, future_state):
-    '''Set of all sets of elements that have true causes and true effects.
+# TODO: rename to `actual_ces`?
+def true_ces(subsystem, previous_state, next_state):
+    """Set of all sets of elements that have true causes and true effects.
 
     .. note::
-        Since the true constellation is always about the full system,
+        Since the true |CauseEffectStructure| is always about the full system,
         the background conditions don't matter and the subsystem should be
         conditioned on the current state.
-    '''
+    """
     network = subsystem.network
     nodes = subsystem.node_indices
     state = subsystem.state
 
-    _events = events(network, past_state, state, future_state, nodes)
+    _events = events(network, previous_state, state, next_state, nodes)
 
     if not _events:
         log.info("Finished calculating, no echo events.")
@@ -727,67 +745,67 @@ def true_constellation(subsystem, past_state, future_state):
     return result
 
 
-def true_events(network, past_state, current_state, future_state, indices=None,
-                main_complex=None):
-    '''Return all mechanisms that have true causes and true effects within the
+def true_events(network, previous_state, current_state, next_state,
+                indices=None, major_complex=None):
+    """Return all mechanisms that have true causes and true effects within the
     complex.
 
     Args:
         network (Network): The network to analyze.
-        past_state (tuple[int]): The state of the network at ``t - 1``.
+        previous_state (tuple[int]): The state of the network at ``t - 1``.
         current_state (tuple[int]): The state of the network at ``t``.
-        future_state (tuple[int]): The state of the network at ``t + 1``.
+        next_state (tuple[int]): The state of the network at ``t + 1``.
 
     Keyword Args:
-        indices (tuple[int]): The indices of the main complex.
-        main_complex (AcBigMip): The main complex. If ``main_complex`` is given
-            then ``indices`` is ignored.
+        indices (tuple[int]): The indices of the major complex.
+        major_complex (AcSystemIrreducibilityAnalysis): The major complex. If
+            ``major_complex`` is given then ``indices`` is ignored.
 
     Returns:
-        tuple[Event]: List of true events in the main complex.
-    '''
+        tuple[Event]: List of true events in the major complex.
+    """
     # TODO: validate triplet of states
 
-    if main_complex:
-        nodes = main_complex.subsystem.node_indices
+    if major_complex:
+        nodes = major_complex.subsystem.node_indices
     elif indices:
         nodes = indices
     else:
-        main_complex = compute.main_complex(network, current_state)
-        nodes = main_complex.subsystem.node_indices
+        major_complex = compute.major_complex(network, current_state)
+        nodes = major_complex.subsystem.node_indices
 
-    return events(network, past_state, current_state, future_state, nodes)
+    return events(network, previous_state, current_state, next_state, nodes)
 
 
-def extrinsic_events(network, past_state, current_state, future_state,
-                     indices=None, main_complex=None):
-    '''Set of all mechanisms that are in the main complex but which have true
+def extrinsic_events(network, previous_state, current_state, next_state,
+                     indices=None, major_complex=None):
+    """Set of all mechanisms that are in the major complex but which have true
     causes and effects within the entire network.
 
     Args:
         network (Network): The network to analyze.
-        past_state (tuple[int]): The state of the network at ``t - 1``.
+        previous_state (tuple[int]): The state of the network at ``t - 1``.
         current_state (tuple[int]): The state of the network at ``t``.
-        future_state (tuple[int]): The state of the network at ``t + 1``.
+        next_state (tuple[int]): The state of the network at ``t + 1``.
 
     Keyword Args:
-        indices (tuple[int]): The indices of the main complex.
-        main_complex (AcBigMip): The main complex. If ``main_complex`` is given
-            then ``indices`` is ignored.
+        indices (tuple[int]): The indices of the major complex.
+        major_complex (AcSystemIrreducibilityAnalysis): The major complex. If
+            ``major_complex`` is given then ``indices`` is ignored.
 
     Returns:
-        tuple(actions): List of extrinsic events in the main complex.
-    '''
-    if main_complex:
-        mc_nodes = main_complex.subsystem.node_indices
+        tuple(actions): List of extrinsic events in the major complex.
+    """
+    if major_complex:
+        mc_nodes = major_complex.subsystem.node_indices
     elif indices:
         mc_nodes = indices
     else:
-        main_complex = compute.main_complex(network, current_state)
-        mc_nodes = main_complex.subsystem.node_indices
+        major_complex = compute.major_complex(network, current_state)
+        mc_nodes = major_complex.subsystem.node_indices
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))
     all_nodes = network.node_indices
 
-    return events(network, past_state, current_state, future_state, all_nodes,
-                  mechanisms=mechanisms)
+    return events(network, previous_state, current_state, next_state,
+                  all_nodes, mechanisms=mechanisms)

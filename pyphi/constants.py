@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 # constants.py
 
-'''
+"""
 Package-wide constants.
-'''
+"""
 
 import pickle
 
 import joblib
 
 # Import Direction for backwards compatibility
-from . import config, Direction
+from . import Direction, config
 
 #: The threshold below which we consider differences in phi values to be zero.
 EPSILON = 10 ** - config.PRECISION
