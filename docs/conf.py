@@ -62,7 +62,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'PyPhi'
-copyright = '2014–2017 {}'.format(__author__)
+copyright = '2014--2017 {}'.format(__author__)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -117,6 +117,7 @@ rst_prolog = ''.join([
 r"""
 .. |big_phi| replace:: :math:`\Phi`
 .. |big_phi > 0| replace:: :math:`\Phi > 0`
+.. |big_phi = 0| replace:: :math:`\Phi = 0`
 .. |big_phi_max| replace:: :math:`\Phi^{\textrm{max}}`
 .. |small_phi| replace:: :math:`\varphi`
 .. |small_phi > 0| replace:: :math:`\varphi > 0`
@@ -151,10 +152,11 @@ r"""
 .. |t| replace:: :math:`t`
 .. |t-1| replace:: :math:`t-1`
 .. |t+1| replace:: :math:`t+1`
+.. |n+1| replace:: :math:`n+1`
 .. |1,0,0| replace:: :math:`\{1,0,0\}`
 .. |0,1,0| replace:: :math:`\{0,1,0\}`
 .. |0,0,1| replace:: :math:`\{0,0,1\}`
-.. |n0 = 0, n1 = 0, n2 = 1| replace:: :math:`(n_0 = 0, n_1 = 0, n_2 = 1)`
+.. |N_0 = 0, N_1 = 0, N_2 = 1| replace:: :math:`N_0 = 0, N_1 = 0, N_2 = 1`
 .. |ith| replace:: :math:`i^{\textrm{th}}`
 .. |jth| replace:: :math:`j^{\textrm{th}}`
 .. |(i,j)| replace:: :math:`(i,j)`
@@ -189,8 +191,8 @@ r"""
 """,
 # Constants
 r"""
-.. |PAST| replace:: :const:`~pyphi.direction.Direction.PAST`
-.. |FUTURE| replace:: :const:`~pyphi.direction.Direction.FUTURE`
+.. |CAUSE| replace:: :const:`~pyphi.direction.Direction.CAUSE`
+.. |EFFECT| replace:: :const:`~pyphi.direction.Direction.EFFECT`
 .. |EPSILON| replace:: :const:`~pyphi.constants.EPSILON`
 .. |PICK_SMALLEST_PURVIEW| replace:: :const:`~pyphi.config.PICK_SMALLEST_PURVIEW`
 .. |PARTITION_TYPE| replace:: :const:`~pyphi.config.PARTITION_TYPE`
@@ -199,16 +201,14 @@ r"""
 # Modules
 r"""
 .. |compute| replace:: :mod:`~pyphi.compute`
-.. |compute.distance| replace:: :mod:`~pyphi.compute.distance`
-.. |compute.subsystems| replace:: :func:`~pyphi.compute.big_phi.subsystems`
-.. |compute.possible_complexes| replace:: :func:`~pyphi.compute.big_phi.possible_complexes`
-.. |compute.complexes| replace:: :func:`~pyphi.compute.big_phi.complexes`
-.. |compute.all_complexes| replace:: :func:`~pyphi.compute.big_phi.all_complexes`
-.. |compute.condensed| replace:: :func:`~pyphi.compute.big_phi.condensed`
+.. |compute.distance| replace:: :mod:`pyphi.compute.distance`
+.. |compute.network| replace:: :mod:`pyphi.compute.network`
+.. |compute.parallel| replace:: :mod:`pyphi.compute.parallel`
+.. |compute.subsystem| replace:: :mod:`pyphi.compute.subsystem`
 
-.. |models.big_phi| replace:: :mod:`~pyphi.models.big_phi`
-.. |models.concept| replace:: :mod:`~pyphi.models.concept`
-.. |models.cuts| replace:: :mod:`~pyphi.models.cuts`
+.. |models.subsystem| replace:: :mod:`pyphi.models.subsystem`
+.. |models.mechanism| replace:: :mod:`pyphi.models.mechanism`
+.. |models.cuts| replace:: :mod:`pyphi.models.cuts`
 
 .. |network| replace:: :mod:`~pyphi.network`
 .. |subsystem| replace:: :mod:`~pyphi.subsystem`
@@ -224,16 +224,22 @@ r"""
 """,
 # Functions
 r"""
-.. |compute.conceptual_information| replace:: :func:`~pyphi.compute.big_phi.conceptual_information`
-.. |compute.big_mip| replace:: :func:`~pyphi.compute.big_phi.big_mip`
+.. |compute.conceptual_info()| replace:: :func:`~pyphi.compute.subsystem.conceptual_info`
+.. |compute.sia()| replace:: :func:`~pyphi.compute.subsystem.sia`
+.. |compute.phi()| replace:: :func:`~pyphi.compute.subsystem.phi`
 
-.. |compute.concept| replace:: :func:`~pyphi.compute.concept.concept`
-.. |compute.big_phi| replace:: :func:`~pyphi.compute.big_phi.big_phi`
+.. |compute.subsystems()| replace:: :func:`~pyphi.compute.network.subsystems`
+.. |compute.possible_complexes()| replace:: :func:`~pyphi.compute.network.possible_complexes`
+.. |compute.complexes()| replace:: :func:`~pyphi.compute.network.complexes`
+.. |compute.all_complexes()| replace:: :func:`~pyphi.compute.network.all_complexes`
+.. |compute.condensed()| replace:: :func:`~pyphi.compute.network.condensed`
 
-.. |configure_logging| replace:: :func:`~pyphi.config.configure_logging`
+.. |Subsystem.clear_caches()| replace:: :func:`~pyphi.subsystem.Subsystem.clear_caches`
 
-.. |loli_index2state| replace:: :func:`~pyphi.convert.loli_index2state`
-.. |holi_index2state| replace:: :func:`~pyphi.convert.holi_index2state`
+.. |configure_logging()| replace:: :func:`~pyphi.config.configure_logging`
+
+.. |le_index2state()| replace:: :func:`~pyphi.convert.le_index2state`
+.. |be_index2state()| replace:: :func:`~pyphi.convert.be_index2state`
 """,
 # Classes
 r"""
@@ -241,10 +247,11 @@ r"""
 
 .. |Subsystem| replace:: :class:`~pyphi.subsystem.Subsystem`
 
-.. |BigMip| replace:: :class:`~pyphi.models.big_phi.BigMip`
+.. |SystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.subsystem.SystemIrreducibilityAnalysis`
+.. |SIA| replace:: :class:`~pyphi.models.subsystem.SystemIrreducibilityAnalysis`
+.. |CauseEffectStructure| replace:: :class:`~pyphi.models.subsystem.CauseEffectStructure`
 
-.. |Concept| replace:: :class:`~pyphi.models.concept.Concept`
-.. |Constellation| replace:: :class:`~pyphi.models.concept.Constellation`
+.. |Concept| replace:: :class:`~pyphi.models.mechanism.Concept`
 
 .. |Cut| replace:: :class:`~pyphi.models.cuts.Cut`
 .. |Cuts| replace:: :class:`~pyphi.models.cuts.Cut`
@@ -252,8 +259,11 @@ r"""
 .. |Parts| replace:: :class:`~pyphi.models.cuts.Part`
 .. |Bipartition| replace:: :class:`~pyphi.models.cuts.Bipartition`
 
-.. |Mip| replace:: :class:`~pyphi.models.concept.Mip`
-.. |Mice| replace:: :class:`~pyphi.models.concept.Mice`
+.. |RepertoireIrreducibilityAnalysis| replace:: :class:`~pyphi.models.mechanism.RepertoireIrreducibilityAnalysis`
+.. |MaximallyIrreducibleCauseOrEffect| replace:: :class:`~pyphi.models.mechanism.MaximallyIrreducibleCauseOrEffect`
+.. |MICE| replace:: :class:`~pyphi.models.mechanism.MaximallyIrreducibleCauseOrEffect`
+.. |MIC| replace:: :class:`~pyphi.models.mechanism.MaximallyIrreducibleCause`
+.. |MIE| replace:: :class:`~pyphi.models.mechanism.MaximallyIrreducibleEffect`
 
 .. |Node| replace:: :class:`~pyphi.node.Node`
 .. |Nodes| replace:: :class:`~pyphi.node.Node`
@@ -265,8 +275,9 @@ r"""
 .. |Blackbox| replace:: :class:`~pyphi.macro.Blackbox`
 
 .. |Transition| replace:: :class:`~pyphi.actual.Transition`
-.. |AcBigMip| replace:: :class:`~pyphi.models.actual_causation.AcBigMip`
-.. |AcMip| replace:: :class:`~pyphi.models.actual_causation.AcMip`
+
+.. |AcSystemIrreducibilityAnalysis| replace:: :class:`~pyphi.models.actual_causation.AcSystemIrreducibilityAnalysis`
+.. |AcRepertoireIrreducibilityAnalysis| replace:: :class:`~pyphi.models.actual_causation.AcRepertoireIrreducibilityAnalysis`
 .. |DirectedAccount| replace:: :class:`~pyphi.models.actual_causation.DirectedAccount`
 .. |Account| replace:: :class:`~pyphi.models.actual_causation.Account`
 .. |Event| replace:: :class:`~pyphi.models.actual_causation.Event`
@@ -275,13 +286,13 @@ r"""
 
 .. |ConditionallyDependentError| replace:: :class:`~pyphi.exceptions.ConditionallyDependentError`
 
-.. |MiceCache| replace:: :class:`~pyphi.cache.MiceCache`
+.. |MICECache| replace:: :class:`~pyphi.cache.MICECache`
 """,
 # Methods
 r"""
 .. |Subsystem.concept| replace:: :meth:`~pyphi.subsystem.Subsystem.concept`
-.. |Subsystem.core_cause| replace:: :meth:`~pyphi.subsystem.Subsystem.core_cause`
-.. |Subsystem.core_effect| replace:: :meth:`~pyphi.subsystem.Subsystem.core_effect`
+.. |Subsystem.mic| replace:: :meth:`~pyphi.subsystem.Subsystem.mic`
+.. |Subsystem.mie| replace:: :meth:`~pyphi.subsystem.Subsystem.mie`
 .. |expand_repertoire| replace:: :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`
 .. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
 .. |find_mice| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`

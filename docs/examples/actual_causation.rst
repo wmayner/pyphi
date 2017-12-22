@@ -1,7 +1,8 @@
 Actual Causation
 ================
 
-This section demonstrates how to use PyPhi to evaluate actual causation as described in
+This section demonstrates how to use PyPhi to evaluate actual causation as
+described in
 
 `Albantakis L, Marshall W, Hoel E, Tononi G (2017). What caused what? An
 irreducible account of actual causation. arXiv:1708.06716 [cs.AI]
@@ -23,9 +24,9 @@ Configuration
 
 Before we begin we need to set some configuration values. The correct way of
 partitioning for actual causation is using the ``'ALL'`` partitions setting;
-``'TRI'``-partitions are a reasonable approximation. In case of ties the smaller
-purview should be chosen. IIT 3.0 style bipartitions will give incorrect
-results.
+``'TRI'``-partitions are a reasonable approximation. In case of ties the
+smaller purview should be chosen. IIT 3.0 style bipartitions will give
+incorrect results.
 
     >>> config.PARTITION_TYPE = 'TRI'
     >>> config.PICK_SMALLEST_PURVIEW = True
@@ -34,7 +35,7 @@ When calculating a causal account of the transition between a set of elements
 |X| at time |t-1| and a set of elements |Y| at time |t|, with |X| and |Y| being
 subsets of the same system, the transition should be valid according to the
 system's TPM. However, the state of |X| at |t-1| does not necessarily need to
-have a valid past state so we can disable state validation:
+have a valid previous state so we can disable state validation:
 
    >>> config.VALIDATE_SUBSYSTEM_STATES = False
 
@@ -61,8 +62,8 @@ network.
    >>> OR = 0
    >>> AND = 1
 
-We want to observe both elements at |t-1| and |t|, with ``OR`` on and ``AND``
-off in both observations:
+We want to observe both elements at |t-1| and |t|, with ``OR`` ON and ``AND``
+OFF in both observations:
 
    >>> X = Y = (OR, AND)
    >>> X_state = Y_state = (1, 0)
@@ -117,10 +118,11 @@ We can evaluate |alpha| for a particular pair of occurences, as in Figure 3C.
 For example, to find the irreducible effect ratio of |{OR, AND} -> {OR, AND}|,
 we use the ``find_mip`` method:
 
-   >>> link = transition.find_mip(Direction.FUTURE, (OR, AND), (OR, AND))
+   >>> link = transition.find_mip(Direction.EFFECT, (OR, AND), (OR, AND))
 
-This returns a |AcMip| object, with a number of useful properties. This
-particular MIP is reducible, as we can see by checking the value of |alpha|:
+This returns a |AcRepertoireIrreducibilityAnalysis| object, with a number of
+useful properties. This particular MIP is reducible, as we can see by checking
+the value of |alpha|:
 
    >>> link.alpha
    0.0
@@ -137,7 +139,7 @@ Let's look at the MIP for the irreducible occurence |Y_t = {OR, AND}|
 constraining |X_t-1 = {OR, AND}| (Figure 3D). This candidate causal link has
 positive |alpha|:
 
-   >>> link = transition.find_mip(Direction.PAST, (OR, AND), (OR, AND))
+   >>> link = transition.find_mip(Direction.CAUSE, (OR, AND), (OR, AND))
    >>> link.alpha
    0.169925
 
@@ -180,14 +182,14 @@ Irreducible Accounts
 The irreducibility of the causal account of our transition of interest can be
 evaluated using the following function:
 
-   >>> big_mip = actual.big_acmip(transition)
-   >>> big_mip.alpha
+   >>> sia = actual.sia(transition)
+   >>> sia.alpha
    0.169925
 
 As shown in Figure 4, the second order occurence |Y_t = {OR, AND = 10}| is
 destroyed by the MIP:
 
-   >>> big_mip.partitioned_account  # doctest: +NORMALIZE_WHITESPACE
+   >>> sia.partitioned_account  # doctest: +NORMALIZE_WHITESPACE
    <BLANKLINE>
    Account (4 causal links)
    ************************
@@ -200,8 +202,8 @@ destroyed by the MIP:
 
 The partition of the MIP is available in the ``cut`` property:
 
-   >>> big_mip.cut  # doctest: +NORMALIZE_WHITESPACE
-   KCut PAST
+   >>> sia.cut  # doctest: +NORMALIZE_WHITESPACE
+   KCut CAUSE
     ∅     0     1
    ─── ✕ ─── ✕ ───
     ∅     0     1
@@ -212,7 +214,8 @@ To find all irreducible accounts within the transition of interest, use
    >>> all_accounts = actual.nexus(network, X_state, Y_state)
 
 This computes |big_alpha| for all permutations of of elements in |X_t-1| and
-|Y_t| and returns a ``tuple`` of all |AcBigMip| objects with |big_alpha > 0|:
+|Y_t| and returns a ``tuple`` of all |AcSystemIrreducibilityAnalysis| objects
+with |big_alpha > 0|:
 
    >>> for n in all_accounts:
    ...     print(n.transition, n.alpha)

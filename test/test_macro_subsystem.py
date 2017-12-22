@@ -29,7 +29,7 @@ def macro_subsystem():
 
     state = (0, 0, 0, 0)
 
-    network = pyphi.Network(tpm, connectivity_matrix=cm)
+    network = pyphi.Network(tpm, cm=cm)
 
     partition = ((0, 1), (2, 3))
     grouping = (((0, 1), (2,)), ((0, 1), (2,)))
@@ -80,7 +80,7 @@ def test_macro_subsystem(macro_subsystem):
         [1., 0.09],
         [1., 1.]
     ])
-    assert np.array_equal(macro_subsystem.connectivity_matrix, answer_cm)
+    assert np.array_equal(macro_subsystem.cm, answer_cm)
     assert np.allclose(macro_subsystem.tpm.reshape([4] + [2], order='f'),
                        answer_tpm,
                        rtol=pyphi.constants.EPSILON)
@@ -95,7 +95,7 @@ def test_macro_cut_subsystem(macro_subsystem):
         [1., 0.20083333],
         [1., 0.4225]
     ])
-    assert np.array_equal(cut_subsystem.connectivity_matrix, answer_cm)
+    assert np.array_equal(cut_subsystem.cm, answer_cm)
     assert np.allclose(cut_subsystem.tpm.reshape([4] + [2], order='f'),
                        answer_tpm,
                        rtol=pyphi.constants.EPSILON)
@@ -190,7 +190,7 @@ def test_run_tpm():
         [1, 1, 1],
         [1, 1, 0],
     ])
-    answer = convert.to_n_dimensional(np.array([
+    answer = convert.to_multidimensional(np.array([
         [0, 0, 0],
         [1, 1, 0],
         [1, 1, 1],
@@ -373,7 +373,7 @@ def test_blackbox_partial_noise(s):
     # Noise connection from 2 -> 0
     assert np.array_equal(
         noised.tpm,
-        convert.to_n_dimensional(np.array([
+        convert.to_multidimensional(np.array([
             [.5, 0, 0],
             [.5, 0, 1],
             [1., 0, 1],
@@ -398,7 +398,7 @@ def test_blackbox_partial_noise(s):
 def test_blackbox_timescale():
     # System is an OR gate and a COPY gate; the OR gate is connected with a
     # self loop.
-    tpm = convert.to_n_dimensional(np.array([
+    tpm = convert.to_multidimensional(np.array([
         [0, 0],
         [1, 1],
         [1, 0],

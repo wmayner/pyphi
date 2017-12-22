@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # models/fmt.py
 
-'''
+"""
 Helper functions for formatting pretty representations of PyPhi models.
-'''
+"""
 
 from fractions import Fraction
 from itertools import chain
@@ -45,7 +45,7 @@ NICE_DENOMINATORS   = list(range(16)) + [16, 32, 64, 128]
 
 
 def make_repr(self, attrs):
-    '''Construct a repr string.
+    """Construct a repr string.
 
     If `config.REPR_VERBOSITY` is ``1`` or ``2``, this function calls the
     object's __str__ method. Although this breaks the convention that __repr__
@@ -60,7 +60,7 @@ def make_repr(self, attrs):
 
     Returns:
         str: the ``repr``esentation of the object
-    '''
+    """
     # TODO: change this to a closure so we can do
     # __repr__ = make_repr(attrs) ???
 
@@ -73,9 +73,11 @@ def make_repr(self, attrs):
             ', '.join(attr + '=' + repr(getattr(self, attr))
                       for attr in attrs))
 
+    raise ValueError('Invalid value for `config.REPR_VERBOSITY`')
+
 
 def indent(lines, amount=2, char=' '):
-    '''Indent a string.
+    r"""Indent a string.
 
     Prepends whitespace to every line in the passed string. (Lines are
     separated by newline characters.)
@@ -91,22 +93,22 @@ def indent(lines, amount=2, char=' '):
         str: The indented string.
 
     Example:
-        >>> print(indent('line1\\nline2', char='*'))
+        >>> print(indent('line1\nline2', char='*'))
         **line1
         **line2
-    '''
+    """
     lines = str(lines)
     padding = amount * char
     return padding + ('\n' + padding).join(lines.split('\n'))
 
 
 def margin(text):
-    '''Add a margin to both ends of each line in the string.
+    r"""Add a margin to both ends of each line in the string.
 
     Example:
-        >>> margin('line1\\nline2')
-        '  line1  \\n  line2  '
-    '''
+        >>> margin('line1\nline2')
+        '  line1  \n  line2  '
+    """
     lines = str(text).split('\n')
     return '\n'.join('  {}  '.format(l) for l in lines)
 
@@ -115,15 +117,15 @@ LINES_FORMAT_STR = VERTICAL_SIDE + ' {line:<{width}} ' + VERTICAL_SIDE
 
 
 def box(text):
-    '''Wrap a chunk of text in a box.
+    r"""Wrap a chunk of text in a box.
 
     Example:
-        >>> print(box('line1\\nline2'))
+        >>> print(box('line1\nline2'))
         ┌───────┐
         │ line1 │
         │ line2 │
         └───────┘
-    '''
+    """
     lines = text.split('\n')
 
     width = max(len(l) for l in lines)
@@ -138,18 +140,18 @@ def box(text):
 
 
 def side_by_side(left, right):
-    '''Put two boxes next to each other.
+    r"""Put two boxes next to each other.
 
     Assumes that all lines in the boxes are the same width.
 
     Example:
-        >>> left = 'A \\nC '
-        >>> right = 'B\\nD'
+        >>> left = 'A \nC '
+        >>> right = 'B\nD'
         >>> print(side_by_side(left, right))
         A B
         C D
         <BLANKLINE>
-    '''
+    """
     left_lines = list(left.split('\n'))
     right_lines = list(right.split('\n'))
 
@@ -166,10 +168,10 @@ def side_by_side(left, right):
 
 
 def header(head, text, over_char=None, under_char=None, center=True):
-    '''Center a head over a block of text.
+    """Center a head over a block of text.
 
     The width of the text is the width of the longest line of the text.
-    '''
+    """
     lines = list(text.split('\n'))
     width = max(len(l) for l in lines)
 
@@ -191,18 +193,18 @@ def header(head, text, over_char=None, under_char=None, center=True):
 
 
 def labels(indices, subsystem=None):
-    '''Get the labels for a tuple of mechanism indices.'''
+    """Get the labels for a tuple of mechanism indices."""
     if subsystem is None:
         return tuple(map(str, indices))
     return subsystem.indices2labels(indices)
 
 
 def fmt_number(p):
-    '''Format a number.
+    """Format a number.
 
     It will be printed as a fraction if the denominator isn't too big and as a
     decimal otherwise.
-    '''
+    """
     formatted = '{:n}'.format(p)
 
     if not config.PRINT_FRACTIONS:
@@ -218,19 +220,19 @@ def fmt_number(p):
 
 
 def fmt_mechanism(indices, subsystem=None):
-    '''Format a mechanism or purview.'''
+    """Format a mechanism or purview."""
     return '[' + ', '.join(labels(indices, subsystem)) + ']'
 
 
 def fmt_part(part, subsystem=None):
-    '''Format a |Part|.
+    """Format a |Part|.
 
     The returned string looks like::
 
         0,1
         ───
          ∅
-    '''
+    """
     def nodes(x):  # pylint: disable=missing-docstring
         return ','.join(labels(x, subsystem)) if x else EMPTY_SET
 
@@ -248,7 +250,7 @@ def fmt_part(part, subsystem=None):
 
 
 def fmt_bipartition(partition, subsystem=None):
-    '''Format a |Bipartition|.
+    """Format a |Bipartition|.
 
     The returned string looks like::
 
@@ -261,7 +263,7 @@ def fmt_bipartition(partition, subsystem=None):
 
     Returns:
         str: A human-readable string representation of the partition.
-    '''
+    """
     if not partition:
         return ''
 
@@ -280,13 +282,13 @@ def fmt_bipartition(partition, subsystem=None):
     return ''.join(chain.from_iterable(zip(*elements)))
 
 
-def fmt_constellation(c, title=None):
-    '''Format a constellation.'''
+def fmt_ces(c, title=None):
+    """Format a |CauseEffectStructure|."""
     if not c:
         return '()\n'
 
     if title is None:
-        title = 'Constellation'
+        title = 'Cause-effect structure'
 
     concepts = '\n'.join(margin(x) for x in c) + '\n'
     title = '{} ({} concept{})'.format(
@@ -296,15 +298,17 @@ def fmt_constellation(c, title=None):
 
 
 def fmt_concept(concept):
-    '''Format a |Concept|.'''
+    """Format a |Concept|."""
 
     def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
         if not x:
             return ''
-        return box(indent(fmt_mip(x.mip, verbose=False), amount=1))
+        return box(indent(fmt_ria(x.ria, verbose=False, mip=True), amount=1))
 
-    cause = header('Cause', fmt_cause_or_effect(concept.cause))
-    effect = header('Effect', fmt_cause_or_effect(concept.effect))
+    cause = header('MIC',
+                   fmt_cause_or_effect(concept.cause))
+    effect = header('MIE',
+                    fmt_cause_or_effect(concept.effect))
     ce = side_by_side(cause, effect)
 
     mechanism = fmt_mechanism(concept.mechanism, concept.subsystem)
@@ -317,29 +321,30 @@ def fmt_concept(concept):
     return header(title, ce, HEADER_BAR_2, HEADER_BAR_2, center=center)
 
 
-def fmt_mip(mip, verbose=True):
-    '''Format a |Mip|.'''
-    if mip is False or mip is None:  # mips can be Falsy
+def fmt_ria(ria, verbose=True, mip=False):
+    """Format a |RepertoireIrreducibilityAnalysis|."""
+    if ria is False or ria is None:  # RIAs can be Falsy
         return ''
 
     if verbose:
         mechanism = 'Mechanism: {}\n'.format(
-            fmt_mechanism(mip.mechanism, mip.subsystem))
-        direction = '\nDirection: {}\n'.format(mip.direction)
+            fmt_mechanism(ria.mechanism, ria.subsystem))
+        direction = '\nDirection: {}'.format(ria.direction)
     else:
         mechanism = ''
         direction = ''
 
     if config.REPR_VERBOSITY is HIGH:
-        partition = '\nPartition:\n{}'.format(
-            indent(fmt_bipartition(mip.partition, mip.subsystem)))
-        unpartitioned_repertoire = '\nUnpartitioned Repertoire:\n{}'.format(
-            indent(fmt_repertoire(mip.unpartitioned_repertoire)))
-        partitioned_repertoire = '\nPartitioned Repertoire:\n{}'.format(
-            indent(fmt_repertoire(mip.partitioned_repertoire)))
+        partition = '\n{}:\n{}'.format(
+            ('MIP' if mip else 'Partition'),
+            indent(fmt_bipartition(ria.partition, ria.subsystem)))
+        repertoire = '\nRepertoire:\n{}'.format(
+            indent(fmt_repertoire(ria.repertoire)))
+        partitioned_repertoire = '\nPartitioned repertoire:\n{}'.format(
+            indent(fmt_repertoire(ria.partitioned_repertoire)))
     else:
         partition = ''
-        unpartitioned_repertoire = ''
+        repertoire = ''
         partitioned_repertoire = ''
 
     # TODO? print the two repertoires side-by-side
@@ -347,22 +352,22 @@ def fmt_mip(mip, verbose=True):
         '{SMALL_PHI} = {phi}\n'
         '{mechanism}'
         'Purview = {purview}'
-        '{partition}'
         '{direction}'
-        '{unpartitioned_repertoire}'
+        '{partition}'
+        '{repertoire}'
         '{partitioned_repertoire}').format(
             SMALL_PHI=SMALL_PHI,
             mechanism=mechanism,
-            purview=fmt_mechanism(mip.purview, mip.subsystem),
+            purview=fmt_mechanism(ria.purview, ria.subsystem),
             direction=direction,
-            phi=fmt_number(mip.phi),
+            phi=fmt_number(ria.phi),
             partition=partition,
-            unpartitioned_repertoire=unpartitioned_repertoire,
+            repertoire=repertoire,
             partitioned_repertoire=partitioned_repertoire)
 
 
 def fmt_cut(cut, subsystem=None):
-    '''Format a |Cut|.'''
+    """Format a |Cut|."""
     # HACK HACK
     # TODO: fix this mess.
     from .cuts import KCut, NullCut
@@ -389,39 +394,39 @@ def fmt_cut(cut, subsystem=None):
 
 
 def fmt_kcut(cut):
-    '''Format a |KCut|.'''
+    """Format a |KCut|."""
     return 'KCut {}\n{}'.format(cut.direction, cut.partition)
 
 
-def fmt_big_mip(big_mip, constellations=True):
-    '''Format a |BigMip|.'''
-    if constellations:
+def fmt_sia(sia, ces=True):
+    """Format a |SystemIrreducibilityAnalysis|."""
+    if ces:
         body = (
-            '{unpartitioned_constellation}'
-            '{partitioned_constellation}'.format(
-                unpartitioned_constellation=fmt_constellation(
-                    big_mip.unpartitioned_constellation,
-                    'Unpartitioned Constellation'),
-                partitioned_constellation=fmt_constellation(
-                    big_mip.partitioned_constellation,
-                    'Partitioned Constellation')))
+            '{ces}'
+            '{partitioned_ces}'.format(
+                ces=fmt_ces(
+                    sia.ces,
+                    'Cause-effect structure'),
+                partitioned_ces=fmt_ces(
+                    sia.partitioned_ces,
+                    'Partitioned cause-effect structure')))
         center_header = True
     else:
         body = ''
         center_header = False
 
-    title = 'Big Mip: {BIG_PHI} = {phi}'.format(
-        BIG_PHI=BIG_PHI, phi=fmt_number(big_mip.phi))
+    title = 'System irreducibility analysis: {BIG_PHI} = {phi}'.format(
+        BIG_PHI=BIG_PHI, phi=fmt_number(sia.phi))
 
-    cut = fmt_cut(big_mip.cut, big_mip.subsystem)
+    cut = fmt_cut(sia.cut, sia.subsystem)
 
-    body = header(str(big_mip.subsystem), body, center=center_header)
+    body = header(str(sia.subsystem), body, center=center_header)
     body = header(cut, body, center=center_header)
     return box(header(title, body, center=center_header))
 
 
 def fmt_repertoire(r):
-    '''Format a repertoire.'''
+    """Format a repertoire."""
     # TODO: will this get unwieldy with large repertoires?
     if r is None:
         return ''
@@ -448,27 +453,26 @@ def fmt_repertoire(r):
     return box('\n'.join(lines))
 
 
-def fmt_ac_mip(mip):
-    '''Format an AcMip.'''
-    if mip is None:
+def fmt_ac_ria(ria):
+    """Format an AcRepertoireIrreducibilityAnalysis."""
+    if ria is None:
         return ''
 
     causality = {
         # TODO: use node labels
-        Direction.PAST: (str(mip.purview), ARROW_LEFT, str(mip.mechanism)),
-        Direction.FUTURE: (str(mip.mechanism), ARROW_RIGHT, str(mip.purview))
-    }[mip.direction]
+        Direction.CAUSE: (str(ria.purview), ARROW_LEFT, str(ria.mechanism)),
+        Direction.EFFECT: (str(ria.mechanism), ARROW_RIGHT, str(ria.purview))
+    }[ria.direction]
     causality = ' '.join(causality)
 
     return '{ALPHA} = {alpha}  {causality}'.format(
         ALPHA=ALPHA,
-        alpha=round(mip.alpha, 4),
+        alpha=round(ria.alpha, 4),
         causality=causality)
 
 
 def fmt_account(account, title=None):
-    '''Format an Account or a DirectedAccount.'''
-
+    """Format an Account or a DirectedAccount."""
     if title is None:
         title = account.__class__.__name__  # `Account` or `DirectedAccount`
 
@@ -477,37 +481,39 @@ def fmt_account(account, title=None):
 
     body = ''
     body += 'Irreducible effects\n'
-    body += '\n'.join(fmt_ac_mip(m) for m in account.irreducible_effects)
+    body += '\n'.join(fmt_ac_ria(m) for m in account.irreducible_effects)
     body += '\nIrreducible causes\n'
-    body += '\n'.join(fmt_ac_mip(m) for m in account.irreducible_causes)
+    body += '\n'.join(fmt_ac_ria(m) for m in account.irreducible_causes)
 
     return '\n' + header(title, body, under_char='*')
 
 
-def fmt_ac_big_mip(ac_big_mip):
-    '''Format a AcBigMip.'''
+def fmt_ac_sia(ac_sia):
+    """Format a AcSystemIrreducibilityAnalysis."""
     body = (
         '{ALPHA} = {alpha}\n'
-        'direction: {ac_big_mip.direction}\n'
-        'transition: {ac_big_mip.transition}\n'
-        'before state: {ac_big_mip.before_state}\n'
-        'after state: {ac_big_mip.after_state}\n'
-        'cut:\n{ac_big_mip.cut}\n'
-        '{unpartitioned_account}\n'
+        'direction: {ac_sia.direction}\n'
+        'transition: {ac_sia.transition}\n'
+        'before state: {ac_sia.before_state}\n'
+        'after state: {ac_sia.after_state}\n'
+        'cut:\n{ac_sia.cut}\n'
+        '{account}\n'
         '{partitioned_account}'.format(
             ALPHA=ALPHA,
-            alpha=round(ac_big_mip.alpha, 4),
-            ac_big_mip=ac_big_mip,
-            unpartitioned_account=fmt_account(
-                ac_big_mip.unpartitioned_account, 'Unpartitioned Account'),
+            alpha=round(ac_sia.alpha, 4),
+            ac_sia=ac_sia,
+            account=fmt_account(
+                ac_sia.account, 'Account'),
             partitioned_account=fmt_account(
-                ac_big_mip.partitioned_account, 'Partitioned Account')))
+                ac_sia.partitioned_account, 'Partitioned Account')))
 
-    return box(header('AcBigMip', body, under_char=HORIZONTAL_BAR))
+    return box(header('AcSystemIrreducibilityAnalysis',
+                      body,
+                      under_char=HORIZONTAL_BAR))
 
 
 def fmt_transition(t):
-    '''Format a |Transition|.'''
+    """Format a |Transition|."""
     return "Transition({} {} {})".format(
         fmt_mechanism(t.cause_indices, t.cause_system),
         ARROW_RIGHT,

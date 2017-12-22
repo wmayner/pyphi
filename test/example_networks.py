@@ -62,7 +62,7 @@ def noised(cm=False):
             [1, 1, 1]
         ])
     cm = cm if use_connectivity_matrices else None
-    return Network(tpm, connectivity_matrix=cm)
+    return Network(tpm, cm=cm)
 
 
 def s_noised():
@@ -106,20 +106,20 @@ def simple(cm=False):
 
     TPM:
 
-    +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
-    |  Past state ~~> Current state |
-    |~~~~~~~~~~~~~~+~~~~~~~~~~~~~~~~|
-    |   A, B, C    |    A, B, C     |
-    |~~~~~~~~~~~~~~+~~~~~~~~~~~~~~~~|
-    |  {0, 0, 0}   |   {0, 0, 0}    |
-    |  {0, 0, 1}   |   {0, 0, 0}    |
-    |  {0, 1, 0}   |   {0, 0, 0}    |
-    |  {0, 1, 1}   |   {1, 0, 0}    |
-    |  {1, 0, 0}   |   {0, 0, 0}    |
-    |  {1, 0, 1}   |   {0, 0, 0}    |
-    |  {1, 1, 0}   |   {0, 0, 0}    |
-    |  {1, 1, 1}   |   {0, 0, 0}    |
-    +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+    +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
+    |  Previous state ~~> Current state |
+    |~~~~~~~~~~~~~~~~~~+~~~~~~~~~~~~~~~~|
+    |      A, B, C     |    A, B, C     |
+    |~~~~~~~~~~~~~~~~~~+~~~~~~~~~~~~~~~~|
+    |     {0, 0, 0}    |   {0, 0, 0}    |
+    |     {0, 0, 1}    |   {0, 0, 0}    |
+    |     {0, 1, 0}    |   {0, 0, 0}    |
+    |     {0, 1, 1}    |   {1, 0, 0}    |
+    |     {1, 0, 0}    |   {0, 0, 0}    |
+    |     {1, 0, 1}    |   {0, 0, 0}    |
+    |     {1, 1, 0}    |   {0, 0, 0}    |
+    |     {1, 1, 1}    |   {0, 0, 0}    |
+    +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+
     """
     tpm = np.array([
         [0, 0, 0],
@@ -133,7 +133,7 @@ def simple(cm=False):
     ])
     if cm is False:
         cm = None
-    return Network(tpm, connectivity_matrix=cm)
+    return Network(tpm, cm=cm)
 
 
 def simple_subsys_all_off():
@@ -183,7 +183,7 @@ def big(cm=None):
         [1, 1, 1, 1, 1],
         [1, 1, 1, 1, 1]
     ])
-    return Network(tpm, connectivity_matrix=cm)
+    return Network(tpm, cm=cm)
 
 
 def big_subsys_all():
@@ -208,7 +208,7 @@ def reducible(cm=False):
     if cm is False:
         cm = np.array([[1, 0],
                        [0, 1]])
-    r = Network(tpm, connectivity_matrix=cm)
+    r = Network(tpm, cm=cm)
     state = (0, 0)
     # Return the full subsystem
     return Subsystem(r, state, range(r.size))
@@ -257,7 +257,7 @@ def rule30(cm=False):
             [0, 0, 1, 1, 1],
             [1, 0, 0, 1, 1]
         ])
-    rule30 = Network(tpm, connectivity_matrix=cm)
+    rule30 = Network(tpm, cm=cm)
     all_off = (0, 0, 0, 0, 0)
     return Subsystem(rule30, all_off, range(rule30.size))
 
@@ -269,7 +269,7 @@ def trivial():
         [1]
     ])
     cm = np.array([[1]])
-    net = Network(tpm, connectivity_matrix=cm)
+    net = Network(tpm, cm=cm)
     state = (1, )
     return Subsystem(net, state, range(net.size))
 
@@ -545,7 +545,7 @@ def eight_node(cm=False):
             [0, 0, 0, 0, 0, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 1, 1]
         ])
-    return Network(tpm, connectivity_matrix=cm)
+    return Network(tpm, cm=cm)
 
 
 def eights():
@@ -573,7 +573,7 @@ def eight_node_sbs(cm=False):
             [0, 0, 0, 0, 0, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 1, 1]
         ])
-    return Network(tpm, connectivity_matrix=cm)
+    return Network(tpm, cm=cm)
 
 
 def rule152(cm=False):
@@ -619,7 +619,7 @@ def rule152(cm=False):
              [0, 0, 1, 1, 1],
              [1, 0, 0, 1, 1]]
         )
-    return Network(tpm, connectivity_matrix=cm)
+    return Network(tpm, cm=cm)
 
 
 def rule152_s():
@@ -646,7 +646,7 @@ def macro(cm=False):
             [1, 1],
             [1, 1]
         ])
-    return Network(tpm, connectivity_matrix=cm)
+    return Network(tpm, cm=cm)
 
 
 def macro_s():
@@ -697,7 +697,7 @@ def micro(cm=False):
             [1, 1, 1, 1],
             [1, 1, 1, 1]
         ])
-    return Network(tpm, connectivity_matrix=cm)
+    return Network(tpm, cm=cm)
 
 
 def micro_s():
@@ -714,9 +714,9 @@ def micro_s_all_off():
 
 # TODO: move to pyphi.examples?
 def propagation_delay():
-    '''The basic PyPhi subsystem with COPY gates on each of the connections in
+    """The basic PyPhi subsystem with COPY gates on each of the connections in
     the original network, blackboxed over two time steps.
-    '''
+    """
     nodes = 8
     tpm = np.zeros((2 ** nodes, nodes))
 

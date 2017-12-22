@@ -48,7 +48,7 @@ to read.
 
 Now we construct the network itself with the arguments we just created:
 
-    >>> network = pyphi.Network(tpm, connectivity_matrix=cm,
+    >>> network = pyphi.Network(tpm, cm=cm,
     ...                         node_labels=labels)
 
 The next step is to define a subsystem for which we want to evaluate |big_phi|.
@@ -73,28 +73,28 @@ every node in the network in our subsystem:
         >>> pyphi.Subsystem(network, state, ('B', 'C'))
         Subsystem(B, C)
 
-Now we use |compute.big_phi| function to compute the |big_phi| of our
+Now we use the |compute.phi()| function to compute the |big_phi| of our
 subsystem:
 
-    >>> pyphi.compute.big_phi(subsystem)
+    >>> pyphi.compute.phi(subsystem)
     2.3125
 
 If we want to take a deeper look at the integrated-information-theoretic
 properties of our network, we can access all the intermediate quantities and
 structures that are calculated in the course of arriving at a final |big_phi|
-value by using |compute.big_mip|. This returns a nested object, |BigMip|, that
-contains data about the subsystem's constellation of concepts, cause and effect
-repertoires, etc.
+value by using |compute.sia()|. This returns a nested object,
+|SystemIrreducibilityAnalysis|, that contains data about the subsystem's
+cause-effect structure, cause and effect repertoires, etc.
 
-    >>> mip = pyphi.compute.big_mip(subsystem)
+    >>> sia = pyphi.compute.sia(subsystem)
 
 For instance, we can see that this network has 4 concepts:
 
-    >>> len(mip.unpartitioned_constellation)
+    >>> len(sia.ces)
     4
 
-See the documentation for |BigMip| and |Concept| for more information on these
-objects.
+See the documentation for |SystemIrreducibilityAnalysis| and |Concept| for more
+information on these objects.
 
 .. tip::
     The network and subsystem discussed here are returned by the

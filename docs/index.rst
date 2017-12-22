@@ -10,52 +10,25 @@ welcome.
 For general discussion, you are welcome to join the `pyphi-users group
 <https://groups.google.com/forum/#!forum/pyphi-users>`_.
 
-.. important::
-    Each version of PyPhi has its own documentation—make sure you're looking
-    at the documentation for the version you're using. You can switch
-    documentation versions in the bottom-left corner.
+.. _installation:
 
-    The ``stable`` version of the documentation corresponds to the most recent
-    stable release of PyPhi; this is the version you have if you installed
-    PyPhi with ``pip install pyphi``. The ``latest`` version corresponds to the
-    most recent unreleased development version (which may have bugs). 
-
-Installation
-~~~~~~~~~~~~
-
-To install the latest stable release, run
-
-.. code-block:: bash
-
-    pip install pyphi
-
-To install the latest development version, which is a work in progress and may have bugs, run
-
-.. code-block:: bash
-
-    pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
-
-**For detailed instructions on how to install PyPhi on macOS, see the**
-`installation guide
-<https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.md>`_.
-
-.. note::
-    PyPhi is only supported on Linux and macOS operating systems; Windows is not supported.
+.. include:: installation.rst
 
 .. toctree::
     :caption: Usage and Examples
     :glob:
     :maxdepth: 1
 
+    installation.rst
     examples/index
-    examples/*
-
-.. toctree::
-    :caption: Configuration
-    :glob:
-    :maxdepth: 1
-
-    configuration
+    examples/2014paper
+    examples/conditional_independence
+    examples/xor
+    examples/emergence
+    examples/actual_causation
+    examples/residue
+    examples/magic_cut
+    macos_installation
 
 .. toctree::
     :caption: Conventions
@@ -63,6 +36,13 @@ To install the latest development version, which is a work in progress and may h
     :maxdepth: 1
 
     conventions
+
+.. toctree::
+    :caption: Configuration
+    :glob:
+    :maxdepth: 1
+
+    configuration
 
 .. toctree::
     :caption: API Reference

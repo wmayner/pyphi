@@ -2,30 +2,34 @@
 # -*- coding: utf-8 -*-
 # compute/__init__.py
 
-'''Maintains backwards compatability with the old ``compute`` API.
-
-See :mod:`compute.concept` and :mod:`compute.big_phi` for documentation.
+"""
+See |compute.subsystem|, |compute.network|, |compute.distance|, and
+|compute.parallel| for documentation.
 
 Attributes:
-    concept: Alias for :func:`concept.concept`.
-    conceptual_information: Alias for :func:`concept.conceptual_information`.
-    constellation: Alias for :func:`concept.constellation`.
-    concept_distance: Alias for :func:`distance.concept_distance`.
-    constellation_distance: Alias for :func:`distance.constellation_distance`.
-    all_complexes: Alias for :func:`big_phi.all_complexes`.
-    big_mip: Alias for :func:`big_phi.big_mip`.
-    big_phi: Alias for :func:`big_phi.big_phi`.
-    complexes: Alias for :func:`big_phi.complexes`.
-    condensed: Alias for :func:`big_phi.condensed`.
-    evaluate_cut: Alias for :func:`big_phi.evaluate_cut`.
-    main_complex: Alias for :func:`big_phi.main_complex`.
-    possible_complexes: Alias for :func:`big_phi.possible_complexes`.
-    subsystems: Alias for :func:`big_phi.subsystems`.
-'''
+    all_complexes: Alias for :func:`pyphi.compute.network.all_complexes`.
+    ces: Alias for :func:`pyphi.compute.subsystem.ces`.
+    ces_distance: Alias for :func:`pyphi.compute.distance.ces_distance`.
+    complexes: Alias for :func:`pyphi.compute.network.complexes`.
+    concept_distance: Alias for
+        :func:`pyphi.compute.distance.concept_distance`.
+    conceptual_info: Alias for :func:`pyphi.compute.subsystem.conceptual_info`.
+    condensed: Alias for :func:`pyphi.compute.network.condensed`.
+    evaluate_cut: Alias for :func:`pyphi.compute.subsystem.evaluate_cut`.
+    major_complex: Alias for :func:`pyphi.compute.network.major_complex`.
+    phi: Alias for :func:`pyphi.compute.subsystem.phi`.
+    possible_complexes: Alias for
+        :func:`pyphi.compute.network.possible_complexes`.
+    sia: Alias for :func:`pyphi.compute.subsystem.sia`.
+    subsystems: Alias for :func:`pyphi.compute.network.subsystems`.
+"""
 
-from .big_phi import (all_complexes, big_mip, big_phi, complexes, condensed,
-                      evaluate_cut, main_complex, possible_complexes,
-                      subsystems, ConceptStyleSystem, big_mip_concept_style,
-                      concept_cuts, BigMipConceptStyle)
-from .concept import concept, conceptual_information, constellation
-from .distance import concept_distance, constellation_distance
+# pylint: disable=unused-import
+
+from .subsystem import (sia, phi, evaluate_cut, ConceptStyleSystem,
+                        sia_concept_style, concept_cuts,
+                        SystemIrreducibilityAnalysisConceptStyle,
+                        conceptual_info, ces)
+from .network import (all_complexes, complexes, condensed, major_complex,
+                      possible_complexes, subsystems)
+from .distance import concept_distance, ces_distance

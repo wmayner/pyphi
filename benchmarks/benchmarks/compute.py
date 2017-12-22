@@ -105,12 +105,12 @@ class BenchmarkMainComplex():
         else:
             raise ValueError(cache)
 
-        config.CACHE_BIGMIPS = False
+        config.CACHE_SIAS = False
 
     def teardown(self, mode, network, cache):
         # Revert config
         config.__dict__.update(self.default_config)
 
-    def time_main_complex(self, mode, network, cache):
+    def time_major_complex(self, mode, network, cache):
         # Do it!
-        compute.main_complex(self.network, self.state)
+        compute.major_complex(self.network, self.state)

@@ -15,21 +15,21 @@ available from the |examples| module.
 
 The connectivity matrix is all-to-all:
 
-    >>> network.connectivity_matrix
+    >>> network.cm
     array([[ 1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.]])
 
-We'll set the state so that nodes are off.
+We'll set the state so that nodes are OFF.
 
     >>> state = (0, 0, 0, 0)
 
-At the “micro” spatial scale, we can compute the main complex, and determine
+At the “micro” spatial scale, we can compute the major complex, and determine
 the |big_phi| value:
 
-    >>> main_complex = pyphi.compute.main_complex(network, state)
-    >>> main_complex.phi
+    >>> major_complex = pyphi.compute.major_complex(network, state)
+    >>> major_complex.phi
     0.113889
 
 The question is whether there are other spatial scales which have greater
@@ -58,12 +58,12 @@ We must then determine the relationship between micro-elements and
 macro-elements. When coarse-graining the system we assume that the resulting
 macro-elements do not differentiate the different micro-elements. Thus any
 correspondence between states must be stated solely in terms of the number of
-micro-elements which are on, and not depend on which micro-elements are on.
+micro-elements which are ON, and not depend on which micro-elements are ON.
 
 For example, consider the macro-element ``(0, 1, 2)``. We may say that the
-macro-element is on if at least one micro-element is on, or if all
-micro-elements are on; however, we may not say that the macro-element is on if
-micro-element ``1`` is on, because this relationship involves identifying
+macro-element is ON if at least one micro-element is ON, or if all
+micro-elements are ON; however, we may not say that the macro-element is ON if
+micro-element ``1`` is ON, because this relationship involves identifying
 specific micro-elements.
 
 The ``grouping`` attribute of the |CoarseGrain| describes how the state of
@@ -78,15 +78,15 @@ The grouping consists of two lists, one for each macro-element:
     >>> grouping[0]
     ((0, 1, 2), (3,))
 
-For the first macro-element, this grouping means that the element will be off
-if zero, one or two of its micro-elements are on, and will be on if all three
-micro-elements are on.
+For the first macro-element, this grouping means that the element will be OFF
+if zero, one or two of its micro-elements are ON, and will be ON if all three
+micro-elements are ON.
 
     >>> grouping[1]
     ((0,), (1,))
 
-For the second macro-element, the grouping means that the element will be off
-if its micro-element is off, and on if its micro-element is on.
+For the second macro-element, the grouping means that the element will be OFF
+if its micro-element is OFF, and ON if its micro-element is ON.
 
 One we have selected a partition and grouping for analysis, we can create a
 mapping between micro-states and macro-states:
@@ -95,23 +95,23 @@ mapping between micro-states and macro-states:
     >>> mapping
     array([0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 3])
 
-The interpretation of the mapping uses the LOLI convention of indexing (see
-:ref:`tpm-conventions`).
+The interpretation of the mapping uses the little-endian convention of indexing
+(see :ref:`little-endian-convention`).
 
     >>> mapping[7]
     1
 
 This says that micro-state 7 corresponds to macro-state 1:
 
-    >>> pyphi.convert.loli_index2state(7, 4)
+    >>> pyphi.convert.le_index2state(7, 4)
     (1, 1, 1, 0)
 
-    >>> pyphi.convert.loli_index2state(1, 2)
+    >>> pyphi.convert.le_index2state(1, 2)
     (1, 0)
 
 In micro-state 7, all three elements corresponding to the first macro-element
-are on, so that macro-element is on. The micro-element corresponding to the
-second macro-element is off, so that macro-element is off.
+are ON, so that macro-element is ON. The micro-element corresponding to the
+second macro-element is OFF, so that macro-element is OFF.
 
 The |CoarseGrain| object uses the mapping internally to create a state-by-state
 TPM for the macro-system corresponding to the selected partition and grouping
@@ -155,8 +155,8 @@ We can now construct a |MacroSubsystem| using this coarse-graining:
 We can then consider the integrated information of this macro-network and
 compare it to the micro-network.
 
-    >>> macro_mip = pyphi.compute.big_mip(macro_subsystem)
-    >>> macro_mip.phi
+    >>> macro_sia = pyphi.compute.sia(macro_subsystem)
+    >>> macro_sia.phi
     0.597212
 
 The integrated information of the macro subsystem (:math:`\Phi = 0.597212`) is
@@ -192,7 +192,7 @@ using blackboxing.
     >>> import pyphi
     >>> network = pyphi.examples.blackbox_network()
 
-We consider the state where all nodes are off:
+We consider the state where all nodes are OFF:
 
     >>> state = (0, 0, 0, 0, 0, 0)
     >>> all_nodes = (0, 1, 2, 3, 4, 5)
@@ -200,7 +200,7 @@ We consider the state where all nodes are off:
 The system has minimal |big_phi| without blackboxing:
 
     >>> subsys = pyphi.Subsystem(network, state, all_nodes)
-    >>> pyphi.compute.big_phi(subsys)
+    >>> pyphi.compute.phi(subsys)
     0.215278
 
 We will consider the blackbox system consisting of two blackbox elements, |ABC|
@@ -247,11 +247,13 @@ Let us also define a time scale over which to perform our analysis:
 As in the coarse-graining example, the blackbox and time scale are passed to
 |MacroSubsystem|:
 
-    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, all_nodes, blackbox=blackbox, time_scale=time_scale)
+    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, all_nodes, 
+    ...                                              blackbox=blackbox, 
+    ...                                              time_scale=time_scale)
 
 We can now compute |big_phi| for this macro system:
 
-    >>> pyphi.compute.big_phi(macro_subsystem)
+    >>> pyphi.compute.phi(macro_subsystem)
     0.638888
 
 We find that the macro subsystem has greater integrated information

@@ -100,7 +100,7 @@ def test_basic_nor_or():
 
     state = (0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-    network = Network(tpm, connectivity_matrix=cm)
+    network = Network(tpm, cm=cm)
 
     # (0, 1, 2) compose the OR element,
     # (3, 4, 5) the COPY,
@@ -115,10 +115,10 @@ def test_basic_nor_or():
                                blackbox=blackbox, time_scale=time)
 
     with config.override(CUT_ONE_APPROXIMATION=True):
-        mip = compute.big_mip(sub)
+        sia = compute.sia(sub)
 
-    assert mip.phi == 1.958332
-    assert mip.cut == models.Cut((6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11))
+    assert sia.phi == 1.958332
+    assert sia.cut == models.Cut((6,), (0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11))
     # After performing the 'ONE_CUT_APPROXIMATION'
     # The cut disrupts half of the connection from A (OR) to C (XOR).
     # It is able to do this because A 'enters' C from two different locations
@@ -166,7 +166,7 @@ def test_xor_propogation_delay():
     # The state of the system is all OFF
     state = (0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-    network = Network(tpm, connectivity_matrix=cm)
+    network = Network(tpm, cm=cm)
 
     partition = ((0, 2, 7), (1, 3, 5), (4, 6, 8))
     output_indices = (0, 3, 6)
@@ -177,9 +177,9 @@ def test_xor_propogation_delay():
     subsys = macro.MacroSubsystem(network, state, network.node_indices,
                                   blackbox=blackbox, time_scale=time)
 
-    big_mip = compute.big_mip(subsys)
-    assert big_mip.phi == 1.874999
-    assert big_mip.cut == models.Cut((0,), (1, 2, 3, 4, 5, 6, 7, 8))
+    sia = compute.sia(subsys)
+    assert sia.phi == 1.874999
+    assert sia.cut == models.Cut((0,), (1, 2, 3, 4, 5, 6, 7, 8))
 
 
 @pytest.mark.xfail
@@ -225,11 +225,11 @@ def test_soup():
 
     # State all OFF
     state = (0, 0, 0, 0, 0, 0)
-    assert compute.main_complex(network, state).phi == 0.125
+    assert compute.major_complex(network, state).phi == 0.125
 
     # With D ON (E must also be ON otherwise the state is unreachable)
     state = (0, 0, 0, 1, 1, 0)
-    assert compute.main_complex(network, state).phi == 0.215278
+    assert compute.major_complex(network, state).phi == 0.215278
 
     # Once the connection from D to B is frozen (with D in the ON state), we
     # recover the degeneracy example
@@ -240,7 +240,7 @@ def test_soup():
     time = 2
     sub = macro.MacroSubsystem(network, state, (0, 1, 2, 3, 4, 5),
                                blackbox=blackbox, time_scale=time)
-    assert compute.big_phi(sub) == 0.638888
+    assert compute.phi(sub) == 0.638888
 
     # When the connection from D to B is frozen (with D in the OFF state),
     # element B is inactivated and integration is compromised.
@@ -251,7 +251,7 @@ def test_soup():
     time = 2
     sub = macro.MacroSubsystem(network, state, (0, 1, 2, 3, 4, 5),
                                blackbox=blackbox, time_scale=time)
-    assert compute.big_phi(sub) == 0
+    assert compute.phi(sub) == 0
 
 
 @pytest.mark.slow
@@ -292,7 +292,7 @@ def test_coarsegrain_spatial_degenerate():
 
     net = Network(tpm, cm)
 
-    mc = compute.main_complex(net, state)
+    mc = compute.major_complex(net, state)
     assert mc.phi == 0.194445
 
     partition = ((0, 1), (2, 3), (4, 5))
@@ -302,12 +302,12 @@ def test_coarsegrain_spatial_degenerate():
     sub = macro.MacroSubsystem(net, state, range(net.size),
                                coarse_grain=coarse)
 
-    mip = compute.big_mip(sub)
-    assert mip.phi == 0.834183
+    sia = compute.sia(sub)
+    assert sia.phi == 0.834183
 
 
 def test_degenerate(degenerate):
-    assert np.array_equal(degenerate.tpm, convert.to_n_dimensional(np.array([
+    assert np.array_equal(degenerate.tpm, convert.to_multidimensional(np.array([
         [0, 0],
         [0, 1],
         [1, 0],
@@ -317,13 +317,13 @@ def test_degenerate(degenerate):
         [0, 1],
         [1, 0]
     ]))
-    mip = compute.big_mip(degenerate)
-    assert mip.phi == 0.638888
+    sia = compute.sia(degenerate)
+    assert sia.phi == 0.638888
 
 
 def test_basic_propagation_delay(s, propagation_delay):
-    # bb_mip = compute.big_mip(bb_sub)
-    # assert bb_mip.phi == 2.125
-    # assert bb_mip.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
+    # bb_sia = compute.sia(bb_sub)
+    # assert bb_sia.phi == 2.125
+    # assert bb_sia.cut == models.Cut((0, 1, 2, 3, 4, 5, 6), (7,))
 
     assert np.array_equal(propagation_delay.cm, s.cm)

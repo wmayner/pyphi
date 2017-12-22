@@ -8,6 +8,7 @@ docs_build = docs/_build
 docs_html = docs/_build/html
 benchmarks = benchmarks
 dist_dir = dist
+docs_port = 1337
 
 test: coverage watch-tests
 
@@ -23,7 +24,7 @@ watch-tests:
 		--patterns="*.py;*.rst" $(src) $(tests) $(docs)
 		# TODO: watch test config files
 
-docs: build-docs open-docs
+docs: build-docs
 
 watch-docs: docs
 	watchmedo shell-command \
@@ -39,8 +40,11 @@ build-docs:
 	cp $(docs)/_static/*.css $(docs_html)/_static
 	cp $(docs)/_static/*.png $(docs_html)/_static
 
+serve-docs: build-docs
+	cd $(docs_html) && python -m http.server $(docs_port)
+
 open-docs:
-	open $(docs_html)/index.html
+	open http://0.0.0.0:$(docs_port)
 
 upload-docs: build-docs
 	cp -r $(docs_html) ../pyphi-docs

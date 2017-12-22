@@ -1,15 +1,11 @@
 .. raw:: html
 
-    <a href="http://pyphi.readthedocs.io/en/latest/"><img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-logo-text-760x180.png" height="90px" width="380px" style="max-width:100%;"></a>
+    <a href="http://pyphi.readthedocs.io/"><img alt="PyPhi logo" src="https://github.com/wmayner/pyphi/raw/develop/docs/_static/pyphi-logo-text-760x180.png" height="90px" width="380px" style="max-width:100%;"></a>
 
 |
 
-.. image:: https://img.shields.io/badge/DOI-10.5281%20%2F%20zenodo.636912-blue.svg?style=flat-square&maxAge=86400
-    :target: https://doi.org/10.5281/zenodo.636912
-    :alt: Zenodo DOI badge
-
-.. image:: https://readthedocs.org/projects/pyphi/badge/?version=latest&style=flat-square&maxAge=600
-    :target: https://pyphi.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/pyphi/badge/?style=flat-square&maxAge=600
+    :target: https://pyphi.readthedocs.io/
     :alt: Documentation badge
 
 .. image:: https://img.shields.io/travis/wmayner/pyphi.svg?style=flat-square&maxAge=600
@@ -35,28 +31,6 @@ associated quantities and objects.
 
 **If you use this code, please cite it, as well as the** `IIT 3.0 paper
 <http://dx.doi.org/10.1371/journal.pcbi.1003588>`_.
-
-To cite the code, use the Zenodo DOI for the verison you used. The latest one
-is `10.5281/zenodo.636912 <http://dx.doi.org/10.5281/zenodo.636912>`_.
-For example::
-
-    Mayner, William GP et al. (2017). PyPhi: 0.9.1. Zenodo. 10.5281/zenodo.636912
-
-Or in BibTeX::
-
-    @misc{pyphi,
-      author = {Mayner, William Gerald Paul and
-                Marshall, William and
-                Marchman, Bo},
-      title  = {PyPhi: 0.9.1},
-      month  = Dec,
-      year   = 2017,
-      doi    = {10.5281/zenodo.636912},
-      url    = {http://dx.doi.org/10.5281/zenodo.636912}
-    }
-
-(Just make sure to use the version number, DOI, and URL for the version you
-actually used.)
 
 
 Usage, Examples, and API documentation
@@ -87,10 +61,8 @@ have bugs, run:
 
     pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
 
-**Note:** this software has only been tested on the Mac OS X and Linux
-operating systems. Windows is not supported, though it might work with minor
-modifications. If you do get it to work, a writeup of the steps would be much
-appreciated!
+**Note:** this software is only supported on Linux and macOS. Windows is not
+supported, though it might work with minor modifications.
 
 
 Detailed installation guide for Mac OS X
@@ -106,7 +78,7 @@ For technical issues with PyPhi or feature requests, please use the `issues
 page <https://github.com/wmayner/pyphi/issues>`_.
 
 For discussion about the software or integrated information theory in general,
-you can join the `PyPhi users group
+you can join the `pyphi-users group
 <https://groups.google.com/forum/#!forum/pyphi-users>`_.
 
 
@@ -155,9 +127,9 @@ installing the requirements:
 Credits
 ~~~~~~~
 
-This code is based on a `previous project <https://github.com/albantakis/iit>`_
-written in Matlab by L. Albantakis, M. Oizumi, A. Hashmi, A. Nere, U. Olces, P.
-Rana, and B. Shababo.
+This code is inspired by a `previous project
+<https://github.com/albantakis/iit>`_ written in Matlab by L. Albantakis, M.
+Oizumi, A. Hashmi, A. Nere, U. Olces, P. Rana, and B. Shababo.
 
 Correspondence regarding the Matlab code and the IIT 3.0 paper (below) should
 be directed to Larissa Albantakis, PhD, at `albantakis@wisc.edu
@@ -170,7 +142,6 @@ Albantakis L, Oizumi M, Tononi G (2014) `From the Phenomenology to the
 Mechanisms of Consciousness: Integrated Information Theory 3.0
 <http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1003588>`_.
 PLoS Comput Biol 10(5): e1003588. doi: 10.1371/journal.pcbi.1003588
-
 
 .. code:: latex
 
