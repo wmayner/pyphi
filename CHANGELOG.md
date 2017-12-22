@@ -1,14 +1,14 @@
 Changelog
 =========
 
-1.0.0
------
+1.0.0 :tada:
+------------
 
 ### API changes
 
 #### Modules
 
-Renamed:
+- Renamed:
   - `compute.big_phi` to `compute.network`
   - `compute.concept` to `compute.subsystem`
   - `models.big_phi` to `models.subsystem`
@@ -55,12 +55,12 @@ Renamed:
   - `mic` or `mie` are used throughout for attributes, variables, and function
     names instead of `mip`
 
-Similar changes were made to the `actual` and `models.actual_causation`
+- Similar changes were made to the `actual` and `models.actual_causation`
 modules.
 
 #### Configuration settings
 
-Changed configuration settings as necessary to use the new object names.
+- Changed configuration settings as necessary to use the new object names.
 
 #### Constants
 
