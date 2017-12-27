@@ -66,9 +66,9 @@ def ces(subsystem, mechanisms=False, purviews=False, cause_purviews=False,
     Keyword Args:
         mechanisms (tuple[tuple[int]]): Restrict possible mechanisms to those
             in this list.
-        purviews (tuple[tuple[int]]): Same as in :func:`concept`.
-        cause_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
-        effect_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
+        purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
+        cause_purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
+        effect_purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
         parallel (bool): Whether to compute concepts in parallel. If ``True``,
             overrides :data:`config.PARALLEL_CONCEPT_EVALUATION`.
 

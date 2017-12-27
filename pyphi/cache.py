@@ -295,7 +295,7 @@ def validate_parent_cache(parent_cache):
 
 
 class RedisMICECache(RedisCache):
-    """A Redis-backed cache for `Subsystem.find_mice`.
+    """A Redis-backed cache for |Subsystem.find_mice()|.
 
     See |MICECache| for more info.
     """
@@ -347,7 +347,7 @@ class RedisMICECache(RedisCache):
             super().set(key, value)
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):
-        """Cache key. This is the call signature of |find_mice|"""
+        """Cache key. This is the call signature of |Subsystem.find_mice()|."""
         return "subsys:{}:{}:{}:{}:{}".format(
             self.subsystem_hash, _prefix, direction, mechanism, purviews)
 
@@ -396,7 +396,7 @@ class DictMICECache(DictCache):
             self.cache[key] = mice
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):
-        """Cache key. This is the call signature of |find_mice|"""
+        """Cache key. This is the call signature of |Subsystem.find_mice()|."""
         return (_prefix, direction, mechanism, purviews)
 
 

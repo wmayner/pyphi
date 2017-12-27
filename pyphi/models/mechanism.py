@@ -448,22 +448,22 @@ class Concept(cmp.Orderable):
 
     # TODO Rename to expanded_cause_repertoire, etc
     def expand_cause_repertoire(self, new_purview=None):
-        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
+        """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_cause_repertoire(
             self.cause.repertoire, new_purview)
 
     def expand_effect_repertoire(self, new_purview=None):
-        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
+        """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_effect_repertoire(
             self.effect.repertoire, new_purview)
 
     def expand_partitioned_cause_repertoire(self):
-        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
+        """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_cause_repertoire(
             self.cause.ria.partitioned_repertoire)
 
     def expand_partitioned_effect_repertoire(self):
-        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
+        """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_effect_repertoire(
             self.effect.ria.partitioned_repertoire)
 

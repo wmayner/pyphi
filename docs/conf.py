@@ -288,14 +288,21 @@ r"""
 
 .. |MICECache| replace:: :class:`~pyphi.cache.MICECache`
 """,
+# Attributes
+r"""
+.. |Subsystem.cm| replace:: :attr:`~pyphi.subsystem.Subsystem.cm`
+""",
 # Methods
 r"""
-.. |Subsystem.concept| replace:: :meth:`~pyphi.subsystem.Subsystem.concept`
-.. |Subsystem.mic| replace:: :meth:`~pyphi.subsystem.Subsystem.mic`
-.. |Subsystem.mie| replace:: :meth:`~pyphi.subsystem.Subsystem.mie`
-.. |expand_repertoire| replace:: :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`
-.. |find_mip| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
-.. |find_mice| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
+.. |Subsystem.concept()| replace:: :meth:`~pyphi.subsystem.Subsystem.concept`
+.. |Subsystem.mic()| replace:: :meth:`~pyphi.subsystem.Subsystem.mic`
+.. |Subsystem.mie()| replace:: :meth:`~pyphi.subsystem.Subsystem.mie`
+.. |Subsystem.expand_repertoire()| replace:: :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`
+.. |expand_repertoire()| replace:: :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`
+.. |Subsystem.find_mip()| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
+.. |find_mip()| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mip`
+.. |Subsystem.find_mice()| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
+.. |find_mice()| replace:: :meth:`~pyphi.subsystem.Subsystem.find_mice`
 """
 ])
 

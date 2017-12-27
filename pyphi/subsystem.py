@@ -129,7 +129,7 @@ class Subsystem:
 
     @property
     def connectivity_matrix(self):
-        """np.ndarray: Alias for ``Subsystem.cm``."""
+        """np.ndarray: Alias for |Subsystem.cm|."""
         return self.cm
 
     @property
@@ -466,12 +466,14 @@ class Subsystem:
         return distribution.normalize(expanded_repertoire)
 
     def expand_cause_repertoire(self, repertoire, new_purview=None):
-        """Same as |expand_repertoire| with ``direction`` set to |CAUSE|."""
+        """Alias for |expand_repertoire()| with ``direction`` set to |CAUSE|.
+        """
         return self.expand_repertoire(Direction.CAUSE, repertoire,
                                       new_purview)
 
     def expand_effect_repertoire(self, repertoire, new_purview=None):
-        """Same as |expand_repertoire| with ``direction`` set to |EFFECT|."""
+        """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|.
+        """
         return self.expand_repertoire(Direction.EFFECT, repertoire,
                                       new_purview)
 
@@ -598,14 +600,14 @@ class Subsystem:
     def cause_mip(self, mechanism, purview):
         """Return the irreducibility analysis for the cause MIP.
 
-        Alias for |find_mip| with ``direction`` set to |CAUSE|.
+        Alias for |find_mip()| with ``direction`` set to |CAUSE|.
         """
         return self.find_mip(Direction.CAUSE, mechanism, purview)
 
     def effect_mip(self, mechanism, purview):
         """Return the irreducibility analysis for the effect MIP.
 
-        Alias for |find_mip| with ``direction`` set to |EFFECT|.
+        Alias for |find_mip()| with ``direction`` set to |EFFECT|.
         """
         return self.find_mip(Direction.EFFECT, mechanism, purview)
 
@@ -693,14 +695,14 @@ class Subsystem:
     def mic(self, mechanism, purviews=False):
         """Return the mechanism's maximally-irreducible cause (|MIC|).
 
-        Alias for |find_mice| with ``direction`` set to |CAUSE|.
+        Alias for |find_mice()| with ``direction`` set to |CAUSE|.
         """
         return self.find_mice(Direction.CAUSE, mechanism, purviews=purviews)
 
     def mie(self, mechanism, purviews=False):
         """Return the mechanism's maximally-irreducible effect (|MIE|).
 
-        Alias for |find_mice| with ``direction`` set to |EFFECT|.
+        Alias for |find_mice()| with ``direction`` set to |EFFECT|.
         """
         return self.find_mice(Direction.EFFECT, mechanism, purviews=purviews)
 

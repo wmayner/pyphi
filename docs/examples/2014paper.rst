@@ -471,14 +471,14 @@ the “core cause” specified by a mechanism.**
     >>> A, B, C = subsystem.node_indices
 
 In PyPhi, the “core cause” is called the *maximally-irreducible cause* (MIC).
-To find the MIC of a mechanism over all purviews, use the |Subsystem.mic|
+To find the MIC of a mechanism over all purviews, use the |Subsystem.mic()|
 method:
 
     >>> mic = subsystem.mic((B, C))
     >>> mic.phi
     0.333334
 
-Similarly, the |Subsystem.mie| method returns the “core effect” or
+Similarly, the |Subsystem.mie()| method returns the “core effect” or
 *maximally-irreducible effect* (MIE). 
 
 For a detailed description of the MIC and MIE objects returned by these
@@ -496,7 +496,7 @@ need to reassign the ``network`` and ``subsystem`` variables.
 
 Together, the MIC and MIE of a mechanism specify a *concept*. In PyPhi, this is
 represented by the |Concept| object. Concepts are computed using the
-|Subsystem.concept| method of a subsystem:
+|Subsystem.concept()| method of a subsystem:
 
     >>> concept_A = subsystem.concept((A,))
     >>> concept_A.phi

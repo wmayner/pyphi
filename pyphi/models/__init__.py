@@ -8,7 +8,7 @@ documentation.
 
 Attributes:
     Account: Alias for :class:`pyphi.models.actual_causation.Account`.
-    AcRepertoireIrreducibilityAnalysis: Alias for.
+    AcRepertoireIrreducibilityAnalysis: Alias for
      :class:`pyphi.models.actual_causation.AcRepertoireIrreducibilityAnalysis`.
     AcSystemIrreducibilityAnalysis: Alias for
         :class:`pyphi.models.actual_causation.AcSystemIrreducibilityAnalysis`.
