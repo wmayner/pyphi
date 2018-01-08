@@ -3,6 +3,7 @@ Changelog
 
 1.0.0 :tada:
 ------------
+_2017-12-21_
 
 ### API changes
 
@@ -107,6 +108,7 @@ modules.
 
 0.9.1
 -----
+_2017-12-21_
 
 ### Fixes
 - Refactored parallel processing support to fix an intermittent deadlock.
