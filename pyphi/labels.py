@@ -7,15 +7,17 @@ class NodeLabels:
         self.labels = labels
         self.node_indices = tuple(range(len(labels)))
 
+        # Dicts mapping indices to labels and vice versa
+        self._l2i = dict(zip(self.labels, self.node_indices))
+        self._i2l = dict(zip(self.node_indices, self.labels))
+
     def labels2indices(self, labels):
         """Convert a tuple of node labels to node indices."""
-        _map = dict(zip(self.labels, self.node_indices))
-        return tuple(_map[label] for label in labels)
+        return tuple(self._l2i[label] for label in labels)
 
     def indices2labels(self, indices):
         """Convert a tuple of node indices to node labels."""
-        _map = dict(zip(self.node_indices, self.labels))
-        return tuple(_map[index] for index in indices)
+        return tuple(self._i2l[index] for index in indices)
 
     def parse_node_indices(self, nodes):
         """Return the nodes indices for nodes, where ``nodes`` is either
