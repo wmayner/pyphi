@@ -13,7 +13,6 @@ import numpy as np
 
 from . import cache, connectivity, convert, utils, validate
 from .labels import NodeLabels
-from .node import default_labels
 from .tpm import is_state_by_state
 
 
@@ -64,9 +63,7 @@ class Network:
         self._tpm, self._tpm_hash = self._build_tpm(tpm)
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
-        self._node_labels = NodeLabels(
-            node_labels or default_labels(self._node_indices),
-            self._node_indices)
+        self._node_labels = NodeLabels(node_labels, self._node_indices)
         self.purview_cache = purview_cache or cache.PurviewCache()
 
         validate.network(self)

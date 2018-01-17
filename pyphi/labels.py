@@ -1,5 +1,7 @@
 from pyphi import validate
 
+from pyphi.node import default_labels
+
 
 class NodeLabels:
     '''
@@ -7,6 +9,9 @@ class NodeLabels:
     TODO: pass in indices if defaults are generated here
     '''
     def __init__(self, labels, node_indices):
+        if labels is None:
+            labels = default_labels(node_indices)
+
         self.labels = labels
         self.node_indices = node_indices
 
