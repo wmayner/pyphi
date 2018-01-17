@@ -196,7 +196,7 @@ def labels(indices, subsystem=None):
     """Get the labels for a tuple of mechanism indices."""
     if subsystem is None:
         return tuple(map(str, indices))
-    return subsystem.indices2labels(indices)
+    return subsystem.node_labels.indices2labels(indices)
 
 
 def fmt_number(p):

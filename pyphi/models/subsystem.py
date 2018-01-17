@@ -53,7 +53,7 @@ class CauseEffectStructure(tuple):
         """The labeled mechanism of each concept."""
         if not self:
             return []
-        label = self[0].subsystem.network.indices2labels
+        label = self[0].subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
 
     @classmethod

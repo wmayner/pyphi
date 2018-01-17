@@ -62,16 +62,6 @@ def test_labels2indices(standard):
     assert network.labels2indices(('A', 'C')) == (0, 2)
 
 
-def test_indices2labels(standard):
-    # Example labels
-    assert standard.indices2labels((0, 1)) == ('A', 'B')
-    assert standard.indices2labels((0, 2)) == ('A', 'C')
-    # Default labels
-    network = Network(standard.tpm)
-    assert network.indices2labels((0, 1)) == ('n0', 'n1')
-    assert network.indices2labels((0, 2)) == ('n0', 'n2')
-
-
 def test_num_states(standard):
     assert standard.num_states == 8
 

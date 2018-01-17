@@ -98,9 +98,9 @@ class Subsystem:
             single_node_repertoire_cache or cache.DictCache()
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
-        self.nodes = generate_nodes(self.tpm, self.cm, self.state,
-                                    self.node_indices,
-                                    network.indices2labels(self.node_indices))
+        self.nodes = generate_nodes(
+            self.tpm, self.cm, self.state, self.node_indices,
+            self.node_labels.indices2labels(self.node_indices))
 
         validate.subsystem(self)
 
