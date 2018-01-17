@@ -85,10 +85,10 @@ class Transition:
         self.before_state = before_state
         self.after_state = after_state
 
-        parse_nodes = network._node_labels.parse_node_indices
-        self.cause_indices = parse_nodes(cause_indices)
-        self.effect_indices = parse_nodes(effect_indices)
-        self.node_indices = parse_nodes(cause_indices + effect_indices)
+        coerce_to_indices = network._node_labels.coerce_to_indices
+        self.cause_indices = coerce_to_indices(cause_indices)
+        self.effect_indices = coerce_to_indices(effect_indices)
+        self.node_indices = coerce_to_indices(cause_indices + effect_indices)
 
         self.cut = cut if cut is not None else NullCut(self.node_indices)
 

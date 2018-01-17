@@ -19,7 +19,7 @@ class NodeLabels:
         """Convert a tuple of node indices to node labels."""
         return tuple(self._i2l[index] for index in indices)
 
-    def parse_node_indices(self, nodes):
+    def coerce_to_indices(self, nodes):
         """Return the nodes indices for nodes, where ``nodes`` is either
         already integer indices or node labels.
         """

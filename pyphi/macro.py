@@ -145,7 +145,7 @@ class MacroSubsystem(Subsystem):
     def __init__(self, network, state, nodes, cut=None, mice_cache=None,
                  time_scale=1, blackbox=None, coarse_grain=None):
         # Ensure indices are not a `range`
-        node_indices = network._node_labels.parse_node_indices(nodes)
+        node_indices = network._node_labels.coerce_to_indices(nodes)
 
         # Store original arguments to use in `apply_cut`
         self._network_state = state
