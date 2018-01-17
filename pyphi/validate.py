@@ -107,9 +107,6 @@ def connectivity_matrix(cm):
 
 def node_labels(node_labels, node_indices):
     """Validate that there is a label for each node."""
-    if node_labels is None:
-        return
-
     if len(node_labels) != len(node_indices):
         raise ValueError("Labels {0} must label every node {1}.".format(
             node_labels, node_indices))
@@ -125,7 +122,6 @@ def network(n):
     """
     tpm(n.tpm)
     connectivity_matrix(n.cm)
-    node_labels(n.node_labels, n.node_indices)
     if n.cm.shape[0] != n.size:
         raise ValueError("Connectivity matrix must be NxN, where N is the "
                          "number of nodes in the network.")

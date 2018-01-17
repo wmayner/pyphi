@@ -65,7 +65,8 @@ class Network:
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
         self._node_labels = NodeLabels(
-            node_labels or default_labels(self._node_indices))
+            node_labels or default_labels(self._node_indices),
+            self._node_indices)
         self.purview_cache = purview_cache or cache.PurviewCache()
 
         validate.network(self)

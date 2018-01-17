@@ -1,11 +1,16 @@
+from pyphi import validate
+
+
 class NodeLabels:
     '''
     TODO: validate labels for duplicates
     TODO: pass in indices if defaults are generated here
     '''
-    def __init__(self, labels):
+    def __init__(self, labels, node_indices):
         self.labels = labels
-        self.node_indices = tuple(range(len(labels)))
+        self.node_indices = node_indices
+
+        validate.node_labels(labels, node_indices)
 
         # Dicts mapping indices to labels and vice versa
         self._l2i = dict(zip(self.labels, self.node_indices))
