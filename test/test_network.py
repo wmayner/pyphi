@@ -72,16 +72,6 @@ def test_indices2labels(standard):
     assert network.indices2labels((0, 2)) == ('n0', 'n2')
 
 
-def test_parse_node_indices(standard):
-    network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
-    assert network.parse_node_indices(('B', 'A')) == (0, 1)
-    assert network.parse_node_indices((0, 2, 1)) == (0, 1, 2)
-    assert standard.parse_node_indices(()) == ()  # No labels - regression
-
-    with pytest.raises(ValueError):
-        network.parse_node_indices((0, 'A'))
-
-
 def test_num_states(standard):
     assert standard.num_states == 8
 

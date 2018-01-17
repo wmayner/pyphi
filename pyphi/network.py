@@ -159,9 +159,6 @@ class Network:
     def indices2labels(self, indices):
         return self._node_labels.indices2labels(indices)
 
-    def parse_node_indices(self, nodes):
-        return self._node_labels.parse_node_indices(nodes)
-
     # TODO: this should really be a Subsystem method, but we're
     # interested in caching at the Network-level...
     @cache.method('purview_cache')

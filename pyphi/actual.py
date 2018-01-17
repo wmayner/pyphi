@@ -85,7 +85,7 @@ class Transition:
         self.before_state = before_state
         self.after_state = after_state
 
-        parse_nodes = network.parse_node_indices
+        parse_nodes = network._node_labels.parse_node_indices
         self.cause_indices = parse_nodes(cause_indices)
         self.effect_indices = parse_nodes(effect_indices)
         self.node_indices = parse_nodes(cause_indices + effect_indices)
