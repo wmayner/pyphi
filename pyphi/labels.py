@@ -1,6 +1,14 @@
 from pyphi import validate
 
-from pyphi.node import default_labels
+
+def default_label(index):
+    """Default label for a node."""
+    return "n{}".format(index)
+
+
+def default_labels(indices):
+    """Default labels for serveral nodes."""
+    return tuple(default_label(i) for i in indices)
 
 
 class NodeLabels:

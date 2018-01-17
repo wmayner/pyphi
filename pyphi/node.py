@@ -15,6 +15,7 @@ import numpy as np
 
 from . import utils
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
+from .labels import default_labels
 from .tpm import marginalize_out, tpm_indices
 
 
@@ -142,16 +143,6 @@ class Node:
     def to_json(self):
         """Return a JSON-serializable representation."""
         return self.index
-
-
-def default_label(index):
-    """Default label for a node."""
-    return "n{}".format(index)
-
-
-def default_labels(indices):
-    """Default labels for serveral nodes."""
-    return tuple(default_label(i) for i in indices)
 
 
 def generate_nodes(tpm, cm, network_state, indices, labels=None):
