@@ -153,9 +153,6 @@ class Network:
         """tuple[str]: The labels of nodes in the network."""
         return self._node_labels.labels
 
-    def labels2indices(self, labels):
-        return self._node_labels.labels2indices(labels)
-
     # TODO: this should really be a Subsystem method, but we're
     # interested in caching at the Network-level...
     @cache.method('purview_cache')
