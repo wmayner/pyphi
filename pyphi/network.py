@@ -191,7 +191,6 @@ class Network:
         return not self.__eq__(other)
 
     def __hash__(self):
-        # TODO: hash only once?
         return hash((self._tpm_hash, self._cm_hash))
 
     def to_json(self):
