@@ -53,13 +53,13 @@ upload-docs: build-docs
 benchmark:
 	cd $(benchmarks) && asv continuous develop
 
-check-readme:
-	python setup.py check -r -s
+check-dist:
+	python setup.py check --restructuredtext --strict
 
-dist: build-dist check-readme
+dist: build-dist check-dist
 	twine upload dist/*
 
-test-dist: build-dist check-readme
+test-dist: build-dist check-dist
 	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 build-dist: clean-dist
