@@ -215,9 +215,9 @@ class DictCache:
 # TODO: maybe just expose the connction `if REDIS_CACHE`, instead of with this
 # singleton business
 class RedisConn:
-    """Singleton redis connection object.
+    """Singleton Redis connection object.
 
-    Expose the StrictRedis api, but only maintain one connection pool.
+    Expose the StrictRedis API, but only maintain one connection pool.
 
     Raises:
         redis.exceptions.ConnectionError: If the Redis server is not available.
@@ -245,7 +245,8 @@ class RedisConn:
 class RedisCache:
 
     def clear(self):
-        raise NotImplementedError
+        raise NotImplementedError(
+            'clearing caches is not supported with REDIS_CACHE')
 
     @staticmethod
     def size():
