@@ -64,11 +64,11 @@ denotes the empty mechanism.
 The partitioned repertoire of the MIP can also be retrieved:
 
     >>> mip_AB.partitioned_repertoire
-    array([[[[[ 0.2,  0.2],
-              [ 0.1,  0. ]],
+    array([[[[[0.2, 0.2],
+              [0.1, 0. ]],
     <BLANKLINE>
-             [[ 0.2,  0.2],
-              [ 0.1,  0. ]]]]])
+             [[0.2, 0.2],
+              [0.1, 0. ]]]]])
 
 And we can then calculate the irreducible cause information as the difference
 between partitioned and unpartitioned repertoires.
@@ -105,11 +105,11 @@ In this case, there is a well-defined MIP
 which is |(∅ / C) x (A / D)|. It has partitioned repertoire
 
     >>> mip_A.partitioned_repertoire
-    array([[[[[ 0.33333333],
-              [ 0.16666667]],
+    array([[[[[0.33333333],
+              [0.16666667]],
     <BLANKLINE>
-             [[ 0.33333333],
-              [ 0.16666667]]]]])
+             [[0.33333333],
+              [0.16666667]]]]])
 
 and irreducible cause information
 

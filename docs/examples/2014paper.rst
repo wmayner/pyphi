@@ -179,11 +179,11 @@ Since the connections are noisy, we see that |A = 1| is unselective; all
 previous states are equally likely:
 
     >>> subsystem.cause_repertoire((A,), (B, C, D))
-    array([[[[ 0.125,  0.125],
-             [ 0.125,  0.125]],
+    array([[[[0.125, 0.125],
+             [0.125, 0.125]],
     <BLANKLINE>
-            [[ 0.125,  0.125],
-             [ 0.125,  0.125]]]])
+            [[0.125, 0.125],
+             [0.125, 0.125]]]])
 
 And this gives us zero cause information:
 
@@ -204,11 +204,11 @@ Now, |A|'s cause repertoire is maximally selective.
 
     >>> cr = subsystem.cause_repertoire((A,), (B, C, D))
     >>> cr
-    array([[[[ 0.,  0.],
-             [ 0.,  0.]],
+    array([[[[0., 0.],
+             [0., 0.]],
     <BLANKLINE>
-            [[ 0.,  0.],
-             [ 0.,  1.]]]])
+            [[0., 0.],
+             [0., 1.]]]])
 
 
 Since the cause repertoire is over the purview |BCD|, the first dimension
@@ -242,11 +242,11 @@ And here the cause repertoire is minimally selective, only ruling out the state
 where |B|, |C|, and |D| were all ON:
 
     >>> subsystem.cause_repertoire((A,), (B, C, D))
-    array([[[[ 0.14285714,  0.14285714],
-             [ 0.14285714,  0.14285714]],
+    array([[[[0.14285714, 0.14285714],
+             [0.14285714, 0.14285714]],
     <BLANKLINE>
-            [[ 0.14285714,  0.14285714],
-             [ 0.14285714,  0.        ]]]])
+            [[0.14285714, 0.14285714],
+             [0.14285714, 0.        ]]]])
 
 And so we have less cause information:
 
@@ -272,33 +272,33 @@ Then we'll compute the cause and effect repertoires of mechanism |A| over
 purview |ABC|:
 
     >>> subsystem.cause_repertoire((A,), (A, B, C))
-    array([[[ 0.        ,  0.16666667],
-            [ 0.16666667,  0.16666667]],
+    array([[[0.        , 0.16666667],
+            [0.16666667, 0.16666667]],
     <BLANKLINE>
-           [[ 0.        ,  0.16666667],
-            [ 0.16666667,  0.16666667]]])
+           [[0.        , 0.16666667],
+            [0.16666667, 0.16666667]]])
     >>> subsystem.effect_repertoire((A,), (A, B, C))
-    array([[[ 0.0625,  0.0625],
-            [ 0.0625,  0.0625]],
+    array([[[0.0625, 0.0625],
+            [0.0625, 0.0625]],
     <BLANKLINE>
-           [[ 0.1875,  0.1875],
-            [ 0.1875,  0.1875]]])
+           [[0.1875, 0.1875],
+            [0.1875, 0.1875]]])
 
 And the unconstrained repertoires over the same (these functions don't take a
 mechanism; they only take a purview):
 
     >>> subsystem.unconstrained_cause_repertoire((A, B, C))
-    array([[[ 0.125,  0.125],
-            [ 0.125,  0.125]],
+    array([[[0.125, 0.125],
+            [0.125, 0.125]],
     <BLANKLINE>
-           [[ 0.125,  0.125],
-            [ 0.125,  0.125]]])
+           [[0.125, 0.125],
+            [0.125, 0.125]]])
     >>> subsystem.unconstrained_effect_repertoire((A, B, C))
-    array([[[ 0.09375,  0.09375],
-            [ 0.03125,  0.03125]],
+    array([[[0.09375, 0.09375],
+            [0.03125, 0.03125]],
     <BLANKLINE>
-           [[ 0.28125,  0.28125],
-            [ 0.09375,  0.09375]]])
+           [[0.28125, 0.28125],
+            [0.09375, 0.09375]]])
 
 The Earth Mover's distance between them gives the cause and effect information:
 
@@ -330,11 +330,11 @@ selective effects within the system.**
 information:
 
     >>> subsystem.cause_repertoire((A,), (A, B, C))
-    array([[[ 0. ,  0. ],
-            [ 0. ,  0.5]],
+    array([[[0. , 0. ],
+            [0. , 0.5]],
     <BLANKLINE>
-           [[ 0. ,  0. ],
-            [ 0. ,  0.5]]])
+           [[0. , 0. ],
+            [0. , 0.5]]])
     >>> subsystem.cause_info((A,), (A, B, C))
     1.0
 
@@ -364,11 +364,11 @@ Symmetrically, |A| now has outputs, so its effect repertoire is selective and
 it has effect information:
 
     >>> subsystem.effect_repertoire((A,), (A, B, C))
-    array([[[ 0.,  0.],
-            [ 0.,  0.]],
+    array([[[0., 0.],
+            [0., 0.]],
     <BLANKLINE>
-           [[ 0.,  0.],
-            [ 0.,  1.]]])
+           [[0., 0.],
+            [0., 1.]]])
     >>> subsystem.effect_info((A,), (A, B, C))
     0.5
 
@@ -544,7 +544,7 @@ Conceptual information can be computed using the function named, as you might
 expect, |compute.conceptual_info()|:
 
     >>> pyphi.compute.conceptual_info(subsystem)
-    2.1111089999999999
+    2.111109
 
 
 Figure 12
@@ -569,7 +569,7 @@ We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
 shown in the figure:
 
     >>> sia.phi
-    1.9166650000000001
+    1.916665
     >>> sia.cut
     Cut [0, 1] ━━/ /━━➤ [2]
 
@@ -650,7 +650,7 @@ complex |DE| shown in the paper no longer exists.
     2
     >>> ABC, FG = condensed
     >>> (ABC.subsystem.nodes, ABC.phi)
-    ((A, B, C), 1.9166650000000001)
+    ((A, B, C), 1.916665)
     >>> (FG.subsystem.nodes, FG.phi)
     ((F, G), 0.069445)
 

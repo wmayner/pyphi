@@ -51,8 +51,8 @@ Let's investigate the concepts in the unpartitioned cause-effect structure,
     (['A'], ['B'], ['C'], ['A', 'B'], ['A', 'C'], ['B', 'C'])
     >>> ces.phis
     [0.125, 0.125, 0.125, 0.499999, 0.499999, 0.499999]
-    >>> print(sum(_))
-    1.874997
+    >>> sum(ces.phis)
+    1.8749970000000002
 
 and also the concepts of the partitioned cause-effect structure.
 
@@ -60,8 +60,8 @@ and also the concepts of the partitioned cause-effect structure.
     (['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C'])
     >>> cut_ces.phis
     [0.125, 0.125, 0.125, 0.499999, 0.266666, 0.333333]
-    >>> print(sum(_))
-    1.474998
+    >>> sum(_)
+    1.4749980000000003
 
 The unpartitioned cause-effect structure includes all possible first and second
 order concepts, but there is no third order concept. After applying the cut and
@@ -121,7 +121,7 @@ probability of |C| being OFF.
 
     >>> C_node = cut_subsystem.indices2nodes(C)[0]
     >>> C_node.tpm_on.flatten()
-    array([ 0.5 ,  0.75])
+    array([0.5 , 0.75])
 
 This states that |C| has a 50% chance of being ON in the next state if it
 currently OFF, but a 75% chance of being ON in the next state  if it is

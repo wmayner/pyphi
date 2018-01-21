@@ -110,10 +110,10 @@ def _hamming_matrix(N):
 
     Example:
         >>> _hamming_matrix(2)
-        array([[ 0.,  1.,  1.,  2.],
-               [ 1.,  0.,  2.,  1.],
-               [ 1.,  2.,  0.,  1.],
-               [ 2.,  1.,  1.,  0.]])
+        array([[0., 1., 1., 2.],
+               [1., 0., 2., 1.],
+               [1., 2., 0., 1.],
+               [2., 1., 1., 0.]])
     """
     if N < _NUM_PRECOMPUTED_HAMMING_MATRICES:
         return _hamming_matrices[N]

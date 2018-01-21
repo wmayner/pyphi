@@ -156,9 +156,9 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
         Example:
             >>> cut = Cut((1,), (2,))
             >>> cut.cut_matrix(3)
-            array([[ 0.,  0.,  0.],
-                   [ 0.,  0.,  1.],
-                   [ 0.,  0.,  0.]])
+            array([[0., 0., 0.],
+                   [0., 0., 1.],
+                   [0., 0., 0.]])
         """
         return connectivity.relevant_connections(n, self[0], self[1])
 

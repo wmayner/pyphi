@@ -51,10 +51,10 @@ introduced in Figure 1 of the paper.
 This is a standard PyPhi |Network| so we can look at its TPM:
 
    >>> pyphi.convert.state_by_node2state_by_state(network.tpm)
-   array([[ 1.,  0.,  0.,  0.],
-          [ 0.,  1.,  0.,  0.],
-          [ 0.,  1.,  0.,  0.],
-          [ 0.,  0.,  0.,  1.]])
+   array([[1., 0., 0., 0.],
+          [0., 1., 0., 0.],
+          [0., 1., 0., 0.],
+          [0., 0., 0., 1.]])
 
 The ``OR`` gate is element ``0``, and the ``AND`` gate is element ``1`` in the
 network.
@@ -82,15 +82,15 @@ to see how |X_t-1 = {OR = 1}| constrains the probability distribution of the
 purview |Y_t = {OR, AND}|:
 
    >>> transition.effect_repertoire((OR,), (OR, AND))
-   array([[ 0. ,  0. ],
-          [ 0.5,  0.5]])
+   array([[0. , 0. ],
+          [0.5, 0.5]])
 
 Similarly, as in Figure 2C, we can compute the cause repertoire of
 |Y_t = {OR, AND = 10}| to see how it constrains the purview |X_t-1 = {OR}|:
 
    >>> transition.cause_repertoire((OR, AND), (OR,))
-   array([[ 0.5],
-          [ 0.5]])
+   array([[0.5],
+          [0.5]])
 
 .. note:: In all |Transition| methods the constraining occurence is passed as
     the ``mechanism`` argument and the constrained occurence is the ``purview``

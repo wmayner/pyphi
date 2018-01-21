@@ -16,10 +16,10 @@ available from the |examples| module.
 The connectivity matrix is all-to-all:
 
     >>> network.cm
-    array([[ 1.,  1.,  1.,  1.],
-           [ 1.,  1.,  1.,  1.],
-           [ 1.,  1.,  1.,  1.],
-           [ 1.,  1.,  1.,  1.]])
+    array([[1., 1., 1., 1.],
+           [1., 1., 1., 1.],
+           [1., 1., 1., 1.],
+           [1., 1., 1., 1.]])
 
 We'll set the state so that nodes are OFF.
 
@@ -139,11 +139,11 @@ Let's consider a different coarse-graining instead.
     array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 3])
 
     >>> coarse_grain.macro_tpm(network.tpm)
-    array([[[ 0.09,  0.09],
-            [ 1.  ,  0.09]],
+    array([[[0.09, 0.09],
+            [1.  , 0.09]],
     <BLANKLINE>
-           [[ 0.09,  1.  ],
-            [ 1.  ,  1.  ]]])
+           [[0.09, 1.  ],
+            [1.  , 1.  ]]])
 
 We can now construct a |MacroSubsystem| using this coarse-graining:
 

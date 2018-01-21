@@ -38,10 +38,10 @@ We'll load the state-by-state TPM for such a system from the |examples| module:
     >>> import pyphi
     >>> tpm = pyphi.examples.cond_depend_tpm()
     >>> print(tpm)
-    [[ 1.   0.   0.   0. ]
-     [ 0.   0.5  0.5  0. ]
-     [ 0.   0.5  0.5  0. ]
-     [ 0.   0.   0.   1. ]]
+    [[1.  0.  0.  0. ]
+     [0.  0.5 0.5 0. ]
+     [0.  0.5 0.5 0. ]
+     [0.  0.  0.  1. ]]
 
 This system does not satisfy the conditional independence property; given a
 previous state of ``(1, 0)``, the current state of node |A| depends on whether
@@ -62,17 +62,17 @@ form:
 
     >>> sbn_tpm = pyphi.convert.state_by_state2state_by_node(tpm)
     >>> print(sbn_tpm)
-    [[[ 0.   0. ]
-      [ 0.5  0.5]]
+    [[[0.  0. ]
+      [0.5 0.5]]
     <BLANKLINE>
-     [[ 0.5  0.5]
-      [ 1.   1. ]]]
+     [[0.5 0.5]
+      [1.  1. ]]]
     >>> sbs_tpm = pyphi.convert.state_by_node2state_by_state(sbn_tpm)
     >>> print(sbs_tpm)
-    [[ 1.    0.    0.    0.  ]
-     [ 0.25  0.25  0.25  0.25]
-     [ 0.25  0.25  0.25  0.25]
-     [ 0.    0.    0.    1.  ]]
+    [[1.   0.   0.   0.  ]
+     [0.25 0.25 0.25 0.25]
+     [0.25 0.25 0.25 0.25]
+     [0.   0.   0.   1.  ]]
 
 A system which does not satisfy the conditional independence property exhibits
 “instantaneous causality.” In such situations, there must be additional
@@ -85,32 +85,32 @@ are in different states, they will flip when |C| is ON, but stay the same when
 
     >>> tpm2 = pyphi.examples.cond_independ_tpm()
     >>> print(tpm2)
-    [[ 0.5  0.   0.   0.   0.5  0.   0.   0. ]
-     [ 0.   0.5  0.   0.   0.   0.5  0.   0. ]
-     [ 0.   0.   0.5  0.   0.   0.   0.5  0. ]
-     [ 0.   0.   0.   0.5  0.   0.   0.   0.5]
-     [ 0.5  0.   0.   0.   0.5  0.   0.   0. ]
-     [ 0.   0.   0.5  0.   0.   0.   0.5  0. ]
-     [ 0.   0.5  0.   0.   0.   0.5  0.   0. ]
-     [ 0.   0.   0.   0.5  0.   0.   0.   0.5]]
+    [[0.5 0.  0.  0.  0.5 0.  0.  0. ]
+     [0.  0.5 0.  0.  0.  0.5 0.  0. ]
+     [0.  0.  0.5 0.  0.  0.  0.5 0. ]
+     [0.  0.  0.  0.5 0.  0.  0.  0.5]
+     [0.5 0.  0.  0.  0.5 0.  0.  0. ]
+     [0.  0.  0.5 0.  0.  0.  0.5 0. ]
+     [0.  0.5 0.  0.  0.  0.5 0.  0. ]
+     [0.  0.  0.  0.5 0.  0.  0.  0.5]]
 
 The resulting state-by-state TPM now satisfies the conditional independence
 property.
 
     >>> sbn_tpm2 = pyphi.convert.state_by_state2state_by_node(tpm2)
     >>> print(sbn_tpm2)
-    [[[[ 0.   0.   0.5]
-       [ 0.   0.   0.5]]
+    [[[[0.  0.  0.5]
+       [0.  0.  0.5]]
     <BLANKLINE>
-      [[ 0.   1.   0.5]
-       [ 1.   0.   0.5]]]
+      [[0.  1.  0.5]
+       [1.  0.  0.5]]]
     <BLANKLINE>
     <BLANKLINE>
-     [[[ 1.   0.   0.5]
-       [ 0.   1.   0.5]]
+     [[[1.  0.  0.5]
+       [0.  1.  0.5]]
     <BLANKLINE>
-      [[ 1.   1.   0.5]
-       [ 1.   1.   0.5]]]]
+      [[1.  1.  0.5]
+       [1.  1.  0.5]]]]
 
 The node indices are ``0`` and ``1`` for |A| and |B|, and ``2`` for |C|:
 
