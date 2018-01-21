@@ -57,13 +57,13 @@ check-dist:
 	python setup.py check --restructuredtext --strict
 
 dist: build-dist check-dist
-	twine upload dist/*
+	twine upload $(dist_dir)/*
 
 test-dist: build-dist check-dist
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+	twine upload --repository-url https://test.pypi.org/legacy/ $(dist_dir)/*
 
 build-dist: clean-dist
-	python setup.py sdist bdist_wheel
+	python setup.py sdist bdist_wheel --dist-dir=$(dist_dir)
 
 clean-dist:
 	rm -r $(dist_dir)
