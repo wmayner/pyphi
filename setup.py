@@ -38,6 +38,8 @@ setup(
     license=about['__license__'],
     long_description=readme,
     install_requires=install_requires,
+    keywords=('causality causal-modeling causation iit information integrated '
+              'integrated-information modeling neuroscience theory'),
     packages=['pyphi', 'pyphi.compute', 'pyphi.models'],
     include_package_data=True,
     zip_safe=False,
