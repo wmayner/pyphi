@@ -37,12 +37,9 @@ setup(
     url=about['__url__'],
     license=about['__license__'],
     long_description=readme,
-    include_package_data=True,
     install_requires=install_requires,
     packages=['pyphi', 'pyphi.compute', 'pyphi.models'],
-    package_data={'pyphi': ['data/**/*'],
-                  '': ['README.rst', 'LICENSE.md', 'pyphi_config.yml',
-                       'redis.conf']},
+    include_package_data=True,
     zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',
