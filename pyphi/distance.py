@@ -35,6 +35,7 @@ class MeasureRegistry(Mapping):
 
     And use them by setting ``config.MEASURE = 'ALWAYS_ZERO'``.
     """
+    desc = 'measures'
 
     def __init__(self):
         self.store = {}
@@ -75,8 +76,8 @@ class MeasureRegistry(Mapping):
             return self.store[name]
         except KeyError:
             raise KeyError(
-                'Measure "{}" not found. Try using one of the installed '
-                'measures {} or register your own.'.format(name, self.all()))
+                '"{}" not found. Try using one of the installed {} {} or '
+                'register your own.'.format(name, self.desc, self.all()))
 
 
 measures = MeasureRegistry()

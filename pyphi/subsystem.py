@@ -789,8 +789,9 @@ class Subsystem:
 
 from .distance import MeasureRegistry
 
+
 class PartitionRegistry(MeasureRegistry):
-    pass
+    desc = 'partitions'
 
 
 partition_registry = PartitionRegistry()
