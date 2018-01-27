@@ -6,6 +6,11 @@ from collections.abc import Mapping
 
 
 class Registry(Mapping):
+    """Generic registry for user-supplied functions.
+
+    See ``pyphi.subsystem.PartitionRegistry`` and
+    ``pyphi.distance.MeasureRegistry`` for concrete usage examples.
+    """
     desc = ''
 
     def __init__(self):
