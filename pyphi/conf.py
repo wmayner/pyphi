@@ -546,7 +546,7 @@ class PyphiConfig(Config):
     are still printed as decimals if the fraction's denominator would be
     large. This only has an effect if ``REPR_VERBOSITY > 0``.""")
 
-    PARTITION_TYPE = Option('BI', values=['BI', 'TRI', 'ALL'], doc="""
+    PARTITION_TYPE = Option('BI', doc="""
     Controls the type of partition used for |small_phi| computations.
 
     If set to ``'BI'``, partitions will have two parts.
