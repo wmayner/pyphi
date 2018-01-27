@@ -13,8 +13,8 @@ from time import time
 from .. import Direction, config, connectivity, memory, utils
 from ..models import (CauseEffectStructure, Concept, Cut, KCut,
                       SystemIrreducibilityAnalysis, _null_sia, cmp, fmt)
-from ..partition import directed_bipartition, directed_bipartition_of_one
-from ..subsystem import mip_partitions
+from ..partition import (directed_bipartition, directed_bipartition_of_one,
+                         mip_partitions)
 from .distance import ces_distance
 from .parallel import MapReduce
 

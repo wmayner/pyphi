@@ -150,7 +150,6 @@ def test_reconfigure_logging_on_change(capsys):
 
 @config.override()
 @pytest.mark.parametrize('name,valid,invalid', [
-    ('PARTITION_TYPE', ['BI', 'TRI', 'ALL'], ['QUAD']),
     ('SYSTEM_CUTS', ['3.0_STYLE', 'CONCEPT_STYLE'], ['OTHER']),
     ('REPR_VERBOSITY', [0, 1, 2], [-1, 3])])
 def test_config_validation(name, valid, invalid):

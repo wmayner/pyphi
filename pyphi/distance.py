@@ -6,7 +6,6 @@
 Functions for measuring distances.
 """
 
-from collections.abc import Mapping
 from contextlib import ContextDecorator
 
 import numpy as np
@@ -16,6 +15,8 @@ from scipy.stats import entropy
 
 from . import Direction, config, constants, utils, validate
 from .distribution import flatten, marginal_zero
+from .registry import Registry
+
 
 # Load precomputed hamming matrices.
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
@@ -23,7 +24,7 @@ _hamming_matrices = utils.load_data('hamming_matrices',
                                     _NUM_PRECOMPUTED_HAMMING_MATRICES)
 
 
-class MeasureRegistry(Mapping):
+class MeasureRegistry(Registry):
     """Storage for measures registered with PyPhi.
 
     Users can define custom measures:
@@ -35,9 +36,10 @@ class MeasureRegistry(Mapping):
 
     And use them by setting ``config.MEASURE = 'ALWAYS_ZERO'``.
     """
+    desc = 'measures'
 
     def __init__(self):
-        self.store = {}
+        super().__init__()
         self._asymmetric = []
 
     def register(self, name, asymmetric=False):
@@ -59,24 +61,6 @@ class MeasureRegistry(Mapping):
     def asymmetric(self):
         """Return a list of asymmetric measures."""
         return self._asymmetric
-
-    def all(self):
-        """Return a list of all registered measures."""
-        return list(self)
-
-    def __iter__(self):
-        return iter(self.store)
-
-    def __len__(self):
-        return len(self.store)
-
-    def __getitem__(self, name):
-        try:
-            return self.store[name]
-        except KeyError:
-            raise KeyError(
-                'Measure "{}" not found. Try using one of the installed '
-                'measures {} or register your own.'.format(name, self.all()))
 
 
 measures = MeasureRegistry()

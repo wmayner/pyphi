@@ -6,9 +6,12 @@
 Functions for generating partitions.
 """
 
-from itertools import chain, product
+from itertools import chain, product, permutations
 
+from . import config
 from .cache import cache
+from .models import Part, KPartition, Bipartition, Tripartition
+from .registry import Registry
 
 
 # From stackoverflow.com/questions/19368375/set-partitions-in-python
@@ -345,3 +348,201 @@ def k_partitions(collection, k):
     for j in range(1, k + 1):
         a[n - k + j] = j - 1
     return _f(k, n, 0, n, a, k, collection)
+
+
+# Concrete partitions producing PyPhi models
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class PartitionRegistry(Registry):
+    """Storage for partition schemes registered with PyPhi.
+
+    Users can define custom partitions:
+
+    Examples:
+        >>> @partition_registry.register('NONE')  # doctest: +SKIP
+        ... def no_partitions(mechanism, purview):
+        ...    return []
+
+    And use them by setting ``config.PARTITION_TYPE = 'NONE'``
+    """
+    desc = 'partitions'
+
+
+partition_registry = PartitionRegistry()
+
+
+def mip_partitions(mechanism, purview):
+    """Return a generator over all mechanism-purview partitions, based on the
+    current configuration.
+    """
+    func = partition_registry[config.PARTITION_TYPE]
+    return func(mechanism, purview)
+
+
+@partition_registry.register('BI')
+def mip_bipartitions(mechanism, purview):
+    r"""Return an generator of all |small_phi| bipartitions of a mechanism over
+    a purview.
+
+    Excludes all bipartitions where one half is entirely empty, *e.g*::
+
+         A     ∅
+        ─── ✕ ───
+         B     ∅
+
+    is not valid, but ::
+
+         A     ∅
+        ─── ✕ ───
+         ∅     B
+
+    is.
+
+    Args:
+        mechanism (tuple[int]): The mechanism to partition
+        purview (tuple[int]): The purview to partition
+
+    Yields:
+        Bipartition: Where each bipartition is::
+
+            bipart[0].mechanism   bipart[1].mechanism
+            ─────────────────── ✕ ───────────────────
+            bipart[0].purview     bipart[1].purview
+
+    Example:
+        >>> mechanism = (0,)
+        >>> purview = (2, 3)
+        >>> for partition in mip_bipartitions(mechanism, purview):
+        ...     print(partition, '\n')  # doctest: +NORMALIZE_WHITESPACE
+         ∅     0
+        ─── ✕ ───
+         2     3
+        <BLANKLINE>
+         ∅     0
+        ─── ✕ ───
+         3     2
+        <BLANKLINE>
+         ∅     0
+        ─── ✕ ───
+        2,3    ∅
+    """
+    numerators = bipartition(mechanism)
+    denominators = directed_bipartition(purview)
+
+    for n, d in product(numerators, denominators):
+        if (n[0] or d[0]) and (n[1] or d[1]):
+            yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
+
+
+@partition_registry.register('TRI')
+def wedge_partitions(mechanism, purview):
+    """Return an iterator over all wedge partitions.
+
+    These are partitions which strictly split the mechanism and allow a subset
+    of the purview to be split into a third partition, e.g.::
+
+         A     B     ∅
+        ─── ✕ ─── ✕ ───
+         B     C     D
+
+    See |PARTITION_TYPE| in |config| for more information.
+
+    Args:
+        mechanism (tuple[int]): A mechanism.
+        purview (tuple[int]): A purview.
+
+    Yields:
+        Tripartition: all unique tripartitions of this mechanism and purview.
+    """
+    numerators = bipartition(mechanism)
+    denominators = directed_tripartition(purview)
+
+    yielded = set()
+
+    def valid(factoring):
+        """Return whether the factoring should be considered."""
+        # pylint: disable=too-many-boolean-expressions
+        numerator, denominator = factoring
+        return (
+            (numerator[0] or denominator[0]) and
+            (numerator[1] or denominator[1]) and
+            ((numerator[0] and numerator[1]) or
+             not denominator[0] or
+             not denominator[1])
+        )
+
+    for n, d in filter(valid, product(numerators, denominators)):
+        # Normalize order of parts to remove duplicates.
+        tripart = Tripartition(
+            Part(n[0], d[0]),
+            Part(n[1], d[1]),
+            Part((),   d[2])).normalize()  # pylint: disable=bad-whitespace
+
+        def nonempty(part):
+            """Check that the part is not empty."""
+            return part.mechanism or part.purview
+
+        def compressible(tripart):
+            """Check if the tripartition can be transformed into a causally
+            equivalent partition by combing two of its parts; e.g., A/∅ × B/∅ ×
+            ∅/CD is equivalent to AB/∅ × ∅/CD so we don't include it.
+            """
+            pairs = [
+                (tripart[0], tripart[1]),
+                (tripart[0], tripart[2]),
+                (tripart[1], tripart[2])
+            ]
+            for x, y in pairs:
+                if (nonempty(x) and nonempty(y) and
+                        (x.mechanism + y.mechanism == () or
+                         x.purview + y.purview == ())):
+                    return True
+            return False
+
+        if not compressible(tripart) and tripart not in yielded:
+            yielded.add(tripart)
+            yield tripart
+
+
+@partition_registry.register('ALL')
+def all_partitions(mechanism, purview):
+    """Return all possible partitions of a mechanism and purview.
+
+    Partitions can consist of any number of parts.
+
+    Args:
+        mechanism (tuple[int]): A mechanism.
+        purview (tuple[int]): A purview.
+
+    Yields:
+        KPartition: A partition of this mechanism and purview into ``k`` parts.
+    """
+    for mechanism_partition in partitions(mechanism):
+        mechanism_partition.append([])
+        n_mechanism_parts = len(mechanism_partition)
+        max_purview_partition = min(len(purview), n_mechanism_parts)
+        for n_purview_parts in range(1, max_purview_partition + 1):
+            n_empty = n_mechanism_parts - n_purview_parts
+            for purview_partition in k_partitions(purview, n_purview_parts):
+                purview_partition = [tuple(_list)
+                                     for _list in purview_partition]
+                # Extend with empty tuples so purview partition has same size
+                # as mechanism purview
+                purview_partition.extend([()] * n_empty)
+
+                # Unique permutations to avoid duplicates empties
+                for purview_permutation in set(
+                        permutations(purview_partition)):
+
+                    parts = [
+                        Part(tuple(m), tuple(p))
+                        for m, p in zip(mechanism_partition,
+                                        purview_permutation)
+                    ]
+
+                    # Must partition the mechanism, unless the purview is fully
+                    # cut away from the mechanism.
+                    if parts[0].mechanism == mechanism and parts[0].purview:
+                        continue
+
+                    yield KPartition(*parts)
