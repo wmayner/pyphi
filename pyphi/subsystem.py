@@ -25,6 +25,7 @@ from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import (bipartition, directed_bipartition,
                         directed_tripartition, k_partitions, partitions)
+from .registry import Registry
 from .tpm import condition_tpm, marginalize_out
 
 log = logging.getLogger(__name__)
@@ -787,10 +788,19 @@ class Subsystem:
         return result
 
 
-from .distance import MeasureRegistry
 
+class PartitionRegistry(Registry):
+    """Storage for partition schemes registered with PyPhi.
 
-class PartitionRegistry(MeasureRegistry):
+    Users can define custom partitions:
+
+    Examples:
+        >>> @partition_registry.register('NONE')  # doctest: +SKIP
+        ... def no_partitions(mechanism, purview):
+        ...    return []
+
+    And use them by setting ``config.PARTITION_TYPE = 'NONE'``
+    """
     desc = 'partitions'
 
 

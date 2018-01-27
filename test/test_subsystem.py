@@ -180,7 +180,7 @@ def test_partition_registry():
     assert partition_registry['BI'] == mip_bipartitions
     assert partition_registry['TRI'] == wedge_partitions
     assert partition_registry['ALL'] == all_partitions
-    assert partition_registry.all() == ['BI', 'TRI', 'ALL']
+    assert set(partition_registry.all()) == set(['BI', 'TRI', 'ALL'])
 
 
 def test_is_cut(s):
