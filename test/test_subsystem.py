@@ -12,7 +12,7 @@ from pyphi.models import (Bipartition, Concept, Cut, KPartition,
                           MaximallyIrreducibleEffect, Part,
                           RepertoireIrreducibilityAnalysis, Tripartition)
 from pyphi.subsystem import (Subsystem, all_partitions, mip_bipartitions,
-                             wedge_partitions)
+                             wedge_partitions, partition_registry)
 
 
 @config.override(VALIDATE_SUBSYSTEM_STATES=True)
@@ -174,6 +174,13 @@ def test_all_partitions():
         KPartition(Part((0,), (3,)), Part((1,), (2,)), Part((), ())),
         KPartition(Part((0,), (3,)), Part((1,), ()), Part((), (2,))),
         KPartition(Part((0,), (2,)), Part((1,), (3,)), Part((), ()))])
+
+
+def test_partition_registry():
+    assert partition_registry['BI'] == mip_bipartitions
+    assert partition_registry['TRI'] == wedge_partitions
+    assert partition_registry['ALL'] == all_partitions
+    assert partition_registry.all() == ['BI', 'TRI', 'ALL']
 
 
 def test_is_cut(s):

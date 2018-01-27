@@ -787,19 +787,24 @@ class Subsystem:
         return result
 
 
+from .distance import MeasureRegistry
+
+class PartitionRegistry(MeasureRegistry):
+    pass
+
+
+partition_registry = PartitionRegistry()
+
+
 def mip_partitions(mechanism, purview):
     """Return a generator over all mechanism-purview partitions, based on the
     current configuration.
     """
-    func = {
-        'BI': mip_bipartitions,
-        'TRI': wedge_partitions,
-        'ALL': all_partitions
-    }[config.PARTITION_TYPE]
-
+    func = partition_registry[config.PARTITION_TYPE]
     return func(mechanism, purview)
 
 
+@partition_registry.register('BI')
 def mip_bipartitions(mechanism, purview):
     r"""Return an generator of all |small_phi| bipartitions of a mechanism over
     a purview.
@@ -854,6 +859,7 @@ def mip_bipartitions(mechanism, purview):
             yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
 
 
+@partition_registry.register('TRI')
 def wedge_partitions(mechanism, purview):
     """Return an iterator over all wedge partitions.
 
@@ -923,6 +929,7 @@ def wedge_partitions(mechanism, purview):
             yield tripart
 
 
+@partition_registry.register('ALL')
 def all_partitions(mechanism, purview):
     """Return all possible partitions of a mechanism and purview.
 
