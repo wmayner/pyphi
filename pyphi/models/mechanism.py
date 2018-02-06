@@ -29,7 +29,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     def __init__(self, phi, direction, mechanism, purview, partition,
                  repertoire, partitioned_repertoire,
-                 subsystem=None):
+                 node_labels=None):
         self._phi = phi
         self._direction = direction
         self._mechanism = mechanism
@@ -44,8 +44,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         self._repertoire = _repertoire(repertoire)
         self._partitioned_repertoire = _repertoire(partitioned_repertoire)
 
-        # Optional subsystem - only used to generate nice labeled reprs
-        self._subsystem = subsystem
+        # Optional labels - only used to generate nice labeled reprs
+        self._node_labels = node_labels
 
     @property
     def phi(self):
@@ -92,9 +92,9 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return self._partitioned_repertoire
 
     @property
-    def subsystem(self):
-        """Subsystem: The |Subsystem| the mechanism belongs to."""
-        return self._subsystem
+    def node_labels(self):
+        """|NodeLabels| for this system."""
+        return self._node_labels
 
     unorderable_unless_eq = ['direction']
 

@@ -192,11 +192,11 @@ def header(head, text, over_char=None, under_char=None, center=True):
     return head + text
 
 
-def labels(indices, subsystem=None):
+def labels(indices, node_labels=None):
     """Get the labels for a tuple of mechanism indices."""
-    if subsystem is None:
+    if node_labels is None:
         return tuple(map(str, indices))
-    return subsystem.node_labels.indices2labels(indices)
+    return node_labels.indices2labels(indices)
 
 
 def fmt_number(p):
@@ -219,9 +219,9 @@ def fmt_number(p):
     )
 
 
-def fmt_mechanism(indices, subsystem=None):
+def fmt_mechanism(indices, node_labels=None):
     """Format a mechanism or purview."""
-    return '[' + ', '.join(labels(indices, subsystem)) + ']'
+    return '[' + ', '.join(labels(indices, node_labels)) + ']'
 
 
 def fmt_part(part, subsystem=None):
@@ -328,7 +328,7 @@ def fmt_ria(ria, verbose=True, mip=False):
 
     if verbose:
         mechanism = 'Mechanism: {}\n'.format(
-            fmt_mechanism(ria.mechanism, ria.subsystem))
+            fmt_mechanism(ria.mechanism, ria.node_labels))
         direction = '\nDirection: {}'.format(ria.direction)
     else:
         mechanism = ''
@@ -337,7 +337,7 @@ def fmt_ria(ria, verbose=True, mip=False):
     if config.REPR_VERBOSITY is HIGH:
         partition = '\n{}:\n{}'.format(
             ('MIP' if mip else 'Partition'),
-            indent(fmt_bipartition(ria.partition, ria.subsystem)))
+            indent(fmt_bipartition(ria.partition, ria.node_labels)))
         repertoire = '\nRepertoire:\n{}'.format(
             indent(fmt_repertoire(ria.repertoire)))
         partitioned_repertoire = '\nPartitioned repertoire:\n{}'.format(
@@ -358,7 +358,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         '{partitioned_repertoire}').format(
             SMALL_PHI=SMALL_PHI,
             mechanism=mechanism,
-            purview=fmt_mechanism(ria.purview, ria.subsystem),
+            purview=fmt_mechanism(ria.purview, ria.node_labels),
             direction=direction,
             phi=fmt_number(ria.phi),
             partition=partition,

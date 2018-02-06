@@ -570,7 +570,7 @@ class Subsystem:
                 partition=partition,
                 repertoire=repertoire,
                 partitioned_repertoire=partitioned_repertoire,
-                subsystem=self
+                node_labels=self.node_labels
             )
 
         # State is unreachable - return 0 instead of giving nonsense results
