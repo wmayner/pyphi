@@ -311,7 +311,7 @@ def fmt_concept(concept):
                     fmt_cause_or_effect(concept.effect))
     ce = side_by_side(cause, effect)
 
-    mechanism = fmt_mechanism(concept.mechanism, concept.subsystem)
+    mechanism = fmt_mechanism(concept.mechanism, concept._node_labels)
     title = 'Concept: Mechanism = {}, {} = {}'.format(
         mechanism, SMALL_PHI, fmt_number(concept.phi))
 

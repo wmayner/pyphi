@@ -359,8 +359,11 @@ class Concept(cmp.Orderable):
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
-        self.subsystem = subsystem
         self.time = time
+
+        self.subsystem = subsystem
+        self._node_labels = subsystem.node_labels
+        self._mechanism_state = utils.state_of(mechanism, subsystem.state)
 
     def __repr__(self):
         return fmt.make_repr(self, _concept_attributes)
@@ -405,8 +408,7 @@ class Concept(cmp.Orderable):
     def __eq__(self, other):
         return (self.phi == other.phi and
                 self.mechanism == other.mechanism and
-                (utils.state_of(self.mechanism, self.subsystem.state) ==
-                 utils.state_of(self.mechanism, other.subsystem.state)) and
+                self._mechanism_state == other._mechanism_state and
                 self.cause_purview == other.cause_purview and
                 self.effect_purview == other.effect_purview and
                 self.eq_repertoires(other) and
@@ -415,7 +417,7 @@ class Concept(cmp.Orderable):
     def __hash__(self):
         return hash((self.phi,
                      self.mechanism,
-                     utils.state_of(self.mechanism, self.subsystem.state),
+                     self._mechanism_state,
                      self.cause_purview,
                      self.effect_purview,
                      utils.np_hash(self.cause_repertoire),
