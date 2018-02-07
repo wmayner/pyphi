@@ -475,7 +475,7 @@ def test_concept_ordering(s, micro_s):
 
 def test_concept_ordering_by_mechanism(s):
     small = concept(mechanism=(0, 1), subsystem=s)
-    big = concept(mechanism=(0, 1, 3), subsystem=s)
+    big = concept(mechanism=(0, 1, 2), subsystem=s)
     assert small < big
     assert small <= big
     assert big > small
@@ -522,9 +522,9 @@ def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     assert concept(subsystem=s) == concept(subsystem=subsys_n1n2)
 
 
-def test_concept_repr_str():
-    print(repr(concept()))
-    print(str(concept()))
+def test_concept_repr_str(s):
+    print(repr(concept(subsystem=s)))
+    print(str(concept(subsystem=s)))
 
 
 def test_concept_hashing(s):
@@ -557,8 +557,8 @@ def test_concept_emd_eq(s, subsys_n1n2):
 # Test CauseEffectStructure
 # {{{
 
-def test_ces_is_still_a_tuple():
-    c = models.CauseEffectStructure([concept()])
+def test_ces_is_still_a_tuple(s):
+    c = models.CauseEffectStructure([concept(subsystem=s)])
     assert len(c) == 1
 
 
@@ -568,17 +568,17 @@ def test_ces_repr():
     assert repr(c) == "CauseEffectStructure()"
 
 
-def test_ces_repr_str():
-    c = models.CauseEffectStructure([concept()])
+def test_ces_repr_str(s):
+    c = models.CauseEffectStructure([concept(subsystem=s)])
     repr(c)
     str(c)
 
 
-def test_ces_are_always_normalized():
-    c1 = models.Concept(mechanism=(1,))
-    c2 = models.Concept(mechanism=(2,))
-    c3 = models.Concept(mechanism=(1, 3))
-    c4 = models.Concept(mechanism=(1, 2, 3))
+def test_ces_are_always_normalized(s):
+    c1 = models.Concept(mechanism=(0,), subsystem=s)
+    c2 = models.Concept(mechanism=(1,), subsystem=s)
+    c3 = models.Concept(mechanism=(0, 2), subsystem=s)
+    c4 = models.Concept(mechanism=(0, 1, 2), subsystem=s)
     assert (c1, c2, c3, c4) == models.CauseEffectStructure((c3, c4, c2, c1))
 
 # }}}
