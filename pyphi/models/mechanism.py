@@ -450,6 +450,7 @@ class Concept(cmp.Orderable):
                 self.mechanism == other.mechanism and
                 self.eq_repertoires(other))
 
+    # TODO: remove
     # TODO Rename to expanded_cause_repertoire, etc
     def expand_cause_repertoire(self, new_purview=None):
         """See |Subsystem.expand_repertoire()|."""
