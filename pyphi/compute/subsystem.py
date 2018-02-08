@@ -83,7 +83,8 @@ def ces(subsystem, mechanisms=False, purviews=False, cause_purviews=False,
                                          cause_purviews, effect_purviews)
 
     return CauseEffectStructure(engine.run(parallel or
-                                           config.PARALLEL_CONCEPT_EVALUATION))
+                                           config.PARALLEL_CONCEPT_EVALUATION),
+                                subsystem=subsystem)
 
 
 def conceptual_info(subsystem):
@@ -92,7 +93,8 @@ def conceptual_info(subsystem):
     This is the distance from the subsystem's |CauseEffectStructure| to the
     null concept.
     """
-    ci = ces_distance(ces(subsystem), ())
+    ci = ces_distance(ces(subsystem),
+                      CauseEffectStructure((), subsystem=subsystem))
     return round(ci, config.PRECISION)
 
 

@@ -558,13 +558,13 @@ def test_concept_emd_eq(s, subsys_n1n2):
 # {{{
 
 def test_ces_is_still_a_tuple(s):
-    c = models.CauseEffectStructure([concept(subsystem=s)])
+    c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
     assert len(c) == 1
 
 
 @config.override(REPR_VERBOSITY=0)
-def test_ces_repr():
-    c = models.CauseEffectStructure()
+def test_ces_repr(s):
+    c = models.CauseEffectStructure([], subsystem=s)
     assert repr(c) == "CauseEffectStructure()"
 
 
@@ -581,6 +581,10 @@ def test_ces_are_always_normalized(s):
     c4 = models.Concept(mechanism=(0, 1, 2), subsystem=s)
     assert (c1, c2, c3, c4) == models.CauseEffectStructure((c3, c4, c2, c1))
 
+
+def test_ces_labeled_mechanisms(s):
+    c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
+    assert c.labeled_mechanisms == (['A', 'B'],)
 # }}}
 
 
