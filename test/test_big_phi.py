@@ -242,17 +242,22 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance,
             partition=None, repertoire=None, partitioned_repertoire=None))
 
     lone_concept = models.Concept(cause=make_mice(), effect=make_mice(),
-                                  mechanism=(0, 1))
+                                  mechanism=(0, 1), subsystem=s)
+    lone_concept_ces = models.CauseEffectStructure((lone_concept,), subsystem=s)
+    empty_ces = models.CauseEffectStructure((), subsystem=s)
+
     # lone concept -> null concept
-    compute.ces_distance((lone_concept,), ())
+    compute.ces_distance(lone_concept_ces, empty_ces)
     assert mock_emd_distance.called is False
     assert mock_simple_distance.called is True
     mock_simple_distance.reset_mock()
 
     other_concept = models.Concept(cause=make_mice(), effect=make_mice(),
-                                   mechanism=(0, 1, 2))
+                                   mechanism=(0, 1, 2), subsystem=s)
+    other_concept_ces = models.CauseEffectStructure((other_concept,), subsystem=s)
     # different concepts in CES
-    compute.ces_distance((lone_concept,), (other_concept,))
+
+    compute.ces_distance(lone_concept_ces, other_concept_ces)
     assert mock_emd_distance.called is True
     assert mock_simple_distance.called is False
 

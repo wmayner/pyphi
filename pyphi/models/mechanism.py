@@ -332,7 +332,7 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
 
 # =============================================================================
 
-_concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem']
+_concept_attributes = ['phi', 'mechanism', 'cause', 'effect']
 
 
 # TODO: make mechanism a property
