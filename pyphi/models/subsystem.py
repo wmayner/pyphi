@@ -38,7 +38,7 @@ class CauseEffectStructure(tuple):
         return fmt.fmt_ces(self)
 
     def to_json(self):
-        return {'concepts': list(self)}
+        return {'concepts': list(self), 'subsystem': self.subsystem}
 
     @property
     def mechanisms(self):
@@ -57,10 +57,6 @@ class CauseEffectStructure(tuple):
             return []
         label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
-
-    @classmethod
-    def from_json(cls, json):
-        return cls(json['concepts'])
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):
