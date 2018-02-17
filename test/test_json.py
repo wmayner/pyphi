@@ -86,17 +86,10 @@ def test_deserialization_memoizes_duplicate_objects(s):
     with config.override(PARALLEL_CUT_EVALUATION=True):
         sia = compute.sia(s)
 
-    s1 = sia.subsystem
-    # Computed in a parallel process, so has a different id
-    s2 = sia.ces[0].subsystem
-    assert s1 is not s2
-    assert s1 == s2
-    assert hash(s1) == hash(s2)
-
     loaded = jsonify.loads(jsonify.dumps(sia))
 
     l1 = loaded.subsystem
-    l2 = loaded.ces[0].subsystem
+    l2 = loaded.ces.subsystem
     assert l1 == l2
     assert hash(l1) == hash(l2)
     assert l1 is l2
