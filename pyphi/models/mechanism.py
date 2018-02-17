@@ -355,17 +355,25 @@ class Concept(cmp.Orderable):
     """
 
     def __init__(self, mechanism=None, cause=None, effect=None,
-                 subsystem=None, time=None):
+                 subsystem=None, time=None, _subsystem_hash=None,
+                 _network_hash=None, _node_labels=None, _mechanism_state=None):
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
         self.time = time
 
         # TODO: are the hashes sufficient for the required comparison
-        self._subsystem_hash = hash(subsystem)
-        self._network_hash = hash(subsystem.network)
-        self._node_labels = subsystem.node_labels
-        self._mechanism_state = utils.state_of(mechanism, subsystem.state)
+        if subsystem is not None:
+            self._subsystem_hash = hash(subsystem)
+            self._network_hash = hash(subsystem.network)
+            self._node_labels = subsystem.node_labels
+            self._mechanism_state = utils.state_of(mechanism, subsystem.state)
+
+        else:
+            self._subsystem_hash = _subsystem_hash
+            self._network_hash = _network_hash
+            self._node_labels = _node_labels
+            self._mechanism_state = _mechanism_state
 
     def __repr__(self):
         return fmt.make_repr(self, _concept_attributes)
@@ -454,7 +462,9 @@ class Concept(cmp.Orderable):
         """Return a JSON-serializable representation."""
         return {
             attr: getattr(self, attr)
-            for attr in _concept_attributes + ['time']
+            for attr in _concept_attributes + [
+                'time', '_subsystem_hash', '_network_hash', '_node_labels',
+                '_mechanism_state']
         }
 
     @classmethod
