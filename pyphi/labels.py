@@ -16,13 +16,13 @@ class NodeLabels:
 
     Labels can either be instantiated as a tuple of strings:
 
-        >>> NodeLabels(('A', 'IN'), (0, 1)).labels
-        ('A', 'IN')
+        >>> NodeLabels(('A', 'IN'), (0, 1))
+        NodeLabels(('A', 'IN'))
 
     Or, if all labels are a single character, as a string:
 
-        >>> NodeLabels('AB', (0, 1)).labels
-        ('A', 'B')
+        >>> NodeLabels('AB', (0, 1))
+        NodeLabels(('A', 'B'))
     '''
     def __init__(self, labels, node_indices):
         if labels is None:
@@ -56,3 +56,6 @@ class NodeLabels:
         else:
             indices = map(int, nodes)
         return tuple(sorted(set(indices)))
+
+    def __repr__(self):
+        return 'NodeLabels({})'.format(self.labels)
