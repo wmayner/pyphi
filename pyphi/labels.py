@@ -12,18 +12,26 @@ def default_labels(indices):
 
 
 class NodeLabels:
-    '''
-    TODO: validate labels for duplicates
-    TODO: pass in indices if defaults are generated here
+    '''Text labels for nodes in a network.
+
+    Labels can either be instantiated as a tuple of strings:
+
+        >>> NodeLabels(('A', 'IN'), (0, 1)).labels
+        ('A', 'IN')
+
+    Or, if all labels are a single character, as a string:
+
+        >>> NodeLabels('AB', (0, 1)).labels
+        ('A', 'B')
     '''
     def __init__(self, labels, node_indices):
         if labels is None:
             labels = default_labels(node_indices)
 
-        self.labels = labels
+        self.labels = tuple(label for label in labels)
         self.node_indices = node_indices
 
-        validate.node_labels(labels, node_indices)
+        validate.node_labels(self.labels, node_indices)
 
         # Dicts mapping indices to labels and vice versa
         self._l2i = dict(zip(self.labels, self.node_indices))
