@@ -395,7 +395,7 @@ class Subsystem:
             return self.cause_repertoire(mechanism, purview)
         elif direction == Direction.EFFECT:
             return self.effect_repertoire(mechanism, purview)
-        # TODO: test that ValueError is raised
+
         return validate.direction(direction)
 
     def unconstrained_repertoire(self, direction, purview):

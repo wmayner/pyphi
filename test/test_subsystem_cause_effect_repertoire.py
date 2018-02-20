@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 import example_networks
-from pyphi import Subsystem
+from pyphi import Direction, Subsystem
 from pyphi.models import Cut
 
 # Get example networks
@@ -355,5 +355,9 @@ def test_cause_and_effect_repertoire(function, subsystem, mechanism, purview,
 
     assert np.array_equal(result, expected)
 
+
+def test_repertoire_wrong_direction_error(s):
+    with pytest.raises(ValueError):
+        s.repertoire(Direction.BIDIRECTIONAL, (0,), (0, 1))
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :
