@@ -41,7 +41,7 @@ import json
 import numpy as np
 
 import pyphi
-from pyphi import Direction, cache
+from pyphi import cache
 
 CLASS_KEY = '__class__'
 VERSION_KEY = '__version__'
@@ -55,9 +55,11 @@ def _loadable_models():
     circular import issues.
     """
     classes = [
-        Direction,
+        pyphi.Direction,
         pyphi.Network,
         pyphi.Subsystem,
+        pyphi.Transition,
+        pyphi.labels.NodeLabels,
         pyphi.models.Cut,
         pyphi.models.KCut,
         pyphi.models.NullCut,
@@ -72,13 +74,11 @@ def _loadable_models():
         pyphi.models.Concept,
         pyphi.models.CauseEffectStructure,
         pyphi.models.SystemIrreducibilityAnalysis,
-        pyphi.Transition,
         pyphi.models.ActualCut,
         pyphi.models.AcRepertoireIrreducibilityAnalysis,
         pyphi.models.CausalLink,
         pyphi.models.Account,
-        pyphi.models.AcSystemIrreducibilityAnalysis,
-        pyphi.labels.NodeLabels
+        pyphi.models.AcSystemIrreducibilityAnalysis
     ]
     return {cls.__name__: cls for cls in classes}
 
