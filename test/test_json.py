@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 from pyphi import (Direction, actual, compute, config, exceptions, jsonify,
-                   models, network)
+                   labels, models, network)
 from test_actual import transition
 
 
@@ -66,7 +66,9 @@ def test_json_deserialization(s, transition):
         transition,
         transition.find_actual_cause((0,), (0,)),
         actual.account(transition),
-        actual.sia(transition)
+        actual.sia(transition),
+        labels.NodeLabels('AB', (0, 1))
+
     ]
     for o in objects:
         loaded = jsonify.loads(jsonify.dumps(o))

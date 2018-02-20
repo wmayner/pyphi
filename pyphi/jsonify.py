@@ -77,7 +77,8 @@ def _loadable_models():
         pyphi.models.AcRepertoireIrreducibilityAnalysis,
         pyphi.models.CausalLink,
         pyphi.models.Account,
-        pyphi.models.AcSystemIrreducibilityAnalysis
+        pyphi.models.AcSystemIrreducibilityAnalysis,
+        pyphi.labels.NodeLabels
     ]
     return {cls.__name__: cls for cls in classes}
 
