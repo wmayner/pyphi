@@ -13,39 +13,40 @@ BCD = (1, 2, 3)
 ABCD = (0, 1, 2, 3)
 
 
-def test_expand_cause_repertoire(micro_s_all_off):
-    sia = compute.sia(micro_s_all_off)
-    A = sia.ces[0]
-    cause = A.cause_repertoire
+def close(a, b):
+    return np.all(abs(a - b) < EPSILON)
 
-    assert np.all(abs(A.expand_cause_repertoire(CD) - cause) < EPSILON)
-    assert np.all(abs(
-        A.expand_cause_repertoire(BCD).flatten(order='F') -
-        np.array([1 / 6 if i < 6 else 0 for i in range(8)])) < EPSILON)
-    assert np.all(abs(
-        A.expand_cause_repertoire(ABCD).flatten(order='F') -
-        np.array([1 / 12 if i < 12 else 0 for i in range(16)])) < EPSILON)
-    assert np.all(abs(A.expand_cause_repertoire(ABCD) -
-                      A.expand_cause_repertoire()) < EPSILON)
+
+def test_expand_cause_repertoire(micro_s_all_off):
+    sub = micro_s_all_off
+    sia = compute.sia(sub)
+    cause = sia.ces[0].cause_repertoire
+
+    assert close(sub.expand_cause_repertoire(cause, CD), cause)
+    assert close(sub.expand_cause_repertoire(cause, BCD).flatten(order='F'),
+                 np.array([1 / 6 if i < 6 else 0 for i in range(8)]))
+    assert close(sub.expand_cause_repertoire(cause, ABCD).flatten(order='F'),
+                 np.array([1 / 12 if i < 12 else 0 for i in range(16)]))
+    assert close(sub.expand_cause_repertoire(cause, ABCD),
+                 sub.expand_cause_repertoire(cause))
 
 
 def test_expand_effect_repertoire(micro_s_all_off):
-    sia = compute.sia(micro_s_all_off)
-    A = sia.ces[0]
-    effect = A.effect_repertoire
+    sub = micro_s_all_off
+    sia = compute.sia(sub)
+    effect = sia.ces[0].effect_repertoire
 
-    assert np.all(abs(A.expand_effect_repertoire(CD) - effect) < EPSILON)
-    assert np.all(abs(A.expand_effect_repertoire(BCD).flatten(order='F') -
-                      np.array([.25725, .23275, .11025, .09975,
-                                .11025, .09975, .04725, .04275])) < EPSILON)
-    assert np.all(abs(
-        A.expand_effect_repertoire(ABCD).flatten(order='F') -
-        np.array([.13505625, .12219375, .12219375, .11055625,
-                  .05788125, .05236875, .05236875, .04738125,
-                  .05788125, .05236875, .05236875, .04738125,
-                  .02480625, .02244375, .02244375, .02030625])) < EPSILON)
-    assert np.all(abs(A.expand_effect_repertoire(ABCD) -
-                      A.expand_effect_repertoire()) < EPSILON)
+    assert close(sub.expand_effect_repertoire(effect, CD), effect)
+    assert close(sub.expand_effect_repertoire(effect, BCD).flatten(order='F'),
+                 np.array([.25725, .23275, .11025, .09975,
+                           .11025, .09975, .04725, .04275]))
+    assert close(sub.expand_effect_repertoire(effect, ABCD).flatten(order='F'),
+                 np.array([.13505625, .12219375, .12219375, .11055625,
+                           .05788125, .05236875, .05236875, .04738125,
+                           .05788125, .05236875, .05236875, .04738125,
+                           .02480625, .02244375, .02244375, .02030625]))
+    assert close(sub.expand_effect_repertoire(effect, ABCD),
+                 sub.expand_effect_repertoire(effect))
 
 
 def test_expand_repertoire_purview_must_be_subset_of_new_purview(s):
