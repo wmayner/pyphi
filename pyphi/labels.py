@@ -59,3 +59,13 @@ class NodeLabels:
 
     def __repr__(self):
         return 'NodeLabels({})'.format(self.labels)
+
+    def __eq__(self, other):
+        return (self.labels == other.labels and
+                self.node_indices == other.node_indices)
+
+    def __hash__(self):
+        return hash((self.labels, self.node_indices))
+
+    def to_json(self):
+        return {'labels': self.labels, 'node_indices': self.node_indices}
