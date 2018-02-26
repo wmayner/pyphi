@@ -7,8 +7,7 @@
 import numpy as np
 
 from . import cmp, fmt
-from .. import config, connectivity, distribution, utils
-from ..direction import Direction
+from .. import Direction, config, connectivity, distribution, utils
 from ..exceptions import WrongDirectionError
 
 # pylint: disable=too-many-arguments,too-many-instance-attributes
