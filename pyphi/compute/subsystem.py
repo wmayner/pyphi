@@ -28,6 +28,10 @@ class ComputeCauseEffectStructure(MapReduce):
 
     description = 'Computing concepts'
 
+    @property
+    def subsystem(self):
+        return self.context[0]
+
     def empty_result(self, *args):
         return []
 
@@ -37,16 +41,23 @@ class ComputeCauseEffectStructure(MapReduce):
         """Compute a |Concept| for a mechanism, in this |Subsystem| with the
         provided purviews.
         """
-        return subsystem.concept(mechanism,
-                                 purviews=purviews,
-                                 cause_purviews=cause_purviews,
-                                 effect_purviews=effect_purviews)
+        concept = subsystem.concept(mechanism,
+                                    purviews=purviews,
+                                    cause_purviews=cause_purviews,
+                                    effect_purviews=effect_purviews)
+        # Don't serialize the subsystem.
+        # This is replaced on the other side of the queue, and ensures
+        # that all concepts in the CES reference the same subsystem.
+        concept.subsystem = None
+        return concept
 
     def process_result(self, new_concept, concepts):
         """Save all concepts with non-zero |small_phi| to the
         |CauseEffectStructure|.
         """
         if new_concept.phi > 0:
+            # Replace the subsystem
+            new_concept.subsystem = self.subsystem
             concepts.append(new_concept)
         return concepts
 

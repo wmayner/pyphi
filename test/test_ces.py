@@ -63,3 +63,11 @@ def test_parallel_and_sequential_ces_are_equal(s, micro_s, macro_s):
         assert set(c) == set(compute.ces(s))
         assert set(c_micro) == set(compute.ces(micro_s))
         assert set(c_macro) == set(compute.ces(macro_s))
+
+
+@pytest.mark.parametrize('parallel', [False, True])
+def test_ces_concepts_share_the_same_subsystem(parallel, s):
+    with config.override(PARALLEL_CONCEPT_EVALUATION=parallel):
+        ces = compute.ces(s)
+        for concept in ces:
+            assert concept.subsystem is ces.subsystem
