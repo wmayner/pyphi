@@ -361,7 +361,7 @@ class Concept(cmp.Orderable):
         self.time = time
 
         self.subsystem = subsystem
-        self._node_labels = subsystem.node_labels
+        self.node_labels = subsystem.node_labels
         self._mechanism_state = utils.state_of(mechanism, subsystem.state)
 
     def __repr__(self):
