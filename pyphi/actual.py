@@ -160,6 +160,10 @@ class Transition:
     def __bool__(self):
         return len(self) > 0
 
+    @property
+    def node_labels(self):
+        return self.network._node_labels
+
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {

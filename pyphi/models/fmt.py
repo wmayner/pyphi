@@ -516,6 +516,6 @@ def fmt_ac_sia(ac_sia):
 def fmt_transition(t):
     """Format a |Transition|."""
     return "Transition({} {} {})".format(
-        fmt_mechanism(t.cause_indices, t.cause_system),
+        fmt_mechanism(t.cause_indices, t.node_labels),
         ARROW_RIGHT,
-        fmt_mechanism(t.effect_indices, t.effect_system))
+        fmt_mechanism(t.effect_indices, t.node_labels))
