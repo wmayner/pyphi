@@ -224,7 +224,7 @@ def fmt_mechanism(indices, node_labels=None):
     return '[' + ', '.join(labels(indices, node_labels)) + ']'
 
 
-def fmt_part(part, subsystem=None):
+def fmt_part(part, node_labels=None):
     """Format a |Part|.
 
     The returned string looks like::
@@ -234,7 +234,7 @@ def fmt_part(part, subsystem=None):
          ∅
     """
     def nodes(x):  # pylint: disable=missing-docstring
-        return ','.join(labels(x, subsystem)) if x else EMPTY_SET
+        return ','.join(labels(x, node_labels)) if x else EMPTY_SET
 
     numer = nodes(part.mechanism)
     denom = nodes(part.purview)
@@ -377,6 +377,7 @@ def fmt_cut(cut, subsystem=None):
     elif isinstance(cut, NullCut):
         return str(cut)
 
+    # TODO: this is broken!
     # Cut indices cannot be converted to labels for macro systems since macro
     # systems are cut at the micro label. Avoid this error by using micro
     # indices directly in the representation.
