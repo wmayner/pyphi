@@ -45,7 +45,7 @@ def test_potential_purviews(s):
 def test_node_labels(standard):
     labels = ('A', 'B', 'C')
     network = Network(standard.tpm, node_labels=labels)
-    assert network.node_labels == labels
+    assert network.node_labels.labels == labels
 
     labels = ('A', 'B')  # Too few labels
     with pytest.raises(ValueError):
@@ -53,7 +53,7 @@ def test_node_labels(standard):
 
     # Auto-generated labels
     network = Network(standard.tpm, node_labels=None)
-    assert network.node_labels == ('n0', 'n1', 'n2')
+    assert network.node_labels.labels == ('n0', 'n1', 'n2')
 
 
 def test_num_states(standard):

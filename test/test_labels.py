@@ -46,3 +46,8 @@ def test_len(nl):
 def test_contains(nl):
     assert 'B' in nl
     assert 'D' not in nl
+
+
+def test_instantiation_from_other_node_labels_object(nl):
+    copied = NodeLabels(nl, (0, 1, 2))
+    assert copied == nl

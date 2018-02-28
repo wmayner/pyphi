@@ -7,11 +7,9 @@ Represents the network of interest. This is the primary object of PyPhi and the
 context of all |small_phi| and |big_phi| computation.
 """
 
-import json
-
 import numpy as np
 
-from . import cache, connectivity, convert, utils, validate
+from . import cache, connectivity, convert, jsonify, utils, validate
 from .labels import NodeLabels
 from .tpm import is_state_by_state
 
@@ -149,7 +147,7 @@ class Network:
     @property
     def node_labels(self):
         """tuple[str]: The labels of nodes in the network."""
-        return self._node_labels.labels
+        return self._node_labels
 
     # TODO: this should really be a Subsystem method, but we're
     # interested in caching at the Network-level...
@@ -199,14 +197,14 @@ class Network:
             'tpm': self.tpm,
             'cm': self.cm,
             'size': self.size,
-            'labels': self.node_labels
+            'node_labels': self.node_labels
         }
 
     @classmethod
     def from_json(cls, json_dict):
         """Return a |Network| object from a JSON dictionary representation."""
-        return Network(json_dict['tpm'], json_dict['cm'],
-                       node_labels=json_dict['labels'])
+        del json_dict['size']
+        return Network(**json_dict)
 
 
 def irreducible_purviews(cm, direction, mechanism, purviews):
@@ -243,6 +241,4 @@ def from_json(filename):
        Network: The corresponding PyPhi network object.
     """
     with open(filename) as f:
-        loaded = json.load(f)
-
-    return Network.from_json(loaded)
+        return jsonify.load(f)
