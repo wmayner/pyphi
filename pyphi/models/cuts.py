@@ -122,7 +122,7 @@ class NullCut(_CutBase):
         return self.indices == other.indices
 
     def __hash__(self):
-        return hash(('NullCut', self.indices))
+        return hash(self.indices)
 
 
 class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):

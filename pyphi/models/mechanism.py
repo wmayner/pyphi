@@ -235,7 +235,7 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         return self.ria == other.ria
 
     def __hash__(self):
-        return hash(('MICE', self._ria))
+        return hash(self._ria)
 
     def to_json(self):
         return {'ria': self.ria}

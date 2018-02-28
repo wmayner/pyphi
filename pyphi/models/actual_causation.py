@@ -177,7 +177,7 @@ class CausalLink(cmp.Orderable):
         return self.ria == other.ria
 
     def __hash__(self):
-        return hash(('CausalLink', self._ria))
+        return hash(self._ria)
 
     def __bool__(self):
         """An |CausalLink| is ``True`` if |alpha > 0|."""
