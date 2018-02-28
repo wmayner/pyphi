@@ -148,7 +148,7 @@ To find the actual cause or actual effect of a particular occurence, use the
 
    >>> transition.find_actual_cause((OR, AND))
    CausalLink
-     α = 0.1699  (0, 1) ◀━━ (0, 1)
+     α = 0.1699  [OR, AND] ◀━━ [OR, AND]
 
 
 Accounts
@@ -160,15 +160,15 @@ The complete causal account of our transition can be computed with the
    >>> account = actual.account(transition)
    >>> print(account)  # doctest: +NORMALIZE_WHITESPACE
    <BLANKLINE>
-      Account (5 causal links)
-   *****************************
+         Account (5 causal links)
+   ***********************************
    Irreducible effects
-   α = 0.415  (0,) ━━▶ (0,)
-   α = 0.415  (1,) ━━▶ (1,)
+   α = 0.415  [OR] ━━▶ [OR]
+   α = 0.415  [AND] ━━▶ [AND]
    Irreducible causes
-   α = 0.415  (0,) ◀━━ (0,)
-   α = 0.415  (1,) ◀━━ (1,)
-   α = 0.1699  (0, 1) ◀━━ (0, 1)
+   α = 0.415  [OR] ◀━━ [OR]
+   α = 0.415  [AND] ◀━━ [AND]
+   α = 0.1699  [OR, AND] ◀━━ [OR, AND]
 
 We see that this function produces the causal links shown in Figure 4. The
 |Account| object is a subclass of ``tuple``, and can manipulated the same:
@@ -191,14 +191,14 @@ destroyed by the MIP:
 
    >>> sia.partitioned_account  # doctest: +NORMALIZE_WHITESPACE
    <BLANKLINE>
-   Account (4 causal links)
-   ************************
+    Account (4 causal links)
+   **************************
    Irreducible effects
-   α = 0.415  (0,) ━━▶ (0,)
-   α = 0.415  (1,) ━━▶ (1,)
+   α = 0.415  [OR] ━━▶ [OR]
+   α = 0.415  [AND] ━━▶ [AND]
    Irreducible causes
-   α = 0.415  (0,) ◀━━ (0,)
-   α = 0.415  (1,) ◀━━ (1,)
+   α = 0.415  [OR] ◀━━ [OR]
+   α = 0.415  [AND] ◀━━ [AND]
 
 The partition of the MIP is available in the ``cut`` property:
 

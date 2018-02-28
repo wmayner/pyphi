@@ -343,6 +343,7 @@ class Transition:
                     partition=partition,
                     probability=probability,
                     partitioned_probability=partitioned_probability,
+                    node_labels=self.node_labels,
                     alpha=0.0
                 )
             # Then take closest to 0
@@ -356,6 +357,7 @@ class Transition:
                     partition=partition,
                     probability=probability,
                     partitioned_probability=partitioned_probability,
+                    node_labels=self.node_labels,
                     alpha=alpha_min
                 )
         return acria

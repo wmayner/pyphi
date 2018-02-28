@@ -172,6 +172,10 @@ class CausalLink(cmp.Orderable):
         """
         return self._ria
 
+    @property
+    def node_labels(self):
+        return self._ria.node_labels
+
     def __repr__(self):
         return fmt.make_repr(self, ['ria'])
 

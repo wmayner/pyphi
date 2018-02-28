@@ -460,9 +460,12 @@ def fmt_ac_ria(ria):
         return ''
 
     causality = {
-        # TODO: use node labels
-        Direction.CAUSE: (str(ria.purview), ARROW_LEFT, str(ria.mechanism)),
-        Direction.EFFECT: (str(ria.mechanism), ARROW_RIGHT, str(ria.purview))
+        Direction.CAUSE: (fmt_mechanism(ria.purview, ria.node_labels),
+                          ARROW_LEFT,
+                          fmt_mechanism(ria.mechanism, ria.node_labels)),
+        Direction.EFFECT: (fmt_mechanism(ria.mechanism, ria.node_labels),
+                           ARROW_RIGHT,
+                           fmt_mechanism(ria.purview, ria.node_labels))
     }[ria.direction]
     causality = ' '.join(causality)
 
