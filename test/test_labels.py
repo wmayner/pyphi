@@ -33,3 +33,16 @@ def test_coerce_to_indices(nl):
 
     with pytest.raises(ValueError):
         nl.coerce_to_indices((0, 'A'))
+
+
+def test_iterable(nl):
+    assert [l for l in nl] == ['A', 'B', 'C']
+
+
+def test_len(nl):
+    assert len(nl) == 3
+
+
+def test_contains(nl):
+    assert 'B' in nl
+    assert 'D' not in nl

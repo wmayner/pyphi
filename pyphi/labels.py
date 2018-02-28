@@ -6,6 +6,8 @@
 Helper class representing labels of network nodes.
 """
 
+import collections
+
 from pyphi import validate
 
 
@@ -19,7 +21,7 @@ def default_labels(indices):
     return tuple(default_label(i) for i in indices)
 
 
-class NodeLabels:
+class NodeLabels(collections.abc.Collection):
     '''Text labels for nodes in a network.
 
     Labels can either be instantiated as a tuple of strings:
@@ -44,6 +46,15 @@ class NodeLabels:
         # Dicts mapping indices to labels and vice versa
         self._l2i = dict(zip(self.labels, self.node_indices))
         self._i2l = dict(zip(self.node_indices, self.labels))
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __iter__(self):
+        return iter(self.labels)
+
+    def __contains__(self, x):
+        return x in self.labels
 
     def labels2indices(self, labels):
         """Convert a tuple of node labels to node indices."""
