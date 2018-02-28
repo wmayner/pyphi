@@ -125,7 +125,7 @@ class NullCut(_CutBase):
         return hash(('NullCut', self.indices))
 
 
-class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
+class Cut(_CutBase):
     """Represents a unidirectional cut.
 
     Attributes:
@@ -136,13 +136,16 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
     """
     # Don't construct an attribute dictionary; see
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
+    __slots__ = ('from_nodes', 'to_nodes')
 
-    __slots__ = ()
+    def __init__(self, from_nodes, to_nodes):
+        self.from_nodes = from_nodes
+        self.to_nodes = to_nodes
 
     @property
     def indices(self):
         """Indices of this cut."""
-        return tuple(sorted(set(self[0] + self[1])))
+        return tuple(sorted(set(self.from_nodes + self.to_nodes)))
 
     def cut_matrix(self, n):
         """Compute the cut matrix for this cut.
@@ -160,7 +163,16 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
                    [0., 0., 1.],
                    [0., 0., 0.]])
         """
-        return connectivity.relevant_connections(n, self[0], self[1])
+        return connectivity.relevant_connections(n, self.from_nodes,
+                                                 self.to_nodes)
+
+    @cmp.sametype
+    def __eq__(self, other):
+        return (self.from_nodes == other.from_nodes and
+                self.to_nodes == other.to_nodes)
+
+    def __hash__(self):
+        return hash((self.from_nodes, self.to_nodes))
 
     def __repr__(self):
         return fmt.make_repr(self, ['from_nodes', 'to_nodes'])

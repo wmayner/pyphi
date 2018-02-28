@@ -197,6 +197,13 @@ def test_general_eq_attribute_missing():
 # Test Cut
 # {{{
 
+def test_cut_equality():
+    cut1 = models.Cut((0,), (1,))
+    cut2 = models.Cut((0,), (1,))
+    assert cut1 == cut2
+    assert hash(cut1) == hash(cut2)
+
+
 def test_cut_splits_mechanism():
     cut = models.Cut((0,), (1, 2))
     assert cut.splits_mechanism((0, 1))
