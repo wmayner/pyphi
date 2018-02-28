@@ -295,7 +295,7 @@ class KPartition(tuple):
         return type(self)(*sorted(self))
 
     def __str__(self):
-        return fmt.fmt_bipartition(self)
+        return fmt.fmt_partition(self)
 
     def __repr__(self):
         if config.REPR_VERBOSITY > 0:
