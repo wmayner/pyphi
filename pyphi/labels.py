@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# labels.py
+
+"""
+Helper class representing labels of network nodes.
+"""
+
 from pyphi import validate
 
 
