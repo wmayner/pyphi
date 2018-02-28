@@ -56,6 +56,16 @@ class NodeLabels(collections.abc.Collection):
     def __contains__(self, x):
         return x in self.labels
 
+    def __repr__(self):
+        return 'NodeLabels({})'.format(self.labels)
+
+    def __eq__(self, other):
+        return (self.labels == other.labels and
+                self.node_indices == other.node_indices)
+
+    def __hash__(self):
+        return hash((self.labels, self.node_indices))
+
     def labels2indices(self, labels):
         """Convert a tuple of node labels to node indices."""
         return tuple(self._l2i[label] for label in labels)
@@ -75,16 +85,6 @@ class NodeLabels(collections.abc.Collection):
         else:
             indices = map(int, nodes)
         return tuple(sorted(set(indices)))
-
-    def __repr__(self):
-        return 'NodeLabels({})'.format(self.labels)
-
-    def __eq__(self, other):
-        return (self.labels == other.labels and
-                self.node_indices == other.node_indices)
-
-    def __hash__(self):
-        return hash((self.labels, self.node_indices))
 
     def to_json(self):
         return {'labels': self.labels, 'node_indices': self.node_indices}
