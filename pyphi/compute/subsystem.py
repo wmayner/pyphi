@@ -181,7 +181,7 @@ class ComputeSystemIrreducibility(MapReduce):
         return min_sia
 
 
-def sia_bipartitions(nodes):
+def sia_bipartitions(nodes, node_labels=None):
     """Return all |big_phi| cuts for the given nodes.
 
     This value changes based on :const:`config.CUT_ONE_APPROXIMATION`.
@@ -197,7 +197,7 @@ def sia_bipartitions(nodes):
         # Don't consider trivial partitions where one part is empty
         bipartitions = directed_bipartition(nodes, nontrivial=True)
 
-    return [Cut(bipartition[0], bipartition[1])
+    return [Cut(bipartition[0], bipartition[1], node_labels)
             for bipartition in bipartitions]
 
 
@@ -280,10 +280,15 @@ def _sia(cache_key, subsystem):
         return time_annotated(_null_sia(subsystem))
 
     log.debug('Found unpartitioned CauseEffectStructure.')
+
+    # TODO: move this into sia_bipartitions?
+    # Only True if SINGLE_MICRO_NODES...=True, no?
     if len(subsystem.cut_indices) == 1:
-        cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
+        cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices,
+                    subsystem.node_labels)]
     else:
-        cuts = sia_bipartitions(subsystem.cut_indices)
+        cuts = sia_bipartitions(subsystem.cut_indices, subsystem.node_labels)
+
     engine = ComputeSystemIrreducibility(
         cuts, subsystem, unpartitioned_ces)
     min_sia = engine.run(config.PARALLEL_CUT_EVALUATION)
@@ -393,10 +398,10 @@ class ConceptStyleSystem:
         return 'ConceptStyleSystem{}'.format(self.node_indices)
 
 
-def concept_cuts(direction, node_indices):
+def concept_cuts(direction, node_indices, node_labels=None):
     """Generator over all concept-syle cuts for these nodes."""
     for partition in mip_partitions(node_indices, node_indices):
-        yield KCut(direction, partition)
+        yield KCut(direction, partition, node_labels)
 
 
 def directional_sia(subsystem, direction, ces=None):
@@ -409,7 +414,7 @@ def directional_sia(subsystem, direction, ces=None):
         unpartitioned_ces = _ces(subsystem)
 
     c_system = ConceptStyleSystem(subsystem, direction)
-    cuts = concept_cuts(direction, c_system.cut_indices)
+    cuts = concept_cuts(direction, c_system.cut_indices, subsystem.node_labels)
 
     # Run the default SIA engine
     # TODO: verify that short-cutting works correctly?

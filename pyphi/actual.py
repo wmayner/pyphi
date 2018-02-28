@@ -90,7 +90,8 @@ class Transition:
         self.effect_indices = coerce_to_indices(effect_indices)
         self.node_indices = coerce_to_indices(cause_indices + effect_indices)
 
-        self.cut = cut if cut is not None else NullCut(self.node_indices)
+        self.cut = (cut if cut is not None
+                    else NullCut(self.node_indices, self.node_labels))
 
         # Indices external to the cause system.
         # The TPMs of both systems are conditioned on these background
@@ -527,7 +528,7 @@ def _get_cuts(transition, direction):
         mechanism = transition.mechanism_indices(direction)
         purview = transition.purview_indices(direction)
         for partition in mip_partitions(mechanism, purview):
-            yield ActualCut(direction, partition)
+            yield ActualCut(direction, partition, transition.node_labels)
 
 
 def sia(transition, direction=Direction.BIDIRECTIONAL):

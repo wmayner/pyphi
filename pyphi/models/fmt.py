@@ -387,8 +387,8 @@ def fmt_cut(cut, subsystem=None):
         from_nodes = str(cut.from_nodes)
         to_nodes = str(cut.to_nodes)
     else:
-        from_nodes = fmt_mechanism(cut.from_nodes, subsystem)
-        to_nodes = fmt_mechanism(cut.to_nodes, subsystem)
+        from_nodes = fmt_mechanism(cut.from_nodes, cut.node_labels)
+        to_nodes = fmt_mechanism(cut.to_nodes, cut.node_labels)
 
     return 'Cut {from_nodes} {symbol} {to_nodes}'.format(
         from_nodes=from_nodes, symbol=CUT_SYMBOL, to_nodes=to_nodes)

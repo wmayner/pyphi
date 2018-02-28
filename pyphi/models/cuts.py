@@ -91,8 +91,9 @@ class _CutBase:
 class NullCut(_CutBase):
     """The cut that does nothing."""
 
-    def __init__(self, indices):
+    def __init__(self, indices, node_labels=None):
         self._indices = indices
+        self.node_labels = node_labels
 
     @property
     def is_null(self):
@@ -136,11 +137,12 @@ class Cut(_CutBase):
     """
     # Don't construct an attribute dictionary; see
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
-    __slots__ = ('from_nodes', 'to_nodes')
+    __slots__ = ('from_nodes', 'to_nodes', 'node_labels')
 
-    def __init__(self, from_nodes, to_nodes):
+    def __init__(self, from_nodes, to_nodes, node_labels=None):
         self.from_nodes = from_nodes
         self.to_nodes = to_nodes
+        self.node_labels = node_labels
 
     @property
     def indices(self):
@@ -188,9 +190,10 @@ class Cut(_CutBase):
 class KCut(_CutBase):
     """A cut that severs all connections between parts of a K-partition."""
 
-    def __init__(self, direction, partition):
+    def __init__(self, direction, partition, node_labels=None):
         self.direction = direction
         self.partition = partition
+        self.node_labels = node_labels
 
     @property
     def indices(self):

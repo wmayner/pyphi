@@ -479,7 +479,7 @@ method:
     0.333334
 
 Similarly, the |Subsystem.mie()| method returns the “core effect” or
-*maximally-irreducible effect* (MIE). 
+*maximally-irreducible effect* (MIE).
 
 For a detailed description of the MIC and MIE objects returned by these
 methods, see the documentation for |MIC| or use ``help(subsystem.mic)`` and
@@ -571,7 +571,7 @@ shown in the figure:
     >>> sia.phi
     1.916665
     >>> sia.cut
-    Cut [0, 1] ━━/ /━━➤ [2]
+    Cut [A, B] ━━/ /━━➤ [C]
 
 .. note::
 

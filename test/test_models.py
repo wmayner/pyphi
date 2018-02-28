@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from pyphi import Direction, Subsystem, config, constants, exceptions, models
-
+from pyphi.labels import NodeLabels
 
 # Helper functions for constructing PyPhi objects
 # -----------------------------------------------
@@ -297,6 +297,17 @@ def test_null_cut_equality():
     other = models.NullCut((2, 3))
     assert cut == other
     assert hash(cut) == hash(other)
+
+
+def test_cuts_can_have_node_labels():
+    node_labels = NodeLabels(['A', 'B'], (0, 1))
+    models.NullCut((0, 1), node_labels=node_labels)
+    models.Cut((0,), (1,), node_labels=node_labels)
+
+    k_partition = models.KPartition(
+        models.Part((0, 1), (0,)),
+        models.Part((), (1,)))
+    models.KCut(Direction.CAUSE, k_partition, node_labels=node_labels)
 
 # }}}
 

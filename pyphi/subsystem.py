@@ -83,7 +83,8 @@ class Subsystem:
             self.network.tpm, self.external_indices, self.state)
 
         # The unidirectional cut applied for phi evaluation
-        self.cut = cut if cut is not None else NullCut(self.node_indices)
+        self.cut = (cut if cut is not None
+                    else NullCut(self.node_indices, self.node_labels))
 
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
