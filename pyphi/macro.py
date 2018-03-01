@@ -17,6 +17,7 @@ from scipy.stats import entropy
 
 from . import compute, config, constants, convert, distribution, utils, validate
 from .exceptions import ConditionallyDependentError, StateUnreachableError
+from .labels import NodeLabels
 from .network import irreducible_purviews
 from .node import expand_node_tpm, generate_nodes
 from .subsystem import Subsystem
@@ -59,11 +60,6 @@ def remove_singleton_dimensions(tpm):
     return tpm.squeeze()[..., tpm_indices(tpm)]
 
 
-def node_labels(indices):
-    """Return the labels for macro nodes."""
-    return tuple("m{}".format(i) for i in indices)
-
-
 def run_tpm(system, steps, blackbox):
     """Iterate the TPM for the given number of timesteps.
 
@@ -101,12 +97,17 @@ class SystemAttrs(namedtuple('SystemAttrs',
     Versions of this object are passed down the steps of the micro-to-macro
     pipeline.
     """
+    @property
+    def node_labels(self):
+        """Return the labels for macro nodes."""
+        assert list(self.node_indices)[0] == 0
+        labels = list("m{}".format(i) for i in self.node_indices)
+        return NodeLabels(labels, self.node_indices)
 
     @property
     def nodes(self):
-        labels = node_labels(self.node_indices)
         return generate_nodes(self.tpm, self.cm, self.state, self.node_indices,
-                              labels)
+                              self.node_labels)
 
     @staticmethod
     def pack(system):
@@ -117,6 +118,7 @@ class SystemAttrs(namedtuple('SystemAttrs',
         system.tpm = self.tpm
         system.cm = self.cm
         system.node_indices = self.node_indices
+        system.node_labels = self.node_labels
         system.nodes = self.nodes
         system.state = self.state
 
@@ -322,6 +324,14 @@ class MacroSubsystem(Subsystem):
                 mechanisms.append(mechanism)
 
         return tuple(mechanisms)
+
+    @property
+    def cut_node_labels(self):
+        """Labels for the nodes that can be cut.
+
+        These are the labels of the micro elements.
+        """
+        return self.network.node_labels
 
     def apply_cut(self, cut):
         """Return a cut version of this |MacroSubsystem|.

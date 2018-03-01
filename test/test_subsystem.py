@@ -133,6 +133,10 @@ def test_cut_mechanisms(s):
         (0, 2), (1, 2), (0, 1, 2))
 
 
+def test_cut_node_labels(s):
+    assert s.cut_node_labels == s.node_labels
+
+
 def test_specify_elements_with_labels(standard):
     network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
     subsystem = Subsystem(network, (0, 0, 0), ('B', 'C'))

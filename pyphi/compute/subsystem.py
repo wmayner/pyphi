@@ -285,9 +285,10 @@ def _sia(cache_key, subsystem):
     # Only True if SINGLE_MICRO_NODES...=True, no?
     if len(subsystem.cut_indices) == 1:
         cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices,
-                    subsystem.node_labels)]
+                    subsystem.cut_node_labels)]
     else:
-        cuts = sia_bipartitions(subsystem.cut_indices, subsystem.node_labels)
+        cuts = sia_bipartitions(subsystem.cut_indices,
+                                subsystem.cut_node_labels)
 
     engine = ComputeSystemIrreducibility(
         cuts, subsystem, unpartitioned_ces)

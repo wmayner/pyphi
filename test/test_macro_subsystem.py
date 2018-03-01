@@ -29,7 +29,7 @@ def macro_subsystem():
 
     state = (0, 0, 0, 0)
 
-    network = pyphi.Network(tpm, cm=cm)
+    network = pyphi.Network(tpm, cm=cm, node_labels='ABCD')
 
     partition = ((0, 1), (2, 3))
     grouping = (((0, 1), (2,)), ((0, 1), (2,)))
@@ -52,6 +52,18 @@ def test_cut_mechanisms(macro_subsystem, propagation_delay):
     cut = models.Cut((1, 3), (0, 2, 4, 5, 6, 7))
     assert propagation_delay.apply_cut(cut).cut_mechanisms == (
         (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2))
+
+
+def test_cut_node_labels_are_for_micro_elements(macro_subsystem):
+    assert macro_subsystem.cut_node_labels == macro_subsystem.network.node_labels
+    assert macro_subsystem.cut_node_labels != macro_subsystem.node_labels
+
+
+def test_concept_str_uses_macro_node_labels(macro_subsystem):
+    assert str(macro_subsystem.concept((0, 1)).cause.mip) == (
+        'm0    m1 \n'
+        '─── ✕ ───\n'
+        'm1    m0 ')
 
 
 def test_pass_node_indices_as_a_range(s):

@@ -159,6 +159,13 @@ class Subsystem:
         return self.cut.all_cut_mechanisms()
 
     @property
+    def cut_node_labels(self):
+        """``NodeLabels``: Labels for the nodes of this system that will be
+        cut.
+        """
+        return self.node_labels
+
+    @property
     def tpm_size(self):
         """int: The number of nodes in the TPM."""
         return self.tpm.shape[-1]
