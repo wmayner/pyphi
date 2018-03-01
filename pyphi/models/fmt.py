@@ -367,32 +367,12 @@ def fmt_ria(ria, verbose=True, mip=False):
             partitioned_repertoire=partitioned_repertoire)
 
 
-def fmt_cut(cut, subsystem=None):
+def fmt_cut(cut):
     """Format a |Cut|."""
-    # HACK HACK
-    # TODO: fix this mess.
-    from .cuts import KCut, NullCut
-    if isinstance(cut, KCut):
-        return fmt_kcut(cut)
-
-    elif isinstance(cut, NullCut):
-        return str(cut)
-
-    # TODO: this is broken!
-    # Cut indices cannot be converted to labels for macro systems since macro
-    # systems are cut at the micro label. Avoid this error by using micro
-    # indices directly in the representation.
-    # TODO: somehow handle this with inheritance instead of a conditional?
-    from ..macro import MacroSubsystem
-    if isinstance(subsystem, MacroSubsystem):
-        from_nodes = str(cut.from_nodes)
-        to_nodes = str(cut.to_nodes)
-    else:
-        from_nodes = fmt_mechanism(cut.from_nodes, cut.node_labels)
-        to_nodes = fmt_mechanism(cut.to_nodes, cut.node_labels)
-
     return 'Cut {from_nodes} {symbol} {to_nodes}'.format(
-        from_nodes=from_nodes, symbol=CUT_SYMBOL, to_nodes=to_nodes)
+        from_nodes=fmt_mechanism(cut.from_nodes, cut.node_labels),
+        symbol=CUT_SYMBOL,
+        to_nodes=fmt_mechanism(cut.to_nodes, cut.node_labels))
 
 
 def fmt_kcut(cut):
@@ -420,10 +400,8 @@ def fmt_sia(sia, ces=True):
     title = 'System irreducibility analysis: {BIG_PHI} = {phi}'.format(
         BIG_PHI=BIG_PHI, phi=fmt_number(sia.phi))
 
-    cut = fmt_cut(sia.cut, sia.subsystem)
-
     body = header(str(sia.subsystem), body, center=center_header)
-    body = header(cut, body, center=center_header)
+    body = header(str(sia.cut), body, center=center_header)
     return box(header(title, body, center=center_header))
 
 
