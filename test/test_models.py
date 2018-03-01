@@ -747,6 +747,10 @@ def test_partition_normalize(k_partition):
         models.Part((6,), (5,)))
 
 
+def test_partition_eq_hash():
+    assert k_partition() == k_partition()
+    assert hash(k_partition()) == hash(k_partition())
+
 # }}}
 
 # vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :

@@ -4,7 +4,7 @@
 
 """Objects that represent partitions of sets of nodes."""
 
-from collections import namedtuple
+import collections
 from itertools import chain
 
 import numpy as np
@@ -240,7 +240,7 @@ class ActualCut(KCut):
                                 self.partition.purview)))
 
 
-class Part(namedtuple('Part', ['mechanism', 'purview'])):
+class Part(collections.namedtuple('Part', ['mechanism', 'purview'])):
     """Represents one part of a |Bipartition|.
 
     Attributes:
@@ -265,18 +265,36 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
         return {'mechanism': self.mechanism, 'purview': self.purview}
 
 
-class KPartition(tuple):
+class KPartition(collections.abc.Sequence):
     """A partition with an arbitrary number of parts."""
 
-    __slots__ = ()
+    __slots__ = ['parts']
 
-    def __new__(cls, *args):
-        """Construct the base tuple with multiple |Part| arguments."""
-        return super().__new__(cls, args)
+    def __init__(self, *parts):
+        self.parts = parts
 
-    def __getnewargs__(self):
-        """And support unpickling with this ``__new__`` signature."""
-        return tuple(self)
+    def __len__(self):
+        return len(self.parts)
+
+    def __getitem__(self, index):
+        return self.parts[index]
+
+    def __eq__(self, other):
+        if not isinstance(other, KPartition):
+            return NotImplemented
+        return self.parts == other.parts
+
+    def __hash__(self):
+        return hash(self.parts)
+
+    def __str__(self):
+        return fmt.fmt_partition(self)
+
+    def __repr__(self):
+        if config.REPR_VERBOSITY > 0:
+            return str(self)
+
+        return '{}{}'.format(self.__class__.__name__, super().__repr__())
 
     @property
     def mechanism(self):
@@ -294,15 +312,6 @@ class KPartition(tuple):
         """Normalize the order of parts in the partition."""
         return type(self)(*sorted(self))
 
-    def __str__(self):
-        return fmt.fmt_partition(self)
-
-    def __repr__(self):
-        if config.REPR_VERBOSITY > 0:
-            return str(self)
-
-        return '{}{}'.format(self.__class__.__name__, super().__repr__())
-
     def to_json(self):
         return {'parts': list(self)}
 
@@ -319,7 +328,7 @@ class Bipartition(KPartition):
         part1 (Part): The second part of the partition.
     """
 
-    __slots__ = ()
+    __slots__ = KPartition.__slots__
 
     def to_json(self):
         """Return a JSON-serializable representation."""
@@ -333,4 +342,4 @@ class Bipartition(KPartition):
 class Tripartition(KPartition):
     """A partition with three parts."""
 
-    __slots__ = ()
+    __slots__ = KPartition.__slots__
