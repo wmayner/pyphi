@@ -249,7 +249,7 @@ def fmt_part(part, node_labels=None):
     ).format(numer=numer, divider=divider, denom=denom, width=width)
 
 
-def fmt_partition(partition, node_labels=None):
+def fmt_partition(partition):
     """Format a |Bipartition|.
 
     The returned string looks like::
@@ -267,7 +267,8 @@ def fmt_partition(partition, node_labels=None):
     if not partition:
         return ''
 
-    parts = [fmt_part(part, node_labels).split('\n') for part in partition]
+    parts = [fmt_part(part, partition.node_labels).split('\n')
+             for part in partition]
 
     times = ('   ',
              ' {} '.format(MULTIPLY),
@@ -337,7 +338,7 @@ def fmt_ria(ria, verbose=True, mip=False):
     if config.REPR_VERBOSITY is HIGH:
         partition = '\n{}:\n{}'.format(
             ('MIP' if mip else 'Partition'),
-            indent(fmt_partition(ria.partition, ria.node_labels)))
+            indent(fmt_partition(ria.partition)))
         repertoire = '\nRepertoire:\n{}'.format(
             indent(fmt_repertoire(ria.repertoire)))
         partitioned_repertoire = '\nPartitioned repertoire:\n{}'.format(

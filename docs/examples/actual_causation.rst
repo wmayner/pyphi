@@ -131,9 +131,9 @@ The ``partition`` property shows the minimum information partition that
 reduces the occurence and candidate effect:
 
    >>> link.partition  # doctest: +NORMALIZE_WHITESPACE
-    ∅     0     1
+    ∅     OR     AND
    ─── ✕ ─── ✕ ───
-    ∅     0     1
+    ∅     OR     AND
 
 Let's look at the MIP for the irreducible occurence |Y_t = {OR, AND}|
 constraining |X_t-1 = {OR, AND}| (Figure 3D). This candidate causal link has
@@ -204,9 +204,9 @@ The partition of the MIP is available in the ``cut`` property:
 
    >>> sia.cut  # doctest: +NORMALIZE_WHITESPACE
    KCut CAUSE
-    ∅     0     1
+    ∅     OR    AND
    ─── ✕ ─── ✕ ───
-    ∅     0     1
+    ∅     OR    AND
 
 To find all irreducible accounts within the transition of interest, use
 ``nexus``:

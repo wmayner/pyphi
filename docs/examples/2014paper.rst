@@ -411,15 +411,15 @@ attributes:
     >>> mip_c.phi
     0.499999
     >>> mip_c.partition  # doctest: +NORMALIZE_WHITESPACE
-     0     1,2
+     A     B,C
     ─── ✕ ─────
-     ∅    0,1,2
+     ∅    A,B,C
     >>> mip_e.phi
     0.25
     >>> mip_e.partition  # doctest: +NORMALIZE_WHITESPACE
-     ∅    0,1,2
+     ∅    A,B,C
     ─── ✕ ─────
-     1     0,2
+     B     A,C
 
 For more information on these objects, see the documentation for the
 |RepertoireIrreducibilityAnalysis| class, or use ``help(mip_c)``.

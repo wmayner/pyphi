@@ -327,10 +327,9 @@ class Transition:
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
 
-        for partition in mip_partitions(mechanism, purview):
+        for partition in mip_partitions(mechanism, purview, self.node_labels):
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
-
             alpha = log2(probability / partitioned_probability)
 
             # First check for 0
@@ -527,7 +526,8 @@ def _get_cuts(transition, direction):
     else:
         mechanism = transition.mechanism_indices(direction)
         purview = transition.purview_indices(direction)
-        for partition in mip_partitions(mechanism, purview):
+        for partition in mip_partitions(mechanism, purview,
+                                        transition.node_labels):
             yield ActualCut(direction, partition, transition.node_labels)
 
 

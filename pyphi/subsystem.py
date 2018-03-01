@@ -580,7 +580,7 @@ class Subsystem:
             return _mip(0, None, None)
 
         # Loop over possible MIP partitions
-        for partition in mip_partitions(mechanism, purview):
+        for partition in mip_partitions(mechanism, purview, self.node_labels):
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(

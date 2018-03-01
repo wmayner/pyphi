@@ -9,6 +9,7 @@ Helper class representing labels of network nodes.
 import collections
 
 from pyphi import validate
+from pyphi.models import cmp
 
 
 def default_label(index):
@@ -59,6 +60,7 @@ class NodeLabels(collections.abc.Collection):
     def __repr__(self):
         return 'NodeLabels({})'.format(self.labels)
 
+    @cmp.sametype
     def __eq__(self, other):
         return (self.labels == other.labels and
                 self.node_indices == other.node_indices)

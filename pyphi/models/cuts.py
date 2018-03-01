@@ -311,7 +311,7 @@ class KPartition(collections.abc.Sequence):
 
     def normalize(self):
         """Normalize the order of parts in the partition."""
-        return type(self)(*sorted(self))
+        return type(self)(*sorted(self), node_labels=self.node_labels)
 
     def to_json(self):
         return {'parts': list(self)}
