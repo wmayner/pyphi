@@ -299,14 +299,14 @@ def test_null_cut_equality():
     assert hash(cut) == hash(other)
 
 
-def test_cuts_can_have_node_labels():
-    node_labels = NodeLabels(['A', 'B'], (0, 1))
+def test_cuts_can_have_node_labels(node_labels):
     models.NullCut((0, 1), node_labels=node_labels)
     models.Cut((0,), (1,), node_labels=node_labels)
 
     k_partition = models.KPartition(
         models.Part((0, 1), (0,)),
-        models.Part((), (1,)))
+        models.Part((), (1,)),
+        node_labels=node_labels)
     models.KCut(Direction.CAUSE, k_partition, node_labels=node_labels)
 
 # }}}
@@ -692,10 +692,16 @@ def test_make_reprs_calls_out_to_string():
 # {{{
 
 @pytest.fixture
-def bipartition():
+def node_labels():
+    return NodeLabels('ABCDE', tuple(range(5)))
+
+
+@pytest.fixture
+def bipartition(node_labels):
     return models.Bipartition(
         models.Part((0,), (0, 4)),
-        models.Part((), (1,)))
+        models.Part((), (1,)),
+        node_labels=node_labels)
 
 
 def test_bipartition_properties(bipartition):
@@ -711,11 +717,12 @@ def test_bipartition_str(bipartition):
 
 
 @pytest.fixture
-def tripartition():
+def tripartition(node_labels):
     return models.Tripartition(
         models.Part((0,), (0, 4)),
         models.Part((), (1,)),
-        models.Part((2,), (2,)))
+        models.Part((2,), (2,)),
+        node_labels=node_labels)
 
 
 def test_tripartion_properties(tripartition):
@@ -731,12 +738,13 @@ def test_tripartion_str(tripartition):
 
 
 @pytest.fixture
-def k_partition():
+def k_partition(node_labels=None):
     return models.KPartition(
         models.Part((0,), (0, 4)),
         models.Part((), (1,)),
         models.Part((6,), (5,)),
-        models.Part((2,), (2,)))
+        models.Part((2,), (2,)),
+        node_labels=node_labels)
 
 
 def test_partition_normalize(k_partition):

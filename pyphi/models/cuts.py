@@ -268,10 +268,11 @@ class Part(collections.namedtuple('Part', ['mechanism', 'purview'])):
 class KPartition(collections.abc.Sequence):
     """A partition with an arbitrary number of parts."""
 
-    __slots__ = ['parts']
+    __slots__ = ['parts', 'node_labels']
 
-    def __init__(self, *parts):
+    def __init__(self, *parts, node_labels=None):
         self.parts = parts
+        self.node_labels = node_labels
 
     def __len__(self):
         return len(self.parts)
