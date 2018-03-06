@@ -8,7 +8,6 @@
 # pylint: disable=too-many-public-methods,too-many-arguments
 
 import functools
-import itertools
 import logging
 from time import time
 
@@ -17,10 +16,9 @@ import numpy as np
 from . import Direction, cache, config, distribution, utils, validate
 from .distance import repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Bipartition, Concept, KPartition,
-                     MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
-                     NullCut, Part, RepertoireIrreducibilityAnalysis,
-                     Tripartition, _null_ria)
+from .models import (Concept, MaximallyIrreducibleCause,
+                     MaximallyIrreducibleEffect, NullCut,
+                     RepertoireIrreducibilityAnalysis, _null_ria)
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
