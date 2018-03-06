@@ -273,10 +273,6 @@ class Subsystem:
                 "`indices` must be a subset of the Subsystem's indices.")
         return tuple(self._index2node[n] for n in indices)
 
-    def indices2labels(self, indices):
-        """Return the node labels for the given indices."""
-        return tuple(n.label for n in self.indices2nodes(indices))
-
     # TODO extend to nonbinary nodes
     @cache.method('_single_node_repertoire_cache', Direction.CAUSE)
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):

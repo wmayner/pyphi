@@ -145,10 +145,6 @@ def test_specify_elements_with_labels(standard):
     assert str(subsystem) == 'Subsystem(B, C)'
 
 
-def test_indices2labels(s):
-    assert s.indices2labels((1, 2)) == ('B', 'C')
-
-
 def test_null_concept(s):
     cause = MaximallyIrreducibleCause(
         RepertoireIrreducibilityAnalysis(
