@@ -15,7 +15,7 @@ import numpy as np
 
 from . import utils
 from .connectivity import get_inputs_from_cm, get_outputs_from_cm
-from .labels import default_labels
+from .labels import NodeLabels
 from .tpm import marginalize_out, tpm_indices
 
 
@@ -29,7 +29,7 @@ class Node:
         cm (np.ndarray): The CM of the subsystem.
         index (int): The node's index in the network.
         state (int): The state of this node.
-        label (str): An optional label for the node.
+        node_labels (|NodeLabels]): Labels for these nodes.
 
     Attributes:
         tpm (np.ndarray): The node TPM is a 2^(n_inputs)-by-2 matrix, where
@@ -39,16 +39,16 @@ class Node:
             tpm is simply its unconstrained effect repertoire.
     """
 
-    def __init__(self, tpm, cm, index, state, label):
+    def __init__(self, tpm, cm, index, state, node_labels):
 
         # This node's index in the list of nodes.
         self.index = index
 
-        # Label for display.
-        self.label = label
-
         # State of this node.
         self.state = state
+
+        # Node labels used in the system
+        self.node_labels = node_labels
 
         # Get indices of the inputs.
         self._inputs = frozenset(get_inputs_from_cm(self.index, cm))
@@ -108,6 +108,11 @@ class Node:
         """The set of nodes this node has connections to."""
         return self._outputs
 
+    @property
+    def label(self):
+        """The textual label for this node."""
+        return self.node_labels[self.index]
+
     def __repr__(self):
         return self.label
 
@@ -145,7 +150,7 @@ class Node:
         return self.index
 
 
-def generate_nodes(tpm, cm, network_state, indices, labels=None):
+def generate_nodes(tpm, cm, network_state, indices, node_labels=None):
     """Generate |Node| objects for a subsystem.
 
     Args:
@@ -155,20 +160,18 @@ def generate_nodes(tpm, cm, network_state, indices, labels=None):
         indices (tuple[int]): Indices to generate nodes for.
 
     Keyword Args:
-        labels (tuple[str]): Textual labels for each node.
+        node_labels (|NodeLabels|): Textual labels for each node.
 
     Returns:
         tuple[Node]: The nodes of the system.
     """
-    if labels is None:
-        labels = default_labels(indices)
-    else:
-        assert len(labels) == len(indices)
+    if node_labels is None:
+        node_labels = NodeLabels(None, indices)
 
     node_state = utils.state_of(indices, network_state)
 
-    return tuple(Node(tpm, cm, index, state, label=label)
-                 for index, state, label in zip(indices, node_state, labels))
+    return tuple(Node(tpm, cm, index, state, node_labels)
+                 for index, state in zip(indices, node_state))
 
 
 def expand_node_tpm(tpm):

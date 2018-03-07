@@ -60,7 +60,7 @@ class Subsystem:
 
         # Remove duplicates, sort, and ensure native Python `int`s
         # (for JSON serialization).
-        self.node_labels = network._node_labels
+        self.node_labels = network.node_labels
         self.node_indices = self.node_labels.coerce_to_indices(nodes)
 
         validate.state_length(state, self.network.size)
@@ -98,8 +98,7 @@ class Subsystem:
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
         self.nodes = generate_nodes(
-            self.tpm, self.cm, self.state, self.node_indices,
-            self.node_labels.indices2labels(self.node_indices))
+            self.tpm, self.cm, self.state, self.node_indices, self.node_labels)
 
         validate.subsystem(self)
 

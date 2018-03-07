@@ -22,7 +22,7 @@ def default_labels(indices):
     return tuple(default_label(i) for i in indices)
 
 
-class NodeLabels(collections.abc.Collection):
+class NodeLabels(collections.abc.Sequence):
     '''Text labels for nodes in a network.
 
     Labels can either be instantiated as a tuple of strings:
@@ -56,6 +56,9 @@ class NodeLabels(collections.abc.Collection):
 
     def __contains__(self, x):
         return x in self.labels
+
+    def __getitem__(self, x):
+        return self.labels[x]
 
     def __repr__(self):
         return 'NodeLabels({})'.format(self.labels)
