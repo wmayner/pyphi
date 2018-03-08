@@ -28,7 +28,7 @@ before_install:
 
 # Install packages
 install:
-  - conda create --yes --name=$TRAVIS_PYTHON_VERSION python=$TRAVIS_PYTHON_VERSION numpy scipy
+  - conda create --yes --name=$TRAVIS_PYTHON_VERSION python=$TRAVIS_PYTHON_VERSION numpy=1.14 scipy
   - source activate $TRAVIS_PYTHON_VERSION
   - pip install -r requirements.txt
   - pip install coveralls
