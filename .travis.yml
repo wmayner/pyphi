@@ -20,7 +20,7 @@ python:
 # Install packages
 install:
   - pip install --upgrade pip setuptools wheel
-  - pip install -r requirements.txt --only-binary=numpy,scipy numpy=1.14
+  - pip install -r requirements.txt --only-binary=numpy,scipy numpy==1.14
   - pip install coveralls
   - pip freeze
 
