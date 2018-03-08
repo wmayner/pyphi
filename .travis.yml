@@ -17,20 +17,10 @@ python:
   - "3.5"
   - "3.6"
 
-# Setup miniconda
-before_install:
-  - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b
-  - export PATH=/home/travis/miniconda3/bin:$PATH
-  # Update conda itself
-  - conda update --yes conda
-
 # Install packages
 install:
-  - conda create --yes --name=$TRAVIS_PYTHON_VERSION python=$TRAVIS_PYTHON_VERSION numpy=1.14 scipy
-  - source activate $TRAVIS_PYTHON_VERSION
-  - pip install -r requirements.txt
+  - pip install --upgrade pip setuptools wheel
+  - pip install -r requirements.txt --only-binary=numpy,scipy
   - pip install coveralls
   - pip freeze
 
