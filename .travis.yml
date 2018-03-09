@@ -6,6 +6,7 @@ branches:
   only:
     - master
     - develop
+    - scratch
 
 # Setup databases
 services:
