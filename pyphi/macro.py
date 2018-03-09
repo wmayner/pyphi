@@ -314,14 +314,14 @@ class MacroSubsystem(Subsystem):
 
         Note that although ``cut_indices`` returns micro indices, this
         returns macro mechanisms.
+
+        Yields:
+            tuple[int]
         """
-        mechanisms = []
         for mechanism in utils.powerset(self.node_indices, nonempty=True):
             micro_mechanism = self.macro2micro(mechanism)
             if self.cut.splits_mechanism(micro_mechanism):
-                mechanisms.append(mechanism)
-
-        return tuple(mechanisms)
+                yield mechanism
 
     def apply_cut(self, cut):
         """Return a cut version of this |MacroSubsystem|.

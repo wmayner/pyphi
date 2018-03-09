@@ -81,11 +81,12 @@ class _CutBase:
     def all_cut_mechanisms(self):
         """Return all mechanisms with elements on both sides of this cut.
 
-        Returns:
-            tuple[tuple[int]]
+        Yields:
+            tuple[int]: The next cut mechanism.
         """
-        all_mechanisms = utils.powerset(self.indices, nonempty=True)
-        return tuple(m for m in all_mechanisms if self.splits_mechanism(m))
+        for mechanism in utils.powerset(self.indices, nonempty=True):
+            if self.splits_mechanism(mechanism):
+                yield mechanism
 
 
 class NullCut(_CutBase):

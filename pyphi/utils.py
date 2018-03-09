@@ -152,7 +152,7 @@ def powerset(iterable, nonempty=False, reverse=False):
         reverse (boolean): If True, reverse the order of the powerset.
 
     Returns:
-        generator: An chained generator over the power set.
+        Iterable: An iterator over the power set.
 
     Example:
         >>> ps = powerset(np.arange(2))

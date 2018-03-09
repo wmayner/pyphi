@@ -70,8 +70,8 @@ def test_splits_mechanism(kcut_cause):
 
 
 def test_all_cut_mechanisms(kcut_cause):
-    assert kcut_cause.all_cut_mechanisms() == (
-        (2,), (0, 2), (0, 3), (2, 3), (0, 2, 3))
+    assert list(kcut_cause.all_cut_mechanisms()) == [
+        (2,), (0, 2), (0, 3), (2, 3), (0, 2, 3)]
 
 
 @config.override(PARTITION_TYPE='TRI')

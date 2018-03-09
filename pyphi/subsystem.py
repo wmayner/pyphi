@@ -148,6 +148,9 @@ class Subsystem:
 
         This was added to support ``MacroSubsystem``, which cuts indices other
         than ``node_indices``.
+
+        Yields:
+            tuple[int]
         """
         return self.node_indices
 
