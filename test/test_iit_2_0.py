@@ -47,3 +47,9 @@ def and_whole_system(and_network):
 def test_prior_repertoire(and_whole_system):
     assert np.array_equal(and_whole_system.prior_repertoire(),
                           np.ones([2, 2, 2]) / 8)
+
+
+def test_posterior_repertoire(and_whole_system):
+    """x_0 = (1, 1, 0) is the unique cause of x_1 = (0, 0, 1)"""
+    r = np.array([[[0, 0], [0, 0]], [[0, 0], [1, 0]]])
+    assert np.array_equal(and_whole_system.posterior_repertoire(), r)
