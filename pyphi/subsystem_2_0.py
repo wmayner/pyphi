@@ -4,8 +4,15 @@
 
 """Implementation of IIT 2.0"""
 
+from scipy.stats import entropy as _entropy
+
 import pyphi
-from pyphi.distribution import max_entropy_distribution
+from pyphi.distribution import flatten, max_entropy_distribution
+
+
+def entropy(pk, qk=None):
+    """Entropy, measured in bits."""
+    return _entropy(pk, qk, base=2.0)
 
 
 class Subsystem_2_0:
@@ -32,3 +39,8 @@ class Subsystem_2_0:
         """The a posteriori repertoire of the system."""
         return self._subsystem_3_0.cause_repertoire(self.node_indices,
                                                     self.node_indices)
+
+    def effective_information(self):
+        """The effective information of the system."""
+        return entropy(flatten(self.posterior_repertoire()),
+                       flatten(self.prior_repertoire()))
