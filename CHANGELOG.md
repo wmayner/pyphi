@@ -19,7 +19,7 @@ Next Release
 
 ### API changes
 
-- Removed the `labels2indices`, 'indices2labels` and `parse_node_indices`
+- Removed the `labels2indices`, `indices2labels` and `parse_node_indices`
   methods from `Network`, and the `indices2labels` method from `Subsystem`.
 
 
