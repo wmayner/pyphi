@@ -47,8 +47,8 @@ class Network:
             that node |i| is connected to node |j| (see :ref:`cm-conventions`).
             **If no connectivity matrix is given, PyPhi assumes that every node
             is connected to every node (including itself)**.
-        node_labels (tuple[str]): Human-readable labels for each node in the
-            network.
+        node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
+            each node in the network.
 
     Example:
         In a 3-node network, ``the_network.tpm[(0, 0, 1)]`` gives the
