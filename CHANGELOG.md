@@ -1,6 +1,28 @@
 Changelog
 =========
 
+Next Release
+------------
+
+### Fixes
+
+- Fixed a memory leaked when concepts returned by parallel CES computations
+  were returned with distinct subsystem objects. Now all objects in a CES
+  share the same subsystem reference.
+
+### API additions
+
+- Added a `NodeLabels` object for managing the labels of network elements.
+  Most models now carry a `NodeLabels` instance that is used for string
+  formatting.
+- Added the `cut_node_labels` property to `Subsystem` and `MacroSubsystem`.
+
+### API changes
+
+- Removed the `labels2indices`, 'indices2labels` and `parse_node_indices`
+  methods from `Network`, and the `indices2labels` method from `Subsystem`.
+
+
 1.0.0 :tada:
 ------------
 _2017-12-21_
