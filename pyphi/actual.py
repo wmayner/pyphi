@@ -85,12 +85,13 @@ class Transition:
         self.before_state = before_state
         self.after_state = after_state
 
-        parse_nodes = network.parse_node_indices
-        self.cause_indices = parse_nodes(cause_indices)
-        self.effect_indices = parse_nodes(effect_indices)
-        self.node_indices = parse_nodes(cause_indices + effect_indices)
+        coerce_to_indices = network._node_labels.coerce_to_indices
+        self.cause_indices = coerce_to_indices(cause_indices)
+        self.effect_indices = coerce_to_indices(effect_indices)
+        self.node_indices = coerce_to_indices(cause_indices + effect_indices)
 
-        self.cut = cut if cut is not None else NullCut(self.node_indices)
+        self.cut = (cut if cut is not None
+                    else NullCut(self.node_indices, self.node_labels))
 
         # Indices external to the cause system.
         # The TPMs of both systems are conditioned on these background
@@ -160,6 +161,10 @@ class Transition:
     def __bool__(self):
         return len(self) > 0
 
+    @property
+    def node_labels(self):
+        return self.network._node_labels
+
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
@@ -200,14 +205,15 @@ class Transition:
                 effect repertoire.
         """
         system = self.system[direction]
+        node_labels = system.node_labels
 
         if not set(purview).issubset(self.purview_indices(direction)):
             raise ValueError('{} is not a {} purview in {}'.format(
-                fmt.fmt_mechanism(purview, system), direction, self))
+                fmt.fmt_mechanism(purview, node_labels), direction, self))
 
         if not set(mechanism).issubset(self.mechanism_indices(direction)):
             raise ValueError('{} is no a {} mechanism in {}'.format(
-                fmt.fmt_mechanism(mechanism, system), direction, self))
+                fmt.fmt_mechanism(mechanism, node_labels), direction, self))
 
         return system.repertoire(direction, mechanism, purview)
 
@@ -322,10 +328,9 @@ class Transition:
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
 
-        for partition in mip_partitions(mechanism, purview):
+        for partition in mip_partitions(mechanism, purview, self.node_labels):
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
-
             alpha = log2(probability / partitioned_probability)
 
             # First check for 0
@@ -339,6 +344,7 @@ class Transition:
                     partition=partition,
                     probability=probability,
                     partitioned_probability=partitioned_probability,
+                    node_labels=self.node_labels,
                     alpha=0.0
                 )
             # Then take closest to 0
@@ -352,6 +358,7 @@ class Transition:
                     partition=partition,
                     probability=probability,
                     partitioned_probability=partitioned_probability,
+                    node_labels=self.node_labels,
                     alpha=alpha_min
                 )
         return acria
@@ -520,8 +527,9 @@ def _get_cuts(transition, direction):
     else:
         mechanism = transition.mechanism_indices(direction)
         purview = transition.purview_indices(direction)
-        for partition in mip_partitions(mechanism, purview):
-            yield ActualCut(direction, partition)
+        for partition in mip_partitions(mechanism, purview,
+                                        transition.node_labels):
+            yield ActualCut(direction, partition, transition.node_labels)
 
 
 def sia(transition, direction=Direction.BIDIRECTIONAL):

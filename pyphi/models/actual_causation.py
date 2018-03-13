@@ -27,9 +27,7 @@ def greater_than_zero(alpha):
     return alpha > 0 and not utils.eq(alpha, 0)
 
 
-class AcRepertoireIrreducibilityAnalysis(
-        cmp.Orderable, namedtuple('AcRepertoireIrreducibilityAnalysis',
-                                  _acria_attributes)):
+class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
     """A minimum information partition for ac_coef calculation.
 
 
@@ -59,6 +57,19 @@ class AcRepertoireIrreducibilityAnalysis(
         partitioned_probability (float):
             The probability of the state in the partitioned repertoire.
     """
+
+    def __init__(self, alpha, state, direction, mechanism, purview,
+                 partition, probability, partitioned_probability,
+                 node_labels=None):
+        self.alpha = alpha
+        self.state = state
+        self.direction = direction
+        self.mechanism = mechanism
+        self.purview = purview
+        self.partition = partition
+        self.probability = probability
+        self.partitioned_probability = partitioned_probability
+        self.node_labels = node_labels
 
     __slots__ = ()
 
@@ -160,6 +171,10 @@ class CausalLink(cmp.Orderable):
         this mechanism.
         """
         return self._ria
+
+    @property
+    def node_labels(self):
+        return self._ria.node_labels
 
     def __repr__(self):
         return fmt.make_repr(self, ['ria'])

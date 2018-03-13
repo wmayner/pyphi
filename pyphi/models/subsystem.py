@@ -19,11 +19,13 @@ def _concept_sort_key(concept):
 
 class CauseEffectStructure(tuple):
     """A collection of concepts."""
-    # TODO: compare CESs using set equality
+    # TODO: make CES a proper object instead of a tuple hack
 
-    def __new__(cls, concepts=()):
+    def __new__(cls, concepts=(), subsystem=None):
         """Normalize the order of concepts in the |CauseEffectStructure|."""
-        return super().__new__(cls, sorted(concepts, key=_concept_sort_key))
+        obj = super().__new__(cls, sorted(concepts, key=_concept_sort_key))
+        obj.subsystem = subsystem
+        return obj
 
     def __repr__(self):
         if config.REPR_VERBOSITY > 0:
@@ -36,7 +38,7 @@ class CauseEffectStructure(tuple):
         return fmt.fmt_ces(self)
 
     def to_json(self):
-        return {'concepts': list(self)}
+        return {'concepts': list(self), 'subsystem': self.subsystem}
 
     @property
     def mechanisms(self):
@@ -51,14 +53,8 @@ class CauseEffectStructure(tuple):
     @property
     def labeled_mechanisms(self):
         """The labeled mechanism of each concept."""
-        if not self:
-            return []
-        label = self[0].subsystem.network.indices2labels
+        label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
-
-    @classmethod
-    def from_json(cls, json):
-        return cls(json['concepts'])
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):

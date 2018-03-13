@@ -4,7 +4,7 @@
 
 """Objects that represent partitions of sets of nodes."""
 
-from collections import namedtuple
+import collections
 from itertools import chain
 
 import numpy as np
@@ -92,8 +92,9 @@ class _CutBase:
 class NullCut(_CutBase):
     """The cut that does nothing."""
 
-    def __init__(self, indices):
+    def __init__(self, indices, node_labels=None):
         self._indices = indices
+        self.node_labels = node_labels
 
     @property
     def is_null(self):
@@ -126,7 +127,7 @@ class NullCut(_CutBase):
         return hash(self.indices)
 
 
-class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
+class Cut(_CutBase):
     """Represents a unidirectional cut.
 
     Attributes:
@@ -137,13 +138,17 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
     """
     # Don't construct an attribute dictionary; see
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
+    __slots__ = ('from_nodes', 'to_nodes', 'node_labels')
 
-    __slots__ = ()
+    def __init__(self, from_nodes, to_nodes, node_labels=None):
+        self.from_nodes = from_nodes
+        self.to_nodes = to_nodes
+        self.node_labels = node_labels
 
     @property
     def indices(self):
         """Indices of this cut."""
-        return tuple(sorted(set(self[0] + self[1])))
+        return tuple(sorted(set(self.from_nodes + self.to_nodes)))
 
     def cut_matrix(self, n):
         """Compute the cut matrix for this cut.
@@ -161,7 +166,16 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
                    [0., 0., 1.],
                    [0., 0., 0.]])
         """
-        return connectivity.relevant_connections(n, self[0], self[1])
+        return connectivity.relevant_connections(n, self.from_nodes,
+                                                 self.to_nodes)
+
+    @cmp.sametype
+    def __eq__(self, other):
+        return (self.from_nodes == other.from_nodes and
+                self.to_nodes == other.to_nodes)
+
+    def __hash__(self):
+        return hash((self.from_nodes, self.to_nodes))
 
     def __repr__(self):
         return fmt.make_repr(self, ['from_nodes', 'to_nodes'])
@@ -177,9 +191,10 @@ class Cut(namedtuple('Cut', ['from_nodes', 'to_nodes']), _CutBase):
 class KCut(_CutBase):
     """A cut that severs all connections between parts of a K-partition."""
 
-    def __init__(self, direction, partition):
+    def __init__(self, direction, partition, node_labels=None):
         self.direction = direction
         self.partition = partition
+        self.node_labels = node_labels
 
     @property
     def indices(self):
@@ -226,7 +241,7 @@ class ActualCut(KCut):
                                 self.partition.purview)))
 
 
-class Part(namedtuple('Part', ['mechanism', 'purview'])):
+class Part(collections.namedtuple('Part', ['mechanism', 'purview'])):
     """Represents one part of a |Bipartition|.
 
     Attributes:
@@ -251,18 +266,37 @@ class Part(namedtuple('Part', ['mechanism', 'purview'])):
         return {'mechanism': self.mechanism, 'purview': self.purview}
 
 
-class KPartition(tuple):
+class KPartition(collections.abc.Sequence):
     """A partition with an arbitrary number of parts."""
 
-    __slots__ = ()
+    __slots__ = ['parts', 'node_labels']
 
-    def __new__(cls, *args):
-        """Construct the base tuple with multiple |Part| arguments."""
-        return super().__new__(cls, args)
+    def __init__(self, *parts, node_labels=None):
+        self.parts = parts
+        self.node_labels = node_labels
 
-    def __getnewargs__(self):
-        """And support unpickling with this ``__new__`` signature."""
-        return tuple(self)
+    def __len__(self):
+        return len(self.parts)
+
+    def __getitem__(self, index):
+        return self.parts[index]
+
+    def __eq__(self, other):
+        if not isinstance(other, KPartition):
+            return NotImplemented
+        return self.parts == other.parts
+
+    def __hash__(self):
+        return hash(self.parts)
+
+    def __str__(self):
+        return fmt.fmt_partition(self)
+
+    def __repr__(self):
+        if config.REPR_VERBOSITY > 0:
+            return str(self)
+
+        return '{}{}'.format(self.__class__.__name__, super().__repr__())
 
     @property
     def mechanism(self):
@@ -278,16 +312,7 @@ class KPartition(tuple):
 
     def normalize(self):
         """Normalize the order of parts in the partition."""
-        return type(self)(*sorted(self))
-
-    def __str__(self):
-        return fmt.fmt_bipartition(self)
-
-    def __repr__(self):
-        if config.REPR_VERBOSITY > 0:
-            return str(self)
-
-        return '{}{}'.format(self.__class__.__name__, super().__repr__())
+        return type(self)(*sorted(self), node_labels=self.node_labels)
 
     def to_json(self):
         return {'parts': list(self)}
@@ -305,7 +330,7 @@ class Bipartition(KPartition):
         part1 (Part): The second part of the partition.
     """
 
-    __slots__ = ()
+    __slots__ = KPartition.__slots__
 
     def to_json(self):
         """Return a JSON-serializable representation."""
@@ -319,4 +344,4 @@ class Bipartition(KPartition):
 class Tripartition(KPartition):
     """A partition with three parts."""
 
-    __slots__ = ()
+    __slots__ = KPartition.__slots__

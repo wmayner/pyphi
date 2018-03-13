@@ -100,7 +100,7 @@ for any purview, so the cause information is reducible.
     >>> BC = (1, 2)
     >>> A = (0,)
     >>> repertoire = subsystem.cause_repertoire(ABC, ABC)
-    >>> cut_repertoire = (subsystem.cause_repertoire(BC, ABC) * 
+    >>> cut_repertoire = (subsystem.cause_repertoire(BC, ABC) *
     ...                   subsystem.cause_repertoire(A, ()))
     >>> pyphi.distance.hamming_emd(repertoire, cut_repertoire)
     0.0
@@ -176,7 +176,7 @@ Calculating the MIP of the system,
     >>> sia.phi
     0.217829
     >>> sia.cut
-    Cut [0, 4] ━━/ /━━➤ [1]
+    Cut [A, E] ━━/ /━━➤ [B]
 
 we see that this subsystem has a |big_phi| value of 0.15533, and the MIP cuts
 the connections from |AE| to |B|. Investigating the concepts in both the

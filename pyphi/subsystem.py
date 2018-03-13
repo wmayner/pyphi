@@ -8,7 +8,6 @@
 # pylint: disable=too-many-public-methods,too-many-arguments
 
 import functools
-import itertools
 import logging
 from time import time
 
@@ -17,10 +16,9 @@ import numpy as np
 from . import Direction, cache, config, distribution, utils, validate
 from .distance import repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Bipartition, Concept, KPartition,
-                     MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
-                     NullCut, Part, RepertoireIrreducibilityAnalysis,
-                     Tripartition, _null_ria)
+from .models import (Concept, MaximallyIrreducibleCause,
+                     MaximallyIrreducibleEffect, NullCut,
+                     RepertoireIrreducibilityAnalysis, _null_ria)
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
@@ -62,7 +60,8 @@ class Subsystem:
 
         # Remove duplicates, sort, and ensure native Python `int`s
         # (for JSON serialization).
-        self.node_indices = network.parse_node_indices(nodes)
+        self.node_labels = network.node_labels
+        self.node_indices = self.node_labels.coerce_to_indices(nodes)
 
         validate.state_length(state, self.network.size)
 
@@ -82,7 +81,8 @@ class Subsystem:
             self.network.tpm, self.external_indices, self.state)
 
         # The unidirectional cut applied for phi evaluation
-        self.cut = cut if cut is not None else NullCut(self.node_indices)
+        self.cut = (cut if cut is not None
+                    else NullCut(self.node_indices, self.node_labels))
 
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
@@ -97,9 +97,8 @@ class Subsystem:
             single_node_repertoire_cache or cache.DictCache()
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
-        self.nodes = generate_nodes(self.tpm, self.cm, self.state,
-                                    self.node_indices,
-                                    network.indices2labels(self.node_indices))
+        self.nodes = generate_nodes(
+            self.tpm, self.cm, self.state, self.node_indices, self.node_labels)
 
         validate.subsystem(self)
 
@@ -158,6 +157,13 @@ class Subsystem:
     def cut_mechanisms(self):
         """list[tuple[int]]: The mechanisms that are cut in this system."""
         return self.cut.all_cut_mechanisms()
+
+    @property
+    def cut_node_labels(self):
+        """``NodeLabels``: Labels for the nodes of this system that will be
+        cut.
+        """
+        return self.node_labels
 
     @property
     def tpm_size(self):
@@ -268,10 +274,6 @@ class Subsystem:
             raise ValueError(
                 "`indices` must be a subset of the Subsystem's indices.")
         return tuple(self._index2node[n] for n in indices)
-
-    def indices2labels(self, indices):
-        """Return the node labels for the given indices."""
-        return tuple(n.label for n in self.indices2nodes(indices))
 
     # TODO extend to nonbinary nodes
     @cache.method('_single_node_repertoire_cache', Direction.CAUSE)
@@ -572,7 +574,7 @@ class Subsystem:
                 partition=partition,
                 repertoire=repertoire,
                 partitioned_repertoire=partitioned_repertoire,
-                subsystem=self
+                node_labels=self.node_labels
             )
 
         # State is unreachable - return 0 instead of giving nonsense results
@@ -581,7 +583,7 @@ class Subsystem:
             return _mip(0, None, None)
 
         # Loop over possible MIP partitions
-        for partition in mip_partitions(mechanism, purview):
+        for partition in mip_partitions(mechanism, purview, self.node_labels):
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(

@@ -28,6 +28,10 @@ class ComputeCauseEffectStructure(MapReduce):
 
     description = 'Computing concepts'
 
+    @property
+    def subsystem(self):
+        return self.context[0]
+
     def empty_result(self, *args):
         return []
 
@@ -37,16 +41,23 @@ class ComputeCauseEffectStructure(MapReduce):
         """Compute a |Concept| for a mechanism, in this |Subsystem| with the
         provided purviews.
         """
-        return subsystem.concept(mechanism,
-                                 purviews=purviews,
-                                 cause_purviews=cause_purviews,
-                                 effect_purviews=effect_purviews)
+        concept = subsystem.concept(mechanism,
+                                    purviews=purviews,
+                                    cause_purviews=cause_purviews,
+                                    effect_purviews=effect_purviews)
+        # Don't serialize the subsystem.
+        # This is replaced on the other side of the queue, and ensures
+        # that all concepts in the CES reference the same subsystem.
+        concept.subsystem = None
+        return concept
 
     def process_result(self, new_concept, concepts):
         """Save all concepts with non-zero |small_phi| to the
         |CauseEffectStructure|.
         """
         if new_concept.phi > 0:
+            # Replace the subsystem
+            new_concept.subsystem = self.subsystem
             concepts.append(new_concept)
         return concepts
 
@@ -83,7 +94,8 @@ def ces(subsystem, mechanisms=False, purviews=False, cause_purviews=False,
                                          cause_purviews, effect_purviews)
 
     return CauseEffectStructure(engine.run(parallel or
-                                           config.PARALLEL_CONCEPT_EVALUATION))
+                                           config.PARALLEL_CONCEPT_EVALUATION),
+                                subsystem=subsystem)
 
 
 def conceptual_info(subsystem):
@@ -92,7 +104,8 @@ def conceptual_info(subsystem):
     This is the distance from the subsystem's |CauseEffectStructure| to the
     null concept.
     """
-    ci = ces_distance(ces(subsystem), ())
+    ci = ces_distance(ces(subsystem),
+                      CauseEffectStructure((), subsystem=subsystem))
     return round(ci, config.PRECISION)
 
 
@@ -168,7 +181,7 @@ class ComputeSystemIrreducibility(MapReduce):
         return min_sia
 
 
-def sia_bipartitions(nodes):
+def sia_bipartitions(nodes, node_labels=None):
     """Return all |big_phi| cuts for the given nodes.
 
     This value changes based on :const:`config.CUT_ONE_APPROXIMATION`.
@@ -184,7 +197,7 @@ def sia_bipartitions(nodes):
         # Don't consider trivial partitions where one part is empty
         bipartitions = directed_bipartition(nodes, nontrivial=True)
 
-    return [Cut(bipartition[0], bipartition[1])
+    return [Cut(bipartition[0], bipartition[1], node_labels)
             for bipartition in bipartitions]
 
 
@@ -267,10 +280,16 @@ def _sia(cache_key, subsystem):
         return time_annotated(_null_sia(subsystem))
 
     log.debug('Found unpartitioned CauseEffectStructure.')
+
+    # TODO: move this into sia_bipartitions?
+    # Only True if SINGLE_MICRO_NODES...=True, no?
     if len(subsystem.cut_indices) == 1:
-        cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
+        cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices,
+                    subsystem.cut_node_labels)]
     else:
-        cuts = sia_bipartitions(subsystem.cut_indices)
+        cuts = sia_bipartitions(subsystem.cut_indices,
+                                subsystem.cut_node_labels)
+
     engine = ComputeSystemIrreducibility(
         cuts, subsystem, unpartitioned_ces)
     min_sia = engine.run(config.PARALLEL_CUT_EVALUATION)
@@ -380,10 +399,10 @@ class ConceptStyleSystem:
         return 'ConceptStyleSystem{}'.format(self.node_indices)
 
 
-def concept_cuts(direction, node_indices):
+def concept_cuts(direction, node_indices, node_labels=None):
     """Generator over all concept-syle cuts for these nodes."""
     for partition in mip_partitions(node_indices, node_indices):
-        yield KCut(direction, partition)
+        yield KCut(direction, partition, node_labels)
 
 
 def directional_sia(subsystem, direction, ces=None):
@@ -396,7 +415,7 @@ def directional_sia(subsystem, direction, ces=None):
         unpartitioned_ces = _ces(subsystem)
 
     c_system = ConceptStyleSystem(subsystem, direction)
-    cuts = concept_cuts(direction, c_system.cut_indices)
+    cuts = concept_cuts(direction, c_system.cut_indices, subsystem.node_labels)
 
     # Run the default SIA engine
     # TODO: verify that short-cutting works correctly?

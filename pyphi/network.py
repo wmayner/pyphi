@@ -7,12 +7,10 @@ Represents the network of interest. This is the primary object of PyPhi and the
 context of all |small_phi| and |big_phi| computation.
 """
 
-import json
-
 import numpy as np
 
-from . import cache, connectivity, convert, utils, validate
-from .node import default_labels
+from . import cache, connectivity, convert, jsonify, utils, validate
+from .labels import NodeLabels
 from .tpm import is_state_by_state
 
 
@@ -49,8 +47,8 @@ class Network:
             that node |i| is connected to node |j| (see :ref:`cm-conventions`).
             **If no connectivity matrix is given, PyPhi assumes that every node
             is connected to every node (including itself)**.
-        node_labels (tuple[str]): Human-readable labels for each node in the
-            network.
+        node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
+            each node in the network.
 
     Example:
         In a 3-node network, ``the_network.tpm[(0, 0, 1)]`` gives the
@@ -63,7 +61,7 @@ class Network:
         self._tpm, self._tpm_hash = self._build_tpm(tpm)
         self._cm, self._cm_hash = self._build_cm(cm)
         self._node_indices = tuple(range(self.size))
-        self._node_labels = node_labels or default_labels(self._node_indices)
+        self._node_labels = NodeLabels(node_labels, self._node_indices)
         self.purview_cache = purview_cache or cache.PurviewCache()
 
         validate.network(self)
@@ -151,28 +149,6 @@ class Network:
         """tuple[str]: The labels of nodes in the network."""
         return self._node_labels
 
-    def labels2indices(self, labels):
-        """Convert a tuple of node labels to node indices."""
-        _map = dict(zip(self.node_labels, self.node_indices))
-        return tuple(_map[label] for label in labels)
-
-    def indices2labels(self, indices):
-        """Convert a tuple of node indices to node labels."""
-        _map = dict(zip(self.node_indices, self.node_labels))
-        return tuple(_map[index] for index in indices)
-
-    def parse_node_indices(self, nodes):
-        """Return the nodes indices for nodes, where ``nodes`` is either
-        already integer indices or node labels.
-        """
-        if not nodes:
-            indices = ()
-        elif all(isinstance(node, str) for node in nodes):
-            indices = self.labels2indices(nodes)
-        else:
-            indices = map(int, nodes)
-        return tuple(sorted(set(indices)))
-
     # TODO: this should really be a Subsystem method, but we're
     # interested in caching at the Network-level...
     @cache.method('purview_cache')
@@ -213,7 +189,6 @@ class Network:
         return not self.__eq__(other)
 
     def __hash__(self):
-        # TODO: hash only once?
         return hash((self._tpm_hash, self._cm_hash))
 
     def to_json(self):
@@ -222,14 +197,14 @@ class Network:
             'tpm': self.tpm,
             'cm': self.cm,
             'size': self.size,
-            'labels': self.node_labels
+            'node_labels': self.node_labels
         }
 
     @classmethod
     def from_json(cls, json_dict):
         """Return a |Network| object from a JSON dictionary representation."""
-        return Network(json_dict['tpm'], json_dict['cm'],
-                       node_labels=json_dict['labels'])
+        del json_dict['size']
+        return Network(**json_dict)
 
 
 def irreducible_purviews(cm, direction, mechanism, purviews):
@@ -266,6 +241,4 @@ def from_json(filename):
        Network: The corresponding PyPhi network object.
     """
     with open(filename) as f:
-        loaded = json.load(f)
-
-    return Network.from_json(loaded)
+        return jsonify.load(f)

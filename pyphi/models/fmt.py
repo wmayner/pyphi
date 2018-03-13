@@ -192,11 +192,11 @@ def header(head, text, over_char=None, under_char=None, center=True):
     return head + text
 
 
-def labels(indices, subsystem=None):
+def labels(indices, node_labels=None):
     """Get the labels for a tuple of mechanism indices."""
-    if subsystem is None:
+    if node_labels is None:
         return tuple(map(str, indices))
-    return subsystem.indices2labels(indices)
+    return node_labels.indices2labels(indices)
 
 
 def fmt_number(p):
@@ -219,12 +219,12 @@ def fmt_number(p):
     )
 
 
-def fmt_mechanism(indices, subsystem=None):
+def fmt_mechanism(indices, node_labels=None):
     """Format a mechanism or purview."""
-    return '[' + ', '.join(labels(indices, subsystem)) + ']'
+    return '[' + ', '.join(labels(indices, node_labels)) + ']'
 
 
-def fmt_part(part, subsystem=None):
+def fmt_part(part, node_labels=None):
     """Format a |Part|.
 
     The returned string looks like::
@@ -234,7 +234,7 @@ def fmt_part(part, subsystem=None):
          ∅
     """
     def nodes(x):  # pylint: disable=missing-docstring
-        return ','.join(labels(x, subsystem)) if x else EMPTY_SET
+        return ','.join(labels(x, node_labels)) if x else EMPTY_SET
 
     numer = nodes(part.mechanism)
     denom = nodes(part.purview)
@@ -249,7 +249,7 @@ def fmt_part(part, subsystem=None):
     ).format(numer=numer, divider=divider, denom=denom, width=width)
 
 
-def fmt_bipartition(partition, subsystem=None):
+def fmt_partition(partition):
     """Format a |Bipartition|.
 
     The returned string looks like::
@@ -267,7 +267,8 @@ def fmt_bipartition(partition, subsystem=None):
     if not partition:
         return ''
 
-    parts = [fmt_part(part, subsystem).split('\n') for part in partition]
+    parts = [fmt_part(part, partition.node_labels).split('\n')
+             for part in partition]
 
     times = ('   ',
              ' {} '.format(MULTIPLY),
@@ -311,7 +312,7 @@ def fmt_concept(concept):
                     fmt_cause_or_effect(concept.effect))
     ce = side_by_side(cause, effect)
 
-    mechanism = fmt_mechanism(concept.mechanism, concept.subsystem)
+    mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)
     title = 'Concept: Mechanism = {}, {} = {}'.format(
         mechanism, SMALL_PHI, fmt_number(concept.phi))
 
@@ -328,7 +329,7 @@ def fmt_ria(ria, verbose=True, mip=False):
 
     if verbose:
         mechanism = 'Mechanism: {}\n'.format(
-            fmt_mechanism(ria.mechanism, ria.subsystem))
+            fmt_mechanism(ria.mechanism, ria.node_labels))
         direction = '\nDirection: {}'.format(ria.direction)
     else:
         mechanism = ''
@@ -337,7 +338,7 @@ def fmt_ria(ria, verbose=True, mip=False):
     if config.REPR_VERBOSITY is HIGH:
         partition = '\n{}:\n{}'.format(
             ('MIP' if mip else 'Partition'),
-            indent(fmt_bipartition(ria.partition, ria.subsystem)))
+            indent(fmt_partition(ria.partition)))
         repertoire = '\nRepertoire:\n{}'.format(
             indent(fmt_repertoire(ria.repertoire)))
         partitioned_repertoire = '\nPartitioned repertoire:\n{}'.format(
@@ -358,7 +359,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         '{partitioned_repertoire}').format(
             SMALL_PHI=SMALL_PHI,
             mechanism=mechanism,
-            purview=fmt_mechanism(ria.purview, ria.subsystem),
+            purview=fmt_mechanism(ria.purview, ria.node_labels),
             direction=direction,
             phi=fmt_number(ria.phi),
             partition=partition,
@@ -366,31 +367,12 @@ def fmt_ria(ria, verbose=True, mip=False):
             partitioned_repertoire=partitioned_repertoire)
 
 
-def fmt_cut(cut, subsystem=None):
+def fmt_cut(cut):
     """Format a |Cut|."""
-    # HACK HACK
-    # TODO: fix this mess.
-    from .cuts import KCut, NullCut
-    if isinstance(cut, KCut):
-        return fmt_kcut(cut)
-
-    elif isinstance(cut, NullCut):
-        return str(cut)
-
-    # Cut indices cannot be converted to labels for macro systems since macro
-    # systems are cut at the micro label. Avoid this error by using micro
-    # indices directly in the representation.
-    # TODO: somehow handle this with inheritance instead of a conditional?
-    from ..macro import MacroSubsystem
-    if isinstance(subsystem, MacroSubsystem):
-        from_nodes = str(cut.from_nodes)
-        to_nodes = str(cut.to_nodes)
-    else:
-        from_nodes = fmt_mechanism(cut.from_nodes, subsystem)
-        to_nodes = fmt_mechanism(cut.to_nodes, subsystem)
-
     return 'Cut {from_nodes} {symbol} {to_nodes}'.format(
-        from_nodes=from_nodes, symbol=CUT_SYMBOL, to_nodes=to_nodes)
+        from_nodes=fmt_mechanism(cut.from_nodes, cut.node_labels),
+        symbol=CUT_SYMBOL,
+        to_nodes=fmt_mechanism(cut.to_nodes, cut.node_labels))
 
 
 def fmt_kcut(cut):
@@ -418,10 +400,8 @@ def fmt_sia(sia, ces=True):
     title = 'System irreducibility analysis: {BIG_PHI} = {phi}'.format(
         BIG_PHI=BIG_PHI, phi=fmt_number(sia.phi))
 
-    cut = fmt_cut(sia.cut, sia.subsystem)
-
     body = header(str(sia.subsystem), body, center=center_header)
-    body = header(cut, body, center=center_header)
+    body = header(str(sia.cut), body, center=center_header)
     return box(header(title, body, center=center_header))
 
 
@@ -459,9 +439,12 @@ def fmt_ac_ria(ria):
         return ''
 
     causality = {
-        # TODO: use node labels
-        Direction.CAUSE: (str(ria.purview), ARROW_LEFT, str(ria.mechanism)),
-        Direction.EFFECT: (str(ria.mechanism), ARROW_RIGHT, str(ria.purview))
+        Direction.CAUSE: (fmt_mechanism(ria.purview, ria.node_labels),
+                          ARROW_LEFT,
+                          fmt_mechanism(ria.mechanism, ria.node_labels)),
+        Direction.EFFECT: (fmt_mechanism(ria.mechanism, ria.node_labels),
+                           ARROW_RIGHT,
+                           fmt_mechanism(ria.purview, ria.node_labels))
     }[ria.direction]
     causality = ' '.join(causality)
 
@@ -515,6 +498,6 @@ def fmt_ac_sia(ac_sia):
 def fmt_transition(t):
     """Format a |Transition|."""
     return "Transition({} {} {})".format(
-        fmt_mechanism(t.cause_indices, t.cause_system),
+        fmt_mechanism(t.cause_indices, t.node_labels),
         ARROW_RIGHT,
-        fmt_mechanism(t.effect_indices, t.effect_system))
+        fmt_mechanism(t.effect_indices, t.node_labels))

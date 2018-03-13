@@ -371,16 +371,16 @@ class PartitionRegistry(Registry):
 partition_registry = PartitionRegistry()
 
 
-def mip_partitions(mechanism, purview):
+def mip_partitions(mechanism, purview, node_labels=None):
     """Return a generator over all mechanism-purview partitions, based on the
     current configuration.
     """
     func = partition_registry[config.PARTITION_TYPE]
-    return func(mechanism, purview)
+    return func(mechanism, purview, node_labels)
 
 
 @partition_registry.register('BI')
-def mip_bipartitions(mechanism, purview):
+def mip_bipartitions(mechanism, purview, node_labels=None):
     r"""Return an generator of all |small_phi| bipartitions of a mechanism over
     a purview.
 
@@ -431,11 +431,12 @@ def mip_bipartitions(mechanism, purview):
 
     for n, d in product(numerators, denominators):
         if (n[0] or d[0]) and (n[1] or d[1]):
-            yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
+            yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]),
+                              node_labels=node_labels)
 
 
 @partition_registry.register('TRI')
-def wedge_partitions(mechanism, purview):
+def wedge_partitions(mechanism, purview, node_labels=None):
     """Return an iterator over all wedge partitions.
 
     These are partitions which strictly split the mechanism and allow a subset
@@ -476,7 +477,9 @@ def wedge_partitions(mechanism, purview):
         tripart = Tripartition(
             Part(n[0], d[0]),
             Part(n[1], d[1]),
-            Part((),   d[2])).normalize()  # pylint: disable=bad-whitespace
+            Part((),   d[2]),
+            node_labels=node_labels
+        ).normalize()  # pylint: disable=bad-whitespace
 
         def nonempty(part):
             """Check that the part is not empty."""
@@ -505,7 +508,7 @@ def wedge_partitions(mechanism, purview):
 
 
 @partition_registry.register('ALL')
-def all_partitions(mechanism, purview):
+def all_partitions(mechanism, purview, node_labels=None):
     """Return all possible partitions of a mechanism and purview.
 
     Partitions can consist of any number of parts.
@@ -545,4 +548,4 @@ def all_partitions(mechanism, purview):
                     if parts[0].mechanism == mechanism and parts[0].purview:
                         continue
 
-                    yield KPartition(*parts)
+                    yield KPartition(*parts, node_labels=node_labels)

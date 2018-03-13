@@ -411,15 +411,15 @@ attributes:
     >>> mip_c.phi
     0.499999
     >>> mip_c.partition  # doctest: +NORMALIZE_WHITESPACE
-     0     1,2
+     A     B,C
     ─── ✕ ─────
-     ∅    0,1,2
+     ∅    A,B,C
     >>> mip_e.phi
     0.25
     >>> mip_e.partition  # doctest: +NORMALIZE_WHITESPACE
-     ∅    0,1,2
+     ∅    A,B,C
     ─── ✕ ─────
-     1     0,2
+     B     A,C
 
 For more information on these objects, see the documentation for the
 |RepertoireIrreducibilityAnalysis| class, or use ``help(mip_c)``.
@@ -479,7 +479,7 @@ method:
     0.333334
 
 Similarly, the |Subsystem.mie()| method returns the “core effect” or
-*maximally-irreducible effect* (MIE). 
+*maximally-irreducible effect* (MIE).
 
 For a detailed description of the MIC and MIE objects returned by these
 methods, see the documentation for |MIC| or use ``help(subsystem.mic)`` and
@@ -571,7 +571,7 @@ shown in the figure:
     >>> sia.phi
     1.916665
     >>> sia.cut
-    Cut [0, 1] ━━/ /━━➤ [2]
+    Cut [A, B] ━━/ /━━➤ [C]
 
 .. note::
 

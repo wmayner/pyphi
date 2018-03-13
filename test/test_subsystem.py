@@ -133,16 +133,16 @@ def test_cut_mechanisms(s):
         (0, 2), (1, 2), (0, 1, 2)]
 
 
+def test_cut_node_labels(s):
+    assert s.cut_node_labels == s.node_labels
+
+
 def test_specify_elements_with_labels(standard):
     network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
     subsystem = Subsystem(network, (0, 0, 0), ('B', 'C'))
     assert subsystem.node_indices == (1, 2)
     assert tuple(node.label for node in subsystem.nodes) == ('B', 'C')
     assert str(subsystem) == 'Subsystem(B, C)'
-
-
-def test_indices2labels(s):
-    assert s.indices2labels((1, 2)) == ('B', 'C')
 
 
 def test_null_concept(s):

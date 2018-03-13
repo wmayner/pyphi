@@ -171,9 +171,9 @@ system---but is it irreducible?
    >>> mip.phi
    0.0
    >>> mip.partition  # doctest: +NORMALIZE_WHITESPACE
-    0     1,2
+    A     B,C
    ─── ✕ ─────
-    ∅    0,1,2
+    ∅    A,B,C
 
 The mechanism has :math:`ci = 0.75`, but it is completely reducible
 (:math:`\varphi = 0`) to the partition
