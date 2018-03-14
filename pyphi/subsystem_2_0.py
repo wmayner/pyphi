@@ -31,16 +31,19 @@ class Subsystem_2_0:
     def __len__(self):
         return len(self.node_indices)
 
-    def prior_repertoire(self):
+    def prior_repertoire(self, mechanism=None):
         """The a priori repertoire of the system."""
-        return max_entropy_distribution(self.node_indices, len(self))
+        if mechanism is None:
+            mechanism = self.node_indices
+        return max_entropy_distribution(mechanism, len(self))
 
-    def posterior_repertoire(self):
+    def posterior_repertoire(self, mechanism=None):
         """The a posteriori repertoire of the system."""
-        return self._subsystem_3_0.cause_repertoire(self.node_indices,
-                                                    self.node_indices)
+        if mechanism is None:
+            mechanism = self.node_indices
+        return self._subsystem_3_0.cause_repertoire(mechanism, mechanism)
 
-    def effective_information(self):
+    def effective_information(self, mechanism=None):
         """The effective information of the system."""
-        return entropy(flatten(self.posterior_repertoire()),
-                       flatten(self.prior_repertoire()))
+        return entropy(flatten(self.posterior_repertoire(mechanism)),
+                       flatten(self.prior_repertoire(mechanism)))

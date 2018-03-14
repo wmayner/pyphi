@@ -6,6 +6,7 @@ import pytest
 import numpy as np
 
 from pyphi import Network
+from pyphi.distribution import max_entropy_distribution
 from pyphi.subsystem_2_0 import Subsystem_2_0
 
 
@@ -63,3 +64,52 @@ def test_effective_information_and_000(and_network):
     """From Figure 2B, AND-network entering state (0, 0, 0)"""
     system = Subsystem_2_0(and_network, (0, 0, 0), (0, 1, 2))
     assert system.effective_information() == 1
+
+
+@pytest.fixture
+def disjoint_couples_network():
+    """The network of disjoint COPY gates from Figure 3."""
+    tpm = np.array([
+        [0, 0, 0, 0],
+        [0, 1, 0, 0],
+        [1, 0, 0, 0],
+        [1, 1, 0, 0],
+        [0, 0, 0, 1],
+        [0, 1, 0, 1],
+        [1, 0, 0, 1],
+        [1, 1, 0, 1],
+        [0, 0, 1, 0],
+        [0, 1, 1, 0],
+        [1, 0, 1, 0],
+        [1, 1, 1, 0],
+        [0, 0, 1, 1],
+        [0, 1, 1, 1],
+        [1, 0, 1, 1],
+        [1, 1, 1, 1]])
+    return Network(tpm, node_labels="ABCD")
+
+
+@pytest.fixture
+def disjoint_subsystem(disjoint_couples_network):
+    """The entire disjoint network in state (0, 1, 1, 0)."""
+    return Subsystem_2_0(disjoint_couples_network, (0, 1, 1, 0), (0, 1, 2, 3))
+
+
+def test_prior_repertoire_disjoint_couples(disjoint_subsystem):
+    assert np.array_equal(disjoint_subsystem.prior_repertoire((0, 1)),
+                          max_entropy_distribution((0, 1), 4))
+    assert np.array_equal(disjoint_subsystem.prior_repertoire((2, 3)),
+                          max_entropy_distribution((2, 3), 4))
+
+
+def test_posterior_repertoire_disjoint_couples(disjoint_subsystem):
+    assert np.array_equal(disjoint_subsystem.posterior_repertoire((0, 1)),
+                          np.array([[[[0]], [[0]]], [[[1]], [[0]]]]))
+    assert np.array_equal(disjoint_subsystem.posterior_repertoire((2, 3)),
+                          np.array([[[[0, 1], [0, 0]]]]))
+
+
+def test_effective_information_disjoint_couples(disjoint_subsystem):
+    assert disjoint_subsystem.effective_information() == 4
+    assert disjoint_subsystem.effective_information((0, 1)) == 2
+    assert disjoint_subsystem.effective_information((2, 3)) == 2
