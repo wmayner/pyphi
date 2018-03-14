@@ -58,18 +58,18 @@ class Subsystem_2_0:
                        self.prior_repertoire(mechanism))
 
     def effective_information_partition(self, partition):
-        """The effective information across an arbitrary partition."""
-        # Special case for the total partition, which would otherwise
-        # produce partitioned effective information of 0. See p. 5-6.
-        if self.is_total_partition(partition):
+        """The effective information across an arbitrary partition.
+
+        The total partition is a special case; otherwise it would produce
+        partitioned effective information of 0. See p. 5-6.
+        """
+        assert partition.indices == self.node_indices
+
+        if partition.is_total:
             return self.effective_information()
 
         return entropy(self.posterior_repertoire(),
                        self.partitioned_posterior_repertoire(partition))
-
-    def is_total_partition(self, partition):
-        assert partition.indices == self.node_indices
-        return len(partition) == 1
 
 
 class Partition(collections.abc.Sequence):
@@ -86,3 +86,18 @@ class Partition(collections.abc.Sequence):
     @property
     def indices(self):
         return tuple(sorted(itertools.chain.from_iterable(self.parts)))
+
+    @property
+    def normalization(self):
+        """Normalization factor for this partition.
+
+        See p. 6-7 for a discussion.
+        """
+        if self.is_total:
+            return len(self.indices)
+        return (len(self) - 1) * min(len(p) for p in self)
+
+    @property
+    def is_total(self):
+        """Is this a total (unitary) partition?"""
+        return len(self) == 1

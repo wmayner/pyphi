@@ -130,3 +130,13 @@ def test_partition_indices():
 def test_effective_information_total_partition(disjoint_subsystem):
     total = Partition((0, 1, 2, 3))
     assert disjoint_subsystem.effective_information_partition(total) == 4
+
+
+@pytest.mark.parametrize('partition,normalization', [
+    (Partition((0, 1), (2, 3)), 2),
+    (Partition((0,), (1, 2, 3)), 1),
+    (Partition((0,), (1,), (2, 3)), 2),
+    (Partition((0, 1), (1, 2), (3, 4, 5)), 4),
+    (Partition((0, 1, 2, 3)), 4)])
+def test_normalization(partition, normalization):
+    assert partition.normalization == normalization
