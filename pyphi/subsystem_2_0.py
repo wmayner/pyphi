@@ -2,7 +2,14 @@
 # -*- coding: utf-8 -*-
 # subsystem_2_0.py
 
-"""Implementation of IIT 2.0"""
+"""Implementation of IIT 2.0
+
+All page numbers and figures reference the IIT 2.0 paper:
+
+`Integrated Information in Discrete Dynamical Systems: Motivation and
+Theoretical Framework <https://doi.org/10.1371/journal.pcbi.1000091>`_
+by David Balduzzi and Giulio Tononi.
+"""
 
 import collections
 import functools
