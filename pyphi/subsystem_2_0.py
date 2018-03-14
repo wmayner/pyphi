@@ -4,6 +4,10 @@
 
 """Implementation of IIT 2.0"""
 
+import collections
+import functools
+
+import numpy as np
 from scipy.stats import entropy as _entropy
 
 import pyphi
@@ -12,7 +16,7 @@ from pyphi.distribution import flatten, max_entropy_distribution
 
 def entropy(pk, qk=None):
     """Entropy, measured in bits."""
-    return _entropy(pk, qk, base=2.0)
+    return _entropy(flatten(pk), flatten(qk), base=2.0)
 
 
 class Subsystem_2_0:
@@ -43,7 +47,29 @@ class Subsystem_2_0:
             mechanism = self.node_indices
         return self._subsystem_3_0.cause_repertoire(mechanism, mechanism)
 
+    def partitioned_posterior_repertoire(self, partition):
+        return functools.reduce(np.multiply, [
+            self.posterior_repertoire(mechanism) for mechanism in partition])
+
     def effective_information(self, mechanism=None):
         """The effective information of the system."""
-        return entropy(flatten(self.posterior_repertoire(mechanism)),
-                       flatten(self.prior_repertoire(mechanism)))
+        return entropy(self.posterior_repertoire(mechanism),
+                       self.prior_repertoire(mechanism))
+
+    def effective_information_partition(self, partition):
+        """The effective information across an arbitrary partition."""
+        return entropy(self.posterior_repertoire(),
+                       self.partitioned_posterior_repertoire(partition))
+        # TODO: special case the entire system
+
+
+class Partition(collections.abc.Sequence):
+
+    def __init__(self, *parts):
+        self.parts = parts
+
+    def __len__(self):
+        return len(self.parts)
+
+    def __getitem__(self, x):
+        return self.parts[x]

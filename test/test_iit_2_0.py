@@ -7,7 +7,7 @@ import numpy as np
 
 from pyphi import Network
 from pyphi.distribution import max_entropy_distribution
-from pyphi.subsystem_2_0 import Subsystem_2_0
+from pyphi.subsystem_2_0 import Subsystem_2_0, Partition
 
 
 @pytest.fixture
@@ -113,3 +113,11 @@ def test_effective_information_disjoint_couples(disjoint_subsystem):
     assert disjoint_subsystem.effective_information() == 4
     assert disjoint_subsystem.effective_information((0, 1)) == 2
     assert disjoint_subsystem.effective_information((2, 3)) == 2
+
+
+def test_effective_information_partition(disjoint_subsystem):
+    mip = Partition((0, 1), (2, 3))
+    assert disjoint_subsystem.effective_information_partition(mip) == 0
+
+    not_mip = Partition((0, 2), (1, 3))
+    assert disjoint_subsystem.effective_information_partition(not_mip) == 4
