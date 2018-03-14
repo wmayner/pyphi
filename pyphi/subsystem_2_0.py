@@ -6,6 +6,7 @@
 
 import collections
 import functools
+import itertools
 
 import numpy as np
 from scipy.stats import entropy as _entropy
@@ -73,3 +74,7 @@ class Partition(collections.abc.Sequence):
 
     def __getitem__(self, x):
         return self.parts[x]
+
+    @property
+    def indices(self):
+        return tuple(sorted(itertools.chain.from_iterable(self.parts)))

@@ -121,3 +121,7 @@ def test_effective_information_partition(disjoint_subsystem):
 
     not_mip = Partition((0, 2), (1, 3))
     assert disjoint_subsystem.effective_information_partition(not_mip) == 4
+
+
+def test_partition_indices():
+    assert Partition((2, 3), (0, 1)).indices == (0, 1, 2, 3)
