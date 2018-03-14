@@ -7,7 +7,7 @@ import numpy as np
 
 from pyphi import Network
 from pyphi.distribution import max_entropy_distribution
-from pyphi.subsystem_2_0 import Subsystem_2_0, Partition
+from pyphi.subsystem_2_0 import Subsystem_2_0, Partition, generate_partitions
 
 
 @pytest.fixture
@@ -140,3 +140,11 @@ def test_effective_information_total_partition(disjoint_subsystem):
     (Partition((0, 1, 2, 3)), 4)])
 def test_normalization(partition, normalization):
     assert partition.normalization == normalization
+
+
+def test_generate_partitions():
+    assert set(generate_partitions((0, 1, 2))) == set([
+        Partition((0, 1, 2)),
+        Partition((0,), (1, 2)),
+        Partition((1,), (0, 2)),
+        Partition((2,), (0, 1))])

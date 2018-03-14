@@ -13,6 +13,8 @@ from scipy.stats import entropy as _entropy
 
 import pyphi
 from pyphi.distribution import flatten, max_entropy_distribution
+from pyphi.models import cmp
+from pyphi.partition import bipartition
 
 
 def entropy(pk, qk=None):
@@ -72,16 +74,36 @@ class Subsystem_2_0:
                        self.partitioned_posterior_repertoire(partition))
 
 
+# TODO: implement all partitions
+def generate_partitions(node_indices):
+    """Currently only returns bipartitions."""
+    for partition in bipartition(node_indices):
+        # Hack to turn ((), (1, 2, ..)) into the total partition
+        if partition[0] == ():
+            partition = (partition[1],)
+        yield Partition(*partition)
+
+
 class Partition(collections.abc.Sequence):
 
     def __init__(self, *parts):
-        self.parts = parts
+        self.parts = tuple(sorted(parts))
 
     def __len__(self):
         return len(self.parts)
 
     def __getitem__(self, x):
         return self.parts[x]
+
+    @cmp.sametype
+    def __eq__(self, other):
+        return self.parts == other.parts
+
+    def __hash__(self):
+        return hash(self.parts)
+
+    def __repr__(self):
+        return "Partition{}".format(self.parts)
 
     @property
     def indices(self):
