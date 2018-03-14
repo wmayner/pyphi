@@ -125,3 +125,8 @@ def test_effective_information_partition(disjoint_subsystem):
 
 def test_partition_indices():
     assert Partition((2, 3), (0, 1)).indices == (0, 1, 2, 3)
+
+
+def test_effective_information_total_partition(disjoint_subsystem):
+    total = Partition((0, 1, 2, 3))
+    assert disjoint_subsystem.effective_information_partition(total) == 4

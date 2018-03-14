@@ -59,9 +59,17 @@ class Subsystem_2_0:
 
     def effective_information_partition(self, partition):
         """The effective information across an arbitrary partition."""
+        # Special case for the total partition, which would otherwise
+        # produce partitioned effective information of 0. See p. 5-6.
+        if self.is_total_partition(partition):
+            return self.effective_information()
+
         return entropy(self.posterior_repertoire(),
                        self.partitioned_posterior_repertoire(partition))
-        # TODO: special case the entire system
+
+    def is_total_partition(self, partition):
+        assert partition.indices == self.node_indices
+        return len(partition) == 1
 
 
 class Partition(collections.abc.Sequence):
