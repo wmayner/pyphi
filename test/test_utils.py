@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # test/test_utils.py
 
+from unittest.mock import patch
+
 import numpy as np
 
 from pyphi import constants, utils
@@ -90,3 +92,20 @@ def test_np_hashable():
     c_hashable = utils.np_hashable(c)
     assert c_hashable == b_hashable
     assert c_hashable in s
+
+
+def test_time_annotated():
+    class Timeable:
+        time = None
+
+    retval = Timeable()
+
+    @utils.time_annotated
+    def func():
+        return retval
+
+    with patch('pyphi.utils.time', side_effect=[2, 5]):
+        r = func()
+
+    assert r == retval
+    assert r.time == 3

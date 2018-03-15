@@ -8,13 +8,15 @@ external use.
 """
 
 import hashlib
+import functools
 import os
 from itertools import chain, combinations, product
+from time import time
 
 import numpy as np
 from scipy.misc import comb
 
-from . import constants
+from . import config, constants
 
 
 def state_of(nodes, network_state):
@@ -197,3 +199,19 @@ def load_data(directory, num):
         return os.path.join(root, 'data', directory, str(i) + '.npy')
 
     return [np.load(get_path(i)) for i in range(num)]
+
+
+def time_annotated(func):
+    """Annotate the decorated function or method with the total execution
+    time.
+
+    The result is annotated with a `time` attribute.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time()
+        result = func(*args, **kwargs)
+        end = time()
+        result.time = round(end - start, config.PRECISION)
+        return result
+    return wrapper
