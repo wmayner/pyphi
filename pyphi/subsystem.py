@@ -23,6 +23,7 @@ from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
 from .tpm import condition_tpm, marginalize_out
+from .utils import time_annotated
 
 log = logging.getLogger(__name__)
 
@@ -745,6 +746,7 @@ class Subsystem:
                        effect=effect,
                        subsystem=self)
 
+    @time_annotated
     def concept(self, mechanism, purviews=False, cause_purviews=False,
                 effect_purviews=False):
         """Return the concept specified by a mechanism within this subsytem.
@@ -766,7 +768,6 @@ class Subsystem:
             Concept: The pair of maximally irreducible cause/effect repertoires
             that constitute the concept specified by the given mechanism.
         """
-        start = time()
         log.debug('Computing concept %s...', mechanism)
 
         # If the mechanism is empty, there is no concept.
@@ -786,6 +787,5 @@ class Subsystem:
             result = Concept(mechanism=mechanism, cause=cause, effect=effect,
                              subsystem=self)
 
-        result.time = round(time() - start, config.PRECISION)
         log.debug('Found concept %s', mechanism)
         return result
