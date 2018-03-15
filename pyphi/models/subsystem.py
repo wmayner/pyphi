@@ -25,6 +25,7 @@ class CauseEffectStructure(tuple):
         """Normalize the order of concepts in the |CauseEffectStructure|."""
         obj = super().__new__(cls, sorted(concepts, key=_concept_sort_key))
         obj.subsystem = subsystem
+        obj.time = None
         return obj
 
     def __repr__(self):
@@ -80,8 +81,6 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         subsystem (Subsystem): The subsystem this analysis was calculated for.
         cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
         time (float): The number of seconds it took to calculate.
-        small_phi_time (float): The number of seconds it took to calculate the
-            cause-effect structure.
     """
 
     def __init__(self, phi=None, ces=None,
@@ -93,7 +92,6 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         self.subsystem = subsystem
         self.cut_subsystem = cut_subsystem
         self.time = time
-        self.small_phi_time = small_phi_time
 
     def __repr__(self):
         return fmt.make_repr(self, _sia_attributes)
@@ -106,6 +104,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         cause-effect structures.
         """
         print(self.__str__(ces=ces))
+
+    @property
+    def small_phi_time(self):
+        """The number of seconds it took to calculate the CES."""
+        return self.ces.time
 
     @property
     def cut(self):
@@ -148,6 +151,13 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         }
 
 
+def _null_ces(subsystem):
+    """Return an empty CES."""
+    ces = CauseEffectStructure((), subsystem=subsystem)
+    ces.time = 0.0
+    return ces
+
+
 def _null_sia(subsystem, phi=0.0):
     """Return a |SystemIrreducibilityAnalysis| with zero |big_phi| and empty
     cause-effect structures.
@@ -157,5 +167,5 @@ def _null_sia(subsystem, phi=0.0):
     return SystemIrreducibilityAnalysis(subsystem=subsystem,
                                         cut_subsystem=subsystem,
                                         phi=phi,
-                                        ces=(),
-                                        partitioned_ces=())
+                                        ces=_null_ces(subsystem),
+                                        partitioned_ces=_null_ces(subsystem))

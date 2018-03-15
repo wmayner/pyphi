@@ -8,13 +8,13 @@ Functions for computing subsystem-level properties.
 
 import functools
 import logging
-from time import time
 
 from .. import Direction, config, connectivity, memory, utils
 from ..models import (CauseEffectStructure, Concept, Cut, KCut,
                       SystemIrreducibilityAnalysis, _null_sia, cmp, fmt)
 from ..partition import (directed_bipartition, directed_bipartition_of_one,
                          mip_partitions)
+from ..utils import time_annotated
 from .distance import ces_distance
 from .parallel import MapReduce
 
@@ -62,6 +62,7 @@ class ComputeCauseEffectStructure(MapReduce):
         return concepts
 
 
+@time_annotated
 def ces(subsystem, mechanisms=False, purviews=False, cause_purviews=False,
         effect_purviews=False, parallel=False):
     """Return the conceptual structure of this subsystem, optionally restricted
@@ -210,6 +211,7 @@ def _ces(subsystem):
 
 
 @memory.cache(ignore=["subsystem"])
+@time_annotated
 def _sia(cache_key, subsystem):
     """Return the minimal information partition of a subsystem.
 
@@ -222,18 +224,6 @@ def _sia(cache_key, subsystem):
         basic irreducibility information for the given subsystem.
     """
     log.info('Calculating big-phi data for %s...', subsystem)
-    start = time()
-
-    def time_annotated(bm, small_phi_time=0.0):
-        """Annote a |SystemIrreducibilityAnalysis| with the total elapsed
-        calculation time.
-
-        Optionally add the time taken to calculate the unpartitioned
-        |CauseEffectStructure|.
-        """
-        bm.time = round(time() - start, config.PRECISION)
-        bm.small_phi_time = round(small_phi_time, config.PRECISION)
-        return bm
 
     # Check for degenerate cases
     # =========================================================================
@@ -245,12 +235,12 @@ def _sia(cache_key, subsystem):
     if not subsystem:
         log.info('Subsystem %s is empty; returning null SIA '
                  'immediately.', subsystem)
-        return time_annotated(_null_sia(subsystem))
+        return _null_sia(subsystem)
 
     if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
         log.info('%s is not strongly connected; returning null SIA '
                  'immediately.', subsystem)
-        return time_annotated(_null_sia(subsystem))
+        return _null_sia(subsystem)
 
     # Handle elementary micro mechanism cases.
     # Single macro element systems have nontrivial bipartitions because their
@@ -260,24 +250,22 @@ def _sia(cache_key, subsystem):
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
             log.info('Single micro nodes %s without selfloops cannot have '
                      'phi; returning null SIA immediately.', subsystem)
-            return time_annotated(_null_sia(subsystem))
+            return _null_sia(subsystem)
         # Even if the node has a self-loop, we may still define phi to be zero.
         elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
             log.info('Single micro nodes %s with selfloops cannot have '
                      'phi; returning null SIA immediately.', subsystem)
-            return time_annotated(_null_sia(subsystem))
+            return _null_sia(subsystem)
     # =========================================================================
 
     log.debug('Finding unpartitioned CauseEffectStructure...')
-    small_phi_start = time()
     unpartitioned_ces = _ces(subsystem)
-    small_phi_time = round(time() - small_phi_start, config.PRECISION)
 
     if not unpartitioned_ces:
         log.info('Empty unpartitioned CauseEffectStructure; returning null '
                  'SIA immediately.')
         # Short-circuit if there are no concepts in the unpartitioned CES.
-        return time_annotated(_null_sia(subsystem))
+        return _null_sia(subsystem)
 
     log.debug('Found unpartitioned CauseEffectStructure.')
 
@@ -292,8 +280,7 @@ def _sia(cache_key, subsystem):
 
     engine = ComputeSystemIrreducibility(
         cuts, subsystem, unpartitioned_ces)
-    min_sia = engine.run(config.PARALLEL_CUT_EVALUATION)
-    result = time_annotated(min_sia, small_phi_time)
+    result = engine.run(config.PARALLEL_CUT_EVALUATION)
 
     if config.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA:
         log.debug('Clearing subsystem caches.')
