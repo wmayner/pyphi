@@ -86,6 +86,10 @@ class Subsystem_2_0:
                            partition, self)
                    for partition in generate_partitions(self.node_indices))
 
+    def phi(self):
+        """The integrated information of the system."""
+        return self.find_mip().ei
+
 
 @functools.total_ordering
 class Mip_2_0:

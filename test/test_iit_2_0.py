@@ -152,3 +152,7 @@ def test_generate_partitions():
 
 def test_mip(disjoint_subsystem):
     assert disjoint_subsystem.find_mip().partition == Partition((0, 1), (2, 3))
+
+
+def test_phi(disjoint_subsystem):
+    assert disjoint_subsystem.phi() == 0
