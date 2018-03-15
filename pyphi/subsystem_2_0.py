@@ -45,6 +45,10 @@ class Subsystem_2_0:
     def __len__(self):
         return len(self.node_indices)
 
+    def __repr__(self):
+        return "Subsystem2.0(state={}, nodes={})".format(self.state,
+                                                         self.node_indices)
+
     def prior_repertoire(self, mechanism=None):
         """The a priori repertoire of the system."""
         if mechanism is None:
@@ -114,6 +118,9 @@ class Mip_2_0:
         quantity of effective information.
         """
         return (self.ei_normalized, self.ei) < (other.ei_normalized, other.ei)
+
+    def __repr__(self):
+        return "Mip2.0(ei={}, {})".format(self.ei, self.partition)
 
 
 # TODO: implement all partitions
