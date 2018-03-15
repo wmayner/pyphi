@@ -16,6 +16,7 @@ Next Release
   Most models now carry a `NodeLabels` instance that is used for string
   formatting.
 - Added the `cut_node_labels` property to `Subsystem` and `MacroSubsystem`.
+- Added `utils.time_annotated` decorator to measure execution speed.
 
 ### API changes
 
