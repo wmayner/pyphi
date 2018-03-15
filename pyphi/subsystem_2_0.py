@@ -80,6 +80,37 @@ class Subsystem_2_0:
         return entropy(self.posterior_repertoire(),
                        self.partitioned_posterior_repertoire(partition))
 
+    def find_mip(self):
+        """Compute the minimum information partition of the system."""
+        return min(Mip_2_0(self.effective_information_partition(partition),
+                           partition, self)
+                   for partition in generate_partitions(self.node_indices))
+
+
+@functools.total_ordering
+class Mip_2_0:
+
+    def __init__(self, ei, partition, subsystem):
+        self.ei = ei
+        self.partition = partition
+        self.subsystem = subsystem
+
+    @property
+    def ei_normalized(self):
+        return self.ei / self.partition.normalization
+
+    @cmp.sametype
+    def __eq__(self, other):
+        return (self.ei == other.ei and self.partition == other.partition)
+
+    @cmp.sametype
+    def __lt__(self, other):
+        """If more than one partition has the same minimum normalized value,
+        select the partition that generates the lowest _un-normalized_
+        quantity of effective information.
+        """
+        return (self.ei_normalized, self.ei) < (other.ei_normalized, other.ei)
+
 
 # TODO: implement all partitions
 def generate_partitions(node_indices):
