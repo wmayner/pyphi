@@ -126,10 +126,12 @@ class Mip_2_0:
 # TODO: implement all partitions
 def generate_partitions(node_indices):
     """Currently only returns bipartitions."""
-    for partition in bipartition(node_indices):
-        # Hack to turn ((), (1, 2, ..)) into the total partition
-        if partition[0] == ():
-            partition = (partition[1],)
+    if node_indices:
+        # `bipartition` returns the total partition as a pair,
+        # so return it properly here.
+        yield Partition(node_indices)
+
+    for partition in bipartition(node_indices)[1:]:
         yield Partition(*partition)
 
 
