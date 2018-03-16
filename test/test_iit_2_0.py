@@ -5,7 +5,7 @@
 import pytest
 import numpy as np
 
-from pyphi import Network
+from pyphi import Network, jsonify
 from pyphi.distribution import max_entropy_distribution
 from pyphi.subsystem_2_0 import Subsystem_2_0, Partition, generate_partitions
 
@@ -188,3 +188,44 @@ def counting_network():
 def test_binary_counting(state, phi, counting_network):
     subsystem = Subsystem_2_0(counting_network, state, (0, 1, 2, 3))
     assert subsystem.phi() == phi
+
+
+@pytest.fixture
+def modular_network():
+    """Modular network from Figure 13. Generated with the following code:
+
+    import pyphi
+    import graphiit
+
+    # Elements fire if they receive >= 2 spikes
+    def THRESHOLD(inputs):
+        return sum(inputs) >= 2
+
+    g = graphiit.Graph([
+        ("A1", THRESHOLD, "B1", "C1"),
+        ("B1", THRESHOLD, "A1", "C1"),
+        ("C1", THRESHOLD, "A1", "B1", "C2", "C4"),
+        ("A2", THRESHOLD, "B2", "C2"),
+        ("B2", THRESHOLD, "A2", "C2"),
+        ("C2", THRESHOLD, "A2", "B2", "C1", "C3"),
+        ("A3", THRESHOLD, "B3", "C3"),
+        ("B3", THRESHOLD, "A3", "C3"),
+        ("C3", THRESHOLD, "A3", "B3", "C2", "C4"),
+        ("A4", THRESHOLD, "B4", "C4"),
+        ("B4", THRESHOLD, "A4", "C4"),
+        ("C4", THRESHOLD, "A4", "B4", "C1", "C3")])
+
+    network = g.pyphi_network()
+
+    with open('./test/data/iit_2.0_fig_13.json', 'w') as f:
+        pyphi.jsonify.dump(network.to_json(), f, indent=2)
+    """
+    with open('./test/data/iit_2.0_fig_13.json') as f:
+        data = jsonify.load(f)
+
+    return Network(data['tpm'], data['cm'], data['labels'])
+
+
+def test_modular_network(modular_network):
+    subsystem = Subsystem_2_0(modular_network, [0] * 12, range(12))
+    assert subsystem.phi() == 0.700186

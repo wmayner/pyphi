@@ -35,7 +35,7 @@ class Subsystem_2_0:
     def __init__(self, network, state, node_indices):
         self.network = network
         self.state = tuple(state)
-        self.node_indices = node_indices
+        self.node_indices = tuple(node_indices)
 
         # IIT 3.0 subsystem used to compute cause repertoires
         # Note that external elements are *not* frozen - that is handled
