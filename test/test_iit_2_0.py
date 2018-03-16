@@ -156,3 +156,35 @@ def test_mip(disjoint_subsystem):
 
 def test_phi(disjoint_subsystem):
     assert disjoint_subsystem.phi() == 0
+
+
+@pytest.fixture
+def counting_network():
+    """Binary counting network from Figure 11."""
+    tpm = np.array([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [1, 1, 0, 0],
+        [0, 0, 1, 0],
+        [1, 0, 1, 0],
+        [0, 1, 1, 0],
+        [1, 1, 1, 0],
+        [0, 0, 0, 1],
+        [1, 0, 0, 1],
+        [0, 1, 0, 1],
+        [1, 1, 0, 1],
+        [0, 0, 1, 1],
+        [1, 0, 1, 1],
+        [0, 1, 1, 1],
+        [1, 1, 1, 1],
+        [0, 0, 0, 0]])
+
+    return Network(tpm)
+
+
+@pytest.mark.parametrize('state,phi', [
+    ((0, 0, 0, 0), 4),
+    ((0, 0, 1, 1), 0.192645)])
+def test_binary_counting(state, phi, counting_network):
+    subsystem = Subsystem_2_0(counting_network, state, (0, 1, 2, 3))
+    assert subsystem.phi() == phi
