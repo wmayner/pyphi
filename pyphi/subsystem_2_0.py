@@ -19,6 +19,7 @@ import numpy as np
 from scipy.stats import entropy as _entropy
 
 import pyphi
+from pyphi import config
 from pyphi.distribution import flatten, max_entropy_distribution
 from pyphi.models import cmp
 from pyphi.partition import bipartition
@@ -99,7 +100,7 @@ class Subsystem_2_0:
 class Mip_2_0:
 
     def __init__(self, ei, partition, subsystem):
-        self.ei = ei
+        self.ei = round(ei, config.PRECISION)
         self.partition = partition
         self.subsystem = subsystem
 
