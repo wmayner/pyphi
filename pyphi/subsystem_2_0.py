@@ -54,7 +54,7 @@ class Subsystem_2_0:
         """The a priori repertoire of the system."""
         if mechanism is None:
             mechanism = self.node_indices
-        return max_entropy_distribution(mechanism, len(self))
+        return max_entropy_distribution(mechanism, self.network.size)
 
     def posterior_repertoire(self, mechanism=None):
         """The a posteriori repertoire of the system."""

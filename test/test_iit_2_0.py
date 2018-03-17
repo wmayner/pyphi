@@ -45,9 +45,16 @@ def and_whole_system(and_network):
     return Subsystem_2_0(and_network, (0, 0, 1), (0, 1, 2))
 
 
-def test_prior_repertoire(and_whole_system):
+@pytest.fixture
+def and_1_2_system(and_network):
+    return Subsystem_2_0(and_network, (0, 0, 1), (1, 2))
+
+
+def test_prior_repertoire(and_whole_system, and_1_2_system):
     assert np.array_equal(and_whole_system.prior_repertoire(),
                           np.ones([2, 2, 2]) / 8)
+    assert np.array_equal(and_1_2_system.prior_repertoire((1, 2)),
+                          np.array([[[0.25, 0.25], [0.25, 0.25]]]))
 
 
 def test_posterior_repertoire(and_whole_system):
