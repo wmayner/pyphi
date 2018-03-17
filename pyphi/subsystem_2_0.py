@@ -43,6 +43,9 @@ class Subsystem_2_0:
         self._subsystem_3_0 = pyphi.Subsystem(
             self.network, self.state, self.node_indices, _external_indices=())
 
+        # Memoized MIP
+        self._mip = None
+
     def __len__(self):
         return len(self.node_indices)
 
@@ -97,9 +100,13 @@ class Subsystem_2_0:
 
     def find_mip(self):
         """Compute the minimum information partition of the system."""
-        return min(Mip_2_0(self.effective_information_partition(partition),
-                           partition, self)
-                   for partition in generate_partitions(self.node_indices))
+        if self._mip is None:
+            self._mip = min(
+                Mip_2_0(self.effective_information_partition(partition),
+                        partition, self)
+                for partition in generate_partitions(self.node_indices))
+
+        return self._mip
 
     def phi(self):
         """The integrated information of the system."""
