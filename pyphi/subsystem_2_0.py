@@ -50,6 +50,16 @@ class Subsystem_2_0:
         return "Subsystem2.0(state={}, nodes={})".format(self.state,
                                                          self.node_indices)
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        return (self.network == other.network and
+                self.state == other.state and
+                self.node_indices == other.node_indices)
+
+    def __hash__(self):
+        return hash((self.network, self.state, self.node_indices))
+
     def prior_repertoire(self, mechanism=None):
         """The a priori repertoire of the system."""
         if mechanism is None:
