@@ -19,7 +19,7 @@ import numpy as np
 from scipy.stats import entropy as _entropy
 
 import pyphi
-from pyphi import config
+from pyphi import config, exceptions, utils
 from pyphi.distribution import flatten, max_entropy_distribution
 from pyphi.models import cmp
 from pyphi.partition import bipartition
@@ -35,7 +35,7 @@ class Subsystem_2_0:
     def __init__(self, network, state, node_indices):
         self.network = network
         self.state = tuple(state)
-        self.node_indices = tuple(node_indices)
+        self.node_indices = tuple(sorted(node_indices))
 
         # IIT 3.0 subsystem used to compute cause repertoires
         # Note that external elements are *not* frozen - that is handled
@@ -192,3 +192,36 @@ class Partition(collections.abc.Sequence):
     def is_total(self):
         """Is this a total (unitary) partition?"""
         return len(self) == 1
+
+
+def all_subsystems(network, state):
+    """Generator over all possible subsystems of the network.
+
+    Excludes subsystems that would be in an invalid state.
+    """
+    for subset in utils.powerset(network.node_indices, nonempty=True,
+                                 reverse=True):
+        try:
+            yield Subsystem_2_0(network, state, subset)
+        except exceptions.StateUnreachableError:
+            pass
+
+
+def all_complexes(network, state):
+    """
+    S is a complex if phi(s) > 0 and S is not contained in some larger set
+    with strictly higher phi.
+    """
+    # Note: all_subsystems yields systems from largest to smallest
+    complexes = []
+
+    for s in all_subsystems(network, state):
+        if s.phi() > 0:
+            for c in complexes:
+                if (set(s.node_indices) < set(c.node_indices)
+                        and s.phi() < c.phi()):
+                    break  # Not a complex
+            else:
+                complexes.append(s)
+
+    return complexes

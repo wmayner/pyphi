@@ -5,9 +5,11 @@
 import pytest
 import numpy as np
 
-from pyphi import Network, jsonify
+from pyphi import Network, jsonify, examples
 from pyphi.distribution import max_entropy_distribution
-from pyphi.subsystem_2_0 import Subsystem_2_0, Partition, generate_partitions
+from pyphi.subsystem_2_0 import (
+    Subsystem_2_0, Partition, generate_partitions, all_complexes,
+    all_subsystems)
 
 
 @pytest.fixture
@@ -165,6 +167,12 @@ def test_phi(disjoint_subsystem):
     assert disjoint_subsystem.phi() == 0
 
 
+def test_complexes(disjoint_couples_network):
+    assert set(all_complexes(disjoint_couples_network, (0, 1, 1, 0))) == set([
+        Subsystem_2_0(disjoint_couples_network, (0, 1, 1, 0), (0, 1)),
+        Subsystem_2_0(disjoint_couples_network, (0, 1, 1, 0), (2, 3))])
+
+
 @pytest.fixture
 def counting_network():
     """Binary counting network from Figure 11."""
@@ -236,3 +244,15 @@ def modular_network():
 def test_modular_network(modular_network):
     subsystem = Subsystem_2_0(modular_network, [0] * 12, range(12))
     assert subsystem.phi() == 0.700186
+
+
+def test_complexes():
+    """Complexes of IIT 3.0 Fig 16 example."""
+    network = examples.fig16()
+    state = (1, 0, 0, 1, 1, 1, 0)
+    assert all_complexes(network, state) == [
+        Subsystem_2_0(network, state, (0, 1, 2, 3, 4)),
+        Subsystem_2_0(network, state, (0, 1, 2, 3)),
+        Subsystem_2_0(network, state, (0, 1, 2)),
+        Subsystem_2_0(network, state, (5, 6)),
+        Subsystem_2_0(network, state, (3, 4))]
