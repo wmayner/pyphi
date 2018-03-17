@@ -134,7 +134,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return {attr: getattr(self, attr) for attr in _ria_attributes}
 
 
-def _null_ria(direction, mechanism, purview, repertoire=None):
+def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0):
     """The irreducibility analysis for a reducible mechanism."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
@@ -145,7 +145,7 @@ def _null_ria(direction, mechanism, purview, repertoire=None):
         partition=None,
         repertoire=repertoire,
         partitioned_repertoire=None,
-        phi=0.0
+        phi=phi
     )
 
 

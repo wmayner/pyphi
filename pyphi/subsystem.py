@@ -552,13 +552,9 @@ class Subsystem:
             RepertoireIrreducibilityAnalysis: The irreducibility analysis for
             the mininum-information partition in one temporal direction.
         """
-        # We default to the null MIP (the MIP of a reducible mechanism)
-        mip = _null_ria(direction, mechanism, purview)
-
         if not purview:
-            return mip
+            return _null_ria(direction, mechanism, purview)
 
-        phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones.
         repertoire = self.repertoire(direction, mechanism, purview)
@@ -583,7 +579,8 @@ class Subsystem:
                 np.all(repertoire == 0)):
             return _mip(0, None, None)
 
-        # Loop over possible MIP partitions
+        mip = _null_ria(direction, mechanism, purview, phi=float('inf'))
+
         for partition in mip_partitions(mechanism, purview, self.node_labels):
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
@@ -596,8 +593,7 @@ class Subsystem:
                 return _mip(0.0, partition, partitioned_repertoire)
 
             # Update MIP if it's more minimal.
-            if phi < phi_min:
-                phi_min = phi
+            if phi < mip.phi:
                 mip = _mip(phi, partition, partitioned_repertoire)
 
         return mip
