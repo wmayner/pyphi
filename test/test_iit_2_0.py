@@ -241,9 +241,15 @@ def modular_network():
     return Network(data['tpm'], data['cm'], data['labels'])
 
 
-def test_modular_network(modular_network):
-    subsystem = Subsystem_2_0(modular_network, [0] * 12, range(12))
-    assert subsystem.phi() == 0.700186
+@pytest.mark.parametrize('nodes,phi', [
+    (range(12), 0.700186),
+    ((0, 1, 2), 1.188722),
+    ((3, 4, 5), 1.188722),
+    ((6, 7, 8), 1.188722),
+    ((9, 10, 11), 1.188722)])
+def test_modular_network(nodes, phi, modular_network):
+    subsystem = Subsystem_2_0(modular_network, [0] * 12, nodes)
+    assert subsystem.phi() == phi
 
 
 def test_all_complexes():
