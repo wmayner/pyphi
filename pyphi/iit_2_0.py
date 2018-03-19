@@ -136,6 +136,11 @@ class Mip:
         """The normalized effective information of this MIP."""
         return self.ei / self.partition.normalization
 
+    @property
+    def phi(self):
+        """An alias for effective information."""
+        return self.ei
+
     @cmp.sametype
     def __eq__(self, other):
         return (self.ei == other.ei and self.partition == other.partition)
