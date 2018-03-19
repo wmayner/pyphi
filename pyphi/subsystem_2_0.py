@@ -154,6 +154,13 @@ def generate_partitions(node_indices):
 
 
 class Partition(collections.abc.Sequence):
+    """A IIT 2.0 partition of a system.
+
+    The partition must cover the system.
+
+    Args:
+        *parts tuple[int]: The disjoint parts of the partition.
+    """
 
     def __init__(self, *parts):
         self.parts = tuple(sorted(parts))
@@ -176,6 +183,7 @@ class Partition(collections.abc.Sequence):
 
     @property
     def indices(self):
+        """The indices of all nodes in the partition."""
         return tuple(sorted(itertools.chain.from_iterable(self.parts)))
 
     @property
