@@ -104,7 +104,10 @@ class Subsystem_2_0:
                        self.partitioned_posterior_repertoire(partition))
 
     def find_mip(self):
-        """Compute the minimum information partition of the system."""
+        """Compute the minimum information partition of the system.
+
+        This result is cached on the system for reuse.
+        """
         if self._mip is None:
             self._mip = min(
                 Mip_2_0(self.effective_information_partition(partition),
@@ -113,6 +116,7 @@ class Subsystem_2_0:
 
         return self._mip
 
+    @property
     def phi(self):
         """The integrated information of the system."""
         return self.find_mip().ei
@@ -231,10 +235,10 @@ def all_complexes(network, state):
     complexes = []
 
     for s in all_subsystems(network, state):
-        if s.phi() > 0:
+        if s.phi > 0:
             for c in complexes:
                 if (set(s.node_indices) < set(c.node_indices)
-                        and s.phi() < c.phi()):
+                        and s.phi < c.phi):
                     break  # Not a complex
             else:
                 complexes.append(s)
@@ -253,7 +257,7 @@ def main_complexes(network, state):
     for s in complexes:
         for r in complexes:
             if (set(r.node_indices) < set(s.node_indices)
-                    and r.phi() >= s.phi()):
+                    and r.phi >= s.phi):
                 break
         else:
             main_complexes.append(s)

@@ -164,7 +164,7 @@ def test_mip(disjoint_subsystem):
 
 
 def test_phi(disjoint_subsystem):
-    assert disjoint_subsystem.phi() == 0
+    assert disjoint_subsystem.phi == 0
 
 
 def test_complexes(disjoint_couples_network):
@@ -202,7 +202,7 @@ def counting_network():
     ((0, 0, 1, 1), 0.192645)])
 def test_binary_counting(state, phi, counting_network):
     subsystem = Subsystem_2_0(counting_network, state, (0, 1, 2, 3))
-    assert subsystem.phi() == phi
+    assert subsystem.phi == phi
 
 
 @pytest.fixture
@@ -249,7 +249,7 @@ def modular_network():
     ((9, 10, 11), 1.188722)])
 def test_modular_network(nodes, phi, modular_network):
     subsystem = Subsystem_2_0(modular_network, [0] * 12, nodes)
-    assert subsystem.phi() == phi
+    assert subsystem.phi == phi
 
 
 def test_all_complexes():
