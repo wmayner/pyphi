@@ -16,18 +16,12 @@ import functools
 import itertools
 
 import numpy as np
-from scipy.stats import entropy as _entropy
 
 import pyphi
 from pyphi import config, exceptions, utils
-from pyphi.distribution import flatten, max_entropy_distribution
+from pyphi.distribution import entropy, max_entropy_distribution
 from pyphi.models import cmp
 from pyphi.partition import bipartition
-
-
-def entropy(pk, qk=None):
-    """Entropy, measured in bits."""
-    return _entropy(flatten(pk), flatten(qk), base=2.0)
 
 
 class Subsystem_2_0:

@@ -11,10 +11,9 @@ from contextlib import ContextDecorator
 import numpy as np
 from pyemd import emd
 from scipy.spatial.distance import cdist
-from scipy.stats import entropy
 
 from . import Direction, config, constants, utils, validate
-from .distribution import flatten, marginal_zero
+from .distribution import entropy, flatten, marginal_zero
 from .registry import Registry
 
 
@@ -189,15 +188,13 @@ def kld(d1, d2):
     Returns:
         float: The KLD of ``d1`` from ``d2``.
     """
-    d1, d2 = flatten(d1), flatten(d2)
-    return entropy(d1, d2, 2.0)
+    return entropy(d1, d2)
 
 
 @measures.register('ENTROPY_DIFFERENCE')
 def entropy_difference(d1, d2):
     """Return the difference in entropy between two distributions."""
-    d1, d2 = flatten(d1), flatten(d2)
-    return abs(entropy(d1, base=2.0) - entropy(d2, base=2.0))
+    return abs(entropy(d1) - entropy(d2))
 
 
 @measures.register('PSQ2')

@@ -7,6 +7,7 @@ Functions for manipulating probability distributions.
 """
 
 import numpy as np
+from scipy.stats import entropy as _entropy
 
 from .cache import cache
 
@@ -170,3 +171,21 @@ def max_entropy_distribution(node_indices, number_of_nodes):
     distribution = np.ones(repertoire_shape(node_indices, number_of_nodes))
 
     return distribution / distribution.size
+
+
+def entropy(pk, qk=None):
+    """Entropy of a distribution, measured in bits.
+
+    From the ``scipy.stats`` documentation:
+
+    Calculate the entropy of a distribution for given probability values.
+
+    If only probabilities pk are given, the entropy is calculated as
+    S = -sum(pk * log(pk), axis=0).
+
+    If qk is not None, then compute the Kullback-Leibler divergence
+    S = sum(pk * log(pk / qk), axis=0).
+
+    This routine will normalize pk and qk if they don’t sum to 1.
+    """
+    return _entropy(flatten(pk), flatten(qk), base=2.0)
