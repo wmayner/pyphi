@@ -176,6 +176,9 @@ class Partition(collections.abc.Sequence):
     def __init__(self, *parts):
         self.parts = tuple(sorted(parts))
 
+        if len(set(self.indices)) != len(self.indices):
+            raise ValueError('IIT 2.0 {} must be disjoint'.format(self))
+
     def __len__(self):
         return len(self.parts)
 

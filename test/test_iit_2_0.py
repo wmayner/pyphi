@@ -136,6 +136,11 @@ def test_partition_indices():
     assert Partition((2, 3), (0, 1)).indices == (0, 1, 2, 3)
 
 
+def test_partition_is_disjoint():
+    with pytest.raises(ValueError):
+        Partition((2, 3), (3, 4))
+
+
 def test_effective_information_total_partition(disjoint_subsystem):
     total = Partition((0, 1, 2, 3))
     assert disjoint_subsystem.effective_information_partition(total) == 4
@@ -145,7 +150,7 @@ def test_effective_information_total_partition(disjoint_subsystem):
     (Partition((0, 1), (2, 3)), 2),
     (Partition((0,), (1, 2, 3)), 1),
     (Partition((0,), (1,), (2, 3)), 2),
-    (Partition((0, 1), (1, 2), (3, 4, 5)), 4),
+    (Partition((0, 1), (2, 6), (3, 4, 5)), 4),
     (Partition((0, 1, 2, 3)), 4)])
 def test_normalization(partition, normalization):
     assert partition.normalization == normalization
