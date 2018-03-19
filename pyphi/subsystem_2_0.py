@@ -31,6 +31,16 @@ def entropy(pk, qk=None):
 
 
 class Subsystem_2_0:
+    """A subsystem for IIT 2.0 computations.
+
+    This system takes the same arguments as the standard PyPhi subsystem.
+
+    Args:
+        network (Network): A PyPhi network.
+        state (tuple[int]): The current state of the network.
+        node_indices (tuple[int]): The nodes of the network included in
+            this subsystem.
+    """
 
     def __init__(self, network, state, node_indices):
         self.network = network
@@ -64,18 +74,19 @@ class Subsystem_2_0:
         return hash((self.network, self.state, self.node_indices))
 
     def prior_repertoire(self, mechanism=None):
-        """The a priori repertoire of the system."""
+        """The *a priori* repertoire of the system."""
         if mechanism is None:
             mechanism = self.node_indices
         return max_entropy_distribution(mechanism, self.network.size)
 
     def posterior_repertoire(self, mechanism=None):
-        """The a posteriori repertoire of the system."""
+        """The *a posteriori* repertoire of the system."""
         if mechanism is None:
             mechanism = self.node_indices
         return self._subsystem_3_0.cause_repertoire(mechanism, mechanism)
 
     def partitioned_posterior_repertoire(self, partition):
+        """The joint posterior repertoire of a partition."""
         return functools.reduce(np.multiply, [
             self.posterior_repertoire(mechanism) for mechanism in partition])
 
