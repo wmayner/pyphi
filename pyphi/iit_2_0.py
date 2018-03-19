@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# subsystem_2_0.py
+# iit_2_0.py
 
 """Implementation of IIT 2.0
 
@@ -24,7 +24,7 @@ from pyphi.models import cmp
 from pyphi.partition import bipartition
 
 
-class Subsystem_2_0:
+class Subsystem:
     """A subsystem for IIT 2.0 computations.
 
     This system takes the same arguments as the standard PyPhi subsystem.
@@ -110,7 +110,7 @@ class Subsystem_2_0:
         """
         if self._mip is None:
             self._mip = min(
-                Mip_2_0(self.effective_information_partition(partition),
+                Mip(self.effective_information_partition(partition),
                         partition, self)
                 for partition in generate_partitions(self.node_indices))
 
@@ -123,7 +123,7 @@ class Subsystem_2_0:
 
 
 @functools.total_ordering
-class Mip_2_0:
+class Mip:
     """An IIT 2.0 minimum information partition."""
 
     def __init__(self, ei, partition, subsystem):
@@ -221,7 +221,7 @@ def all_subsystems(network, state):
     for subset in utils.powerset(network.node_indices, nonempty=True,
                                  reverse=True):
         try:
-            yield Subsystem_2_0(network, state, subset)
+            yield Subsystem(network, state, subset)
         except exceptions.StateUnreachableError:
             pass
 

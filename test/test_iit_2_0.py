@@ -7,8 +7,8 @@ import numpy as np
 
 from pyphi import Network, jsonify, examples
 from pyphi.distribution import max_entropy_distribution
-from pyphi.subsystem_2_0 import (
-    Subsystem_2_0, Partition, generate_partitions, all_complexes,
+from pyphi.iit_2_0 import (
+    Subsystem, Partition, generate_partitions, all_complexes,
     all_subsystems, main_complexes)
 
 
@@ -44,12 +44,12 @@ def and_network():
 
 @pytest.fixture
 def and_whole_system(and_network):
-    return Subsystem_2_0(and_network, (0, 0, 1), (0, 1, 2))
+    return Subsystem(and_network, (0, 0, 1), (0, 1, 2))
 
 
 @pytest.fixture
 def and_1_2_system(and_network):
-    return Subsystem_2_0(and_network, (0, 0, 1), (1, 2))
+    return Subsystem(and_network, (0, 0, 1), (1, 2))
 
 
 def test_prior_repertoire(and_whole_system, and_1_2_system):
@@ -71,7 +71,7 @@ def test_effective_information(and_whole_system):
 
 def test_effective_information_and_000(and_network):
     """From Figure 2B, AND-network entering state (0, 0, 0)"""
-    system = Subsystem_2_0(and_network, (0, 0, 0), (0, 1, 2))
+    system = Subsystem(and_network, (0, 0, 0), (0, 1, 2))
     assert system.effective_information() == 1
 
 
@@ -101,7 +101,7 @@ def disjoint_couples_network():
 @pytest.fixture
 def disjoint_subsystem(disjoint_couples_network):
     """The entire disjoint network in state (0, 1, 1, 0)."""
-    return Subsystem_2_0(disjoint_couples_network, (0, 1, 1, 0), (0, 1, 2, 3))
+    return Subsystem(disjoint_couples_network, (0, 1, 1, 0), (0, 1, 2, 3))
 
 
 def test_prior_repertoire_disjoint_couples(disjoint_subsystem):
@@ -169,8 +169,8 @@ def test_phi(disjoint_subsystem):
 
 def test_complexes(disjoint_couples_network):
     assert set(all_complexes(disjoint_couples_network, (0, 1, 1, 0))) == set([
-        Subsystem_2_0(disjoint_couples_network, (0, 1, 1, 0), (0, 1)),
-        Subsystem_2_0(disjoint_couples_network, (0, 1, 1, 0), (2, 3))])
+        Subsystem(disjoint_couples_network, (0, 1, 1, 0), (0, 1)),
+        Subsystem(disjoint_couples_network, (0, 1, 1, 0), (2, 3))])
 
 
 @pytest.fixture
@@ -201,7 +201,7 @@ def counting_network():
     ((0, 0, 0, 0), 4),
     ((0, 0, 1, 1), 0.192645)])
 def test_binary_counting(state, phi, counting_network):
-    subsystem = Subsystem_2_0(counting_network, state, (0, 1, 2, 3))
+    subsystem = Subsystem(counting_network, state, (0, 1, 2, 3))
     assert subsystem.phi == phi
 
 
@@ -248,7 +248,7 @@ def modular_network():
     ((6, 7, 8), 1.188722),
     ((9, 10, 11), 1.188722)])
 def test_modular_network(nodes, phi, modular_network):
-    subsystem = Subsystem_2_0(modular_network, [0] * 12, nodes)
+    subsystem = Subsystem(modular_network, [0] * 12, nodes)
     assert subsystem.phi == phi
 
 
@@ -257,20 +257,20 @@ def test_all_complexes():
     network = examples.fig16()
     state = (1, 0, 0, 1, 1, 1, 0)
     assert all_complexes(network, state) == [
-        Subsystem_2_0(network, state, (0, 1, 2, 3, 4)),
-        Subsystem_2_0(network, state, (0, 1, 2, 3)),
-        Subsystem_2_0(network, state, (0, 1, 2)),
-        Subsystem_2_0(network, state, (5, 6)),
-        Subsystem_2_0(network, state, (3, 4))]
+        Subsystem(network, state, (0, 1, 2, 3, 4)),
+        Subsystem(network, state, (0, 1, 2, 3)),
+        Subsystem(network, state, (0, 1, 2)),
+        Subsystem(network, state, (5, 6)),
+        Subsystem(network, state, (3, 4))]
 
 
 def test_main_complexes():
     network = examples.fig16()
     state = (1, 0, 0, 1, 1, 1, 0)
     assert main_complexes(network, state) == [
-        Subsystem_2_0(network, state, (0, 1, 2)),
-        Subsystem_2_0(network, state, (5, 6)),
-        Subsystem_2_0(network, state, (3, 4))]
+        Subsystem(network, state, (0, 1, 2)),
+        Subsystem(network, state, (5, 6)),
+        Subsystem(network, state, (3, 4))]
 
 
 @pytest.fixture
@@ -356,8 +356,8 @@ def figure6_network():
 def test_main_complexes_figure6(figure6_network):
     state = (0, 0, 1, 1, 1, 0)
     assert main_complexes(figure6_network, state) == [
-        Subsystem_2_0(figure6_network, state, (0, 1, 2)),
-        Subsystem_2_0(figure6_network, state, (2, 5)),
-        Subsystem_2_0(figure6_network, state, (1, 4)),
-        Subsystem_2_0(figure6_network, state, (0, 3))
+        Subsystem(figure6_network, state, (0, 1, 2)),
+        Subsystem(figure6_network, state, (2, 5)),
+        Subsystem(figure6_network, state, (1, 4)),
+        Subsystem(figure6_network, state, (0, 3))
     ]
