@@ -115,6 +115,7 @@ class Subsystem_2_0:
 
 @functools.total_ordering
 class Mip_2_0:
+    """An IIT 2.0 minimum information partition."""
 
     def __init__(self, ei, partition, subsystem):
         self.ei = round(ei, config.PRECISION)
@@ -123,6 +124,7 @@ class Mip_2_0:
 
     @property
     def ei_normalized(self):
+        """The normalized effective information of this MIP."""
         return self.ei / self.partition.normalization
 
     @cmp.sametype
