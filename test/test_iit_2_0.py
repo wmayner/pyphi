@@ -9,7 +9,7 @@ from pyphi import Network, jsonify, examples
 from pyphi.distribution import max_entropy_distribution
 from pyphi.subsystem_2_0 import (
     Subsystem_2_0, Partition, generate_partitions, all_complexes,
-    all_subsystems)
+    all_subsystems, main_complexes)
 
 
 @pytest.fixture
@@ -246,13 +246,22 @@ def test_modular_network(modular_network):
     assert subsystem.phi() == 0.700186
 
 
-def test_complexes():
+def test_all_complexes():
     """Complexes of IIT 3.0 Fig 16 example."""
     network = examples.fig16()
     state = (1, 0, 0, 1, 1, 1, 0)
     assert all_complexes(network, state) == [
         Subsystem_2_0(network, state, (0, 1, 2, 3, 4)),
         Subsystem_2_0(network, state, (0, 1, 2, 3)),
+        Subsystem_2_0(network, state, (0, 1, 2)),
+        Subsystem_2_0(network, state, (5, 6)),
+        Subsystem_2_0(network, state, (3, 4))]
+
+
+def test_main_complexes():
+    network = examples.fig16()
+    state = (1, 0, 0, 1, 1, 1, 0)
+    assert main_complexes(network, state) == [
         Subsystem_2_0(network, state, (0, 1, 2)),
         Subsystem_2_0(network, state, (5, 6)),
         Subsystem_2_0(network, state, (3, 4))]

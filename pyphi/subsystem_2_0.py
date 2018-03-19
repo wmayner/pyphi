@@ -225,3 +225,22 @@ def all_complexes(network, state):
                 complexes.append(s)
 
     return complexes
+
+
+def main_complexes(network, state):
+    """
+    S is a main complex iff S is a complex and phi(S) is greater than the
+    phi of all subsets of S.
+    """
+    complexes = all_complexes(network, state)
+    main_complexes = []
+
+    for s in complexes:
+        for r in complexes:
+            if (set(r.node_indices) < set(s.node_indices)
+                    and r.phi() >= s.phi()):
+                break
+        else:
+            main_complexes.append(s)
+
+    return main_complexes
