@@ -76,7 +76,7 @@ supported, though it might work with minor modifications.
 Detailed installation guide for Mac OS X
 ````````````````````````````````````````
 
-`See here <https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.md>`_.
+`See here <https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.rst>`_.
 
 
 Discussion
