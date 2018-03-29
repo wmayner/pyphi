@@ -39,11 +39,11 @@ Setting can be changed on the fly by assigning them a new value:
 
 It is also possible to manually load a configuration file:
 
-    >>> pyphi.config.load_config_file('pyphi_config.yml')
+    >>> pyphi.config.load_file('pyphi_config.yml')
 
 Or load a dictionary of configuration values:
 
-    >>> pyphi.config.load_config_dict({'PRECISION': 1})
+    >>> pyphi.config.load_dict({'PRECISION': 1})
 
 
 Approximations and theoretical options
@@ -267,17 +267,17 @@ class Config(metaclass=ConfigMeta):
         """Return the default values of this configuration."""
         return {k: v.default for k, v in self.options().items()}
 
-    def load_config_dict(self, dct):
+    def load_dict(self, dct):
         """Load a dictionary of configuration values."""
         for k, v in dct.items():
             setattr(self, k, v)
 
-    def load_config_file(self, filename):
+    def load_file(self, filename):
         """Load config from a YAML file."""
         filename = os.path.abspath(filename)
 
         with open(filename) as f:
-            self.load_config_dict(yaml.load(f))
+            self.load_dict(yaml.load(f))
 
         self._loaded_files.append(filename)
 
@@ -317,11 +317,11 @@ class _override(contextlib.ContextDecorator):
 
     def __enter__(self):
         """Save original config values; override with new ones."""
-        self.conf.load_config_dict(self.new_values)
+        self.conf.load_dict(self.new_values)
 
     def __exit__(self, *exc):
         """Reset config to initial values; reraise any exceptions."""
-        self.conf.load_config_dict(self.initial_values)
+        self.conf.load_dict(self.initial_values)
         return False
 
 
@@ -620,7 +620,7 @@ config = PyphiConfig()
 
 # Try and load the config file
 if os.path.exists(PYPHI_CONFIG_FILENAME):
-    config.load_config_file(PYPHI_CONFIG_FILENAME)
+    config.load_file(PYPHI_CONFIG_FILENAME)
 
 # Log the PyPhi version and loaded configuration
 if config.LOG_CONFIG_ON_IMPORT:

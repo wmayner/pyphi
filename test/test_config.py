@@ -20,8 +20,8 @@ def c():
     return ExampleConfig()
 
 
-def test_load_config_dict(c):
-    c.load_config_dict({'SPEED': 'slow'})
+def test_load_dict(c):
+    c.load_dict({'SPEED': 'slow'})
     assert c.SPEED == 'slow'
 
 
@@ -37,8 +37,8 @@ EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    'example_config.yml')
 
 
-def test_load_config_file(c):
-    c.load_config_file(EXAMPLE_CONFIG_FILE)
+def test_load_file(c):
+    c.load_file(EXAMPLE_CONFIG_FILE)
     assert c.SPEED == 'slow'
     assert c._loaded_files == [EXAMPLE_CONFIG_FILE]
 
@@ -130,7 +130,7 @@ def test_on_change():
     c.SPEED = 'slow'
     assert event.notified == 'slow'
 
-    c.load_config_dict({'SPEED': 'fast'})
+    c.load_dict({'SPEED': 'fast'})
     assert event.notified == 'fast'
 
 

@@ -22,6 +22,8 @@ Next Release
 
 - Removed the `labels2indices`, `indices2labels` and `parse_node_indices`
   methods from `Network`, and the `indices2labels` method from `Subsystem`.
+- Renamed `config.load_config_file` to `config.load_file`, and
+  `config.load_config_dict` to `config.load_dict`
 
 
 1.0.0 :tada:
