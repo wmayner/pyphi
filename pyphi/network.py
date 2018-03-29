@@ -128,7 +128,7 @@ class Network:
     @property
     def size(self):
         """int: The number of nodes in the network."""
-        return self.tpm.shape[-1]
+        return len(self)
 
     # TODO extend to nonbinary nodes
     @property
@@ -167,6 +167,10 @@ class Network:
         all_purviews = utils.powerset(self._node_indices)
         return irreducible_purviews(self.cm, direction, mechanism,
                                     all_purviews)
+
+    def __len__(self):
+        """int: The number of nodes in the network."""
+        return self.tpm.shape[-1]
 
     def __repr__(self):
         return 'Network({}, cm={})'.format(self.tpm, self.cm)

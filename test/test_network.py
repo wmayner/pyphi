@@ -66,3 +66,11 @@ def test_repr(standard):
 
 def test_str(standard):
     print(str(standard))
+
+
+def test_len(standard):
+    assert len(standard) == 3
+
+
+def test_size(standard):
+    assert standard.size == 3
