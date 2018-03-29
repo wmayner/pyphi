@@ -768,20 +768,19 @@ class Subsystem:
 
         # If the mechanism is empty, there is no concept.
         if not mechanism:
-            result = self.null_concept
-        else:
-            # Calculate the maximally irreducible cause repertoire.
-            cause = self.mic(mechanism,
-                             purviews=(cause_purviews or purviews))
-            # Calculate the maximally irreducible effect repertoire.
-            effect = self.mie(mechanism,
-                              purviews=(effect_purviews or purviews))
-            # NOTE: Make sure to expand the repertoires to the size of the
-            # subsystem when calculating concept distance. For now, they must
-            # remain un-expanded so the concept doesn't depend on the
-            # subsystem.
-            result = Concept(mechanism=mechanism, cause=cause, effect=effect,
-                             subsystem=self)
+            log.debug('Empty concept; returning null concept')
+            return self.null_concept
+
+        # Calculate the maximally irreducible cause repertoire.
+        cause = self.mic(mechanism, purviews=(cause_purviews or purviews))
+
+        # Calculate the maximally irreducible effect repertoire.
+        effect = self.mie(mechanism, purviews=(effect_purviews or purviews))
 
         log.debug('Found concept %s', mechanism)
-        return result
+
+        # NOTE: Make sure to expand the repertoires to the size of the
+        # subsystem when calculating concept distance. For now, they must
+        # remain un-expanded so the concept doesn't depend on the subsystem.
+        return Concept(mechanism=mechanism, cause=cause, effect=effect,
+                       subsystem=self)
