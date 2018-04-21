@@ -105,8 +105,8 @@ def flushcache():
     return cache_flusher
 
 
-@pytest.fixture(scope="session")
-def restore_fs_cache(request):
+@pytest.fixture(scope="session", autouse=True)
+def restore_filesystem_cache(request):
     """Temporarily backup, then restore, the user's joblib cache after each
     testing session."""
     # Move the joblib cache to a backup location and create a fresh cache if

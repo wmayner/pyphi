@@ -224,8 +224,8 @@ def check_sia(sia, answer):
 
 
 @config.override(CACHE_SIAS=True)
-def test_sia_cache_key_includes_config_dependencies(s, flushcache,
-                                                    restore_fs_cache):
+def test_sia_cache_key_includes_config_dependencies(s, flushcache):
+
     flushcache()
 
     with config.override(MEASURE='EMD'):
@@ -253,12 +253,12 @@ def test_clear_subsystem_caches_after_computing_sia_config_option(s):
         assert not s._repertoire_cache.cache
 
 
-def test_conceptual_info(s, flushcache, restore_fs_cache):
+def test_conceptual_info(s, flushcache):
     flushcache()
     assert compute.conceptual_info(s) == 2.8125
 
 
-def test_sia_empty_subsystem(s_empty, flushcache, restore_fs_cache):
+def test_sia_empty_subsystem(s_empty, flushcache):
     flushcache()
     assert (compute.sia(s_empty) ==
             models.SystemIrreducibilityAnalysis(
@@ -269,7 +269,7 @@ def test_sia_empty_subsystem(s_empty, flushcache, restore_fs_cache):
                 cut_subsystem=s_empty))
 
 
-def test_sia_disconnected_network(reducible, flushcache, restore_fs_cache):
+def test_sia_disconnected_network(reducible, flushcache):
     flushcache()
     assert (compute.sia(reducible) ==
             models.SystemIrreducibilityAnalysis(subsystem=reducible,
@@ -279,7 +279,7 @@ def test_sia_disconnected_network(reducible, flushcache, restore_fs_cache):
                                                 partitioned_ces=[]))
 
 
-def test_sia_wrappers(reducible, flushcache, restore_fs_cache):
+def test_sia_wrappers(reducible, flushcache):
     flushcache()
     assert (compute.sia(reducible) ==
             models.SystemIrreducibilityAnalysis(subsystem=reducible,
@@ -293,20 +293,20 @@ def test_sia_wrappers(reducible, flushcache, restore_fs_cache):
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=True)
 @config.override(MEASURE='EMD')
 def test_sia_single_micro_node_selfloops_have_phi(
-        noisy_selfloop_single, flushcache, restore_fs_cache):
+        noisy_selfloop_single, flushcache):
     flushcache()
     assert compute.sia(noisy_selfloop_single).phi == 0.2736
 
 
 @config.override(SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI=False)
 def test_sia_single_micro_node_selfloops_dont_have_phi(
-        noisy_selfloop_single, flushcache, restore_fs_cache):
+        noisy_selfloop_single, flushcache):
     flushcache()
     assert compute.sia(noisy_selfloop_single).phi == 0.0
 
 
 def test_sia_single_micro_nodes_without_selfloops_dont_have_phi(
-        s_single, flushcache, restore_fs_cache):
+        s_single, flushcache):
     flushcache()
     assert compute.sia(s_single).phi == 0.0
 
@@ -320,7 +320,7 @@ def standard_ComputeSystemIrreducibility(s):
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
 def test_find_sia_sequential_standard_example(
-        standard_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
+        standard_ComputeSystemIrreducibility, flushcache):
     flushcache()
     sia = standard_ComputeSystemIrreducibility.run_sequential()
     check_sia(sia, standard_answer)
@@ -328,7 +328,7 @@ def test_find_sia_sequential_standard_example(
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
 def test_find_sia_parallel_standard_example(
-        standard_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
+        standard_ComputeSystemIrreducibility, flushcache):
     flushcache()
     sia = standard_ComputeSystemIrreducibility.run_parallel()
     check_sia(sia, standard_answer)
@@ -343,7 +343,7 @@ def s_noised_ComputeSystemIrreducibility(s_noised):
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
 def test_find_sia_sequential_noised_example(
-        s_noised_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
+        s_noised_ComputeSystemIrreducibility, flushcache):
     flushcache()
     sia = s_noised_ComputeSystemIrreducibility.run_sequential()
     check_sia(sia, noised_answer)
@@ -351,7 +351,7 @@ def test_find_sia_sequential_noised_example(
 
 @config.override(PARALLEL_CUT_EVALUATION=True, NUMBER_OF_CORES=-2)
 def test_find_sia_parallel_noised_example(
-        s_noised_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
+        s_noised_ComputeSystemIrreducibility, flushcache):
     flushcache()
     sia = s_noised_ComputeSystemIrreducibility.run_parallel()
     check_sia(sia, noised_answer)
@@ -366,7 +366,7 @@ def micro_s_ComputeSystemIrreducibility(micro_s):
 
 @config.override(PARALLEL_CUT_EVALUATION=True)
 def test_find_sia_parallel_micro(
-        micro_s_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
+        micro_s_ComputeSystemIrreducibility, flushcache):
     flushcache()
     sia = micro_s_ComputeSystemIrreducibility.run_parallel()
     check_sia(sia, micro_answer)
@@ -374,7 +374,7 @@ def test_find_sia_parallel_micro(
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
 def test_find_sia_sequential_micro(
-        micro_s_ComputeSystemIrreducibility, flushcache, restore_fs_cache):
+        micro_s_ComputeSystemIrreducibility, flushcache):
     flushcache()
     sia = micro_s_ComputeSystemIrreducibility.run_sequential()
     check_sia(sia, micro_answer)
@@ -390,21 +390,21 @@ def test_possible_complexes(s):
     ]
 
 
-def test_complexes_standard(s, flushcache, restore_fs_cache):
+def test_complexes_standard(s, flushcache):
     flushcache()
     complexes = list(compute.complexes(s.network, s.state))
     check_sia(complexes[0], standard_answer)
 
 
 # TODO!! add more assertions for the smaller subsystems
-def test_all_complexes_standard(s, flushcache, restore_fs_cache):
+def test_all_complexes_standard(s, flushcache):
     flushcache()
     complexes = list(compute.all_complexes(s.network, s.state))
     check_sia(complexes[0], standard_answer)
 
 
 @config.override(PARALLEL_CUT_EVALUATION=False)
-def test_all_complexes_parallelization(s, flushcache, restore_fs_cache):
+def test_all_complexes_parallelization(s, flushcache):
     flushcache()
     with config.override(PARALLEL_COMPLEX_EVALUATION=False):
         serial = compute.all_complexes(s.network, s.state)
@@ -438,21 +438,20 @@ def test_sia_complete_graph_rule152_s(rule152_s_complete):
 
 
 @pytest.mark.slow
-def test_sia_big_network(big_subsys_all, flushcache, restore_fs_cache):
+def test_sia_big_network(big_subsys_all, flushcache):
     flushcache()
     sia = compute.sia(big_subsys_all)
     check_sia(sia, big_answer)
 
 
-def test_sia_big_network_0_thru_3(big_subsys_0_thru_3, flushcache,
-                                  restore_fs_cache):
+def test_sia_big_network_0_thru_3(big_subsys_0_thru_3, flushcache):
     flushcache()
     sia = compute.sia(big_subsys_0_thru_3)
     check_sia(sia, big_subsys_0_thru_3_answer)
 
 
 @pytest.mark.slow
-def test_sia_rule152(rule152_s, flushcache, restore_fs_cache):
+def test_sia_rule152(rule152_s, flushcache):
     flushcache()
     sia = compute.sia(rule152_s)
     check_sia(sia, rule152_answer)
@@ -510,7 +509,7 @@ def test_rule152_complexes_no_caching(rule152):
 
 
 @pytest.mark.dev
-def test_sia_macro(macro_s, flushcache, restore_fs_cache):
+def test_sia_macro(macro_s, flushcache):
     flushcache()
     sia = compute.sia(macro_s)
     check_sia(sia, macro_answer)
@@ -546,7 +545,7 @@ def test_sia_bipartitions():
         assert sia_bipartitions((1, 2, 3, 4)) == answer
 
 
-def test_system_cut_styles(s, flushcache, restore_fs_cache):
+def test_system_cut_styles(s, flushcache):
     with config.override(SYSTEM_CUTS='3.0_STYLE'):
         assert compute.phi(s) == 2.3125
 
