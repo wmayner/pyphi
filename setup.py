@@ -24,7 +24,7 @@ install_requires = [
     'redis >=2.10.5',
     'scipy >=0.13.3',
     'tblib >=1.3.2',
-    'tqdm >=4.11.2',
+    'tqdm >=4.20.0',
 ]
 
 setup(

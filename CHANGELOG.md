@@ -9,6 +9,9 @@ Next Release
 - Fixed a memory leaked when concepts returned by parallel CES computations
   were returned with distinct subsystem objects. Now all objects in a CES
   share the same subsystem reference.
+- Fixed a race condition caused by newly introduced `tqdm` synchronization.
+  Removed the existing `ProgressBar` implementation and pinned `tqdm` to
+  version >= 4.20.0.
 
 ### API additions
 

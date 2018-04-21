@@ -16,9 +16,9 @@ import threading
 from itertools import chain, islice
 
 from tblib import Traceback
+from tqdm import tqdm
 
 from .. import config
-from ..log import ProgressBar
 
 log = logging.getLogger(__name__)
 
@@ -157,8 +157,8 @@ class MapReduce:
             self.iterable = list(self.iterable)
             total = len(self.iterable)
 
-        return ProgressBar(total=total, disable=disable, leave=False,
-                           desc=self.description)
+        return tqdm(total=total, disable=disable, leave=False,
+                    desc=self.description)
 
     @staticmethod  # coverage: disable
     def worker(compute, task_queue, result_queue, log_queue, complete,
