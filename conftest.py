@@ -48,3 +48,14 @@ def restore_config_afterwards(request):  # pylint: disable=unused-argument
     '''
     with pyphi.config.override():
         yield
+
+
+@pytest.fixture(scope='session', autouse=True)
+def disable_progress_bars():
+    '''Disable progress bars during tests.
+
+    Progress bars are already disabled for unit tests; doctests work
+    differently, I think because of output redirection.
+    '''
+    with pyphi.config.override(PROGRESS_BARS=False):
+        yield
