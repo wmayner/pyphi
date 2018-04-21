@@ -93,22 +93,27 @@ def _flush_database_cache():
     return db.database.test.remove({})
 
 
-@pytest.fixture
-def flushcache():
-    """Flush the currently enabled cache."""
-    def cache_flusher():
-        log.info("FLUSHING CACHE!")
-        if config.CACHING_BACKEND == constants.DATABASE:
-            _flush_database_cache()
-        elif config.CACHING_BACKEND == constants.FILESYSTEM:
-            _flush_joblib_cache()
-    return cache_flusher
+# TODO: flush Redis cache
+@pytest.fixture(scope="function", autouse=True)
+def flushcache(request):
+    """Flush the currently enabled cache.
+
+    This is called before every test case.
+    """
+    log.info("Flushing cache...")
+    if config.CACHING_BACKEND == constants.DATABASE:
+        _flush_database_cache()
+    elif config.CACHING_BACKEND == constants.FILESYSTEM:
+        _flush_joblib_cache()
 
 
 @pytest.fixture(scope="session", autouse=True)
 def restore_filesystem_cache(request):
     """Temporarily backup, then restore, the user's joblib cache after each
-    testing session."""
+    testing session.
+
+    This is called before flushcache is, ensuring the cache is saved.
+    """
     # Move the joblib cache to a backup location and create a fresh cache if
     # filesystem caching is enabled
     if config.CACHING_BACKEND == constants.FILESYSTEM:

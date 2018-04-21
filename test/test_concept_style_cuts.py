@@ -134,11 +134,11 @@ def test_sia_concept_style(s):
 
 
 @config.override(SYSTEM_CUTS='CONCEPT_STYLE')
-def test_unpickle(s, flushcache):
+def test_unpickle(s):
     bm = compute.sia(s)
     pickle.loads(pickle.dumps(bm))
 
 
 @config.override(SYSTEM_CUTS='CONCEPT_STYLE')
-def test_concept_style_phi(s, flushcache):
+def test_concept_style_phi(s):
     assert compute.phi(s) == 0.6875
