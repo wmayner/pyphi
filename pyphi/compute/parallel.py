@@ -239,34 +239,40 @@ class MapReduce:
         """Perform the computation in parallel, reading results from the output
         queue and passing them to ``process_result``.
         """
-        self.start_parallel()
+        try:
+            self.start_parallel()
 
-        result = self.empty_result(*self.context)
+            result = self.empty_result(*self.context)
 
-        while self.num_processes > 0:
-            r = self.result_queue.get()
-            self.maybe_put_task()
+            while self.num_processes > 0:
+                r = self.result_queue.get()
+                self.maybe_put_task()
 
-            if r is POISON_PILL:
-                self.num_processes -= 1
+                if r is POISON_PILL:
+                    self.num_processes -= 1
 
-            elif isinstance(r, ExceptionWrapper):
-                r.reraise()
+                elif isinstance(r, ExceptionWrapper):
+                    r.reraise()
 
-            else:
-                result = self.process_result(r, result)
-                self.progress.update(1)
+                else:
+                    result = self.process_result(r, result)
+                    self.progress.update(1)
 
-                # Did `process_result` decide to terminate early?
-                if self.done:
-                    self.complete.set()
+                    # Did `process_result` decide to terminate early?
+                    if self.done:
+                        self.complete.set()
 
-        self.finish_parallel()
+            self.finish_parallel()
+        except Exception:
+            raise
+        finally:
+            log.debug('Removing progress bar')
+            self.progress.close()
 
         return result
 
     def finish_parallel(self):
-        """Terminate all processes and the log thread."""
+        """Orderly shutdown of workers."""
         for process in self.processes:
             process.join()
 
@@ -281,27 +287,25 @@ class MapReduce:
         self.task_queue.close()
         self.result_queue.close()
 
-        # Remove the progress bar
-        log.debug('Removing progress bar')
-        self.progress.close()
-
     def run_sequential(self):
         """Perform the computation sequentially, only holding two computed
         objects in memory at a time.
         """
-        result = self.empty_result(*self.context)
+        try:
+            result = self.empty_result(*self.context)
 
-        for obj in self.iterable:
-            r = self.compute(obj, *self.context)
-            result = self.process_result(r, result)
-            self.progress.update(1)
+            for obj in self.iterable:
+                r = self.compute(obj, *self.context)
+                result = self.process_result(r, result)
+                self.progress.update(1)
 
-            # Short-circuited?
-            if self.done:
-                break
-
-        # Remove progress bar
-        self.progress.close()
+                # Short-circuited?
+                if self.done:
+                    break
+        except Exception as e:
+            raise e
+        finally:
+            self.progress.close()
 
         return result
 
