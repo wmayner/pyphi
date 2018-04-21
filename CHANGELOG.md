@@ -27,6 +27,7 @@ Next Release
   methods from `Network`, and the `indices2labels` method from `Subsystem`.
 - Renamed `config.load_config_file` to `config.load_file`, and
   `config.load_config_dict` to `config.load_dict`
+- Removed backwards-compatible `Direction` import from `constants` module.
 
 
 1.0.0 :tada:
@@ -94,7 +95,7 @@ modules.
 #### Constants
 
 - Renamed `Direction.PAST` to `Direction.CAUSE`
-- Renamed `Direction.CAUSE` to `Direction.EFFECT`
+- Renamed `Direction.FUTURE` to `Direction.EFFECT`
 
 ### API additions
 
