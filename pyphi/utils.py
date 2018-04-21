@@ -65,7 +65,7 @@ def np_hash(a):
 
 class np_hashable:
     """A hashable wrapper around a NumPy array."""
-    # pylint: disable=protected-access,too-few-public-methods
+    # pylint: disable=protected-access
 
     def __init__(self, array):
         self._array = np_immutable(array.copy())

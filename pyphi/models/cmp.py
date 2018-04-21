@@ -48,8 +48,6 @@ class Orderable:
     ``Subsystem`` or compare ``MechanismIrreducibilityAnalyses`` with different
     directions.
     """
-    # pylint: disable=too-few-public-methods
-
     # The object is not orderable unless these attributes are all equal
     unorderable_unless_eq = []
 

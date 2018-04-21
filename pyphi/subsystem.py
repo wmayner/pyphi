@@ -4,9 +4,6 @@
 
 """Represents a candidate system for |small_phi| and |big_phi| evaluation."""
 
-# pylint: disable=too-many-instance-attributes,too-many-public-methods,
-# pylint: disable=too-many-public-methods,too-many-arguments
-
 import functools
 import logging
 from time import time
@@ -279,6 +276,7 @@ class Subsystem:
     # TODO extend to nonbinary nodes
     @cache.method('_single_node_repertoire_cache', Direction.CAUSE)
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):
+        # pylint: disable=missing-docstring
         mechanism_node = self._index2node[mechanism_node_index]
         # We're conditioning on this node's state, so take the TPM for the node
         # being in that state.
@@ -334,6 +332,7 @@ class Subsystem:
     # TODO extend to nonbinary nodes
     @cache.method('_single_node_repertoire_cache', Direction.EFFECT)
     def _single_node_effect_repertoire(self, mechanism, purview_node_index):
+        # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the inputs that are in the mechanism.
         mechanism_inputs = (purview_node.inputs & mechanism)

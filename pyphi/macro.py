@@ -6,8 +6,6 @@
 Methods for coarse-graining systems to different levels of spatial analysis.
 """
 
-# pylint: disable=too-few-public-methods,too-many-arguments
-
 import itertools
 import logging
 from collections import namedtuple

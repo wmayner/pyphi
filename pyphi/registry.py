@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # registry.py
 
+"""
+A function registry for storing custom measures and partition strategies.
+"""
+
 from collections.abc import Mapping
 
 

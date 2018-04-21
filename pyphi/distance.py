@@ -36,6 +36,8 @@ class MeasureRegistry(Registry):
 
     And use them by setting ``config.MEASURE = 'ALWAYS_ZERO'``.
     """
+    # pylint: disable=arguments-differ
+
     desc = 'measures'
 
     def __init__(self):
@@ -74,8 +76,6 @@ class np_suppress(np.errstate, ContextDecorator):
         This should only be used in cases where you are *sure* that these
         warnings are not indicative of deeper issues in your code.
     """
-    # pylint: disable=too-few-public-methods
-
     def __init__(self):
         super().__init__(divide='ignore', invalid='ignore')
 

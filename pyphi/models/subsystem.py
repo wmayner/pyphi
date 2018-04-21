@@ -7,8 +7,6 @@
 from . import cmp, fmt
 from .. import config, utils
 
-# pylint: disable=too-many-arguments
-
 _sia_attributes = ['phi', 'ces', 'partitioned_ces', 'subsystem',
                    'cut_subsystem']
 

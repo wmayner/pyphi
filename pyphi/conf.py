@@ -134,7 +134,7 @@ The ``config`` API
 ~~~~~~~~~~~~~~~~~~
 """
 
-# pylint: disable=too-few-public-methods,protected-access
+# pylint: disable=protected-access
 
 import contextlib
 import logging

@@ -7,8 +7,6 @@ Represents a node in a network. Each node has a unique index, its position in
 the network's list of nodes.
 """
 
-# pylint: disable=too-many-arguments
-
 import functools
 
 import numpy as np

@@ -252,17 +252,18 @@ def directed_tripartition(seq):
 # codereview.stackexchange.com/questions/1526/finding-all-k-subset-partitions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# pylint: disable=too-many-arguments,too-many-branches
-
 
 def _visit(n, a, k, collection):
+    # pylint: disable=missing-docstring
     ps = [[] for i in range(k)]
     for j in range(n):
         ps[a[j + 1]].append(collection[j])
     return ps
 
 
-def _f(mu, nu, sigma, n, a, k, collection):  # flake8: noqa
+def _f(mu, nu, sigma, n, a, k, collection):
+    # flake8: noqa
+    # pylint: disable=missing-docstring
     if mu == 2:
         yield _visit(n, a, k, collection)
     else:
@@ -295,7 +296,9 @@ def _f(mu, nu, sigma, n, a, k, collection):  # flake8: noqa
                     yield v
 
 
-def _b(mu, nu, sigma, n, a, k, collection):  # flake8: noqa
+def _b(mu, nu, sigma, n, a, k, collection):
+    # flake8: noqa
+    # pylint: disable=missing-docstring
     if nu == mu + 1:
         while a[nu] < mu - 1:
             yield _visit(n, a, k, collection)
@@ -477,7 +480,7 @@ def wedge_partitions(mechanism, purview, node_labels=None):
         tripart = Tripartition(
             Part(n[0], d[0]),
             Part(n[1], d[1]),
-            Part((),   d[2]),
+            Part((), d[2]),
             node_labels=node_labels
         ).normalize()  # pylint: disable=bad-whitespace
 

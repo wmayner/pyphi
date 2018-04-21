@@ -10,8 +10,6 @@ from . import cmp, fmt
 from .. import Direction, config, connectivity, distribution, utils
 from ..exceptions import WrongDirectionError
 
-# pylint: disable=too-many-arguments,too-many-instance-attributes
-
 _ria_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'repertoire', 'partitioned_repertoire']
 

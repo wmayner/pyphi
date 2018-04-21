@@ -6,9 +6,6 @@
 Methods for computing actual causation of subsystems and mechanisms.
 """
 
-# pylint: disable=too-many-instance-attributes, too-many-arguments
-# pylint: disable=too-many-public-methods
-
 import logging
 from itertools import chain
 from math import log2 as _log2
@@ -582,12 +579,12 @@ class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
 
     description = 'Evaluating AC cuts'
 
-    def empty_result(self, transition, direction, account):
+    def empty_result(self, transition, direction, unpartitioned_account):
         return _null_ac_sia(transition, direction, alpha=float('inf'))
 
     @staticmethod
-    def compute(cut, transition, direction, account):
-        return _evaluate_cut(transition, cut, account, direction)
+    def compute(cut, transition, direction, unpartitioned_account):
+        return _evaluate_cut(transition, cut, unpartitioned_account, direction)
 
     def process_result(self, new_sia, min_sia):
         # Check a new result against the running minimum

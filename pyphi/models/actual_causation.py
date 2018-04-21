@@ -6,8 +6,6 @@
 Objects that represent structures used in actual causation.
 """
 
-# pylint: disable=too-many-arguments
-
 from collections import namedtuple
 
 from . import cmp, fmt

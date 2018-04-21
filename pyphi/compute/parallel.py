@@ -7,8 +7,6 @@
 Utilities for parallel computation.
 """
 
-# pylint: disable=too-few-public-methods,too-many-instance-attributes
-
 import logging
 import multiprocessing
 import sys
