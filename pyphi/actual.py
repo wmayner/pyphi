@@ -82,7 +82,7 @@ class Transition:
         self.before_state = before_state
         self.after_state = after_state
 
-        coerce_to_indices = network._node_labels.coerce_to_indices
+        coerce_to_indices = self.node_labels.coerce_to_indices
         self.cause_indices = coerce_to_indices(cause_indices)
         self.effect_indices = coerce_to_indices(effect_indices)
         self.node_indices = coerce_to_indices(cause_indices + effect_indices)
@@ -160,7 +160,7 @@ class Transition:
 
     @property
     def node_labels(self):
-        return self.network._node_labels
+        return self.network.node_labels
 
     def to_json(self):
         """Return a JSON-serializable representation."""
