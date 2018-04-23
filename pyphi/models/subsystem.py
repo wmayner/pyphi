@@ -19,11 +19,11 @@ class CauseEffectStructure(tuple):
     """A collection of concepts."""
     # TODO: make CES a proper object instead of a tuple hack
 
-    def __new__(cls, concepts=(), subsystem=None):
+    def __new__(cls, concepts=(), subsystem=None, time=None):
         """Normalize the order of concepts in the |CauseEffectStructure|."""
         obj = super().__new__(cls, sorted(concepts, key=_concept_sort_key))
         obj.subsystem = subsystem
-        obj.time = None
+        obj.time = time
         return obj
 
     def __repr__(self):
@@ -37,7 +37,8 @@ class CauseEffectStructure(tuple):
         return fmt.fmt_ces(self)
 
     def to_json(self):
-        return {'concepts': list(self), 'subsystem': self.subsystem}
+        return {'concepts': list(self), 'subsystem': self.subsystem,
+                'time': self.time}
 
     @property
     def mechanisms(self):
@@ -81,9 +82,8 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         time (float): The number of seconds it took to calculate.
     """
 
-    def __init__(self, phi=None, ces=None,
-                 partitioned_ces=None, subsystem=None,
-                 cut_subsystem=None, time=None, small_phi_time=None):
+    def __init__(self, phi=None, ces=None, partitioned_ces=None,
+                 subsystem=None, cut_subsystem=None, time=None):
         self.phi = phi
         self.ces = ces
         self.partitioned_ces = partitioned_ces
@@ -147,6 +147,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
             attr: getattr(self, attr)
             for attr in _sia_attributes + ['time', 'small_phi_time']
         }
+
+    @classmethod
+    def from_json(cls, dct):
+        del dct['small_phi_time']
+        return cls(**dct)
 
 
 def _null_ces(subsystem):
