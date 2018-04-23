@@ -140,10 +140,10 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
 
     log.debug('Finished evaluating %s.', cut)
 
-    phi = ces_distance(unpartitioned_ces, partitioned_ces)
+    phi_ = ces_distance(unpartitioned_ces, partitioned_ces)
 
     return SystemIrreducibilityAnalysis(
-        phi=phi,
+        phi=phi_,
         ces=unpartitioned_ces,
         partitioned_ces=partitioned_ces,
         subsystem=uncut_subsystem,
@@ -156,16 +156,16 @@ class ComputeSystemIrreducibility(MapReduce):
 
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
 
-    def empty_result(self, subsystem, ces):
+    def empty_result(self, subsystem, unpartitioned_ces):
         """Begin with a |SIA| with infinite |big_phi|; all actual SIAs will
         have less.
         """
         return _null_sia(subsystem, phi=float('inf'))
 
     @staticmethod
-    def compute(cut, subsystem, ces):
+    def compute(cut, subsystem, unpartitioned_ces):
         """Evaluate a cut."""
-        return evaluate_cut(subsystem, cut, ces)
+        return evaluate_cut(subsystem, cut, unpartitioned_ces)
 
     def process_result(self, new_sia, min_sia):
         """Check if the new SIA has smaller |big_phi| than the standing
@@ -222,6 +222,8 @@ def _sia(cache_key, subsystem):
         data from the intermediate calculations. The top level contains the
         basic irreducibility information for the given subsystem.
     """
+    # pylint: disable=unused-argument
+
     log.info('Calculating big-phi data for %s...', subsystem)
 
     # Check for degenerate cases
@@ -391,12 +393,10 @@ def concept_cuts(direction, node_indices, node_labels=None):
         yield KCut(direction, partition, node_labels)
 
 
-def directional_sia(subsystem, direction, ces=None):
+def directional_sia(subsystem, direction, unpartitioned_ces=None):
     """Calculate a concept-style SystemIrreducibilityAnalysisCause or
     SystemIrreducibilityAnalysisEffect.
     """
-    unpartitioned_ces = ces
-
     if unpartitioned_ces is None:
         unpartitioned_ces = _ces(subsystem)
 
