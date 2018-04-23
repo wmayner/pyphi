@@ -140,8 +140,7 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
 
     log.debug('Finished evaluating %s.', cut)
 
-    phi = ces_distance(unpartitioned_ces,
-                       partitioned_ces)
+    phi = ces_distance(unpartitioned_ces, partitioned_ces)
 
     return SystemIrreducibilityAnalysis(
         phi=phi,
