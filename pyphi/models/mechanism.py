@@ -357,10 +357,8 @@ class Concept(cmp.Orderable):
         self.cause = cause
         self.effect = effect
         self.time = time
-
         self.subsystem = subsystem
         self.node_labels = subsystem.node_labels
-        self._mechanism_state = utils.state_of(mechanism, subsystem.state)
 
     def __repr__(self):
         return fmt.make_repr(self, _concept_attributes)
@@ -397,6 +395,11 @@ class Concept(cmp.Orderable):
         """np.ndarray: The effect repertoire."""
         return getattr(self.effect, 'repertoire', None)
 
+    @property
+    def mechanism_state(self):
+        """tuple(int): The state of this mechanism."""
+        return utils.state_of(self.mechanism, self.subsystem.state)
+
     unorderable_unless_eq = ['subsystem']
 
     def order_by(self):
@@ -405,7 +408,7 @@ class Concept(cmp.Orderable):
     def __eq__(self, other):
         return (self.phi == other.phi and
                 self.mechanism == other.mechanism and
-                self._mechanism_state == other._mechanism_state and
+                self.mechanism_state == other.mechanism_state and
                 self.cause_purview == other.cause_purview and
                 self.effect_purview == other.effect_purview and
                 self.eq_repertoires(other) and
@@ -414,7 +417,7 @@ class Concept(cmp.Orderable):
     def __hash__(self):
         return hash((self.phi,
                      self.mechanism,
-                     self._mechanism_state,
+                     self.mechanism_state,
                      self.cause_purview,
                      self.effect_purview,
                      utils.np_hash(self.cause_repertoire),
