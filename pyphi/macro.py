@@ -13,7 +13,8 @@ from collections import namedtuple
 import numpy as np
 from scipy.stats import entropy
 
-from . import compute, config, constants, convert, distribution, utils, validate
+from . import (compute, config, constants, convert, distribution, utils,
+               validate)
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
 from .network import irreducible_purviews
@@ -340,6 +341,7 @@ class MacroSubsystem(Subsystem):
         Returns:
             MacroSubsystem: The cut version of this |MacroSubsystem|.
         """
+        # TODO: is the MICE cache reusable?
         return MacroSubsystem(
             self.network,
             self.network_state,
@@ -348,8 +350,6 @@ class MacroSubsystem(Subsystem):
             time_scale=self.time_scale,
             blackbox=self.blackbox,
             coarse_grain=self.coarse_grain)
-            # TODO: is the MICE cache reusable?
-            # mice_cache=self._mice_cache)
 
     def potential_purviews(self, direction, mechanism, purviews=False):
         """Override Subsystem implementation using Network-level indices."""
