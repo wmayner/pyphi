@@ -28,6 +28,9 @@ Next Release
 - Renamed `config.load_config_file` to `config.load_file`, and
   `config.load_config_dict` to `config.load_dict`
 - Removed backwards-compatible `Direction` import from `constants` module.
+- Renamed `macro.coarse_grain` to `coarse_graining`.
+- Exposed `coarse_grain`, `blackbox`, `time_scale`, `network_state` and
+  `micro_node_indices` as attributes of `MacroSubsystem`.
 
 
 1.0.0 :tada:

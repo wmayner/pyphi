@@ -145,16 +145,16 @@ class MacroSubsystem(Subsystem):
     def __init__(self, network, state, nodes, cut=None, mice_cache=None,
                  time_scale=1, blackbox=None, coarse_grain=None):
         # Ensure indices are not a `range`
-        node_indices = network._node_labels.coerce_to_indices(nodes)
+        micro_node_indices = network.node_labels.coerce_to_indices(nodes)
 
         # Store original arguments to use in `apply_cut`
-        self._network_state = state
-        self._node_indices = node_indices  # Internal nodes
-        self._time_scale = time_scale
-        self._blackbox = blackbox
-        self._coarse_grain = coarse_grain
+        self.network_state = state
+        self.micro_node_indices = micro_node_indices  # Internal nodes
+        self.time_scale = time_scale
+        self.blackbox = blackbox
+        self.coarse_grain = coarse_grain
 
-        super().__init__(network, state, node_indices, cut, mice_cache)
+        super().__init__(network, state, micro_node_indices, cut, mice_cache)
 
         validate.blackbox_and_coarse_grain(blackbox, coarse_grain)
 
@@ -274,8 +274,8 @@ class MacroSubsystem(Subsystem):
         cm = np.zeros((n, n))
         for i, j in itertools.product(range(n), repeat=2):
             # TODO: don't pull cm from self
-            outputs = self._blackbox.outputs_of(i)
-            to = self._blackbox.partition[j]
+            outputs = self.blackbox.outputs_of(i)
+            to = self.blackbox.partition[j]
             if self.cm[np.ix_(outputs, to)].sum() > 0:
                 cm[i, j] = 1
 
@@ -306,7 +306,7 @@ class MacroSubsystem(Subsystem):
         For macro computations the cut is applied to the underlying
         micro-system.
         """
-        return self._node_indices
+        return self.micro_node_indices
 
     @property
     def cut_mechanisms(self):
@@ -342,12 +342,12 @@ class MacroSubsystem(Subsystem):
         """
         return MacroSubsystem(
             self.network,
-            self._network_state,
-            self._node_indices,
+            self.network_state,
+            self.micro_node_indices,
             cut=cut,
-            time_scale=self._time_scale,
-            blackbox=self._blackbox,
-            coarse_grain=self._coarse_grain)
+            time_scale=self.time_scale,
+            blackbox=self.blackbox,
+            coarse_grain=self.coarse_grain)
             # TODO: is the MICE cache reusable?
             # mice_cache=self._mice_cache)
 
@@ -366,27 +366,27 @@ class MacroSubsystem(Subsystem):
                 partition[i] for i in macro_indices)
             return tuple(sorted(micro_indices))
 
-        if self._blackbox and self._coarse_grain:
-            cg_micro_indices = from_partition(self._coarse_grain.partition,
+        if self.blackbox and self.coarse_grain:
+            cg_micro_indices = from_partition(self.coarse_grain.partition,
                                               macro_indices)
-            return from_partition(self._blackbox.partition,
+            return from_partition(self.blackbox.partition,
                                   reindex(cg_micro_indices))
-        elif self._blackbox:
-            return from_partition(self._blackbox.partition, macro_indices)
-        elif self._coarse_grain:
-            return from_partition(self._coarse_grain.partition, macro_indices)
+        elif self.blackbox:
+            return from_partition(self.blackbox.partition, macro_indices)
+        elif self.coarse_grain:
+            return from_partition(self.coarse_grain.partition, macro_indices)
         return macro_indices
 
     def macro2blackbox_outputs(self, macro_indices):
         """Given a set of macro elements, return the blackbox output elements
         which compose these elements.
         """
-        if not self._blackbox:
+        if not self.blackbox:
             raise ValueError('System is not blackboxed')
 
         return tuple(sorted(set(
             self.macro2micro(macro_indices)
-        ).intersection(self._blackbox.output_indices)))
+        ).intersection(self.blackbox.output_indices)))
 
     def __repr__(self):
         return "MacroSubsystem(" + repr(self.nodes) + ")"
@@ -401,19 +401,17 @@ class MacroSubsystem(Subsystem):
         if type(self) != type(other):  # pylint: disable=unidiomatic-typecheck
             return False
 
-        # pylint: disable=protected-access
         return (super().__eq__(other) and
-                self._time_scale == other._time_scale and
-                self._blackbox == other._blackbox and
-                self._coarse_grain == other._coarse_grain)
-        # pylint: enable=protected-access
+                self.time_scale == other.time_scale and
+                self.blackbox == other.blackbox and
+                self.coarse_grain == other.coarse_grain)
 
     def __hash__(self):
         return hash(
             (super().__hash__(),
-             self._time_scale,
-             self._blackbox,
-             self._coarse_grain))
+             self.time_scale,
+             self.blackbox,
+             self.coarse_grain))
 
 
 class CoarseGrain(namedtuple('CoarseGrain', ['partition', 'grouping'])):
@@ -826,7 +824,7 @@ class MacroNetwork:
         return round(self.phi - self.micro_phi, config.PRECISION)
 
 
-def coarse_grain(network, state, internal_indices):
+def coarse_graining(network, state, internal_indices):
     """Find the maximal coarse-graining of a micro-system.
 
     Args:
@@ -856,23 +854,23 @@ def coarse_grain(network, state, internal_indices):
 
 
 # TODO: refactor this
-def all_macro_systems(network, state, blackbox, coarse_grain, time_scales):
+def all_macro_systems(network, state, do_blackbox=False, do_coarse_grain=False,
+                      time_scales=None):
     """Generator over all possible macro-systems for the network."""
     if time_scales is None:
         time_scales = [1]
 
     def blackboxes(system):
         # Returns all blackboxes to evaluate
-        if not blackbox:
+        if not do_blackbox:
             return [None]
         return all_blackboxes(system)
 
     def coarse_grains(blackbox, system):
         # Returns all coarse-grains to test
-        if not coarse_grain:
+        if not do_coarse_grain:
             return [None]
         if blackbox is None:
-
             return all_coarse_grains(system)
         return all_coarse_grains_for_blackbox(blackbox)
 
@@ -893,23 +891,23 @@ def all_macro_systems(network, state, blackbox, coarse_grain, time_scales):
                         continue
 
 
-def emergence(network, state, blackbox=False, coarse_grain=True,
+def emergence(network, state, do_blackbox=False, do_coarse_grain=True,
               time_scales=None):
     """Check for the emergence of a micro-system into a macro-system.
 
     Checks all possible blackboxings and coarse-grainings of a system to find
     the spatial scale with maximum integrated information.
 
-    Use the ``blackbox`` and ``coarse_grain`` args to specifiy whether to use
-    blackboxing, coarse-graining, or both. The default is to just coarse-grain
-    the system.
+    Use the ``do_blackbox`` and ``do_coarse_grain`` args to specifiy whether to
+    use blackboxing, coarse-graining, or both. The default is to just
+    coarse-grain the system.
 
     Args:
         network (Network): The network of the micro-system under investigation.
         state (tuple[int]): The state of the network.
-        blackbox (bool): Set to ``True`` to enable blackboxing. Defaults to
+        do_blackbox (bool): Set to ``True`` to enable blackboxing. Defaults to
             ``False``.
-        coarse_grain (bool): Set to ``True`` to enable coarse-graining.
+        do_coarse_grain (bool): Set to ``True`` to enable coarse-graining.
             Defaults to ``True``.
         time_scales (list[int]): List of all time steps over which to check
             for emergence.
@@ -923,8 +921,8 @@ def emergence(network, state, blackbox=False, coarse_grain=True,
     max_phi = float('-inf')
     max_network = None
 
-    for subsystem in all_macro_systems(network, state, blackbox=blackbox,
-                                       coarse_grain=coarse_grain,
+    for subsystem in all_macro_systems(network, state, do_blackbox=do_blackbox,
+                                       do_coarse_grain=do_coarse_grain,
                                        time_scales=time_scales):
         phi = compute.phi(subsystem)
 
@@ -934,15 +932,17 @@ def emergence(network, state, blackbox=False, coarse_grain=True,
                 network=network,
                 macro_phi=phi,
                 micro_phi=micro_phi,
-                system=subsystem._node_indices,
-                time_scale=subsystem._time_scale,
-                blackbox=subsystem._blackbox,
-                coarse_grain=subsystem._coarse_grain)
+                system=subsystem.micro_node_indices,
+                time_scale=subsystem.time_scale,
+                blackbox=subsystem.blackbox,
+                coarse_grain=subsystem.coarse_grain)
 
     return max_network
 
 
+# TODO refactor; return a proper model; remove?
 def phi_by_grain(network, state):
+    # pylint: disable=missing-docstring
     list_of_phi = []
 
     systems = utils.powerset(network.node_indices, nonempty=True)
