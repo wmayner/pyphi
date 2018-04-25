@@ -241,8 +241,10 @@ class RedisConn:
 class RedisCache:
 
     def clear(self):
-        raise NotImplementedError(
-            'clearing caches is not supported with REDIS_CACHE')
+        """Flush the cache."""
+        conn = RedisConn()
+        conn.flushdb()
+        conn.config_resetstat()
 
     @staticmethod
     def size():
