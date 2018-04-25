@@ -222,18 +222,14 @@ class RedisConn:
     Raises:
         redis.exceptions.ConnectionError: If the Redis server is not available.
     """
-
     instance = None
 
     def __init__(self):
         if RedisConn.instance is None:
-            conn = redis.StrictRedis(host=config.REDIS_CONFIG['host'],
-                                     port=config.REDIS_CONFIG['port'],
-                                     db=0)
-            # TODO: we probably don't want to flush all, huh?
-            # Will we ever have stale/incorrect results in the cache?
-            conn.flushall()
-            RedisConn.instance = conn
+            RedisConn.instance = redis.StrictRedis(
+                host=config.REDIS_CONFIG['host'],
+                port=config.REDIS_CONFIG['port'],
+                db=0)
 
     def __getattr__(self, name):
         """Delegate lookup to ``StrictRedis``"""
