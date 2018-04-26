@@ -12,6 +12,9 @@ Next Release
 - Fixed a race condition caused by newly introduced `tqdm` synchronization.
   Removed the existing `ProgressBar` implementation and pinned `tqdm` to
   version >= 4.20.0.
+- Made model hashes deterministic (6b59061). This fixes an issue with the
+  Redis MICE cache in which cached values were not shared between processes
+  and program invokations.
 
 ### API additions
 
