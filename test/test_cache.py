@@ -1,4 +1,5 @@
 import functools
+import multiprocessing
 from unittest import mock
 
 import pytest
@@ -105,10 +106,7 @@ def test_cache_repertoires_config_option():
 # pytest fixture because they must be constructed with the correct cache
 # config.
 
-try:
-    redis_available = cache.RedisConn().ping()
-except redis.exceptions.ConnectionError:
-    redis_available = False
+redis_available = cache.redis_available()
 
 # Decorator to skip a test if Redis is not available
 require_redis = pytest.mark.skipif(not redis_available,
@@ -139,25 +137,13 @@ def all_caches(test_func):
     return functools.wraps(test_func)(wrapper)
 
 
-@pytest.fixture
-def flush_redis():
-    """Fixture to flush and reset the Redis cache."""
-    try:
-        conn = cache.RedisConn()
-        conn.flushall()
-        conn.config_resetstat()
-    except redis.exceptions.ConnectionError:
-        pass
-
-
 @require_redis
 def test_redis_singleton_connection():
-    conn = cache.RedisConn()
-    assert conn.ping() is True
+    assert cache.redis_available()
 
 
 @require_redis
-def test_redis_cache_info(flush_redis):
+def test_redis_cache_info():
     c = cache.RedisCache()
     assert c.info() == (0, 0, 0)
     key = 'key'
@@ -172,6 +158,23 @@ def test_redis_cache_info(flush_redis):
 def test_use_redis_mice_cache(s):
     c = cache.MICECache(s)
     assert isinstance(c, cache.RedisMICECache)
+
+
+@redis_cache
+def test_redis_cache_sharing_between_processes(s):
+    def _set_val(s):
+        # Generate key *in the subprocess* with the-process native hash
+        c = cache.MICECache(s)
+        key = c.key(Direction.CAUSE, (0,))
+        c.set(key, 'result')
+    p = multiprocessing.Process(target=_set_val, args=[s])
+    p.start()
+    p.join()
+
+    # Check value in this process
+    c = cache.MICECache(s)
+    key = c.key(Direction.CAUSE, (0,))
+    assert c.get(key) == 'result'
 
 
 @local_cache
@@ -191,7 +194,7 @@ def test_mice_cache_keys(s):
 
 
 @all_caches
-def test_mice_cache(redis_cache, flush_redis):
+def test_mice_cache(redis_cache):
     s = examples.basic_subsystem()
     mechanism = (1,)  # has a MIC
     mice = s.find_mice(Direction.CAUSE, mechanism)
@@ -210,7 +213,7 @@ def test_do_not_cache_phi_zero_mice():
 
 
 @all_caches
-def test_only_cache_uncut_subsystem_mices(redis_cache, flush_redis, s):
+def test_only_cache_uncut_subsystem_mices(redis_cache, s):
     s = Subsystem(s.network, (1, 0, 0), s.node_indices,
                   cut=models.Cut((1,), (0, 2)))
     mechanism = (1,)  # has a MIC
@@ -220,7 +223,7 @@ def test_only_cache_uncut_subsystem_mices(redis_cache, flush_redis, s):
 
 
 @all_caches
-def test_split_mechanism_mice_is_not_reusable(redis_cache, flush_redis):
+def test_split_mechanism_mice_is_not_reusable(redis_cache):
     """If mechanism is split, then cached mice are not usable
     when a cache is built from a parent cache."""
     s = examples.basic_subsystem()
@@ -238,8 +241,7 @@ def test_split_mechanism_mice_is_not_reusable(redis_cache, flush_redis):
 
 
 @all_caches
-def test_cut_relevant_connections_mice_is_not_reusable(redis_cache,
-                                                       flush_redis):
+def test_cut_relevant_connections_mice_is_not_reusable(redis_cache):
     """If relevant connections are cut, cached mice are not usable
     when a cache is built from a parent cache."""
     s = examples.basic_subsystem()
@@ -257,7 +259,7 @@ def test_cut_relevant_connections_mice_is_not_reusable(redis_cache,
 
 
 @all_caches
-def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, flush_redis):
+def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache):
     """Cached MICE are saved from the parent cache if both
     the mechanism and the relevant connections are not cut."""
     s = examples.basic_subsystem()
@@ -275,8 +277,7 @@ def test_inherited_mice_cache_keeps_unaffected_mice(redis_cache, flush_redis):
 
 
 @all_caches
-def test_inherited_cache_must_come_from_uncut_subsystem(redis_cache,
-                                                        flush_redis):
+def test_inherited_cache_must_come_from_uncut_subsystem(redis_cache):
     s = examples.basic_subsystem()
     cut_s = Subsystem(s.network, s.state, s.node_indices,
                       cut=models.Cut((0, 2), (1,)))

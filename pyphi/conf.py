@@ -463,6 +463,8 @@ class PyphiConfig(Config):
     REDIS_CONFIG = Option({
         'host': 'localhost',
         'port': 6379,
+        'db': 0,
+        'test_db': 1,
     }, doc="""
     Configure the Redis database backend. These are the defaults in the
     provided ``redis.conf`` file.""")

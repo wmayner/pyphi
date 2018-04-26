@@ -91,6 +91,8 @@ REDIS_CACHE: false
 REDIS_CONFIG:
     host: "localhost"
     port: 6379
+    db: 0
+    test_db: 1
 
 # Logging
 # ~~~~~~~
