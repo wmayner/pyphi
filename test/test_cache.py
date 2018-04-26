@@ -1,4 +1,5 @@
 import functools
+import multiprocessing
 from unittest import mock
 
 import pytest
@@ -170,6 +171,23 @@ def test_redis_cache_info(flush_redis):
 def test_use_redis_mice_cache(s):
     c = cache.MICECache(s)
     assert isinstance(c, cache.RedisMICECache)
+
+
+@redis_cache
+def test_redis_cache_sharing_between_processes(s):
+    def _set_val(s):
+        # Generate key *in the subprocess* with the-process native hash
+        c = cache.MICECache(s)
+        key = c.key(Direction.CAUSE, (0,))
+        c.set(key, 'result')
+    p = multiprocessing.Process(target=_set_val, args=[s])
+    p.start()
+    p.join()
+
+    # Check value in this process
+    c = cache.MICECache(s)
+    key = c.key(Direction.CAUSE, (0,))
+    assert c.get(key) == 'result'
 
 
 @local_cache
