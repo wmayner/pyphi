@@ -106,7 +106,7 @@ def test_cache_repertoires_config_option():
 # config.
 
 try:
-    redis_available = cache.RedisConn().ping()
+    redis_available = cache.redis_conn.ping()
 except redis.exceptions.ConnectionError:
     redis_available = False
 
@@ -143,17 +143,15 @@ def all_caches(test_func):
 def flush_redis():
     """Fixture to flush and reset the Redis cache."""
     try:
-        conn = cache.RedisConn()
-        conn.flushall()
-        conn.config_resetstat()
+        cache.redis_conn.flushall()
+        cache.redis_conn.config_resetstat()
     except redis.exceptions.ConnectionError:
         pass
 
 
 @require_redis
 def test_redis_singleton_connection():
-    conn = cache.RedisConn()
-    assert conn.ping() is True
+    assert cache.redis_conn.ping() is True
 
 
 @require_redis

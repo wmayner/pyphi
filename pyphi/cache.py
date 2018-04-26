@@ -210,30 +210,14 @@ class DictCache:
         return (_prefix,) + tuple(args)
 
 
-# TODO: confirm that a global connection/pool makes sense, esp for
-# multiprocesssing
-# TODO: maybe just expose the connction `if REDIS_CACHE`, instead of with this
-# singleton business
-class RedisConn:
-    """Singleton Redis connection object.
-
-    Expose the StrictRedis API, but only maintain one connection pool.
-
-    Raises:
-        redis.exceptions.ConnectionError: If the Redis server is not available.
-    """
-    instance = None
-
-    def __init__(self):
-        if RedisConn.instance is None:
-            RedisConn.instance = redis.StrictRedis(
-                host=config.REDIS_CONFIG['host'],
-                port=config.REDIS_CONFIG['port'],
-                db=0)
-
-    def __getattr__(self, name):
-        """Delegate lookup to ``StrictRedis``"""
-        return getattr(self.instance, name)
+# Expose the StrictRedis API, maintaining one connection pool
+# The connection pool is multi-process safe, and is reinitialized when the
+# client detects a fork. See:
+# https://github.com/andymccurdy/redis-py/blob/5109cb4f/redis/connection.py#L950
+#
+# TODO: rebuild connection after config changes?
+redis_conn = redis.StrictRedis(host=config.REDIS_CONFIG['host'],
+                               port=config.REDIS_CONFIG['port'], db=0)
 
 
 # TODO: use a cache prefix?
@@ -242,9 +226,8 @@ class RedisCache:
 
     def clear(self):
         """Flush the cache."""
-        conn = RedisConn()
-        conn.flushdb()
-        conn.config_resetstat()
+        redis_conn.flushdb()
+        redis_conn.config_resetstat()
 
     @staticmethod
     def size():
@@ -252,14 +235,14 @@ class RedisCache:
 
         .. note:: This is the size of the entire Redis database.
         """
-        return RedisConn().dbsize()
+        return redis_conn.dbsize()
 
     def info(self):
         """Return cache information.
 
         .. note:: This is not the cache info for the entire Redis key space.
         """
-        info = RedisConn().info()
+        info = redis_conn.info()
         return _CacheInfo(info['keyspace_hits'],
                           info['keyspace_misses'],
                           self.size())
@@ -269,7 +252,7 @@ class RedisCache:
 
         Returns None if the key is not in the cache.
         """
-        value = RedisConn().get(key)
+        value = redis_conn.get(key)
 
         if value is not None:
             value = pickle.loads(value)
@@ -279,7 +262,7 @@ class RedisCache:
     def set(self, key, value):
         """Set a value in the cache."""
         value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
-        RedisConn().set(key, value)
+        redis_conn.set(key, value)
 
     def key(self):
         """Delegate to subclasses."""
