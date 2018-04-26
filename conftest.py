@@ -8,7 +8,7 @@ import shutil
 import pytest
 
 import pyphi
-from pyphi import config, constants, db
+from pyphi import cache, config, constants, db
 
 
 log = logging.getLogger('pyphi.test')
@@ -82,9 +82,9 @@ BACKUP_CACHE_DIR = config.FS_CACHE_DIRECTORY + '.BACKUP'
 
 
 @pytest.fixture(scope="session", autouse=True)
-def restore_filesystem_cache(request):
-    """Temporarily backup, then restore, the user's joblib cache after each
-    testing session.
+def protect_caches(request):
+    """Temporarily backup, then restore, the user's joblib, mongo and redis
+    caches before and after the testing session.
 
     This is called before flushcache, ensuring the cache is saved.
     """
@@ -98,12 +98,18 @@ def restore_filesystem_cache(request):
         shutil.move(config.FS_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
         os.mkdir(config.FS_CACHE_DIRECTORY)
 
+    # Initialize a test Redis connection
+    original_redis_conn = cache.redis_conn
+    cache.redis_conn = cache.redis_init(config.REDIS_CONFIG['test_db'])
+
     def fin():
         if config.CACHING_BACKEND == constants.FILESYSTEM:
             # Remove the tests' joblib cache directory.
             shutil.rmtree(config.FS_CACHE_DIRECTORY)
             # Restore the old joblib cache.
             shutil.move(BACKUP_CACHE_DIR, config.FS_CACHE_DIRECTORY)
+
+        cache.redis_conn = original_redis_conn
 
     # Restore the cache after the last test has run
     request.addfinalizer(fin)
@@ -121,6 +127,12 @@ def _flush_database_cache():
     return db.database.test.remove({})
 
 
+def _flush_redis_cache():
+    if cache.redis_available():
+        cache.redis_conn.flushdb()
+        cache.redis_conn.config_resetstat()
+
+
 # TODO: flush Redis cache
 @pytest.fixture(scope="function", autouse=True)
 def flushcache(request):
@@ -128,8 +140,10 @@ def flushcache(request):
 
     This is called before every test case.
     """
-    log.info("Flushing cache...")
+    log.info("Flushing caches...")
     if config.CACHING_BACKEND == constants.DATABASE:
         _flush_database_cache()
     elif config.CACHING_BACKEND == constants.FILESYSTEM:
         _flush_joblib_cache()
+
+    _flush_redis_cache()

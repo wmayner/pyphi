@@ -210,14 +210,25 @@ class DictCache:
         return (_prefix,) + tuple(args)
 
 
+def redis_init(db):
+    return redis.StrictRedis(host=config.REDIS_CONFIG['host'],
+                             port=config.REDIS_CONFIG['port'], db=db)
+
 # Expose the StrictRedis API, maintaining one connection pool
 # The connection pool is multi-process safe, and is reinitialized when the
 # client detects a fork. See:
 # https://github.com/andymccurdy/redis-py/blob/5109cb4f/redis/connection.py#L950
 #
 # TODO: rebuild connection after config changes?
-redis_conn = redis.StrictRedis(host=config.REDIS_CONFIG['host'],
-                               port=config.REDIS_CONFIG['port'], db=0)
+redis_conn = redis_init(config.REDIS_CONFIG['db'])
+
+
+def redis_available():
+    """Check if the Redis server is connected."""
+    try:
+        return redis_conn.ping()
+    except redis.exceptions.ConnectionError:
+        return False
 
 
 # TODO: use a cache prefix?
