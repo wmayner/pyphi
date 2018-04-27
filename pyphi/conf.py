@@ -377,11 +377,25 @@ class PyphiConfig(Config):
 
     MEASURE = Option('EMD', doc="""
     The measure to use when computing distances between repertoires and
-    concepts.  Users can dynamically register new measures with the
-    ``pyphi.distance.measures.register`` decorator; see :mod:`~pyphi.distance`
-    for examples. A full list of currently installed measures is available by
+    concepts. A full list of currently installed measures is available by
     calling ``print(pyphi.distance.measures.all())``. Note that some measures
-    cannot be used for calculating |big_phi| because they are asymmetric.""")
+    cannot be used for calculating |big_phi| because they are asymmetric.
+
+    Custom measures can be added using the ``pyphi.distance.measures.register``
+    decorator. For example::
+
+        from pyphi.distance import measures
+
+        @measures.register('ALWAYS_ZERO')
+        def always_zero(a, b):
+            return 0
+
+    This measures can then be used by setting
+    ``config.MEASURE = 'ALWAYS_ZERO'``.
+
+    If the measure is asymmetric you should register it using the
+    ``asymmetric`` keyword argument. See :mod:`~pyphi.distance` for examples.
+    """)
 
     PARALLEL_CONCEPT_EVALUATION = Option(False, doc="""
     Controls whether concepts are evaluated in parallel when computing
