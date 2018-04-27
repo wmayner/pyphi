@@ -4,8 +4,10 @@
 
 """Subsystem-level objects."""
 
+import collections
+
 from . import cmp, fmt
-from .. import config, utils
+from .. import utils
 
 _sia_attributes = ['phi', 'ces', 'partitioned_ces', 'subsystem',
                    'cut_subsystem']
@@ -15,29 +17,42 @@ def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
 
 
-class CauseEffectStructure(tuple):
+class CauseEffectStructure(cmp.Orderable, collections.Sequence):
     """A collection of concepts."""
-    # TODO: make CES a proper object instead of a tuple hack
 
-    def __new__(cls, concepts=(), subsystem=None, time=None):
-        """Normalize the order of concepts in the |CauseEffectStructure|."""
-        obj = super().__new__(cls, sorted(concepts, key=_concept_sort_key))
-        obj.subsystem = subsystem
-        obj.time = time
-        return obj
+    def __init__(self, concepts=(), subsystem=None, time=None):
+        # Normalize the order of concepts
+        self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
+        self.subsystem = subsystem
+        self.time = time
+
+    def __len__(self):
+        return len(self.concepts)
+
+    def __iter__(self):
+        return iter(self.concepts)
+
+    def __getitem__(self, i):
+        return self.concepts[i]
 
     def __repr__(self):
-        if config.REPR_VERBOSITY > 0:
-            return self.__str__()
-
-        return "CauseEffectStructure{}".format(
-            super().__repr__())
+        return fmt.make_repr(self, ['concepts', 'subsystem', 'time'])
 
     def __str__(self):
         return fmt.fmt_ces(self)
 
+    @cmp.sametype
+    def __eq__(self, other):
+        return self.concepts == other.concepts
+
+    def __hash__(self):
+        return hash((self.concepts, self.subsystem))
+
+    def order_by(self):
+        return [self.concepts]
+
     def to_json(self):
-        return {'concepts': list(self), 'subsystem': self.subsystem,
+        return {'concepts': self.concepts, 'subsystem': self.subsystem,
                 'time': self.time}
 
     @property
