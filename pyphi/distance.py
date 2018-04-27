@@ -17,7 +17,6 @@ from . import Direction, config, constants, utils, validate
 from .distribution import flatten, marginal_zero
 from .registry import Registry
 
-
 # Load precomputed hamming matrices.
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
 _hamming_matrices = utils.load_data('hamming_matrices',

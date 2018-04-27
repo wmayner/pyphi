@@ -13,8 +13,7 @@ from collections import namedtuple
 import numpy as np
 from scipy.stats import entropy
 
-from . import (compute, config, constants, convert, distribution, utils,
-               validate)
+from . import compute, config, constants, convert, distribution, utils, validate
 from .exceptions import ConditionallyDependentError, StateUnreachableError
 from .labels import NodeLabels
 from .network import irreducible_purviews

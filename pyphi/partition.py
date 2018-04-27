@@ -6,11 +6,11 @@
 Functions for generating partitions.
 """
 
-from itertools import chain, product, permutations
+from itertools import chain, permutations, product
 
 from . import config
 from .cache import cache
-from .models import Part, KPartition, Bipartition, Tripartition
+from .models import Bipartition, KPartition, Part, Tripartition
 from .registry import Registry
 
 

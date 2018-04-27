@@ -18,8 +18,8 @@ from .models import (Account, AcRepertoireIrreducibilityAnalysis,
                      AcSystemIrreducibilityAnalysis, ActualCut, CausalLink,
                      DirectedAccount, Event, NullCut, _null_ac_ria,
                      _null_ac_sia, fmt)
-from .subsystem import Subsystem
 from .partition import mip_partitions
+from .subsystem import Subsystem
 
 log = logging.getLogger(__name__)
 
