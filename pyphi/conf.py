@@ -118,7 +118,6 @@ See the `documentation on Python's logger
 - :attr:`~pyphi.conf.PyphiConfig.LOG_STDOUT_LEVEL`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_FILE_LEVEL`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_FILE`
-- :attr:`~pyphi.conf.PyphiConfig.LOG_CONFIG_ON_IMPORT`
 - :attr:`~pyphi.conf.PyphiConfig.PROGRESS_BARS`
 - :attr:`~pyphi.conf.PyphiConfig.REPR_VERBOSITY`
 - :attr:`~pyphi.conf.PyphiConfig.PRINT_FRACTIONS`
@@ -499,15 +498,6 @@ class PyphiConfig(Config):
     level and will only display information about fatal errors. If set to
     ``None``, logging to standard output will be disabled entirely.""")
 
-    LOG_CONFIG_ON_IMPORT = Option(True, doc="""
-    Controls whether the configuration is printed when PyPhi is imported.
-
-      .. tip::
-
-        If this is enabled and ``LOG_FILE_LEVEL`` is ``INFO`` or higher, then
-        the log file can serve as an automatic record of which configuration
-        settings you used to obtain results.""")
-
     PROGRESS_BARS = Option(True, doc="""
     Controls whether to show progress bars on the console.
 
@@ -639,5 +629,4 @@ if os.path.exists(PYPHI_CONFIG_FILENAME):
     config.load_file(PYPHI_CONFIG_FILENAME)
 
 # Log the PyPhi version and loaded configuration
-if config.LOG_CONFIG_ON_IMPORT:
-    config.log()
+config.log()

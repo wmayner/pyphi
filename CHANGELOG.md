@@ -37,6 +37,10 @@ Next Release
 - Exposed `coarse_grain`, `blackbox`, `time_scale`, `network_state` and
   `micro_node_indices` as attributes of `MacroSubsystem`.
 
+### Config
+
+- Removed the `LOG_CONFIG_ON_IMPORT` configuration option.
+
 
 1.0.0 :tada:
 ------------
