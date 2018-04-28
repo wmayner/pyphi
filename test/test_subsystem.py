@@ -51,6 +51,11 @@ def test_empty_init(s):
     assert s.nodes == ()
 
 
+def test_default_nodes(s):
+    s = Subsystem(s.network, s.state)
+    assert s.node_indices == (0, 1, 2)
+
+
 def test_eq(subsys_n0n2, subsys_n1n2):
     assert subsys_n0n2 == subsys_n0n2
     assert subsys_n0n2 != subsys_n1n2

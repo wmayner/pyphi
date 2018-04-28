@@ -3,7 +3,7 @@ Getting started
 
 To explore the following examples, install `IPython
 <https://ipython.org/install.html>`_ by running ``pip install ipython`` on the
-command line. Then run it with the command ``ipython``. 
+command line. Then run it with the command ``ipython``.
 
 Lines of code beginning with ``>>>`` and ``...`` can be pasted directly into
 IPython.
@@ -48,8 +48,7 @@ to read.
 
 Now we construct the network itself with the arguments we just created:
 
-    >>> network = pyphi.Network(tpm, cm=cm,
-    ...                         node_labels=labels)
+    >>> network = pyphi.Network(tpm, cm=cm, node_labels=labels)
 
 The next step is to define a subsystem for which we want to evaluate |big_phi|.
 To make a subsystem, we need the network that it belongs to, the state of that
@@ -66,6 +65,13 @@ every node in the network in our subsystem:
 
     >>> node_indices = (0, 1, 2)
     >>> subsystem = pyphi.Subsystem(network, state, node_indices)
+
+.. tip::
+   If you do not explicitly provide node indices to a |Subsystem| the system
+   will, by default, cover the entire network. For example, the following is
+   equivalent to the above definition of ``subsystem``:
+
+    >>> subsystem = pyphi.Subsystem(network, state)
 
 .. tip::
     Node labels can be used instead of indices when constructing a |Subsystem|:

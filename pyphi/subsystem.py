@@ -30,11 +30,12 @@ class Subsystem:
     Args:
         network (Network): The network the subsystem belongs to.
         state (tuple[int]): The state of the network.
-        nodes (tuple[int] or tuple[str]): The nodes of the network which are in
-            this subsystem. Nodes can be specified either as indices or as
-            labels if the |Network| was passed ``node_labels``.
 
     Keyword Args:
+        nodes (tuple[int] or tuple[str]): The nodes of the network which are in
+            this subsystem. Nodes can be specified either as indices or as
+            labels if the |Network| was passed ``node_labels``. If this is
+            ``None`` then the full network will be used.
         cut (Cut): The unidirectional |Cut| to apply to this subsystem.
 
     Attributes:
@@ -48,16 +49,16 @@ class Subsystem:
         null_cut (Cut): The cut object representing no cut.
     """
 
-    def __init__(self, network, state, nodes, cut=None, mice_cache=None,
+    def __init__(self, network, state, nodes=None, cut=None, mice_cache=None,
                  repertoire_cache=None, single_node_repertoire_cache=None,
                  _external_indices=None):
         # The network this subsystem belongs to.
         validate.is_network(network)
         self.network = network
 
+        self.node_labels = network.node_labels
         # Remove duplicates, sort, and ensure native Python `int`s
         # (for JSON serialization).
-        self.node_labels = network.node_labels
         self.node_indices = self.node_labels.coerce_to_indices(nodes)
 
         validate.state_length(state, self.network.size)

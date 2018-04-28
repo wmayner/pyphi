@@ -110,7 +110,7 @@ def basic_subsystem():
     """
     net = basic_network()
     state = basic_state()
-    return Subsystem(net, state, range(net.size))
+    return Subsystem(net, state)
 
 
 def basic_noisy_selfloop_network():
@@ -164,7 +164,7 @@ def basic_noisy_selfloop_subsystem():
     """
     net = basic_noisy_selfloop_network()
     state = basic_state()
-    return Subsystem(net, state, range(net.size))
+    return Subsystem(net, state)
 
 
 def residue_network():
@@ -224,8 +224,7 @@ def residue_subsystem():
     """
     net = residue_network()
     state = (0, 0, 0, 0, 0)
-
-    return Subsystem(net, state, range(net.size))
+    return Subsystem(net, state)
 
 
 def xor_network():
@@ -280,7 +279,7 @@ def xor_subsystem():
     """
     net = xor_network()
     state = (0, 0, 0)
-    return Subsystem(net, state, range(net.size))
+    return Subsystem(net, state)
 
 
 def cond_depend_tpm():
@@ -526,7 +525,7 @@ def macro_subsystem():
     """
     net = macro_network()
     state = (0, 0, 0, 0)
-    return Subsystem(net, state, range(net.size))
+    return Subsystem(net, state)
 
 
 def blackbox_network():

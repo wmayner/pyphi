@@ -26,6 +26,8 @@ Next Release
 
 ### API changes
 
+- Specifying the nodes of a `Subsystem` is now optional. If not provided, the
+  subsystem will cover the entire network.
 - Removed the `labels2indices`, `indices2labels` and `parse_node_indices`
   methods from `Network`, and the `indices2labels` method from `Subsystem`.
 - Renamed `config.load_config_file` to `config.load_file`, and

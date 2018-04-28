@@ -41,8 +41,7 @@ There two equivalent cuts for this system; for concreteness we sever all
 connections from elements |A| and |B| to |C|.
 
     >>> cut = pyphi.models.Cut(from_nodes=(0, 1), to_nodes=(2,))
-    >>> cut_subsystem = pyphi.Subsystem(network, state, range(network.size),
-    ...                                 cut=cut)
+    >>> cut_subsystem = pyphi.Subsystem(network, state, cut=cut)
     >>> cut_ces = pyphi.compute.ces(cut_subsystem)
 
 Let's investigate the concepts in the unpartitioned cause-effect structure,

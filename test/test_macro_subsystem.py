@@ -66,6 +66,11 @@ def test_concept_str_uses_macro_node_labels(macro_subsystem):
         'm1    m0 ')
 
 
+def test_node_indices_can_be_none(s):
+    ms = macro.MacroSubsystem(s.network, s.state)
+    assert ms.micro_node_indices == (0, 1, 2)
+
+
 def test_pass_node_indices_as_a_range(s):
     # Test that node_indices can be a `range`
     macro.MacroSubsystem(s.network, s.state, range(s.size))

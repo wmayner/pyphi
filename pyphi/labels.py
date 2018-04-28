@@ -83,9 +83,10 @@ class NodeLabels(collections.abc.Sequence):
         """Return the nodes indices for nodes, where ``nodes`` is either
         already integer indices or node labels.
         """
-        if not nodes:
-            indices = ()
-        elif all(isinstance(node, str) for node in nodes):
+        if nodes is None:
+            return self.node_indices
+
+        if all(isinstance(node, str) for node in nodes):
             indices = self.labels2indices(nodes)
         else:
             indices = map(int, nodes)
