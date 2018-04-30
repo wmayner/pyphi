@@ -257,10 +257,7 @@ class Account(cmp.Orderable, collections.Sequence):
                      if link.direction is Direction.EFFECT)
 
     def __repr__(self):
-        if config.REPR_VERBOSITY > 0:
-            return self.__str__()
-        return "{0}({1})".format(
-            self.__class__.__name__, super().__repr__())
+        return fmt.make_repr(self, ['causal_links'])
 
     def __str__(self):
         return fmt.fmt_account(self)
