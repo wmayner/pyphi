@@ -304,10 +304,8 @@ def fmt_concept(concept):
     def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
         return box(indent(fmt_ria(x.ria, verbose=False, mip=True), amount=1))
 
-    cause = header('MIC',
-                   fmt_cause_or_effect(concept.cause))
-    effect = header('MIE',
-                    fmt_cause_or_effect(concept.effect))
+    cause = header('MIC', fmt_cause_or_effect(concept.cause))
+    effect = header('MIE', fmt_cause_or_effect(concept.effect))
     ce = side_by_side(cause, effect)
 
     mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)
