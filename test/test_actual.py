@@ -316,8 +316,17 @@ def test_account_irreducible_causes_and_effects():
 
 
 def test_account_repr_and_str():
-    str(models.Account())
-    repr(models.Account())
+    str(account())
+    repr(account())
+
+
+def test_account_addition():
+    a1 = account([causal_link(direction=Direction.CAUSE)])
+    a2 = account([causal_link(direction=Direction.EFFECT)])
+    assert len(a1 + a2) == 2
+
+    with pytest.raises(TypeError):
+        a1 + [causal_link()]
 
 
 def test_ac_sia_repr_and_str(transition):

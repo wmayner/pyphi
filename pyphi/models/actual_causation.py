@@ -6,7 +6,7 @@
 Objects that represent structures used in actual causation.
 """
 
-from collections import namedtuple
+import collections
 
 from . import cmp, fmt
 from .. import Direction, config, utils
@@ -201,7 +201,7 @@ class CausalLink(cmp.Orderable):
         return {'ria': self.ria}
 
 
-class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
+class Event(collections.namedtuple('Event', ['actual_cause', 'actual_effect'])):
     """A mechanism which has both an actual cause and an actual effect.
 
     Attributes:
@@ -216,10 +216,33 @@ class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
         return self.actual_cause.mechanism
 
 
-class Account(tuple):
+class Account(cmp.Orderable, collections.Sequence):
     """The set of |CausalLinks| with |alpha > 0|. This includes both actual
     causes and actual effects.
     """
+
+    def __init__(self, causal_links):
+        self.causal_links = tuple(causal_links)
+
+    def __len__(self):
+        return len(self.causal_links)
+
+    def __iter__(self):
+        return iter(self.causal_links)
+
+    def __getitem__(self, i):
+        return self.causal_links[i]
+
+    @cmp.sametype
+    def __eq__(self, other):
+        return self.causal_links == other.causal_links
+
+    def __hash__(self):
+        return hash(self.causal_links)
+
+    @cmp.sametype
+    def __add__(self, other):
+        return self.__class__(self.causal_links + other.causal_links)
 
     @property
     def irreducible_causes(self):
