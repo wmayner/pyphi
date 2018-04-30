@@ -293,10 +293,7 @@ class KPartition(collections.abc.Sequence):
         return fmt.fmt_partition(self)
 
     def __repr__(self):
-        if config.REPR_VERBOSITY > 0:
-            return str(self)
-
-        return '{}{}'.format(self.__class__.__name__, super().__repr__())
+        return fmt.make_repr(self, ['parts', 'node_labels'])
 
     @property
     def mechanism(self):
