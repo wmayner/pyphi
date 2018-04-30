@@ -302,8 +302,6 @@ def fmt_concept(concept):
     """Format a |Concept|."""
 
     def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
-        if not x:
-            return ''
         return box(indent(fmt_ria(x.ria, verbose=False, mip=True), amount=1))
 
     cause = header('MIC',
@@ -324,9 +322,6 @@ def fmt_concept(concept):
 
 def fmt_ria(ria, verbose=True, mip=False):
     """Format a |RepertoireIrreducibilityAnalysis|."""
-    if ria is False or ria is None:  # RIAs can be Falsy
-        return ''
-
     if verbose:
         mechanism = 'Mechanism: {}\n'.format(
             fmt_mechanism(ria.mechanism, ria.node_labels))
@@ -435,9 +430,6 @@ def fmt_repertoire(r):
 
 def fmt_ac_ria(ria):
     """Format an AcRepertoireIrreducibilityAnalysis."""
-    if ria is None:
-        return ''
-
     causality = {
         Direction.CAUSE: (fmt_mechanism(ria.purview, ria.node_labels),
                           ARROW_LEFT,
