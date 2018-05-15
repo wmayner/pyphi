@@ -15,6 +15,7 @@ with open('./pyphi/__about__.py') as f:
     exec(f.read(), about)
 
 install_requires = [
+    'decorator >=4.0.0',
     'joblib >=0.8.0',
     'numpy >=1.11.0',
     'psutil >=2.1.1',
