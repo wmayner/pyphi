@@ -31,10 +31,9 @@ def test_num_processes():
         with pytest.raises(ValueError):
             parallel.get_num_processes()
 
-    # Requesting too many cores
+    # Requesting more cores than available
     with config.override(NUMBER_OF_CORES=3):
-        with pytest.raises(ValueError):
-            parallel.get_num_processes()
+        assert parallel.get_num_processes() == 2
 
     # Ok
     with config.override(NUMBER_OF_CORES=1):
