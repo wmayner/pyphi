@@ -27,7 +27,7 @@ class Node:
         cm (np.ndarray): The CM of the subsystem.
         index (int): The node's index in the network.
         state (int): The state of this node.
-        node_labels (|NodeLabels]): Labels for these nodes.
+        node_labels (|NodeLabels|): Labels for these nodes.
 
     Attributes:
         tpm (np.ndarray): The node TPM is a 2^(n_inputs)-by-2 matrix, where
