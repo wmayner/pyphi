@@ -69,8 +69,14 @@ have bugs, run:
 
     pip install "git+https://github.com/wmayner/pyphi@develop#egg=pyphi"
 
-**Note:** this software is only supported on Linux and macOS. Windows is not
-supported, though it might work with minor modifications.
+**Note:** this software is only supported on Linux and macOS. However, if you
+use Windows, you can run it by using the `Anaconda Python
+<https://www.anaconda.com/what-is-anaconda/>`_ distribution and `installing
+PyPhi with conda <https://anaconda.org/wmayner/pyphi>`_:
+
+.. code:: bash
+
+    conda install -c wmayner pyphi
 
 
 Detailed installation guide for Mac OS X
