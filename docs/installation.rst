@@ -19,8 +19,8 @@ have bugs, run
     :ref:`macos-installation`.
 
 .. note::
-    PyPhi is only supported on Linux and macOS operating systems. However, if
-    you use Windows, you can run it by using the `Anaconda Python
+    **Windows users:** PyPhi is only supported on Linux and macOS operating
+    systems. However, you can run it on Windows by using the `Anaconda Python
     <https://www.anaconda.com/what-is-anaconda/>`_ distribution and `installing
     PyPhi with conda <https://anaconda.org/wmayner/pyphi>`_: ``conda install -c
     wmayner pyphi``
