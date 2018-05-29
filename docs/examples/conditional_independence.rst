@@ -8,8 +8,9 @@ time* |t+1| *must be independent of the state of the others, given the state of
 the network at time* |t|:
 
 .. math::
-    P(S_{t+1} \mid S_t = s_t) \;= \prod_{N \,\in\, S} P(N_{t+1} \mid S_t = s_t)
-    \;, \quad \forall \; s_t \in S.
+    \Pr(S_{t+1} \mid S_t = s_t) \;=
+    \prod_{N \,\in\, S} \Pr(N_{t+1} \mid S_t = s_t)\;,
+    \quad \forall \; s_t \in S.
 
 This example explores the assumption of conditional independence, and the
 behaviour of the program when it is not satisfied.
