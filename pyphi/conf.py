@@ -75,18 +75,19 @@ long time!), resulting in data loss.
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CONCEPT_EVALUATION`
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CUT_EVALUATION`
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_COMPLEX_EVALUATION`
-
-  .. warning::
-    Only one of ``PARALLEL_CONCEPT_EVALUATION``, ``PARALLEL_CUT_EVALUATION``,
-    and ``PARALLEL_COMPLEX_EVALUATION`` can be set to ``True`` at a time. For
-    maximal efficiency, you should parallelize the highest level computations
-    possible, *e.g.*, parallelize complex evaluation instead of cut evaluation,
-    but only if you are actually computing a complex. You should only
-    parallelize concept evaluation if you are just computing a
-    |CauseEffectStructure|.
-
 - :attr:`~pyphi.conf.PyphiConfig.NUMBER_OF_CORES`
 - :attr:`~pyphi.conf.PyphiConfig.MAXIMUM_CACHE_MEMORY_PERCENTAGE`
+
+  .. important::
+    Only one of ``PARALLEL_CONCEPT_EVALUATION``, ``PARALLEL_CUT_EVALUATION``,
+    and ``PARALLEL_COMPLEX_EVALUATION`` can be set to ``True`` at a time.
+
+    **For most networks,** ``PARALLEL_CUT_EVALUATION`` **is the most
+    efficient.** This is because the algorithm is exponential time in the
+    number of nodes, so the most of the time is spent on the largest subsystem.
+
+    You should only parallelize concept evaluation if you are just computing a
+    |CauseEffectStructure|.
 
 
 Memoization and caching
