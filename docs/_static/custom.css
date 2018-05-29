@@ -64,12 +64,14 @@ tt,
 }
 
 /* Syntax-highlighted blocks */
+.rst-content div[class^='highlight'],
 div[class^='highlight'] {
     border: none;
     border-radius: 3px;
     background: #f6f8fa;
 }
 /* Code blocks */
+.rst-content div[class^='highlight'] pre,
 div[class^='highlight'] pre {
     font-family: 'Roboto Mono', 'Monaco', monospace;
     font-size: 90%;
