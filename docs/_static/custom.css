@@ -55,12 +55,12 @@ tt,
 
 /* Code literals */
 .rst-content code.literal {
-    font-weight: normal;
     color: inherit;
     padding-top: 0.15em;
     padding-right: 0.5em;
     padding-bottom: 0.15em;
     padding-left: 0.5em;
+    font-weight: normal;
 }
 
 /* Syntax-highlighted blocks */
