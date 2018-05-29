@@ -85,15 +85,15 @@ Detailed installation guide for Mac OS X
 `See here <https://github.com/wmayner/pyphi/blob/develop/INSTALLATION.rst>`_.
 
 
-Discussion
+User group
 ~~~~~~~~~~
-
-For technical issues with PyPhi or feature requests, please use the `issues
-page <https://github.com/wmayner/pyphi/issues>`_.
 
 For discussion about the software or integrated information theory in general,
 you can join the `pyphi-users group
 <https://groups.google.com/forum/#!forum/pyphi-users>`_.
+
+For technical issues with PyPhi or feature requests, please use the `issues
+page <https://github.com/wmayner/pyphi/issues>`_.
 
 
 Contributing
