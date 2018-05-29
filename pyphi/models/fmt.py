@@ -410,7 +410,7 @@ def fmt_repertoire(r):
 
     # Header: 'S      P(S)'
     space = ' ' * 4
-    head = '{S:^{s_width}}{space}P({S})'.format(
+    head = '{S:^{s_width}}{space}Pr({S})'.format(
         S='S', s_width=r.ndim, space=space)
     lines.append(head)
 
