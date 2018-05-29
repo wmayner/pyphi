@@ -50,7 +50,7 @@ tt,
     font-size: 85%;
     border: none;
     border-radius: 3px;
-    background: rgba(75, 115, 155, 0.05);
+    background: rgba(27, 31, 35, 0.05);
 }
 
 /* Code literals */
@@ -79,7 +79,7 @@ div[class^='highlight'] pre {
     line-height: 1.45;
 }
 .admonition div[class^='highlight'] {
-    background: rgba(75, 115, 155, 0.05);
+    background: rgba(27, 31, 35, 0.05);
 }
 
 
