@@ -127,7 +127,9 @@ r"""
 .. |alpha| replace:: :math:`\alpha`
 .. |alpha > 0| replace:: :math:`\alpha > 0`
 .. |L1| replace:: :math:`L_1`
+.. |S| replace:: :math:`S`
 .. |A| replace:: :math:`A`
+.. |A'| replace:: :math:`A'`
 .. |B| replace:: :math:`B`
 .. |C| replace:: :math:`C`
 .. |D| replace:: :math:`D`
@@ -144,6 +146,7 @@ r"""
 .. |BCD| replace:: :math:`BCD`
 .. |CDE| replace:: :math:`CDE`
 .. |DEF| replace:: :math:`DEF`
+.. |A -> B| replace:: :math:`A \rightarrow B`
 .. |(AB / DE) x (∅ / C)| replace:: :math:`\frac{AB}{DE} \times \frac{\varnothing}{C}`
 .. |(A / CD) x (∅ / E)| replace:: :math:`\frac{A}{CD} \times \frac{\varnothing}{E}`
 .. |(∅ / C) x (A / D)| replace:: :math:`\frac{\varnothing}{C} \times \frac{A}{D}`
@@ -187,7 +190,9 @@ r"""
 .. |Y_t = {OR, AND = 10}| replace:: :math:`Y_t = \{OR, AND = 10\}`
 .. |Y_t = D| replace:: :math:`Y_t = D`
 .. |{OR, AND} -> {OR, AND}| replace:: :math:`\{OR, AND\} \rightarrow \{OR, AND\}`
-
+.. |A' = S - {A}| replace:: :math:`A' = S - \{A\}`
+.. |C(A)| replace:: :math:`C(A)`
+.. |Pr(B | C(A), A=0) != Pr(B | C(A), A=1)| replace:: :math:`\Pr(B \mid C(A), A = 0) \neq \Pr(B \mid C(A), A = 1)`
 """,
 # Constants
 r"""
