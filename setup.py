@@ -59,7 +59,6 @@ setup(
         'Documentation': 'https://pyphi.readthedocs.io',
         'IIT Website': 'http://integratedinformationtheory.org/',
         'Online Interface': 'http://integratedinformationtheory.org/calculate.html',
-        'Source': 'https://github.com/wmayner/pyphi',
         'User Group': 'https://groups.google.com/forum/#!forum/pyphi-users'
     }
 )
