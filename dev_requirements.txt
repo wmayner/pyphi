@@ -1,7 +1,8 @@
 Sphinx
 sphinxcontrib-napoleon
-wheel
+setuptools
 twine
+wheel
 readme_renderer
 watchdog
 pylint
