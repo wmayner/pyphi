@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # setup.py
 
-from setuptools import setup
+from setuptools import setup, find_packages
 # Use a consistent encoding
 from codecs import open
 
@@ -39,7 +39,7 @@ setup(
     install_requires=install_requires,
     keywords=('causality causal-modeling causation iit information integrated '
               'integrated-information modeling neuroscience theory'),
-    packages=['pyphi', 'pyphi.compute', 'pyphi.models'],
+    packages=find_packages(exclude=['docs', 'test']),
     include_package_data=True,
     zip_safe=False,
     classifiers=[
