@@ -7,12 +7,12 @@ Functions used by more than one PyPhi module or class, or that might be of
 external use.
 """
 
-import functools
 import hashlib
 import os
 from itertools import chain, combinations, product
 from time import time
 
+import decorator
 import numpy as np
 from scipy.misc import comb
 
@@ -201,17 +201,17 @@ def load_data(directory, num):
     return [np.load(get_path(i)) for i in range(num)]
 
 
-def time_annotated(func):
+# Using ``decorator`` preserves the function signature of the wrapped function,
+# allowing joblib to properly introspect the function arguments.
+@decorator.decorator
+def time_annotated(func, *args, **kwargs):
     """Annotate the decorated function or method with the total execution
     time.
 
     The result is annotated with a `time` attribute.
     """
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        start = time()
-        result = func(*args, **kwargs)
-        end = time()
-        result.time = round(end - start, config.PRECISION)
-        return result
-    return wrapper
+    start = time()
+    result = func(*args, **kwargs)
+    end = time()
+    result.time = round(end - start, config.PRECISION)
+    return result

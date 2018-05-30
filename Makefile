@@ -1,4 +1,3 @@
-
 .PHONY: test docs dist
 
 src = pyphi
@@ -16,6 +15,9 @@ coverage:
 	coverage run --source $(src) -m py.test
 	coverage html
 	open htmlcov/index.html
+
+lint:
+	pylint $(src)
 
 watch-tests:
 	watchmedo shell-command \
