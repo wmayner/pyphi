@@ -10,7 +10,7 @@ __description__ = 'Python library for computing integrated information.'
 __author__ = 'William GP Mayner'
 __author_email__ = 'wmayner@gmail.com'
 __author_website__ = 'http://willmayner.com'
-__copyright__ = 'Copyright 2014-2017 Will Mayner'
+__copyright__ = 'Copyright 2014-2018 Will Mayner'
 __license__ = 'GNU General Public License v3.0'
 __url__ = 'http://github.com/wmayner/pyphi'
 
