@@ -55,5 +55,13 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Topic :: Scientific/Engineering',
-    ]
+    ],
+    project_urls={
+        'Bug Reports': 'https://github.com/wmayner/pyphi/issues',
+        'Documentation': 'https://pyphi.readthedocs.io',
+        'IIT Website': 'http://integratedinformationtheory.org/',
+        'Online Interface': 'http://integratedinformationtheory.org/calculate.html',
+        'Source': 'github.com/wmayner/pyphi',
+        'User Group': 'https://groups.google.com/forum/#!forum/pyphi-users'
+    }
 )
