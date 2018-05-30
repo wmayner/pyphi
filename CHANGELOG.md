@@ -1,26 +1,25 @@
 Changelog
 =========
 
-Next Release
-------------
+1.1.0
+-----
 
 ### Fixes
 
 - Fixed a memory leaked when concepts returned by parallel CES computations
-  were returned with distinct subsystem objects. Now all objects in a CES
-  share the same subsystem reference.
+  were returned with distinct subsystem objects. Now all objects in a CES share
+  the same subsystem reference.
 - Fixed a race condition caused by newly introduced `tqdm` synchronization.
   Removed the existing `ProgressBar` implementation and pinned `tqdm` to
   version >= 4.20.0.
-- Made model hashes deterministic (6b59061). This fixes an issue with the
-  Redis MICE cache in which cached values were not shared between processes
-  and program invokations.
+- Made model hashes deterministic (6b59061). This fixes an issue with the Redis
+  MICE cache in which cached values were not shared between processes and
+  program invokations.
 
 ### API additions
 
-- Added a `NodeLabels` object for managing the labels of network elements.
-  Most models now carry a `NodeLabels` instance that is used for string
-  formatting.
+- Added a `NodeLabels` object for managing the labels of network elements. Most
+  models now carry a `NodeLabels` instance that is used for string formatting.
 - Added the `cut_node_labels` property to `Subsystem` and `MacroSubsystem`.
 - Added `utils.time_annotated` decorator to measure execution speed.
 
