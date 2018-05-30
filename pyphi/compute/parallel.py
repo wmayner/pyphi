@@ -30,8 +30,8 @@ def get_num_processes():
             'Invalid NUMBER_OF_CORES; value may not be 0.')
 
     if config.NUMBER_OF_CORES > cpu_count:
-        log.info('Requesting {} cores; only {} available'.format(
-            config.NUMBER_OF_CORES, cpu_count))
+        log.info('Requesting %s cores; only %s available',
+                 config.NUMBER_OF_CORES, cpu_count)
         return cpu_count
 
     if config.NUMBER_OF_CORES < 0:
