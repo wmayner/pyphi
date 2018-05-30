@@ -38,8 +38,9 @@ setup(
     long_description=readme,
     long_description_content_type='text/markdown',
     install_requires=install_requires,
-    keywords=('causality causal-modeling causation iit information integrated '
-              'integrated-information modeling neuroscience theory'),
+    keywords=('neuroscience causality causal-modeling causation '
+              'integrated-information-theory iit integrated-information '
+              'modeling'),
     packages=find_packages(exclude=['docs', 'test']),
     include_package_data=True,
     zip_safe=False,
