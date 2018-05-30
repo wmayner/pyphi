@@ -10,7 +10,7 @@ from itertools import chain
 import numpy as np
 
 from . import cmp, fmt
-from .. import config, connectivity, utils
+from .. import connectivity, utils
 
 
 class _CutBase:
