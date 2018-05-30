@@ -4,10 +4,10 @@
 
 """Subsystem-level objects."""
 
-from . import cmp, fmt
-from .. import config, utils
+import collections
 
-# pylint: disable=too-many-arguments
+from . import cmp, fmt
+from .. import utils
 
 _sia_attributes = ['phi', 'ces', 'partitioned_ces', 'subsystem',
                    'cut_subsystem']
@@ -17,26 +17,43 @@ def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
 
 
-class CauseEffectStructure(tuple):
+class CauseEffectStructure(cmp.Orderable, collections.Sequence):
     """A collection of concepts."""
-    # TODO: compare CESs using set equality
 
-    def __new__(cls, concepts=()):
-        """Normalize the order of concepts in the |CauseEffectStructure|."""
-        return super().__new__(cls, sorted(concepts, key=_concept_sort_key))
+    def __init__(self, concepts=(), subsystem=None, time=None):
+        # Normalize the order of concepts
+        self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
+        self.subsystem = subsystem
+        self.time = time
+
+    def __len__(self):
+        return len(self.concepts)
+
+    def __iter__(self):
+        return iter(self.concepts)
+
+    def __getitem__(self, i):
+        return self.concepts[i]
 
     def __repr__(self):
-        if config.REPR_VERBOSITY > 0:
-            return self.__str__()
-
-        return "CauseEffectStructure{}".format(
-            super().__repr__())
+        return fmt.make_repr(self, ['concepts', 'subsystem', 'time'])
 
     def __str__(self):
         return fmt.fmt_ces(self)
 
+    @cmp.sametype
+    def __eq__(self, other):
+        return self.concepts == other.concepts
+
+    def __hash__(self):
+        return hash((self.concepts, self.subsystem))
+
+    def order_by(self):
+        return [self.concepts]
+
     def to_json(self):
-        return {'concepts': list(self)}
+        return {'concepts': self.concepts, 'subsystem': self.subsystem,
+                'time': self.time}
 
     @property
     def mechanisms(self):
@@ -51,14 +68,8 @@ class CauseEffectStructure(tuple):
     @property
     def labeled_mechanisms(self):
         """The labeled mechanism of each concept."""
-        if not self:
-            return []
-        label = self[0].subsystem.network.indices2labels
+        label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
-
-    @classmethod
-    def from_json(cls, json):
-        return cls(json['concepts'])
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):
@@ -84,20 +95,16 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         subsystem (Subsystem): The subsystem this analysis was calculated for.
         cut_subsystem (Subsystem): The subsystem with the minimal cut applied.
         time (float): The number of seconds it took to calculate.
-        small_phi_time (float): The number of seconds it took to calculate the
-            cause-effect structure.
     """
 
-    def __init__(self, phi=None, ces=None,
-                 partitioned_ces=None, subsystem=None,
-                 cut_subsystem=None, time=None, small_phi_time=None):
+    def __init__(self, phi=None, ces=None, partitioned_ces=None,
+                 subsystem=None, cut_subsystem=None, time=None):
         self.phi = phi
         self.ces = ces
         self.partitioned_ces = partitioned_ces
         self.subsystem = subsystem
         self.cut_subsystem = cut_subsystem
         self.time = time
-        self.small_phi_time = small_phi_time
 
     def __repr__(self):
         return fmt.make_repr(self, _sia_attributes)
@@ -110,6 +117,11 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         cause-effect structures.
         """
         print(self.__str__(ces=ces))
+
+    @property
+    def small_phi_time(self):
+        """The number of seconds it took to calculate the CES."""
+        return self.ces.time
 
     @property
     def cut(self):
@@ -151,6 +163,18 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
             for attr in _sia_attributes + ['time', 'small_phi_time']
         }
 
+    @classmethod
+    def from_json(cls, dct):
+        del dct['small_phi_time']
+        return cls(**dct)
+
+
+def _null_ces(subsystem):
+    """Return an empty CES."""
+    ces = CauseEffectStructure((), subsystem=subsystem)
+    ces.time = 0.0
+    return ces
+
 
 def _null_sia(subsystem, phi=0.0):
     """Return a |SystemIrreducibilityAnalysis| with zero |big_phi| and empty
@@ -161,5 +185,5 @@ def _null_sia(subsystem, phi=0.0):
     return SystemIrreducibilityAnalysis(subsystem=subsystem,
                                         cut_subsystem=subsystem,
                                         phi=phi,
-                                        ces=(),
-                                        partitioned_ces=())
+                                        ces=_null_ces(subsystem),
+                                        partitioned_ces=_null_ces(subsystem))

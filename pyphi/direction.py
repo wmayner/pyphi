@@ -14,25 +14,19 @@ class Direction(Enum):
 
     Accessed using ``Direction.CAUSE`` and ``Direction.EFFECT``, etc.
     """
-
     CAUSE = 0
     EFFECT = 1
     BIDIRECTIONAL = 2
 
     def __str__(self):
-        if self is Direction.CAUSE:
-            return 'CAUSE'
-        elif self is Direction.EFFECT:
-            return 'EFFECT'
-        elif self is Direction.BIDIRECTIONAL:
-            return 'BIDIRECTIONAL'
+        return self.name
 
     def to_json(self):
-        return {'direction': self.value}
+        return {'direction': self.name}
 
     @classmethod
     def from_json(cls, dct):
-        return cls(dct['direction'])
+        return cls[dct['direction']]
 
     def order(self, mechanism, purview):
         """Order the mechanism and purview in time.

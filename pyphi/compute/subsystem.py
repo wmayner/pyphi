@@ -8,13 +8,13 @@ Functions for computing subsystem-level properties.
 
 import functools
 import logging
-from time import time
 
 from .. import Direction, config, connectivity, memory, utils
 from ..models import (CauseEffectStructure, Concept, Cut, KCut,
                       SystemIrreducibilityAnalysis, _null_sia, cmp, fmt)
-from ..partition import directed_bipartition, directed_bipartition_of_one
-from ..subsystem import mip_partitions
+from ..partition import (directed_bipartition, directed_bipartition_of_one,
+                         mip_partitions)
+from ..utils import time_annotated
 from .distance import ces_distance
 from .parallel import MapReduce
 
@@ -28,6 +28,10 @@ class ComputeCauseEffectStructure(MapReduce):
 
     description = 'Computing concepts'
 
+    @property
+    def subsystem(self):
+        return self.context[0]
+
     def empty_result(self, *args):
         return []
 
@@ -37,20 +41,28 @@ class ComputeCauseEffectStructure(MapReduce):
         """Compute a |Concept| for a mechanism, in this |Subsystem| with the
         provided purviews.
         """
-        return subsystem.concept(mechanism,
-                                 purviews=purviews,
-                                 cause_purviews=cause_purviews,
-                                 effect_purviews=effect_purviews)
+        concept = subsystem.concept(mechanism,
+                                    purviews=purviews,
+                                    cause_purviews=cause_purviews,
+                                    effect_purviews=effect_purviews)
+        # Don't serialize the subsystem.
+        # This is replaced on the other side of the queue, and ensures
+        # that all concepts in the CES reference the same subsystem.
+        concept.subsystem = None
+        return concept
 
     def process_result(self, new_concept, concepts):
         """Save all concepts with non-zero |small_phi| to the
         |CauseEffectStructure|.
         """
         if new_concept.phi > 0:
+            # Replace the subsystem
+            new_concept.subsystem = self.subsystem
             concepts.append(new_concept)
         return concepts
 
 
+@time_annotated
 def ces(subsystem, mechanisms=False, purviews=False, cause_purviews=False,
         effect_purviews=False, parallel=False):
     """Return the conceptual structure of this subsystem, optionally restricted
@@ -66,9 +78,9 @@ def ces(subsystem, mechanisms=False, purviews=False, cause_purviews=False,
     Keyword Args:
         mechanisms (tuple[tuple[int]]): Restrict possible mechanisms to those
             in this list.
-        purviews (tuple[tuple[int]]): Same as in :func:`concept`.
-        cause_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
-        effect_purviews (tuple[tuple[int]]): Same as in :func:`concept`.
+        purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
+        cause_purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
+        effect_purviews (tuple[tuple[int]]): Same as in |Subsystem.concept()|.
         parallel (bool): Whether to compute concepts in parallel. If ``True``,
             overrides :data:`config.PARALLEL_CONCEPT_EVALUATION`.
 
@@ -83,7 +95,8 @@ def ces(subsystem, mechanisms=False, purviews=False, cause_purviews=False,
                                          cause_purviews, effect_purviews)
 
     return CauseEffectStructure(engine.run(parallel or
-                                           config.PARALLEL_CONCEPT_EVALUATION))
+                                           config.PARALLEL_CONCEPT_EVALUATION),
+                                subsystem=subsystem)
 
 
 def conceptual_info(subsystem):
@@ -92,7 +105,8 @@ def conceptual_info(subsystem):
     This is the distance from the subsystem's |CauseEffectStructure| to the
     null concept.
     """
-    ci = ces_distance(ces(subsystem), ())
+    ci = ces_distance(ces(subsystem),
+                      CauseEffectStructure((), subsystem=subsystem))
     return round(ci, config.PRECISION)
 
 
@@ -126,11 +140,10 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
 
     log.debug('Finished evaluating %s.', cut)
 
-    phi = ces_distance(unpartitioned_ces,
-                       partitioned_ces)
+    phi_ = ces_distance(unpartitioned_ces, partitioned_ces)
 
     return SystemIrreducibilityAnalysis(
-        phi=phi,
+        phi=phi_,
         ces=unpartitioned_ces,
         partitioned_ces=partitioned_ces,
         subsystem=uncut_subsystem,
@@ -143,16 +156,16 @@ class ComputeSystemIrreducibility(MapReduce):
 
     description = 'Evaluating {} cuts'.format(fmt.BIG_PHI)
 
-    def empty_result(self, subsystem, ces):
+    def empty_result(self, subsystem, unpartitioned_ces):
         """Begin with a |SIA| with infinite |big_phi|; all actual SIAs will
         have less.
         """
         return _null_sia(subsystem, phi=float('inf'))
 
     @staticmethod
-    def compute(cut, subsystem, ces):
+    def compute(cut, subsystem, unpartitioned_ces):
         """Evaluate a cut."""
-        return evaluate_cut(subsystem, cut, ces)
+        return evaluate_cut(subsystem, cut, unpartitioned_ces)
 
     def process_result(self, new_sia, min_sia):
         """Check if the new SIA has smaller |big_phi| than the standing
@@ -168,7 +181,7 @@ class ComputeSystemIrreducibility(MapReduce):
         return min_sia
 
 
-def sia_bipartitions(nodes):
+def sia_bipartitions(nodes, node_labels=None):
     """Return all |big_phi| cuts for the given nodes.
 
     This value changes based on :const:`config.CUT_ONE_APPROXIMATION`.
@@ -184,7 +197,7 @@ def sia_bipartitions(nodes):
         # Don't consider trivial partitions where one part is empty
         bipartitions = directed_bipartition(nodes, nontrivial=True)
 
-    return [Cut(bipartition[0], bipartition[1])
+    return [Cut(bipartition[0], bipartition[1], node_labels)
             for bipartition in bipartitions]
 
 
@@ -197,6 +210,7 @@ def _ces(subsystem):
 
 
 @memory.cache(ignore=["subsystem"])
+@time_annotated
 def _sia(cache_key, subsystem):
     """Return the minimal information partition of a subsystem.
 
@@ -208,19 +222,9 @@ def _sia(cache_key, subsystem):
         data from the intermediate calculations. The top level contains the
         basic irreducibility information for the given subsystem.
     """
+    # pylint: disable=unused-argument
+
     log.info('Calculating big-phi data for %s...', subsystem)
-    start = time()
-
-    def time_annotated(bm, small_phi_time=0.0):
-        """Annote a |SystemIrreducibilityAnalysis| with the total elapsed
-        calculation time.
-
-        Optionally add the time taken to calculate the unpartitioned
-        |CauseEffectStructure|.
-        """
-        bm.time = round(time() - start, config.PRECISION)
-        bm.small_phi_time = round(small_phi_time, config.PRECISION)
-        return bm
 
     # Check for degenerate cases
     # =========================================================================
@@ -232,12 +236,12 @@ def _sia(cache_key, subsystem):
     if not subsystem:
         log.info('Subsystem %s is empty; returning null SIA '
                  'immediately.', subsystem)
-        return time_annotated(_null_sia(subsystem))
+        return _null_sia(subsystem)
 
     if not connectivity.is_strong(subsystem.cm, subsystem.node_indices):
         log.info('%s is not strongly connected; returning null SIA '
                  'immediately.', subsystem)
-        return time_annotated(_null_sia(subsystem))
+        return _null_sia(subsystem)
 
     # Handle elementary micro mechanism cases.
     # Single macro element systems have nontrivial bipartitions because their
@@ -247,34 +251,37 @@ def _sia(cache_key, subsystem):
         if not subsystem.cm[subsystem.node_indices][subsystem.node_indices]:
             log.info('Single micro nodes %s without selfloops cannot have '
                      'phi; returning null SIA immediately.', subsystem)
-            return time_annotated(_null_sia(subsystem))
+            return _null_sia(subsystem)
         # Even if the node has a self-loop, we may still define phi to be zero.
         elif not config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI:
             log.info('Single micro nodes %s with selfloops cannot have '
                      'phi; returning null SIA immediately.', subsystem)
-            return time_annotated(_null_sia(subsystem))
+            return _null_sia(subsystem)
     # =========================================================================
 
     log.debug('Finding unpartitioned CauseEffectStructure...')
-    small_phi_start = time()
     unpartitioned_ces = _ces(subsystem)
-    small_phi_time = round(time() - small_phi_start, config.PRECISION)
 
     if not unpartitioned_ces:
         log.info('Empty unpartitioned CauseEffectStructure; returning null '
                  'SIA immediately.')
         # Short-circuit if there are no concepts in the unpartitioned CES.
-        return time_annotated(_null_sia(subsystem))
+        return _null_sia(subsystem)
 
     log.debug('Found unpartitioned CauseEffectStructure.')
+
+    # TODO: move this into sia_bipartitions?
+    # Only True if SINGLE_MICRO_NODES...=True, no?
     if len(subsystem.cut_indices) == 1:
-        cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices)]
+        cuts = [Cut(subsystem.cut_indices, subsystem.cut_indices,
+                    subsystem.cut_node_labels)]
     else:
-        cuts = sia_bipartitions(subsystem.cut_indices)
+        cuts = sia_bipartitions(subsystem.cut_indices,
+                                subsystem.cut_node_labels)
+
     engine = ComputeSystemIrreducibility(
         cuts, subsystem, unpartitioned_ces)
-    min_sia = engine.run(config.PARALLEL_CUT_EVALUATION)
-    result = time_annotated(min_sia, small_phi_time)
+    result = engine.run(config.PARALLEL_CUT_EVALUATION)
 
     if config.CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA:
         log.debug('Clearing subsystem caches.')
@@ -380,23 +387,21 @@ class ConceptStyleSystem:
         return 'ConceptStyleSystem{}'.format(self.node_indices)
 
 
-def concept_cuts(direction, node_indices):
+def concept_cuts(direction, node_indices, node_labels=None):
     """Generator over all concept-syle cuts for these nodes."""
     for partition in mip_partitions(node_indices, node_indices):
-        yield KCut(direction, partition)
+        yield KCut(direction, partition, node_labels)
 
 
-def directional_sia(subsystem, direction, ces=None):
+def directional_sia(subsystem, direction, unpartitioned_ces=None):
     """Calculate a concept-style SystemIrreducibilityAnalysisCause or
     SystemIrreducibilityAnalysisEffect.
     """
-    unpartitioned_ces = ces
-
     if unpartitioned_ces is None:
         unpartitioned_ces = _ces(subsystem)
 
     c_system = ConceptStyleSystem(subsystem, direction)
-    cuts = concept_cuts(direction, c_system.cut_indices)
+    cuts = concept_cuts(direction, c_system.cut_indices, subsystem.node_labels)
 
     # Run the default SIA engine
     # TODO: verify that short-cutting works correctly?

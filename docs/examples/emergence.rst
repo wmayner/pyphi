@@ -16,10 +16,10 @@ available from the |examples| module.
 The connectivity matrix is all-to-all:
 
     >>> network.cm
-    array([[ 1.,  1.,  1.,  1.],
-           [ 1.,  1.,  1.,  1.],
-           [ 1.,  1.,  1.,  1.],
-           [ 1.,  1.,  1.,  1.]])
+    array([[1., 1., 1., 1.],
+           [1., 1., 1., 1.],
+           [1., 1., 1., 1.],
+           [1., 1., 1., 1.]])
 
 We'll set the state so that nodes are OFF.
 
@@ -139,16 +139,16 @@ Let's consider a different coarse-graining instead.
     array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, 2, 3])
 
     >>> coarse_grain.macro_tpm(network.tpm)
-    array([[[ 0.09,  0.09],
-            [ 1.  ,  0.09]],
+    array([[[0.09, 0.09],
+            [1.  , 0.09]],
     <BLANKLINE>
-           [[ 0.09,  1.  ],
-            [ 1.  ,  1.  ]]])
+           [[0.09, 1.  ],
+            [1.  , 1.  ]]])
 
 We can now construct a |MacroSubsystem| using this coarse-graining:
 
     >>> macro_subsystem = pyphi.macro.MacroSubsystem(
-    ...     network, state, network.node_indices, coarse_grain=coarse_grain)
+    ...     network, state, coarse_grain=coarse_grain)
     >>> macro_subsystem
     MacroSubsystem((m0, m1))
 
@@ -195,11 +195,10 @@ using blackboxing.
 We consider the state where all nodes are OFF:
 
     >>> state = (0, 0, 0, 0, 0, 0)
-    >>> all_nodes = (0, 1, 2, 3, 4, 5)
 
 The system has minimal |big_phi| without blackboxing:
 
-    >>> subsys = pyphi.Subsystem(network, state, all_nodes)
+    >>> subsys = pyphi.Subsystem(network, state)
     >>> pyphi.compute.phi(subsys)
     0.215278
 
@@ -247,8 +246,8 @@ Let us also define a time scale over which to perform our analysis:
 As in the coarse-graining example, the blackbox and time scale are passed to
 |MacroSubsystem|:
 
-    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state, all_nodes, 
-    ...                                              blackbox=blackbox, 
+    >>> macro_subsystem = pyphi.macro.MacroSubsystem(network, state,
+    ...                                              blackbox=blackbox,
     ...                                              time_scale=time_scale)
 
 We can now compute |big_phi| for this macro system:

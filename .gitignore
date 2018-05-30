@@ -10,6 +10,7 @@ __pycache__
 **/*.egg-info
 **/*.log
 **/*.BACKUP
+.tox
 pyphi/data/hamming_matrices/10.npy
 __pyphi_cache__
 dist

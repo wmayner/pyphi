@@ -7,11 +7,8 @@
 import numpy as np
 
 from . import cmp, fmt
-from .. import config, connectivity, distribution, utils
-from ..direction import Direction
+from .. import Direction, config, connectivity, distribution, utils
 from ..exceptions import WrongDirectionError
-
-# pylint: disable=too-many-arguments,too-many-instance-attributes
 
 _ria_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
                    'repertoire', 'partitioned_repertoire']
@@ -29,7 +26,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     def __init__(self, phi, direction, mechanism, purview, partition,
                  repertoire, partitioned_repertoire,
-                 subsystem=None):
+                 node_labels=None):
         self._phi = phi
         self._direction = direction
         self._mechanism = mechanism
@@ -44,8 +41,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         self._repertoire = _repertoire(repertoire)
         self._partitioned_repertoire = _repertoire(partitioned_repertoire)
 
-        # Optional subsystem - only used to generate nice labeled reprs
-        self._subsystem = subsystem
+        # Optional labels - only used to generate nice labeled reprs
+        self._node_labels = node_labels
 
     @property
     def phi(self):
@@ -92,9 +89,9 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return self._partitioned_repertoire
 
     @property
-    def subsystem(self):
-        """Subsystem: The |Subsystem| the mechanism belongs to."""
-        return self._subsystem
+    def node_labels(self):
+        """|NodeLabels| for this system."""
+        return self._node_labels
 
     unorderable_unless_eq = ['direction']
 
@@ -135,7 +132,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return {attr: getattr(self, attr) for attr in _ria_attributes}
 
 
-def _null_ria(direction, mechanism, purview, repertoire=None):
+def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0):
     """The irreducibility analysis for a reducible mechanism."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
@@ -146,7 +143,7 @@ def _null_ria(direction, mechanism, purview, repertoire=None):
         partition=None,
         repertoire=repertoire,
         partitioned_repertoire=None,
-        phi=0.0
+        phi=phi
     )
 
 
@@ -235,7 +232,7 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         return self.ria == other.ria
 
     def __hash__(self):
-        return hash(('MICE', self._ria))
+        return hash(self._ria)
 
     def to_json(self):
         return {'ria': self.ria}
@@ -359,8 +356,9 @@ class Concept(cmp.Orderable):
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
-        self.subsystem = subsystem
         self.time = time
+        self.subsystem = subsystem
+        self.node_labels = subsystem.node_labels
 
     def __repr__(self):
         return fmt.make_repr(self, _concept_attributes)
@@ -397,6 +395,11 @@ class Concept(cmp.Orderable):
         """np.ndarray: The effect repertoire."""
         return getattr(self.effect, 'repertoire', None)
 
+    @property
+    def mechanism_state(self):
+        """tuple(int): The state of this mechanism."""
+        return utils.state_of(self.mechanism, self.subsystem.state)
+
     unorderable_unless_eq = ['subsystem']
 
     def order_by(self):
@@ -405,8 +408,7 @@ class Concept(cmp.Orderable):
     def __eq__(self, other):
         return (self.phi == other.phi and
                 self.mechanism == other.mechanism and
-                (utils.state_of(self.mechanism, self.subsystem.state) ==
-                 utils.state_of(self.mechanism, other.subsystem.state)) and
+                self.mechanism_state == other.mechanism_state and
                 self.cause_purview == other.cause_purview and
                 self.effect_purview == other.effect_purview and
                 self.eq_repertoires(other) and
@@ -415,7 +417,7 @@ class Concept(cmp.Orderable):
     def __hash__(self):
         return hash((self.phi,
                      self.mechanism,
-                     utils.state_of(self.mechanism, self.subsystem.state),
+                     self.mechanism_state,
                      self.cause_purview,
                      self.effect_purview,
                      utils.np_hash(self.cause_repertoire),
@@ -446,24 +448,25 @@ class Concept(cmp.Orderable):
                 self.mechanism == other.mechanism and
                 self.eq_repertoires(other))
 
+    # TODO: remove
     # TODO Rename to expanded_cause_repertoire, etc
     def expand_cause_repertoire(self, new_purview=None):
-        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
+        """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_cause_repertoire(
             self.cause.repertoire, new_purview)
 
     def expand_effect_repertoire(self, new_purview=None):
-        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
+        """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_effect_repertoire(
             self.effect.repertoire, new_purview)
 
     def expand_partitioned_cause_repertoire(self):
-        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
+        """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_cause_repertoire(
             self.cause.ria.partitioned_repertoire)
 
     def expand_partitioned_effect_repertoire(self):
-        """See :meth:`~pyphi.subsystem.Subsystem.expand_repertoire`."""
+        """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_effect_repertoire(
             self.effect.ria.partitioned_repertoire)
 

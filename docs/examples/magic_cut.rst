@@ -41,8 +41,7 @@ There two equivalent cuts for this system; for concreteness we sever all
 connections from elements |A| and |B| to |C|.
 
     >>> cut = pyphi.models.Cut(from_nodes=(0, 1), to_nodes=(2,))
-    >>> cut_subsystem = pyphi.Subsystem(network, state, range(network.size),
-    ...                                 cut=cut)
+    >>> cut_subsystem = pyphi.Subsystem(network, state, cut=cut)
     >>> cut_ces = pyphi.compute.ces(cut_subsystem)
 
 Let's investigate the concepts in the unpartitioned cause-effect structure,
@@ -51,8 +50,8 @@ Let's investigate the concepts in the unpartitioned cause-effect structure,
     (['A'], ['B'], ['C'], ['A', 'B'], ['A', 'C'], ['B', 'C'])
     >>> ces.phis
     [0.125, 0.125, 0.125, 0.499999, 0.499999, 0.499999]
-    >>> print(sum(_))
-    1.874997
+    >>> sum(ces.phis)
+    1.8749970000000002
 
 and also the concepts of the partitioned cause-effect structure.
 
@@ -60,8 +59,8 @@ and also the concepts of the partitioned cause-effect structure.
     (['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C'])
     >>> cut_ces.phis
     [0.125, 0.125, 0.125, 0.499999, 0.266666, 0.333333]
-    >>> print(sum(_))
-    1.474998
+    >>> sum(_)
+    1.4749980000000003
 
 The unpartitioned cause-effect structure includes all possible first and second
 order concepts, but there is no third order concept. After applying the cut and
@@ -100,7 +99,7 @@ for any purview, so the cause information is reducible.
     >>> BC = (1, 2)
     >>> A = (0,)
     >>> repertoire = subsystem.cause_repertoire(ABC, ABC)
-    >>> cut_repertoire = (subsystem.cause_repertoire(BC, ABC) * 
+    >>> cut_repertoire = (subsystem.cause_repertoire(BC, ABC) *
     ...                   subsystem.cause_repertoire(A, ()))
     >>> pyphi.distance.hamming_emd(repertoire, cut_repertoire)
     0.0
@@ -121,7 +120,7 @@ probability of |C| being OFF.
 
     >>> C_node = cut_subsystem.indices2nodes(C)[0]
     >>> C_node.tpm_on.flatten()
-    array([ 0.5 ,  0.75])
+    array([0.5 , 0.75])
 
 This states that |C| has a 50% chance of being ON in the next state if it
 currently OFF, but a 75% chance of being ON in the next state  if it is
@@ -176,7 +175,7 @@ Calculating the MIP of the system,
     >>> sia.phi
     0.217829
     >>> sia.cut
-    Cut [0, 4] ━━/ /━━➤ [1]
+    Cut [A, E] ━━/ /━━➤ [B]
 
 we see that this subsystem has a |big_phi| value of 0.15533, and the MIP cuts
 the connections from |AE| to |B|. Investigating the concepts in both the

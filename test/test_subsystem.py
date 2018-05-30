@@ -7,12 +7,12 @@ import pytest
 
 import example_networks
 from pyphi import Direction, Network, config, exceptions
-from pyphi.models import (Bipartition, Concept, Cut, KPartition,
+from pyphi.models import (Concept, Cut,
                           MaximallyIrreducibleCause,
-                          MaximallyIrreducibleEffect, Part,
-                          RepertoireIrreducibilityAnalysis, Tripartition)
-from pyphi.subsystem import (Subsystem, all_partitions, mip_bipartitions,
-                             wedge_partitions)
+                          MaximallyIrreducibleEffect,
+                          RepertoireIrreducibilityAnalysis)
+from pyphi.subsystem import Subsystem
+
 
 
 @config.override(VALIDATE_SUBSYSTEM_STATES=True)
@@ -49,6 +49,11 @@ def test_empty_init(s):
     # Empty mechanism
     s = Subsystem(s.network, s.state, ())
     assert s.nodes == ()
+
+
+def test_default_nodes(s):
+    s = Subsystem(s.network, s.state)
+    assert s.node_indices == (0, 1, 2)
 
 
 def test_eq(subsys_n0n2, subsys_n1n2):
@@ -99,82 +104,6 @@ def test_indices2nodes_with_bad_indices(subsys_n1n2):
         subsys_n1n2.indices2nodes((0,))  # index n0 in network but not subsytem
 
 
-def test_mip_bipartitions():
-    mechanism, purview = (0,), (1, 2)
-    answer = set([
-        Bipartition(Part((), (2,)), Part((0,), (1,))),
-        Bipartition(Part((), (1,)), Part((0,), (2,))),
-        Bipartition(Part((), (1, 2)), Part((0,), ())),
-    ])
-    assert set(mip_bipartitions(mechanism, purview)) == answer
-
-
-def test_wedge_partitions():
-    mechanism, purview = (0,), (1, 2)
-    assert set(wedge_partitions(mechanism, purview)) == set([
-        Tripartition(Part((), ()), Part((), (1, 2)), Part((0,), ())),
-    ])
-
-    mechanism, purview = (3, 4), (5, 6)
-    assert set(wedge_partitions(mechanism, purview)) == set([
-        Tripartition(Part((), ()),   Part((),   (5, 6)), Part((3, 4), ())),
-        Tripartition(Part((), ()),   Part((3,), ()),     Part((4,), (5, 6))),
-        Tripartition(Part((), ()),   Part((3,), (5,)),   Part((4,), (6,))),
-        Tripartition(Part((), ()),   Part((3,), (5, 6)), Part((4,), ())),
-        Tripartition(Part((), ()),   Part((3,), (6,)),   Part((4,), (5,))),
-        Tripartition(Part((), (5,)), Part((3,), ()),     Part((4,), (6,))),
-        Tripartition(Part((), (5,)), Part((3,), (6,)),   Part((4,), ())),
-        Tripartition(Part((), (6,)), Part((3,), ()),     Part((4,), (5,))),
-        Tripartition(Part((), (6,)), Part((3,), (5,)),   Part((4,), ())),
-    ])
-
-
-def test_partitioned_repertoire_with_tripartition(s):
-    tripartition = Tripartition(Part((), (1,)), Part((0,), ()), Part((), (2,)))
-
-    assert np.array_equal(
-        s.partitioned_repertoire(Direction.CAUSE, tripartition),
-        np.array([[[0.25, 0.25], [0.25, 0.25]]]))
-
-
-def test_tripartitions_choses_smallest_purview(s):
-    mechanism = (1, 2)
-
-    with config.override(PICK_SMALLEST_PURVIEW=False):
-        mie = s.mie(mechanism)
-        assert mie.phi == 0.5
-        assert mie.purview == (0, 1)
-
-    s.clear_caches()
-
-    # In phi-tie, chose the smaller purview (0,)
-    with config.override(PICK_SMALLEST_PURVIEW=True):
-        mie = s.mie(mechanism)
-        assert mie.phi == 0.5
-        assert mie.purview == (0,)
-
-
-def test_all_partitions():
-    mechanism, purview = (0, 1), (2,)
-    assert set(all_partitions(mechanism, purview)) == set([
-        KPartition(Part((0, 1), ()), Part((), (2,))),
-        KPartition(Part((0,), ()), Part((1,), ()), Part((), (2,))),
-        KPartition(Part((0,), (2,)), Part((1,), ()), Part((), ())),
-        KPartition(Part((0,), ()), Part((1,), (2,)), Part((), ()))])
-
-    mechanism, purview = (0, 1), (2, 3)
-    assert set(all_partitions(mechanism, purview)) == set([
-        KPartition(Part((0, 1), ()), Part((), (2, 3))),
-        KPartition(Part((0,), ()), Part((1,), (2, 3)), Part((), ())),
-        KPartition(Part((0,), (2, 3)), Part((1,), ()), Part((), ())),
-        KPartition(Part((0,), ()), Part((1,), ()), Part((), (2, 3))),
-        KPartition(Part((0,), ()), Part((1,), (3,)), Part((), (2,))),
-        KPartition(Part((0,), (2,)), Part((1,), ()), Part((), (3,))),
-        KPartition(Part((0,), ()), Part((1,), (2,)), Part((), (3,))),
-        KPartition(Part((0,), (3,)), Part((1,), (2,)), Part((), ())),
-        KPartition(Part((0,), (3,)), Part((1,), ()), Part((), (2,))),
-        KPartition(Part((0,), (2,)), Part((1,), (3,)), Part((), ()))])
-
 
 def test_is_cut(s):
     assert s.is_cut is False
@@ -204,9 +133,13 @@ def test_cut_indices(s, subsys_n1n2):
 
 
 def test_cut_mechanisms(s):
-    assert s.cut_mechanisms == ()
-    assert s.apply_cut(Cut((0, 1), (2,))).cut_mechanisms == (
-        (0, 2), (1, 2), (0, 1, 2))
+    assert list(s.cut_mechanisms) == []
+    assert list(s.apply_cut(Cut((0, 1), (2,))).cut_mechanisms) == [
+        (0, 2), (1, 2), (0, 1, 2)]
+
+
+def test_cut_node_labels(s):
+    assert s.cut_node_labels == s.node_labels
 
 
 def test_specify_elements_with_labels(standard):
@@ -215,10 +148,6 @@ def test_specify_elements_with_labels(standard):
     assert subsystem.node_indices == (1, 2)
     assert tuple(node.label for node in subsystem.nodes) == ('B', 'C')
     assert str(subsystem) == 'Subsystem(B, C)'
-
-
-def test_indices2labels(s):
-    assert s.indices2labels((1, 2)) == ('B', 'C')
 
 
 def test_null_concept(s):

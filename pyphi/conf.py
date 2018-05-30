@@ -39,11 +39,11 @@ Setting can be changed on the fly by assigning them a new value:
 
 It is also possible to manually load a configuration file:
 
-    >>> pyphi.config.load_config_file('pyphi_config.yml')
+    >>> pyphi.config.load_file('pyphi_config.yml')
 
 Or load a dictionary of configuration values:
 
-    >>> pyphi.config.load_config_dict({'PRECISION': 1})
+    >>> pyphi.config.load_dict({'PRECISION': 1})
 
 
 Approximations and theoretical options
@@ -75,18 +75,19 @@ long time!), resulting in data loss.
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CONCEPT_EVALUATION`
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_CUT_EVALUATION`
 - :attr:`~pyphi.conf.PyphiConfig.PARALLEL_COMPLEX_EVALUATION`
-
-  .. warning::
-    Only one of ``PARALLEL_CONCEPT_EVALUATION``, ``PARALLEL_CUT_EVALUATION``,
-    and ``PARALLEL_COMPLEX_EVALUATION`` can be set to ``True`` at a time. For
-    maximal efficiency, you should parallelize the highest level computations
-    possible, *e.g.*, parallelize complex evaluation instead of cut evaluation,
-    but only if you are actually computing a complex. You should only
-    parallelize concept evaluation if you are just computing a
-    |CauseEffectStructure|.
-
 - :attr:`~pyphi.conf.PyphiConfig.NUMBER_OF_CORES`
 - :attr:`~pyphi.conf.PyphiConfig.MAXIMUM_CACHE_MEMORY_PERCENTAGE`
+
+  .. important::
+    Only one of ``PARALLEL_CONCEPT_EVALUATION``, ``PARALLEL_CUT_EVALUATION``,
+    and ``PARALLEL_COMPLEX_EVALUATION`` can be set to ``True`` at a time.
+
+    **For most networks,** ``PARALLEL_CUT_EVALUATION`` **is the most
+    efficient.** This is because the algorithm is exponential time in the
+    number of nodes, so the most of the time is spent on the largest subsystem.
+
+    You should only parallelize concept evaluation if you are just computing a
+    |CauseEffectStructure|.
 
 
 Memoization and caching
@@ -118,7 +119,6 @@ See the `documentation on Python's logger
 - :attr:`~pyphi.conf.PyphiConfig.LOG_STDOUT_LEVEL`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_FILE_LEVEL`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_FILE`
-- :attr:`~pyphi.conf.PyphiConfig.LOG_CONFIG_ON_IMPORT`
 - :attr:`~pyphi.conf.PyphiConfig.PROGRESS_BARS`
 - :attr:`~pyphi.conf.PyphiConfig.REPR_VERBOSITY`
 - :attr:`~pyphi.conf.PyphiConfig.PRINT_FRACTIONS`
@@ -134,7 +134,7 @@ The ``config`` API
 ~~~~~~~~~~~~~~~~~~
 """
 
-# pylint: disable=too-few-public-methods,protected-access
+# pylint: disable=protected-access
 
 import contextlib
 import logging
@@ -267,17 +267,17 @@ class Config(metaclass=ConfigMeta):
         """Return the default values of this configuration."""
         return {k: v.default for k, v in self.options().items()}
 
-    def load_config_dict(self, dct):
+    def load_dict(self, dct):
         """Load a dictionary of configuration values."""
         for k, v in dct.items():
             setattr(self, k, v)
 
-    def load_config_file(self, filename):
+    def load_file(self, filename):
         """Load config from a YAML file."""
         filename = os.path.abspath(filename)
 
         with open(filename) as f:
-            self.load_config_dict(yaml.load(f))
+            self.load_dict(yaml.load(f))
 
         self._loaded_files.append(filename)
 
@@ -317,11 +317,11 @@ class _override(contextlib.ContextDecorator):
 
     def __enter__(self):
         """Save original config values; override with new ones."""
-        self.conf.load_config_dict(self.new_values)
+        self.conf.load_dict(self.new_values)
 
     def __exit__(self, *exc):
         """Reset config to initial values; reraise any exceptions."""
-        self.conf.load_config_dict(self.initial_values)
+        self.conf.load_dict(self.initial_values)
         return False
 
 
@@ -345,7 +345,7 @@ def configure_logging(conf):
             },
             'stdout': {
                 'level': conf.LOG_STDOUT_LEVEL,
-                'class': 'pyphi.log.ProgressBarHandler',
+                'class': 'pyphi.log.TqdmHandler',
                 'formatter': 'standard',
             }
         },
@@ -377,11 +377,25 @@ class PyphiConfig(Config):
 
     MEASURE = Option('EMD', doc="""
     The measure to use when computing distances between repertoires and
-    concepts.  Users can dynamically register new measures with the
-    ``pyphi.distance.measures.register`` decorator; see :mod:`~pyphi.distance`
-    for examples. A full list of currently installed measures is available by
+    concepts. A full list of currently installed measures is available by
     calling ``print(pyphi.distance.measures.all())``. Note that some measures
-    cannot be used for calculating |big_phi| because they are asymmetric.""")
+    cannot be used for calculating |big_phi| because they are asymmetric.
+
+    Custom measures can be added using the ``pyphi.distance.measures.register``
+    decorator. For example::
+
+        from pyphi.distance import measures
+
+        @measures.register('ALWAYS_ZERO')
+        def always_zero(a, b):
+            return 0
+
+    This measures can then be used by setting
+    ``config.MEASURE = 'ALWAYS_ZERO'``.
+
+    If the measure is asymmetric you should register it using the
+    ``asymmetric`` keyword argument. See :mod:`~pyphi.distance` for examples.
+    """)
 
     PARALLEL_CONCEPT_EVALUATION = Option(False, doc="""
     Controls whether concepts are evaluated in parallel when computing
@@ -463,6 +477,8 @@ class PyphiConfig(Config):
     REDIS_CONFIG = Option({
         'host': 'localhost',
         'port': 6379,
+        'db': 0,
+        'test_db': 1,
     }, doc="""
     Configure the Redis database backend. These are the defaults in the
     provided ``redis.conf`` file.""")
@@ -482,15 +498,6 @@ class PyphiConfig(Config):
     will show the most log messages. ``'CRITICAL'`` is the most restrictive
     level and will only display information about fatal errors. If set to
     ``None``, logging to standard output will be disabled entirely.""")
-
-    LOG_CONFIG_ON_IMPORT = Option(True, doc="""
-    Controls whether the configuration is printed when PyPhi is imported.
-
-      .. tip::
-
-        If this is enabled and ``LOG_FILE_LEVEL`` is ``INFO`` or higher, then
-        the log file can serve as an automatic record of which configuration
-        settings you used to obtain results.""")
 
     PROGRESS_BARS = Option(True, doc="""
     Controls whether to show progress bars on the console.
@@ -546,7 +553,7 @@ class PyphiConfig(Config):
     are still printed as decimals if the fraction's denominator would be
     large. This only has an effect if ``REPR_VERBOSITY > 0``.""")
 
-    PARTITION_TYPE = Option('BI', values=['BI', 'TRI', 'ALL'], doc="""
+    PARTITION_TYPE = Option('BI', doc="""
     Controls the type of partition used for |small_phi| computations.
 
     If set to ``'BI'``, partitions will have two parts.
@@ -620,8 +627,7 @@ config = PyphiConfig()
 
 # Try and load the config file
 if os.path.exists(PYPHI_CONFIG_FILENAME):
-    config.load_config_file(PYPHI_CONFIG_FILENAME)
+    config.load_file(PYPHI_CONFIG_FILENAME)
 
 # Log the PyPhi version and loaded configuration
-if config.LOG_CONFIG_ON_IMPORT:
-    config.log()
+config.log()

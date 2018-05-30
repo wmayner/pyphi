@@ -1,5 +1,5 @@
 # PyLint config for PyPhi code.
-# 
+#
 # Based on the PyLint config for Google's apitools:
 # https://github.com/google/apitools/blob/master/default.pylintrc
 
@@ -53,14 +53,13 @@ disable =
     cyclic-import,
     fixme,
     import-error,
+    invalid-name,
     locally-disabled,
     locally-enabled,
     no-member,
     no-name-in-module,
     no-self-use,
     super-on-old-class,
-    too-many-arguments,
-    too-many-function-args,
 
 
 [REPORTS]
@@ -330,6 +329,7 @@ max-branches=21
 
 # Maximum number of parents for a class (see R0901).
 # DEFAULT:  max-parents=7
+max-parents=10
 
 # Maximum number of attributes for a class (see R0902).
 # DEFAULT:  max-attributes=7
@@ -344,7 +344,7 @@ min-public-methods=0
 # Maximum number of public methods for a class (see R0904).
 # DEFAULT:  max-public-methods=20
 # RATIONALE:  API mapping
-max-public-methods=40
+max-public-methods=45
 
 [ELIF]
 max-nested-blocks=6

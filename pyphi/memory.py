@@ -19,23 +19,24 @@ def cache(ignore=None):
     """Decorator for memoizing a function using either the filesystem or a
     database.
     """
+    def decorator(func):
+        # Initialize both cached versions
+        joblib_cached = constants.joblib_memory.cache(func, ignore=ignore)
+        db_cached = DbMemoizedFunc(func, ignore)
 
-    def joblib_decorator(func):
-        if func.__name__ == '_sia' and not config.CACHE_SIAS:
-            return func
-        return constants.joblib_memory.cache(func, ignore=ignore)
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            """Dynamically choose the cache at call-time, not at import."""
+            if func.__name__ == '_sia' and not config.CACHE_SIAS:
+                f = func
+            elif config.CACHING_BACKEND == 'fs':
+                f = joblib_cached
+            elif config.CACHING_BACKEND == 'db':
+                f = db_cached
+            return f(*args, **kwargs)
 
-    def db_decorator(func):
-        if func.__name__ == '_sia' and not config.CACHE_SIAS:
-            return func
-        return DbMemoizedFunc(func, ignore)
-
-    if config.CACHING_BACKEND == 'fs':
-        # Decorate the function with the filesystem memoizer.
-        return joblib_decorator
-    if config.CACHING_BACKEND == 'db':
-        # Decorate the function with the database memoizer.
-        return db_decorator
+        return wrapper
+    return decorator
 
 
 class DbMemoizedFunc:

@@ -10,11 +10,13 @@ external use.
 import hashlib
 import os
 from itertools import chain, combinations, product
+from time import time
 
+import decorator
 import numpy as np
 from scipy.misc import comb
 
-from . import constants
+from . import config, constants
 
 
 def state_of(nodes, network_state):
@@ -63,7 +65,7 @@ def np_hash(a):
 
 class np_hashable:
     """A hashable wrapper around a NumPy array."""
-    # pylint: disable=protected-access,too-few-public-methods
+    # pylint: disable=protected-access
 
     def __init__(self, array):
         self._array = np_immutable(array.copy())
@@ -152,7 +154,7 @@ def powerset(iterable, nonempty=False, reverse=False):
         reverse (boolean): If True, reverse the order of the powerset.
 
     Returns:
-        generator: An chained generator over the power set.
+        Iterable: An iterator over the power set.
 
     Example:
         >>> ps = powerset(np.arange(2))
@@ -197,3 +199,19 @@ def load_data(directory, num):
         return os.path.join(root, 'data', directory, str(i) + '.npy')
 
     return [np.load(get_path(i)) for i in range(num)]
+
+
+# Using ``decorator`` preserves the function signature of the wrapped function,
+# allowing joblib to properly introspect the function arguments.
+@decorator.decorator
+def time_annotated(func, *args, **kwargs):
+    """Annotate the decorated function or method with the total execution
+    time.
+
+    The result is annotated with a `time` attribute.
+    """
+    start = time()
+    result = func(*args, **kwargs)
+    end = time()
+    result.time = round(end - start, config.PRECISION)
+    return result

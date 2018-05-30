@@ -70,8 +70,8 @@ def test_splits_mechanism(kcut_cause):
 
 
 def test_all_cut_mechanisms(kcut_cause):
-    assert kcut_cause.all_cut_mechanisms() == (
-        (2,), (0, 2), (0, 3), (2, 3), (0, 2, 3))
+    assert list(kcut_cause.all_cut_mechanisms()) == [
+        (2,), (0, 2), (0, 3), (2, 3), (0, 2, 3)]
 
 
 @config.override(PARTITION_TYPE='TRI')
@@ -134,11 +134,11 @@ def test_sia_concept_style(s):
 
 
 @config.override(SYSTEM_CUTS='CONCEPT_STYLE')
-def test_unpickle(s, flushcache, restore_fs_cache):
+def test_unpickle(s):
     bm = compute.sia(s)
     pickle.loads(pickle.dumps(bm))
 
 
 @config.override(SYSTEM_CUTS='CONCEPT_STYLE')
-def test_concept_style_phi(s, flushcache, restore_fs_cache):
+def test_concept_style_phi(s):
     assert compute.phi(s) == 0.6875

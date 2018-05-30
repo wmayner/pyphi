@@ -91,6 +91,8 @@ REDIS_CACHE: false
 REDIS_CONFIG:
     host: "localhost"
     port: 6379
+    db: 0
+    test_db: 1
 
 # Logging
 # ~~~~~~~
@@ -100,9 +102,6 @@ LOG_STDOUT_LEVEL: "WARNING"
 LOG_FILE_LEVEL: "INFO"
 # The file to log to.
 LOG_FILE: "pyphi.log"
-# Log the current configuration when PyPhi is imported. This is useful for
-# checking what settings were used for a previous calculation.
-LOG_CONFIG_ON_IMPORT: true
 # Enable/disable progress bars
 PROGRESS_BARS: true
 # Use pretty __str__-like formatting in repr calls.

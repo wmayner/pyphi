@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from pyphi import Direction, Subsystem, config, constants, exceptions, models
-
+from pyphi.labels import NodeLabels
 
 # Helper functions for constructing PyPhi objects
 # -----------------------------------------------
@@ -197,6 +197,13 @@ def test_general_eq_attribute_missing():
 # Test Cut
 # {{{
 
+def test_cut_equality():
+    cut1 = models.Cut((0,), (1,))
+    cut2 = models.Cut((0,), (1,))
+    assert cut1 == cut2
+    assert hash(cut1) == hash(cut2)
+
+
 def test_cut_splits_mechanism():
     cut = models.Cut((0,), (1, 2))
     assert cut.splits_mechanism((0, 1))
@@ -214,10 +221,10 @@ def test_cut_splits_connections():
 
 def test_cut_all_cut_mechanisms():
     cut = models.Cut((0,), (1, 2))
-    assert cut.all_cut_mechanisms() == ((0, 1), (0, 2), (0, 1, 2))
+    assert list(cut.all_cut_mechanisms()) == [(0, 1), (0, 2), (0, 1, 2)]
 
     cut = models.Cut((1,), (5,))
-    assert cut.all_cut_mechanisms() == ((1, 5),)
+    assert list(cut.all_cut_mechanisms()) == [(1, 5)]
 
 
 def test_cut_matrix():
@@ -290,6 +297,17 @@ def test_null_cut_equality():
     other = models.NullCut((2, 3))
     assert cut == other
     assert hash(cut) == hash(other)
+
+
+def test_cuts_can_have_node_labels(node_labels):
+    models.NullCut((0, 1), node_labels=node_labels)
+    models.Cut((0,), (1,), node_labels=node_labels)
+
+    k_partition = models.KPartition(
+        models.Part((0, 1), (0,)),
+        models.Part((), (1,)),
+        node_labels=node_labels)
+    models.KCut(Direction.CAUSE, k_partition, node_labels=node_labels)
 
 # }}}
 
@@ -475,7 +493,7 @@ def test_concept_ordering(s, micro_s):
 
 def test_concept_ordering_by_mechanism(s):
     small = concept(mechanism=(0, 1), subsystem=s)
-    big = concept(mechanism=(0, 1, 3), subsystem=s)
+    big = concept(mechanism=(0, 1, 2), subsystem=s)
     assert small < big
     assert small <= big
     assert big > small
@@ -522,9 +540,9 @@ def test_concept_equality_one_subsystem_is_subset_of_another(s, subsys_n1n2):
     assert concept(subsystem=s) == concept(subsystem=subsys_n1n2)
 
 
-def test_concept_repr_str():
-    print(repr(concept()))
-    print(str(concept()))
+def test_concept_repr_str(s):
+    print(repr(concept(subsystem=s)))
+    print(str(concept(subsystem=s)))
 
 
 def test_concept_hashing(s):
@@ -557,29 +575,38 @@ def test_concept_emd_eq(s, subsys_n1n2):
 # Test CauseEffectStructure
 # {{{
 
-def test_ces_is_still_a_tuple():
-    c = models.CauseEffectStructure([concept()])
+def test_ces_is_still_a_tuple(s):
+    c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
     assert len(c) == 1
 
 
-@config.override(REPR_VERBOSITY=0)
-def test_ces_repr():
-    c = models.CauseEffectStructure()
-    assert repr(c) == "CauseEffectStructure()"
-
-
-def test_ces_repr_str():
-    c = models.CauseEffectStructure([concept()])
+def test_ces_repr_str(s):
+    c = models.CauseEffectStructure([concept(subsystem=s)])
     repr(c)
     str(c)
 
 
-def test_ces_are_always_normalized():
-    c1 = models.Concept(mechanism=(1,))
-    c2 = models.Concept(mechanism=(2,))
-    c3 = models.Concept(mechanism=(1, 3))
-    c4 = models.Concept(mechanism=(1, 2, 3))
-    assert (c1, c2, c3, c4) == models.CauseEffectStructure((c3, c4, c2, c1))
+def test_ces_are_always_normalized(s):
+    c1 = concept(mechanism=(0,), subsystem=s)
+    c2 = concept(mechanism=(1,), subsystem=s)
+    c3 = concept(mechanism=(0, 2), subsystem=s)
+    c4 = concept(mechanism=(0, 1, 2), subsystem=s)
+    assert (c1, c2, c3, c4) == models.CauseEffectStructure((c3, c4, c2, c1)).concepts
+
+
+def test_ces_labeled_mechanisms(s):
+    c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
+    assert c.labeled_mechanisms == (['A', 'B'],)
+
+
+def test_ces_ordering(s):
+    assert (models.CauseEffectStructure([concept(subsystem=s)], subsystem=s) ==
+            models.CauseEffectStructure([concept(subsystem=s)], subsystem=s))
+
+    assert (models.CauseEffectStructure([concept(phi=1, subsystem=s)],
+                                        subsystem=s) >
+            models.CauseEffectStructure([concept(phi=0, subsystem=s)],
+                                        subsystem=s))
 
 # }}}
 
@@ -670,10 +697,16 @@ def test_make_reprs_calls_out_to_string():
 # {{{
 
 @pytest.fixture
-def bipartition():
+def node_labels():
+    return NodeLabels('ABCDE', tuple(range(5)))
+
+
+@pytest.fixture
+def bipartition(node_labels):
     return models.Bipartition(
         models.Part((0,), (0, 4)),
-        models.Part((), (1,)))
+        models.Part((), (1,)),
+        node_labels=node_labels)
 
 
 def test_bipartition_properties(bipartition):
@@ -683,17 +716,18 @@ def test_bipartition_properties(bipartition):
 
 def test_bipartition_str(bipartition):
     assert str(bipartition) == (
-        ' 0     ∅ \n'
+        ' A     ∅ \n'
         '─── ✕ ───\n'
-        '0,4    1 ')
+        'A,E    B ')
 
 
 @pytest.fixture
-def tripartition():
+def tripartition(node_labels):
     return models.Tripartition(
         models.Part((0,), (0, 4)),
         models.Part((), (1,)),
-        models.Part((2,), (2,)))
+        models.Part((2,), (2,)),
+        node_labels=node_labels)
 
 
 def test_tripartion_properties(tripartition):
@@ -703,18 +737,19 @@ def test_tripartion_properties(tripartition):
 
 def test_tripartion_str(tripartition):
     assert str(tripartition) == (
-        ' 0     ∅     2 \n'
+        ' A     ∅     C \n'
         '─── ✕ ─── ✕ ───\n'
-        '0,4    1     2 ')
+        'A,E    B     C ')
 
 
 @pytest.fixture
-def k_partition():
+def k_partition(node_labels=None):
     return models.KPartition(
         models.Part((0,), (0, 4)),
         models.Part((), (1,)),
         models.Part((6,), (5,)),
-        models.Part((2,), (2,)))
+        models.Part((2,), (2,)),
+        node_labels=node_labels)
 
 
 def test_partition_normalize(k_partition):
@@ -724,6 +759,15 @@ def test_partition_normalize(k_partition):
         models.Part((2,), (2,)),
         models.Part((6,), (5,)))
 
+
+def test_partition_normalize_preserves_labels():
+    k = k_partition(node_labels=node_labels())
+    assert k.normalize().node_labels == k.node_labels
+
+
+def test_partition_eq_hash():
+    assert k_partition() == k_partition()
+    assert hash(k_partition()) == hash(k_partition())
 
 # }}}
 

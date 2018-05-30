@@ -7,8 +7,8 @@ Memoization and caching utilities.
 """
 
 # pylint: disable=redefined-builtin,redefined-outer-name,missing-docstring
-# pylint: disable=too-few-public-methods,no-self-use,arguments-differ
-# pylint: disable=dangerous-default-value,redefined-builtin,too-many-arguments
+# pylint: disable=no-self-use,arguments-differ
+# pylint: disable=dangerous-default-value,redefined-builtin
 # pylint: disable=abstract-method
 
 import os
@@ -210,34 +210,25 @@ class DictCache:
         return (_prefix,) + tuple(args)
 
 
-# TODO: confirm that a global connection/pool makes sense, esp for
-# multiprocesssing
-# TODO: maybe just expose the connction `if REDIS_CACHE`, instead of with this
-# singleton business
-class RedisConn:
-    """Singleton redis connection object.
+def redis_init(db):
+    return redis.StrictRedis(host=config.REDIS_CONFIG['host'],
+                             port=config.REDIS_CONFIG['port'], db=db)
 
-    Expose the StrictRedis api, but only maintain one connection pool.
+# Expose the StrictRedis API, maintaining one connection pool
+# The connection pool is multi-process safe, and is reinitialized when the
+# client detects a fork. See:
+# https://github.com/andymccurdy/redis-py/blob/5109cb4f/redis/connection.py#L950
+#
+# TODO: rebuild connection after config changes?
+redis_conn = redis_init(config.REDIS_CONFIG['db'])
 
-    Raises:
-        redis.exceptions.ConnectionError: If the Redis server is not available.
-    """
 
-    instance = None
-
-    def __init__(self):
-        if RedisConn.instance is None:
-            conn = redis.StrictRedis(host=config.REDIS_CONFIG['host'],
-                                     port=config.REDIS_CONFIG['port'],
-                                     db=0)
-            # TODO: we probably don't want to flush all, huh?
-            # Will we ever have stale/incorrect results in the cache?
-            conn.flushall()
-            RedisConn.instance = conn
-
-    def __getattr__(self, name):
-        """Delegate lookup to ``StrictRedis``"""
-        return getattr(self.instance, name)
+def redis_available():
+    """Check if the Redis server is connected."""
+    try:
+        return redis_conn.ping()
+    except redis.exceptions.ConnectionError:
+        return False
 
 
 # TODO: use a cache prefix?
@@ -245,7 +236,9 @@ class RedisConn:
 class RedisCache:
 
     def clear(self):
-        raise NotImplementedError
+        """Flush the cache."""
+        redis_conn.flushdb()
+        redis_conn.config_resetstat()
 
     @staticmethod
     def size():
@@ -253,14 +246,14 @@ class RedisCache:
 
         .. note:: This is the size of the entire Redis database.
         """
-        return RedisConn().dbsize()
+        return redis_conn.dbsize()
 
     def info(self):
         """Return cache information.
 
         .. note:: This is not the cache info for the entire Redis key space.
         """
-        info = RedisConn().info()
+        info = redis_conn.info()
         return _CacheInfo(info['keyspace_hits'],
                           info['keyspace_misses'],
                           self.size())
@@ -270,7 +263,7 @@ class RedisCache:
 
         Returns None if the key is not in the cache.
         """
-        value = RedisConn().get(key)
+        value = redis_conn.get(key)
 
         if value is not None:
             value = pickle.loads(value)
@@ -280,7 +273,7 @@ class RedisCache:
     def set(self, key, value):
         """Set a value in the cache."""
         value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
-        RedisConn().set(key, value)
+        redis_conn.set(key, value)
 
     def key(self):
         """Delegate to subclasses."""
@@ -295,7 +288,7 @@ def validate_parent_cache(parent_cache):
 
 
 class RedisMICECache(RedisCache):
-    """A Redis-backed cache for `Subsystem.find_mice`.
+    """A Redis-backed cache for |Subsystem.find_mice()|.
 
     See |MICECache| for more info.
     """
@@ -347,7 +340,7 @@ class RedisMICECache(RedisCache):
             super().set(key, value)
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):
-        """Cache key. This is the call signature of |find_mice|"""
+        """Cache key. This is the call signature of |Subsystem.find_mice()|."""
         return "subsys:{}:{}:{}:{}:{}".format(
             self.subsystem_hash, _prefix, direction, mechanism, purviews)
 
@@ -396,7 +389,7 @@ class DictMICECache(DictCache):
             self.cache[key] = mice
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):
-        """Cache key. This is the call signature of |find_mice|"""
+        """Cache key. This is the call signature of |Subsystem.find_mice()|."""
         return (_prefix, direction, mechanism, purviews)
 
 
@@ -446,6 +439,7 @@ def method(cache_name, key_prefix=None):
         if (func.__name__ in ['cause_repertoire', 'effect_repertoire'] and
                 not config.CACHE_REPERTOIRES):
             return func
+
         @wraps(func)
         def wrapper(obj, *args, **kwargs):
             cache = getattr(obj, cache_name)

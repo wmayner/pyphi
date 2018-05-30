@@ -172,18 +172,18 @@ nodes. In this case, the subsystem is just the entire network.
 
     >>> network = pyphi.examples.fig3a()
     >>> state = (1, 0, 0, 0)
-    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
+    >>> subsystem = pyphi.Subsystem(network, state)
     >>> A, B, C, D = subsystem.node_indices
 
 Since the connections are noisy, we see that |A = 1| is unselective; all
 previous states are equally likely:
 
     >>> subsystem.cause_repertoire((A,), (B, C, D))
-    array([[[[ 0.125,  0.125],
-             [ 0.125,  0.125]],
+    array([[[[0.125, 0.125],
+             [0.125, 0.125]],
     <BLANKLINE>
-            [[ 0.125,  0.125],
-             [ 0.125,  0.125]]]])
+            [[0.125, 0.125],
+             [0.125, 0.125]]]])
 
 And this gives us zero cause information:
 
@@ -197,18 +197,18 @@ And this gives us zero cause information:
 The same as (A) but without noisy connections:
 
     >>> network = pyphi.examples.fig3b()
-    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
+    >>> subsystem = pyphi.Subsystem(network, state)
     >>> A, B, C, D = subsystem.node_indices
 
 Now, |A|'s cause repertoire is maximally selective.
 
     >>> cr = subsystem.cause_repertoire((A,), (B, C, D))
     >>> cr
-    array([[[[ 0.,  0.],
-             [ 0.,  0.]],
+    array([[[[0., 0.],
+             [0., 0.]],
     <BLANKLINE>
-            [[ 0.,  0.],
-             [ 0.,  1.]]]])
+            [[0., 0.],
+             [0., 1.]]]])
 
 
 Since the cause repertoire is over the purview |BCD|, the first dimension
@@ -235,18 +235,18 @@ Now the cause information specified by |A = 1| is |1.5|:
 The same as (B) but with |A = 0|:
 
     >>> state = (0, 0, 0, 0)
-    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
+    >>> subsystem = pyphi.Subsystem(network, state)
     >>> A, B, C, D = subsystem.node_indices
 
 And here the cause repertoire is minimally selective, only ruling out the state
 where |B|, |C|, and |D| were all ON:
 
     >>> subsystem.cause_repertoire((A,), (B, C, D))
-    array([[[[ 0.14285714,  0.14285714],
-             [ 0.14285714,  0.14285714]],
+    array([[[[0.14285714, 0.14285714],
+             [0.14285714, 0.14285714]],
     <BLANKLINE>
-            [[ 0.14285714,  0.14285714],
-             [ 0.14285714,  0.        ]]]])
+            [[0.14285714, 0.14285714],
+             [0.14285714, 0.        ]]]])
 
 And so we have less cause information:
 
@@ -265,40 +265,40 @@ label the nodes, as usual:
 
     >>> network = pyphi.examples.fig4()
     >>> state = (1, 0, 0)
-    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
+    >>> subsystem = pyphi.Subsystem(network, state)
     >>> A, B, C = subsystem.node_indices
 
 Then we'll compute the cause and effect repertoires of mechanism |A| over
 purview |ABC|:
 
     >>> subsystem.cause_repertoire((A,), (A, B, C))
-    array([[[ 0.        ,  0.16666667],
-            [ 0.16666667,  0.16666667]],
+    array([[[0.        , 0.16666667],
+            [0.16666667, 0.16666667]],
     <BLANKLINE>
-           [[ 0.        ,  0.16666667],
-            [ 0.16666667,  0.16666667]]])
+           [[0.        , 0.16666667],
+            [0.16666667, 0.16666667]]])
     >>> subsystem.effect_repertoire((A,), (A, B, C))
-    array([[[ 0.0625,  0.0625],
-            [ 0.0625,  0.0625]],
+    array([[[0.0625, 0.0625],
+            [0.0625, 0.0625]],
     <BLANKLINE>
-           [[ 0.1875,  0.1875],
-            [ 0.1875,  0.1875]]])
+           [[0.1875, 0.1875],
+            [0.1875, 0.1875]]])
 
 And the unconstrained repertoires over the same (these functions don't take a
 mechanism; they only take a purview):
 
     >>> subsystem.unconstrained_cause_repertoire((A, B, C))
-    array([[[ 0.125,  0.125],
-            [ 0.125,  0.125]],
+    array([[[0.125, 0.125],
+            [0.125, 0.125]],
     <BLANKLINE>
-           [[ 0.125,  0.125],
-            [ 0.125,  0.125]]])
+           [[0.125, 0.125],
+            [0.125, 0.125]]])
     >>> subsystem.unconstrained_effect_repertoire((A, B, C))
-    array([[[ 0.09375,  0.09375],
-            [ 0.03125,  0.03125]],
+    array([[[0.09375, 0.09375],
+            [0.03125, 0.03125]],
     <BLANKLINE>
-           [[ 0.28125,  0.28125],
-            [ 0.09375,  0.09375]]])
+           [[0.28125, 0.28125],
+            [0.09375, 0.09375]]])
 
 The Earth Mover's distance between them gives the cause and effect information:
 
@@ -323,18 +323,18 @@ selective effects within the system.**
 ```
     >>> network = pyphi.examples.fig5a()
     >>> state = (1, 1, 1)
-    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
+    >>> subsystem = pyphi.Subsystem(network, state)
     >>> A, B, C = subsystem.node_indices
 
 |A| has inputs, so its cause repertoire is selective and it has cause
 information:
 
     >>> subsystem.cause_repertoire((A,), (A, B, C))
-    array([[[ 0. ,  0. ],
-            [ 0. ,  0.5]],
+    array([[[0. , 0. ],
+            [0. , 0.5]],
     <BLANKLINE>
-           [[ 0. ,  0. ],
-            [ 0. ,  0.5]]])
+           [[0. , 0. ],
+            [0. , 0.5]]])
     >>> subsystem.cause_info((A,), (A, B, C))
     1.0
 
@@ -357,18 +357,18 @@ And thus its cause effect information is zero.
 
     >>> network = pyphi.examples.fig5b()
     >>> state = (1, 0, 0)
-    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
+    >>> subsystem = pyphi.Subsystem(network, state)
     >>> A, B, C = subsystem.node_indices
 
 Symmetrically, |A| now has outputs, so its effect repertoire is selective and
 it has effect information:
 
     >>> subsystem.effect_repertoire((A,), (A, B, C))
-    array([[[ 0.,  0.],
-            [ 0.,  0.]],
+    array([[[0., 0.],
+            [0., 0.]],
     <BLANKLINE>
-           [[ 0.,  0.],
-            [ 0.,  1.]]])
+           [[0., 0.],
+            [0., 1.]]])
     >>> subsystem.effect_info((A,), (A, B, C))
     0.5
 
@@ -394,7 +394,7 @@ irreducible to the information generated by its parts.**
 
     >>> network = pyphi.examples.fig6()
     >>> state = (1, 0, 0)
-    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
+    >>> subsystem = pyphi.Subsystem(network, state)
     >>> ABC = subsystem.node_indices
 
 Here we demonstrate the functions that find the minimum information partition a
@@ -411,15 +411,15 @@ attributes:
     >>> mip_c.phi
     0.499999
     >>> mip_c.partition  # doctest: +NORMALIZE_WHITESPACE
-     0     1,2
+     A     B,C
     ─── ✕ ─────
-     ∅    0,1,2
+     ∅    A,B,C
     >>> mip_e.phi
     0.25
     >>> mip_e.partition  # doctest: +NORMALIZE_WHITESPACE
-     ∅    0,1,2
+     ∅    A,B,C
     ─── ✕ ─────
-     1     0,2
+     B     A,C
 
 For more information on these objects, see the documentation for the
 |RepertoireIrreducibilityAnalysis| class, or use ``help(mip_c)``.
@@ -467,19 +467,19 @@ the “core cause” specified by a mechanism.**
 
     >>> network = pyphi.examples.fig8()
     >>> state = (1, 0, 0)
-    >>> subsystem = pyphi.Subsystem(network, state, range(network.size))
+    >>> subsystem = pyphi.Subsystem(network, state)
     >>> A, B, C = subsystem.node_indices
 
 In PyPhi, the “core cause” is called the *maximally-irreducible cause* (MIC).
-To find the MIC of a mechanism over all purviews, use the |Subsystem.mic|
+To find the MIC of a mechanism over all purviews, use the |Subsystem.mic()|
 method:
 
     >>> mic = subsystem.mic((B, C))
     >>> mic.phi
     0.333334
 
-Similarly, the |Subsystem.mie| method returns the “core effect” or
-*maximally-irreducible effect* (MIE). 
+Similarly, the |Subsystem.mie()| method returns the “core effect” or
+*maximally-irreducible effect* (MIE).
 
 For a detailed description of the MIC and MIE objects returned by these
 methods, see the documentation for |MIC| or use ``help(subsystem.mic)`` and
@@ -496,7 +496,7 @@ need to reassign the ``network`` and ``subsystem`` variables.
 
 Together, the MIC and MIE of a mechanism specify a *concept*. In PyPhi, this is
 represented by the |Concept| object. Concepts are computed using the
-|Subsystem.concept| method of a subsystem:
+|Subsystem.concept()| method of a subsystem:
 
     >>> concept_A = subsystem.concept((A,))
     >>> concept_A.phi
@@ -544,7 +544,7 @@ Conceptual information can be computed using the function named, as you might
 expect, |compute.conceptual_info()|:
 
     >>> pyphi.compute.conceptual_info(subsystem)
-    2.1111089999999999
+    2.111109
 
 
 Figure 12
@@ -569,9 +569,9 @@ We can verify that the :math:`\Phi^{\textrm{MIP}}` value and minimal cut are as
 shown in the figure:
 
     >>> sia.phi
-    1.9166650000000001
+    1.916665
     >>> sia.cut
-    Cut [0, 1] ━━/ /━━➤ [2]
+    Cut [A, B] ━━/ /━━➤ [C]
 
 .. note::
 
@@ -650,7 +650,7 @@ complex |DE| shown in the paper no longer exists.
     2
     >>> ABC, FG = condensed
     >>> (ABC.subsystem.nodes, ABC.phi)
-    ((A, B, C), 1.9166650000000001)
+    ((A, B, C), 1.916665)
     >>> (FG.subsystem.nodes, FG.phi)
     ((F, G), 0.069445)
 

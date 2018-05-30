@@ -7,8 +7,6 @@
 Utilities for parallel computation.
 """
 
-# pylint: disable=too-few-public-methods,too-many-instance-attributes
-
 import logging
 import multiprocessing
 import sys
@@ -16,9 +14,9 @@ import threading
 from itertools import chain, islice
 
 from tblib import Traceback
+from tqdm import tqdm
 
 from .. import config
-from ..log import ProgressBar
 
 log = logging.getLogger(__name__)
 
@@ -32,10 +30,9 @@ def get_num_processes():
             'Invalid NUMBER_OF_CORES; value may not be 0.')
 
     if config.NUMBER_OF_CORES > cpu_count:
-        raise ValueError(
-            'Invalid NUMBER_OF_CORES; value must be less than or '
-            'equal to the available number of cores ({} for this '
-            'system).'.format(cpu_count))
+        log.info('Requesting %s cores; only %s available',
+                 config.NUMBER_OF_CORES, cpu_count)
+        return cpu_count
 
     if config.NUMBER_OF_CORES < 0:
         num = cpu_count + config.NUMBER_OF_CORES + 1
@@ -157,8 +154,8 @@ class MapReduce:
             self.iterable = list(self.iterable)
             total = len(self.iterable)
 
-        return ProgressBar(total=total, disable=disable, leave=False,
-                           desc=self.description)
+        return tqdm(total=total, disable=disable, leave=False,
+                    desc=self.description)
 
     @staticmethod  # coverage: disable
     def worker(compute, task_queue, result_queue, log_queue, complete,
@@ -239,34 +236,40 @@ class MapReduce:
         """Perform the computation in parallel, reading results from the output
         queue and passing them to ``process_result``.
         """
-        self.start_parallel()
+        try:
+            self.start_parallel()
 
-        result = self.empty_result(*self.context)
+            result = self.empty_result(*self.context)
 
-        while self.num_processes > 0:
-            r = self.result_queue.get()
-            self.maybe_put_task()
+            while self.num_processes > 0:
+                r = self.result_queue.get()
+                self.maybe_put_task()
 
-            if r is POISON_PILL:
-                self.num_processes -= 1
+                if r is POISON_PILL:
+                    self.num_processes -= 1
 
-            elif isinstance(r, ExceptionWrapper):
-                r.reraise()
+                elif isinstance(r, ExceptionWrapper):
+                    r.reraise()
 
-            else:
-                result = self.process_result(r, result)
-                self.progress.update(1)
+                else:
+                    result = self.process_result(r, result)
+                    self.progress.update(1)
 
-                # Did `process_result` decide to terminate early?
-                if self.done:
-                    self.complete.set()
+                    # Did `process_result` decide to terminate early?
+                    if self.done:
+                        self.complete.set()
 
-        self.finish_parallel()
+            self.finish_parallel()
+        except Exception:
+            raise
+        finally:
+            log.debug('Removing progress bar')
+            self.progress.close()
 
         return result
 
     def finish_parallel(self):
-        """Terminate all processes and the log thread."""
+        """Orderly shutdown of workers."""
         for process in self.processes:
             process.join()
 
@@ -281,27 +284,25 @@ class MapReduce:
         self.task_queue.close()
         self.result_queue.close()
 
-        # Remove the progress bar
-        log.debug('Removing progress bar')
-        self.progress.close()
-
     def run_sequential(self):
         """Perform the computation sequentially, only holding two computed
         objects in memory at a time.
         """
-        result = self.empty_result(*self.context)
+        try:
+            result = self.empty_result(*self.context)
 
-        for obj in self.iterable:
-            r = self.compute(obj, *self.context)
-            result = self.process_result(r, result)
-            self.progress.update(1)
+            for obj in self.iterable:
+                r = self.compute(obj, *self.context)
+                result = self.process_result(r, result)
+                self.progress.update(1)
 
-            # Short-circuited?
-            if self.done:
-                break
-
-        # Remove progress bar
-        self.progress.close()
+                # Short-circuited?
+                if self.done:
+                    break
+        except Exception as e:
+            raise e
+        finally:
+            self.progress.close()
 
         return result
 

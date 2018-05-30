@@ -1,4 +1,8 @@
-include README.rst 
-include LICENSE.md 
-include pyphi_config.yml 
+include README.md
+include INSTALLATION.rst
+include CACHING.rst
+include LICENSE.md
+include CHANGELOG.md
+include pyphi_config.yml
 include redis.conf
+recursive-include pyphi/data *

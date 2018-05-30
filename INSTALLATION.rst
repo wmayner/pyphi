@@ -136,6 +136,6 @@ like tab-completion. Once you've installed it, you can start the IPython
 interpreter with the command ``ipython``.
 
 Next, please see the documentation for some `examples
-<https://pyphi.readthedocs.io/page/examples>`__ of how to use PyPhi and
+<https://pyphi.readthedocs.io/page/examples/>`__ of how to use PyPhi and
 information on how to `configure
 <https://pyphi.readthedocs.io/page/configuration.html>`__ it.

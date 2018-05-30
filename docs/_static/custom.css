@@ -51,44 +51,40 @@ tt,
     border: none;
     border-radius: 3px;
     background: rgba(27, 31, 35, 0.05);
-    font-weight: normal;
-}
-.rst-content dl:not(.docutils) tt.descclassname,
-.rst-content dl:not(.docutils) tt.descname,
-.rst-content dl:not(.docutils) code.descname,
-.rst-content dl:not(.docutils) tt.descclassname,
-.rst-content dl:not(.docutils) code.descclassname 
-.rst-content dl:not(.docutils) tt, 
-.rst-content dl:not(.docutils) tt, 
-.rst-content dl:not(.docutils) code
-{
-  font-weight: normal;
 }
 
 /* Code literals */
 .rst-content code.literal {
-    font-weight: normal;
     color: inherit;
     padding-top: 0.15em;
     padding-right: 0.5em;
     padding-bottom: 0.15em;
     padding-left: 0.5em;
+    font-weight: normal;
 }
 
+/* Syntax-highlighted blocks */
+.rst-content div[class^='highlight'],
+div[class^='highlight'] {
+    border: none;
+    border-radius: 3px;
+    background: #f6f8fa;
+}
 /* Code blocks */
+.rst-content div[class^='highlight'] pre,
 div[class^='highlight'] pre {
     font-family: 'Roboto Mono', 'Monaco', monospace;
     font-size: 90%;
     background: none;
     padding: 16px;
-}
-
-/* Syntax-highlighted blocks */
-div[class^='highlight'] {
     border: none;
-    border-radius: 3px;
+    line-height: 1.45;
+}
+.admonition div[class^='highlight'] {
     background: rgba(27, 31, 35, 0.05);
 }
+
+
 /* Module headers */
 h1 > code.xref.py.py-mod.docutils.literal {
     background: none;
@@ -110,7 +106,6 @@ ul.simple > li > a.reference.internal > code.literal {
     border-top: none;
     border-radius: 3px;
     border-left: solid 3px #6ab0de;
-    font-weight: normal;
     font-size: 100%;
 }
 .rst-content dl.attribute:not(.docutils) dt,
@@ -154,9 +149,9 @@ ul.wy-breadcrumbs > li > code.docutils.literal {
     height: 144px;
     width: 144px;
 }
-@media 
-(-webkit-min-device-pixel-ratio: 2), 
-(min-resolution: 192dpi) { 
+@media
+(-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
     /* Retina-specific stuff here */
     .wy-side-nav-search > a img.logo {
         background-image: url(https://github.com/wmayner/pyphi/raw/develop/docs/_static/phi_288x288.png);

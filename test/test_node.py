@@ -70,7 +70,7 @@ def test_expand_tpm():
 
 
 def test_generate_nodes(s):
-    nodes = generate_nodes(s.tpm, s.cm, s.state, s.node_indices)
+    nodes = generate_nodes(s.tpm, s.cm, s.state, s.node_indices, s.node_labels)
 
     node0_tpm = np.array([
         [[[1, 0],
@@ -81,7 +81,7 @@ def test_generate_nodes(s):
     assert np.array_equal(nodes[0].tpm, node0_tpm)
     assert nodes[0].inputs == set([1, 2])
     assert nodes[0].outputs == set([2])
-    assert nodes[0].label == 'n0'
+    assert nodes[0].label == 'A'
 
     node1_tpm = np.array([
         [[[1, 0],
@@ -90,7 +90,7 @@ def test_generate_nodes(s):
     assert np.array_equal(nodes[1].tpm, node1_tpm)
     assert nodes[1].inputs == set([2])
     assert nodes[1].outputs == set([0, 2])
-    assert nodes[1].label == 'n1'
+    assert nodes[1].label == 'B'
 
     node2_tpm = np.array([
         [[[1, 0]],
@@ -101,4 +101,9 @@ def test_generate_nodes(s):
     assert np.array_equal(nodes[2].tpm, node2_tpm)
     assert nodes[2].inputs == set([0, 1])
     assert nodes[2].outputs == set([0, 1])
-    assert nodes[2].label == 'n2'
+    assert nodes[2].label == 'C'
+
+
+def test_generate_nodes_default_labels(s):
+    nodes = generate_nodes(s.tpm, s.cm, s.state, s.node_indices)
+    assert [n.label for n in nodes] == ['n0', 'n1', 'n2']

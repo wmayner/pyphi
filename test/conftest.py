@@ -2,76 +2,9 @@
 # -*- coding: utf-8 -*-
 # conftest.py
 
-import logging
-import os
-import shutil
-
 import pytest
 
 import example_networks
-from pyphi import config, constants, db
-
-log = logging.getLogger()
-
-# Cache management and fixtures
-# =============================
-
-# Use a test database if database caching is enabled.
-if config.CACHING_BACKEND == constants.DATABASE:
-    db.collection = db.database.test
-
-# Backup location for the existing joblib cache directory.
-BACKUP_CACHE_DIR = config.FS_CACHE_DIRECTORY + '.BACKUP'
-
-
-def _flush_joblib_cache():
-    # Remove the old joblib cache directory.
-    shutil.rmtree(config.FS_CACHE_DIRECTORY)
-    # Make a new, empty one.
-    os.mkdir(config.FS_CACHE_DIRECTORY)
-
-
-def _flush_database_cache():
-    # Flush the `test` collection in the database.
-    return db.database.test.remove({})
-
-
-@pytest.fixture
-def flushcache():
-    """Flush the currently enabled cache."""
-    def cache_flusher():
-        log.info("FLUSHING CACHE!")
-        if config.CACHING_BACKEND == constants.DATABASE:
-            _flush_database_cache()
-        elif config.CACHING_BACKEND == constants.FILESYSTEM:
-            _flush_joblib_cache()
-    return cache_flusher
-
-
-@pytest.fixture(scope="session")
-def restore_fs_cache(request):
-    """Temporarily backup, then restore, the user's joblib cache after each
-    testing session."""
-    # Move the joblib cache to a backup location and create a fresh cache if
-    # filesystem caching is enabled
-    if config.CACHING_BACKEND == constants.FILESYSTEM:
-        if os.path.exists(BACKUP_CACHE_DIR):
-            raise Exception("You must move the backup of the filesystem cache "
-                            "at " + BACKUP_CACHE_DIR + " before running the "
-                            "test suite.")
-        shutil.move(config.FS_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
-        os.mkdir(config.FS_CACHE_DIRECTORY)
-
-    def fin():
-        if config.CACHING_BACKEND == constants.FILESYSTEM:
-            # Remove the tests' joblib cache directory.
-            shutil.rmtree(config.FS_CACHE_DIRECTORY)
-            # Restore the old joblib cache.
-            shutil.move(BACKUP_CACHE_DIR,
-                        config.FS_CACHE_DIRECTORY)
-
-    # Restore the cache after the last test with this fixture has run
-    request.addfinalizer(fin)
 
 
 # Test fixtures from example networks

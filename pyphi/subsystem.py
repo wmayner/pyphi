@@ -4,28 +4,22 @@
 
 """Represents a candidate system for |small_phi| and |big_phi| evaluation."""
 
-# pylint: disable=too-many-instance-attributes,too-many-public-methods,
-# pylint: disable=too-many-public-methods,too-many-arguments
-
 import functools
-import itertools
 import logging
-from time import time
 
 import numpy as np
 
-from . import Direction, cache, config, distribution, utils, validate
+from . import Direction, cache, distribution, utils, validate
 from .distance import repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Bipartition, Concept, KPartition,
-                     MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
-                     NullCut, Part, RepertoireIrreducibilityAnalysis,
-                     Tripartition, _null_ria)
+from .models import (Concept, MaximallyIrreducibleCause,
+                     MaximallyIrreducibleEffect, NullCut,
+                     RepertoireIrreducibilityAnalysis, _null_ria)
 from .network import irreducible_purviews
 from .node import generate_nodes
-from .partition import (bipartition, directed_bipartition,
-                        directed_tripartition, k_partitions, partitions)
+from .partition import mip_partitions
 from .tpm import condition_tpm, marginalize_out
+from .utils import time_annotated
 
 log = logging.getLogger(__name__)
 
@@ -36,11 +30,12 @@ class Subsystem:
     Args:
         network (Network): The network the subsystem belongs to.
         state (tuple[int]): The state of the network.
-        nodes (tuple[int] or tuple[str]): The nodes of the network which are in
-            this subsystem. Nodes can be specified either as indices or as
-            labels if the |Network| was passed ``node_labels``.
 
     Keyword Args:
+        nodes (tuple[int] or tuple[str]): The nodes of the network which are in
+            this subsystem. Nodes can be specified either as indices or as
+            labels if the |Network| was passed ``node_labels``. If this is
+            ``None`` then the full network will be used.
         cut (Cut): The unidirectional |Cut| to apply to this subsystem.
 
     Attributes:
@@ -54,16 +49,17 @@ class Subsystem:
         null_cut (Cut): The cut object representing no cut.
     """
 
-    def __init__(self, network, state, nodes, cut=None, mice_cache=None,
+    def __init__(self, network, state, nodes=None, cut=None, mice_cache=None,
                  repertoire_cache=None, single_node_repertoire_cache=None,
                  _external_indices=None):
         # The network this subsystem belongs to.
         validate.is_network(network)
         self.network = network
 
+        self.node_labels = network.node_labels
         # Remove duplicates, sort, and ensure native Python `int`s
         # (for JSON serialization).
-        self.node_indices = network.parse_node_indices(nodes)
+        self.node_indices = self.node_labels.coerce_to_indices(nodes)
 
         validate.state_length(state, self.network.size)
 
@@ -83,7 +79,8 @@ class Subsystem:
             self.network.tpm, self.external_indices, self.state)
 
         # The unidirectional cut applied for phi evaluation
-        self.cut = cut if cut is not None else NullCut(self.node_indices)
+        self.cut = (cut if cut is not None
+                    else NullCut(self.node_indices, self.node_labels))
 
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
@@ -98,9 +95,8 @@ class Subsystem:
             single_node_repertoire_cache or cache.DictCache()
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
-        self.nodes = generate_nodes(self.tpm, self.cm, self.state,
-                                    self.node_indices,
-                                    network.indices2labels(self.node_indices))
+        self.nodes = generate_nodes(
+            self.tpm, self.cm, self.state, self.node_indices, self.node_labels)
 
         validate.subsystem(self)
 
@@ -129,7 +125,7 @@ class Subsystem:
 
     @property
     def connectivity_matrix(self):
-        """np.ndarray: Alias for ``Subsystem.cm``."""
+        """np.ndarray: Alias for |Subsystem.cm|."""
         return self.cm
 
     @property
@@ -149,6 +145,9 @@ class Subsystem:
 
         This was added to support ``MacroSubsystem``, which cuts indices other
         than ``node_indices``.
+
+        Yields:
+            tuple[int]
         """
         return self.node_indices
 
@@ -156,6 +155,13 @@ class Subsystem:
     def cut_mechanisms(self):
         """list[tuple[int]]: The mechanisms that are cut in this system."""
         return self.cut.all_cut_mechanisms()
+
+    @property
+    def cut_node_labels(self):
+        """``NodeLabels``: Labels for the nodes of this system that will be
+        cut.
+        """
+        return self.node_labels
 
     @property
     def tpm_size(self):
@@ -267,13 +273,10 @@ class Subsystem:
                 "`indices` must be a subset of the Subsystem's indices.")
         return tuple(self._index2node[n] for n in indices)
 
-    def indices2labels(self, indices):
-        """Return the node labels for the given indices."""
-        return tuple(n.label for n in self.indices2nodes(indices))
-
     # TODO extend to nonbinary nodes
     @cache.method('_single_node_repertoire_cache', Direction.CAUSE)
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):
+        # pylint: disable=missing-docstring
         mechanism_node = self._index2node[mechanism_node_index]
         # We're conditioning on this node's state, so take the TPM for the node
         # being in that state.
@@ -329,6 +332,7 @@ class Subsystem:
     # TODO extend to nonbinary nodes
     @cache.method('_single_node_repertoire_cache', Direction.EFFECT)
     def _single_node_effect_repertoire(self, mechanism, purview_node_index):
+        # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the inputs that are in the mechanism.
         mechanism_inputs = (purview_node.inputs & mechanism)
@@ -396,7 +400,7 @@ class Subsystem:
             return self.cause_repertoire(mechanism, purview)
         elif direction == Direction.EFFECT:
             return self.effect_repertoire(mechanism, purview)
-        # TODO: test that ValueError is raised
+
         return validate.direction(direction)
 
     def unconstrained_repertoire(self, direction, purview):
@@ -466,12 +470,14 @@ class Subsystem:
         return distribution.normalize(expanded_repertoire)
 
     def expand_cause_repertoire(self, repertoire, new_purview=None):
-        """Same as |expand_repertoire| with ``direction`` set to |CAUSE|."""
+        """Alias for |expand_repertoire()| with ``direction`` set to |CAUSE|.
+        """
         return self.expand_repertoire(Direction.CAUSE, repertoire,
                                       new_purview)
 
     def expand_effect_repertoire(self, repertoire, new_purview=None):
-        """Same as |expand_repertoire| with ``direction`` set to |EFFECT|."""
+        """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|.
+        """
         return self.expand_repertoire(Direction.EFFECT, repertoire,
                                       new_purview)
 
@@ -545,13 +551,9 @@ class Subsystem:
             RepertoireIrreducibilityAnalysis: The irreducibility analysis for
             the mininum-information partition in one temporal direction.
         """
-        # We default to the null MIP (the MIP of a reducible mechanism)
-        mip = _null_ria(direction, mechanism, purview)
-
         if not purview:
-            return mip
+            return _null_ria(direction, mechanism, purview)
 
-        phi_min = float('inf')
         # Calculate the unpartitioned repertoire to compare against the
         # partitioned ones.
         repertoire = self.repertoire(direction, mechanism, purview)
@@ -568,7 +570,7 @@ class Subsystem:
                 partition=partition,
                 repertoire=repertoire,
                 partitioned_repertoire=partitioned_repertoire,
-                subsystem=self
+                node_labels=self.node_labels
             )
 
         # State is unreachable - return 0 instead of giving nonsense results
@@ -576,8 +578,9 @@ class Subsystem:
                 np.all(repertoire == 0)):
             return _mip(0, None, None)
 
-        # Loop over possible MIP partitions
-        for partition in mip_partitions(mechanism, purview):
+        mip = _null_ria(direction, mechanism, purview, phi=float('inf'))
+
+        for partition in mip_partitions(mechanism, purview, self.node_labels):
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(
@@ -589,8 +592,7 @@ class Subsystem:
                 return _mip(0.0, partition, partitioned_repertoire)
 
             # Update MIP if it's more minimal.
-            if phi < phi_min:
-                phi_min = phi
+            if phi < mip.phi:
                 mip = _mip(phi, partition, partitioned_repertoire)
 
         return mip
@@ -598,14 +600,14 @@ class Subsystem:
     def cause_mip(self, mechanism, purview):
         """Return the irreducibility analysis for the cause MIP.
 
-        Alias for |find_mip| with ``direction`` set to |CAUSE|.
+        Alias for |find_mip()| with ``direction`` set to |CAUSE|.
         """
         return self.find_mip(Direction.CAUSE, mechanism, purview)
 
     def effect_mip(self, mechanism, purview):
         """Return the irreducibility analysis for the effect MIP.
 
-        Alias for |find_mip| with ``direction`` set to |EFFECT|.
+        Alias for |find_mip()| with ``direction`` set to |EFFECT|.
         """
         return self.find_mip(Direction.EFFECT, mechanism, purview)
 
@@ -693,14 +695,14 @@ class Subsystem:
     def mic(self, mechanism, purviews=False):
         """Return the mechanism's maximally-irreducible cause (|MIC|).
 
-        Alias for |find_mice| with ``direction`` set to |CAUSE|.
+        Alias for |find_mice()| with ``direction`` set to |CAUSE|.
         """
         return self.find_mice(Direction.CAUSE, mechanism, purviews=purviews)
 
     def mie(self, mechanism, purviews=False):
         """Return the mechanism's maximally-irreducible effect (|MIE|).
 
-        Alias for |find_mice| with ``direction`` set to |EFFECT|.
+        Alias for |find_mice()| with ``direction`` set to |EFFECT|.
         """
         return self.find_mice(Direction.EFFECT, mechanism, purviews=purviews)
 
@@ -739,6 +741,7 @@ class Subsystem:
                        effect=effect,
                        subsystem=self)
 
+    @time_annotated
     def concept(self, mechanism, purviews=False, cause_purviews=False,
                 effect_purviews=False):
         """Return the concept specified by a mechanism within this subsytem.
@@ -760,205 +763,23 @@ class Subsystem:
             Concept: The pair of maximally irreducible cause/effect repertoires
             that constitute the concept specified by the given mechanism.
         """
-        start = time()
         log.debug('Computing concept %s...', mechanism)
 
         # If the mechanism is empty, there is no concept.
         if not mechanism:
-            result = self.null_concept
-        else:
-            # Calculate the maximally irreducible cause repertoire.
-            cause = self.mic(mechanism,
-                             purviews=(cause_purviews or purviews))
-            # Calculate the maximally irreducible effect repertoire.
-            effect = self.mie(mechanism,
-                              purviews=(effect_purviews or purviews))
-            # NOTE: Make sure to expand the repertoires to the size of the
-            # subsystem when calculating concept distance. For now, they must
-            # remain un-expanded so the concept doesn't depend on the
-            # subsystem.
-            result = Concept(mechanism=mechanism, cause=cause, effect=effect,
-                             subsystem=self)
+            log.debug('Empty concept; returning null concept')
+            return self.null_concept
 
-        result.time = round(time() - start, config.PRECISION)
+        # Calculate the maximally irreducible cause repertoire.
+        cause = self.mic(mechanism, purviews=(cause_purviews or purviews))
+
+        # Calculate the maximally irreducible effect repertoire.
+        effect = self.mie(mechanism, purviews=(effect_purviews or purviews))
+
         log.debug('Found concept %s', mechanism)
-        return result
 
-
-def mip_partitions(mechanism, purview):
-    """Return a generator over all mechanism-purview partitions, based on the
-    current configuration.
-    """
-    func = {
-        'BI': mip_bipartitions,
-        'TRI': wedge_partitions,
-        'ALL': all_partitions
-    }[config.PARTITION_TYPE]
-
-    return func(mechanism, purview)
-
-
-def mip_bipartitions(mechanism, purview):
-    r"""Return an generator of all |small_phi| bipartitions of a mechanism over
-    a purview.
-
-    Excludes all bipartitions where one half is entirely empty, *e.g*::
-
-         A     ∅
-        ─── ✕ ───
-         B     ∅
-
-    is not valid, but ::
-
-         A     ∅
-        ─── ✕ ───
-         ∅     B
-
-    is.
-
-    Args:
-        mechanism (tuple[int]): The mechanism to partition
-        purview (tuple[int]): The purview to partition
-
-    Yields:
-        Bipartition: Where each bipartition is::
-
-            bipart[0].mechanism   bipart[1].mechanism
-            ─────────────────── ✕ ───────────────────
-            bipart[0].purview     bipart[1].purview
-
-    Example:
-        >>> mechanism = (0,)
-        >>> purview = (2, 3)
-        >>> for partition in mip_bipartitions(mechanism, purview):
-        ...     print(partition, '\n')  # doctest: +NORMALIZE_WHITESPACE
-         ∅     0
-        ─── ✕ ───
-         2     3
-        <BLANKLINE>
-         ∅     0
-        ─── ✕ ───
-         3     2
-        <BLANKLINE>
-         ∅     0
-        ─── ✕ ───
-        2,3    ∅
-    """
-    numerators = bipartition(mechanism)
-    denominators = directed_bipartition(purview)
-
-    for n, d in itertools.product(numerators, denominators):
-        if (n[0] or d[0]) and (n[1] or d[1]):
-            yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]))
-
-
-def wedge_partitions(mechanism, purview):
-    """Return an iterator over all wedge partitions.
-
-    These are partitions which strictly split the mechanism and allow a subset
-    of the purview to be split into a third partition, e.g.::
-
-         A     B     ∅
-        ─── ✕ ─── ✕ ───
-         B     C     D
-
-    See |PARTITION_TYPE| in |config| for more information.
-
-    Args:
-        mechanism (tuple[int]): A mechanism.
-        purview (tuple[int]): A purview.
-
-    Yields:
-        Tripartition: all unique tripartitions of this mechanism and purview.
-    """
-    numerators = bipartition(mechanism)
-    denominators = directed_tripartition(purview)
-
-    yielded = set()
-
-    def valid(factoring):
-        """Return whether the factoring should be considered."""
-        # pylint: disable=too-many-boolean-expressions
-        numerator, denominator = factoring
-        return (
-            (numerator[0] or denominator[0]) and
-            (numerator[1] or denominator[1]) and
-            ((numerator[0] and numerator[1]) or
-             not denominator[0] or
-             not denominator[1])
-        )
-
-    for n, d in filter(valid, itertools.product(numerators, denominators)):
-        # Normalize order of parts to remove duplicates.
-        tripart = Tripartition(
-            Part(n[0], d[0]),
-            Part(n[1], d[1]),
-            Part((),   d[2])).normalize()  # pylint: disable=bad-whitespace
-
-        def nonempty(part):
-            """Check that the part is not empty."""
-            return part.mechanism or part.purview
-
-        def compressible(tripart):
-            """Check if the tripartition can be transformed into a causally
-            equivalent partition by combing two of its parts; e.g., A/∅ × B/∅ ×
-            ∅/CD is equivalent to AB/∅ × ∅/CD so we don't include it.
-            """
-            pairs = [
-                (tripart[0], tripart[1]),
-                (tripart[0], tripart[2]),
-                (tripart[1], tripart[2])
-            ]
-            for x, y in pairs:
-                if (nonempty(x) and nonempty(y) and
-                        (x.mechanism + y.mechanism == () or
-                         x.purview + y.purview == ())):
-                    return True
-            return False
-
-        if not compressible(tripart) and tripart not in yielded:
-            yielded.add(tripart)
-            yield tripart
-
-
-def all_partitions(mechanism, purview):
-    """Return all possible partitions of a mechanism and purview.
-
-    Partitions can consist of any number of parts.
-
-    Args:
-        mechanism (tuple[int]): A mechanism.
-        purview (tuple[int]): A purview.
-
-    Yields:
-        KPartition: A partition of this mechanism and purview into ``k`` parts.
-    """
-    for mechanism_partition in partitions(mechanism):
-        mechanism_partition.append([])
-        n_mechanism_parts = len(mechanism_partition)
-        max_purview_partition = min(len(purview), n_mechanism_parts)
-        for n_purview_parts in range(1, max_purview_partition + 1):
-            n_empty = n_mechanism_parts - n_purview_parts
-            for purview_partition in k_partitions(purview, n_purview_parts):
-                purview_partition = [tuple(_list)
-                                     for _list in purview_partition]
-                # Extend with empty tuples so purview partition has same size
-                # as mechanism purview
-                purview_partition.extend([()] * n_empty)
-
-                # Unique permutations to avoid duplicates empties
-                for purview_permutation in set(
-                        itertools.permutations(purview_partition)):
-
-                    parts = [
-                        Part(tuple(m), tuple(p))
-                        for m, p in zip(mechanism_partition,
-                                        purview_permutation)
-                    ]
-
-                    # Must partition the mechanism, unless the purview is fully
-                    # cut away from the mechanism.
-                    if parts[0].mechanism == mechanism and parts[0].purview:
-                        continue
-
-                    yield KPartition(*parts)
+        # NOTE: Make sure to expand the repertoires to the size of the
+        # subsystem when calculating concept distance. For now, they must
+        # remain un-expanded so the concept doesn't depend on the subsystem.
+        return Concept(mechanism=mechanism, cause=cause, effect=effect,
+                       subsystem=self)

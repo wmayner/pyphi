@@ -1,4 +1,3 @@
-
 .PHONY: test docs dist
 
 src = pyphi
@@ -16,6 +15,9 @@ coverage:
 	coverage run --source $(src) -m py.test
 	coverage html
 	open htmlcov/index.html
+
+lint:
+	pylint $(src)
 
 watch-tests:
 	watchmedo shell-command \
@@ -53,17 +55,17 @@ upload-docs: build-docs
 benchmark:
 	cd $(benchmarks) && asv continuous develop
 
-check-readme:
-	python setup.py check -r -s
+check-dist:
+	python setup.py check --strict
 
-dist: build-dist check-readme
-	twine upload dist/*
+dist: build-dist check-dist
+	twine upload $(dist_dir)/*
 
-test-dist: build-dist check-readme
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+test-dist: build-dist check-dist
+	twine upload --repository-url https://test.pypi.org/legacy/ $(dist_dir)/*
 
 build-dist: clean-dist
-	python setup.py sdist bdist_wheel
+	python setup.py sdist bdist_wheel --dist-dir=$(dist_dir)
 
 clean-dist:
-	rm -r $(dist_dir)
+	rm -rf $(dist_dir)

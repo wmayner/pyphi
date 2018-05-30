@@ -51,10 +51,10 @@ introduced in Figure 1 of the paper.
 This is a standard PyPhi |Network| so we can look at its TPM:
 
    >>> pyphi.convert.state_by_node2state_by_state(network.tpm)
-   array([[ 1.,  0.,  0.,  0.],
-          [ 0.,  1.,  0.,  0.],
-          [ 0.,  1.,  0.,  0.],
-          [ 0.,  0.,  0.,  1.]])
+   array([[1., 0., 0., 0.],
+          [0., 1., 0., 0.],
+          [0., 1., 0., 0.],
+          [0., 0., 0., 1.]])
 
 The ``OR`` gate is element ``0``, and the ``AND`` gate is element ``1`` in the
 network.
@@ -82,15 +82,15 @@ to see how |X_t-1 = {OR = 1}| constrains the probability distribution of the
 purview |Y_t = {OR, AND}|:
 
    >>> transition.effect_repertoire((OR,), (OR, AND))
-   array([[ 0. ,  0. ],
-          [ 0.5,  0.5]])
+   array([[0. , 0. ],
+          [0.5, 0.5]])
 
 Similarly, as in Figure 2C, we can compute the cause repertoire of
 |Y_t = {OR, AND = 10}| to see how it constrains the purview |X_t-1 = {OR}|:
 
    >>> transition.cause_repertoire((OR, AND), (OR,))
-   array([[ 0.5],
-          [ 0.5]])
+   array([[0.5],
+          [0.5]])
 
 .. note:: In all |Transition| methods the constraining occurence is passed as
     the ``mechanism`` argument and the constrained occurence is the ``purview``
@@ -131,9 +131,9 @@ The ``partition`` property shows the minimum information partition that
 reduces the occurence and candidate effect:
 
    >>> link.partition  # doctest: +NORMALIZE_WHITESPACE
-    ∅     0     1
+    ∅     OR     AND
    ─── ✕ ─── ✕ ───
-    ∅     0     1
+    ∅     OR     AND
 
 Let's look at the MIP for the irreducible occurence |Y_t = {OR, AND}|
 constraining |X_t-1 = {OR, AND}| (Figure 3D). This candidate causal link has
@@ -148,7 +148,7 @@ To find the actual cause or actual effect of a particular occurence, use the
 
    >>> transition.find_actual_cause((OR, AND))
    CausalLink
-     α = 0.1699  (0, 1) ◀━━ (0, 1)
+     α = 0.1699  [OR, AND] ◀━━ [OR, AND]
 
 
 Accounts
@@ -160,15 +160,15 @@ The complete causal account of our transition can be computed with the
    >>> account = actual.account(transition)
    >>> print(account)  # doctest: +NORMALIZE_WHITESPACE
    <BLANKLINE>
-      Account (5 causal links)
-   *****************************
+         Account (5 causal links)
+   ***********************************
    Irreducible effects
-   α = 0.415  (0,) ━━▶ (0,)
-   α = 0.415  (1,) ━━▶ (1,)
+   α = 0.415  [OR] ━━▶ [OR]
+   α = 0.415  [AND] ━━▶ [AND]
    Irreducible causes
-   α = 0.415  (0,) ◀━━ (0,)
-   α = 0.415  (1,) ◀━━ (1,)
-   α = 0.1699  (0, 1) ◀━━ (0, 1)
+   α = 0.415  [OR] ◀━━ [OR]
+   α = 0.415  [AND] ◀━━ [AND]
+   α = 0.1699  [OR, AND] ◀━━ [OR, AND]
 
 We see that this function produces the causal links shown in Figure 4. The
 |Account| object is a subclass of ``tuple``, and can manipulated the same:
@@ -191,22 +191,22 @@ destroyed by the MIP:
 
    >>> sia.partitioned_account  # doctest: +NORMALIZE_WHITESPACE
    <BLANKLINE>
-   Account (4 causal links)
-   ************************
+    Account (4 causal links)
+   **************************
    Irreducible effects
-   α = 0.415  (0,) ━━▶ (0,)
-   α = 0.415  (1,) ━━▶ (1,)
+   α = 0.415  [OR] ━━▶ [OR]
+   α = 0.415  [AND] ━━▶ [AND]
    Irreducible causes
-   α = 0.415  (0,) ◀━━ (0,)
-   α = 0.415  (1,) ◀━━ (1,)
+   α = 0.415  [OR] ◀━━ [OR]
+   α = 0.415  [AND] ◀━━ [AND]
 
 The partition of the MIP is available in the ``cut`` property:
 
    >>> sia.cut  # doctest: +NORMALIZE_WHITESPACE
    KCut CAUSE
-    ∅     0     1
+    ∅     OR    AND
    ─── ✕ ─── ✕ ───
-    ∅     0     1
+    ∅     OR    AND
 
 To find all irreducible accounts within the transition of interest, use
 ``nexus``:

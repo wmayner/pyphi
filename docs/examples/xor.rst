@@ -56,11 +56,11 @@ The concept has :math:`\varphi = \frac{1}{2}`.
     >>> concept.cause.purview
     (0, 1, 2)
     >>> concept.cause.repertoire
-    array([[[ 0.5,  0. ],
-            [ 0. ,  0. ]],
+    array([[[0.5, 0. ],
+            [0. , 0. ]],
     <BLANKLINE>
-           [[ 0. ,  0. ],
-            [ 0. ,  0.5]]])
+           [[0. , 0. ],
+            [0. , 0.5]]])
 
 So we see that the cause purview of this mechanism is the whole system |ABC|,
 and that the repertoire shows a :math:`0.5` of probability the previous state
@@ -82,7 +82,7 @@ the information about the elements outside the purview.
     >>> concept.effect.purview
     (2,)
     >>> concept.effect.repertoire
-    array([[[ 1.,  0.]]])
+    array([[[1., 0.]]])
 
 The effect purview of this concept is the node |C|. The mechanism |AB| is able
 to completely specify the next state of |C|. Since both nodes are OFF, the
@@ -171,9 +171,9 @@ system---but is it irreducible?
    >>> mip.phi
    0.0
    >>> mip.partition  # doctest: +NORMALIZE_WHITESPACE
-    0     1,2
+    A     B,C
    ─── ✕ ─────
-    ∅    0,1,2
+    ∅    A,B,C
 
 The mechanism has :math:`ci = 0.75`, but it is completely reducible
 (:math:`\varphi = 0`) to the partition

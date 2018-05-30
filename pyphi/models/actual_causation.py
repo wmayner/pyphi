@@ -6,9 +6,7 @@
 Objects that represent structures used in actual causation.
 """
 
-# pylint: disable=too-many-arguments
-
-from collections import namedtuple
+import collections
 
 from . import cmp, fmt
 from .. import Direction, config, utils
@@ -27,9 +25,7 @@ def greater_than_zero(alpha):
     return alpha > 0 and not utils.eq(alpha, 0)
 
 
-class AcRepertoireIrreducibilityAnalysis(
-        cmp.Orderable, namedtuple('AcRepertoireIrreducibilityAnalysis',
-                                  _acria_attributes)):
+class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
     """A minimum information partition for ac_coef calculation.
 
 
@@ -59,6 +55,19 @@ class AcRepertoireIrreducibilityAnalysis(
         partitioned_probability (float):
             The probability of the state in the partitioned repertoire.
     """
+
+    def __init__(self, alpha, state, direction, mechanism, purview,
+                 partition, probability, partitioned_probability,
+                 node_labels=None):
+        self.alpha = alpha
+        self.state = state
+        self.direction = direction
+        self.mechanism = mechanism
+        self.purview = purview
+        self.partition = partition
+        self.probability = probability
+        self.partitioned_probability = partitioned_probability
+        self.node_labels = node_labels
 
     __slots__ = ()
 
@@ -161,6 +170,10 @@ class CausalLink(cmp.Orderable):
         """
         return self._ria
 
+    @property
+    def node_labels(self):
+        return self._ria.node_labels
+
     def __repr__(self):
         return fmt.make_repr(self, ['ria'])
 
@@ -177,7 +190,7 @@ class CausalLink(cmp.Orderable):
         return self.ria == other.ria
 
     def __hash__(self):
-        return hash(('CausalLink', self._ria))
+        return hash(self._ria)
 
     def __bool__(self):
         """An |CausalLink| is ``True`` if |alpha > 0|."""
@@ -188,7 +201,7 @@ class CausalLink(cmp.Orderable):
         return {'ria': self.ria}
 
 
-class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
+class Event(collections.namedtuple('Event', ['actual_cause', 'actual_effect'])):
     """A mechanism which has both an actual cause and an actual effect.
 
     Attributes:
@@ -203,10 +216,33 @@ class Event(namedtuple('Event', ['actual_cause', 'actual_effect'])):
         return self.actual_cause.mechanism
 
 
-class Account(tuple):
+class Account(cmp.Orderable, collections.Sequence):
     """The set of |CausalLinks| with |alpha > 0|. This includes both actual
     causes and actual effects.
     """
+
+    def __init__(self, causal_links):
+        self.causal_links = tuple(causal_links)
+
+    def __len__(self):
+        return len(self.causal_links)
+
+    def __iter__(self):
+        return iter(self.causal_links)
+
+    def __getitem__(self, i):
+        return self.causal_links[i]
+
+    @cmp.sametype
+    def __eq__(self, other):
+        return self.causal_links == other.causal_links
+
+    def __hash__(self):
+        return hash(self.causal_links)
+
+    @cmp.sametype
+    def __add__(self, other):
+        return self.__class__(self.causal_links + other.causal_links)
 
     @property
     def irreducible_causes(self):
@@ -221,10 +257,7 @@ class Account(tuple):
                      if link.direction is Direction.EFFECT)
 
     def __repr__(self):
-        if config.REPR_VERBOSITY > 0:
-            return self.__str__()
-        return "{0}({1})".format(
-            self.__class__.__name__, super().__repr__())
+        return fmt.make_repr(self, ['causal_links'])
 
     def __str__(self):
         return fmt.fmt_account(self)

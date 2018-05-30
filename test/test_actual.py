@@ -316,8 +316,17 @@ def test_account_irreducible_causes_and_effects():
 
 
 def test_account_repr_and_str():
-    str(models.Account())
-    repr(models.Account())
+    str(account())
+    repr(account())
+
+
+def test_account_addition():
+    a1 = account([causal_link(direction=Direction.CAUSE)])
+    a2 = account([causal_link(direction=Direction.EFFECT)])
+    assert len(a1 + a2) == 2
+
+    with pytest.raises(TypeError):
+        a1 + [causal_link()]
 
 
 def test_ac_sia_repr_and_str(transition):
@@ -423,7 +432,8 @@ def test_ac_ex1_transition(transition):
     assert cria.alpha == 0.415037
     assert cria.probability == 0.66666666666666663
     assert cria.partitioned_probability == 0.5
-    assert cria.partition == (((), (1,)), ((0,), ()))
+    assert cria.partition == models.Bipartition(models.Part((), (1,)),
+                                                models.Part((0,), ()))
 
     effect_account = actual.account(transition, Direction.EFFECT)
     assert len(effect_account) == 2
@@ -437,7 +447,8 @@ def test_ac_ex1_transition(transition):
     assert eria0.alpha == 0.415037
     assert eria0.probability == 1.0
     assert eria0.partitioned_probability == 0.75
-    assert eria0.partition == (((), (0,)), ((1,), ()))
+    assert eria0.partition == models.Bipartition(models.Part((), (0,)),
+                                                 models.Part((1,), ()))
 
     assert eria1.mechanism == (2,)
     assert eria1.purview == (0,)
@@ -446,7 +457,8 @@ def test_ac_ex1_transition(transition):
     assert eria1.alpha == 0.415037
     assert eria1.probability == 1.0
     assert eria1.partitioned_probability == 0.75
-    assert eria1.partition == (((), (0,)), ((2,), ()))
+    assert eria1.partition == models.Bipartition(models.Part((), (0,)),
+                                                 models.Part((2,), ()))
 
 
 def test_actual_cut_indices():
