@@ -7,11 +7,14 @@ try:
 except ImportError:
     from distutils.core import setup
 
-with open('README.rst') as f:
+# Use a consistent encoding
+from codecs import open
+
+with open('README.rst', encoding='utf-8') as f:
     readme = f.read()
 
 about = {}
-with open('./pyphi/__about__.py') as f:
+with open('./pyphi/__about__.py', encoding='utf-8') as f:
     exec(f.read(), about)
 
 install_requires = [
