@@ -2,11 +2,7 @@
 # -*- coding: utf-8 -*-
 # setup.py
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
+from setuptools import setup
 # Use a consistent encoding
 from codecs import open
 
