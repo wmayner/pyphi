@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 # Use a consistent encoding
 from codecs import open
 
-with open('README.rst', encoding='utf-8') as f:
+with open('README.md', encoding='utf-8') as f:
     readme = f.read()
 
 about = {}
@@ -36,6 +36,7 @@ setup(
     url=about['__url__'],
     license=about['__license__'],
     long_description=readme,
+    long_description_content_type='text/markdown',
     install_requires=install_requires,
     keywords=('causality causal-modeling causation iit information integrated '
               'integrated-information modeling neuroscience theory'),

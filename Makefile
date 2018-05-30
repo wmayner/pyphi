@@ -56,7 +56,7 @@ benchmark:
 	cd $(benchmarks) && asv continuous develop
 
 check-dist:
-	python setup.py check --restructuredtext --strict
+	python setup.py check --strict
 
 dist: build-dist check-dist
 	twine upload $(dist_dir)/*

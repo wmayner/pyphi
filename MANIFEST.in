@@ -1,4 +1,4 @@
-include README.rst
+include README.md
 include INSTALLATION.rst
 include CACHING.rst
 include LICENSE.md
