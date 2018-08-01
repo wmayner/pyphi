@@ -168,6 +168,8 @@ r"""
 .. |N| replace:: :math:`N`
 .. |n x n| replace:: :math:`N \times N`
 .. |2^n x 2^n| replace:: :math:`2^N \times 2^N`
+.. |2^m x 2| replace:: :math:`2^m \times 2`
+.. |m| replace:: :math:`m`
 .. |i| replace:: :math:`i`
 .. |j| replace:: :math:`j`
 .. |i,jth| replace:: :math:`(i,j)^{\textrm{th}}`
