@@ -15,7 +15,7 @@ from .registry import Registry
 
 
 # From stackoverflow.com/questions/19368375/set-partitions-in-python
-def partitions(collection):  # pylint: disable=inconsistent-return-statements
+def partitions(collection):
     """Generate all set partitions of a collection.
 
     Example:
@@ -30,7 +30,8 @@ def partitions(collection):  # pylint: disable=inconsistent-return-statements
 
     # Special cases
     if not collection:
-        return []
+        return
+
     if len(collection) == 1:
         yield [collection]
         return
