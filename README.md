@@ -9,6 +9,8 @@
 [![Coveralls.io badge](https://img.shields.io/coveralls/wmayner/pyphi/develop.svg?style=flat-square&maxAge=600)](https://coveralls.io/github/wmayner/pyphi?branch=develop)
 [![License badge](https://img.shields.io/github/license/wmayner/pyphi.svg?style=flat-square&maxAge=86400)](https://github.com/wmayner/pyphi/blob/master/LICENSE.md)
 [![Python versions badge](https://img.shields.io/pypi/pyversions/pyphi.svg?style=flat-square&maxAge=86400)](https://wiki.python.org/moin/Python2orPython3)
+[![Code Quality: Python](https://img.shields.io/lgtm/grade/python/g/wmayner/pyphi.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/wmayner/pyphi/context:python)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/wmayner/pyphi.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/wmayner/pyphi/alerts)
 
 PyPhi is a Python library for computing integrated information (𝚽), and the
 associated quantities and objects.
