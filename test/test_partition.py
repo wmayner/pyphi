@@ -9,7 +9,7 @@ import numpy as np
 from pyphi import Direction, config
 from pyphi.partition import (directed_bipartition,
                              directed_tripartition_indices, k_partitions,
-                             partitions, partition_registry, mip_bipartitions,
+                             partitions, partition_types, mip_bipartitions,
                              wedge_partitions, all_partitions)
 
 from pyphi.models import Part, KPartition, Bipartition, Tripartition
@@ -289,8 +289,8 @@ def test_all_partitions():
         KPartition(Part((0,), (2,)), Part((1,), (3,)), Part((), ()))])
 
 
-def test_partition_registry():
-    assert partition_registry['BI'] == mip_bipartitions
-    assert partition_registry['TRI'] == wedge_partitions
-    assert partition_registry['ALL'] == all_partitions
-    assert set(partition_registry.all()) == set(['BI', 'TRI', 'ALL'])
+def test_partition_types():
+    assert partition_types['BI'] == mip_bipartitions
+    assert partition_types['TRI'] == wedge_partitions
+    assert partition_types['ALL'] == all_partitions
+    assert set(partition_types.all()) == set(['BI', 'TRI', 'ALL'])

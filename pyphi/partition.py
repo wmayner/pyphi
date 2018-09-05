@@ -363,7 +363,7 @@ class PartitionRegistry(Registry):
     Users can define custom partitions:
 
     Examples:
-        >>> @partition_registry.register('NONE')  # doctest: +SKIP
+        >>> @partition_types.register('NONE')  # doctest: +SKIP
         ... def no_partitions(mechanism, purview):
         ...    return []
 
@@ -372,18 +372,18 @@ class PartitionRegistry(Registry):
     desc = 'partitions'
 
 
-partition_registry = PartitionRegistry()
+partition_types = PartitionRegistry()
 
 
 def mip_partitions(mechanism, purview, node_labels=None):
     """Return a generator over all mechanism-purview partitions, based on the
     current configuration.
     """
-    func = partition_registry[config.PARTITION_TYPE]
+    func = partition_types[config.PARTITION_TYPE]
     return func(mechanism, purview, node_labels)
 
 
-@partition_registry.register('BI')
+@partition_types.register('BI')
 def mip_bipartitions(mechanism, purview, node_labels=None):
     r"""Return an generator of all |small_phi| bipartitions of a mechanism over
     a purview.
@@ -439,7 +439,7 @@ def mip_bipartitions(mechanism, purview, node_labels=None):
                               node_labels=node_labels)
 
 
-@partition_registry.register('TRI')
+@partition_types.register('TRI')
 def wedge_partitions(mechanism, purview, node_labels=None):
     """Return an iterator over all wedge partitions.
 
@@ -511,7 +511,7 @@ def wedge_partitions(mechanism, purview, node_labels=None):
             yield tripart
 
 
-@partition_registry.register('ALL')
+@partition_types.register('ALL')
 def all_partitions(mechanism, purview, node_labels=None):
     """Return all possible partitions of a mechanism and purview.
 
