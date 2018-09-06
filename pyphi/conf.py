@@ -560,8 +560,8 @@ class PyphiConfig(Config):
 
     If set to ``'TRI'``, partitions will have three parts. In addition,
     computations will only consider partitions that strictly partition the
-    mechanism the mechanism. That is, for the mechanism ``(A, B)`` and purview
-    ``(B, C, D)`` the partition::
+    mechanism. That is, for the mechanism ``(A, B)`` and purview ``(B, C, D)``
+    the partition::
 
       A,B    ∅
       ─── ✕ ───
@@ -586,10 +586,6 @@ class PyphiConfig(Config):
        B     C     D
 
     where the mechanism in the third part is always empty.
-
-    In addition, in the case of a |small_phi|-tie when computing a |MIC| or
-    |MIE|, The ``'TRIPARTITION'`` setting choses the MIP with smallest purview
-    instead of the largest (which is the default).
 
     Finally, if set to ``'ALL'``, all possible partitions will be tested.
 
