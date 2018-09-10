@@ -128,10 +128,10 @@ def all_caches(test_func):
     """
     @pytest.mark.parametrize("redis_cache,", [
         pytest.param(True, marks=require_redis),
-        (False,),
+        pytest.param(False)
     ])
     def wrapper(redis_cache, *args, **kwargs):
-        with config.override(REDIS_CACHE=redis_cache[0]):
+        with config.override(REDIS_CACHE=redis_cache):
             return test_func(redis_cache, *args, **kwargs)
 
     return functools.wraps(test_func)(wrapper)
