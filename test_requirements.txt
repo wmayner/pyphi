@@ -1,5 +1,5 @@
 numpy >=1.1.4
-pytest
+pytest >=3.1.0
 coverage
 asv
 virtualenv
