@@ -14,7 +14,7 @@ from time import time
 
 import decorator
 import numpy as np
-from scipy.misc import comb
+from scipy.special import comb
 
 from . import config, constants
 
