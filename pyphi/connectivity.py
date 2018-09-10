@@ -113,7 +113,7 @@ def block_cm(cm):
     sink_inputs = inputs_to(sinks)
 
     while True:
-        if np.all(sink_inputs == sources):
+        if np.array_equal(sink_inputs, sources):
             # sources exclusively connect to sinks.
             # There are no other nodes which connect sink nodes,
             # hence set(sources) + set(sinks) form a component
@@ -126,7 +126,7 @@ def block_cm(cm):
         sink_inputs = inputs_to(sinks)
 
         # Considering all output nodes?
-        if np.all(sinks == outputs):
+        if np.array_equal(sinks, outputs):
             return False
 
 
