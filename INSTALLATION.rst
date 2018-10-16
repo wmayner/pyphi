@@ -40,7 +40,7 @@ Now that we're using our shiny new Python versions, it is highly recommended to
 set up a **virtual environment** in which to install PyPhi. Virtual
 environments allow different projects to isolate their dependencies from one
 another, so that they don't interact in unexpected ways. Please see `this guide
-<http://docs.python-guide.org/page/dev/virtualenvs/>`__ for more information.
+<http://docs.python-guide.org/dev/virtualenvs/>`__ for more information.
 
 To do this, you must install ``virtualenvwrapper``, a `tool for manipulating
 virtual environments <http://virtualenvwrapper.readthedocs.org/>`__. This tool
