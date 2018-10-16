@@ -81,14 +81,14 @@ def test_mp2q():
     assert distance.mp2q(a, b) == 2.7725887222397811
 
 
-def test_bld():
+def test_klm():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
-    assert distance.bld(a, b) == 0
+    assert distance.klm(a, b) == 0
 
     a = np.array([[[1]], [[0]]])
     b = np.array([[[0.25]], [[0.75]]])
-    assert distance.bld(a, b) == 1.3862943611198906
+    assert distance.klm(a, b) == 1.3862943611198906
 
 
 def test_default_measures():
@@ -99,11 +99,16 @@ def test_default_measures():
         'ENTROPY_DIFFERENCE',
         'PSQ2',
         'MP2Q',
+        'KLM',
         'BLD'])
 
 
 def test_default_asymmetric_measures():
-    assert set(distance.measures.asymmetric()) == set(['KLD', 'MP2Q', 'BLD'])
+    assert set(distance.measures.asymmetric()) == set([
+        'KLD',
+        'MP2Q',
+        'KLM',
+        'BLD'])
 
 
 def test_system_repertoire_distance_must_be_symmetric():

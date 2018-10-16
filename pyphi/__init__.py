@@ -19,8 +19,12 @@ PyPhi
 
 PyPhi is a Python library for computing integrated information.
 
-See the documentation for the |examples| module for information on how to use
-it.
+If you use this software in your research, please cite the paper:
+
+    Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G.
+    (2018) PyPhi: A toolbox for integrated information theory. PLOS
+    Computational Biology 14(7): e1006343.
+    https://doi.org/10.1371/journal.pcbi.1006343
 
 Online documentation is available at `<https://pyphi.readthedocs.io/>`_.
 

@@ -43,7 +43,7 @@ def condition_tpm(tpm, fixed_nodes, state):
     conditioning_indices = list(chain.from_iterable(conditioning_indices))
     # Obtain the actual conditioned TPM by indexing with the conditioning
     # indices.
-    return tpm[conditioning_indices]
+    return tpm[tuple(conditioning_indices)]
 
 
 def expand_tpm(tpm):

@@ -13,17 +13,16 @@
 PyPhi is a Python library for computing integrated information (𝚽), and the
 associated quantities and objects.
 
-**If you use this code, please cite the manuscript:**
+**If you use this code, please cite the paper:**
 
 ---
 
-Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G (2017).
-[PyPhi: A toolbox for integrated
-information](https://arxiv.org/abs/1712.09644). arXiv:1712.09644 \[q-bio.NC\].
+Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G. (2018)
+[PyPhi: A toolbox for integrated information
+theory](https://doi.org/10.1371/journal.pcbi.1006343). PLOS Computational
+Biology 14(7): e1006343. <https://doi.org/10.1371/journal.pcbi.1006343>
 
 ---
-
-The manuscript is available at <https://arxiv.org/abs/1712.09644>.
 
 
 ## Usage, Examples, and API documentation
@@ -118,20 +117,23 @@ sudo apt-get install python3-dev python3-scipy python3-numpy
 
 ### Please cite these papers if you use this code:
 
-Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G (2017).
-[PyPhi: A toolbox for integrated
-information](https://arxiv.org/abs/1712.09644). arXiv:1712.09644 \[q-bio.NC\].
+Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G. (2018)
+[PyPhi: A toolbox for integrated information
+theory](https://doi.org/10.1371/journal.pcbi.1006343). PLOS Computational
+Biology 14(7): e1006343. <https://doi.org/10.1371/journal.pcbi.1006343>
 
 ```
-@article{mayner2017pyphi,
-  title={PyPhi: A toolbox for integrated information},
-  author={Mayner, William, Gerald Paul AND Marshall, William AND 
-          Albantakis, Larissa AND Findlay, Graham AND 
-          Marchman, Robert AND Tononi, Giulio},
-  journal={arXiv:1712.09644 [q-bio.NC]},
-  year={2017},
-  month={12},
-  url={https://arxiv.org/abs/1712.09644}
+@article{mayner2018pyphi,
+  title={PyPhi: A toolbox for integrated information theory},
+  author={Mayner, William GP and Marshall, William and Albantakis, Larissa and Findlay, Graham and Marchman, Robert and Tononi, Giulio},
+  journal={PLoS Computational Biology},
+  volume={14},
+  number={7},
+  pages={e1006343},
+  year={2018},
+  publisher={Public Library of Science},
+  doi={10.1371/journal.pcbi.1006343},
+  url={https://doi.org/10.1371/journal.pcbi.1006343}
 }
 ```
 

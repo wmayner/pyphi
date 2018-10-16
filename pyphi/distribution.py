@@ -52,7 +52,7 @@ def marginal_zero(repertoire, node_index):
     index = [slice(None)] * repertoire.ndim
     index[node_index] = 0
 
-    return repertoire[index].sum()
+    return repertoire[tuple(index)].sum()
 
 
 def marginal(repertoire, node_index):

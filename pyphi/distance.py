@@ -230,10 +230,11 @@ def mp2q(p, q):
     return sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log(p / q)))
 
 
-@measures.register('BLD', asymmetric=True)
+@measures.register('KLM', asymmetric=True)
+@measures.register('BLD', asymmetric=True)  # Backwards-compatible alias
 @np_suppress()
-def bld(p, q):
-    """Compute the Buzz Lightyear (Billy-Leo) Divergence."""
+def klm(p, q):
+    """Compute the KLM divergence."""
     p, q = flatten(p), flatten(q)
     return max(abs(p * np.nan_to_num(np.log(p / q))))
 

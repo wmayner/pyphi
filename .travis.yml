@@ -17,12 +17,11 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
-  - "3.7"
 
 # Install packages
 install:
   - pip install --upgrade pip setuptools wheel
-  - pip install --only-binary=numpy numpy==1.14
+  - pip install --only-binary=numpy numpy==1.14.5
   - pip install --only-binary=scipy -r requirements.txt
   - pip install coveralls
   - pip freeze

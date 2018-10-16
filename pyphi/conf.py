@@ -560,8 +560,8 @@ class PyphiConfig(Config):
 
     If set to ``'TRI'``, partitions will have three parts. In addition,
     computations will only consider partitions that strictly partition the
-    mechanism the mechanism. That is, for the mechanism ``(A, B)`` and purview
-    ``(B, C, D)`` the partition::
+    mechanism. That is, for the mechanism ``(A, B)`` and purview ``(B, C, D)``
+    the partition::
 
       A,B    ∅
       ─── ✕ ───
@@ -587,11 +587,33 @@ class PyphiConfig(Config):
 
     where the mechanism in the third part is always empty.
 
-    In addition, in the case of a |small_phi|-tie when computing a |MIC| or
-    |MIE|, The ``'TRIPARTITION'`` setting choses the MIP with smallest purview
-    instead of the largest (which is the default).
+    Finally, if set to ``'ALL'``, all possible partitions will be tested.
 
-    Finally, if set to ``'ALL'``, all possible partitions will be tested.""")
+    You can experiment with custom partitioning strategies using the
+    ``pyphi.partition.partition_types.register`` decorator. For example::
+
+        from pyphi.models import KPartition, Part
+        from pyphi.partition import partition_types
+
+        @partition_types.register('SINGLE_NODE')
+        def single_node_partitions(mechanism, purview, node_labels=None):
+           for element in mechanism:
+               element = tuple([element])
+               others = tuple(sorted(set(mechanism) - set(element)))
+
+               part1 = Part(mechanism=element, purview=())
+               part2 = Part(mechanism=others, purview=purview)
+
+               yield KPartition(part1, part2, node_labels=node_labels)
+
+    This generates the set of partitions that cut connections between a single
+    mechanism element and the entire purview. The mechanism and purview of each
+    |Part| remain undivided - only connections *between* parts are severed.
+
+    You can use this new partititioning scheme by setting
+    ``config.PARTITION_TYPE = 'SINGLE_NODE'``.
+
+    See :mod:`~pyphi.partition` for more examples.""")
 
     PICK_SMALLEST_PURVIEW = Option(False, doc="""
     When computing a |MIC| or |MIE|, it is possible for several MIPs to have
