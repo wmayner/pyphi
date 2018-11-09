@@ -1102,10 +1102,10 @@ def disjunction_conjunction_network():
         [0, 0, 0, 1]
     ])
     cm = np.array([
-        [0, 0, 0, 0],
         [0, 0, 0, 1],
         [0, 0, 0, 1],
-        [0, 0, 0, 1]
+        [0, 0, 0, 1],
+        [0, 0, 0, 0]
     ])
     return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
 

@@ -15,6 +15,7 @@ Changelog
 - Made model hashes deterministic (6b59061). This fixes an issue with the Redis
   MICE cache in which cached values were not shared between processes and
   program invokations.
+- Fixed the connectivity matrix in `examples.disjunction_conjunction.network()`.
 
 ### API additions
 
