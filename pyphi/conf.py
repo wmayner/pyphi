@@ -390,7 +390,7 @@ class PyphiConfig(Config):
         def always_zero(a, b):
             return 0
 
-    This measures can then be used by setting
+    This measure can then be used by setting
     ``config.MEASURE = 'ALWAYS_ZERO'``.
 
     If the measure is asymmetric you should register it using the
