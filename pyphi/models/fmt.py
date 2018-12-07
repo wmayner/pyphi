@@ -458,7 +458,6 @@ def fmt_ac_ria(ria):
         alpha=round(ria.alpha, 4),
         causality=causality)
 
-
 def fmt_account(account, title=None):
     """Format an Account or a DirectedAccount."""
     if title is None:
