@@ -411,13 +411,29 @@ class Transition:
             max_ria = _null_ac_ria(self.mechanism_state(direction),
                                    direction, mechanism, None)
         else:
-            # This max should be most positive
-            max_ria = max(self.find_mip(direction, mechanism, purview,
-                                        allow_neg)
-                          for purview in purviews)
+            # Finds rias with maximum alpha
+            all_ria = [self.find_mip(direction, mechanism, purview,allow_neg)
+                          for purview in purviews]
+            max_alpha = max(all_ria).alpha
+            max_rias = [ria for ria in all_ria if ria.alpha==max_alpha]
 
-        # Construct the corresponding CausalLink
-        return CausalLink(max_ria)
+            # Selected rias whose purview is not a superset of any other
+            purviews = [ria.purview for ria in max_rias]
+            extended_purview = []
+            for purview in purviews:
+                is_not_superset = not np.any([set(purview).issuperset(set(purview2)) and
+                    set(purview) > set(purview2) for purview2 in purviews])
+                if is_not_superset:
+                    extended_purview.append(purview)
+
+            max_ria = max(max_rias)
+
+            # Construct the corresponding CausalLink including all equivalent purviews
+            causal_link = CausalLink(max_ria)
+            causal_link._extended_purview = tuple(extended_purview)
+
+
+        return causal_link
 
     def find_actual_cause(self, mechanism, purviews=False):
         """Return the actual cause of a mechanism."""
