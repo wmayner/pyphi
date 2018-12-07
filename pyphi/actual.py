@@ -410,6 +410,7 @@ class Transition:
         if not purviews:
             max_ria = _null_ac_ria(self.mechanism_state(direction),
                                    direction, mechanism, None)
+            return CausalLink(max_ria)
         else:
             # Finds rias with maximum alpha
             all_ria = [self.find_mip(direction, mechanism, purview,allow_neg)
@@ -430,7 +431,7 @@ class Transition:
             causal_link = CausalLink(max(max_rias))
             causal_link._extended_purview = tuple(extended_purview)
             causal_link._ria._extended_purview = tuple(extended_purview)
-        return causal_link
+            return causal_link
 
     def find_actual_cause(self, mechanism, purviews=False):
         """Return the actual cause of a mechanism."""
