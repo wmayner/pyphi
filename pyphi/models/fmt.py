@@ -425,17 +425,32 @@ def fmt_repertoire(r):
 
     return box('\n'.join(lines))
 
+def fmt_extended_purview(extended_purview, node_labels=None):
+    """Format an extended purview (multiple purviews."""
+    purviews = [fmt_mechanism(purview, node_labels) for purview in extended_purview]
+    return '[' + ', '.join(purviews) + ']'
 
 def fmt_ac_ria(ria):
     """Format an AcRepertoireIrreducibilityAnalysis."""
-    causality = {
-        Direction.CAUSE: (fmt_mechanism(ria.purview, ria.node_labels),
-                          ARROW_LEFT,
-                          fmt_mechanism(ria.mechanism, ria.node_labels)),
-        Direction.EFFECT: (fmt_mechanism(ria.mechanism, ria.node_labels),
-                           ARROW_RIGHT,
-                           fmt_mechanism(ria.purview, ria.node_labels))
-    }[ria.direction]
+    if hasattr(ria, '_extended_purview') and len(ria._extended_purview)>1:
+        causality = {
+            Direction.CAUSE: (fmt_extended_purview(ria._extended_purview, ria.node_labels),
+                              ARROW_LEFT,
+                              fmt_mechanism(ria.mechanism, ria.node_labels)),
+            Direction.EFFECT: (fmt_mechanism(ria.mechanism, ria.node_labels),
+                               ARROW_RIGHT,
+                               fmt_extended_purview(ria._extended_purview, ria.node_labels))
+        }[ria.direction]
+
+    else:
+        causality = {
+            Direction.CAUSE: (fmt_mechanism(ria.purview, ria.node_labels),
+                              ARROW_LEFT,
+                              fmt_mechanism(ria.mechanism, ria.node_labels)),
+            Direction.EFFECT: (fmt_mechanism(ria.mechanism, ria.node_labels),
+                               ARROW_RIGHT,
+                               fmt_mechanism(ria.purview, ria.node_labels))
+        }[ria.direction]
     causality = ' '.join(causality)
 
     return '{ALPHA} = {alpha}  {causality}'.format(
