@@ -131,8 +131,9 @@ class CausalLink(cmp.Orderable):
     up to |PRECISION|, the size of the mechanism is compared.
     """
 
-    def __init__(self, ria):
+    def __init__(self, ria, extended_purview=None):
         self._ria = ria
+        self._extended_purview = extended_purview
 
     @property
     def alpha(self):
@@ -164,6 +165,11 @@ class CausalLink(cmp.Orderable):
         return self._ria.purview
 
     @property
+    def extended_purview(self):
+        """tuple of tuple[int]: List of purviews over which this causal link is equivalentymaximally irreducible."""
+        return self._extended_purview
+
+    @property
     def ria(self):
         """AcRepertoireIrreducibilityAnalysis: The irreducibility analysis for
         this mechanism.
@@ -175,10 +181,10 @@ class CausalLink(cmp.Orderable):
         return self._ria.node_labels
 
     def __repr__(self):
-        return fmt.make_repr(self, ['ria'])
+        return fmt.make_repr(self, ['ria','extended_purview'])
 
     def __str__(self):
-        return "CausalLink\n" + fmt.indent(fmt.fmt_ac_ria(self.ria))
+        return "CausalLink\n" + fmt.indent(fmt.fmt_causal_link(self))
 
     unorderable_unless_eq = \
         AcRepertoireIrreducibilityAnalysis.unorderable_unless_eq

@@ -426,31 +426,26 @@ def fmt_repertoire(r):
     return box('\n'.join(lines))
 
 def fmt_extended_purview(extended_purview, node_labels=None):
-    """Format an extended purview (multiple purviews."""
+    """Format an extended purview."""
     purviews = [fmt_mechanism(purview, node_labels) for purview in extended_purview]
     return '[' + ', '.join(purviews) + ']'
 
-def fmt_ac_ria(ria):
-    """Format an AcRepertoireIrreducibilityAnalysis."""
-    if hasattr(ria, '_extended_purview') and len(ria._extended_purview)>1:
-        causality = {
-            Direction.CAUSE: (fmt_extended_purview(ria._extended_purview, ria.node_labels),
-                              ARROW_LEFT,
-                              fmt_mechanism(ria.mechanism, ria.node_labels)),
-            Direction.EFFECT: (fmt_mechanism(ria.mechanism, ria.node_labels),
-                               ARROW_RIGHT,
-                               fmt_extended_purview(ria._extended_purview, ria.node_labels))
-        }[ria.direction]
+def fmt_causal_link(causal_link):
+    """Format a CausalLink."""
+    return fmt_ac_ria(causal_link, causal_link.extended_purview)
 
-    else:
-        causality = {
-            Direction.CAUSE: (fmt_mechanism(ria.purview, ria.node_labels),
-                              ARROW_LEFT,
-                              fmt_mechanism(ria.mechanism, ria.node_labels)),
-            Direction.EFFECT: (fmt_mechanism(ria.mechanism, ria.node_labels),
-                               ARROW_RIGHT,
-                               fmt_mechanism(ria.purview, ria.node_labels))
-        }[ria.direction]
+def fmt_ac_ria(ria, extended_purview=None):
+    """Format an AcRepertoireIrreducibilityAnalysis."""
+    causality = {
+        Direction.CAUSE: (fmt_mechanism(ria.purview, ria.node_labels) if extended_purview is None
+                        else fmt_extended_purview(ria._extended_purview, ria.node_labels),
+                          ARROW_LEFT,
+                          fmt_mechanism(ria.mechanism, ria.node_labels)),
+        Direction.EFFECT: (fmt_mechanism(ria.mechanism, ria.node_labels),
+                           ARROW_RIGHT,
+                           fmt_mechanism(ria.purview, ria.node_labels) if extended_purview is None
+                        else fmt_extended_purview(ria._extended_purview, ria.node_labels))
+    }[ria.direction]
     causality = ' '.join(causality)
 
     return '{ALPHA} = {alpha}  {causality}'.format(
@@ -468,9 +463,9 @@ def fmt_account(account, title=None):
 
     body = ''
     body += 'Irreducible effects\n'
-    body += '\n'.join(fmt_ac_ria(m) for m in account.irreducible_effects)
+    body += '\n'.join(fmt_causal_link(m) for m in account.irreducible_effects)
     body += '\nIrreducible causes\n'
-    body += '\n'.join(fmt_ac_ria(m) for m in account.irreducible_causes)
+    body += '\n'.join(fmt_causal_link(m) for m in account.irreducible_causes)
 
     return '\n' + header(title, body, under_char='*')
 
