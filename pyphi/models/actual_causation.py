@@ -166,7 +166,10 @@ class CausalLink(cmp.Orderable):
 
     @property
     def extended_purview(self):
-        """tuple of tuple[int]: List of purviews over which this causal link is equivalentymaximally irreducible."""
+        """tuple of tuple[int]: List of purviews over which this causal link is
+        (equivalently) maximally irreducible.
+        Note: It is reducible to the purview unless the causal link has undetermined
+        causes/effect."""
         return self._extended_purview
 
     @property
