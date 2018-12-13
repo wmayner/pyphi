@@ -426,12 +426,7 @@ class Transition:
                     set(purview) > set(purview2) for purview2 in purviews])
                 if is_not_superset:
                     extended_purview.append(purview)
-
-            # Construct the corresponding CausalLink including all equivalent purviews in hidden attribute
-            causal_link = CausalLink(max(max_rias))
-            causal_link._extended_purview = tuple(extended_purview)
-            causal_link._ria._extended_purview = tuple(extended_purview)
-            return causal_link
+            return CausalLink(max(max_rias),tuple(extended_purview))
 
     def find_actual_cause(self, mechanism, purviews=False):
         """Return the actual cause of a mechanism."""
