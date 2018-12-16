@@ -427,12 +427,11 @@ def fmt_repertoire(r):
 
 def fmt_extended_purview(extended_purview, node_labels=None):
     """Format an extended purview."""
-    if len(extended_purview)==1:
+    if len(extended_purview) == 1:
         return fmt_mechanism(extended_purview[0], node_labels=node_labels)
 
-    else:
-        purviews = [fmt_mechanism(purview, node_labels=node_labels) for purview in extended_purview]
-        return '[' + ', '.join(purviews) + ']'
+    purviews = [fmt_mechanism(purview, node_labels=node_labels) for purview in extended_purview]
+    return '[' + ', '.join(purviews) + ']'
 
 
 def fmt_causal_link(causal_link):
