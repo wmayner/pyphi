@@ -166,10 +166,10 @@ class CausalLink(cmp.Orderable):
 
     @property
     def extended_purview(self):
-        """tuple of tuple[int]: List of purviews over which this causal link is
+        """tuple[tuple[int]]: List of purviews over which this causal link is
         (equivalently) maximally irreducible.
-        Note: It is reducible to the purview unless the causal link has undetermined
-        causes/effect."""
+        Note: It is reducible to the purview unless the causal link has
+        undetermined causes/effect."""
         return self._extended_purview
 
     @property
@@ -184,7 +184,7 @@ class CausalLink(cmp.Orderable):
         return self._ria.node_labels
 
     def __repr__(self):
-        return fmt.make_repr(self, ['ria','extended_purview'])
+        return fmt.make_repr(self, ['ria', 'extended_purview'])
 
     def __str__(self):
         return "CausalLink\n" + fmt.indent(fmt.fmt_causal_link(self))
