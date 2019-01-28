@@ -260,7 +260,7 @@ class Config(metaclass=ConfigMeta):
 
     @classmethod
     def options(cls):
-        """Return a dictionary the ``Option`` objects for this config"""
+        """Return a dictionary of the ``Option`` objects for this config."""
         return {k: v for k, v in cls.__dict__.items() if isinstance(v, Option)}
 
     def defaults(self):
@@ -364,7 +364,7 @@ class PyphiConfig(Config):
     In certain cases, making a cut can actually cause a previously reducible
     concept to become a proper, irreducible concept. Assuming this can never
     happen can increase performance significantly, however the obtained results
-    are not strictly accurate.  """)
+    are not strictly accurate.""")
 
     CUT_ONE_APPROXIMATION = Option(False, doc="""
     When determining the MIP for |big_phi|, this restricts the set of system
@@ -639,8 +639,9 @@ class PyphiConfig(Config):
         if self._loaded_files:
             log.info('Loaded configuration from %s', self._loaded_files)
         else:
-            log.info('Using default configuration (no config file provided)')
-        log.info('Current PyPhi configuration:\n %s', str(config))
+            log.info('Using default configuration (no configuration file '
+                     'provided)')
+        log.info('Current PyPhi configuration:\n %s', str(self))
 
 
 PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
