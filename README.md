@@ -112,6 +112,16 @@ before installing the requirements:
 sudo apt-get install python3-dev python3-scipy python3-numpy
 ```
 
+### Developing on Windows
+
+If you're just looking for an editable install, pip may work better than the conda develop utility included in the conda-build package. When using pip on Windows, the build of pyemd may fail. The simplest solution to this is to obtain pyemd through conda. 
+
+```bash
+conda create -n pyphi_dev
+conda install -c wmayner pyemd
+cd path/to/local/editable/copy/of/pyphi
+pip install -e .
+```
 
 ## Credit
 
