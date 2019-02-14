@@ -118,9 +118,18 @@ If you're just looking for an editable install, pip may work better than the con
 
 ```bash
 conda create -n pyphi_dev
+conda activate pyphi_dev
 conda install -c wmayner pyemd
 cd path/to/local/editable/copy/of/pyphi
 pip install -e .
+```
+
+Unfortunately, pip isn't great at managing the DLLs that some packages (especially scipy) rely on. If you have missing DLL errors, try reinstalling the offending package (here, scipy) with conda. 
+
+```bash
+conda activate pyphi_dev
+pip uninstall scipy
+conda install scipy
 ```
 
 ## Credit
