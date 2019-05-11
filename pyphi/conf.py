@@ -277,7 +277,7 @@ class Config(metaclass=ConfigMeta):
         filename = os.path.abspath(filename)
 
         with open(filename) as f:
-            self.load_dict(yaml.load(f))
+            self.load_dict(yaml.safe_load(f))
 
         self._loaded_files.append(filename)
 
