@@ -4,6 +4,19 @@
 
 """
 Methods for computing actual causation of subsystems and mechanisms.
+
+If you use this module, please cite the following papers:
+
+    Albantakis L, Marshall W, Hoel E, Tononi G (2019).
+    What Caused What? A quantitative Account of Actual Causation Using
+    Dynamical Causal Networks.
+    *Entropy*, 21 (5), pp. 459.
+    `<https://doi.org/10.3390/e21050459>`_
+
+    Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G. (2018).
+    PyPhi: A toolbox for integrated information theory.
+    *PLOS Computational Biology* 14(7): e1006343.
+    `<https://doi.org/10.1371/journal.pcbi.1006343>`_
 """
 
 import logging
