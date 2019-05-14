@@ -110,12 +110,13 @@ PyPhi provides a number of ways to cache intermediate results.
 Logging
 ~~~~~~~
 
-These settings control how PyPhi handles log messages. Logs can be written to
+These settings control how PyPhi handles messages. Logs can be written to
 standard output, a file, both, or none. If these simple default controls are
 not flexible enough for you, you can override the entire logging configuration.
 See the `documentation on Python's logger
 <https://docs.python.org/3.4/library/logging.html>`_ for more information.
 
+- :attr:`~pyphi.conf.PyphiConfig.WELCOME_OFF`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_STDOUT_LEVEL`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_FILE_LEVEL`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_FILE`
@@ -482,6 +483,19 @@ class PyphiConfig(Config):
     }, doc="""
     Configure the Redis database backend. These are the defaults in the
     provided ``redis.conf`` file.""")
+
+    WELCOME_OFF = Option(False, doc="""
+    Specifies whether to suppress the welcome message when PyPhi is imported.
+
+    Alternatively, you may suppress the message by setting the environment
+    variable ``PYPHI_WELCOME_OFF`` to any value in your shell:
+
+    .. code-block:: bash
+
+        export PYPHI_WELCOME_OFF='yes'
+
+    The message will not print if either this option is ``True`` or the
+    environment variable is set.""")
 
     LOG_FILE = Option('pyphi.log', on_change=configure_logging, doc="""
     Controls the name of the log file.""")

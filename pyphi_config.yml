@@ -96,6 +96,8 @@ REDIS_CONFIG:
 
 # Logging
 # ~~~~~~~
+# Whether to suppress the welcome message.
+WELCOME_OFF: false
 # The log level to write to stdout.
 LOG_STDOUT_LEVEL: "WARNING"
 # The log level to write to `LOG_FILE`.
