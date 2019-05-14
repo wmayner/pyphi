@@ -198,7 +198,7 @@ def load_data(directory, num):
     def get_path(i):  # pylint: disable=missing-docstring
         return os.path.join(root, 'data', directory, str(i) + '.npy')
 
-    return [np.load(get_path(i)) for i in range(num)]
+    return [np.load(get_path(i), allow_pickle=True) for i in range(num)]
 
 
 # Using ``decorator`` preserves the function signature of the wrapped function,
