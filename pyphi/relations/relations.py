@@ -75,7 +75,7 @@ def invert_partition(partition):
 
 # TODO: rename
 def divergence(p, q):
-    return np.abs(p * np.nan_to_num(np.log(p / q)))
+    return np.abs(p * np.nan_to_num(np.log2(p / q)))
 
 
 # TODO: subsystem isn't accessible from MIC or MIE; fix that
