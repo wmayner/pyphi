@@ -2,72 +2,79 @@
 # -*- coding: utf-8 -*-
 # test_relations.py
 
-from pyphi.relations.partition import wedge_partitions, rwedge_partitions
-from pyphi.relations import relations
+import numpy as np
 
-import pyphi
+from pyphi import compute, config, examples, relations, utils
 
 
 def test_maximal_states():
-    subsystem = pyphi.examples.PQR()
-    ces = relations.separate_ces(pyphi.compute.ces(subsystem))
-    result = [relations.maximal_states(subsystem, ce) for ce in ces]
-    assert result == [
-        {(0, 0, 0)},
-        {(0, 0, 0)},
-        {(0, 0, 0), (1, 1, 0)},
-        {(0, 0, 0)},
-        {(0, 1, 0)},
-        {(0, 0, 1)},
-        {(1, 1, 0)},
-        {(0, 0, 1)}
-    ]
-    # network = pyphi.examples.rule154_network()
-    # subsystem = pyphi.Subsystem(network, (0,) * network.size)
-    # ces = relations.separate_ces(pyphi.compute.ces(subsystem))
-    # result = [relations.maximal_states(subsystem, ce) for ce in ces]
+    with config.override(
+            PARTITION_TYPE='TRI',
+            MEASURE='BLD',
+    ):
+        subsystem = examples.PQR()
+        ces = relations.separate_ces(compute.ces(subsystem))
+        results = [
+            relations.maximal_state(mice)
+            for mice in ces
+        ]
+        answers = [
+            np.array([[0, 0, 0]]),
+            np.array([[0, 0, 0]]),
+            np.array([[0, 0, 0],
+                      [1, 1, 0]]),
+            np.array([[0, 0, 0]]),
+            np.array([[0, 1, 0]]),
+            np.array([[0, 0, 1]]),
+            np.array([[1, 1, 0]]),
+            np.array([[0, 0, 1]]),
+        ]
+        for result, answer in zip(results, answers):
+            print(result)
+            print(answer)
+            assert np.array_equal(result, answer)
 
 
 def test_PQR_relations():
-    PQR = pyphi.examples.PQR()
-    with pyphi.config.override(
-            PARTITION_TYPE='TRI', MEASURE='BLD', PRECISION=5):
-        ces = pyphi.compute.ces(PQR)
+    with config.override(
+            PARTITION_TYPE='TRI',
+            MEASURE='BLD',
+    ):
+        PQR = examples.PQR()
+        ces = compute.ces(PQR)
         separated_ces = list(relations.separate_ces(ces))
         results = list(relations.relations(PQR, ces))
-        # answers = [
-        #     [(0, 4), 0.240228, {(2,)}],
-        #     [(0, 6), 0.120114, {(2,)}],
-        #     [(1, 3), 0.060055, {(0,)}],
-        #     [(1, 7), 0.120111, {(0,)}],
-        #     [(2, 3), 0.120110, {(0, 1)}],
-        #     [(2, 6), 0.080075, {(0, 1)}],
-        #     [(2, 7), 0.120112, {(0, 1)}],
-        #     [(3, 7), 0.120112, {(0,),
-        #                         (0, 1)}],
-        #     [(4, 6), 0.240227, {(1, 2)}],
-        #     [(5, 7), 0.060057, {(2,)}],
-        #     [(0, 4, 6), 0.083257, {(2,)}],
-        #     [(1, 3, 7), 0.041627, {(0,)}],
-        #     [(2, 3, 7), 0.041627, {(0, 1)}]
-        # ]
+
+        # NOTE: these phi values are in nats, not bits!
         answers = [
-            [(0, 4), 0.240227, {(2,)}],
-            [(0, 6), 0.120113, {(2,)}],
-            [(1, 3), 0.060057, {(0,)}],
-            [(1, 7), 0.120113, {(0,)}],
-            [(2, 3), 0.120113, {(0, 1)}],
-            [(2, 6), 0.080076, {(0, 1)}],
-            [(2, 7), 0.120113, {(0, 1)}],
-            [(3, 7), 0.120113, {(0,), (0, 1)}],
-            [(4, 6), 0.240227, {(1, 2)}],
-            [(5, 7), 0.060057, {(2,)}],
-            [(0, 4, 6), 0.083256, {(2,)}],
-            [(1, 3, 7), 0.041628, {(0,)}],
-            [(2, 3, 7), 0.041628, {(0, 1)}]
+            [(0, 4), 0.6931471805599452, [(2,)]],
+            [(0, 6), 0.6931471805599452, [(2,)]],
+            [(1, 2), 0.3465735902799726, [(0,)]],
+            [(1, 3), 0.3465735902799726, [(0,)]],
+            [(1, 7), 0.3465735902799726, [(0,)]],
+            [(2, 3), 0.3465735902799726, [(0,), (1,), (0, 1)]],
+            [(2, 4), 0.3465735902799726, [(1,)]],
+            [(2, 6), 0.3465735902799726, [(0,), (1,), (0, 1)]],
+            [(2, 7), 0.3465735902799726, [(0,), (1,), (0, 1)]],
+            [(3, 7), 0.693147180559945, [(0, 1)]],
+            [(4, 6), 1.3862943611198901, [(1, 2)]],
+            [(5, 7), 0.6931471805599452, [(2,)]],
+            [(0, 4, 6), 0.6931471805599452, [(2,)]],
+            [(1, 2, 3), 0.3465735902799726, [(0,)]],
+            [(1, 2, 7), 0.3465735902799726, [(0,)]],
+            [(1, 3, 7), 0.3465735902799726, [(0,)]],
+            [(2, 3, 7), 0.3465735902799726, [(0,), (1,), (0, 1)]],
+            [(2, 4, 6), 0.3465735902799726, [(1,)]],
+            [(1, 2, 3, 7), 0.3465735902799726, [(0,)]]
         ]
+
+        def base2(x):
+            return x / np.log(2.0)
+
         for result, answer in zip(results, answers):
-            subset, phi, purview = answer
-            relata = tuple(separated_ces[i] for i in subset)
-            relation = relations.Relation(relata, phi, purview)
-            assert result == relation
+            subset, phi, purviews = answer
+            subset = tuple(separated_ces[i] for i in subset)
+            relata = relations.Relata(PQR, subset)
+            assert set(purviews) == set(result.ties)
+            assert utils.eq(base2(phi), result.phi)
+            assert relata == result.relata

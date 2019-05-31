@@ -256,3 +256,9 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain):
             raise ValueError(
                 'Multiple outputs from a blackbox must be partitioned into '
                 'the same macro-element of the coarse-graining')
+
+
+def relata(relata):
+    """Validate a set of relata."""
+    if not relata:
+        raise ValueError('Relata cannot be empty.')
