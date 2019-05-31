@@ -43,8 +43,8 @@ all_are_identical = _all_same(operator.is_)
 
 # TODO test
 @curry
-def _all_maxima_or_minima(comparison, seq):
-    """Return the maxima or minima of ``seq``.
+def _all_extrema(comparison, seq):
+    """Return the extrema of ``seq``.
 
     Use ``<`` as the comparison to obtain the minima; use ``>`` as the
     comparison to obtain the maxima.
@@ -74,8 +74,8 @@ def _all_maxima_or_minima(comparison, seq):
     return extrema
 
 
-all_minima = _all_maxima_or_minima(operator.lt)
-all_maxima = _all_maxima_or_minima(operator.gt)
+all_minima = _all_extrema(operator.lt)
+all_maxima = _all_extrema(operator.gt)
 
 
 def indices(iterable):
@@ -98,7 +98,7 @@ def maximal_state(mice):
     Note that there can be ties.
 
     Returns:
-        np.array: A 2D array where each row is a maximally divergence state.
+        np.array: A 2D array where each row is a maximally divergent state.
     """
     div = divergence(mice.repertoire, mice.partitioned_repertoire)
     return np.transpose(np.where(div == div.max()))
@@ -131,16 +131,16 @@ class Relation(cmp.Orderable):
         return self._phi
 
     @property
+    def ties(self):
+        return self._ties
+
+    @property
     def subsystem(self):
         return self.relata.subsystem
 
     @property
     def mechanisms(self):
         return [relatum.mechanism for relatum in self.relata]
-
-    @property
-    def ties(self):
-        return self._ties
 
     def __repr__(self):
         return f"Relation({self.mechanisms}, {self.purview}, {self.phi})"
@@ -201,6 +201,13 @@ class Relata:
     def purviews(self):
         return (relatum.purview for relatum in self)
 
+    # TODO !!! remove once the maximal states are on the MICE objects
+    @property
+    def maximal_states(self):
+        if self._maximal_states is None:
+            self._maximal_states = {mice: maximal_state(mice) for mice in self}
+        return self._maximal_states
+
     def __repr__(self):
         mechanisms = list(self.mechanisms)
         purviews = list(self.purviews)
@@ -233,26 +240,20 @@ class Relata:
             purview = set()
         return Relation(self._relata, purview, phi)
 
-    # TODO !!! remove once the maximal states are on the MICE objects
-    @property
-    def maximal_states(self):
-        if self._maximal_states is None:
-            self._maximal_states = {mice: maximal_state(mice) for mice in self}
-        return self._maximal_states
-
-    # TODO union these together?
     def congruent_overlap(self):
         """Yield the congruent overlap(s) among the relata.
 
         These are the common purview elements among the relata whose
-        maximally-probable states are consistent; that is, the largest subset
+        maximally-divergent states are consistent; that is, the largest subset
         of the union of the purviews such that, for each element, that
-        element's state is the same according to the maximally probable state
+        element's state is the same according to the maximally divergent state
         of each relatum.
 
         Note that there can be multiple congruent overlaps.
         """
         overlap = self.overlap()
+        # A state set is one state per relatum; a relatum can have multiple
+        # tied states, so we consider every combination
         for state_set in product(*self.maximal_states.values()):
             # Get the nodes that have the same state in every maximal state
             congruent = congruent_nodes(state_set)
@@ -270,15 +271,17 @@ class Relata:
         """
         # TODO note: ties are included here
         return map(set, concat(
-            powerset(purview, nonempty=True) for purview in self.congruent_overlap()
+            powerset(overlap, nonempty=True) for overlap in self.congruent_overlap()
         ))
 
     def partitioned_divergence(self, purview, mice):
         """Return the maximal partitioned divergence over this purview.
 
         The purview is cut away from the MICE and the divergence is computed
-        between the unpartitioned repertoire and partitioned repertoire. The
-        maximum is taken over tied states.
+        between the unpartitioned repertoire and partitioned repertoire.
+
+        If the MICE has multiple tied maximally-divergent states, we take the
+        maximum unpartitioned-partitioned divergence across those tied states.
 
         Args:
             purview (set): The set of node indices in the purview.
@@ -286,7 +289,8 @@ class Relata:
         """
         non_purview_indices = tuple(set(mice.purview) - purview)
         partition = Bipartition(
-            Part(mice.mechanism, non_purview_indices), Part((), tuple(purview))
+            Part(mice.mechanism, non_purview_indices),
+            Part((), tuple(purview))
         )
         partitioned_repertoire = self.subsystem.partitioned_repertoire(
             mice.direction, partition
@@ -342,7 +346,8 @@ class Relata:
 def relation(relata):
     """Return the maximally irreducible relation among the given relata.
 
-    Alias for the ``Relata.maximally_irreducible_relation()`` method."""
+    Alias for the ``Relata.maximally_irreducible_relation()`` method.
+    """
     return relata.maximally_irreducible_relation()
 
 
@@ -356,8 +361,8 @@ def separate_ces(ces):
 # TODO add order kwarg to restrict to just a certain order
 def all_relations(subsystem, ces):
     """Return all relations, even those with zero phi."""
-    # Relations can be over any combination of causes/effects present in the
-    # CES, so we get a flat list of all causes and effects
+    # Relations can be over any combination of causes/effects in the CES, so we
+    # get a flat list of all causes and effects
     ces = separate_ces(ces)
     # Compute all relations
     return map(relation, (
