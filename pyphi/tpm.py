@@ -111,3 +111,21 @@ def infer_cm(tpm):
     for a, b in np.ndindex(cm.shape):
         cm[a][b] = infer_edge(tpm, a, b, all_contexts)
     return cm
+
+
+def reconstitute_tpm(subsystem):
+    """Reconstitute the TPM of a subsystem using the individual node TPMs."""
+    # The last axis of the node TPMs correponds to ON or OFF probabilities
+    # (used in the conditioning step when calculating the repertoires); we want
+    # ON probabilities.
+    node_tpms = [node.tpm[..., 1] for node in subsystem.nodes]
+    # We add a new singleton axis at the end so that we can use
+    # pyphi.tpm.expand_tpm, which expects a state-by-node TPM (where the last
+    # axis corresponds to nodes.)
+    node_tpms = [np.expand_dims(tpm, -1) for tpm in node_tpms]
+    # Now we expand the node TPMs to the full state space, so we can combine
+    # them all (this uses the maximum entropy distribution).
+    node_tpms = list(map(expand_tpm, node_tpms))
+    # We concatenate the node TPMs along a new axis to get a multidimensional
+    # state-by-node TPM (where the last axis corresponds to nodes).
+    return np.concatenate(node_tpms, axis=-1)
