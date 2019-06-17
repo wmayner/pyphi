@@ -144,9 +144,10 @@ import os
 import pprint
 from copy import copy
 
+import joblib
 import yaml
 
-from . import __about__
+from . import __about__, constants
 
 log = logging.getLogger(__name__)
 
@@ -358,6 +359,17 @@ def configure_logging(conf):
     })
 
 
+def configure_joblib(conf):
+    constants.joblib_memory = joblib.Memory(
+        location=conf.FS_CACHE_DIRECTORY, 
+        verbose=conf.FS_CACHE_VERBOSITY
+    )
+
+
+def configure_precision(conf):
+    constants.EPSILON = 10**(-conf.PRECISION)
+
+
 class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
@@ -453,11 +465,12 @@ class PyphiConfig(Config):
     filesystem-based cache in the current directory or from a database. Set
     this to ``'fs'`` for the filesystem, ``'db'`` for the database.""")
 
-    FS_CACHE_VERBOSITY = Option(0, doc="""
+    FS_CACHE_VERBOSITY = Option(0, on_change=configure_joblib, doc="""
     Controls how much caching information is printed if the filesystem cache is
     used. Takes a value between ``0`` and ``11``.""")
 
-    FS_CACHE_DIRECTORY = Option('__pyphi_cache__', doc="""
+    FS_CACHE_DIRECTORY = Option('__pyphi_cache__', on_change=configure_joblib,
+                                doc="""
     If the filesystem is used for caching, the cache will be stored in this
     directory. This directory can be copied and moved around if you want to
     reuse results *e.g.* on a another computer, but it must be in the same
@@ -520,7 +533,7 @@ class PyphiConfig(Config):
         If you are iterating over many systems rather than doing one
         long-running calculation, consider disabling this for speed.""")
 
-    PRECISION = Option(6, doc="""
+    PRECISION = Option(6, on_change=configure_precision, doc="""
     If ``MEASURE`` is ``EMD``, then the Earth Mover's Distance is calculated
     with an external C++ library that a numerical optimizer to find a good
     approximation. Consequently, systems with analytically zero |big_phi| will
