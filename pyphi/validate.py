@@ -72,8 +72,6 @@ def tpm(tpm, check_independence=True):
 
 def conditionally_independent(tpm):
     """Validate that the TPM is conditionally independent."""
-    if not config.VALIDATE_CONDITIONAL_INDEPENDENCE:
-        return True
     tpm = np.array(tpm)
     if is_state_by_state(tpm):
         there_and_back_again = convert.state_by_node2state_by_state(

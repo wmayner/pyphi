@@ -39,11 +39,9 @@ def test_validate_tpm_conditional_independence():
         [0, 0.5, 0.5, 0],
         [0, 0.0, 0.0, 1],
     ])
-    with pytest.raises(ValueError):
+    with pytest.raises(exceptions.ConditionallyDependentError):
         validate.conditionally_independent(tpm)
-    with config.override(VALIDATE_CONDITIONAL_INDEPENDENCE=False):
-        validate.conditionally_independent(tpm)
-    with pytest.raises(ValueError):
+    with pytest.raises(exceptions.ConditionallyDependentError):
         validate.tpm(tpm)
     validate.tpm(tpm, check_independence=False)
 
