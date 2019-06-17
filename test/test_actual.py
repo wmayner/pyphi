@@ -50,7 +50,7 @@ def prevention():
 
 
 # Testing background conditions
-#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @pytest.fixture
 def background_all_on():
@@ -85,13 +85,13 @@ def background_all_off():
 
 
 @pytest.mark.parametrize('transition,direction,mechanism,purview,ratio', [
-    (background_all_off, Direction.EFFECT, (0,), (1,), 1),
-    (background_all_off, Direction.CAUSE, (1,), (0,), 1),
-    (background_all_on, Direction.EFFECT, (0,), (1,), 0),
-    (background_all_on, Direction.CAUSE, (1,), (0,), 0)])
+    (pytest.lazy_fixture('background_all_off'), Direction.EFFECT, (0,), (1,), 1),
+    (pytest.lazy_fixture('background_all_off'), Direction.CAUSE, (1,), (0,), 1),
+    (pytest.lazy_fixture('background_all_on'), Direction.EFFECT, (0,), (1,), 0),
+    (pytest.lazy_fixture('background_all_on'), Direction.CAUSE, (1,), (0,), 0)])
 def test_background_conditions(transition, direction, mechanism, purview,
                                ratio):
-    assert transition()._ratio(direction, mechanism, purview) == ratio
+    assert transition._ratio(direction, mechanism, purview) == ratio
 
 
 def test_background_noised():
