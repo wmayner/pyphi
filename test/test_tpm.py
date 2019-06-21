@@ -4,7 +4,11 @@
 
 import numpy as np
 
-from pyphi.tpm import expand_tpm, infer_cm, is_state_by_state, marginalize_out
+from pyphi import Subsystem
+from pyphi.tpm import (
+    expand_tpm, infer_cm, is_state_by_state, marginalize_out,
+    reconstitute_tpm
+)
 
 
 def test_is_state_by_state():
@@ -48,3 +52,31 @@ def test_marginalize_out(s):
 
 def test_infer_cm(rule152):
     assert np.array_equal(infer_cm(rule152.tpm), rule152.cm)
+
+def test_reconstitute_tpm(standard, s_complete, rule152, noised):
+    # Check subsystem and network TPM are the same when the subsystem is the
+    # whole network
+    assert np.array_equal(reconstitute_tpm(s_complete), standard.tpm)
+
+    # Regression tests
+    answer = np.array([
+        [[[0., 0., 0.],
+          [0., 0., 0.]],
+         [[0., 0., 1.],
+          [0., 1., 0.]]],
+        [[[0., 1., 0.],
+          [0., 0., 0.]],
+         [[1., 0., 1.],
+          [1., 1., 0.]]]
+    ])
+    subsystem = Subsystem(rule152, (0,)*5, (0, 1, 2))
+    assert np.array_equal(answer, reconstitute_tpm(subsystem))
+
+    subsystem = Subsystem(noised, (0, 0, 0), (0, 1))
+    answer = np.array([
+        [[0. , 0. ],
+         [0.7, 0. ]],
+        [[0. , 0. ],
+         [1. , 0. ]]
+    ])
+    assert np.array_equal(answer, reconstitute_tpm(subsystem))
