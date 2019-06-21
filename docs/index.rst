@@ -50,6 +50,7 @@ For general discussion, you are welcome to join the `pyphi-users group
     :maxdepth: 1
 
     configuration
+    caching
 
 .. toctree::
     :caption: API Reference
