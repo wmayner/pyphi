@@ -20,8 +20,6 @@ _Next version_
 ### API additions
 
 - Added `pyphi.tpm.reconstitute_tpm()`.
-- Added a new system to the `examples` module: `pyphi.examples.PQR_network()`
-  and `pyphi.examples.PQR()`
 
 ### API changes
 
