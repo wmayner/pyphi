@@ -480,7 +480,6 @@ def test_rule152_complexes_no_caching(rule152):
         assert major.cut == result['cut']
 
 
-@pytest.mark.dev
 def test_sia_macro(macro_s):
     sia = compute.sia(macro_s)
     check_sia(sia, macro_answer)
