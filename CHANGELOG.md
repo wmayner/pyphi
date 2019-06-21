@@ -1,8 +1,49 @@
 Changelog
 =========
 
+_Next version_
+--------------
+
+### Fixes
+
+- Fixed a bug introduced into `pyphi.utils.load_data()` by a breaking change
+  in recent versions of NumPy that caused an error on import.
+- Fixed a bug where changing `config.PRECISION` dynamically did not change
+  `constants.EPSILON`, causing some comparisons that relied on
+  `constants.EPSILON` to not reflect the new precision.
+- Changing `config.FS_CACHE_DIRECTORY` and `config.FS_CACHE_VERBOSITY` now
+  causes a new `joblib.Memory` cache to be created. Previously, changing these
+  options dynamically had no effect.
+- Made test suite compatible with stricter usage of `pytest` fixtures
+  required by recent versions of `pytest`.
+
+### API additions
+
+- Added `pyphi.tpm.reconstitute_tpm()`.
+- Added a new system to the `examples` module: `pyphi.examples.PQR_network()`
+  and `pyphi.examples.PQR()`
+
+### API changes
+
+- Renamed `pyphi.partition.partition_registry` to
+  `pyphi.partition.partition_types`.
+- Renamed `pyphi.distance.bld()` to `pyphi.distance.klm()`.
+- Fixed the connectivity matrix of the `def
+  disjunction_conjunction_network()`.
+- Removed `'expanded_*_reperotire'` attributes of JSON-serialized `Concept`s.
+
+### Config
+
+- Added the `WELCOME_OFF` option to turn off the new welcome message.
+
+### Documentation
+
+- Added documentation for the `partition_types` registry.
+
+
 1.1.0
 -----
+_2018-05-30_
 
 ### Fixes
 
