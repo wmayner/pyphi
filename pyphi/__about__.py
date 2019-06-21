@@ -5,7 +5,7 @@
 """PyPhi metadata."""
 
 __title__ = 'pyphi'
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 __description__ = 'Python library for computing integrated information.'
 __author__ = 'William GP Mayner'
 __author_email__ = 'wmayner@gmail.com'
