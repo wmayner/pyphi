@@ -14,10 +14,15 @@ services:
   - redis-server  # port 6379 (default)
 
 python:
-  - "3.4"
-  - "3.5"
-  - "3.6"
-  - "3.7"
+  - 3.4
+  - 3.5
+  - 3.6
+  - 3.7
+
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
 
 # Install packages
 install:
