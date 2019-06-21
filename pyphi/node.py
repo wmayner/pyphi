@@ -30,11 +30,16 @@ class Node:
         node_labels (|NodeLabels|): Labels for these nodes.
 
     Attributes:
-        tpm (np.ndarray): The node TPM is a 2^(n_inputs)-by-2 matrix, where
-            node.tpm[i][j] gives the marginal probability that the node is in
-            state j at t+1 if the state of its inputs is i at t. If the node is
-            a single element with a cut selfloop, (i.e. it has no inputs), the
-            tpm is simply its unconstrained effect repertoire.
+        tpm (np.ndarray): The node TPM is an array with shape ``(2,)*(n + 1)``,
+            where ``n`` is the size of the |Network|. The first ``n``
+            dimensions correspond to each node in the system. Dimensions
+            corresponding to nodes that provide input to this node are of size
+            2, while those that do not correspond to inputs are of size 1, so
+            that the TPM has |2^m x 2| elements where |m| is the number of
+            inputs. The last dimension corresponds to the state of the node in
+            the next timestep, so that ``node.tpm[..., 0]`` gives probabilities
+            that the node will be 'OFF' and ``node.tpm[..., 1]`` gives
+            probabilities that the node will be 'ON'.
     """
 
     def __init__(self, tpm, cm, index, state, node_labels):

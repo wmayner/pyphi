@@ -1,12 +1,16 @@
 Actual Causation
 ================
 
-This section demonstrates how to use PyPhi to evaluate actual causation as
+This section demonstrates how to use PyPhi to evaluate actual causation, as
 described in
 
-`Albantakis L, Marshall W, Hoel E, Tononi G (2017). What caused what? An
-irreducible account of actual causation. arXiv:1708.06716 [cs.AI]
-<https://arxiv.org/abs/1708.06716>`_.
+    Albantakis L, Marshall W, Hoel E, Tononi G (2019).
+    What Caused What? A quantitative Account of Actual Causation Using
+    Dynamical Causal Networks.
+    *Entropy*, 21 (5), pp. 459.
+    `<https://doi.org/10.3390/e21050459>`_
+
+First, we'll import the modules we need:
 
     >>> import pyphi
     >>> from pyphi import actual, config, Direction

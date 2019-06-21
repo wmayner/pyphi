@@ -742,26 +742,27 @@ def test_tripartion_str(tripartition):
         'A,E    B     C ')
 
 
-@pytest.fixture
 def k_partition(node_labels=None):
     return models.KPartition(
         models.Part((0,), (0, 4)),
         models.Part((), (1,)),
         models.Part((6,), (5,)),
         models.Part((2,), (2,)),
-        node_labels=node_labels)
+        node_labels=node_labels
+    )
 
 
-def test_partition_normalize(k_partition):
-    assert k_partition.normalize() == models.KPartition(
+def test_partition_normalize():
+    assert k_partition().normalize() == models.KPartition(
         models.Part((), (1,)),
         models.Part((0,), (0, 4)),
         models.Part((2,), (2,)),
-        models.Part((6,), (5,)))
+        models.Part((6,), (5,))
+    )
 
 
-def test_partition_normalize_preserves_labels():
-    k = k_partition(node_labels=node_labels())
+def test_partition_normalize_preserves_labels(node_labels):
+    k = k_partition(node_labels=node_labels)
     assert k.normalize().node_labels == k.node_labels
 
 

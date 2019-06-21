@@ -20,7 +20,7 @@ install_requires = [
     'psutil >=2.1.1',
     'pyemd >=0.3.0',
     'pymongo >=2.7.1',
-    'pyyaml >=3.11',
+    'pyyaml >=3.13',
     'redis >=2.10.5',
     'scipy >=0.13.3',
     'tblib >=1.3.2',
@@ -52,6 +52,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Scientific/Engineering',
     ],
     project_urls={
@@ -59,7 +60,6 @@ setup(
         'Documentation': 'https://pyphi.readthedocs.io',
         'IIT Website': 'http://integratedinformationtheory.org/',
         'Online Interface': 'http://integratedinformationtheory.org/calculate.html',
-        'Source': 'https://github.com/wmayner/pyphi',
         'User Group': 'https://groups.google.com/forum/#!forum/pyphi-users'
     }
 )

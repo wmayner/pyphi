@@ -9,7 +9,7 @@ context of all |small_phi| and |big_phi| computation.
 
 import numpy as np
 
-from . import cache, connectivity, convert, jsonify, utils, validate
+from . import cache, connectivity, convert, jsonify, utils, validate, config
 from .labels import NodeLabels
 from .tpm import is_state_by_state
 
@@ -80,7 +80,7 @@ class Network:
         """
         tpm = np.array(tpm)
 
-        validate.tpm(tpm)
+        validate.tpm(tpm, check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
 
         # Convert to multidimensional state-by-node form
         if is_state_by_state(tpm):

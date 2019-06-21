@@ -60,6 +60,7 @@ disable =
     no-name-in-module,
     no-self-use,
     super-on-old-class,
+    bad-continuation,
 
 
 [REPORTS]

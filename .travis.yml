@@ -1,3 +1,5 @@
+dist: xenial
+
 language: python
 
 sudo: false
@@ -14,14 +16,15 @@ services:
   - redis-server  # port 6379 (default)
 
 python:
-  - "3.4"
-  - "3.5"
-  - "3.6"
+  - 3.4
+  - 3.5
+  - 3.6
+  - 3.7
 
 # Install packages
 install:
   - pip install --upgrade pip setuptools wheel
-  - pip install --only-binary=numpy numpy==1.14
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.4 ]]; then pip install --only-binary=numpy numpy==1.15.4; else pip install --only-binary=numpy numpy==1.16.4; fi
   - pip install --only-binary=scipy -r requirements.txt
   - pip install coveralls
   - pip freeze

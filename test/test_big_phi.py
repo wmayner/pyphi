@@ -395,8 +395,8 @@ def test_sia_complete_graph_standard_example(s_complete):
     check_sia(sia, standard_answer)
 
 
-def test_sia_complete_graph_s_noised(s_noised_complete):
-    sia = compute.sia(s_noised_complete)
+def test_sia_complete_graph_s_noised(s_noised):
+    sia = compute.sia(s_noised)
     check_sia(sia, noised_answer)
 
 
@@ -480,7 +480,6 @@ def test_rule152_complexes_no_caching(rule152):
         assert major.cut == result['cut']
 
 
-@pytest.mark.dev
 def test_sia_macro(macro_s):
     sia = compute.sia(macro_s)
     check_sia(sia, macro_answer)

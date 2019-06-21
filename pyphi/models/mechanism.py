@@ -448,7 +448,7 @@ class Concept(cmp.Orderable):
                 self.mechanism == other.mechanism and
                 self.eq_repertoires(other))
 
-    # TODO: remove
+    # These methods are used by phiserver
     # TODO Rename to expanded_cause_repertoire, etc
     def expand_cause_repertoire(self, new_purview=None):
         """See |Subsystem.expand_repertoire()|."""
@@ -472,31 +472,12 @@ class Concept(cmp.Orderable):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        dct = {
+        return {
             attr: getattr(self, attr)
             for attr in _concept_attributes + ['time']
         }
-        # These flattened, little-endian repertoires are passed to `vphi` via
-        # `phiserver`.
-        dct.update({
-            'expanded_cause_repertoire': distribution.flatten(
-                self.expand_cause_repertoire()),
-            'expanded_effect_repertoire': distribution.flatten(
-                self.expand_effect_repertoire()),
-            'expanded_partitioned_cause_repertoire': distribution.flatten(
-                self.expand_partitioned_cause_repertoire()),
-            'expanded_partitioned_effect_repertoire': distribution.flatten(
-                self.expand_partitioned_effect_repertoire()),
-        })
-        return dct
 
     @classmethod
     def from_json(cls, dct):
-        # Remove extra attributes
         del dct['phi']
-        del dct['expanded_cause_repertoire']
-        del dct['expanded_effect_repertoire']
-        del dct['expanded_partitioned_cause_repertoire']
-        del dct['expanded_partitioned_effect_repertoire']
-
         return cls(**dct)

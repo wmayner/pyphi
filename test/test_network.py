@@ -5,7 +5,7 @@
 import numpy as np
 import pytest
 
-from pyphi import Direction
+from pyphi import Direction, config, exceptions
 from pyphi.network import Network
 
 
@@ -25,6 +25,19 @@ def test_network_init_validation(network):
         # Non-binary nodes (4 states)
         tpm = np.ones((4, 4, 4, 3)).astype(float)
         Network(tpm)
+
+    # Conditionally dependent
+    tpm = np.array([
+            [1, 0.0, 0.0, 0],
+            [0, 0.5, 0.5, 0],
+            [0, 0.5, 0.5, 0],
+            [0, 0.0, 0.0, 1],
+    ])
+    with config.override(VALIDATE_CONDITIONAL_INDEPENDENCE=False):
+        Network(tpm)
+    with config.override(VALIDATE_CONDITIONAL_INDEPENDENCE=True):
+        with pytest.raises(exceptions.ConditionallyDependentError):
+            Network(tpm)
 
 
 def test_network_creates_fully_connected_cm_by_default():

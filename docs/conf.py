@@ -62,7 +62,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'PyPhi'
-copyright = '2014--2017 {}'.format(__author__)
+copyright = '2014--2018 {}'.format(__author__)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -121,7 +121,10 @@ r"""
 .. |big_phi_max| replace:: :math:`\Phi^{\textrm{max}}`
 .. |small_phi| replace:: :math:`\varphi`
 .. |small_phi > 0| replace:: :math:`\varphi > 0`
+.. |small_phi = 0| replace:: :math:`\varphi = 0`
 .. |small_phi_max| replace:: :math:`\varphi^{\textrm{max}}`
+.. |small_phi = 1/6| replace:: :math:`\varphi = \frac{1}{6}`
+.. |small_phi = 1/10| replace:: :math:`\varphi = \frac{1}{10}`
 .. |big_alpha| replace:: :math:`\mathcal{A}`
 .. |big_alpha > 0| replace:: :math:`\mathcal{A} > 0`
 .. |alpha| replace:: :math:`\alpha`
@@ -150,8 +153,6 @@ r"""
 .. |(AB / DE) x (∅ / C)| replace:: :math:`\frac{AB}{DE} \times \frac{\varnothing}{C}`
 .. |(A / CD) x (∅ / E)| replace:: :math:`\frac{A}{CD} \times \frac{\varnothing}{E}`
 .. |(∅ / C) x (A / D)| replace:: :math:`\frac{\varnothing}{C} \times \frac{A}{D}`
-.. |small_phi = 1/6| replace:: :math:`\varphi = \frac{1}{6}`
-.. |small_phi = 1/10| replace:: :math:`\varphi = \frac{1}{10}`
 .. |t| replace:: :math:`t`
 .. |t-1| replace:: :math:`t-1`
 .. |t+1| replace:: :math:`t+1`
@@ -168,6 +169,8 @@ r"""
 .. |N| replace:: :math:`N`
 .. |n x n| replace:: :math:`N \times N`
 .. |2^n x 2^n| replace:: :math:`2^N \times 2^N`
+.. |2^m x 2| replace:: :math:`2^m \times 2`
+.. |m| replace:: :math:`m`
 .. |i| replace:: :math:`i`
 .. |j| replace:: :math:`j`
 .. |i,jth| replace:: :math:`(i,j)^{\textrm{th}}`

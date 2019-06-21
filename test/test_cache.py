@@ -127,11 +127,11 @@ def all_caches(test_func):
     Any decorated test must add a `redis_cache` argument.
     """
     @pytest.mark.parametrize("redis_cache,", [
-        require_redis((True,)),
-        (False,),
+        pytest.param(True, marks=require_redis),
+        pytest.param(False)
     ])
     def wrapper(redis_cache, *args, **kwargs):
-        with config.override(REDIS_CACHE=redis_cache[0]):
+        with config.override(REDIS_CACHE=redis_cache):
             return test_func(redis_cache, *args, **kwargs)
 
     return functools.wraps(test_func)(wrapper)

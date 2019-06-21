@@ -69,3 +69,6 @@ build-dist: clean-dist
 
 clean-dist:
 	rm -rf $(dist_dir)
+
+clean:
+	rm -rf **/__pycache__

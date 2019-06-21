@@ -9,7 +9,6 @@ Methods for validating arguments.
 import numpy as np
 
 from . import Direction, config, convert, exceptions
-from .constants import EPSILON
 from .tpm import is_state_by_state
 
 # pylint: disable=redefined-outer-name
@@ -73,8 +72,6 @@ def tpm(tpm, check_independence=True):
 
 def conditionally_independent(tpm):
     """Validate that the TPM is conditionally independent."""
-    if not config.VALIDATE_CONDITIONAL_INDEPENDENCE:
-        return True
     tpm = np.array(tpm)
     if is_state_by_state(tpm):
         there_and_back_again = convert.state_by_node2state_by_state(
@@ -82,7 +79,7 @@ def conditionally_independent(tpm):
     else:
         there_and_back_again = convert.state_by_state2state_by_node(
             convert.state_by_node2state_by_state(tpm))
-    if np.any((tpm - there_and_back_again) >= EPSILON):
+    if not np.allclose((tpm - there_and_back_again), 0.0):
         raise exceptions.ConditionallyDependentError(
             'TPM is not conditionally independent.\n'
             'See the conditional independence example in the documentation '

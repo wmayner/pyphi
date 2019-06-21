@@ -4,10 +4,12 @@
 
 import logging
 import os
+from pathlib import Path
+import shutil
 
 import pytest
 
-from pyphi import config
+from pyphi import config, constants
 from pyphi.conf import Config, Option
 
 
@@ -146,6 +148,40 @@ def test_reconfigure_logging_on_change(capsys):
         log.warning('Another warning.')
     out, err = capsys.readouterr()
     assert err == ''
+
+
+def test_reconfigure_precision_on_change():
+    with config.override(PRECISION=100):
+        assert constants.EPSILON == 1e-100
+
+    with config.override(PRECISION=3):
+        assert constants.EPSILON == 1e-3
+
+    with config.override(PRECISION=123):
+        assert constants.EPSILON == 1e-123
+
+
+def test_reconfigure_joblib_on_change(capsys):
+    cachedir = './__testing123__'
+    try:
+        with config.override(FS_CACHE_DIRECTORY=cachedir):
+            assert constants.joblib_memory.location == cachedir
+            assert Path(cachedir).exists()
+    finally:
+        shutil.rmtree(cachedir)
+
+    def f(x):
+        return x + 1
+
+    with config.override(FS_CACHE_VERBOSITY=0):
+        constants.joblib_memory.cache(f)(42)
+    out, err = capsys.readouterr()
+    assert len(out) == 0
+
+    with config.override(FS_CACHE_VERBOSITY=100):
+        constants.joblib_memory.cache(f)(42)
+    out, err = capsys.readouterr()
+    assert len(out) > 0
 
 
 @config.override()

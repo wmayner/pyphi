@@ -110,12 +110,13 @@ PyPhi provides a number of ways to cache intermediate results.
 Logging
 ~~~~~~~
 
-These settings control how PyPhi handles log messages. Logs can be written to
+These settings control how PyPhi handles messages. Logs can be written to
 standard output, a file, both, or none. If these simple default controls are
 not flexible enough for you, you can override the entire logging configuration.
 See the `documentation on Python's logger
 <https://docs.python.org/3.4/library/logging.html>`_ for more information.
 
+- :attr:`~pyphi.conf.PyphiConfig.WELCOME_OFF`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_STDOUT_LEVEL`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_FILE_LEVEL`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_FILE`
@@ -143,9 +144,10 @@ import os
 import pprint
 from copy import copy
 
+import joblib
 import yaml
 
-from . import __about__
+from . import __about__, constants
 
 log = logging.getLogger(__name__)
 
@@ -260,7 +262,7 @@ class Config(metaclass=ConfigMeta):
 
     @classmethod
     def options(cls):
-        """Return a dictionary the ``Option`` objects for this config"""
+        """Return a dictionary of the ``Option`` objects for this config."""
         return {k: v for k, v in cls.__dict__.items() if isinstance(v, Option)}
 
     def defaults(self):
@@ -277,7 +279,7 @@ class Config(metaclass=ConfigMeta):
         filename = os.path.abspath(filename)
 
         with open(filename) as f:
-            self.load_dict(yaml.load(f))
+            self.load_dict(yaml.safe_load(f))
 
         self._loaded_files.append(filename)
 
@@ -357,6 +359,17 @@ def configure_logging(conf):
     })
 
 
+def configure_joblib(conf):
+    constants.joblib_memory = joblib.Memory(
+        location=conf.FS_CACHE_DIRECTORY, 
+        verbose=conf.FS_CACHE_VERBOSITY
+    )
+
+
+def configure_precision(conf):
+    constants.EPSILON = 10**(-conf.PRECISION)
+
+
 class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
@@ -364,7 +377,7 @@ class PyphiConfig(Config):
     In certain cases, making a cut can actually cause a previously reducible
     concept to become a proper, irreducible concept. Assuming this can never
     happen can increase performance significantly, however the obtained results
-    are not strictly accurate.  """)
+    are not strictly accurate.""")
 
     CUT_ONE_APPROXIMATION = Option(False, doc="""
     When determining the MIP for |big_phi|, this restricts the set of system
@@ -390,7 +403,7 @@ class PyphiConfig(Config):
         def always_zero(a, b):
             return 0
 
-    This measures can then be used by setting
+    This measure can then be used by setting
     ``config.MEASURE = 'ALWAYS_ZERO'``.
 
     If the measure is asymmetric you should register it using the
@@ -452,11 +465,12 @@ class PyphiConfig(Config):
     filesystem-based cache in the current directory or from a database. Set
     this to ``'fs'`` for the filesystem, ``'db'`` for the database.""")
 
-    FS_CACHE_VERBOSITY = Option(0, doc="""
+    FS_CACHE_VERBOSITY = Option(0, on_change=configure_joblib, doc="""
     Controls how much caching information is printed if the filesystem cache is
     used. Takes a value between ``0`` and ``11``.""")
 
-    FS_CACHE_DIRECTORY = Option('__pyphi_cache__', doc="""
+    FS_CACHE_DIRECTORY = Option('__pyphi_cache__', on_change=configure_joblib,
+                                doc="""
     If the filesystem is used for caching, the cache will be stored in this
     directory. This directory can be copied and moved around if you want to
     reuse results *e.g.* on a another computer, but it must be in the same
@@ -483,6 +497,19 @@ class PyphiConfig(Config):
     Configure the Redis database backend. These are the defaults in the
     provided ``redis.conf`` file.""")
 
+    WELCOME_OFF = Option(False, doc="""
+    Specifies whether to suppress the welcome message when PyPhi is imported.
+
+    Alternatively, you may suppress the message by setting the environment
+    variable ``PYPHI_WELCOME_OFF`` to any value in your shell:
+
+    .. code-block:: bash
+
+        export PYPHI_WELCOME_OFF='yes'
+
+    The message will not print if either this option is ``True`` or the
+    environment variable is set.""")
+
     LOG_FILE = Option('pyphi.log', on_change=configure_logging, doc="""
     Controls the name of the log file.""")
 
@@ -506,7 +533,7 @@ class PyphiConfig(Config):
         If you are iterating over many systems rather than doing one
         long-running calculation, consider disabling this for speed.""")
 
-    PRECISION = Option(6, doc="""
+    PRECISION = Option(6, on_change=configure_precision, doc="""
     If ``MEASURE`` is ``EMD``, then the Earth Mover's Distance is calculated
     with an external C++ library that a numerical optimizer to find a good
     approximation. Consequently, systems with analytically zero |big_phi| will
@@ -560,8 +587,8 @@ class PyphiConfig(Config):
 
     If set to ``'TRI'``, partitions will have three parts. In addition,
     computations will only consider partitions that strictly partition the
-    mechanism the mechanism. That is, for the mechanism ``(A, B)`` and purview
-    ``(B, C, D)`` the partition::
+    mechanism. That is, for the mechanism ``(A, B)`` and purview ``(B, C, D)``
+    the partition::
 
       A,B    ∅
       ─── ✕ ───
@@ -587,11 +614,33 @@ class PyphiConfig(Config):
 
     where the mechanism in the third part is always empty.
 
-    In addition, in the case of a |small_phi|-tie when computing a |MIC| or
-    |MIE|, The ``'TRIPARTITION'`` setting choses the MIP with smallest purview
-    instead of the largest (which is the default).
+    Finally, if set to ``'ALL'``, all possible partitions will be tested.
 
-    Finally, if set to ``'ALL'``, all possible partitions will be tested.""")
+    You can experiment with custom partitioning strategies using the
+    ``pyphi.partition.partition_types.register`` decorator. For example::
+
+        from pyphi.models import KPartition, Part
+        from pyphi.partition import partition_types
+
+        @partition_types.register('SINGLE_NODE')
+        def single_node_partitions(mechanism, purview, node_labels=None):
+           for element in mechanism:
+               element = tuple([element])
+               others = tuple(sorted(set(mechanism) - set(element)))
+
+               part1 = Part(mechanism=element, purview=())
+               part2 = Part(mechanism=others, purview=purview)
+
+               yield KPartition(part1, part2, node_labels=node_labels)
+
+    This generates the set of partitions that cut connections between a single
+    mechanism element and the entire purview. The mechanism and purview of each
+    |Part| remain undivided - only connections *between* parts are severed.
+
+    You can use this new partititioning scheme by setting
+    ``config.PARTITION_TYPE = 'SINGLE_NODE'``.
+
+    See :mod:`~pyphi.partition` for more examples.""")
 
     PICK_SMALLEST_PURVIEW = Option(False, doc="""
     When computing a |MIC| or |MIE|, it is possible for several MIPs to have
@@ -617,8 +666,9 @@ class PyphiConfig(Config):
         if self._loaded_files:
             log.info('Loaded configuration from %s', self._loaded_files)
         else:
-            log.info('Using default configuration (no config file provided)')
-        log.info('Current PyPhi configuration:\n %s', str(config))
+            log.info('Using default configuration (no configuration file '
+                     'provided)')
+        log.info('Current PyPhi configuration:\n %s', str(self))
 
 
 PYPHI_CONFIG_FILENAME = 'pyphi_config.yml'
