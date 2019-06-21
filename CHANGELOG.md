@@ -37,6 +37,7 @@ _Next version_
 ### Documentation
 
 - Added documentation for the `partition_types` registry.
+- Added documentation for the filesystem and database caches.
 
 
 1.1.0
