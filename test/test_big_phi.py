@@ -395,8 +395,8 @@ def test_sia_complete_graph_standard_example(s_complete):
     check_sia(sia, standard_answer)
 
 
-def test_sia_complete_graph_s_noised(s_noised_complete):
-    sia = compute.sia(s_noised_complete)
+def test_sia_complete_graph_s_noised(s_noised):
+    sia = compute.sia(s_noised)
     check_sia(sia, noised_answer)
 
 

@@ -12,8 +12,6 @@ from pyphi.subsystem import Subsystem
 
 # TODO pass just the subsystem (contains a reference to the network)
 
-use_connectivity_matrices = True
-
 standard = pyphi.examples.basic_network
 s = pyphi.examples.basic_subsystem
 s_state = pyphi.examples.basic_state()
@@ -44,7 +42,7 @@ def s_complete():
     return Subsystem(net, s_state, range(net.size))
 
 
-def noised(cm=False):
+def noised():
     tpm = np.array([
         [0.0, 0.0, 0.0],
         [0.0, 0.0, 0.8],
@@ -55,24 +53,16 @@ def noised(cm=False):
         [1.0, 1.0, 0.3],
         [0.1, 1.0, 0.0]
     ])
-    if cm is False:
-        cm = np.array([
-            [1, 1, 1],
-            [1, 1, 1],
-            [1, 1, 1]
-        ])
-    cm = cm if use_connectivity_matrices else None
+    cm = np.array([
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1]
+    ])
     return Network(tpm, cm=cm)
 
 
 def s_noised():
     n = noised()
-    state = (1, 0, 0)
-    return Subsystem(n, state, range(n.size))
-
-
-def s_noised_complete():
-    n = noised(cm=None)
     state = (1, 0, 0)
     return Subsystem(n, state, range(n.size))
 
