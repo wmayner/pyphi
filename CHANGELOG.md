@@ -27,8 +27,7 @@ _2019-06-21_
 - Renamed `pyphi.partition.partition_registry` to
   `pyphi.partition.partition_types`.
 - Renamed `pyphi.distance.bld()` to `pyphi.distance.klm()`.
-- Fixed the connectivity matrix of the `def
-  disjunction_conjunction_network()`.
+- Fixed the connectivity matrix of the `disjunction_conjunction_network()`.
 - Removed `'expanded_*_reperotire'` attributes of JSON-serialized `Concept`s.
 
 ### Config
