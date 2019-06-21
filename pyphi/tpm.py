@@ -119,6 +119,11 @@ def reconstitute_tpm(subsystem):
     # (used in the conditioning step when calculating the repertoires); we want
     # ON probabilities.
     node_tpms = [node.tpm[..., 1] for node in subsystem.nodes]
+    # Remove the singleton dimensions corresponding to external nodes
+    node_tpms = [
+        tpm.squeeze(axis=subsystem.external_indices)
+        for tpm in node_tpms
+    ]
     # We add a new singleton axis at the end so that we can use
     # pyphi.tpm.expand_tpm, which expects a state-by-node TPM (where the last
     # axis corresponds to nodes.)
