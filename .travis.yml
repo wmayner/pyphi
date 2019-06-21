@@ -24,7 +24,7 @@ python:
 # Install packages
 install:
   - pip install --upgrade pip setuptools wheel
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.4 ]]; then pip install --only-binary=numpy numpy=1.15.4; else pip install --only-binary=numpy numpy==1.16.4; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.4 ]]; then pip install --only-binary=numpy numpy==1.15.4; else pip install --only-binary=numpy numpy==1.16.4; fi
   - pip install --only-binary=scipy -r requirements.txt
   - pip install coveralls
   - pip freeze
