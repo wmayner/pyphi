@@ -438,6 +438,45 @@ def mip_bipartitions(mechanism, purview, node_labels=None):
             yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]),
                               node_labels=node_labels)
 
+@partition_types.register('BI2')
+def new_bipartitions(mechanism, purview, node_labels=None):
+    """Return an iterator over bi2 bipartitions.
+
+    If the mechanism contains only one element, only a full cut is performed:
+
+         M     ∅
+        ─── ✕ ───
+         ∅     P
+
+    If the mechanism contains more than one element it will be partitioned.
+    In this case, the generator will yield the full cut shown above as well as
+    all cuts given by:
+
+         M1    M2
+        ─── ✕ ───
+         P1    P2
+
+    for all M1 U M2 = M except where M1 or M2 = ∅ 
+    and all P1 U P2 = P including where P1 or P2 = ∅. 
+
+    See |PARTITION_TYPE| in |config| for more information.
+
+    Args:
+        mechanism (tuple[int]): A mechanism.
+        purview (tuple[int]): A purview.
+
+    Yields:
+        Bipartition: collection of bipartitions of this mechanism and purview computed as described above.
+    """
+    if len(mechanism) > 1:
+        numerators = bipartition(mechanism)
+        denominators = directed_bipartition(purview)
+        for n, d in product(numerators, denominators):
+            if (n[0] and n[1]):
+                yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]), node_labels=node_labels)
+    if mechanism:
+        yield Bipartition(Part(mechanism, ()), Part((), purview), node_labels=node_labels)
+
 
 @partition_types.register('TRI')
 def wedge_partitions(mechanism, purview, node_labels=None):
