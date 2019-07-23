@@ -1,6 +1,19 @@
 Changelog
 =========
 
+
+_Next version_
+--------------
+
+### API additions
+- Added `pyphi.tpm.is_deterministic()`
+
+### API changes
+- Updated the implementation of `pyphi.convert.state_by_node2state_by_state()`:
+  - Can now handle "TPMs" where the number of nodes in the previous and next states differ
+  - Improved performance for nondeterministic TPMs
+
+
 1.2.0
 -----
 _2019-06-21_
