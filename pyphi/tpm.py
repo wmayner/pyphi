@@ -19,6 +19,11 @@ def tpm_indices(tpm):
     return tuple(np.where(np.array(tpm.shape[:-1]) == 2)[0])
 
 
+def is_deterministic(tpm):
+    """Return whether the TPM is deterministic."""
+    return np.all(np.logical_or(tpm == 1, tpm == 0))
+
+
 def is_state_by_state(tpm):
     """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
     ``False``.
