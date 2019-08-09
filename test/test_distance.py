@@ -68,7 +68,7 @@ def test_psq2():
 
     a = np.array([[[1]], [[0]]])
     b = np.array([[[0.25]], [[0.75]]])
-    assert distance.psq2(a, b) == 0.50839475603409934
+    assert distance.psq2(a, b) == 0.7334585933443496
 
 
 def test_mp2q():
@@ -78,7 +78,7 @@ def test_mp2q():
 
     a = np.array([[[1]], [[0]]])
     b = np.array([[[0.25]], [[0.75]]])
-    assert distance.mp2q(a, b) == 2.7725887222397811
+    assert distance.mp2q(a, b) == 4
 
 
 def test_klm():
@@ -88,7 +88,7 @@ def test_klm():
 
     a = np.array([[[1]], [[0]]])
     b = np.array([[[0.25]], [[0.75]]])
-    assert distance.klm(a, b) == 1.3862943611198906
+    assert distance.klm(a, b) == 2.0
 
 
 def test_default_measures():

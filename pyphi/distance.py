@@ -211,7 +211,7 @@ def psq2(d1, d2):
     d1, d2 = flatten(d1), flatten(d2)
 
     def f(p):
-        return sum((p ** 2) * np.nan_to_num(np.log(p * len(p))))
+        return sum((p ** 2) * np.nan_to_num(np.log2(p * len(p))))
 
     return abs(f(d1) - f(d2))
 
@@ -227,7 +227,7 @@ def mp2q(p, q):
     """
     p, q = flatten(p), flatten(q)
     entropy_dist = 1 / len(p)
-    return sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log(p / q)))
+    return sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log2(p / q)))
 
 
 @measures.register('KLM', asymmetric=True)
@@ -236,7 +236,7 @@ def mp2q(p, q):
 def klm(p, q):
     """Compute the KLM divergence."""
     p, q = flatten(p), flatten(q)
-    return max(abs(p * np.nan_to_num(np.log(p / q))))
+    return max(abs(p * np.nan_to_num(np.log2(p / q))))
 
 
 def directional_emd(direction, d1, d2):
