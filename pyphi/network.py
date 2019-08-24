@@ -17,7 +17,7 @@ from .tpm import is_state_by_state
 class Network:
     """A network of nodes.
 
-    Represents the network under analysis and holds auxilary data about it.
+    Represents the network under analysis and holds auxiliary data about it.
 
     Args:
         tpm (np.ndarray): The transition probability matrix of the network.
