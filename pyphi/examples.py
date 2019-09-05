@@ -804,7 +804,7 @@ def fig3b():
 
 
 def fig4():
-    """The network shown in Figure 4 of the 2014 IIT 3.0 paper.
+    """The network shown in Figures 4, 6, 8, 9 and 10 of the 2014 IIT 3.0 paper.
 
     Diagram::
 
