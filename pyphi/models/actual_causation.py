@@ -133,7 +133,7 @@ class CausalLink(cmp.Orderable):
 
     def __init__(self, ria, extended_purview=None):
         self._ria = ria
-        self._extended_purview = extended_purview
+        self._extended_purview = tuple(extended_purview)
 
     @property
     def alpha(self):
