@@ -133,7 +133,7 @@ class CausalLink(cmp.Orderable):
 
     def __init__(self, ria, extended_purview=None):
         self._ria = ria
-        self._extended_purview = tuple(extended_purview)
+        self._extended_purview = tuple(extended_purview) if extended_purview is not None else None
 
     @property
     def alpha(self):
@@ -168,8 +168,10 @@ class CausalLink(cmp.Orderable):
     def extended_purview(self):
         """tuple[tuple[int]]: List of purviews over which this causal link is
         maximally irreducible.
+
         Note: It will contain multiple purviews iff causal link has
-        undetermined actual causes/effects.
+        undetermined actual causes/effects (e.g. two irreducible causes with same alpha
+        over different purviews).
         """
         return self._extended_purview
 

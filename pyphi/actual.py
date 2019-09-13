@@ -413,9 +413,9 @@ class Transition:
             return CausalLink(max_ria)
 
         # Finds rias with maximum alpha
-        all_ria = [self.find_mip(direction, mechanism, purview, allow_neg)
+        all_ria = [self.find_mip(direction, mechanism, purview, allow_neg=allow_neg)
                    for purview in purviews]
-        max_ria = max(all_rias)
+        max_ria = max(all_ria)
         purviews = [ria.purview for ria in all_ria if ria.alpha == max_ria.alpha]
         # Selected rias whose purview is not a superset of any other
         def is_not_superset(purview):
