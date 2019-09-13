@@ -421,9 +421,9 @@ class Transition:
             purviews = [ria.purview for ria in max_rias]
             # Selected rias whose purview is not a superset of any other
             def is_not_superset(purview):
-                return any((set(purview).issuperset(set(other_purview))) and
-                           (set(purview) != set(other_purview)) for other_purview in purviews)
-                           
+                return all((not set(purview).issuperset(set(other_purview))) or
+                           (set(purview) == set(other_purview)) for other_purview in purviews)
+
             extended_purview = filter(is_not_superset, purviews)
             return CausalLink(max(max_rias), tuple(extended_purview))
 
