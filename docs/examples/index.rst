@@ -1,6 +1,16 @@
 Getting started
 ===============
 
+This page provides a walkthrough of how to use PyPhi in an interactive Python
+session.
+
+.. tip::
+
+    An `illustrated tutorial on how Φ is calculated
+    <https://doi.org/10.1371/journal.pcbi.1006343.s001>`_ is available as a
+    supplement to the `formal PyPhi paper
+    <https://doi.org/10.1371/journal.pcbi.1006343>`_.
+
 To explore the following examples, install `IPython
 <https://ipython.org/install.html>`_ by running ``pip install ipython`` on the
 command line. Then run it with the command ``ipython``.
