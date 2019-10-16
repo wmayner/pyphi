@@ -24,6 +24,8 @@ Biology 14(7): e1006343. <https://doi.org/10.1371/journal.pcbi.1006343>
 
 ---
 
+An [illustrated tutorial of how Φ is calculated](https://doi.org/10.1371/journal.pcbi.1006343.s001) is available as a supplement to the paper.
+
 
 ## Usage, Examples, and API documentation
 
@@ -114,7 +116,7 @@ sudo apt-get install python3-dev python3-scipy python3-numpy
 
 ### Developing on Windows
 
-If you're just looking for an editable install, pip may work better than the conda develop utility included in the conda-build package. When using pip on Windows, the build of pyemd may fail. The simplest solution to this is to obtain pyemd through conda. 
+If you're just looking for an editable install, pip may work better than the conda develop utility included in the conda-build package. When using pip on Windows, the build of pyemd may fail. The simplest solution to this is to obtain pyemd through conda.
 
 ```bash
 conda create -n pyphi_dev
@@ -124,7 +126,7 @@ cd path/to/local/editable/copy/of/pyphi
 pip install -e .
 ```
 
-Unfortunately, pip isn't great at managing the DLLs that some packages (especially scipy) rely on. If you have missing DLL errors, try reinstalling the offending package (here, scipy) with conda. 
+Unfortunately, pip isn't great at managing the DLLs that some packages (especially scipy) rely on. If you have missing DLL errors, try reinstalling the offending package (here, scipy) with conda.
 
 ```bash
 conda activate pyphi_dev
