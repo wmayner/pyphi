@@ -182,7 +182,7 @@ PLoS Comput Biol 10(5): e1003588. doi: 10.1371/journal.pcbi.1003588.
 
 This project is inspired by a [previous
 project](https://github.com/albantakis/iit) written in Matlab by L. Albantakis,
-M. Oizumi, A. Hashmi, A. Nere, U. Olces, P. Rana, and B. Shababo.
+M. Oizumi, A. Hashmi, A. Nere, U. Olcese, P. Rana, and B. Shababo.
 
 Correspondence regarding this code and the PyPhi paper should be directed to
 Will Mayner, at [<mayner@wisc.edu>](mailto:mayner@wisc.edu). Correspondence
