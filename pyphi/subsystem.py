@@ -76,7 +76,16 @@ class Subsystem:
 
         # The TPM conditioned on the state of the external nodes.
         self.tpm = condition_tpm(
-            self.network.tpm, self.external_indices, self.state)
+            # Copy the TPM so that we can modify it
+            # NOTE: This is expensive for large TPMs!
+            self.network.tpm.copy(),
+            self.external_indices,
+            self.state
+        )
+
+        # Set the probabilities for states of external nodes to NaN, since they
+        # are only there to facilitate indexing into the TPM
+        self.tpm[..., self.external_indices] = np.nan
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (cut if cut is not None
