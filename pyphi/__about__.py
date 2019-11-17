@@ -5,11 +5,11 @@
 """PyPhi metadata."""
 
 __title__ = 'pyphi'
-__version__ = '1.2.0'
+__version__ = '1.2.1'
 __description__ = 'Python library for computing integrated information.'
-__author__ = 'William GP Mayner'
-__author_email__ = 'wmayner@gmail.com'
-__author_website__ = 'http://willmayner.com'
+__author__ = 'William GP Mayner and Juan D. Gomez'
+__author_email__ = 'wmayner@gmail.com, juanogo@gmail.com'
+__author_website__ = 'http://willmayner.com, www.drjuangomez.com/e'
 __copyright__ = 'Copyright 2014-2019 William GP Mayner'
 __license__ = 'GNU General Public License v3.0'
 __url__ = 'http://github.com/wmayner/pyphi'

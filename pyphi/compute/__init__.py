@@ -33,3 +33,5 @@ from .subsystem import (sia, phi, evaluate_cut, ConceptStyleSystem,
 from .network import (all_complexes, complexes, condensed, major_complex,
                       possible_complexes, subsystems)
 from .distance import concept_distance, ces_distance
+
+from .nonbinary import (ces_nb, major_complex_nb, sia_nb)

@@ -76,14 +76,16 @@ from .conf import config
 
 from .direction import Direction
 from . import (actual, constants, convert, db, examples, jsonify, macro,
-               models, network, node, subsystem, utils, validate)
+               models, network, node, subsystem, utils, validate, subsystem_nb, network_nb)
+from .subsystem_nb import Subsystem_nb
+from .network_nb import Network_nb
 from .network import Network
 from .subsystem import Subsystem
 from .actual import Transition
 
 __all__ = ['Network', 'Subsystem', 'actual', 'config', 'constants', 'convert',
            'db', 'examples', 'jsonify', 'macro', 'models', 'network', 'node',
-           'subsystem', 'utils', 'validate']
+           'subsystem', 'utils', 'validate','Subsystem_nb','Network_nb']
 
 if not (config.WELCOME_OFF or 'PYPHI_WELCOME_OFF' in os.environ):
     print("""
@@ -95,6 +97,9 @@ If you use PyPhi in your research, please cite the paper:
   (2018). PyPhi: A toolbox for integrated information theory.
   PLOS Computational Biology 14(7): e1006343.
   https://doi.org/10.1371/journal.pcbi.1006343
+
+The extention of PyPhi from binary-only to multi-sate node networks was done by:
+  Dr. Juan D. Gomez, PhD, juanogo@gmail.com
 
 Documentation is available online (or with the built-in `help()` function):
   https://pyphi.readthedocs.io
@@ -110,3 +115,4 @@ To suppress this message, either:
   - Set the environment variable PYPHI_WELCOME_OFF to any value in your shell:
         export PYPHI_WELCOME_OFF='yes'
 """)
+

@@ -26,7 +26,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     def __init__(self, phi, direction, mechanism, purview, partition,
                  repertoire, partitioned_repertoire,
-                 node_labels=None):
+                 node_labels=None, net_labels=None, net_bases=None):
         self._phi = phi
         self._direction = direction
         self._mechanism = mechanism
@@ -43,6 +43,10 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
 
         # Optional labels - only used to generate nice labeled reprs
         self._node_labels = node_labels
+
+        self.net_labels=net_labels
+
+        self.net_bases=net_bases
 
     @property
     def phi(self):

@@ -24,7 +24,7 @@ def state_of(nodes, network_state):
     return tuple(network_state[n] for n in nodes) if nodes else ()
 
 
-def all_states(n, big_endian=False):
+def all_states(n, p=None,l=None,nl=None,nb=None,big_endian=False):
     """Return all binary states for a system.
 
     Args:
@@ -39,11 +39,42 @@ def all_states(n, big_endian=False):
     if n == 0:
         return
 
-    for state in product((0, 1), repeat=n):
-        if big_endian:
-            yield state
+
+    if nb==None:
+        for state in product((0, 1), repeat=n):
+            if big_endian:
+                yield state
+            else:
+                yield state[::-1]  # Convert to little-endian ordering
+
+    else:
+
+
+        base=nb
+
+        network_labels=nl
+
+        #network_labels=['A', 'B','C']
+        
+        if base.count(base[0])==len(base):
+            for state in product(tuple(base[0]), repeat=n):
+                if big_endian:
+                    yield state
+                else:
+                    yield state[::-1]  # Convert to little-endian ordering 
         else:
-            yield state[::-1]  # Convert to little-endian ordering
+        
+            purview_labels= [l[i] for i in p]
+            purview= [network_labels.index(i) for i in purview_labels]    
+            base=[base[i] for i in purview[::-1]]
+
+            for state in product(*base):
+                if big_endian:
+                    yield state
+                else:
+                    yield state[::-1]  # Convert to little-endian ordering 
+    
+    
 
 
 def np_immutable(a):

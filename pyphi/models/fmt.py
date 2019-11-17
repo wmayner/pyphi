@@ -332,10 +332,20 @@ def fmt_ria(ria, verbose=True, mip=False):
         partition = '\n{}:\n{}'.format(
             ('MIP' if mip else 'Partition'),
             indent(fmt_partition(ria.partition)))
-        repertoire = '\nRepertoire:\n{}'.format(
+
+        if ria.net_bases != None:
+            repertoire = '\nRepertoire:\n{}'.format(
+            indent(fmt_repertoire(ria.repertoire, ria.purview, ria.node_labels, ria.net_labels, ria.net_bases)))
+            partitioned_repertoire = '\nPartitioned repertoire:\n{}'.format(
+            indent(fmt_repertoire(ria.partitioned_repertoire, ria.purview, ria.node_labels, ria.net_labels, ria.net_bases)))
+
+        else:
+            repertoire = '\nRepertoire:\n{}'.format(
             indent(fmt_repertoire(ria.repertoire)))
-        partitioned_repertoire = '\nPartitioned repertoire:\n{}'.format(
+            partitioned_repertoire = '\nPartitioned repertoire:\n{}'.format(
             indent(fmt_repertoire(ria.partitioned_repertoire)))
+
+
     else:
         partition = ''
         repertoire = ''
@@ -398,13 +408,17 @@ def fmt_sia(sia, ces=True):
     return box(header(title, body, center=center_header))
 
 
-def fmt_repertoire(r):
+def fmt_repertoire(r,p=None,l=None,nl=None,nb=None):
     """Format a repertoire."""
     # TODO: will this get unwieldy with large repertoires?
+
     if r is None:
         return ''
 
     r = r.squeeze()
+
+    #print(r, p,l)
+
 
     lines = []
 
@@ -414,11 +428,20 @@ def fmt_repertoire(r):
         S='S', s_width=r.ndim, space=space)
     lines.append(head)
 
-    # Lines: '001     .25'
-    for state in utils.all_states(r.ndim):
-        state_str = ''.join(str(i) for i in state)
-        lines.append('{0}{1}{2}'.format(state_str, space,
-                                        fmt_number(r[state])))
+    if nb==None:
+        # Lines: '001     .25'
+        for state in utils.all_states(r.ndim):
+            
+            state_str = ''.join(str(i) for i in state)
+            lines.append('{0}{1}{2}'.format(state_str, space,
+                                            fmt_number(r[state])))
+    else:
+        # Lines: '001     .25'
+        for state in utils.all_states(r.ndim,p,l,nl,nb):
+            
+            state_str = ''.join(str(i) for i in state)
+            lines.append('{0}{1}{2}'.format(state_str, space,
+                                            fmt_number(r[state])))
 
     width = max(len(line) for line in lines)
     lines.insert(1, DOTTED_HEADER * (width + 1))
