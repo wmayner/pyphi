@@ -110,13 +110,14 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
                 fmt.indent(fmt.fmt_ac_sia(self)))
 
 
-def _null_ac_ria(state, direction, mechanism, purview):
+def _null_ac_ria(state, direction, mechanism, purview, partition=None):
+    """The irreducibility AC analysis for a reducible causal link."""
     return AcRepertoireIrreducibilityAnalysis(
         state=state,
         direction=direction,
         mechanism=mechanism,
         purview=purview,
-        partition=None,
+        partition=partition,
         probability=None,
         partitioned_probability=None,
         alpha=0.0

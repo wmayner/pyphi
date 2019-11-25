@@ -335,6 +335,9 @@ class Transition:
             AcRepertoireIrreducibilityAnalysis: The irreducibility analysis for
             the mechanism.
         """
+        if not purview:
+            return _null_ac_ria(self.mechanism_state(direction),direction, mechanism, purview)
+
         alpha_min = float('inf')
         probability = self.probability(direction, mechanism, purview)
 
@@ -346,17 +349,8 @@ class Transition:
             # First check for 0
             # Default: don't count contrary causes and effects
             if utils.eq(alpha, 0) or (alpha < 0 and not allow_neg):
-                return AcRepertoireIrreducibilityAnalysis(
-                    state=self.mechanism_state(direction),
-                    direction=direction,
-                    mechanism=mechanism,
-                    purview=purview,
-                    partition=partition,
-                    probability=probability,
-                    partitioned_probability=partitioned_probability,
-                    node_labels=self.node_labels,
-                    alpha=0.0
-                )
+                return _null_ac_ria(self.mechanism_state(direction),direction, mechanism, purview, partition)
+
             # Then take closest to 0
             if (abs(alpha_min) - abs(alpha)) > constants.EPSILON:
                 alpha_min = alpha
