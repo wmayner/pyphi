@@ -41,7 +41,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
-    'sphinxcontrib.napoleon'
+    'sphinx.ext.napoleon',
 ]
 
 mathjax_path = ('https://cdnjs.cloudflare.com'
