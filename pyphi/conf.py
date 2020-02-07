@@ -114,7 +114,7 @@ These settings control how PyPhi handles messages. Logs can be written to
 standard output, a file, both, or none. If these simple default controls are
 not flexible enough for you, you can override the entire logging configuration.
 See the `documentation on Python's logger
-<https://docs.python.org/3.4/library/logging.html>`_ for more information.
+<https://docs.python.org/3/library/logging.html>`_ for more information.
 
 - :attr:`~pyphi.conf.PyphiConfig.WELCOME_OFF`
 - :attr:`~pyphi.conf.PyphiConfig.LOG_STDOUT_LEVEL`
@@ -361,7 +361,7 @@ def configure_logging(conf):
 
 def configure_joblib(conf):
     constants.joblib_memory = joblib.Memory(
-        location=conf.FS_CACHE_DIRECTORY, 
+        location=conf.FS_CACHE_DIRECTORY,
         verbose=conf.FS_CACHE_VERBOSITY
     )
 
