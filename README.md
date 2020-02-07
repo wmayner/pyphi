@@ -24,7 +24,7 @@ Biology 14(7): e1006343. <https://doi.org/10.1371/journal.pcbi.1006343>
 
 ---
 
-An [illustrated tutorial of how Φ is calculated](https://doi.org/10.1371/journal.pcbi.1006343.s001) is available as a supplement to the paper.
+An [illustrated tutorial on how Φ is calculated](https://doi.org/10.1371/journal.pcbi.1006343.s001) is available as a supplement to the paper.
 
 
 ## Usage, Examples, and API documentation
