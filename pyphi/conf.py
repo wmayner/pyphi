@@ -54,6 +54,7 @@ These settings control the algorithms PyPhi uses.
 - :attr:`~pyphi.conf.PyphiConfig.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS`
 - :attr:`~pyphi.conf.PyphiConfig.CUT_ONE_APPROXIMATION`
 - :attr:`~pyphi.conf.PyphiConfig.MEASURE`
+- :attr:`~pyphi.conf.PyphiConfig.ACTUAL_CAUSATION_MEASURE`
 - :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE`
 - :attr:`~pyphi.conf.PyphiConfig.PICK_SMALLEST_PURVIEW`
 - :attr:`~pyphi.conf.PyphiConfig.USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE`
