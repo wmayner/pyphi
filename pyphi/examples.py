@@ -21,6 +21,31 @@ from .utils import all_states
 LABELS = string.ascii_uppercase
 
 
+# TODO(relations): add docstring
+def PQR_network():
+    tpm = np.array([
+        [0, 0, 0],
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 0, 0],
+        [1, 1, 0],
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 0],
+    ])
+    cm = np.array([
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 1, 0],
+    ])
+    return Network(tpm, cm=cm, node_labels=['P', 'Q', 'R'])
+
+
+# TODO(relations): add docstring
+def PQR():
+    return Subsystem(PQR_network(), (1, 0, 0))
+
+
 def basic_network(cm=False):
     """A 3-node network of logic gates.
 
