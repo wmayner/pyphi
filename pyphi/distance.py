@@ -248,6 +248,32 @@ def klm(p, q):
     return np.max(np.abs(p * np.nan_to_num(np.log2(p / q))))
 
 
+# TODO add reference to ID paper
+@measures.register("ID", asymmetric=True)
+@np_suppress()
+def intrinsic_difference(p, q):
+    """Compute the intrinsic difference (ID) between two distributions.
+
+    This is defined as
+
+    .. math::
+        \\max_i \\left\{
+            p_i \log_2 \left( \\frac{p_i}{q_i} \\right)
+        \\right\}
+
+    where we define :math:`p_i \log_2 \left( \\frac{p_i}{q_i} \\right)` to be
+    :math:`0` when :math:`p_i = 0` or :math:`q_i = 0`.
+
+    Args:
+        p (float): The first probability distribution.
+        q (float): The second probability distribution.
+
+    Returns:
+        float: The intrinsic difference.
+    """
+    return np.max(p * np.nan_to_num(np.log2(p / q)))
+
+
 def directional_emd(direction, d1, d2):
     """Compute the EMD between two repertoires for a given direction.
 
