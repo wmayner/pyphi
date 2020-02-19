@@ -408,7 +408,19 @@ class PyphiConfig(Config):
 
     If the measure is asymmetric you should register it using the
     ``asymmetric`` keyword argument. See :mod:`~pyphi.distance` for examples.
-    """)
+    """,
+    )
+
+    ACTUAL_CAUSATION_MEASURE = Option(
+        "PMI",
+        doc="""
+    The measure to use when computing the pointwise information between state
+    probabilities in the actual causation module.
+
+    See documentation for ``config.MEASURE`` for more information on
+    configuring measures.
+    """,
+    )
 
     PARALLEL_CONCEPT_EVALUATION = Option(False, doc="""
     Controls whether concepts are evaluated in parallel when computing

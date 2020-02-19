@@ -7,6 +7,7 @@ Functions for measuring distances.
 """
 
 from contextlib import ContextDecorator
+from math import log2
 
 import numpy as np
 from pyemd import emd
@@ -16,6 +17,7 @@ from scipy.stats import entropy
 from . import Direction, config, constants, utils, validate
 from .distribution import flatten, marginal_zero
 from .registry import Registry
+
 
 # Load precomputed hamming matrices.
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
@@ -34,6 +36,9 @@ class MeasureRegistry(Registry):
         ...    return 0
 
     And use them by setting ``config.MEASURE = 'ALWAYS_ZERO'``.
+
+    For actual causation calculations, use
+    ``config.ACTUAL_CAUSATION_MEASURE``.
     """
     # pylint: disable=arguments-differ
 
@@ -77,6 +82,10 @@ class np_suppress(np.errstate, ContextDecorator):
     """
     def __init__(self):
         super().__init__(divide='ignore', invalid='ignore')
+
+
+# Integrated information theory measures
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 # TODO extend to nonbinary nodes
@@ -302,3 +311,74 @@ def system_repertoire_distance(r1, r2):
             'irreducibility measure.'.format(config.MEASURE))
 
     return measures[config.MEASURE](r1, r2)
+
+
+# Actual causation measures
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+@measures.register("PMI", asymmetric=True)
+def pointwise_mutual_information(p, q):
+    """Compute the pointwise mutual information (PMI).
+
+    This is defined as
+
+    .. math::
+        \\log_2\\left(\\frac{p}{q}\\right)
+
+    when :math:`p \\neq 0` and :math:`q \\neq 0`, and :math:`0` otherwise.
+
+    Args:
+        p (float): The first probability.
+        q (float): The second probability.
+
+    Returns:
+        float: the pointwise mutual information.
+    """
+    if p == 0.0 or q == 0.0:
+        return 0.0
+    return log2(p / q)
+
+
+@measures.register("WPMI", asymmetric=True)
+def weighted_pointwise_mutual_information(p, q):
+    """Compute the weighted pointwise mutual information (WPMI).
+
+    This is defined as
+
+    .. math::
+        p \\log_2\\left(\\frac{p}{q}\\right)
+
+    when :math:`p \\neq 0` and :math:`q \\neq 0`, and :math:`0` otherwise.
+
+    Args:
+        p (float): The first probability.
+        q (float): The second probability.
+
+    Returns:
+        float: The weighted pointwise mutual information.
+    """
+    return p * pointwise_mutual_information(p, q)
+
+
+def probability_distance(p, q, measure=None):
+    """Compute the distance between two probabilities in actual causation.
+
+    The metric that defines this can be configured with
+    ``config.ACTUAL_CAUSATION_MEASURE``.
+
+    Args:
+        p (float): The first probability.
+        q (float): The second probability.
+
+    Keyword Args:
+        measure (str): Optionally override
+            ``config.ACTUAL_CAUSATION_MEASURE`` with another measure name
+            from the registry.
+
+    Returns:
+        float: The probability distance between ``p`` and ``q``.
+    """
+    measure = config.ACTUAL_CAUSATION_MEASURE if measure is None else measure
+    dist = measures[measure](p, q)
+    return round(dist, config.PRECISION)
