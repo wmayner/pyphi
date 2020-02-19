@@ -317,7 +317,7 @@ class Transition:
     # =========================================================================
 
     # TODO: alias to `irreducible_cause/effect ratio?
-    def find_mip(self, direction, mechanism, purview, allow_neg=False):
+    def find_mip(self, direction, mechanism, purview, allow_neg=False, ID=False):
         """Find the ratio minimum information partition for a mechanism
         over a purview.
 
@@ -345,6 +345,9 @@ class Transition:
             partitioned_probability = self.partitioned_probability(
                 direction, partition)
             alpha = log2(probability / partitioned_probability)
+
+            if ID:
+                alpha = alpha * probability
 
             # First check for 0
             # Default: don't count contrary causes and effects
@@ -392,7 +395,7 @@ class Transition:
     # TODO: Implement mice cache
     # @cache.method('_mice_cache')
     def find_causal_link(self, direction, mechanism, purviews=False,
-                         allow_neg=False):
+                         allow_neg=False, ID=False):
         """Return the maximally irreducible cause or effect ratio for a
         mechanism.
 
@@ -420,7 +423,7 @@ class Transition:
             return CausalLink(max_ria)
 
         # Finds rias with maximum alpha
-        all_ria = [self.find_mip(direction, mechanism, purview, allow_neg=allow_neg)
+        all_ria = [self.find_mip(direction, mechanism, purview, allow_neg=allow_neg, ID=ID)
                    for purview in purviews]
         max_ria = max(all_ria)
         purviews = [ria.purview for ria in all_ria if ria.alpha == max_ria.alpha]
@@ -451,21 +454,21 @@ class Transition:
 
 
 def directed_account(transition, direction, mechanisms=False, purviews=False,
-                     allow_neg=False):
+                     allow_neg=False, ID=False):
     """Return the set of all |CausalLinks| of the specified direction."""
     if mechanisms is False:
         mechanisms = utils.powerset(transition.mechanism_indices(direction),
                                     nonempty=True)
     links = [
         transition.find_causal_link(direction, mechanism, purviews=purviews,
-                                    allow_neg=allow_neg)
+                                    allow_neg=allow_neg, ID=ID)
         for mechanism in mechanisms]
 
     # Filter out causal links with zero alpha
     return DirectedAccount(filter(None, links))
 
 
-def account(transition, direction=Direction.BIDIRECTIONAL):
+def account(transition, direction=Direction.BIDIRECTIONAL, ID=False):
     """Return the set of all causal links for a |Transition|.
 
     Args:
@@ -476,10 +479,10 @@ def account(transition, direction=Direction.BIDIRECTIONAL):
             and actual effects.
     """
     if direction != Direction.BIDIRECTIONAL:
-        return directed_account(transition, direction)
+        return directed_account(transition, direction, ID=ID)
 
-    return Account(directed_account(transition, Direction.CAUSE) +
-                   directed_account(transition, Direction.EFFECT))
+    return Account(directed_account(transition, Direction.CAUSE, ID=ID) +
+                   directed_account(transition, Direction.EFFECT, ID = ID))
 
 
 # =============================================================================
