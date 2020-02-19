@@ -174,7 +174,7 @@ def l1(d1, d2):
     Returns:
         float: The sum of absolute differences of ``d1`` and ``d2``.
     """
-    return np.absolute(d1 - d2).sum()
+    return np.abs(d1 - d2).sum()
 
 
 @measures.register('KLD', asymmetric=True)
@@ -211,7 +211,7 @@ def psq2(d1, d2):
     d1, d2 = flatten(d1), flatten(d2)
 
     def f(p):
-        return sum((p ** 2) * np.nan_to_num(np.log2(p * len(p))))
+        return np.sum((p ** 2) * np.nan_to_num(np.log2(p * len(p))))
 
     return abs(f(d1) - f(d2))
 
@@ -227,7 +227,7 @@ def mp2q(p, q):
     """
     p, q = flatten(p), flatten(q)
     entropy_dist = 1 / len(p)
-    return sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log2(p / q)))
+    return np.sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log2(p / q)))
 
 
 @measures.register('KLM', asymmetric=True)
@@ -236,7 +236,7 @@ def mp2q(p, q):
 def klm(p, q):
     """Compute the KLM divergence."""
     p, q = flatten(p), flatten(q)
-    return max(abs(p * np.nan_to_num(np.log2(p / q))))
+    return np.max(np.abs(p * np.nan_to_num(np.log2(p / q))))
 
 
 def directional_emd(direction, d1, d2):
