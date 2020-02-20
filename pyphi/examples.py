@@ -23,6 +23,7 @@ LABELS = string.ascii_uppercase
 
 # TODO(relations): add docstring
 def PQR_network():
+    # fmt: off
     tpm = np.array([
         [0, 0, 0],
         [0, 0, 1],
@@ -38,6 +39,7 @@ def PQR_network():
         [1, 0, 1],
         [1, 1, 0],
     ])
+    # fmt: on
     return Network(tpm, cm=cm, node_labels=['P', 'Q', 'R'])
 
 
@@ -103,6 +105,7 @@ def basic_network(cm=False):
         |i| to node |j| and |CM[i][j] = 0| means there is no edge from |i| to
         |j|.
     """
+    # fmt: off
     tpm = np.array([
         [0, 0, 0],
         [0, 0, 1],
@@ -111,14 +114,15 @@ def basic_network(cm=False):
         [1, 1, 0],
         [1, 1, 1],
         [1, 1, 1],
-        [1, 1, 0]
+        [1, 1, 0],
     ])
     if cm is False:
         cm = np.array([
             [0, 0, 1],
             [1, 0, 1],
-            [1, 1, 0]
+            [1, 1, 0],
         ])
+    # fmt: on
     else:
         cm = None
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
@@ -163,6 +167,7 @@ def basic_noisy_selfloop_network():
       +~~~+                    +~~~+
 
     """
+    # fmt: off
     tpm = np.array([
         [0.271, 0.19, 0.244],
         [0.919, 0.19, 0.756],
@@ -171,15 +176,14 @@ def basic_noisy_selfloop_network():
         [0.919, 0.91, 0.756],
         [0.991, 0.91, 0.244],
         [0.991, 0.99, 0.244],
-        [0.999, 0.99, 0.756]
+        [0.999, 0.99, 0.756],
     ])
-
     cm = np.array([
         [1, 0, 1],
         [1, 1, 1],
-        [1, 1, 1]
+        [1, 1, 1],
     ])
-
+    # fmt: on
     return Network(tpm, cm=cm)
 
 
@@ -280,6 +284,7 @@ def xor_network():
     | C | 1 | 1 | 0 |
     +---+---+---+---+
     """
+    # fmt: off
     tpm = np.array([
         [0, 0, 0],
         [0, 1, 1],
@@ -288,13 +293,14 @@ def xor_network():
         [1, 1, 0],
         [1, 0, 1],
         [0, 1, 1],
-        [0, 0, 0]
+        [0, 0, 0],
     ])
     cm = np.array([
         [0, 1, 1],
         [1, 0, 1],
-        [1, 1, 0]
+        [1, 1, 0],
     ])
+    # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
@@ -343,12 +349,14 @@ def cond_depend_tpm():
     | B | 1 | 0 |
     +---+---+---+
     """
+    # fmt: off
     tpm = np.array([
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 0.5, 0.5, 0.0],
         [0.0, 0.5, 0.5, 0.0],
-        [0.0, 0.0, 0.0, 1.0]
+        [0.0, 0.0, 0.0, 1.0],
     ])
+    # fmt: on
     return tpm
 
 
@@ -404,6 +412,7 @@ def cond_independ_tpm():
     | C | 1 | 1 | 0 |
     +---+---+---+---+
     """
+    # fmt: off
     tpm = np.array([
         [0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0],
         [0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0],
@@ -412,8 +421,9 @@ def cond_independ_tpm():
         [0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0],
         [0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0],
         [0.0, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5]
+        [0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5],
     ])
+    # fmt: on
     return tpm
 
 
@@ -508,15 +518,19 @@ def propagation_delay_network():
             current_state[7] = 1
         tpm[previous_state_index, :] = current_state
 
-    cm = np.array([[0, 1, 0, 0, 0, 0, 0, 0, 1],
-                   [0, 0, 0, 1, 0, 0, 0, 0, 0],
-                   [1, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 1, 0, 1, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 1, 0, 0],
-                   [0, 0, 0, 1, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 1, 0, 1, 0],
-                   [1, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 1, 0, 0]])
+    # fmt: off
+    cm = np.array([
+        [0, 1, 0, 0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 1, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],
+    ])
+    # fmt: on
 
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
@@ -525,22 +539,26 @@ def macro_network():
     """A network of micro elements which has greater integrated information
     after coarse graining to a macro scale.
     """
-    tpm = np.array([[0.3, 0.3, 0.3, 0.3],
-                    [0.3, 0.3, 0.3, 0.3],
-                    [0.3, 0.3, 0.3, 0.3],
-                    [0.3, 0.3, 1.0, 1.0],
-                    [0.3, 0.3, 0.3, 0.3],
-                    [0.3, 0.3, 0.3, 0.3],
-                    [0.3, 0.3, 0.3, 0.3],
-                    [0.3, 0.3, 1.0, 1.0],
-                    [0.3, 0.3, 0.3, 0.3],
-                    [0.3, 0.3, 0.3, 0.3],
-                    [0.3, 0.3, 0.3, 0.3],
-                    [0.3, 0.3, 1.0, 1.0],
-                    [1.0, 1.0, 0.3, 0.3],
-                    [1.0, 1.0, 0.3, 0.3],
-                    [1.0, 1.0, 0.3, 0.3],
-                    [1.0, 1.0, 1.0, 1.0]])
+    # fmt: off
+    tpm = np.array([
+        [0.3, 0.3, 0.3, 0.3],
+        [0.3, 0.3, 0.3, 0.3],
+        [0.3, 0.3, 0.3, 0.3],
+        [0.3, 0.3, 1.0, 1.0],
+        [0.3, 0.3, 0.3, 0.3],
+        [0.3, 0.3, 0.3, 0.3],
+        [0.3, 0.3, 0.3, 0.3],
+        [0.3, 0.3, 1.0, 1.0],
+        [0.3, 0.3, 0.3, 0.3],
+        [0.3, 0.3, 0.3, 0.3],
+        [0.3, 0.3, 0.3, 0.3],
+        [0.3, 0.3, 1.0, 1.0],
+        [1.0, 1.0, 0.3, 0.3],
+        [1.0, 1.0, 0.3, 0.3],
+        [1.0, 1.0, 0.3, 0.3],
+        [1.0, 1.0, 1.0, 1.0],
+    ])
+    # fmt: on
     return Network(tpm, node_labels=LABELS[:tpm.shape[1]])
 
 
@@ -616,14 +634,16 @@ def blackbox_network():
             current_state[5] = 1
         tpm[index, :] = current_state
 
+    # fmt: off
     cm = np.array([
         [0, 0, 1, 0, 0, 0],
         [0, 0, 1, 0, 0, 0],
         [0, 0, 0, 1, 1, 0],
         [0, 0, 0, 0, 0, 1],
         [0, 0, 0, 0, 0, 1],
-        [1, 1, 0, 0, 0, 0]
+        [1, 1, 0, 0, 0, 0],
     ])
+    # fmt: on
 
     return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
 
@@ -632,14 +652,18 @@ def rule110_network():
     """A network of three elements which follows the logic of the Rule 110
     cellular automaton with current and previous state (0, 0, 0).
     """
-    tpm = np.array([[0, 0, 0],
-                    [1, 0, 1],
-                    [1, 1, 0],
-                    [1, 1, 1],
-                    [0, 1, 1],
-                    [1, 1, 1],
-                    [1, 1, 1],
-                    [0, 0, 0]])
+    # fmt: off
+    tpm = np.array([
+        [0, 0, 0],
+        [1, 0, 1],
+        [1, 1, 0],
+        [1, 1, 1],
+        [0, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1],
+        [0, 0, 0],
+    ])
+    # fmt: on
     return Network(tpm, node_labels=LABELS[:tpm.shape[1]])
 
 
@@ -647,6 +671,7 @@ def rule154_network():
     """A network of three elements which follows the logic of the Rule 154
     cellular automaton.
     """
+    # fmt: off
     tpm = np.array([
         [0, 0, 0, 0, 0],
         [0, 1, 0, 0, 1],
@@ -679,20 +704,22 @@ def rule154_network():
         [1, 1, 1, 1, 0],
         [0, 0, 1, 1, 1],
         [0, 1, 1, 1, 0],
-        [1, 1, 1, 1, 1]
+        [1, 1, 1, 1, 1],
     ])
     cm = np.array([
         [1, 1, 0, 0, 1],
         [1, 1, 1, 0, 0],
         [0, 1, 1, 1, 0],
         [0, 0, 1, 1, 1],
-        [1, 0, 0, 1, 1]
+        [1, 0, 0, 1, 1],
     ])
+    # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
 def fig1a():
     """The network shown in Figure 1A of the 2014 IIT 3.0 paper."""
+    # fmt: off
     tpm = np.array([
         [0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0],
@@ -757,7 +784,7 @@ def fig1a():
         [1, 0, 0, 0, 0, 0],
         [1, 1, 1, 0, 0, 0],
         [1, 0, 1, 0, 1, 0],
-        [1, 1, 0, 0, 1, 0]
+        [1, 1, 0, 0, 1, 0],
     ])
     cm = np.array([
         [0, 1, 1, 0, 0, 0],
@@ -765,13 +792,15 @@ def fig1a():
         [1, 1, 0, 0, 0, 0],
         [1, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0]
+        [0, 0, 0, 0, 0, 0],
     ])
+    # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
 def fig3a():
     """The network shown in Figure 3A of the 2014 IIT 3.0 paper."""
+    # fmt: off
     tpm = np.array([
         [0.5, 0, 0, 0],
         [0.5, 0, 0, 0],
@@ -788,19 +817,21 @@ def fig3a():
         [0.5, 0, 0, 0],
         [0.5, 0, 0, 0],
         [0.5, 0, 0, 0],
-        [0.5, 0, 0, 0]
+        [0.5, 0, 0, 0],
     ])
     cm = np.array([
         [0, 0, 0, 0],
         [1, 0, 0, 0],
         [1, 0, 0, 0],
-        [1, 0, 0, 0]
+        [1, 0, 0, 0],
     ])
+    # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
 def fig3b():
     """The network shown in Figure 3B of the 2014 IIT 3.0 paper."""
+    # fmt: off
     tpm = np.array([
         [0, 0, 0, 0],
         [0, 0, 0, 0],
@@ -817,14 +848,15 @@ def fig3b():
         [0, 0, 0, 0],
         [0, 0, 0, 0],
         [1, 0, 0, 0],
-        [1, 0, 0, 0]
+        [1, 0, 0, 0],
     ])
     cm = np.array([
         [0, 0, 0, 0],
         [1, 0, 0, 0],
         [1, 0, 0, 0],
-        [1, 0, 0, 0]
+        [1, 0, 0, 0],
     ])
+    # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
@@ -845,6 +877,7 @@ def fig4():
         +~~~~~~~+       +~~~~~~~+
 
     """
+    # fmt: off
     tpm = np.array([
         [0, 0, 0],
         [0, 0, 1],
@@ -853,13 +886,14 @@ def fig4():
         [1, 0, 0],
         [1, 1, 1],
         [1, 0, 1],
-        [1, 1, 0]
+        [1, 1, 0],
     ])
     cm = np.array([
         [0, 1, 1],
         [1, 0, 1],
         [1, 1, 0],
     ])
+    # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
@@ -879,6 +913,7 @@ def fig5a():
         +~~~~~~~~+       +~~~~~~~~+
 
     """
+    # fmt: off
     tpm = np.array([
         [0, 0, 0],
         [0, 0, 0],
@@ -887,13 +922,14 @@ def fig5a():
         [0, 1, 0],
         [0, 1, 0],
         [1, 1, 1],
-        [1, 1, 1]
+        [1, 1, 1],
     ])
     cm = np.array([
         [0, 0, 0],
         [1, 0, 1],
-        [1, 1, 0]
+        [1, 1, 0],
     ])
+    # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
@@ -913,6 +949,7 @@ def fig5b():
         +~~~~~~~~+       +~~~~~~~~+
 
     """
+    # fmt: off
     tpm = np.array([
         [1, 0, 0],
         [1, 1, 1],
@@ -921,13 +958,14 @@ def fig5b():
         [1, 1, 0],
         [1, 1, 1],
         [1, 1, 1],
-        [1, 1, 1]
+        [1, 1, 1],
     ])
     cm = np.array([
         [0, 1, 1],
         [0, 0, 1],
-        [0, 1, 0]
+        [0, 1, 0],
     ])
+    # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
@@ -940,6 +978,7 @@ fig14 = fig1a
 
 def fig16():
     """The network shown in Figure 5B of the 2014 IIT 3.0 paper."""
+    # fmt: off
     tpm = np.array([
         [0, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 1, 0, 0],
@@ -1068,7 +1107,7 @@ def fig16():
         [1, 0, 0, 1, 1, 1, 1],
         [1, 1, 1, 1, 1, 1, 1],
         [1, 0, 1, 1, 1, 1, 1],
-        [1, 1, 0, 1, 1, 1, 1]
+        [1, 1, 0, 1, 1, 1, 1],
     ])
     cm = np.array([
         [0, 1, 1, 0, 1, 0, 0],
@@ -1077,8 +1116,9 @@ def fig16():
         [0, 1, 0, 1, 1, 0, 0],
         [0, 0, 0, 1, 1, 0, 0],
         [0, 0, 0, 0, 0, 1, 1],
-        [0, 0, 0, 0, 0, 1, 1]
+        [0, 0, 0, 0, 0, 1, 1],
     ])
+    # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
@@ -1089,16 +1129,18 @@ def actual_causation():
     """The actual causation example network, consisting of an ``OR`` and
     ``AND`` gate with self-loops.
     """
+    # fmt: off
     tpm = np.array([
         [1, 0, 0, 0],
         [0, 1, 0, 0],
         [0, 1, 0, 0],
-        [0, 0, 0, 1]
+        [0, 0, 0, 1],
     ])
     cm = np.array([
         [1, 1],
-        [1, 1]
+        [1, 1],
     ])
+    # fmt: on
     return Network(tpm, cm, node_labels=('OR', 'AND'))
 
 
@@ -1108,6 +1150,7 @@ def disjunction_conjunction_network():
     A network of four elements, one output ``D`` with three inputs ``A B C``.
     The output turns ON if ``A`` AND ``B`` are ON or if ``C`` is ON.
     """
+    # fmt: off
     tpm = np.array([
         [0, 0, 0, 0],
         [0, 0, 0, 0],
@@ -1124,14 +1167,15 @@ def disjunction_conjunction_network():
         [0, 0, 0, 1],
         [0, 0, 0, 1],
         [0, 0, 0, 1],
-        [0, 0, 0, 1]
+        [0, 0, 0, 1],
     ])
     cm = np.array([
         [0, 0, 0, 1],
         [0, 0, 0, 1],
         [0, 0, 0, 1],
-        [0, 0, 0, 0]
+        [0, 0, 0, 0],
     ])
+    # fmt: on
     return Network(tpm, cm, node_labels=LABELS[:tpm.shape[1]])
 
 
@@ -1139,6 +1183,7 @@ def prevention():
     """The |Transition| for the prevention example from Actual Causation
     Figure 5D.
     """
+    # fmt: off
     tpm = np.array([
         [0.5, 0.5, 1],
         [0.5, 0.5, 0],
@@ -1147,13 +1192,14 @@ def prevention():
         [0.5, 0.5, 1],
         [0.5, 0.5, 0],
         [0.5, 0.5, 1],
-        [0.5, 0.5, 1]
+        [0.5, 0.5, 1],
     ])
     cm = np.array([
         [0, 0, 1],
         [0, 0, 1],
-        [0, 0, 0]
+        [0, 0, 0],
     ])
+    # fmt: on
     network = Network(tpm, cm, node_labels=['A', 'B', 'F'])
     x_state = (1, 1, 1)
     y_state = (1, 1, 1)
