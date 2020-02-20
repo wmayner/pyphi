@@ -33,12 +33,14 @@ def test_validate_tpm_nonbinary_nodes():
 
 
 def test_validate_tpm_conditional_independence():
+    # fmt: off
     tpm = np.array([
         [1, 0.0, 0.0, 0],
         [0, 0.5, 0.5, 0],
         [0, 0.5, 0.5, 0],
         [0, 0.0, 0.0, 1],
     ])
+    # fmt: on
     with pytest.raises(exceptions.ConditionallyDependentError):
         validate.conditionally_independent(tpm)
     with pytest.raises(exceptions.ConditionallyDependentError):
@@ -90,24 +92,7 @@ def test_validate_state_error(s):
 
 
 def test_validate_state_no_error_2():
-    tpm = np.array([
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-    ])
+    tpm = np.ones([16, 4])
     net = Network(tpm)
     # Globally impossible state.
     state = (1, 1, 0, 0)

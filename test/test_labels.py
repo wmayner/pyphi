@@ -22,9 +22,6 @@ def test_indices2labels(nl):
     assert nl.indices2labels((0, 1)) == ('A', 'B')
     assert nl.indices2labels((0, 2)) == ('A', 'C')
 
-    # assert network.indices2labels((0, 1)) == ('n0', 'n1')
-    # assert network.indices2labels((0, 2)) == ('n0', 'n2')
-
 
 def test_coerce_to_indices(nl):
     assert nl.coerce_to_indices(('B', 'A')) == (0, 1)

@@ -20,12 +20,14 @@ def macro_subsystem():
     tpm[11, 2:4] = 1
     tpm[15, 2:4] = 1
 
+    # fmt: off
     cm = np.array([
         [0, 0, 1, 1],
         [0, 0, 1, 1],
         [1, 1, 0, 0],
-        [1, 1, 0, 0]
+        [1, 1, 0, 0],
     ])
+    # fmt: on
 
     state = (0, 0, 0, 0)
 
@@ -91,12 +93,14 @@ answer_cm = np.ones((2, 2))
 
 
 def test_macro_subsystem(macro_subsystem):
+    # fmt: off
     answer_tpm = np.array([
         [0.09, 0.09],
-        [0.09, 1.],
-        [1., 0.09],
-        [1., 1.]
+        [0.09, 1.00],
+        [1.00, 0.09],
+        [1.00, 1.00],
     ])
+    # fmt: on
     assert np.array_equal(macro_subsystem.cm, answer_cm)
     assert np.allclose(macro_subsystem.tpm.reshape([4] + [2], order='f'),
                        answer_tpm,
@@ -106,12 +110,14 @@ def test_macro_subsystem(macro_subsystem):
 def test_macro_cut_subsystem(macro_subsystem):
     cut = pyphi.models.Cut((0,), (1, 2, 3))
     cut_subsystem = macro_subsystem.apply_cut(cut)
+    # fmt: off
     answer_tpm = np.array([
         [0.09, 0.20083333],
-        [0.09, 0.4225],
-        [1., 0.20083333],
-        [1., 0.4225]
+        [0.09, 0.4225    ],
+        [1.00, 0.20083333],
+        [1.00, 0.4225    ],
     ])
+    # fmt: on
     assert np.array_equal(cut_subsystem.cm, answer_cm)
     assert np.allclose(cut_subsystem.tpm.reshape([4] + [2], order='f'),
                        answer_tpm,
@@ -134,17 +140,20 @@ def test_sparse_blackbox():
 
 
 def test_dense_blackbox():
+    # fmt: off
     tpm_noise = np.array([
         [0.25, 0.25, 0.25, 0.25],
         [0.25, 0.25, 0.25, 0.25],
         [0.25, 0.25, 0.25, 0.25],
-        [0.25, 0.25, 0.25, 0.25]
+        [0.25, 0.25, 0.25, 0.25],
     ])
+    # fmt: on
     assert np.array_equal(timescale.dense_time(tpm_noise, 2), tpm_noise)
     assert np.array_equal(timescale.dense_time(tpm_noise, 3), tpm_noise)
 
 
 def test_cycle_blackbox():
+    # fmt: off
     tpm = sbn2sbs(np.array([
         [0, 0, 0],
         [0, 1, 0],
@@ -153,9 +162,8 @@ def test_cycle_blackbox():
         [1, 0, 0],
         [1, 1, 0],
         [1, 0, 1],
-        [1, 1, 1]
+        [1, 1, 1],
     ]))
-
     # TPM over 2 timesteps
     tpm2 = sbn2sbs(np.array([
         [0, 0, 0],
@@ -165,9 +173,8 @@ def test_cycle_blackbox():
         [0, 1, 0],
         [0, 1, 1],
         [1, 1, 0],
-        [1, 1, 1]
+        [1, 1, 1],
     ]))
-
     # TPM over 3 timesteps
     tpm3 = sbn2sbs(np.array([
         [0, 0, 0],
@@ -177,8 +184,9 @@ def test_cycle_blackbox():
         [0, 0, 1],
         [1, 0, 1],
         [0, 1, 1],
-        [1, 1, 1]
+        [1, 1, 1],
     ]))
+    # fmt: on
 
     assert np.array_equal(timescale.sparse_time(tpm, 2), tpm2)
     assert np.array_equal(timescale.sparse_time(tpm, 3), tpm3)
@@ -187,6 +195,7 @@ def test_cycle_blackbox():
 
 
 def test_run_tpm():
+    # fmt: off
     tpm = sbs2sbn(np.array([
         [0, 1],
         [1, 0],
@@ -195,8 +204,10 @@ def test_run_tpm():
         [1, 0],
         [0, 1],
     ]))
+    # fmt: on
     assert np.array_equal(timescale.run_tpm(tpm, 2), answer)
 
+    # fmt: off
     tpm = np.array([
         [0, 0, 0],
         [0, 0, 1],
@@ -217,6 +228,7 @@ def test_run_tpm():
         [1, 1, 0],
         [1, 0, 0],
     ]))
+    # fmt: on
     assert np.array_equal(timescale.run_tpm(tpm, 2), answer)
 
 
@@ -273,11 +285,14 @@ def test_coarse_grain(s):
                                      grouping=((((0, 1), (2,)), ((0,), (1,)))))
     ms = macro.MacroSubsystem(s.network, s.state, s.node_indices,
                               coarse_grain=coarse_grain)
+    # fmt: off
     answer_tpm = np.array(
-        [[[0, 0.66666667],
-          [1, 0.66666667]],
-         [[0, 0],
-          [1, 0]]])
+        [[[0., 0.66666667],
+          [1., 0.66666667]],
+         [[0., 0.        ],
+          [1., 0.        ]],
+    ])
+    # fmt: on
     assert np.allclose(ms.tpm, answer_tpm)
     assert np.array_equal(ms.cm, np.ones((2, 2)))
     assert ms.node_indices == (0, 1)
@@ -310,6 +325,7 @@ def test_blackbox_and_coarse_grain_external():
     coarse_grain = macro.CoarseGrain(partition, grouping)
     ms = macro.MacroSubsystem(network, state, (1, 2, 3, 4, 5),
                               blackbox=blackbox, coarse_grain=coarse_grain)
+    # fmt: off
     answer_tpm = np.array(
         [[[[0, 1, 0],
            [0, 1, 0]],
@@ -318,7 +334,9 @@ def test_blackbox_and_coarse_grain_external():
          [[[0, 1, 0],
            [0, 1, 0]],
           [[0, 1, 0],
-           [0, 1, 0]]]])
+           [0, 1, 0]]],
+    ])
+    # fmt: on
     assert np.array_equal(ms.tpm, answer_tpm)
     assert np.array_equal(ms.cm, np.ones((3, 3)))
     assert ms.node_indices == (0, 1, 2)
@@ -388,33 +406,34 @@ def test_blackbox_partial_noise(s):
                                             macro.SystemAttrs.pack(s))
 
     # Noise connection from 2 -> 0
-    assert np.array_equal(
-        noised.tpm,
-        convert.to_multidimensional(np.array([
-            [.5, 0, 0],
-            [.5, 0, 1],
-            [1., 0, 1],
-            [1., 0, 0],
-            [.5, 1, 0],
-            [.5, 1, 1],
-            [1., 1, 1],
-            [1., 1, 0],
-        ])))
+    # fmt: off
+    answer = convert.to_multidimensional(np.array([
+        [.5, 0, 0],
+        [.5, 0, 1],
+        [1., 0, 1],
+        [1., 0, 0],
+        [.5, 1, 0],
+        [.5, 1, 1],
+        [1., 1, 1],
+        [1., 1, 0],
+    ]))
+    # fmt: on
+    assert np.array_equal(noised.tpm, answer)
 
     # No change
-    assert np.array_equal(
-        noised.cm,
-        np.array([
-            [0, 0, 1],
-            [1, 0, 1],
-            [1, 1, 0]
-        ]))
+    answer = np.array([
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 1, 0],
+    ])
+    assert np.array_equal(noised.cm, answer)
 
 
 @pytest.mark.xfail
 def test_blackbox_timescale():
     # System is an OR gate and a COPY gate; the OR gate is connected with a
     # self loop.
+    # fmt: off
     tpm = convert.to_multidimensional(np.array([
         [0, 0],
         [1, 1],
@@ -425,6 +444,7 @@ def test_blackbox_timescale():
         [1, 1],
         [1, 0],
     ])
+    # fmt: on
     indices = (0, 1)
     blackbox = macro.Blackbox(((0,), (1,)), (0, 1))
     steps = 2
@@ -433,19 +453,23 @@ def test_blackbox_timescale():
     system = macro.SystemAttrs(tpm, cm, indices, state)
 
     result = macro.run_tpm(system, steps, blackbox)
+    # fmt: off
     answer = convert.state_by_state2state_by_node(np.array([
         [1, 3, 1, 3],
         [0, 4, 0, 4],
         [1, 3, 1, 3],
         [0, 4, 0, 4],
     ]) / 8)
+    # fmt: on
     np.testing.assert_array_equal(result, answer)
 
     result = macro.run_tpm(system, steps, blackbox)
+    # fmt: off
     answer = convert.state_by_state2state_by_node(np.array([
         [1, 1, 1, 1],
         [0, 2, 0, 2],
         [1, 1, 1, 1],
         [0, 2, 0, 2],
     ]) / 4)
+    # fmt: on
     np.testing.assert_array_equal(result, answer)

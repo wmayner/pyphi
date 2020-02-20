@@ -9,18 +9,26 @@ from pyphi.subsystem import Subsystem
 
 
 def test_node_init_tpm(s):
+    # fmt: off
     answer = [
-        np.array([[[[1, 0],
-                    [0, 1]],
-                   [[0, 1],
-                    [0, 1]]]]),
-        np.array([[[[1, 0],
-                    [0, 1]]]]),
-        np.array([[[[1, 0]],
-                   [[0, 1]]],
-                  [[[0, 1]],
-                   [[1, 0]]]])
+        np.array([
+            [[[1, 0],
+              [0, 1]],
+             [[0, 1],
+              [0, 1]]],
+        ]),
+        np.array([
+            [[[1, 0],
+              [0, 1]]],
+        ]),
+        np.array([
+            [[[1, 0]],
+              [[0, 1]]],
+             [[[0, 1]],
+               [[1, 0]]],
+        ]),
     ]
+    # fmt: on
     for node in s.nodes:
         assert np.array_equal(node.tpm, answer[node.index])
 
@@ -57,47 +65,55 @@ def test_str(s):
 
 
 def test_expand_tpm():
+    # fmt: off
     tpm = np.array([
-        [[0, 1]]
+        [[0, 1]],
     ])
     answer = np.array([
         [[0, 1],
          [0, 1]],
         [[0, 1],
-         [0, 1]]
+         [0, 1]],
     ])
+    # fmt: on
     assert np.array_equal(expand_node_tpm(tpm), answer)
 
 
 def test_generate_nodes(s):
     nodes = generate_nodes(s.tpm, s.cm, s.state, s.node_indices, s.node_labels)
 
+    # fmt: off
     node0_tpm = np.array([
         [[[1, 0],
           [0, 1]],
          [[0, 1],
-          [0, 1]]]
+          [0, 1]]],
     ])
+    # fmt: on
     assert np.array_equal(nodes[0].tpm, node0_tpm)
     assert nodes[0].inputs == set([1, 2])
     assert nodes[0].outputs == set([2])
     assert nodes[0].label == 'A'
 
+    # fmt: off
     node1_tpm = np.array([
         [[[1, 0],
-          [0, 1]]]
+          [0, 1]]],
     ])
+    # fmt: on
     assert np.array_equal(nodes[1].tpm, node1_tpm)
     assert nodes[1].inputs == set([2])
     assert nodes[1].outputs == set([0, 2])
     assert nodes[1].label == 'B'
 
+    # fmt: off
     node2_tpm = np.array([
         [[[1, 0]],
          [[0, 1]]],
         [[[0, 1]],
          [[1, 0]]]
     ])
+    # fmt: on
     assert np.array_equal(nodes[2].tpm, node2_tpm)
     assert nodes[2].inputs == set([0, 1])
     assert nodes[2].outputs == set([0, 1])

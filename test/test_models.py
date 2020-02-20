@@ -259,19 +259,23 @@ def test_cut_indices():
 
 
 def test_apply_cut():
+    # fmt: off
     cm = np.array([
         [1, 0, 1, 0],
         [1, 1, 1, 1],
         [0, 1, 0, 1],
-        [1, 0, 1, 0]
+        [1, 0, 1, 0],
     ])
+    # fmt: on
     cut = models.Cut(from_nodes=(0, 3), to_nodes=(1, 2))
+    # fmt: off
     cut_cm = np.array([
         [1, 0, 0, 0],
         [1, 1, 1, 1],
         [0, 1, 0, 1],
-        [1, 0, 0, 0]
+        [1, 0, 0, 0],
     ])
+    # fmt: on
     assert np.array_equal(cut.apply_cut(cm), cut_cm)
 
 
@@ -418,19 +422,23 @@ def test_mice_repr_str():
 
 def test_relevant_connections(s, subsys_n1n2):
     m = mice(mechanism=(0,), purview=(1,), direction=Direction.CAUSE)
+    # fmt: off
     answer = np.array([
         [0, 0, 0],
         [1, 0, 0],
         [0, 0, 0],
     ])
+    # fmt: on
     assert np.array_equal(m._relevant_connections(s), answer)
 
     m = mice(mechanism=(1,), purview=(1, 2), direction=Direction.EFFECT)
+    # fmt: off
     answer = np.array([
         [0, 0, 0],
         [0, 1, 1],
         [0, 0, 0],
     ])
+    # fmt: on
     assert np.array_equal(m._relevant_connections(subsys_n1n2), answer)
 
 

@@ -25,14 +25,16 @@ def degenerate():
             cs[5] = 1
         tpm[psi, :] = cs
 
+    # fmt: off
     cm = np.array([
         [0, 0, 1, 0, 0, 0],
         [0, 0, 1, 0, 0, 0],
         [0, 0, 0, 1, 1, 0],
         [0, 0, 0, 0, 0, 1],
         [0, 0, 0, 0, 0, 1],
-        [1, 1, 0, 0, 0, 0]
+        [1, 1, 0, 0, 0, 0],
     ])
+    # fmt: on
 
     current_state = (0, 0, 0, 0, 0, 0)
 
@@ -83,6 +85,7 @@ def test_basic_nor_or():
             cs[11] = 1
         tpm[psi, :] = cs
 
+    # fmt: off
     cm = np.array([
         [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -97,6 +100,7 @@ def test_basic_nor_or():
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
     ])
+    # fmt: on
 
     state = (0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
@@ -151,6 +155,7 @@ def test_xor_propogation_delay():
             cs[7] = 1
         tpm[psi, :] = cs
 
+    # fmt: off
     cm = np.array([
         [0, 1, 0, 0, 0, 0, 0, 0, 1],
         [0, 0, 0, 1, 0, 0, 0, 0, 0],
@@ -160,8 +165,9 @@ def test_xor_propogation_delay():
         [0, 0, 0, 1, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 1, 0, 1, 0],
         [1, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 1, 0, 0]
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],
     ])
+    # fmt: on
 
     # The state of the system is all OFF
     state = (0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -212,14 +218,16 @@ def test_soup():
             cs[5] = 1
         tpm[psi, :] = cs
 
+    # fmt: off
     cm = np.array([
         [0, 0, 1, 0, 0, 0],
         [0, 0, 1, 0, 0, 0],
         [0, 0, 0, 1, 1, 0],
         [0, 1, 0, 0, 0, 1],
         [0, 0, 0, 0, 0, 1],
-        [1, 1, 0, 0, 0, 0]
+        [1, 1, 0, 0, 0, 0],
     ])
+    # fmt: on
 
     network = Network(tpm, cm)
 
@@ -279,14 +287,16 @@ def test_coarsegrain_spatial_degenerate():
             cs[1] = 1
         tpm[psi, :] = cs
 
+    # fmt: off
     cm = np.array([
         [0, 0, 1, 1, 0, 0],
         [0, 0, 1, 1, 0, 0],
         [0, 0, 0, 0, 1, 1],
         [0, 0, 0, 0, 1, 1],
         [1, 1, 0, 0, 0, 0],
-        [1, 1, 0, 0, 0, 0]
+        [1, 1, 0, 0, 0, 0],
     ])
+    # fmt: on
 
     state = (0, 0, 0, 0, 0, 0)
 
@@ -307,16 +317,22 @@ def test_coarsegrain_spatial_degenerate():
 
 
 def test_degenerate(degenerate):
-    assert np.array_equal(degenerate.tpm, convert.to_multidimensional(np.array([
+    # fmt: off
+    answer = convert.to_multidimensional(np.array([
         [0, 0],
         [0, 1],
         [1, 0],
-        [1, 1]
-    ])))
-    assert np.array_equal(degenerate.cm, np.array([
-        [0, 1],
-        [1, 0]
+        [1, 1],
     ]))
+    # fmt: on
+    assert np.array_equal(degenerate.tpm, answer)
+    # fmt: off
+    answer = np.array([
+        [0, 1],
+        [1, 0],
+    ])
+    # fmt: on
+    assert np.array_equal(degenerate.cm, answer)
     sia = compute.sia(degenerate)
     assert sia.phi == 0.638888
 

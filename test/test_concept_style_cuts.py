@@ -32,34 +32,48 @@ def test_cut_indices(kcut_cause, kcut_effect):
 
 def test_apply_cut(kcut_cause, kcut_effect):
     cm = np.ones((4, 4))
+    # fmt: off
     cut_cm = np.array([
         [1, 1, 1, 0],
         [1, 1, 1, 1],
         [0, 1, 0, 0],
-        [0, 1, 0, 1]])
+        [0, 1, 0, 1],
+    ])
+    # fmt: on
     assert np.array_equal(kcut_cause.apply_cut(cm), cut_cm)
 
     cm = np.ones((4, 4))
+    # fmt: off
     cut_cm = np.array([
         [1, 1, 0, 0],
         [1, 1, 1, 1],
         [1, 1, 0, 0],
-        [0, 1, 0, 1]])
+        [0, 1, 0, 1],
+    ])
+    # fmt: on
     assert np.array_equal(kcut_effect.apply_cut(cm), cut_cm)
 
 
 def test_cut_matrix(kcut_cause, kcut_effect):
-    assert np.array_equal(kcut_cause.cut_matrix(4), np.array([
+    # fmt: off
+    answer = np.array([
         [0, 0, 0, 1],
         [0, 0, 0, 0],
         [1, 0, 1, 1],
-        [1, 0, 1, 0]]))
+        [1, 0, 1, 0],
+    ])
+    # fmt: on
+    assert np.array_equal(kcut_cause.cut_matrix(4), answer)
 
-    assert np.array_equal(kcut_effect.cut_matrix(4), np.array([
+    # fmt: off
+    answer = np.array([
         [0, 0, 1, 1],
         [0, 0, 0, 0],
         [0, 0, 1, 1],
-        [1, 0, 1, 0]]))
+        [1, 0, 1, 0]
+    ])
+    # fmt: on
+    assert np.array_equal(kcut_effect.cut_matrix(4), answer)
 
 
 def test_splits_mechanism(kcut_cause):

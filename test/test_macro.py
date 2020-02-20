@@ -88,29 +88,33 @@ def test_make_mapping():
     grouping = (((0, 1), (2,)), ((0, 1), (2,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
     mapping = coarse_grain.make_mapping()
-    assert np.array_equal(mapping, np.array(
-        (0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 1., 2., 2., 2., 3.)))
+    answer = np.array([0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 1., 2., 2., 2., 3.])
+    assert np.array_equal(mapping, answer)
 
     partition = ((0, 1), (2,))
     grouping = (((0, 2), (1,)), ((0,), (1,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
     mapping = coarse_grain.make_mapping()
-    assert np.array_equal(mapping, np.array((0., 1., 1., 0., 2., 3., 3., 2.)))
+    assert np.array_equal(mapping, np.array([0., 1., 1., 0., 2., 3., 3., 2.]))
 
     partition = ((0, 1, 2),)
     grouping = (((0, 3), (1, 2)),)
     coarse_grain = macro.CoarseGrain(partition, grouping)
     mapping = coarse_grain.make_mapping()
-    assert np.array_equal(mapping, np.array((0., 1., 1., 1., 1., 1., 1., 0.)))
+    assert np.array_equal(mapping, np.array([0., 1., 1., 1., 1., 1., 1., 0.]))
 
 
 def test_make_macro_tpm():
-    answer_tpm = convert.state_by_state2state_by_node(np.array([
-        [0.375, 0.375, 0.125, 0.125],
-        [0.375, 0.375, 0.125, 0.125],
-        [0.375, 0.375, 0.125, 0.125],
-        [0.375, 0.375, 0.125, 0.125],
-    ]))
+    # fmt: off
+    answer_tpm = convert.state_by_state2state_by_node(
+        np.array([
+            [0.375, 0.375, 0.125, 0.125],
+            [0.375, 0.375, 0.125, 0.125],
+            [0.375, 0.375, 0.125, 0.125],
+            [0.375, 0.375, 0.125, 0.125],
+        ])
+    )
+    # fmt: on
     partition = ((0,), (1, 2))
     grouping = (((0,), (1,)), ((0, 1), (2,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
@@ -127,12 +131,14 @@ def test_make_macro_tpm():
 
 
 def test_make_macro_tpm_conditional_independence_check():
+    # fmt: off
     micro_tpm = np.array([
         [1, 0.0, 0.0, 0],
         [0, 0.5, 0.5, 0],
         [0, 0.5, 0.5, 0],
         [0, 0.0, 0.0, 1],
     ])
+    # fmt: on
     partition = ((0,), (1,))
     grouping = (((0,), (1,)), ((0,), (1,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
@@ -143,6 +149,7 @@ def test_make_macro_tpm_conditional_independence_check():
 
 # TODO: make a fixture for this conditionally dependent TPM
 def test_macro_tpm_sbs():
+    # fmt: off
     micro_tpm = np.array([
         [1, 0.0, 0.0, 0, 0, 0, 0, 0],
         [0, 0.5, 0.5, 0, 0, 0, 0, 0],
@@ -157,8 +164,9 @@ def test_macro_tpm_sbs():
         [1,   0,   0,   0  ],
         [0,   1/2, 1/2, 0  ],
         [1/3, 1/3, 1/3, 0  ],
-        [0,   1/6, 1/6, 2/3]
+        [0,   1/6, 1/6, 2/3],
     ])
+    # fmt: on
     partition = ((0,), (1, 2))
     grouping = (((0,), (1,)), ((0,), (1, 2,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
@@ -258,6 +266,7 @@ def test_blackbox_len(bb, cg_bb):
 
 
 def test_rebuild_system_tpm(s):
+    # fmt: off
     node0_tpm = np.array([
         [0, 1],
         [0, 0],
@@ -265,14 +274,17 @@ def test_rebuild_system_tpm(s):
     node1_tpm = np.array([
         [0, 1],  # Singleton first dimension
     ])
+    # fmt: on
     node_tpms = [node0_tpm, node1_tpm]
 
+    # fmt: off
     answer = np.array([
         [[0, 0],
          [1, 1]],
         [[0, 0],
-         [0, 1]]
+         [0, 1]],
     ])
+    # fmt: on
     assert np.array_equal(macro.rebuild_system_tpm(node_tpms), answer)
 
     node_tpms = [node.tpm_on for node in s.nodes]
@@ -281,29 +293,43 @@ def test_rebuild_system_tpm(s):
 
 def test_remove_singleton_dimensions():
     # Don't squeeze out last dimension of single-node tpm
-    tpm = np.array([[0], [1]])
+    # fmt: off
+    tpm = np.array([
+        [0], 
+        [1],
+    ])
+    # fmt: on
     assert macro.tpm_indices(tpm) == (0,)
     assert np.array_equal(macro.remove_singleton_dimensions(tpm), tpm)
 
+    # fmt: off
     tpm = np.array([
         [[[0.,  0.,  1.]],
          [[1.,  0.,  0.]]]])
+    answer = np.array([
+        [0], 
+        [0],
+    ])
+    # fmt: on
     assert macro.tpm_indices(tpm) == (1,)
-    assert np.array_equal(macro.remove_singleton_dimensions(tpm), np.array([
-        [0], [0]]))
+    assert np.array_equal(macro.remove_singleton_dimensions(tpm), answer)
 
+    # fmt: off
     tpm = np.array([
         [[[0., 0., 0.],
           [1., 1., 0.]]],
         [[[0., 0., 1.],
-          [1., 1., 1.]]]])
-    assert macro.tpm_indices(tpm) == (0, 2)
-    assert np.array_equal(macro.remove_singleton_dimensions(tpm), np.array([
+          [1., 1., 1.]]],
+    ])
+    answer = np.array([
         [[0., 0.],
          [1., 0.]],
         [[0., 1.],
-         [1., 1.]]]))
-
+         [1., 1.]],
+    ])
+    # fmt: on
+    assert macro.tpm_indices(tpm) == (0, 2)
+    assert np.array_equal(macro.remove_singleton_dimensions(tpm), answer)
 
 def test_pack_attrs(s):
     attrs = macro.SystemAttrs.pack(s)

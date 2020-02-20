@@ -27,12 +27,14 @@ def test_network_init_validation(network):
         Network(tpm)
 
     # Conditionally dependent
+    # fmt: off
     tpm = np.array([
             [1, 0.0, 0.0, 0],
             [0, 0.5, 0.5, 0],
             [0, 0.5, 0.5, 0],
             [0, 0.0, 0.0, 1],
     ])
+    # fmt: on
     with config.override(VALIDATE_CONDITIONAL_INDEPENDENCE=False):
         Network(tpm)
     with config.override(VALIDATE_CONDITIONAL_INDEPENDENCE=True):

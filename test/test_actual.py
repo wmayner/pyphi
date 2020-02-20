@@ -17,6 +17,7 @@ from pyphi.models import KPartition, Part
 @pytest.fixture
 def transition():
     """An OR gate with two inputs. The OR gate is ON, others are OFF."""
+    # fmt: off
     tpm = np.array([
         [0, 0.5, 0.5],
         [0, 0.5, 0.5],
@@ -25,13 +26,14 @@ def transition():
         [1, 0.5, 0.5],
         [1, 0.5, 0.5],
         [1, 0.5, 0.5],
-        [1, 0.5, 0.5]
+        [1, 0.5, 0.5],
     ])
     cm = np.array([
         [0, 0, 0],
         [1, 0, 0],
-        [1, 0, 0]
+        [1, 0, 0],
     ])
+    # fmt: on
     network = Network(tpm, cm)
     before_state = (0, 1, 1)
     after_state = (1, 0, 0)
@@ -59,12 +61,14 @@ def background_all_on():
     If we look at the transition A -> B, then B should be frozen at t-1, and
     A should have no effect on B.
     """
+    # fmt: off
     tpm = np.array([
         [0, 0],
         [1, 1],
         [1, 1],
-        [1, 1]
+        [1, 1],
     ])
+    # fmt: on
     network = Network(tpm)
     state = (1, 1)
     return actual.Transition(network, state, state, (0,), (1,))
@@ -73,12 +77,14 @@ def background_all_on():
 @pytest.fixture
 def background_all_off():
     """Two OR gates, both OFF."""
+    # fmt: off
     tpm = np.array([
         [0, 0],
         [1, 1],
         [1, 1],
-        [1, 1]
+        [1, 1],
     ])
+    # fmt: on
     network = Network(tpm)
     state = (0, 0)
     return actual.Transition(network, state, state, (0,), (1,))
@@ -95,12 +101,14 @@ def test_background_conditions(transition, direction, mechanism, purview,
 
 
 def test_background_noised():
+    # fmt: off
     tpm = np.array([
         [0, 0],
         [1, 1],
         [1, 1],
-        [1, 1]
+        [1, 1],
     ])
+    # fmt: on
     network = Network(tpm)
     state = (1, 1)
     transition = actual.Transition(network, state, state, (0,), (1,),
@@ -119,6 +127,7 @@ def test_background_noised():
 @pytest.fixture
 def background_3_node():
     """A is MAJ(ABC). B is OR(A, C). C is COPY(A)."""
+    # fmt: off
     tpm = np.array([
         [0, 0, 0],
         [0, 1, 1],
@@ -127,8 +136,9 @@ def background_3_node():
         [0, 1, 0],
         [1, 1, 1],
         [1, 1, 0],
-        [1, 1, 1]
+        [1, 1, 1],
     ])
+    # fmt: on
     return Network(tpm)
 
 
@@ -471,18 +481,26 @@ def test_actual_cut_indices():
 def test_actual_apply_cut():
     cut = ac_cut(Direction.CAUSE, Part((0,), (0, 2)), Part((2,), ()))
     cm = np.ones((3, 3))
-    assert np.array_equal(cut.apply_cut(cm), np.array([
+    # fmt: off
+    answer = np.array([
         [1, 1, 0],
         [1, 1, 1],
-        [1, 1, 0]]))
+        [1, 1, 0],
+    ])
+    # fmt: on
+    assert np.array_equal(cut.apply_cut(cm), answer)
 
 
 def test_actual_cut_matrix():
     cut = ac_cut(Direction.CAUSE, Part((0,), (0, 2)), Part((2,), ()))
-    assert np.array_equal(cut.cut_matrix(3), np.array([
+    # fmt: off
+    answer = np.array([
         [0, 0, 1],
         [0, 0, 0],
-        [0, 0, 1]]))
+        [0, 0, 1]
+    ])
+    # fmt: on
+    assert np.array_equal(cut.cut_matrix(3), answer)
 
 
 def ac_cut(direction, *parts):

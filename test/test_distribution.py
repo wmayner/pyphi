@@ -34,22 +34,28 @@ def test_purview_max_entropy_distribution():
 
 
 def test_marginal_zero():
+    # fmt: off
     repertoire = np.array([
         [[0., 0.],
          [0., 0.5]],
         [[0., 0.],
-         [0., 0.5]]])
+         [0., 0.5]],
+    ])
+    # fmt: on
     assert distribution.marginal_zero(repertoire, 0) == 0.5
     assert distribution.marginal_zero(repertoire, 1) == 0
     assert distribution.marginal_zero(repertoire, 2) == 0
 
 
 def test_marginal():
+    # fmt: off
     repertoire = np.array([
         [[0., 0.],
          [0., 0.5]],
         [[0., 0.],
-         [0., 0.5]]])
+         [0., 0.5]],
+    ])
+    # fmt: on
     assert np.array_equal(
         distribution.marginal(repertoire, 0), np.array([[[0.5]], [[0.5]]]))
     assert np.array_equal(
@@ -59,18 +65,24 @@ def test_marginal():
 
 
 def test_independent():
+    # fmt: off
     repertoire = np.array([
         [[0.25],
          [0.25]],
         [[0.25],
-         [0.25]]])
+         [0.25]],
+    ])
+    # fmt: on
     assert distribution.independent(repertoire)
 
+    # fmt: off
     repertoire = np.array([
         [[0.5],
          [0.0]],
         [[0.0],
-         [0.5]]])
+         [0.5]],
+    ])
+    # fmt: on
     assert not distribution.independent(repertoire)
 
 
@@ -102,9 +114,12 @@ def test_repertoire_shape():
 
 
 def test_flatten():
+    # fmt: off
     repertoire = np.array([
         [[0.1, 0.0]],
-        [[0.2, 0.7]]])
+        [[0.2, 0.7]],
+    ])
+    # fmt: on
 
     assert np.array_equal(distribution.flatten(repertoire),
                           [0.1, 0.2, 0.0, 0.7])

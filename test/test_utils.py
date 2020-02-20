@@ -40,10 +40,12 @@ def test_eq():
 def test_combs_for_1D_input():
     n, k = 3, 2
     data = np.arange(n)
-    assert np.array_equal(utils.combs(data, k),
-                          np.asarray([[0, 1],
-                                      [0, 2],
-                                      [1, 2]]))
+    answer = np.asarray([
+        [0, 1],
+        [0, 2],
+        [1, 2],
+    ])
+    assert np.array_equal(utils.combs(data, k), answer)
 
 
 def test_combs_r_is_0():
@@ -55,13 +57,17 @@ def test_combs_r_is_0():
 def test_comb_indices():
     n, k = 3, 2
     data = np.arange(6).reshape(2, 3)
-    assert np.array_equal(data[:, utils.comb_indices(n, k)],
-                          np.asarray([[[0, 1],
-                                       [0, 2],
-                                       [1, 2]],
-                                      [[3, 4],
-                                       [3, 5],
-                                       [4, 5]]]))
+    # fmt: off
+    answer = np.array([
+        [[0, 1],
+         [0, 2],
+         [1, 2]],
+        [[3, 4],
+         [3, 5],
+         [4, 5]],
+    ])
+    # fmt: on
+    assert np.array_equal(data[:, utils.comb_indices(n, k)], answer)
 
 
 def test_powerset():
