@@ -112,7 +112,10 @@ def test_default_asymmetric_measures():
         'KLD',
         'MP2Q',
         'KLM',
-        'BLD'])
+        'BLD',
+        'ID',
+        'PMI',
+        'WPMI'])
 
 
 def test_system_repertoire_distance_must_be_symmetric():
