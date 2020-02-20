@@ -6,4 +6,5 @@ readme_renderer
 watchdog
 pylint
 isort
+black
 git+https://github.com/wmayner/sphinx_rtd_theme.git
