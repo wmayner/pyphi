@@ -100,7 +100,11 @@ def test_default_measures():
         'PSQ2',
         'MP2Q',
         'KLM',
-        'BLD'])
+        'BLD',
+        'ID',
+        'PMI',
+        'WPMI',
+    ])
 
 
 def test_default_asymmetric_measures():
