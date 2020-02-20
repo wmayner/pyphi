@@ -174,11 +174,10 @@ class Option:
         self.values = values
         self.on_change = on_change
         self.doc = doc
-
-        # Set during ``Config`` class creation
-        self.name = None
-
         self.__doc__ = self._docstring()
+
+    def __set_name__(self, owner, name):
+        self.name = name
 
     def _docstring(self):
         default = '``default={}``'.format(repr(self.default))
@@ -213,25 +212,7 @@ class Option:
             self.on_change(obj)
 
 
-class ConfigMeta(type):
-    """Metaclass for ``Config``.
-
-    Responsible for setting the name of each ``Option`` when a subclass of
-    ``Config`` is created; because ``Option`` objects are defined on the class,
-    not the instance, their name should only be set once.
-
-    Python 3.6 handles this exact need with the special descriptor method
-    ``__set_name__`` (see PEP 487). We should use that once we drop support
-    for 3.4 & 3.5.
-    """
-
-    def __init__(cls, cls_name, bases, namespace):
-        super().__init__(cls_name, bases, namespace)
-        for name, opt in cls.options().items():
-            opt.name = name
-
-
-class Config(metaclass=ConfigMeta):
+class Config:
     """Base configuration object.
 
     See ``PyphiConfig`` for usage.
