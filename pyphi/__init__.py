@@ -73,8 +73,8 @@ from .__about__ import *  # pylint: disable=wildcard-import
 
 # Initialize config object
 from .conf import config
-
 from .direction import Direction
+
 from . import (
     actual,
     constants,
@@ -90,9 +90,9 @@ from . import (
     utils,
     validate,
 )
+from .actual import Transition
 from .network import Network
 from .subsystem import Subsystem
-from .actual import Transition
 
 __all__ = [
     "Network",
