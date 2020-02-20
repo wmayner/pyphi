@@ -43,8 +43,7 @@ def uniform_distribution(number_of_nodes):
     number_of_states = 2 ** number_of_nodes
     # Generate the maximum entropy distribution
     # TODO extend to nonbinary nodes
-    return (np.ones(number_of_states) /
-            number_of_states).reshape([2] * number_of_nodes)
+    return (np.ones(number_of_states) / number_of_states).reshape([2] * number_of_nodes)
 
 
 def marginal_zero(repertoire, node_index):
@@ -145,7 +144,7 @@ def flatten(repertoire, big_endian=False):
     if repertoire is None:
         return None
 
-    order = 'C' if big_endian else 'F'
+    order = "C" if big_endian else "F"
     # For efficiency, use `ravel` (which returns a view of the array) instead
     # of `np.flatten` (which copies the whole array).
     return repertoire.squeeze().ravel(order=order)

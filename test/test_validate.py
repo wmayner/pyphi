@@ -4,8 +4,16 @@
 import numpy as np
 import pytest
 
-from pyphi import (Direction, Network, Subsystem, config, constants,
-                   exceptions, macro, validate)
+from pyphi import (
+    Direction,
+    Network,
+    Subsystem,
+    config,
+    constants,
+    exceptions,
+    macro,
+    validate,
+)
 
 
 def test_validate_direction():
@@ -21,13 +29,13 @@ def test_validate_direction():
 
 
 def test_validate_tpm_wrong_shape():
-    tpm = np.arange(3**3).reshape(3, 3, 3)
+    tpm = np.arange(3 ** 3).reshape(3, 3, 3)
     with pytest.raises(ValueError):
         assert validate.tpm(tpm)
 
 
 def test_validate_tpm_nonbinary_nodes():
-    tpm = np.arange(3*3*2).reshape(3, 3, 2)
+    tpm = np.arange(3 * 3 * 2).reshape(3, 3, 2)
     with pytest.raises(ValueError):
         assert validate.tpm(tpm)
 
@@ -102,14 +110,14 @@ def test_validate_state_no_error_2():
 
 
 def test_validate_node_labels():
-    validate.node_labels(['A', 'B'], (0, 1))
+    validate.node_labels(["A", "B"], (0, 1))
 
     with pytest.raises(ValueError):
-        validate.node_labels(['A'], (0, 1))
+        validate.node_labels(["A"], (0, 1))
     with pytest.raises(ValueError):
-        validate.node_labels(['A', 'B'], (0,))
+        validate.node_labels(["A", "B"], (0,))
     with pytest.raises(ValueError):
-        validate.node_labels(['A', 'A'], (0, 1))
+        validate.node_labels(["A", "A"], (0, 1))
 
 
 def test_validate_time_scale():

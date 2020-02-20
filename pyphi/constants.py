@@ -14,10 +14,10 @@ EPSILON = None
 # `conf.py` for default value.
 
 #: Label for the filesystem cache backend.
-FILESYSTEM = 'fs'
+FILESYSTEM = "fs"
 
 #: Label for the MongoDB cache backend.
-DATABASE = 'db'
+DATABASE = "db"
 
 #: The protocol used for pickling objects.
 PICKLE_PROTOCOL = pickle.HIGHEST_PROTOCOL

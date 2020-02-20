@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 # test_convert.py
 
-import numpy as np
 from math import log2
+
+import numpy as np
 
 from pyphi import convert
 
@@ -137,8 +138,9 @@ nonsquare_nondeterministic_2 = np.array([
 
 def test_to_multidimensional():
     # Identity
-    assert np.array_equal(convert.to_multidimensional(nd_state_by_node),
-                          nd_state_by_node)
+    assert np.array_equal(
+        convert.to_multidimensional(nd_state_by_node), nd_state_by_node
+    )
 
     for tpm in [
         state_by_node,
@@ -158,8 +160,7 @@ def test_to_multidimensional():
 
 def test_to_2dimensional():
     # Identity
-    assert np.array_equal(convert.to_2dimensional(state_by_node),
-                          state_by_node)
+    assert np.array_equal(convert.to_2dimensional(state_by_node), state_by_node)
     # Idempotency
     for tpm in [
         state_by_node,
@@ -168,7 +169,7 @@ def test_to_2dimensional():
         nonsquare_deterministic_1,
         nonsquare_deterministic_2,
         nonsquare_nondeterministic_1,
-        nonsquare_nondeterministic_2
+        nonsquare_nondeterministic_2,
     ]:
         nd = convert.to_multidimensional(tpm)
         assert np.array_equal(convert.to_2dimensional(nd), tpm)

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import example_networks
 import numpy as np
 import pytest
 
-import example_networks
 from pyphi import Direction, constants
-from pyphi.models import Part, Bipartition, RepertoireIrreducibilityAnalysis
+from pyphi.models import Bipartition, Part, RepertoireIrreducibilityAnalysis
 
 s = example_networks.s()
 
@@ -34,169 +34,210 @@ s = example_networks.s()
 # }
 
 scenarios = [
-# Previous {{{
-# ~~~~~~~~
+    # Previous {{{
+    # ~~~~~~~~
     # No cut {{{
     # ----------
     (
         Direction.CAUSE,
-        s, None,
+        s,
+        None,
         (0,),
         (0,),
-        {'partitions': {
-            Bipartition(Part(mechanism=(), purview=(0,)),
-                        Part(mechanism=(0,), purview=())):
-                np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
-         },
-         'repertoire':
-            np.array([0.5, 0.5]).reshape(2, 1, 1, order="F"),
-         'phi': 0.0}
+        {
+            "partitions": {
+                Bipartition(
+                    Part(mechanism=(), purview=(0,)), Part(mechanism=(0,), purview=())
+                ): np.array([0.5, 0.5]).reshape(2, 1, 1, order="F")
+            },
+            "repertoire": np.array([0.5, 0.5]).reshape(2, 1, 1, order="F"),
+            "phi": 0.0,
+        },
     ),
     # }}}
     # With cut {{{
     # ------------
     (
         Direction.CAUSE,
-        s, (0, (1, 2)),
+        s,
+        (0, (1, 2)),
         (1,),
         (2,),
-        {'partitions': {
-            Bipartition(Part(mechanism=(), purview=(2,)),
-                        Part(mechanism=(1,), purview=())):
-                np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
-         },
-         'repertoire':
-            np.array([1., 0.]).reshape(1, 1, 2),
-         'phi': 0.5}
+        {
+            "partitions": {
+                Bipartition(
+                    Part(mechanism=(), purview=(2,)), Part(mechanism=(1,), purview=())
+                ): np.array([0.5, 0.5]).reshape(1, 1, 2, order="F")
+            },
+            "repertoire": np.array([1.0, 0.0]).reshape(1, 1, 2),
+            "phi": 0.5,
+        },
     ),
     # }}}
-# }}}
-# Next {{{
-# ~~~~~~~~~~
+    # }}}
+    # Next {{{
+    # ~~~~~~~~~~
     # No cut {{{
     # ----------
     (
         Direction.EFFECT,
-        s, None,
+        s,
+        None,
         (0, 1, 2),
         (0, 1, 2),
-        {'partitions': {
-            # Any of these partitions is valid; there is no well-defined way of
-            # breaking ties
-            Bipartition(Part(mechanism=(2,), purview=()),
-                        Part(mechanism=(0, 1), purview=(0, 1, 2))):
-                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
-                    2, 2, 2, order="F"),
-            Bipartition(Part(mechanism=(), purview=(0,)),
-                        Part(mechanism=(0, 1, 2), purview=(1, 2))):
-                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
-                    2, 2, 2, order="F"),
-            Bipartition(Part(mechanism=(2,), purview=(0,)),
-                        Part(mechanism=(0, 1), purview=(1, 2))):
-                np.array([0., 0., 0.5, 0.5, 0., 0., 0., 0.]).reshape(
-                    2, 2, 2, order="F"),
-            Bipartition(Part(mechanism=(0,), purview=()),
-                        Part(mechanism=(1, 2), purview=(0, 1, 2))):
-                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
-                    2, 2, 2, order="F"),
-            Bipartition(Part(mechanism=(), purview=(1,)),
-                        Part(mechanism=(0, 1, 2), purview=(0, 2))):
-                np.array([0., 0., 0., 0., 0.5, 0., 0.5, 0.]).reshape(
-                    2, 2, 2, order="F"),
-            Bipartition(Part(mechanism=(2,), purview=(1,)),
-                        Part(mechanism=(0, 1), purview=(0, 2))):
-                np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(
-                    2, 2, 2, order="F"),
-            Bipartition(Part(mechanism=(), purview=(2,)),
-                        Part(mechanism=(0, 1, 2), purview=(0, 1))):
-                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
-                    2, 2, 2, order="F"),
-            Bipartition(Part(mechanism=(0,), purview=(2,)),
-                        Part(mechanism=(1, 2), purview=(0, 1))):
-                np.array([0.5, 0., 0., 0., 0.5, 0., 0., 0.]).reshape(
-                    2, 2, 2, order="F"),
-            Bipartition(Part(mechanism=(2,), purview=(0, 1)),
-                        Part(mechanism=(0, 1), purview=(2,))):
-                np.array([0., 0., 0., 0., 0.5, 0.5, 0., 0.]).reshape(
-                    2, 2, 2, order="F"),
-         },
-         'repertoire':
-            np.array([0., 1., 0., 0., 0., 0., 0., 0.]).reshape(2, 2, 2),
-         'phi': 0.5}
+        {
+            "partitions": {
+                # Any of these partitions is valid; there is no well-defined way of
+                # breaking ties
+                Bipartition(
+                    Part(mechanism=(2,), purview=()),
+                    Part(mechanism=(0, 1), purview=(0, 1, 2)),
+                ): np.array([0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0]).reshape(
+                    2, 2, 2, order="F"
+                ),
+                Bipartition(
+                    Part(mechanism=(), purview=(0,)),
+                    Part(mechanism=(0, 1, 2), purview=(1, 2)),
+                ): np.array([0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0]).reshape(
+                    2, 2, 2, order="F"
+                ),
+                Bipartition(
+                    Part(mechanism=(2,), purview=(0,)),
+                    Part(mechanism=(0, 1), purview=(1, 2)),
+                ): np.array([0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0]).reshape(
+                    2, 2, 2, order="F"
+                ),
+                Bipartition(
+                    Part(mechanism=(0,), purview=()),
+                    Part(mechanism=(1, 2), purview=(0, 1, 2)),
+                ): np.array([0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0]).reshape(
+                    2, 2, 2, order="F"
+                ),
+                Bipartition(
+                    Part(mechanism=(), purview=(1,)),
+                    Part(mechanism=(0, 1, 2), purview=(0, 2)),
+                ): np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.5, 0.0]).reshape(
+                    2, 2, 2, order="F"
+                ),
+                Bipartition(
+                    Part(mechanism=(2,), purview=(1,)),
+                    Part(mechanism=(0, 1), purview=(0, 2)),
+                ): np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0]).reshape(
+                    2, 2, 2, order="F"
+                ),
+                Bipartition(
+                    Part(mechanism=(), purview=(2,)),
+                    Part(mechanism=(0, 1, 2), purview=(0, 1)),
+                ): np.array([0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0]).reshape(
+                    2, 2, 2, order="F"
+                ),
+                Bipartition(
+                    Part(mechanism=(0,), purview=(2,)),
+                    Part(mechanism=(1, 2), purview=(0, 1)),
+                ): np.array([0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0]).reshape(
+                    2, 2, 2, order="F"
+                ),
+                Bipartition(
+                    Part(mechanism=(2,), purview=(0, 1)),
+                    Part(mechanism=(0, 1), purview=(2,)),
+                ): np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0]).reshape(
+                    2, 2, 2, order="F"
+                ),
+            },
+            "repertoire": np.array([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]).reshape(
+                2, 2, 2
+            ),
+            "phi": 0.5,
+        },
     ),
     # }}}
-
     # With cut {{{
     # ------------
     (
         Direction.EFFECT,
-        s, ((1, 2), 0),
+        s,
+        ((1, 2), 0),
         (2,),
         (1,),
-        {'partitions': {
-            Bipartition(Part(mechanism=(), purview=(1,)),
-                        Part(mechanism=(2,), purview=())):
-                np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
-         },
-         'repertoire':
-            np.array([1., 0.]).reshape(1, 2, 1),
-         'phi': 0.5}
-    ), (
+        {
+            "partitions": {
+                Bipartition(
+                    Part(mechanism=(), purview=(1,)), Part(mechanism=(2,), purview=())
+                ): np.array([0.5, 0.5]).reshape(1, 2, 1, order="F")
+            },
+            "repertoire": np.array([1.0, 0.0]).reshape(1, 2, 1),
+            "phi": 0.5,
+        },
+    ),
+    (
         Direction.EFFECT,
-        s, ((0, 2), 1),
+        s,
+        ((0, 2), 1),
         (2,),
         (0,),
-        {'partitions': {
-            Bipartition(Part(mechanism=(), purview=(0,)),
-                        Part(mechanism=(2,), purview=())):
-                np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
-         },
-         'repertoire':
-            np.array([0.5, 0.5]).reshape(2, 1, 1),
-         'phi': 0.25}
-    ), (
+        {
+            "partitions": {
+                Bipartition(
+                    Part(mechanism=(), purview=(0,)), Part(mechanism=(2,), purview=())
+                ): np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
+            },
+            "repertoire": np.array([0.5, 0.5]).reshape(2, 1, 1),
+            "phi": 0.25,
+        },
+    ),
+    (
         Direction.EFFECT,
-        s, ((0, 2), 1),
+        s,
+        ((0, 2), 1),
         (0, 1, 2),
         (0, 2),
-        {'partitions': {
-            # Any of these partitions is valid; there is no well-defined way of
-            # breaking ties
-            Bipartition(Part(mechanism=(0,), purview=()),
-                        Part(mechanism=(1, 2), purview=(0, 2))):
-                np.array([0.5, 0., 0.5, 0.]).reshape(2, 1, 2, order="F"),
-            Bipartition(Part(mechanism=(2,), purview=()),
-                        Part(mechanism=(0, 1), purview=(0, 2))):
-                np.array([0., 0., 0.5, 0.5]).reshape(2, 1, 2, order="F"),
-            Bipartition(Part(mechanism=(2,), purview=(0,)),
-                        Part(mechanism=(0, 1), purview=(2,))):
-                np.array([0., 0., 0.5, 0.5]).reshape(2, 1, 2, order="F"),
-            Bipartition(Part(mechanism=(), purview=(2,)),
-                        Part(mechanism=(0, 1, 2), purview=(0,))):
-                np.array([0.5, 0., 0.5, 0.]).reshape(2, 1, 2, order="F"),
-            Bipartition(Part(mechanism=(0,), purview=(2,)),
-                        Part(mechanism=(1, 2), purview=(0,))):
-                np.array([0.5, 0., 0.5, 0.]).reshape(2, 1, 2, order="F")
+        {
+            "partitions": {
+                # Any of these partitions is valid; there is no well-defined way of
+                # breaking ties
+                Bipartition(
+                    Part(mechanism=(0,), purview=()),
+                    Part(mechanism=(1, 2), purview=(0, 2)),
+                ): np.array([0.5, 0.0, 0.5, 0.0]).reshape(2, 1, 2, order="F"),
+                Bipartition(
+                    Part(mechanism=(2,), purview=()),
+                    Part(mechanism=(0, 1), purview=(0, 2)),
+                ): np.array([0.0, 0.0, 0.5, 0.5]).reshape(2, 1, 2, order="F"),
+                Bipartition(
+                    Part(mechanism=(2,), purview=(0,)),
+                    Part(mechanism=(0, 1), purview=(2,)),
+                ): np.array([0.0, 0.0, 0.5, 0.5]).reshape(2, 1, 2, order="F"),
+                Bipartition(
+                    Part(mechanism=(), purview=(2,)),
+                    Part(mechanism=(0, 1, 2), purview=(0,)),
+                ): np.array([0.5, 0.0, 0.5, 0.0]).reshape(2, 1, 2, order="F"),
+                Bipartition(
+                    Part(mechanism=(0,), purview=(2,)),
+                    Part(mechanism=(1, 2), purview=(0,)),
+                ): np.array([0.5, 0.0, 0.5, 0.0]).reshape(2, 1, 2, order="F"),
+            },
+            "repertoire": np.array([0.0, 1.0, 0.0, 0.0]).reshape(2, 1, 2),
+            "phi": 0.5,
         },
-         'repertoire':
-             np.array([0., 1., 0., 0.]).reshape(2, 1, 2),
-        'phi': 0.5}
-    ), (
+    ),
+    (
         Direction.EFFECT,
-        s, ((0, 1), 2),
+        s,
+        ((0, 1), 2),
         (1,),
         (0,),
-        {'partitions': {
-            Bipartition(Part(mechanism=(), purview=(0,)),
-                        Part(mechanism=(1,), purview=())):
-                np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
-         },
-         'repertoire':
-            np.array([0.5, 0.5]).reshape(2, 1, 1),
-         'phi': 0.25}
+        {
+            "partitions": {
+                Bipartition(
+                    Part(mechanism=(), purview=(0,)), Part(mechanism=(1,), purview=())
+                ): np.array([0.25, 0.75]).reshape(2, 1, 1, order="F")
+            },
+            "repertoire": np.array([0.5, 0.5]).reshape(2, 1, 1),
+            "phi": 0.25,
+        },
     )
     # }}}
-# }}}
+    # }}}
 ]
 parameter_string = "direction,subsystem,cut,mechanism,purview,expected"
 
@@ -220,26 +261,28 @@ def test_find_mip(direction, subsystem, cut, mechanism, purview, expected):
                 partition=expected_partition,
                 mechanism=mechanism,
                 purview=purview,
-                repertoire=expected['repertoire'],
+                repertoire=expected["repertoire"],
                 partitioned_repertoire=expected_partitioned_repertoire,
-                phi=expected['phi']
+                phi=expected["phi"],
             )
-            for expected_partition, expected_partitioned_repertoire
-            in expected['partitions'].items()
+            for expected_partition, expected_partitioned_repertoire in expected[
+                "partitions"
+            ].items()
         ]
 
-    print('Result:', '---------', '', result, '', sep='\n')
-    print('Expected:',  '---------', '', sep='\n')
+    print("Result:", "---------", "", result, "", sep="\n")
+    print("Expected:", "---------", "", sep="\n")
     if expected:
-        print(*[mip for mip in expected], sep='\n')
+        print(*[mip for mip in expected], sep="\n")
     else:
         print(expected)
-    print('\n')
+    print("\n")
 
     if expected:
         assert result in expected
     else:
         assert result == expected
+
 
 # }}}
 
@@ -265,8 +308,7 @@ def test_effect_mip(s):
 def test_phi_cause_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    assert (s.phi_cause_mip(mechanism, purview) ==
-            s.cause_mip(mechanism, purview).phi)
+    assert s.phi_cause_mip(mechanism, purview) == s.cause_mip(mechanism, purview).phi
 
 
 def test_phi_cause_mip_reducible(s):
@@ -278,13 +320,12 @@ def test_phi_cause_mip_reducible(s):
 def test_phi_effect_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices
-    assert (s.phi_effect_mip(mechanism, purview) ==
-            s.effect_mip(mechanism, purview).phi)
+    assert s.phi_effect_mip(mechanism, purview) == s.effect_mip(mechanism, purview).phi
 
 
 def test_phi_effect_mip_reducible(s):
     mechanism = (0, 1)
-    purview = (1, )
+    purview = (1,)
     assert s.phi_effect_mip(mechanism, purview) == 0
 
 
@@ -292,6 +333,7 @@ def test_phi(s):
     mechanism = s.node_indices
     purview = s.node_indices
     assert abs(0.5 - s.phi(mechanism, purview)) < constants.EPSILON
+
 
 # }}}
 

@@ -29,10 +29,13 @@ def concept_distance(c1, c2):
     cause_purview = tuple(set(c1.cause.purview + c2.cause.purview))
     effect_purview = tuple(set(c1.effect.purview + c2.effect.purview))
     # Take the sum
-    return (repertoire_distance(c1.expand_cause_repertoire(cause_purview),
-                                c2.expand_cause_repertoire(cause_purview)) +
-            repertoire_distance(c1.expand_effect_repertoire(effect_purview),
-                                c2.expand_effect_repertoire(effect_purview)))
+    return repertoire_distance(
+        c1.expand_cause_repertoire(cause_purview),
+        c2.expand_cause_repertoire(cause_purview),
+    ) + repertoire_distance(
+        c1.expand_effect_repertoire(effect_purview),
+        c2.expand_effect_repertoire(effect_purview),
+    )
 
 
 def _ces_distance_simple(C1, C2):
@@ -45,8 +48,7 @@ def _ces_distance_simple(C1, C2):
     if len(C2) > len(C1):
         C1, C2 = C2, C1
     destroyed = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
-    return sum(c.phi * concept_distance(c, c.subsystem.null_concept)
-               for c in destroyed)
+    return sum(c.phi * concept_distance(c, c.subsystem.null_concept) for c in destroyed)
 
 
 def _ces_distance_emd(unique_C1, unique_C2):
@@ -56,9 +58,9 @@ def _ces_distance_emd(unique_C1, unique_C2):
     """
     # Get the pairwise distances between the concepts in the unpartitioned and
     # partitioned CESs.
-    distances = np.array([
-        [concept_distance(i, j) for j in unique_C2] for i in unique_C1
-    ])
+    distances = np.array(
+        [[concept_distance(i, j) for j in unique_C2] for i in unique_C1]
+    )
     # We need distances from all concepts---in both the unpartitioned and
     # partitioned CESs---to the null concept, because:
     # - often a concept in the unpartitioned CES is destroyed by a
@@ -66,10 +68,13 @@ def _ces_distance_emd(unique_C1, unique_C2):
     # - in certain cases, the partitioned system will have *greater* sum of
     #   small-phi, even though it has less big-phi, which means that some
     #   partitioned-CES concepts will be moved to the null concept.
-    distances_to_null = np.array([
-        concept_distance(c, c.subsystem.null_concept)
-        for ces in (unique_C1, unique_C2) for c in ces
-    ])
+    distances_to_null = np.array(
+        [
+            concept_distance(c, c.subsystem.null_concept)
+            for ces in (unique_C1, unique_C2)
+            for c in ces
+        ]
+    )
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Now we make the distance matrix, which will look like this:
     #
@@ -132,10 +137,8 @@ def ces_distance(C1, C2):
     if config.USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE:
         return round(small_phi_ces_distance(C1, C2), config.PRECISION)
 
-    concepts_only_in_C1 = [
-        c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
-    concepts_only_in_C2 = [
-        c2 for c2 in C2 if not any(c2.emd_eq(c1) for c1 in C1)]
+    concepts_only_in_C1 = [c1 for c1 in C1 if not any(c1.emd_eq(c2) for c2 in C2)]
+    concepts_only_in_C2 = [c2 for c2 in C2 if not any(c2.emd_eq(c1) for c1 in C1)]
     # If the only difference in the CESs is that some concepts
     # disappeared, then we don't need to use the EMD.
     if not concepts_only_in_C1 or not concepts_only_in_C2:

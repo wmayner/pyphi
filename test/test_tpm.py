@@ -6,8 +6,11 @@ import numpy as np
 
 from pyphi import Subsystem
 from pyphi.tpm import (
-    expand_tpm, infer_cm, is_state_by_state, marginalize_out,
-    reconstitute_tpm
+    expand_tpm,
+    infer_cm,
+    is_state_by_state,
+    marginalize_out,
+    reconstitute_tpm,
 )
 
 
@@ -64,6 +67,7 @@ def test_marginalize_out(s):
 def test_infer_cm(rule152):
     assert np.array_equal(infer_cm(rule152.tpm), rule152.cm)
 
+
 def test_reconstitute_tpm(standard, s_complete, rule152, noised):
     # Check subsystem and network TPM are the same when the subsystem is the
     # whole network
@@ -82,7 +86,7 @@ def test_reconstitute_tpm(standard, s_complete, rule152, noised):
           [1., 1., 0.]]],
     ])
     # fmt: on
-    subsystem = Subsystem(rule152, (0,)*5, (0, 1, 2))
+    subsystem = Subsystem(rule152, (0,) * 5, (0, 1, 2))
     assert np.array_equal(answer, reconstitute_tpm(subsystem))
 
     subsystem = Subsystem(noised, (0, 0, 0), (0, 1))

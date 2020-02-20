@@ -88,8 +88,9 @@ class Node:
         utils.np_immutable(self.tpm)
 
         # Only compute the hash once.
-        self._hash = hash((index, utils.np_hash(self.tpm), self.state,
-                           self._inputs, self._outputs))
+        self._hash = hash(
+            (index, utils.np_hash(self.tpm), self.state, self._inputs, self._outputs)
+        )
 
     @property
     def tpm_off(self):
@@ -132,11 +133,13 @@ class Node:
         Labels are for display only, so two equal nodes may have different
         labels.
         """
-        return (self.index == other.index and
-                np.array_equal(self.tpm, other.tpm) and
-                self.state == other.state and
-                self.inputs == other.inputs and
-                self.outputs == other.outputs)
+        return (
+            self.index == other.index
+            and np.array_equal(self.tpm, other.tpm)
+            and self.state == other.state
+            and self.inputs == other.inputs
+            and self.outputs == other.outputs
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -173,8 +176,10 @@ def generate_nodes(tpm, cm, network_state, indices, node_labels=None):
 
     node_state = utils.state_of(indices, network_state)
 
-    return tuple(Node(tpm, cm, index, state, node_labels)
-                 for index, state in zip(indices, node_state))
+    return tuple(
+        Node(tpm, cm, index, state, node_labels)
+        for index, state in zip(indices, node_state)
+    )
 
 
 def expand_node_tpm(tpm):

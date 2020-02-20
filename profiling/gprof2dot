@@ -21,17 +21,16 @@
 __author__ = "Jose Fonseca et al"
 
 
-import sys
+import collections
+import json
+import locale
 import math
+import optparse
 import os.path
 import re
+import sys
 import textwrap
-import optparse
 import xml.parsers.expat
-import collections
-import locale
-import json
-
 
 # Python 2.x/3.x compatibility
 if sys.version_info[0] >= 3:

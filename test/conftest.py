@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 # conftest.py
 
-import pytest
-
 import example_networks
-
+import pytest
 
 # Test fixtures from example networks
 # =============================================================================
@@ -47,6 +45,7 @@ def subsys_n1n2():
 
 # Noised standard example and subsystems
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 @pytest.fixture()
 def noised():

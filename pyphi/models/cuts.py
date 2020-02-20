@@ -9,8 +9,8 @@ from itertools import chain
 
 import numpy as np
 
-from . import cmp, fmt
 from .. import connectivity, utils
+from . import cmp, fmt
 
 
 class _CutBase:
@@ -111,13 +111,13 @@ class NullCut(_CutBase):
         return np.zeros((n, n))
 
     def to_json(self):
-        return {'indices': self.indices}
+        return {"indices": self.indices}
 
     def __repr__(self):
-        return fmt.make_repr(self, ['indices'])
+        return fmt.make_repr(self, ["indices"])
 
     def __str__(self):
-        return 'NullCut({})'.format(self.indices)
+        return "NullCut({})".format(self.indices)
 
     @cmp.sametype
     def __eq__(self, other):
@@ -136,9 +136,10 @@ class Cut(_CutBase):
         to_nodes (tuple[int]): Connections to this group of nodes from those in
             ``from_nodes`` are from_nodes.
     """
+
     # Don't construct an attribute dictionary; see
     # https://docs.python.org/3.3/reference/datamodel.html#notes-on-using-slots
-    __slots__ = ('from_nodes', 'to_nodes', 'node_labels')
+    __slots__ = ("from_nodes", "to_nodes", "node_labels")
 
     def __init__(self, from_nodes, to_nodes, node_labels=None):
         self.from_nodes = from_nodes
@@ -166,26 +167,24 @@ class Cut(_CutBase):
                    [0., 0., 1.],
                    [0., 0., 0.]])
         """
-        return connectivity.relevant_connections(n, self.from_nodes,
-                                                 self.to_nodes)
+        return connectivity.relevant_connections(n, self.from_nodes, self.to_nodes)
 
     @cmp.sametype
     def __eq__(self, other):
-        return (self.from_nodes == other.from_nodes and
-                self.to_nodes == other.to_nodes)
+        return self.from_nodes == other.from_nodes and self.to_nodes == other.to_nodes
 
     def __hash__(self):
         return hash((self.from_nodes, self.to_nodes))
 
     def __repr__(self):
-        return fmt.make_repr(self, ['from_nodes', 'to_nodes'])
+        return fmt.make_repr(self, ["from_nodes", "to_nodes"])
 
     def __str__(self):
         return fmt.fmt_cut(self)
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {'from_nodes': self.from_nodes, 'to_nodes': self.to_nodes}
+        return {"from_nodes": self.from_nodes, "to_nodes": self.to_nodes}
 
 
 class KCut(_CutBase):
@@ -215,21 +214,20 @@ class KCut(_CutBase):
 
     @cmp.sametype
     def __eq__(self, other):
-        return (self.partition == other.partition and
-                self.direction == other.direction)
+        return self.partition == other.partition and self.direction == other.direction
 
     def __hash__(self):
         return hash((self.direction, self.partition))
 
     def __repr__(self):
-        return fmt.make_repr(self, ['direction', 'partition'])
+        return fmt.make_repr(self, ["direction", "partition"])
 
     # TODO: improve
     def __str__(self):
         return fmt.fmt_kcut(self)
 
     def to_json(self):
-        return {'direction': self.direction, 'partition': self.partition}
+        return {"direction": self.direction, "partition": self.partition}
 
 
 class ActualCut(KCut):
@@ -237,11 +235,10 @@ class ActualCut(KCut):
 
     @property
     def indices(self):
-        return tuple(sorted(set(self.partition.mechanism +
-                                self.partition.purview)))
+        return tuple(sorted(set(self.partition.mechanism + self.partition.purview)))
 
 
-class Part(collections.namedtuple('Part', ['mechanism', 'purview'])):
+class Part(collections.namedtuple("Part", ["mechanism", "purview"])):
     """Represents one part of a |Bipartition|.
 
     Attributes:
@@ -263,13 +260,13 @@ class Part(collections.namedtuple('Part', ['mechanism', 'purview'])):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {'mechanism': self.mechanism, 'purview': self.purview}
+        return {"mechanism": self.mechanism, "purview": self.purview}
 
 
 class KPartition(collections.Sequence):
     """A partition with an arbitrary number of parts."""
 
-    __slots__ = ['parts', 'node_labels']
+    __slots__ = ["parts", "node_labels"]
 
     def __init__(self, *parts, node_labels=None):
         self.parts = parts
@@ -293,30 +290,28 @@ class KPartition(collections.Sequence):
         return fmt.fmt_partition(self)
 
     def __repr__(self):
-        return fmt.make_repr(self, ['parts', 'node_labels'])
+        return fmt.make_repr(self, ["parts", "node_labels"])
 
     @property
     def mechanism(self):
         """tuple[int]: The nodes of the mechanism in the partition."""
-        return tuple(sorted(
-            chain.from_iterable(part.mechanism for part in self)))
+        return tuple(sorted(chain.from_iterable(part.mechanism for part in self)))
 
     @property
     def purview(self):
         """tuple[int]: The nodes of the purview in the partition."""
-        return tuple(sorted(
-            chain.from_iterable(part.purview for part in self)))
+        return tuple(sorted(chain.from_iterable(part.purview for part in self)))
 
     def normalize(self):
         """Normalize the order of parts in the partition."""
         return type(self)(*sorted(self), node_labels=self.node_labels)
 
     def to_json(self):
-        return {'parts': list(self)}
+        return {"parts": list(self)}
 
     @classmethod
     def from_json(cls, dct):
-        return cls(*dct['parts'])
+        return cls(*dct["parts"])
 
 
 class Bipartition(KPartition):
@@ -331,11 +326,11 @@ class Bipartition(KPartition):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {'part0': self[0], 'part1': self[1]}
+        return {"part0": self[0], "part1": self[1]}
 
     @classmethod
     def from_json(cls, dct):
-        return cls(dct['part0'], dct['part1'])
+        return cls(dct["part0"], dct["part1"])
 
 
 class Tripartition(KPartition):

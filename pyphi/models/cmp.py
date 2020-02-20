@@ -16,6 +16,7 @@ from .. import utils
 # Rich comparison (ordering) helpers
 # =============================================================================
 
+
 def sametype(func):
     """Method decorator to return ``NotImplemented`` if the args of the wrapped
     method are of different types.
@@ -24,11 +25,13 @@ def sametype(func):
     the comparison to the right-hand-side object, or fallback by passing it up
     the inheritance tree.
     """
+
     @functools.wraps(func)
     def wrapper(self, other):  # pylint: disable=missing-docstring
         if type(other) is not type(self):
             return NotImplemented
         return func(self, other)
+
     return wrapper
 
 
@@ -47,6 +50,7 @@ class Orderable:
     ``Subsystem`` or compare ``MechanismIrreducibilityAnalyses`` with different
     directions.
     """
+
     # The object is not orderable unless these attributes are all equal
     unorderable_unless_eq = []
 
@@ -62,8 +66,10 @@ class Orderable:
     def __lt__(self, other):
         if not general_eq(self, other, self.unorderable_unless_eq):
             raise TypeError(
-                'Unorderable: the following attrs must be equal: {}'.format(
-                    self.unorderable_unless_eq))
+                "Unorderable: the following attrs must be equal: {}".format(
+                    self.unorderable_unless_eq
+                )
+            )
         return self.order_by() < other.order_by()
 
     @sametype
@@ -97,8 +103,11 @@ def numpy_aware_eq(a, b):
     """
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
         return np.array_equal(a, b)
-    if ((isinstance(a, Iterable) and isinstance(b, Iterable)) and
-            not isinstance(a, str) and not isinstance(b, str)):
+    if (
+        (isinstance(a, Iterable) and isinstance(b, Iterable))
+        and not isinstance(a, str)
+        and not isinstance(b, str)
+    ):
         if len(a) != len(b):
             return False
         return all(numpy_aware_eq(x, y) for x, y in zip(a, b))
@@ -116,10 +125,10 @@ def general_eq(a, b, attributes):
     try:
         for attr in attributes:
             _a, _b = getattr(a, attr), getattr(b, attr)
-            if attr in ['phi', 'alpha']:
+            if attr in ["phi", "alpha"]:
                 if not utils.eq(_a, _b):
                     return False
-            elif attr in ['mechanism', 'purview']:
+            elif attr in ["mechanism", "purview"]:
                 if _a is None or _b is None:
                     if _a != _b:
                         return False

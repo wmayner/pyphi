@@ -9,7 +9,7 @@ context of all |small_phi| and |big_phi| computation.
 
 import numpy as np
 
-from . import cache, connectivity, convert, jsonify, utils, validate, config
+from . import cache, config, connectivity, convert, jsonify, utils, validate
 from .labels import NodeLabels
 from .tpm import is_state_by_state
 
@@ -151,7 +151,7 @@ class Network:
 
     # TODO: this should really be a Subsystem method, but we're
     # interested in caching at the Network-level...
-    @cache.method('purview_cache')
+    @cache.method("purview_cache")
     def potential_purviews(self, direction, mechanism):
         """All purviews which are not clearly reducible for mechanism.
 
@@ -165,15 +165,14 @@ class Network:
             ``mechanism``.
         """
         all_purviews = utils.powerset(self._node_indices)
-        return irreducible_purviews(self.cm, direction, mechanism,
-                                    all_purviews)
+        return irreducible_purviews(self.cm, direction, mechanism, all_purviews)
 
     def __len__(self):
         """int: The number of nodes in the network."""
         return self.tpm.shape[-1]
 
     def __repr__(self):
-        return 'Network({}, cm={})'.format(self.tpm, self.cm)
+        return "Network({}, cm={})".format(self.tpm, self.cm)
 
     def __str__(self):
         return self.__repr__()
@@ -184,9 +183,9 @@ class Network:
         Networks are equal if they have the same TPM and CM.
         """
         return (
-            isinstance(other, Network) and
-            np.array_equal(self.tpm, other.tpm) and
-            np.array_equal(self.cm, other.cm)
+            isinstance(other, Network)
+            and np.array_equal(self.tpm, other.tpm)
+            and np.array_equal(self.cm, other.cm)
         )
 
     def __ne__(self, other):
@@ -198,16 +197,16 @@ class Network:
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
-            'tpm': self.tpm,
-            'cm': self.cm,
-            'size': self.size,
-            'node_labels': self.node_labels
+            "tpm": self.tpm,
+            "cm": self.cm,
+            "size": self.size,
+            "node_labels": self.node_labels,
         }
 
     @classmethod
     def from_json(cls, json_dict):
         """Return a |Network| object from a JSON dictionary representation."""
-        del json_dict['size']
+        del json_dict["size"]
         return Network(**json_dict)
 
 
@@ -227,6 +226,7 @@ def irreducible_purviews(cm, direction, mechanism, purviews):
     Raises:
         ValueError: If ``direction`` is invalid.
     """
+
     def reducible(purview):
         """Return ``True`` if purview is trivially reducible."""
         _from, to = direction.order(mechanism, purview)

@@ -14,6 +14,7 @@ class Direction(Enum):
 
     Accessed using ``Direction.CAUSE`` and ``Direction.EFFECT``, etc.
     """
+
     CAUSE = 0
     EFFECT = 1
     BIDIRECTIONAL = 2
@@ -22,11 +23,11 @@ class Direction(Enum):
         return self.name
 
     def to_json(self):
-        return {'direction': self.name}
+        return {"direction": self.name}
 
     @classmethod
     def from_json(cls, dct):
-        return cls[dct['direction']]
+        return cls[dct["direction"]]
 
     def order(self, mechanism, purview):
         """Order the mechanism and purview in time.
@@ -41,4 +42,5 @@ class Direction(Enum):
             return mechanism, purview
 
         from . import validate
+
         return validate.direction(self)

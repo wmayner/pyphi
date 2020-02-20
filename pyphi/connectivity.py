@@ -174,7 +174,7 @@ def is_strong(cm, nodes=None):
     Keyword Args:
         nodes (tuple[int]): A subset of nodes to consider.
     """
-    return _connected(cm, nodes, 'strong')
+    return _connected(cm, nodes, "strong")
 
 
 def is_weak(cm, nodes=None):
@@ -186,7 +186,7 @@ def is_weak(cm, nodes=None):
     Keyword Args:
         nodes (tuple[int]): A subset of nodes to consider.
     """
-    return _connected(cm, nodes, 'weak')
+    return _connected(cm, nodes, "weak")
 
 
 def is_full(cm, nodes1, nodes2):

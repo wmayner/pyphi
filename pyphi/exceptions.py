@@ -10,7 +10,7 @@ class StateUnreachableError(ValueError):
 
     def __init__(self, state):
         self.state = state
-        msg = 'The state {} cannot be reached in the given TPM.'
+        msg = "The state {} cannot be reached in the given TPM."
         super().__init__(msg.format(state))
 
 

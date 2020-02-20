@@ -45,8 +45,13 @@ def degenerate():
     blackbox = macro.Blackbox(partition, output_indices)
     time_scale = 2
 
-    return macro.MacroSubsystem(network, current_state, network.node_indices,
-                                blackbox=blackbox, time_scale=time_scale)
+    return macro.MacroSubsystem(
+        network,
+        current_state,
+        network.node_indices,
+        blackbox=blackbox,
+        time_scale=time_scale,
+    )
 
 
 @pytest.mark.veryslow
@@ -115,8 +120,9 @@ def test_basic_nor_or():
     assert blackbox.hidden_indices == (0, 1, 3, 4, 6, 7, 8, 9, 10)
     time = 3
 
-    sub = macro.MacroSubsystem(network, state, network.node_indices,
-                               blackbox=blackbox, time_scale=time)
+    sub = macro.MacroSubsystem(
+        network, state, network.node_indices, blackbox=blackbox, time_scale=time
+    )
 
     with config.override(CUT_ONE_APPROXIMATION=True):
         sia = compute.sia(sub)
@@ -180,8 +186,9 @@ def test_xor_propogation_delay():
     assert blackbox.hidden_indices == (1, 2, 4, 5, 7, 8)
 
     time = 2
-    subsys = macro.MacroSubsystem(network, state, network.node_indices,
-                                  blackbox=blackbox, time_scale=time)
+    subsys = macro.MacroSubsystem(
+        network, state, network.node_indices, blackbox=blackbox, time_scale=time
+    )
 
     sia = compute.sia(subsys)
     assert sia.phi == 1.874999
@@ -246,8 +253,9 @@ def test_soup():
     output_indices = (2, 5)
     blackbox = macro.Blackbox(partition, output_indices)
     time = 2
-    sub = macro.MacroSubsystem(network, state, (0, 1, 2, 3, 4, 5),
-                               blackbox=blackbox, time_scale=time)
+    sub = macro.MacroSubsystem(
+        network, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
+    )
     assert compute.phi(sub) == 0.638888
 
     # When the connection from D to B is frozen (with D in the OFF state),
@@ -257,8 +265,9 @@ def test_soup():
     output_indices = (2, 5)
     blackbox = macro.Blackbox(partition, output_indices)
     time = 2
-    sub = macro.MacroSubsystem(network, state, (0, 1, 2, 3, 4, 5),
-                               blackbox=blackbox, time_scale=time)
+    sub = macro.MacroSubsystem(
+        network, state, (0, 1, 2, 3, 4, 5), blackbox=blackbox, time_scale=time
+    )
     assert compute.phi(sub) == 0
 
 
@@ -272,7 +281,7 @@ def test_coarsegrain_spatial_degenerate():
     # mapping ((0, 1), (2))
 
     nodes = 6
-    tpm = np.zeros((2**nodes, nodes))
+    tpm = np.zeros((2 ** nodes, nodes))
 
     for psi, ps in enumerate(utils.all_states(nodes)):
         cs = [0 for i in range(nodes)]
@@ -306,11 +315,10 @@ def test_coarsegrain_spatial_degenerate():
     assert mc.phi == 0.194445
 
     partition = ((0, 1), (2, 3), (4, 5))
-    grouping = (((0, 1), (2,)), ((0, 1), (2,)), ((0, 1), (2, )))
+    grouping = (((0, 1), (2,)), ((0, 1), (2,)), ((0, 1), (2,)))
     coarse = macro.CoarseGrain(partition, grouping)
 
-    sub = macro.MacroSubsystem(net, state, range(net.size),
-                               coarse_grain=coarse)
+    sub = macro.MacroSubsystem(net, state, range(net.size), coarse_grain=coarse)
 
     sia = compute.sia(sub)
     assert sia.phi == 0.834183

@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
 
-from pyphi import (Direction, Network, Subsystem, actual, config, examples,
-                   models)
+from pyphi import Direction, Network, Subsystem, actual, config, examples, models
 from pyphi.models import KPartition, Part
 
 # TODO
@@ -13,6 +12,7 @@ from pyphi.models import KPartition, Part
 
 # Fixtures
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 @pytest.fixture
 def transition():
@@ -42,8 +42,9 @@ def transition():
 
 @pytest.fixture
 def empty_transition(transition):
-    return actual.Transition(transition.network, transition.before_state,
-                             transition.after_state, (), ())
+    return actual.Transition(
+        transition.network, transition.before_state, transition.after_state, (), ()
+    )
 
 
 @pytest.fixture
@@ -53,6 +54,7 @@ def prevention():
 
 # Testing background conditions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 @pytest.fixture
 def background_all_on():
@@ -90,13 +92,16 @@ def background_all_off():
     return actual.Transition(network, state, state, (0,), (1,))
 
 
-@pytest.mark.parametrize('transition,direction,mechanism,purview,ratio', [
-    (pytest.lazy_fixture('background_all_off'), Direction.EFFECT, (0,), (1,), 1),
-    (pytest.lazy_fixture('background_all_off'), Direction.CAUSE, (1,), (0,), 1),
-    (pytest.lazy_fixture('background_all_on'), Direction.EFFECT, (0,), (1,), 0),
-    (pytest.lazy_fixture('background_all_on'), Direction.CAUSE, (1,), (0,), 0)])
-def test_background_conditions(transition, direction, mechanism, purview,
-                               ratio):
+@pytest.mark.parametrize(
+    "transition,direction,mechanism,purview,ratio",
+    [
+        (pytest.lazy_fixture("background_all_off"), Direction.EFFECT, (0,), (1,), 1),
+        (pytest.lazy_fixture("background_all_off"), Direction.CAUSE, (1,), (0,), 1),
+        (pytest.lazy_fixture("background_all_on"), Direction.EFFECT, (0,), (1,), 0),
+        (pytest.lazy_fixture("background_all_on"), Direction.CAUSE, (1,), (0,), 0),
+    ],
+)
+def test_background_conditions(transition, direction, mechanism, purview, ratio):
     assert transition._ratio(direction, mechanism, purview) == ratio
 
 
@@ -111,15 +116,17 @@ def test_background_noised():
     # fmt: on
     network = Network(tpm)
     state = (1, 1)
-    transition = actual.Transition(network, state, state, (0,), (1,),
-                                   noise_background=True)
+    transition = actual.Transition(
+        network, state, state, (0,), (1,), noise_background=True
+    )
 
     assert transition._ratio(Direction.EFFECT, (0,), (1,)) == 0.415037
     assert transition._ratio(Direction.CAUSE, (1,), (0,)) == 0.415037
 
     # Elements outside the transition are also frozen
-    transition = actual.Transition(network, state, state, (0,), (0,),
-                                   noise_background=True)
+    transition = actual.Transition(
+        network, state, state, (0,), (0,), noise_background=True
+    )
     assert np.array_equal(transition.cause_system.tpm, network.tpm)
     assert np.array_equal(transition.effect_system.tpm, network.tpm)
 
@@ -142,16 +149,21 @@ def background_3_node():
     return Network(tpm)
 
 
-@pytest.mark.parametrize('before_state,purview,alpha', [
-    # If C = 1, then AB over AC should be reducible.
-    ((1, 1, 1), (0, 2), 0.0),
-    # If C = 0, then AB over AC should be irreducible.
-    ((1, 1, 0), (0, 2), 1.0)])
+@pytest.mark.parametrize(
+    "before_state,purview,alpha",
+    [
+        # If C = 1, then AB over AC should be reducible.
+        ((1, 1, 1), (0, 2), 0.0),
+        # If C = 0, then AB over AC should be irreducible.
+        ((1, 1, 0), (0, 2), 1.0),
+    ],
+)
 def test_background_3_node(before_state, purview, alpha, background_3_node):
     """Looking at transition (AB = 11) -> (AC = 11)"""
     after_state = (1, 1, 1)
-    transition = actual.Transition(background_3_node, before_state,
-                                   after_state, (0, 1), (0, 2))
+    transition = actual.Transition(
+        background_3_node, before_state, after_state, (0, 1), (0, 2)
+    )
     causal_link = transition.find_causal_link(Direction.EFFECT, (0, 1))
     assert causal_link.purview == purview
     assert causal_link.alpha == alpha
@@ -159,12 +171,19 @@ def test_background_3_node(before_state, purview, alpha, background_3_node):
 
 def test_potential_purviews(background_3_node):
     """Purviews must be a subset of the corresponding cause/effect system."""
-    transition = actual.Transition(background_3_node, (1, 1, 1), (1, 1, 1),
-                                   (0, 1), (0, 2))
+    transition = actual.Transition(
+        background_3_node, (1, 1, 1), (1, 1, 1), (0, 1), (0, 2)
+    )
     assert transition.potential_purviews(Direction.CAUSE, (0, 2)) == [
-        (0,), (1,), (0, 1)]
+        (0,),
+        (1,),
+        (0, 1),
+    ]
     assert transition.potential_purviews(Direction.EFFECT, (0, 1)) == [
-        (0,), (2,), (0, 2)]
+        (0,),
+        (2,),
+        (0, 2),
+    ]
 
 
 # Tests
@@ -235,16 +254,17 @@ def test_to_json(transition):
 # Test AC models
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 def acria(**kwargs):
     defaults = {
-        'alpha': 0.0,
-        'state': None,
-        'direction': None,
-        'mechanism': (),
-        'purview': (),
-        'partition': None,
-        'probability': 0.0,
-        'partitioned_probability': 0.0,
+        "alpha": 0.0,
+        "state": None,
+        "direction": None,
+        "mechanism": (),
+        "purview": (),
+        "partition": None,
+        "probability": 0.0,
+        "partitioned_probability": 0.0,
     }
     defaults.update(kwargs)
     return models.AcRepertoireIrreducibilityAnalysis(**defaults)
@@ -260,12 +280,12 @@ def account(links=()):
 
 def ac_sia(**kwargs):
     defaults = {
-        'alpha': 0.0,
-        'direction': Direction.BIDIRECTIONAL,
-        'account': account(),
-        'partitioned_account': account(),
-        'transition': None,
-        'cut': None
+        "alpha": 0.0,
+        "direction": Direction.BIDIRECTIONAL,
+        "account": account(),
+        "partitioned_account": account(),
+        "transition": None,
+        "cut": None,
     }
     defaults.update(kwargs)
     return models.AcSystemIrreducibilityAnalysis(**defaults)
@@ -274,10 +294,8 @@ def ac_sia(**kwargs):
 def test_acria_ordering():
     assert acria() == acria()
     assert acria(alpha=0.0) < acria(alpha=1.0)
-    assert (acria(alpha=0.0, mechanism=(1, 2)) <=
-            acria(alpha=1.0, mechanism=(1,)))
-    assert (acria(alpha=0.0, mechanism=(1, 2)) >
-            acria(alpha=0.0, mechanism=(1,)))
+    assert acria(alpha=0.0, mechanism=(1, 2)) <= acria(alpha=1.0, mechanism=(1,))
+    assert acria(alpha=0.0, mechanism=(1, 2)) > acria(alpha=0.0, mechanism=(1,))
 
     assert bool(acria(alpha=1.0)) is True
     assert bool(acria(alpha=0.0)) is False
@@ -302,14 +320,18 @@ def test_causal_link_ordering():
     assert causal_link() == causal_link()
 
     assert causal_link(alpha=0.0) < causal_link(alpha=1.0)
-    assert (causal_link(alpha=0.0, mechanism=(1, 2)) <=
-            causal_link(alpha=1.0, mechanism=(1,)))
-    assert (causal_link(alpha=0.0, mechanism=(1, 2)) >
-            causal_link(alpha=0.0, mechanism=(1,)))
+    assert causal_link(alpha=0.0, mechanism=(1, 2)) <= causal_link(
+        alpha=1.0, mechanism=(1,)
+    )
+    assert causal_link(alpha=0.0, mechanism=(1, 2)) > causal_link(
+        alpha=0.0, mechanism=(1,)
+    )
 
     with pytest.raises(TypeError):
-        (causal_link(direction=Direction.CAUSE) <
-         causal_link(direction=Direction.EFFECT))
+        (
+            causal_link(direction=Direction.CAUSE)
+            < causal_link(direction=Direction.EFFECT)
+        )
 
     assert bool(causal_link(alpha=1.0)) is True
     assert bool(causal_link(alpha=0.0)) is False
@@ -349,24 +371,29 @@ def test_ac_sia_ordering(transition, empty_transition):
     assert ac_sia() == ac_sia()
     assert hash(ac_sia()) == hash(ac_sia())
 
-    assert (ac_sia(alpha=1.0, transition=transition) >
-            ac_sia(alpha=0.5, transition=transition))
-    assert (ac_sia(alpha=1.0, transition=empty_transition) <=
-            ac_sia(alpha=1.0, transition=transition))
+    assert ac_sia(alpha=1.0, transition=transition) > ac_sia(
+        alpha=0.5, transition=transition
+    )
+    assert ac_sia(alpha=1.0, transition=empty_transition) <= ac_sia(
+        alpha=1.0, transition=transition
+    )
 
 
-@pytest.mark.parametrize('direction,mechanism,purview,repertoire', [
-    (Direction.CAUSE, (0,), (1,), [[[0.3333333], [0.66666667]]]),
-    (Direction.CAUSE, (0,), (2,), [[[0.3333333, 0.66666667]]]),
-    (Direction.CAUSE, (0,), (1, 2), [[[0, 0.3333333],
-                                      [0.3333333, 0.3333333]]]),
-    (Direction.EFFECT, (1,), (0,), [[[0]], [[1]]]),
-    (Direction.EFFECT, (2,), (0,), [[[0]], [[1]]]),
-    (Direction.EFFECT, (1, 2), (0,), [[[0]], [[1]]]),
-])
+@pytest.mark.parametrize(
+    "direction,mechanism,purview,repertoire",
+    [
+        (Direction.CAUSE, (0,), (1,), [[[0.3333333], [0.66666667]]]),
+        (Direction.CAUSE, (0,), (2,), [[[0.3333333, 0.66666667]]]),
+        (Direction.CAUSE, (0,), (1, 2), [[[0, 0.3333333], [0.3333333, 0.3333333]]]),
+        (Direction.EFFECT, (1,), (0,), [[[0]], [[1]]]),
+        (Direction.EFFECT, (2,), (0,), [[[0]], [[1]]]),
+        (Direction.EFFECT, (1, 2), (0,), [[[0]], [[1]]]),
+    ],
+)
 def test_repertoires(direction, mechanism, purview, repertoire, transition):
     np.testing.assert_array_almost_equal(
-        transition.repertoire(direction, mechanism, purview), repertoire)
+        transition.repertoire(direction, mechanism, purview), repertoire
+    )
 
 
 def test_invalid_repertoires(transition):
@@ -387,22 +414,28 @@ def test_invalid_repertoires(transition):
 
 def test_unconstrained_repertoires(transition):
     np.testing.assert_array_equal(
-        transition.unconstrained_cause_repertoire((2,)), [[[0.5, 0.5]]])
+        transition.unconstrained_cause_repertoire((2,)), [[[0.5, 0.5]]]
+    )
     np.testing.assert_array_equal(
-        transition.unconstrained_effect_repertoire((0,)), [[[0.25]], [[0.75]]])
+        transition.unconstrained_effect_repertoire((0,)), [[[0.25]], [[0.75]]]
+    )
 
 
-@pytest.mark.parametrize('direction,mechanism,purview,probability', [
-    (Direction.CAUSE, (0,), (1,), 0.66666667),
-    (Direction.CAUSE, (0,), (2,), 0.66666667),
-    (Direction.CAUSE, (0,), (1, 2), 0.3333333),
-    (Direction.EFFECT, (1,), (0,), 1),
-    (Direction.EFFECT, (2,), (0,), 1),
-    (Direction.EFFECT, (1, 2), (0,), 1),
-])
+@pytest.mark.parametrize(
+    "direction,mechanism,purview,probability",
+    [
+        (Direction.CAUSE, (0,), (1,), 0.66666667),
+        (Direction.CAUSE, (0,), (2,), 0.66666667),
+        (Direction.CAUSE, (0,), (1, 2), 0.3333333),
+        (Direction.EFFECT, (1,), (0,), 1),
+        (Direction.EFFECT, (2,), (0,), 1),
+        (Direction.EFFECT, (1, 2), (0,), 1),
+    ],
+)
 def test_probability(direction, mechanism, purview, probability, transition):
-    assert np.isclose(transition.probability(direction, mechanism, purview),
-                      probability)
+    assert np.isclose(
+        transition.probability(direction, mechanism, purview), probability
+    )
 
 
 def test_unconstrained_probability(transition):
@@ -410,20 +443,18 @@ def test_unconstrained_probability(transition):
     assert transition.unconstrained_probability(Direction.EFFECT, (0,)) == 0.75
 
 
-@pytest.mark.parametrize('mechanism,purview,ratio', [
-    ((0,), (1,), 0.41504),
-    ((0,), (2,), 0.41504),
-    ((0,), (1, 2), 0.41504),
-])
+@pytest.mark.parametrize(
+    "mechanism,purview,ratio",
+    [((0,), (1,), 0.41504), ((0,), (2,), 0.41504), ((0,), (1, 2), 0.41504),],
+)
 def test_cause_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.cause_ratio(mechanism, purview), ratio)
 
 
-@pytest.mark.parametrize('mechanism,purview,ratio', [
-    ((1,), (0,), 0.41504),
-    ((2,), (0,), 0.41504),
-    ((1, 2), (0,), 0.41504),
-])
+@pytest.mark.parametrize(
+    "mechanism,purview,ratio",
+    [((1,), (0,), 0.41504), ((2,), (0,), 0.41504), ((1, 2), (0,), 0.41504),],
+)
 def test_effect_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.effect_ratio(mechanism, purview), ratio)
 
@@ -442,8 +473,9 @@ def test_ac_ex1_transition(transition):
     assert cria.alpha == 0.415037
     assert cria.probability == 0.66666666666666663
     assert cria.partitioned_probability == 0.5
-    assert cria.partition == models.Bipartition(models.Part((), (1,)),
-                                                models.Part((0,), ()))
+    assert cria.partition == models.Bipartition(
+        models.Part((), (1,)), models.Part((0,), ())
+    )
 
     effect_account = actual.account(transition, Direction.EFFECT)
     assert len(effect_account) == 2
@@ -457,8 +489,9 @@ def test_ac_ex1_transition(transition):
     assert eria0.alpha == 0.415037
     assert eria0.probability == 1.0
     assert eria0.partitioned_probability == 0.75
-    assert eria0.partition == models.Bipartition(models.Part((), (0,)),
-                                                 models.Part((1,), ()))
+    assert eria0.partition == models.Bipartition(
+        models.Part((), (0,)), models.Part((1,), ())
+    )
 
     assert eria1.mechanism == (2,)
     assert eria1.purview == (0,)
@@ -467,8 +500,9 @@ def test_ac_ex1_transition(transition):
     assert eria1.alpha == 0.415037
     assert eria1.probability == 1.0
     assert eria1.partitioned_probability == 0.75
-    assert eria1.partition == models.Bipartition(models.Part((), (0,)),
-                                                 models.Part((2,), ()))
+    assert eria1.partition == models.Bipartition(
+        models.Part((), (0,)), models.Part((2,), ())
+    )
 
 
 def test_actual_cut_indices():
@@ -507,25 +541,42 @@ def ac_cut(direction, *parts):
     return models.ActualCut(direction, KPartition(*parts))
 
 
-@config.override(PARTITION_TYPE='TRI')
-@pytest.mark.parametrize('direction,answer', [
-    (Direction.BIDIRECTIONAL, [
-        ac_cut(Direction.CAUSE,
-               Part((), ()), Part((), (1, 2)), Part((0,), ())),
-        ac_cut(Direction.EFFECT,
-               Part((), ()), Part((1,), (0,)), Part((2,), ())),
-        ac_cut(Direction.EFFECT,
-               Part((), ()), Part((1,), ()), Part((2,), (0,)))]),
-    (Direction.CAUSE, [
-        ac_cut(Direction.CAUSE,
-               Part((), ()), Part((), (1, 2)), Part((0,), ()))]),
-    (Direction.EFFECT, [
-        ac_cut(Direction.EFFECT,
-               Part((), ()), Part((), (0,)), Part((1, 2), ())),
-        ac_cut(Direction.EFFECT,
-               Part((), ()), Part((1,), (0,)), Part((2,), ())),
-        ac_cut(Direction.EFFECT,
-               Part((), ()), Part((1,), ()), Part((2,), (0,)))])])
+@config.override(PARTITION_TYPE="TRI")
+@pytest.mark.parametrize(
+    "direction,answer",
+    [
+        (
+            Direction.BIDIRECTIONAL,
+            [
+                ac_cut(Direction.CAUSE, Part((), ()), Part((), (1, 2)), Part((0,), ())),
+                ac_cut(
+                    Direction.EFFECT, Part((), ()), Part((1,), (0,)), Part((2,), ())
+                ),
+                ac_cut(
+                    Direction.EFFECT, Part((), ()), Part((1,), ()), Part((2,), (0,))
+                ),
+            ],
+        ),
+        (
+            Direction.CAUSE,
+            [ac_cut(Direction.CAUSE, Part((), ()), Part((), (1, 2)), Part((0,), ()))],
+        ),
+        (
+            Direction.EFFECT,
+            [
+                ac_cut(
+                    Direction.EFFECT, Part((), ()), Part((), (0,)), Part((1, 2), ())
+                ),
+                ac_cut(
+                    Direction.EFFECT, Part((), ()), Part((1,), (0,)), Part((2,), ())
+                ),
+                ac_cut(
+                    Direction.EFFECT, Part((), ()), Part((1,), ()), Part((2,), (0,))
+                ),
+            ],
+        ),
+    ],
+)
 def test_get_actual_cuts(direction, answer, transition):
     cuts = list(actual._get_cuts(transition, direction))
     print(cuts, answer)
@@ -548,11 +599,11 @@ def test_null_ac_sia(transition):
     assert sia.partitioned_account == ()
     assert sia.alpha == 0.0
 
-    sia = actual._null_ac_sia(transition, Direction.CAUSE, alpha=float('inf'))
-    assert sia.alpha == float('inf')
+    sia = actual._null_ac_sia(transition, Direction.CAUSE, alpha=float("inf"))
+    assert sia.alpha == float("inf")
 
 
-@config.override(PARTITION_TYPE='TRI')
+@config.override(PARTITION_TYPE="TRI")
 def test_prevention(prevention):
     assert actual.sia(prevention, Direction.CAUSE).alpha == 0.415037
     assert actual.sia(prevention, Direction.EFFECT).alpha == 0.0

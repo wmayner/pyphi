@@ -26,10 +26,23 @@ Attributes:
 
 # pylint: disable=unused-import
 
-from .subsystem import (sia, phi, evaluate_cut, ConceptStyleSystem,
-                        sia_concept_style, concept_cuts,
-                        SystemIrreducibilityAnalysisConceptStyle,
-                        conceptual_info, ces)
-from .network import (all_complexes, complexes, condensed, major_complex,
-                      possible_complexes, subsystems)
-from .distance import concept_distance, ces_distance
+from .distance import ces_distance, concept_distance
+from .network import (
+    all_complexes,
+    complexes,
+    condensed,
+    major_complex,
+    possible_complexes,
+    subsystems,
+)
+from .subsystem import (
+    ConceptStyleSystem,
+    SystemIrreducibilityAnalysisConceptStyle,
+    ces,
+    concept_cuts,
+    conceptual_info,
+    evaluate_cut,
+    phi,
+    sia,
+    sia_concept_style,
+)

@@ -7,7 +7,6 @@ Prints the pstats results for the functions in which the most time was spent.
 import argparse
 import pstats
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("pstats_file", help="the profile file to print")

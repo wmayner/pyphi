@@ -51,24 +51,26 @@ def test_network_creates_fully_connected_cm_by_default():
 
 def test_potential_purviews(s):
     mechanism = (0,)
-    assert (s.network.potential_purviews(Direction.CAUSE, mechanism) ==
-            [(1,), (2,), (1, 2)])
-    assert (s.network.potential_purviews(Direction.EFFECT, mechanism) ==
-            [(2,)])
+    assert s.network.potential_purviews(Direction.CAUSE, mechanism) == [
+        (1,),
+        (2,),
+        (1, 2),
+    ]
+    assert s.network.potential_purviews(Direction.EFFECT, mechanism) == [(2,)]
 
 
 def test_node_labels(standard):
-    labels = ('A', 'B', 'C')
+    labels = ("A", "B", "C")
     network = Network(standard.tpm, node_labels=labels)
     assert network.node_labels.labels == labels
 
-    labels = ('A', 'B')  # Too few labels
+    labels = ("A", "B")  # Too few labels
     with pytest.raises(ValueError):
         Network(standard.tpm, node_labels=labels)
 
     # Auto-generated labels
     network = Network(standard.tpm, node_labels=None)
-    assert network.node_labels.labels == ('n0', 'n1', 'n2')
+    assert network.node_labels.labels == ("n0", "n1", "n2")
 
 
 def test_num_states(standard):

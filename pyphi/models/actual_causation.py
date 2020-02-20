@@ -8,14 +8,28 @@ Objects that represent structures used in actual causation.
 
 import collections
 
-from . import cmp, fmt
 from .. import Direction, config, utils
+from . import cmp, fmt
 
 # TODO(slipperyhank): add second state
-_acria_attributes = ['alpha', 'state', 'direction', 'mechanism', 'purview',
-                     'partition', 'probability', 'partitioned_probability']
-_acria_attributes_for_eq = ['alpha', 'state', 'direction', 'mechanism',
-                            'purview', 'probability']
+_acria_attributes = [
+    "alpha",
+    "state",
+    "direction",
+    "mechanism",
+    "purview",
+    "partition",
+    "probability",
+    "partitioned_probability",
+]
+_acria_attributes_for_eq = [
+    "alpha",
+    "state",
+    "direction",
+    "mechanism",
+    "purview",
+    "probability",
+]
 
 
 def greater_than_zero(alpha):
@@ -56,9 +70,18 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
             The probability of the state in the partitioned repertoire.
     """
 
-    def __init__(self, alpha, state, direction, mechanism, purview,
-                 partition, probability, partitioned_probability,
-                 node_labels=None):
+    def __init__(
+        self,
+        alpha,
+        state,
+        direction,
+        mechanism,
+        purview,
+        partition,
+        probability,
+        partitioned_probability,
+        node_labels=None,
+    ):
         self.alpha = alpha
         self.state = state
         self.direction = direction
@@ -71,7 +94,7 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
 
     __slots__ = ()
 
-    unorderable_unless_eq = ['direction']
+    unorderable_unless_eq = ["direction"]
 
     def order_by(self):
         if config.PICK_SMALLEST_PURVIEW:
@@ -106,8 +129,7 @@ class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
         return fmt.make_repr(self, _acria_attributes)
 
     def __str__(self):
-        return ("RepertoireIrreducibilityAnalysis\n" +
-                fmt.indent(fmt.fmt_ac_sia(self)))
+        return "RepertoireIrreducibilityAnalysis\n" + fmt.indent(fmt.fmt_ac_sia(self))
 
 
 def _null_ac_ria(state, direction, mechanism, purview, partition=None):
@@ -120,7 +142,7 @@ def _null_ac_ria(state, direction, mechanism, purview, partition=None):
         partition=partition,
         probability=None,
         partitioned_probability=None,
-        alpha=0.0
+        alpha=0.0,
     )
 
 
@@ -134,7 +156,9 @@ class CausalLink(cmp.Orderable):
 
     def __init__(self, ria, extended_purview=None):
         self._ria = ria
-        self._extended_purview = tuple(extended_purview) if extended_purview is not None else None
+        self._extended_purview = (
+            tuple(extended_purview) if extended_purview is not None else None
+        )
 
     @property
     def alpha(self):
@@ -188,13 +212,12 @@ class CausalLink(cmp.Orderable):
         return self._ria.node_labels
 
     def __repr__(self):
-        return fmt.make_repr(self, ['ria', 'extended_purview'])
+        return fmt.make_repr(self, ["ria", "extended_purview"])
 
     def __str__(self):
         return "CausalLink\n" + fmt.indent(fmt.fmt_causal_link(self))
 
-    unorderable_unless_eq = \
-        AcRepertoireIrreducibilityAnalysis.unorderable_unless_eq
+    unorderable_unless_eq = AcRepertoireIrreducibilityAnalysis.unorderable_unless_eq
 
     def order_by(self):
         return self.ria.order_by()
@@ -211,10 +234,10 @@ class CausalLink(cmp.Orderable):
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {'ria': self.ria}
+        return {"ria": self.ria}
 
 
-class Event(collections.namedtuple('Event', ['actual_cause', 'actual_effect'])):
+class Event(collections.namedtuple("Event", ["actual_cause", "actual_effect"])):
     """A mechanism which has both an actual cause and an actual effect.
 
     Attributes:
@@ -260,27 +283,25 @@ class Account(cmp.Orderable, collections.Sequence):
     @property
     def irreducible_causes(self):
         """The set of irreducible causes in this |Account|."""
-        return tuple(link for link in self
-                     if link.direction is Direction.CAUSE)
+        return tuple(link for link in self if link.direction is Direction.CAUSE)
 
     @property
     def irreducible_effects(self):
         """The set of irreducible effects in this |Account|."""
-        return tuple(link for link in self
-                     if link.direction is Direction.EFFECT)
+        return tuple(link for link in self if link.direction is Direction.EFFECT)
 
     def __repr__(self):
-        return fmt.make_repr(self, ['causal_links'])
+        return fmt.make_repr(self, ["causal_links"])
 
     def __str__(self):
         return fmt.fmt_account(self)
 
     def to_json(self):
-        return {'causal_links': tuple(self)}
+        return {"causal_links": tuple(self)}
 
     @classmethod
     def from_json(cls, dct):
-        return cls(dct['causal_links'])
+        return cls(dct["causal_links"])
 
 
 class DirectedAccount(Account):
@@ -291,8 +312,14 @@ class DirectedAccount(Account):
     pass
 
 
-_ac_sia_attributes = ['alpha', 'direction', 'account', 'partitioned_account',
-                      'transition', 'cut']
+_ac_sia_attributes = [
+    "alpha",
+    "direction",
+    "account",
+    "partitioned_account",
+    "transition",
+    "cut",
+]
 
 
 # TODO(slipperyhank): Check if we do the same, i.e. take the bigger system, or
@@ -315,8 +342,15 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         cut (ActualCut): The minimal partition.
     """
 
-    def __init__(self, alpha=None, direction=None, account=None,
-                 partitioned_account=None, transition=None, cut=None):
+    def __init__(
+        self,
+        alpha=None,
+        direction=None,
+        account=None,
+        partitioned_account=None,
+        transition=None,
+        cut=None,
+    ):
         self.alpha = alpha
         self.direction = direction
         self.account = account
@@ -340,7 +374,7 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         """Return the actual current state of the |Transition|."""
         return self.transition.after_state
 
-    unorderable_unless_eq = ['direction']
+    unorderable_unless_eq = ["direction"]
 
     # TODO: shouldn't the minimal irreducible account be chosen?
     def order_by(self):
@@ -356,9 +390,15 @@ class AcSystemIrreducibilityAnalysis(cmp.Orderable):
         return greater_than_zero(self.alpha)
 
     def __hash__(self):
-        return hash((self.alpha, self.account,
-                     self.partitioned_account, self.transition,
-                     self.cut))
+        return hash(
+            (
+                self.alpha,
+                self.account,
+                self.partitioned_account,
+                self.transition,
+                self.cut,
+            )
+        )
 
     def to_json(self):
         return {attr: getattr(self, attr) for attr in _ac_sia_attributes}
@@ -373,5 +413,5 @@ def _null_ac_sia(transition, direction, alpha=0.0):
         direction=direction,
         alpha=alpha,
         account=(),
-        partitioned_account=()
+        partitioned_account=(),
     )

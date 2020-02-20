@@ -13,13 +13,25 @@ from pyphi.labels import NodeLabels
 # Helper functions for constructing PyPhi objects
 # -----------------------------------------------
 
-def ria(phi=1.0, direction=None, mechanism=(), purview=(), partition=None,
-        repertoire=None, partitioned_repertoire=None):
+
+def ria(
+    phi=1.0,
+    direction=None,
+    mechanism=(),
+    purview=(),
+    partition=None,
+    repertoire=None,
+    partitioned_repertoire=None,
+):
     """Build a ``RepertoireIrreducibilityAnalysis``."""
     return models.RepertoireIrreducibilityAnalysis(
-        phi=phi, direction=direction, mechanism=mechanism, purview=purview,
-        partition=partition, repertoire=repertoire,
-        partitioned_repertoire=partitioned_repertoire
+        phi=phi,
+        direction=direction,
+        mechanism=mechanism,
+        purview=purview,
+        partition=partition,
+        repertoire=repertoire,
+        partitioned_repertoire=partitioned_repertoire,
     )
 
 
@@ -38,34 +50,46 @@ def mie(**kwargs):
     return models.MaximallyIrreducibleEffect(ria(**kwargs))
 
 
-def concept(mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0,
-            subsystem=None):
+def concept(
+    mechanism=(0, 1), cause_purview=(1,), effect_purview=(1,), phi=1.0, subsystem=None
+):
     """Build a ``Concept``."""
     return models.Concept(
         mechanism=mechanism,
-        cause=mic(mechanism=mechanism, purview=cause_purview, phi=phi,
-                  direction=Direction.CAUSE),
-        effect=mie(mechanism=mechanism, purview=effect_purview, phi=phi,
-                   direction=Direction.EFFECT),
-        subsystem=subsystem)
+        cause=mic(
+            mechanism=mechanism,
+            purview=cause_purview,
+            phi=phi,
+            direction=Direction.CAUSE,
+        ),
+        effect=mie(
+            mechanism=mechanism,
+            purview=effect_purview,
+            phi=phi,
+            direction=Direction.EFFECT,
+        ),
+        subsystem=subsystem,
+    )
 
 
-def sia(ces=(), partitioned_ces=(), subsystem=None, cut_subsystem=None,
-        phi=1.0):
+def sia(ces=(), partitioned_ces=(), subsystem=None, cut_subsystem=None, phi=1.0):
     """Build a ``SystemIrreducibilityAnalysis``."""
     cut_subsystem = cut_subsystem or subsystem
 
     return models.SystemIrreducibilityAnalysis(
         ces=ces,
         partitioned_ces=partitioned_ces,
-        subsystem=subsystem, cut_subsystem=cut_subsystem, phi=phi)
+        subsystem=subsystem,
+        cut_subsystem=cut_subsystem,
+        phi=phi,
+    )
 
 
 # Test equality helpers
 # {{{
 
-def test_phi_mechanism_ordering():
 
+def test_phi_mechanism_ordering():
     class PhiThing(models.cmp.Orderable):
         def __init__(self, phi, mechanism):
             self.phi = phi
@@ -108,7 +132,6 @@ def test_phi_mechanism_ordering():
 
 
 def test_sametype_decorator():
-
     class Thing:
         @models.cmp.sametype
         def do_it(self, other):
@@ -117,10 +140,15 @@ def test_sametype_decorator():
     assert Thing().do_it(object()) == NotImplemented
 
 
-nt_attributes = ['this', 'that', 'phi', 'mechanism', 'purview']
-nt = namedtuple('nt', nt_attributes)
-a = nt(this=('consciousness', 'is phi'), that=np.arange(3), phi=0.5,
-       mechanism=(0, 1, 2), purview=(2, 4))
+nt_attributes = ["this", "that", "phi", "mechanism", "purview"]
+nt = namedtuple("nt", nt_attributes)
+a = nt(
+    this=("consciousness", "is phi"),
+    that=np.arange(3),
+    phi=0.5,
+    mechanism=(0, 1, 2),
+    purview=(2, 4),
+)
 
 
 def test_numpy_aware_eq_noniterable():
@@ -144,21 +172,18 @@ def test_numpy_aware_eq_identical():
 
 
 def test_general_eq_different_attributes():
-    similar_nt = namedtuple('nt', nt_attributes + ['supbro'])
-    b = similar_nt(a.this, a.that, a.phi, a.mechanism, a.purview,
-                   supbro="nothin' much")
+    similar_nt = namedtuple("nt", nt_attributes + ["supbro"])
+    b = similar_nt(a.this, a.that, a.phi, a.mechanism, a.purview, supbro="nothin' much")
     assert models.cmp.general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_true():
-    b = nt(a.this, a.that, (a.phi - constants.EPSILON / 2), a.mechanism,
-           a.purview)
+    b = nt(a.this, a.that, (a.phi - constants.EPSILON / 2), a.mechanism, a.purview)
     assert models.cmp.general_eq(a, b, nt_attributes)
 
 
 def test_general_eq_phi_precision_comparison_false():
-    b = nt(a.this, a.that, (a.phi - constants.EPSILON * 2), a.mechanism,
-           a.purview)
+    b = nt(a.this, a.that, (a.phi - constants.EPSILON * 2), a.mechanism, a.purview)
     assert not models.cmp.general_eq(a, b, nt_attributes)
 
 
@@ -187,8 +212,7 @@ def test_general_eq_purview_mechanism_none():
 
 
 def test_general_eq_attribute_missing():
-    b = namedtuple('no_purview', nt_attributes[:-1])(
-        a.this, a.that, a.phi, a.mechanism)
+    b = namedtuple("no_purview", nt_attributes[:-1])(a.this, a.that, a.phi, a.mechanism)
     assert not models.cmp.general_eq(a, b, nt_attributes)
 
 
@@ -196,6 +220,7 @@ def test_general_eq_attribute_missing():
 
 # Test Cut
 # {{{
+
 
 def test_cut_equality():
     cut1 = models.Cut((0,), (1,))
@@ -233,18 +258,11 @@ def test_cut_matrix():
     assert np.array_equal(cut.cut_matrix(1), matrix)
 
     cut = models.Cut((0,), (1,))
-    matrix = np.array([
-        [0, 1],
-        [0, 0],
-    ])
+    matrix = np.array([[0, 1], [0, 0],])
     assert np.array_equal(cut.cut_matrix(2), matrix)
 
     cut = models.Cut((0, 2), (1, 2))
-    matrix = np.array([
-        [0, 1, 1],
-        [0, 0, 0],
-        [0, 1, 1],
-    ])
+    matrix = np.array([[0, 1, 1], [0, 0, 0], [0, 1, 1],])
     assert np.array_equal(cut.cut_matrix(3), matrix)
 
     cut = models.Cut((), ())
@@ -293,7 +311,7 @@ def test_null_cut():
 
 def test_null_cut_str():
     cut = models.NullCut((2, 3))
-    assert str(cut) == 'NullCut((2, 3))'
+    assert str(cut) == "NullCut((2, 3))"
 
 
 def test_null_cut_equality():
@@ -308,10 +326,10 @@ def test_cuts_can_have_node_labels(node_labels):
     models.Cut((0,), (1,), node_labels=node_labels)
 
     k_partition = models.KPartition(
-        models.Part((0, 1), (0,)),
-        models.Part((), (1,)),
-        node_labels=node_labels)
+        models.Part((0, 1), (0,)), models.Part((), (1,)), node_labels=node_labels
+    )
     models.KCut(Direction.CAUSE, k_partition, node_labels=node_labels)
+
 
 # }}}
 
@@ -348,14 +366,13 @@ def test_null_ria():
     direction = Direction.CAUSE
     mechanism = (0,)
     purview = (1,)
-    repertoire = 'repertoire'
-    null_ria = models._null_ria(direction, mechanism, purview,
-                                repertoire)
+    repertoire = "repertoire"
+    null_ria = models._null_ria(direction, mechanism, purview, repertoire)
     assert null_ria.direction == direction
     assert null_ria.mechanism == mechanism
     assert null_ria.purview == purview
     assert null_ria.partition is None
-    assert null_ria.repertoire == 'repertoire'
+    assert null_ria.repertoire == "repertoire"
     assert null_ria.partitioned_repertoire is None
     assert null_ria.phi == 0
 
@@ -379,7 +396,7 @@ def test_mice_ordering_by_phi():
     assert phi1 <= phi2
     assert phi2 >= phi1
 
-    different_direction = mice(direction='different')
+    different_direction = mice(direction="different")
 
     with pytest.raises(TypeError):
         phi1 <= different_direction
@@ -463,6 +480,7 @@ def test_damaged(s):
 
 # Test MIC and MIE {{{
 
+
 def test_mic_raises_wrong_direction():
     mic(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
     with pytest.raises(exceptions.WrongDirectionError):
@@ -474,6 +492,7 @@ def test_mie_raises_wrong_direction():
     with pytest.raises(exceptions.WrongDirectionError):
         mie(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
 
+
 # }}}
 
 
@@ -483,8 +502,7 @@ def test_mie_raises_wrong_direction():
 
 def test_concept_ordering(s, micro_s):
     phi1 = concept(subsystem=s)
-    phi2 = concept(mechanism=(0,), phi=(1.0 + constants.EPSILON * 2),
-                   subsystem=s)
+    phi2 = concept(mechanism=(0,), phi=(1.0 + constants.EPSILON * 2), subsystem=s)
 
     assert phi1 < phi2
     assert phi2 > phi1
@@ -518,25 +536,23 @@ def test_concept_equality_phi(s):
 
 
 def test_concept_equality_cause_purview_nodes(s):
-    assert (concept(cause_purview=(1, 2), subsystem=s) !=
-            concept(cause_purview=(1,), subsystem=s))
+    assert concept(cause_purview=(1, 2), subsystem=s) != concept(
+        cause_purview=(1,), subsystem=s
+    )
 
 
 def test_concept_equality_effect_purview_nodes(s):
-    assert (concept(effect_purview=(1, 2), subsystem=s) !=
-            concept(effect_purview=(1,), subsystem=s))
+    assert concept(effect_purview=(1, 2), subsystem=s) != concept(
+        effect_purview=(1,), subsystem=s
+    )
 
 
 def test_concept_equality_repertoires(s):
     phi = 1.0
-    mice1 = mice(phi=phi, repertoire=np.array([1, 2]),
-                 partitioned_repertoire=())
-    mice2 = mice(phi=phi, repertoire=np.array([0, 0]),
-                 partitioned_repertoire=None)
-    concept = models.Concept(mechanism=(), cause=mice1, effect=mice2,
-                             subsystem=s)
-    another = models.Concept(mechanism=(), cause=mice2, effect=mice1,
-                             subsystem=s)
+    mice1 = mice(phi=phi, repertoire=np.array([1, 2]), partitioned_repertoire=())
+    mice2 = mice(phi=phi, repertoire=np.array([0, 0]), partitioned_repertoire=None)
+    concept = models.Concept(mechanism=(), cause=mice1, effect=mice2, subsystem=s)
+    another = models.Concept(mechanism=(), cause=mice2, effect=mice1, subsystem=s)
     assert concept != another
 
 
@@ -577,11 +593,13 @@ def test_concept_emd_eq(s, subsys_n1n2):
 
     # TODO: test other expectations...
 
+
 # }}}
 
 
 # Test CauseEffectStructure
 # {{{
+
 
 def test_ces_is_still_a_tuple(s):
     c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
@@ -604,17 +622,18 @@ def test_ces_are_always_normalized(s):
 
 def test_ces_labeled_mechanisms(s):
     c = models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
-    assert c.labeled_mechanisms == (['A', 'B'],)
+    assert c.labeled_mechanisms == (["A", "B"],)
 
 
 def test_ces_ordering(s):
-    assert (models.CauseEffectStructure([concept(subsystem=s)], subsystem=s) ==
-            models.CauseEffectStructure([concept(subsystem=s)], subsystem=s))
+    assert models.CauseEffectStructure(
+        [concept(subsystem=s)], subsystem=s
+    ) == models.CauseEffectStructure([concept(subsystem=s)], subsystem=s)
 
-    assert (models.CauseEffectStructure([concept(phi=1, subsystem=s)],
-                                        subsystem=s) >
-            models.CauseEffectStructure([concept(phi=0, subsystem=s)],
-                                        subsystem=s))
+    assert models.CauseEffectStructure(
+        [concept(phi=1, subsystem=s)], subsystem=s
+    ) > models.CauseEffectStructure([concept(phi=0, subsystem=s)], subsystem=s)
+
 
 # }}}
 
@@ -670,33 +689,34 @@ def test_sia_repr_str(s):
 # Test model __str__ and __reprs__
 # {{{
 
+
 def test_indent():
-    s = ('line1\n'
-         'line2')
-    answer = ('  line1\n'
-              '  line2')
+    s = "line1\n" "line2"
+    answer = "  line1\n" "  line2"
     assert models.fmt.indent(s) == answer
 
 
 class ReadableReprClass:
     """Dummy class for make_repr tests"""
+
     some_attr = 3.14
 
     def __repr__(self):
-        return models.fmt.make_repr(self, ['some_attr'])
+        return models.fmt.make_repr(self, ["some_attr"])
 
     def __str__(self):
-        return 'A nice fat explicit string'
+        return "A nice fat explicit string"
 
 
 @config.override(REPR_VERBOSITY=0)
 def test_make_reprs_uses___repr__():
-    assert repr(ReadableReprClass()) == 'ReadableReprClass(some_attr=3.14)'
+    assert repr(ReadableReprClass()) == "ReadableReprClass(some_attr=3.14)"
 
 
 @config.override(REPR_VERBOSITY=2)
 def test_make_reprs_calls_out_to_string():
-    assert repr(ReadableReprClass()) == 'A nice fat explicit string'
+    assert repr(ReadableReprClass()) == "A nice fat explicit string"
+
 
 # }}}
 
@@ -704,17 +724,17 @@ def test_make_reprs_calls_out_to_string():
 # Test partitions
 # {{{
 
+
 @pytest.fixture
 def node_labels():
-    return NodeLabels('ABCDE', tuple(range(5)))
+    return NodeLabels("ABCDE", tuple(range(5)))
 
 
 @pytest.fixture
 def bipartition(node_labels):
     return models.Bipartition(
-        models.Part((0,), (0, 4)),
-        models.Part((), (1,)),
-        node_labels=node_labels)
+        models.Part((0,), (0, 4)), models.Part((), (1,)), node_labels=node_labels
+    )
 
 
 def test_bipartition_properties(bipartition):
@@ -723,10 +743,7 @@ def test_bipartition_properties(bipartition):
 
 
 def test_bipartition_str(bipartition):
-    assert str(bipartition) == (
-        ' A     ∅ \n'
-        '─── ✕ ───\n'
-        'A,E    B ')
+    assert str(bipartition) == (" A     ∅ \n" "─── ✕ ───\n" "A,E    B ")
 
 
 @pytest.fixture
@@ -735,7 +752,8 @@ def tripartition(node_labels):
         models.Part((0,), (0, 4)),
         models.Part((), (1,)),
         models.Part((2,), (2,)),
-        node_labels=node_labels)
+        node_labels=node_labels,
+    )
 
 
 def test_tripartion_properties(tripartition):
@@ -745,9 +763,8 @@ def test_tripartion_properties(tripartition):
 
 def test_tripartion_str(tripartition):
     assert str(tripartition) == (
-        ' A     ∅     C \n'
-        '─── ✕ ─── ✕ ───\n'
-        'A,E    B     C ')
+        " A     ∅     C \n" "─── ✕ ─── ✕ ───\n" "A,E    B     C "
+    )
 
 
 def k_partition(node_labels=None):
@@ -756,7 +773,7 @@ def k_partition(node_labels=None):
         models.Part((), (1,)),
         models.Part((6,), (5,)),
         models.Part((2,), (2,)),
-        node_labels=node_labels
+        node_labels=node_labels,
     )
 
 
@@ -765,7 +782,7 @@ def test_partition_normalize():
         models.Part((), (1,)),
         models.Part((0,), (0, 4)),
         models.Part((2,), (2,)),
-        models.Part((6,), (5,))
+        models.Part((6,), (5,)),
     )
 
 
@@ -777,6 +794,7 @@ def test_partition_normalize_preserves_labels(node_labels):
 def test_partition_eq_hash():
     assert k_partition() == k_partition()
     assert hash(k_partition()) == hash(k_partition())
+
 
 # }}}
 

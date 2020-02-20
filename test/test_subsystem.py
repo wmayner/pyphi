@@ -2,17 +2,19 @@
 # -*- coding: utf-8 -*-
 # test_subsystem.py
 
+import example_networks
 import numpy as np
 import pytest
 
-import example_networks
 from pyphi import Direction, Network, config, exceptions
-from pyphi.models import (Concept, Cut,
-                          MaximallyIrreducibleCause,
-                          MaximallyIrreducibleEffect,
-                          RepertoireIrreducibilityAnalysis)
+from pyphi.models import (
+    Concept,
+    Cut,
+    MaximallyIrreducibleCause,
+    MaximallyIrreducibleEffect,
+    RepertoireIrreducibilityAnalysis,
+)
 from pyphi.subsystem import Subsystem
-
 
 
 @config.override(VALIDATE_SUBSYSTEM_STATES=True)
@@ -104,7 +106,6 @@ def test_indices2nodes_with_bad_indices(subsys_n1n2):
         subsys_n1n2.indices2nodes((0,))  # index n0 in network but not subsytem
 
 
-
 def test_is_cut(s):
     assert s.is_cut is False
     s = Subsystem(s.network, s.state, s.node_indices, cut=Cut((0,), (1, 2)))
@@ -135,7 +136,10 @@ def test_cut_indices(s, subsys_n1n2):
 def test_cut_mechanisms(s):
     assert list(s.cut_mechanisms) == []
     assert list(s.apply_cut(Cut((0, 1), (2,))).cut_mechanisms) == [
-        (0, 2), (1, 2), (0, 1, 2)]
+        (0, 2),
+        (1, 2),
+        (0, 1, 2),
+    ]
 
 
 def test_cut_node_labels(s):
@@ -143,26 +147,39 @@ def test_cut_node_labels(s):
 
 
 def test_specify_elements_with_labels(standard):
-    network = Network(standard.tpm, node_labels=('A', 'B', 'C'))
-    subsystem = Subsystem(network, (0, 0, 0), ('B', 'C'))
+    network = Network(standard.tpm, node_labels=("A", "B", "C"))
+    subsystem = Subsystem(network, (0, 0, 0), ("B", "C"))
     assert subsystem.node_indices == (1, 2)
-    assert tuple(node.label for node in subsystem.nodes) == ('B', 'C')
-    assert str(subsystem) == 'Subsystem(B, C)'
+    assert tuple(node.label for node in subsystem.nodes) == ("B", "C")
+    assert str(subsystem) == "Subsystem(B, C)"
 
 
 def test_null_concept(s):
     cause = MaximallyIrreducibleCause(
         RepertoireIrreducibilityAnalysis(
-            repertoire=s.unconstrained_cause_repertoire(()), phi=0,
-            direction=Direction.CAUSE, mechanism=(), purview=(),
-            partition=None, partitioned_repertoire=None))
+            repertoire=s.unconstrained_cause_repertoire(()),
+            phi=0,
+            direction=Direction.CAUSE,
+            mechanism=(),
+            purview=(),
+            partition=None,
+            partitioned_repertoire=None,
+        )
+    )
     effect = MaximallyIrreducibleEffect(
         RepertoireIrreducibilityAnalysis(
-            repertoire=s.unconstrained_effect_repertoire(()), phi=0,
-            direction=Direction.EFFECT, mechanism=(), purview=(),
-            partition=None, partitioned_repertoire=None))
-    assert (s.null_concept ==
-            Concept(mechanism=(), cause=cause, effect=effect, subsystem=s))
+            repertoire=s.unconstrained_effect_repertoire(()),
+            phi=0,
+            direction=Direction.EFFECT,
+            mechanism=(),
+            purview=(),
+            partition=None,
+            partitioned_repertoire=None,
+        )
+    )
+    assert s.null_concept == Concept(
+        mechanism=(), cause=cause, effect=effect, subsystem=s
+    )
 
 
 def test_concept_no_mechanism(s):

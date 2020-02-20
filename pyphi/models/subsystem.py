@@ -6,11 +6,10 @@
 
 import collections
 
-from . import cmp, fmt
 from .. import utils
+from . import cmp, fmt
 
-_sia_attributes = ['phi', 'ces', 'partitioned_ces', 'subsystem',
-                   'cut_subsystem']
+_sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
 
 
 def _concept_sort_key(concept):
@@ -36,7 +35,7 @@ class CauseEffectStructure(cmp.Orderable, collections.Sequence):
         return self.concepts[i]
 
     def __repr__(self):
-        return fmt.make_repr(self, ['concepts', 'subsystem', 'time'])
+        return fmt.make_repr(self, ["concepts", "subsystem", "time"])
 
     def __str__(self):
         return fmt.fmt_ces(self)
@@ -52,8 +51,11 @@ class CauseEffectStructure(cmp.Orderable, collections.Sequence):
         return [self.concepts]
 
     def to_json(self):
-        return {'concepts': self.concepts, 'subsystem': self.subsystem,
-                'time': self.time}
+        return {
+            "concepts": self.concepts,
+            "subsystem": self.subsystem,
+            "time": self.time,
+        }
 
     @property
     def mechanisms(self):
@@ -97,8 +99,15 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         time (float): The number of seconds it took to calculate.
     """
 
-    def __init__(self, phi=None, ces=None, partitioned_ces=None,
-                 subsystem=None, cut_subsystem=None, time=None):
+    def __init__(
+        self,
+        phi=None,
+        ces=None,
+        partitioned_ces=None,
+        subsystem=None,
+        cut_subsystem=None,
+        time=None,
+    ):
         self.phi = phi
         self.ces = ces
         self.partitioned_ces = partitioned_ces
@@ -135,7 +144,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         """The network the subsystem belongs to."""
         return self.subsystem.network
 
-    unorderable_unless_eq = ['network']
+    unorderable_unless_eq = ["network"]
 
     def order_by(self):
         return [self.phi, len(self.subsystem), self.subsystem.node_indices]
@@ -150,22 +159,26 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         return not utils.eq(self.phi, 0)
 
     def __hash__(self):
-        return hash((self.phi,
-                     self.ces,
-                     self.partitioned_ces,
-                     self.subsystem,
-                     self.cut_subsystem))
+        return hash(
+            (
+                self.phi,
+                self.ces,
+                self.partitioned_ces,
+                self.subsystem,
+                self.cut_subsystem,
+            )
+        )
 
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
             attr: getattr(self, attr)
-            for attr in _sia_attributes + ['time', 'small_phi_time']
+            for attr in _sia_attributes + ["time", "small_phi_time"]
         }
 
     @classmethod
     def from_json(cls, dct):
-        del dct['small_phi_time']
+        del dct["small_phi_time"]
         return cls(**dct)
 
 
@@ -182,8 +195,10 @@ def _null_sia(subsystem, phi=0.0):
 
     This is the analysis result for a reducible subsystem.
     """
-    return SystemIrreducibilityAnalysis(subsystem=subsystem,
-                                        cut_subsystem=subsystem,
-                                        phi=phi,
-                                        ces=_null_ces(subsystem),
-                                        partitioned_ces=_null_ces(subsystem))
+    return SystemIrreducibilityAnalysis(
+        subsystem=subsystem,
+        cut_subsystem=subsystem,
+        phi=phi,
+        ces=_null_ces(subsystem),
+        partitioned_ces=_null_ces(subsystem),
+    )

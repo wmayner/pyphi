@@ -39,7 +39,7 @@ def partitions(collection):
     first = collection[0]
     for smaller in partitions(collection[1:]):
         for n, subset in enumerate(smaller):
-            yield smaller[:n] + [[first] + subset] + smaller[n+1:]
+            yield smaller[:n] + [[first] + subset] + smaller[n + 1 :]
         yield [[first]] + smaller
 
 
@@ -63,7 +63,7 @@ def bipartition_indices(N):
     if N <= 0:
         return result
 
-    for i in range(2**(N - 1)):
+    for i in range(2 ** (N - 1)):
         part = [[], []]
         for n in range(N):
             bit = (i >> n) & 1
@@ -87,9 +87,10 @@ def bipartition(seq):
         >>> bipartition((1,2,3))
         [((), (1, 2, 3)), ((1,), (2, 3)), ((2,), (1, 3)), ((1, 2), (3,))]
     """
-    return [(tuple(seq[i] for i in part0_idx),
-             tuple(seq[j] for j in part1_idx))
-            for part0_idx, part1_idx in bipartition_indices(len(seq))]
+    return [
+        (tuple(seq[i] for i in part0_idx), tuple(seq[j] for j in part1_idx))
+        for part0_idx, part1_idx in bipartition_indices(len(seq))
+    ]
 
 
 @cache(cache={}, maxmem=None)
@@ -157,7 +158,7 @@ def bipartition_of_one(seq):
     """Generate bipartitions where one part is of length 1."""
     seq = list(seq)
     for i, elt in enumerate(seq):
-        yield ((elt,), tuple(seq[:i] + seq[(i + 1):]))
+        yield ((elt,), tuple(seq[:i] + seq[(i + 1) :]))
 
 
 def reverse_elements(seq):
@@ -244,9 +245,11 @@ def directed_tripartition(seq):
          ((), (), (2, 5))]
     """
     for a, b, c in directed_tripartition_indices(len(seq)):
-        yield (tuple(seq[i] for i in a),
-               tuple(seq[j] for j in b),
-               tuple(seq[k] for k in c))
+        yield (
+            tuple(seq[i] for i in a),
+            tuple(seq[j] for j in b),
+            tuple(seq[k] for k in c),
+        )
 
 
 # Knuth's algorithm for k-partitions of a set
@@ -357,6 +360,7 @@ def k_partitions(collection, k):
 # Concrete partitions producing PyPhi models
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 class PartitionRegistry(Registry):
     """Storage for partition schemes registered with PyPhi.
 
@@ -369,7 +373,8 @@ class PartitionRegistry(Registry):
 
     And use them by setting ``config.PARTITION_TYPE = 'NONE'``
     """
-    desc = 'partitions'
+
+    desc = "partitions"
 
 
 partition_types = PartitionRegistry()
@@ -383,7 +388,7 @@ def mip_partitions(mechanism, purview, node_labels=None):
     return func(mechanism, purview, node_labels)
 
 
-@partition_types.register('BI')
+@partition_types.register("BI")
 def mip_bipartitions(mechanism, purview, node_labels=None):
     r"""Return an generator of all |small_phi| bipartitions of a mechanism over
     a purview.
@@ -435,11 +440,12 @@ def mip_bipartitions(mechanism, purview, node_labels=None):
 
     for n, d in product(numerators, denominators):
         if (n[0] or d[0]) and (n[1] or d[1]):
-            yield Bipartition(Part(n[0], d[0]), Part(n[1], d[1]),
-                              node_labels=node_labels)
+            yield Bipartition(
+                Part(n[0], d[0]), Part(n[1], d[1]), node_labels=node_labels
+            )
 
 
-@partition_types.register('TRI')
+@partition_types.register("TRI")
 def wedge_partitions(mechanism, purview, node_labels=None):
     """Return an iterator over all wedge partitions.
 
@@ -469,20 +475,19 @@ def wedge_partitions(mechanism, purview, node_labels=None):
         # pylint: disable=too-many-boolean-expressions
         numerator, denominator = factoring
         return (
-            (numerator[0] or denominator[0]) and
-            (numerator[1] or denominator[1]) and
-            ((numerator[0] and numerator[1]) or
-             not denominator[0] or
-             not denominator[1])
+            (numerator[0] or denominator[0])
+            and (numerator[1] or denominator[1])
+            and (
+                (numerator[0] and numerator[1])
+                or not denominator[0]
+                or not denominator[1]
+            )
         )
 
     for n, d in filter(valid, product(numerators, denominators)):
         # Normalize order of parts to remove duplicates.
         tripart = Tripartition(
-            Part(n[0], d[0]),
-            Part(n[1], d[1]),
-            Part((), d[2]),
-            node_labels=node_labels
+            Part(n[0], d[0]), Part(n[1], d[1]), Part((), d[2]), node_labels=node_labels
         ).normalize()  # pylint: disable=bad-whitespace
 
         def nonempty(part):
@@ -497,12 +502,14 @@ def wedge_partitions(mechanism, purview, node_labels=None):
             pairs = [
                 (tripart[0], tripart[1]),
                 (tripart[0], tripart[2]),
-                (tripart[1], tripart[2])
+                (tripart[1], tripart[2]),
             ]
             for x, y in pairs:
-                if (nonempty(x) and nonempty(y) and
-                        (x.mechanism + y.mechanism == () or
-                         x.purview + y.purview == ())):
+                if (
+                    nonempty(x)
+                    and nonempty(y)
+                    and (x.mechanism + y.mechanism == () or x.purview + y.purview == ())
+                ):
                     return True
             return False
 
@@ -511,7 +518,7 @@ def wedge_partitions(mechanism, purview, node_labels=None):
             yield tripart
 
 
-@partition_types.register('ALL')
+@partition_types.register("ALL")
 def all_partitions(mechanism, purview, node_labels=None):
     """Return all possible partitions of a mechanism and purview.
 
@@ -531,20 +538,17 @@ def all_partitions(mechanism, purview, node_labels=None):
         for n_purview_parts in range(1, max_purview_partition + 1):
             n_empty = n_mechanism_parts - n_purview_parts
             for purview_partition in k_partitions(purview, n_purview_parts):
-                purview_partition = [tuple(_list)
-                                     for _list in purview_partition]
+                purview_partition = [tuple(_list) for _list in purview_partition]
                 # Extend with empty tuples so purview partition has same size
                 # as mechanism purview
                 purview_partition.extend([()] * n_empty)
 
                 # Unique permutations to avoid duplicates empties
-                for purview_permutation in set(
-                        permutations(purview_partition)):
+                for purview_permutation in set(permutations(purview_partition)):
 
                     parts = [
                         Part(tuple(m), tuple(p))
-                        for m, p in zip(mechanism_partition,
-                                        purview_permutation)
+                        for m, p in zip(mechanism_partition, purview_permutation)
                     ]
 
                     # Must partition the mechanism, unless the purview is fully

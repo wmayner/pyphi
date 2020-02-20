@@ -9,20 +9,15 @@ from pyphi import compute, config, examples, relations, utils
 
 def test_maximal_states():
     with config.override(
-            PARTITION_TYPE='TRI',
-            MEASURE='BLD',
+        PARTITION_TYPE="TRI", MEASURE="BLD",
     ):
         subsystem = examples.PQR()
         ces = relations.separate_ces(compute.ces(subsystem))
-        results = [
-            relations.maximal_state(mice)
-            for mice in ces
-        ]
+        results = [relations.maximal_state(mice) for mice in ces]
         answers = [
             np.array([[0, 0, 0]]),
             np.array([[0, 0, 0]]),
-            np.array([[0, 0, 0],
-                      [1, 1, 0]]),
+            np.array([[0, 0, 0], [1, 1, 0]]),
             np.array([[0, 0, 0]]),
             np.array([[0, 1, 0]]),
             np.array([[0, 0, 1]]),
@@ -37,8 +32,7 @@ def test_maximal_states():
 
 def test_PQR_relations():
     with config.override(
-            PARTITION_TYPE='TRI',
-            MEASURE='BLD',
+        PARTITION_TYPE="TRI", MEASURE="BLD",
     ):
         PQR = examples.PQR()
         ces = compute.ces(PQR)
@@ -65,7 +59,7 @@ def test_PQR_relations():
             [(1, 3, 7), 0.3465735902799726, [(0,)]],
             [(2, 3, 7), 0.3465735902799726, [(0,), (1,), (0, 1)]],
             [(2, 4, 6), 0.3465735902799726, [(1,)]],
-            [(1, 2, 3, 7), 0.3465735902799726, [(0,)]]
+            [(1, 2, 3, 7), 0.3465735902799726, [(0,)]],
         ]
 
         def base2(x):

@@ -75,18 +75,47 @@ from .__about__ import *  # pylint: disable=wildcard-import
 from .conf import config
 
 from .direction import Direction
-from . import (actual, constants, convert, db, examples, jsonify, macro,
-               models, network, node, subsystem, utils, validate)
+from . import (
+    actual,
+    constants,
+    convert,
+    db,
+    examples,
+    jsonify,
+    macro,
+    models,
+    network,
+    node,
+    subsystem,
+    utils,
+    validate,
+)
 from .network import Network
 from .subsystem import Subsystem
 from .actual import Transition
 
-__all__ = ['Network', 'Subsystem', 'actual', 'config', 'constants', 'convert',
-           'db', 'examples', 'jsonify', 'macro', 'models', 'network', 'node',
-           'subsystem', 'utils', 'validate']
+__all__ = [
+    "Network",
+    "Subsystem",
+    "actual",
+    "config",
+    "constants",
+    "convert",
+    "db",
+    "examples",
+    "jsonify",
+    "macro",
+    "models",
+    "network",
+    "node",
+    "subsystem",
+    "utils",
+    "validate",
+]
 
-if not (config.WELCOME_OFF or 'PYPHI_WELCOME_OFF' in os.environ):
-    print("""
+if not (config.WELCOME_OFF or "PYPHI_WELCOME_OFF" in os.environ):
+    print(
+        """
 Welcome to PyPhi!
 
 If you use PyPhi in your research, please cite the paper:
@@ -109,4 +138,5 @@ To suppress this message, either:
   - Set `WELCOME_OFF: true` in your `pyphi_config.yml` file, or
   - Set the environment variable PYPHI_WELCOME_OFF to any value in your shell:
         export PYPHI_WELCOME_OFF='yes'
-""")
+"""
+    )

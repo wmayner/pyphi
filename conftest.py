@@ -10,27 +10,24 @@ import pytest
 import pyphi
 from pyphi import cache, config, constants, db
 
+log = logging.getLogger("pyphi.test")
 
-log = logging.getLogger('pyphi.test')
-
-collect_ignore = [
-    "setup.py",
-    ".pythonrc.py"
-]
+collect_ignore = ["setup.py", ".pythonrc.py"]
 # Also ignore everything that git ignores.
-git_ignore = os.path.join(os.path.dirname(__file__), '.gitignore')
-collect_ignore += list(filter(None, open(git_ignore).read().split('\n')))
+git_ignore = os.path.join(os.path.dirname(__file__), ".gitignore")
+collect_ignore += list(filter(None, open(git_ignore).read().split("\n")))
 
 
 # Run slow tests separately with command-line option, filter tests
 # ================================================================
 
+
 def pytest_addoption(parser):
-    parser.addoption("--filter", action="store",
-                     help="only run tests with the given mark")
+    parser.addoption(
+        "--filter", action="store", help="only run tests with the given mark"
+    )
     parser.addoption("--slow", action="store_true", help="run slow tests")
-    parser.addoption("--veryslow", action="store_true",
-                     help="run very slow tests")
+    parser.addoption("--veryslow", action="store_true", help="run very slow tests")
 
 
 def pytest_runtest_setup(item):
@@ -39,17 +36,17 @@ def pytest_runtest_setup(item):
         if filt not in item.keywords:
             pytest.skip("only running tests with the '{}' mark".format(filt))
     else:
-        if 'slow' in item.keywords and not item.config.getoption("--slow"):
+        if "slow" in item.keywords and not item.config.getoption("--slow"):
             pytest.skip("need --slow option to run")
-        if ('veryslow' in item.keywords and
-                not item.config.getoption("--veryslow")):
+        if "veryslow" in item.keywords and not item.config.getoption("--veryslow"):
             pytest.skip("need --veryslow option to run")
 
 
 # PyPhi configuration management
 # ================================================================
 
-@pytest.fixture(scope='function')
+
+@pytest.fixture(scope="function")
 def restore_config_afterwards():
     """Reset PyPhi configuration after a test.
 
@@ -59,7 +56,7 @@ def restore_config_afterwards():
         yield
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def disable_progress_bars():
     """Disable progress bars during tests.
 
@@ -78,7 +75,7 @@ if config.CACHING_BACKEND == constants.DATABASE:
     db.collection = db.database.test
 
 # Backup location for the existing joblib cache directory.
-BACKUP_CACHE_DIR = config.FS_CACHE_DIRECTORY + '.BACKUP'
+BACKUP_CACHE_DIR = config.FS_CACHE_DIRECTORY + ".BACKUP"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -92,15 +89,16 @@ def protect_caches(request):
     # filesystem caching is enabled
     if config.CACHING_BACKEND == constants.FILESYSTEM:
         if os.path.exists(BACKUP_CACHE_DIR):
-            raise Exception("You must move the backup of the filesystem cache "
-                            "at {} before running the test suite.".format(
-                                BACKUP_CACHE_DIR))
+            raise Exception(
+                "You must move the backup of the filesystem cache "
+                "at {} before running the test suite.".format(BACKUP_CACHE_DIR)
+            )
         shutil.move(config.FS_CACHE_DIRECTORY, BACKUP_CACHE_DIR)
         os.mkdir(config.FS_CACHE_DIRECTORY)
 
     # Initialize a test Redis connection
     original_redis_conn = cache.redis_conn
-    cache.redis_conn = cache.redis_init(config.REDIS_CONFIG['test_db'])
+    cache.redis_conn = cache.redis_init(config.REDIS_CONFIG["test_db"])
 
     def fin():
         if config.CACHING_BACKEND == constants.FILESYSTEM:

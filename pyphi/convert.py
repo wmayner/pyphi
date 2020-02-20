@@ -72,7 +72,7 @@ def state2be_index(state):
         >>> state2be_index((1, 1, 1, 0, 0, 0, 0, 0))
         224
     """
-    return int(''.join(str(int(n)) for n in state), 2)
+    return int("".join(str(int(n)) for n in state), 2)
 
 
 def state2le_index(state):
@@ -93,7 +93,7 @@ def state2le_index(state):
         >>> state2le_index((1, 1, 1, 0, 0, 0, 0, 0))
         7
     """
-    return int(''.join(str(int(n)) for n in state[::-1]), 2)
+    return int("".join(str(int(n)) for n in state[::-1]), 2)
 
 
 def le_index2state(i, number_of_nodes):
@@ -288,10 +288,10 @@ def _unfold_nodewise_probabilities(Nn, Sn, sbn_row):
 
     # Generate the ON/OFF combinations (we reverse the binary representation to
     # respect the little-endian convention)
-    combinations = np.flip(np.array([
-        list(np.binary_repr(i, width=Nn))
-        for i in range(Sn)
-    ], dtype=int), axis=1)
+    combinations = np.flip(
+        np.array([list(np.binary_repr(i, width=Nn)) for i in range(Sn)], dtype=int),
+        axis=1,
+    )
     # Replicate the row for each combination
     row_replicates = np.tile(sbn_row, (Sn, 1))
     # We take the absolute value to keep ON probabilities, which were
@@ -301,10 +301,9 @@ def _unfold_nodewise_probabilities(Nn, Sn, sbn_row):
 
 def _nondeterministic_sbn2sbs(Nn, Sn, sbn_tpm):
     # Unfold the state-by-node probabilities
-    unfolded = np.array([
-        _unfold_nodewise_probabilities(Nn, Sn, row)
-        for row in sbn_tpm
-    ])
+    unfolded = np.array(
+        [_unfold_nodewise_probabilities(Nn, Sn, row) for row in sbn_tpm]
+    )
     # Now we take the product of the individual node probabilities to get the
     # probability of each state as a whole, flipping to achieve the ordering
     # implied by the little-endian convention
@@ -380,7 +379,7 @@ def state_by_node2state_by_state(tpm):
     # Get number of nodes in the next state
     Nn = sbn_tpm.shape[1]
     # Get the number of next states
-    Sn = 2**Nn
+    Sn = 2 ** Nn
     if is_deterministic(tpm):
         return _deterministic_sbn2sbs(Sp, Sn, sbn_tpm)
     else:

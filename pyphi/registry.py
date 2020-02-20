@@ -15,7 +15,8 @@ class Registry(collections.Mapping):
     See ``pyphi.subsystem.PartitionRegistry`` and
     ``pyphi.distance.MeasureRegistry`` for concrete usage examples.
     """
-    desc = ''
+
+    desc = ""
 
     def __init__(self):
         self.store = {}
@@ -26,9 +27,11 @@ class Registry(collections.Mapping):
         Args:
             name (string): The name of the function
         """
+
         def register_func(func):
             self.store[name] = func
             return func
+
         return register_func
 
     def all(self):
@@ -47,4 +50,5 @@ class Registry(collections.Mapping):
         except KeyError:
             raise KeyError(
                 '"{}" not found. Try using one of the installed {} {} or '
-                'register your own.'.format(name, self.desc, self.all()))
+                "register your own.".format(name, self.desc, self.all())
+            )

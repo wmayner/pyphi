@@ -6,12 +6,19 @@
 
 import numpy as np
 
-from . import cmp, fmt
 from .. import Direction, config, connectivity, distribution, utils
 from ..exceptions import WrongDirectionError
+from . import cmp, fmt
 
-_ria_attributes = ['phi', 'direction', 'mechanism', 'purview', 'partition',
-                   'repertoire', 'partitioned_repertoire']
+_ria_attributes = [
+    "phi",
+    "direction",
+    "mechanism",
+    "purview",
+    "partition",
+    "repertoire",
+    "partitioned_repertoire",
+]
 
 
 class RepertoireIrreducibilityAnalysis(cmp.Orderable):
@@ -24,9 +31,17 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
     |PICK_SMALLEST_PURVIEW| option in |config|.)
     """
 
-    def __init__(self, phi, direction, mechanism, purview, partition,
-                 repertoire, partitioned_repertoire,
-                 node_labels=None):
+    def __init__(
+        self,
+        phi,
+        direction,
+        mechanism,
+        purview,
+        partition,
+        repertoire,
+        partitioned_repertoire,
+        node_labels=None,
+    ):
         self._phi = phi
         self._direction = direction
         self._mechanism = mechanism
@@ -93,7 +108,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         """|NodeLabels| for this system."""
         return self._node_labels
 
-    unorderable_unless_eq = ['direction']
+    unorderable_unless_eq = ["direction"]
 
     def order_by(self):
         if config.PICK_SMALLEST_PURVIEW:
@@ -104,8 +119,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
     def __eq__(self, other):
         # We don't consider the partition and partitioned repertoire in
         # checking for RIA equality.
-        attrs = ['phi', 'direction', 'mechanism', 'purview',
-                 'repertoire']
+        attrs = ["phi", "direction", "mechanism", "purview", "repertoire"]
         return cmp.general_eq(self, other, attrs)
 
     def __bool__(self):
@@ -115,18 +129,21 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return not utils.eq(self.phi, 0)
 
     def __hash__(self):
-        return hash((self.phi,
-                     self.direction,
-                     self.mechanism,
-                     self.purview,
-                     utils.np_hash(self.repertoire)))
+        return hash(
+            (
+                self.phi,
+                self.direction,
+                self.mechanism,
+                self.purview,
+                utils.np_hash(self.repertoire),
+            )
+        )
 
     def __repr__(self):
         return fmt.make_repr(self, _ria_attributes)
 
     def __str__(self):
-        return ("Repertoire irreducibility analysis\n" +
-                fmt.indent(fmt.fmt_ria(self)))
+        return "Repertoire irreducibility analysis\n" + fmt.indent(fmt.fmt_ria(self))
 
     def to_json(self):
         return {attr: getattr(self, attr) for attr in _ria_attributes}
@@ -143,11 +160,12 @@ def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0):
         partition=None,
         repertoire=repertoire,
         partitioned_repertoire=None,
-        phi=phi
+        phi=phi,
     )
 
 
 # =============================================================================
+
 
 class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     """A maximally irreducible cause or effect (MICE).
@@ -214,16 +232,14 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         return self._ria
 
     def __repr__(self):
-        return fmt.make_repr(self, ['ria'])
+        return fmt.make_repr(self, ["ria"])
 
     def __str__(self):
-        return (
-            "Maximally-irreducible {}\n".format(str(self.direction).lower()) +
-            fmt.indent(fmt.fmt_ria(self.ria, mip=True))
-        )
+        return "Maximally-irreducible {}\n".format(
+            str(self.direction).lower()
+        ) + fmt.indent(fmt.fmt_ria(self.ria, mip=True))
 
-    unorderable_unless_eq = \
-        RepertoireIrreducibilityAnalysis.unorderable_unless_eq
+    unorderable_unless_eq = RepertoireIrreducibilityAnalysis.unorderable_unless_eq
 
     def order_by(self):
         return self.ria.order_by()
@@ -235,7 +251,7 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         return hash(self._ria)
 
     def to_json(self):
-        return {'ria': self.ria}
+        return {"ria": self.ria}
 
     def _relevant_connections(self, subsystem):
         """Identify connections that “matter” to this concept.
@@ -269,8 +285,7 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
             ValueError: If ``direction`` is invalid.
         """
         _from, to = self.direction.order(self.mechanism, self.purview)
-        return connectivity.relevant_connections(subsystem.network.size,
-                                                 _from, to)
+        return connectivity.relevant_connections(subsystem.network.size, _from, to)
 
     # TODO: pass in `cut` instead? We can infer
     # subsystem indices from the cut itself, validate, and check.
@@ -280,9 +295,11 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         The cut affects the MICE if it either splits the MICE's mechanism
         or splits the connections between the purview and mechanism.
         """
-        return (subsystem.cut.splits_mechanism(self.mechanism) or
-                np.any(self._relevant_connections(subsystem) *
-                       subsystem.cut.cut_matrix(subsystem.network.size) == 1))
+        return subsystem.cut.splits_mechanism(self.mechanism) or np.any(
+            self._relevant_connections(subsystem)
+            * subsystem.cut.cut_matrix(subsystem.network.size)
+            == 1
+        )
 
 
 class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
@@ -296,8 +313,9 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
 
     def __init__(self, ria):
         if ria.direction != Direction.CAUSE:
-            raise WrongDirectionError('A MIC must be initialized with a RIA '
-                                      'in the cause direction.')
+            raise WrongDirectionError(
+                "A MIC must be initialized with a RIA " "in the cause direction."
+            )
         super().__init__(ria)
 
     @property
@@ -317,8 +335,9 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
 
     def __init__(self, ria):
         if ria.direction != Direction.EFFECT:
-            raise WrongDirectionError('A MIE must be initialized with a RIA '
-                                      'in the effect direction.')
+            raise WrongDirectionError(
+                "A MIE must be initialized with a RIA " "in the effect direction."
+            )
         super().__init__(ria)
 
     @property
@@ -329,7 +348,7 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
 
 # =============================================================================
 
-_concept_attributes = ['phi', 'mechanism', 'cause', 'effect', 'subsystem']
+_concept_attributes = ["phi", "mechanism", "cause", "effect", "subsystem"]
 
 
 # TODO: make mechanism a property
@@ -351,8 +370,9 @@ class Concept(cmp.Orderable):
         time (float): The number of seconds it took to calculate.
     """
 
-    def __init__(self, mechanism=None, cause=None, effect=None,
-                 subsystem=None, time=None):
+    def __init__(
+        self, mechanism=None, cause=None, effect=None, subsystem=None, time=None
+    ):
         self.mechanism = mechanism
         self.cause = cause
         self.effect = effect
@@ -378,51 +398,57 @@ class Concept(cmp.Orderable):
     @property
     def cause_purview(self):
         """tuple[int]: The cause purview."""
-        return getattr(self.cause, 'purview', None)
+        return getattr(self.cause, "purview", None)
 
     @property
     def effect_purview(self):
         """tuple[int]: The effect purview."""
-        return getattr(self.effect, 'purview', None)
+        return getattr(self.effect, "purview", None)
 
     @property
     def cause_repertoire(self):
         """np.ndarray: The cause repertoire."""
-        return getattr(self.cause, 'repertoire', None)
+        return getattr(self.cause, "repertoire", None)
 
     @property
     def effect_repertoire(self):
         """np.ndarray: The effect repertoire."""
-        return getattr(self.effect, 'repertoire', None)
+        return getattr(self.effect, "repertoire", None)
 
     @property
     def mechanism_state(self):
         """tuple(int): The state of this mechanism."""
         return utils.state_of(self.mechanism, self.subsystem.state)
 
-    unorderable_unless_eq = ['subsystem']
+    unorderable_unless_eq = ["subsystem"]
 
     def order_by(self):
         return [self.phi, len(self.mechanism)]
 
     def __eq__(self, other):
-        return (self.phi == other.phi and
-                self.mechanism == other.mechanism and
-                self.mechanism_state == other.mechanism_state and
-                self.cause_purview == other.cause_purview and
-                self.effect_purview == other.effect_purview and
-                self.eq_repertoires(other) and
-                self.subsystem.network == other.subsystem.network)
+        return (
+            self.phi == other.phi
+            and self.mechanism == other.mechanism
+            and self.mechanism_state == other.mechanism_state
+            and self.cause_purview == other.cause_purview
+            and self.effect_purview == other.effect_purview
+            and self.eq_repertoires(other)
+            and self.subsystem.network == other.subsystem.network
+        )
 
     def __hash__(self):
-        return hash((self.phi,
-                     self.mechanism,
-                     self.mechanism_state,
-                     self.cause_purview,
-                     self.effect_purview,
-                     utils.np_hash(self.cause_repertoire),
-                     utils.np_hash(self.effect_repertoire),
-                     self.subsystem.network))
+        return hash(
+            (
+                self.phi,
+                self.mechanism,
+                self.mechanism_state,
+                self.cause_purview,
+                self.effect_purview,
+                utils.np_hash(self.cause_repertoire),
+                utils.np_hash(self.effect_repertoire),
+                self.subsystem.network,
+            )
+        )
 
     def __bool__(self):
         """A concept is ``True`` if |small_phi > 0|."""
@@ -436,48 +462,51 @@ class Concept(cmp.Orderable):
             arrays; mechanisms, purviews, or even the nodes that the mechanism
             and purview indices refer to, might be different.
         """
-        return (
-            np.array_equal(self.cause_repertoire, other.cause_repertoire) and
-            np.array_equal(self.effect_repertoire, other.effect_repertoire))
+        return np.array_equal(
+            self.cause_repertoire, other.cause_repertoire
+        ) and np.array_equal(self.effect_repertoire, other.effect_repertoire)
 
     def emd_eq(self, other):
         """Return whether this concept is equal to another in the context of
         an EMD calculation.
         """
-        return (self.phi == other.phi and
-                self.mechanism == other.mechanism and
-                self.eq_repertoires(other))
+        return (
+            self.phi == other.phi
+            and self.mechanism == other.mechanism
+            and self.eq_repertoires(other)
+        )
 
     # These methods are used by phiserver
     # TODO Rename to expanded_cause_repertoire, etc
     def expand_cause_repertoire(self, new_purview=None):
         """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_cause_repertoire(
-            self.cause.repertoire, new_purview)
+            self.cause.repertoire, new_purview
+        )
 
     def expand_effect_repertoire(self, new_purview=None):
         """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_effect_repertoire(
-            self.effect.repertoire, new_purview)
+            self.effect.repertoire, new_purview
+        )
 
     def expand_partitioned_cause_repertoire(self):
         """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_cause_repertoire(
-            self.cause.ria.partitioned_repertoire)
+            self.cause.ria.partitioned_repertoire
+        )
 
     def expand_partitioned_effect_repertoire(self):
         """See |Subsystem.expand_repertoire()|."""
         return self.subsystem.expand_effect_repertoire(
-            self.effect.ria.partitioned_repertoire)
+            self.effect.ria.partitioned_repertoire
+        )
 
     def to_json(self):
         """Return a JSON-serializable representation."""
-        return {
-            attr: getattr(self, attr)
-            for attr in _concept_attributes + ['time']
-        }
+        return {attr: getattr(self, attr) for attr in _concept_attributes + ["time"]}
 
     @classmethod
     def from_json(cls, dct):
-        del dct['phi']
+        del dct["phi"]
         return cls(**dct)

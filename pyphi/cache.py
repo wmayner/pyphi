@@ -26,8 +26,7 @@ _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "currsize"])
 def memory_full():
     """Check if the memory is too full for further caching."""
     current_process = psutil.Process(os.getpid())
-    return (current_process.memory_percent() >
-            config.MAXIMUM_CACHE_MEMORY_PERCENTAGE)
+    return current_process.memory_percent() > config.MAXIMUM_CACHE_MEMORY_PERCENTAGE
 
 
 class _HashedSeq(list):
@@ -36,7 +35,7 @@ class _HashedSeq(list):
     key multiple times on a cache miss.
     """
 
-    __slots__ = ('hashvalue',)
+    __slots__ = ("hashvalue",)
 
     def __init__(self, tup, hash=hash):
         super().__init__()
@@ -47,10 +46,17 @@ class _HashedSeq(list):
         return self.hashvalue
 
 
-def _make_key(args, kwds, typed,
-              kwd_mark=(object(),),
-              fasttypes={int, str, frozenset, type(None)},
-              sorted=sorted, tuple=tuple, type=type, len=len):
+def _make_key(
+    args,
+    kwds,
+    typed,
+    kwd_mark=(object(),),
+    fasttypes={int, str, frozenset, type(None)},
+    sorted=sorted,
+    tuple=tuple,
+    type=type,
+    len=len,
+):
     """Make a cache key from optionally typed positional and keyword arguments.
 
     The key is constructed in a way that is flat as possible rather than as a
@@ -75,8 +81,7 @@ def _make_key(args, kwds, typed,
     return _HashedSeq(key)
 
 
-def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE,
-          typed=False):
+def cache(cache={}, maxmem=config.MAXIMUM_CACHE_MEMORY_PERCENTAGE, typed=False):
     """Memory-limited cache decorator.
 
     ``maxmem`` is a float between 0 and 100, inclusive, specifying the maximum
@@ -205,14 +210,15 @@ class DictCache:
            prefix: A constant to prefix to the key.
         """
         if kwargs:
-            raise NotImplementedError(
-                'kwarg cache keys not implemented')
+            raise NotImplementedError("kwarg cache keys not implemented")
         return (_prefix,) + tuple(args)
 
 
 def redis_init(db):
-    return redis.StrictRedis(host=config.REDIS_CONFIG['host'],
-                             port=config.REDIS_CONFIG['port'], db=db)
+    return redis.StrictRedis(
+        host=config.REDIS_CONFIG["host"], port=config.REDIS_CONFIG["port"], db=db
+    )
+
 
 # Expose the StrictRedis API, maintaining one connection pool
 # The connection pool is multi-process safe, and is reinitialized when the
@@ -220,7 +226,7 @@ def redis_init(db):
 # https://github.com/andymccurdy/redis-py/blob/5109cb4f/redis/connection.py#L950
 #
 # TODO: rebuild connection after config changes?
-redis_conn = redis_init(config.REDIS_CONFIG['db'])
+redis_conn = redis_init(config.REDIS_CONFIG["db"])
 
 
 def redis_available():
@@ -234,7 +240,6 @@ def redis_available():
 # TODO: use a cache prefix?
 # TODO: key schema for easy access/queries
 class RedisCache:
-
     def clear(self):
         """Flush the cache."""
         redis_conn.flushdb()
@@ -254,9 +259,7 @@ class RedisCache:
         .. note:: This is not the cache info for the entire Redis key space.
         """
         info = redis_conn.info()
-        return _CacheInfo(info['keyspace_hits'],
-                          info['keyspace_misses'],
-                          self.size())
+        return _CacheInfo(info["keyspace_hits"], info["keyspace_misses"], self.size())
 
     def get(self, key):
         """Get a value from the cache.
@@ -322,8 +325,9 @@ class RedisMICECache(RedisCache):
 
         # Try and get the key from the parent cache.
         if self.parent_subsystem_hash:
-            parent_key = key.replace(str(self.subsystem_hash),
-                                     str(self.parent_subsystem_hash), 1)
+            parent_key = key.replace(
+                str(self.subsystem_hash), str(self.parent_subsystem_hash), 1
+            )
             mice = super().get(parent_key)
 
             if mice is not None and not mice.damaged_by_cut(self.subsystem):
@@ -342,7 +346,8 @@ class RedisMICECache(RedisCache):
     def key(self, direction, mechanism, purviews=False, _prefix=None):
         """Cache key. This is the call signature of |Subsystem.find_mice()|."""
         return "subsys:{}:{}:{}:{}:{}".format(
-            self.subsystem_hash, _prefix, direction, mechanism, purviews)
+            self.subsystem_hash, _prefix, direction, mechanism, purviews
+        )
 
 
 class DictMICECache(DictCache):
@@ -384,8 +389,7 @@ class DictMICECache(DictCache):
             implemented.
           - Memory is not too full.
         """
-        if (not self.subsystem.is_cut and mice.phi > 0 and
-                not memory_full()):
+        if not self.subsystem.is_cut and mice.phi > 0 and not memory_full():
             self.cache[key] = mice
 
     def key(self, direction, mechanism, purviews=False, _prefix=None):
@@ -435,9 +439,12 @@ def method(cache_name, key_prefix=None):
         *key_prefix: A constant to use as part of the cache key in addition
             to the method arguments.
     """
+
     def decorator(func):
-        if (func.__name__ in ['cause_repertoire', 'effect_repertoire'] and
-                not config.CACHE_REPERTOIRES):
+        if (
+            func.__name__ in ["cause_repertoire", "effect_repertoire"]
+            and not config.CACHE_REPERTOIRES
+        ):
             return func
 
         @wraps(func)
@@ -455,4 +462,5 @@ def method(cache_name, key_prefix=None):
             return value
 
         return wrapper
+
     return decorator

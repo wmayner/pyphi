@@ -27,7 +27,7 @@ def test_all_partitions():
         ((0, 3), (1,), (2,)),
         ((0,), (1, 3), (2,)),
         ((0,), (1,), (2, 3)),
-        ((0, 1, 2, 3),)
+        ((0, 1, 2, 3),),
     ]
 
 
@@ -43,14 +43,14 @@ def test_all_groupings():
         (((0, 2), (1,)), ((0,), (1, 2))),
         (((0,), (1, 2)), ((0, 1), (2,))),
         (((0,), (1, 2)), ((0, 2), (1,))),
-        (((0,), (1, 2)), ((0,), (1, 2)))
+        (((0,), (1, 2)), ((0,), (1, 2))),
     ]
 
 
 def test_all_coarse_grains():
     assert tuple(macro.all_coarse_grains((1,))) == (
-        macro.CoarseGrain(partition=((1,),),
-                          grouping=(((0,), (1,)),)),)
+        macro.CoarseGrain(partition=((1,),), grouping=(((0,), (1,)),)),
+    )
 
 
 def test_all_coarse_grains_for_blackbox():
@@ -88,20 +88,22 @@ def test_make_mapping():
     grouping = (((0, 1), (2,)), ((0, 1), (2,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
     mapping = coarse_grain.make_mapping()
-    answer = np.array([0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 1., 2., 2., 2., 3.])
+    answer = np.array(
+        [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0, 3.0]
+    )
     assert np.array_equal(mapping, answer)
 
     partition = ((0, 1), (2,))
     grouping = (((0, 2), (1,)), ((0,), (1,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
     mapping = coarse_grain.make_mapping()
-    assert np.array_equal(mapping, np.array([0., 1., 1., 0., 2., 3., 3., 2.]))
+    assert np.array_equal(mapping, np.array([0.0, 1.0, 1.0, 0.0, 2.0, 3.0, 3.0, 2.0]))
 
     partition = ((0, 1, 2),)
     grouping = (((0, 3), (1, 2)),)
     coarse_grain = macro.CoarseGrain(partition, grouping)
     mapping = coarse_grain.make_mapping()
-    assert np.array_equal(mapping, np.array([0., 1., 1., 1., 1., 1., 1., 0.]))
+    assert np.array_equal(mapping, np.array([0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0]))
 
 
 def test_make_macro_tpm():
@@ -118,8 +120,7 @@ def test_make_macro_tpm():
     partition = ((0,), (1, 2))
     grouping = (((0,), (1,)), ((0, 1), (2,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
-    assert np.array_equal(coarse_grain.make_mapping(),
-                          [0, 1, 0, 1, 0, 1, 2, 3])
+    assert np.array_equal(coarse_grain.make_mapping(), [0, 1, 0, 1, 0, 1, 2, 3])
 
     micro_tpm = np.zeros((8, 3)) + 0.5
     macro_tpm = coarse_grain.macro_tpm(micro_tpm)
@@ -143,8 +144,7 @@ def test_make_macro_tpm_conditional_independence_check():
     grouping = (((0,), (1,)), ((0,), (1,)))
     coarse_grain = macro.CoarseGrain(partition, grouping)
     with pytest.raises(ConditionallyDependentError):
-        macro_tpm = coarse_grain.macro_tpm(micro_tpm,
-                                           check_independence=True)
+        macro_tpm = coarse_grain.macro_tpm(micro_tpm, check_independence=True)
 
 
 # TODO: make a fixture for this conditionally dependent TPM
@@ -331,6 +331,7 @@ def test_remove_singleton_dimensions():
     assert macro.tpm_indices(tpm) == (0, 2)
     assert np.array_equal(macro.remove_singleton_dimensions(tpm), answer)
 
+
 def test_pack_attrs(s):
     attrs = macro.SystemAttrs.pack(s)
     assert np.array_equal(attrs.tpm, s.tpm)
@@ -345,6 +346,7 @@ def test_apply_attrs(s):
 
     class SomeSystem:
         pass
+
     target = SomeSystem()
 
     attrs.apply(target)

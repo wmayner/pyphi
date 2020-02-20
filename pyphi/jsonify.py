@@ -43,9 +43,9 @@ import numpy as np
 import pyphi
 from pyphi import cache
 
-CLASS_KEY = '__class__'
-VERSION_KEY = '__version__'
-ID_KEY = '__id__'
+CLASS_KEY = "__class__"
+VERSION_KEY = "__version__"
+ID_KEY = "__id__"
 
 
 def _loadable_models():
@@ -78,7 +78,7 @@ def _loadable_models():
         pyphi.models.AcRepertoireIrreducibilityAnalysis,
         pyphi.models.CausalLink,
         pyphi.models.Account,
-        pyphi.models.AcSystemIrreducibilityAnalysis
+        pyphi.models.AcSystemIrreducibilityAnalysis,
     ]
     return {cls.__name__: cls for cls in classes}
 
@@ -88,11 +88,13 @@ def _jsonify_dict(dct):
 
 
 def _push_metadata(dct, obj):
-    dct.update({
-        CLASS_KEY: obj.__class__.__name__,
-        VERSION_KEY: pyphi.__version__,
-        ID_KEY: hash(obj)
-    })
+    dct.update(
+        {
+            CLASS_KEY: obj.__class__.__name__,
+            VERSION_KEY: pyphi.__version__,
+            ID_KEY: hash(obj),
+        }
+    )
     return dct
 
 
@@ -110,7 +112,7 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
     native lists and types along the way.
     """
     # Call the `to_json` method if available and add metadata.
-    if hasattr(obj, 'to_json'):
+    if hasattr(obj, "to_json"):
         d = obj.to_json()
         _push_metadata(d, obj)
         return jsonify(d)
@@ -130,7 +132,7 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
         return _jsonify_dict(obj)
 
     # Recurse over object dictionaries.
-    if hasattr(obj, '__dict__'):
+    if hasattr(obj, "__dict__"):
         return _jsonify_dict(obj.__dict__)
 
     # Recurse over lists and tuples.
@@ -155,7 +157,7 @@ class PyPhiJSONEncoder(json.JSONEncoder):
 
 def _encoder_kwargs(user_kwargs):
     """Update kwargs for `dump` and `dumps` to use the PyPhi encoder."""
-    kwargs = {'separators': (',', ':'), 'cls': PyPhiJSONEncoder}
+    kwargs = {"separators": (",", ":"), "cls": PyPhiJSONEncoder}
     kwargs.update(user_kwargs)
 
     return kwargs
@@ -177,9 +179,11 @@ def _check_version(version):
     """Check whether the JSON version matches the PyPhi version."""
     if version != pyphi.__version__:
         raise pyphi.exceptions.JSONVersionError(
-            'Cannot load JSON from a different version of PyPhi. '
-            'JSON version = {0}, current version = {1}.'.format(
-                version, pyphi.__version__))
+            "Cannot load JSON from a different version of PyPhi. "
+            "JSON version = {0}, current version = {1}.".format(
+                version, pyphi.__version__
+            )
+        )
 
 
 def _is_model(dct):
@@ -200,7 +204,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
     """
 
     def __init__(self, *args, **kwargs):
-        kwargs['object_hook'] = self._load_object
+        kwargs["object_hook"] = self._load_object
         super().__init__(*args, **kwargs)
 
         # Memoize available models
@@ -229,7 +233,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
 
         return obj
 
-    @cache.method('_object_cache')
+    @cache.method("_object_cache")
     def _load_model(self, dct):
         """Load a serialized PyPhi model.
 
@@ -241,7 +245,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         cls = self._models[classname]
 
         # Use `from_json` if available
-        if hasattr(cls, 'from_json'):
+        if hasattr(cls, "from_json"):
             return cls.from_json(dct)
 
         # Default to object constructor

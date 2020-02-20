@@ -4,8 +4,8 @@
 
 import logging
 import os
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import pytest
 
@@ -14,7 +14,7 @@ from pyphi.conf import Config, Option
 
 
 class ExampleConfig(Config):
-    SPEED = Option('default', values=['default', 'slow', 'fast'])
+    SPEED = Option("default", values=["default", "slow", "fast"])
 
 
 @pytest.fixture
@@ -23,88 +23,89 @@ def c():
 
 
 def test_load_dict(c):
-    c.load_dict({'SPEED': 'slow'})
-    assert c.SPEED == 'slow'
+    c.load_dict({"SPEED": "slow"})
+    assert c.SPEED == "slow"
 
 
 def test_snapshot(c):
-    c.SPEED = 'slow'
+    c.SPEED = "slow"
     snapshot = c.snapshot()
-    assert snapshot == {'SPEED': 'slow'}
-    c.SPEED = 'fast'
-    assert snapshot == {'SPEED': 'slow'}
+    assert snapshot == {"SPEED": "slow"}
+    c.SPEED = "fast"
+    assert snapshot == {"SPEED": "slow"}
 
 
-EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                   'example_config.yml')
+EXAMPLE_CONFIG_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "example_config.yml"
+)
 
 
 def test_load_file(c):
     c.load_file(EXAMPLE_CONFIG_FILE)
-    assert c.SPEED == 'slow'
+    assert c.SPEED == "slow"
     assert c._loaded_files == [EXAMPLE_CONFIG_FILE]
 
 
 def test_str(c):
-    c.SPEED = 'slow'
+    c.SPEED = "slow"
     assert str(c) == "{'SPEED': 'slow'}"
 
 
 def test_override(c):
-    @c.override(SPEED='slow')
+    @c.override(SPEED="slow")
     def return_test_config(arg, kwarg=None):
         # Decorator should still pass args
-        assert arg == 'arg'
+        assert arg == "arg"
         assert kwarg == 3
         return c.SPEED
 
     # Should override config value in function
-    assert return_test_config('arg', kwarg=3) == 'slow'
+    assert return_test_config("arg", kwarg=3) == "slow"
     # and revert the initial config value
-    assert c.SPEED == 'default'
+    assert c.SPEED == "default"
 
 
 def test_override_cleans_up_after_exception(c):
-    @c.override(SPEED='slow')
+    @c.override(SPEED="slow")
     def raise_exception():
-        raise ValueError('elephants')
+        raise ValueError("elephants")
 
     try:
         raise_exception()
     except ValueError as e:
         # Decorator should reraise original exception
-        assert e.args == ('elephants',)
+        assert e.args == ("elephants",)
 
     # and reset original config value
-    assert c.SPEED == 'default'
+    assert c.SPEED == "default"
 
 
 def test_override_is_a_context_manager(c):
-    c.SPEED = 'slow'
+    c.SPEED = "slow"
 
-    with c.override(SPEED='fast'):
+    with c.override(SPEED="fast"):
         # Overriden
-        assert c.SPEED == 'fast'
+        assert c.SPEED == "fast"
 
     # Reverts original value
-    assert c.SPEED == 'slow'
+    assert c.SPEED == "slow"
 
 
 def test_option_descriptor(c):
-    assert c.SPEED == 'default'
-    assert c.__class__.__dict__['SPEED'].name == 'SPEED'
+    assert c.SPEED == "default"
+    assert c.__class__.__dict__["SPEED"].name == "SPEED"
 
-    c.SPEED = 'slow'
-    assert c.SPEED == 'slow'
+    c.SPEED = "slow"
+    assert c.SPEED == "slow"
 
     with pytest.raises(ValueError):
-        c.SPEED = 'medium'
+        c.SPEED = "medium"
 
 
 def test_defaults(c):
-    assert c.defaults() == {'SPEED': 'default'}
-    c.SPEED = 'slow'
-    assert c.defaults() == {'SPEED': 'default'}
+    assert c.defaults() == {"SPEED": "default"}
+    c.SPEED = "slow"
+    assert c.defaults() == {"SPEED": "default"}
 
 
 def test_only_set_public__attributes_that_are_options(c):
@@ -121,33 +122,34 @@ def test_on_change():
     class Event:
         def notify(self, config):
             self.notified = config.SPEED
+
     event = Event()
 
     class AnotherConfig(Config):
-        SPEED = Option('default', on_change=event.notify)
+        SPEED = Option("default", on_change=event.notify)
 
     c = AnotherConfig()
-    assert event.notified == 'default'
+    assert event.notified == "default"
 
-    c.SPEED = 'slow'
-    assert event.notified == 'slow'
+    c.SPEED = "slow"
+    assert event.notified == "slow"
 
-    c.load_dict({'SPEED': 'fast'})
-    assert event.notified == 'fast'
+    c.load_dict({"SPEED": "fast"})
+    assert event.notified == "fast"
 
 
 def test_reconfigure_logging_on_change(capsys):
-    log = logging.getLogger('pyphi.config')
+    log = logging.getLogger("pyphi.config")
 
-    with config.override(LOG_STDOUT_LEVEL='WARNING'):
-        log.warning('Just a warning, folks.')
+    with config.override(LOG_STDOUT_LEVEL="WARNING"):
+        log.warning("Just a warning, folks.")
     out, err = capsys.readouterr()
-    assert 'Just a warning, folks.' in err
+    assert "Just a warning, folks." in err
 
-    with config.override(LOG_STDOUT_LEVEL='ERROR'):
-        log.warning('Another warning.')
+    with config.override(LOG_STDOUT_LEVEL="ERROR"):
+        log.warning("Another warning.")
     out, err = capsys.readouterr()
-    assert err == ''
+    assert err == ""
 
 
 def test_reconfigure_precision_on_change():
@@ -162,7 +164,7 @@ def test_reconfigure_precision_on_change():
 
 
 def test_reconfigure_joblib_on_change(capsys):
-    cachedir = './__testing123__'
+    cachedir = "./__testing123__"
     try:
         with config.override(FS_CACHE_DIRECTORY=cachedir):
             assert constants.joblib_memory.location == cachedir
@@ -185,9 +187,13 @@ def test_reconfigure_joblib_on_change(capsys):
 
 
 @config.override()
-@pytest.mark.parametrize('name,valid,invalid', [
-    ('SYSTEM_CUTS', ['3.0_STYLE', 'CONCEPT_STYLE'], ['OTHER']),
-    ('REPR_VERBOSITY', [0, 1, 2], [-1, 3])])
+@pytest.mark.parametrize(
+    "name,valid,invalid",
+    [
+        ("SYSTEM_CUTS", ["3.0_STYLE", "CONCEPT_STYLE"], ["OTHER"]),
+        ("REPR_VERBOSITY", [0, 1, 2], [-1, 3]),
+    ],
+)
 def test_config_validation(name, valid, invalid):
     for value in valid:
         setattr(config, name, value)

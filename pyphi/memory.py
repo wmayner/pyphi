@@ -19,6 +19,7 @@ def cache(ignore=None):
     """Decorator for memoizing a function using either the filesystem or a
     database.
     """
+
     def decorator(func):
         # Initialize both cached versions
         joblib_cached = constants.joblib_memory.cache(func, ignore=ignore)
@@ -27,15 +28,16 @@ def cache(ignore=None):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             """Dynamically choose the cache at call-time, not at import."""
-            if func.__name__ == '_sia' and not config.CACHE_SIAS:
+            if func.__name__ == "_sia" and not config.CACHE_SIAS:
                 f = func
-            elif config.CACHING_BACKEND == 'fs':
+            elif config.CACHING_BACKEND == "fs":
                 f = joblib_cached
-            elif config.CACHING_BACKEND == 'db':
+            elif config.CACHING_BACKEND == "db":
                 f = db_cached
             return f(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
@@ -77,7 +79,8 @@ class DbMemoizedFunc:
         # Get a dictionary mapping argument names to argument values where
         # ignored arguments are omitted.
         filtered_args = joblib.func_inspect.filter_args(
-            self.func, self.ignore, args, kwargs)
+            self.func, self.ignore, args, kwargs
+        )
         # Get a sorted tuple of the filtered argument.
         filtered_args = tuple(sorted(filtered_args.values()))
         # Use native hash when hashing arguments.

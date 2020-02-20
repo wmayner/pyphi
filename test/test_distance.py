@@ -96,36 +96,33 @@ def test_klm():
 
 
 def test_default_measures():
-    assert set(distance.measures.all()) == set([
-        'EMD',
-        'L1',
-        'KLD',
-        'ENTROPY_DIFFERENCE',
-        'PSQ2',
-        'MP2Q',
-        'KLM',
-        'BLD',
-        'ID',
-        'PMI',
-        'WPMI',
-    ])
+    assert set(distance.measures.all()) == set(
+        [
+            "EMD",
+            "L1",
+            "KLD",
+            "ENTROPY_DIFFERENCE",
+            "PSQ2",
+            "MP2Q",
+            "KLM",
+            "BLD",
+            "ID",
+            "PMI",
+            "WPMI",
+        ]
+    )
 
 
 def test_default_asymmetric_measures():
-    assert set(distance.measures.asymmetric()) == set([
-        'KLD',
-        'MP2Q',
-        'KLM',
-        'BLD',
-        'ID',
-        'PMI',
-        'WPMI'])
+    assert set(distance.measures.asymmetric()) == set(
+        ["KLD", "MP2Q", "KLM", "BLD", "ID", "PMI", "WPMI"]
+    )
 
 
 def test_system_repertoire_distance_must_be_symmetric():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
-    with config.override(MEASURE='KLD'):
+    with config.override(MEASURE="KLD"):
         with pytest.raises(ValueError):
             distance.system_repertoire_distance(a, b)
 
@@ -140,6 +137,6 @@ def test_suppress_np_warnings():
         np.array([1, 0]) * np.log(0)
 
     # Try and trigger an error:
-    with np.errstate(divide='raise', invalid='raise'):
+    with np.errstate(divide="raise", invalid="raise"):
         divide_by_zero()
         multiply_by_nan()

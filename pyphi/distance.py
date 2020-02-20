@@ -18,11 +18,11 @@ from . import Direction, config, constants, utils, validate
 from .distribution import flatten, marginal_zero
 from .registry import Registry
 
-
 # Load precomputed hamming matrices.
 _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
-_hamming_matrices = utils.load_data('hamming_matrices',
-                                    _NUM_PRECOMPUTED_HAMMING_MATRICES)
+_hamming_matrices = utils.load_data(
+    "hamming_matrices", _NUM_PRECOMPUTED_HAMMING_MATRICES
+)
 
 
 class MeasureRegistry(Registry):
@@ -40,9 +40,10 @@ class MeasureRegistry(Registry):
     For actual causation calculations, use
     ``config.ACTUAL_CAUSATION_MEASURE``.
     """
+
     # pylint: disable=arguments-differ
 
-    desc = 'measures'
+    desc = "measures"
 
     def __init__(self):
         super().__init__()
@@ -57,11 +58,13 @@ class MeasureRegistry(Registry):
         Keyword Args:
             asymmetric (boolean): ``True`` if the measure is asymmetric.
         """
+
         def register_func(func):
             if asymmetric:
                 self._asymmetric.append(name)
             self.store[name] = func
             return func
+
         return register_func
 
     def asymmetric(self):
@@ -80,8 +83,9 @@ class np_suppress(np.errstate, ContextDecorator):
         This should only be used in cases where you are *sure* that these
         warnings are not indicative of deeper issues in your code.
     """
+
     def __init__(self):
-        super().__init__(divide='ignore', invalid='ignore')
+        super().__init__(divide="ignore", invalid="ignore")
 
 
 # Integrated information theory measures
@@ -136,11 +140,11 @@ def _compute_hamming_matrix(N):
     use |_hamming_matrix| instead.
     """
     possible_states = np.array(list(utils.all_states((N))))
-    return cdist(possible_states, possible_states, 'hamming') * N
+    return cdist(possible_states, possible_states, "hamming") * N
 
 
 # TODO extend to binary nodes
-@measures.register('EMD')
+@measures.register("EMD")
 def hamming_emd(d1, d2):
     """Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node) using the Hamming distance between states
@@ -168,11 +172,10 @@ def effect_emd(d1, d2):
     Returns:
         float: The EMD between ``d1`` and ``d2``.
     """
-    return sum(abs(marginal_zero(d1, i) - marginal_zero(d2, i))
-               for i in range(d1.ndim))
+    return sum(abs(marginal_zero(d1, i) - marginal_zero(d2, i)) for i in range(d1.ndim))
 
 
-@measures.register('L1')
+@measures.register("L1")
 def l1(d1, d2):
     """Return the L1 distance between two distributions.
 
@@ -186,7 +189,7 @@ def l1(d1, d2):
     return np.abs(d1 - d2).sum()
 
 
-@measures.register('KLD', asymmetric=True)
+@measures.register("KLD", asymmetric=True)
 def kld(d1, d2):
     """Return the Kullback-Leibler Divergence (KLD) between two distributions.
 
@@ -201,14 +204,14 @@ def kld(d1, d2):
     return entropy(d1, d2, 2.0)
 
 
-@measures.register('ENTROPY_DIFFERENCE')
+@measures.register("ENTROPY_DIFFERENCE")
 def entropy_difference(d1, d2):
     """Return the difference in entropy between two distributions."""
     d1, d2 = flatten(d1), flatten(d2)
     return abs(entropy(d1, base=2.0) - entropy(d2, base=2.0))
 
 
-@measures.register('PSQ2')
+@measures.register("PSQ2")
 @np_suppress()
 def psq2(d1, d2):
     """Compute the PSQ2 measure.
@@ -225,7 +228,7 @@ def psq2(d1, d2):
     return abs(f(d1) - f(d2))
 
 
-@measures.register('MP2Q', asymmetric=True)
+@measures.register("MP2Q", asymmetric=True)
 @np_suppress()
 def mp2q(p, q):
     """Compute the MP2Q measure.
@@ -239,8 +242,8 @@ def mp2q(p, q):
     return np.sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log2(p / q)))
 
 
-@measures.register('KLM', asymmetric=True)
-@measures.register('BLD', asymmetric=True)  # Backwards-compatible alias
+@measures.register("KLM", asymmetric=True)
+@measures.register("BLD", asymmetric=True)  # Backwards-compatible alias
 @np_suppress()
 def klm(p, q):
     """Compute the KLM divergence."""
@@ -313,7 +316,7 @@ def repertoire_distance(direction, r1, r2):
     Returns:
         float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
     """
-    if config.MEASURE == 'EMD':
+    if config.MEASURE == "EMD":
         dist = directional_emd(direction, r1, r2)
     else:
         dist = measures[config.MEASURE](r1, r2)
@@ -333,8 +336,9 @@ def system_repertoire_distance(r1, r2):
     """
     if config.MEASURE in measures.asymmetric():
         raise ValueError(
-            '{} is asymmetric and cannot be used as a system-level '
-            'irreducibility measure.'.format(config.MEASURE))
+            "{} is asymmetric and cannot be used as a system-level "
+            "irreducibility measure.".format(config.MEASURE)
+        )
 
     return measures[config.MEASURE](r1, r2)
 

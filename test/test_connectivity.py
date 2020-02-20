@@ -143,9 +143,8 @@ def test_block_reducible():
     ])
     # fmt: on
     assert not connectivity.block_reducible(
-        cm1,
-        tuple(range(cm1.shape[0] - 1)),
-        tuple(range(cm1.shape[1])))
+        cm1, tuple(range(cm1.shape[0] - 1)), tuple(range(cm1.shape[1]))
+    )
     assert connectivity.block_reducible(cm2, (0, 1, 2), (0, 1, 2))
     assert connectivity.block_reducible(cm3, (0, 1), (0, 1, 2, 3, 4))
     assert not connectivity.block_reducible(cm4, (0, 1), (1, 2))
@@ -225,4 +224,5 @@ def test_apply_boundary_conditions():
     ])
     # fmt: on
     assert np.array_equal(
-        connectivity.apply_boundary_conditions_to_cm((1,), cm), answer)
+        connectivity.apply_boundary_conditions_to_cm((1,), cm), answer
+    )

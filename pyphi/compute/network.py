@@ -68,15 +68,15 @@ def possible_complexes(network, state):
     Yields:
         Subsystem: The next subsystem that could be a complex.
     """
-    return _reachable_subsystems(
-        network, network.causally_significant_nodes, state)
+    return _reachable_subsystems(network, network.causally_significant_nodes, state)
 
 
 class FindAllComplexes(MapReduce):
     """Computation engine for finding all complexes."""
+
     # pylint: disable=unused-argument,arguments-differ
 
-    description = 'Finding complexes'
+    description = "Finding complexes"
 
     def empty_result(self):
         return []
@@ -144,7 +144,7 @@ def major_complex(network, state):
         SystemIrreducibilityAnalysis: The |SIA| for the |Subsystem| with
         maximal |big_phi|.
     """
-    log.info('Calculating major complex...')
+    log.info("Calculating major complex...")
 
     result = complexes(network, state)
     if result:

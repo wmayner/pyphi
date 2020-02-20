@@ -23,7 +23,7 @@ def default_labels(indices):
 
 
 class NodeLabels(collections.Sequence):
-    '''Text labels for nodes in a network.
+    """Text labels for nodes in a network.
 
     Labels can either be instantiated as a tuple of strings:
 
@@ -34,7 +34,8 @@ class NodeLabels(collections.Sequence):
 
         >>> NodeLabels('AB', (0, 1))
         NodeLabels(('A', 'B'))
-    '''
+    """
+
     def __init__(self, labels, node_indices):
         if labels is None:
             labels = default_labels(node_indices)
@@ -61,12 +62,11 @@ class NodeLabels(collections.Sequence):
         return self.labels[x]
 
     def __repr__(self):
-        return 'NodeLabels({})'.format(self.labels)
+        return "NodeLabels({})".format(self.labels)
 
     @cmp.sametype
     def __eq__(self, other):
-        return (self.labels == other.labels and
-                self.node_indices == other.node_indices)
+        return self.labels == other.labels and self.node_indices == other.node_indices
 
     def __hash__(self):
         return hash((self.labels, self.node_indices))
@@ -93,4 +93,4 @@ class NodeLabels(collections.Sequence):
         return tuple(sorted(set(indices)))
 
     def to_json(self):
-        return {'labels': self.labels, 'node_indices': self.node_indices}
+        return {"labels": self.labels, "node_indices": self.node_indices}

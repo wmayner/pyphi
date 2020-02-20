@@ -36,15 +36,32 @@ Attributes:
 
 # pylint: disable=unused-import
 
-from .actual_causation import (AcSystemIrreducibilityAnalysis, CausalLink,
-                               AcRepertoireIrreducibilityAnalysis,
-                               _null_ac_ria, Event, _null_ac_sia,
-                               DirectedAccount, Account)
-from .subsystem import (SystemIrreducibilityAnalysis, _null_sia,
-                        CauseEffectStructure)
-from .mechanism import (RepertoireIrreducibilityAnalysis, _null_ria,
-                        MaximallyIrreducibleCauseOrEffect,
-                        MaximallyIrreducibleCause, MaximallyIrreducibleEffect,
-                        Concept)
-from .cuts import (ActualCut, Cut, Part, Bipartition, NullCut, Tripartition,
-                   KPartition, KCut)
+from .actual_causation import (
+    Account,
+    AcRepertoireIrreducibilityAnalysis,
+    AcSystemIrreducibilityAnalysis,
+    CausalLink,
+    DirectedAccount,
+    Event,
+    _null_ac_ria,
+    _null_ac_sia,
+)
+from .cuts import (
+    ActualCut,
+    Bipartition,
+    Cut,
+    KCut,
+    KPartition,
+    NullCut,
+    Part,
+    Tripartition,
+)
+from .mechanism import (
+    Concept,
+    MaximallyIrreducibleCause,
+    MaximallyIrreducibleCauseOrEffect,
+    MaximallyIrreducibleEffect,
+    RepertoireIrreducibilityAnalysis,
+    _null_ria,
+)
+from .subsystem import CauseEffectStructure, SystemIrreducibilityAnalysis, _null_sia

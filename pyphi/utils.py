@@ -65,6 +65,7 @@ def np_hash(a):
 
 class np_hashable:
     """A hashable wrapper around a NumPy array."""
+
     # pylint: disable=protected-access
 
     def __init__(self, array):
@@ -103,7 +104,7 @@ def combs(a, r):
         return np.asarray([])
 
     a = np.asarray(a)
-    data_type = a.dtype if r == 0 else np.dtype([('', a.dtype)] * r)
+    data_type = a.dtype if r == 0 else np.dtype([("", a.dtype)] * r)
     b = np.fromiter(combinations(a, r), data_type)
     return b.view(a.dtype).reshape(-1, r)
 
@@ -135,9 +136,8 @@ def comb_indices(n, k):
     count = comb(n, k, exact=True)
     # Get numpy iterable from ``itertools.combinations``
     indices = np.fromiter(
-        chain.from_iterable(combinations(range(n), k)),
-        int,
-        count=(count * k))
+        chain.from_iterable(combinations(range(n), k)), int, count=(count * k)
+    )
     # Reshape output into the array of combination indicies
     return indices.reshape(-1, k)
 
@@ -196,7 +196,7 @@ def load_data(directory, num):
     root = os.path.abspath(os.path.dirname(__file__))
 
     def get_path(i):  # pylint: disable=missing-docstring
-        return os.path.join(root, 'data', directory, str(i) + '.npy')
+        return os.path.join(root, "data", directory, str(i) + ".npy")
 
     return [np.load(get_path(i), allow_pickle=True) for i in range(num)]
 

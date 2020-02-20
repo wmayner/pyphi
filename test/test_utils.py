@@ -40,11 +40,7 @@ def test_eq():
 def test_combs_for_1D_input():
     n, k = 3, 2
     data = np.arange(n)
-    answer = np.asarray([
-        [0, 1],
-        [0, 2],
-        [1, 2],
-    ])
+    answer = np.asarray([[0, 1], [0, 2], [1, 2],])
     assert np.array_equal(utils.combs(data, k), answer)
 
 
@@ -110,7 +106,7 @@ def test_time_annotated():
     def func():
         return retval
 
-    with patch('pyphi.utils.time', side_effect=[2, 5]):
+    with patch("pyphi.utils.time", side_effect=[2, 5]):
         r = func()
 
     assert r == retval

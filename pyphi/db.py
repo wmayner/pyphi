@@ -14,21 +14,22 @@ from bson.binary import Binary
 
 from . import config, constants
 
-KEY_FIELD = 'k'
-VALUE_FIELD = 'v'
+KEY_FIELD = "k"
+VALUE_FIELD = "v"
 
 
 # Initialize dummy database API objects.
 client, database, collection = None, None, None
 # Connect to MongoDB if the caching backend is set to 'db'.
-if config.CACHING_BACKEND == 'db':
+if config.CACHING_BACKEND == "db":
     # TODO: use reconnect proxy
-    client = pymongo.MongoClient(config.MONGODB_CONFIG['host'],
-                                 config.MONGODB_CONFIG['port'])
-    database = client[config.MONGODB_CONFIG['database_name']]
-    collection = database[config.MONGODB_CONFIG['collection_name']]
+    client = pymongo.MongoClient(
+        config.MONGODB_CONFIG["host"], config.MONGODB_CONFIG["port"]
+    )
+    database = client[config.MONGODB_CONFIG["database_name"]]
+    collection = database[config.MONGODB_CONFIG["collection_name"]]
     # Index documents by their keys. Enforce that the keys be unique.
-    collection.create_index('k', unique=True)
+    collection.create_index("k", unique=True)
 
 
 def find(key):
@@ -53,10 +54,7 @@ def insert(key, value):
     # Pickle the value.
     value = pickle.dumps(value, protocol=constants.PICKLE_PROTOCOL)
     # Store the value as binary data in a document.
-    doc = {
-        KEY_FIELD: key,
-        VALUE_FIELD: Binary(value)
-    }
+    doc = {KEY_FIELD: key, VALUE_FIELD: Binary(value)}
     # Pickle and store the value with its key. If the key already exists, we
     # don't insert (since the key is a unique index), and we don't care.
     try:

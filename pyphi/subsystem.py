@@ -12,9 +12,14 @@ import numpy as np
 from . import Direction, cache, distribution, utils, validate
 from .distance import repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
-from .models import (Concept, MaximallyIrreducibleCause,
-                     MaximallyIrreducibleEffect, NullCut,
-                     RepertoireIrreducibilityAnalysis, _null_ria)
+from .models import (
+    Concept,
+    MaximallyIrreducibleCause,
+    MaximallyIrreducibleEffect,
+    NullCut,
+    RepertoireIrreducibilityAnalysis,
+    _null_ria,
+)
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
@@ -49,9 +54,17 @@ class Subsystem:
         null_cut (Cut): The cut object representing no cut.
     """
 
-    def __init__(self, network, state, nodes=None, cut=None, mice_cache=None,
-                 repertoire_cache=None, single_node_repertoire_cache=None,
-                 _external_indices=None):
+    def __init__(
+        self,
+        network,
+        state,
+        nodes=None,
+        cut=None,
+        mice_cache=None,
+        repertoire_cache=None,
+        single_node_repertoire_cache=None,
+        _external_indices=None,
+    ):
         # The network this subsystem belongs to.
         validate.is_network(network)
         self.network = network
@@ -70,17 +83,18 @@ class Subsystem:
         # TODO: don't expose this as an attribute?
         if _external_indices is None:
             self.external_indices = tuple(
-                set(network.node_indices) - set(self.node_indices))
+                set(network.node_indices) - set(self.node_indices)
+            )
         else:
             self.external_indices = _external_indices
 
         # The TPM conditioned on the state of the external nodes.
-        self.tpm = condition_tpm(
-            self.network.tpm, self.external_indices, self.state)
+        self.tpm = condition_tpm(self.network.tpm, self.external_indices, self.state)
 
         # The unidirectional cut applied for phi evaluation
-        self.cut = (cut if cut is not None
-                    else NullCut(self.node_indices, self.node_labels))
+        self.cut = (
+            cut if cut is not None else NullCut(self.node_indices, self.node_labels)
+        )
 
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
@@ -91,12 +105,14 @@ class Subsystem:
         # Cause & effect repertoire caches
         # TODO: if repertoire caches are never reused, there's no reason to
         # have an accesible object-level cache. Just use a simple memoizer
-        self._single_node_repertoire_cache = \
+        self._single_node_repertoire_cache = (
             single_node_repertoire_cache or cache.DictCache()
+        )
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
         self.nodes = generate_nodes(
-            self.tpm, self.cm, self.state, self.node_indices, self.node_labels)
+            self.tpm, self.cm, self.state, self.node_indices, self.node_labels
+        )
 
         validate.subsystem(self)
 
@@ -171,10 +187,9 @@ class Subsystem:
     def cache_info(self):
         """Report repertoire cache statistics."""
         return {
-            'single_node_repertoire':
-                self._single_node_repertoire_cache.info(),
-            'repertoire': self._repertoire_cache.info(),
-            'mice': self._mice_cache.info()
+            "single_node_repertoire": self._single_node_repertoire_cache.info(),
+            "repertoire": self._repertoire_cache.info(),
+            "mice": self._mice_cache.info(),
         }
 
     def clear_caches(self):
@@ -184,7 +199,7 @@ class Subsystem:
         self._mice_cache.clear()
 
     def __repr__(self):
-        return "Subsystem(" + ', '.join(map(repr, self.nodes)) + ")"
+        return "Subsystem(" + ", ".join(map(repr, self.nodes)) + ")"
 
     def __str__(self):
         return repr(self)
@@ -205,10 +220,10 @@ class Subsystem:
             return False
 
         return (
-            set(self.node_indices) == set(other.node_indices) and
-            self.state == other.state and
-            self.network == other.network and
-            self.cut == other.cut
+            set(self.node_indices) == set(other.node_indices)
+            and self.state == other.state
+            and self.network == other.network
+            and self.cut == other.cut
         )
 
     def __ne__(self, other):
@@ -238,10 +253,10 @@ class Subsystem:
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {
-            'network': self.network,
-            'state': self.state,
-            'nodes': self.node_indices,
-            'cut': self.cut,
+            "network": self.network,
+            "state": self.state,
+            "nodes": self.node_indices,
+            "cut": self.cut,
         }
 
     def apply_cut(self, cut):
@@ -253,8 +268,13 @@ class Subsystem:
         Returns:
             Subsystem: The cut subsystem.
         """
-        return Subsystem(self.network, self.state, self.node_indices,
-                         cut=cut, mice_cache=self._mice_cache)
+        return Subsystem(
+            self.network,
+            self.state,
+            self.node_indices,
+            cut=cut,
+            mice_cache=self._mice_cache,
+        )
 
     def indices2nodes(self, indices):
         """Return |Nodes| for these indices.
@@ -269,12 +289,11 @@ class Subsystem:
             ValueError: If requested indices are not in the subsystem.
         """
         if set(indices) - set(self.node_indices):
-            raise ValueError(
-                "`indices` must be a subset of the Subsystem's indices.")
+            raise ValueError("`indices` must be a subset of the Subsystem's indices.")
         return tuple(self._index2node[n] for n in indices)
 
     # TODO extend to nonbinary nodes
-    @cache.method('_single_node_repertoire_cache', Direction.CAUSE)
+    @cache.method("_single_node_repertoire_cache", Direction.CAUSE)
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):
         # pylint: disable=missing-docstring
         mechanism_node = self._index2node[mechanism_node_index]
@@ -286,7 +305,7 @@ class Subsystem:
         return marginalize_out((mechanism_node.inputs - purview), tpm)
 
     # TODO extend to nonbinary nodes
-    @cache.method('_repertoire_cache', Direction.CAUSE)
+    @cache.method("_repertoire_cache", Direction.CAUSE)
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
 
@@ -321,8 +340,8 @@ class Subsystem:
         # The cause repertoire is the product of the cause repertoires of the
         # individual nodes.
         joint *= functools.reduce(
-            np.multiply, [self._single_node_cause_repertoire(m, purview)
-                          for m in mechanism]
+            np.multiply,
+            [self._single_node_cause_repertoire(m, purview) for m in mechanism],
         )
         # The resulting joint distribution is over previous states, which are
         # rows in the TPM, so the distribution is a column. The columns of a
@@ -330,21 +349,20 @@ class Subsystem:
         return distribution.normalize(joint)
 
     # TODO extend to nonbinary nodes
-    @cache.method('_single_node_repertoire_cache', Direction.EFFECT)
+    @cache.method("_single_node_repertoire_cache", Direction.EFFECT)
     def _single_node_effect_repertoire(self, mechanism, purview_node_index):
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the inputs that are in the mechanism.
-        mechanism_inputs = (purview_node.inputs & mechanism)
+        mechanism_inputs = purview_node.inputs & mechanism
         tpm = condition_tpm(purview_node.tpm, mechanism_inputs, self.state)
         # Marginalize-out the inputs that aren't in the mechanism.
-        nonmechanism_inputs = (purview_node.inputs - mechanism)
+        nonmechanism_inputs = purview_node.inputs - mechanism
         tpm = marginalize_out(nonmechanism_inputs, tpm)
         # Reshape so that the distribution is over next states.
-        return tpm.reshape(repertoire_shape([purview_node.index],
-                                            self.tpm_size))
+        return tpm.reshape(repertoire_shape([purview_node.index], self.tpm_size))
 
-    @cache.method('_repertoire_cache', Direction.EFFECT)
+    @cache.method("_repertoire_cache", Direction.EFFECT)
     def effect_repertoire(self, mechanism, purview):
         """Return the effect repertoire of a mechanism over a purview.
 
@@ -375,8 +393,8 @@ class Subsystem:
         # The effect repertoire is the product of the effect repertoires of the
         # individual nodes.
         return joint * functools.reduce(
-            np.multiply, [self._single_node_effect_repertoire(mechanism, p)
-                          for p in purview]
+            np.multiply,
+            [self._single_node_effect_repertoire(mechanism, p) for p in purview],
         )
 
     def repertoire(self, direction, mechanism, purview):
@@ -472,21 +490,19 @@ class Subsystem:
     def expand_cause_repertoire(self, repertoire, new_purview=None):
         """Alias for |expand_repertoire()| with ``direction`` set to |CAUSE|.
         """
-        return self.expand_repertoire(Direction.CAUSE, repertoire,
-                                      new_purview)
+        return self.expand_repertoire(Direction.CAUSE, repertoire, new_purview)
 
     def expand_effect_repertoire(self, repertoire, new_purview=None):
         """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|.
         """
-        return self.expand_repertoire(Direction.EFFECT, repertoire,
-                                      new_purview)
+        return self.expand_repertoire(Direction.EFFECT, repertoire, new_purview)
 
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
         return repertoire_distance(
             Direction.CAUSE,
             self.cause_repertoire(mechanism, purview),
-            self.unconstrained_cause_repertoire(purview)
+            self.unconstrained_cause_repertoire(purview),
         )
 
     def effect_info(self, mechanism, purview):
@@ -494,7 +510,7 @@ class Subsystem:
         return repertoire_distance(
             Direction.EFFECT,
             self.effect_repertoire(mechanism, purview),
-            self.unconstrained_effect_repertoire(purview)
+            self.unconstrained_effect_repertoire(purview),
         )
 
     def cause_effect_info(self, mechanism, purview):
@@ -502,14 +518,16 @@ class Subsystem:
 
         This is the minimum of the cause and effect information.
         """
-        return min(self.cause_info(mechanism, purview),
-                   self.effect_info(mechanism, purview))
+        return min(
+            self.cause_info(mechanism, purview), self.effect_info(mechanism, purview)
+        )
 
     # MIP methods
     # =========================================================================
 
-    def evaluate_partition(self, direction, mechanism, purview, partition,
-                           repertoire=None):
+    def evaluate_partition(
+        self, direction, mechanism, purview, partition, repertoire=None
+    ):
         """Return the |small_phi| of a mechanism over a purview for the given
         partition.
 
@@ -530,11 +548,9 @@ class Subsystem:
         if repertoire is None:
             repertoire = self.repertoire(direction, mechanism, purview)
 
-        partitioned_repertoire = self.partitioned_repertoire(direction,
-                                                             partition)
+        partitioned_repertoire = self.partitioned_repertoire(direction, partition)
 
-        phi = repertoire_distance(
-            direction, repertoire, partitioned_repertoire)
+        phi = repertoire_distance(direction, repertoire, partitioned_repertoire)
 
         return (phi, partitioned_repertoire)
 
@@ -570,22 +586,21 @@ class Subsystem:
                 partition=partition,
                 repertoire=repertoire,
                 partitioned_repertoire=partitioned_repertoire,
-                node_labels=self.node_labels
+                node_labels=self.node_labels,
             )
 
         # State is unreachable - return 0 instead of giving nonsense results
-        if (direction == Direction.CAUSE and
-                np.all(repertoire == 0)):
+        if direction == Direction.CAUSE and np.all(repertoire == 0):
             return _mip(0, None, None)
 
-        mip = _null_ria(direction, mechanism, purview, phi=float('inf'))
+        mip = _null_ria(direction, mechanism, purview, phi=float("inf"))
 
         for partition in mip_partitions(mechanism, purview, self.node_labels):
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(
-                direction, mechanism, purview, partition,
-                repertoire=repertoire)
+                direction, mechanism, purview, partition, repertoire=repertoire
+            )
 
             # Return immediately if mechanism is reducible.
             if phi == 0:
@@ -631,8 +646,10 @@ class Subsystem:
 
     def phi(self, mechanism, purview):
         """Return the |small_phi| of a mechanism over a purview."""
-        return min(self.phi_cause_mip(mechanism, purview),
-                   self.phi_effect_mip(mechanism, purview))
+        return min(
+            self.phi_cause_mip(mechanism, purview),
+            self.phi_effect_mip(mechanism, purview),
+        )
 
     # Phi_max methods
     # =========================================================================
@@ -652,15 +669,18 @@ class Subsystem:
         if purviews is False:
             purviews = self.network.potential_purviews(direction, mechanism)
             # Filter out purviews that aren't in the subsystem
-            purviews = [purview for purview in purviews
-                        if set(purview).issubset(self.node_indices)]
+            purviews = [
+                purview
+                for purview in purviews
+                if set(purview).issubset(self.node_indices)
+            ]
 
         # Purviews are already filtered in network.potential_purviews
         # over the full network connectivity matrix. However, since the cm
         # is cut/smaller we check again here.
         return irreducible_purviews(self.cm, direction, mechanism, purviews)
 
-    @cache.method('_mice_cache')
+    @cache.method("_mice_cache")
     def find_mice(self, direction, mechanism, purviews=False):
         """Return the |MIC| or |MIE| for a mechanism.
 
@@ -683,8 +703,9 @@ class Subsystem:
         if not purviews:
             max_mip = _null_ria(direction, mechanism, ())
         else:
-            max_mip = max(self.find_mip(direction, mechanism, purview)
-                          for purview in purviews)
+            max_mip = max(
+                self.find_mip(direction, mechanism, purview) for purview in purviews
+            )
 
         if direction == Direction.CAUSE:
             return MaximallyIrreducibleCause(max_mip)
@@ -730,20 +751,20 @@ class Subsystem:
 
         # Null cause.
         cause = MaximallyIrreducibleCause(
-            _null_ria(Direction.CAUSE, (), (), cause_repertoire))
+            _null_ria(Direction.CAUSE, (), (), cause_repertoire)
+        )
         # Null effect.
         effect = MaximallyIrreducibleEffect(
-            _null_ria(Direction.EFFECT, (), (), effect_repertoire))
+            _null_ria(Direction.EFFECT, (), (), effect_repertoire)
+        )
 
         # All together now...
-        return Concept(mechanism=(),
-                       cause=cause,
-                       effect=effect,
-                       subsystem=self)
+        return Concept(mechanism=(), cause=cause, effect=effect, subsystem=self)
 
     @time_annotated
-    def concept(self, mechanism, purviews=False, cause_purviews=False,
-                effect_purviews=False):
+    def concept(
+        self, mechanism, purviews=False, cause_purviews=False, effect_purviews=False
+    ):
         """Return the concept specified by a mechanism within this subsytem.
 
         Args:
@@ -763,11 +784,11 @@ class Subsystem:
             Concept: The pair of maximally irreducible cause/effect repertoires
             that constitute the concept specified by the given mechanism.
         """
-        log.debug('Computing concept %s...', mechanism)
+        log.debug("Computing concept %s...", mechanism)
 
         # If the mechanism is empty, there is no concept.
         if not mechanism:
-            log.debug('Empty concept; returning null concept')
+            log.debug("Empty concept; returning null concept")
             return self.null_concept
 
         # Calculate the maximally irreducible cause repertoire.
@@ -776,10 +797,9 @@ class Subsystem:
         # Calculate the maximally irreducible effect repertoire.
         effect = self.mie(mechanism, purviews=(effect_purviews or purviews))
 
-        log.debug('Found concept %s', mechanism)
+        log.debug("Found concept %s", mechanism)
 
         # NOTE: Make sure to expand the repertoires to the size of the
         # subsystem when calculating concept distance. For now, they must
         # remain un-expanded so the concept doesn't depend on the subsystem.
-        return Concept(mechanism=mechanism, cause=cause, effect=effect,
-                       subsystem=self)
+        return Concept(mechanism=mechanism, cause=cause, effect=effect, subsystem=self)

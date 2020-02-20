@@ -86,7 +86,7 @@ def indices(iterable):
 # TODO rename and hook into config options
 def divergence(p, q):
     # We don't care if p or q or both are zero
-    with np.errstate(divide='ignore', invalid='ignore'):
+    with np.errstate(divide="ignore", invalid="ignore"):
         return np.abs(p * np.nan_to_num(np.log2(p / q)))
 
 
@@ -270,9 +270,12 @@ class Relata:
         each.
         """
         # TODO note: ties are included here
-        return map(set, concat(
-            powerset(overlap, nonempty=True) for overlap in self.congruent_overlap()
-        ))
+        return map(
+            set,
+            concat(
+                powerset(overlap, nonempty=True) for overlap in self.congruent_overlap()
+            ),
+        )
 
     def partitioned_divergence(self, purview, mice):
         """Return the maximal partitioned divergence over this purview.
@@ -289,8 +292,7 @@ class Relata:
         """
         non_purview_indices = tuple(set(mice.purview) - purview)
         partition = Bipartition(
-            Part(mice.mechanism, non_purview_indices),
-            Part((), tuple(purview))
+            Part(mice.mechanism, non_purview_indices), Part((), tuple(purview))
         )
         partitioned_repertoire = self.subsystem.partitioned_repertoire(
             mice.direction, partition
@@ -365,9 +367,9 @@ def all_relations(subsystem, ces):
     # get a flat list of all causes and effects
     ces = separate_ces(ces)
     # Compute all relations
-    return map(relation, (
-        Relata(subsystem, subset) for subset in powerset(ces, nonempty=True)
-    ))
+    return map(
+        relation, (Relata(subsystem, subset) for subset in powerset(ces, nonempty=True))
+    )
 
 
 def relations(subsystem, ces):
