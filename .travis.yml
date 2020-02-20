@@ -16,7 +16,6 @@ services:
   - redis-server  # port 6379 (default)
 
 python:
-  - 3.5
   - 3.6
   - 3.7
   - 3.8
