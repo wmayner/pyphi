@@ -85,7 +85,7 @@ long time!), resulting in data loss.
 
     **For most networks,** ``PARALLEL_CUT_EVALUATION`` **is the most
     efficient.** This is because the algorithm is exponential time in the
-    number of nodes, so the most of the time is spent on the largest subsystem.
+    number of nodes, so most of the time is spent on the largest subsystem.
 
     You should only parallelize concept evaluation if you are just computing a
     |CauseEffectStructure|.
