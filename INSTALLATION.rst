@@ -25,10 +25,10 @@ Then run it with:
 
     sh Miniconda3-latest-MacOSX-x86_64.sh
 
-Once you have installed Miniconda, close and re-open your Terminal window and
-confirm that your ``python`` command points to the Minconda-installed version
-of Python, rather than your computers's default Python, by running ``which
-python``. This should print something like
+Once you have installed Miniconda, **close and re-open your Terminal window**
+and confirm that your ``python`` command points to the Minconda-installed
+version of Python, rather than your computers's default Python, by running
+``which python``. This should print something like
 ``/Users/<your_username>/minconda3/bin/python``.
 
 Using the Miniconda Python rather than the version of Python that comes with
