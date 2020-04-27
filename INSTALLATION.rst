@@ -11,131 +11,86 @@ Utilities). Text that is ``formatted like code`` is meant to be copied and
 pasted into the terminal (hit the Enter key to run the command).
 
 The fist step is to install the versions of Python that we need. The most
-convenient way of doing this is to use the OS X package manager `Homebrew
-<http://brew.sh/>`__. Install Homebrew by running this command:
+convenient way of doing this is to use the `Miniconda distribution of Python
+<https://docs.conda.io/en/latest/miniconda.html>`__. Install Miniconda by
+downloading and running the installer script:
 
 .. code:: bash
 
-    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    curl https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o Miniconda3-latest-MacOSX-x86_64.sh
 
-Now you should have access to the ``brew`` command. First, we need to install
-Python 2 and 3. Using these so-called “brewed” Python versions, rather than the
-version of Python that comes with your computer, will protect your computer's
-Python version from unwanted changes that could interfere with other
-applications.
+Then run it with:
 
 .. code:: bash
 
-    brew install python python3
+    sh Miniconda3-latest-MacOSX-x86_64.sh
 
-Then we need to ensure that the terminal “knows about” the newly-installed
-Python versions:
+Once you have installed Miniconda, close and re-open your Terminal window and
+confirm that your ``python`` command points to the Minconda-installed version
+of Python, rather than your computers's default Python, by running ``which
+python``. This should print something like
+``/Users/<your_username>/minconda3/bin/python``.
 
-.. code:: bash
+Using the Miniconda Python rather than the version of Python that comes with
+your computer will protect your computer's Python version from unwanted
+changes that could interfere with other applications.
 
-    brew link --overwrite python
-    brew link --overwrite python3
-
-Now that we're using our shiny new Python versions, it is highly recommended to
-set up a **virtual environment** in which to install PyPhi. Virtual
-environments allow different projects to isolate their dependencies from one
-another, so that they don't interact in unexpected ways. Please see `this guide
-<http://docs.python-guide.org/dev/virtualenvs/>`__ for more information.
-
-To do this, you must install ``virtualenvwrapper``, a `tool for manipulating
-virtual environments <http://virtualenvwrapper.readthedocs.org/>`__. This tool
-is available on `PyPI <https://pypi.python.org/pypi>`__, the Python package
-index, and can be installed with ``pip``, the command-line utility for
-installing and managing Python packages (``pip`` was installed automatically
-with the brewed Python):
+Now we want to use the ``conda`` command-line tool (installed with Miniconda)
+to create an isolated Python `environment
+<https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html>`_
+within which to install PyPhi. Environments allow different projects to
+isolate their dependencies from one another, so that they don't interact in
+unexpected ways.
 
 .. code:: bash
 
-    pip install virtualenvwrapper
+    conda create --name <name_of_your_project>
 
-Now we need to edit your shell startup file. This is a file that runs
-automatically every time you open a new shell (a new window or tab in the
-Terminal app). This file should be in your home directory, though it will be
-invisible in the Finder because the filename is preceded by a period. On most
-Macs it is called ``.bash_profile``. You can open this in a text editor by
-running this command:
+Once we've created the environment, we need to "activate" it so that when we
+run Python or install Python packages, we're doing those things inside the
+isolated environment. To activate the environment we just created, run
+``conda activate <name_of_your_project>`` (and to deactivate it, run ``conda
+deactivate``, or start a new Terminal session).
 
-.. code:: bash
+.. important::
 
-    open -a TextEdit ~/.bash_profile
+    Remember to activate your project's environment **every time you begin
+    working on your project**. Also, note that the currently active virtual
+    environment is *not* associated with any particular folder; it is
+    associated with a Terminal session. In other words, each time you open a
+    new Terminal tab or Terminal window, you need to run ``conda activate
+    <name_of_your_project``. When the environment is active, your
+    command-line prompt should show the name of the environment.
 
-If you get an error that says the file doesn't exist, then run ``touch
-~/.bash_profile`` first to create it.
-
-Now, you'll add three lines to the shell startup file. These lines will set the
-location where the virtual environments will live, the location of your
-development project directories, and the location of the script installed with
-this package, respectively. **Note:** The location of the script can be found
-by running ``which virtualenvwrapper.sh``.
-
-The filepath after the equals sign on the second line will different for
-everyone, but here is an example:
-
-.. code:: bash
-
-    export WORKON_HOME=$HOME/.virtualenvs
-    export PROJECT_HOME=$HOME/dev
-    source /usr/local/bin/virtualenvwrapper.sh
-
-After editing the startup file and saving it, open a new terminal shell by
-opening a new tab or window (or just reload the startup file by running
-``source ~/.bash_profile``).
-
-Now that ``virtualenvwrapper`` is fully installed, use it to create a Python 3
-virtual environment, like so:
-
-.. code:: bash
-
-    mkvirtualenv -p `which python3` <name_of_your_project>
-
-The option ``-p `which python3``` ensures that when the virtual environment is
-activated, the commands ``python`` and ``pip`` will refer to their Python 3
-counterparts.
-
-The virtual environment should have been activated automatically after creating
-it. Virtual environments can be manually activated with ``workon
-<name_of_your_project>``, and deactivated with ``deactivate``.
-
-**Important:** Remember to activate the virtual environment with the ``workon``
-command **every time you begin working on your project**. Also, note that the
-currently active virtual environment is *not* associated with any particular
-folder; it is associated with a terminal shell. In other words, each time you
-open a new Terminal tab or terminal window, you need to run ``workon
-<name_of_your_project`` (with some extra setup, this can be done automatically;
-see `here
-<https://virtualenvwrapper.readthedocs.io/page/tips.html#automatically-run-workon-when-entering-a-directory>`__).
-When a virtual environment is active, your command-line prompt will be
-prepended with the name of the virtual environment in parentheses.
-
-Once you've checked that the new virtual environment is active, you're finally
-ready to install PyPhi into it (note that this may take a few minutes):
+Now we're ready to install PyPhi. To do this, we'll use ``pip``, the Python
+package manager:
 
 .. code:: bash
 
     pip install pyphi
 
-Congratulations, you've just installed PyPhi!
+Congratulations, we've just installed PyPhi!
 
-To play around with the software, ensure that you've activated the virtual
-environment with ``workon <name_of_your_project>``. Then run ``python`` to
-start a Python 3 interpreter. Then, in the interpreter's command-line (which is
-preceded by the ``>>>`` prompt), run
+To play around with the software, let's install `IPython
+<https://ipython.readthedocs.io/en/stable/#>`__. IPython provides an enhanced
+Python `REPL
+<https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop>`__ that
+has tab-completion, syntax highlighting, and many other nice features.
+
+.. code:: bash
+
+    pip install ipython
+
+Now we can run ``ipython`` to start an IPython session. In the Python
+command-line that appears (it's preceded by the ``>>>`` prompt), run
 
 .. code:: python
 
     import pyphi
 
-Optionally, you can also install `IPython <https://ipython.org/>`__ with ``pip
-install ipython`` to get a more useful Python interpreter that offers things
-like tab-completion. Once you've installed it, you can start the IPython
-interpreter with the command ``ipython``.
+Now you've imported PyPhi and can start using it!
 
 Next, please see the documentation for some `examples
-<https://pyphi.readthedocs.io/page/examples/>`__ of how to use PyPhi and
+<https://pyphi.readthedocs.io/page/examples/>`__ of what PyPhi can do and
 information on how to `configure
 <https://pyphi.readthedocs.io/page/configuration.html>`__ it.
