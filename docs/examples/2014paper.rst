@@ -116,7 +116,7 @@ below):
 
 .. note::
     This network is already built for you; you can get it from the |examples|
-    module with ``network = pyphi.examples.fig0a()``. The TPM can then be
+    module with ``network = pyphi.examples.fig1a()``. The TPM can then be
     accessed with ``network.tpm``.
 
 Next we'll define the connectivity matrix. In PyPhi, the |i,jth| entry in a
