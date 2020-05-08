@@ -23,7 +23,7 @@ from .models import (
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
-from .tpm import condition_tpm, condition_tpm_nb, marginalize_out
+from .tpm import condition_tpm, marginalize_out
 from .utils import time_annotated
 
 log = logging.getLogger(__name__)
@@ -88,7 +88,7 @@ class Subsystem:
         else:
             self.external_indices = _external_indices
         if self.network.nb:
-            self.tpmdf, self.tpm = condition_tpm_nb(self.network.tpmdf, self.external_indices, self.state, self.network.base, self.node_labels)
+            self.tpmdf, self.tpm = condition_tpm_nb(self.network.tpmdf, self.external_indices, self.state, self.base, self.node_labels)
         else:
             # The TPM conditioned on the state of the external nodes.
             self.tpm = condition_tpm(self.network.tpm, self.external_indices, self.state)
@@ -283,7 +283,7 @@ class Subsystem:
         )
     def _factor(self,set_of_nodes):
         """find factor for denominator to normalize tpm based on purview"""
-        return 1 if len(self.node_indices)==len(set_of_nodes) else np.prod([self.network.base[i]  for i in set(self.network.node_indices)-set(set_of_nodes)])
+        return 1 if len(self.node_indices)==len(set_of_nodes) else np.prod([self.network.base[i]  for i in set(network.nodes_indices)-set(set_of_nodes)])
 
     def indices2nodes(self, indices):
         """Return |Nodes| for these indices.
@@ -303,12 +303,13 @@ class Subsystem:
 
     # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.CAUSE)
-    def _single_node_cause_repertoire(self, mechanism_node_index, purview):
+def _single_node_cause_repertoire(self, mechanism_node_index, purview):
         if self.network.nb:
+
             norm = 1/self._factor(purview)
 
             tpm = self.network.tpmdf
-            print(tpm)
+
             tpm = (tpm.groupby(list(purview[::-1])).sum())*norm
 
             tpm = (tpm.transpose().groupby(list(mechanism_node_index)).sum()).transpose()
@@ -356,13 +357,11 @@ class Subsystem:
         # Use a frozenset so the arguments to `_single_node_cause_repertoire`
         # can be hashed and cached.
         purview = frozenset(purview)
-        print(purview)
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
         joint = np.ones(repertoire_shape(purview, len(self.node_indices),self.network.base))
         # The cause repertoire is the product of the cause repertoires of the
         # individual nodes.
-
         joint *= functools.reduce(
             np.multiply,
             [self._single_node_cause_repertoire(m, purview) for m in mechanism],
