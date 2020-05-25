@@ -334,13 +334,13 @@ def system_repertoire_distance(r1, r2):
     Returns:
         float: The distance between ``r1`` and ``r2``.
     """
-    if config.MEASURE in measures.asymmetric():
+    if config.SYSTEM_MEASURE in measures.asymmetric():
         raise ValueError(
             "{} is asymmetric and cannot be used as a system-level "
-            "irreducibility measure.".format(config.MEASURE)
+            "irreducibility measure.".format(config.SYSTEM_MEASURE)
         )
 
-    return measures[config.MEASURE](r1, r2)
+    return measures[config.SYSTEM_MEASURE](r1, r2)
 
 
 # Actual causation measures

@@ -407,6 +407,14 @@ class PyphiConfig(Config):
     """,
     )
 
+    SYSTEM_MEASURE = Option(
+        "EMD",
+        doc="""
+    The measure to use when computing distances between cause-effect
+    structures. Analogous to ``MEASURE``.
+    """,
+    )
+
     ACTUAL_CAUSATION_MEASURE = Option(
         "PMI",
         doc="""
