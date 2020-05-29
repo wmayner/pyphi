@@ -45,9 +45,59 @@ def all_states(n, big_endian=False):
         else:
             yield state[::-1]  # Convert to little-endian ordering
 
-def all_possible_states_nb(base):
+def all_states_nb(n, p=None,l=None,nl=None,nb=None,big_endian=False):
+    """Return all binary states for a system.
+
+    Args:
+        n (int): The number of elements in the system.
+        big_endian (bool): Whether to return the states in big-endian order
+            instead of little-endian order.
+
+    Yields:
+        tuple[int]: The next state of an ``n``-element system, in little-endian
+        order unless ``big_endian`` is ``True``.
+    """
+    if n == 0:
+        return
+
+
+    if nb==None:
+        for state in product((0, 1), repeat=n):
+            if big_endian:
+                yield state
+            else:
+                yield state[::-1]  # Convert to little-endian ordering
+
+    else:
+
+        #print("nb",nb)
+        base=all_possible_states_nb(nb,s=True)
+        #print('base:',base)
+        network_labels=nl
+
+        if base.count(base[0])==len(base):
+            for state in product(tuple(base[0]), repeat=n):
+                if big_endian:
+                    yield state
+                else:
+                    yield state[::-1]  # Convert to little-endian ordering
+        else:
+
+            purview_labels= [l[i] for i in p]
+            purview= [network_labels.index(i) for i in purview_labels]
+            base=[base[i] for i in purview[::-1]]
+
+            for state in product(*base):
+                if big_endian:
+                    yield state
+                else:
+                    yield state[::-1]  # Convert to little-endian ordering
+
+def all_possible_states_nb(base,s=False):
     #make a description here
     states=[list(range(b)) for b in base[::-1]]
+    if s:
+        return states
 
     return list(product(*states))
 

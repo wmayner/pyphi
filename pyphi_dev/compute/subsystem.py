@@ -61,6 +61,7 @@ class ComputeCauseEffectStructure(MapReduce):
             cause_purviews=cause_purviews,
             effect_purviews=effect_purviews,
         )
+        #print('concept',concept)
         # Don't serialize the subsystem.
         # This is replaced on the other side of the queue, and ensures
         # that all concepts in the CES reference the same subsystem.
@@ -151,9 +152,9 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
         mechanisms = set(
             unpartitioned_ces.mechanisms + list(cut_subsystem.cut_mechanisms)
         )
-
+    #print("mechanisms",mechanisms)
+    #print("cut",cut)
     partitioned_ces = ces(cut_subsystem, mechanisms)
-
     log.debug("Finished evaluating %s.", cut)
 
     if uncut_subsystem.network.nb:
@@ -193,6 +194,7 @@ class ComputeSystemIrreducibility(MapReduce):
         """Check if the new SIA has smaller |big_phi| than the standing
         result.
         """
+        #print("new sia",new_sia)
         if new_sia.phi == 0:
             self.done = True  # Short-circuit
             return new_sia
@@ -301,12 +303,10 @@ def _sia(cache_key, subsystem):
         return _null_sia(subsystem)
 
     log.debug("Found unpartitioned CauseEffectStructure.")
-    if subsystem.network.nb:
-       cuts=directed_bipartition(subsystem.nodes, nontrivial=True)
 
     # TODO: move this into sia_bipartitions?
     # Only True if SINGLE_MICRO_NODES...=True, no?
-    elif len(subsystem.cut_indices) == 1:
+    if len(subsystem.cut_indices) == 1:
         cuts = [
             Cut(subsystem.cut_indices, subsystem.cut_indices, subsystem.cut_node_labels)
         ]

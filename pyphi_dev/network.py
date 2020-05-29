@@ -93,10 +93,10 @@ class Network:
 
             if type(base)==type(1):
                 num_nodes=int(np.log(tpm.shape[0])/np.log(base))
-                return [base for i in range(num_nodes)]
+                return tuple([base for i in range(num_nodes)])
 
             elif type(base)==type(list()) or type(base)==type(tuple()):
-                return [i for i in base]
+                return tuple([i for i in base])
         else:
             return #binary, no base needed
 

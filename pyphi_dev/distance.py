@@ -316,6 +316,7 @@ def repertoire_distance(direction, r1, r2, nb = False):
     Returns:
         float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
     """
+    
     if config.MEASURE == "EMD" and not nb:
         dist = directional_emd(direction, r1, r2)
     else:

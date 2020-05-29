@@ -42,7 +42,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         partitioned_repertoire,
         node_labels=None,
         net_labels=None,
-        node_states=None
+        net_states=None
     ):
         self._phi = phi
         self._direction = direction
