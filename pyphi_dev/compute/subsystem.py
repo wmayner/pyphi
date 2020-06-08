@@ -61,7 +61,6 @@ class ComputeCauseEffectStructure(MapReduce):
             cause_purviews=cause_purviews,
             effect_purviews=effect_purviews,
         )
-        #print('concept',concept)
         # Don't serialize the subsystem.
         # This is replaced on the other side of the queue, and ensures
         # that all concepts in the CES reference the same subsystem.
@@ -143,7 +142,6 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
     log.debug("Evaluating %s...", cut)
 
     cut_subsystem = uncut_subsystem.apply_cut(cut)
-
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
         mechanisms = unpartitioned_ces.mechanisms
     else:
@@ -152,9 +150,10 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
         mechanisms = set(
             unpartitioned_ces.mechanisms + list(cut_subsystem.cut_mechanisms)
         )
-    #print("mechanisms",mechanisms)
     #print("cut",cut)
     partitioned_ces = ces(cut_subsystem, mechanisms)
+    #print("cut", cut, partitioned_ces)
+    #breakpoint()
     log.debug("Finished evaluating %s.", cut)
 
     if uncut_subsystem.network.nb:

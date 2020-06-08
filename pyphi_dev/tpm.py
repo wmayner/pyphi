@@ -41,9 +41,7 @@ def tpm2df(tpm, base, node_labels):
         states_per_node=[list(range(b)) for b in base]
 
         states_all_nodes=[list(x[::-1])  for x in  list(product(*states_per_node[::-1])) ]
-
         states_by_states=np.transpose(states_all_nodes).tolist()
-
         index = pd.MultiIndex.from_arrays(states_by_states, names=node_labels)
         columns = pd.MultiIndex.from_arrays(states_by_states, names=node_labels)
         df = pd.DataFrame(tpm,columns=columns, index=index)
@@ -201,13 +199,12 @@ def node_tpm(subsystem, cut1, cut2):
             factor=sum([subsystem.network.base[i] for i in factor_set])
             #print('factor', factor)
             element_node = subsystem.node_labels[element]
-            #print("f",factor, "e", element_node,"cut1", cut1, "cut2", cut2,"remain connections: ", remain_connections,"is", set(inputs), "c", set(cut1))
             #print("e",element_node)
             #print("r",remain_connections[::-1])
             #print(subsystem.tpmdf.groupby(element_node,axis=1).sum())
             list_elem_tpm+=[(subsystem.tpmdf.groupby(element_node,axis=1).sum().groupby(remain_connections).sum())*\
             (1/factor)]
-            #print("list element tpm",list_elem_tpm)
+            #print("f",factor, "e", element_node,"cut1", cut1, "cut2", cut2,"remain connections: ", remain_connections,"is", set(inputs), "c", set(cut1), "list element tpm",list_elem_tpm)
 
     return list_elem_tpm
 

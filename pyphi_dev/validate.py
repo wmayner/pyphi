@@ -203,8 +203,9 @@ def state_reachable(subsystem):
         state = subsystem.proper_state
         possible_states = all_possible_states_nb(subsystem.network.base)
         tpm = subsystem.tpmdf.values
-        if sum(tpm[:,possible_states.index(state)]) == 0:
+        if sum(tpm[:,possible_states.index(state[::-1])]) == 0:
             raise exceptions.StateUnreachableError(subsystem.state)
+        return
 
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being

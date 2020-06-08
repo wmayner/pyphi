@@ -13,7 +13,7 @@ from . import Direction, cache, distribution, utils, validate
 from .distance import repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (
-    Concept,
+    cuts,Concept,
     MaximallyIrreducibleCause,
     MaximallyIrreducibleEffect,
     NullCut,
@@ -120,8 +120,10 @@ class Subsystem:
             )
         if (not self.cut.is_null) and self.network.nb:
             cut_tpm = tpm_cut(self, self.cut.from_nodes,self.cut.to_nodes)
-            print("cut tpm", cut_tpm)
-            self.tpmdf = tpm2df(cut_tpm, self.network.base, self.node_labels)
+            cut_tpm =cut_tpm*(1/np.sum(cut_tpm, axis=1)) #normalize so all rows sum to 1
+            #print("from", self.cut.from_nodes, "to",self.cut.to_nodes,"cut tpm", cut_tpm)
+            d = tpm2df(cut_tpm, self.network.base, self.node_labels)
+            self.tpmdf = tpm2df(cut_tpm, self.network.base, list(self.node_labels))
         validate.subsystem(self)
 
     @property
@@ -391,7 +393,7 @@ class Subsystem:
         if self.network.nb:
             purview_node = self.node_labels[purview_node_index]
             factor=self._factor(list(mechanism))
-            print("m", mechanism, "f", factor)
+            #print("m", mechanism, "f", factor)
             tpm=(self.tpmdf.transpose().groupby(purview_node).sum()).transpose()
             if len(mechanism)>0:
                 mechanism_nodes = [self.node_labels[m] for m in list(mechanism)]
@@ -656,7 +658,6 @@ class Subsystem:
             phi, partitioned_repertoire = self.evaluate_partition(
                 direction, mechanism, purview, partition, repertoire=repertoire
             )
-
             # Return immediately if mechanism is reducible.
             if phi == 0:
                 return _mip(0.0, partition, partitioned_repertoire)
@@ -664,6 +665,9 @@ class Subsystem:
             # Update MIP if it's more minimal.
             if phi < mip.phi:
                 mip = _mip(phi, partition, partitioned_repertoire)
+        #ct = cuts.Cut(('A',),('B','C',))
+        #if self.cut == ct:
+        #    print("phi", phi, "partition", partition, "m", mechanism, "p", purview,"repertoire", repertoire, "partitioned_repertoire", partitioned_repertoire)
 
         return mip
 
@@ -761,7 +765,7 @@ class Subsystem:
             max_mip = max(
                 self.find_mip(direction, mechanism, purview) for purview in purviews
             )
-
+        #print("mm",max_mip)
         if direction == Direction.CAUSE:
             return MaximallyIrreducibleCause(max_mip)
         elif direction == Direction.EFFECT:
