@@ -8,7 +8,7 @@ Functions for computing subsystem-level properties.
 
 import functools
 import logging
-
+import numpy as np
 from .. import Direction, config, connectivity, memory, utils
 from ..models import (
     CauseEffectStructure,
@@ -19,6 +19,7 @@ from ..models import (
     _null_sia,
     cmp,
     fmt,
+    Tripartition, Part
 )
 from ..partition import (
     directed_bipartition,
@@ -31,6 +32,7 @@ from .distance import (
     small_phi_ces_distance,
 )
 from .parallel import MapReduce
+from ..distribution import flatten
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -151,8 +153,29 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
             unpartitioned_ces.mechanisms + list(cut_subsystem.cut_mechanisms)
         )
     #print("cut",cut)
+    cut_subsystem.cm = np.asarray([[1., 1., 1.],[1., 1., 1.],[1., 1., 1.]])
     partitioned_ces = ces(cut_subsystem, mechanisms)
-    #print("cut", cut, partitioned_ces)
+    ct = Cut((1,),(0,2,))
+    partition = Tripartition(
+     Part(mechanism=(), purview=()),
+     Part(mechanism=(0,), purview=(0, 2)),
+     Part(mechanism=(1,), purview=()))
+    #print("ct", ct, ct.from_nodes, "cut", cut, cut.from_nodes)
+    if cut.from_nodes == ct.from_nodes:
+        #print(cut_subsystem.evaluate_partition(Direction.CAUSE, (0,1), (0,2), partition))
+        r = cut_subsystem.cause_repertoire((0,), (1,2))
+        #print("repertoire",flatten(r))
+        r1 = cut_subsystem.cause_repertoire((1,), (1,2))
+        #print("repertoire",flatten(r1))
+        #print("cm is", cut_subsystem.cm)
+        #print('state', cut_subsystem.state)
+        #print("mechanisms", mechanisms)
+        #print(partitioned_ces)
+        import numpy
+        numpy.savetxt("tpm.csv", cut_subsystem.tpmdf.values, delimiter=',')
+        #for row in cut_subsystem.tpmdf.values:
+        #    print(row)
+    #print("cut", cut, "p_ces", partitioned_ces)#"tpm", cut_subsystem.tpmdf.values)
     #breakpoint()
     log.debug("Finished evaluating %s.", cut)
 

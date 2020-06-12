@@ -6,14 +6,13 @@
 
 import functools
 import logging
-
 import numpy as np
 
 from . import Direction, cache, distribution, utils, validate
 from .distance import repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (
-    cuts,Concept,
+    Cut,cuts,Concept,
     MaximallyIrreducibleCause,
     MaximallyIrreducibleEffect,
     NullCut,
@@ -315,13 +314,23 @@ class Subsystem:
     # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.CAUSE)
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):
+        #print(mechanism_node_index, purview)
         if self.network.nb:
+            #ct = Cut((1,),(0,2,))
+            #from .models.cuts import NullCut
+            #if not isinstance(self.cut, NullCut):
+            #if (mechanism_node_index == 0) and purview == frozenset({1,2}) and self.cut.from_nodes == ct.from_nodes:
+            #breakpoint()
 
             purview_nodes = [self.node_labels[p] for p in list(purview)]
             norm = 1/self._factor(list(purview))
+            #if not mechanism_node_index:
+            #    factor=np.prod([self.network.base[i] for i in purview])
+            #    return np.array([1/factor]*int(factor)).reshape(repertoire_shape(purview, len(self.node_indices),self.network.base), order='F')
+
             mechanism_node = self.node_labels[mechanism_node_index]
 
-            tpm = self.network.tpmdf
+            tpm = self.tpmdf
             #breakpoint()
             tpm = (tpm.groupby(purview_nodes[::-1]).sum())*norm
 
@@ -665,7 +674,7 @@ class Subsystem:
             # Update MIP if it's more minimal.
             if phi < mip.phi:
                 mip = _mip(phi, partition, partitioned_repertoire)
-        #ct = cuts.Cut(('A',),('B','C',))
+        #ct = cuts.Cut(('C',),('A','B',))
         #if self.cut == ct:
         #    print("phi", phi, "partition", partition, "m", mechanism, "p", purview,"repertoire", repertoire, "partitioned_repertoire", partitioned_repertoire)
 
@@ -791,8 +800,8 @@ class Subsystem:
 
         This is the maximum of |small_phi| taken over all possible purviews.
         """
-        print("mic:",self.mic(mechanism))
-        print("mie:",self.mie(mechanism))
+        #print("mic:",self.mic(mechanism))
+        #print("mie:",self.mie(mechanism))
         return min(self.mic(mechanism).phi, self.mie(mechanism).phi)
 
     # Big Phi methods
