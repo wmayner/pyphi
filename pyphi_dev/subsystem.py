@@ -12,7 +12,9 @@ from . import Direction, cache, distribution, utils, validate
 from .distance import repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (
-    Cut,cuts,Concept,
+    Cut,
+    cuts,
+    Concept,
     MaximallyIrreducibleCause,
     MaximallyIrreducibleEffect,
     NullCut,
@@ -86,11 +88,20 @@ class Subsystem:
             )
         else:
             self.external_indices = _external_indices
+
         if self.network.nb:
-            self.tpmdf, self.tpm = condition_tpm_nb(self.network.tpmdf, self.external_indices, self.state, self.network.base, self.node_labels)
+            self.tpmdf, self.tpm = condition_tpm_nb(
+                self.network.tpmdf,
+                self.external_indices,
+                self.state,
+                self.network.base,
+                self.node_labels,
+            )
         else:
             # The TPM conditioned on the state of the external nodes.
-            self.tpm = condition_tpm(self.network.tpm, self.external_indices, self.state)
+            self.tpm = condition_tpm(
+                self.network.tpm, self.external_indices, self.state
+            )
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
@@ -98,7 +109,6 @@ class Subsystem:
         )
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
-
 
         # Reusable cache for maximally-irreducible causes and effects
         self._mice_cache = cache.MICECache(self, mice_cache)
@@ -111,18 +121,17 @@ class Subsystem:
         )
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
-        if self.network.nb:#will fix this for the final push sorry for the sloppy code will!
+        if self.network.nb:
             self.nodes = list(self.node_labels)
         else:
             self.nodes = generate_nodes(
                 self.tpm, self.cm, self.state, self.node_indices, self.node_labels
             )
-        if (not self.cut.is_null) and self.network.nb:
-            cut_tpm = tpm_cut(self, self.cut.from_nodes,self.cut.to_nodes)
-            cut_tpm =cut_tpm*(1/np.sum(cut_tpm, axis=1)) #normalize so all rows sum to 1
-            #print("from", self.cut.from_nodes, "to",self.cut.to_nodes,"cut tpm", cut_tpm)
-            d = tpm2df(cut_tpm, self.network.base, self.node_labels)
+        if not self.cut.is_null and self.network.nb:
+
+            cut_tpm = tpm_cut(self, self.cut.from_nodes, self.cut.to_nodes)
             self.tpmdf = tpm2df(cut_tpm, self.network.base, list(self.node_labels))
+
         validate.subsystem(self)
 
     @property
@@ -284,9 +293,19 @@ class Subsystem:
             cut=cut,
             mice_cache=self._mice_cache,
         )
-    def _factor(self,set_of_nodes):
+
+    def _factor(self, set_of_nodes):
         """find factor for denominator to normalize tpm based on purview"""
-        return 1 if len(self.node_indices)==len(set_of_nodes) else np.prod([self.network.base[i]  for i in set(self.network.node_indices)-set(set_of_nodes)])
+        return (
+            1
+            if len(self.node_indices) == len(set_of_nodes)
+            else np.prod(
+                [
+                    self.network.base[i]
+                    for i in set(self.network.node_indices) - set(set_of_nodes)
+                ]
+            )
+        )
 
     def indices2nodes(self, indices):
         """Return |Nodes| for these indices.
@@ -306,40 +325,40 @@ class Subsystem:
 
     def connections(self):
 
-    	inputs= [[self.node_labels[i] for i in range(self.network.cm.shape[0]) if self.network.cm[i,node]==1 ]
-    			 for node in self.node_indices ]
+        inputs = [
+            [
+                self.node_labels[i]
+                for i in range(self.network.cm.shape[0])
+                if self.network.cm[i, node] == 1
+            ]
+            for node in self.node_indices
+        ]
 
-    	return dict(zip(self.node_labels, inputs))
+        return dict(zip(self.node_labels, inputs))
 
     # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.CAUSE)
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):
-        #print(mechanism_node_index, purview)
+
         if self.network.nb:
-            #ct = Cut((1,),(0,2,))
-            #from .models.cuts import NullCut
-            #if not isinstance(self.cut, NullCut):
-            #if (mechanism_node_index == 0) and purview == frozenset({1,2}) and self.cut.from_nodes == ct.from_nodes:
-            #breakpoint()
 
             purview_nodes = [self.node_labels[p] for p in list(purview)]
-            norm = 1/self._factor(list(purview))
-            #if not mechanism_node_index:
-            #    factor=np.prod([self.network.base[i] for i in purview])
-            #    return np.array([1/factor]*int(factor)).reshape(repertoire_shape(purview, len(self.node_indices),self.network.base), order='F')
+            norm = 1 / self._factor(list(purview))
 
             mechanism_node = self.node_labels[mechanism_node_index]
 
             tpm = self.tpmdf
-            #breakpoint()
-            tpm = (tpm.groupby(purview_nodes[::-1]).sum())*norm
+
+            tpm = (tpm.groupby(purview_nodes[::-1]).sum()) * norm
 
             tpm = (tpm.transpose().groupby(list(mechanism_node)).sum()).transpose()
 
-            col=[self.state[mechanism_node_index]]
+            col = [self.state[mechanism_node_index]]
 
-
-            return np.array(tpm.loc[:, col[0]]/sum(list(tpm.loc[:, col[0]]))).reshape(repertoire_shape(purview, len(self.node_indices),self.network.base), order='F')
+            return np.array(tpm.loc[:, col[0]] / sum(list(tpm.loc[:, col[0]]))).reshape(
+                repertoire_shape(purview, len(self.node_indices), self.network.base),
+                order="F",
+            )
 
         # pylint: disable=missing-docstring
         mechanism_node = self._index2node[mechanism_node_index]
@@ -376,14 +395,17 @@ class Subsystem:
         # state of the purview; return the purview's maximum entropy
         # distribution.
         if not mechanism:
-            #breakpoint()
-            return max_entropy_distribution(purview, len(self.node_indices),self.network.base)
+            return max_entropy_distribution(
+                purview, len(self.node_indices), self.network.base
+            )
         # Use a frozenset so the arguments to `_single_node_cause_repertoire`
         # can be hashed and cached.
         purview = frozenset(purview)
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
-        joint = np.ones(repertoire_shape(purview, len(self.node_indices),self.network.base))
+        joint = np.ones(
+            repertoire_shape(purview, len(self.node_indices), self.network.base)
+        )
         # The cause repertoire is the product of the cause repertoires of the
         # individual nodes.
 
@@ -401,16 +423,35 @@ class Subsystem:
     def _single_node_effect_repertoire(self, mechanism, purview_node_index):
         if self.network.nb:
             purview_node = self.node_labels[purview_node_index]
-            factor=self._factor(list(mechanism))
-            #print("m", mechanism, "f", factor)
-            tpm=(self.tpmdf.transpose().groupby(purview_node).sum()).transpose()
-            if len(mechanism)>0:
+            factor = self._factor(list(mechanism))
+            tpm = (self.tpmdf.transpose().groupby(purview_node).sum()).transpose()
+            if len(mechanism) > 0:
                 mechanism_nodes = [self.node_labels[m] for m in list(mechanism)]
-                tpm=(tpm.groupby(mechanism_nodes).sum())*(1/factor)
-                row=[self.state[i] for i in mechanism]
-                return np.array(tpm.loc[tuple(row), :]).reshape(repertoire_shape([purview_node_index], len(self.node_indices), self.network.base)) if len(mechanism)>1  else np.array(tpm.loc[row[0], :]).reshape(repertoire_shape([purview_node_index], len(self.node_indices), self.network.base))
+                tpm = (tpm.groupby(mechanism_nodes).sum()) * (1 / factor)
+                row = [self.state[i] for i in mechanism]
+                return (
+                    np.array(tpm.loc[tuple(row), :]).reshape(
+                        repertoire_shape(
+                            [purview_node_index],
+                            len(self.node_indices),
+                            self.network.base,
+                        )
+                    )
+                    if len(mechanism) > 1
+                    else np.array(tpm.loc[row[0], :]).reshape(
+                        repertoire_shape(
+                            [purview_node_index],
+                            len(self.node_indices),
+                            self.network.base,
+                        )
+                    )
+                )
             else:
-                return np.array(tpm.sum(axis=0)/tpm.shape[0]).reshape(repertoire_shape([purview_node_index], len(self.node_indices), self.network.base))
+                return np.array(tpm.sum(axis=0) / tpm.shape[0]).reshape(
+                    repertoire_shape(
+                        [purview_node_index], len(self.node_indices), self.network.base
+                    )
+                )
 
         # pylint: disable=missing-docstring
         purview_node = self._index2node[purview_node_index]
@@ -450,7 +491,9 @@ class Subsystem:
         mechanism = frozenset(mechanism)
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
-        joint = np.ones(repertoire_shape(purview, len(self.node_indices), self.network.base))
+        joint = np.ones(
+            repertoire_shape(purview, len(self.node_indices), self.network.base)
+        )
         # The effect repertoire is the product of the effect repertoires of the
         # individual nodes.
         return joint * functools.reduce(
@@ -502,7 +545,7 @@ class Subsystem:
 
     def partitioned_repertoire(self, direction, partition):
         """Compute the repertoire of a partitioned mechanism and purview."""
-        #breakpoint()
+        # breakpoint()
         repertoires = [
             self.repertoire(direction, part.mechanism, part.purview)
             for part in partition
@@ -565,7 +608,7 @@ class Subsystem:
             Direction.CAUSE,
             self.cause_repertoire(mechanism, purview),
             self.unconstrained_cause_repertoire(purview),
-            self.network.nb
+            self.network.nb,
         )
 
     def effect_info(self, mechanism, purview):
@@ -574,7 +617,7 @@ class Subsystem:
             Direction.EFFECT,
             self.effect_repertoire(mechanism, purview),
             self.unconstrained_effect_repertoire(purview),
-            self.network.nb
+            self.network.nb,
         )
 
     def cause_effect_info(self, mechanism, purview):
@@ -674,9 +717,6 @@ class Subsystem:
             # Update MIP if it's more minimal.
             if phi < mip.phi:
                 mip = _mip(phi, partition, partitioned_repertoire)
-        #ct = cuts.Cut(('C',),('A','B',))
-        #if self.cut == ct:
-        #    print("phi", phi, "partition", partition, "m", mechanism, "p", purview,"repertoire", repertoire, "partitioned_repertoire", partitioned_repertoire)
 
         return mip
 
@@ -774,7 +814,6 @@ class Subsystem:
             max_mip = max(
                 self.find_mip(direction, mechanism, purview) for purview in purviews
             )
-        #print("mm",max_mip)
         if direction == Direction.CAUSE:
             return MaximallyIrreducibleCause(max_mip)
         elif direction == Direction.EFFECT:
@@ -800,8 +839,7 @@ class Subsystem:
 
         This is the maximum of |small_phi| taken over all possible purviews.
         """
-        #print("mic:",self.mic(mechanism))
-        #print("mie:",self.mie(mechanism))
+
         return min(self.mic(mechanism).phi, self.mie(mechanism).phi)
 
     # Big Phi methods

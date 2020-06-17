@@ -42,7 +42,7 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         partitioned_repertoire,
         node_labels=None,
         net_labels=None,
-        net_states=None
+        net_states=None,
     ):
         self._phi = phi
         self._direction = direction
@@ -61,9 +61,9 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         # Optional labels - only used to generate nice labeled reprs
         self._node_labels = node_labels
 
-        self._net_labels=net_labels
+        self._net_labels = net_labels
 
-        self._net_states=net_states
+        self._net_states = net_states
 
     @property
     def phi(self):
@@ -165,7 +165,15 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return {attr: getattr(self, attr) for attr in _ria_attributes}
 
 
-def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0,net_labels=None,net_states=None):
+def _null_ria(
+    direction,
+    mechanism,
+    purview,
+    repertoire=None,
+    phi=0.0,
+    net_labels=None,
+    net_states=None,
+):
     """The irreducibility analysis for a reducible mechanism."""
     # TODO Use properties here to infer mechanism and purview from
     # partition yet access them with .mechanism and .partition
@@ -178,7 +186,7 @@ def _null_ria(direction, mechanism, purview, repertoire=None, phi=0.0,net_labels
         partitioned_repertoire=None,
         phi=phi,
         net_labels=net_labels,
-	    net_states=net_states
+        net_states=net_states,
     )
 
 

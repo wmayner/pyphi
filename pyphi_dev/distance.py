@@ -305,7 +305,7 @@ def directional_emd(direction, d1, d2):
     return round(func(d1, d2), config.PRECISION)
 
 
-def repertoire_distance(direction, r1, r2, nb = False):
+def repertoire_distance(direction, r1, r2, nb=False):
     """Compute the distance between two repertoires for the given direction.
 
     Args:
@@ -316,14 +316,14 @@ def repertoire_distance(direction, r1, r2, nb = False):
     Returns:
         float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
     """
-    
+
     if config.MEASURE == "EMD" and not nb:
         dist = directional_emd(direction, r1, r2)
     else:
         dist = measures[config.MEASURE](r1, r2)
-        #Meaning, you only need to implement big phi as sum of small phi
-        #at the moment and for the distinctions measures all should work
-        #without trouble except for emd.
+        # Meaning, you only need to implement big phi as sum of small phi
+        # at the moment and for the distinctions measures all should work
+        # without trouble except for emd.
 
     return round(dist, config.PRECISION)
 

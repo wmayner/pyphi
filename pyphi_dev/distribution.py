@@ -104,7 +104,7 @@ def purview_size(repertoire):
     return len(purview(repertoire))
 
 
-def repertoire_shape(purview, N, base = None):  # pylint: disable=redefined-outer-name
+def repertoire_shape(purview, N, base=None):  # pylint: disable=redefined-outer-name
     """Return the shape a repertoire.
 
     Args:
@@ -152,7 +152,7 @@ def flatten(repertoire, big_endian=False):
 
 
 @cache(cache={}, maxmem=None)
-def max_entropy_distribution(node_indices, number_of_nodes,base=None):
+def max_entropy_distribution(node_indices, number_of_nodes, base=None):
     """Return the maximum entropy distribution over a set of nodes.
 
     This is different from the network's uniform distribution because nodes

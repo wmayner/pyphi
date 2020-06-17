@@ -19,7 +19,8 @@ from ..models import (
     _null_sia,
     cmp,
     fmt,
-    Tripartition, Part
+    Tripartition,
+    Part,
 )
 from ..partition import (
     directed_bipartition,
@@ -81,8 +82,14 @@ class ComputeCauseEffectStructure(MapReduce):
 
 
 @time_annotated
-def ces(subsystem,mechanisms=False,purviews=False,cause_purviews=False,
-    effect_purviews=False,parallel=False,):
+def ces(
+    subsystem,
+    mechanisms=False,
+    purviews=False,
+    cause_purviews=False,
+    effect_purviews=False,
+    parallel=False,
+):
     """Return the conceptual structure of this subsystem, optionally restricted
     to concepts with the mechanisms and purviews given in keyword arguments.
 
@@ -152,35 +159,12 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
         mechanisms = set(
             unpartitioned_ces.mechanisms + list(cut_subsystem.cut_mechanisms)
         )
-    #print("cut",cut)
-    cut_subsystem.cm = np.asarray([[1., 1., 1.],[1., 1., 1.],[1., 1., 1.]])
     partitioned_ces = ces(cut_subsystem, mechanisms)
-    ct = Cut((1,),(0,2,))
-    partition = Tripartition(
-     Part(mechanism=(), purview=()),
-     Part(mechanism=(0,), purview=(0, 2)),
-     Part(mechanism=(1,), purview=()))
-    #print("ct", ct, ct.from_nodes, "cut", cut, cut.from_nodes)
-    if cut.from_nodes == ct.from_nodes:
-        #print(cut_subsystem.evaluate_partition(Direction.CAUSE, (0,1), (0,2), partition))
-        r = cut_subsystem.cause_repertoire((0,), (1,2))
-        #print("repertoire",flatten(r))
-        r1 = cut_subsystem.cause_repertoire((1,), (1,2))
-        #print("repertoire",flatten(r1))
-        #print("cm is", cut_subsystem.cm)
-        #print('state', cut_subsystem.state)
-        #print("mechanisms", mechanisms)
-        #print(partitioned_ces)
-        import numpy
-        numpy.savetxt("tpm.csv", cut_subsystem.tpmdf.values, delimiter=',')
-        #for row in cut_subsystem.tpmdf.values:
-        #    print(row)
-    #print("cut", cut, "p_ces", partitioned_ces)#"tpm", cut_subsystem.tpmdf.values)
-    #breakpoint()
+
     log.debug("Finished evaluating %s.", cut)
 
     if uncut_subsystem.network.nb:
-        phi_ =  small_phi_ces_distance(unpartitioned_ces, partitioned_ces)
+        phi_ = small_phi_ces_distance(unpartitioned_ces, partitioned_ces)
 
     else:
         phi_ = ces_distance(unpartitioned_ces, partitioned_ces)
@@ -216,7 +200,7 @@ class ComputeSystemIrreducibility(MapReduce):
         """Check if the new SIA has smaller |big_phi| than the standing
         result.
         """
-        #print("new sia",new_sia)
+
         if new_sia.phi == 0:
             self.done = True  # Short-circuit
             return new_sia

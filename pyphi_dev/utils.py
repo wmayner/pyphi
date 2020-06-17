@@ -45,7 +45,8 @@ def all_states(n, big_endian=False):
         else:
             yield state[::-1]  # Convert to little-endian ordering
 
-def all_states_nb(n, p=None,l=None,nl=None,nb=None,big_endian=False):
+
+def all_states_nb(n, p=None, l=None, nl=None, nb=None, big_endian=False):
     """Return all binary states for a system.
 
     Args:
@@ -60,8 +61,7 @@ def all_states_nb(n, p=None,l=None,nl=None,nb=None,big_endian=False):
     if n == 0:
         return
 
-
-    if nb==None:
+    if nb == None:
         for state in product((0, 1), repeat=n):
             if big_endian:
                 yield state
@@ -70,12 +70,10 @@ def all_states_nb(n, p=None,l=None,nl=None,nb=None,big_endian=False):
 
     else:
 
-        #print("nb",nb)
-        base=all_possible_states_nb(nb,s=True)
-        #print('base:',base)
-        network_labels=nl
+        base = all_possible_states_nb(nb, s=True)
+        network_labels = nl
 
-        if base.count(base[0])==len(base):
+        if base.count(base[0]) == len(base):
             for state in product(tuple(base[0]), repeat=n):
                 if big_endian:
                     yield state
@@ -83,9 +81,9 @@ def all_states_nb(n, p=None,l=None,nl=None,nb=None,big_endian=False):
                     yield state[::-1]  # Convert to little-endian ordering
         else:
 
-            purview_labels= [l[i] for i in p]
-            purview= [network_labels.index(i) for i in purview_labels]
-            base=[base[i] for i in purview[::-1]]
+            purview_labels = [l[i] for i in p]
+            purview = [network_labels.index(i) for i in purview_labels]
+            base = [base[i] for i in purview[::-1]]
 
             for state in product(*base):
                 if big_endian:
@@ -93,13 +91,15 @@ def all_states_nb(n, p=None,l=None,nl=None,nb=None,big_endian=False):
                 else:
                     yield state[::-1]  # Convert to little-endian ordering
 
-def all_possible_states_nb(base,s=False):
-    #make a description here
-    states=[list(range(b)) for b in base[::-1]]
+
+def all_possible_states_nb(base, s=False):
+    # make a description here
+    states = [list(range(b)) for b in base[::-1]]
     if s:
         return states
 
     return list(product(*states))
+
 
 def np_immutable(a):
     """Make a NumPy array immutable."""

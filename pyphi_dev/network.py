@@ -85,20 +85,20 @@ class Network:
         return self._base
 
     @staticmethod
-    def _build_base(base,tpm): #check and convert to arrays
+    def _build_base(base, tpm):  # check and convert to arrays
         if base is not None:
             tpm = convert.to_2dimensional(np.array(tpm))
 
             validate.base(base, tpm)
 
-            if type(base)==type(1):
-                num_nodes=int(np.log(tpm.shape[0])/np.log(base))
+            if type(base) == type(1):
+                num_nodes = int(np.log(tpm.shape[0]) / np.log(base))
                 return tuple([base for i in range(num_nodes)])
 
-            elif type(base)==type(list()) or type(base)==type(tuple()):
+            elif type(base) == type(list()) or type(base) == type(tuple()):
                 return tuple([i for i in base])
         else:
-            return #binary, no base needed
+            return  # binary, no base needed
 
     @property
     def tpm(self):
@@ -114,10 +114,12 @@ class Network:
         """
         tpm = np.array(tpm)
 
-        validate.tpm(tpm, check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE, base=base)
+        validate.tpm(
+            tpm, check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE, base=base
+        )
 
         if base is not None:
-            return tpm, utils.np_hash(tpm)#we don't want a multidimensional tpm if nb
+            return tpm, utils.np_hash(tpm)  # we don't want a multidimensional tpm if nb
 
         # Convert to multidimensional state-by-node form
         if is_state_by_state(tpm):

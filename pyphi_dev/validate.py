@@ -30,17 +30,19 @@ def direction(direction, allow_bi=False):
 
     return True
 
+
 def base(base, tpm):
     tpm = convert.to_2dimensional(np.array(tpm))
-    if type(base)==type(1):
-        num_nodes=int(np.log(tpm.shape[0])/np.log(base))
-        if np.power(base, num_nodes)!= tpm.shape[0] :
-            raise NameError('Base and Tpm are incompatible')
+    if type(base) == type(1):
+        num_nodes = int(np.log(tpm.shape[0]) / np.log(base))
+        if np.power(base, num_nodes) != tpm.shape[0]:
+            raise NameError("Base and Tpm are incompatible")
 
-    elif type(base)==type(list()) or type(base)==type(tuple()):
-        if np.prod(base)!= tpm.shape[0]:
-            raise NameError('Base and Tpm are incompatible')
+    elif type(base) == type(list()) or type(base) == type(tuple()):
+        if np.prod(base) != tpm.shape[0]:
+            raise NameError("Base and Tpm are incompatible")
     return True
+
 
 def tpm(tpm, check_independence=True, base=None):
     """Validate a TPM.
@@ -60,13 +62,13 @@ def tpm(tpm, check_independence=True, base=None):
     # Get the number of nodes from the state-by-node TPM.
     N = tpm.shape[-1]
 
-    if base is not None: #check nb binary system
+    if base is not None:  # check nb binary system
         tpm = convert.to_2dimensional(tpm)
-        if tpm.shape[0]!=tpm.shape[1] or tpm.shape[0]!=np.prod(base):
+        if tpm.shape[0] != tpm.shape[1] or tpm.shape[0] != np.prod(base):
             raise ValueError(
                 "State-by-state TPM must be square,"
                 "N rows and columns = np.product(base)**2"
-                    "{}".format(tpm.shape, see_tpm_docs)
+                "{}".format(tpm.shape, see_tpm_docs)
             )
         else:
             return True
@@ -153,7 +155,7 @@ def network(n):
 
     Checks the TPM and connectivity matrix.
     """
-    base(n.base,n.tpm)
+    base(n.base, n.tpm)
     tpm(n.tpm, n.nb, n.base)
     connectivity_matrix(n.cm, n.nb)
     if n.cm.shape[0] != n.size:
@@ -174,15 +176,19 @@ def is_network(network):
         )
 
 
-def node_states(state,base=None):
+def node_states(state, base=None):
     """Check that the state contains only zeros and ones."""
     if base is not None:
-        states=[tuple(range(b)) for b in base[::-1]]
+        states = [tuple(range(b)) for b in base[::-1]]
         if not all(state[n] in states[n] for n in range(len(state))):
-                raise ValueError("Invalid state: states must consist of reachable states in the base.")
+            raise ValueError(
+                "Invalid state: states must consist of reachable states in the base."
+            )
     else:
         if not all(n in (0, 1) for n in state):
-            raise ValueError("Invalid state: states must consist of only zeros and ones.")
+            raise ValueError(
+                "Invalid state: states must consist of only zeros and ones."
+            )
 
 
 def state_length(state, size):
@@ -198,12 +204,12 @@ def state_length(state, size):
 
 def state_reachable(subsystem):
     """Return whether a state can be reached according to the network's TPM."""
-    #make a description here
+    # make a description here
     if subsystem.network.nb:
         state = subsystem.proper_state
         possible_states = all_possible_states_nb(subsystem.network.base)
         tpm = subsystem.tpmdf.values
-        if sum(tpm[:,possible_states.index(state[::-1])]) == 0:
+        if sum(tpm[:, possible_states.index(state[::-1])]) == 0:
             raise exceptions.StateUnreachableError(subsystem.state)
         return
 
@@ -232,7 +238,7 @@ def subsystem(s):
 
     Checks its state and cut.
     """
-    node_states(s.state,s.network.base)
+    node_states(s.state, s.network.base)
     cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)

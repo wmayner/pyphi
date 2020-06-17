@@ -9,7 +9,7 @@
 # concept to become a proper, irreducible concept. Assuming this can never
 # happen can increase performance significantly, however the obtained results
 # are not strictly accurate.
-ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
+ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: true
 # When determining the MIP for Φ, this restricts the set of system cuts that
 # are considered to only those that cut the inputs or outputs of a single node.
 # This restricted set of cuts scales linearly with the size of the system; the
@@ -18,14 +18,14 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 # modular, sparsely-connected, or homogeneous networks.
 CUT_ONE_APPROXIMATION: false
 # The measure to use when computing phi ("EMD", "KLD", "L1", ...)
-MEASURE: "EMD"
+MEASURE: "KLM"
 # Controls the number of parts in a partition.
-PARTITION_TYPE: "BI"
+PARTITION_TYPE: "TRI"
 # Controls how to resolve phi-ties when computing MICE.
 PICK_SMALLEST_PURVIEW: false
 # Use the difference in sum of small phi for the cause-effect structure
 # distance
-USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE: false
+USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE: true
 # The type of system cuts to use
 SYSTEM_CUTS: "3.0_STYLE"
 # In some applications of this library, you may want to allow single
