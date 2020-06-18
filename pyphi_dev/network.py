@@ -66,7 +66,7 @@ class Network:
             self._node_indices = tuple(range(len(self._base)))
         else:
             self._node_indices = tuple(range(self.size))
-        self._node_labels = NodeLabels(node_labels, self._node_indices)
+        self._node_labels = NodeLabels(node_labels, self._node_indices, self._nb)
         self.purview_cache = purview_cache or cache.PurviewCache()
         self._tpmdf = self._build_tpmdf()
 
