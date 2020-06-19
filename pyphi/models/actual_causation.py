@@ -36,7 +36,7 @@ def greater_than_zero(alpha):
     """Return ``True`` if alpha is greater than zero, accounting for
     numerical errors.
     """
-    return alpha > 0 and not utils.eq(alpha, 0)
+    return bool(alpha > 0 and not utils.eq(alpha, 0))
 
 
 class AcRepertoireIrreducibilityAnalysis(cmp.Orderable):
