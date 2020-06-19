@@ -14,7 +14,7 @@ from . import config, validate
 from .models import cmp
 from .models.cuts import Bipartition, Part
 from .models.subsystem import CauseEffectStructure
-from .utils import powerset
+from .utils import powerset, eq
 
 # TODO there should be an option to resolve ties at different levels
 
@@ -37,7 +37,8 @@ def _all_same(comparison, seq):
     return all(comparison(first, other) for other in seq)
 
 
-all_are_equal = _all_same(operator.eq)
+# Compare equality up to precision
+all_are_equal = _all_same(eq)
 all_are_identical = _all_same(operator.is_)
 
 
