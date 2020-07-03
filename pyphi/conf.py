@@ -144,6 +144,7 @@ import logging.config
 import os
 import pprint
 from copy import copy
+from pathlib import Path
 
 import joblib
 import yaml
@@ -151,6 +152,8 @@ import yaml
 from . import __about__, constants
 
 log = logging.getLogger(__name__)
+
+_VALID_LOG_LEVELS = [None, "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]
 
 
 class Option:
@@ -169,9 +172,10 @@ class Option:
         doc (str): Optional docstring for the option.
     """
 
-    def __init__(self, default, values=None, on_change=None, doc=None):
+    def __init__(self, default, values=None, type=None, on_change=None, doc=None):
         self.default = default
         self.values = values
+        self.type = type
         self.on_change = on_change
         self.doc = doc
         self.__doc__ = self._docstring()
@@ -208,8 +212,21 @@ class Option:
 
     def _validate(self, value):
         """Validate the new value."""
+        if self.type is not None and not isinstance(value, self.type):
+            raise ValueError(
+                "{} must be of type {} for {}; got {}".format(
+                    value, self.type, self.name, type(value)
+                )
+            )
         if self.values and value not in self.values:
-            raise ValueError("{} is not a valid value for {}".format(value, self.name))
+            raise ValueError(
+                "{} ({}) is not a valid value for {}; must be one of:\n    {}".format(
+                    value,
+                    type(value),
+                    self.name,
+                    "\n    ".join(["{} ({})".format(v, type(v)) for v in self.values]),
+                )
+            )
 
     def _callback(self, obj):
         """Trigger any callbacks."""
@@ -363,6 +380,7 @@ class PyphiConfig(Config):
 
     ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(
         False,
+        type=bool,
         doc="""
     In certain cases, making a cut can actually cause a previously reducible
     concept to become a proper, irreducible concept. Assuming this can never
@@ -372,6 +390,7 @@ class PyphiConfig(Config):
 
     CUT_ONE_APPROXIMATION = Option(
         False,
+        type=bool,
         doc="""
     When determining the MIP for |big_phi|, this restricts the set of system
     cuts that are considered to only those that cut the inputs or outputs of a
@@ -420,6 +439,7 @@ class PyphiConfig(Config):
 
     PARALLEL_CONCEPT_EVALUATION = Option(
         False,
+        type=bool,
         doc="""
     Controls whether concepts are evaluated in parallel when computing
     cause-effect structures.""",
@@ -427,6 +447,7 @@ class PyphiConfig(Config):
 
     PARALLEL_CUT_EVALUATION = Option(
         True,
+        type=bool,
         doc="""
     Controls whether system cuts are evaluated in parallel, which is faster but
     requires more memory. If cuts are evaluated sequentially, only two
@@ -435,6 +456,7 @@ class PyphiConfig(Config):
 
     PARALLEL_COMPLEX_EVALUATION = Option(
         False,
+        type=bool,
         doc="""
     Controls whether systems are evaluated in parallel when computing
     complexes.""",
@@ -442,6 +464,7 @@ class PyphiConfig(Config):
 
     NUMBER_OF_CORES = Option(
         -1,
+        type=int,
         doc="""
     Controls the number of CPU cores used to evaluate unidirectional cuts.
     Negative numbers count backwards from the total number of available cores,
@@ -450,6 +473,7 @@ class PyphiConfig(Config):
 
     MAXIMUM_CACHE_MEMORY_PERCENTAGE = Option(
         50,
+        type=int,
         doc="""
     PyPhi employs several in-memory caches to speed up computation. However,
     these can quickly use a lot of memory for large networks or large numbers
@@ -459,6 +483,7 @@ class PyphiConfig(Config):
 
     CACHE_SIAS = Option(
         False,
+        type=bool,
         doc="""
     PyPhi is equipped with a transparent caching system for
     |SystemIrreducibilityAnalysis| objects which stores them as they are
@@ -471,6 +496,7 @@ class PyphiConfig(Config):
 
     CACHE_REPERTOIRES = Option(
         True,
+        type=bool,
         doc="""
     PyPhi caches cause and effect repertoires. This greatly improves speed, but
     can consume a significant amount of memory. If you are experiencing memory
@@ -479,6 +505,7 @@ class PyphiConfig(Config):
 
     CACHE_POTENTIAL_PURVIEWS = Option(
         True,
+        type=bool,
         doc="""
     Controls whether the potential purviews of mechanisms of a network are
     cached. Caching speeds up computations by not recomputing expensive
@@ -487,6 +514,7 @@ class PyphiConfig(Config):
 
     CLEAR_SUBSYSTEM_CACHES_AFTER_COMPUTING_SIA = Option(
         False,
+        type=bool,
         doc="""
     Controls whether a |Subsystem|'s repertoire and MICE caches are cleared
     with |Subsystem.clear_caches()| after computing the
@@ -497,6 +525,7 @@ class PyphiConfig(Config):
 
     CACHING_BACKEND = Option(
         "fs",
+        values=["fs", "db"],
         doc="""
     Controls whether precomputed results are stored and read from a local
     filesystem-based cache in the current directory or from a database. Set
@@ -505,6 +534,7 @@ class PyphiConfig(Config):
 
     FS_CACHE_VERBOSITY = Option(
         0,
+        type=int,
         on_change=configure_joblib,
         doc="""
     Controls how much caching information is printed if the filesystem cache is
@@ -513,6 +543,7 @@ class PyphiConfig(Config):
 
     FS_CACHE_DIRECTORY = Option(
         "__pyphi_cache__",
+        type=(str, Path),
         on_change=configure_joblib,
         doc="""
     If the filesystem is used for caching, the cache will be stored in this
@@ -528,6 +559,7 @@ class PyphiConfig(Config):
             "database_name": "pyphi",
             "collection_name": "cache",
         },
+        type=dict,
         doc="""
     Set the configuration for the MongoDB database backend (only has an
     effect if ``CACHING_BACKEND`` is ``'db'``).""",
@@ -535,12 +567,14 @@ class PyphiConfig(Config):
 
     REDIS_CACHE = Option(
         False,
+        type=bool,
         doc="""
     Specifies whether to use Redis to cache |MICE|.""",
     )
 
     REDIS_CONFIG = Option(
         {"host": "localhost", "port": 6379, "db": 0, "test_db": 1,},
+        type=dict,
         doc="""
     Configure the Redis database backend. These are the defaults in the
     provided ``redis.conf`` file.""",
@@ -548,6 +582,7 @@ class PyphiConfig(Config):
 
     WELCOME_OFF = Option(
         False,
+        type=bool,
         doc="""
     Specifies whether to suppress the welcome message when PyPhi is imported.
 
@@ -564,6 +599,7 @@ class PyphiConfig(Config):
 
     LOG_FILE = Option(
         "pyphi.log",
+        type=(str, Path),
         on_change=configure_logging,
         doc="""
     Controls the name of the log file.""",
@@ -571,6 +607,7 @@ class PyphiConfig(Config):
 
     LOG_FILE_LEVEL = Option(
         "INFO",
+        values=_VALID_LOG_LEVELS,
         on_change=configure_logging,
         doc="""
     Controls the level of log messages written to the log
@@ -580,6 +617,7 @@ class PyphiConfig(Config):
 
     LOG_STDOUT_LEVEL = Option(
         "WARNING",
+        values=_VALID_LOG_LEVELS,
         on_change=configure_logging,
         doc="""
     Controls the level of log messages written to standard
@@ -592,6 +630,7 @@ class PyphiConfig(Config):
 
     PROGRESS_BARS = Option(
         True,
+        type=bool,
         doc="""
     Controls whether to show progress bars on the console.
 
@@ -602,6 +641,7 @@ class PyphiConfig(Config):
 
     PRECISION = Option(
         6,
+        type=int,
         on_change=configure_precision,
         doc="""
     If ``MEASURE`` is ``EMD``, then the Earth Mover's Distance is calculated
@@ -616,6 +656,7 @@ class PyphiConfig(Config):
 
     VALIDATE_SUBSYSTEM_STATES = Option(
         True,
+        type=bool,
         doc="""
     Controls whether PyPhi checks if the subsystems's state is possible
     (reachable with nonzero probability from some previous state), given the
@@ -627,6 +668,7 @@ class PyphiConfig(Config):
 
     VALIDATE_CONDITIONAL_INDEPENDENCE = Option(
         True,
+        type=bool,
         doc="""
     Controls whether PyPhi checks if a system's TPM is conditionally
     independent.""",
@@ -634,6 +676,7 @@ class PyphiConfig(Config):
 
     SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI = Option(
         False,
+        type=bool,
         doc="""
     If set to ``True``, the |big_phi| value of single micro-node subsystems is
     the difference between their unpartitioned |CauseEffectStructure| (a single
@@ -644,6 +687,7 @@ class PyphiConfig(Config):
 
     REPR_VERBOSITY = Option(
         2,
+        type=int,
         values=[0, 1, 2],
         doc="""
     Controls the verbosity of ``__repr__`` methods on PyPhi objects. Can be set
@@ -661,6 +705,7 @@ class PyphiConfig(Config):
 
     PRINT_FRACTIONS = Option(
         True,
+        type=bool,
         doc="""
     Controls whether numbers in a ``repr`` are printed as fractions. Numbers
     are still printed as decimals if the fraction's denominator would be
@@ -734,6 +779,7 @@ class PyphiConfig(Config):
 
     PICK_SMALLEST_PURVIEW = Option(
         False,
+        type=bool,
         doc="""
     When computing a |MIC| or |MIE|, it is possible for several MIPs to have
     the same |small_phi| value. If this setting is set to ``True`` the MIP with
@@ -743,6 +789,7 @@ class PyphiConfig(Config):
 
     USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE = Option(
         False,
+        type=bool,
         doc="""
     If set to ``True``, the distance between cause-effect structures (when
     computing a |SystemIrreducibilityAnalysis|) is calculated using the
