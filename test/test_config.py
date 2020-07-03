@@ -192,6 +192,8 @@ def test_reconfigure_joblib_on_change(capsys):
     [
         ("SYSTEM_CUTS", ["3.0_STYLE", "CONCEPT_STYLE"], ["OTHER"]),
         ("REPR_VERBOSITY", [0, 1, 2], [-1, 3]),
+        ("PARALLEL_CUT_EVALUATION", [True, False], ['True', 'False', 'no', 0, 1]),
+        ("LOG_FILE", ['filename', Path('filename')], [0, 1]),
     ],
 )
 def test_config_validation(name, valid, invalid):
