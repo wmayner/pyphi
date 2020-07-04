@@ -362,6 +362,7 @@ def separate_ces(ces):
 
 
 # TODO add order kwarg to restrict to just a certain order
+# TODO: change to candidate_relations?
 def all_relations(subsystem, ces):
     """Return all relations, even those with zero phi."""
     # Relations can be over any combination of causes/effects in the CES, so we
