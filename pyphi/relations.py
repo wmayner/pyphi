@@ -369,7 +369,10 @@ def all_relations(subsystem, ces):
     ces = separate_ces(ces)
     # Compute all relations
     return map(
-        relation, (Relata(subsystem, subset) for subset in powerset(ces, nonempty=True))
+        relation, (Relata(subsystem, subset) for subset in filter(
+            lambda purviews: len(purviews) > 1,
+            powerset(ces, nonempty=True))
+        )
     )
 
 
