@@ -6,6 +6,7 @@ _Next version_
 --------------
 
 ### API additions
+- Added the `pyphi.vizualize` module
 - Added `pyphi.tpm.is_deterministic()`
 
 ### API changes
