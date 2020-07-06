@@ -92,7 +92,14 @@ def plot_relations(
     relations,
     max_order=3,
     cause_effect_offset=(0.5, 0, 0),
-    vertex_size_range=(10, 30),
+    vertex_size_range=(10,20),
+    plot_dimentions=(800,1200),
+    mechanism_labels_size=10,
+    purview_labels_size=7.5,    
+    mesh_opacity=0.2,
+    show_mechanism_labels=True,
+    show_purview_labels=True,    
+    show_mesh=True,
 ):
     # Select only relations <= max_order
     relations = list(filter(lambda r: len(r.relata) <= max_order, relations))
@@ -130,25 +137,57 @@ def plot_relations(
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Extract vertex indices for plotly
     x, y, z = coords[:, 0], coords[:, 1], coords[:, 2]
+
     # Get mechanism and purview labels
-    mechanism_labels = list(map(label_mechanism, separated_ces))
+    mechanism_labels = list(map(label_mechanism, ces))
+    mechanism_labels_x2 = list(map(label_mechanism, separated_ces))    
     purview_labels = list(map(label_purview, separated_ces))
-    # Make the labels
-    labels = go.Scatter3d(
-        x=x, y=y, z=z, mode="text", text=purview_labels, name="Labels", showlegend=True,
+    
+    # Make mechanism labels
+    xm, ym, zm = [c + cause_effect_offset[0]/2 for c in x[::2]], y[::2], z[::2]
+    mech_labels = go.Scatter3d(
+        x=xm,
+        y=ym,
+        z=zm,
+        visible=show_mechanism_labels,
+        mode="text",
+        text=mechanism_labels,
+        name="Mechanism Labels",
+        showlegend=True,
+        textfont=dict(size=mechanism_labels_size,color='black'),
+        hoverinfo='skip',            
     )
-    figure_data.append(labels)
-    # Compute size and color
-    size = vertex_sizes(vertex_size_range[0], vertex_size_range[1], ces)
+    figure_data.append(mech_labels)    
+
+    # Make purview labels
     color = list(flatten([("red", "green")] * len(ces)))
+    purv_labels = go.Scatter3d(
+        visible=show_purview_labels,
+        x=x,
+        y=y,
+        z=z,
+        mode="text", 
+        text=purview_labels, 
+        name="Purview Labels", 
+        showlegend=True, 
+        textfont=dict(size=purview_labels_size,color=color),
+        hoverinfo='skip',                    
+    )
+    figure_data.append(purv_labels)
+    # Compute size and color
+    size = list(flatten(vertex_sizes(vertex_size_range[0], vertex_size_range[1], ces)))
     vertices = go.Scatter3d(
         x=x,
         y=y,
         z=z,
         mode="markers",
         name="Purviews",
+        text=purview_labels,         
         showlegend=True,
         marker=dict(size=size, color=color),
+        hoverinfo="text",
+        hovertext=purview_labels,
+        hoverlabel=dict(bgcolor=color),        
     )
     figure_data.append(vertices)
 
@@ -188,6 +227,7 @@ def plot_relations(
         # Extract triangle indices
         i, j, k = zip(*triangles)
         mesh = go.Mesh3d(
+            visible=show_mesh,
             # x, y, and z are the coordinates of vertices
             x=x,
             y=y,
@@ -198,11 +238,12 @@ def plot_relations(
             k=k,
             # Intensity of each vertex, which will be interpolated and color-coded
             intensity=np.linspace(0, 1, len(x), endpoint=True),
-            opacity=0.2,
+            opacity=mesh_opacity,
             colorscale="viridis",
             showscale=False,
             name="3-Relations",
             showlegend=True,
+            hoverinfo='skip',               
         )
         figure_data.append(mesh)
 
@@ -226,6 +267,8 @@ def plot_relations(
         hovermode="closest",
         title="",
         autosize=True,
+        height=plot_dimentions[0],
+        width=plot_dimentions[1]   
     )
     # Merge figures
     return go.Figure(data=figure_data, layout=layout)
