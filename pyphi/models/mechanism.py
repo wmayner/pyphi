@@ -379,6 +379,8 @@ class Concept(cmp.Orderable):
         self.time = time
         self.subsystem = subsystem
         self.node_labels = subsystem.node_labels
+        self.cause.node_labels = subsystem.node_labels
+        self.effect.node_labels = subsystem.node_labels
 
     def __repr__(self):
         return fmt.make_repr(self, _concept_attributes)
