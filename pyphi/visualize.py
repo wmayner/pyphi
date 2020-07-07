@@ -78,6 +78,14 @@ def label_purview(mice):
     return make_label(mice.purview, node_labels=mice.node_labels)
 
 
+def hovertext_mechanism(distinction):
+    return f"Distinction: {label_mechanism(distinction.cause)}<br>Cause: {label_purview(distinction.cause)}<br>Cause φ = {distinction.cause.phi}<br>Cause state: {[rel.maximal_state(distinction.cause)[0][i] for i in distinction.cause.purview]}<br>Effect: {label_purview(distinction.effect)}<br>Effect φ = {distinction.effect.phi}<br>Effect state: {[rel.maximal_state(distinction.effect)[0][i] for i in distinction.effect.purview]}"
+
+
+def hovertext_purview(mice):
+    return f"Distinction: {label_mechanism(mice)}<br>Direction: {mice.direction.name}<br>Purview: {label_purview(mice)}<br>φ = {mice.phi}<br>State: {[rel.maximal_state(mice)[0][i] for i in mice.purview]}"
+
+
 def vertex_sizes(min_size, max_size, ces):
     phis = np.array(
         [(distinction.cause.phi, distinction.effect.phi) for distinction in ces]
@@ -92,14 +100,15 @@ def plot_relations(
     relations,
     max_order=3,
     cause_effect_offset=(0.5, 0, 0),
-    vertex_size_range=(10,20),
-    plot_dimentions=(800,1200),
+    vertex_size_range=(10, 20),
+    plot_dimentions=(800, 1200),
     mechanism_labels_size=10,
-    purview_labels_size=7.5,    
+    purview_labels_size=7.5,
     mesh_opacity=0.2,
     show_mechanism_labels=True,
-    show_purview_labels=True,    
+    show_purview_labels=True,
     show_mesh=True,
+    title="",
 ):
     # Select only relations <= max_order
     relations = list(filter(lambda r: len(r.relata) <= max_order, relations))
@@ -140,11 +149,15 @@ def plot_relations(
 
     # Get mechanism and purview labels
     mechanism_labels = list(map(label_mechanism, ces))
-    mechanism_labels_x2 = list(map(label_mechanism, separated_ces))    
+    mechanism_labels_x2 = list(map(label_mechanism, separated_ces))
     purview_labels = list(map(label_purview, separated_ces))
-    
+
+    mechanism_hovertext = list(map(hovertext_mechanism, ces))
+    vertices_hovertext = list(map(hovertext_purview, separated_ces))
+
     # Make mechanism labels
-    xm, ym, zm = [c + cause_effect_offset[0]/2 for c in x[::2]], y[::2], z[::2]
+    xm, ym, zm = [c + cause_effect_offset[0]
+                  / 2 for c in x[::2]], y[::2], z[::2]
     mech_labels = go.Scatter3d(
         x=xm,
         y=ym,
@@ -154,10 +167,12 @@ def plot_relations(
         text=mechanism_labels,
         name="Mechanism Labels",
         showlegend=True,
-        textfont=dict(size=mechanism_labels_size,color='black'),
-        hoverinfo='skip',            
+        textfont=dict(size=mechanism_labels_size, color="black"),
+        hoverinfo="text",
+        hovertext=mechanism_hovertext,
+        hoverlabel=dict(bgcolor="white"),
     )
-    figure_data.append(mech_labels)    
+    figure_data.append(mech_labels)
 
     # Make purview labels
     color = list(flatten([("red", "green")] * len(ces)))
@@ -166,28 +181,31 @@ def plot_relations(
         x=x,
         y=y,
         z=z,
-        mode="text", 
-        text=purview_labels, 
-        name="Purview Labels", 
-        showlegend=True, 
-        textfont=dict(size=purview_labels_size,color=color),
-        hoverinfo='skip',                    
+        mode="text",
+        text=purview_labels,
+        name="Purview Labels",
+        showlegend=True,
+        textfont=dict(size=purview_labels_size, color=color),
+        hoverinfo="skip",
     )
     figure_data.append(purv_labels)
     # Compute size and color
-    size = list(flatten(vertex_sizes(vertex_size_range[0], vertex_size_range[1], ces)))
+    size = list(flatten(vertex_sizes(
+        vertex_size_range[0], vertex_size_range[1], ces)))
+    purview_phis = [purview.phi for purview in separated_ces]
+    direction_labels = list(flatten([["Cause", "Effect"] for c in ces]))
     vertices = go.Scatter3d(
         x=x,
         y=y,
         z=z,
         mode="markers",
         name="Purviews",
-        text=purview_labels,         
+        text=purview_labels,
         showlegend=True,
         marker=dict(size=size, color=color),
         hoverinfo="text",
-        hovertext=purview_labels,
-        hoverlabel=dict(bgcolor=color),        
+        hovertext=vertices_hovertext,
+        hoverlabel=dict(bgcolor=color),
     )
     figure_data.append(vertices)
 
@@ -208,11 +226,13 @@ def plot_relations(
                 x=x[edges],
                 y=y[edges],
                 z=z[edges],
-                line_group=flatten(zip(range(len(edges) // 2), range(len(edges) // 2))),
+                line_group=flatten(
+                    zip(range(len(edges) // 2), range(len(edges) // 2))),
             )
         )
         # Plot edges
-        edge_figure = px.line_3d(edges, x="x", y="y", z="z", line_group="line_group")
+        edge_figure = px.line_3d(
+            edges, x="x", y="y", z="z", line_group="line_group")
         figure_data.extend(edge_figure.data)
 
     # 3-relations
@@ -243,7 +263,7 @@ def plot_relations(
             showscale=False,
             name="3-Relations",
             showlegend=True,
-            hoverinfo='skip',               
+            hoverinfo="skip",
         )
         figure_data.append(mesh)
 
@@ -265,10 +285,11 @@ def plot_relations(
         showlegend=True,
         scene=dict(xaxis=dict(axis), yaxis=dict(axis), zaxis=dict(axis)),
         hovermode="closest",
-        title="",
+        title=title,
+        legend=dict(title=dict(text="Trace legend (click trace to show/hide):",font=dict(color='black',size=15))),
         autosize=True,
         height=plot_dimentions[0],
-        width=plot_dimentions[1]   
+        width=plot_dimentions[1]
     )
     # Merge figures
     return go.Figure(data=figure_data, layout=layout)
