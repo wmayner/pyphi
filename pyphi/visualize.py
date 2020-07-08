@@ -156,8 +156,7 @@ def plot_relations(
     vertices_hovertext = list(map(hovertext_purview, separated_ces))
 
     # Make mechanism labels
-    xm, ym, zm = [c + cause_effect_offset[0]
-                  / 2 for c in x[::2]], y[::2], z[::2]
+    xm, ym, zm = [c + cause_effect_offset[0] / 2 for c in x[::2]], y[::2], z[::2]
     mech_labels = go.Scatter3d(
         x=xm,
         y=ym,
@@ -190,8 +189,7 @@ def plot_relations(
     )
     figure_data.append(purv_labels)
     # Compute size and color
-    size = list(flatten(vertex_sizes(
-        vertex_size_range[0], vertex_size_range[1], ces)))
+    size = list(flatten(vertex_sizes(vertex_size_range[0], vertex_size_range[1], ces)))
     purview_phis = [purview.phi for purview in separated_ces]
     direction_labels = list(flatten([["Cause", "Effect"] for c in ces]))
     vertices = go.Scatter3d(
@@ -226,13 +224,11 @@ def plot_relations(
                 x=x[edges],
                 y=y[edges],
                 z=z[edges],
-                line_group=flatten(
-                    zip(range(len(edges) // 2), range(len(edges) // 2))),
+                line_group=flatten(zip(range(len(edges) // 2), range(len(edges) // 2))),
             )
         )
         # Plot edges
-        edge_figure = px.line_3d(
-            edges, x="x", y="y", z="z", line_group="line_group")
+        edge_figure = px.line_3d(edges, x="x", y="y", z="z", line_group="line_group")
         figure_data.extend(edge_figure.data)
 
     # 3-relations
@@ -286,10 +282,15 @@ def plot_relations(
         scene=dict(xaxis=dict(axis), yaxis=dict(axis), zaxis=dict(axis)),
         hovermode="closest",
         title=title,
-        legend=dict(title=dict(text="Trace legend (click trace to show/hide):",font=dict(color='black',size=15))),
+        legend=dict(
+            title=dict(
+                text="Trace legend (click trace to show/hide):",
+                font=dict(color="black", size=15),
+            )
+        ),
         autosize=True,
         height=plot_dimentions[0],
-        width=plot_dimentions[1]
+        width=plot_dimentions[1],
     )
     # Merge figures
     return go.Figure(data=figure_data, layout=layout)
