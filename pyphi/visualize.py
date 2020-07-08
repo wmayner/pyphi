@@ -228,8 +228,18 @@ def plot_relations(
             )
         )
         # Plot edges
-        edge_figure = px.line_3d(edges, x="x", y="y", z="z", line_group="line_group")
-        figure_data.extend(edge_figure.data)
+        edges_trace = go.Scatter3d(
+            x=edges["x"],
+            y=edges["y"],
+            z=edges["z"],
+            mode="lines",
+            name="2-Relations",
+            line_width=0.5,
+            line_color="blue",
+            showlegend=True,
+            hoverinfo="skip",
+        )
+        figure_data.append(edges_trace)
 
     # 3-relations
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
