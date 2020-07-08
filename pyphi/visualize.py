@@ -157,7 +157,7 @@ def plot_relations(
 
     # Make mechanism labels
     xm, ym, zm = [c + cause_effect_offset[0] / 2 for c in x[::2]], y[::2], z[::2]
-    mech_labels = go.Scatter3d(
+    mechanism_labels_trace = go.Scatter3d(
         x=xm,
         y=ym,
         z=zm,
@@ -171,11 +171,11 @@ def plot_relations(
         hovertext=mechanism_hovertext,
         hoverlabel=dict(bgcolor="white"),
     )
-    fig.add_trace(mech_labels)
+    fig.add_trace(mechanism_labels_trace)
 
     # Make purview labels
     color = list(flatten([("red", "green")] * len(ces)))
-    purv_labels = go.Scatter3d(
+    purview_labels_trace = go.Scatter3d(
         visible=show_purview_labels,
         x=x,
         y=y,
@@ -187,13 +187,13 @@ def plot_relations(
         textfont=dict(size=purview_labels_size, color=color),
         hoverinfo="skip",
     )
-    fig.add_trace(purv_labels)
+    fig.add_trace(purview_labels_trace)
 
     # Compute size and color
     size = list(flatten(vertex_sizes(vertex_size_range[0], vertex_size_range[1], ces)))
     purview_phis = [purview.phi for purview in separated_ces]
     direction_labels = list(flatten([["Cause", "Effect"] for c in ces]))
-    vertices = go.Scatter3d(
+    vertices_purviews_trace = go.Scatter3d(
         x=x,
         y=y,
         z=z,
@@ -206,7 +206,7 @@ def plot_relations(
         hovertext=vertices_hovertext,
         hoverlabel=dict(bgcolor=color),
     )
-    fig.add_trace(vertices)
+    fig.add_trace(vertices_purviews_trace)
 
     # 2-relations
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -229,7 +229,7 @@ def plot_relations(
             )
         )
         # Plot edges
-        edges_trace = go.Scatter3d(
+        edges_2relations_trace = go.Scatter3d(
             x=edges["x"],
             y=edges["y"],
             z=edges["z"],
@@ -240,7 +240,7 @@ def plot_relations(
             showlegend=True,
             hoverinfo="skip",
         )
-        fig.add_trace(edges_trace)
+        fig.add_trace(edges_2relations_trace)
 
     # 3-relations
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -253,7 +253,7 @@ def plot_relations(
     if triangles:
         # Extract triangle indices
         i, j, k = zip(*triangles)
-        mesh = go.Mesh3d(
+        triangles_3relations_trace = go.Mesh3d(
             visible=show_mesh,
             # x, y, and z are the coordinates of vertices
             x=x,
@@ -272,7 +272,7 @@ def plot_relations(
             showlegend=True,
             hoverinfo="skip",
         )
-        fig.add_trace(mesh)
+        fig.add_trace(triangles_3relations_trace)
 
     # Create figure
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
