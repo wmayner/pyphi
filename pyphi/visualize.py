@@ -276,23 +276,27 @@ def plot_relations(
 
     # Create figure
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    axis = dict(
-        showbackground=True,
-        showline=True,
-        zeroline=True,
-        showgrid=True,
-        gridcolor="lightgray",
-        showticklabels=False,
-        title="",
-        showspikes=True,
-        autorange=True,
-        backgroundcolor="white",
-    )
+    axes = [
+            dict(
+            showbackground=True,
+            showline=True,
+            zeroline=True,
+            showgrid=True,
+            gridcolor="lightgray",
+            showticklabels=False,
+            title=f"UMAP {dimension}",
+            showspikes=True,
+            autorange=True,
+            backgroundcolor="white",
+            ) 
+        for dimension in range(1,4)
+        ]
+
     layout = go.Layout(
         showlegend=True,
-        scene_xaxis=axis,
-        scene_yaxis=axis, 
-        scene_zaxis=axis,        
+        scene_xaxis=axes[0],
+        scene_yaxis=axes[1], 
+        scene_zaxis=axes[2],
         hovermode="closest",
         title=title,
         legend=dict(
@@ -307,5 +311,5 @@ def plot_relations(
     )
     # Apply layout
     fig.layout = layout
-
+    
     return fig
