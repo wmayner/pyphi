@@ -115,8 +115,8 @@ def plot_relations(
     # Separate CES into causes and effects
     separated_ces = rel.separate_ces(ces)
 
-    # Initialize figure data
-    figure_data = []
+    # Initialize figure
+    fig = go.Figure()
 
     # Dimensionality reduction
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -171,7 +171,7 @@ def plot_relations(
         hovertext=mechanism_hovertext,
         hoverlabel=dict(bgcolor="white"),
     )
-    figure_data.append(mech_labels)
+    fig.add_trace(mech_labels)
 
     # Make purview labels
     color = list(flatten([("red", "green")] * len(ces)))
@@ -187,7 +187,8 @@ def plot_relations(
         textfont=dict(size=purview_labels_size, color=color),
         hoverinfo="skip",
     )
-    figure_data.append(purv_labels)
+    fig.add_trace(purv_labels)
+
     # Compute size and color
     size = list(flatten(vertex_sizes(vertex_size_range[0], vertex_size_range[1], ces)))
     purview_phis = [purview.phi for purview in separated_ces]
@@ -205,7 +206,7 @@ def plot_relations(
         hovertext=vertices_hovertext,
         hoverlabel=dict(bgcolor=color),
     )
-    figure_data.append(vertices)
+    fig.add_trace(vertices)
 
     # 2-relations
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -239,7 +240,7 @@ def plot_relations(
             showlegend=True,
             hoverinfo="skip",
         )
-        figure_data.append(edges_trace)
+        fig.add_trace(edges_trace)
 
     # 3-relations
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -271,7 +272,7 @@ def plot_relations(
             showlegend=True,
             hoverinfo="skip",
         )
-        figure_data.append(mesh)
+        fig.add_trace(mesh)
 
     # Create figure
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -302,5 +303,7 @@ def plot_relations(
         height=plot_dimentions[0],
         width=plot_dimentions[1],
     )
-    # Merge figures
-    return go.Figure(data=figure_data, layout=layout)
+    # Apply layout
+    fig.layout = layout
+
+    return fig
