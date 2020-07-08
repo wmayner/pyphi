@@ -290,7 +290,9 @@ def plot_relations(
     )
     layout = go.Layout(
         showlegend=True,
-        scene=dict(xaxis=dict(axis), yaxis=dict(axis), zaxis=dict(axis)),
+        scene_xaxis=axis,
+        scene_yaxis=axis, 
+        scene_zaxis=axis,        
         hovermode="closest",
         title=title,
         legend=dict(
