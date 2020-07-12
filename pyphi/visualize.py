@@ -95,6 +95,12 @@ def vertex_sizes(min_size, max_size, elements):
     return min_size + (((phis - min_phi) * (max_size - min_size)) / (max_phi - min_phi))  
 
 
+def chunk_list(my_list, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(my_list), n):
+        yield my_list[i:i + n]        
+
+
 def plot_relations(
     ces,
     relations,
