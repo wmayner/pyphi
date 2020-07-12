@@ -169,25 +169,44 @@ def plot_relations(
 
     # Make mechanism labels
     xm, ym, zm = [c + cause_effect_offset[0] / 2 for c in x[::2]], y[::2], z[::2]
-    mechanism_labels_trace = go.Scatter3d(
+    labels_mechanisms_trace = go.Scatter3d(
+        visible=show_mechanism_labels,
         x=xm,
         y=ym,
         z=zm,
-        visible=show_mechanism_labels,
         mode="text",
         text=mechanism_labels,
         name="Mechanism Labels",
         showlegend=True,
         textfont=dict(size=mechanism_labels_size, color="black"),
+        hoverinfo="skip",
+    )
+    fig.add_trace(labels_mechanisms_trace)
+
+    # Compute purview and mechanism marker sizes
+    purview_sizes = vertex_sizes(vertex_size_range[0], vertex_size_range[1], separated_ces)    
+    mechanism_sizes = [min(phis) for phis in chunk_list(purview_sizes, 2)]
+
+    # Make mechanisms trace
+    vertices_mechanisms_trace = go.Scatter3d(
+        visible=show_vertices_mechanisms,
+        x=xm,
+        y=ym,
+        z=zm,
+        mode="markers",
+        name="Mechanisms",
+        text=mechanism_labels,
+        showlegend=True,
+        marker=dict(size=mechanism_sizes, color='black'),
         hoverinfo="text",
         hovertext=mechanism_hovertext,
         hoverlabel=dict(bgcolor="white"),
     )
-    fig.add_trace(mechanism_labels_trace)
+    fig.add_trace(vertices_mechanisms_trace)
 
-    # Make purview labels
+    # Make purview labels trace
     color = list(flatten([("red", "green")] * len(ces)))
-    purview_labels_trace = go.Scatter3d(
+    labels_purviews_trace = go.Scatter3d(
         visible=show_purview_labels,
         x=x,
         y=y,
@@ -199,13 +218,13 @@ def plot_relations(
         textfont=dict(size=purview_labels_size, color=color),
         hoverinfo="skip",
     )
-    fig.add_trace(purview_labels_trace)
+    fig.add_trace(labels_purviews_trace)
 
-    # Compute size and color
-    purview_sizes = vertex_sizes(vertex_size_range[0], vertex_size_range[1], separated_ces)    
+    # Make purviews trace
     purview_phis = [purview.phi for purview in separated_ces]
     direction_labels = list(flatten([["Cause", "Effect"] for c in ces]))
     vertices_purviews_trace = go.Scatter3d(
+        visible=show_vertices_purviews,
         x=x,
         y=y,
         z=z,
