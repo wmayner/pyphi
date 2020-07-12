@@ -321,18 +321,18 @@ def plot_relations(
             list(chunk_list(list(edges["z"]), 2)),
         ]
 
-        for n, relation in enumerate(two_relations):
-            if n == 0:
+        for r, relation in enumerate(two_relations):
+            if r == 0:
                 edge_2relation_trace = go.Scatter3d(
                     legendgroup="2-Relations",
                     showlegend=True,
-                    x=two_relations_coords[0][n],
-                    y=two_relations_coords[1][n],
-                    z=two_relations_coords[2][n],
+                    x=two_relations_coords[0][r],
+                    y=two_relations_coords[1][r],
+                    z=two_relations_coords[2][r],
                     mode="lines",
                     # name=label_relation(relation),
                     name="2-Relations",
-                    line_width=two_relations_sizes[n],
+                    line_width=two_relations_sizes[r],
                     line_color="blue",
                     hoverinfo="text",
                     hovertext=hovertext_relation(relation),
@@ -342,13 +342,13 @@ def plot_relations(
                 edge_2relation_trace = go.Scatter3d(
                     legendgroup="2-Relations",
                     showlegend=False,
-                    x=two_relations_coords[0][n],
-                    y=two_relations_coords[1][n],
-                    z=two_relations_coords[2][n],
+                    x=two_relations_coords[0][r],
+                    y=two_relations_coords[1][r],
+                    z=two_relations_coords[2][r],
                     mode="lines",
                     # name=label_relation(relation),
                     name="2-Relations",
-                    line_width=two_relations_sizes[n],
+                    line_width=two_relations_sizes[r],
                     line_color="blue",
                     hoverinfo="text",
                     hovertext=hovertext_relation(relation),
@@ -372,9 +372,9 @@ def plot_relations(
         )
         # Extract triangle indices
         i, j, k = zip(*triangles)
-        for n, triangle in enumerate(triangles):
-            relation = three_relations[n]
-            if n == 0:
+        for r, triangle in enumerate(triangles):
+            relation = three_relations[r]
+            if r == 0:
                 triangle_3relation_trace = go.Mesh3d(
                     visible=show_mesh,
                     legendgroup="3-Relations",
@@ -384,12 +384,12 @@ def plot_relations(
                     y=y,
                     z=z,
                     # i, j, and k are the vertices of triangles
-                    i=[i[n]],
-                    j=[j[n]],
-                    k=[k[n]],
+                    i=[i[r]],
+                    j=[j[r]],
+                    k=[k[r]],
                     # Intensity of each vertex, which will be interpolated and color-coded
                     intensity=np.linspace(0, 1, len(x), endpoint=True),
-                    opacity=three_relations_sizes[n],
+                    opacity=three_relations_sizes[r],
                     colorscale="viridis",
                     showscale=False,
                     name="3-Relations",
@@ -407,12 +407,12 @@ def plot_relations(
                     y=y,
                     z=z,
                     # i, j, and k are the vertices of triangles
-                    i=[i[n]],
-                    j=[j[n]],
-                    k=[k[n]],
+                    i=[i[r]],
+                    j=[j[r]],
+                    k=[k[r]],
                     # Intensity of each vertex, which will be interpolated and color-coded
                     intensity=np.linspace(0, 1, len(x), endpoint=True),
-                    opacity=three_relations_sizes[n],
+                    opacity=three_relations_sizes[r],
                     colorscale="viridis",
                     showscale=False,
                     name="3-Relations",
