@@ -111,10 +111,16 @@ def plot_relations(
     mechanism_labels_size=10,
     purview_labels_size=7.5,
     mesh_opacity=0.2,
+    edge_width=1,
     show_mechanism_labels=True,
     show_purview_labels=True,
+    show_vertices_mechanisms=True,
+    show_vertices_purviews=True,    
+    show_edges=True,
     show_mesh=True,
+    showgrid=False,
     title="",
+    eye_coordinates=(1.25,1.25,1.25),
 ):
     # Select only relations <= max_order
     relations = list(filter(lambda r: len(r.relata) <= max_order, relations))
