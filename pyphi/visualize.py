@@ -84,9 +84,12 @@ def label_state(mice):
 
 
 def label_relation(relation):
-    relata = relation.relata    
-    relata_info = '<br>'.join([f"{label_mechanism(mice)}'s {mice.direction.name} = {label_purview(mice)}" for n,mice in enumerate(relata)]) 
-    relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {relation.phi}<br>"
+    relata = relation.relata
+    
+    relata_info = '<br>'.join([f"{label_mechanism(mice)} / {label_purview(mice)} [{mice.direction.name}]" for n,mice in enumerate(relata)]) 
+    
+    relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {np.round(relation.phi,4)}<br>"
+    
     return relata_info + relation_info    
 
 
@@ -100,9 +103,13 @@ def hovertext_purview(mice):
 
 def hovertext_relation(relation):
     relata = relation.relata
-    relata_info = [str(f"Distinction: {label_mechanism(mice)}<br>Direction: {mice.direction.name}<br>Purview: {label_purview(mice)}<br>φ = {mice.phi}<br>State: {[rel.maximal_state(mice)[0][i] for i in mice.purview]}") for mice in relata]
-    relation_info = f"Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {relation.phi}"
-    return relata_info, relation_info
+    
+    relata_info = ''.join([f"<br>Distinction {n}: {label_mechanism(mice)}<br>Direction: {mice.direction.name}<br>Purview: {label_purview(mice)}<br>φ = {mice.phi}<br>State: {[rel.maximal_state(mice)[0][i] for i in mice.purview]}<br>" for n,mice in enumerate(relata)])
+    
+    relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {np.round(relation.phi,4)}<br>"
+    
+    return f"<br>={len(relata)}-Relation=<br>" + relata_info + relation_info
+
 
 
 def vertex_sizes(min_size, max_size, elements):
