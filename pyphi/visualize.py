@@ -110,7 +110,7 @@ def hovertext_relation(relation):
     return f"<br>={len(relata)}-Relation=<br>" + relata_info + relation_info
 
 
-def vertex_sizes(min_size, max_size, elements):
+def normalize_sizes(min_size, max_size, elements):
     phis = np.array(
         [element.phi for element in elements]
     )
@@ -208,7 +208,7 @@ def plot_relations(
     fig.add_trace(labels_mechanisms_trace)
 
     # Compute purview and mechanism marker sizes
-    purview_sizes = vertex_sizes(vertex_size_range[0], vertex_size_range[1], separated_ces)    
+    purview_sizes = normalize_sizes(vertex_size_range[0], vertex_size_range[1], separated_ces)    
     mechanism_sizes = [min(phis) for phis in chunk_list(purview_sizes, 2)]
 
     # Make mechanisms trace
