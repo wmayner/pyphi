@@ -79,7 +79,6 @@ def label_purview(mice):
 
 
 def label_state(mice):
-    """Return state of the purview"""
     return [rel.maximal_state(mice)[0][node] for node in mice.purview]
 
 
@@ -109,7 +108,6 @@ def hovertext_relation(relation):
     relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {np.round(relation.phi,4)}<br>"
     
     return f"<br>={len(relata)}-Relation=<br>" + relata_info + relation_info
-
 
 
 def vertex_sizes(min_size, max_size, elements):
@@ -286,18 +284,63 @@ def plot_relations(
             )
         )
         # Plot edges
-        edges_2relations_trace = go.Scatter3d(
-            x=edges["x"],
-            y=edges["y"],
-            z=edges["z"],
-            mode="lines",
-            name="2-Relations",
-            line_width=0.5,
-            line_color="blue",
-            showlegend=True,
-            hoverinfo="skip",
-        )
-        fig.add_trace(edges_2relations_trace)
+        # edges_2relations_trace = go.Scatter3d(
+        #     x=edges["x"],
+        #     y=edges["y"],
+        #     z=edges["z"],
+        #     mode="lines",
+        #     name="2-Relations",
+        #     line_width=0.5,
+        #     line_color="blue",
+        #     showlegend=True,
+        #     hoverinfo="skip",
+        # )
+        # fig.add_trace(edges_2relations_trace)
+
+        
+        # Plot edges separately:
+        two_relations = list(filter(lambda r: len(r.relata) == 2, relations))
+        
+        two_relations_coords = [
+            list(chunk_list(list(edges["x"]),2)),
+            list(chunk_list(list(edges["y"]),2)),
+            list(chunk_list(list(edges["z"]),2)),
+            ]
+        
+        for n,relation in enumerate(two_relations):
+            if n==0:
+                edge_2relation_trace = go.Scatter3d(
+                legendgroup='2-Relations',
+                showlegend=True,
+                x=two_relations_coords[0][n],
+                y=two_relations_coords[1][n],
+                z=two_relations_coords[2][n],
+                mode="lines",
+                # name=label_relation(relation),
+                name='2-Relations',
+                line_width=0.5,
+                line_color="blue",
+                hoverinfo="text",
+                hovertext=hovertext_relation(relation),
+                # text=label_two_relation(relation),
+            )
+            else:
+                edge_2relation_trace = go.Scatter3d(
+                legendgroup='2-Relations',
+                showlegend=False,
+                x=two_relations_coords[0][n],
+                y=two_relations_coords[1][n],
+                z=two_relations_coords[2][n],
+                mode="lines",
+                # name=label_relation(relation),
+                name='2-Relations',
+                line_width=0.5,
+                line_color="blue",
+                hoverinfo="text",
+                hovertext=hovertext_relation(relation),
+                # text=label_two_relation(relation),
+            )
+            fig.add_trace(edge_2relation_trace)
 
     # 3-relations
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
