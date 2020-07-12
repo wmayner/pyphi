@@ -87,25 +87,25 @@ def label_relation(relation):
     
     relata_info = '<br>'.join([f"{label_mechanism(mice)} / {label_purview(mice)} [{mice.direction.name}]" for n,mice in enumerate(relata)]) 
     
-    relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {np.round(relation.phi,4)}<br>"
+    relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {phi_round(relation.phi)}<br>"
     
     return relata_info + relation_info    
 
 
 def hovertext_mechanism(distinction):
-    return f"Distinction: {label_mechanism(distinction.cause)}<br>Cause: {label_purview(distinction.cause)}<br>Cause φ = {distinction.cause.phi}<br>Cause state: {[rel.maximal_state(distinction.cause)[0][i] for i in distinction.cause.purview]}<br>Effect: {label_purview(distinction.effect)}<br>Effect φ = {distinction.effect.phi}<br>Effect state: {[rel.maximal_state(distinction.effect)[0][i] for i in distinction.effect.purview]}"
+    return f"Distinction: {label_mechanism(distinction.cause)}<br>Cause: {label_purview(distinction.cause)}<br>Cause φ = {phi_round(distinction.cause.phi)}<br>Cause state: {[rel.maximal_state(distinction.cause)[0][i] for i in distinction.cause.purview]}<br>Effect: {label_purview(distinction.effect)}<br>Effect φ = {phi_round(distinction.effect.phi)}<br>Effect state: {[rel.maximal_state(distinction.effect)[0][i] for i in distinction.effect.purview]}"
 
 
 def hovertext_purview(mice):
-    return f"Distinction: {label_mechanism(mice)}<br>Direction: {mice.direction.name}<br>Purview: {label_purview(mice)}<br>φ = {mice.phi}<br>State: {[rel.maximal_state(mice)[0][i] for i in mice.purview]}"
+    return f"Distinction: {label_mechanism(mice)}<br>Direction: {mice.direction.name}<br>Purview: {label_purview(mice)}<br>φ = {phi_round(mice.phi)}<br>State: {[rel.maximal_state(mice)[0][i] for i in mice.purview]}"
 
 
 def hovertext_relation(relation):
     relata = relation.relata
     
-    relata_info = ''.join([f"<br>Distinction {n}: {label_mechanism(mice)}<br>Direction: {mice.direction.name}<br>Purview: {label_purview(mice)}<br>φ = {mice.phi}<br>State: {[rel.maximal_state(mice)[0][i] for i in mice.purview]}<br>" for n,mice in enumerate(relata)])
+    relata_info = ''.join([f"<br>Distinction {n}: {label_mechanism(mice)}<br>Direction: {mice.direction.name}<br>Purview: {label_purview(mice)}<br>φ = {phi_round(mice.phi)}<br>State: {[rel.maximal_state(mice)[0][i] for i in mice.purview]}<br>" for n,mice in enumerate(relata)])
     
-    relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {np.round(relation.phi,4)}<br>"
+    relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {phi_round(relation.phi)}<br>"
     
     return f"<br>={len(relata)}-Relation=<br>" + relata_info + relation_info
 
@@ -119,6 +119,10 @@ def normalize_sizes(min_size, max_size, elements):
     return min_size + (((phis - min_phi) * (max_size - min_size)) / (max_phi - min_phi))  
 
 
+def phi_round(phi):
+    return np.round(phi, 4)
+
+
 def chunk_list(my_list, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(my_list), n):
@@ -130,11 +134,12 @@ def plot_relations(
     relations,
     max_order=3,
     cause_effect_offset=(0.5, 0, 0),
-    vertex_size_range=(10, 20),
-    plot_dimentions=(800, 1200),
-    mechanism_labels_size=10,
-    purview_labels_size=7.5,
-    mesh_opacity=0.2,
+    vertex_size_range=(10, 40),
+    edge_size_range=(1, 5),
+    plot_dimentions=(1000, 1400),
+    mechanism_labels_size=20,
+    purview_labels_size=15,
+    mesh_opacity=0.1,
     edge_width=1,
     show_mechanism_labels=True,
     show_purview_labels=True,
@@ -144,7 +149,7 @@ def plot_relations(
     show_mesh=True,
     showgrid=False,
     title="",
-    eye_coordinates=(1.25,1.25,1.25),
+    eye_coordinates=(0.5,0.5,0.5),
 ):
     # Select only relations <= max_order
     relations = list(filter(lambda r: len(r.relata) <= max_order, relations))
@@ -192,7 +197,7 @@ def plot_relations(
     vertices_hovertext = list(map(hovertext_purview, separated_ces))
 
     # Make mechanism labels
-    xm, ym, zm = [c + cause_effect_offset[0] / 2 for c in x[::2]], y[::2], z[::2]
+    xm, ym, zm = [c + cause_effect_offset[0] / 2 for c in x[::2]], y[::2], [n+(vertex_size_range[1]/10**3) for n in z[::2]]
     labels_mechanisms_trace = go.Scatter3d(
         visible=show_mechanism_labels,
         x=xm,
@@ -234,7 +239,7 @@ def plot_relations(
         visible=show_purview_labels,
         x=x,
         y=y,
-        z=z,
+        z=[n+(vertex_size_range[1]/10**3) for n in z],
         mode="text",
         text=purview_labels,
         name="Purview Labels",
@@ -283,23 +288,11 @@ def plot_relations(
                 line_group=flatten(zip(range(len(edges) // 2), range(len(edges) // 2))),
             )
         )
-        # Plot edges
-        # edges_2relations_trace = go.Scatter3d(
-        #     x=edges["x"],
-        #     y=edges["y"],
-        #     z=edges["z"],
-        #     mode="lines",
-        #     name="2-Relations",
-        #     line_width=0.5,
-        #     line_color="blue",
-        #     showlegend=True,
-        #     hoverinfo="skip",
-        # )
-        # fig.add_trace(edges_2relations_trace)
-
         
         # Plot edges separately:
         two_relations = list(filter(lambda r: len(r.relata) == 2, relations))
+        two_relations_sizes = normalize_sizes(edge_size_range[0], edge_size_range[1], two_relations)    
+
         
         two_relations_coords = [
             list(chunk_list(list(edges["x"]),2)),
@@ -318,7 +311,7 @@ def plot_relations(
                 mode="lines",
                 # name=label_relation(relation),
                 name='2-Relations',
-                line_width=0.5,
+                line_width=two_relations_sizes[n],
                 line_color="blue",
                 hoverinfo="text",
                 hovertext=hovertext_relation(relation),
@@ -334,7 +327,7 @@ def plot_relations(
                 mode="lines",
                 # name=label_relation(relation),
                 name='2-Relations',
-                line_width=0.5,
+                line_width=two_relations_sizes[n],
                 line_color="blue",
                 hoverinfo="text",
                 hovertext=hovertext_relation(relation),
