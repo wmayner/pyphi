@@ -288,20 +288,23 @@ def plot_relations(
 
     # Create figure
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    axes_range = [(min(d)-1,max(d)+1) for d in (x,y,z)]
+
     axes = [
             dict(
-            showbackground=True,
-            showline=True,
-            zeroline=True,
-            showgrid=True,
+            showbackground=False,
+            showline=False,
+            zeroline=False,
+            showgrid=showgrid,
             gridcolor="lightgray",
             showticklabels=False,
-            title=f"UMAP {dimension}",
             showspikes=True,
-            autorange=True,
+            autorange=False,
+            range=axes_range[dimension],
             backgroundcolor="white",
+            title='',
             ) 
-        for dimension in range(1,4)
+        for dimension in range(3)
         ]
 
     layout = go.Layout(
@@ -309,6 +312,11 @@ def plot_relations(
         scene_xaxis=axes[0],
         scene_yaxis=axes[1], 
         scene_zaxis=axes[2],
+        scene_camera=dict(
+            eye=dict(
+                x=eye_coordinates[0], y=eye_coordinates[1], z=eye_coordinates[2]
+            )
+        ),
         hovermode="closest",
         title=title,
         legend=dict(
@@ -321,6 +329,7 @@ def plot_relations(
         height=plot_dimentions[0],
         width=plot_dimentions[1],
     )
+
     # Apply layout
     fig.layout = layout
     
