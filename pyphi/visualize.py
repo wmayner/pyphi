@@ -343,29 +343,56 @@ def plot_relations(
         for j in range(features.shape[1])
         if features[:, j].sum() == 3
     ]
+
     if triangles:
         # Extract triangle indices
         i, j, k = zip(*triangles)
-        triangles_3relations_trace = go.Mesh3d(
-            visible=show_mesh,
-            # x, y, and z are the coordinates of vertices
-            x=x,
-            y=y,
-            z=z,
-            # i, j, and k are the vertices of triangles
-            i=i,
-            j=j,
-            k=k,
-            # Intensity of each vertex, which will be interpolated and color-coded
-            intensity=np.linspace(0, 1, len(x), endpoint=True),
-            opacity=mesh_opacity,
-            colorscale="viridis",
-            showscale=False,
-            name="3-Relations",
-            showlegend=True,
-            hoverinfo="skip",
-        )
-        fig.add_trace(triangles_3relations_trace)
+        for n,triangle in enumerate(triangles):
+            if n==0:
+                triangle_3relation_trace = go.Mesh3d(
+                    visible=show_mesh,
+                    legendgroup='3-Relations',
+                    showlegend=True,
+                    # x, y, and z are the coordinates of vertices
+                    x=x,
+                    y=y,
+                    z=z,
+                    # i, j, and k are the vertices of triangles
+                    i=[i[n]],
+                    j=[j[n]],
+                    k=[k[n]],
+                    # Intensity of each vertex, which will be interpolated and color-coded
+                    intensity=np.linspace(0, 1, len(x), endpoint=True),
+                    opacity=mesh_opacity,
+                    colorscale="viridis",
+                    showscale=False,
+                    name="3-Relations",
+                    hoverinfo="skip",
+                )
+                fig.add_trace(triangle_3relation_trace)
+            else:
+                triangle_3relation_trace = go.Mesh3d(
+                    visible=show_mesh,
+                    legendgroup='3-Relations',
+                    showlegend=False,
+                    # x, y, and z are the coordinates of vertices
+                    x=x,
+                    y=y,
+                    z=z,
+                    # i, j, and k are the vertices of triangles
+                    i=[i[n]],
+                    j=[j[n]],
+                    k=[k[n]],
+                    # Intensity of each vertex, which will be interpolated and color-coded
+                    intensity=np.linspace(0, 1, len(x), endpoint=True),
+                    opacity=mesh_opacity,
+                    colorscale="viridis",
+                    showscale=False,
+                    name="3-Relations",
+                    hoverinfo="skip",
+                )
+                fig.add_trace(triangle_3relation_trace)
+
 
     # Create figure
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
