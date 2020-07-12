@@ -83,6 +83,13 @@ def label_state(mice):
     return [rel.maximal_state(mice)[0][node] for node in mice.purview]
 
 
+def label_relation(relation):
+    relata = relation.relata    
+    relata_info = '<br>'.join([f"{label_mechanism(mice)}'s {mice.direction.name} = {label_purview(mice)}" for n,mice in enumerate(relata)]) 
+    relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {relation.phi}<br>"
+    return relata_info + relation_info    
+
+
 def hovertext_mechanism(distinction):
     return f"Distinction: {label_mechanism(distinction.cause)}<br>Cause: {label_purview(distinction.cause)}<br>Cause φ = {distinction.cause.phi}<br>Cause state: {[rel.maximal_state(distinction.cause)[0][i] for i in distinction.cause.purview]}<br>Effect: {label_purview(distinction.effect)}<br>Effect φ = {distinction.effect.phi}<br>Effect state: {[rel.maximal_state(distinction.effect)[0][i] for i in distinction.effect.purview]}"
 
