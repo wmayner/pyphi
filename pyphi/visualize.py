@@ -84,12 +84,17 @@ def label_state(mice):
 
 def label_relation(relation):
     relata = relation.relata
-    
-    relata_info = '<br>'.join([f"{label_mechanism(mice)} / {label_purview(mice)} [{mice.direction.name}]" for n,mice in enumerate(relata)]) 
-    
+
+    relata_info = "<br>".join(
+        [
+            f"{label_mechanism(mice)} / {label_purview(mice)} [{mice.direction.name}]"
+            for n, mice in enumerate(relata)
+        ]
+    )
+
     relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {phi_round(relation.phi)}<br>"
-    
-    return relata_info + relation_info    
+
+    return relata_info + relation_info
 
 
 def hovertext_mechanism(distinction):
@@ -102,21 +107,24 @@ def hovertext_purview(mice):
 
 def hovertext_relation(relation):
     relata = relation.relata
-    
-    relata_info = ''.join([f"<br>Distinction {n}: {label_mechanism(mice)}<br>Direction: {mice.direction.name}<br>Purview: {label_purview(mice)}<br>φ = {phi_round(mice.phi)}<br>State: {[rel.maximal_state(mice)[0][i] for i in mice.purview]}<br>" for n,mice in enumerate(relata)])
-    
+
+    relata_info = "".join(
+        [
+            f"<br>Distinction {n}: {label_mechanism(mice)}<br>Direction: {mice.direction.name}<br>Purview: {label_purview(mice)}<br>φ = {phi_round(mice.phi)}<br>State: {[rel.maximal_state(mice)[0][i] for i in mice.purview]}<br>"
+            for n, mice in enumerate(relata)
+        ]
+    )
+
     relation_info = f"<br>Relation purview: {make_label(relation.purview, relation.subsystem.node_labels)}<br>Relation φ = {phi_round(relation.phi)}<br>"
-    
+
     return f"<br>={len(relata)}-Relation=<br>" + relata_info + relation_info
 
 
 def normalize_sizes(min_size, max_size, elements):
-    phis = np.array(
-        [element.phi for element in elements]
-    )
+    phis = np.array([element.phi for element in elements])
     min_phi = phis.min()
     max_phi = phis.max()
-    return min_size + (((phis - min_phi) * (max_size - min_size)) / (max_phi - min_phi))  
+    return min_size + (((phis - min_phi) * (max_size - min_size)) / (max_phi - min_phi))
 
 
 def phi_round(phi):
@@ -126,7 +134,7 @@ def phi_round(phi):
 def chunk_list(my_list, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(my_list), n):
-        yield my_list[i:i + n]        
+        yield my_list[i : i + n]
 
 
 def plot_relations(
@@ -136,6 +144,7 @@ def plot_relations(
     cause_effect_offset=(0.5, 0, 0),
     vertex_size_range=(10, 40),
     edge_size_range=(1, 5),
+    surface_size_range=(0.05, 0.3),
     plot_dimentions=(1000, 1400),
     mechanism_labels_size=20,
     purview_labels_size=15,
@@ -144,12 +153,13 @@ def plot_relations(
     show_mechanism_labels=True,
     show_purview_labels=True,
     show_vertices_mechanisms=True,
-    show_vertices_purviews=True,    
+    show_vertices_purviews=True,
     show_edges=True,
     show_mesh=True,
     showgrid=False,
     title="",
-    eye_coordinates=(0.5,0.5,0.5),
+    eye_coordinates=(0.5, 0.5, 0.5),
+    hovermode="closest",
 ):
     # Select only relations <= max_order
     relations = list(filter(lambda r: len(r.relata) <= max_order, relations))
@@ -197,7 +207,11 @@ def plot_relations(
     vertices_hovertext = list(map(hovertext_purview, separated_ces))
 
     # Make mechanism labels
-    xm, ym, zm = [c + cause_effect_offset[0] / 2 for c in x[::2]], y[::2], [n+(vertex_size_range[1]/10**3) for n in z[::2]]
+    xm, ym, zm = (
+        [c + cause_effect_offset[0] / 2 for c in x[::2]],
+        y[::2],
+        [n + (vertex_size_range[1] / 10 ** 3) for n in z[::2]],
+    )
     labels_mechanisms_trace = go.Scatter3d(
         visible=show_mechanism_labels,
         x=xm,
@@ -208,12 +222,16 @@ def plot_relations(
         name="Mechanism Labels",
         showlegend=True,
         textfont=dict(size=mechanism_labels_size, color="black"),
-        hoverinfo="skip",
+        hoverinfo="text",
+        hovertext=mechanism_hovertext,
+        hoverlabel=dict(bgcolor="black", font_color="white"),
     )
     fig.add_trace(labels_mechanisms_trace)
 
     # Compute purview and mechanism marker sizes
-    purview_sizes = normalize_sizes(vertex_size_range[0], vertex_size_range[1], separated_ces)    
+    purview_sizes = normalize_sizes(
+        vertex_size_range[0], vertex_size_range[1], separated_ces
+    )
     mechanism_sizes = [min(phis) for phis in chunk_list(purview_sizes, 2)]
 
     # Make mechanisms trace
@@ -226,10 +244,10 @@ def plot_relations(
         name="Mechanisms",
         text=mechanism_labels,
         showlegend=True,
-        marker=dict(size=mechanism_sizes, color='black'),
+        marker=dict(size=mechanism_sizes, color="black"),
         hoverinfo="text",
         hovertext=mechanism_hovertext,
-        hoverlabel=dict(bgcolor="white"),
+        hoverlabel=dict(bgcolor="black", font_color="white"),
     )
     fig.add_trace(vertices_mechanisms_trace)
 
@@ -239,13 +257,15 @@ def plot_relations(
         visible=show_purview_labels,
         x=x,
         y=y,
-        z=[n+(vertex_size_range[1]/10**3) for n in z],
+        z=[n + (vertex_size_range[1] / 10 ** 3) for n in z],
         mode="text",
         text=purview_labels,
         name="Purview Labels",
         showlegend=True,
         textfont=dict(size=purview_labels_size, color=color),
-        hoverinfo="skip",
+        hoverinfo="text",
+        hovertext=vertices_hovertext,
+        hoverlabel=dict(bgcolor=color),
     )
     fig.add_trace(labels_purviews_trace)
 
@@ -288,51 +308,52 @@ def plot_relations(
                 line_group=flatten(zip(range(len(edges) // 2), range(len(edges) // 2))),
             )
         )
-        
+
         # Plot edges separately:
         two_relations = list(filter(lambda r: len(r.relata) == 2, relations))
-        two_relations_sizes = normalize_sizes(edge_size_range[0], edge_size_range[1], two_relations)    
+        two_relations_sizes = normalize_sizes(
+            edge_size_range[0], edge_size_range[1], two_relations
+        )
 
-        
         two_relations_coords = [
-            list(chunk_list(list(edges["x"]),2)),
-            list(chunk_list(list(edges["y"]),2)),
-            list(chunk_list(list(edges["z"]),2)),
-            ]
-        
-        for n,relation in enumerate(two_relations):
-            if n==0:
+            list(chunk_list(list(edges["x"]), 2)),
+            list(chunk_list(list(edges["y"]), 2)),
+            list(chunk_list(list(edges["z"]), 2)),
+        ]
+
+        for n, relation in enumerate(two_relations):
+            if n == 0:
                 edge_2relation_trace = go.Scatter3d(
-                legendgroup='2-Relations',
-                showlegend=True,
-                x=two_relations_coords[0][n],
-                y=two_relations_coords[1][n],
-                z=two_relations_coords[2][n],
-                mode="lines",
-                # name=label_relation(relation),
-                name='2-Relations',
-                line_width=two_relations_sizes[n],
-                line_color="blue",
-                hoverinfo="text",
-                hovertext=hovertext_relation(relation),
-                # text=label_two_relation(relation),
-            )
+                    legendgroup="2-Relations",
+                    showlegend=True,
+                    x=two_relations_coords[0][n],
+                    y=two_relations_coords[1][n],
+                    z=two_relations_coords[2][n],
+                    mode="lines",
+                    # name=label_relation(relation),
+                    name="2-Relations",
+                    line_width=two_relations_sizes[n],
+                    line_color="blue",
+                    hoverinfo="text",
+                    hovertext=hovertext_relation(relation),
+                    # text=label_two_relation(relation),
+                )
             else:
                 edge_2relation_trace = go.Scatter3d(
-                legendgroup='2-Relations',
-                showlegend=False,
-                x=two_relations_coords[0][n],
-                y=two_relations_coords[1][n],
-                z=two_relations_coords[2][n],
-                mode="lines",
-                # name=label_relation(relation),
-                name='2-Relations',
-                line_width=two_relations_sizes[n],
-                line_color="blue",
-                hoverinfo="text",
-                hovertext=hovertext_relation(relation),
-                # text=label_two_relation(relation),
-            )
+                    legendgroup="2-Relations",
+                    showlegend=False,
+                    x=two_relations_coords[0][n],
+                    y=two_relations_coords[1][n],
+                    z=two_relations_coords[2][n],
+                    mode="lines",
+                    # name=label_relation(relation),
+                    name="2-Relations",
+                    line_width=two_relations_sizes[n],
+                    line_color="blue",
+                    hoverinfo="text",
+                    hovertext=hovertext_relation(relation),
+                    # text=label_two_relation(relation),
+                )
             fig.add_trace(edge_2relation_trace)
 
     # 3-relations
@@ -345,13 +366,18 @@ def plot_relations(
     ]
 
     if triangles:
+        three_relations = list(filter(lambda r: len(r.relata) == 3, relations))
+        three_relations_sizes = normalize_sizes(
+            surface_size_range[0], surface_size_range[1], three_relations
+        )
         # Extract triangle indices
         i, j, k = zip(*triangles)
-        for n,triangle in enumerate(triangles):
-            if n==0:
+        for n, triangle in enumerate(triangles):
+            relation = three_relations[n]
+            if n == 0:
                 triangle_3relation_trace = go.Mesh3d(
                     visible=show_mesh,
-                    legendgroup='3-Relations',
+                    legendgroup="3-Relations",
                     showlegend=True,
                     # x, y, and z are the coordinates of vertices
                     x=x,
@@ -363,17 +389,18 @@ def plot_relations(
                     k=[k[n]],
                     # Intensity of each vertex, which will be interpolated and color-coded
                     intensity=np.linspace(0, 1, len(x), endpoint=True),
-                    opacity=mesh_opacity,
+                    opacity=three_relations_sizes[n],
                     colorscale="viridis",
                     showscale=False,
                     name="3-Relations",
-                    hoverinfo="skip",
+                    hoverinfo="text",
+                    hovertext=hovertext_relation(relation),
                 )
                 fig.add_trace(triangle_3relation_trace)
             else:
                 triangle_3relation_trace = go.Mesh3d(
                     visible=show_mesh,
-                    legendgroup='3-Relations',
+                    legendgroup="3-Relations",
                     showlegend=False,
                     # x, y, and z are the coordinates of vertices
                     x=x,
@@ -385,21 +412,21 @@ def plot_relations(
                     k=[k[n]],
                     # Intensity of each vertex, which will be interpolated and color-coded
                     intensity=np.linspace(0, 1, len(x), endpoint=True),
-                    opacity=mesh_opacity,
+                    opacity=three_relations_sizes[n],
                     colorscale="viridis",
                     showscale=False,
                     name="3-Relations",
-                    hoverinfo="skip",
+                    hoverinfo="text",
+                    hovertext=hovertext_relation(relation),
                 )
                 fig.add_trace(triangle_3relation_trace)
 
-
     # Create figure
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    axes_range = [(min(d)-1,max(d)+1) for d in (x,y,z)]
+    axes_range = [(min(d) - 1, max(d) + 1) for d in (x, y, z)]
 
     axes = [
-            dict(
+        dict(
             showbackground=False,
             showline=False,
             zeroline=False,
@@ -410,22 +437,20 @@ def plot_relations(
             autorange=False,
             range=axes_range[dimension],
             backgroundcolor="white",
-            title='',
-            ) 
+            title="",
+        )
         for dimension in range(3)
-        ]
+    ]
 
     layout = go.Layout(
         showlegend=True,
         scene_xaxis=axes[0],
-        scene_yaxis=axes[1], 
+        scene_yaxis=axes[1],
         scene_zaxis=axes[2],
         scene_camera=dict(
-            eye=dict(
-                x=eye_coordinates[0], y=eye_coordinates[1], z=eye_coordinates[2]
-            )
+            eye=dict(x=eye_coordinates[0], y=eye_coordinates[1], z=eye_coordinates[2])
         ),
-        hovermode="closest",
+        hovermode=hovermode,
         title=title,
         legend=dict(
             title=dict(
@@ -440,5 +465,5 @@ def plot_relations(
 
     # Apply layout
     fig.layout = layout
-    
+
     return fig
