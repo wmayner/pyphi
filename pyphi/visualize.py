@@ -86,13 +86,13 @@ def hovertext_purview(mice):
     return f"Distinction: {label_mechanism(mice)}<br>Direction: {mice.direction.name}<br>Purview: {label_purview(mice)}<br>φ = {mice.phi}<br>State: {[rel.maximal_state(mice)[0][i] for i in mice.purview]}"
 
 
-def vertex_sizes(min_size, max_size, ces):
+def vertex_sizes(min_size, max_size, elements):
     phis = np.array(
-        [(distinction.cause.phi, distinction.effect.phi) for distinction in ces]
+        [element.phi for element in elements]
     )
     min_phi = phis.min()
     max_phi = phis.max()
-    return min_size + (((phis - min_phi) * (max_size - min_size)) / (max_phi - min_phi))
+    return min_size + (((phis - min_phi) * (max_size - min_size)) / (max_phi - min_phi))  
 
 
 def plot_relations(
@@ -190,7 +190,7 @@ def plot_relations(
     fig.add_trace(purview_labels_trace)
 
     # Compute size and color
-    size = list(flatten(vertex_sizes(vertex_size_range[0], vertex_size_range[1], ces)))
+    purview_sizes = vertex_sizes(vertex_size_range[0], vertex_size_range[1], separated_ces)    
     purview_phis = [purview.phi for purview in separated_ces]
     direction_labels = list(flatten([["Cause", "Effect"] for c in ces]))
     vertices_purviews_trace = go.Scatter3d(
@@ -201,7 +201,7 @@ def plot_relations(
         name="Purviews",
         text=purview_labels,
         showlegend=True,
-        marker=dict(size=size, color=color),
+        marker=dict(size=purview_sizes, color=color),
         hoverinfo="text",
         hovertext=vertices_hovertext,
         hoverlabel=dict(bgcolor=color),
