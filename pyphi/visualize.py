@@ -10,6 +10,11 @@ import scipy.spatial
 from plotly import express as px
 from plotly import graph_objs as go
 from umap import UMAP
+from tqdm.notebook import tqdm
+
+import networkx as nx
+from networkx.drawing.nx_agraph import graphviz_layout, to_agraph
+from IPython.display import Image
 
 from . import relations as rel
 
@@ -137,15 +142,53 @@ def chunk_list(my_list, n):
         yield my_list[i : i + n]
 
 
+def format_node(n, subsystem):
+    node_format = {
+        "label": subsystem.node_labels[n],
+        "style": "filled" if subsystem.state[n] == 1 else "",
+        "fillcolor": "black" if subsystem.state[n] == 1 else "",
+        "fontcolor": "white" if subsystem.state[n] == 1 else "black",
+    }
+    return node_format
+
+
+def save_digraph(
+    subsystem, digraph_filename="digraph.png", plot_digraph=False, layout="dot"
+):
+
+    G = nx.DiGraph()
+
+    for n in range(subsystem.size):
+        node_info = format_node(n, subsystem)
+        G.add_node(
+            node_info["label"],
+            style=node_info["style"],
+            fillcolor=node_info["fillcolor"],
+            fontcolor=node_info["fontcolor"],
+        )
+
+    edges = [subsystem.indices2nodes(indices) for indices in np.argwhere(subsystem.cm)]
+
+    G.add_edges_from(edges)
+    G.graph["node"] = {"shape": "circle"}
+
+    A = to_agraph(G)
+    A.layout(layout)
+    A.draw(digraph_filename)
+    if plot_digraph:
+        return Image(digraph_filename)
+
+
 def plot_relations(
+    subsystem,
     ces,
     relations,
     max_order=3,
-    cause_effect_offset=(0.5, 0, 0),
+    cause_effect_offset=(0.3, 0, 0),
     vertex_size_range=(10, 40),
     edge_size_range=(1, 5),
     surface_size_range=(0.05, 0.3),
-    plot_dimentions=(1000, 1400),
+    plot_dimentions=(1000, 1600),
     mechanism_labels_size=20,
     purview_labels_size=15,
     mesh_opacity=0.1,
@@ -154,12 +197,16 @@ def plot_relations(
     show_purview_labels=True,
     show_vertices_mechanisms=True,
     show_vertices_purviews=True,
-    show_edges=True,
-    show_mesh=True,
+    show_edges="legendonly",
+    show_mesh="legendonly",
+    show_node_qfolds=False,
+    show_mechanism_qfolds=True,
     showgrid=False,
-    title="",
+    network_name="",
     eye_coordinates=(0.5, 0.5, 0.5),
-    hovermode="closest",
+    hovermode="x",
+    digraph_filename="digraph.png",
+    digraph_layout="dot",
 ):
     # Select only relations <= max_order
     relations = list(filter(lambda r: len(r.relata) <= max_order, relations))
@@ -198,6 +245,10 @@ def plot_relations(
     # Extract vertex indices for plotly
     x, y, z = coords[:, 0], coords[:, 1], coords[:, 2]
 
+    # Get node labels and indices for future use:
+    node_labels = subsystem.node_labels
+    node_indices = subsystem.node_indices
+
     # Get mechanism and purview labels
     mechanism_labels = list(map(label_mechanism, ces))
     mechanism_labels_x2 = list(map(label_mechanism, separated_ces))
@@ -216,7 +267,7 @@ def plot_relations(
         visible=show_mechanism_labels,
         x=xm,
         y=ym,
-        z=zm,
+        z=[n + (vertex_size_range[1] / 10 ** 3) for n in zm],
         mode="text",
         text=mechanism_labels,
         name="Mechanism Labels",
@@ -321,39 +372,86 @@ def plot_relations(
             list(chunk_list(list(edges["z"]), 2)),
         ]
 
-        for r, relation in enumerate(two_relations):
-            if r == 0:
-                edge_2relation_trace = go.Scatter3d(
-                    legendgroup="2-Relations",
-                    showlegend=True,
-                    x=two_relations_coords[0][r],
-                    y=two_relations_coords[1][r],
-                    z=two_relations_coords[2][r],
-                    mode="lines",
-                    # name=label_relation(relation),
-                    name="2-Relations",
-                    line_width=two_relations_sizes[r],
-                    line_color="blue",
-                    hoverinfo="text",
-                    hovertext=hovertext_relation(relation),
-                    # text=label_two_relation(relation),
-                )
-            else:
-                edge_2relation_trace = go.Scatter3d(
-                    legendgroup="2-Relations",
-                    showlegend=False,
-                    x=two_relations_coords[0][r],
-                    y=two_relations_coords[1][r],
-                    z=two_relations_coords[2][r],
-                    mode="lines",
-                    # name=label_relation(relation),
-                    name="2-Relations",
-                    line_width=two_relations_sizes[r],
-                    line_color="blue",
-                    hoverinfo="text",
-                    hovertext=hovertext_relation(relation),
-                    # text=label_two_relation(relation),
-                )
+        legend_nodes = []
+        legend_mechanisms = []
+        for r, relation in tqdm(
+            enumerate(two_relations), desc="Computing edges", total=len(two_relations)
+        ):
+            relation_nodes = list(flatten(relation.mechanisms))
+
+            # Make node contexts traces and legendgroups
+            if show_node_qfolds:
+                for node in node_indices:
+                    node_label = make_label([node], node_labels)
+                    if node in relation_nodes:
+
+                        edge_2relation_trace = go.Scatter3d(
+                            visible=show_edges,
+                            legendgroup=f"Node {node_label} q-fold",
+                            showlegend=True if node not in legend_nodes else False,
+                            x=two_relations_coords[0][r],
+                            y=two_relations_coords[1][r],
+                            z=two_relations_coords[2][r],
+                            mode="lines",
+                            name=f"Node {node_label} q-fold",
+                            line_width=two_relations_sizes[r],
+                            line_color="blue",
+                            hoverinfo="text",
+                            hovertext=hovertext_relation(relation),
+                        )
+                        fig.add_trace(edge_2relation_trace)
+
+                        if node not in legend_nodes:
+
+                            legend_nodes.append(node)
+
+            # Make nechanism contexts traces and legendgroups
+            if show_mechanism_qfolds:
+                mechanisms_list = [distinction.mechanism for distinction in ces]
+                for mechanism in mechanisms_list:
+                    mechanism_label = make_label(mechanism, node_labels)
+                    if mechanism in relation.mechanisms:
+
+                        edge_2relation_trace = go.Scatter3d(
+                            visible=show_edges,
+                            legendgroup=f"Mechanism {mechanism_label} q-fold",
+                            showlegend=True
+                            if mechanism_label not in legend_mechanisms
+                            else False,
+                            x=two_relations_coords[0][r],
+                            y=two_relations_coords[1][r],
+                            z=two_relations_coords[2][r],
+                            mode="lines",
+                            name=f"Mechanism {mechanism_label} q-fold",
+                            line_width=two_relations_sizes[r],
+                            line_color="blue",
+                            hoverinfo="text",
+                            hovertext=hovertext_relation(relation),
+                        )
+                        fig.add_trace(edge_2relation_trace)
+
+                        if mechanism_label not in legend_mechanisms:
+
+                            legend_mechanisms.append(mechanism_label)
+
+            # Make all 2-relations traces and legendgroup
+            edge_2relation_trace = go.Scatter3d(
+                visible=show_edges,
+                legendgroup="All 2-Relations",
+                showlegend=True if r == 0 else False,
+                x=two_relations_coords[0][r],
+                y=two_relations_coords[1][r],
+                z=two_relations_coords[2][r],
+                mode="lines",
+                # name=label_relation(relation),
+                name="All 2-Relations",
+                line_width=two_relations_sizes[r],
+                line_color="blue",
+                hoverinfo="text",
+                hovertext=hovertext_relation(relation),
+                # text=label_two_relation(relation),
+            )
+
             fig.add_trace(edge_2relation_trace)
 
     # 3-relations
@@ -372,56 +470,99 @@ def plot_relations(
         )
         # Extract triangle indices
         i, j, k = zip(*triangles)
-        for r, triangle in enumerate(triangles):
+        for r, triangle in tqdm(
+            enumerate(triangles), desc="Computing triangles", total=len(triangles)
+        ):
             relation = three_relations[r]
-            if r == 0:
-                triangle_3relation_trace = go.Mesh3d(
-                    visible=show_mesh,
-                    legendgroup="3-Relations",
-                    showlegend=True,
-                    # x, y, and z are the coordinates of vertices
-                    x=x,
-                    y=y,
-                    z=z,
-                    # i, j, and k are the vertices of triangles
-                    i=[i[r]],
-                    j=[j[r]],
-                    k=[k[r]],
-                    # Intensity of each vertex, which will be interpolated and color-coded
-                    intensity=np.linspace(0, 1, len(x), endpoint=True),
-                    opacity=three_relations_sizes[r],
-                    colorscale="viridis",
-                    showscale=False,
-                    name="3-Relations",
-                    hoverinfo="text",
-                    hovertext=hovertext_relation(relation),
-                )
-                fig.add_trace(triangle_3relation_trace)
-            else:
-                triangle_3relation_trace = go.Mesh3d(
-                    visible=show_mesh,
-                    legendgroup="3-Relations",
-                    showlegend=False,
-                    # x, y, and z are the coordinates of vertices
-                    x=x,
-                    y=y,
-                    z=z,
-                    # i, j, and k are the vertices of triangles
-                    i=[i[r]],
-                    j=[j[r]],
-                    k=[k[r]],
-                    # Intensity of each vertex, which will be interpolated and color-coded
-                    intensity=np.linspace(0, 1, len(x), endpoint=True),
-                    opacity=three_relations_sizes[r],
-                    colorscale="viridis",
-                    showscale=False,
-                    name="3-Relations",
-                    hoverinfo="text",
-                    hovertext=hovertext_relation(relation),
-                )
-                fig.add_trace(triangle_3relation_trace)
+            relation_nodes = list(flatten(relation.mechanisms))
 
-    # Create figure
+            if show_node_qfolds:
+                for node in node_indices:
+                    node_label = make_label([node], node_labels)
+                    if node in relation_nodes:
+                        triangle_3relation_trace = go.Mesh3d(
+                            visible=show_mesh,
+                            legendgroup=f"Node {node_label} q-fold",
+                            showlegend=True if node not in legend_nodes else False,
+                            # x, y, and z are the coordinates of vertices
+                            x=x,
+                            y=y,
+                            z=z,
+                            # i, j, and k are the vertices of triangles
+                            i=[i[r]],
+                            j=[j[r]],
+                            k=[k[r]],
+                            # Intensity of each vertex, which will be interpolated and color-coded
+                            intensity=np.linspace(0, 1, len(x), endpoint=True),
+                            opacity=three_relations_sizes[r],
+                            colorscale="viridis",
+                            showscale=False,
+                            name=f"Node {node_label} q-fold",
+                            hoverinfo="text",
+                            hovertext=hovertext_relation(relation),
+                        )
+                        fig.add_trace(triangle_3relation_trace)
+
+                        if node not in legend_nodes:
+
+                            legend_nodes.append(node)
+
+            if show_mechanism_qfolds:
+                mechanisms_list = [distinction.mechanism for distinction in ces]
+                for mechanism in mechanisms_list:
+                    mechanism_label = make_label(mechanism, node_labels)
+                    if mechanism in relation.mechanisms:
+                        triangle_3relation_trace = go.Mesh3d(
+                            visible=show_mesh,
+                            legendgroup=f"Mechanism {mechanism_label} q-fold",
+                            showlegend=True
+                            if mechanism_label not in legend_mechanisms
+                            else False,
+                            # x, y, and z are the coordinates of vertices
+                            x=x,
+                            y=y,
+                            z=z,
+                            # i, j, and k are the vertices of triangles
+                            i=[i[r]],
+                            j=[j[r]],
+                            k=[k[r]],
+                            # Intensity of each vertex, which will be interpolated and color-coded
+                            intensity=np.linspace(0, 1, len(x), endpoint=True),
+                            opacity=three_relations_sizes[r],
+                            colorscale="viridis",
+                            showscale=False,
+                            name=f"Mechanism {mechanism_label} q-fold",
+                            hoverinfo="text",
+                            hovertext=hovertext_relation(relation),
+                        )
+                        fig.add_trace(triangle_3relation_trace)
+                        if mechanism_label not in legend_mechanisms:
+                            legend_mechanisms.append(mechanism_label)
+
+            triangle_3relation_trace = go.Mesh3d(
+                visible=show_mesh,
+                legendgroup="All 3-Relations",
+                showlegend=True if r == 0 else False,
+                # x, y, and z are the coordinates of vertices
+                x=x,
+                y=y,
+                z=z,
+                # i, j, and k are the vertices of triangles
+                i=[i[r]],
+                j=[j[r]],
+                k=[k[r]],
+                # Intensity of each vertex, which will be interpolated and color-coded
+                intensity=np.linspace(0, 1, len(x), endpoint=True),
+                opacity=three_relations_sizes[r],
+                colorscale="viridis",
+                showscale=False,
+                name="All 3-Relations",
+                hoverinfo="text",
+                hovertext=hovertext_relation(relation),
+            )
+            fig.add_trace(triangle_3relation_trace)
+
+        # Create figure
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     axes_range = [(min(d) - 1, max(d) + 1) for d in (x, y, z)]
 
@@ -451,19 +592,61 @@ def plot_relations(
             eye=dict(x=eye_coordinates[0], y=eye_coordinates[1], z=eye_coordinates[2])
         ),
         hovermode=hovermode,
-        title=title,
+        title=f"{network_name} Q-STRUCTURE",
+        title_font_size=30,
         legend=dict(
             title=dict(
                 text="Trace legend (click trace to show/hide):",
                 font=dict(color="black", size=15),
             )
         ),
-        autosize=True,
+        autosize=False,
         height=plot_dimentions[0],
         width=plot_dimentions[1],
     )
 
     # Apply layout
     fig.layout = layout
+
+    # Create system image
+    save_digraph(subsystem, digraph_filename, layout=digraph_layout)
+    digraph_coords = (-0.35, 1)
+    digraph_size = (0.3, 0.4)
+
+    fig.add_layout_image(
+        dict(
+            name="Causal model",
+            source=digraph_filename,
+            #         xref="paper", yref="paper",
+            x=digraph_coords[0],
+            y=digraph_coords[1],
+            sizex=digraph_size[0],
+            sizey=digraph_size[1],
+            xanchor="left",
+            yanchor="top",
+        )
+    )
+
+    draft_template = go.layout.Template()
+    draft_template.layout.annotations = [
+        dict(
+            name="Causal model",
+            text="Causal model",
+            opacity=1,
+            font=dict(color="black", size=20),
+            xref="paper",
+            yref="paper",
+            x=digraph_coords[0],
+            y=digraph_coords[1] + 0.05,
+            xanchor="left",
+            yanchor="bottom",
+            showarrow=False,
+        )
+    ]
+    fig.update_layout(
+        margin=dict(l=400),
+        template=draft_template,
+        annotations=[dict(templateitemname="Causal model", visible=True)],
+    )
 
     return fig
