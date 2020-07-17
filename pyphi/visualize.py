@@ -183,7 +183,7 @@ def save_digraph(
         return Image(digraph_filename)
 
 
-def plot_relations(
+def plot_ces(
     subsystem,
     ces,
     relations,
