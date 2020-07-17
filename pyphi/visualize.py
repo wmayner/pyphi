@@ -183,6 +183,25 @@ def save_digraph(
         return Image(digraph_filename)
 
 
+def get_edge_color(relation):
+    p0 = list(relation.relata.purviews)[0]
+    p1 = list(relation.relata.purviews)[1]
+    rp = relation.purview
+    # Isotext (mutual full-overlap)
+    if p0 == p1 == rp:
+        return "fuchsia"
+    # Sub/Supertext (inclusion / full-overlap)
+    elif p0 != p1 and (all(n in p1 for n in p0) or all(n in p0 for n in p1)):
+        return "indigo"
+    # Paratext (connection / partial-overlap)
+    elif (p0 == p1 != rp) or (
+        any(n in p1 for n in p0) and not all(n in p1 for n in p0)
+    ):
+        return "cyan"
+    else:
+        raise ValueError("Unexpected relation type, check function to cover all cases")
+
+
 def plot_ces(
     subsystem,
     ces,
@@ -190,13 +209,13 @@ def plot_ces(
     max_order=3,
     cause_effect_offset=(0.3, 0, 0),
     vertex_size_range=(10, 40),
-    edge_size_range=(0.5, 2),
+    edge_size_range=(0.5, 4),
     surface_size_range=(0.005, 0.1),
     plot_dimentions=(1000, 1600),
     mechanism_labels_size=20,
     purview_labels_size=15,
     show_mechanism_labels=True,
-    show_purview_labels=True,
+    show_purview_labels="legendonly",
     show_vertices_mechanisms=True,
     show_vertices_purviews=True,
     show_edges="legendonly",
@@ -400,6 +419,7 @@ def plot_ces(
                 total=len(two_relations),
             ):
                 relation_nodes = list(flatten(relation.mechanisms))
+                relation_color = get_edge_color(relation)
 
                 # Make node contexts traces and legendgroups
                 if show_node_qfolds:
@@ -407,7 +427,7 @@ def plot_ces(
                         node_label = make_label([node], node_labels)
                         if node in relation_nodes:
 
-                            edge_2relation_trace = go.Scatter3d(
+                            edge_two_relation_trace = go.Scatter3d(
                                 visible=show_edges,
                                 legendgroup=f"Node {node_label} q-fold",
                                 showlegend=True if node not in legend_nodes else False,
@@ -417,11 +437,11 @@ def plot_ces(
                                 mode="lines",
                                 name=f"Node {node_label} q-fold",
                                 line_width=two_relations_sizes[r],
-                                line_color="blue",
+                                line_color=relation_color,
                                 hoverinfo="text",
                                 hovertext=hovertext_relation(relation),
                             )
-                            fig.add_trace(edge_2relation_trace)
+                            fig.add_trace(edge_two_relation_trace)
 
                             if node not in legend_nodes:
 
@@ -434,7 +454,7 @@ def plot_ces(
                         mechanism_label = make_label(mechanism, node_labels)
                         if mechanism in relation.mechanisms:
 
-                            edge_2relation_trace = go.Scatter3d(
+                            edge_two_relation_trace = go.Scatter3d(
                                 visible=show_edges,
                                 legendgroup=f"Mechanism {mechanism_label} q-fold",
                                 showlegend=True
@@ -446,18 +466,18 @@ def plot_ces(
                                 mode="lines",
                                 name=f"Mechanism {mechanism_label} q-fold",
                                 line_width=two_relations_sizes[r],
-                                line_color="blue",
+                                line_color=relation_color,
                                 hoverinfo="text",
                                 hovertext=hovertext_relation(relation),
                             )
-                            fig.add_trace(edge_2relation_trace)
+                            fig.add_trace(edge_two_relation_trace)
 
                             if mechanism_label not in legend_mechanisms:
 
                                 legend_mechanisms.append(mechanism_label)
 
                 # Make all 2-relations traces and legendgroup
-                edge_2relation_trace = go.Scatter3d(
+                edge_two_relation_trace = go.Scatter3d(
                     visible=show_edges,
                     legendgroup="All 2-Relations",
                     showlegend=True if r == 0 else False,
@@ -468,13 +488,12 @@ def plot_ces(
                     # name=label_relation(relation),
                     name="All 2-Relations",
                     line_width=two_relations_sizes[r],
-                    line_color="blue",
+                    line_color=relation_color,
                     hoverinfo="text",
                     hovertext=hovertext_relation(relation),
-                    # text=label_two_relation(relation),
                 )
 
-                fig.add_trace(edge_2relation_trace)
+                fig.add_trace(edge_two_relation_trace)
 
     # 3-relations
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -503,7 +522,7 @@ def plot_ces(
                     for node in node_indices:
                         node_label = make_label([node], node_labels)
                         if node in relation_nodes:
-                            triangle_3relation_trace = go.Mesh3d(
+                            triangle_three_relation_trace = go.Mesh3d(
                                 visible=show_mesh,
                                 legendgroup=f"Node {node_label} q-fold",
                                 showlegend=True if node not in legend_nodes else False,
@@ -524,7 +543,7 @@ def plot_ces(
                                 hoverinfo="text",
                                 hovertext=hovertext_relation(relation),
                             )
-                            fig.add_trace(triangle_3relation_trace)
+                            fig.add_trace(triangle_three_relation_trace)
 
                             if node not in legend_nodes:
 
@@ -535,7 +554,7 @@ def plot_ces(
                     for mechanism in mechanisms_list:
                         mechanism_label = make_label(mechanism, node_labels)
                         if mechanism in relation.mechanisms:
-                            triangle_3relation_trace = go.Mesh3d(
+                            triangle_three_relation_trace = go.Mesh3d(
                                 visible=show_mesh,
                                 legendgroup=f"Mechanism {mechanism_label} q-fold",
                                 showlegend=True
@@ -558,11 +577,11 @@ def plot_ces(
                                 hoverinfo="text",
                                 hovertext=hovertext_relation(relation),
                             )
-                            fig.add_trace(triangle_3relation_trace)
+                            fig.add_trace(triangle_three_relation_trace)
                             if mechanism_label not in legend_mechanisms:
                                 legend_mechanisms.append(mechanism_label)
 
-                triangle_3relation_trace = go.Mesh3d(
+                triangle_three_relation_trace = go.Mesh3d(
                     visible=show_mesh,
                     legendgroup="All 3-Relations",
                     showlegend=True if r == 0 else False,
@@ -583,7 +602,7 @@ def plot_ces(
                     hoverinfo="text",
                     hovertext=hovertext_relation(relation),
                 )
-                fig.add_trace(triangle_3relation_trace)
+                fig.add_trace(triangle_three_relation_trace)
 
         # Create figure
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
