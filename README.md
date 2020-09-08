@@ -119,8 +119,8 @@ sudo apt-get install python3-dev python3-scipy python3-numpy
 If you're just looking for an editable install, pip may work better than the conda develop utility included in the conda-build package. When using pip on Windows, the build of pyemd may fail. The simplest solution to this is to obtain pyemd through conda.
 
 ```bash
-conda create -n pyphi_dev
-conda activate pyphi_dev
+conda create -n pyphi
+conda activate pyphi
 conda install -c wmayner pyemd
 cd path/to/local/editable/copy/of/pyphi
 pip install -e .
@@ -129,7 +129,7 @@ pip install -e .
 Unfortunately, pip isn't great at managing the DLLs that some packages (especially scipy) rely on. If you have missing DLL errors, try reinstalling the offending package (here, scipy) with conda.
 
 ```bash
-conda activate pyphi_dev
+conda activate pyphi
 pip uninstall scipy
 conda install scipy
 ```
