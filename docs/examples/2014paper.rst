@@ -302,15 +302,15 @@ mechanism; they only take a purview):
 
 The Earth Mover's distance between them gives the cause and effect information:
 
-    >>> subsystem.cause_info((A,), (A, B, C))
+    >>> subsystem.cause_info((A,), (A, B, C))  # doctest: +NUMBER
     0.333332
-    >>> subsystem.effect_info((A,), (A, B, C))
-    0.25
+    >>> subsystem.effect_info((A,), (A, B, C))  # doctest: +NUMBER
+    0.250000
 
 And the minimum of those gives the cause-effect information:
 
-    >>> subsystem.cause_effect_info((A,), (A, B, C))
-    0.25
+    >>> subsystem.cause_effect_info((A,), (A, B, C))  # doctest: +NUMBER
+    0.250000
 
 
 Figure 5
@@ -335,8 +335,8 @@ information:
     <BLANKLINE>
            [[0. , 0. ],
             [0. , 0.5]]])
-    >>> subsystem.cause_info((A,), (A, B, C))
-    1.0
+    >>> subsystem.cause_info((A,), (A, B, C))  # doctest: +NUMBER
+    1.000000
 
 But because it has no outputs, its effect repertoire no different from the
 unconstrained effect repertoire, so it has no effect information:
@@ -344,13 +344,13 @@ unconstrained effect repertoire, so it has no effect information:
     >>> np.array_equal(subsystem.effect_repertoire((A,), (A, B, C)),
     ...                subsystem.unconstrained_effect_repertoire((A, B, C)))
     True
-    >>> subsystem.effect_info((A,), (A, B, C))
-    0.0
+    >>> subsystem.effect_info((A,), (A, B, C))  # doctest: +NUMBER
+    0.000000
 
 And thus its cause effect information is zero.
 
-    >>> subsystem.cause_effect_info((A,), (A, B, C))
-    0.0
+    >>> subsystem.cause_effect_info((A,), (A, B, C))  # doctest: +NUMBER
+    0.000000
 
 (B)
 ```
@@ -369,8 +369,8 @@ it has effect information:
     <BLANKLINE>
            [[0., 0.],
             [0., 1.]]])
-    >>> subsystem.effect_info((A,), (A, B, C))
-    0.5
+    >>> subsystem.effect_info((A,), (A, B, C))  # doctest: +NUMBER
+    0.500000
 
 But because it now has no inputs, its cause repertoire is no different from the
 unconstrained effect repertoire, so it has no cause information:
@@ -378,13 +378,13 @@ unconstrained effect repertoire, so it has no cause information:
     >>> np.array_equal(subsystem.cause_repertoire((A,), (A, B, C)),
     ...                subsystem.unconstrained_cause_repertoire((A, B, C)))
     True
-    >>> subsystem.cause_info((A,), (A, B, C))
-    0.0
+    >>> subsystem.cause_info((A,), (A, B, C))  # doctest: +NUMBER
+    0.000000
 
 And its cause effect information is again zero.
 
-    >>> subsystem.cause_effect_info((A,), (A, B, C))
-    0.0
+    >>> subsystem.cause_effect_info((A,), (A, B, C))  # doctest: +NUMBER
+    0.000000
 
 Figure 6
 ~~~~~~~~
@@ -475,7 +475,7 @@ To find the MIC of a mechanism over all purviews, use the |Subsystem.mic()|
 method:
 
     >>> mic = subsystem.mic((B, C))
-    >>> mic.phi
+    >>> mic.phi  # doctest: +NUMBER
     0.333334
 
 Similarly, the |Subsystem.mie()| method returns the “core effect” or
@@ -499,7 +499,7 @@ represented by the |Concept| object. Concepts are computed using the
 |Subsystem.concept()| method of a subsystem:
 
     >>> concept_A = subsystem.concept((A,))
-    >>> concept_A.phi
+    >>> concept_A.phi  # doctest: +NUMBER
     0.166667
 
 As usual, please consult the documentation or use ``help(concept_A)`` for a
@@ -524,8 +524,8 @@ And verify that the |small_phi| values match:
 
     >>> ces.labeled_mechanisms
     (['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C'])
-    >>> ces.phis
-    [0.166667, 0.166667, 0.25, 0.25, 0.333334, 0.499999]
+    >>> ces.phis  # doctest: +NUMBER
+    [0.166667, 0.166667, 0.250000, 0.250000, 0.333334, 0.499999]
 
 The null concept (the small black cross shown in concept-space) is available as
 an attribute of the subsystem:
@@ -543,7 +543,7 @@ Figure 11
 Conceptual information can be computed using the function named, as you might
 expect, |compute.conceptual_info()|:
 
-    >>> pyphi.compute.conceptual_info(subsystem)
+    >>> pyphi.compute.conceptual_info(subsystem)  # doctest: +NUMBER
     2.111109
 
 
