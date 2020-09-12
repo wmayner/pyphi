@@ -196,7 +196,7 @@ class ComputeSystemIrreducibility(MapReduce):
             self.done = True  # Short-circuit
             return new_sia
 
-        elif new_sia < min_sia:
+        elif abs(new_sia.phi) < abs(min_sia.phi):
             return new_sia
 
         return min_sia

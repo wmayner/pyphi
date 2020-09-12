@@ -9,6 +9,10 @@ _Next version_
 - Added `pyphi.tpm.is_deterministic()`
 
 ### API changes
+- Define the minimum information partition at the system level as the
+  partition that minimizes the absolute value of Φ, rather than the signed Φ
+  value. This is relevant when using non-default system level distance
+  measures, *e.g.* `config.USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE`.
 - Updated the implementation of `pyphi.convert.state_by_node2state_by_state()`:
   - Can now handle "TPMs" where the number of nodes in the previous and next states differ
   - Improved performance for nondeterministic TPMs
