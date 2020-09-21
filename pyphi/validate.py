@@ -32,6 +32,8 @@ def direction(direction, allow_bi=False):
 
 
 def base(base, tpm):
+    if base is not None and config.MEASURE == "EMD":
+        raise NotImplementedError("EMD not implemented for nonbinary elements")
     tpm = convert.to_2dimensional(np.array(tpm))
     if type(base) == type(1):
         num_nodes = int(np.log(tpm.shape[0]) / np.log(base))
