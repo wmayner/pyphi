@@ -356,7 +356,7 @@ class Subsystem:
             col = [self.state[mechanism_node_index]]
 
             return np.array(tpm.loc[:, col[0]] / sum(list(tpm.loc[:, col[0]]))).reshape(
-                repertoire_shape(purview, len(self.node_indices), self.network.base),
+                repertoire_shape(purview, self.network.size, self.network.base),
                 order="F",
             )
 
@@ -396,7 +396,7 @@ class Subsystem:
         # distribution.
         if not mechanism:
             return max_entropy_distribution(
-                purview, len(self.node_indices), self.network.base
+                purview, self.network.size, self.network.base
             )
         # Use a frozenset so the arguments to `_single_node_cause_repertoire`
         # can be hashed and cached.
@@ -404,7 +404,7 @@ class Subsystem:
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
         joint = np.ones(
-            repertoire_shape(purview, len(self.node_indices), self.network.base)
+            repertoire_shape(purview, self.network.size, self.network.base)
         )
         # The cause repertoire is the product of the cause repertoires of the
         # individual nodes.
@@ -433,7 +433,7 @@ class Subsystem:
                     np.array(tpm.loc[tuple(row), :]).reshape(
                         repertoire_shape(
                             [purview_node_index],
-                            len(self.node_indices),
+                            self.network.size,
                             self.network.base,
                         )
                     )
@@ -441,7 +441,7 @@ class Subsystem:
                     else np.array(tpm.loc[row[0], :]).reshape(
                         repertoire_shape(
                             [purview_node_index],
-                            len(self.node_indices),
+                            self.network.size,
                             self.network.base,
                         )
                     )
@@ -449,7 +449,7 @@ class Subsystem:
             else:
                 return np.array(tpm.sum(axis=0) / tpm.shape[0]).reshape(
                     repertoire_shape(
-                        [purview_node_index], len(self.node_indices), self.network.base
+                        [purview_node_index], self.network.size, self.network.base
                     )
                 )
 
@@ -462,7 +462,7 @@ class Subsystem:
         nonmechanism_inputs = purview_node.inputs - mechanism
         tpm = marginalize_out(nonmechanism_inputs, tpm)
         # Reshape so that the distribution is over next states.
-        return tpm.reshape(repertoire_shape([purview_node.index], self.tpm_size))
+        return tpm.reshape(repertoire_shape([purview_node.index], self.network.size))
 
     @cache.method("_repertoire_cache", Direction.EFFECT)
     def effect_repertoire(self, mechanism, purview):
@@ -492,7 +492,7 @@ class Subsystem:
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
         joint = np.ones(
-            repertoire_shape(purview, len(self.node_indices), self.network.base)
+            repertoire_shape(purview, self.network.size, self.network.base)
         )
         # The effect repertoire is the product of the effect repertoires of the
         # individual nodes.
