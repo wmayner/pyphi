@@ -18,6 +18,7 @@ install_requires = [
     "decorator >=4.0.0",
     "joblib >=0.8.0",
     "numpy >=1.11.0",
+    "pandas >=1.1.2",
     "psutil >=2.1.1",
     "pyemd >=0.3.0",
     "pymongo >=2.7.1",
