@@ -93,12 +93,12 @@ def all_states_nb(n, p=None, l=None, nl=None, nb=None, big_endian=False):
 
 
 def all_possible_states_nb(base, s=False):
-    # make a description here
-    states = [list(range(b)) for b in base[::-1]]
+    # Get individual node states
+    states = [list(range(b)) for b in base]
     if s:
         return states
-
-    return list(product(*states))
+    # Convert states to little-endian format
+    return [x[::-1] for x in list(product(*states[::-1]))]
 
 
 def np_immutable(a):

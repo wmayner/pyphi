@@ -181,7 +181,7 @@ def is_network(network):
 def node_states(state, base=None):
     """Check that the state contains only zeros and ones."""
     if base is not None:
-        states = [tuple(range(b)) for b in base[::-1]]
+        states = [tuple(range(b)) for b in base]
         if not all(state[n] in states[n] for n in range(len(state))):
             raise ValueError(
                 "Invalid state: states must consist of reachable states in the base."
@@ -211,7 +211,7 @@ def state_reachable(subsystem):
         state = subsystem.proper_state
         possible_states = all_possible_states_nb(subsystem.network.base)
         tpm = subsystem.tpmdf.values
-        if sum(tpm[:, possible_states.index(state[::-1])]) == 0:
+        if sum(tpm[:, possible_states.index(state)]) == 0:
             raise exceptions.StateUnreachableError(subsystem.state)
         return
 
