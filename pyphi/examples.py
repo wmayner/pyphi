@@ -16,7 +16,8 @@ import numpy as np
 from .actual import Transition
 from .network import Network
 from .subsystem import Subsystem
-from .utils import all_states
+from .utils import all_states, powerset
+from . import actual, config
 
 LABELS = string.ascii_uppercase
 
@@ -1205,3 +1206,185 @@ def prevention():
     y_state = (1, 1, 1)
 
     return Transition(network, x_state, y_state, (0, 1), (2,))
+
+
+def frog_example():
+    """
+    Example used in the paper::
+
+        Causal reductionism and causal structures
+        Grasso, M, Albantakis, L, Lang, J, & Tononi, G
+
+    """
+    with config.override(
+        PARTITION_TYPE='TRI',
+        MEASURE='BLD',
+        VALIDATE_SUBSYSTEM_STATES=False,
+        PICK_SMALLEST_PURVIEW=True,
+        ACTUAL_CAUSATION_MEASURE='WPMI',
+    ):
+        def LogFunc(x,l,k,x0):
+            y = 1/(l+np.e**(-k*(x-x0)))
+            return y
+
+        def Gauss(x, mu, si):
+            y = np.exp(-.5*(((x-mu)/si)**2))
+            return y
+
+        def NR(x, exponent, threshold):
+            x_exp = x**exponent
+            y = x_exp/(threshold + x_exp)
+            return y
+
+        def get_net(mech_func, weights, mu=None, si=None, exp=None, th=None, l=None, k=None, x0=None, input_nodes=None, input_modifier=None, node_labels=None, network_name=None, pickle_network=True):
+            """
+            Returns a pyphi network (with the specified activation function)
+
+            Args:
+                mech_func: (list) list of mechanism function labels ('g' for Gaussian, 'nr' or 's' for Naka-Rushton, 'l' for LogFunc)
+                weights: (numpy array) matrix of node by node weights (x sends to y)
+                mu = mean (Gauss)
+                si = standard deviation (Gauss)
+                exp = exponent (NR or MvsG)
+                th = threshold (NR) or curve steepness (MvsG)
+                x0 = midpoint value (LogFunc)
+                l = max value (LogFunc)
+                k = growth rate (LogFunc)
+                gridsize = number of network nodes in the grid excluded inputs
+            """
+            weights = weights.T
+            node_indices = [n for n in range(len(weights))]
+            nodes_n = len(node_indices)
+
+            if node_labels is None:
+                node_labels = [string.ascii_uppercase[n] for n in range(len(weights))]
+
+            mechs_pset = list(powerset(range(nodes_n),nonempty=True))
+            states = list(all_states(nodes_n))
+            tpm = np.zeros([2**nodes_n,nodes_n])
+
+            for s in range(len(states)):
+                state = states[s]
+                tpm_line = []
+
+                for z in node_indices:
+                    # g = Gaussian
+                    if mech_func[z]=='g':
+                        val = Gauss(sum(state*np.array([weights[z][n] for n in node_indices])),mu,si)
+                    # nr = Naka Rushton, s = space
+                    elif mech_func[z]=='nr' or mech_func[z]=='s':
+                        input_sum = sum(state*weights[z])
+                        val = NR(input_sum,exp,th)
+                    # l = LogFunc
+                    elif mech_func[z]=='l':
+                        val = LogFunc(sum(state*np.array([weights[z][n] for n in node_indices])),l,k,x0)
+                    # i = inhibiting input
+                    elif mech_func[z]=='i':
+                        non_input_nodes = [n for n in node_indices if n not in input_nodes]
+                        input_weights = [-input_modifier if state[n]==0 else 1 for n in input_nodes]*np.array([weights[z][n] for n in input_nodes])
+                        other_weights = [state[n] for n in non_input_nodes]*np.array([weights[z][n] for n in non_input_nodes])
+                        weights_sum = sum(input_weights)+sum(other_weights)
+                        val = Gauss(weights_sum,mu,si)
+                    else:
+                        raise NameError("Mechanism function not recognized")
+
+                    tpm_line.append(val)
+
+                tpm[s] = tuple(tpm_line)
+
+            cm = np.array([[np.float(1) if w else 0 for w in weights[n]] for n in range(len(weights))])
+            cm = cm.T
+            network = Network(tpm, cm, node_labels)
+
+            return network
+
+        # F3 Frog
+        print('F3 frog:\n')
+        mu = 1
+        si = .3
+
+        mech_func = [
+            'g', 'g', 'g', 'g', 'g', 'g', 'g', 'g']
+        #'S1','S2','S3','H1','H2','H3','M1','M2'
+
+        weights = np.array([
+
+            [ 0, 0, 0, 1,.5, 0, 0, 0],#S1
+            [ 0, 0, 0,.5,.9,.5, 0, 0],#S2
+            [ 0, 0, 0, 0,.5, 1, 0, 0],#S3
+            [ 0, 0, 0, 0, 0, 0,.8, 0],#H1
+            [ 0, 0, 0, 0, 0, 0,.2,.2],#H3
+            [ 0, 0, 0, 0, 0, 0, 0,.8],#H2
+            [ 0, 0, 0, 0, 0, 0, 0, 0],#M1
+            [ 0, 0, 0, 0, 0, 0, 0, 0],#M2
+        ])  #S1,S2,S3,H1,H3,H2,M1,M2
+
+        node_labels = ['SL','SC','SR','CL','CC','CR','ML','MR']
+
+        network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
+
+        transition = actual.Transition(network, (1,0,1,1,1,1,1,1),(1,0,1,1,1,1,1,1),(0,1,2,3,4,5),(3,4,5,6,7))
+        print(transition)
+        account = actual.account(transition)
+        print(account)
+
+        # F2 Frog
+        print('F2 frog:\n')
+
+        mu = 1
+        si = .3
+
+        mech_func = [
+            'g', 'g', 'g', 'g', 'g', 'g', 'g',
+        ]
+        #'S1','S2','S3', N1','N2','M1','M2',
+
+        weights = np.array([
+
+            [ 0, 0, 0, 1, 0, 0, 0],#S1
+            [ 0, 0, 0,.5,.5, 0, 0],#S2
+            [ 0, 0, 0, 0, 1, 0, 0],#S3
+            [ 0, 0, 0, 0, 0,.8,.2],#H1
+            [ 0, 0, 0, 0, 0,.2,.8],#H2
+            [ 0, 0, 0, 0, 0, 0, 0],#M1
+            [ 0, 0, 0, 0, 0, 0, 0],#M2
+        ])  #S1,S2,S3,H1,H2,M1,M2
+
+        node_labels = ['SL','SC','SR','CL','CR','ML','MR']
+
+        network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
+
+        transition = actual.Transition(network, (1,0,1,1,1,1,1),(1,0,1,1,1,1,1),(0,1,2,3,4),(3,4,5,6))
+        print(transition)
+        account = actual.account(transition)
+        print(account)
+
+        # F1 Frog
+        print('\n\nF1 frog:\n')
+        mu = 1
+        si = .3
+
+        mech_func = [
+            'g', 'g', 'g', 'g', 'g', 'g', 'g', 'g']
+        #'S1','S2','S3','S4','N1','N2','M1','M2',
+
+        weights = np.array([
+
+            [ 0, 0, 0, 0, 1, 0, 0, 0],#S1
+            [ 0, 0, 0, 0,.5, 0, 0, 0],#S2
+            [ 0, 0, 0, 0, 0,.5, 0, 0],#S3
+            [ 0, 0, 0, 0, 0, 1, 0, 0],#S4
+            [ 0, 0, 0, 0, 0, 0, 1, 0],#H1
+            [ 0, 0, 0, 0, 0, 0, 0, 1],#H2
+            [ 0, 0, 0, 0, 0, 0, 0, 0],#M1
+            [ 0, 0, 0, 0, 0, 0, 0, 0],#M2
+        ])  #S1,S2,S3,S4,H1,H2,M1,M2
+
+        node_labels = ['S1','S2','S3','S4','H1','H2','M1','M2']
+
+        network = get_net(mech_func, weights, mu=mu, si=si, node_labels=node_labels)
+
+        transition = actual.Transition(network,(1,0,0,1,1,1,1,1),(1,0,0,1,1,1,1,1),(0,1,2,3,4,5),(4,5,6,7))
+        print(transition)
+        account = actual.account(transition)
+        print(account)
