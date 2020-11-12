@@ -123,14 +123,19 @@ class Subsystem:
 
         if self.network.nb:
             self.nodes = list(self.node_labels)
+
+            if not self.cut.is_null:
+                tpm = cut_tpm(self, self.cut.from_nodes, self.cut.to_nodes)
+                self.tpmdf = tpm2df(
+                    tpm, self.network.num_states_per_node, self.node_labels
+                )
+
+            # Ensure that TPM MultiIndices are in the correct order
+            self.tpmdf.index = self.tpmdf.index.reorder_levels(self.node_labels)
+            self.tpmdf.columns = self.tpmdf.columns.reorder_levels(self.node_labels)
         else:
             self.nodes = generate_nodes(
                 self.tpm, self.cm, self.state, self.node_indices, self.node_labels
-            )
-        if not self.cut.is_null and self.network.nb:
-            tpm = cut_tpm(self, self.cut.from_nodes, self.cut.to_nodes)
-            self.tpmdf = tpm2df(
-                cut_tpm, self.network.num_states_per_node, list(self.node_labels)
             )
 
         validate.subsystem(self)
