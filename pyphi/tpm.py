@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 from .constants import OFF, ON
-from .utils import all_states
+from .utils import all_states, all_possible_states_nb
 
 
 def tpm_indices(tpm):
@@ -36,17 +36,14 @@ def is_state_by_state(tpm):
 
 
 def tpm2df(tpm, num_states_per_node, node_labels):
-    if num_states_per_node == None:
+    if num_states_per_node is None:
         return
-    # turns nb state by state tpm into a pandas df that can be conditioned
-    states_per_node = [list(range(b)) for b in num_states_per_node]
-
-    states_all_nodes = [list(x[::-1]) for x in list(product(*states_per_node[::-1]))]
-    states_by_states = np.transpose(states_all_nodes).tolist()
-    index = pd.MultiIndex.from_arrays(states_by_states, names=node_labels)
-    columns = pd.MultiIndex.from_arrays(states_by_states, names=node_labels)
-    df = pd.DataFrame(tpm, columns=columns, index=index)
-    return df
+    all_states = all_possible_states_nb(num_states_per_node)
+    index = pd.MultiIndex.from_tuples(all_states, names=node_labels)
+    columns = pd.MultiIndex.from_tuples(all_states, names=node_labels).reorder_levels(
+        node_labels
+    )
+    return pd.DataFrame(tpm, index=index, columns=columns)
 
 
 def condition_tpm_nb(
@@ -55,9 +52,8 @@ def condition_tpm_nb(
     df = tpm2df(tpm, num_states_per_node, node_labels)
     for c in fixed_nodes:
         df = df.iloc[df.index.get_level_values(c) == state[node_labels.index(c)]]
-    tpmdf = df.groupby(
-        sorted(list(set(node_labels) - set(fixed_nodes)))[::-1], axis=1
-    ).sum()
+    free_nodes = list(set(node_labels) - set(fixed_nodes))
+    tpmdf = df.groupby(free_nodes, axis="columns").sum()
     return tpmdf, tpmdf.values
 
 
