@@ -24,7 +24,7 @@ from .models import (
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
-from .tpm import condition_tpm, condition_tpm_nb, marginalize_out, tpm_cut, tpm2df
+from .tpm import condition_tpm, condition_tpm_nb, marginalize_out, cut_tpm, tpm2df
 from .utils import time_annotated
 
 log = logging.getLogger(__name__)
@@ -128,9 +128,8 @@ class Subsystem:
                 self.tpm, self.cm, self.state, self.node_indices, self.node_labels
             )
         if not self.cut.is_null and self.network.nb:
-
-            cut_tpm = tpm_cut(self, self.cut.from_nodes, self.cut.to_nodes)
-            self.tpmdf = tpm2df(cut_tpm, self.network.base, list(self.node_labels))
+            tpm = cut_tpm(self, self.cut.from_nodes, self.cut.to_nodes)
+            self.tpmdf = tpm2df(tpm, self.network.base, list(self.node_labels))
 
         validate.subsystem(self)
 
@@ -403,9 +402,7 @@ class Subsystem:
         purview = frozenset(purview)
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
-        joint = np.ones(
-            repertoire_shape(purview, self.network.size, self.network.base)
-        )
+        joint = np.ones(repertoire_shape(purview, self.network.size, self.network.base))
         # The cause repertoire is the product of the cause repertoires of the
         # individual nodes.
 
@@ -491,9 +488,7 @@ class Subsystem:
         mechanism = frozenset(mechanism)
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
-        joint = np.ones(
-            repertoire_shape(purview, self.network.size, self.network.base)
-        )
+        joint = np.ones(repertoire_shape(purview, self.network.size, self.network.base))
         # The effect repertoire is the product of the effect repertoires of the
         # individual nodes.
         return joint * functools.reduce(
@@ -593,13 +588,11 @@ class Subsystem:
         return distribution.normalize(expanded_repertoire)
 
     def expand_cause_repertoire(self, repertoire, new_purview=None):
-        """Alias for |expand_repertoire()| with ``direction`` set to |CAUSE|.
-        """
+        """Alias for |expand_repertoire()| with ``direction`` set to |CAUSE|."""
         return self.expand_repertoire(Direction.CAUSE, repertoire, new_purview)
 
     def expand_effect_repertoire(self, repertoire, new_purview=None):
-        """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|.
-        """
+        """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|."""
         return self.expand_repertoire(Direction.EFFECT, repertoire, new_purview)
 
     def cause_info(self, mechanism, purview):
