@@ -24,7 +24,7 @@ from .models import (
 from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
-from .tpm import condition_tpm, condition_tpm_nb, marginalize_out, tpm_cut, tpm2df
+from .tpm import condition_tpm, condition_tpm_nb, marginalize_out, cut_tpm, tpm2df
 from .utils import time_annotated
 
 log = logging.getLogger(__name__)
@@ -128,8 +128,7 @@ class Subsystem:
                 self.tpm, self.cm, self.state, self.node_indices, self.node_labels
             )
         if not self.cut.is_null and self.network.nb:
-
-            cut_tpm = tpm_cut(self, self.cut.from_nodes, self.cut.to_nodes)
+            tpm = cut_tpm(self, self.cut.from_nodes, self.cut.to_nodes)
             self.tpmdf = tpm2df(
                 cut_tpm, self.network.num_states_per_node, list(self.node_labels)
             )
@@ -603,13 +602,11 @@ class Subsystem:
         return distribution.normalize(expanded_repertoire)
 
     def expand_cause_repertoire(self, repertoire, new_purview=None):
-        """Alias for |expand_repertoire()| with ``direction`` set to |CAUSE|.
-        """
+        """Alias for |expand_repertoire()| with ``direction`` set to |CAUSE|."""
         return self.expand_repertoire(Direction.CAUSE, repertoire, new_purview)
 
     def expand_effect_repertoire(self, repertoire, new_purview=None):
-        """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|.
-        """
+        """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|."""
         return self.expand_repertoire(Direction.EFFECT, repertoire, new_purview)
 
     def cause_info(self, mechanism, purview):

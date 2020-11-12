@@ -52,8 +52,6 @@ def test_nonbinary_example(example_path):
         ):
             assert small_phi == concept.phi
             assert tuple(cause_purview) == concept.cause.purview
-            assert np.array_equal(np.array(cause_repertoire), concept.cause.repertoire)
+            assert np.allclose(cause_repertoire, concept.cause.repertoire)
             assert tuple(effect_purview) == concept.effect.purview
-            assert np.array_equal(
-                np.array(effect_repertoire), concept.effect.repertoire
-            )
+            assert np.allclose(effect_repertoire, concept.effect.repertoire)

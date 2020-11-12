@@ -44,7 +44,7 @@ def num_states_per_node(num_states_per_node, tpm):
         tuple()
     ):
         if np.prod(num_states_per_node) != tpm.shape[0]:
-            raise NameError("num_states_per_node and Tpm are incompatible")
+            raise NameError("num_states_per_node and TPM are incompatible")
     return True
 
 
@@ -183,10 +183,10 @@ def is_network(network):
 def node_states(state, num_states_per_node=None):
     """Check that the state contains only zeros and ones."""
     if num_states_per_node is not None:
-        states = [tuple(range(b)) for b in num_states_per_node[::-1]]
+        states = [tuple(range(b)) for b in num_states_per_node]
         if not all(state[n] in states[n] for n in range(len(state))):
             raise ValueError(
-                "Invalid state: states must consist of reachable states in the num_states_per_node."
+                "Invalid state: must be consistent with `num_states_per_node`."
             )
     else:
         if not all(n in (0, 1) for n in state):
@@ -213,7 +213,7 @@ def state_reachable(subsystem):
         state = subsystem.proper_state
         possible_states = all_possible_states_nb(subsystem.network.num_states_per_node)
         tpm = subsystem.tpmdf.values
-        if sum(tpm[:, possible_states.index(state[::-1])]) == 0:
+        if sum(tpm[:, possible_states.index(state)]) == 0:
             raise exceptions.StateUnreachableError(subsystem.state)
         return
 

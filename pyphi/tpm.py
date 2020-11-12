@@ -58,8 +58,7 @@ def condition_tpm_nb(
     tpmdf = df.groupby(
         sorted(list(set(node_labels) - set(fixed_nodes)))[::-1], axis=1
     ).sum()
-    tpm2d = tpmdf.values
-    return tpmdf, tpm2d
+    return tpmdf, tpmdf.values
 
 
 def condition_tpm(tpm, fixed_nodes, state):
@@ -180,37 +179,39 @@ def tensor(a, b):
     )
 
 
-def tpm_cut(subsystem, cut1, cut2):
-    v = node_tpm_expanded(subsystem, node_tpm(subsystem, cut1, cut2))
-    v = [x.values for x in v]
-    tpm = functools.reduce(lambda x, y: tensor(x, y), v)
-    return tpm * (1 / np.sum(tpm, axis=1))  # normalize so all rows sum to 1
+def cut_tpm(subsystem, from_nodes, to_nodes):
+    node_tpms = expand_node_tpms(
+        subsystem, cut_node_tpms(subsystem, from_nodes, to_nodes)
+    )
+    tpm = functools.reduce(
+        lambda x, y: tensor(x, y), [node_tpm.values for node_tpm in node_tpms]
+    )
+    # Normalize so all rows sum to 1
+    return tpm * (1 / np.sum(tpm, axis=1))
 
 
-def node_tpm(subsystem, cut1, cut2):
-    connections = subsystem.connections()  # returns the connectivity map of the system
-    list_elem_tpm = []
+def cut_node_tpms(subsystem, from_nodes, to_nodes):
+    # Get the connectivity of the system in dictionary form
+    connections = subsystem.connections()
+    node_tpms = []
 
-    cut1 = [subsystem.node_labels[c] for c in cut1]
-    cut2 = [subsystem.node_labels[c] for c in cut2]
+    from_nodes = [subsystem.node_labels[c] for c in from_nodes]
+    to_nodes = [subsystem.node_labels[c] for c in to_nodes]
 
-    for (
-        element
-    ) in (
-        subsystem.node_indices
-    ):  # this creates the tpm for each element in the subsystem
+    # Create the TPM for each element in the subsystem
+    for element in subsystem.node_indices:
         inputs = connections[subsystem.node_labels[element]]
 
         remain_connections = (
-            list(set(inputs) - set(cut1))
-            if subsystem.node_labels[element] in cut2
+            list(set(inputs) - set(from_nodes))
+            if subsystem.node_labels[element] in to_nodes
             else inputs
         )
         if remain_connections == list(
             subsystem.node_labels
         ):  # if the elment is connected to everyone (including itself), no marg. of any input
             element_node = subsystem.node_labels[element]
-            list_elem_tpm += [subsystem.tpmdf.groupby(element_node, axis=1).sum()]
+            node_tpms += [subsystem.tpmdf.groupby(element_node, axis=1).sum()]
         else:
             if (
                 not remain_connections
@@ -230,7 +231,7 @@ def node_tpm(subsystem, cut1, cut2):
 
             element_node = subsystem.node_labels[element]
 
-            list_elem_tpm += [
+            node_tpms += [
                 (
                     subsystem.tpmdf.groupby(element_node, axis=1)
                     .sum()
@@ -240,24 +241,25 @@ def node_tpm(subsystem, cut1, cut2):
                 * (1 / factor)
             ]
 
-    return list_elem_tpm
+    return node_tpms
 
 
-def node_tpm_expanded(subsystem, list_elem_tpm):
+def expand_node_tpms(subsystem, node_tpms):
     sys = list(subsystem.node_labels)
-    list_elem_tpm_exp = list()
+    expanded_node_tpms = list()
     a = subsystem.tpmdf.reset_index()[sys]
     a.columns = sys
 
-    for df in list_elem_tpm:  # now we expand each element tpm
+    # Expand each element TPM
+    for df in node_tpms:
         b = df.reset_index()
         b.columns = list(b.columns)
         inter = list(set(a.columns).intersection(set(b.columns)))
         inter.sort(reverse=True)
         expanded = pd.merge(a, b, on=inter).sort_values(by=sys[::-1])
         expanded = expanded[list(set(expanded.columns) - set(sys))].values
-        list_elem_tpm_exp.append(
+        expanded_node_tpms.append(
             pd.DataFrame(expanded, columns=df.columns, index=subsystem.tpmdf.index)
         )
 
-    return list_elem_tpm_exp
+    return expanded_node_tpms
