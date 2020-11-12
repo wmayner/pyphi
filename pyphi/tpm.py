@@ -6,12 +6,16 @@
 Functions for manipulating transition probability matrices.
 """
 
-from itertools import chain
+from itertools import chain, product
+
+import functools
 
 import numpy as np
 
+import pandas as pd
+
 from .constants import OFF, ON
-from .utils import all_states
+from .utils import all_states, all_possible_states_nb
 
 
 def tpm_indices(tpm):
@@ -29,6 +33,28 @@ def is_state_by_state(tpm):
     ``False``.
     """
     return tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]
+
+
+def tpm2df(tpm, num_states_per_node, node_labels):
+    if num_states_per_node is None:
+        return
+    all_states = all_possible_states_nb(num_states_per_node)
+    index = pd.MultiIndex.from_tuples(all_states, names=node_labels)
+    columns = pd.MultiIndex.from_tuples(all_states, names=node_labels).reorder_levels(
+        node_labels
+    )
+    return pd.DataFrame(tpm, index=index, columns=columns)
+
+
+def condition_tpm_nb(
+    tpm, fixed_nodes, state, num_states_per_node=None, node_labels=None
+):
+    df = tpm2df(tpm, num_states_per_node, node_labels)
+    for c in fixed_nodes:
+        df = df.iloc[df.index.get_level_values(c) == state[node_labels.index(c)]]
+    free_nodes = list(set(node_labels) - set(fixed_nodes))
+    tpmdf = df.groupby(free_nodes, axis="columns").sum()
+    return tpmdf, tpmdf.values
 
 
 def condition_tpm(tpm, fixed_nodes, state):
@@ -137,3 +163,99 @@ def reconstitute_tpm(subsystem):
     # We concatenate the node TPMs along a new axis to get a multidimensional
     # state-by-node TPM (where the last axis corresponds to nodes).
     return np.concatenate(node_tpms, axis=-1)
+
+
+def tensor(a, b):
+    return functools.reduce(
+        lambda a, b: np.concatenate((a, b), axis=1),
+        [
+            np.transpose(np.multiply(np.transpose(a), b[:, c]))
+            for c in range(b.shape[-1])
+        ],
+    )
+
+
+def cut_tpm(subsystem, from_nodes, to_nodes):
+    node_tpms = expand_node_tpms(
+        subsystem, cut_node_tpms(subsystem, from_nodes, to_nodes)
+    )
+    tpm = functools.reduce(
+        lambda x, y: tensor(x, y), [node_tpm.values for node_tpm in node_tpms]
+    )
+    # Normalize so all rows sum to 1
+    return tpm * (1 / np.sum(tpm, axis=1))
+
+
+def cut_node_tpms(subsystem, from_nodes, to_nodes):
+    # Get the connectivity of the system in dictionary form
+    connections = subsystem.connections()
+    node_tpms = []
+
+    from_nodes = [subsystem.node_labels[c] for c in from_nodes]
+    to_nodes = [subsystem.node_labels[c] for c in to_nodes]
+
+    # Create the TPM for each element in the subsystem
+    for element in subsystem.node_indices:
+        inputs = connections[subsystem.node_labels[element]]
+
+        remain_connections = (
+            list(set(inputs) - set(from_nodes))
+            if subsystem.node_labels[element] in to_nodes
+            else inputs
+        )
+        if remain_connections == list(
+            subsystem.node_labels
+        ):  # if the elment is connected to everyone (including itself), no marg. of any input
+            element_node = subsystem.node_labels[element]
+            node_tpms += [subsystem.tpmdf.groupby(element_node, axis=1).sum()]
+        else:
+            if (
+                not remain_connections
+            ):  # element got disconnected, so it depends on itself
+                remain_connections = [subsystem.node_labels[element]]
+
+            factor_set = tuple(
+                [
+                    list(subsystem.node_labels).index(i)
+                    for i in tuple(
+                        set(list(subsystem.node_labels)) - set(remain_connections)
+                    )
+                ]
+            )
+
+            factor = sum([subsystem.network.num_states_per_node[i] for i in factor_set])
+
+            element_node = subsystem.node_labels[element]
+
+            node_tpms += [
+                (
+                    subsystem.tpmdf.groupby(element_node, axis=1)
+                    .sum()
+                    .groupby(remain_connections)
+                    .sum()
+                )
+                * (1 / factor)
+            ]
+
+    return node_tpms
+
+
+def expand_node_tpms(subsystem, node_tpms):
+    sys = list(subsystem.node_labels)
+    expanded_node_tpms = list()
+    a = subsystem.tpmdf.reset_index()[sys]
+    a.columns = sys
+
+    # Expand each element TPM
+    for df in node_tpms:
+        b = df.reset_index()
+        b.columns = list(b.columns)
+        inter = list(set(a.columns).intersection(set(b.columns)))
+        inter.sort(reverse=True)
+        expanded = pd.merge(a, b, on=inter).sort_values(by=sys[::-1])
+        expanded = expanded[list(set(expanded.columns) - set(sys))].values
+        expanded_node_tpms.append(
+            pd.DataFrame(expanded, columns=df.columns, index=subsystem.tpmdf.index)
+        )
+
+    return expanded_node_tpms

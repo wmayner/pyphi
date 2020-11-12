@@ -8,7 +8,7 @@ Functions for computing subsystem-level properties.
 
 import functools
 import logging
-
+import numpy as np
 from .. import Direction, config, connectivity, memory, utils
 from ..models import (
     CauseEffectStructure,
@@ -19,6 +19,8 @@ from ..models import (
     _null_sia,
     cmp,
     fmt,
+    Tripartition,
+    Part,
 )
 from ..partition import (
     directed_bipartition,
@@ -26,8 +28,12 @@ from ..partition import (
     mip_partitions,
 )
 from ..utils import time_annotated
-from .distance import ces_distance
+from .distance import (
+    ces_distance,
+    small_phi_ces_distance,
+)
 from .parallel import MapReduce
+from ..distribution import flatten
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -145,7 +151,6 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
     log.debug("Evaluating %s...", cut)
 
     cut_subsystem = uncut_subsystem.apply_cut(cut)
-
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
         mechanisms = unpartitioned_ces.mechanisms
     else:
@@ -154,12 +159,15 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
         mechanisms = set(
             unpartitioned_ces.mechanisms + list(cut_subsystem.cut_mechanisms)
         )
-
     partitioned_ces = ces(cut_subsystem, mechanisms)
 
     log.debug("Finished evaluating %s.", cut)
 
-    phi_ = ces_distance(unpartitioned_ces, partitioned_ces)
+    if uncut_subsystem.network.nb:
+        phi_ = small_phi_ces_distance(unpartitioned_ces, partitioned_ces)
+
+    else:
+        phi_ = ces_distance(unpartitioned_ces, partitioned_ces)
 
     return SystemIrreducibilityAnalysis(
         phi=phi_,
@@ -192,6 +200,7 @@ class ComputeSystemIrreducibility(MapReduce):
         """Check if the new SIA has smaller |big_phi| than the standing
         result.
         """
+
         if new_sia.phi == 0:
             self.done = True  # Short-circuit
             return new_sia

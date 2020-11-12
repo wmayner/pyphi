@@ -46,6 +46,63 @@ def all_states(n, big_endian=False):
             yield state[::-1]  # Convert to little-endian ordering
 
 
+def all_states_nb(n, p=None, l=None, nl=None, nb=None, big_endian=False):
+    """Return all binary states for a system.
+
+    Args:
+        n (int): The number of elements in the system.
+        big_endian (bool): Whether to return the states in big-endian order
+            instead of little-endian order.
+
+    Yields:
+        tuple[int]: The next state of an ``n``-element system, in little-endian
+        order unless ``big_endian`` is ``True``.
+    """
+    if n == 0:
+        return
+
+    if nb == None:
+        for state in product((0, 1), repeat=n):
+            if big_endian:
+                yield state
+            else:
+                yield state[::-1]  # Convert to little-endian ordering
+
+    else:
+
+        num_states_per_node = all_possible_states_nb(nb, s=True)
+        network_labels = nl
+
+        if num_states_per_node.count(num_states_per_node[0]) == len(
+            num_states_per_node
+        ):
+            for state in product(tuple(num_states_per_node[0]), repeat=n):
+                if big_endian:
+                    yield state
+                else:
+                    yield state[::-1]  # Convert to little-endian ordering
+        else:
+
+            purview_labels = [l[i] for i in p]
+            purview = [network_labels.index(i) for i in purview_labels]
+            num_states_per_node = [num_states_per_node[i] for i in purview[::-1]]
+
+            for state in product(*num_states_per_node):
+                if big_endian:
+                    yield state
+                else:
+                    yield state[::-1]  # Convert to little-endian ordering
+
+
+def all_possible_states_nb(num_states_per_node, s=False):
+    # Get individual node states
+    states = [list(range(n)) for n in num_states_per_node]
+    if s:
+        return states
+    # Convert states to little-endian format
+    return [x[::-1] for x in list(product(*states[::-1]))]
+
+
 def np_immutable(a):
     """Make a NumPy array immutable."""
     a.flags.writeable = False

@@ -7,6 +7,7 @@ Helper class representing labels of network nodes.
 """
 
 import collections
+import string
 
 from pyphi import validate
 from pyphi.models import cmp
@@ -36,9 +37,13 @@ class NodeLabels(collections.Sequence):
         NodeLabels(('A', 'B'))
     """
 
-    def __init__(self, labels, node_indices):
+    def __init__(self, labels, node_indices, nb = None):
         if labels is None:
-            labels = default_labels(node_indices)
+            if nb:
+                labels = tuple([list(string.ascii_uppercase)[n] for n in node_indices])
+            else:
+                labels = default_labels(node_indices)
+
 
         self.labels = tuple(label for label in labels)
         self.node_indices = node_indices

@@ -11,7 +11,7 @@ import numpy as np
 
 from . import cache, config, connectivity, convert, jsonify, utils, validate
 from .labels import NodeLabels
-from .tpm import is_state_by_state
+from .tpm import is_state_by_state, tpm2df
 
 
 class Network:
@@ -57,14 +57,59 @@ class Network:
     """
 
     # TODO make tpm also optional when implementing logical network definition
-    def __init__(self, tpm, cm=None, node_labels=None, purview_cache=None):
-        self._tpm, self._tpm_hash = self._build_tpm(tpm)
+    def __init__(
+        self,
+        tpm,
+        cm=None,
+        node_labels=None,
+        purview_cache=None,
+        num_states_per_node=None,
+    ):
+        self._nb = True if num_states_per_node is not None else False
+        self._num_states_per_node = self._build_num_states_per_node(
+            num_states_per_node, tpm
+        )
+        self._tpm, self._tpm_hash = self._build_tpm(
+            tpm, num_states_per_node=self.num_states_per_node
+        )
         self._cm, self._cm_hash = self._build_cm(cm)
-        self._node_indices = tuple(range(self.size))
-        self._node_labels = NodeLabels(node_labels, self._node_indices)
+        if self.nb:
+            self._node_indices = tuple(range(len(self.num_states_per_node)))
+        else:
+            self._node_indices = tuple(range(self.size))
+        self._node_labels = NodeLabels(node_labels, self._node_indices, self._nb)
         self.purview_cache = purview_cache or cache.PurviewCache()
+        self._tpmdf = self._build_tpmdf()
 
         validate.network(self)
+
+    @property
+    def nb(self):
+        """Whether the Network contains multi-valued elements."""
+        return self._nb
+
+    @property
+    def num_states_per_node(self):
+        """The number of states for each element in the system."""
+        return self._num_states_per_node
+
+    @staticmethod
+    def _build_num_states_per_node(num_states_per_node, tpm):
+        if num_states_per_node is not None:
+            tpm = convert.to_2dimensional(np.array(tpm))
+
+            validate.num_states_per_node(num_states_per_node, tpm)
+
+            if type(num_states_per_node) == type(1):
+                num_nodes = int(np.log(tpm.shape[0]) / np.log(num_states_per_node))
+                return tuple([num_states_per_node for i in range(num_nodes)])
+
+            elif type(num_states_per_node) == type(list()) or type(
+                num_states_per_node
+            ) == type(tuple()):
+                return tuple([i for i in num_states_per_node])
+        else:
+            return  # binary, no num_states_per_node needed
 
     @property
     def tpm(self):
@@ -74,13 +119,20 @@ class Network:
         return self._tpm
 
     @staticmethod
-    def _build_tpm(tpm):
+    def _build_tpm(tpm, num_states_per_node=None):
         """Validate the TPM passed by the user and convert to multidimensional
         form.
         """
         tpm = np.array(tpm)
 
-        validate.tpm(tpm, check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE)
+        validate.tpm(
+            tpm,
+            check_independence=config.VALIDATE_CONDITIONAL_INDEPENDENCE,
+            num_states_per_node=num_states_per_node,
+        )
+
+        if num_states_per_node is not None:
+            return tpm, utils.np_hash(tpm)  # we don't want a multidimensional tpm if nb
 
         # Convert to multidimensional state-by-node form
         if is_state_by_state(tpm):
@@ -91,6 +143,14 @@ class Network:
         utils.np_immutable(tpm)
 
         return (tpm, utils.np_hash(tpm))
+
+    @property
+    def tpmdf(self):
+        return self._tpmdf
+
+    def _build_tpmdf(self):
+        """convert tpm to df for nb manipulation"""
+        return tpm2df(self.tpm, self.num_states_per_node, self.node_labels)
 
     @property
     def cm(self):
@@ -128,12 +188,15 @@ class Network:
     @property
     def size(self):
         """int: The number of nodes in the network."""
+        if self.nb:
+            return len(self.num_states_per_node)
         return len(self)
 
-    # TODO extend to nonbinary nodes
     @property
     def num_states(self):
         """int: The number of possible states of the network."""
+        if self.nb:
+            return np.prod(self.num_states_per_node)
         return 2 ** self.size
 
     @property

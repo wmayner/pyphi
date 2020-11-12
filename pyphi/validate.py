@@ -10,6 +10,7 @@ import numpy as np
 
 from . import Direction, config, convert, exceptions
 from .tpm import is_state_by_state
+from .utils import all_possible_states_nb
 
 # pylint: disable=redefined-outer-name
 
@@ -30,7 +31,24 @@ def direction(direction, allow_bi=False):
     return True
 
 
-def tpm(tpm, check_independence=True):
+def num_states_per_node(num_states_per_node, tpm):
+    if num_states_per_node is not None and config.MEASURE == "EMD":
+        raise NotImplementedError("EMD not implemented for nonbinary elements")
+    tpm = convert.to_2dimensional(np.array(tpm))
+    if type(num_states_per_node) == type(1):
+        num_nodes = int(np.log(tpm.shape[0]) / np.log(num_states_per_node))
+        if np.power(num_states_per_node, num_nodes) != tpm.shape[0]:
+            raise NameError("num_states_per_node and Tpm are incompatible")
+
+    elif type(num_states_per_node) == type(list()) or type(num_states_per_node) == type(
+        tuple()
+    ):
+        if np.prod(num_states_per_node) != tpm.shape[0]:
+            raise NameError("num_states_per_node and TPM are incompatible")
+    return True
+
+
+def tpm(tpm, check_independence=True, num_states_per_node=None):
     """Validate a TPM.
 
     The TPM can be in
@@ -47,6 +65,18 @@ def tpm(tpm, check_independence=True):
     tpm = np.array(tpm)
     # Get the number of nodes from the state-by-node TPM.
     N = tpm.shape[-1]
+
+    if num_states_per_node is not None:  # check nb binary system
+        tpm = convert.to_2dimensional(tpm)
+        if tpm.shape[0] != tpm.shape[1] or tpm.shape[0] != np.prod(num_states_per_node):
+            raise ValueError(
+                "State-by-state TPM must be square,"
+                "N rows and columns = np.product(num_states_per_node)**2"
+                "{}".format(tpm.shape, see_tpm_docs)
+            )
+        else:
+            return True
+
     if tpm.ndim == 2:
         if not (
             (tpm.shape[0] == 2 ** N and tpm.shape[1] == N)
@@ -97,10 +127,12 @@ def conditionally_independent(tpm):
     return True
 
 
-def connectivity_matrix(cm):
+def connectivity_matrix(cm, nb=False):
     """Validate the given connectivity matrix."""
     # Special case for empty matrices.
     if cm.size == 0:
+        if nb:
+            raise ValueError("Connectivity matrix expected for nb network.")
         return True
     if cm.ndim != 2:
         raise ValueError("Connectivity matrix must be 2-dimensional.")
@@ -127,8 +159,9 @@ def network(n):
 
     Checks the TPM and connectivity matrix.
     """
-    tpm(n.tpm)
-    connectivity_matrix(n.cm)
+    num_states_per_node(n.num_states_per_node, n.tpm)
+    tpm(n.tpm, n.nb, n.num_states_per_node)
+    connectivity_matrix(n.cm, n.nb)
     if n.cm.shape[0] != n.size:
         raise ValueError(
             "Connectivity matrix must be NxN, where N is the "
@@ -147,10 +180,19 @@ def is_network(network):
         )
 
 
-def node_states(state):
+def node_states(state, num_states_per_node=None):
     """Check that the state contains only zeros and ones."""
-    if not all(n in (0, 1) for n in state):
-        raise ValueError("Invalid state: states must consist of only zeros and ones.")
+    if num_states_per_node is not None:
+        states = [tuple(range(b)) for b in num_states_per_node]
+        if not all(state[n] in states[n] for n in range(len(state))):
+            raise ValueError(
+                "Invalid state: must be consistent with `num_states_per_node`."
+            )
+    else:
+        if not all(n in (0, 1) for n in state):
+            raise ValueError(
+                "Invalid state: states must consist of only zeros and ones."
+            )
 
 
 def state_length(state, size):
@@ -166,6 +208,11 @@ def state_length(state, size):
 
 def state_reachable(subsystem):
     """Return whether a state can be reached according to the network's TPM."""
+    if subsystem.network.nb:
+        if subsystem.tpmdf.loc[:, subsystem.proper_state].sum() == 0:
+            raise exceptions.StateUnreachableError(subsystem.state)
+        return
+
     # If there is a row `r` in the TPM such that all entries of `r - state` are
     # between -1 and 1, then the given state has a nonzero probability of being
     # reached from some state.
@@ -191,7 +238,7 @@ def subsystem(s):
 
     Checks its state and cut.
     """
-    node_states(s.state)
+    node_states(s.state, s.network.num_states_per_node)
     cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)
