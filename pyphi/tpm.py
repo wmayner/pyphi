@@ -35,11 +35,11 @@ def is_state_by_state(tpm):
     return tpm.ndim == 2 and tpm.shape[0] == tpm.shape[1]
 
 
-def tpm2df(tpm, base, node_labels):
-    if base == None:
+def tpm2df(tpm, num_states_per_node, node_labels):
+    if num_states_per_node == None:
         return
     # turns nb state by state tpm into a pandas df that can be conditioned
-    states_per_node = [list(range(b)) for b in base]
+    states_per_node = [list(range(b)) for b in num_states_per_node]
 
     states_all_nodes = [list(x[::-1]) for x in list(product(*states_per_node[::-1]))]
     states_by_states = np.transpose(states_all_nodes).tolist()
@@ -49,8 +49,10 @@ def tpm2df(tpm, base, node_labels):
     return df
 
 
-def condition_tpm_nb(tpm, fixed_nodes, state, base=None, node_labels=None):
-    df = tpm2df(tpm, base, node_labels)
+def condition_tpm_nb(
+    tpm, fixed_nodes, state, num_states_per_node=None, node_labels=None
+):
+    df = tpm2df(tpm, num_states_per_node, node_labels)
     for c in fixed_nodes:
         df = df.iloc[df.index.get_level_values(c) == state[node_labels.index(c)]]
     tpmdf = df.groupby(
@@ -169,7 +171,6 @@ def reconstitute_tpm(subsystem):
 
 
 def tensor(a, b):
-
     return functools.reduce(
         lambda a, b: np.concatenate((a, b), axis=1),
         [
@@ -180,7 +181,6 @@ def tensor(a, b):
 
 
 def tpm_cut(subsystem, cut1, cut2):
-
     v = node_tpm_expanded(subsystem, node_tpm(subsystem, cut1, cut2))
     v = [x.values for x in v]
     tpm = functools.reduce(lambda x, y: tensor(x, y), v)
@@ -226,7 +226,7 @@ def node_tpm(subsystem, cut1, cut2):
                 ]
             )
 
-            factor = sum([subsystem.network.base[i] for i in factor_set])
+            factor = sum([subsystem.network.num_states_per_node[i] for i in factor_set])
 
             element_node = subsystem.node_labels[element]
 
@@ -244,7 +244,6 @@ def node_tpm(subsystem, cut1, cut2):
 
 
 def node_tpm_expanded(subsystem, list_elem_tpm):
-
     sys = list(subsystem.node_labels)
     list_elem_tpm_exp = list()
     a = subsystem.tpmdf.reset_index()[sys]

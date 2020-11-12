@@ -70,11 +70,13 @@ def all_states_nb(n, p=None, l=None, nl=None, nb=None, big_endian=False):
 
     else:
 
-        base = all_possible_states_nb(nb, s=True)
+        num_states_per_node = all_possible_states_nb(nb, s=True)
         network_labels = nl
 
-        if base.count(base[0]) == len(base):
-            for state in product(tuple(base[0]), repeat=n):
+        if num_states_per_node.count(num_states_per_node[0]) == len(
+            num_states_per_node
+        ):
+            for state in product(tuple(num_states_per_node[0]), repeat=n):
                 if big_endian:
                     yield state
                 else:
@@ -83,18 +85,18 @@ def all_states_nb(n, p=None, l=None, nl=None, nb=None, big_endian=False):
 
             purview_labels = [l[i] for i in p]
             purview = [network_labels.index(i) for i in purview_labels]
-            base = [base[i] for i in purview[::-1]]
+            num_states_per_node = [num_states_per_node[i] for i in purview[::-1]]
 
-            for state in product(*base):
+            for state in product(*num_states_per_node):
                 if big_endian:
                     yield state
                 else:
                     yield state[::-1]  # Convert to little-endian ordering
 
 
-def all_possible_states_nb(base, s=False):
+def all_possible_states_nb(num_states_per_node, s=False):
     # make a description here
-    states = [list(range(b)) for b in base[::-1]]
+    states = [list(range(b)) for b in num_states_per_node[::-1]]
     if s:
         return states
 

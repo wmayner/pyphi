@@ -31,22 +31,24 @@ def direction(direction, allow_bi=False):
     return True
 
 
-def base(base, tpm):
-    if base is not None and config.MEASURE == "EMD":
+def num_states_per_node(num_states_per_node, tpm):
+    if num_states_per_node is not None and config.MEASURE == "EMD":
         raise NotImplementedError("EMD not implemented for nonbinary elements")
     tpm = convert.to_2dimensional(np.array(tpm))
-    if type(base) == type(1):
-        num_nodes = int(np.log(tpm.shape[0]) / np.log(base))
-        if np.power(base, num_nodes) != tpm.shape[0]:
-            raise NameError("Base and Tpm are incompatible")
+    if type(num_states_per_node) == type(1):
+        num_nodes = int(np.log(tpm.shape[0]) / np.log(num_states_per_node))
+        if np.power(num_states_per_node, num_nodes) != tpm.shape[0]:
+            raise NameError("num_states_per_node and Tpm are incompatible")
 
-    elif type(base) == type(list()) or type(base) == type(tuple()):
-        if np.prod(base) != tpm.shape[0]:
-            raise NameError("Base and Tpm are incompatible")
+    elif type(num_states_per_node) == type(list()) or type(num_states_per_node) == type(
+        tuple()
+    ):
+        if np.prod(num_states_per_node) != tpm.shape[0]:
+            raise NameError("num_states_per_node and Tpm are incompatible")
     return True
 
 
-def tpm(tpm, check_independence=True, base=None):
+def tpm(tpm, check_independence=True, num_states_per_node=None):
     """Validate a TPM.
 
     The TPM can be in
@@ -64,12 +66,12 @@ def tpm(tpm, check_independence=True, base=None):
     # Get the number of nodes from the state-by-node TPM.
     N = tpm.shape[-1]
 
-    if base is not None:  # check nb binary system
+    if num_states_per_node is not None:  # check nb binary system
         tpm = convert.to_2dimensional(tpm)
-        if tpm.shape[0] != tpm.shape[1] or tpm.shape[0] != np.prod(base):
+        if tpm.shape[0] != tpm.shape[1] or tpm.shape[0] != np.prod(num_states_per_node):
             raise ValueError(
                 "State-by-state TPM must be square,"
-                "N rows and columns = np.product(base)**2"
+                "N rows and columns = np.product(num_states_per_node)**2"
                 "{}".format(tpm.shape, see_tpm_docs)
             )
         else:
@@ -157,8 +159,8 @@ def network(n):
 
     Checks the TPM and connectivity matrix.
     """
-    base(n.base, n.tpm)
-    tpm(n.tpm, n.nb, n.base)
+    num_states_per_node(n.num_states_per_node, n.tpm)
+    tpm(n.tpm, n.nb, n.num_states_per_node)
     connectivity_matrix(n.cm, n.nb)
     if n.cm.shape[0] != n.size:
         raise ValueError(
@@ -178,13 +180,13 @@ def is_network(network):
         )
 
 
-def node_states(state, base=None):
+def node_states(state, num_states_per_node=None):
     """Check that the state contains only zeros and ones."""
-    if base is not None:
-        states = [tuple(range(b)) for b in base[::-1]]
+    if num_states_per_node is not None:
+        states = [tuple(range(b)) for b in num_states_per_node[::-1]]
         if not all(state[n] in states[n] for n in range(len(state))):
             raise ValueError(
-                "Invalid state: states must consist of reachable states in the base."
+                "Invalid state: states must consist of reachable states in the num_states_per_node."
             )
     else:
         if not all(n in (0, 1) for n in state):
@@ -209,7 +211,7 @@ def state_reachable(subsystem):
     # make a description here
     if subsystem.network.nb:
         state = subsystem.proper_state
-        possible_states = all_possible_states_nb(subsystem.network.base)
+        possible_states = all_possible_states_nb(subsystem.network.num_states_per_node)
         tpm = subsystem.tpmdf.values
         if sum(tpm[:, possible_states.index(state[::-1])]) == 0:
             raise exceptions.StateUnreachableError(subsystem.state)
@@ -240,7 +242,7 @@ def subsystem(s):
 
     Checks its state and cut.
     """
-    node_states(s.state, s.network.base)
+    node_states(s.state, s.network.num_states_per_node)
     cut(s.cut, s.cut_indices)
     if config.VALIDATE_SUBSYSTEM_STATES:
         state_reachable(s)

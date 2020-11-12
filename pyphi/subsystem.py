@@ -94,7 +94,7 @@ class Subsystem:
                 self.network.tpmdf,
                 self.external_indices,
                 self.state,
-                self.network.base,
+                self.network.num_states_per_node,
                 self.node_labels,
             )
         else:
@@ -130,7 +130,9 @@ class Subsystem:
         if not self.cut.is_null and self.network.nb:
 
             cut_tpm = tpm_cut(self, self.cut.from_nodes, self.cut.to_nodes)
-            self.tpmdf = tpm2df(cut_tpm, self.network.base, list(self.node_labels))
+            self.tpmdf = tpm2df(
+                cut_tpm, self.network.num_states_per_node, list(self.node_labels)
+            )
 
         validate.subsystem(self)
 
@@ -301,7 +303,7 @@ class Subsystem:
             if len(self.node_indices) == len(set_of_nodes)
             else np.prod(
                 [
-                    self.network.base[i]
+                    self.network.num_states_per_node[i]
                     for i in set(self.network.node_indices) - set(set_of_nodes)
                 ]
             )
@@ -356,7 +358,9 @@ class Subsystem:
             col = [self.state[mechanism_node_index]]
 
             return np.array(tpm.loc[:, col[0]] / sum(list(tpm.loc[:, col[0]]))).reshape(
-                repertoire_shape(purview, self.network.size, self.network.base),
+                repertoire_shape(
+                    purview, self.network.size, self.network.num_states_per_node
+                ),
                 order="F",
             )
 
@@ -396,7 +400,7 @@ class Subsystem:
         # distribution.
         if not mechanism:
             return max_entropy_distribution(
-                purview, self.network.size, self.network.base
+                purview, self.network.size, self.network.num_states_per_node
             )
         # Use a frozenset so the arguments to `_single_node_cause_repertoire`
         # can be hashed and cached.
@@ -404,7 +408,9 @@ class Subsystem:
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
         joint = np.ones(
-            repertoire_shape(purview, self.network.size, self.network.base)
+            repertoire_shape(
+                purview, self.network.size, self.network.num_states_per_node
+            )
         )
         # The cause repertoire is the product of the cause repertoires of the
         # individual nodes.
@@ -434,7 +440,7 @@ class Subsystem:
                         repertoire_shape(
                             [purview_node_index],
                             self.network.size,
-                            self.network.base,
+                            self.network.num_states_per_node,
                         )
                     )
                     if len(mechanism) > 1
@@ -442,14 +448,16 @@ class Subsystem:
                         repertoire_shape(
                             [purview_node_index],
                             self.network.size,
-                            self.network.base,
+                            self.network.num_states_per_node,
                         )
                     )
                 )
             else:
                 return np.array(tpm.sum(axis=0) / tpm.shape[0]).reshape(
                     repertoire_shape(
-                        [purview_node_index], self.network.size, self.network.base
+                        [purview_node_index],
+                        self.network.size,
+                        self.network.num_states_per_node,
                     )
                 )
 
@@ -492,7 +500,9 @@ class Subsystem:
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
         joint = np.ones(
-            repertoire_shape(purview, self.network.size, self.network.base)
+            repertoire_shape(
+                purview, self.network.size, self.network.num_states_per_node
+            )
         )
         # The effect repertoire is the product of the effect repertoires of the
         # individual nodes.
@@ -695,7 +705,7 @@ class Subsystem:
                 partitioned_repertoire=partitioned_repertoire,
                 node_labels=self.node_labels,
                 net_labels=self.network.node_labels,
-                net_states=self.network.base,
+                net_states=self.network.num_states_per_node,
             )
 
         # State is unreachable - return 0 instead of giving nonsense results

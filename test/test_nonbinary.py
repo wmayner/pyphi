@@ -26,7 +26,11 @@ def test_nonbinary_example(example_path):
         USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=True,
         ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS=True,
     ):
-        network = pyphi.Network(example["tpm"], cm=example["cm"], base=example["base"])
+        network = pyphi.Network(
+            example["tpm"],
+            cm=example["cm"],
+            num_states_per_node=example["num_states_per_node"],
+        )
         subsystem = pyphi.Subsystem(network, example["state"])
         sia = pyphi.compute.sia(subsystem)
         assert example["big_phi"] == sia.phi
