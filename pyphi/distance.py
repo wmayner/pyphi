@@ -267,6 +267,12 @@ def intrinsic_difference(p, q):
     where we define :math:`p_i \log_2 \left( \\frac{p_i}{q_i} \\right)` to be
     :math:`0` when :math:`p_i = 0` or :math:`q_i = 0`.
 
+    See the following paper:
+
+        Barbosa LS, Marshall W, Streipert S, Albantakis L, Tononi G (2020).
+        A measure for intrinsic information.
+        *Sci Rep*, 10, 18803. https://doi.org/10.1038/s41598-020-75943-4
+
     Args:
         p (float): The first probability distribution.
         q (float): The second probability distribution.
