@@ -295,7 +295,6 @@ def absolute_intrinsic_difference(p, q):
     Returns:
         float: The absolute intrinsic difference.
     """
-    p, q = flatten(p), flatten(q)
     return np.max(np.abs(p * np.nan_to_num(np.log2(p / q))))
 
 
