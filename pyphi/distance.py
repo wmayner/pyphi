@@ -242,15 +242,6 @@ def mp2q(p, q):
     return np.sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log2(p / q)))
 
 
-@measures.register("KLM", asymmetric=True)
-@measures.register("BLD", asymmetric=True)  # Backwards-compatible alias
-@np_suppress()
-def klm(p, q):
-    """Compute the KLM divergence."""
-    p, q = flatten(p), flatten(q)
-    return np.max(np.abs(p * np.nan_to_num(np.log2(p / q))))
-
-
 # TODO add reference to ID paper
 @measures.register("ID", asymmetric=True)
 @np_suppress()
@@ -281,6 +272,31 @@ def intrinsic_difference(p, q):
         float: The intrinsic difference.
     """
     return np.max(p * np.nan_to_num(np.log2(p / q)))
+
+
+@measures.register("AID", asymmetric=True)
+@measures.register("KLM", asymmetric=True)  # Backwards-compatible alias
+@measures.register("BLD", asymmetric=True)  # Backwards-compatible alias
+@np_suppress()
+def absolute_intrinsic_difference(p, q):
+    """Compute the absolute intrinsic difference (AID) between two
+    distributions.
+
+    This is the same as the ID, but with the absolute value taken before the
+    maximum is taken.
+
+    See documentation for :func:`intrinsic_difference` for further details
+    and references.
+
+    Args:
+        p (float): The first probability distribution.
+        q (float): The second probability distribution.
+
+    Returns:
+        float: The absolute intrinsic difference.
+    """
+    p, q = flatten(p), flatten(q)
+    return np.max(np.abs(p * np.nan_to_num(np.log2(p / q))))
 
 
 def directional_emd(direction, d1, d2):
