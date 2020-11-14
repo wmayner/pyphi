@@ -10,7 +10,7 @@ from contextlib import ContextDecorator
 from math import log2
 
 import numpy as np
-from pyemd import emd
+from pyemd import emd as _emd
 from scipy.spatial.distance import cdist
 from scipy.stats import entropy
 
@@ -144,7 +144,6 @@ def _compute_hamming_matrix(N):
 
 
 # TODO extend to binary nodes
-@measures.register("EMD")
 def hamming_emd(d1, d2):
     """Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node) using the Hamming distance between states
@@ -154,7 +153,7 @@ def hamming_emd(d1, d2):
     """
     N = d1.squeeze().ndim
     d1, d2 = flatten(d1), flatten(d2)
-    return emd(d1, d2, _hamming_matrix(N))
+    return _emd(d1, d2, _hamming_matrix(N))
 
 
 def effect_emd(d1, d2):
@@ -173,6 +172,35 @@ def effect_emd(d1, d2):
         float: The EMD between ``d1`` and ``d2``.
     """
     return sum(abs(marginal_zero(d1, i) - marginal_zero(d2, i)) for i in range(d1.ndim))
+
+
+@measures.register("EMD")
+def emd(d1, d2, direction):
+    """Compute the EMD between two repertoires for a given direction.
+
+    The full EMD computation is used for cause repertoires. A fast analytic
+    solution is used for effect repertoires.
+
+    Args:
+        d1 (np.ndarray): The first repertoire.
+        d2 (np.ndarray): The second repertoire.
+        direction (Direction): |CAUSE| or |EFFECT|.
+
+    Returns:
+        float: The EMD between ``d1`` and ``d2``, rounded to |PRECISION|.
+
+    Raises:
+        ValueError: If ``direction`` is invalid.
+    """
+    if (direction == Direction.CAUSE) or (direction is None):
+        func = hamming_emd
+    elif direction == Direction.EFFECT:
+        func = effect_emd
+    else:
+        # TODO: test that ValueError is raised
+        validate.direction(direction)
+
+    return round(func(d1, d2), config.PRECISION)
 
 
 @measures.register("L1")
@@ -306,70 +334,6 @@ def absolute_intrinsic_difference(p, q):
     return np.max(absolute_information_density(p, q))
 
 
-def directional_emd(direction, d1, d2):
-    """Compute the EMD between two repertoires for a given direction.
-
-    The full EMD computation is used for cause repertoires. A fast analytic
-    solution is used for effect repertoires.
-
-    Args:
-        direction (Direction): |CAUSE| or |EFFECT|.
-        d1 (np.ndarray): The first repertoire.
-        d2 (np.ndarray): The second repertoire.
-
-    Returns:
-        float: The EMD between ``d1`` and ``d2``, rounded to |PRECISION|.
-
-    Raises:
-        ValueError: If ``direction`` is invalid.
-    """
-    if direction == Direction.CAUSE:
-        func = hamming_emd
-    elif direction == Direction.EFFECT:
-        func = effect_emd
-    else:
-        # TODO: test that ValueError is raised
-        validate.direction(direction)
-
-    return round(func(d1, d2), config.PRECISION)
-
-
-def repertoire_distance(direction, r1, r2):
-    """Compute the distance between two repertoires for the given direction.
-
-    Args:
-        direction (Direction): |CAUSE| or |EFFECT|.
-        r1 (np.ndarray): The first repertoire.
-        r2 (np.ndarray): The second repertoire.
-
-    Returns:
-        float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
-    """
-    if config.REPERTOIRE_DISTANCE == "EMD":
-        dist = directional_emd(direction, r1, r2)
-    else:
-        dist = measures[config.REPERTOIRE_DISTANCE](r1, r2)
-
-    return round(dist, config.PRECISION)
-
-
-def system_repertoire_distance(r1, r2):
-    """Compute the distance between two repertoires of a system.
-
-    Args:
-        r1 (np.ndarray): The first repertoire.
-        r2 (np.ndarray): The second repertoire.
-
-    Returns:
-        float: The distance between ``r1`` and ``r2``.
-    """
-    if config.REPERTOIRE_DISTANCE in measures.asymmetric():
-        raise ValueError(
-            "{} is asymmetric and cannot be used as a system-level "
-            "irreducibility measure.".format(config.REPERTOIRE_DISTANCE)
-        )
-
-    return measures[config.REPERTOIRE_DISTANCE](r1, r2)
 # Actual causation measures
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -10,7 +10,7 @@ import logging
 import numpy as np
 
 from . import Direction, cache, distribution, utils, validate
-from .distance import repertoire_distance
+from .compute.distance import repertoire_distance
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (
     Concept,
@@ -500,17 +500,17 @@ class Subsystem:
     def cause_info(self, mechanism, purview):
         """Return the cause information for a mechanism over a purview."""
         return repertoire_distance(
-            Direction.CAUSE,
             self.cause_repertoire(mechanism, purview),
             self.unconstrained_cause_repertoire(purview),
+            direction=Direction.CAUSE,
         )
 
     def effect_info(self, mechanism, purview):
         """Return the effect information for a mechanism over a purview."""
         return repertoire_distance(
-            Direction.EFFECT,
             self.effect_repertoire(mechanism, purview),
             self.unconstrained_effect_repertoire(purview),
+            direction=Direction.EFFECT,
         )
 
     def cause_effect_info(self, mechanism, purview):
@@ -550,7 +550,7 @@ class Subsystem:
 
         partitioned_repertoire = self.partitioned_repertoire(direction, partition)
 
-        phi = repertoire_distance(direction, repertoire, partitioned_repertoire)
+        phi = repertoire_distance(repertoire, partitioned_repertoire, direction=direction)
 
         return (phi, partitioned_repertoire)
 

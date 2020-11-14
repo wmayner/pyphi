@@ -7,10 +7,53 @@ Functions for computing distances between various PyPhi objects.
 """
 
 import numpy as np
+from pyemd import emd
 
 from .. import config, utils
-from ..distance import emd
-from ..distance import system_repertoire_distance as repertoire_distance
+from ..distance import measures
+
+
+def repertoire_distance(r1, r2, direction):
+    """Compute the distance between two repertoires for the given direction.
+
+    Args:
+        r1 (np.ndarray): The first repertoire.
+        r2 (np.ndarray): The second repertoire.
+        direction (Direction): |CAUSE| or |EFFECT|.
+
+    Returns:
+        float: The distance between ``r1`` and ``r2``, rounded to |PRECISION|.
+    """
+    func = measures[config.REPERTOIRE_DISTANCE]
+    try:
+        distance = func(r1, r2, direction)
+    except TypeError:
+        distance = func(r1, r2)
+    return round(distance, config.PRECISION)
+
+
+def system_repertoire_distance(r1, r2):
+    """Compute the distance between two repertoires of a system.
+
+    Args:
+        r1 (np.ndarray): The first repertoire.
+        r2 (np.ndarray): The second repertoire.
+
+    Returns:
+        float: The distance between ``r1`` and ``r2``.
+    """
+    if config.REPERTOIRE_DISTANCE in measures.asymmetric():
+        raise ValueError(
+            "{} is asymmetric and cannot be used as a system-level "
+            "irreducibility measure.".format(config.REPERTOIRE_DISTANCE)
+        )
+    # TODO refactor
+    func = measures[config.REPERTOIRE_DISTANCE]
+    try:
+        distance = func(r1, r2, direction=None)
+    except TypeError:
+        distance = func(r1, r2)
+    return round(distance, config.PRECISION)
 
 
 def concept_distance(c1, c2):
@@ -29,10 +72,10 @@ def concept_distance(c1, c2):
     cause_purview = tuple(set(c1.cause.purview + c2.cause.purview))
     effect_purview = tuple(set(c1.effect.purview + c2.effect.purview))
     # Take the sum
-    return repertoire_distance(
+    return system_repertoire_distance(
         c1.expand_cause_repertoire(cause_purview),
         c2.expand_cause_repertoire(cause_purview),
-    ) + repertoire_distance(
+    ) + system_repertoire_distance(
         c1.expand_effect_repertoire(effect_purview),
         c2.expand_effect_repertoire(effect_purview),
     )
