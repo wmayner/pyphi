@@ -85,14 +85,14 @@ def test_mp2q():
     assert distance.mp2q(a, b) == 4
 
 
-def test_klm():
+def test_absolute_intrinsic_difference():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
-    assert distance.klm(a, b) == 0
+    assert distance.absolute_intrinsic_difference(a, b) == 0
 
     a = np.array([[[1]], [[0]]])
     b = np.array([[[0.25]], [[0.75]]])
-    assert distance.klm(a, b) == 2.0
+    assert distance.absolute_intrinsic_difference(a, b) == 2.0
 
 
 def test_default_measures():
@@ -104,6 +104,7 @@ def test_default_measures():
             "ENTROPY_DIFFERENCE",
             "PSQ2",
             "MP2Q",
+            "AID",
             "KLM",
             "BLD",
             "ID",
@@ -115,7 +116,7 @@ def test_default_measures():
 
 def test_default_asymmetric_measures():
     assert set(distance.measures.asymmetric()) == set(
-        ["KLD", "MP2Q", "KLM", "BLD", "ID", "PMI", "WPMI"]
+        ["KLD", "MP2Q", "AID", "KLM", "BLD", "ID", "PMI", "WPMI"]
     )
 
 
