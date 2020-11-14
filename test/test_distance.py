@@ -122,7 +122,7 @@ def test_default_asymmetric_measures():
 def test_system_repertoire_distance_must_be_symmetric():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
-    with config.override(MEASURE="KLD"):
+    with config.override(REPERTOIRE_DISTANCE="KLD"):
         with pytest.raises(ValueError):
             distance.system_repertoire_distance(a, b)
 

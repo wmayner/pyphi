@@ -18,7 +18,7 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 # modular, sparsely-connected, or homogeneous networks.
 CUT_ONE_APPROXIMATION: false
 # The measure to use when computing phi ("EMD", "KLD", "L1", ...)
-MEASURE: "EMD"
+REPERTOIRE_DISTANCE: "EMD"
 # Controls the number of parts in a partition.
 PARTITION_TYPE: "BI"
 # Controls how to resolve phi-ties when computing MICE.

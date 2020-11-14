@@ -53,7 +53,7 @@ These settings control the algorithms PyPhi uses.
 
 - :attr:`~pyphi.conf.PyphiConfig.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS`
 - :attr:`~pyphi.conf.PyphiConfig.CUT_ONE_APPROXIMATION`
-- :attr:`~pyphi.conf.PyphiConfig.MEASURE`
+- :attr:`~pyphi.conf.Pyphiconfig.REPERTOIRE_DISTANCE`
 - :attr:`~pyphi.conf.PyphiConfig.ACTUAL_CAUSATION_MEASURE`
 - :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE`
 - :attr:`~pyphi.conf.PyphiConfig.PICK_SMALLEST_PURVIEW`
@@ -401,7 +401,7 @@ class PyphiConfig(Config):
     networks.""",
     )
 
-    MEASURE = Option(
+    REPERTOIRE_DISTANCE = Option(
         "EMD",
         doc="""
     The measure to use when computing distances between repertoires and
@@ -419,7 +419,7 @@ class PyphiConfig(Config):
             return 0
 
     This measure can then be used by setting
-    ``config.MEASURE = 'ALWAYS_ZERO'``.
+    ``config.REPERTOIRE_DISTANCE = 'ALWAYS_ZERO'``.
 
     If the measure is asymmetric you should register it using the
     ``asymmetric`` keyword argument. See :mod:`~pyphi.distance` for examples.
@@ -432,7 +432,7 @@ class PyphiConfig(Config):
     The measure to use when computing the pointwise information between state
     probabilities in the actual causation module.
 
-    See documentation for ``config.MEASURE`` for more information on
+    See documentation for ``config.REPERTOIRE_DISTANCE`` for more information on
     configuring measures.
     """,
     )
@@ -644,7 +644,7 @@ class PyphiConfig(Config):
         type=int,
         on_change=configure_precision,
         doc="""
-    If ``MEASURE`` is ``EMD``, then the Earth Mover's Distance is calculated
+    If ``REPERTOIRE_DISTANCE`` is ``EMD``, then the Earth Mover's Distance is calculated
     with an external C++ library that a numerical optimizer to find a good
     approximation. Consequently, systems with analytically zero |big_phi| will
     sometimes be numerically found to have a small but non-zero amount. This

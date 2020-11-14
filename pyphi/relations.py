@@ -14,6 +14,7 @@ from . import config, validate
 from .models import cmp
 from .models.cuts import Bipartition, Part
 from .models.subsystem import CauseEffectStructure
+from .distance import absolute_information_density
 from .utils import powerset, eq
 
 # TODO there should be an option to resolve ties at different levels
@@ -84,13 +85,6 @@ def indices(iterable):
     return tuple(sorted(iterable))
 
 
-# TODO rename and hook into config options
-def divergence(p, q):
-    # We don't care if p or q or both are zero
-    with np.errstate(divide="ignore", invalid="ignore"):
-        return np.abs(p * np.nan_to_num(np.log2(p / q)))
-
-
 # TODO this should end up being stored on the MICE object itself when the 4.0
 # branch is finished
 def maximal_state(mice):
@@ -101,7 +95,7 @@ def maximal_state(mice):
     Returns:
         np.array: A 2D array where each row is a maximally divergent state.
     """
-    div = divergence(mice.repertoire, mice.partitioned_repertoire)
+    div = absolute_information_density(mice.repertoire, mice.partitioned_repertoire)
     return np.transpose(np.where(div == div.max()))
 
 
@@ -298,7 +292,7 @@ class Relata:
         partitioned_repertoire = self.subsystem.partitioned_repertoire(
             mice.direction, partition
         )
-        div = divergence(mice.repertoire, partitioned_repertoire)
+        div = absolute_information_density(mice.repertoire, partitioned_repertoire)
         state_indices = tuple(np.transpose(self.maximal_states[mice]))
         # TODO tie breaking happens here! double-check with andrew
         return np.max(div[state_indices])

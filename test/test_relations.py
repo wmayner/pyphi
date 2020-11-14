@@ -9,7 +9,7 @@ from pyphi import compute, config, examples, relations, utils
 
 def test_maximal_states():
     with config.override(
-        PARTITION_TYPE="TRI", MEASURE="BLD",
+        PARTITION_TYPE="TRI", REPERTOIRE_DISTANCE="BLD",
     ):
         subsystem = examples.PQR()
         ces = relations.separate_ces(compute.ces(subsystem))
@@ -32,7 +32,7 @@ def test_maximal_states():
 
 def test_PQR_relations():
     with config.override(
-        PARTITION_TYPE="TRI", MEASURE="BLD",
+        PARTITION_TYPE="TRI", REPERTOIRE_DISTANCE="BLD",
     ):
         PQR = examples.PQR()
         ces = compute.ces(PQR)

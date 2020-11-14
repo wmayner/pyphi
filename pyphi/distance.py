@@ -35,7 +35,7 @@ class MeasureRegistry(Registry):
         ... def always_zero(a, b):
         ...    return 0
 
-    And use them by setting ``config.MEASURE = 'ALWAYS_ZERO'``.
+    And use them by setting ``config.REPERTOIRE_DISTANCE = 'ALWAYS_ZERO'``.
 
     For actual causation calculations, use
     ``config.ACTUAL_CAUSATION_MEASURE``.
@@ -337,10 +337,10 @@ def repertoire_distance(direction, r1, r2):
     Returns:
         float: The distance between ``d1`` and ``d2``, rounded to |PRECISION|.
     """
-    if config.MEASURE == "EMD":
+    if config.REPERTOIRE_DISTANCE == "EMD":
         dist = directional_emd(direction, r1, r2)
     else:
-        dist = measures[config.MEASURE](r1, r2)
+        dist = measures[config.REPERTOIRE_DISTANCE](r1, r2)
 
     return round(dist, config.PRECISION)
 
@@ -355,15 +355,13 @@ def system_repertoire_distance(r1, r2):
     Returns:
         float: The distance between ``r1`` and ``r2``.
     """
-    if config.MEASURE in measures.asymmetric():
+    if config.REPERTOIRE_DISTANCE in measures.asymmetric():
         raise ValueError(
             "{} is asymmetric and cannot be used as a system-level "
-            "irreducibility measure.".format(config.MEASURE)
+            "irreducibility measure.".format(config.REPERTOIRE_DISTANCE)
         )
 
-    return measures[config.MEASURE](r1, r2)
-
-
+    return measures[config.REPERTOIRE_DISTANCE](r1, r2)
 # Actual causation measures
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -424,8 +422,8 @@ def probability_distance(p, q, measure=None):
 
     Keyword Args:
         measure (str): Optionally override
-            ``config.ACTUAL_CAUSATION_MEASURE`` with another measure name
-            from the registry.
+        ``config.ACTUAL_CAUSATION_MEASURE`` with another measure name from
+        the registry.
 
     Returns:
         float: The probability distance between ``p`` and ``q``.

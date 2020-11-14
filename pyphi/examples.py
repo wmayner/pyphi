@@ -1218,7 +1218,7 @@ def frog_example():
     """
     with config.override(
         PARTITION_TYPE='TRI',
-        MEASURE='BLD',
+        REPERTOIRE_DISTANCE='BLD',
         VALIDATE_SUBSYSTEM_STATES=False,
         PICK_SMALLEST_PURVIEW=True,
         ACTUAL_CAUSATION_MEASURE='WPMI',

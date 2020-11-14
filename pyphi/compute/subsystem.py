@@ -334,7 +334,7 @@ def _sia_cache_key(subsystem):
         hash(subsystem),
         config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS,
         config.CUT_ONE_APPROXIMATION,
-        config.MEASURE,
+        config.REPERTOIRE_DISTANCE,
         config.PRECISION,
         config.VALIDATE_SUBSYSTEM_STATES,
         config.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI,
