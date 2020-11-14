@@ -7,7 +7,7 @@
 import numpy as np
 
 from .. import Direction, config, connectivity, distribution, utils
-from ..distance import maximal_state
+from ..metrics import maximal_state
 from ..exceptions import WrongDirectionError
 from . import cmp, fmt
 

@@ -14,7 +14,7 @@ from . import config, validate
 from .models import cmp
 from .models.cuts import Bipartition, Part
 from .models.subsystem import CauseEffectStructure
-from .distance import absolute_information_density
+from .metrics import absolute_information_density
 from .utils import powerset, eq
 
 # TODO there should be an option to resolve ties at different levels

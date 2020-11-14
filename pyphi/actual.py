@@ -34,7 +34,7 @@ from . import (
     utils,
     validate,
 )
-from .distance import pointwise_mutual_information, probability_distance
+from .metrics import pointwise_mutual_information, probability_distance
 from .models import (
     Account,
     AcRepertoireIrreducibilityAnalysis,

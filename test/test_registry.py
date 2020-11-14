@@ -4,11 +4,11 @@
 
 import pytest
 
-from pyphi import distance
+from pyphi import metrics
 
 
 def test_registry():
-    registry = distance.Registry()
+    registry = metrics.Registry()
 
     assert "DIFF" not in registry
     assert len(registry) == 0

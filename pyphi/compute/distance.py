@@ -10,7 +10,7 @@ import numpy as np
 from pyemd import emd
 
 from .. import config, utils
-from ..distance import measures
+from ..metrics import measures
 
 
 def repertoire_distance(r1, r2, direction):
