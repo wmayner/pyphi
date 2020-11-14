@@ -242,9 +242,18 @@ def mp2q(p, q):
     return np.sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log2(p / q)))
 
 
-# TODO add reference to ID paper
-@measures.register("ID", asymmetric=True)
 @np_suppress()
+def information_density(p, q):
+    """Return the information density function of two distributions."""
+    return p * np.nan_to_num(np.log2(p / q))
+
+
+def absolute_information_density(p, q):
+    """Return the absolute information density function of two distributions."""
+    return np.abs(information_density(p, q))
+
+
+@measures.register("ID", asymmetric=True)
 def intrinsic_difference(p, q):
     """Compute the intrinsic difference (ID) between two distributions.
 
@@ -271,13 +280,12 @@ def intrinsic_difference(p, q):
     Returns:
         float: The intrinsic difference.
     """
-    return np.max(p * np.nan_to_num(np.log2(p / q)))
+    return np.max(information_density(p, q))
 
 
 @measures.register("AID", asymmetric=True)
 @measures.register("KLM", asymmetric=True)  # Backwards-compatible alias
 @measures.register("BLD", asymmetric=True)  # Backwards-compatible alias
-@np_suppress()
 def absolute_intrinsic_difference(p, q):
     """Compute the absolute intrinsic difference (AID) between two
     distributions.
@@ -295,7 +303,7 @@ def absolute_intrinsic_difference(p, q):
     Returns:
         float: The absolute intrinsic difference.
     """
-    return np.max(np.abs(p * np.nan_to_num(np.log2(p / q))))
+    return np.max(absolute_information_density(p, q))
 
 
 def directional_emd(direction, d1, d2):
