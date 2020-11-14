@@ -7,6 +7,7 @@
 import numpy as np
 
 from .. import Direction, config, connectivity, distribution, utils
+from ..distance import maximal_state
 from ..exceptions import WrongDirectionError
 from . import cmp, fmt
 
@@ -56,6 +57,14 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         self._repertoire = _repertoire(repertoire)
         self._partitioned_repertoire = _repertoire(partitioned_repertoire)
 
+        # TODO(4.0)
+        # - build this into the RIA class
+        # - use DistanceResult
+        if self._partitioned_repertoire is None:
+            self._maximal_state = None
+        else:
+            self._maximal_state = maximal_state(self.repertoire, self.partitioned_repertoire)
+
         # Optional labels - only used to generate nice labeled reprs
         self._node_labels = node_labels
 
@@ -102,6 +111,12 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         partition.
         """
         return self._partitioned_repertoire
+
+    @property
+    def maximal_state(self):
+        """The state(s) with the maximal absolute intrinsic difference
+        between the unpartitioned and partitioned repertoires."""
+        return self._maximal_state
 
     @property
     def node_labels(self):
@@ -223,6 +238,12 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         purview.
         """
         return self._ria.partitioned_repertoire
+
+    @property
+    def maximal_state(self):
+        """The state(s) with the maximal absolute intrinsic difference
+        between the unpartitioned and partitioned repertoires."""
+        return self._ria.maximal_state
 
     @property
     def ria(self):

@@ -85,20 +85,6 @@ def indices(iterable):
     return tuple(sorted(iterable))
 
 
-# TODO this should end up being stored on the MICE object itself when the 4.0
-# branch is finished
-def maximal_state(mice):
-    """Return the maximally divergent state(s) for this MICE.
-
-    Note that there can be ties.
-
-    Returns:
-        np.array: A 2D array where each row is a maximally divergent state.
-    """
-    div = absolute_information_density(mice.repertoire, mice.partitioned_repertoire)
-    return np.transpose(np.where(div == div.max()))
-
-
 def congruent_nodes(states):
     """Return the set of nodes that have the same state in all given states."""
     return set(np.all(states == states[0], axis=0).nonzero()[0])
@@ -196,11 +182,10 @@ class Relata:
     def purviews(self):
         return (relatum.purview for relatum in self)
 
-    # TODO !!! remove once the maximal states are on the MICE objects
     @property
     def maximal_states(self):
         if self._maximal_states is None:
-            self._maximal_states = {mice: maximal_state(mice) for mice in self}
+            self._maximal_states = {mice: mice.maximal_state for mice in self}
         return self._maximal_states
 
     def __repr__(self):
@@ -235,6 +220,9 @@ class Relata:
             purview = set()
         return Relation(self._relata, purview, phi)
 
+    # TODO(4.0) update language to say "state specified by" etc
+    # TODO(4.0) allow indexing directly into relation?
+    # TODO(4.0) make a property for the maximal state of the purview only
     def congruent_overlap(self):
         """Yield the congruent overlap(s) among the relata.
 
@@ -249,7 +237,7 @@ class Relata:
         overlap = self.overlap()
         # A state set is one state per relatum; a relatum can have multiple
         # tied states, so we consider every combination
-        for state_set in product(*self.maximal_states.values()):
+        for state_set in product(relatum.maximal_state for relatum in self):
             # Get the nodes that have the same state in every maximal state
             congruent = congruent_nodes(state_set)
             # Find the largest congruent subset of the full overlap
@@ -293,7 +281,7 @@ class Relata:
             mice.direction, partition
         )
         div = absolute_information_density(mice.repertoire, partitioned_repertoire)
-        state_indices = tuple(np.transpose(self.maximal_states[mice]))
+        state_indices = tuple(np.transpose(mice.maximal_state))
         # TODO tie breaking happens here! double-check with andrew
         return np.max(div[state_indices])
 

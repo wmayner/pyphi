@@ -281,6 +281,21 @@ def absolute_information_density(p, q):
     return np.abs(information_density(p, q))
 
 
+def maximal_state(repertoire, partitioned_repertoire):
+    """Return the state(s) with the maximal AID between the repertoires.
+
+    Note that there can be ties.
+
+    Returns:
+        np.array: A 2D array where each row is a maximal state.
+    """
+    # TODO(4.0) this is unnecessarily recomputed; should make a
+    # DistanceResult class that can carry auxilliary data, e.g. the maximal
+    # states
+    density = absolute_information_density(repertoire, partitioned_repertoire)
+    return np.transpose(np.where(density == density.max()))
+
+
 @measures.register("ID", asymmetric=True)
 def intrinsic_difference(p, q):
     """Compute the intrinsic difference (ID) between two distributions.

@@ -554,6 +554,7 @@ class Subsystem:
 
         return (phi, partitioned_repertoire)
 
+
     def find_mip(self, direction, mechanism, purview):
         """Return the minimum information partition for a mechanism over a
         purview.
