@@ -13,14 +13,12 @@ and to the users who make it worth developing.
 Specific contributions are mentioned here, but not exhaustively; for a more
 detailed list of code contributions, see the git revision history.
 
----
-
 <dl>
 
   <dt>
     Larissa Albantakis
   </dt><dd>
-      Project supervision, funding acquisition, prototyping `actual` module, testing
+      Project supervision, funding acquisition, prototyping <code>actual</code> module, testing
     </dd>
 
   <dt>
@@ -50,13 +48,13 @@ detailed list of code contributions, see the git revision history.
   <dt>
     Matteo Grasso
   </dt><dd>
-    Prototyping & testing `relations` module, prototyping visualization support
+    Prototyping & testing <code>relations</code> module, prototyping visualization support
     </dd>
 
   <dt>
     Andrew Haun
   </dt><dd>
-    Prototyping & testing `relations` module
+    Prototyping & testing <code>relations</code> module
     </dd>
 
   <dt>
@@ -68,7 +66,7 @@ detailed list of code contributions, see the git revision history.
   <dt>
     William Marshall
   </dt><dd>
-      Prototyping `macro` & `actual` modules, EMD optimization, testing
+      Prototyping <code>macro</code> & <code>actual</code> modules, EMD optimization, testing
     </dd>
 
   <dt>
