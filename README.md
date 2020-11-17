@@ -136,6 +136,8 @@ conda install scipy
 
 ## Credit
 
+Please see the [list of significant contributors](AUTHORS.md).
+
 ### Please cite these papers if you use this code:
 
 Mayner WGP, Marshall W, Albantakis L, Findlay G, Marchman R, Tononi G. (2018)
