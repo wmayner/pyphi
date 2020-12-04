@@ -265,8 +265,8 @@ def intrinsic_difference(p, q):
         *Sci Rep*, 10, 18803. https://doi.org/10.1038/s41598-020-75943-4
 
     Args:
-        p (float): The first probability distribution.
-        q (float): The second probability distribution.
+        p (np.ndarray[float]): The first probability distribution.
+        q (np.ndarray[float]): The second probability distribution.
 
     Returns:
         float: The intrinsic difference.
@@ -289,8 +289,8 @@ def absolute_intrinsic_difference(p, q):
     and references.
 
     Args:
-        p (float): The first probability distribution.
-        q (float): The second probability distribution.
+        p (np.ndarray[float]): The first probability distribution.
+        q (np.ndarray[float]): The second probability distribution.
 
     Returns:
         float: The absolute intrinsic difference.
