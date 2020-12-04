@@ -13,6 +13,7 @@ import numpy as np
 from pyemd import emd as _emd
 from scipy.spatial.distance import cdist
 from scipy.stats import entropy
+from scipy.special import rel_entr
 
 from . import Direction, config, constants, utils, validate
 from .distribution import flatten, marginal_zero
@@ -23,6 +24,9 @@ _NUM_PRECOMPUTED_HAMMING_MATRICES = 10
 _hamming_matrices = utils.load_data(
     "hamming_matrices", _NUM_PRECOMPUTED_HAMMING_MATRICES
 )
+
+
+_ln2 = np.log(2)
 
 
 class MeasureRegistry(Registry):
@@ -270,10 +274,13 @@ def mp2q(p, q):
     return np.sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log2(p / q)))
 
 
-@np_suppress()
 def information_density(p, q):
-    """Return the information density function of two distributions."""
-    return p * np.nan_to_num(np.log2(p / q))
+    """Return the information density of p relative to q, in base 2.
+
+    This is also known as the element-wise relative entropy; see
+    :func:`scipy.special.rel_entr`.
+    """
+    return rel_entr(p, q) / _ln2
 
 
 def absolute_information_density(p, q):
