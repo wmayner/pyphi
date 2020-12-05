@@ -1,8 +1,8 @@
-.. _distance:
+.. _metrics:
 
-:mod:`distance`
+:mod:`metrics`
 ===============
 
-.. automodule:: pyphi.distance
+.. automodule:: pyphi.metrics
     :members:
     :undoc-members:
