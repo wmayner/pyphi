@@ -618,6 +618,7 @@ def test_causal_nexus(standard):
     assert nexus.transition.effect_indices == (2,)
 
 
+@pytest.mark.slow
 def test_true_events(standard):
     states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # Previous, current, next
     events = actual.true_events(standard, *states)
@@ -669,6 +670,7 @@ def test_true_ces(standard):
     assert actual_effect.mechanism == (2,)
 
 
+@pytest.mark.slow
 def test_extrinsic_events(standard):
     states = ((1, 0, 0), (0, 0, 1), (1, 1, 0))  # Previous, current, next
 
