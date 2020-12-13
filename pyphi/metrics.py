@@ -25,8 +25,7 @@ _hamming_matrices = utils.load_data(
     "hamming_matrices", _NUM_PRECOMPUTED_HAMMING_MATRICES
 )
 
-
-_ln2 = np.log(2)
+_LN_OF_2 = np.log(2)
 
 
 class MeasureRegistry(Registry):
@@ -147,20 +146,20 @@ def _compute_hamming_matrix(N):
     return cdist(possible_states, possible_states, "hamming") * N
 
 
-# TODO extend to binary nodes
-def hamming_emd(d1, d2):
+# TODO extend to nonbinary nodes
+def hamming_emd(p, q):
     """Return the Earth Mover's Distance between two distributions (indexed
     by state, one dimension per node) using the Hamming distance between states
     as the transportation cost function.
 
     Singleton dimensions are sqeezed out.
     """
-    N = d1.squeeze().ndim
-    d1, d2 = flatten(d1), flatten(d2)
-    return _emd(d1, d2, _hamming_matrix(N))
+    N = p.squeeze().ndim
+    p, q = flatten(p), flatten(q)
+    return _emd(p, q, _hamming_matrix(N))
 
 
-def effect_emd(d1, d2):
+def effect_emd(p, q):
     """Compute the EMD between two effect repertoires.
 
     Because the nodes are independent, the EMD between effect repertoires is
@@ -169,29 +168,29 @@ def effect_emd(d1, d2):
     difference in the probabilities that the node is OFF.
 
     Args:
-        d1 (np.ndarray): The first repertoire.
-        d2 (np.ndarray): The second repertoire.
+        p (np.ndarray): The first repertoire.
+        q (np.ndarray): The second repertoire.
 
     Returns:
-        float: The EMD between ``d1`` and ``d2``.
+        float: The EMD between ``p`` and ``q``.
     """
-    return sum(abs(marginal_zero(d1, i) - marginal_zero(d2, i)) for i in range(d1.ndim))
+    return sum(abs(marginal_zero(p, i) - marginal_zero(q, i)) for i in range(p.ndim))
 
 
 @measures.register("EMD")
-def emd(d1, d2, direction):
+def emd(p, q, direction):
     """Compute the EMD between two repertoires for a given direction.
 
     The full EMD computation is used for cause repertoires. A fast analytic
     solution is used for effect repertoires.
 
     Args:
-        d1 (np.ndarray): The first repertoire.
-        d2 (np.ndarray): The second repertoire.
+        p (np.ndarray): The first repertoire.
+        q (np.ndarray): The second repertoire.
         direction (Direction): |CAUSE| or |EFFECT|.
 
     Returns:
-        float: The EMD between ``d1`` and ``d2``, rounded to |PRECISION|.
+        float: The EMD between ``p`` and ``q``, rounded to |PRECISION|.
 
     Raises:
         ValueError: If ``direction`` is invalid.
@@ -204,70 +203,84 @@ def emd(d1, d2, direction):
         # TODO: test that ValueError is raised
         validate.direction(direction)
 
-    return round(func(d1, d2), config.PRECISION)
+    return round(func(p, q), config.PRECISION)
 
 
 @measures.register("L1")
-def l1(d1, d2):
+def l1(p, q):
     """Return the L1 distance between two distributions.
 
     Args:
-        d1 (np.ndarray): The first distribution.
-        d2 (np.ndarray): The second distribution.
+        p (np.ndarray): The first probability distribution.
+        q (np.ndarray): The second probability distribution.
 
     Returns:
-        float: The sum of absolute differences of ``d1`` and ``d2``.
+        float: The sum of absolute differences of ``p`` and ``q``.
     """
-    return np.abs(d1 - d2).sum()
+    return np.abs(p - q).sum()
 
 
 @measures.register("KLD", asymmetric=True)
-def kld(d1, d2):
+def kld(p, q):
     """Return the Kullback-Leibler Divergence (KLD) between two distributions.
 
     Args:
-        d1 (np.ndarray): The first distribution.
-        d2 (np.ndarray): The second distribution.
+        p (np.ndarray): The first distribution.
+        q (np.ndarray): The second distribution.
 
     Returns:
-        float: The KLD of ``d1`` from ``d2``.
+        float: The KLD of ``p`` from ``q``.
     """
-    d1, d2 = flatten(d1), flatten(d2)
-    return entropy(d1, d2, 2.0)
+    p, q = flatten(p), flatten(q)
+    return entropy(, q, 2.0)
 
 
 @measures.register("ENTROPY_DIFFERENCE")
-def entropy_difference(d1, d2):
+def entropy_difference(p, q):
     """Return the difference in entropy between two distributions."""
-    d1, d2 = flatten(d1), flatten(d2)
-    return abs(entropy(d1, base=2.0) - entropy(d2, base=2.0))
+    p, q = flatten(p), flatten(q)
+    return abs(entropy(p, base=2.0) - entropy(q, base=2.0))
 
 
 @measures.register("PSQ2")
 @np_suppress()
-def psq2(d1, d2):
-    """Compute the PSQ2 measure.
+def psq2(p, q):
+    r"""Compute the PSQ2 measure.
+
+    This is defined as :math:`\mid f(p) - f(q) \mid`, where
+
+    .. math::
+        f(x) = \sum_{i=0}^{N-1} p_i^2 \log_2 (p_i N)
 
     Args:
-        d1 (np.ndarray): The first distribution.
-        d2 (np.ndarray): The second distribution.
+        p (np.ndarray): The first distribution.
+        q (np.ndarray): The second distribution.
     """
-    d1, d2 = flatten(d1), flatten(d2)
+    p, q = flatten(p), flatten(q)
 
     def f(p):
         return np.sum((p ** 2) * np.nan_to_num(np.log2(p * len(p))))
 
-    return abs(f(d1) - f(d2))
+    return abs(f(p) - f(q))
 
 
 @measures.register("MP2Q", asymmetric=True)
 @np_suppress()
 def mp2q(p, q):
-    """Compute the MP2Q measure.
+    r"""Compute the MP2Q measure.
+
+    This is defined as
+
+    .. math::
+        \frac{1}{N}
+        \sum_{i=0}^{N-1} \frac{p_i^2}{q_i} \log_2\left(\frac{p_i}{q_i}\right)
 
     Args:
-        p (np.ndarray): The unpartitioned repertoire
-        q (np.ndarray): The partitioned repertoire
+        p (np.ndarray): The first distribution.
+        q (np.ndarray): The second distribution.
+
+    Returns:
+        float: The distance.
     """
     p, q = flatten(p), flatten(q)
     entropy_dist = 1 / len(p)
@@ -279,12 +292,30 @@ def information_density(p, q):
 
     This is also known as the element-wise relative entropy; see
     :func:`scipy.special.rel_entr`.
+
+    Args:
+        p (np.ndarray): The first probability distribution.
+        q (np.ndarray): The second probability distribution.
+
+    Returns:
+        np.ndarray: The information density of ``p`` relative to ``q``.
     """
-    return rel_entr(p, q) / _ln2
+    return rel_entr(p, q) / _LN_OF_2
 
 
 def absolute_information_density(p, q):
-    """Return the absolute information density function of two distributions."""
+    """Return the absolute information density function of two distributions.
+
+    The information density is also known as the element-wise relative
+    entropy; see :func:`scipy.special.rel_entr`.
+
+    Args:
+        p (np.ndarray): The first probability distribution.
+        q (np.ndarray): The second probability distribution.
+
+    Returns:
+        np.ndarray: The absolute information density of ``p`` relative to ``q``.
+    """
     return np.abs(information_density(p, q))
 
 
@@ -294,7 +325,7 @@ def maximal_state(repertoire, partitioned_repertoire):
     Note that there can be ties.
 
     Returns:
-        np.array: A 2D array where each row is a maximal state.
+        np.ndarray: A 2D array where each row is a maximal state.
     """
     # TODO(4.0) this is unnecessarily recomputed; should make a
     # DistanceResult class that can carry auxilliary data, e.g. the maximal
@@ -324,8 +355,8 @@ def intrinsic_difference(p, q):
         *Sci Rep*, 10, 18803. https://doi.org/10.1038/s41598-020-75943-4
 
     Args:
-        p (float): The first probability distribution.
-        q (float): The second probability distribution.
+        p (np.ndarray): The first probability distribution.
+        q (np.ndarray): The second probability distribution.
 
     Returns:
         float: The intrinsic difference.
