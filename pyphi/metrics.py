@@ -13,7 +13,7 @@ import numpy as np
 from pyemd import emd as _emd
 from scipy.spatial.distance import cdist
 from scipy.stats import entropy
-from scipy.special import rel_entr
+from scipy.special import entr, rel_entr
 
 from . import Direction, config, constants, utils, validate
 from .distribution import flatten, marginal_zero
@@ -220,30 +220,15 @@ def l1(p, q):
     return np.abs(p - q).sum()
 
 
-@measures.register("KLD", asymmetric=True)
-def kld(p, q):
-    """Return the Kullback-Leibler Divergence (KLD) between two distributions.
-
-    Args:
-        p (np.ndarray): The first distribution.
-        q (np.ndarray): The second distribution.
-
-    Returns:
-        float: The KLD of ``p`` from ``q``.
-    """
-    p, q = flatten(p), flatten(q)
-    return entropy(, q, 2.0)
-
-
 @measures.register("ENTROPY_DIFFERENCE")
 def entropy_difference(p, q):
     """Return the difference in entropy between two distributions."""
-    p, q = flatten(p), flatten(q)
-    return abs(entropy(p, base=2.0) - entropy(q, base=2.0))
+    hp = entr(p).sum() / _LN_OF_2
+    hq = entr(q).sum() / _LN_OF_2
+    return abs(hp - hq)
 
 
 @measures.register("PSQ2")
-@np_suppress()
 def psq2(p, q):
     r"""Compute the PSQ2 measure.
 
@@ -256,12 +241,9 @@ def psq2(p, q):
         p (np.ndarray): The first distribution.
         q (np.ndarray): The second distribution.
     """
-    p, q = flatten(p), flatten(q)
-
-    def f(p):
-        return np.sum((p ** 2) * np.nan_to_num(np.log2(p * len(p))))
-
-    return abs(f(p) - f(q))
+    fp = (p * (-1.0 * entr(p))).sum() / _LN_OF_2 + (p ** 2 * log2(len(p))).sum()
+    fq = (q * (-1.0 * entr(q))).sum() / _LN_OF_2 + (q ** 2 * log2(len(q))).sum()
+    return abs(fp - fq)
 
 
 @measures.register("MP2Q", asymmetric=True)
@@ -282,9 +264,7 @@ def mp2q(p, q):
     Returns:
         float: The distance.
     """
-    p, q = flatten(p), flatten(q)
-    entropy_dist = 1 / len(p)
-    return np.sum(entropy_dist * np.nan_to_num((p ** 2) / q * np.log2(p / q)))
+    return np.sum(p / q * information_density(p, q) / len(p))
 
 
 def information_density(p, q):
@@ -301,6 +281,20 @@ def information_density(p, q):
         np.ndarray: The information density of ``p`` relative to ``q``.
     """
     return rel_entr(p, q) / _LN_OF_2
+
+
+@measures.register("KLD", asymmetric=True)
+def kld(p, q):
+    """Return the Kullback-Leibler Divergence (KLD) between two distributions.
+
+    Args:
+        p (np.ndarray): The first probability distribution.
+        q (np.ndarray): The second probability distribution.
+
+    Returns:
+        float: The KLD of ``p`` from ``q``.
+    """
+    return information_density(p, q).sum()
 
 
 def absolute_information_density(p, q):
