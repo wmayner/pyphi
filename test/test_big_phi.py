@@ -171,7 +171,10 @@ micro_answer = {
 
 macro_answer = {
     "phi": 0.86905,
-    "unpartitioned_small_phis": {(0,): 0.455, (1,): 0.455,},
+    "unpartitioned_small_phis": {
+        (0,): 0.455,
+        (1,): 0.455,
+    },
     "cuts": [
         models.Cut(from_nodes=(0,), to_nodes=(1,)),
         models.Cut(from_nodes=(1,), to_nodes=(0,)),
