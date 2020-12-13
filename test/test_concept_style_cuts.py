@@ -139,6 +139,7 @@ def sia_cs(phi=1.0, subsystem=None):
     )
 
 
+@pytest.mark.slow
 def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
     assert sia_cs(subsystem=s) == sia_cs(subsystem=s)
     assert sia_cs(phi=1, subsystem=s) < sia_cs(phi=2, subsystem=s)
@@ -149,6 +150,7 @@ def test_sia_concept_style_ordering(s, subsys_n0n2, s_noised):
         sia_cs(subsystem=s) < sia_cs(subsystem=s_noised)
 
 
+@pytest.mark.slow
 def test_sia_concept_style(s):
     sia = compute.sia_concept_style(s)
     assert sia.min_sia is sia.sia_effect

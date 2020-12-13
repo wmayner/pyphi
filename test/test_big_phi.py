@@ -368,6 +368,7 @@ def test_complexes_standard(s):
 
 
 # TODO!! add more assertions for the smaller subsystems
+@pytest.mark.slow
 def test_all_complexes_standard(s):
     complexes = list(compute.all_complexes(s.network, s.state))
     check_sia(complexes[0], standard_answer)

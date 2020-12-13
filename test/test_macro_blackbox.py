@@ -195,6 +195,7 @@ def test_xor_propogation_delay():
     assert sia.cut == models.Cut((0,), (1, 2, 3, 4, 5, 6, 7, 8))
 
 
+# TODO(wmayner) this test hangs on helicon
 @pytest.mark.xfail
 def test_soup():
     # An first example attempting to capture the "soup" metaphor
