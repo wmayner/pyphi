@@ -101,7 +101,7 @@ for any purview, so the cause information is reducible.
     >>> repertoire = subsystem.cause_repertoire(ABC, ABC)
     >>> cut_repertoire = (subsystem.cause_repertoire(BC, ABC) *
     ...                   subsystem.cause_repertoire(A, ()))
-    >>> pyphi.distance.hamming_emd(repertoire, cut_repertoire)
+    >>> pyphi.metrics.hamming_emd(repertoire, cut_repertoire)
     0.0
 
 Next, let's look at the cut subsystem to understand how the new concept comes
@@ -131,7 +131,7 @@ currently ON. Thus, unlike the unpartitioned case, knowing the current state of
     >>> repertoire = cut_subsystem.cause_repertoire(ABC, ABC)
     >>> cut_repertoire = (cut_subsystem.cause_repertoire(AB, ABC) *
     ...                   cut_subsystem.cause_repertoire(C, ()))
-    >>> print(pyphi.distance.hamming_emd(repertoire, cut_repertoire))
+    >>> print(pyphi.metrics.hamming_emd(repertoire, cut_repertoire))
     0.500001
 
 With this partition, the integrated information is :math:`\varphi = 0.5`, but
