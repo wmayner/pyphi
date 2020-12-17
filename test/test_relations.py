@@ -7,29 +7,6 @@ import numpy as np
 from pyphi import compute, config, examples, relations, utils
 
 
-def test_maximal_states():
-    with config.override(
-        PARTITION_TYPE="TRI", REPERTOIRE_DISTANCE="BLD",
-    ):
-        subsystem = examples.PQR()
-        ces = relations.separate_ces(compute.ces(subsystem))
-        results = [relations.maximal_state(mice) for mice in ces]
-        answers = [
-            np.array([[0, 0, 0]]),
-            np.array([[0, 0, 0]]),
-            np.array([[0, 0, 0], [1, 1, 0]]),
-            np.array([[0, 0, 0]]),
-            np.array([[0, 1, 0]]),
-            np.array([[0, 0, 1]]),
-            np.array([[1, 1, 0]]),
-            np.array([[0, 0, 1]]),
-        ]
-        for result, answer in zip(results, answers):
-            print(result)
-            print(answer)
-            assert np.array_equal(result, answer)
-
-
 def test_PQR_relations():
     with config.override(
         PARTITION_TYPE="TRI", REPERTOIRE_DISTANCE="BLD",
@@ -61,6 +38,7 @@ def test_PQR_relations():
             [(2, 4, 6), 0.3465735902799726, [(1,)]],
             [(1, 2, 3, 7), 0.3465735902799726, [(0,)]],
         ]
+        return results, answers
 
         def base2(x):
             return x / np.log(2.0)

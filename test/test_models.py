@@ -7,7 +7,17 @@ from collections import namedtuple
 import numpy as np
 import pytest
 
-from pyphi import Direction, Subsystem, config, constants, exceptions, models
+from pyphi import (
+    Direction,
+    Subsystem,
+    config,
+    constants,
+    compute,
+    relations,
+    exceptions,
+    models,
+    examples,
+)
 from pyphi.labels import NodeLabels
 
 # Helper functions for constructing PyPhi objects
@@ -258,11 +268,22 @@ def test_cut_matrix():
     assert np.array_equal(cut.cut_matrix(1), matrix)
 
     cut = models.Cut((0,), (1,))
-    matrix = np.array([[0, 1], [0, 0],])
+    matrix = np.array(
+        [
+            [0, 1],
+            [0, 0],
+        ]
+    )
     assert np.array_equal(cut.cut_matrix(2), matrix)
 
     cut = models.Cut((0, 2), (1, 2))
-    matrix = np.array([[0, 1, 1], [0, 0, 0], [0, 1, 1],])
+    matrix = np.array(
+        [
+            [0, 1, 1],
+            [0, 0, 0],
+            [0, 1, 1],
+        ]
+    )
     assert np.array_equal(cut.cut_matrix(3), matrix)
 
     cut = models.Cut((), ())
@@ -491,6 +512,30 @@ def test_mie_raises_wrong_direction():
     mie(direction=Direction.EFFECT, mechanism=(0,), purview=(1,))
     with pytest.raises(exceptions.WrongDirectionError):
         mie(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
+
+
+def test_maximal_states():
+    with config.override(
+        PARTITION_TYPE="TRI",
+        REPERTOIRE_DISTANCE="AID",
+    ):
+        subsystem = examples.PQR()
+        ces = relations.separate_ces(compute.ces(subsystem))
+        results = [mice.maximal_state for mice in ces]
+        answers = [
+            np.array([[0, 0, 0]]),
+            np.array([[0, 0, 0]]),
+            np.array([[0, 0, 0], [1, 1, 0]]),
+            np.array([[0, 0, 0]]),
+            np.array([[0, 1, 0]]),
+            np.array([[0, 0, 1]]),
+            np.array([[1, 1, 0]]),
+            np.array([[0, 0, 1]]),
+        ]
+        for result, answer in zip(results, answers):
+            print(result)
+            print(answer)
+            assert np.array_equal(result, answer)
 
 
 # }}}
