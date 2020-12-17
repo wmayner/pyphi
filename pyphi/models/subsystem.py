@@ -4,7 +4,7 @@
 
 """Subsystem-level objects."""
 
-import collections
+from collections.abc import Sequence
 
 from .. import utils
 from . import cmp, fmt
@@ -16,7 +16,7 @@ def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
 
 
-class CauseEffectStructure(cmp.Orderable, collections.Sequence):
+class CauseEffectStructure(cmp.Orderable, Sequence):
     """A collection of concepts."""
 
     def __init__(self, concepts=(), subsystem=None, time=None):

@@ -6,10 +6,10 @@
 A function registry for storing custom measures and partition strategies.
 """
 
-import collections
+from collections.abc import Mapping
 
 
-class Registry(collections.Mapping):
+class Registry(Mapping):
     """Generic registry for user-supplied functions.
 
     See ``pyphi.subsystem.PartitionRegistry`` and

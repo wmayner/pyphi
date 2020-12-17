@@ -6,7 +6,8 @@
 Objects that represent structures used in actual causation.
 """
 
-import collections
+from collections import namedtuple
+from collections.abc import Sequence
 
 from .. import Direction, config, utils
 from . import cmp, fmt
@@ -237,7 +238,7 @@ class CausalLink(cmp.Orderable):
         return {"ria": self.ria}
 
 
-class Event(collections.namedtuple("Event", ["actual_cause", "actual_effect"])):
+class Event(namedtuple("Event", ["actual_cause", "actual_effect"])):
     """A mechanism which has both an actual cause and an actual effect.
 
     Attributes:
@@ -252,7 +253,7 @@ class Event(collections.namedtuple("Event", ["actual_cause", "actual_effect"])):
         return self.actual_cause.mechanism
 
 
-class Account(cmp.Orderable, collections.Sequence):
+class Account(cmp.Orderable, Sequence):
     """The set of |CausalLinks| with |alpha > 0|. This includes both actual
     causes and actual effects.
     """

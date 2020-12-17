@@ -6,7 +6,7 @@
 Helper class representing labels of network nodes.
 """
 
-import collections
+from collections.abc import Sequence
 
 from pyphi import validate
 from pyphi.models import cmp
@@ -22,7 +22,7 @@ def default_labels(indices):
     return tuple(default_label(i) for i in indices)
 
 
-class NodeLabels(collections.Sequence):
+class NodeLabels(Sequence):
     """Text labels for nodes in a network.
 
     Labels can either be instantiated as a tuple of strings:

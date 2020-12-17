@@ -4,7 +4,8 @@
 
 """Objects that represent partitions of sets of nodes."""
 
-import collections
+from collections import namedtuple
+from collections.abc import Sequence
 from itertools import chain
 
 import numpy as np
@@ -238,7 +239,7 @@ class ActualCut(KCut):
         return tuple(sorted(set(self.partition.mechanism + self.partition.purview)))
 
 
-class Part(collections.namedtuple("Part", ["mechanism", "purview"])):
+class Part(namedtuple("Part", ["mechanism", "purview"])):
     """Represents one part of a |Bipartition|.
 
     Attributes:
@@ -263,7 +264,7 @@ class Part(collections.namedtuple("Part", ["mechanism", "purview"])):
         return {"mechanism": self.mechanism, "purview": self.purview}
 
 
-class KPartition(collections.Sequence):
+class KPartition(Sequence):
     """A partition with an arbitrary number of parts."""
 
     __slots__ = ["parts", "node_labels"]
