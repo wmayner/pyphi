@@ -24,16 +24,8 @@ from itertools import chain
 
 import numpy as np
 
-from . import (
-    Direction,
-    compute,
-    config,
-    connectivity,
-    constants,
-    exceptions,
-    utils,
-    validate,
-)
+from . import compute, config, connectivity, constants, exceptions, utils, validate
+from .direction import Direction
 from .metrics import measures
 from .models import (
     Account,

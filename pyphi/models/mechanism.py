@@ -6,9 +6,10 @@
 
 import numpy as np
 
-from .. import Direction, config, connectivity, distribution, utils
-from ..metrics import maximal_state
+from .. import config, connectivity, utils
+from ..direction import Direction
 from ..exceptions import WrongDirectionError
+from ..metrics.distribution import maximal_state
 from . import cmp, fmt
 
 _ria_attributes = [
@@ -63,7 +64,9 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         if self._partitioned_repertoire is None:
             self._maximal_state = None
         else:
-            self._maximal_state = maximal_state(self.repertoire, self.partitioned_repertoire)
+            self._maximal_state = maximal_state(
+                self.repertoire, self.partitioned_repertoire
+            )
 
         # Optional labels - only used to generate nice labeled reprs
         self._node_labels = node_labels

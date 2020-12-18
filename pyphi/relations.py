@@ -14,7 +14,7 @@ from . import config, validate
 from .models import cmp
 from .models.cuts import Bipartition, Part
 from .models.subsystem import CauseEffectStructure
-from .metrics import absolute_information_density
+from .metrics.distribution import absolute_information_density
 from .utils import powerset, eq
 
 # TODO there should be an option to resolve ties at different levels
@@ -352,10 +352,13 @@ def all_relations(subsystem, ces):
     ces = separate_ces(ces)
     # Compute all relations
     return map(
-        relation, (Relata(subsystem, subset) for subset in filter(
-            lambda purviews: len(purviews) > 1,
-            powerset(ces, nonempty=True))
-        )
+        relation,
+        (
+            Relata(subsystem, subset)
+            for subset in filter(
+                lambda purviews: len(purviews) > 1, powerset(ces, nonempty=True)
+            )
+        ),
     )
 
 

@@ -9,8 +9,9 @@ import logging
 
 import numpy as np
 
-from . import Direction, cache, distribution, utils, validate
+from . import cache, distribution, utils, validate
 from .compute.distance import repertoire_distance
+from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (
     Concept,
@@ -488,13 +489,11 @@ class Subsystem:
         return distribution.normalize(expanded_repertoire)
 
     def expand_cause_repertoire(self, repertoire, new_purview=None):
-        """Alias for |expand_repertoire()| with ``direction`` set to |CAUSE|.
-        """
+        """Alias for |expand_repertoire()| with ``direction`` set to |CAUSE|."""
         return self.expand_repertoire(Direction.CAUSE, repertoire, new_purview)
 
     def expand_effect_repertoire(self, repertoire, new_purview=None):
-        """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|.
-        """
+        """Alias for |expand_repertoire()| with ``direction`` set to |EFFECT|."""
         return self.expand_repertoire(Direction.EFFECT, repertoire, new_purview)
 
     def cause_info(self, mechanism, purview):
@@ -550,10 +549,11 @@ class Subsystem:
 
         partitioned_repertoire = self.partitioned_repertoire(direction, partition)
 
-        phi = repertoire_distance(repertoire, partitioned_repertoire, direction=direction)
+        phi = repertoire_distance(
+            repertoire, partitioned_repertoire, direction=direction
+        )
 
         return (phi, partitioned_repertoire)
-
 
     def find_mip(self, direction, mechanism, purview):
         """Return the minimum information partition for a mechanism over a

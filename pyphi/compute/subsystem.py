@@ -9,7 +9,8 @@ Functions for computing subsystem-level properties.
 import functools
 import logging
 
-from .. import Direction, config, connectivity, memory, utils
+from .. import config, connectivity, memory, utils
+from ..direction import Direction
 from ..models import (
     CauseEffectStructure,
     Concept,

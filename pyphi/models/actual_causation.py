@@ -9,7 +9,8 @@ Objects that represent structures used in actual causation.
 from collections import namedtuple
 from collections.abc import Sequence
 
-from .. import Direction, config, utils
+from .. import config, utils
+from ..direction import Direction
 from . import cmp, fmt
 
 # TODO(slipperyhank): add second state

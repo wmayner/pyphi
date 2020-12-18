@@ -67,51 +67,57 @@ See the documentation for the |config| module for a description of the options
 and their defaults.
 """
 
+import importlib
 import os
+import pkgutil
 
-from .__about__ import *  # pylint: disable=wildcard-import
+from .__about__ import *
 
-# Initialize config object
 from .conf import config
-from .direction import Direction
-
-from . import (
-    actual,
-    constants,
-    convert,
-    db,
-    examples,
-    jsonify,
-    macro,
-    models,
-    network,
-    node,
-    subsystem,
-    utils,
-    validate,
-)
 from .actual import Transition
+from .direction import Direction
 from .network import Network
 from .subsystem import Subsystem
 
+
+def _import_submodules(package, recursive=True):
+    """Import all submodules of a module, recursively, including subpackages.
+
+    Args:
+        package (str | module): package to traverse (name or module object).
+
+    Keyword Args:
+        recursive (bool): Whether to import submodules recursively.
+
+    Returns:
+        dict[str, types.ModuleType]: A dictionary mapping names to submodules.
+    """
+    if isinstance(package, str):
+        package = importlib.import_module(package)
+    results = {}
+    for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
+        full_name = package.__name__ + "." + name
+        results[full_name] = importlib.import_module(full_name)
+        if recursive and is_pkg:
+            results.update(_import_submodules(full_name))
+    return results
+
+
+# Recursively import all submodules.
+# This is necessary in order to populate the Registries, since modules must be
+# imported for the registration decorators to be executed.
+_submodules = _import_submodules(__name__)
+
+# Populate __all__ with public modules of depth 1
+_submodule_names = set([name.split(".")[1] for name in _submodules.keys()])
 __all__ = [
+    "config",
     "Network",
     "Subsystem",
-    "actual",
-    "config",
-    "constants",
-    "convert",
-    "db",
-    "examples",
-    "jsonify",
-    "macro",
-    "models",
-    "network",
-    "node",
-    "subsystem",
-    "utils",
-    "validate",
-]
+    "Direction",
+    "Transition",
+] + [name for name in _submodule_names if not name.startswith("_")]
+
 
 if not (config.WELCOME_OFF or "PYPHI_WELCOME_OFF" in os.environ):
     print(

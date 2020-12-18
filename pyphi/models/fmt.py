@@ -9,7 +9,8 @@ Helper functions for formatting pretty representations of PyPhi models.
 from fractions import Fraction
 from itertools import chain
 
-from .. import Direction, config, constants, utils
+from .. import config, constants, utils
+from ..direction import Direction
 
 # pylint: disable=bad-whitespace
 
