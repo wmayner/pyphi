@@ -34,7 +34,7 @@ from . import (
     utils,
     validate,
 )
-from .metrics import pointwise_mutual_information, probability_distance
+from .metrics import measures
 from .models import (
     Account,
     AcRepertoireIrreducibilityAnalysis,
@@ -277,7 +277,10 @@ class Transition:
         return system.repertoire(direction, mechanism, purview)
 
     def state_probability(
-        self, direction, repertoire, purview,
+        self,
+        direction,
+        repertoire,
+        purview,
     ):
         """Compute the probability of the purview in its current state given
         the repertoire.
@@ -557,6 +560,29 @@ def account(transition, direction=Direction.BIDIRECTIONAL):
     )
 
 
+def probability_distance(p, q, measure=None):
+    """Compute the distance between two probabilities in actual causation.
+
+    The metric that defines this can be configured with
+    ``config.ACTUAL_CAUSATION_MEASURE``.
+
+    Args:
+        p (float): The first probability.
+        q (float): The second probability.
+
+    Keyword Args:
+        measure (str): Optionally override
+        ``config.ACTUAL_CAUSATION_MEASURE`` with another measure name from
+        the registry.
+
+    Returns:
+        float: The probability distance between ``p`` and ``q``.
+    """
+    measure = config.ACTUAL_CAUSATION_MEASURE if measure is None else measure
+    dist = measures[measure](p, q)
+    return round(dist, config.PRECISION)
+
+
 # =============================================================================
 # AcSystemIrreducibilityAnalysiss and System cuts
 # =============================================================================
@@ -698,8 +724,7 @@ class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
 
 # TODO: Fix this to test whether the transition is possible
 def transitions(network, before_state, after_state):
-    """Return a generator of all **possible** transitions of a network.
-    """
+    """Return a generator of all **possible** transitions of a network."""
     # TODO: Does not return subsystems that are in an impossible transitions.
 
     # Elements without inputs are reducibe effects,

@@ -427,26 +427,3 @@ def weighted_pointwise_mutual_information(p, q):
         float: The weighted pointwise mutual information.
     """
     return p * pointwise_mutual_information(p, q)
-
-
-def probability_distance(p, q, measure=None):
-    """Compute the distance between two probabilities in actual causation.
-
-    The metric that defines this can be configured with
-    ``config.ACTUAL_CAUSATION_MEASURE``.
-
-    Args:
-        p (float): The first probability.
-        q (float): The second probability.
-
-    Keyword Args:
-        measure (str): Optionally override
-        ``config.ACTUAL_CAUSATION_MEASURE`` with another measure name from
-        the registry.
-
-    Returns:
-        float: The probability distance between ``p`` and ``q``.
-    """
-    measure = config.ACTUAL_CAUSATION_MEASURE if measure is None else measure
-    dist = measures[measure](p, q)
-    return round(dist, config.PRECISION)
