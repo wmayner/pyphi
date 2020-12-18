@@ -57,7 +57,6 @@ These settings control the algorithms PyPhi uses.
 - :attr:`~pyphi.conf.PyphiConfig.ACTUAL_CAUSATION_MEASURE`
 - :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE`
 - :attr:`~pyphi.conf.PyphiConfig.PICK_SMALLEST_PURVIEW`
-- :attr:`~pyphi.conf.PyphiConfig.USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
 - :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
 - :attr:`~pyphi.conf.PyphiConfig.VALIDATE_SUBSYSTEM_STATES`
@@ -412,7 +411,7 @@ class PyphiConfig(Config):
     Custom measures can be added using the ``pyphi.distance.measures.register``
     decorator. For example::
 
-        from pyphi.distance import measures
+        from pyphi.metrics.distribution import measures
 
         @measures.register('ALWAYS_ZERO')
         def always_zero(a, b):
@@ -423,6 +422,16 @@ class PyphiConfig(Config):
 
     If the measure is asymmetric you should register it using the
     ``asymmetric`` keyword argument. See :mod:`~pyphi.distance` for examples.
+    """,
+    )
+
+    CES_DISTANCE = Option(
+        "EMD",
+        doc="""
+    The measure to use when computing distances between cause-effect structures.
+
+    See documentation for ``config.REPERTOIRE_DISTANCE`` for more information on
+    configuring measures.
     """,
     )
 
@@ -573,7 +582,12 @@ class PyphiConfig(Config):
     )
 
     REDIS_CONFIG = Option(
-        {"host": "localhost", "port": 6379, "db": 0, "test_db": 1,},
+        {
+            "host": "localhost",
+            "port": 6379,
+            "db": 0,
+            "test_db": 1,
+        },
         type=dict,
         doc="""
     Configure the Redis database backend. These are the defaults in the
@@ -785,16 +799,6 @@ class PyphiConfig(Config):
     the same |small_phi| value. If this setting is set to ``True`` the MIP with
     the smallest purview is chosen; otherwise, the one with largest purview is
     chosen.""",
-    )
-
-    USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE = Option(
-        False,
-        type=bool,
-        doc="""
-    If set to ``True``, the distance between cause-effect structures (when
-    computing a |SystemIrreducibilityAnalysis|) is calculated using the
-    difference between the sum of |small_phi| in the cause-effect structures
-    instead of the extended EMD.""",
     )
 
     SYSTEM_CUTS = Option(

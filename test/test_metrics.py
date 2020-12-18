@@ -5,8 +5,8 @@
 from pyphi import metrics
 
 
-def test_default_measures():
-    assert set(metrics.measures.all()) == set(
+def test_default_distribution_measures():
+    assert set(metrics.distribution.measures.all()) == set(
         [
             "EMD",
             "L1",
@@ -18,13 +18,29 @@ def test_default_measures():
             "KLM",
             "BLD",
             "ID",
-            "PMI",
-            "WPMI",
         ]
     )
 
 
-def test_default_asymmetric_measures():
-    assert set(metrics.measures.asymmetric()) == set(
-        ["KLD", "MP2Q", "AID", "KLM", "BLD", "ID", "PMI", "WPMI"]
+def test_default_asymmetric_distribution_measures():
+    assert set(metrics.distribution.measures.asymmetric()) == set(
+        ["KLD", "MP2Q", "AID", "KLM", "BLD", "ID"]
+    )
+
+
+def test_default_ces_measures():
+    assert set(metrics.ces.measures.all()) == set(
+        [
+            "EMD",
+            "SUM_SMALL_PHI",
+        ]
+    )
+
+
+def test_default_actual_causation_measures():
+    assert set(metrics.actual.measures.all()) == set(
+        [
+            "PMI",
+            "WPMI",
+        ]
     )

@@ -27,7 +27,7 @@ import numpy as np
 from . import config, connectivity, constants, compute, exceptions, utils, validate
 from .compute import parallel
 from .direction import Direction
-from .metrics import measures
+from .metrics.actual import measures
 from .models import (
     Account,
     AcRepertoireIrreducibilityAnalysis,

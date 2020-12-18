@@ -15,9 +15,56 @@ from scipy.special import entr, rel_entr
 from .. import config, constants, utils, validate
 from ..direction import Direction
 from ..distribution import flatten, marginal_zero
-from . import measures
+from ..registry import Registry
 
 _LN_OF_2 = np.log(2)
+
+
+class DistributionMeasureRegistry(Registry):
+    """Storage for distance functions between probability distributions.
+
+    Users can define custom measures:
+
+    Examples:
+        >>> @measures.register('ALWAYS_ZERO')  # doctest: +SKIP
+        ... def always_zero(a, b):
+        ...    return 0
+
+    And use them by setting, *e.g.*, ``config.REPERTOIRE_DISTANCE = 'ALWAYS_ZERO'``.
+    """
+
+    # pylint: disable=arguments-differ
+
+    desc = "distance functions between probability distributions"
+
+    def __init__(self):
+        super().__init__()
+        self._asymmetric = []
+
+    def register(self, name, asymmetric=False):
+        """Decorator for registering a distribution measure with PyPhi.
+
+        Args:
+            name (string): The name of the measure.
+
+        Keyword Args:
+            asymmetric (boolean): ``True`` if the measure is asymmetric.
+        """
+
+        def register_func(func):
+            if asymmetric:
+                self._asymmetric.append(name)
+            self.store[name] = func
+            return func
+
+        return register_func
+
+    def asymmetric(self):
+        """Return a list of asymmetric measures."""
+        return self._asymmetric
+
+
+measures = DistributionMeasureRegistry()
 
 
 class np_suppress(np.errstate, ContextDecorator):

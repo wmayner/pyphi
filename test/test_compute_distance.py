@@ -10,18 +10,18 @@ import pytest
 from pyphi import compute, config, metrics, models
 
 
-def test_system_repertoire_distance_must_be_symmetric():
+def test_emd_ground_distance_must_be_symmetric():
     a = np.ones((2, 2, 2)) / 8
     b = np.ones((2, 2, 2)) / 8
     with config.override(REPERTOIRE_DISTANCE="KLD"):
         with pytest.raises(ValueError):
-            metrics.ces.system_repertoire_distance(a, b)
+            metrics.ces.emd_ground_distance(a, b)
 
 
-@patch("pyphi.metrics.ces._ces_distance_simple")
-@patch("pyphi.metrics.ces._ces_distance_emd")
+@patch("pyphi.metrics.ces._emd_simple")
+@patch("pyphi.metrics.ces._emd")
 def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance, s):
-    """Quick check that we use the correct CES distance function.
+    """Quick check that we use the correct EMD distance function for CESs.
 
     If the two CESs differ only in that some concepts have
     moved to the null concept and all other concepts are the same then
@@ -58,14 +58,3 @@ def test_ces_distance_uses_simple_vs_emd(mock_emd_distance, mock_simple_distance
     compute.distance.ces_distance((lone_concept,), (other_concept,))
     assert mock_emd_distance.called is True
     assert mock_simple_distance.called is False
-
-
-def test_ces_distance_switches_to_small_phi_difference(s):
-    sia = compute.subsystem.sia(s)
-    ce_structures = (sia.ces, sia.partitioned_ces)
-
-    with config.override(USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=False):
-        assert compute.distance.ces_distance(*ce_structures) == 2.3125
-
-    with config.override(USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE=True):
-        assert compute.distance.ces_distance(*ce_structures) == 1.083333
