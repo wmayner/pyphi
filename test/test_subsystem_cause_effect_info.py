@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # test_subsystem_cause_effect_info.py
 
-from pyphi.metrics import hamming_emd
+from pyphi.metrics.distribution import hamming_emd
 
 
 def test_cause_info(s):
