@@ -24,7 +24,8 @@ from itertools import chain
 
 import numpy as np
 
-from . import compute, config, connectivity, constants, exceptions, utils, validate
+from . import config, connectivity, constants, compute, exceptions, utils, validate
+from .compute import parallel
 from .direction import Direction
 from .metrics import measures
 from .models import (
@@ -683,7 +684,7 @@ def sia(transition, direction=Direction.BIDIRECTIONAL):
     return result
 
 
-class ComputeACSystemIrreducibility(compute.parallel.MapReduce):
+class ComputeACSystemIrreducibility(parallel.MapReduce):
     """Computation engine for AC SIAs."""
 
     # pylint: disable=unused-argument,arguments-differ
@@ -906,7 +907,7 @@ def true_events(
     elif indices:
         nodes = indices
     else:
-        major_complex = compute.major_complex(network, current_state)
+        major_complex = compute.network.major_complex(network, current_state)
         nodes = major_complex.subsystem.node_indices
 
     return events(network, previous_state, current_state, next_state, nodes)
@@ -937,7 +938,7 @@ def extrinsic_events(
     elif indices:
         mc_nodes = indices
     else:
-        major_complex = compute.major_complex(network, current_state)
+        major_complex = compute.network.major_complex(network, current_state)
         mc_nodes = major_complex.subsystem.node_indices
 
     mechanisms = list(utils.powerset(mc_nodes, nonempty=True))

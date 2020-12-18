@@ -9,10 +9,11 @@ from pyphi import compute, config, examples, relations, utils
 
 def test_PQR_relations():
     with config.override(
-        PARTITION_TYPE="TRI", REPERTOIRE_DISTANCE="BLD",
+        PARTITION_TYPE="TRI",
+        REPERTOIRE_DISTANCE="BLD",
     ):
         PQR = examples.PQR()
-        ces = compute.ces(PQR)
+        ces = compute.subsystem.ces(PQR)
         separated_ces = list(relations.separate_ces(ces))
         results = list(relations.relations(PQR, ces))
 

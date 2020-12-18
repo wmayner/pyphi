@@ -67,8 +67,8 @@ def test_json_deserialization(s, transition):
         ),
         s.concept((1, 2)),
         s.concept((1,)),
-        compute.ces(s),
-        compute.sia(s),
+        compute.subsystem.ces(s),
+        compute.subsystem.sia(s),
         transition,
         transition.find_actual_cause((0,), (0,)),
         actual.account(transition),
@@ -91,7 +91,7 @@ def test_json_deserialization_non_pyphi_clasess():
 
 def test_deserialization_memoizes_duplicate_objects(s):
     with config.override(PARALLEL_CUT_EVALUATION=True):
-        sia = compute.sia(s)
+        sia = compute.subsystem.sia(s)
 
     loaded = jsonify.loads(jsonify.dumps(sia))
 

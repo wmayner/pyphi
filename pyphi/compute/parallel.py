@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # compute/parallel.py
 
-
 """
 Utilities for parallel computation.
 """
@@ -354,7 +353,10 @@ def configure_worker_logging(queue):  # coverage: disable
             "version": 1,
             "disable_existing_loggers": False,
             "handlers": {
-                "queue": {"class": "logging.handlers.QueueHandler", "queue": queue,},
+                "queue": {
+                    "class": "logging.handlers.QueueHandler",
+                    "queue": queue,
+                },
             },
             "root": {"level": "DEBUG", "handlers": ["queue"]},
         }

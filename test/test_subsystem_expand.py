@@ -14,7 +14,7 @@ ABCD = (0, 1, 2, 3)
 
 
 def test_expand_cause_repertoire(micro_s_all_off):
-    sia = compute.sia(micro_s_all_off)
+    sia = compute.subsystem.sia(micro_s_all_off)
     A = sia.ces[0]
     cause = A.cause_repertoire
 
@@ -39,7 +39,7 @@ def test_expand_cause_repertoire(micro_s_all_off):
 
 
 def test_expand_effect_repertoire(micro_s_all_off):
-    sia = compute.sia(micro_s_all_off)
+    sia = compute.subsystem.sia(micro_s_all_off)
     A = sia.ces[0]
     effect = A.effect_repertoire
 
