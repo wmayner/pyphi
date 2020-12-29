@@ -316,7 +316,9 @@ def maximal_state(repertoire, partitioned_repertoire):
     # TODO(4.0) this is unnecessarily recomputed; should make a
     # DistanceResult class that can carry auxilliary data, e.g. the maximal
     # states
-    density = absolute_information_density(repertoire, partitioned_repertoire)
+    density = absolute_information_density(
+        repertoire.squeeze(), partitioned_repertoire.squeeze()
+    )
     return np.transpose(np.where(density == density.max()))
 
 
