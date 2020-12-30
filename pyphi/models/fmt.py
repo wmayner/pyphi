@@ -299,15 +299,25 @@ def fmt_concept(concept):
     """Format a |Concept|."""
 
     def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
-        return box(indent(fmt_ria(x.ria, verbose=False, mip=True), amount=1))
+        purview_state = tuple(concept.subsystem.state[i] for i in x.ria.purview)
+        return box(
+            indent(
+                fmt_ria(x.ria, verbose=False, mip=True, purview_state=purview_state),
+                amount=1,
+            )
+        )
 
     cause = header("MIC", fmt_cause_or_effect(concept.cause))
     effect = header("MIE", fmt_cause_or_effect(concept.effect))
     ce = side_by_side(cause, effect)
 
     mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)
-    title = "Concept: Mechanism = {}, {} = {}".format(
-        mechanism, SMALL_PHI, fmt_number(concept.phi)
+    mechanism_state = tuple(concept.subsystem.state[i] for i in concept.mechanism)
+    # TODO align mechanism states with nodes
+    # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access to their state, etc.
+    # would
+    title = "Concept: mechanism = {}, state = {}\n{} = {}".format(
+        mechanism, mechanism_state, SMALL_PHI, fmt_number(concept.phi)
     )
 
     # Only center headers for high-verbosity output
@@ -316,7 +326,7 @@ def fmt_concept(concept):
     return header(title, ce, HEADER_BAR_2, HEADER_BAR_2, center=center)
 
 
-def fmt_ria(ria, verbose=True, mip=False):
+def fmt_ria(ria, verbose=True, mip=False, purview_state=None):
     """Format a |RepertoireIrreducibilityAnalysis|."""
     if verbose:
         mechanism = "Mechanism: {}\n".format(
@@ -327,13 +337,20 @@ def fmt_ria(ria, verbose=True, mip=False):
         mechanism = ""
         direction = ""
 
+    # TODO(4.0):  position repertoire and partitioned repertoire side by side
     if config.REPR_VERBOSITY is HIGH:
         partition = "\n{}:\n{}".format(
             ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
         )
-        repertoire = "\nRepertoire:\n{}".format(indent(fmt_repertoire(ria.repertoire)))
+        repertoire = "\nRepertoire:\n{}".format(
+            indent(fmt_repertoire(ria.repertoire, mark_states=[ria.maximal_state]))
+        )
         partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
-            indent(fmt_repertoire(ria.partitioned_repertoire))
+            indent(
+                fmt_repertoire(
+                    ria.partitioned_repertoire, mark_states=[ria.maximal_state]
+                )
+            )
         )
     else:
         partition = ""
@@ -344,7 +361,8 @@ def fmt_ria(ria, verbose=True, mip=False):
     return (
         "{SMALL_PHI} = {phi}\n"
         "{mechanism}"
-        "Purview = {purview}"
+        "Purview = {purview}\n"
+        "State = {purview_state}"
         "{direction}"
         "{partition}"
         "{repertoire}"
@@ -353,6 +371,7 @@ def fmt_ria(ria, verbose=True, mip=False):
         SMALL_PHI=SMALL_PHI,
         mechanism=mechanism,
         purview=fmt_mechanism(ria.purview, ria.node_labels),
+        purview_state=purview_state,
         direction=direction,
         phi=fmt_number(ria.phi),
         partition=partition,
@@ -398,7 +417,7 @@ def fmt_sia(sia, ces=True):
     return box(header(title, body, center=center_header))
 
 
-def fmt_repertoire(r):
+def fmt_repertoire(r, mark_states=None):
     """Format a repertoire."""
     # TODO: will this get unwieldy with large repertoires?
     if r is None:
@@ -416,7 +435,11 @@ def fmt_repertoire(r):
     # Lines: '001     .25'
     for state in utils.all_states(r.ndim):
         state_str = "".join(str(i) for i in state)
-        lines.append("{0}{1}{2}".format(state_str, space, fmt_number(r[state])))
+        if state in mark_states:
+            state_str += " *"
+        else:
+            state_str += "  "
+        lines.append("{0}{1}{2}".format(state_str, space[:-2], fmt_number(r[state])))
 
     width = max(len(line) for line in lines)
     lines.insert(1, DOTTED_HEADER * (width + 1))
