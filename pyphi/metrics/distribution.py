@@ -319,7 +319,7 @@ def maximal_state(repertoire, partitioned_repertoire):
     density = absolute_information_density(
         repertoire.squeeze(), partitioned_repertoire.squeeze()
     )
-    return np.transpose(np.where(density == density.max()))
+    return tuple(np.transpose(np.where(density == density.max())).flat)
 
 
 @measures.register("ID", asymmetric=True)
