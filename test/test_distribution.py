@@ -122,3 +122,28 @@ def test_flatten():
         distribution.flatten(repertoire, big_endian=True), [0.1, 0.0, 0.2, 0.7]
     )
     assert distribution.flatten(None) is None
+
+
+def test_unflatten():
+    repertoire = np.array(
+        [
+            [[0.1, 0.0]],
+            [[0.2, 0.7]],
+        ]
+    )
+    flat_repertoire = np.array([0.1, 0.2, 0.0, 0.7])
+    assert distribution.unflatten(flat_repertoire, (0, 1), 2).shape == (2, 2)
+    assert np.array_equal(
+        distribution.unflatten(flat_repertoire, (0, 2), 3),
+        repertoire,
+    )
+    assert distribution.unflatten(flat_repertoire, (2, 5), 8).shape == (
+        1,
+        1,
+        2,
+        1,
+        1,
+        2,
+        1,
+        1,
+    )

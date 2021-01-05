@@ -150,6 +150,28 @@ def flatten(repertoire, big_endian=False):
     return repertoire.squeeze().ravel(order=order)
 
 
+def unflatten(repertoire, purview, N, big_endian=False):
+    """Unflatten a repertoire.
+
+    By default, the input is assumed to be in little-endian order.
+
+    Args:
+        repertoire (np.ndarray or None): A probability distribution.
+        purview (Iterable[int]): The indices of the nodes whose states the
+            probability is distributed over.
+        N (int): The size of the network.
+
+    Keyword Args:
+        big_endian (boolean): If ``True``, assume the flat repertoire is in
+            big-endian order.
+
+    Returns:
+        np.ndarray: The unflattened repertoire.
+    """
+    order = "C" if big_endian else "F"
+    return repertoire.reshape(repertoire_shape(purview, N), order=order)
+
+
 @cache(cache={}, maxmem=None)
 def max_entropy_distribution(node_indices, number_of_nodes):
     """Return the maximum entropy distribution over a set of nodes.
