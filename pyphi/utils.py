@@ -142,16 +142,18 @@ def comb_indices(n, k):
     return indices.reshape(-1, k)
 
 
-# From https://docs.python.org/3/library/itertools.html#itertools-recipes
-def powerset(iterable, nonempty=False, reverse=False):
+# Based on https://docs.python.org/3/library/itertools.html#itertools-recipes
+def powerset(iterable, nonempty=False, reverse=False, max_size=None):
     """Generate the power set of an iterable.
 
     Args:
-        iterable (Iterable): The iterable from which to generate the power set.
+        iterable (Iterable): The iterable of which to generate the power set.
 
     Keyword Args:
         nonempty (boolean): If True, don't include the empty set.
         reverse (boolean): If True, reverse the order of the powerset.
+        max_size (int | None): Only generate subsets of this size or smaller.
+            Defaults to generating all subsets.
 
     Returns:
         Iterable: An iterator over the power set.
@@ -166,6 +168,9 @@ def powerset(iterable, nonempty=False, reverse=False):
         >>> ps = powerset(np.arange(2), nonempty=True, reverse=True)
         >>> list(ps)
         [(1, 0), (1,), (0,)]
+        >>> ps = powerset(np.arange(3), max_size=2)
+        >>> list(ps)
+        [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
     """
     iterable = list(iterable)
 
@@ -174,7 +179,10 @@ def powerset(iterable, nonempty=False, reverse=False):
     else:
         start = 0
 
-    seq_sizes = range(start, len(iterable) + 1)
+    if max_size is None:
+        max_size = len(iterable)
+
+    seq_sizes = range(start, max_size + 1)
 
     if reverse:
         seq_sizes = reversed(seq_sizes)
