@@ -143,7 +143,7 @@ def comb_indices(n, k):
 
 
 # Based on https://docs.python.org/3/library/itertools.html#itertools-recipes
-def powerset(iterable, nonempty=False, reverse=False, max_size=None):
+def powerset(iterable, nonempty=False, reverse=False, min_size=0, max_size=None):
     """Generate the power set of an iterable.
 
     Args:
@@ -152,8 +152,10 @@ def powerset(iterable, nonempty=False, reverse=False, max_size=None):
     Keyword Args:
         nonempty (boolean): If True, don't include the empty set.
         reverse (boolean): If True, reverse the order of the powerset.
+        min_size (int | None): Only generate subsets of this size or larger.
+            Defaults to None, meaning no restriction. Overrides ``nonempty``.
         max_size (int | None): Only generate subsets of this size or smaller.
-            Defaults to generating all subsets.
+            Defaults to None, meaning no restriction.
 
     Returns:
         Iterable: An iterator over the power set.
@@ -171,18 +173,22 @@ def powerset(iterable, nonempty=False, reverse=False, max_size=None):
         >>> ps = powerset(np.arange(3), max_size=2)
         >>> list(ps)
         [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2)]
+        >>> ps = powerset(np.arange(3), min_size=2)
+        >>> list(ps)
+        [(0, 1), (0, 2), (1, 2), (0, 1, 2)]
+        >>> ps = powerset(np.arange(3), min_size=2, max_size=2)
+        >>> list(ps)
+        [(0, 1), (0, 2), (1, 2)]
     """
     iterable = list(iterable)
 
-    if nonempty:  # Don't include 0-length subsets
-        start = 1
-    else:
-        start = 0
+    if nonempty and min_size <= 0:  # Don't include 0-length subsets
+        min_size = 1
 
     if max_size is None:
         max_size = len(iterable)
 
-    seq_sizes = range(start, max_size + 1)
+    seq_sizes = range(min_size, max_size + 1)
 
     if reverse:
         seq_sizes = reversed(seq_sizes)
