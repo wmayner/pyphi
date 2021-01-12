@@ -2,7 +2,6 @@
 # ~~~~~~~~~~~~~~~~~~~
 # See the documentation for ``pyphi.config`` for more info.
 ---
-
 # Approximations and theoretical options
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # In certain cases, making a cut can actually cause a previously reducible
@@ -19,13 +18,14 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 CUT_ONE_APPROXIMATION: false
 # The measure to use when computing phi ("EMD", "KLD", "L1", ...)
 REPERTOIRE_DISTANCE: "EMD"
+# The measure to use when computing big-phi.
+CES_DISTANCE: "EMD"
+# The measure to use when computing actual causation alpha values.
+ACTUAL_CAUSATION_MEASURE: "PMI"
 # Controls the number of parts in a partition.
 PARTITION_TYPE: "BI"
 # Controls how to resolve phi-ties when computing MICE.
 PICK_SMALLEST_PURVIEW: false
-# Use the difference in sum of small phi for the cause-effect structure
-# distance
-USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE: false
 # The type of system cuts to use
 SYSTEM_CUTS: "3.0_STYLE"
 # In some applications of this library, you may want to allow single
