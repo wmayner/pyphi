@@ -337,19 +337,19 @@ def fmt_ria(ria, verbose=True, mip=False, purview_state=None):
         mechanism = ""
         direction = ""
 
+    maximal_states = [tuple(state) for state in ria.maximal_state]
+
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     if config.REPR_VERBOSITY is HIGH:
         partition = "\n{}:\n{}".format(
             ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
         )
         repertoire = "\nRepertoire:\n{}".format(
-            indent(fmt_repertoire(ria.repertoire, mark_states=[ria.maximal_state]))
+            indent(fmt_repertoire(ria.repertoire, mark_states=maximal_states))
         )
         partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
             indent(
-                fmt_repertoire(
-                    ria.partitioned_repertoire, mark_states=[ria.maximal_state]
-                )
+                fmt_repertoire(ria.partitioned_repertoire, mark_states=maximal_states)
             )
         )
     else:
