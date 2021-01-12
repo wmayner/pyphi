@@ -121,6 +121,16 @@ class Relation(cmp.Orderable):
         return self.relata.subsystem
 
     @property
+    def order(self):
+        """The number of relata bound by this relation."""
+        return len(self)
+
+    @property
+    def degree(self):
+        """The size of this relation's purview."""
+        return len(self.purview)
+
+    @property
     def mechanisms(self):
         return [relatum.mechanism for relatum in self.relata]
 
@@ -132,6 +142,9 @@ class Relation(cmp.Orderable):
 
     def __bool__(self):
         return bool(round(self.phi, config.PRECISION) > 0.0)
+
+    def __len__(self):
+        return len(self.relata)
 
     def __eq__(self, other):
         attrs = ["phi", "relata"]
