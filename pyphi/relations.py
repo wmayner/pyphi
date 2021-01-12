@@ -168,7 +168,6 @@ class Relata:
         # are correct?
         self._relata = relata
         self._subsystem = subsystem
-        self._maximal_states = None
 
     @property
     def subsystem(self):
@@ -181,12 +180,6 @@ class Relata:
     @property
     def purviews(self):
         return (relatum.purview for relatum in self)
-
-    @property
-    def maximal_states(self):
-        if self._maximal_states is None:
-            self._maximal_states = {mice: mice.maximal_state for mice in self}
-        return self._maximal_states
 
     def __repr__(self):
         mechanisms = list(self.mechanisms)
