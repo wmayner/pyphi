@@ -338,25 +338,26 @@ def separate_ces(ces):
     )
 
 
-# TODO add order kwarg to restrict to just a certain order
+def all_relata(subsystem, ces, max_order=None):
+    """Return relata in the CES."""
+    if max_order is None:
+        max_order = float("inf")
+    for subset in filter(
+        lambda purviews: 1 < len(purviews) <= max_order, powerset(ces, nonempty=True)
+    ):
+        yield Relata(subsystem, subset)
+
+
 # TODO: change to candidate_relations?
-def all_relations(subsystem, ces):
+def all_relations(subsystem, ces, **kwargs):
     """Return all relations, even those with zero phi."""
     # Relations can be over any combination of causes/effects in the CES, so we
     # get a flat list of all causes and effects
     ces = separate_ces(ces)
     # Compute all relations
-    return map(
-        relation,
-        (
-            Relata(subsystem, subset)
-            for subset in filter(
-                lambda purviews: len(purviews) > 1, powerset(ces, nonempty=True)
-            )
-        ),
-    )
+    return map(relation, all_relata(subsystem, ces, **kwargs))
 
 
-def relations(subsystem, ces):
+def relations(subsystem, ces, **kwargs):
     """Return the irreducible relations among the causes/effects in the CES."""
-    return filter(None, all_relations(subsystem, ces))
+    return filter(None, all_relations(subsystem, ces, **kwargs))
