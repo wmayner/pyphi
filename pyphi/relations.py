@@ -87,6 +87,7 @@ def indices(iterable):
 
 def congruent_nodes(states):
     """Return the set of nodes that have the same state in all given states."""
+    states = np.array(states)
     return set(np.all(states == states[0], axis=0).nonzero()[0])
 
 
@@ -276,7 +277,8 @@ class Relata:
         div = absolute_information_density(mice.repertoire, partitioned_repertoire)
         state_indices = tuple(np.transpose(mice.maximal_state))
         # TODO tie breaking happens here! double-check with andrew
-        return np.max(div[state_indices])
+        # Squeeze out non-purview nodes since the state is just for the purview
+        return np.max(div.squeeze()[state_indices])
 
     # TODO: do we care about ties here?
     # 2019-05-30: no, according to andrew
