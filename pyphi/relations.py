@@ -351,13 +351,9 @@ def separate_ces(ces):
     )
 
 
-def all_relata(subsystem, ces, max_order=None):
+def all_relata(subsystem, ces, min_order=2, max_order=None):
     """Return relata in the CES."""
-    if max_order is None:
-        max_order = float("inf")
-    for subset in filter(
-        lambda purviews: 1 < len(purviews) <= max_order, powerset(ces, nonempty=True)
-    ):
+    for subset in powerset(ces, min_size=min_order, max_size=max_order):
         yield Relata(subsystem, subset)
 
 
