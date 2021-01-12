@@ -316,6 +316,7 @@ def maximal_state(repertoire, partitioned_repertoire):
     # TODO(4.0) this is unnecessarily recomputed; should make a
     # DistanceResult class that can carry auxilliary data, e.g. the maximal
     # states
+    # TODO(4.0) make configurable
     density = absolute_information_density(
         repertoire.squeeze(), partitioned_repertoire.squeeze()
     )
