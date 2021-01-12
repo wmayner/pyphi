@@ -353,6 +353,9 @@ def separate_ces(ces):
 
 def all_relata(subsystem, ces, min_order=2, max_order=None):
     """Return relata in the CES."""
+    if min_order < 2:
+        # Relations are necessarily order 2 or higher
+        min_order = 2
     for subset in powerset(ces, min_size=min_order, max_size=max_order):
         yield Relata(subsystem, subset)
 
