@@ -287,11 +287,15 @@ class Relata:
         partitioned_repertoire = self.subsystem.partitioned_repertoire(
             mice.direction, partition
         )
-        div = absolute_information_density(mice.repertoire, partitioned_repertoire)
+        information = absolute_information_density(
+            mice.repertoire, partitioned_repertoire
+        )
+        # Convert back to `np.where` format
         state_indices = tuple(np.transpose(mice.maximal_state))
-        # TODO tie breaking happens here! double-check with andrew
         # Squeeze out non-purview nodes since the state is just for the purview
-        return np.max(div.squeeze()[state_indices])
+        # TODO(4.0) configuration for handling ties?
+        # TODO tie breaking happens here! double-check with andrew
+        return np.max(information.squeeze()[state_indices])
 
     # TODO: do we care about ties here?
     # 2019-05-30: no, according to andrew
