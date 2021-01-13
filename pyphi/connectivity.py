@@ -10,6 +10,32 @@ import numpy as np
 from scipy.sparse.csgraph import connected_components
 
 
+def subadjacency(cm, source, target=None):
+    """Return the sub-adjacency matrix for two sets of nodes.
+
+    This gives the connections from the first set to the second set.
+
+    Arguments:
+        nodes1 (Iterable[int]): The source nodes.
+
+    Keyword Arguments:
+        nodes2 (Iterable[int] | None): The target nodes. If ``None``,
+            defaults to be the same as the first.
+
+    Example:
+        >>> cm = np.identity(5)
+        >>> subadjacency(cm, (2, 3))
+        array([[1., 0.],
+               [0., 1.]])
+        >>> subadjacency(cm, (0, 1), (1, 2))
+        array([[0., 0.],
+               [1., 0.]])
+    """
+    if target is None:
+        target = source
+    return cm[np.ix_(source, target)]
+
+
 def apply_boundary_conditions_to_cm(external_indices, cm):
     """Remove connections to or from external nodes."""
     cm = cm.copy()
@@ -157,7 +183,7 @@ def block_reducible(cm, nodes1, nodes2):
 def _connected(cm, nodes, connection):
     """Test connectivity for the connectivity matrix."""
     if nodes is not None:
-        cm = cm[np.ix_(nodes, nodes)]
+        cm = subadjacency(cm, nodes)
 
     num_components, _ = connected_components(cm, connection=connection)
     return num_components < 2
@@ -208,7 +234,7 @@ def is_full(cm, nodes1, nodes2):
     if not nodes1 or not nodes2:
         return True
 
-    cm = cm[np.ix_(nodes1, nodes2)]
+    cm = subadjacency(cm, nodes1, nodes2)
 
     # Do all nodes have at least one connection?
     return cm.sum(0).all() and cm.sum(1).all()
