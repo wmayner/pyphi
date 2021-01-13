@@ -7,6 +7,16 @@ import numpy as np
 from pyphi import connectivity
 
 
+def test_subadjacency():
+    cm = np.arange(7 * 7).reshape(7, 7)
+    assert np.array_equal(
+        connectivity.subadjacency(cm, (3, 4)), np.array([[24, 25], [31, 32]])
+    )
+    assert np.array_equal(
+        connectivity.subadjacency(cm, (3, 4), (1, 2)), np.array([[22, 23], [29, 30]])
+    )
+
+
 def test_get_inputs_from_cm():
     # fmt: off
     cm = np.array([
