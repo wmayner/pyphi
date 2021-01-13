@@ -92,5 +92,18 @@ class NodeLabels(Sequence):
             indices = map(int, nodes)
         return tuple(sorted(set(indices)))
 
+    def coerce_to_labels(self, nodes):
+        """Return the nodes labels for nodes, where ``nodes`` is either
+        already labels or node indices.
+        """
+        if nodes is None:
+            return self.node_indices
+
+        if all(isinstance(node, int) for node in nodes):
+            labels = self.indices2labels(nodes)
+        else:
+            labels = nodes
+        return tuple(sorted(set(labels)))
+
     def to_json(self):
         return {"labels": self.labels, "node_indices": self.node_indices}
