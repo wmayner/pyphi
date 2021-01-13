@@ -11,15 +11,15 @@ from scipy.sparse.csgraph import connected_components
 
 
 def subadjacency(cm, source, target=None):
-    """Return the sub-adjacency matrix for two sets of nodes.
+    """Return the sub-adjacency matrix for two groups of nodes.
 
-    This gives the connections from the first set to the second set.
+    This gives the connections from the first group to the second group.
 
     Arguments:
-        nodes1 (Iterable[int]): The source nodes.
+        source (Iterable[int]): The source nodes.
 
     Keyword Arguments:
-        nodes2 (Iterable[int] | None): The target nodes. If ``None``,
+        target (Iterable[int] | None): The target nodes. If ``None``,
             defaults to be the same as the first.
 
     Example:
