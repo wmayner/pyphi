@@ -337,7 +337,10 @@ def fmt_ria(ria, verbose=True, mip=False, purview_state=None):
         mechanism = ""
         direction = ""
 
-    maximal_states = [tuple(state) for state in ria.maximal_state]
+    if ria.maximal_state is None:
+        maximal_states = []
+    else:
+        maximal_states = [tuple(state) for state in ria.maximal_state]
 
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     if config.REPR_VERBOSITY is HIGH:
