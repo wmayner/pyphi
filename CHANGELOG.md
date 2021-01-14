@@ -6,9 +6,12 @@ _Next version_
 --------------
 
 ### API additions
+
 - Added `pyphi.tpm.is_deterministic()`
 
+
 ### API changes
+
 - Define the minimum information partition at the system level as the
   partition that minimizes the absolute value of Φ, rather than the signed Φ
   value. This is relevant when using non-default system level distance
@@ -18,6 +21,10 @@ _Next version_
   - Improved performance for nondeterministic TPMs
 - Added `connectivity.subadjacency()`
 - Added `NodeLabels.coerce_to_labels()`
+
+### Config
+
+- Implemented `__repr__` to allow easier display in Jupyter & IPython.
 
 
 1.2.0
