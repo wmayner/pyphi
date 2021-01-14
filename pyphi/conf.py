@@ -254,8 +254,11 @@ class Config:
         for opt in self.options().values():
             opt._callback(self)
 
-    def __str__(self):
+    def __repr__(self):
         return pprint.pformat(self._values, indent=2)
+
+    def __str__(self):
+        return repr(self)
 
     def __setattr__(self, name, value):
         if name.startswith("_") or name in self.options().keys():
