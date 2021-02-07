@@ -294,7 +294,7 @@ class Transition:
         return repertoire[index]
 
     def probability(self, direction, mechanism, purview):
-        """Probability that the purview is in it's current state given the
+        """Probability that the purview is in its current state given the
         state of the mechanism.
         """
         repertoire = self.repertoire(direction, mechanism, purview)
