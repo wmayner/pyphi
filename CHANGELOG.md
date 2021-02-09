@@ -7,6 +7,7 @@ _Next version_
 
 ### API additions
 - Added `pyphi.tpm.is_deterministic()`
+- Added `pyphi.tpm.simulate()`
 
 ### API changes
 - Define the minimum information partition at the system level as the

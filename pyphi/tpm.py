@@ -137,3 +137,45 @@ def reconstitute_tpm(subsystem):
     # We concatenate the node TPMs along a new axis to get a multidimensional
     # state-by-node TPM (where the last axis corresponds to nodes).
     return np.concatenate(node_tpms, axis=-1)
+
+
+def simulate(tpm, initial_state, timesteps, rng):
+    """Simulate the dynamics of a system.
+
+    Generates a sequence of states using the TPM and a random number generator.
+
+    Arguments:
+        tpm (np.ndarray): TPM to simulate.
+        initial_state (int): The initial state of the simulation.
+        timesteps (int): The number of timesteps to simulate.
+        rng (np.random.Generator): The random number generator to use.
+
+    Returns:
+        list: a list of (decimally-indexed) states.
+    """
+    # We include the initial state so there are ``timesteps`` total in the output
+    timesteps = int(timesteps - 1)
+    if not is_state_by_state(tpm):
+        raise ValueError("TPM must be in state-by-state form.")
+    # Get the conditional cumulative distributions
+    cumulative_tpm = np.cumsum(tpm, axis=1)
+    # Get a random draw for each timestep
+    draws = rng.random(int(timesteps))
+    # Create a view of the TPM for each timestep
+    iterations = np.broadcast_to(cumulative_tpm, (timesteps,) + cumulative_tpm.shape)
+    # Apply the random draws to choose a next state according to the cumulative
+    # transition probabilities
+    choices = iterations > draws.reshape(-1, 1, 1)
+    # Generate the path tree.
+    # The next state is the first one whose cumulative probability beats the
+    # random draw
+    _, _, path_tree = np.diff(choices, axis=-1, prepend=False).nonzero()
+    path_tree = path_tree.reshape(timesteps, cumulative_tpm.shape[-1])
+    # Traverse the path tree
+    path = [initial_state]
+    state = initial_state
+    for t in range(timesteps):
+        next_state = path_tree[t, state]
+        path.append(next_state)
+        state = next_state
+    return path

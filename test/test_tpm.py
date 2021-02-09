@@ -3,6 +3,8 @@
 # test/test_tpm.py
 
 import numpy as np
+import pytest
+from numpy.random import default_rng
 
 from pyphi import Subsystem
 from pyphi.tpm import (
@@ -11,6 +13,7 @@ from pyphi.tpm import (
     is_state_by_state,
     marginalize_out,
     reconstitute_tpm,
+    simulate,
 )
 
 
@@ -99,3 +102,46 @@ def test_reconstitute_tpm(standard, s_complete, rule152, noised):
     ])
     # fmt: on
     assert np.array_equal(answer, reconstitute_tpm(subsystem))
+
+
+def test_simulate_tpm_sanity():
+    seed = 42
+    rng = default_rng(seed)
+    tpm = np.array(
+        [
+            [0, 0, 0, 1],
+            [0, 0, 0, 1],
+            [0, 0, 0, 1],
+            [0, 0, 0, 1],
+        ]
+    )
+    path = simulate(tpm, 0, 10, rng)
+    assert path == [0] + [3] * 9
+
+
+def test_simulate_tpm():
+    seed = 42
+    rng = default_rng(seed)
+
+    tpm = np.load("test/data/ising_tpm.npy")
+    analytical_stationary_distribution = np.load(
+        "test/data/ising_stationary_distribution.npy"
+    )
+
+    timesteps = 1e6
+    initial_state = 0
+    path = simulate(tpm, initial_state, timesteps, rng)
+    counts, _ = np.histogram(path, bins=np.arange(tpm.shape[0] + 1))
+    empirical_distribution = counts / timesteps
+
+    assert np.allclose(
+        empirical_distribution, analytical_stationary_distribution, atol=1e-3, rtol=0
+    )
+
+
+def test_simulate_tpm_requires_state_by_state(standard):
+    seed = 42
+    rng = default_rng(seed)
+
+    with pytest.raises(ValueError):
+        path = simulate(standard.tpm, 0, 10, rng)
