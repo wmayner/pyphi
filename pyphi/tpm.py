@@ -160,7 +160,7 @@ def simulate(tpm, initial_state, timesteps, rng):
     # Get the conditional cumulative distributions
     cumulative_tpm = np.cumsum(tpm, axis=1)
     # Get a random draw for each timestep
-    draws = rng.random(int(timesteps))
+    draws = rng.random(timesteps)
     # Create a view of the TPM for each timestep
     iterations = np.broadcast_to(cumulative_tpm, (timesteps,) + cumulative_tpm.shape)
     # Apply the random draws to choose a next state according to the cumulative
