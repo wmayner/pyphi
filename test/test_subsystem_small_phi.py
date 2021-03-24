@@ -317,6 +317,18 @@ def test_phi_cause_mip_reducible(s):
     assert s.phi_cause_mip(mechanism, purview) == 0
 
 
+def test_phi_cause_mip_empty_mechanism(s):
+    mechanism = ()
+    purview = (0, 1, 2)
+    assert s.phi_cause_mip(mechanism, purview) == 0
+
+
+def test_phi_effect_mip_empty_mechanism(s):
+    mechanism = ()
+    purview = (0,)
+    assert s.phi_cause_mip(mechanism, purview) == 0
+
+
 def test_phi_effect_mip(s):
     mechanism = s.node_indices
     purview = s.node_indices

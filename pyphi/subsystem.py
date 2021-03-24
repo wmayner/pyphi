@@ -567,7 +567,7 @@ class Subsystem:
             RepertoireIrreducibilityAnalysis: The irreducibility analysis for
             the mininum-information partition in one temporal direction.
         """
-        if not purview:
+        if not purview or not mechanism:
             return _null_ria(direction, mechanism, purview)
 
         # Calculate the unpartitioned repertoire to compare against the
