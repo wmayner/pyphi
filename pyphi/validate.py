@@ -209,7 +209,7 @@ def state_length(state, size):
 def state_reachable(subsystem):
     """Return whether a state can be reached according to the network's TPM."""
     if subsystem.network.nb:
-        if subsystem.tpmdf.loc[:, subsystem.proper_state].sum() == 0:
+        if subsystem.tpmdf.loc[:, subsystem.proper_state].sum().sum() == 0:
             raise exceptions.StateUnreachableError(subsystem.state)
         return
 

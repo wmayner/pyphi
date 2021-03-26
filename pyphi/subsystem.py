@@ -131,8 +131,8 @@ class Subsystem:
                 )
 
             # Ensure that TPM MultiIndices are in the correct order
-            self.tpmdf.index = self.tpmdf.index.reorder_levels(self.node_labels)
-            self.tpmdf.columns = self.tpmdf.columns.reorder_levels(self.node_labels)
+            #self.tpmdf.index = self.tpmdf.index.reorder_levels(self.node_labels)
+            #self.tpmdf.columns = self.tpmdf.columns.reorder_levels(self.node_labels)
         else:
             self.nodes = generate_nodes(
                 self.tpm, self.cm, self.state, self.node_indices, self.node_labels
@@ -340,7 +340,9 @@ class Subsystem:
             for node in self.node_indices
         ]
 
-        return dict(zip(self.node_labels, inputs))
+        node_labels = [self.node_labels[node] for node in self.node_indices]
+
+        return dict(zip(node_labels, inputs))
 
     # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.CAUSE)
