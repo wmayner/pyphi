@@ -4,9 +4,9 @@ Multi-valued elements
 Here we demonstrate the ``nonbinary`` branch of PyPhi by analyzing the
 multivalued p53-Mdm2 network from
 
-    Gomez JD, Mayner WGP, Beheler-Amass M, Tononi G, Albantakis L. Computing
-    Integrated Information (Φ) in Discrete Dynamical Systems with
-    Multi-Valued Elements. *Entropy*. 2021; 23(1):6.
+    Gomez JD, Mayner WGP, Beheler-Amass M, Tononi G, Albantakis L.
+    Computing Integrated Information (Φ) in Discrete Dynamical Systems with Multi-Valued Elements.
+    *Entropy*. 2021; 23(1):6.
     https://doi.org/10.3390/e23010006
 
 To begin, we need to checkout the ``nonbinary`` branch from GitHub, found at
@@ -42,8 +42,16 @@ Note that ``'TRI'`` as a partition type is an approximation; ``'ALL'`` will
 consider all possible partitions and give the true value.
 
 .. important::
-    The EMD measure is not yet supported in the ``nonbinary`` branch, so
-    another must be selected. Examples include 'AID', 'L1', and 'KLD' (see
+    The EMD measure is not supported in the ``nonbinary`` branch. IIT's
+    measure of choice for mechanism integrated information is the intrinsic
+    difference ('AID'), as described in
+
+        Barbosa LS, Marshall W, Albantakis L, Tononi G.
+        Mechanism Integrated Information.
+        *Entropy*. 2021; 23(3):362.
+        https://doi.org/10.3390/e23030362
+
+    Other options include 'L1' and 'KLD' (see
     :attr:`~pyphi.conf.PyphiConfig.MEASURE`).
 
 .. warning::
