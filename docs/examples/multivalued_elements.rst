@@ -44,7 +44,7 @@ consider all possible partitions and give the true value.
 .. important::
     The EMD measure is not yet supported in the ``nonbinary`` branch, so
     another must be selected. Examples include 'AID', 'L1', and 'KLD' (see
-    `~pyphi.conf.Config.MEASURE`).
+    :attr:`~pyphi.conf.PyphiConfig.MEASURE`).
 
 .. warning::
     There may be issues using the ``pyphi.config`` to change settings via
