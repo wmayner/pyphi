@@ -379,7 +379,7 @@ class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
     ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(
-        False,
+        True,
         type=bool,
         doc="""
     In certain cases, making a cut can actually cause a previously reducible
@@ -402,7 +402,7 @@ class PyphiConfig(Config):
     )
 
     MEASURE = Option(
-        "EMD",
+        "AID",
         doc="""
     The measure to use when computing distances between repertoires and
     concepts. A full list of currently installed measures is available by
@@ -713,7 +713,7 @@ class PyphiConfig(Config):
     )
 
     PARTITION_TYPE = Option(
-        "BI",
+        "TRI",
         doc="""
     Controls the type of partition used for |small_phi| computations.
 
@@ -788,7 +788,7 @@ class PyphiConfig(Config):
     )
 
     USE_SMALL_PHI_DIFFERENCE_FOR_CES_DISTANCE = Option(
-        False,
+        True,
         type=bool,
         doc="""
     If set to ``True``, the distance between cause-effect structures (when
