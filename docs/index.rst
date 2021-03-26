@@ -32,6 +32,7 @@ For general discussion, you are welcome to join the `pyphi-users group
 
     installation.rst
     examples/index
+    examples/multivalued_elements
     examples/2014paper
     examples/conditional_independence
     examples/xor
