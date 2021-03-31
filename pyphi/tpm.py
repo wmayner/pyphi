@@ -61,7 +61,7 @@ def condition_tpm_nb(
     fixed_node_labels = [node_labels[fixed_node] for fixed_node in fixed_nodes]
     
     # There should be a better way to do all of this if I look at how to work
-    # with the NodeLabels class. Still, it needs to keep the order which sets weren't
+    # with the NodeLabels class. Still, it needs to keep the order, and sets weren't
     def sub_list(a, b):
         a, b = list(a), list(b)
         for i in b:
