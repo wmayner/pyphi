@@ -16,7 +16,7 @@ import pandas as pd
 
 from .constants import OFF, ON
 from .utils import all_states, all_possible_states_nb
-
+from .labels import NodeLabels
 
 def tpm_indices(tpm):
     """Return the indices of nodes in the TPM."""
@@ -50,21 +50,34 @@ def condition_tpm_nb(
     tpm, fixed_nodes, state, num_states_per_node=None, node_labels=None
 ):
 
-    df = tpm2df(tpm, num_states_per_node, node_labels)
+    df = tpm2df(tpm, num_states_per_node, node_labels)   
+    num_states_per_node = list(num_states_per_node)
     
-    for c in fixed_nodes:
+    for c in reversed(fixed_nodes):
         bool_array = [value == state[c] for value in df.index.get_level_values(c)]
         df = df.iloc[bool_array]
+        del num_states_per_node[c]
 
     fixed_node_labels = [node_labels[fixed_node] for fixed_node in fixed_nodes]
     
-    free_nodes = list(set(node_labels) - set(fixed_node_labels))
+    # There should be a better way to do all of this if I look at how to work
+    # with the NodeLabels class. Still, it needs to keep the order which sets weren't
+    def sub_list(a, b):
+        a, b = list(a), list(b)
+        for i in b:
+            if i in a:
+                a.remove(i)
+        return a
     
+    free_nodes = sub_list(node_labels, fixed_node_labels)
+
+    node_indices = tuple([i for i in range(len(free_nodes))])
+
     tpmdf = df.groupby(free_nodes, axis="columns").sum()
-        #for node in fixed_nodes:
-        #    tpmdf = tpmdf.droplevel(node_labels[node])
+    for node in fixed_nodes:
+        tpmdf = tpmdf.droplevel(node_labels[node])
     
-    return tpmdf, tpmdf.values
+    return tpmdf, tpmdf.values, tuple(num_states_per_node), NodeLabels(free_nodes, node_indices, True), node_indices
 
 
 def condition_tpm(tpm, fixed_nodes, state):
