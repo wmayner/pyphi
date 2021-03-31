@@ -16,7 +16,7 @@ import pandas as pd
 
 from .constants import OFF, ON
 from .utils import all_states, all_possible_states_nb
-
+from .labels import NodeLabels
 
 def tpm_indices(tpm):
     """Return the indices of nodes in the TPM."""
@@ -50,11 +50,35 @@ def condition_tpm_nb(
     tpm, fixed_nodes, state, num_states_per_node=None, node_labels=None
 ):
     df = tpm2df(tpm, num_states_per_node, node_labels)
-    for c in fixed_nodes:
-        df = df.iloc[df.index.get_level_values(c) == state[node_labels.index(c)]]
-    free_nodes = list(set(node_labels) - set(fixed_nodes))
+    num_states_per_node = list(num_states_per_node)
+
+    for c in reversed(fixed_nodes):
+        bool_array = [value == state[c] for value in df.index.get_level_values(c)]
+        df = df.iloc[bool_array]
+        del num_states_per_node[c]
+    
+    fixed_node_labels = [node_labels[fixed_node] for fixed_node in fixed_nodes]
+
+    # TODO This, and probably more of the method, might be improvable
+    # if working with just the NodeLabel class instead of lists here
+    # However, subtracting sets was giving poor ordering, causing errors
+    # downstream, so for now subtracting lists works.
+    def subtract_nodes(a, b):
+        a, b = list(a), list(b)
+        for i in b:
+            if i in a:
+                a.remove(i)
+        return a
+
+    free_nodes = subtract_nodes(node_labels, fixed_node_labels)
+
+    node_indices = tuple(range(len(free_nodes)))
+
     tpmdf = df.groupby(free_nodes, axis="columns").sum()
-    return tpmdf, tpmdf.values
+    for node in fixed_nodes:
+        tpmdf = tpmdf.droplevel(level=node_labels[node], axis=0)
+
+    return tpmdf, tpmdf.values, tuple(num_states_per_node), NodeLabels(free_nodes, node_indices, True), node_indices
 
 
 def condition_tpm(tpm, fixed_nodes, state):
@@ -119,16 +143,24 @@ def infer_edge(tpm, a, b, contexts):
 
     def a_in_context(context):
         """Given a context C(A), return the states of the full system with A
-        OFF and ON, respectively.
+        in each of its possible states, in order as a list.
         """
-        a_off = context[:a] + OFF + context[a:]
-        a_on = context[:a] + ON + context[a:]
-        return (a_off, a_on)
+        a_states = []
+        length = tpm.index.levels[a].size
+        for i in range(length):
+            a_states.append(context[:a] + (i, ) + context[a:])
+        return a_states
+
+    # TODO not needed as a seperate method?
+    def marginalize_b(state):
+        """Return the distribution of possible states of b at t+1"""
+        return tpm.groupby(tpm.columns.names[b], axis=1)
 
     def a_affects_b_in_context(context):
         """Return ``True`` if A has an effect on B, given a context."""
-        a_off, a_on = a_in_context(context)
-        return tpm[a_off][b] != tpm[a_on][b]
+        a_states = a_in_context(context)
+        comparator = marginalize_b(a_states[0]).round(12)
+        return any(not comparator.equals(marginalize_b(state).round(12)) for state in a_states[1:])
 
     return any(a_affects_b_in_context(context) for context in contexts)
 
@@ -137,7 +169,7 @@ def infer_cm(tpm):
     """Infer the connectivity matrix associated with a state-by-node TPM in
     multidimensional form.
     """
-    network_size = tpm.shape[-1]
+    network_size = len(tpm.index[0]) # Number of nodes in the network
     all_contexts = tuple(all_states(network_size - 1))
     cm = np.empty((network_size, network_size), dtype=int)
     for a, b in np.ndindex(cm.shape):
