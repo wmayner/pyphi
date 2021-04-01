@@ -47,38 +47,39 @@ def tpm2df(tpm, num_states_per_node, node_labels):
 
 
 def condition_tpm_nb(
-    tpm, fixed_nodes, state, num_states_per_node=None, node_labels=None
+    tpm, fixed_nodes, state, num_states_per_node=None, node_labels=None, node_indices=None
 ):
-    df = tpm2df(tpm, num_states_per_node, node_labels)
-    num_states_per_node = list(num_states_per_node)
+    tpmdf = tpm2df(tpm, num_states_per_node, node_labels)
 
-    for c in reversed(fixed_nodes):
-        bool_array = [value == state[c] for value in df.index.get_level_values(c)]
-        df = df.iloc[bool_array]
-        del num_states_per_node[c]
+    # Generate a tuple where an element is the fixed state
+    # if it is a fixed node, or a None slice elsewise.
+    indexer = tuple(
+        state[node]
+        if node in fixed_nodes
+        else slice(None)
+        for node in range(len(state))
+    )
     
-    fixed_node_labels = [node_labels[fixed_node] for fixed_node in fixed_nodes]
+    # Provided to the IndexSlice, will return all rows that fit
+    # with the fixed states, throwing out the rest.
+    tpmdf = tpmdf.loc[pd.IndexSlice[indexer]]
+    
+    free_node_indices = tuple(sorted(set(node_indices) - set(fixed_nodes)))
 
-    # TODO This, and probably more of the method, might be improvable
-    # if working with just the NodeLabel class instead of lists here
-    # However, subtracting sets was giving poor ordering, causing errors
-    # downstream, so for now subtracting lists works.
-    def subtract_nodes(a, b):
-        a, b = list(a), list(b)
-        for i in b:
-            if i in a:
-                a.remove(i)
-        return a
+    # Shrink num_states_per_node to only free nodes
+    num_states_per_node = tuple(
+        num_states_per_node[node]
+        for node in free_node_indices
+    )
 
-    free_nodes = subtract_nodes(node_labels, fixed_node_labels)
+    free_nodes = [node_labels[node] for node in free_node_indices]
 
-    node_indices = tuple(range(len(free_nodes)))
+    # Marginalize out fixed nodes by grouping by free nodes, giving a conditioned tpm
+    # with size free_node_states by free_node_states
+    tpmdf = tpmdf.groupby(free_nodes, axis="columns").sum()
 
-    tpmdf = df.groupby(free_nodes, axis="columns").sum()
-    for node in fixed_nodes:
-        tpmdf = tpmdf.droplevel(level=node_labels[node], axis=0)
-
-    return tpmdf, tpmdf.values, tuple(num_states_per_node), NodeLabels(free_nodes, node_indices, True), node_indices
+    # Update the subsystem's total states and free nodes
+    return tpmdf, tpmdf.values, num_states_per_node, NodeLabels(free_nodes, free_node_indices, True), tuple(range(len(free_nodes)))
 
 
 def condition_tpm(tpm, fixed_nodes, state):
@@ -125,7 +126,7 @@ def marginalize_out(node_indices, tpm):
     )
 
 
-def infer_edge(tpm, a, b, contexts):
+def infer_edge_nb(tpm, a, b, contexts):
     """Infer the presence or absence of an edge from node A to node B.
 
     Let |S| be the set of all nodes in a network. Let |A' = S - {A}|. We call
@@ -165,7 +166,7 @@ def infer_edge(tpm, a, b, contexts):
     return any(a_affects_b_in_context(context) for context in contexts)
 
 
-def infer_cm(tpm):
+def infer_cm_nb(tpm):
     """Infer the connectivity matrix associated with a state-by-node TPM in
     multidimensional form.
     """
@@ -173,9 +174,48 @@ def infer_cm(tpm):
     all_contexts = tuple(all_states(network_size - 1))
     cm = np.empty((network_size, network_size), dtype=int)
     for a, b in np.ndindex(cm.shape):
-        cm[a][b] = infer_edge(tpm, a, b, all_contexts)
+        cm[a][b] = infer_edge_nb(tpm, a, b, all_contexts)
     return cm
 
+def infer_edge(tpm, a, b, contexts):
+    """Infer the presence or absence of an edge from node A to node B.
+    Let |S| be the set of all nodes in a network. Let |A' = S - {A}|. We call
+    the state of |A'| the context |C| of |A|. There is an edge from |A| to |B|
+    if there exists any context |C(A)| such that |Pr(B | C(A), A=0) != Pr(B |
+    C(A), A=1)|.
+    Args:
+        tpm (np.ndarray): The TPM in state-by-node, multidimensional form.
+        a (int): The index of the putative source node.
+        b (int): The index of the putative sink node.
+    Returns:
+        bool: ``True`` if the edge |A -> B| exists, ``False`` otherwise.
+    """
+
+    def a_in_context(context):
+        """Given a context C(A), return the states of the full system with A
+        OFF and ON, respectively.
+        """
+        a_off = context[:a] + OFF + context[a:]
+        a_on = context[:a] + ON + context[a:]
+        return (a_off, a_on)
+
+    def a_affects_b_in_context(context):
+        """Return ``True`` if A has an effect on B, given a context."""
+        a_off, a_on = a_in_context(context)
+        return tpm[a_off][b] != tpm[a_on][b]
+
+    return any(a_affects_b_in_context(context) for context in contexts)
+
+def infer_cm(tpm):
+    """Infer the connectivity matrix associated with a state-by-node TPM in
+    multidimensional form.
+    """
+    network_size = tpm.shape[-1]
+    all_contexts = tuple(all_states(network_size - 1))
+    cm = np.empty((network_size, network_size), dtype=int)
+    for a, b in np.ndindex(cm.shape):
+        cm[a][b] = infer_edge(tpm, a, b, all_contexts)
+    return cm
 
 def reconstitute_tpm(subsystem):
     """Reconstitute the TPM of a subsystem using the individual node TPMs."""

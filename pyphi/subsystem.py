@@ -98,6 +98,7 @@ class Subsystem:
                 self.state,
                 self.network.num_states_per_node,
                 self.node_labels,
+                self.node_indices
             )
         else:
             # The TPM conditioned on the state of the external nodes.
