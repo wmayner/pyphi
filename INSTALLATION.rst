@@ -62,6 +62,12 @@ deactivate``, or start a new Terminal session).
     <name_of_your_project``. When the environment is active, your
     command-line prompt should show the name of the environment.
 
+The first thing we need to do inside the new environment is install Python:
+
+... code:: bash
+
+    conda install python
+
 Now we're ready to install PyPhi. To do this, we'll use ``pip``, the Python
 package manager:
 
