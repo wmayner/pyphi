@@ -77,6 +77,8 @@ class Subsystem:
 
         validate.state_length(state, self.network.size)
 
+        self.num_states_per_node = self.network.num_states_per_node
+
         # The state of the network.
         self.state = tuple(state)
 
@@ -90,12 +92,13 @@ class Subsystem:
             self.external_indices = _external_indices
 
         if self.network.nb:
-            self.tpmdf, self.tpm = condition_tpm_nb(
+            self.tpmdf, self.tpm, self.num_states_per_node, self.node_labels, self.node_indices = condition_tpm_nb(
                 self.network.tpmdf,
                 self.external_indices,
                 self.state,
                 self.network.num_states_per_node,
                 self.node_labels,
+                self.node_indices
             )
         else:
             # The TPM conditioned on the state of the external nodes.
@@ -127,12 +130,13 @@ class Subsystem:
             if not self.cut.is_null:
                 tpm = cut_tpm(self, self.cut.from_nodes, self.cut.to_nodes)
                 self.tpmdf = tpm2df(
-                    tpm, self.network.num_states_per_node, self.node_labels
+                    tpm, self.num_states_per_node, self.node_labels
                 )
 
             # Ensure that TPM MultiIndices are in the correct order
-            self.tpmdf.index = self.tpmdf.index.reorder_levels(self.node_labels)
-            self.tpmdf.columns = self.tpmdf.columns.reorder_levels(self.node_labels)
+            if len(self.node_labels) > 1:
+                self.tpmdf.index = self.tpmdf.index.reorder_levels(self.node_labels)
+                self.tpmdf.columns = self.tpmdf.columns.reorder_levels(self.node_labels)
         else:
             self.nodes = generate_nodes(
                 self.tpm, self.cm, self.state, self.node_indices, self.node_labels
@@ -334,13 +338,15 @@ class Subsystem:
         inputs = [
             [
                 self.node_labels[i]
-                for i in range(self.network.cm.shape[0])
+                for i in self.node_indices
                 if self.network.cm[i, node] == 1
             ]
             for node in self.node_indices
         ]
 
-        return dict(zip(self.node_labels, inputs))
+        node_labels = [self.node_labels[node] for node in self.node_indices]
+
+        return dict(zip(node_labels, inputs))
 
     # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.CAUSE)

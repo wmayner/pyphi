@@ -16,7 +16,7 @@ import pandas as pd
 
 from .constants import OFF, ON
 from .utils import all_states, all_possible_states_nb
-
+from .labels import NodeLabels
 
 def tpm_indices(tpm):
     """Return the indices of nodes in the TPM."""
@@ -47,14 +47,39 @@ def tpm2df(tpm, num_states_per_node, node_labels):
 
 
 def condition_tpm_nb(
-    tpm, fixed_nodes, state, num_states_per_node=None, node_labels=None
+    tpm, fixed_nodes, state, num_states_per_node=None, node_labels=None, node_indices=None
 ):
-    df = tpm2df(tpm, num_states_per_node, node_labels)
-    for c in fixed_nodes:
-        df = df.iloc[df.index.get_level_values(c) == state[node_labels.index(c)]]
-    free_nodes = list(set(node_labels) - set(fixed_nodes))
-    tpmdf = df.groupby(free_nodes, axis="columns").sum()
-    return tpmdf, tpmdf.values
+    tpmdf = tpm2df(tpm, num_states_per_node, node_labels)
+
+    # Generate a tuple where an element is the fixed state
+    # if it is a fixed node, or a None slice elsewise.
+    indexer = tuple(
+        state[node]
+        if node in fixed_nodes
+        else slice(None)
+        for node in range(len(state))
+    )
+    
+    # Provided to the IndexSlice, will return all rows that fit
+    # with the fixed states, throwing out the rest.
+    tpmdf = tpmdf.loc[pd.IndexSlice[indexer]]
+    
+    free_node_indices = tuple(sorted(set(node_indices) - set(fixed_nodes)))
+
+    # Shrink num_states_per_node to only free nodes
+    num_states_per_node = tuple(
+        num_states_per_node[node]
+        for node in free_node_indices
+    )
+
+    free_nodes = [node_labels[node] for node in free_node_indices]
+
+    # Marginalize out fixed nodes by grouping by free nodes, giving a conditioned tpm
+    # with size free_node_states by free_node_states
+    tpmdf = tpmdf.groupby(free_nodes, axis="columns").sum()
+
+    # Update the subsystem's total states and free nodes
+    return tpmdf, tpmdf.values, num_states_per_node, NodeLabels(free_nodes, free_node_indices, True), tuple(range(len(free_nodes)))
 
 
 def condition_tpm(tpm, fixed_nodes, state):
@@ -101,7 +126,7 @@ def marginalize_out(node_indices, tpm):
     )
 
 
-def infer_edge(tpm, a, b, contexts):
+def infer_edge_nb(tpm, a, b, contexts):
     """Infer the presence or absence of an edge from node A to node B.
 
     Let |S| be the set of all nodes in a network. Let |A' = S - {A}|. We call
@@ -109,6 +134,55 @@ def infer_edge(tpm, a, b, contexts):
     if there exists any context |C(A)| such that |Pr(B | C(A), A=0) != Pr(B |
     C(A), A=1)|.
 
+    Args:
+        tpm (np.ndarray): The TPM in state-by-node, multidimensional form.
+        a (int): The index of the putative source node.
+        b (int): The index of the putative sink node.
+    Returns:
+        bool: ``True`` if the edge |A -> B| exists, ``False`` otherwise.
+    """
+
+    def a_in_context(context):
+        """Given a context C(A), return the states of the full system with A
+        in each of its possible states, in order as a list.
+        """
+        a_states = []
+        length = tpm.index.levels[a].size
+        for i in range(length):
+            a_states.append(context[:a] + (i, ) + context[a:])
+        return a_states
+
+    # TODO not needed as a seperate method?
+    def marginalize_b(state):
+        """Return the distribution of possible states of b at t+1"""
+        return tpm.groupby(tpm.columns.names[b], axis=1)
+
+    def a_affects_b_in_context(context):
+        """Return ``True`` if A has an effect on B, given a context."""
+        a_states = a_in_context(context)
+        comparator = marginalize_b(a_states[0]).round(12)
+        return any(not comparator.equals(marginalize_b(state).round(12)) for state in a_states[1:])
+
+    return any(a_affects_b_in_context(context) for context in contexts)
+
+
+def infer_cm_nb(tpm):
+    """Infer the connectivity matrix associated with a state-by-node TPM in
+    multidimensional form.
+    """
+    network_size = len(tpm.index[0]) # Number of nodes in the network
+    all_contexts = tuple(all_states(network_size - 1))
+    cm = np.empty((network_size, network_size), dtype=int)
+    for a, b in np.ndindex(cm.shape):
+        cm[a][b] = infer_edge_nb(tpm, a, b, all_contexts)
+    return cm
+
+def infer_edge(tpm, a, b, contexts):
+    """Infer the presence or absence of an edge from node A to node B.
+    Let |S| be the set of all nodes in a network. Let |A' = S - {A}|. We call
+    the state of |A'| the context |C| of |A|. There is an edge from |A| to |B|
+    if there exists any context |C(A)| such that |Pr(B | C(A), A=0) != Pr(B |
+    C(A), A=1)|.
     Args:
         tpm (np.ndarray): The TPM in state-by-node, multidimensional form.
         a (int): The index of the putative source node.
@@ -132,7 +206,6 @@ def infer_edge(tpm, a, b, contexts):
 
     return any(a_affects_b_in_context(context) for context in contexts)
 
-
 def infer_cm(tpm):
     """Infer the connectivity matrix associated with a state-by-node TPM in
     multidimensional form.
@@ -143,7 +216,6 @@ def infer_cm(tpm):
     for a, b in np.ndindex(cm.shape):
         cm[a][b] = infer_edge(tpm, a, b, all_contexts)
     return cm
-
 
 def reconstitute_tpm(subsystem):
     """Reconstitute the TPM of a subsystem using the individual node TPMs."""
