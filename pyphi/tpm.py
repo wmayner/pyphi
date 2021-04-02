@@ -146,16 +146,22 @@ def infer_edge_nb(tpm, a, b, contexts):
         """Given a context C(A), return the states of the full system with A
         in each of its possible states, in order as a list.
         """
-        a_states = []
-        length = tpm.index.levels[a].size
-        for i in range(length):
-            a_states.append(context[:a] + (i, ) + context[a:])
+        #a_states = []
+        #length = tpm.index.levels[a].size
+        #for i in range(length):
+        #    a_states.append(context[:a] + (i, ) + context[a:])
+        #return a_states
+        print(context)
+        a_states = [
+            context[:a] + (i, ) + context[a:]
+            for i in range(tpm.index.levels[a].size)
+        ]
         return a_states
 
     # TODO not needed as a seperate method?
     def marginalize_b(state):
         """Return the distribution of possible states of b at t+1"""
-        return tpm.groupby(tpm.columns.names[b], axis=1)
+        return tpm.groupby(tpm.columns.names[b], axis=1).sum().loc[state]
 
     def a_affects_b_in_context(context):
         """Return ``True`` if A has an effect on B, given a context."""
