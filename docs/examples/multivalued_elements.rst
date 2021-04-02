@@ -9,8 +9,8 @@ multivalued p53-Mdm2 network from
     *Entropy*. 2021; 23(1):6.
     https://doi.org/10.3390/e23010006
 
-To begin, we need to install the ``nonbinary`` branch of the PyPhi repository
-`on GitHub <https://github.com/wmayner/pyphi/tree/nonbinary>`_:
+To begin, we need to install the ``nonbinary`` `branch of the PyPhi
+repository <https://github.com/wmayner/pyphi/tree/nonbinary>`_ from GitHub:
 
 .. code-block:: bash
 
@@ -52,12 +52,14 @@ consider all possible partitions and give the true value.
 .. important::
     The EMD measure is not supported in the ``nonbinary`` branch. IIT's
     measure of choice for mechanism integrated information is the intrinsic
-    difference ('AID'), as described in
+    difference, as described in
 
         Barbosa LS, Marshall W, Albantakis L, Tononi G.
         Mechanism Integrated Information.
         *Entropy*. 2021; 23(3):362.
         https://doi.org/10.3390/e23030362
+
+    The corresponding PyPhi `MEASURE` setting is `'AID'`.
 
     Other options include ``'L1'`` and ``'KLD'`` (see
     :attr:`~pyphi.conf.PyphiConfig.MEASURE`).
