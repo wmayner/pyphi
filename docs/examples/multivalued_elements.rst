@@ -9,9 +9,8 @@ multivalued p53-Mdm2 network from
     *Entropy*. 2021; 23(1):6.
     https://doi.org/10.3390/e23010006
 
-To begin, we need to checkout the ``nonbinary`` branch from GitHub, found at
-https://github.com/wmayner/pyphi/tree/nonbinary. You can install it with this
-command:
+To begin, we need to install the ``nonbinary`` branch of the PyPhi repository
+`on GitHub <https://github.com/wmayner/pyphi/tree/nonbinary>`_:
 
 .. code-block:: bash
 
@@ -41,6 +40,15 @@ Before computation, we need to configure PyPhi with the settings used in the pap
 Note that ``'TRI'`` as a partition type is an approximation; ``'ALL'`` will
 consider all possible partitions and give the true value.
 
+.. warning::
+    There may be issues using the ``pyphi.config`` to change settings via
+    direct assignment if you are not using Linux. If you encounter any, you
+    can instead use a ``pyphi_config.yml`` file in the working directory. An
+    example with the default settings is available `here
+    <https://github.com/wmayner/pyphi/blob/nonbinary/pyphi_config.yml>`_.
+    Note that this will affect all computations with PyPhi performed from
+    that directory. See :mod:`pyphi.conf` for more information.
+
 .. important::
     The EMD measure is not supported in the ``nonbinary`` branch. IIT's
     measure of choice for mechanism integrated information is the intrinsic
@@ -51,17 +59,9 @@ consider all possible partitions and give the true value.
         *Entropy*. 2021; 23(3):362.
         https://doi.org/10.3390/e23030362
 
-    Other options include 'L1' and 'KLD' (see
+    Other options include ``'L1'`` and ``'KLD'`` (see
     :attr:`~pyphi.conf.PyphiConfig.MEASURE`).
 
-.. warning::
-    There may be issues using the ``pyphi.config`` to change settings via
-    direct assignment if you are not using Linux. If you encounter any, you
-    can instead use a ``pyphi_config.yml`` file in the working directory. An
-    example with the default settings is available `here
-    <https://github.com/wmayner/pyphi/blob/nonbinary/pyphi_config.yml>`_.
-    Note that this will affect all computations with PyPhi performed from
-    that directory. See :mod:`pyphi.conf` for more information.
 
 State-by-state transition probability matrix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
