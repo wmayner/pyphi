@@ -103,7 +103,7 @@ class NodeLabels(Sequence):
             labels = self.indices2labels(nodes)
         else:
             labels = nodes
-        return tuple(sorted(set(labels)))
+        return tuple(labels)
 
     def to_json(self):
         return {"labels": self.labels, "node_indices": self.node_indices}
