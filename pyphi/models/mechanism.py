@@ -192,8 +192,9 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
     |PICK_SMALLEST_PURVIEW| option in |config|.)
     """
 
-    def __init__(self, ria):
+    def __init__(self, ria, ties=None):
         self._ria = ria
+        self._ties = ties
 
     @property
     def phi(self):
@@ -252,6 +253,20 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         this mechanism.
         """
         return self._ria
+
+    def set_ties(self, ties):
+        """Set the ``ties`` attribute."""
+        self._ties = ties
+
+    @property
+    def ties(self):
+        """list: MICE objects for any other purviews that are maximal."""
+        return self._ties
+
+    @property
+    def is_tied(self):
+        """Whether this MICE is non-unique."""
+        return len(self.ties) > 1
 
     def __repr__(self):
         return fmt.make_repr(self, ["ria"])
@@ -333,12 +348,12 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
     |PICK_SMALLEST_PURVIEW| option in |config|.)
     """
 
-    def __init__(self, ria):
+    def __init__(self, ria, ties=None):
         if ria.direction != Direction.CAUSE:
             raise WrongDirectionError(
                 "A MIC must be initialized with a RIA " "in the cause direction."
             )
-        super().__init__(ria)
+        super().__init__(ria, ties=ties)
 
     def order_by(self):
         return self.ria.order_by()
@@ -358,12 +373,12 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
     |PICK_SMALLEST_PURVIEW| option in |config|.)
     """
 
-    def __init__(self, ria):
+    def __init__(self, ria, ties=None):
         if ria.direction != Direction.EFFECT:
             raise WrongDirectionError(
                 "A MIE must be initialized with a RIA " "in the effect direction."
             )
-        super().__init__(ria)
+        super().__init__(ria, ties=ties)
 
     @property
     def direction(self):

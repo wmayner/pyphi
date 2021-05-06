@@ -701,18 +701,27 @@ class Subsystem:
         """
         purviews = self.potential_purviews(direction, mechanism, purviews)
 
+        if direction == Direction.CAUSE:
+            mice_class = MaximallyIrreducibleCause
+        elif direction == Direction.EFFECT:
+            mice_class = MaximallyIrreducibleEffect
+        else:
+            validate.direction(direction)
+
         if not purviews:
             max_mip = _null_ria(direction, mechanism, ())
+            ties = ()
         else:
-            max_mip = max(
+            all_mips = [
                 self.find_mip(direction, mechanism, purview) for purview in purviews
-            )
+            ]
+            max_mip = max(all_mips)
+            ties = tuple(mice_class(mip) for mip in all_mips if mip.phi == max_mip.phi)
 
-        if direction == Direction.CAUSE:
-            return MaximallyIrreducibleCause(max_mip)
-        elif direction == Direction.EFFECT:
-            return MaximallyIrreducibleEffect(max_mip)
-        return validate.direction(direction)
+        for tie in ties:
+            tie.set_ties(ties)
+
+        return mice_class(max_mip, ties=ties)
 
     def mic(self, mechanism, purviews=False):
         """Return the mechanism's maximally-irreducible cause (|MIC|).
