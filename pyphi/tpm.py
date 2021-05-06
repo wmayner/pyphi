@@ -146,12 +146,7 @@ def infer_edge_nb(tpm, a, b, contexts):
         """Given a context C(A), return the states of the full system with A
         in each of its possible states, in order as a list.
         """
-        #a_states = []
-        #length = tpm.index.levels[a].size
-        #for i in range(length):
-        #    a_states.append(context[:a] + (i, ) + context[a:])
-        #return a_states
-        print(context)
+        
         a_states = [
             context[:a] + (i, ) + context[a:]
             for i in range(tpm.index.levels[a].size)

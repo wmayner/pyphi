@@ -142,6 +142,7 @@ class Transition:
         # state of the cause context to `after_state` to reflect the fact that
         # that we are computing cause repertoires of mechanisms in that state.
         with config.override(VALIDATE_SUBSYSTEM_STATES=False):
+           
             self.effect_system = Subsystem(
                 network,
                 before_state,
@@ -159,8 +160,12 @@ class Transition:
             )
 
         self.cause_system.state = after_state
-        for node in self.cause_system.nodes:
-            node.state = after_state[node.index]
+
+        # Multivalued networks don't use Node objects, just refer to
+        # their index or labels instead 
+        if not self.network.nb:
+            for node in self.cause_system.nodes:
+                node.state = after_state[self.cause_system.nodes.index(node)]
 
         # Validate the cause system
         # The state of the effect system does not need to be reachable
@@ -269,7 +274,7 @@ class Transition:
 
         if not set(mechanism).issubset(self.mechanism_indices(direction)):
             raise ValueError(
-                "{} is no a {} mechanism in {}".format(
+                "{} is not a {} mechanism in {}".format(
                     fmt.fmt_mechanism(mechanism, node_labels), direction, self
                 )
             )
@@ -349,6 +354,7 @@ class Transition:
             measure="PMI",
         )
 
+    # Ratios also referred to as cause/effect information within a transition
     def cause_ratio(self, mechanism, purview):
         """The cause ratio of the ``purview`` given ``mechanism``."""
         return self._ratio(Direction.CAUSE, mechanism, purview)

@@ -348,7 +348,6 @@ class Subsystem:
 
         return dict(zip(node_labels, inputs))
 
-    # TODO extend to nonbinary nodes
     @cache.method("_single_node_repertoire_cache", Direction.CAUSE)
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):
 
@@ -383,7 +382,6 @@ class Subsystem:
         # purview.
         return marginalize_out((mechanism_node.inputs - purview), tpm)
 
-    # TODO extend to nonbinary nodes
     @cache.method("_repertoire_cache", Direction.CAUSE)
     def cause_repertoire(self, mechanism, purview):
         """Return the cause repertoire of a mechanism over a purview.
