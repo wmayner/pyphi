@@ -39,6 +39,7 @@ For general discussion, you are welcome to join the `pyphi-users group
     examples/actual_causation
     examples/residue
     examples/magic_cut
+    tiebreaking
     macos_installation
 
 .. toctree::
