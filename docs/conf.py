@@ -205,9 +205,12 @@ rst_prolog = "".join(
 .. |CAUSE| replace:: :const:`~pyphi.direction.Direction.CAUSE`
 .. |EFFECT| replace:: :const:`~pyphi.direction.Direction.EFFECT`
 .. |EPSILON| replace:: :const:`~pyphi.constants.EPSILON`
-.. |PICK_SMALLEST_PURVIEW| replace:: :const:`~pyphi.config.PICK_SMALLEST_PURVIEW`
-.. |PARTITION_TYPE| replace:: :const:`~pyphi.config.PARTITION_TYPE`
-.. |PRECISION| replace:: :const:`~pyphi.config.PRECISION`
+""",
+        # Configuration
+        r"""
+.. |PICK_SMALLEST_PURVIEW| replace:: :attr:`~pyphi.conf.PyphiConfig.PICK_SMALLEST_PURVIEW`
+.. |PARTITION_TYPE| replace:: :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE`
+.. |PRECISION| replace:: :attr:`~pyphi.conf.PyphiConfig.PRECISION`
 """,
         # Modules
         r"""
