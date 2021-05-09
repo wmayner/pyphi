@@ -83,7 +83,7 @@ operators (``<``, ``>``, etc.) First, |small_phi| values are compared. If
 these are equal up to |PRECISION|, the size of the purview is compared. If
 |PICK_SMALLEST_PURVIEW| is set to ``True``, the partition with the smallest
 purview is returned; otherwise the largest purview is returned. By default, this
-is set to false (which of these is "correct" depends on the choice of
+is set to ``False`` (which of these should be used depends on the choice of
 difference measure :attr:`~pyphi.conf.PyphiConfig.MEASURE` and
 :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE` for |small_phi| computations; the
 default configuration settings correspond to the IIT 3.0 formalism).
