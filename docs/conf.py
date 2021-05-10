@@ -19,6 +19,7 @@
 
 import os
 import sys
+from datetime import datetime
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -64,7 +65,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "PyPhi"
-copyright = "2014--2018 {}".format(__author__)
+copyright = "2014–{year} {author}".format(year=datetime.today().year, author=__author__)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
