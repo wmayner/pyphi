@@ -4,6 +4,13 @@
 
 """
 TPM classes.
+
+The standard TPM class represents a State-by-State matrix where each row defines the probability 
+the row's state will transition to any given column state. Xarray was chosen for its ability to define
+each node as a dimension, easily accessible by its label and marginalizable.
+
+The subclass of <snTPM> represents a State-by-Node matrix, only usable for binary systems, where each row
+represent's the probability of each column Node being ON during the timestep after the given row's state.
 """
 
 import xarray as xr
@@ -40,22 +47,20 @@ class TPM:
         if num_states_per_node is None:
             num_states_per_node = [2 for x in previous_nodes + next_nodes]
 
-        # Previous nodes are labelled with _p and next nodes with _n 
+        # Previous nodes are labelled with _p and next nodes with _n
         # to differentiate between nodes with the same name but different timestep
-        self._dims = ["{}_p".format(node) for node in previous_nodes] + [
-                      "{}_n".format(node) for node in next_nodes]
+        dims = ["{}_p".format(node) for node in previous_nodes] + [
+                "{}_n".format(node) for node in next_nodes]
         
         # The given numpy array is reshaped to have the appropriate number of dimensions for labeling
-        self._tpm = xr.DataArray(tpm.reshape(num_states_per_node), dims=self._dims)
+        self.tpm = xr.DataArray(tpm.reshape(num_states_per_node), dims=dims)
 
-        if isinstance(tpm, DataFrame): 
-           num_states_per_node = [len(node_states) for node_states in tpm.index.levels + tpm.columns.levels]
-           self._dims = ["{}_p".format(node) for node in tpm.index.names] + [
-                         "{}_n".format(node) for node in tpm.columns.names]
+        if isinstance(tpm, DataFrame):
+            num_states_per_node = [len(node_states) for node_states in tpm.index.levels + tpm.columns.levels]
+            dims = ["{}_p".format(node) for node in tpm.index.names] + [
+                    "{}_n".format(node) for node in tpm.columns.names]
 
-           self._tpm = xr.DataArray(tpm.values.reshape(num_states_per_node), dims=self._dims)
-
-        self._num_states_per_node = num_states_per_node
+            self.tpm = xr.DataArray(tpm.values.reshape(num_states_per_node), dims=dims)
 
     def tpm_indices(tpm):
         """Return the indices of nodes in the TPM."""
@@ -65,11 +70,9 @@ class TPM:
         """Return whether the TPM is deterministic."""
         raise NotImplementedError
 
+    # Could get overridden by State-by-Node TPM's subclass to false? Or unneeded
     def is_state_by_state(self) -> bool:
-        """Return ``True`` if ``tpm`` is in state-by-state form, otherwise
-        ``False``.
-        """
-        raise NotImplementedError
+        return True
 
     #def condition(self, fixed_nodes: Iterable, state) -> TPM:
         """Return a TPM conditioned on the given fixed node indices, whose states
