@@ -17,6 +17,7 @@ from pandas import DataFrame
 import numpy as np
 from string import ascii_uppercase
 from itertools import product
+from math import log2
 
 from .utils import all_states
 
@@ -50,7 +51,7 @@ class TPM:
     Can accept both DataFrame objects and 2D or pre-shaped multidimensional 
     numpy arrays.
     """
-    def __init__(self, tpm, p_nodes, n_nodes=None, num_states_per_node=None):
+    def __init__(self, tpm, p_nodes=None, p_states=None, n_nodes=None, n_states=None):
 
         if isinstance(tpm, DataFrame):
             num_states_per_node = [len(node_states) for node_states in tpm.index.levels + tpm.columns.levels]
@@ -63,32 +64,39 @@ class TPM:
 
         else:    
             
-            # TODO Create generic labels if no node labels are given
-            # For asymmetric nonbinary tpms, this would require the num_states_per_node
-            # to be given for ALL nodes. If symmetric only need that info for one set
-            if p_nodes is None:
-            # Default naming of nodes
-                if tpm.shape[0] == tpm.shape[1]: # If tpm is symmetric
-                    pass
-                if num_states_per_node is None:
-                    # Binary System
-                    # TODO Consider conversion to SbN?
-                    pass
-                else:
-                    # Nonbinary System
-                    pass
+            if p_states is None: # Binary
+                if p_nodes is None:
+                    # Gen p_nodes
+                    p_nodes = ["n{}".format(i) for i in range(int(log2(tpm.shape[0])))]
 
-            # If only one list of nodes is given, assumed to be a symmetric TPM.
-            # TODO for a symmetric NONBINARY system, would this be a good time to double num_states_per_nodes
-            # TODO instead of assuming symmetry, could put default labels into
-            # section above
-            if n_nodes is None:
-                n_nodes = p_nodes.copy()
+                if n_nodes is None: 
+                    # NOTE Specifying a Node TPM with just data and p_nodes (and perhaps p_states and n_states if nb)
+                    # seems really useful, so I want a label generation method, but this can give awkward results
+                    # Gen n_nodes
+                    n_nodes = ["n{}".format(i) for i in range(int(log2(tpm.shape[1])))]
+                
+                # Gen p_states
+                p_states = [2] * len(p_nodes)
+                # Gen n_states
+                n_states = [2] * len(n_nodes)
 
-            # If a list of number of states is not given, assumed to be a binary TPM. 
-            # Needed for reshaping later, as well as all_nodes dict (but maybe all_nodes unneeded?)
-            if num_states_per_node is None:
-                num_states_per_node = [2 for x in p_nodes + n_nodes]
+            else: # Non-binary
+                if p_nodes is None:
+                    # Gen p_nodes
+                    p_nodes = ["n{}".format(i) for i in range(len(p_states))]
+
+                if n_nodes is None: # Nbin, Sym
+                    if n_states is None:    
+                        # Cpy p_states -> n_states
+                        n_states = p_states.copy()
+                        # Cpy p_nodes -> n_nodes
+                        n_nodes = p_nodes.copy()
+                    
+                    else: # n_states specified so assumed different from p_states?
+                        n_nodes = ["n{}".format(i) for i in range(len(n_states))]
+
+                # Else Nbin, Asym, pass as should have all specified
+
 
             # Previous nodes are labelled with _p and next nodes with _n
             # to differentiate between nodes with the same name but different timestep
@@ -97,7 +105,7 @@ class TPM:
             
             # The given numpy array is reshaped to have the appropriate number of dimensions for labeling
             # Fortran, or little-endian ordering is used, meaning left-most (first called) node varies fastest
-            self.tpm = xr.DataArray(tpm.reshape(num_states_per_node, order="F"), dims=dims)
+            self.tpm = xr.DataArray(tpm.reshape(p_states + n_states, order="F"), dims=dims)
         
         self.symmetric = bool(p_nodes == n_nodes)
         self.p_nodes = ["{}_p".format(node) for node in p_nodes]
@@ -106,7 +114,6 @@ class TPM:
         # So far only used in infer_cm, might be possible to rework that and remove this
         self.all_nodes = dict(zip(self.p_nodes + self.n_nodes, self.tpm.shape))
 
-        
     # Maybe make this more generalized? Could be based on xarray's shape?
     # Maybe make it just one tuple? Hard to separate then...
     def tpm_indices(self):
@@ -114,7 +121,7 @@ class TPM:
         return tuple(range(len(self.p_nodes))), tuple(range(len(self.n_nodes)))
 
         # return tuple(range(len(self.tpm.shape)))
-        # return tuple(range(len(self.p_nodes) + len(self.n_nodes)))
+        # return tuple(range(len(self.p_nodes)) + range(len(self.n_nodes))))
 
     def is_deterministic(self) -> bool:
         """Return whether the TPM is deterministic."""
@@ -169,7 +176,7 @@ class TPM:
             raise NotImplementedError
 
     # TODO Currently only works for symmetric TPMs
-    # TODO **kwargs to determine if marginalizing out just row/column
+    # TODO **kwargs to determine if marginalizing out just row/column?
     def marginalize_out(self, node_indices):
         """Marginalize out nodes from a TPM.
 
@@ -257,6 +264,9 @@ class TPM:
             cm[a][b] = tpm.infer_edge(a, b, contexts)
         return cm
 
+    def __getitem__(self, key):
+        return self.tpm[key]
+
     # TODO maybe not needed?
     def expand_tpm(tpm):
         """Broadcast a state-by-node TPM so that singleton dimensions are expanded
@@ -284,11 +294,11 @@ class SbN(TPM):
     systems, where each row represents the probability of each column Node being ON 
     during the timestep after the given row's state.
     """
-    def __init__(self, tpm, p_nodes, n_nodes, format=False, num_states_per_node=None):
+    def __init__(self, tpm, p_nodes=None, p_states=None, n_nodes=None, format=False, n_states=None):
 
             # If format is true, change from SbS to SbN
             if format:
-                super().__init__(tpm, p_nodes, n_nodes, num_states_per_node)
+                super().__init__(tpm, p_nodes, p_states, n_nodes, n_states)
                 #bin_node_tpms = [self.tpm.sel({node: 1}).sum(self.n_nodes.copy().remove(node)).expand_dims("nodes", axis=-1) 
                 #for node in self.n_nodes]
                 bin_node_tpms=[]
@@ -304,19 +314,25 @@ class SbN(TPM):
             # If format is false, is already in SbN form
             else:     
                 if p_nodes is None:
-                    # TODO Make this infinitely scalable, probably by using numbers
-                    p_nodes = [list(ascii_uppercase)[n] for n in range(tpm.shape[-1])]
+                    p_nodes = ["n{}".format(i) for i in range(int(log2(np.prod(tpm.shape[:-1]))))]
+
+                # NOTE: This will produce a different naming scheme in some instances than using
+                # the super constructor, not too big of a deal but worth noting 
+                # Fixing it would probably require unnecessary convolution, only worthwhile
+                # if it is actually an issue
+                if n_nodes is None:
+                    n_nodes = ["n{}".format(i) for i in range(tpm.shape[-1])]
 
                 self.p_nodes = ["{}_p".format(node) for node in p_nodes]
                 # Differences: Shape is going to be (S_a, S_b, S_c... N), rows are like normal but index of last is the size of the n_nodes list
                 dims = self.p_nodes + ["n_nodes"]
                 
                 # Binary only, so num_states_per_node is tuple of 2s with length of p_nodes
-                num_states_per_node = tuple([2 for x in p_nodes])
+                p_states = [2] * len(p_nodes)
 
                 # Need to keep track of location of nodes in the last dimension
-                self.n_nodes = n_nodes
-                self.tpm = xr.DataArray(tpm.reshape(num_states_per_node + (len(n_nodes), ), order="F"), dims=dims)
+                self.n_nodes = ["{}_n".format(node) for node in n_nodes]
+                self.tpm = xr.DataArray(tpm.reshape(p_states + [len(n_nodes)], order="F"), dims=dims)
 
     # TODO Only valid for symmetric tpms
     def tpm_indices(self):
