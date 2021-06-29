@@ -90,8 +90,7 @@ def test_init():
                         [1, 0, 0],
                         [1, 1, 0]])
 
-    can_obj = SbN(can, p_nodes=["A", "B", "C"], p_states=[2, 2, 2],
-                  format=True)
+    can_obj = SbN(can, p_nodes=["A", "B", "C"], p_states=[2, 2, 2])
 
     can_sbn_obj = SbN(can_sbn, p_nodes=["A", "B", "C"], p_states=[2, 2, 2], n_nodes=["A", "B", "C"])
     
@@ -100,7 +99,7 @@ def test_init():
     assert can_obj.n_nodes == can_sbn_obj.n_nodes
 
     # Test only data given
-    can_obj = SbN(can, format=True)
+    can_obj = SbN(can)
     can_sbn_obj = SbN(can_sbn)
 
     assert np.array_equal(can_obj.tpm.data, can_sbn_obj.tpm.data)
@@ -135,7 +134,7 @@ def test_marginalize_out_obj():
     assert np.array_equal(marginalized, solution)
 
 def test_marginalize_out_sbn(s):
-    sbn = SbN(s.tpm, p_nodes=["A", "B", "C"], n_nodes=["A", "B", "C"], format=False, p_states=[2,2,2], n_states=[2,2,2])
+    sbn = SbN(s.tpm, p_nodes=["A", "B", "C"], n_nodes=["A", "B", "C"], p_states=[2,2,2], n_states=[2,2,2])
 
     marginalized_distribution = sbn.marginalize_out((0, )).data
 
@@ -192,7 +191,7 @@ def test_infer_cm_sbn():
                     [0, 0, 0, 1, 0, 0, 0, 0]])
 
     can_obj = SbN(can, p_nodes=["A", "B", "C"], n_nodes=["A", "B", "C"],
-                        format=True, p_states=[2,2,2], n_states=[2,2,2])
+                        p_states=[2,2,2], n_states=[2,2,2])
     solution = np.array([[0, 1, 0],
                          [0, 0, 1],
                          [1, 1, 0]])

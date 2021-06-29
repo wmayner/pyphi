@@ -12,6 +12,7 @@ import numpy as np
 from . import cache, config, connectivity, convert, jsonify, utils, validate
 from .labels import NodeLabels
 from .tpm import is_state_by_state
+from .__tpm import TPM, SbN
 
 
 class Network:
@@ -47,8 +48,10 @@ class Network:
             that node |i| is connected to node |j| (see :ref:`cm-conventions`).
             **If no connectivity matrix is given, PyPhi assumes that every node
             is connected to every node (including itself)**.
-        node_labels (tuple[str] or |NodeLabels|): Human-readable labels for
-            each node in the network.
+        p_nodes (list[str]): Human-readable list of names of nodes at time |t-1|
+        p_states (list[int]): List of the number of states of each node at time |t-1| (necessary for defining a multi-valued tpm)
+        n_nodes (list[str]): Human-readable list of names of nodes at time |t|
+        n_states (list[int]): List of the number of states of each node at time |t| (necessary for defining a multi-valued tpm)
 
     Example:
         In a 3-node network, ``the_network.tpm[(0, 0, 1)]`` gives the
@@ -57,14 +60,17 @@ class Network:
     """
 
     # TODO make tpm also optional when implementing logical network definition
-    def __init__(self, tpm, cm=None, node_labels=None, purview_cache=None):
-        self._tpm, self._tpm_hash = self._build_tpm(tpm)
+    def __init__(self, tpm, cm=None, p_nodes=None, p_states=None, n_nodes=None, n_states=None, purview_cache=None):
+        if p_states or n_states: # Requires NB state-by-state, could just do only TPM and convert to SbN later?
+            self._tpm = TPM(tpm, p_nodes, p_states, n_nodes, n_states)
+        else:
+            self._tpm = SbN(tpm, p_nodes, p_states, n_nodes, n_states)
         self._cm, self._cm_hash = self._build_cm(cm)
-        self._node_indices = tuple(range(self.size))
-        self._node_labels = NodeLabels(node_labels, self._node_indices)
+        # self._node_indices = tuple(range(self.size)) TODO unnecessary cuz TPM obj has a method for this?
+        # self._node_labels = NodeLabels(node_labels, self._node_indices) TODO probably same?
         self.purview_cache = purview_cache or cache.PurviewCache()
 
-        validate.network(self)
+        # validate.network(self) Changing validation reqs
 
     @property
     def tpm(self):
@@ -73,6 +79,7 @@ class Network:
         """
         return self._tpm
 
+    # TODO Deprecated?
     @staticmethod
     def _build_tpm(tpm):
         """Validate the TPM passed by the user and convert to multidimensional
@@ -106,8 +113,8 @@ class Network:
         unitary CM if none was provided.
         """
         if cm is None:
-            # Assume all are connected.
-            cm = np.ones((self.size, self.size))
+            # Build cm from TPM method
+            cm = self._tpm.infer_cm()
         else:
             cm = np.array(cm)
 

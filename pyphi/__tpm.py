@@ -112,6 +112,8 @@ class TPM:
         self.n_nodes = ["{}_n".format(node) for node in n_nodes]
 
         # So far only used in infer_cm, might be possible to rework that and remove this
+        # Could also just be a list (or implicit in sum of p_nodes and n_nodes), states could
+        # be accessed by tpm.shape[[p_nodes + n_nodes].index(node)]
         self.all_nodes = dict(zip(self.p_nodes + self.n_nodes, self.tpm.shape))
 
     # Maybe make this more generalized? Could be based on xarray's shape?
@@ -294,7 +296,16 @@ class SbN(TPM):
     systems, where each row represents the probability of each column Node being ON 
     during the timestep after the given row's state.
     """
-    def __init__(self, tpm, p_nodes=None, p_states=None, n_nodes=None, format=False, n_states=None):
+    def __init__(self, tpm, p_nodes=None, p_states=None, n_nodes=None, n_states=None):
+            format = False
+
+            # Not multi-dimensional SbN
+            if tpm.ndim == 2:
+                if tpm.shape[0] == tpm.shape[1]: # SbS
+                    format = True
+                elif n_nodes: # If n_nodes isn't given, we have to assume SbN unless we ask the user to specify a flag
+                    if len(n_nodes) != tpm.shape[1]: # SbS
+                        format = True
 
             # If format is true, change from SbS to SbN
             if format:
