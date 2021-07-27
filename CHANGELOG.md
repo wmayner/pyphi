@@ -26,6 +26,8 @@ _Next version_
 
 - Implemented `__repr__` to allow easier display in Jupyter & IPython.
 
+### Optimizations
+- Improve the implementation of `convert.state_by_node2state_by_state`.
 
 1.2.0
 -----

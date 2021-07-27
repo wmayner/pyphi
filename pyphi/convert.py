@@ -270,46 +270,6 @@ def state_by_state2state_by_node(tpm):
     return sbn_tpm
 
 
-def _deterministic_sbn2sbs(Sp, Sn, sbn_tpm):
-    # Initialize the state-by-state TPM
-    sbs_tpm = np.zeros((Sp, Sn))
-    for previous_state_index in range(Sp):
-        # Use the little-endian convention to get the row and column
-        # indices
-        current_state_index = state2le_index(sbn_tpm[previous_state_index])
-        sbs_tpm[previous_state_index, current_state_index] = 1
-    return sbs_tpm
-
-
-def _unfold_nodewise_probabilities(Nn, Sn, sbn_row):
-    # We make the probabilites associated with each state of the N nodes
-    # explicit by generating all combinations of ON/OFF and then subtracting
-    # the ON probability from 1 where the OFF probability is needed
-
-    # Generate the ON/OFF combinations (we reverse the binary representation to
-    # respect the little-endian convention)
-    combinations = np.flip(
-        np.array([list(np.binary_repr(i, width=Nn)) for i in range(Sn)], dtype=int),
-        axis=1,
-    )
-    # Replicate the row for each combination
-    row_replicates = np.tile(sbn_row, (Sn, 1))
-    # We take the absolute value to keep ON probabilities, which were
-    # subtracted from 0, positive
-    return np.abs(combinations - row_replicates)
-
-
-def _nondeterministic_sbn2sbs(Nn, Sn, sbn_tpm):
-    # Unfold the state-by-node probabilities
-    unfolded = np.array(
-        [_unfold_nodewise_probabilities(Nn, Sn, row) for row in sbn_tpm]
-    )
-    # Now we take the product of the individual node probabilities to get the
-    # probability of each state as a whole, flipping to achieve the ordering
-    # implied by the little-endian convention
-    return np.flip(np.prod(unfolded, axis=-1), axis=-1)
-
-
 def state_by_node2state_by_state(tpm):
     """Convert a state-by-node TPM to a state-by-state TPM.
 
@@ -329,12 +289,11 @@ def state_by_node2state_by_state(tpm):
 
     Args:
         tpm (list[list] or np.ndarray): A state-by-node TPM with row indices
-            following the little-endian convention and column indices following
-            the big-endian convention.
+            following the little-endian convention.
 
     Returns:
         np.ndarray: A state-by-state TPM, with both row and column indices
-        following the big-endian convention.
+        following the little-endian convention.
 
     Examples:
     >>> tpm = np.array([[1, 1, 0],
@@ -346,14 +305,14 @@ def state_by_node2state_by_state(tpm):
     ...                 [1, 1, 1],
     ...                 [1, 0, 1]])
     >>> state_by_node2state_by_state(tpm)
-    array([[0., 0., 0., 1., 0., 0., 0., 0.],
-           [0., 0., 0., 0., 1., 0., 0., 0.],
-           [0., 0., 0., 0., 0., 0., 1., 0.],
-           [0., 1., 0., 0., 0., 0., 0., 0.],
-           [0., 0., 0., 0., 1., 0., 0., 0.],
-           [0., 1., 0., 0., 0., 0., 0., 0.],
-           [0., 0., 0., 0., 0., 0., 0., 1.],
-           [0., 0., 0., 0., 0., 1., 0., 0.]])
+    array([[0, 0, 0, 1, 0, 0, 0, 0],
+           [0, 0, 0, 0, 1, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0, 1, 0],
+           [0, 1, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 1, 0, 0, 0],
+           [0, 1, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0, 0, 1],
+           [0, 0, 0, 0, 0, 1, 0, 0]])
     >>> tpm = np.array([[0.1, 0.3, 0.7],
     ...                 [0.3, 0.9, 0.2],
     ...                 [0.3, 0.9, 0.1],
@@ -372,18 +331,28 @@ def state_by_node2state_by_state(tpm):
            [0.378, 0.252, 0.162, 0.108, 0.042, 0.028, 0.018, 0.012],
            [0.36 , 0.36 , 0.09 , 0.09 , 0.04 , 0.04 , 0.01 , 0.01 ]])
     """
-    # Reshape to 2D
-    sbn_tpm = to_2dimensional(tpm)
-    # Get number of previous states
-    Sp = sbn_tpm.shape[0]
-    # Get number of nodes in the next state
-    Nn = sbn_tpm.shape[1]
-    # Get the number of next states
-    Sn = 2 ** Nn
-    if is_deterministic(tpm):
-        return _deterministic_sbn2sbs(Sp, Sn, sbn_tpm)
+    # Overall approach: get the state-by-state TPM for each individual node, then take the product to get the joint
+    # TODO extend to nonbinary
+
+    # Get the number of previous nodes
+    if tpm.ndim == 2:
+        n_prev = int(log2(tpm.shape[0]))
+        n_next = tpm.shape[1]
     else:
-        return _nondeterministic_sbn2sbs(Nn, Sn, sbn_tpm)
+        n_prev = tpm.ndim - 1
+        n_next = tpm.shape[-1]
+    # First make the OFF probabilities explicit; the last dimension will correpsond to OFF/ON probability
+    tpm = np.stack([1 - tpm, tpm], axis=-1)
+    # Now efficiently construct indices that correspond to each of the next states;
+    # these can be thought of as 'state coordinates', so we can use mgrid
+    # NOTE: Reverse the list so that the first node's state varies the fastest
+    indices = reversed(np.mgrid[[slice(0, 2)] * n_next])
+    # Index into the OFF/ON dimension using the 'state coordinates'
+    # NOTE: Flatten with `.reshape(-1)` to avoid copying
+    marginal_sbs_tpms = [tpm[..., i, idx.reshape(-1)] for i, idx in enumerate(indices)]
+    return np.prod(marginal_sbs_tpms, axis=0).reshape(
+        [2 ** n_prev, 2 ** n_next], order="F"
+    )
 
 
 # Short aliases

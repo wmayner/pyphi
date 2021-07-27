@@ -257,10 +257,10 @@ def test_nonsquare_deterministic_1_state_by_node2state_by_state():
     result = convert.state_by_node2state_by_state(nonsquare_deterministic_1)
     # fmt: off
     answer = np.array([
-        [0., 1., 0., 0., 0., 0., 0., 0.],
-        [0., 0., 0., 0., 0., 0., 1., 0.],
-        [0., 0., 0., 1., 0., 0., 0., 0.],
-        [0., 0., 0., 0., 1., 0., 0., 0.],
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0],
     ])
     # fmt: on
     assert np.array_equal(result, answer)
@@ -270,14 +270,14 @@ def test_nonsquare_deterministic_2_state_by_node2state_by_state():
     result = convert.state_by_node2state_by_state(nonsquare_deterministic_2)
     # fmt: off
     answer = np.array([
-        [1., 0., 0., 0.],
-        [0., 0., 1., 0.],
-        [0., 1., 0., 0.],
-        [0., 0., 0., 1.],
-        [1., 0., 0., 0.],
-        [0., 0., 1., 0.],
-        [0., 0., 0., 1.],
-        [0., 1., 0., 0.],
+        [1, 0, 0, 0],
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 1],
+        [1, 0, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+        [0, 1, 0, 0],
     ])
     # fmt: on
     assert np.array_equal(result, answer)
