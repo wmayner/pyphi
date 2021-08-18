@@ -252,7 +252,7 @@ class Event(collections.namedtuple("Event", ["actual_cause", "actual_effect"])):
         return self.actual_cause.mechanism
 
 
-class Account(cmp.Orderable, collections.Sequence):
+class Account(cmp.Orderable, collections.abc.Sequence):
     """The set of |CausalLinks| with |alpha > 0|. This includes both actual
     causes and actual effects.
     """

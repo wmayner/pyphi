@@ -22,7 +22,7 @@ def default_labels(indices):
     return tuple(default_label(i) for i in indices)
 
 
-class NodeLabels(collections.Sequence):
+class NodeLabels(collections.abc.Sequence):
     """Text labels for nodes in a network.
 
     Labels can either be instantiated as a tuple of strings:
