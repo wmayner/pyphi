@@ -7,7 +7,10 @@ Utilities for comparing phi-objects.
 """
 
 import functools
-from collections import Iterable
+try:
+    from collections import Iterable
+except ImportError:
+    from collections.abc import Iterable
 
 import numpy as np
 
