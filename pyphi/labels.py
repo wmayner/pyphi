@@ -8,6 +8,8 @@ Helper class representing labels of network nodes.
 
 from collections.abc import Sequence
 
+import numpy as np
+
 from pyphi import validate
 from pyphi.models import cmp
 
@@ -99,7 +101,7 @@ class NodeLabels(Sequence):
         if nodes is None:
             return self.node_indices
 
-        if all(isinstance(node, int) for node in nodes):
+        if all(isinstance(node, (int, np.int64)) for node in nodes):
             labels = self.indices2labels(nodes)
         else:
             labels = nodes
