@@ -4,7 +4,10 @@
 
 """Subsystem-level objects."""
 
+from collections import defaultdict
 from collections.abc import Sequence
+
+from toolz import concat
 
 from .. import utils
 from . import cmp, fmt
@@ -24,6 +27,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
         self.subsystem = subsystem
         self.time = time
+        self._specifiers = None
 
     def __len__(self):
         return len(self.concepts)
@@ -70,8 +74,51 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
     @property
     def labeled_mechanisms(self):
         """The labeled mechanism of each concept."""
+        # TODO(4.0) remove dependence on subsystem
         label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
+
+
+class FlatCauseEffectStructure(CauseEffectStructure):
+    """A collection of maximally-irreducible components in either causal
+    direction."""
+
+    def __init__(self, ces):
+        if isinstance(ces, CauseEffectStructure) and not isinstance(
+            ces, FlatCauseEffectStructure
+        ):
+            ces = concat((concept.cause, concept.effect) for concept in ces)
+        super().__init__(ces)
+
+    @property
+    def purviews(self):
+        """The purview of each component."""
+        for component in self:
+            yield component.purview
+
+    @property
+    def specified_purviews(self):
+        """The set of unique purviews specified by this CES."""
+        return set(self.purviews)
+
+    def specifiers(self, purview):
+        """The components that specify the given purview."""
+        purview = tuple(purview)
+        try:
+            return self._specifiers[purview]
+        except TypeError:
+            self._specifiers = defaultdict(list)
+            for component in self:
+                self._specifiers[component.purview].append(component)
+            return self._specifiers[purview]
+
+    def maximum_specifier(self, purview):
+        """Return the components that maximally specify the given purview."""
+        return max(self.specifiers(purview))
+
+    def maximum_specifiers(self):
+        """Return a mapping from each purview to its maximum specifier."""
+        return {purview: self.maximum_specifier(purview) for purview in self.purviews}
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):

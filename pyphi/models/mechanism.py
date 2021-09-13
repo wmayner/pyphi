@@ -126,8 +126,6 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         """|NodeLabels| for this system."""
         return self._node_labels
 
-    unorderable_unless_eq = ["direction"]
-
     def order_by(self):
         if config.PICK_SMALLEST_PURVIEW:
             return [self.phi, len(self.mechanism), -len(self.purview)]
@@ -341,6 +339,9 @@ class MaximallyIrreducibleCause(MaximallyIrreducibleCauseOrEffect):
                 "A MIC must be initialized with a RIA " "in the cause direction."
             )
         super().__init__(ria)
+
+    def order_by(self):
+        return self.ria.order_by()
 
     @property
     def direction(self):
