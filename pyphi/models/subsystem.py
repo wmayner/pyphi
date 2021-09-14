@@ -39,6 +39,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         return self.concepts[i]
 
     def __repr__(self):
+        # TODO(4.0) remove dependence on subsystem & time
         return fmt.make_repr(self, ["concepts", "subsystem", "time"])
 
     def __str__(self):
@@ -62,14 +63,16 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         }
 
     @property
-    def mechanisms(self):
-        """The mechanism of each concept."""
-        return [concept.mechanism for concept in self]
-
-    @property
     def phis(self):
         """The |small_phi| values of each concept."""
-        return [concept.phi for concept in self]
+        for concept in self:
+            yield concept.phi
+
+    @property
+    def mechanisms(self):
+        """The mechanism of each concept."""
+        for concept in self:
+            yield concept.mechanism
 
     @property
     def labeled_mechanisms(self):
