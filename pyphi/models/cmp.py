@@ -62,7 +62,6 @@ class Orderable:
         """
         raise NotImplementedError
 
-    @sametype
     def __lt__(self, other):
         if not general_eq(self, other, self.unorderable_unless_eq):
             raise TypeError(
@@ -72,23 +71,18 @@ class Orderable:
             )
         return self.order_by() < other.order_by()
 
-    @sametype
     def __le__(self, other):
         return self < other or self == other
 
-    @sametype
     def __gt__(self, other):
         return other < self
 
-    @sametype
     def __ge__(self, other):
         return other < self or self == other
 
-    @sametype
     def __eq__(self, other):
         raise NotImplementedError
 
-    @sametype
     def __ne__(self, other):
         return not self == other
 
