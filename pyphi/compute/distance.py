@@ -6,7 +6,6 @@
 Functions for computing distances between various PyPhi objects.
 """
 
-import numpy as np
 from pyemd import emd
 
 from .. import config, metrics
