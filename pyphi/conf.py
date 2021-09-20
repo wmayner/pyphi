@@ -260,6 +260,9 @@ class Config(metaclass=ConfigMeta):
         else:
             raise ValueError('{} is not a valid config option'.format(name))
 
+    def __iter__(self):
+        return iter(self._values.items())
+
     @classmethod
     def options(cls):
         """Return a dictionary of the ``Option`` objects for this config."""
