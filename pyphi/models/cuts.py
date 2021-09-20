@@ -263,7 +263,7 @@ class Part(collections.namedtuple("Part", ["mechanism", "purview"])):
         return {"mechanism": self.mechanism, "purview": self.purview}
 
 
-class KPartition(collections.Sequence):
+class KPartition(collections.abc.Sequence):
     """A partition with an arbitrary number of parts."""
 
     __slots__ = ["parts", "node_labels"]
