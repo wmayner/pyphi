@@ -26,20 +26,21 @@ def get_num_processes():
     cpu_count = multiprocessing.cpu_count()
 
     if config.NUMBER_OF_CORES == 0:
-        raise ValueError(
-            'Invalid NUMBER_OF_CORES; value may not be 0.')
+        raise ValueError("Invalid NUMBER_OF_CORES; value may not be 0.")
 
     if config.NUMBER_OF_CORES > cpu_count:
-        log.info('Requesting %s cores; only %s available',
-                 config.NUMBER_OF_CORES, cpu_count)
+        log.info(
+            "Requesting %s cores; only %s available", config.NUMBER_OF_CORES, cpu_count
+        )
         return cpu_count
 
     if config.NUMBER_OF_CORES < 0:
         num = cpu_count + config.NUMBER_OF_CORES + 1
         if num <= 0:
             raise ValueError(
-                'Invalid NUMBER_OF_CORES; negative value is too negative: '
-                'requesting {} cores, {} available.'.format(num, cpu_count))
+                "Invalid NUMBER_OF_CORES; negative value is too negative: "
+                "requesting {} cores, {} available.".format(num, cpu_count)
+            )
 
         return num
 
@@ -98,7 +99,7 @@ class MapReduce:
     """
 
     # Description for the tqdm progress bar
-    description = ''
+    description = ""
 
     def __init__(self, iterable, *context):
         self.iterable = iterable
@@ -154,30 +155,37 @@ class MapReduce:
             self.iterable = list(self.iterable)
             total = len(self.iterable)
 
-        return tqdm(total=total, disable=disable, leave=False,
-                    desc=self.description)
+        return tqdm(total=total, disable=disable, leave=False, desc=self.description)
 
     @staticmethod  # coverage: disable
-    def worker(compute, task_queue, result_queue, log_queue, complete,
-               *context):
+    def worker(
+        compute,
+        task_queue,
+        result_queue,
+        log_queue,
+        complete,
+        parent_config,
+        *context,
+    ):
         """A worker process, run by ``multiprocessing.Process``."""
         try:
             MapReduce._forked = True
-            log.debug('Worker process starting...')
+            log.debug("Worker process starting...")
 
             configure_worker_logging(log_queue)
 
             for obj in iter(task_queue.get, POISON_PILL):
                 if complete.is_set():
-                    log.debug('Worker received signal - exiting early')
+                    log.debug("Worker received signal - exiting early")
                     break
 
-                log.debug('Worker got %s', obj)
+                log.debug("Worker got %s", obj)
+                config.load_dict(dict(parent_config))
                 result_queue.put(compute(obj, *context))
-                log.debug('Worker finished %s', obj)
+                log.debug("Worker finished %s", obj)
 
             result_queue.put(POISON_PILL)
-            log.debug('Worker process exiting')
+            log.debug("Worker process exiting")
 
         except Exception as e:  # pylint: disable=broad-except
             result_queue.put(ExceptionWrapper(e))
@@ -196,11 +204,18 @@ class MapReduce:
         # the computation to terminate early.
         self.complete = multiprocessing.Event()
 
-        args = (self.compute, self.task_queue, self.result_queue,
-                self.log_queue, self.complete) + self.context
+        args = (
+            self.compute,
+            self.task_queue,
+            self.result_queue,
+            self.log_queue,
+            self.complete,
+            config,
+        ) + self.context
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
-            for i in range(self.num_processes)]
+            for i in range(self.num_processes)
+        ]
 
         for process in self.processes:
             process.start()
@@ -219,7 +234,7 @@ class MapReduce:
         # Add a poison pill to shutdown each process.
         self.tasks = chain(self.iterable, [POISON_PILL] * self.num_processes)
         for task in islice(self.tasks, Q_MAX_SIZE):
-            log.debug('Putting %s on queue', task)
+            log.debug("Putting %s on queue", task)
             self.task_queue.put(task)
 
     def maybe_put_task(self):
@@ -229,7 +244,7 @@ class MapReduce:
         except StopIteration:
             pass
         else:
-            log.debug('Putting %s on queue', task)
+            log.debug("Putting %s on queue", task)
             self.task_queue.put(task)
 
     def run_parallel(self):
@@ -263,7 +278,7 @@ class MapReduce:
         except Exception:
             raise
         finally:
-            log.debug('Removing progress bar')
+            log.debug("Removing progress bar")
             self.progress.close()
 
         return result
@@ -274,13 +289,13 @@ class MapReduce:
             process.join()
 
         # Shutdown the log thread
-        log.debug('Joining log thread')
+        log.debug("Joining log thread")
         self.log_queue.put(POISON_PILL)
         self.log_thread.join()
         self.log_queue.close()
 
         # Close all queues
-        log.debug('Closing queues')
+        log.debug("Closing queues")
         self.task_queue.close()
         self.result_queue.close()
 
@@ -332,29 +347,28 @@ class LogThread(threading.Thread):
         self.daemon = True
 
     def run(self):
-        log.debug('Log thread started')
+        log.debug("Log thread started")
         while True:
             record = self.q.get()
             if record is POISON_PILL:
                 break
             logger = logging.getLogger(record.name)
             logger.handle(record)
-        log.debug('Log thread exiting')
+        log.debug("Log thread exiting")
 
 
 def configure_worker_logging(queue):  # coverage: disable
     """Configure a worker process to log all messages to ``queue``."""
-    logging.config.dictConfig({
-        'version': 1,
-        'disable_existing_loggers': False,
-        'handlers': {
-            'queue': {
-                'class': 'logging.handlers.QueueHandler',
-                'queue': queue,
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "handlers": {
+                "queue": {
+                    "class": "logging.handlers.QueueHandler",
+                    "queue": queue,
+                },
             },
-        },
-        'root': {
-            'level': 'DEBUG',
-            'handlers': ['queue']
-        },
-    })
+            "root": {"level": "DEBUG", "handlers": ["queue"]},
+        }
+    )

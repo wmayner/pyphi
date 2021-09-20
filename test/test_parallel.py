@@ -14,7 +14,7 @@ def _mock_cpu_count():
     return 2
 
 
-@patch('multiprocessing.cpu_count', _mock_cpu_count)
+@patch("multiprocessing.cpu_count", _mock_cpu_count)
 def test_num_processes():
 
     # Can't have no processes
@@ -41,7 +41,6 @@ def test_num_processes():
 
 
 class MapSquare(parallel.MapReduce):
-
     def empty_result(self):
         return set()
 
@@ -72,6 +71,7 @@ def test_materialize_list_only_when_needed():
 
 class MapError(MapSquare):
     """Raise an exception in the worker process."""
+
     @staticmethod
     def compute(num):
         raise Exception("I don't wanna!")
@@ -80,3 +80,15 @@ class MapError(MapSquare):
 def test_parallel_exception_handling():
     with pytest.raises(Exception, match=r"I don't wanna!"):
         MapError([1]).run(parallel=True)
+
+
+class MapConfig(MapSquare):
+    @staticmethod
+    def compute(num):
+        return config.WELCOME_OFF
+
+
+def test_config_persists_through_paralellization():
+    new_config_value = "foobar"
+    with config.override(WELCOME_OFF=new_config_value):
+        assert MapConfig([1]).run(parallel=True) == {new_config_value}
