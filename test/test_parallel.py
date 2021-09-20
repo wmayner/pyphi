@@ -80,3 +80,15 @@ class MapError(MapSquare):
 def test_parallel_exception_handling():
     with pytest.raises(Exception, match=r"I don't wanna!"):
         MapError([1]).run(parallel=True)
+
+
+class MapConfig(MapSquare):
+    @staticmethod
+    def compute(num):
+        return config.WELCOME_OFF
+
+
+def test_config_persists_through_paralellization():
+    new_config_value = "foobar"
+    with config.override(WELCOME_OFF=new_config_value):
+        assert MapConfig([1]).run(parallel=True) == {new_config_value}

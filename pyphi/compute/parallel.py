@@ -158,7 +158,15 @@ class MapReduce:
         return tqdm(total=total, disable=disable, leave=False, desc=self.description)
 
     @staticmethod  # coverage: disable
-    def worker(compute, task_queue, result_queue, log_queue, complete, *context):
+    def worker(
+        compute,
+        task_queue,
+        result_queue,
+        log_queue,
+        complete,
+        parent_config,
+        *context,
+    ):
         """A worker process, run by ``multiprocessing.Process``."""
         try:
             MapReduce._forked = True
@@ -172,6 +180,7 @@ class MapReduce:
                     break
 
                 log.debug("Worker got %s", obj)
+                config.load_dict(dict(parent_config))
                 result_queue.put(compute(obj, *context))
                 log.debug("Worker finished %s", obj)
 
@@ -201,6 +210,7 @@ class MapReduce:
             self.result_queue,
             self.log_queue,
             self.complete,
+            config,
         ) + self.context
         self.processes = [
             multiprocessing.Process(target=self.worker, args=args, daemon=True)
@@ -354,7 +364,10 @@ def configure_worker_logging(queue):  # coverage: disable
             "version": 1,
             "disable_existing_loggers": False,
             "handlers": {
-                "queue": {"class": "logging.handlers.QueueHandler", "queue": queue,},
+                "queue": {
+                    "class": "logging.handlers.QueueHandler",
+                    "queue": queue,
+                },
             },
             "root": {"level": "DEBUG", "handlers": ["queue"]},
         }
