@@ -374,3 +374,22 @@ def absolute_intrinsic_difference(p, q):
         float: The absolute intrinsic difference.
     """
     return np.max(absolute_information_density(p, q))
+
+
+def repertoire_distance(r1, r2, direction):
+    """Compute the distance between two repertoires for the given direction.
+
+    Args:
+        r1 (np.ndarray): The first repertoire.
+        r2 (np.ndarray): The second repertoire.
+        direction (Direction): |CAUSE| or |EFFECT|.
+
+    Returns:
+        float: The distance between ``r1`` and ``r2``, rounded to |PRECISION|.
+    """
+    func = measures[config.REPERTOIRE_DISTANCE]
+    try:
+        distance = func(r1, r2, direction)
+    except TypeError:
+        distance = func(r1, r2)
+    return round(distance, config.PRECISION)

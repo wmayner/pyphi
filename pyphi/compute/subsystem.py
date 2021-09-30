@@ -27,7 +27,7 @@ from ..partition import (
     mip_partitions,
 )
 from ..utils import time_annotated
-from .distance import ces_distance
+from ..metrics.ces import ces_distance
 from .parallel import MapReduce
 
 # Create a logger for this module.

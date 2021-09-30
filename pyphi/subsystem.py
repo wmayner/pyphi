@@ -10,7 +10,7 @@ import logging
 import numpy as np
 
 from . import cache, distribution, utils, validate
-from .compute.distance import repertoire_distance
+from .metrics.distribution import repertoire_distance
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
 from .models import (

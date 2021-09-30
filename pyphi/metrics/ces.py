@@ -10,6 +10,7 @@ import numpy as np
 import pyemd
 
 from .. import config, utils
+from ..direction import Direction
 from ..registry import Registry
 from . import distribution
 
@@ -73,16 +74,12 @@ def emd_ground_distance(r1, r2):
     """
     if config.REPERTOIRE_DISTANCE in distribution.measures.asymmetric():
         raise ValueError(
-            "{} is asymmetric and cannot be used as a system-level "
-            "irreducibility measure.".format(config.REPERTOIRE_DISTANCE)
+            "The repertoire-distance {} is asymmetric and cannot be used as the "
+            "ground distance for the system-level EMD".format(
+                config.REPERTOIRE_DISTANCE
+            )
         )
-    # TODO refactor
-    func = distribution.measures[config.REPERTOIRE_DISTANCE]
-    try:
-        distance = func(r1, r2, direction=None)
-    except TypeError:
-        distance = func(r1, r2)
-    return round(distance, config.PRECISION)
+    return distribution.repertoire_distance(r1, r2, direction=None)
 
 
 def emd_concept_distance(c1, c2):
@@ -223,3 +220,18 @@ def emd(C1, C2):
 def sum_small_phi(C1, C2):
     """Return the difference in |small_phi| between |CauseEffectStructure|."""
     return sum(c.phi for c in C1) - sum(c.phi for c in C2)
+
+
+def ces_distance(C1, C2, measure=None):
+    """Return the distance between two cause-effect structures.
+
+    Args:
+        C1 (CauseEffectStructure): The first |CauseEffectStructure|.
+        C2 (CauseEffectStructure): The second |CauseEffectStructure|.
+
+    Returns:
+        float: The distance between the two cause-effect structures.
+    """
+    measure = config.CES_DISTANCE if measure is None else measure
+    dist = measures[measure](C1, C2)
+    return round(dist, config.PRECISION)
