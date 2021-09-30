@@ -148,12 +148,12 @@ def evaluate_cut(uncut_subsystem, cut, unpartitioned_ces):
     cut_subsystem = uncut_subsystem.apply_cut(cut)
 
     if config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS:
-        mechanisms = unpartitioned_ces.mechanisms
+        mechanisms = list(unpartitioned_ces.mechanisms)
     else:
         # Mechanisms can only produce concepts if they were concepts in the
         # original system, or the cut divides the mechanism.
         mechanisms = set(
-            unpartitioned_ces.mechanisms + list(cut_subsystem.cut_mechanisms)
+            list(unpartitioned_ces.mechanisms) + list(cut_subsystem.cut_mechanisms)
         )
 
     partitioned_ces = ces(cut_subsystem, mechanisms)
