@@ -48,7 +48,7 @@ Let's investigate the concepts in the unpartitioned cause-effect structure,
 
     >>> ces.labeled_mechanisms
     (['A'], ['B'], ['C'], ['A', 'B'], ['A', 'C'], ['B', 'C'])
-    >>> ces.phis
+    >>> list(ces.phis)
     [0.125, 0.125, 0.125, 0.499999, 0.499999, 0.499999]
     >>> sum(ces.phis)
     1.8749970000000002
@@ -57,7 +57,7 @@ and also the concepts of the partitioned cause-effect structure.
 
     >>> cut_ces.labeled_mechanisms
     (['A'], ['B'], ['C'], ['A', 'B'], ['B', 'C'], ['A', 'B', 'C'])
-    >>> cut_ces.phis
+    >>> list(cut_ces.phis)
     [0.125, 0.125, 0.125, 0.499999, 0.266666, 0.333333]
     >>> sum(_)
     1.4749980000000003
@@ -183,7 +183,7 @@ partitioned and unpartitioned cause-effect structures,
 
     >>> sia.ces.labeled_mechanisms
     (['A'], ['B'], ['A', 'B'])
-    >>> sia.ces.phis
+    >>> list(sia.ces.phis)
     [0.25, 0.166667, 0.178572]
     >>> print(sum(_))
     0.5952390000000001
@@ -193,7 +193,7 @@ and |AB| with :math:`\sum\varphi = 0.595239`.
 
     >>> sia.partitioned_ces.labeled_mechanisms
     (['A'], ['B'], ['A', 'B'])
-    >>> sia.partitioned_ces.phis
+    >>> list(sia.partitioned_ces.phis)
     [0.25, 0.166667, 0.214286]
     >>> print(sum(_))
     0.630953
