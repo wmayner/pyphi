@@ -5,6 +5,7 @@
 import numpy as np
 
 from pyphi import compute, config, examples, relations, utils
+from pyphi.models.subsystem import FlatCauseEffectStructure
 
 
 def test_PQR_relations():
@@ -14,7 +15,7 @@ def test_PQR_relations():
     ):
         PQR = examples.PQR()
         ces = compute.subsystem.ces(PQR)
-        separated_ces = list(relations.separate_ces(ces))
+        separated_ces = FlatCauseEffectStructure(ces)
         results = list(relations.relations(PQR, ces))
 
         # NOTE: these phi values are in nats, not bits!

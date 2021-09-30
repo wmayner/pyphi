@@ -3,6 +3,7 @@
 # test_models.py
 
 from collections import namedtuple
+from pyphi.models.subsystem import FlatCauseEffectStructure
 
 import numpy as np
 import pytest
@@ -520,7 +521,7 @@ def test_maximal_states():
         REPERTOIRE_DISTANCE="AID",
     ):
         subsystem = examples.PQR()
-        ces = relations.separate_ces(compute.ces(subsystem))
+        ces = FlatCauseEffectStructure(compute.ces(subsystem))
         results = [mice.maximal_state for mice in ces]
         answers = [
             np.array([[0, 0, 0]]),

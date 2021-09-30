@@ -13,7 +13,7 @@ from toolz import concat, curry
 from . import config, validate
 from .models import cmp
 from .models.cuts import Bipartition, Part
-from .models.subsystem import CauseEffectStructure
+from .models.subsystem import FlatCauseEffectStructure
 from .metrics.distribution import absolute_information_density
 from .utils import powerset, eq
 
@@ -369,7 +369,7 @@ def all_relations(subsystem, ces, **kwargs):
     """Return all relations, even those with zero phi."""
     # Relations can be over any combination of causes/effects in the CES, so we
     # get a flat list of all causes and effects
-    ces = separate_ces(ces)
+    ces = FlatCauseEffectStructure(ces)
     # Compute all relations
     return map(relation, all_relata(subsystem, ces, **kwargs))
 
