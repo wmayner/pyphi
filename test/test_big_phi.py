@@ -219,10 +219,10 @@ def check_sia(sia, answer):
 
 @config.override(CACHE_SIAS=True)
 def test_sia_cache_key_includes_config_dependencies(s):
-    with config.override(REPERTOIRE_DISTANCE="EMD"):
+    with config.override(REPERTOIRE_DISTANCE="EMD", CES_DISTANCE="EMD"):
         emd_big_phi = compute.subsystem.phi(s)
 
-    with config.override(REPERTOIRE_DISTANCE="L1"):
+    with config.override(REPERTOIRE_DISTANCE="L1", CES_DISTANCE="EMD"):
         l1_big_phi = compute.subsystem.phi(s)
 
     assert l1_big_phi != emd_big_phi
