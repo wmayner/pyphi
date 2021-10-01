@@ -515,28 +515,28 @@ def test_mie_raises_wrong_direction():
         mie(direction=Direction.CAUSE, mechanism=(0,), purview=(1,))
 
 
+@config.override(
+    PARTITION_TYPE="TRI",
+    REPERTOIRE_DISTANCE="AID",
+)
 def test_maximal_states():
-    with config.override(
-        PARTITION_TYPE="TRI",
-        REPERTOIRE_DISTANCE="AID",
-    ):
-        subsystem = examples.PQR()
-        ces = FlatCauseEffectStructure(compute.ces(subsystem))
-        results = [mice.maximal_state for mice in ces]
-        answers = [
-            np.array([[0, 0, 0]]),
-            np.array([[0, 0, 0]]),
-            np.array([[0, 0, 0], [1, 1, 0]]),
-            np.array([[0, 0, 0]]),
-            np.array([[0, 1, 0]]),
-            np.array([[0, 0, 1]]),
-            np.array([[1, 1, 0]]),
-            np.array([[0, 0, 1]]),
-        ]
-        for result, answer in zip(results, answers):
-            print(result)
-            print(answer)
-            assert np.array_equal(result, answer)
+    subsystem = examples.PQR()
+    ces = FlatCauseEffectStructure(compute.ces(subsystem))
+    results = [mice.maximal_state for mice in ces]
+    answers = [
+        np.array([[0, 0, 0]]),
+        np.array([[0, 0, 0]]),
+        np.array([[0, 0, 0], [1, 1, 0]]),
+        np.array([[0, 0, 0]]),
+        np.array([[0, 1, 0]]),
+        np.array([[0, 0, 1]]),
+        np.array([[1, 1, 0]]),
+        np.array([[0, 0, 1]]),
+    ]
+    for result, answer in zip(results, answers):
+        print(result)
+        print(answer)
+        assert np.array_equal(result, answer)
 
 
 # }}}
