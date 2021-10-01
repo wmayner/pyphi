@@ -22,6 +22,37 @@ from . import actual, config
 LABELS = string.ascii_uppercase
 
 
+def grid3_network():
+    """3-node grid network."""
+    # Grid
+    # fmt: off
+    tpm = np.array([
+       [[[0.04742587, 0.02931223, 0.04742587],
+         [0.04742587, 0.07585818, 0.88079708]],
+
+        [[0.11920292, 0.81757448, 0.11920292],
+         [0.11920292, 0.92414182, 0.95257413]]],
+
+
+       [[[0.88079708, 0.07585818, 0.04742587],
+         [0.88079708, 0.18242552, 0.88079708]],
+
+        [[0.95257413, 0.92414182, 0.11920292],
+         [0.95257413, 0.97068777, 0.95257413]]]
+    ])
+    cm = np.array([
+        [1, 1, 0],
+        [1, 1, 1],
+        [0, 1, 1],
+    ])
+    # fmt: on
+    return Network(tpm, cm=cm, node_labels=['A', 'B', 'C'])
+
+
+def grid3():
+    return Subsystem(grid3_network(), (0, 0, 0))
+
+
 # TODO(relations): add docstring
 def PQR_network():
     # fmt: off
