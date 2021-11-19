@@ -8,7 +8,9 @@ import operator
 from itertools import product
 
 import numpy as np
+from joblib import Parallel, delayed
 from toolz import concat, curry
+from pyphi.compute.parallel import get_num_processes
 
 from . import config, validate
 from .models import cmp
@@ -365,13 +367,20 @@ def all_relata(subsystem, ces, min_order=2, max_order=None):
 
 
 # TODO: change to candidate_relations?
-def all_relations(subsystem, ces, **kwargs):
+def all_relations(subsystem, ces, parallel=False, parallel_kwargs=None, **kwargs):
     """Return all relations, even those with zero phi."""
     # Relations can be over any combination of causes/effects in the CES, so we
     # get a flat list of all causes and effects
     ces = FlatCauseEffectStructure(ces)
+    relata = all_relata(subsystem, ces, **kwargs)
     # Compute all relations
-    return map(relation, all_relata(subsystem, ces, **kwargs))
+    parallel_kwargs = {
+        "n_jobs": get_num_processes(),
+        **(parallel_kwargs if parallel_kwargs else dict()),
+    }
+    if parallel:
+        return Parallel(**parallel_kwargs)(map(delayed(relation), relata))
+    return map(relation, relata)
 
 
 def relations(subsystem, ces, **kwargs):
