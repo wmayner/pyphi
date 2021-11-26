@@ -4,6 +4,7 @@ twine >=1.11.0
 wheel >=0.31.0
 readme_renderer
 watchdog
+argh
 pylint
 isort
 black
