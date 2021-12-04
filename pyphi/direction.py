@@ -6,10 +6,11 @@
 Causal directions.
 """
 
-from enum import Enum
+from enum import IntEnum, unique
 
 
-class Direction(Enum):
+@unique
+class Direction(IntEnum):
     """Constant that parametrizes cause and effect methods.
 
     Accessed using ``Direction.CAUSE`` and ``Direction.EFFECT``, etc.
@@ -19,8 +20,11 @@ class Direction(Enum):
     EFFECT = 1
     BIDIRECTIONAL = 2
 
-    def __str__(self):
+    def __repr__(self):
         return self.name
+
+    def __str__(self):
+        return repr(self)
 
     def to_json(self):
         return {"direction": self.name}
