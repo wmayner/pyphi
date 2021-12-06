@@ -280,11 +280,13 @@ class Part:
 class KPartition(Sequence):
     """A partition with an arbitrary number of parts."""
 
-    __slots__ = ["parts", "node_labels"]
+    __slots__ = ["parts", "node_labels", "_mechanism", "_purview"]
 
     def __init__(self, *parts, node_labels=None):
         self.parts = parts
         self.node_labels = node_labels
+        self._mechanism = None
+        self._purview = None
 
     def __len__(self):
         return len(self.parts)
@@ -309,12 +311,20 @@ class KPartition(Sequence):
     @property
     def mechanism(self):
         """tuple[int]: The nodes of the mechanism in the partition."""
-        return tuple(sorted(chain.from_iterable(part.mechanism for part in self)))
+        # TODO(4.0) do we need to sort here? slow
+        if self._mechanism is None:
+            self._mechanism = tuple(
+                chain.from_iterable(part.mechanism for part in self)
+            )
+        return self._mechanism
 
     @property
     def purview(self):
         """tuple[int]: The nodes of the purview in the partition."""
-        return tuple(sorted(chain.from_iterable(part.purview for part in self)))
+        # TODO(4.0) do we need to sort here? slow
+        if self._purview is None:
+            self._purview = tuple(chain.from_iterable(part.purview for part in self))
+        return self._purview
 
     def normalize(self):
         """Normalize the order of parts in the partition."""
