@@ -221,9 +221,29 @@ def fmt_number(p):
     )
 
 
+def fmt_nodes(nodes, node_labels=None):
+    """Format nodes, optionally with labels."""
+    return ",".join(labels(nodes, node_labels)) if nodes else EMPTY_SET
+
+
 def fmt_mechanism(indices, node_labels=None):
     """Format a mechanism or purview."""
-    return "[" + ", ".join(labels(indices, node_labels)) + "]"
+    return "[" + fmt_nodes(indices, node_labels=node_labels) + "]"
+
+
+def fmt_fraction(numer: str, denom: str):
+    """Format a fraction.
+
+    Arguments:
+        numer (str): The numerator.
+        denom (str): The denominator.
+    """
+    width = max(3, len(numer), len(denom))
+    divider = HORIZONTAL_BAR * width
+
+    return ("{numer:^{width}}\n" "{divider}\n" "{denom:^{width}}").format(
+        numer=numer, divider=divider, denom=denom, width=width
+    )
 
 
 def fmt_part(part, node_labels=None):
@@ -235,19 +255,10 @@ def fmt_part(part, node_labels=None):
         ───
          ∅
     """
+    numer = fmt_nodes(part.mechanism, node_labels=node_labels)
+    denom = fmt_nodes(part.purview, node_labels=node_labels)
 
-    def nodes(x):  # pylint: disable=missing-docstring
-        return ",".join(labels(x, node_labels)) if x else EMPTY_SET
-
-    numer = nodes(part.mechanism)
-    denom = nodes(part.purview)
-
-    width = max(3, len(numer), len(denom))
-    divider = HORIZONTAL_BAR * width
-
-    return ("{numer:^{width}}\n" "{divider}\n" "{denom:^{width}}").format(
-        numer=numer, divider=divider, denom=denom, width=width
-    )
+    return fmt_fraction(numer, denom)
 
 
 def fmt_partition(partition):
@@ -268,7 +279,12 @@ def fmt_partition(partition):
     if not partition:
         return ""
 
-    parts = [fmt_part(part, partition.node_labels).split("\n") for part in partition]
+    parts = [
+        # TODO(4.0)
+        # str(part).split("\n")
+        fmt_part(part, node_labels=partition.node_labels).split("\n")
+        for part in partition
+    ]
 
     times = ("   ", " {} ".format(MULTIPLY), "   ")
     breaks = ("\n", "\n", "")  # No newline at the end of string
@@ -315,7 +331,6 @@ def fmt_concept(concept):
     mechanism_state = tuple(concept.subsystem.state[i] for i in concept.mechanism)
     # TODO align mechanism states with nodes
     # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access to their state, etc.
-    # would
     title = "Concept: mechanism = {}, state = {}\n{} = {}".format(
         mechanism, mechanism_state, SMALL_PHI, fmt_number(concept.phi)
     )

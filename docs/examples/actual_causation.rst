@@ -164,15 +164,15 @@ The complete causal account of our transition can be computed with the
    >>> account = actual.account(transition)
    >>> print(account)  # doctest: +NORMALIZE_WHITESPACE
    <BLANKLINE>
-         Account (5 causal links)
-   ***********************************
+        Account (5 causal links)
+   *********************************
    Irreducible effects
    α = 0.415  [OR] ━━▶ [OR]
    α = 0.415  [AND] ━━▶ [AND]
    Irreducible causes
    α = 0.415  [OR] ◀━━ [OR]
    α = 0.415  [AND] ◀━━ [AND]
-   α = 0.1699  [OR, AND] ◀━━ [OR, AND]
+   α = 0.1699  [OR,AND] ◀━━ [OR,AND]
 
 We see that this function produces the causal links shown in Figure 4. The
 |Account| object is a subclass of ``tuple``, and can manipulated the same:
@@ -207,7 +207,7 @@ destroyed by the MIP:
 The partition of the MIP is available in the ``cut`` property:
 
    >>> sia.cut  # doctest: +NORMALIZE_WHITESPACE
-   KCut CAUSE
+   KCut 0
     ∅     OR    AND
    ─── ✕ ─── ✕ ───
     ∅     OR    AND
@@ -225,7 +225,7 @@ with |big_alpha > 0|:
    ...     print(n.transition, n.alpha)
    Transition([OR] ━━▶ [OR]) 2.0
    Transition([AND] ━━▶ [AND]) 2.0
-   Transition([OR, AND] ━━▶ [OR, AND]) 0.169925
+   Transition([OR,AND] ━━▶ [OR,AND]) 0.169925
 
 The ``causal_nexus`` function computes the maximally irreducible account for
 the transition of interest:
