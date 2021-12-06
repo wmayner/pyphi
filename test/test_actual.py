@@ -3,6 +3,7 @@ import pytest
 
 from pyphi import Direction, Network, Subsystem, actual, config, examples, models
 from pyphi.models import KPartition, Part
+from pyphi.validate import node_labels
 
 # TODO
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -445,7 +446,11 @@ def test_unconstrained_probability(transition):
 
 @pytest.mark.parametrize(
     "mechanism,purview,ratio",
-    [((0,), (1,), 0.41504), ((0,), (2,), 0.41504), ((0,), (1, 2), 0.41504),],
+    [
+        ((0,), (1,), 0.41504),
+        ((0,), (2,), 0.41504),
+        ((0,), (1, 2), 0.41504),
+    ],
 )
 def test_cause_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.cause_ratio(mechanism, purview), ratio)
@@ -453,7 +458,11 @@ def test_cause_ratio(mechanism, purview, ratio, transition):
 
 @pytest.mark.parametrize(
     "mechanism,purview,ratio",
-    [((1,), (0,), 0.41504), ((2,), (0,), 0.41504), ((1, 2), (0,), 0.41504),],
+    [
+        ((1,), (0,), 0.41504),
+        ((2,), (0,), 0.41504),
+        ((1, 2), (0,), 0.41504),
+    ],
 )
 def test_effect_ratio(mechanism, purview, ratio, transition):
     assert np.isclose(transition.effect_ratio(mechanism, purview), ratio)
@@ -474,7 +483,8 @@ def test_ac_ex1_transition(transition):
     assert cria.probability == 0.66666666666666663
     assert cria.partitioned_probability == 0.5
     assert cria.partition == models.Bipartition(
-        models.Part((), (1,)), models.Part((0,), ())
+        models.Part((), (1,)),
+        models.Part((0,), ()),
     )
 
     effect_account = actual.account(transition, Direction.EFFECT)
@@ -490,7 +500,8 @@ def test_ac_ex1_transition(transition):
     assert eria0.probability == 1.0
     assert eria0.partitioned_probability == 0.75
     assert eria0.partition == models.Bipartition(
-        models.Part((), (0,)), models.Part((1,), ())
+        models.Part((), (0,)),
+        models.Part((1,), ()),
     )
 
     assert eria1.mechanism == (2,)
@@ -501,7 +512,8 @@ def test_ac_ex1_transition(transition):
     assert eria1.probability == 1.0
     assert eria1.partitioned_probability == 0.75
     assert eria1.partition == models.Bipartition(
-        models.Part((), (0,)), models.Part((2,), ())
+        models.Part((), (0,)),
+        models.Part((2,), ()),
     )
 
 
@@ -579,8 +591,7 @@ def ac_cut(direction, *parts):
 )
 def test_get_actual_cuts(direction, answer, transition):
     cuts = list(actual._get_cuts(transition, direction))
-    print(cuts, answer)
-    np.testing.assert_array_equal(cuts, answer)
+    assert set(cuts) == set(answer)
 
 
 def test_sia(transition):
