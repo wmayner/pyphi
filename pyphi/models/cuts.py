@@ -4,8 +4,8 @@
 
 """Objects that represent partitions of sets of nodes."""
 
-from collections import namedtuple
 from collections.abc import Sequence
+from dataclasses import dataclass
 from itertools import chain
 
 import numpy as np
@@ -239,7 +239,8 @@ class ActualCut(KCut):
         return tuple(sorted(set(self.partition.mechanism + self.partition.purview)))
 
 
-class Part(namedtuple("Part", ["mechanism", "purview"])):
+@dataclass(order=True)
+class Part:
     """Represents one part of a |Bipartition|.
 
     Attributes:
@@ -257,7 +258,15 @@ class Part(namedtuple("Part", ["mechanism", "purview"])):
         This class represents one term in the above product.
     """
 
-    __slots__ = ()
+    mechanism: tuple
+    purview: tuple
+
+    def __hash__(self):
+        return hash((self.mechanism, self.purview))
+
+    def __eq__(self, other):
+        return (self.mechanism == other.mechanism) and (self.purview == other.purview)
+
 
     def to_json(self):
         """Return a JSON-serializable representation."""
