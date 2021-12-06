@@ -21,8 +21,8 @@ from pyphi import (
 )
 from pyphi.labels import NodeLabels
 
+
 # Helper functions for constructing PyPhi objects
-# -----------------------------------------------
 
 
 def ria(
@@ -97,7 +97,6 @@ def sia(ces=(), partitioned_ces=(), subsystem=None, cut_subsystem=None, phi=1.0)
 
 
 # Test equality helpers
-# {{{
 
 
 def test_phi_mechanism_ordering():
@@ -122,13 +121,6 @@ def test_phi_mechanism_ordering():
     assert PhiThing(2.0, (1,)) > PhiThing(1.0, (1, 2))  # Larger phi
     assert PhiThing(1.0, (1,)) >= PhiThing(1.0, (1,))
     assert PhiThing(1.0, (1, 2)) >= PhiThing(1.0, (1,))
-
-    class PhiLikeThing(PhiThing):
-        pass
-
-    # Compared objects must be of the same class
-    with pytest.raises(TypeError):  # TypeError: unorderable types
-        PhiThing(1.0, (1, 2)) <= PhiLikeThing(1.0, (1, 2))
 
     class PhiThang(PhiThing):
         def __init__(self, phi, mechanism, purview):
@@ -227,10 +219,7 @@ def test_general_eq_attribute_missing():
     assert not models.cmp.general_eq(a, b, nt_attributes)
 
 
-# }}}
-
 # Test Cut
-# {{{
 
 
 def test_cut_equality():
@@ -353,11 +342,7 @@ def test_cuts_can_have_node_labels(node_labels):
     models.KCut(Direction.CAUSE, k_partition, node_labels=node_labels)
 
 
-# }}}
-
-
 # Test ria
-# {{{
 
 
 def test_ria_ordering_and_equality():
@@ -376,12 +361,6 @@ def test_ria_ordering_and_equality():
 
     with config.override(PICK_SMALLEST_PURVIEW=True):
         assert ria(purview=(1, 2)) < ria(purview=(1,))
-
-    with pytest.raises(TypeError):
-        ria(direction=Direction.CAUSE) < ria(direction=Direction.EFFECT)
-
-    with pytest.raises(TypeError):
-        ria(direction=Direction.CAUSE) >= ria(direction=Direction.EFFECT)
 
 
 def test_null_ria():
@@ -404,10 +383,7 @@ def test_ria_repr_str():
     print(str(ria()))
 
 
-# }}}
-
 # Test MaximallyIrreducibleCauseOrEffect
-# {{{
 
 
 def test_mice_ordering_by_phi():
@@ -419,12 +395,10 @@ def test_mice_ordering_by_phi():
     assert phi2 >= phi1
 
     different_direction = mice(direction="different")
-
-    with pytest.raises(TypeError):
-        phi1 <= different_direction
-
-    with pytest.raises(TypeError):
-        phi1 >= different_direction
+    assert phi2 > different_direction
+    assert different_direction < phi2
+    assert phi2 >= different_direction
+    assert different_direction <= phi2
 
 
 def test_mice_odering_by_mechanism():
@@ -497,10 +471,7 @@ def test_damaged(s):
     assert not m2.damaged_by_cut(s)
 
 
-# }}}
-
-
-# Test MIC and MIE {{{
+# Test MIC and MIE
 
 
 def test_mic_raises_wrong_direction():
@@ -539,11 +510,7 @@ def test_maximal_states():
         assert np.array_equal(result, answer)
 
 
-# }}}
-
-
 # Test Concept
-# {{{
 
 
 def test_concept_ordering(s, micro_s):
@@ -642,11 +609,7 @@ def test_concept_emd_eq(s, subsys_n1n2):
     # TODO: test other expectations...
 
 
-# }}}
-
-
 # Test CauseEffectStructure
-# {{{
 
 
 def test_ces_is_still_a_tuple(s):
@@ -683,11 +646,7 @@ def test_ces_ordering(s):
     ) > models.CauseEffectStructure([concept(phi=0, subsystem=s)], subsystem=s)
 
 
-# }}}
-
-
 # Test SystemIrreducibilityAnalysis
-# {{{
 
 
 def test_sia_ordering(s, s_noised, subsys_n0n2, subsys_n1n2):
@@ -731,11 +690,7 @@ def test_sia_repr_str(s):
     print(str(bm))
 
 
-# }}}
-
-
 # Test model __str__ and __reprs__
-# {{{
 
 
 def test_indent():
@@ -766,11 +721,7 @@ def test_make_reprs_calls_out_to_string():
     assert repr(ReadableReprClass()) == "A nice fat explicit string"
 
 
-# }}}
-
-
 # Test partitions
-# {{{
 
 
 @pytest.fixture
@@ -842,8 +793,3 @@ def test_partition_normalize_preserves_labels(node_labels):
 def test_partition_eq_hash():
     assert k_partition() == k_partition()
     assert hash(k_partition()) == hash(k_partition())
-
-
-# }}}
-
-# vim: set foldmarker={{{,}}} foldlevel=0  foldmethod=marker :
