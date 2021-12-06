@@ -114,7 +114,8 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
     # Call the `to_json` method if available and add metadata.
     if hasattr(obj, "to_json"):
         d = obj.to_json()
-        _push_metadata(d, obj)
+        if isinstance(d, dict):
+            _push_metadata(d, obj)
         return jsonify(d)
 
     # If we have a numpy array, convert it to a list.
@@ -219,7 +220,7 @@ class PyPhiJSONDecoder(json.JSONDecoder):
         PyPhi models are recursively loaded, using the model metadata to
         recreate the original object relations. Lists are cast to tuples
         because most objects in PyPhi which are serialized to lists (eg.
-        mechanisms and purviews) are ultimately tuples. Other lists (tpms,
+        mechanisms and purviews) are ultimately tuples. Other lists (TPMs,
         repertoires) should be cast to the correct type in init methods.
         """
         if isinstance(obj, dict):
