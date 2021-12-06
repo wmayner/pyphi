@@ -5,10 +5,12 @@ __pycache__
 .agignore
 .tox
 .coverage
+.pytest_cache
 **/*.egg-info
 **/*.log
 **/*.BACKUP
 __pyphi_cache__
+
 dist
 build
 docs/_build
