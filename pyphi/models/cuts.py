@@ -11,6 +11,7 @@ from itertools import chain
 import numpy as np
 
 from .. import connectivity, utils
+from ..labels import NodeLabels
 from . import cmp, fmt
 
 
@@ -260,6 +261,7 @@ class Part:
 
     mechanism: tuple
     purview: tuple
+    node_labels: NodeLabels = None
 
     def __hash__(self):
         return hash((self.mechanism, self.purview))
@@ -267,6 +269,8 @@ class Part:
     def __eq__(self, other):
         return (self.mechanism == other.mechanism) and (self.purview == other.purview)
 
+    def __repr__(self):
+        return fmt.fmt_part(self, node_labels=self.node_labels)
 
     def to_json(self):
         """Return a JSON-serializable representation."""
