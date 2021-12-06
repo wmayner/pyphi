@@ -571,7 +571,7 @@ shown in the figure:
     >>> sia.phi
     1.916665
     >>> sia.cut
-    Cut [A, B] ━━/ /━━➤ [C]
+    Cut [A,B] ━━/ /━━➤ [C]
 
 .. note::
 

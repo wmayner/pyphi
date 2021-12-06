@@ -307,8 +307,11 @@ def absolute_information_density(p, q):
     return np.abs(information_density(p, q))
 
 
-def maximal_state(repertoire, partitioned_repertoire):
-    """Return the state(s) with the maximal AID between the repertoires.
+def specified_index(repertoire, partitioned_repertoire):
+    """Return the indices of the state(s) with the maximal AID between the repertoires.
+
+    The index is relative to the entire network (i.e., suitable for indexing
+    into a repertoire).
 
     Note that there can be ties.
 
@@ -319,6 +322,23 @@ def maximal_state(repertoire, partitioned_repertoire):
     # DistanceResult class that can carry auxilliary data, e.g. the maximal
     # states
     # TODO(4.0) make configurable
+    density = absolute_information_density(repertoire, partitioned_repertoire)
+    return (density == density.max()).nonzero()
+
+
+def specified_state(repertoire, partitioned_repertoire):
+    """Return the state(s) with the maximal AID between the repertoires.
+
+    This returns only the state of the purview nodes (i.e., there is one element
+    in the state vector for each purview node, not for each node in the
+    network).
+
+    Note that there can be ties.
+
+    Returns:
+        np.ndarray: A 2D array where each row is a maximal state.
+    """
+    # TODO(relations)
     density = absolute_information_density(
         repertoire.squeeze(), partitioned_repertoire.squeeze()
     )

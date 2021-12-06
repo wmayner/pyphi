@@ -13,6 +13,7 @@ from .cache import cache
 from .models import Bipartition, KPartition, Part, Tripartition
 from .registry import Registry
 
+# TODO move purely combinatorial functions to `combinatorics`
 
 # From stackoverflow.com/questions/19368375/set-partitions-in-python
 def partitions(collection):
@@ -441,7 +442,9 @@ def mip_bipartitions(mechanism, purview, node_labels=None):
     for n, d in product(numerators, denominators):
         if (n[0] or d[0]) and (n[1] or d[1]):
             yield Bipartition(
-                Part(n[0], d[0]), Part(n[1], d[1]), node_labels=node_labels
+                Part(n[0], d[0], node_labels=node_labels),
+                Part(n[1], d[1], node_labels=node_labels),
+                node_labels=node_labels,
             )
 
 
@@ -487,7 +490,10 @@ def wedge_partitions(mechanism, purview, node_labels=None):
     for n, d in filter(valid, product(numerators, denominators)):
         # Normalize order of parts to remove duplicates.
         tripart = Tripartition(
-            Part(n[0], d[0]), Part(n[1], d[1]), Part((), d[2]), node_labels=node_labels
+            Part(n[0], d[0], node_labels=node_labels),
+            Part(n[1], d[1], node_labels=node_labels),
+            Part((), d[2], node_labels=node_labels),
+            node_labels=node_labels,
         ).normalize()  # pylint: disable=bad-whitespace
 
         def nonempty(part):
@@ -547,7 +553,7 @@ def all_partitions(mechanism, purview, node_labels=None):
                 for purview_permutation in set(permutations(purview_partition)):
 
                     parts = [
-                        Part(tuple(m), tuple(p))
+                        Part(tuple(m), tuple(p), node_labels=node_labels)
                         for m, p in zip(mechanism_partition, purview_permutation)
                     ]
 

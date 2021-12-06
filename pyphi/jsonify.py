@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 # jsonify.py
 
-# TODO: extend to `macro` objects
-# TODO: resolve schema issues with `vphi` and other external consumers
-# TODO: somehow check schema instead of version?
-
 """
 PyPhi- and NumPy-aware JSON serialization.
 
@@ -47,6 +43,13 @@ CLASS_KEY = "__class__"
 VERSION_KEY = "__version__"
 ID_KEY = "__id__"
 
+# TODO: extend to `macro` objects
+# TODO: resolve schema issues with `vphi` and other external consumers
+# TODO: somehow check schema instead of version?
+# TODO(4.0): ensure that sets/lists/tuples are cast to the correct type in
+#            __init__ methods so loading works properly
+# TODO(4.0): to_dict() instead?
+
 
 def _loadable_models():
     """A dictionary of loadable PyPhi models.
@@ -73,12 +76,17 @@ def _loadable_models():
         pyphi.models.MaximallyIrreducibleEffect,
         pyphi.models.Concept,
         pyphi.models.CauseEffectStructure,
+        pyphi.models.FlatCauseEffectStructure,
         pyphi.models.SystemIrreducibilityAnalysis,
         pyphi.models.ActualCut,
         pyphi.models.AcRepertoireIrreducibilityAnalysis,
         pyphi.models.CausalLink,
         pyphi.models.Account,
         pyphi.models.AcSystemIrreducibilityAnalysis,
+        pyphi.relations.RelationPart,
+        pyphi.relations.RelationPartition,
+        pyphi.relations.Relata,
+        pyphi.relations.Relation,
     ]
     return {cls.__name__: cls for cls in classes}
 

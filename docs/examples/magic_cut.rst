@@ -101,7 +101,7 @@ for any purview, so the cause information is reducible.
     >>> repertoire = subsystem.cause_repertoire(ABC, ABC)
     >>> cut_repertoire = (subsystem.cause_repertoire(BC, ABC) *
     ...                   subsystem.cause_repertoire(A, ()))
-    >>> pyphi.metrics.hamming_emd(repertoire, cut_repertoire)
+    >>> pyphi.metrics.distribution.hamming_emd(repertoire, cut_repertoire)
     0.0
 
 Next, let's look at the cut subsystem to understand how the new concept comes
@@ -131,7 +131,7 @@ currently ON. Thus, unlike the unpartitioned case, knowing the current state of
     >>> repertoire = cut_subsystem.cause_repertoire(ABC, ABC)
     >>> cut_repertoire = (cut_subsystem.cause_repertoire(AB, ABC) *
     ...                   cut_subsystem.cause_repertoire(C, ()))
-    >>> print(pyphi.metrics.hamming_emd(repertoire, cut_repertoire))
+    >>> print(pyphi.metrics.distribution.hamming_emd(repertoire, cut_repertoire))
     0.500001
 
 With this partition, the integrated information is :math:`\varphi = 0.5`, but
@@ -175,7 +175,7 @@ Calculating the MIP of the system,
     >>> sia.phi
     0.217829
     >>> sia.cut
-    Cut [A, E] ━━/ /━━➤ [B]
+    Cut [A,E] ━━/ /━━➤ [B]
 
 we see that this subsystem has a |big_phi| value of 0.15533, and the MIP cuts
 the connections from |AE| to |B|. Investigating the concepts in both the

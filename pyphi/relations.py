@@ -12,12 +12,16 @@ from joblib import Parallel, delayed
 from toolz import concat, curry
 from pyphi.compute.parallel import get_num_processes
 
+from pyphi.partition import Part, Tripartition, partition_types
+
 from . import config, validate
-from .models import cmp
-from .models.cuts import Bipartition, Part
-from .models.subsystem import FlatCauseEffectStructure
+from .combinatorics import combinations_with_nonempty_intersection
+from .direction import Direction
 from .metrics.distribution import absolute_information_density
-from .utils import powerset, eq
+from .models import cmp, fmt
+from .models.subsystem import FlatCauseEffectStructure
+from .utils import eq, powerset
+
 
 # TODO there should be an option to resolve ties at different levels
 
@@ -28,6 +32,24 @@ from .utils import powerset, eq
 
 # TODO notes from Matteo 2019-02-20
 # - object encapsulating interface to pickled concepts from CHTC for matteo and andrew
+
+# TODO overhaul:
+# - use andrew's method for finding congruent overlap?
+# - memoize purview
+# - set semantics on relations
+# - think about whether we can just do the specification calculation once?
+# - and then the for_relatum information calculation?
+# - speed up hash and eq for MICE
+# - make examples renaming consistent in rest of code
+# - check TODOs
+# - move stuff to combinatorics
+# - jsonify cases
+# - improve implementation of congruent overlap using andrew's method?
+# - NodeLabels on RIA?
+# - make all cut.mechanism and .purviews sets, throughout
+# - fix __str__ of RelationPartition
+
+# TODO IMPORTANT: compositional state
 
 
 @curry
@@ -82,24 +104,173 @@ all_minima = _all_extrema(operator.lt)
 all_maxima = _all_extrema(operator.gt)
 
 
-def indices(iterable):
-    """Convert an iterable to element indices."""
-    return tuple(sorted(iterable))
+def only_nonsubsets(sets):
+    """Find sets that are not proper subsets of any other set."""
+    sets = sorted(map(set, sets), key=len, reverse=True)
+    keep = []
+    for a in sets:
+        if all(not a.issubset(b) for b in keep):
+            keep.append(a)
+    return keep
 
 
-def congruent_nodes(states):
-    """Return the set of nodes that have the same state in all given states."""
-    states = np.array(states)
-    return set(np.all(states == states[0], axis=0).nonzero()[0])
+def overlap_states(specified_states, purviews, overlap):
+    """Return the specified states of only the elements in the overlap."""
+    overlap = np.array(list(overlap), dtype=int)
+
+    purviews = list(purviews)
+    minimum = min(min(purview) for purview in purviews)
+    maximum = max(max(purview) for purview in purviews)
+    n = 1 + maximum - minimum
+    # Global-state-relative index of overlap nodes
+    idx = overlap - minimum
+
+    states = []
+    for state, purview in zip(specified_states, purviews):
+        # Construct the specified state in a common reference frame
+        global_state = np.empty([state.shape[0], n])
+        relative_idx = [p - minimum for p in purview]
+        global_state[:, relative_idx] = state
+        # Retrieve only the overlap
+        states.append(global_state[:, idx])
+
+    return states
+
+
+def congruent_overlap(specified_states, overlap):
+    if not overlap:
+        return []
+    # Generate combinations of indices of tied states
+    combination_indices = np.array(
+        list(product(*(range(state.shape[0]) for state in specified_states)))
+    )
+    # Form a single array containing all combinations of tied states
+    state_combinations = np.stack(
+        [state[combination_indices[:, i]] for i, state in enumerate(specified_states)]
+    )
+    # Compute congruence (vectorized over combinations of ties)
+    congruence = (state_combinations[0, ...] == state_combinations).all(axis=0)
+    # Find the combinations where some elements are congruent
+    congruent_indices, congruent_elements = congruence.nonzero()
+    # Find the elements that are congruent
+    congruent_subsets = set(
+        tuple(elements.nonzero()[0]) for elements in congruence[congruent_indices]
+    )
+    # Remove any congruent overlaps that are subsets of another congruent overlap
+    congruent_subsets = only_nonsubsets(map(set, congruent_subsets))
+    # Convert overlap indices to purview element indices
+    overlap = np.array(list(overlap))
+    return [overlap[list(subset)] for subset in congruent_subsets]
+
+
+def fmt_relatum(relatum, node_labels=None):
+    direction = "Cause" if relatum.direction == Direction.CAUSE else "Effect"
+    return direction + fmt.fmt_mechanism(relatum.mechanism, node_labels=node_labels)
+
+
+class RelationPart(Part):
+    """A part of a relation-style partition."""
+
+    def __init__(self, mechanism, purview, relata, node_labels=None):
+        self.relata = relata
+        super().__init__(mechanism, purview, node_labels=node_labels)
+
+    def to_json(self):
+        """Return a JSON-serializable representation."""
+        return {
+            "mechanism": self.mechanism,
+            "purview": self.purview,
+            "relata": self.relata,
+        }
+
+    def __repr__(self):
+        numer = (
+            ", ".join(
+                fmt_relatum(relatum, node_labels=self.node_labels)
+                for relatum in [self.relata[i] for i in self.mechanism]
+            )
+            if self.mechanism
+            else fmt.EMPTY_SET
+        )
+        denom = fmt.fmt_nodes(self.purview, node_labels=self.node_labels)
+        return fmt.fmt_fraction(numer=numer, denom=denom)
+
+
+class RelationPartition(Tripartition):
+    def __init__(self, relata, *parts, node_labels=None):
+        self.relata = relata
+        super().__init__(*parts, node_labels=node_labels)
+        self._purview = None
+
+    @property
+    def purview(self):
+        if self._purview is None:
+            self._purview = set(super().purview)
+        return self._purview
+
+    def for_relatum(self, i):
+        """Return the implied `Tripartition` with respect to just a single mechanism.
+
+        Arguments:
+            i (int): The index of the relatum in the relata object.
+        """
+        relatum = self.relata[i]
+        nonoverlap_purview_elements = tuple(set(relatum.purview) - set(self.purview))
+        return Tripartition(
+            *[
+                Part(
+                    mechanism=(relatum.mechanism if i in part.mechanism else ()),
+                    purview=tuple(
+                        part.purview
+                        # Non-overlapping purview elements are included only
+                        # once, in the part corresponding to this mechanism
+                        + (nonoverlap_purview_elements if i in part.mechanism else ())
+                    ),
+                    node_labels=part.node_labels,
+                )
+                for part in self.parts
+            ]
+        )
+
+
+def partitions(relata, candidate_joint_purview, node_labels=None):
+    if config.PARTITION_TYPE != "TRI":
+        raise NotImplementedError(
+            "Relations are not implemented for any other partition types "
+            f"except TRI'; got {config.PARTITION_TYPE}"
+        )
+    partition_function = partition_types[config.PARTITION_TYPE]
+    # Generate wedge partitions, treating mechanisms in the relation as atomic
+    # elements.
+    overlap_partitions = partition_function(
+        tuple(range(len(relata))), candidate_joint_purview
+    )
+    return (
+        RelationPartition(
+            relata,
+            *(
+                RelationPart(
+                    mechanism=part.mechanism,
+                    purview=part.purview,
+                    relata=relata,
+                    node_labels=node_labels,
+                )
+                for part in partition
+            ),
+            node_labels=node_labels,
+        )
+        for partition in overlap_partitions
+    )
 
 
 class Relation(cmp.Orderable):
     """A relation among causes/effects."""
 
-    def __init__(self, relata, purview, phi, ties=None):
+    def __init__(self, relata, purview, phi, partition, ties=None):
         self._relata = relata
-        self._purview = indices(purview)
+        self._purview = frozenset(purview)
         self._phi = phi
+        self._partition = partition
         self._ties = ties
 
     @property
@@ -113,6 +284,10 @@ class Relation(cmp.Orderable):
     @property
     def phi(self):
         return self._phi
+
+    @property
+    def partition(self):
+        return self._partition
 
     @property
     def ties(self):
@@ -137,7 +312,7 @@ class Relation(cmp.Orderable):
         return [relatum.mechanism for relatum in self.relata]
 
     def __repr__(self):
-        return f"Relation({self.mechanisms}, {self.purview}, {self.phi})"
+        return f"Relation(relata=({','.join(map(fmt_relatum, self.relata))}), purview={self.purview}, phi={self.phi})"
 
     def __str__(self):
         return repr(self)
@@ -149,19 +324,25 @@ class Relation(cmp.Orderable):
         return len(self.relata)
 
     def __eq__(self, other):
-        attrs = ["phi", "relata"]
-        return cmp.general_eq(self, other, attrs)
+        # TODO
+        return self.relata.as_set() == other.relata.as_set() and eq(self.phi, other.phi)
+        # attrs = ["phi", "relata"]
+        # return cmp.general_eq(self, other, attrs)
+
+    def __hash__(self):
+        return hash(
+            (self.relata.as_set(), self.purview, round(self.phi, config.PRECISION))
+        )
 
     def order_by(self):
-        # TODO check with andrew/matteo about this; what do we want? maybe also
-        # the order?
-        return (round(self.phi, config.PRECISION), len(self.relata))
+        # NOTE: This implementation determines the definition of ties
+        return round(self.phi, config.PRECISION)
 
     @staticmethod
     def union(tied_relations):
         """Return the 'union' of tied relations.
 
-        This is a new Relation object that contains the purviews of the other
+        This is a new Relation object that contains the purviews of all tied
         relations in the ``ties`` attribute.
         """
         if not tied_relations:
@@ -172,18 +353,33 @@ class Relation(cmp.Orderable):
             raise ValueError("tied relations must be among the same relata.")
         first = tied_relations[0]
         tied_purviews = set(r.purview for r in tied_relations)
-        return Relation(first.relata, first.purview, first.phi, ties=tied_purviews)
+        return Relation(
+            first.relata, first.purview, first.phi, first.partition, ties=tied_purviews
+        )
+
+    def to_json(self):
+        return {
+            "relata": self.relata,
+            "purview": sorted(self.purview),
+            "partition": self.partition,
+            "phi": self.phi,
+        }
 
 
-class Relata:
+# TODO subclass set?
+class Relata(cmp.Orderable):
     """A set of potentially-related causes/effects."""
 
     def __init__(self, subsystem, relata):
         validate.relata(relata)
-        # TODO do we want to use sorted() here to ensure equality comparisons
-        # are correct?
-        self._relata = relata
+        # TODO(4.0) implement set semantics on relata
+        self._relata = sorted(relata)
         self._subsystem = subsystem
+        self._overlap = None
+        self._congruent_overlap = None
+
+    def order_by(self):
+        return self._relata
 
     @property
     def subsystem(self):
@@ -191,16 +387,29 @@ class Relata:
 
     @property
     def mechanisms(self):
+        # TODO store
         return (relatum.mechanism for relatum in self)
 
     @property
     def purviews(self):
+        # TODO store
         return (relatum.purview for relatum in self)
 
+    @property
+    def directions(self):
+        # TODO store
+        return (relatum.direction for relatum in self)
+
+    @property
+    def specified_indices(self):
+        return (relatum.specified_index for relatum in self)
+
+    @property
+    def specified_states(self):
+        return (relatum.specified_state for relatum in self)
+
     def __repr__(self):
-        mechanisms = list(self.mechanisms)
-        purviews = list(self.purviews)
-        return f"Relata(mechanisms={mechanisms}, purviews={purviews})"
+        return f"Relata(mechanisms={list(self.mechanisms)}, purviews={list(self.purviews)})"
 
     def __str__(self):
         return repr(self)
@@ -209,50 +418,73 @@ class Relata:
         """Iterate over relata."""
         return iter(self._relata)
 
+    def as_set(self):
+        return frozenset(
+            (relatum.mechanism, relatum.purview, relatum.direction) for relatum in self
+        )
+
     def __getitem__(self, index):
         return self._relata[index]
 
     def __len__(self):
         return len(self._relata)
 
-    # TODO this relies on the implementation of equality for MICEs; we should
+    def __hash__(self):
+        # TODO make this more robust; need to check hashes of actual relata
+        # TODO(4.0) check MICE __hash__ for speed
+        return hash(self.as_set())
+
+    # TODO(4.0) this relies on the implementation of equality for MICEs; we should
     # go back and make sure that implementation is still appropriate
     def __eq__(self, other):
-        return all(mice == other_mice for mice, other_mice in zip(self, other))
+        return self._relata == other._relata
 
+    def to_json(self):
+        return {
+            "relata": list(self),
+            "subsystem": self.subsystem,
+        }
+
+    @classmethod
+    def from_json(cls, dct):
+        return cls(dct["subsystem"], dct["relata"])
+
+    @property
     def overlap(self):
         """Return the set of elements that are in the purview of every relatum."""
-        return set.intersection(*map(set, self.purviews))
+        if self._overlap is None:
+            self._overlap = set.intersection(*map(set, self.purviews))
+        return self._overlap
 
-    def null_relation(self, purview=None, phi=0.0):
+    def null_relation(self, purview=None, phi=0.0, partition=None):
+        # TODO(4.0): set default for partition to be the null partition
         if purview is None:
-            purview = set()
-        return Relation(self._relata, purview, phi)
+            purview = frozenset()
+        return Relation(self, purview, phi, partition)
 
-    # TODO(4.0) update language to say "state specified by" etc
     # TODO(4.0) allow indexing directly into relation?
     # TODO(4.0) make a property for the maximal state of the purview only
+    @property
     def congruent_overlap(self):
-        """Yield the congruent overlap(s) among the relata.
+        """Return the congruent overlap(s) among the relata.
 
-        These are the common purview elements among the relata whose
-        maximally-divergent states are consistent; that is, the largest subset
-        of the union of the purviews such that, for each element, that
-        element's state is the same according to the maximally divergent state
-        of each relatum.
+        These are the common purview elements among the relata whose specified
+        states are consistent; that is, the largest subset of the union of the
+        purviews such that each relatum specifies the same state for each
+        element.
 
         Note that there can be multiple congruent overlaps.
         """
-        overlap = self.overlap()
-        # A state set is one state per relatum; a relatum can have multiple
-        # tied states, so we consider every combination
-        for state_set in product(relatum.maximal_state for relatum in self):
-            # Get the nodes that have the same state in every maximal state
-            congruent = congruent_nodes(state_set)
-            # Find the largest congruent subset of the full overlap
-            intersection = set.intersection(overlap, congruent)
-            if intersection:
-                yield intersection
+        if self._congruent_overlap is None:
+            self._congruent_overlap = congruent_overlap(
+                overlap_states(
+                    self.specified_states,
+                    self.purviews,
+                    self.overlap,
+                ),
+                self.overlap,
+            )
+        return self._congruent_overlap
 
     def possible_purviews(self):
         """Return all possible purviews.
@@ -262,62 +494,81 @@ class Relata:
         each.
         """
         # TODO note: ties are included here
-        return map(
-            set,
+        return set(
             concat(
-                powerset(overlap, nonempty=True) for overlap in self.congruent_overlap()
-            ),
+                powerset(overlap, nonempty=True) for overlap in self.congruent_overlap
+            )
         )
 
-    def partitioned_divergence(self, purview, mice):
-        """Return the maximal partitioned divergence over this purview.
+    def evaluate_partition_for_relatum(self, i, partition):
+        """Evaluate the relation partition with respect to a particular relatum.
 
-        The purview is cut away from the MICE and the divergence is computed
-        between the unpartitioned repertoire and partitioned repertoire.
-
-        If the MICE has multiple tied maximally-divergent states, we take the
-        maximum unpartitioned-partitioned divergence across those tied states.
+        If the relatum specifies multiple (tied) states, we take the maximum
+        over the unpartitioned-partitioned distances for those states.
 
         Args:
             purview (set): The set of node indices in the purview.
-            mice (|MICE|): The |MICE| object to consider.
+            i (int): The index of relatum to consider.
         """
-        non_purview_indices = tuple(set(mice.purview) - purview)
-        partition = Bipartition(
-            Part(mice.mechanism, non_purview_indices), Part((), tuple(purview))
-        )
+        relatum = self[i]
         partitioned_repertoire = self.subsystem.partitioned_repertoire(
-            mice.direction, partition
+            relatum.direction, partition.for_relatum(i)
         )
+        # TODO(4.0) make this configurable?
         information = absolute_information_density(
-            mice.repertoire, partitioned_repertoire
+            relatum.repertoire, partitioned_repertoire
         )
-        # Convert back to `np.where` format
-        state_indices = tuple(np.transpose(mice.maximal_state))
-        # Squeeze out non-purview nodes since the state is just for the purview
+        # Take the information for only the specified states, leaving -Inf elsewhere
+        specified = np.empty_like(information, dtype=float)
+        specified[:] = -np.inf
+        specified[relatum.specified_index] = information[relatum.specified_index]
+        non_joint_purview_elements = tuple(
+            element for element in relatum.purview if element not in partition.purview
+        )
+        # Propagate specification through to a (potentially) smaller repertoire
+        # over just the joint purview
         # TODO(4.0) configuration for handling ties?
         # TODO tie breaking happens here! double-check with andrew
-        return np.max(information.squeeze()[state_indices])
+        specified = np.max(specified, axis=non_joint_purview_elements, keepdims=True)
+        return specified
+
+    def evaluate_partition(self, partition):
+        specified = np.stack(
+            [
+                self.evaluate_partition_for_relatum(i, partition)
+                for i in range(len(self))
+            ]
+        )
+        # Sum across relata; any non-specified states will propagate -np.inf
+        # through the sum, leaving only tied congruent states
+        # Then we take the max across tied congruent states
+        return np.max(specified.sum(axis=0))
 
     # TODO: do we care about ties here?
     # 2019-05-30: no, according to andrew
-    def minimum_information_relation(self, purview):
+    def minimum_information_relation(self, candidate_joint_purview):
         """Return the minimal information relation for this purview.
 
-        Args:
-            relata (Relata): The relata to consider.
-            purview (set): The purview to consider.
+        Arguments:
+            candidate_joint_purview (set): The purview to consider (subset of
+                the overlap).
         """
-        phi_min = float("inf")
-        for mice in self:
-            phi = self.partitioned_divergence(purview, mice)
-            # Short circuit if phi is zero
-            if phi == 0.0:
-                return self.null_relation(purview=purview, phi=0.0)
-            # Update the minimal relation if phi is smaller
-            if phi < phi_min:
-                phi_min = phi
-        return Relation(self, purview, phi_min)
+        if not self.overlap:
+            return self.null_relation(purview=candidate_joint_purview, phi=0)
+        _partitions = list(
+            partitions(
+                self, candidate_joint_purview, node_labels=self.subsystem.node_labels
+            )
+        )
+        return all_minima(
+            Relation(
+                relata=self,
+                purview=candidate_joint_purview,
+                phi=self.evaluate_partition(partition),
+                partition=partition,
+            )
+            for partition in _partitions
+        )
 
     def maximally_irreducible_relation(self):
         """Return the maximally-irreducible relation among these relata.
@@ -333,9 +584,13 @@ class Relata:
             # Singletons cannot have relations
             return self.null_relation()
         # Find maximal relations
-        tied_relations = all_maxima(
-            map(self.minimum_information_relation, self.possible_purviews())
+        rels = list(
+            concat(
+                self.minimum_information_relation(purview)
+                for purview in self.possible_purviews()
+            )
         )
+        tied_relations = all_maxima(iter(rels))
         if not tied_relations:
             return self.null_relation()
         # Keep track of ties
@@ -350,20 +605,22 @@ def relation(relata):
     return relata.maximally_irreducible_relation()
 
 
-def separate_ces(ces):
-    """Return the individual causes and effects, unpaired, from a CES."""
-    return CauseEffectStructure(
-        concat((concept.cause, concept.effect) for concept in ces)
-    )
-
-
 def all_relata(subsystem, ces, min_order=2, max_order=None):
-    """Return relata in the CES."""
+    """Return all relata in the CES, even if they have no ovelap."""
     if min_order < 2:
         # Relations are necessarily order 2 or higher
         min_order = 2
     for subset in powerset(ces, min_size=min_order, max_size=max_order):
         yield Relata(subsystem, subset)
+
+
+def potential_relata(subsystem, ces, min_order=2, max_order=None):
+    """Return Relata with nonempty overlap."""
+    purviews = list(map(frozenset, ces.purviews))
+    for combination in combinations_with_nonempty_intersection(
+        purviews, min_size=min_order, max_size=max_order
+    ):
+        yield Relata(subsystem, tuple(ces[i] for i in combination))
 
 
 # TODO: change to candidate_relations?
@@ -372,7 +629,7 @@ def all_relations(subsystem, ces, parallel=False, parallel_kwargs=None, **kwargs
     # Relations can be over any combination of causes/effects in the CES, so we
     # get a flat list of all causes and effects
     ces = FlatCauseEffectStructure(ces)
-    relata = all_relata(subsystem, ces, **kwargs)
+    relata = potential_relata(subsystem, ces, **kwargs)
     # Compute all relations
     parallel_kwargs = {
         "n_jobs": get_num_processes(),

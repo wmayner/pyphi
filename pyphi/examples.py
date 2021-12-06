@@ -49,12 +49,12 @@ def grid3_network():
     return Network(tpm, cm=cm, node_labels=['A', 'B', 'C'])
 
 
-def grid3():
-    return Subsystem(grid3_network(), (0, 0, 0))
+def grid3_subsystem():
+    return Subsystem(grid3_network(), state=(0, 0, 0), nodes=(0, 1, 2))
 
 
 # TODO(relations): add docstring
-def PQR_network():
+def pqr_network():
     # fmt: off
     tpm = np.array([
         [0, 0, 0],
@@ -76,8 +76,8 @@ def PQR_network():
 
 
 # TODO(relations): add docstring
-def PQR():
-    return Subsystem(PQR_network(), (1, 0, 0))
+def pqr_subsystem():
+    return Subsystem(pqr_network(), (1, 0, 0))
 
 
 def basic_network(cm=False):
@@ -693,10 +693,14 @@ def rule110_network():
         [0, 1, 1],
         [1, 1, 1],
         [1, 1, 1],
-        [0, 0, 0],
+        [0, 0, 0]
     ])
     # fmt: on
     return Network(tpm, node_labels=LABELS[:tpm.shape[1]])
+
+
+def rule110_subsystem():
+    return Subsystem(rule110_network(), (0, 0, 0), nodes=(0, 1, 2))
 
 
 def rule154_network():
@@ -747,6 +751,10 @@ def rule154_network():
     ])
     # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+
+
+def rule154_subsystem():
+    return Subsystem(rule154_network(), (0,)*5)
 
 
 def fig1a():
@@ -929,6 +937,10 @@ def fig4():
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
+def fig4_subsystem():
+    return Subsystem(fig4(), state=(1, 0, 1), nodes=(0, 1, 2))
+
+
 def fig5a():
     """The network shown in Figure 5A of the 2014 IIT 3.0 paper.
 
@@ -965,6 +977,10 @@ def fig5a():
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
 
 
+def fig5a_subsystem():
+    return Subsystem(fig5a(), state=(0, 0, 0), nodes=(0, 1, 2))
+
+
 def fig5b():
     """The network shown in Figure 5B of the 2014 IIT 3.0 paper.
 
@@ -972,12 +988,12 @@ def fig5b():
 
                  +~~~~~~~+
             +~~~~+   A   +~~~~+
-            |    | (AND) |    |
+            |    |       |    |
             |    +~~~~~~~+    |
             v                 v
         +~~~~~~~~+       +~~~~~~~~+
         |    B   |<~~~~~~+   C    |
-        | (COPY) +~~~~~~>| (COPY) |
+        | (AND)  +~~~~~~>|  (OR)  |
         +~~~~~~~~+       +~~~~~~~~+
 
     """
@@ -999,6 +1015,10 @@ def fig5b():
     ])
     # fmt: on
     return Network(tpm, cm=cm, node_labels=LABELS[:tpm.shape[1]])
+
+
+def fig5b_subsystem():
+    return Subsystem(fig5b(), state=(1, 0, 1), nodes=(0, 1, 2))
 
 
 # The networks in figures 4, 6 and 8 are the same.
@@ -1339,7 +1359,6 @@ def frog_example():
     #'S1','S2','S3','H1','H2','H3','M1','M2'
 
     weights = np.array([
-
         [ 0, 0, 0, 1,.5, 0, 0, 0],#S1
         [ 0, 0, 0,.5,.9,.5, 0, 0],#S2
         [ 0, 0, 0, 0,.5, 1, 0, 0],#S3

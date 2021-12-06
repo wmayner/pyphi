@@ -352,10 +352,10 @@ def fmt_ria(ria, verbose=True, mip=False, purview_state=None):
         mechanism = ""
         direction = ""
 
-    if ria.maximal_state is None:
-        maximal_states = []
+    if ria.specified_state is None:
+        specified_states = []
     else:
-        maximal_states = [tuple(state) for state in ria.maximal_state]
+        specified_states = [tuple(state) for state in ria.specified_state]
 
     # TODO(4.0):  position repertoire and partitioned repertoire side by side
     if config.REPR_VERBOSITY is HIGH:
@@ -363,11 +363,11 @@ def fmt_ria(ria, verbose=True, mip=False, purview_state=None):
             ("MIP" if mip else "Partition"), indent(fmt_partition(ria.partition))
         )
         repertoire = "\nRepertoire:\n{}".format(
-            indent(fmt_repertoire(ria.repertoire, mark_states=maximal_states))
+            indent(fmt_repertoire(ria.repertoire, mark_states=specified_states))
         )
         partitioned_repertoire = "\nPartitioned repertoire:\n{}".format(
             indent(
-                fmt_repertoire(ria.partitioned_repertoire, mark_states=maximal_states)
+                fmt_repertoire(ria.partitioned_repertoire, mark_states=specified_states)
             )
         )
     else:

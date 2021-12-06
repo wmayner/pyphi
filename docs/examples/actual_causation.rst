@@ -152,7 +152,7 @@ To find the actual cause or actual effect of a particular occurence, use the
 
    >>> transition.find_actual_cause((OR, AND))
    CausalLink
-     α = 0.1699  [OR, AND] ◀━━ [OR, AND]
+     α = 0.1699  [OR,AND] ◀━━ [OR,AND]
 
 
 Accounts

@@ -64,4 +64,9 @@ from .mechanism import (
     RepertoireIrreducibilityAnalysis,
     _null_ria,
 )
-from .subsystem import CauseEffectStructure, SystemIrreducibilityAnalysis, _null_sia
+from .subsystem import (
+    CauseEffectStructure,
+    FlatCauseEffectStructure,
+    SystemIrreducibilityAnalysis,
+    _null_sia,
+)

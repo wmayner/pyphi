@@ -9,7 +9,7 @@ import numpy as np
 from .. import config, connectivity, utils
 from ..direction import Direction
 from ..exceptions import WrongDirectionError
-from ..metrics.distribution import maximal_state
+from ..metrics import distribution
 from . import cmp, fmt
 
 _ria_attributes = [
@@ -59,12 +59,15 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         self._partitioned_repertoire = _repertoire(partitioned_repertoire)
 
         # TODO(4.0)
-        # - build this into the RIA class
-        # - use DistanceResult
+        # - use DistanceResult?
         if self._partitioned_repertoire is None:
-            self._maximal_state = None
+            self._specified_index = None
+            self._specified_state = None
         else:
-            self._maximal_state = maximal_state(
+            self._specified_index = distribution.specified_index(
+                self.repertoire, self.partitioned_repertoire
+            )
+            self._specified_state = distribution.specified_state(
                 self.repertoire, self.partitioned_repertoire
             )
 
@@ -116,10 +119,16 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return self._partitioned_repertoire
 
     @property
-    def maximal_state(self):
+    def specified_index(self):
         """The state(s) with the maximal absolute intrinsic difference
         between the unpartitioned and partitioned repertoires."""
-        return self._maximal_state
+        return self._specified_index
+
+    @property
+    def specified_state(self):
+        """The state(s) with the maximal absolute intrinsic difference
+        between the unpartitioned and partitioned repertoires."""
+        return self._specified_state
 
     @property
     def node_labels(self):
@@ -242,10 +251,16 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         return self._ria.partitioned_repertoire
 
     @property
-    def maximal_state(self):
+    def specified_index(self):
         """The state(s) with the maximal absolute intrinsic difference
         between the unpartitioned and partitioned repertoires."""
-        return self._ria.maximal_state
+        return self._ria.specified_index
+
+    @property
+    def specified_state(self):
+        """The state(s) with the maximal absolute intrinsic difference
+        between the unpartitioned and partitioned repertoires."""
+        return self._ria.specified_state
 
     @property
     def ria(self):
@@ -376,7 +391,7 @@ class MaximallyIrreducibleEffect(MaximallyIrreducibleCauseOrEffect):
     def __init__(self, ria, ties=None):
         if ria.direction != Direction.EFFECT:
             raise WrongDirectionError(
-                "A MIE must be initialized with a RIA " "in the effect direction."
+                "A MIE must be initialized with a RIA in the effect direction."
             )
         super().__init__(ria, ties=ties)
 

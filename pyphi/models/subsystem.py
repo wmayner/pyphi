@@ -24,6 +24,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
 
     def __init__(self, concepts=(), subsystem=None, time=None):
         # Normalize the order of concepts
+        # TODO(4.0) convert to set?
         self.concepts = tuple(sorted(concepts, key=_concept_sort_key))
         self.subsystem = subsystem
         self.time = time
@@ -86,12 +87,12 @@ class FlatCauseEffectStructure(CauseEffectStructure):
     """A collection of maximally-irreducible components in either causal
     direction."""
 
-    def __init__(self, ces):
-        if isinstance(ces, CauseEffectStructure) and not isinstance(
-            ces, FlatCauseEffectStructure
+    def __init__(self, concepts=(), subsystem=None, time=None):
+        if isinstance(concepts, CauseEffectStructure) and not isinstance(
+            concepts, FlatCauseEffectStructure
         ):
-            ces = concat((concept.cause, concept.effect) for concept in ces)
-        super().__init__(ces)
+            concepts = concat((concept.cause, concept.effect) for concept in concepts)
+        super().__init__(concepts=concepts, subsystem=subsystem, time=time)
 
     @property
     def purviews(self):

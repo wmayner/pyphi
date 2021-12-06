@@ -2,53 +2,155 @@
 # -*- coding: utf-8 -*-
 # test_relations.py
 
+import pickle
+
 import numpy as np
+import pytest
 
-from pyphi import compute, config, examples, relations, utils
-from pyphi.models.subsystem import FlatCauseEffectStructure
+from pyphi import compute, config, examples, jsonify, relations
+from pyphi.models import FlatCauseEffectStructure
 
 
-def test_PQR_relations():
-    with config.override(
-        PARTITION_TYPE="TRI",
-        REPERTOIRE_DISTANCE="BLD",
-    ):
-        PQR = examples.PQR()
-        ces = compute.subsystem.ces(PQR)
-        separated_ces = FlatCauseEffectStructure(ces)
-        results = list(relations.relations(PQR, ces))
+def all_array_equal(x, y):
+    return all(np.array_equal(a, b) for a, b in zip(x, y))
 
-        # NOTE: these phi values are in nats, not bits!
-        answers = [
-            [(0, 4), 0.6931471805599452, [(2,)]],
-            [(0, 6), 0.6931471805599452, [(2,)]],
-            [(1, 2), 0.3465735902799726, [(0,)]],
-            [(1, 3), 0.3465735902799726, [(0,)]],
-            [(1, 7), 0.3465735902799726, [(0,)]],
-            [(2, 3), 0.3465735902799726, [(0,), (1,), (0, 1)]],
-            [(2, 4), 0.3465735902799726, [(1,)]],
-            [(2, 6), 0.3465735902799726, [(0,), (1,), (0, 1)]],
-            [(2, 7), 0.3465735902799726, [(0,), (1,), (0, 1)]],
-            [(3, 7), 0.693147180559945, [(0, 1)]],
-            [(4, 6), 1.3862943611198901, [(1, 2)]],
-            [(5, 7), 0.6931471805599452, [(2,)]],
-            [(0, 4, 6), 0.6931471805599452, [(2,)]],
-            [(1, 2, 3), 0.3465735902799726, [(0,)]],
-            [(1, 2, 7), 0.3465735902799726, [(0,)]],
-            [(1, 3, 7), 0.3465735902799726, [(0,)]],
-            [(2, 3, 7), 0.3465735902799726, [(0,), (1,), (0, 1)]],
-            [(2, 4, 6), 0.3465735902799726, [(1,)]],
-            [(1, 2, 3, 7), 0.3465735902799726, [(0,)]],
+
+def overlap(purviews):
+    return set.intersection(*map(set, purviews))
+
+
+cases = [
+    # specified_states, purviews, overlap_states, congruent_overlap
+    (
+        [
+            np.array(
+                [
+                    [0, 0, 1, 0],
+                    [1, 0, 0, 0],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 1],
+                    [0, 1, 1, 0, 0],
+                    [1, 1, 1, 0, 1],
+                ]
+            ),
+            np.array(
+                [
+                    [0, 0, 0, 0, 1],
+                    [0, 1, 1, 0, 0],
+                    [0, 0, 1, 0, 1],
+                ]
+            ),
+        ],
+        [
+            (0, 2, 4, 5),
+            (1, 2, 3, 4, 5),
+            (0, 1, 2, 4, 5),
+        ],
+        [
+            np.array([[0.0, 1.0, 0.0], [0.0, 0.0, 0.0]]),
+            np.array([[0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0]]),
+            np.array([[0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [1.0, 0.0, 1.0]]),
+        ],
+        [
+            (2, 4),
+            (4, 5),
+        ],
+    ),
+    (
+        [np.array([[0], [1]]), np.array([[0]])],
+        [(1,), (1,)],
+        [np.array([[0], [1]]), np.array([[0]])],
+        [(1,)],
+    ),
+]
+
+specified_states, purviews, overlap_states, congruent_overlaps = zip(*cases)
+overlaps = list(map(overlap, purviews))
+
+
+def test_only_nonsubsets():
+    result = relations.only_nonsubsets(
+        [
+            {0},
+            {1},
+            {0, 1, 2},
+            {1, 2, 3},
+            {0, 2, 3, 4},
+            {1, 2, 3, 4},
         ]
-        return results, answers
+    )
+    answer = [
+        {0, 1, 2},
+        {1, 2, 3, 4},
+        {0, 2, 3, 4},
+    ]
+    assert set(map(frozenset, result)) == set(map(frozenset, answer))
 
-        def base2(x):
-            return x / np.log(2.0)
 
-        for result, answer in zip(results, answers):
-            subset, phi, purviews = answer
-            subset = tuple(separated_ces[i] for i in subset)
-            relata = relations.Relata(PQR, subset)
-            assert set(purviews) == set(result.ties)
-            assert utils.eq(base2(phi), result.phi)
-            assert relata == result.relata
+@pytest.mark.parametrize(
+    "specified_states,purviews,answer", zip(specified_states, purviews, overlap_states)
+)
+def test_overlap_states(specified_states, purviews, answer):
+    result = relations.overlap_states(specified_states, purviews, overlap(purviews))
+    assert all_array_equal(result, answer)
+
+
+def test_congruent_overlap_empty():
+    assert relations.congruent_overlap((), ()) == []
+
+
+@pytest.mark.parametrize(
+    "overlap_states,overlap,answer", zip(overlap_states, overlaps, congruent_overlaps)
+)
+def test_congruent_overlap(overlap_states, overlap, answer):
+    result = relations.congruent_overlap(
+        overlap_states,
+        overlap,
+    )
+    assert all_array_equal(result, answer)
+
+
+NETWORKS = ["grid3", "basic", "pqr", "xor", "rule110", "fig4", "fig5a", "fig5b"]
+
+
+@pytest.mark.parametrize("case_name", NETWORKS)
+@config.override(
+    REPERTOIRE_DISTANCE="ID",
+    PARTITION_TYPE="TRI",
+    PARALLEL_CONCEPT_EVALUATION=False,
+    PARALLEL_CUT_EVALUATION=False,
+    PARALLEL_COMPLEX_EVALUATION=False,
+)
+def test_maximally_irreducible_relation(case_name):
+    with open(f"test/data/relations/relations_{case_name}.pkl", mode="rb") as f:
+        answers = list(pickle.load(f))
+    for r in answers:
+        assert r == r.relata.maximally_irreducible_relation()
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("case_name", NETWORKS)
+@config.override(
+    REPERTOIRE_DISTANCE="ID",
+    PARTITION_TYPE="TRI",
+    PARALLEL_CONCEPT_EVALUATION=False,
+    PARALLEL_CUT_EVALUATION=False,
+    PARALLEL_COMPLEX_EVALUATION=False,
+)
+def test_all_relations(case_name):
+    with open(f"test/data/relations/ces_{case_name}.json", mode="rt") as f:
+        answer_ces = jsonify.load(f)
+    # Compute and check CES
+    subsystem = getattr(examples, f"{case_name}_subsystem")()
+    ces = FlatCauseEffectStructure(compute.ces(subsystem))
+    assert ces == answer_ces
+
+    with open(f"test/data/relations/relations_{case_name}.json", mode="rt") as f:
+        answers = jsonify.load(f)
+    # Compute and check relations
+    # TODO(4.0) config.override doesn't seem to work with joblib parallel?
+    results = list(relations.relations(subsystem, ces, parallel=False))
+    assert set(results) == set(answers)
