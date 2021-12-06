@@ -256,6 +256,8 @@ def mp2q(p, q):
     Returns:
         float: The distance.
     """
+    # There is already a factor of p in the `information_density`, so we only
+    # multiply by p, not p**2
     return np.sum(p / q * information_density(p, q) / len(p))
 
 
