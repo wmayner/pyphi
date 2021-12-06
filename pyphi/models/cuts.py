@@ -199,7 +199,7 @@ class KCut(_CutBase):
 
     @property
     def indices(self):
-        assert self.partition.mechanism == self.partition.purview
+        assert set(self.partition.mechanism) == set(self.partition.purview)
         return self.partition.mechanism
 
     def cut_matrix(self, n):
