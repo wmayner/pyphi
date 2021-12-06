@@ -135,8 +135,8 @@ def jsonify(obj):  # pylint: disable=too-many-return-statements
     if hasattr(obj, "__dict__"):
         return _jsonify_dict(obj.__dict__)
 
-    # Recurse over lists and tuples.
-    if isinstance(obj, (list, tuple)):
+    # Recurse over lists, tuples, and sets.
+    if isinstance(obj, (list, tuple, set)):
         return [jsonify(item) for item in obj]
 
     # Otherwise, give up and hope it's serializable.
