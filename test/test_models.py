@@ -737,8 +737,8 @@ def bipartition(node_labels):
 
 
 def test_bipartition_properties(bipartition):
-    assert bipartition.mechanism == (0,)
-    assert bipartition.purview == (0, 1, 4)
+    assert set(bipartition.mechanism) == set([0])
+    assert set(bipartition.purview) == set([0, 1, 4])
 
 
 def test_bipartition_str(bipartition):
@@ -756,8 +756,8 @@ def tripartition(node_labels):
 
 
 def test_tripartion_properties(tripartition):
-    assert tripartition.mechanism == (0, 2)
-    assert tripartition.purview == (0, 1, 2, 4)
+    assert set(tripartition.mechanism) == set([0, 2])
+    assert set(tripartition.purview) == set([0, 1, 2, 4])
 
 
 def test_tripartion_str(tripartition):
