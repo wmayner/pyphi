@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 # test_relations.py
 
-import pickle
-
 import numpy as np
 import pytest
 
@@ -125,8 +123,8 @@ NETWORKS = ["grid3", "basic", "pqr", "xor", "rule110", "fig4", "fig5a", "fig5b"]
     PARALLEL_COMPLEX_EVALUATION=False,
 )
 def test_maximally_irreducible_relation(case_name):
-    with open(f"test/data/relations/relations_{case_name}.pkl", mode="rb") as f:
-        answers = list(pickle.load(f))
+    with open(f"test/data/relations/relations_{case_name}.json", mode="rt") as f:
+        answers = jsonify.load(f)
     for r in answers:
         assert r == r.relata.maximally_irreducible_relation()
 
