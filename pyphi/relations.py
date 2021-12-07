@@ -584,13 +584,12 @@ class Relata(cmp.Orderable):
             # Singletons cannot have relations
             return self.null_relation()
         # Find maximal relations
-        rels = list(
+        tied_relations = all_maxima(
             concat(
                 self.minimum_information_relation(purview)
                 for purview in self.possible_purviews()
             )
         )
-        tied_relations = all_maxima(iter(rels))
         if not tied_relations:
             return self.null_relation()
         # Keep track of ties
