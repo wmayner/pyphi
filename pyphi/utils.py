@@ -229,3 +229,7 @@ def time_annotated(func, *args, **kwargs):
     end = time()
     result.time = round(end - start, config.PRECISION)
     return result
+
+
+def substate(state, nodes):
+    return tuple(state[i] for i in nodes)
