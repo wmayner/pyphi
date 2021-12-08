@@ -26,6 +26,8 @@ class Direction(IntEnum):
     def __str__(self):
         return repr(self)
 
+    __format__ = object.__format__
+
     def to_json(self):
         return {"direction": self.name}
 
