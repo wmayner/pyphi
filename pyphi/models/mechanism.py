@@ -42,6 +42,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         partition,
         repertoire,
         partitioned_repertoire,
+        mechanism_state=None,
+        purview_state=None,
         node_labels=None,
     ):
         self._phi = phi
@@ -49,6 +51,8 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         self._mechanism = mechanism
         self._purview = purview
         self._partition = partition
+        self._mechanism_state = mechanism_state
+        self._purview_state = purview_state
 
         def _repertoire(repertoire):
             if repertoire is None:
@@ -92,11 +96,21 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         return self._mechanism
 
     @property
+    def mechanism_state(self):
+        """tuple[int]: The current state of the mechanism."""
+        return self._mechanism_state
+
+    @property
     def purview(self):
         """tuple[int]: The purview over which the the mechanism was
         analyzed.
         """
         return self._purview
+
+    @property
+    def purview_state(self):
+        """tuple[int]: The current state of the purview."""
+        return self._purview_state
 
     @property
     def partition(self):
@@ -223,11 +237,21 @@ class MaximallyIrreducibleCauseOrEffect(cmp.Orderable):
         return self._ria.mechanism
 
     @property
+    def mechanism_state(self):
+        """tuple[int]: The current state of the mechanism."""
+        return self._ria.mechanism_state
+
+    @property
     def purview(self):
         """list[int]: The purview over which this mechanism's |small_phi| is
         maximal.
         """
         return self._ria.purview
+
+    @property
+    def purview_state(self):
+        """tuple[int]: The current state of the purview."""
+        return self._ria.purview_state
 
     @property
     def mip(self):

@@ -9,6 +9,8 @@ Helper functions for formatting pretty representations of PyPhi models.
 from fractions import Fraction
 from itertools import chain
 
+from pyphi.distribution import purview
+
 from .. import config, constants, utils
 from ..direction import Direction
 
@@ -315,10 +317,9 @@ def fmt_concept(concept):
     """Format a |Concept|."""
 
     def fmt_cause_or_effect(x):  # pylint: disable=missing-docstring
-        purview_state = tuple(concept.subsystem.state[i] for i in x.ria.purview)
         return box(
             indent(
-                fmt_ria(x.ria, verbose=False, mip=True, purview_state=purview_state),
+                fmt_ria(x.ria, verbose=False, mip=True),
                 amount=1,
             )
         )
@@ -328,12 +329,8 @@ def fmt_concept(concept):
     ce = side_by_side(cause, effect)
 
     mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)
-    mechanism_state = tuple(concept.subsystem.state[i] for i in concept.mechanism)
-    # TODO align mechanism states with nodes
     # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access to their state, etc.
-    title = "Concept: mechanism = {}, state = {}\n{} = {}".format(
-        mechanism, mechanism_state, SMALL_PHI, fmt_number(concept.phi)
-    )
+    title = f"Concept: mechanism = {mechanism}, state = {concept.mechanism_state}, {SMALL_PHI} = {fmt_number(concept.phi)}"
 
     # Only center headers for high-verbosity output
     center = config.REPR_VERBOSITY is HIGH
@@ -341,16 +338,16 @@ def fmt_concept(concept):
     return header(title, ce, HEADER_BAR_2, HEADER_BAR_2, center=center)
 
 
-def fmt_ria(ria, verbose=True, mip=False, purview_state=None):
+def fmt_ria(ria, verbose=True, mip=False):
     """Format a |RepertoireIrreducibilityAnalysis|."""
     if verbose:
-        mechanism = "Mechanism: {}\n".format(
-            fmt_mechanism(ria.mechanism, ria.node_labels)
-        )
-        direction = "\nDirection: {}".format(ria.direction)
+        mechanism = f"Mechanism: {fmt_mechanism(ria.mechanism, ria.node_labels)}\n"
+        direction = f"\nDirection: {str(ria.direction)}"
+        purview_state = f"\nState: {list(ria.purview_state) if ria.purview_state is not None else None}"
     else:
         mechanism = ""
         direction = ""
+        purview_state = ""
 
     if ria.specified_state is None:
         specified_states = []
@@ -379,8 +376,8 @@ def fmt_ria(ria, verbose=True, mip=False, purview_state=None):
     return (
         "{SMALL_PHI} = {phi}\n"
         "{mechanism}"
-        "Purview = {purview}\n"
-        "State = {purview_state}"
+        "Purview: {purview}"
+        "{purview_state}"
         "{direction}"
         "{partition}"
         "{repertoire}"
