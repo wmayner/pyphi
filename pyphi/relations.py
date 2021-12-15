@@ -183,6 +183,20 @@ class RelationPart(Part):
             "relata": self.relata,
         }
 
+    def to_indirect_json(self):
+        """Return an indirect representation of the Part.
+
+        This uses the integer indices of distinctions in the given CES rather
+        than the objects themselves, which is more efficient for storage on
+        disk.
+        """
+        return [self.mechanism, self.purview]
+
+    @classmethod
+    def from_indirect_json(cls, relata, data, node_labels=None):
+        mechanism, purview = data
+        return cls(mechanism, purview, relata, node_labels=node_labels)
+
     def __repr__(self):
         numer = (
             ", ".join(
@@ -230,6 +244,26 @@ class RelationPartition(Tripartition):
                 )
                 for part in self.parts
             ]
+        )
+
+    def to_indirect_json(self):
+        """Return an indirect representation of the Partition.
+
+        This uses the integer indices of distinctions in the given CES rather
+        than the objects themselves, which is more efficient for storage on
+        disk.
+        """
+        return [part.to_indirect_json() for part in self]
+
+    @classmethod
+    def from_indirect_json(cls, relata, data, node_labels=None):
+        return cls(
+            relata,
+            *[
+                RelationPart.from_indirect_json(relata, part, node_labels=node_labels)
+                for part in data
+            ],
+            node_labels=node_labels,
         )
 
 
@@ -363,7 +397,37 @@ class Relation(cmp.Orderable):
             "purview": sorted(self.purview),
             "partition": self.partition,
             "phi": self.phi,
+            "ties": self.ties,
         }
+
+    def to_indirect_json(self, ces):
+        """Return an indirect representation of the Relation.
+
+        This uses the integer indices of distinctions in the given CES rather
+        than the objects themselves, which is more efficient for storage on
+        disk.
+        """
+        return [
+            self.relata.to_indirect_json(ces),
+            sorted(self.purview),
+            self.partition.to_indirect_json(),
+            self.phi,
+            [list(purview) for purview in self.ties],
+        ]
+
+    @classmethod
+    def from_indirect_json(cls, subsystem, ces, data):
+        relata, purview, partition, phi, ties = data
+        relata = Relata.from_indirect_json(subsystem, ces, relata)
+        return cls(
+            relata,
+            purview,
+            phi,
+            RelationPartition.from_indirect_json(
+                relata, partition, node_labels=subsystem.node_labels
+            ),
+            ties=set(map(frozenset, ties)),
+        )
 
 
 # TODO subclass set?
@@ -448,6 +512,19 @@ class Relata(cmp.Orderable):
     @classmethod
     def from_json(cls, dct):
         return cls(dct["subsystem"], dct["relata"])
+
+    def to_indirect_json(self, ces):
+        """Return an indirect representation of the Relata.
+
+        This uses the integer indices of distinctions in the given CES rather
+        than the objects themselves, which is more efficient for storage on
+        disk.
+        """
+        return [ces.index(relatum) for relatum in self]
+
+    @classmethod
+    def from_indirect_json(cls, subsystem, ces, data):
+        return cls(subsystem, [ces[i] for i in data])
 
     @property
     def overlap(self):
