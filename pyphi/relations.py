@@ -681,6 +681,7 @@ def relation(relata):
     return relata.maximally_irreducible_relation()
 
 
+# TODO swap order / degree
 def all_relata(subsystem, ces, min_order=2, max_order=None):
     """Return all relata in the CES, even if they have no ovelap."""
     if min_order < 2:
@@ -705,10 +706,12 @@ def all_relations(subsystem, ces, parallel=False, parallel_kwargs=None, **kwargs
     # Relations can be over any combination of causes/effects in the CES, so we
     # get a flat list of all causes and effects
     ces = FlatCauseEffectStructure(ces)
-    relata = potential_relata(subsystem, ces, **kwargs)
+    relata = list(potential_relata(subsystem, ces, **kwargs))
     # Compute all relations
+    n_jobs = get_num_processes()
     parallel_kwargs = {
-        "n_jobs": get_num_processes(),
+        "n_jobs": n_jobs,
+        "batch_size": len(relata) // (n_jobs - 1),
         **(parallel_kwargs if parallel_kwargs else dict()),
     }
     if parallel:
