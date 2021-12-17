@@ -15,10 +15,19 @@ def pair_indices(n, m=None, k=0):
     """Return indices of unordered pairs."""
     if m is None:
         m = n
-    n, m = min(n, m), max(n, m)
+    n, m = sorted([n, m])
     for i in range(n):
         for j in range(i + k, m):
             yield i, j
+
+
+def pairs(a, b=None, k=0):
+    """Return unordered pairs of elements from two sequences."""
+    if b is None:
+        b = a
+    a, b = sorted([a, b], key=len)
+    for i, j in pair_indices(len(a), len(b), k=k):
+        yield a[i], b[j]
 
 
 def combinations_with_nonempty_intersection_by_order(sets, min_size=0, max_size=None):
