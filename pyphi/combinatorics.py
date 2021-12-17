@@ -10,6 +10,17 @@ from collections import defaultdict
 from itertools import chain
 
 
+# TODO finish documenting
+def pair_indices(n, m=None, k=0):
+    """Return indices of unordered pairs."""
+    if m is None:
+        m = n
+    n, m = min(n, m), max(n, m)
+    for i in range(n):
+        for j in range(i + k, m):
+            yield i, j
+
+
 def combinations_with_nonempty_intersection_by_order(sets, min_size=0, max_size=None):
     """Return combinations of sets that have nonempty intersection.
 
@@ -35,11 +46,7 @@ def combinations_with_nonempty_intersection_by_order(sets, min_size=0, max_size=
     min_size = max(2, min_size)
 
     # Begin by finding pairs with nonempty intersection
-    pairs = list(
-        chain.from_iterable(
-            [[frozenset([i, j]) for j in range(i + 1, n)] for i in range(n)]
-        )
-    )
+    pairs = list(map(frozenset, pair_indices(n, k=1)))
     # Store intersections so successive intersections can be computed faster
     intersections = {
         pair: frozenset.intersection(*[sets[i] for i in pair]) for pair in pairs
