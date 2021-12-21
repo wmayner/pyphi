@@ -189,7 +189,7 @@ def has_no_spanning_specification(subsystem, distinctions):
     other subset.
     """
     # TODO
-    return True
+    return False
 
 
 REDUCIBILITY_CHECKS = [
