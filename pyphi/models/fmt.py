@@ -330,7 +330,7 @@ def fmt_concept(concept):
 
     mechanism = fmt_mechanism(concept.mechanism, concept.node_labels)
     # TODO(4.0) reconsider using Nodes in the mechanism to facilitate access to their state, etc.
-    title = f"Concept: mechanism = {mechanism}, state = {concept.mechanism_state}, {SMALL_PHI} = {fmt_number(concept.phi)}"
+    title = f"Concept: mechanism = {mechanism}, state = {list(concept.mechanism_state)}, {SMALL_PHI} = {fmt_number(concept.phi)}"
 
     # Only center headers for high-verbosity output
     center = config.REPR_VERBOSITY is HIGH
