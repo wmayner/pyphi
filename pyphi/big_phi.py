@@ -171,12 +171,13 @@ def evaluate_cut(subsystem, phi_structure, selectivity, cut):
 def has_nonspecified_elements(subsystem, distinctions):
     """Return whether any elements are not specified by a purview in both
     directions."""
-    # TODO use something like `pyphi.Direction.both = [CAUSE, EFFECT]`
     elements = set(subsystem.node_indices)
-    specified = {direction: set() for direction in [Direction.CAUSE, Direction.EFFECT]}
+    # TODO use something like `pyphi.Direction.both = [CAUSE, EFFECT]`
+    directions = [Direction.CAUSE, Direction.EFFECT]
+    specified = {direction: set() for direction in directions}
     for distinction in distinctions:
-        specified[Direction.CAUSE].update(set(distinction.cause_purview))
-        specified[Direction.EFFECT].update(set(distinction.effect_purview))
+        for direction in directions:
+            specified[direction].update(set(distinction.purview(direction)))
     return any(elements - _specified for _specified in specified.values())
 
 
