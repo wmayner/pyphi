@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# big_phi.py
+# compositional_state.py
 
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
