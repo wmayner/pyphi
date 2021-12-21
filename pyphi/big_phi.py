@@ -305,9 +305,11 @@ def sia(
                 distinctions, list(filter_relations(distinctions, all_relations))
             )
             return SystemIrreducibilityAnalysis(
+                phi=0.0,
                 subsystem=subsystem,
+                cut_subsystem=subsystem,
                 selectivity=selectivity(subsystem, phi_structure),
-                distinctions=phi_structure.distinctions,
+                ces=phi_structure.distinctions,
                 relations=phi_structure.relations,
             )
         nonconflicting_distinctions.append(distinctions)
