@@ -123,7 +123,12 @@ def informativeness(cut, phi_structure):
 
 
 def selectivity(subsystem, phi_structure):
-    return sum(phi_structure.distinctions.phis) / 2 ** len(subsystem)
+    # TODO memoize and store sums on phi_structure
+    # TODO make `Relations` object
+    return (
+        sum(phi_structure.distinctions.phis)
+        + sum(relation.phi for relation in phi_structure.relations)
+    ) / 2 ** len(subsystem)
 
 
 def phi(selectivity, informativeness):
