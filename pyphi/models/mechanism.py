@@ -499,6 +499,15 @@ class Concept(cmp.Orderable):
         """tuple(int): The state of this mechanism."""
         return utils.state_of(self.mechanism, self.subsystem.state)
 
+    def purview(self, direction):
+        """Return the purview in the given direction."""
+        if direction == Direction.CAUSE:
+            return self.cause.purview
+        if direction == Direction.EFFECT:
+            return self.effect.purview
+        raise ValueError("invalid direction")
+
+
     unorderable_unless_eq = ["subsystem"]
 
     def order_by(self):
