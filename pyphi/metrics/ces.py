@@ -219,7 +219,7 @@ def emd(C1, C2):
 @measures.register("SUM_SMALL_PHI")
 def sum_small_phi(C1, C2):
     """Return the difference in |small_phi| between |CauseEffectStructure|."""
-    return sum(c.phi for c in C1) - sum(c.phi for c in C2)
+    return sum(C1.phis) - sum(C2.phis)
 
 
 def ces_distance(C1, C2, measure=None):
