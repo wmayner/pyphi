@@ -7,6 +7,7 @@ from itertools import product
 
 from pyphi import config, models
 from pyphi.combinatorics import pairs
+from pyphi.compute import parallel
 from pyphi.compute.parallel import MapReduce
 from pyphi.compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
 from pyphi.direction import Direction
@@ -212,15 +213,14 @@ class ComputeSystemIrreducibility(MapReduce):
 
     description = "Evaluating {} cuts".format(fmt.BIG_PHI)
 
-    def empty_result(self, subsystem):
+    def empty_result(self, subsystem, phi_structure, selectivity):
         """Begin with a |SIA| with infinite |big_phi|; all actual SIAs will have less."""
         return SystemIrreducibilityAnalysis(subsystem=subsystem, phi=float("inf"))
 
     @staticmethod
-    def compute(args, subsystem):
+    def compute(cut, subsystem, phi_structure, selectivity):
         """Evaluate a cut."""
-        # Unpack arguments from ``possible_mips``
-        return evaluate_cut(subsystem, *args)
+        return evaluate_cut(subsystem, phi_structure, selectivity, cut)
 
     def process_result(self, new_sia, min_sia):
         """Check if the new SIA has smaller |big_phi| than the standing result."""
@@ -230,6 +230,37 @@ class ComputeSystemIrreducibility(MapReduce):
             return new_sia
 
         elif abs(new_sia.phi) < abs(min_sia.phi):
+            return new_sia
+
+        return min_sia
+
+
+class ComputeMaximalCompositionalState(MapReduce):
+    """Computation engine for resolving conflicts among compositional states."""
+
+    description = "Evaluating compositional states".format(fmt.BIG_PHI)
+
+    def empty_result(self, subsystem):
+        """Begin with a |SIA| with negative infinite |big_phi|; all actual SIAs will have more."""
+        return SystemIrreducibilityAnalysis(subsystem=subsystem, phi=-float("inf"))
+
+    @staticmethod
+    def compute(phi_structure, subsystem):
+        """Evaluate a compositional state."""
+        _selectivity = selectivity(subsystem, phi_structure)
+        cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+        return ComputeSystemIrreducibility(
+            cuts, subsystem, phi_structure, _selectivity
+        ).run(parallel=False)
+
+    def process_result(self, new_sia, min_sia):
+        """Check if the new SIA has larger |big_phi| than the standing result."""
+        if new_sia.phi == 0:
+            # Short circuit
+            self.done = True
+            return new_sia
+
+        elif new_sia.phi > min_sia.phi:
             return new_sia
 
         return min_sia
@@ -322,10 +353,7 @@ def sia(
                 relations=phi_structure.relations,
             )
         nonconflicting_distinctions.append(distinctions)
-    cuts = list(sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels))
-    # Build arguments to `evaluate_cut`
-    args = possible_mips(subsystem, nonconflicting_distinctions, all_relations, cuts)
-    # Run it!
-    return ComputeSystemIrreducibility(args, subsystem).run(
+    phi_structures = all_phi_structures(nonconflicting_distinctions, all_relations)
+    return ComputeMaximalCompositionalState(phi_structures, subsystem).run(
         parallel or config.PARALLEL_CUT_EVALUATION
     )
