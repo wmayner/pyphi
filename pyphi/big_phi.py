@@ -115,7 +115,7 @@ def informativeness(cut, phi_structure):
     # TODO use a single pass through the phi structure?
     distinctions = unaffected_distinctions(phi_structure.distinctions, cut)
     distinction_term = sum(phi_structure.distinctions.phis) - sum(distinctions.phis)
-    relations = unaffected_relations(distinctions, phi_structure.relations)
+    relations = list(unaffected_relations(distinctions, phi_structure.relations))
     relation_term = sum(relation.phi for relation in phi_structure.relations) - sum(
         relation.phi for relation in relations
     )
