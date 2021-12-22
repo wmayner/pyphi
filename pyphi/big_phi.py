@@ -117,7 +117,7 @@ def informativeness(cut, phi_structure):
     distinction_term = sum(phi_structure.distinctions.phis) - sum(distinctions.phis)
     relations = unaffected_relations(distinctions, phi_structure.relations)
     relation_term = sum(relation.phi for relation in phi_structure.relations) - sum(
-        relation for relation in relations
+        relation.phi for relation in relations
     )
     return Informativeness(
         value=(distinction_term + relation_term),
@@ -141,7 +141,7 @@ def phi(selectivity, informativeness):
 def all_phi_structures(distinction_sets, all_relations):
     for distinctions in distinction_sets:
         yield PhiStructure(
-            distinctions, list(filter_relations(distinctions, all_relations))
+            distinctions, list(unaffected_relations(distinctions, all_relations))
         )
 
 
@@ -311,7 +311,7 @@ def sia(
             check(subsystem, distinctions) for check in REDUCIBILITY_CHECKS
         ):
             phi_structure = PhiStructure(
-                distinctions, list(filter_relations(distinctions, all_relations))
+                distinctions, list(unaffected_relations(distinctions, all_relations))
             )
             return SystemIrreducibilityAnalysis(
                 phi=0.0,
