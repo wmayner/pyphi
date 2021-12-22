@@ -322,7 +322,7 @@ def sia(
                 relations=phi_structure.relations,
             )
         nonconflicting_distinctions.append(distinctions)
-    cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+    cuts = list(sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels))
     # Build arguments to `evaluate_cut`
     args = possible_mips(subsystem, nonconflicting_distinctions, all_relations, cuts)
     # Run it!
