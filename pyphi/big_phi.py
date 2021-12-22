@@ -5,9 +5,10 @@ from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import product
 
+import scipy
+
 from pyphi import config, models
 from pyphi.combinatorics import pairs
-from pyphi.compute import parallel
 from pyphi.compute.parallel import MapReduce
 from pyphi.compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
 from pyphi.direction import Direction
@@ -126,13 +127,43 @@ def informativeness(cut, phi_structure):
     )
 
 
+def number_of_possible_relations_with_overlap(n, k):
+    """Return the number of possible relations with overlap of size k."""
+    return (
+        (-1) ** (k - 1)
+        * scipy.special.comb(n, k)
+        * (2 ** (2 ** (n - k + 1)) - 1 - 2 ** (n - k + 1))
+    )
+
+
+def optimum_sum_small_phi_relations(n):
+    """Return the 'best possible' sum of small phi for relations."""
+    return sum(
+        k * number_of_possible_relations_with_overlap(n, k) for k in range(1, n + 1)
+    )
+
+
+def optimum_sum_small_phi_distinctions_one_direction(n):
+    """Return the 'best possible' sum of small phi for distinctions in one direction"""
+    # \sum_{k = 1}^{n} k(n choose k)
+    return (2 / n) * (2 ** n)
+
+
+def optimum_sum_small_phi(n):
+    """Return the 'best possible' sum of small phi for the system."""
+    # Double distinction term for cause & effect sides
+    distinction_term = 2 * optimum_sum_small_phi_distinctions_one_direction(n)
+    relation_term = optimum_sum_small_phi_relations(n)
+    return distinction_term + relation_term
+
+
 def selectivity(subsystem, phi_structure):
     # TODO memoize and store sums on phi_structure
     # TODO make `Relations` object
     return (
         sum(phi_structure.distinctions.phis)
         + sum(relation.phi for relation in phi_structure.relations)
-    ) / 2 ** len(subsystem)
+    ) / optimum_sum_small_phi(len(subsystem))
 
 
 def phi(selectivity, informativeness):
