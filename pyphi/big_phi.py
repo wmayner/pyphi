@@ -52,9 +52,9 @@ def unaffected_distinctions(ces, cut):
     )
 
 
-def filter_relations(ces, relations):
-    """Return only the relations supported by the given CES."""
-    # TODO use lattice data structure for efficiently excluding the union of the
+def unaffected_relations(ces, relations):
+    """Return the relations that are not supported by the given CES."""
+    # TODO use lattice data structure for efficiently finding the union of the
     # lower sets of lost distinctions
     ces = FlatCauseEffectStructure(ces)
     for relation in relations:
@@ -112,10 +112,13 @@ class Informativeness:
 
 
 def informativeness(cut, phi_structure):
+    # TODO use a single pass through the phi structure?
     distinctions = unaffected_distinctions(phi_structure.distinctions, cut)
     distinction_term = sum(phi_structure.distinctions.phis) - sum(distinctions.phis)
-    relations = list(filter_relations(distinctions, phi_structure.relations))
-    relation_term = sum(relation.phi for relation in relations)
+    relations = unaffected_relations(distinctions, phi_structure.relations)
+    relation_term = sum(relation.phi for relation in phi_structure.relations) - sum(
+        relation for relation in relations
+    )
     return Informativeness(
         value=(distinction_term + relation_term),
         partitioned_phi_structure=PhiStructure(distinctions, relations),
