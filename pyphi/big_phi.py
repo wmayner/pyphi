@@ -138,6 +138,7 @@ def number_of_possible_relations_with_overlap(n, k):
 
 def optimum_sum_small_phi_relations(n):
     """Return the 'best possible' sum of small phi for relations."""
+    # \sum_{k=1}^{n} (size of purview) * (number of relations with that purview size)
     return sum(
         k * number_of_possible_relations_with_overlap(n, k) for k in range(1, n + 1)
     )
@@ -145,7 +146,7 @@ def optimum_sum_small_phi_relations(n):
 
 def optimum_sum_small_phi_distinctions_one_direction(n):
     """Return the 'best possible' sum of small phi for distinctions in one direction"""
-    # \sum_{k = 1}^{n} k(n choose k)
+    # \sum_{k=1}^{n} k(n choose k)
     return (2 / n) * (2 ** n)
 
 
@@ -284,17 +285,11 @@ class ComputeMaximalCompositionalState(MapReduce):
             cuts, subsystem, phi_structure, _selectivity
         ).run(parallel=False)
 
-    def process_result(self, new_sia, min_sia):
+    def process_result(self, new_sia, max_sia):
         """Check if the new SIA has larger |big_phi| than the standing result."""
-        if new_sia.phi == 0:
-            # Short circuit
-            self.done = True
+        if new_sia.phi > max_sia.phi:
             return new_sia
-
-        elif new_sia.phi > min_sia.phi:
-            return new_sia
-
-        return min_sia
+        return max_sia
 
 
 class CompositionalState(UserDict):
