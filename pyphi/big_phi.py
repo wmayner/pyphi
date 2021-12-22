@@ -178,19 +178,6 @@ def all_phi_structures(distinction_sets, all_relations):
         )
 
 
-def possible_mips(subsystem, distinction_sets, all_relations, cuts):
-    """Generate combinations of nonconflicting distinctions & cuts.
-
-    Results are suitable as arguments to ``evaluate_cut``.
-
-    Computes selectivity along the way, only once per distinction set.
-    """
-    for phi_structure in all_phi_structures(distinction_sets, all_relations):
-        _selectivity = selectivity(subsystem, phi_structure)
-        for cut in cuts:
-            yield (phi_structure, _selectivity, cut)
-
-
 def evaluate_cut(subsystem, phi_structure, selectivity, cut):
     cut_subsystem = subsystem.apply_cut(cut)
     _informativeness = informativeness(cut, phi_structure)
@@ -289,7 +276,7 @@ def evaluate_phi_structure(phi_structure, subsystem, check_trivial_reducibility=
 class ComputeMaximalCompositionalState(MapReduce):
     """Computation engine for resolving conflicts among compositional states."""
 
-    description = "Evaluating compositional states".format(fmt.BIG_PHI)
+    description = "Evaluating compositional states"
 
     def empty_result(self, subsystem, check_trivial_reducibility):
         """Begin with a |SIA| with negative infinite |big_phi|; all actual SIAs will have more."""
