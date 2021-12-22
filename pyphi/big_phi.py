@@ -267,23 +267,35 @@ class ComputeSystemIrreducibility(MapReduce):
         return min_sia
 
 
+def evaluate_phi_structure(phi_structure, subsystem, check_trivial_reducibility=True):
+    _selectivity = selectivity(subsystem, phi_structure)
+    if check_trivial_reducibility and any(
+        check(subsystem, phi_structure.distinctions) for check in REDUCIBILITY_CHECKS
+    ):
+        return SystemIrreducibilityAnalysis(
+            phi=0.0,
+            subsystem=subsystem,
+            cut_subsystem=subsystem,
+            selectivity=_selectivity,
+            ces=phi_structure.distinctions,
+            relations=phi_structure.relations,
+        )
+    cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+    return ComputeSystemIrreducibility(
+        cuts, subsystem, phi_structure, _selectivity
+    ).run(parallel=False)
+
+
 class ComputeMaximalCompositionalState(MapReduce):
     """Computation engine for resolving conflicts among compositional states."""
 
     description = "Evaluating compositional states".format(fmt.BIG_PHI)
 
-    def empty_result(self, subsystem):
+    def empty_result(self, subsystem, check_trivial_reducibility):
         """Begin with a |SIA| with negative infinite |big_phi|; all actual SIAs will have more."""
         return SystemIrreducibilityAnalysis(subsystem=subsystem, phi=-float("inf"))
 
-    @staticmethod
-    def compute(phi_structure, subsystem):
-        """Evaluate a compositional state."""
-        _selectivity = selectivity(subsystem, phi_structure)
-        cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
-        return ComputeSystemIrreducibility(
-            cuts, subsystem, phi_structure, _selectivity
-        ).run(parallel=False)
+    compute = staticmethod(evaluate_phi_structure)
 
     def process_result(self, new_sia, max_sia):
         """Check if the new SIA has larger |big_phi| than the standing result."""
@@ -361,25 +373,9 @@ def sia(
     check_trivial_reducibility=True,
 ):
     """Analyze the irreducibility of a system."""
-    # Check for trivial reducibility while generating nonconflicting sets
-    nonconflicting_distinctions = list()
-    for distinctions in all_nonconflicting_distinction_sets(all_distinctions):
-        if check_trivial_reducibility and any(
-            check(subsystem, distinctions) for check in REDUCIBILITY_CHECKS
-        ):
-            phi_structure = PhiStructure(
-                distinctions, list(unaffected_relations(distinctions, all_relations))
-            )
-            return SystemIrreducibilityAnalysis(
-                phi=0.0,
-                subsystem=subsystem,
-                cut_subsystem=subsystem,
-                selectivity=selectivity(subsystem, phi_structure),
-                ces=phi_structure.distinctions,
-                relations=phi_structure.relations,
-            )
-        nonconflicting_distinctions.append(distinctions)
-    phi_structures = all_phi_structures(nonconflicting_distinctions, all_relations)
-    return ComputeMaximalCompositionalState(phi_structures, subsystem).run(
-        parallel or config.PARALLEL_CUT_EVALUATION
+    phi_structures = all_phi_structures(
+        all_nonconflicting_distinction_sets(all_distinctions), all_relations
     )
+    return ComputeMaximalCompositionalState(
+        phi_structures, subsystem, check_trivial_reducibility
+    ).run(parallel or config.PARALLEL_CUT_EVALUATION)
