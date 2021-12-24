@@ -18,6 +18,7 @@ from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
 
+DIRECTIONS = (Direction.CAUSE, Direction.EFFECT)
 
 # TODO
 def fmt_cut(cut):
@@ -313,6 +314,11 @@ def filter_ces(ces, direction, compositional_state):
             pass
 
 
+def _nonconflicting_mice_set(purview_to_mice):
+    """Return all combinations where each purview is mapped to a single mechanism."""
+    return product(*purview_to_mice.values())
+
+
 def all_nonconflicting_distinction_sets(distinctions):
     """Return all possible conflict-free distinction sets."""
     if isinstance(distinctions, FlatCauseEffectStructure):
@@ -321,32 +327,35 @@ def all_nonconflicting_distinction_sets(distinctions):
     mechanism_to_distinction = {
         distinction.mechanism: distinction for distinction in distinctions
     }
-    # Map purviews to distinctions that specify them, on both cause and effect sides
-    purview_to_distinction = {
-        Direction.CAUSE: defaultdict(list),
-        Direction.EFFECT: defaultdict(list),
-    }
+    # Map purviews to mechanisms that specify them, on both cause and effect sides
+    purview_to_mechanism = {direction: defaultdict(list) for direction in DIRECTIONS}
     for distinction in distinctions:
-        for direction, mapping in purview_to_distinction.items():
-            mapping[distinction.purview(direction)].append(distinction.mechanism)
-    # Generate nonconflicting sets of mechanisms on both the cause and effect side
-    nonconflicting_cause_sets, nonconflicting_effect_sets = (
-        list(map(set, product(*purview_to_distinction[direction].values())))
-        for direction in [Direction.CAUSE, Direction.EFFECT]
+        for direction, mapping in purview_to_mechanism.items():
+            # Cast mechanism to set so we can take intersections later
+            mapping[distinction.purview(direction)].append(
+                frozenset(distinction.mechanism)
+            )
+    # Generate nonconflicting sets of mechanisms on both cause and effect sides
+    nonconflicting_causes, nonconflicting_effects = tuple(
+        _nonconflicting_mice_set(purview_to_mechanism[direction])
+        for direction in DIRECTIONS
     )
-    # Pair up nonconflicting sets from either side
-    for cause_mechanisms, effect_mechanisms in pairs(
-        nonconflicting_cause_sets, nonconflicting_effect_sets
-    ):
-        # Take only distinctions that are nonconflicting on both sides
-        distinction_mechanisms = cause_mechanisms & effect_mechanisms
-        # Return distinction objects rather than just their mechanisms
-        yield CauseEffectStructure(
-            [
-                mechanism_to_distinction[mechanism]
-                for mechanism in distinction_mechanisms
-            ]
-        )
+    yield from map(
+        CauseEffectStructure,
+        map(
+            # Convert to actual MICE objects
+            mechanism_to_distinction.get,
+            # Ensure nonconflicting sets are unique
+            set(
+                # Take only distinctions that are nonconflicting on both sides
+                cause_mechanisms & effect_mechanisms
+                # Pair up nonconflicting sets from either side
+                for cause_mechanisms, effect_mechanisms in pairs(
+                    nonconflicting_causes, nonconflicting_effects
+                )
+            ),
+        ),
+    )
 
 
 # TODO allow choosing whether you provide precomputed distinctions
