@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# compositional_state.py
+# big_phi.py
 
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
@@ -7,13 +7,13 @@ from itertools import product
 
 import scipy
 
-from pyphi import config, models
-from pyphi.combinatorics import pairs
-from pyphi.compute.parallel import MapReduce
-from pyphi.compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
-from pyphi.direction import Direction
-from pyphi.models import fmt
-from pyphi.models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
+from . import config, models
+from .combinatorics import pairs
+from .compute.parallel import MapReduce
+from .compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
+from .direction import Direction
+from .models import fmt
+from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
