@@ -18,6 +18,7 @@ from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
 
+# TODO use something like `pyphi.Direction.both = [CAUSE, EFFECT]`
 DIRECTIONS = (Direction.CAUSE, Direction.EFFECT)
 
 # TODO
@@ -68,7 +69,7 @@ def unaffected_relations(ces, relations):
 def sia_partitions(node_indices, node_labels):
     # TODO(4.0) configure
     for cut in directionless_sia_bipartitions(node_indices, node_labels):
-        for direction in [Direction.CAUSE, Direction.EFFECT]:
+        for direction in DIRECTIONS:
             yield Cut(
                 direction, cut.from_nodes, cut.to_nodes, node_labels=cut.node_labels
             )
@@ -201,11 +202,9 @@ def has_nonspecified_elements(subsystem, distinctions):
     """Return whether any elements are not specified by a purview in both
     directions."""
     elements = set(subsystem.node_indices)
-    # TODO use something like `pyphi.Direction.both = [CAUSE, EFFECT]`
-    directions = [Direction.CAUSE, Direction.EFFECT]
-    specified = {direction: set() for direction in directions}
+    specified = {direction: set() for direction in DIRECTIONS}
     for distinction in distinctions:
-        for direction in directions:
+        for direction in DIRECTIONS:
             specified[direction].update(set(distinction.purview(direction)))
     return any(elements - _specified for _specified in specified.values())
 
