@@ -704,7 +704,7 @@ def rule110_subsystem():
 
 
 def rule154_network():
-    """A network of three elements which follows the logic of the Rule 154
+    """A network of five elements which follows the logic of the Rule 154
     cellular automaton.
     """
     # fmt: off
