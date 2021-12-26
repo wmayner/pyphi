@@ -10,8 +10,9 @@ from itertools import product
 import numpy as np
 from joblib import Parallel, delayed
 from toolz import concat, curry
-from pyphi.compute.parallel import get_num_processes
+from tqdm.auto import tqdm
 
+from pyphi.compute.parallel import get_num_processes
 from pyphi.partition import Part, Tripartition, partition_types
 
 from . import config, validate
@@ -21,7 +22,6 @@ from .metrics.distribution import absolute_information_density
 from .models import cmp, fmt
 from .models.subsystem import FlatCauseEffectStructure
 from .utils import eq, powerset
-
 
 # TODO there should be an option to resolve ties at different levels
 
@@ -701,12 +701,16 @@ def potential_relata(subsystem, ces, min_order=2, max_order=None):
 
 
 # TODO: change to candidate_relations?
-def all_relations(subsystem, ces, parallel=False, parallel_kwargs=None, **kwargs):
+def all_relations(
+    subsystem, ces, parallel=False, parallel_kwargs=None, progress=True, **kwargs
+):
     """Return all relations, even those with zero phi."""
     # Relations can be over any combination of causes/effects in the CES, so we
     # get a flat list of all causes and effects
     ces = FlatCauseEffectStructure(ces)
     relata = list(potential_relata(subsystem, ces, **kwargs))
+    if progress:
+        relata = tqdm(relata)
     # Compute all relations
     n_jobs = get_num_processes()
     parallel_kwargs = {
