@@ -10,11 +10,10 @@ different representations that these functions convert between.
 """
 
 import logging
+from itertools import product
 from math import log2
 
 import numpy as np
-
-from .tpm import is_deterministic
 
 # Create a logger for this module.
 log = logging.getLogger(__name__)
@@ -159,16 +158,16 @@ def be2le_state_by_state(tpm):
     Example:
         >>> tpm = np.arange(16).reshape([4, 4])
         >>> be2le_state_by_state(tpm)
-        array([[ 0.,  1.,  2.,  3.],
-               [ 8.,  9., 10., 11.],
-               [ 4.,  5.,  6.,  7.],
-               [12., 13., 14., 15.]])
+        array([[ 0,  2,  1,  3],
+               [ 8, 10,  9, 11],
+               [ 4,  6,  5,  7],
+               [12, 14, 13, 15]])
     """
-    le = np.empty(tpm.shape)
+    le = np.empty(tpm.shape, dtype=tpm.dtype)
     N = tpm.shape[0]
     n = int(log2(N))
-    for i in range(N):
-        le[i, :] = tpm[be2le(i, n), :]
+    for i, j in product(range(N), repeat=2):
+        le[i, j] = tpm[be2le(i, n), be2le(j, n)]
     return le
 
 
