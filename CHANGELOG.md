@@ -18,6 +18,9 @@ _Next version_
   - Can now handle "TPMs" where the number of nodes in the previous and next states differ
   - Improved performance for nondeterministic TPMs
 
+### Fixes
+- Fixed `convert.be2le_state_by_state()` and `convert.le2be_state_by_state()`;
+  previously the columns were not permuted
 
 1.2.0
 -----
