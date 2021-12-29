@@ -715,7 +715,7 @@ def all_relations(
     n_jobs = get_num_processes()
     parallel_kwargs = {
         "n_jobs": n_jobs,
-        "batch_size": len(relata) // (n_jobs - 1),
+        "batch_size": max(len(relata) // (n_jobs - 1), 1),
         **(parallel_kwargs if parallel_kwargs else dict()),
     }
     if parallel:
