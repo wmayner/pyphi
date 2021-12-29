@@ -54,6 +54,9 @@ NUMBER_OF_CORES: -1
 # Some functions are memoized using an in-memory cache. This is the maximum
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 100
+# Arguments to `dask.distributed.Client()`
+DASK_CONFIG:
+    threads_per_worker: 1
 
 # Memoization and caching
 # ~~~~~~~~~~~~~~~~~~~~~~~

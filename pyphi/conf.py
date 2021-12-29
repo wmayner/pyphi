@@ -493,6 +493,18 @@ class PyphiConfig(Config):
     system's RAM that the caches can collectively use.""",
     )
 
+    DASK_CONFIG = Option(
+        dict(
+            threads_per_worker=1,
+        ),
+        type=dict,
+        doc="""
+    Keyword arguments to ``dask.distributed.Client()``. Controls the deployment
+    of the dask scheduler.
+
+    NOTE: The ``n_workers`` argument defaults to the ``NUMBER_OF_CORES`` option.""",
+    )
+
     CACHE_SIAS = Option(
         False,
         type=bool,

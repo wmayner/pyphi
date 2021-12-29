@@ -12,6 +12,8 @@ import sys
 import threading
 from itertools import chain, islice
 
+from dask.distributed import Client
+from dask.distributed import get_client as _get_client
 from tblib import Traceback
 from tqdm import tqdm
 
@@ -361,3 +363,28 @@ def configure_worker_logging(queue):  # coverage: disable
             "root": {"level": "DEBUG", "handlers": ["queue"]},
         }
     )
+
+
+# TODO(dask) make easy option for single-threaded computation for debugging
+# TODO(dask) test different backends; distributed vs threaded vs multiprocessing
+# TODO(dask) make a single object that facilitates short-circuiting (maybe contextdecorator?)
+# TODO(dask) benchmark fork vs spawn vs forkserver
+def create_client(**kwargs):
+    """Create a dask distributed client.
+
+    Uses ``pyphi.config.DASK_CONFIG`` as parameters to ``Client()``.
+    """
+    return Client(
+        **{**dict(n_workers=get_num_processes()), **config.DASK_CONFIG, **kwargs}
+    )
+
+
+def get_client(**kwargs):
+    """Return a ``dask.distributed.Client``.
+
+    Creates a client if none is available.
+    """
+    try:
+        return _get_client()
+    except ValueError:
+        return create_client(**kwargs)
