@@ -60,8 +60,9 @@ def test_pair_indices(args, kwargs, answer):
 
 @pytest.mark.parametrize("args, kwargs, answer", pair_indices_answers)
 def test_pairs(args, kwargs, answer):
-    args = [list(range(n)) for n in args]
-    assert list(combinatorics.pairs(*args, **kwargs)) == answer
+    if len(args) == 1:
+        args = [list(range(n)) for n in args]
+        assert list(combinatorics.pairs(*args, **kwargs)) == answer
 
 
 @pytest.fixture

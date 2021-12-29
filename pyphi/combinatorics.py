@@ -4,13 +4,13 @@
 
 """Combinatorial functions."""
 
-# TODO move relevant functions from utils here
+# TODO(4.0) move relevant functions from utils here
 
 from collections import defaultdict
 from itertools import chain
 
 
-# TODO finish documenting
+# TODO(docs) finish documenting
 def pair_indices(n, m=None, k=0):
     """Return indices of unordered pairs."""
     if m is None:
@@ -21,13 +21,14 @@ def pair_indices(n, m=None, k=0):
             yield i, j
 
 
-def pairs(a, b=None, k=0):
-    """Return unordered pairs of elements from two sequences."""
-    if b is None:
-        b = a
-    a, b = sorted([a, b], key=len)
-    for i, j in pair_indices(len(a), len(b), k=k):
-        yield a[i], b[j]
+# TODO(docs) finish documenting
+def pairs(seq, k=0):
+    """Return unordered pairs of elements from a sequence.
+
+    NOTE: This is *not* the Cartesian product.
+    """
+    for i, j in pair_indices(len(seq), k=k):
+        yield seq[i], seq[j]
 
 
 def combinations_with_nonempty_intersection_by_order(sets, min_size=0, max_size=None):
