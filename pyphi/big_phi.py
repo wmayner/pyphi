@@ -391,6 +391,7 @@ def sia(
     check_trivial_reducibility=True,
     phi_structures=None,
     chunksize=DEFAULT_CHUNKSIZE,
+    wait=True,
 ):
     """Analyze the irreducibility of a system."""
     client = get_client()
@@ -401,7 +402,7 @@ def sia(
             )
         )
     # Broadcast subsystem object to workers
-    [subsystem] = client.scatter([subsystem], broadcast=True)
+    [subsystem] = client.scatter([subsystem])
     # Distribute PhiStructures to workers
     phi_structures = client.scatter(phi_structures)
     futures = [
@@ -414,4 +415,6 @@ def sia(
         )
         for phi_structure in phi_structures
     ]
-    return max(client.gather(futures))
+    if wait:
+        return max(client.gather(futures))
+    return futures
