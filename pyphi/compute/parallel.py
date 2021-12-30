@@ -375,10 +375,15 @@ def create_client(**kwargs):
     Uses ``pyphi.config.DASK_CONFIG`` as parameters to ``Client()``.
     """
     return Client(
-        **{**dict(n_workers=get_num_processes()), **config.DASK_CONFIG, **kwargs}
+        **{
+            **dict(n_workers=get_num_processes()),
+            **config.DASK_CONFIG,
+            **kwargs,
+        }
     )
 
 
+# TODO(dask) document
 def get_client(**kwargs):
     """Return a ``dask.distributed.Client``.
 

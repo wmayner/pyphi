@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 # big_phi.py
 
+import operator
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import product
-from toolz.itertoolz import unique
 
 import scipy
 from dask.distributed import as_completed
+from toolz.itertoolz import partition, unique, partition_all
 
-from . import config, models
-from .combinatorics import pairs
+from . import models
 from .compute.parallel import MapReduce, get_client
 from .compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
 from .direction import Direction
@@ -289,32 +289,80 @@ def all_nonconflicting_distinction_sets(distinctions):
         yield CauseEffectStructure(map(mechanism_to_distinction.get, mechanisms))
 
 
-def _compute_system_irreducibility(subsystem, phi_structure, selectivity):
+# TODO put in utils
+def extremum_with_short_circuit(
+    seq,
+    value_func=lambda item: item.phi,
+    cmp=operator.lt,
+    initial=float("inf"),
+    shortcircuit_value=0,
+    shortcircuit_callback=None,
+):
+    """Return the extreme value, optionally shortcircuiting."""
+    extreme_item = None
+    extreme_value = initial
+    for item in seq:
+        value = value_func(item)
+        if value == shortcircuit_value:
+            try:
+                shortcircuit_callback()
+            except TypeError:
+                pass
+            return item
+        if cmp(value, extreme_value):
+            extreme_value = value
+            extreme_item = item
+    return extreme_item
+
+
+def _evaluate_cuts(subsystem, phi_structure, selectivity, cuts):
+    return extremum_with_short_circuit(
+        (evaluate_cut(subsystem, phi_structure, selectivity, cut) for cut in cuts),
+        cmp=operator.lt,
+        initial=float("inf"),
+        shortcircuit_value=0,
+    )
+
+
+# TODO configure chunksize
+def _compute_system_irreducibility(
+    subsystem,
+    phi_structure,
+    selectivity,
+    chunksize,
+):
     """Analyze the irreducibility of a PhiStructure."""
     client = get_client()
-    cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
     futures = [
         client.submit(
-            evaluate_cut,
+            _evaluate_cuts,
             subsystem,
             phi_structure,
             selectivity,
-            cut,
+            cuts,
         )
-        for cut in cuts
+        for cuts in partition_all(
+            chunksize, sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+        )
     ]
-    min_phi = float("inf")
-    for _, result in as_completed(futures, with_results=True):
-        # Short-circuit
-        if result.phi == 0:
-            client.cancel(futures)
-            return result
-        if result.phi < min_phi:
-            minimum = result
-    return minimum
+    return extremum_with_short_circuit(
+        (result for _, result in as_completed(futures, with_results=True)),
+        cmp=operator.lt,
+        initial=float("inf"),
+        shortcircuit_value=0,
+        shortcircuit_callback=lambda: client.cancel(futures),
+    )
 
 
-def evaluate_phi_structure(subsystem, phi_structure, check_trivial_reducibility=True):
+DEFAULT_CHUNKSIZE = 500
+
+
+def evaluate_phi_structure(
+    subsystem,
+    phi_structure,
+    check_trivial_reducibility=True,
+    chunksize=DEFAULT_CHUNKSIZE,
+):
     """Analyze the irreducibility of a PhiStructure."""
     _selectivity = selectivity(subsystem, phi_structure)
     if check_trivial_reducibility and any(
@@ -328,7 +376,9 @@ def evaluate_phi_structure(subsystem, phi_structure, check_trivial_reducibility=
             ces=phi_structure.distinctions,
             relations=phi_structure.relations,
         )
-    return _compute_system_irreducibility(subsystem, phi_structure, _selectivity)
+    return _compute_system_irreducibility(
+        subsystem, phi_structure, _selectivity, chunksize=chunksize
+    )
 
 
 # TODO allow choosing whether you provide precomputed distinctions
@@ -340,6 +390,7 @@ def sia(
     all_relations,
     check_trivial_reducibility=True,
     phi_structures=None,
+    chunksize=DEFAULT_CHUNKSIZE,
 ):
     """Analyze the irreducibility of a system."""
     client = get_client()
@@ -359,6 +410,7 @@ def sia(
             subsystem,
             phi_structure,
             check_trivial_reducibility=check_trivial_reducibility,
+            chunksize=chunksize,
         )
         for phi_structure in phi_structures
     ]
