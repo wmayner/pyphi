@@ -15,6 +15,7 @@ with open("./pyphi/__about__.py", encoding="utf-8") as f:
     exec(f.read(), about)
 
 install_requires = [
+    "dask >=2021.4.0",
     "decorator >=4.0.0",
     "joblib >=0.8.0",
     "numpy >=1.11.0",
