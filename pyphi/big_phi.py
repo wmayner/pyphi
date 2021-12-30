@@ -7,10 +7,11 @@ from itertools import product
 from toolz.itertoolz import unique
 
 import scipy
+from dask.distributed import as_completed
 
 from . import config, models
 from .combinatorics import pairs
-from .compute.parallel import MapReduce
+from .compute.parallel import MapReduce, get_client
 from .compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
 from .direction import Direction
 from .models import fmt
@@ -227,71 +228,6 @@ REDUCIBILITY_CHECKS = [
 ]
 
 
-# TODO
-class ComputeSystemIrreducibility(MapReduce):
-    """Computation engine for system-level irreducibility."""
-
-    description = "Evaluating {} cuts".format(fmt.BIG_PHI)
-
-    def empty_result(self, subsystem, phi_structure, selectivity):
-        """Begin with a |SIA| with infinite |big_phi|; all actual SIAs will have less."""
-        return SystemIrreducibilityAnalysis(subsystem=subsystem, phi=float("inf"))
-
-    @staticmethod
-    def compute(cut, subsystem, phi_structure, selectivity):
-        """Evaluate a cut."""
-        return evaluate_cut(subsystem, phi_structure, selectivity, cut)
-
-    def process_result(self, new_sia, min_sia):
-        """Check if the new SIA has smaller |big_phi| than the standing result."""
-        if new_sia.phi == 0:
-            # Short circuit
-            self.done = True
-            return new_sia
-
-        elif abs(new_sia.phi) < abs(min_sia.phi):
-            return new_sia
-
-        return min_sia
-
-
-def evaluate_phi_structure(phi_structure, subsystem, check_trivial_reducibility=True):
-    _selectivity = selectivity(subsystem, phi_structure)
-    if check_trivial_reducibility and any(
-        check(subsystem, phi_structure.distinctions) for check in REDUCIBILITY_CHECKS
-    ):
-        return SystemIrreducibilityAnalysis(
-            phi=0.0,
-            subsystem=subsystem,
-            cut_subsystem=subsystem,
-            selectivity=_selectivity,
-            ces=phi_structure.distinctions,
-            relations=phi_structure.relations,
-        )
-    cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
-    return ComputeSystemIrreducibility(
-        cuts, subsystem, phi_structure, _selectivity
-    ).run(parallel=False)
-
-
-class ComputeMaximalCompositionalState(MapReduce):
-    """Computation engine for resolving conflicts among compositional states."""
-
-    description = "Evaluating compositional states"
-
-    def empty_result(self, subsystem, check_trivial_reducibility):
-        """Begin with a |SIA| with negative infinite |big_phi|; all actual SIAs will have more."""
-        return SystemIrreducibilityAnalysis(subsystem=subsystem, phi=-float("inf"))
-
-    compute = staticmethod(evaluate_phi_structure)
-
-    def process_result(self, new_sia, max_sia):
-        """Check if the new SIA has larger |big_phi| than the standing result."""
-        if new_sia.phi > max_sia.phi:
-            return new_sia
-        return max_sia
-
-
 class CompositionalState(UserDict):
     """A mapping from purviews to states."""
 
@@ -319,6 +255,7 @@ def _nonconflicting_mice_set(purview_to_mice):
     return map(frozenset, product(*purview_to_mice.values()))
 
 
+# TODO(4.0) parallelize somehow?
 def all_nonconflicting_distinction_sets(distinctions):
     """Return all possible conflict-free distinction sets."""
     if isinstance(distinctions, FlatCauseEffectStructure):
@@ -352,6 +289,48 @@ def all_nonconflicting_distinction_sets(distinctions):
         yield CauseEffectStructure(map(mechanism_to_distinction.get, mechanisms))
 
 
+def _compute_system_irreducibility(subsystem, phi_structure, selectivity):
+    """Analyze the irreducibility of a PhiStructure."""
+    client = get_client()
+    cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+    futures = [
+        client.submit(
+            evaluate_cut,
+            subsystem,
+            phi_structure,
+            selectivity,
+            cut,
+        )
+        for cut in cuts
+    ]
+    min_phi = float("inf")
+    for _, result in as_completed(futures, with_results=True):
+        # Short-circuit
+        if result.phi == 0:
+            client.cancel(futures)
+            return result
+        if result.phi < min_phi:
+            minimum = result
+    return minimum
+
+
+def evaluate_phi_structure(subsystem, phi_structure, check_trivial_reducibility=True):
+    """Analyze the irreducibility of a PhiStructure."""
+    _selectivity = selectivity(subsystem, phi_structure)
+    if check_trivial_reducibility and any(
+        check(subsystem, phi_structure.distinctions) for check in REDUCIBILITY_CHECKS
+    ):
+        return SystemIrreducibilityAnalysis(
+            phi=0.0,
+            subsystem=subsystem,
+            cut_subsystem=subsystem,
+            selectivity=_selectivity,
+            ces=phi_structure.distinctions,
+            relations=phi_structure.relations,
+        )
+    return _compute_system_irreducibility(subsystem, phi_structure, _selectivity)
+
+
 # TODO allow choosing whether you provide precomputed distinctions
 # (sometimes faster to compute as you go if many distinctions are killed by conflicts)
 # TODO document args
@@ -359,13 +338,28 @@ def sia(
     subsystem,
     all_distinctions,
     all_relations,
-    parallel=False,
     check_trivial_reducibility=True,
+    phi_structures=None,
 ):
     """Analyze the irreducibility of a system."""
-    phi_structures = all_phi_structures(
-        all_nonconflicting_distinction_sets(all_distinctions), all_relations
-    )
-    return ComputeMaximalCompositionalState(
-        phi_structures, subsystem, check_trivial_reducibility
-    ).run(parallel or config.PARALLEL_CUT_EVALUATION)
+    client = get_client()
+    if phi_structures is None:
+        phi_structures = list(
+            all_phi_structures(
+                all_nonconflicting_distinction_sets(all_distinctions), all_relations
+            )
+        )
+    # Broadcast subsystem object to workers
+    [subsystem] = client.scatter([subsystem], broadcast=True)
+    # Distribute PhiStructures to workers
+    phi_structures = client.scatter(phi_structures)
+    futures = [
+        client.submit(
+            evaluate_phi_structure,
+            subsystem,
+            phi_structure,
+            check_trivial_reducibility=check_trivial_reducibility,
+        )
+        for phi_structure in phi_structures
+    ]
+    return max(client.gather(futures))
