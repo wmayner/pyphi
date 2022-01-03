@@ -354,6 +354,23 @@ def _compute_system_irreducibility(
     )
 
 
+def _null_sia(subsystem, phi_structure, selectivity):
+    return SystemIrreducibilityAnalysis(
+        phi=0.0,
+        subsystem=subsystem,
+        cut_subsystem=subsystem,
+        selectivity=selectivity,
+        ces=phi_structure.distinctions,
+        relations=phi_structure.relations,
+    )
+
+
+def is_trivially_reducible(subsystem, phi_structure):
+    return any(
+        check(subsystem, phi_structure.distinctions) for check in REDUCIBILITY_CHECKS
+    )
+
+
 DEFAULT_CHUNKSIZE = 500
 
 
@@ -365,17 +382,8 @@ def evaluate_phi_structure(
 ):
     """Analyze the irreducibility of a PhiStructure."""
     _selectivity = selectivity(subsystem, phi_structure)
-    if check_trivial_reducibility and any(
-        check(subsystem, phi_structure.distinctions) for check in REDUCIBILITY_CHECKS
-    ):
-        return SystemIrreducibilityAnalysis(
-            phi=0.0,
-            subsystem=subsystem,
-            cut_subsystem=subsystem,
-            selectivity=_selectivity,
-            ces=phi_structure.distinctions,
-            relations=phi_structure.relations,
-        )
+    if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
+        return _null_sia(subsystem, phi_structure, _selectivity)
     return _compute_system_irreducibility(
         subsystem, phi_structure, _selectivity, chunksize=chunksize
     )
@@ -394,6 +402,12 @@ def sia(
     wait=True,
 ):
     """Analyze the irreducibility of a system."""
+    # First check that the entire set of distinctions/relations is not trivially reducible
+    # (since then all subsets must be)
+    phi_structure = PhiStructure(all_distinctions, all_relations)
+    if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
+        return _null_sia(subsystem, phi_structure, None)
+
     client = get_client()
     if phi_structures is None:
         phi_structures = list(
