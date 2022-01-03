@@ -402,7 +402,7 @@ def sia(
             )
         )
     # Broadcast subsystem object to workers
-    [subsystem] = client.scatter([subsystem])
+    [subsystem] = client.scatter([subsystem], broadcast=True)
     # Distribute PhiStructures to workers
     phi_structures = client.scatter(phi_structures)
     futures = [
