@@ -15,6 +15,8 @@ from math import log2
 
 import numpy as np
 
+from .tpm import is_deterministic
+
 # Create a logger for this module.
 log = logging.getLogger(__name__)
 
