@@ -42,6 +42,17 @@ class Cut(models.cuts.Cut):
     def __repr__(self):
         return fmt_cut(self)
 
+    def to_json(self):
+        return {
+            "direction": self.direction,
+            **super().to_json(),
+        }
+
+    @classmethod
+    def from_json(cls, data):
+        """Return a Cut object from a JSON-serializable representation."""
+        return cls(data["direction"], data["from_nodes"], data["to_nodes"])
+
 
 def is_affected_by_cut(distinction, cut):
     coming_from = set(cut.from_nodes) & set(distinction.mechanism)
