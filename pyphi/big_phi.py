@@ -72,7 +72,7 @@ def sia_partitions(node_indices, node_labels):
     # TODO(4.0) configure
     for cut in directionless_sia_bipartitions(node_indices, node_labels):
         for direction in Direction.both():
-            yield Cut(
+            yield BigPhiCut(
                 direction, cut.from_nodes, cut.to_nodes, node_labels=cut.node_labels
             )
 
