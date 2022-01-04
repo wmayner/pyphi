@@ -184,6 +184,9 @@ class Cut(_CutBase):
     def __str__(self):
         return fmt.fmt_cut(self)
 
+    def format(self, node_labels=None):
+        return fmt.fmt_part(self, node_labels=node_labels)
+
     def to_json(self):
         """Return a JSON-serializable representation."""
         return {"from_nodes": self.from_nodes, "to_nodes": self.to_nodes}
