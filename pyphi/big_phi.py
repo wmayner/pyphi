@@ -20,14 +20,6 @@ from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
 
-# TODO
-def fmt_cut(cut):
-    """Format a |Cut|."""
-    return (
-        f"Cut {fmt.fmt_mechanism(cut.from_nodes, cut.node_labels)} {fmt.CUT_SYMBOL} "
-        f"{fmt.fmt_mechanism(cut.to_nodes, cut.node_labels)} ({str(cut.direction)[0]})"
-    )
-
 
 class BigPhiCut(models.cuts.Cut):
     """A system cut.
@@ -40,7 +32,7 @@ class BigPhiCut(models.cuts.Cut):
         super().__init__(*args, **kwargs)
 
     def __repr__(self):
-        return fmt_cut(self)
+        return fmt.fmt_cut(self) + f" ({str(self.direction)[0]})"
 
     def to_json(self):
         return {

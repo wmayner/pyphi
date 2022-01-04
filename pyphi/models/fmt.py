@@ -397,7 +397,8 @@ def fmt_ria(ria, verbose=True, mip=False):
 
 def fmt_cut(cut):
     """Format a |Cut|."""
-    return "Cut {from_nodes} {symbol} {to_nodes}".format(
+    return "{name} {from_nodes} {symbol} {to_nodes}".format(
+        name=cut.__class__.__name__,
         from_nodes=fmt_mechanism(cut.from_nodes, cut.node_labels),
         symbol=CUT_SYMBOL,
         to_nodes=fmt_mechanism(cut.to_nodes, cut.node_labels),
