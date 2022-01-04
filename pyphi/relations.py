@@ -332,12 +332,12 @@ class Relation(cmp.Orderable):
         return self.relata.subsystem
 
     @property
-    def order(self):
+    def degree(self):
         """The number of relata bound by this relation."""
         return len(self)
 
     @property
-    def degree(self):
+    def order(self):
         """The size of this relation's purview."""
         return len(self.purview)
 
@@ -681,21 +681,20 @@ def relation(relata):
     return relata.maximally_irreducible_relation()
 
 
-# TODO swap order / degree
-def all_relata(subsystem, ces, min_order=2, max_order=None):
+def all_relata(subsystem, ces, min_degree=2, max_degree=None):
     """Return all relata in the CES, even if they have no ovelap."""
-    if min_order < 2:
+    if min_degree < 2:
         # Relations are necessarily order 2 or higher
         min_order = 2
-    for subset in powerset(ces, min_size=min_order, max_size=max_order):
+    for subset in powerset(ces, min_size=min_order, max_size=max_degree):
         yield Relata(subsystem, subset)
 
 
-def potential_relata(subsystem, ces, min_order=2, max_order=None):
+def potential_relata(subsystem, ces, min_degree=2, max_degree=None):
     """Return Relata with nonempty overlap."""
     purviews = list(map(frozenset, ces.purviews))
     for combination in combinations_with_nonempty_intersection(
-        purviews, min_size=min_order, max_size=max_order
+        purviews, min_size=min_degree, max_size=max_degree
     ):
         yield Relata(subsystem, tuple(ces[i] for i in combination))
 
