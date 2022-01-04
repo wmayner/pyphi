@@ -21,13 +21,16 @@ _Next version_
   - Improved performance for nondeterministic TPMs
 - Added `connectivity.subadjacency()`
 - Added `NodeLabels.coerce_to_labels()`
+- Added `Direction.both()`
 
 ### Config
 
 - Implemented `__repr__` to allow easier display in Jupyter & IPython.
 
 ### Optimizations
+
 - Improve the implementation of `convert.state_by_node2state_by_state`.
+
 
 1.2.0
 -----

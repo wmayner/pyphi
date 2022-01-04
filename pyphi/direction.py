@@ -50,3 +50,7 @@ class Direction(IntEnum):
         from . import validate
 
         return validate.direction(self)
+
+    @classmethod
+    def both(cls):
+        return (cls.CAUSE, cls.EFFECT)
