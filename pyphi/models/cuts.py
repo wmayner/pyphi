@@ -188,6 +188,11 @@ class Cut(_CutBase):
         """Return a JSON-serializable representation."""
         return {"from_nodes": self.from_nodes, "to_nodes": self.to_nodes}
 
+    @classmethod
+    def from_json(cls, data):
+        """Return a Cut object from a JSON-serializable representation."""
+        return cls(data["from_nodes"], data["to_nodes"])
+
 
 class KCut(_CutBase):
     """A cut that severs all connections between parts of a K-partition."""
