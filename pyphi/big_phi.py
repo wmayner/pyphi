@@ -29,7 +29,7 @@ def fmt_cut(cut):
     )
 
 
-class Cut(models.cuts.Cut):
+class BigPhiCut(models.cuts.Cut):
     """A system cut.
 
     Same as a IIT 3.0 unidirectional cut, but with a Direction.

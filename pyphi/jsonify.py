@@ -87,6 +87,7 @@ def _loadable_models():
         pyphi.relations.RelationPartition,
         pyphi.relations.Relata,
         pyphi.relations.Relation,
+        pyphi.big_phi.BigPhiCut,
     ]
     return {cls.__name__: cls for cls in classes}
 
