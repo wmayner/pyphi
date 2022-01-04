@@ -8,10 +8,10 @@ from itertools import product
 
 import scipy
 from dask.distributed import as_completed
-from toolz.itertoolz import partition, unique, partition_all
+from toolz.itertoolz import unique, partition_all
 
 from . import models
-from .compute.parallel import MapReduce, get_client
+from .compute.parallel import get_client
 from .compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
 from .direction import Direction
 from .models import fmt
@@ -19,9 +19,6 @@ from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
-
-# TODO use something like `pyphi.Direction.both = [CAUSE, EFFECT]`
-DIRECTIONS = (Direction.CAUSE, Direction.EFFECT)
 
 # TODO
 def fmt_cut(cut):
@@ -71,7 +68,7 @@ def unaffected_relations(ces, relations):
 def sia_partitions(node_indices, node_labels):
     # TODO(4.0) configure
     for cut in directionless_sia_bipartitions(node_indices, node_labels):
-        for direction in DIRECTIONS:
+        for direction in Direction.both():
             yield Cut(
                 direction, cut.from_nodes, cut.to_nodes, node_labels=cut.node_labels
             )
@@ -204,9 +201,9 @@ def has_nonspecified_elements(subsystem, distinctions):
     """Return whether any elements are not specified by a purview in both
     directions."""
     elements = set(subsystem.node_indices)
-    specified = {direction: set() for direction in DIRECTIONS}
+    specified = {direction: set() for direction in Direction.both()}
     for distinction in distinctions:
-        for direction in DIRECTIONS:
+        for direction in Direction.both():
             specified[direction].update(set(distinction.purview(direction)))
     return any(elements - _specified for _specified in specified.values())
 
@@ -265,7 +262,9 @@ def all_nonconflicting_distinction_sets(distinctions):
         frozenset(distinction.mechanism): distinction for distinction in distinctions
     }
     # Map purviews to mechanisms that specify them, on both cause and effect sides
-    purview_to_mechanism = {direction: defaultdict(list) for direction in DIRECTIONS}
+    purview_to_mechanism = {
+        direction: defaultdict(list) for direction in Direction.both()
+    }
     for mechanism, distinction in mechanism_to_distinction.items():
         for direction, mapping in purview_to_mechanism.items():
             # Cast mechanism to set so we can take intersections later
@@ -273,7 +272,7 @@ def all_nonconflicting_distinction_sets(distinctions):
     # Generate nonconflicting sets of mechanisms on both cause and effect sides
     nonconflicting_causes, nonconflicting_effects = tuple(
         _nonconflicting_mice_set(purview_to_mechanism[direction])
-        for direction in DIRECTIONS
+        for direction in Direction.both()
     )
     # Ensure nonconflicting sets are unique
     nonconflicting_mechanisms = unique(
