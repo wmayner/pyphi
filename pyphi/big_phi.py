@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from itertools import product
 
 import scipy
-from dask.distributed import as_completed
+from dask.distributed import as_completed, secede
 from toolz.itertoolz import unique, partition_all
 
 from . import models
