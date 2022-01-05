@@ -422,8 +422,11 @@ def sia(
         )
     # Broadcast subsystem object to workers
     [subsystem] = client.scatter([subsystem], broadcast=True)
+    client.log_event("pyphi", "big_phi.sia: Done broadcasting subsystem")
     # Distribute PhiStructures to workers
     phi_structures = client.scatter(phi_structures)
+    client.log_event("pyphi", "big_phi.sia: Done scattering phi structures")
+    # Remove this task from the thread pool
     futures = [
         client.submit(
             evaluate_phi_structure,
@@ -434,6 +437,9 @@ def sia(
         )
         for phi_structure in phi_structures
     ]
+    client.log_event("pyphi", "big_phi.sia: Done submitting futures")
     if wait:
-        return max(client.gather(futures))
+        results = client.gather(futures)
+        client.log_event("pyphi", "big_phi.sia: Done gathering futures; returning")
+        return max(results)
     return futures
