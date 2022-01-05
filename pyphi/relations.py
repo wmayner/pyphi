@@ -520,6 +520,8 @@ class Relata(cmp.Orderable):
         than the objects themselves, which is more efficient for storage on
         disk.
         """
+        if not isinstance(ces, FlatCauseEffectStructure):
+            raise ValueError("CES must be a FlatCauseEffectStructure")
         return [ces.index(relatum) for relatum in self]
 
     @classmethod
