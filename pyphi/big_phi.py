@@ -335,6 +335,8 @@ def _compute_system_irreducibility(
 ):
     """Analyze the irreducibility of a PhiStructure."""
     client = get_client()
+    # Remove this task from the thread pool
+    secede()
     futures = [
         client.submit(
             _evaluate_cuts,
@@ -394,6 +396,7 @@ def evaluate_phi_structure(
 # TODO allow choosing whether you provide precomputed distinctions
 # (sometimes faster to compute as you go if many distinctions are killed by conflicts)
 # TODO document args
+# TODO chunksize for phi structures
 def sia(
     subsystem,
     all_distinctions,
