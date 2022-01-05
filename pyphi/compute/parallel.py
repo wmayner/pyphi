@@ -369,7 +369,7 @@ def configure_worker_logging(queue):  # coverage: disable
 # TODO(dask) test different backends; distributed vs threaded vs multiprocessing
 # TODO(dask) make a single object that facilitates short-circuiting (maybe contextdecorator?)
 # TODO(dask) benchmark fork vs spawn vs forkserver
-def create_client(**kwargs):
+def create_client(*args, **kwargs):
     """Create a dask distributed client.
 
     Uses ``pyphi.config.DASK_CONFIG`` as parameters to ``Client()``.
@@ -384,12 +384,12 @@ def create_client(**kwargs):
 
 
 # TODO(dask) document
-def get_client(**kwargs):
+def get_client(*args, **kwargs):
     """Return a ``dask.distributed.Client``.
 
     Creates a client if none is available.
     """
     try:
-        return _get_client()
+        return _get_client(**kwargs)
     except ValueError:
-        return create_client(**kwargs)
+        return create_client(*args, **kwargs)
