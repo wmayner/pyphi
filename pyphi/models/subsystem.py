@@ -94,6 +94,9 @@ class FlatCauseEffectStructure(CauseEffectStructure):
             concepts = concat((concept.cause, concept.effect) for concept in concepts)
         super().__init__(concepts=concepts, subsystem=subsystem, time=time)
 
+    def __str__(self):
+        return fmt.fmt_ces(self, title="Flat cause-effect structure")
+
     @property
     def purviews(self):
         """The purview of each component."""
