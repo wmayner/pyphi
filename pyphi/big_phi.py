@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from itertools import product
 
 import scipy
-from dask.distributed import as_completed, secede
+from dask.distributed import as_completed, secede, rejoin
 from toolz.itertoolz import unique, partition_all
 
 from . import models
@@ -381,16 +381,43 @@ def is_trivially_reducible(subsystem, phi_structure):
 DEFAULT_CHUNKSIZE = 500
 
 
+def _filter_relations(phi_structure):
+    """Filters relations according to the distinctions in the phi structure."""
+    return PhiStructure(
+        distinctions=phi_structure.distinctions,
+        relations=list(
+            unaffected_relations(phi_structure.distinctions, phi_structure.relations)
+        ),
+    )
+
+
+# TODO document args
 def evaluate_phi_structure(
     subsystem,
     phi_structure,
     check_trivial_reducibility=True,
     chunksize=DEFAULT_CHUNKSIZE,
+    filter_relations=False,
 ):
     """Analyze the irreducibility of a PhiStructure."""
+    client = get_client()
+    # Remove this task from the thread pool
+    secede()
+
     _selectivity = selectivity(subsystem, phi_structure)
+
+    if filter_relations:
+        # Prune unsupported relations
+        # TODO this could be done after checking trivial reducibility as long as
+        # the checks don't involve relations (or even better, we could
+        # distinguish two kinds of checks; those that don't and those that do,
+        # and do the latter afterwards)
+        phi_structure = client.submit(_filter_relations, phi_structure).result()
+        client.log_event("evaluate_phi_structure: Finished filtering relations")
+
     if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
         return _null_sia(subsystem, phi_structure, _selectivity)
+
     return _compute_system_irreducibility(
         subsystem, phi_structure, _selectivity, chunksize=chunksize
     )
@@ -417,19 +444,28 @@ def sia(
         return _null_sia(subsystem, phi_structure, None)
 
     client = get_client()
-    if phi_structures is None:
-        phi_structures = list(
-            all_phi_structures(
-                all_nonconflicting_distinction_sets(all_distinctions), all_relations
-            )
-        )
+
     # Broadcast subsystem object to workers
     [subsystem] = client.scatter([subsystem], broadcast=True)
     client.log_event("pyphi", "big_phi.sia: Done broadcasting subsystem")
-    # Distribute PhiStructures to workers
+
+    # Assume that phi structures passed by the user don't need to have their
+    # relations filtered
+    filter_relations = False
+    if phi_structures is None:
+        filter_relations = True
+        # Broadcast relations to workers
+        [all_relations] = client.scatter([all_relations], broadcast=True)
+        client.log_event("pyphi", "big_phi.sia: Done broadcasting all_relations")
+        phi_structures = [
+            # NOTE: Relations still need to be filtered at this point
+            PhiStructure(distinctions=distinctions, relations=all_relations)
+            for distinctions in all_nonconflicting_distinction_sets(all_distinctions)
+        ]
+    # Distribute phi structures to workers
     phi_structures = client.scatter(phi_structures)
     client.log_event("pyphi", "big_phi.sia: Done scattering phi structures")
-    # Remove this task from the thread pool
+
     futures = [
         client.submit(
             evaluate_phi_structure,
@@ -437,10 +473,12 @@ def sia(
             phi_structure,
             check_trivial_reducibility=check_trivial_reducibility,
             chunksize=chunksize,
+            filter_relations=filter_relations,
         )
         for phi_structure in phi_structures
     ]
     client.log_event("pyphi", "big_phi.sia: Done submitting futures")
+
     if wait:
         results = client.gather(futures)
         client.log_event("pyphi", "big_phi.sia: Done gathering futures; returning")
