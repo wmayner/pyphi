@@ -89,7 +89,7 @@ class SystemIrreducibilityAnalysis(models.subsystem.SystemIrreducibilityAnalysis
         partitioned_ces=None,
         partitioned_relations=None,
         subsystem=None,
-        cut_subsystem=None,
+        cut=None,
     ):
         self.phi = phi
         self.selectivity = selectivity
@@ -102,7 +102,11 @@ class SystemIrreducibilityAnalysis(models.subsystem.SystemIrreducibilityAnalysis
         self.partitioned_relations = partitioned_relations
 
         self.subsystem = subsystem
-        self.cut_subsystem = cut_subsystem
+        self._cut = cut
+
+    @property
+    def cut(self):
+        return self._cut
 
 
 class PhiStructure:
@@ -183,7 +187,6 @@ def all_phi_structures(distinction_sets, all_relations):
 
 
 def evaluate_cut(subsystem, phi_structure, selectivity, cut):
-    cut_subsystem = subsystem.apply_cut(cut)
     _informativeness = informativeness(cut, phi_structure)
     _phi = phi(selectivity, _informativeness.value)
     return SystemIrreducibilityAnalysis(
@@ -196,7 +199,7 @@ def evaluate_cut(subsystem, phi_structure, selectivity, cut):
         relations=phi_structure.relations,
         partitioned_relations=_informativeness.partitioned_phi_structure.relations,
         subsystem=subsystem,
-        cut_subsystem=cut_subsystem,
+        cut=cut,
     )
 
 
