@@ -390,6 +390,6 @@ def get_client(*args, **kwargs):
     Creates a client if none is available.
     """
     try:
-        return _get_client(**kwargs)
+        return _get_client(*args, **kwargs)
     except ValueError:
         return create_client(*args, **kwargs)
