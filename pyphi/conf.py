@@ -404,7 +404,7 @@ class PyphiConfig(Config):
     )
 
     REPERTOIRE_DISTANCE = Option(
-        "EMD",
+        "AID",
         doc="""
     The measure to use when computing distances between repertoires and
     concepts. A full list of currently installed measures is available by
@@ -669,7 +669,7 @@ class PyphiConfig(Config):
     )
 
     PRECISION = Option(
-        6,
+        15,
         type=int,
         on_change=configure_precision,
         doc="""
@@ -742,7 +742,7 @@ class PyphiConfig(Config):
     )
 
     PARTITION_TYPE = Option(
-        "BI",
+        "TRI",
         doc="""
     Controls the type of partition used for |small_phi| computations.
 
