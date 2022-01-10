@@ -17,13 +17,13 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 # modular, sparsely-connected, or homogeneous networks.
 CUT_ONE_APPROXIMATION: false
 # The measure to use when computing phi ("EMD", "KLD", "L1", ...)
-REPERTOIRE_DISTANCE: "EMD"
+REPERTOIRE_DISTANCE: "AID"
 # The measure to use when computing big-phi.
-CES_DISTANCE: "EMD"
+CES_DISTANCE: "SUM_SMALL_PHI"
 # The measure to use when computing actual causation alpha values.
 ACTUAL_CAUSATION_MEASURE: "PMI"
 # Controls the number of parts in a partition.
-PARTITION_TYPE: "BI"
+PARTITION_TYPE: "TRI"
 # Controls how to resolve phi-ties when computing MICE.
 PICK_SMALLEST_PURVIEW: false
 # The type of system cuts to use
@@ -117,4 +117,4 @@ PRINT_FRACTIONS: true
 # Numerical precision
 # ~~~~~~~~~~~~~~~~~~~
 # The number of decimal places to which Phi values are considered accurate.
-PRECISION: 6
+PRECISION: 15
