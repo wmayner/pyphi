@@ -367,7 +367,14 @@ def configure_worker_logging(queue):  # coverage: disable
 def init(*args, **kwargs):
     """Initialize Ray if not already initialized."""
     if not ray.is_initialized():
-        return ray.init(*args, **kwargs)
+        return ray.init(
+            *args,
+            **{
+                "num_cpus": get_num_processes(),
+                **config.RAY_CONFIG,
+                **kwargs,
+            },
+        )
 
 
 def as_completed(object_refs, num_returns=1):

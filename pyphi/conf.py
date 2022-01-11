@@ -493,9 +493,9 @@ class PyphiConfig(Config):
     system's RAM that the caches can collectively use.""",
     )
 
-    DASK_CONFIG = Option(
+    RAY_CONFIG = Option(
         dict(
-            threads_per_worker=1,
+            address="auto",
         ),
         type=dict,
         doc="""
