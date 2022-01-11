@@ -337,7 +337,6 @@ def _null_sia(subsystem, phi_structure, selectivity):
     return SystemIrreducibilityAnalysis(
         phi=0.0,
         subsystem=subsystem,
-        cut_subsystem=subsystem,
         selectivity=selectivity,
         ces=phi_structure.distinctions,
         relations=phi_structure.relations,
