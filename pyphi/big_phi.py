@@ -6,12 +6,13 @@ from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import product
 
+import ray
 import scipy
-from dask.distributed import as_completed, secede, rejoin
-from toolz.itertoolz import unique, partition_all
+from toolz.itertoolz import partition_all, unique
+from tqdm.auto import tqdm
 
 from . import models
-from .compute.parallel import get_client
+from .compute.parallel import as_completed, init
 from .compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
 from .direction import Direction
 from .models import fmt
@@ -19,6 +20,8 @@ from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
+
+init()
 
 
 class BigPhiCut(models.cuts.Cut):
@@ -320,44 +323,13 @@ def extremum_with_short_circuit(
     return extreme_item
 
 
+@ray.remote
 def _evaluate_cuts(subsystem, phi_structure, selectivity, cuts):
     return extremum_with_short_circuit(
         (evaluate_cut(subsystem, phi_structure, selectivity, cut) for cut in cuts),
         cmp=operator.lt,
         initial=float("inf"),
         shortcircuit_value=0,
-    )
-
-
-# TODO configure chunksize
-def _compute_system_irreducibility(
-    subsystem,
-    phi_structure,
-    selectivity,
-    chunksize,
-):
-    """Analyze the irreducibility of a PhiStructure."""
-    client = get_client()
-    # Remove this task from the thread pool
-    secede()
-    futures = [
-        client.submit(
-            _evaluate_cuts,
-            subsystem,
-            phi_structure,
-            selectivity,
-            cuts,
-        )
-        for cuts in partition_all(
-            chunksize, sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
-        )
-    ]
-    return extremum_with_short_circuit(
-        (result for _, result in as_completed(futures, with_results=True)),
-        cmp=operator.lt,
-        initial=float("inf"),
-        shortcircuit_value=0,
-        shortcircuit_callback=lambda: client.cancel(futures),
     )
 
 
@@ -378,16 +350,16 @@ def is_trivially_reducible(subsystem, phi_structure):
     )
 
 
-DEFAULT_CHUNKSIZE = 500
+# TODO configure
+DEFAULT_CUT_CHUNKSIZE = 500
+DEFAULT_PHI_STRUCTURE_CHUNKSIZE = 50
 
 
-def _filter_relations(phi_structure):
+def _filter_relations(distinctions, relations):
     """Filters relations according to the distinctions in the phi structure."""
     return PhiStructure(
-        distinctions=phi_structure.distinctions,
-        relations=list(
-            unaffected_relations(phi_structure.distinctions, phi_structure.relations)
-        ),
+        distinctions=distinctions,
+        relations=list(unaffected_relations(distinctions, relations)),
     )
 
 
@@ -396,91 +368,112 @@ def evaluate_phi_structure(
     subsystem,
     phi_structure,
     check_trivial_reducibility=True,
-    chunksize=DEFAULT_CHUNKSIZE,
+    chunksize=DEFAULT_CUT_CHUNKSIZE,
     filter_relations=False,
 ):
     """Analyze the irreducibility of a PhiStructure."""
-    client = get_client()
-    # Remove this task from the thread pool
-    secede()
+    if filter_relations:
+        # Assumes `relations` is an ObjectRef from a prior `ray.put` call
+        phi_structure = _filter_relations(
+            phi_structure.distinctions, ray.get(phi_structure.relations)
+        )
+        print("Done filtering relations")
 
     _selectivity = selectivity(subsystem, phi_structure)
-
-    if filter_relations:
-        # Prune unsupported relations
-        # TODO this could be done after checking trivial reducibility as long as
-        # the checks don't involve relations (or even better, we could
-        # distinguish two kinds of checks; those that don't and those that do,
-        # and do the latter afterwards)
-        phi_structure = client.submit(_filter_relations, phi_structure).result()
-        client.log_event("evaluate_phi_structure: Finished filtering relations")
 
     if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
         return _null_sia(subsystem, phi_structure, _selectivity)
 
-    return _compute_system_irreducibility(
-        subsystem, phi_structure, _selectivity, chunksize=chunksize
+    tasks = [
+        _evaluate_cuts.remote(
+            subsystem,
+            phi_structure,
+            _selectivity,
+            cuts,
+        )
+        for cuts in partition_all(
+            chunksize, sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+        )
+    ]
+    return extremum_with_short_circuit(
+        as_completed(tasks),
+        cmp=operator.lt,
+        initial=float("inf"),
+        shortcircuit_value=0,
+        shortcircuit_callback=lambda: [ray.cancel(task) for task in tasks],
+    )
+
+
+@ray.remote
+def _evaluate_phi_structures(
+    subsystem,
+    phi_structures,
+    filter_relations=False,
+    **kwargs,
+):
+    return max(
+        evaluate_phi_structure(
+            subsystem, phi_structure, filter_relations=filter_relations, **kwargs
+        )
+        for phi_structure in phi_structures
     )
 
 
 # TODO allow choosing whether you provide precomputed distinctions
 # (sometimes faster to compute as you go if many distinctions are killed by conflicts)
 # TODO document args
-# TODO chunksize for phi structures
 def sia(
     subsystem,
     all_distinctions,
     all_relations,
-    check_trivial_reducibility=True,
     phi_structures=None,
-    chunksize=DEFAULT_CHUNKSIZE,
+    check_trivial_reducibility=True,
+    chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
+    cut_chunksize=DEFAULT_CUT_CHUNKSIZE,
+    filter_relations=False,
     wait=True,
+    progress=True,
 ):
     """Analyze the irreducibility of a system."""
     # First check that the entire set of distinctions/relations is not trivially reducible
     # (since then all subsets must be)
     phi_structure = PhiStructure(all_distinctions, all_relations)
     if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
+        print("Returning trivially-reducible SIA")
         return _null_sia(subsystem, phi_structure, None)
 
-    client = get_client()
-
     # Broadcast subsystem object to workers
-    [subsystem] = client.scatter([subsystem], broadcast=True)
-    client.log_event("pyphi", "big_phi.sia: Done broadcasting subsystem")
+    subsystem = ray.put(subsystem)
+    print("Done putting subsystem")
 
     # Assume that phi structures passed by the user don't need to have their
     # relations filtered
-    filter_relations = False
     if phi_structures is None:
         filter_relations = True
         # Broadcast relations to workers
-        [all_relations] = client.scatter([all_relations], broadcast=True)
-        client.log_event("pyphi", "big_phi.sia: Done broadcasting all_relations")
-        phi_structures = [
-            # NOTE: Relations still need to be filtered at this point
-            PhiStructure(distinctions=distinctions, relations=all_relations)
+        all_relations = ray.put(all_relations)
+        print("Done putting relations")
+        phi_structures = (
+            PhiStructure(distinctions, all_relations)
             for distinctions in all_nonconflicting_distinction_sets(all_distinctions)
-        ]
-    # Distribute phi structures to workers
-    phi_structures = client.scatter(phi_structures)
-    client.log_event("pyphi", "big_phi.sia: Done scattering phi structures")
-
-    futures = [
-        client.submit(
-            evaluate_phi_structure,
-            subsystem,
-            phi_structure,
-            check_trivial_reducibility=check_trivial_reducibility,
-            chunksize=chunksize,
-            filter_relations=filter_relations,
         )
-        for phi_structure in phi_structures
-    ]
-    client.log_event("pyphi", "big_phi.sia: Done submitting futures")
 
+    tasks = [
+        _evaluate_phi_structures.remote(
+            subsystem,
+            chunk,
+            filter_relations=filter_relations,
+            check_trivial_reducibility=check_trivial_reducibility,
+            chunksize=cut_chunksize,
+        )
+        for chunk in tqdm(
+            partition_all(chunksize, phi_structures), desc="Submitting tasks"
+        )
+    ]
+    print("Done submitting tasks")
     if wait:
-        results = client.gather(futures)
-        client.log_event("pyphi", "big_phi.sia: Done gathering futures; returning")
+        results = as_completed(tasks)
+        if progress:
+            results = tqdm(results, total=len(tasks))
         return max(results)
-    return futures
+    return tasks

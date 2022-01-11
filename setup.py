@@ -15,14 +15,15 @@ with open("./pyphi/__about__.py", encoding="utf-8") as f:
     exec(f.read(), about)
 
 install_requires = [
-    "dask >=2021.4.0",
     "decorator >=4.0.0",
     "joblib >=0.8.0",
     "numpy >=1.11.0",
+    "ordered-set >= 4.0.2",
     "psutil >=2.1.1",
     "pyemd >=0.3.0",
     "pymongo >=2.7.1",
     "pyyaml >=3.13",
+    "ray >=1.9.2",
     "redis >=2.10.5",
     "scipy >=0.13.3",
     "tblib >=1.3.2",

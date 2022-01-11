@@ -12,8 +12,7 @@ import sys
 import threading
 from itertools import chain, islice
 
-from dask.distributed import Client
-from dask.distributed import get_client as _get_client
+import ray
 from tblib import Traceback
 from tqdm import tqdm
 
@@ -365,31 +364,14 @@ def configure_worker_logging(queue):  # coverage: disable
     )
 
 
-# TODO(dask) make easy option for single-threaded computation for debugging
-# TODO(dask) test different backends; distributed vs threaded vs multiprocessing
-# TODO(dask) make a single object that facilitates short-circuiting (maybe contextdecorator?)
-# TODO(dask) benchmark fork vs spawn vs forkserver
-def create_client(*args, **kwargs):
-    """Create a dask distributed client.
-
-    Uses ``pyphi.config.DASK_CONFIG`` as parameters to ``Client()``.
-    """
-    return Client(
-        **{
-            **dict(n_workers=get_num_processes()),
-            **config.DASK_CONFIG,
-            **kwargs,
-        }
-    )
+def init(*args, **kwargs):
+    """Initialize Ray if not already initialized."""
+    if not ray.is_initialized():
+        return ray.init(*args, **kwargs)
 
 
-# TODO(dask) document
-def get_client(*args, **kwargs):
-    """Return a ``dask.distributed.Client``.
-
-    Creates a client if none is available.
-    """
-    try:
-        return _get_client(*args, **kwargs)
-    except ValueError:
-        return create_client(*args, **kwargs)
+def as_completed(object_refs, num_returns=1):
+    unfinished = object_refs
+    while unfinished:
+        finished, unfinished = ray.wait(unfinished, num_returns=num_returns)
+        yield from ray.get(finished)
