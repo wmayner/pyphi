@@ -376,7 +376,6 @@ def evaluate_phi_structure(
         phi_structure = _filter_relations(
             phi_structure.distinctions, ray.get(phi_structure.relations)
         )
-        print("Done filtering relations")
 
     _selectivity = selectivity(subsystem, phi_structure)
 
