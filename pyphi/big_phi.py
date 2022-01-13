@@ -11,6 +11,8 @@ import scipy
 from toolz.itertoolz import partition_all, unique
 from tqdm.auto import tqdm
 
+from pyphi.cache import cache
+
 from . import models
 from .compute.parallel import as_completed, init
 from .compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
@@ -138,6 +140,7 @@ def informativeness(cut, phi_structure):
     )
 
 
+@cache(cache={}, maxmem=None)
 def number_of_possible_relations_with_overlap(n, k):
     """Return the number of possible relations with overlap of size k."""
     return (
@@ -147,6 +150,7 @@ def number_of_possible_relations_with_overlap(n, k):
     )
 
 
+@cache(cache={}, maxmem=None)
 def optimum_sum_small_phi_relations(n):
     """Return the 'best possible' sum of small phi for relations."""
     # \sum_{k=1}^{n} (size of purview) * (number of relations with that purview size)
@@ -155,12 +159,14 @@ def optimum_sum_small_phi_relations(n):
     )
 
 
+@cache(cache={}, maxmem=None)
 def optimum_sum_small_phi_distinctions_one_direction(n):
     """Return the 'best possible' sum of small phi for distinctions in one direction"""
     # \sum_{k=1}^{n} k(n choose k)
     return (2 / n) * (2 ** n)
 
 
+@cache(cache={}, maxmem=None)
 def optimum_sum_small_phi(n):
     """Return the 'best possible' sum of small phi for the system."""
     # Double distinction term for cause & effect sides
