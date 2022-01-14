@@ -23,8 +23,6 @@ from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
 
-init()
-
 
 class BigPhiCut(models.cuts.Cut):
     """A system cut.
