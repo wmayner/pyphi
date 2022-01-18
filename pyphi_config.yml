@@ -48,15 +48,15 @@ PARALLEL_CONCEPT_EVALUATION: false
 PARALLEL_CUT_EVALUATION: false
 # Controls whether complexes are evaluated in parallel.
 PARALLEL_COMPLEX_EVALUATION: false
-# The number of CPU cores to use in parallel cut evaluation. -1 means all
-# available cores, -2 means all but one available cores, etc.
+# The number of CPU cores to use in parallel.
+# -1 means all available cores, -2 means all but one available cores, etc.
 NUMBER_OF_CORES: -1
 # Some functions are memoized using an in-memory cache. This is the maximum
 # percentage of memory that these caches can collectively use.
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 100
-# Arguments to `dask.distributed.Client()`
-DASK_CONFIG:
-    threads_per_worker: 1
+# Arguments to `ray.init()`
+RAY_CONFIG:
+    address: "auto"
 
 # Memoization and caching
 # ~~~~~~~~~~~~~~~~~~~~~~~
