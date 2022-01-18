@@ -11,7 +11,11 @@ import scipy
 from toolz.itertoolz import partition_all, unique
 from tqdm.auto import tqdm
 
+from pyphi import utils
 from pyphi.cache import cache
+from pyphi.models import cmp
+from pyphi.models.cuts import Cut
+from pyphi.subsystem import Subsystem
 
 from . import models
 from .compute.parallel import as_completed, init
@@ -80,64 +84,6 @@ def sia_partitions(node_indices, node_labels):
             )
 
 
-class SystemIrreducibilityAnalysis(models.subsystem.SystemIrreducibilityAnalysis):
-    def __init__(
-        self,
-        phi=None,
-        selectivity=None,
-        informativeness=None,
-        ces=None,
-        relations=None,
-        # TODO rename to distinctions?
-        partitioned_ces=None,
-        partitioned_relations=None,
-        subsystem=None,
-        cut=None,
-    ):
-        self.phi = phi
-        self.selectivity = selectivity
-        self.informativeness = informativeness
-        self.ces = ces
-        self.relations = relations
-
-        # TODO use PhiStructure here
-        self.partitioned_ces = partitioned_ces
-        self.partitioned_relations = partitioned_relations
-
-        self.subsystem = subsystem
-        self._cut = cut
-
-    @property
-    def cut(self):
-        return self._cut
-
-
-class PhiStructure:
-    def __init__(self, distinctions, relations):
-        self.distinctions = distinctions
-        self.relations = relations
-
-
-@dataclass(order=True)
-class Informativeness:
-    value: float
-    partitioned_phi_structure: PhiStructure
-
-
-def informativeness(cut, phi_structure):
-    # TODO use a single pass through the phi structure?
-    distinctions = unaffected_distinctions(phi_structure.distinctions, cut)
-    distinction_term = sum(phi_structure.distinctions.phis) - sum(distinctions.phis)
-    relations = list(unaffected_relations(distinctions, phi_structure.relations))
-    relation_term = sum(relation.phi for relation in phi_structure.relations) - sum(
-        relation.phi for relation in relations
-    )
-    return Informativeness(
-        value=(distinction_term + relation_term),
-        partitioned_phi_structure=PhiStructure(distinctions, relations),
-    )
-
-
 @cache(cache={}, maxmem=None)
 def number_of_possible_relations_with_overlap(n, k):
     """Return the number of possible relations with overlap of size k."""
@@ -173,40 +119,173 @@ def optimum_sum_small_phi(n):
     return distinction_term + relation_term
 
 
-def selectivity(subsystem, phi_structure):
-    # TODO memoize and store sums on phi_structure
-    # TODO make `Relations` object
-    return (
-        sum(phi_structure.distinctions.phis)
-        + sum(relation.phi for relation in phi_structure.relations)
-    ) / optimum_sum_small_phi(len(subsystem))
+class PhiStructure:
+    def __init__(self, distinctions, relations):
+        self.distinctions = distinctions
+        self.relations = relations
+        self._sum_phi_distinctions = None
+        self._sum_phi_relations = None
+        self._selectivity = None
+        if distinctions:
+            # TODO improve this
+            self._substrate_size = len(distinctions[0].subsystem)
+
+    def sum_phi_distinctions(self):
+        if self._sum_phi_distinctions is None:
+            self._sum_phi_distinctions = sum(self.distinctions.phis)
+        return self._sum_phi_distinctions
+
+    def sum_phi_relations(self):
+        if self._sum_phi_relations is None:
+            # TODO make `Relations` object with .phis attr
+            self._sum_phi_relations = sum(relation.phi for relation in self.relations)
+        return self._sum_phi_relations
+
+    def selectivity(self):
+        if self._selectivity is None:
+            self._selectivity = (
+                self.sum_phi_distinctions() + self.sum_phi_relations()
+            ) / optimum_sum_small_phi(self._substrate_size)
+        return self._selectivity
 
 
-def phi(selectivity, informativeness):
-    return selectivity * informativeness
+class PartitionedPhiStructure(PhiStructure):
+    def __init__(self, cut, phi_structure):
+        self.unpartitioned_phi_structure = phi_structure
+        super().__init__(
+            self.unpartitioned_phi_structure.distinctions,
+            self.unpartitioned_phi_structure.relations,
+        )
+        self.cut = cut
+        # Lift values from unpartitioned PhiStructure
+        for attr in [
+            "_substrate_size",
+            "_sum_phi_distinctions",
+            "_sum_phi_relations",
+            "_selectivity",
+        ]:
+            setattr(
+                self,
+                attr,
+                getattr(self.unpartitioned_phi_structure, attr),
+            )
+        self._partitioned_distinctions = None
+        self._partitioned_relations = None
+        self._sum_phi_partitioned_distinctions = None
+        self._sum_phi_partitioned_relations = None
+        self._informativeness = None
+
+    def partitioned_distinctions(self):
+        if self._partitioned_distinctions is None:
+            self._partitioned_distinctions = unaffected_distinctions(
+                self.distinctions, self.cut
+            )
+        return self._partitioned_distinctions
+
+    def partitioned_relations(self):
+        if self._partitioned_relations is None:
+            self._partitioned_relations = unaffected_relations(
+                self.partitioned_distinctions(), self.relations
+            )
+        return self._partitioned_relations
+
+    def sum_phi_partitioned_distinctions(self):
+        if self._sum_phi_partitioned_distinctions is None:
+            self._sum_phi_partitioned_distinctions = sum(
+                self.partitioned_distinctions().phis
+            )
+        return self._sum_phi_partitioned_distinctions
+
+    def sum_phi_partitioned_relations(self):
+        if self._sum_phi_partitioned_relations is None:
+            self._sum_phi_partitioned_relations = sum(
+                relation.phi for relation in self.partitioned_relations()
+            )
+            # Remove reference to the (heavy and rather redundant) lists of
+            # partitioned distinctions & relations under the assumption we won't
+            # need them again, since most PartitionedPhiStructures will be used
+            # only once, during SIA calculation
+            self._partitioned_distinctions = None
+            self._partitioned_relations = None
+        return self._sum_phi_partitioned_relations
+
+    # TODO use only a single pass through the distinctions / relations?
+    def informativeness(self):
+        if self._informativeness is None:
+            distinction_term = (
+                self.sum_phi_distinctions() - self.sum_phi_partitioned_distinctions()
+            )
+            relation_term = (
+                self.sum_phi_relations() - self.sum_phi_partitioned_relations()
+            )
+            self._informativeness = distinction_term + relation_term
+        return self._informativeness
+
+    def phi(self):
+        return self.selectivity() * self.informativeness()
+
+    def compute(self):
+        """Instantiate lazy properties."""
+        self.phi()
+        return self
 
 
-def all_phi_structures(distinction_sets, all_relations):
-    for distinctions in distinction_sets:
-        yield PhiStructure(
-            distinctions, list(unaffected_relations(distinctions, all_relations))
+def selectivity(phi_structure):
+    """Return the selectivity of the PhiStructure."""
+    return phi_structure.selectivity()
+
+
+def informativeness(partitioned_phi_structure):
+    """Return the informativeness of the PartitionedPhiStructure."""
+    return partitioned_phi_structure.informativeness()
+
+
+# TODO add rich methods, comparisons, etc.
+@dataclass
+class SystemIrreducibilityAnalysis(cmp.Orderable):
+    subsystem: Subsystem
+    phi_structure: PhiStructure
+    partitioned_phi_structure: PartitionedPhiStructure
+    cut: Cut
+    selectivity: float
+    informativeness: float
+    phi: float
+
+    _sia_attributes = ["phi", "phi_structure", "partitioned_phi_structure", "subsystem"]
+
+    def order_by(self):
+        return [self.phi, len(self.subsystem), self.subsystem.node_indices]
+
+    def __eq__(self, other):
+        return cmp.general_eq(self, other, self._sia_attributes)
+
+    def __bool__(self):
+        """A |SystemIrreducibilityAnalysis| is ``True`` if it has |big_phi > 0|."""
+        return not utils.eq(self.phi, 0)
+
+    def __hash__(self):
+        return hash(
+            (
+                self.phi,
+                self.ces,
+                self.partitioned_ces,
+                self.subsystem,
+                self.cut_subsystem,
+            )
         )
 
 
-def evaluate_cut(subsystem, phi_structure, selectivity, cut):
-    _informativeness = informativeness(cut, phi_structure)
-    _phi = phi(selectivity, _informativeness.value)
+# TODO rename Cut -> Partition
+def evaluate_cut(subsystem, phi_structure, cut):
+    partitioned_phi_structure = PartitionedPhiStructure(cut, phi_structure)
     return SystemIrreducibilityAnalysis(
-        phi=_phi,
-        selectivity=selectivity,
-        informativeness=_informativeness.value,
-        # TODO use actual phi structure; allow it to work with SIA printing
-        ces=phi_structure.distinctions,
-        partitioned_ces=_informativeness.partitioned_phi_structure.distinctions,
-        relations=phi_structure.relations,
-        partitioned_relations=_informativeness.partitioned_phi_structure.relations,
         subsystem=subsystem,
-        cut=cut,
+        phi_structure=phi_structure,
+        partitioned_phi_structure=partitioned_phi_structure,
+        cut=partitioned_phi_structure.cut,
+        selectivity=partitioned_phi_structure.selectivity(),
+        informativeness=partitioned_phi_structure.informativeness(),
+        phi=partitioned_phi_structure.phi(),
     )
 
 
@@ -328,22 +407,20 @@ def extremum_with_short_circuit(
 
 
 @ray.remote
-def _evaluate_cuts(subsystem, phi_structure, selectivity, cuts):
+def _evaluate_cuts(subsystem, phi_structure, cuts):
     return extremum_with_short_circuit(
-        (evaluate_cut(subsystem, phi_structure, selectivity, cut) for cut in cuts),
+        (evaluate_cut(subsystem, phi_structure, cut) for cut in cuts),
         cmp=operator.lt,
         initial=float("inf"),
         shortcircuit_value=0,
     )
 
 
-def _null_sia(subsystem, phi_structure, selectivity):
+def _null_sia(subsystem, phi_structure):
+    if not subsystem.cut.is_null():
+        raise ValueError("subsystem must have no cut")
     return SystemIrreducibilityAnalysis(
-        phi=0.0,
-        subsystem=subsystem,
-        selectivity=selectivity,
-        ces=phi_structure.distinctions,
-        relations=phi_structure.relations,
+        PartitionedPhiStructure(subsystem.cut, phi_structure)
     )
 
 
@@ -381,16 +458,13 @@ def evaluate_phi_structure(
             phi_structure.distinctions, ray.get(phi_structure.relations)
         )
 
-    _selectivity = selectivity(subsystem, phi_structure)
-
     if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
-        return _null_sia(subsystem, phi_structure, _selectivity)
+        return _null_sia(subsystem, phi_structure)
 
     tasks = [
         _evaluate_cuts.remote(
             subsystem,
             phi_structure,
-            _selectivity,
             cuts,
         )
         for cuts in partition_all(
@@ -442,7 +516,7 @@ def sia(
     phi_structure = PhiStructure(all_distinctions, all_relations)
     if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
         print("Returning trivially-reducible SIA")
-        return _null_sia(subsystem, phi_structure, None)
+        return _null_sia(subsystem, phi_structure)
 
     # Broadcast subsystem object to workers
     subsystem = ray.put(subsystem)
