@@ -343,7 +343,7 @@ def fmt_ria(ria, verbose=True, mip=False):
     if verbose:
         mechanism = f"Mechanism: {fmt_mechanism(ria.mechanism, ria.node_labels)}\n"
         direction = f"\nDirection: {ria.direction}"
-        purview_state = f"\nState: {list(ria.purview_state) if ria.purview_state is not None else None}"
+        purview_state = f"\nCurrent purview state: {list(ria.purview_state) if ria.purview_state is not None else None}"
     else:
         mechanism = ""
         direction = ""
