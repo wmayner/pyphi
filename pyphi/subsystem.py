@@ -51,8 +51,8 @@ class Subsystem:
         cm (np.ndarray): The connectivity matrix after applying the cut.
         state (tuple[int]): The state of the network.
         node_indices (tuple[int]): The indices of the nodes in the subsystem.
-        cut (Cut): The cut that has been applied to this subsystem.
-        null_cut (Cut): The cut object representing no cut.
+        cut (Cut): The cut that has been applied to this subsystem. Defaults to
+            the null cut.
     """
 
     def __init__(
