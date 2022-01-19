@@ -507,7 +507,6 @@ class Concept(cmp.Orderable):
             return self.effect.purview
         raise ValueError("invalid direction")
 
-
     unorderable_unless_eq = ["subsystem"]
 
     def order_by(self):

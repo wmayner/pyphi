@@ -10,9 +10,10 @@ import logging
 import numpy as np
 
 from . import cache, distribution, utils, validate
-from .metrics.distribution import repertoire_distance
+from .conf import config
 from .direction import Direction
 from .distribution import max_entropy_distribution, repertoire_shape
+from .metrics.distribution import repertoire_distance
 from .models import (
     Concept,
     MaximallyIrreducibleCause,
@@ -25,7 +26,7 @@ from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
 from .tpm import condition_tpm, marginalize_out
-from .utils import time_annotated, substate
+from .utils import substate, time_annotated
 
 log = logging.getLogger(__name__)
 
@@ -525,7 +526,13 @@ class Subsystem:
     # =========================================================================
 
     def evaluate_partition(
-        self, direction, mechanism, purview, partition, repertoire=None
+        self,
+        direction,
+        mechanism,
+        purview,
+        partition,
+        repertoire=None,
+        **kwargs,
     ):
         """Return the |small_phi| of a mechanism over a purview for the given
         partition.
@@ -550,12 +557,15 @@ class Subsystem:
         partitioned_repertoire = self.partitioned_repertoire(direction, partition)
 
         phi = repertoire_distance(
-            repertoire, partitioned_repertoire, direction=direction
+            repertoire,
+            partitioned_repertoire,
+            direction=direction,
+            **kwargs,
         )
 
         return (phi, partitioned_repertoire)
 
-    def find_mip(self, direction, mechanism, purview):
+    def find_mip(self, direction, mechanism, purview, **kwargs):
         """Return the minimum information partition for a mechanism over a
         purview.
 
@@ -602,7 +612,12 @@ class Subsystem:
             # Find the distance between the unpartitioned and partitioned
             # repertoire.
             phi, partitioned_repertoire = self.evaluate_partition(
-                direction, mechanism, purview, partition, repertoire=repertoire
+                direction,
+                mechanism,
+                purview,
+                partition,
+                repertoire=repertoire,
+                **kwargs,
             )
 
             # Return immediately if mechanism is reducible.
@@ -653,6 +668,40 @@ class Subsystem:
             self.phi_cause_mip(mechanism, purview),
             self.phi_effect_mip(mechanism, purview),
         )
+
+    # Maximal state methods
+    # =========================================================================
+
+    def _specified_states_to_specified_index(self, states, purview):
+        full_index = [np.zeros(len(states), dtype=int) for i in self.node_indices]
+        specified_indices = states.transpose()
+        for i, index in zip(purview, specified_indices):
+            full_index[i] = index
+        return tuple(full_index)
+
+    def find_maximally_irreducible_state(self, direction, mechanism, purview):
+        state_to_mip = {
+            state: self.find_mip(direction, mechanism, purview, state=state)
+            for state in utils.all_states(len(purview))
+        }
+        _, max_mip = max(state_to_mip.items())
+
+        # Record ties
+        tied_states, tied_mips = zip(
+            *(
+                (state, mip)
+                for state, mip in state_to_mip.items()
+                if mip.phi == max_mip.phi
+            )
+        )
+        tied_states = np.array(tied_states)
+        tied_index = self._specified_states_to_specified_index(tied_states, purview)
+        for mip in tied_mips:
+            # TODO change definition of specified state
+            mip._specified_state = tied_states
+            mip._specified_index = tied_index
+
+        return max_mip
 
     # Phi_max methods
     # =========================================================================
@@ -714,9 +763,16 @@ class Subsystem:
             max_mip = _null_ria(direction, mechanism, ())
             ties = ()
         else:
-            all_mips = [
-                self.find_mip(direction, mechanism, purview) for purview in purviews
-            ]
+            if config.IIT_VERSION == 4:
+                # TODO(4.0)
+                all_mips = [
+                    self.find_maximally_irreducible_state(direction, mechanism, purview)
+                    for purview in purviews
+                ]
+            else:
+                all_mips = [
+                    self.find_mip(direction, mechanism, purview) for purview in purviews
+                ]
             max_mip = max(all_mips)
             ties = tuple(mice_class(mip) for mip in all_mips if mip.phi == max_mip.phi)
 

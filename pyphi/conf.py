@@ -380,6 +380,13 @@ def configure_precision(conf):
 class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
+    IIT_VERSION = Option(
+        3,
+        type=int,
+        doc="""
+    The version of the theory to use.""",
+    )
+
     ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS = Option(
         False,
         type=bool,

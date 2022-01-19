@@ -170,7 +170,7 @@ def effect_emd(p, q):
 
 
 @measures.register("EMD")
-def emd(p, q, direction):
+def emd(p, q, direction=None):
     """Compute the EMD between two repertoires for a given direction.
 
     The full EMD computation is used for cause repertoires. A fast analytic
@@ -179,7 +179,9 @@ def emd(p, q, direction):
     Args:
         p (np.ndarray): The first repertoire.
         q (np.ndarray): The second repertoire.
-        direction (Direction): |CAUSE| or |EFFECT|.
+        direction (Direction | None): |CAUSE| or |EFFECT|. If |EFFECT|, then the
+            special-case ``effect_emd`` is used (optimized for this case). Otherwise
+            the ``hamming_emd`` is used. Defaults to |CAUSE|.
 
     Returns:
         float: The EMD between ``p`` and ``q``, rounded to |PRECISION|.
@@ -398,7 +400,13 @@ def absolute_intrinsic_difference(p, q):
     return np.max(absolute_information_density(p, q))
 
 
-def repertoire_distance(r1, r2, direction):
+@measures.register("IIT_4.0_SMALL_PHI", asymmetric=True)
+def iit_4_small_phi(p, q, state):
+    # TODO docstring
+    return absolute_information_density(p, q).squeeze()[state]
+
+
+def repertoire_distance(r1, r2, direction=None, **kwargs):
     """Compute the distance between two repertoires for the given direction.
 
     Args:
@@ -411,7 +419,7 @@ def repertoire_distance(r1, r2, direction):
     """
     func = measures[config.REPERTOIRE_DISTANCE]
     try:
-        distance = func(r1, r2, direction)
+        distance = func(r1, r2, direction=direction, **kwargs)
     except TypeError:
-        distance = func(r1, r2)
+        distance = func(r1, r2, **kwargs)
     return round(distance, config.PRECISION)

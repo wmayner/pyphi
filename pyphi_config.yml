@@ -4,6 +4,8 @@
 ---
 # Approximations and theoretical options
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The version of the theory to use
+IIT_VERSION: 4
 # In certain cases, making a cut can actually cause a previously reducible
 # concept to become a proper, irreducible concept. Assuming this can never
 # happen can increase performance significantly, however the obtained results
@@ -17,7 +19,7 @@ ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
 # modular, sparsely-connected, or homogeneous networks.
 CUT_ONE_APPROXIMATION: false
 # The measure to use when computing phi ("EMD", "KLD", "L1", ...)
-REPERTOIRE_DISTANCE: "AID"
+REPERTOIRE_DISTANCE: "IIT_4.0_SMALL_PHI"
 # The measure to use when computing big-phi.
 CES_DISTANCE: "SUM_SMALL_PHI"
 # The measure to use when computing actual causation alpha values.
