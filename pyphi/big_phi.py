@@ -417,7 +417,7 @@ def _evaluate_cuts(subsystem, phi_structure, cuts):
 
 
 def _null_sia(subsystem, phi_structure):
-    if not subsystem.cut.is_null():
+    if not subsystem.cut.is_null:
         raise ValueError("subsystem must have no cut")
     return SystemIrreducibilityAnalysis(
         PartitionedPhiStructure(subsystem.cut, phi_structure)
