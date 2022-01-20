@@ -144,6 +144,10 @@ class RepertoireIrreducibilityAnalysis(cmp.Orderable):
         between the unpartitioned and partitioned repertoires."""
         return self._specified_state
 
+    # TODO(4.0) clean up specified state logic once it stabilizes
+    def set_specified_state(self, state):
+        self._specified_state = state
+
     @property
     def node_labels(self):
         """|NodeLabels| for this system."""

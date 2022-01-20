@@ -563,3 +563,9 @@ def all_partitions(mechanism, purview, node_labels=None):
                         continue
 
                     yield KPartition(*parts, node_labels=node_labels)
+
+
+def complete_partition(mechanism, purview):
+    n_parts = len(next(mip_partitions(mechanism, purview)))
+    parts = [Part((), ())] * (n_parts - 2) + [Part((), purview), Part(mechanism, ())]
+    return KPartition(*parts)

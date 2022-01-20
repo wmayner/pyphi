@@ -24,7 +24,7 @@ from .models import (
 )
 from .network import irreducible_purviews
 from .node import generate_nodes
-from .partition import mip_partitions
+from .partition import mip_partitions, complete_partition
 from .tpm import condition_tpm, marginalize_out
 from .utils import substate, time_annotated
 
@@ -680,6 +680,12 @@ class Subsystem:
         return tuple(full_index)
 
     def find_maximally_irreducible_state(self, direction, mechanism, purview):
+        required_repertoire_distance = "IIT_4.0_SMALL_PHI"
+        if not config.REPERTOIRE_DISTANCE == required_repertoire_distance:
+            raise ValueError(
+                f'REPERTOIRE_DISTANCE must be set to "{required_repertoire_distance}"'
+            )
+
         state_to_mip = {
             state: self.find_mip(direction, mechanism, purview, state=state)
             for state in utils.all_states(len(purview))
@@ -702,6 +708,40 @@ class Subsystem:
             mip._specified_index = tied_index
 
         return max_mip
+
+    def find_maximal_state_under_complete_partition(
+        self, direction, mechanism, purview
+    ):
+        required_repertoire_distance = "IIT_4.0_SMALL_PHI"
+        if not config.REPERTOIRE_DISTANCE == required_repertoire_distance:
+            raise ValueError(
+                f'REPERTOIRE_DISTANCE must be set to "{required_repertoire_distance}"'
+            )
+
+        repertoire = self.repertoire(direction, mechanism, purview)
+        partition = complete_partition(mechanism, purview)
+
+        def evaluate_state(state):
+            information, _ = self.evaluate_partition(
+                direction,
+                mechanism,
+                purview,
+                partition,
+                repertoire=repertoire,
+                state=state,
+            )
+            return information
+
+        state_to_information = {
+            state: evaluate_state(state) for state in utils.all_states(len(purview))
+        }
+        max_information = max(state_to_information.values())
+        # Return all tied states
+        return [
+            state
+            for state, information in state_to_information.items()
+            if information == max_information
+        ]
 
     # Phi_max methods
     # =========================================================================
@@ -769,6 +809,23 @@ class Subsystem:
                     self.find_maximally_irreducible_state(direction, mechanism, purview)
                     for purview in purviews
                 ]
+            elif config.IIT_VERSION == "maximal-state-first":
+                # TODO(4.0) keep track of MIPs with respect to all tied states:
+                # confirm that current strategy of simply including all ties in
+                # `all_mips` and taking max is correct
+                all_mips = []
+                for purview in purviews:
+                    maximal_states = self.find_maximal_state_under_complete_partition(
+                        direction, mechanism, purview
+                    )
+                    mips = [
+                        self.find_mip(direction, mechanism, purview, state=state)
+                        for state in maximal_states
+                    ]
+                    maximal_states = np.array(maximal_states)
+                    for mip in mips:
+                        mip.set_specified_state(maximal_states)
+                    all_mips.extend(mips)
             else:
                 all_mips = [
                     self.find_mip(direction, mechanism, purview) for purview in purviews

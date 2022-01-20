@@ -382,7 +382,6 @@ class PyphiConfig(Config):
 
     IIT_VERSION = Option(
         3,
-        type=int,
         doc="""
     The version of the theory to use.""",
     )

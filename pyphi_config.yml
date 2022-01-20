@@ -5,7 +5,7 @@
 # Approximations and theoretical options
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The version of the theory to use
-IIT_VERSION: 4
+IIT_VERSION: "maximal-state-first"
 # In certain cases, making a cut can actually cause a previously reducible
 # concept to become a proper, irreducible concept. Assuming this can never
 # happen can increase performance significantly, however the obtained results
