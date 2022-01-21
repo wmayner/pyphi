@@ -17,7 +17,7 @@ from pyphi.models import cmp
 from pyphi.models.cuts import Cut
 from pyphi.subsystem import Subsystem
 
-from . import models
+from . import config, models
 from .compute.parallel import as_completed, init
 from .compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
 from .direction import Direction
@@ -53,7 +53,14 @@ class BigPhiCut(models.cuts.Cut):
         return cls(data["direction"], data["from_nodes"], data["to_nodes"])
 
 
+class CompleteCut:
+    """Represents the cut that destroys all distinctions/relations."""
+
+
 def is_affected_by_cut(distinction, cut):
+    # TODO(4.0) standardize logic for complete cut vs other cuts
+    if isinstance(cut, CompleteCut):
+        return True
     coming_from = set(cut.from_nodes) & set(distinction.mechanism)
     going_to = set(cut.to_nodes) & set(distinction.purview(cut.direction))
     return coming_from and going_to
@@ -175,6 +182,27 @@ class PartitionedPhiStructure(PhiStructure):
         self._sum_phi_partitioned_relations = None
         self._informativeness = None
 
+    def order_by(self):
+        return [self.phi(), len(self.distinctions), len(self.relations)]
+
+    def __eq__(self, other):
+        return cmp.general_eq(
+            self,
+            other,
+            [
+                "phi",
+                "cut",
+                "distinctions",
+                "partitioned_distinctions",
+                "relations",
+                "partitioned_relations",
+            ],
+        )
+
+    def __bool__(self):
+        """A |SystemIrreducibilityAnalysis| is ``True`` if it has |big_phi > 0|."""
+        return not utils.eq(self.phi(), 0)
+
     def partitioned_distinctions(self):
         if self._partitioned_distinctions is None:
             self._partitioned_distinctions = unaffected_distinctions(
@@ -240,6 +268,11 @@ def informativeness(partitioned_phi_structure):
     return partitioned_phi_structure.informativeness()
 
 
+def phi(partitioned_phi_structure):
+    """Return the phi of the PartitionedPhiStructure."""
+    return partitioned_phi_structure.phi()
+
+
 # TODO add rich methods, comparisons, etc.
 @dataclass
 class SystemIrreducibilityAnalysis(cmp.Orderable):
@@ -275,7 +308,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
         )
 
 
-# TODO rename Cut -> Partition
+# TODO(4.0) rename Cut -> Partition
 def evaluate_cut(subsystem, phi_structure, cut):
     partitioned_phi_structure = PartitionedPhiStructure(cut, phi_structure)
     return SystemIrreducibilityAnalysis(
@@ -502,6 +535,57 @@ def _evaluate_phi_structures(
     )
 
 
+# TODO(4.0) make a method on phi structure?
+def system_intrinsic_information(phi_structure):
+    """Return the system intrinsic information.
+
+    This is the phi of the system with respect to the complete partition.
+    """
+    # TODO(4.0) Reuse this object since compositional richness has already been
+    # computed and can be used in the selectivity term?
+    return PartitionedPhiStructure(CompleteCut(), phi_structure).phi()
+
+
+@ray.remote
+def _max_system_intrinsic_information(phi_structures, filter_relations=False):
+    # TODO order by tuples
+    if filter_relations:
+        # Assumes `relations` is an ObjectRef from a prior `ray.put` call
+        phi_structures = [
+            _filter_relations(
+                phi_structure.distinctions, ray.get(phi_structure.relations)
+            )
+            for phi_structure in phi_structures
+        ]
+    return max(
+        (system_intrinsic_information(phi_structure), phi_structure)
+        for phi_structure in phi_structures
+    )
+
+
+# TODO refactor into a pattern
+def find_maximal_compositional_state(
+    phi_structures,
+    filter_relations=False,
+    chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
+    progress=True,
+):
+    print("Finding maximal compositional state")
+    tasks = [
+        _max_system_intrinsic_information.remote(
+            chunk, filter_relations=filter_relations
+        )
+        for chunk in tqdm(
+            partition_all(chunksize, phi_structures), desc="Submitting tasks"
+        )
+    ]
+    print("Done submitting tasks")
+    results = as_completed(tasks)
+    if progress:
+        results = tqdm(results, total=len(tasks))
+    return max(results)
+
+
 # TODO allow choosing whether you provide precomputed distinctions
 # (sometimes faster to compute as you go if many distinctions are killed by conflicts)
 # TODO document args
@@ -514,7 +598,6 @@ def sia(
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     cut_chunksize=DEFAULT_CUT_CHUNKSIZE,
     filter_relations=False,
-    wait=True,
     progress=True,
 ):
     """Analyze the irreducibility of a system."""
@@ -524,10 +607,6 @@ def sia(
     if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
         print("Returning trivially-reducible SIA")
         return _null_sia(subsystem, phi_structure)
-
-    # Broadcast subsystem object to workers
-    subsystem = ray.put(subsystem)
-    print("Done putting subsystem")
 
     # Assume that phi structures passed by the user don't need to have their
     # relations filtered
@@ -541,22 +620,41 @@ def sia(
             for distinctions in all_nonconflicting_distinction_sets(all_distinctions)
         )
 
-    tasks = [
-        _evaluate_phi_structures.remote(
-            subsystem,
-            chunk,
+    if config.IIT_VERSION == "maximal-state-first":
+        _, maximal_compositional_state = find_maximal_compositional_state(
+            phi_structures,
             filter_relations=filter_relations,
+            chunksize=chunksize,
+            progress=progress,
+        )
+        print("Evaluating maximal compositional state")
+        return evaluate_phi_structure(
+            subsystem,
+            maximal_compositional_state,
+            filter_relations=False,
             check_trivial_reducibility=check_trivial_reducibility,
             chunksize=cut_chunksize,
         )
-        for chunk in tqdm(
-            partition_all(chunksize, phi_structures), desc="Submitting tasks"
-        )
-    ]
-    print("Done submitting tasks")
-    if wait:
+    else:
+        # Broadcast subsystem object to workers
+        subsystem = ray.put(subsystem)
+        print("Done putting subsystem")
+
+        print("Evaluating all compositional states")
+        tasks = [
+            _evaluate_phi_structures.remote(
+                subsystem,
+                chunk,
+                filter_relations=filter_relations,
+                check_trivial_reducibility=check_trivial_reducibility,
+                chunksize=cut_chunksize,
+            )
+            for chunk in tqdm(
+                partition_all(chunksize, phi_structures), desc="Submitting tasks"
+            )
+        ]
+        print("Done submitting tasks")
         results = as_completed(tasks)
         if progress:
             results = tqdm(results, total=len(tasks))
         return max(results)
-    return tasks

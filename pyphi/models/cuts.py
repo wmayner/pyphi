@@ -184,6 +184,11 @@ class Cut(_CutBase):
     def __str__(self):
         return fmt.fmt_cut(self)
 
+    def __len__(self):
+        """The number of parts in the Cut."""
+        # TODO(4.0) generalize this when/if general Partition object is used
+        return 2
+
     def format(self, node_labels=None):
         return fmt.fmt_part(self, node_labels=node_labels)
 
