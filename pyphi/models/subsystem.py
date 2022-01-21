@@ -9,8 +9,12 @@ from collections.abc import Sequence
 
 from toolz import concat
 
+from pyphi.direction import Direction
+
 from .. import utils
 from . import cmp, fmt
+from .mechanism import Concept
+from pyphi.models import mechanism
 
 _sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
 
@@ -91,6 +95,8 @@ class FlatCauseEffectStructure(CauseEffectStructure):
         if isinstance(concepts, CauseEffectStructure) and not isinstance(
             concepts, FlatCauseEffectStructure
         ):
+            subsystem = concepts.subsystem
+            time = concepts.time
             concepts = concat((concept.cause, concept.effect) for concept in concepts)
         super().__init__(concepts=concepts, subsystem=subsystem, time=time)
 
@@ -126,6 +132,24 @@ class FlatCauseEffectStructure(CauseEffectStructure):
     def maximum_specifiers(self):
         """Return a mapping from each purview to its maximum specifier."""
         return {purview: self.maximum_specifier(purview) for purview in self.purviews}
+
+    def unflatten(self):
+        mechanism_to_mice = defaultdict(dict)
+        for mice in self:
+            mechanism_to_mice[mice.mechanism][mice.direction] = mice
+        return CauseEffectStructure(
+            [
+                Concept(
+                    mechanism=mechanism,
+                    cause=mice[Direction.CAUSE],
+                    effect=mice[Direction.EFFECT],
+                    subsystem=self.subsystem,
+                )
+                for mechanism, mice in mechanism_to_mice.items()
+            ],
+            subsystem=self.subsystem,
+            time=self.time,
+        )
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):

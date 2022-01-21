@@ -2,6 +2,7 @@
 # big_phi.py
 
 import operator
+import pickle
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import product
@@ -23,6 +24,7 @@ from .compute.subsystem import sia_bipartitions as directionless_sia_bipartition
 from .direction import Direction
 from .models import fmt
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
+from .relations import Relation
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -135,7 +137,7 @@ class PhiStructure:
         self._selectivity = None
         if distinctions:
             # TODO improve this
-            self._substrate_size = len(distinctions[0].subsystem)
+            self._substrate_size = len(distinctions.subsystem)
 
     def sum_phi_distinctions(self):
         if self._sum_phi_distinctions is None:
@@ -154,6 +156,36 @@ class PhiStructure:
                 self.sum_phi_distinctions() + self.sum_phi_relations()
             ) / optimum_sum_small_phi(self._substrate_size)
         return self._selectivity
+
+    def to_pickle(self, path):
+        with open(path, mode="wb") as f:
+            pickle.dump(self.to_json(), f)
+        return path
+
+    @classmethod
+    def read_pickle(cls, path):
+        with open(path, mode="rb") as f:
+            data = pickle.load(f)
+        # TODO(4.0) change to Relations class when available
+        distinctions = data["distinctions"]
+        relations = [
+            Relation.from_indirect_json(data["subsystem"], distinctions, relation)
+            for relation in data["relations"]
+        ]
+        return cls(distinctions.unflatten(), relations)
+
+    def to_json(self):
+        distinctions = FlatCauseEffectStructure(self.distinctions)
+        indirect_relations = [
+            relation.to_indirect_json(distinctions) for relation in self.relations
+        ]
+        # TODO(4.0) remove this hack
+        subsystem = self.distinctions.subsystem
+        return {
+            "subsystem": subsystem,
+            "distinctions": distinctions,
+            "relations": indirect_relations,
+        }
 
 
 class PartitionedPhiStructure(PhiStructure):
