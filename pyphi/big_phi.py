@@ -442,7 +442,10 @@ def all_nonconflicting_distinction_sets(distinctions):
     )
     for mechanisms in nonconflicting_mechanisms:
         # Convert to actual MICE objects
-        yield CauseEffectStructure(map(mechanism_to_distinction.get, mechanisms))
+        yield CauseEffectStructure(
+            map(mechanism_to_distinction.get, mechanisms),
+            subsystem=distinctions.subsystem,
+        )
 
 
 # TODO put in utils
