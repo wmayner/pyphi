@@ -6,6 +6,7 @@ import pickle
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import product
+from matplotlib.pyplot import isinteractive
 
 import ray
 import scipy
@@ -130,6 +131,10 @@ def optimum_sum_small_phi(n):
 
 class PhiStructure:
     def __init__(self, distinctions, relations):
+        if not isinstance(distinctions, CauseEffectStructure):
+            raise ValueError("distinctions must be a CauseEffectStructure")
+        if isinstance(distinctions, FlatCauseEffectStructure):
+            distinctions = distinctions.unflatten()
         self.distinctions = distinctions
         self.relations = relations
         self._sum_phi_distinctions = None
