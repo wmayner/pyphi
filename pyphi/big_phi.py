@@ -168,6 +168,7 @@ class PhiStructure:
             data = pickle.load(f)
         # TODO(4.0) change to Relations class when available
         distinctions = data["distinctions"]
+        distinctions.subsystem = data["subsystem"]
         relations = [
             Relation.from_indirect_json(data["subsystem"], distinctions, relation)
             for relation in data["relations"]
