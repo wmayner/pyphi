@@ -6,7 +6,6 @@ import pickle
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import product
-from matplotlib.pyplot import isinteractive
 
 import ray
 import scipy
