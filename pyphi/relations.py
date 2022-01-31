@@ -359,15 +359,10 @@ class Relation(cmp.Orderable):
         return len(self.relata)
 
     def __eq__(self, other):
-        # TODO
-        return self.relata.as_set() == other.relata.as_set() and eq(self.phi, other.phi)
-        # attrs = ["phi", "relata"]
-        # return cmp.general_eq(self, other, attrs)
+        return cmp.general_eq(self, other, ["phi", "relata"])
 
     def __hash__(self):
-        return hash(
-            (self.relata.as_set(), self.purview, round(self.phi, config.PRECISION))
-        )
+        return hash((self.relata, self.purview, round(self.phi, config.PRECISION)))
 
     def order_by(self):
         # NOTE: This implementation determines the definition of ties
@@ -432,19 +427,16 @@ class Relation(cmp.Orderable):
 
 
 # TODO subclass set?
-class Relata(cmp.Orderable):
+class Relata(HashableOrderedSet):
     """A set of potentially-related causes/effects."""
 
     def __init__(self, subsystem, relata):
         validate.relata(relata)
-        # TODO(4.0) implement set semantics on relata
-        self._relata = sorted(relata)
         self._subsystem = subsystem
         self._overlap = None
         self._congruent_overlap = None
-
-    def order_by(self):
-        return self._relata
+        # TODO(4.0) implement set semantics on relata
+        super().__init__(relata)
 
     @property
     def subsystem(self):
@@ -475,34 +467,6 @@ class Relata(cmp.Orderable):
 
     def __repr__(self):
         return f"Relata(mechanisms={list(self.mechanisms)}, purviews={list(self.purviews)})"
-
-    def __str__(self):
-        return repr(self)
-
-    def __iter__(self):
-        """Iterate over relata."""
-        return iter(self._relata)
-
-    def as_set(self):
-        return frozenset(
-            (relatum.mechanism, relatum.purview, relatum.direction) for relatum in self
-        )
-
-    def __getitem__(self, index):
-        return self._relata[index]
-
-    def __len__(self):
-        return len(self._relata)
-
-    def __hash__(self):
-        # TODO make this more robust; need to check hashes of actual relata
-        # TODO(4.0) check MICE __hash__ for speed
-        return hash(self.as_set())
-
-    # TODO(4.0) this relies on the implementation of equality for MICEs; we should
-    # go back and make sure that implementation is still appropriate
-    def __eq__(self, other):
-        return self._relata == other._relata
 
     def to_json(self):
         return {
