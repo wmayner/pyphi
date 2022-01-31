@@ -513,20 +513,20 @@ class Relata(cmp.Orderable):
     def from_json(cls, dct):
         return cls(dct["subsystem"], dct["relata"])
 
-    def to_indirect_json(self, ces):
+    def to_indirect_json(self, flat_ces):
         """Return an indirect representation of the Relata.
 
         This uses the integer indices of distinctions in the given CES rather
         than the objects themselves, which is more efficient for storage on
         disk.
         """
-        if not isinstance(ces, FlatCauseEffectStructure):
+        if not isinstance(flat_ces, FlatCauseEffectStructure):
             raise ValueError("CES must be a FlatCauseEffectStructure")
-        return [ces.index(relatum) for relatum in self]
+        return [flat_ces.index(relatum) for relatum in self]
 
     @classmethod
-    def from_indirect_json(cls, subsystem, ces, data):
-        return cls(subsystem, [ces[i] for i in data])
+    def from_indirect_json(cls, subsystem, flat_ces, data):
+        return cls(subsystem, [flat_ces[i] for i in data])
 
     @property
     def overlap(self):
