@@ -17,6 +17,7 @@ from pyphi.partition import Part, Tripartition, partition_types
 
 from . import config, validate
 from .combinatorics import combinations_with_nonempty_intersection
+from .data_structures import HashableOrderedSet
 from .direction import Direction
 from .metrics.distribution import absolute_information_density
 from .models import cmp, fmt
@@ -675,6 +676,10 @@ class Relata(cmp.Orderable):
         return Relation.union(tied_relations)
 
 
+class Relations(HashableOrderedSet):
+    """A set of relations."""
+
+
 def relation(relata):
     """Return the maximally irreducible relation among the given relata.
 
@@ -726,4 +731,4 @@ def all_relations(
 
 def relations(subsystem, ces, **kwargs):
     """Return the irreducible relations among the causes/effects in the CES."""
-    return filter(None, all_relations(subsystem, ces, **kwargs))
+    return Relations(filter(None, all_relations(subsystem, ces, **kwargs)))
