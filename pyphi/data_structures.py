@@ -41,3 +41,12 @@ class HashableOrderedSet(Hashable, OrderedSet):
         except TypeError:
             # If `other` can't be compared, it's not equal.
             return False
+
+    def __getstate__(self):
+        # In pickle, the state can't be an empty list.
+        # We need to return a truthy value, or else __setstate__ won't be run.
+        # This ensures a truthy value even if the set is empty.
+        return (list(self),)
+
+    def __setstate__(self, state):
+        self.__init__(state[0])
