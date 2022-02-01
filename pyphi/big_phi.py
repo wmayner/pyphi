@@ -551,14 +551,16 @@ def extremum_with_short_circuit(
     return extreme_item
 
 
-@ray.remote
-def _evaluate_cuts(subsystem, phi_structure, cuts):
+def evaluate_cuts(subsystem, phi_structure, cuts):
     return extremum_with_short_circuit(
         (evaluate_cut(subsystem, phi_structure, cut) for cut in cuts),
         cmp=operator.lt,
         initial=float("inf"),
         shortcircuit_value=0,
     )
+
+
+_evaluate_cuts = ray.remote(evaluate_cuts)
 
 
 def _null_sia(subsystem, phi_structure):
@@ -621,8 +623,7 @@ def evaluate_phi_structure(
     )
 
 
-@ray.remote
-def _evaluate_phi_structures(
+def evaluate_phi_structures(
     subsystem,
     phi_structures,
     **kwargs,
@@ -633,14 +634,17 @@ def _evaluate_phi_structures(
     )
 
 
-def _max_system_intrinsic_information(phi_structures):
+_evaluate_phi_structures = ray.remote(evaluate_phi_structures)
+
+
+def max_system_intrinsic_information(phi_structures):
     return max(
         phi_structures,
         key=lambda phi_structure: phi_structure.system_intrinsic_information(),
     )
 
 
-_remote_max_system_intrinsic_information = ray.remote(_max_system_intrinsic_information)
+_max_system_intrinsic_information = ray.remote(max_system_intrinsic_information)
 
 
 # TODO refactor into a pattern
@@ -651,7 +655,7 @@ def find_maximal_compositional_state(
 ):
     print("Finding maximal compositional state")
     tasks = [
-        _remote_max_system_intrinsic_information.remote(chunk)
+        _max_system_intrinsic_information.remote(chunk)
         for chunk in tqdm(
             partition_all(chunksize, phi_structures), desc="Submitting tasks"
         )
@@ -660,7 +664,7 @@ def find_maximal_compositional_state(
     results = as_completed(tasks)
     if progress:
         results = tqdm(results, total=len(tasks))
-    return _max_system_intrinsic_information(results)
+    return max_system_intrinsic_information(results)
 
 
 # TODO allow choosing whether you provide precomputed distinctions
