@@ -490,7 +490,7 @@ def _nonconflicting_mice_set(purview_to_mice):
 def all_nonconflicting_distinction_sets(distinctions):
     """Return all possible conflict-free distinction sets."""
     if isinstance(distinctions, FlatCauseEffectStructure):
-        raise ValueError("Expected distinctions; got MICE (FlatCauseEffectStructure)")
+        raise ValueError("Expected CauseEffectStructure; got FlatCauseEffectStructure")
     # Map mechanisms to their distinctions for later fast retrieval
     mechanism_to_distinction = {
         frozenset(distinction.mechanism): distinction for distinction in distinctions
