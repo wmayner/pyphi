@@ -26,7 +26,7 @@ from .compute.subsystem import sia_bipartitions as directionless_sia_bipartition
 from .direction import Direction
 from .models import fmt
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
-from .relations import Relation
+from .relations import Relation, Relations
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -81,9 +81,13 @@ def unaffected_relations(ces, relations):
     # TODO use lattice data structure for efficiently finding the union of the
     # lower sets of lost distinctions
     ces = FlatCauseEffectStructure(ces)
-    for relation in relations:
-        if all(distinction in ces for distinction in relation.relata):
-            yield relation
+    return Relations(
+        [
+            relation
+            for relation in relations
+            if all(distinction in ces for distinction in relation.relata)
+        ]
+    )
 
 
 def sia_partitions(node_indices, node_labels):
@@ -138,7 +142,6 @@ def _requires_relations(func):
             self.relations = ray.get(self.relations)
         # Filter relations if flag is set
         if self.requires_filter:
-            print(self)
             self.filter_relations()
         # Realize relations if they're a generator
         if isinstance(self.relations, Generator):
@@ -180,8 +183,7 @@ class PhiStructure(cmp.Orderable):
     @_requires_relations
     def sum_phi_relations(self):
         if self._sum_phi_relations is None:
-            # TODO make `Relations` object with .phis attr
-            self._sum_phi_relations = sum(relation.phi for relation in self.relations)
+            self._sum_phi_relations = sum(self.relations.phis)
         return self._sum_phi_relations
 
     def selectivity(self):
@@ -197,6 +199,7 @@ class PhiStructure(cmp.Orderable):
         # Currently this is just a hook to force _requires_relations to do its
         # work. Also very Zen.
         return self
+
     def to_pickle(self, path):
         with open(path, mode="wb") as f:
             pickle.dump(self.to_json(), f)
@@ -237,6 +240,7 @@ class PartitionedPhiStructure(PhiStructure):
         super().__init__(
             self.unpartitioned_phi_structure.distinctions,
             self.unpartitioned_phi_structure.relations,
+            # Relations should have been filtered when `.realize()` was called
             requires_filter=False,
         )
         self.cut = cut
@@ -303,9 +307,7 @@ class PartitionedPhiStructure(PhiStructure):
 
     def sum_phi_partitioned_relations(self):
         if self._sum_phi_partitioned_relations is None:
-            self._sum_phi_partitioned_relations = sum(
-                relation.phi for relation in self.partitioned_relations()
-            )
+            self._sum_phi_partitioned_relations = sum(self.partitioned_relations().phis)
             # Remove reference to the (heavy and rather redundant) lists of
             # partitioned distinctions & relations under the assumption we won't
             # need them again, since most PartitionedPhiStructures will be used
@@ -328,11 +330,6 @@ class PartitionedPhiStructure(PhiStructure):
 
     def phi(self):
         return self.selectivity() * self.informativeness()
-
-    def compute(self):
-        """Instantiate lazy properties."""
-        self.phi()
-        return self
 
 
 def selectivity(phi_structure):
