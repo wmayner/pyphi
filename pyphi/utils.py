@@ -8,6 +8,7 @@ external use.
 """
 
 import hashlib
+import operator
 import os
 from itertools import chain, combinations, product
 from time import time
@@ -233,3 +234,28 @@ def time_annotated(func, *args, **kwargs):
 
 def substate(state, nodes):
     return tuple(state[i] for i in nodes)
+
+
+def extremum_with_short_circuit(
+    seq,
+    value_func=lambda item: item.phi,
+    cmp=operator.lt,
+    initial=float("inf"),
+    shortcircuit_value=0,
+    shortcircuit_callback=None,
+):
+    """Return the extreme value, optionally shortcircuiting."""
+    extreme_item = None
+    extreme_value = initial
+    for item in seq:
+        value = value_func(item)
+        if value == shortcircuit_value:
+            try:
+                shortcircuit_callback()
+            except TypeError:
+                pass
+            return item
+        if cmp(value, extreme_value):
+            extreme_value = value
+            extreme_item = item
+    return extreme_item

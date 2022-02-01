@@ -27,6 +27,7 @@ from .direction import Direction
 from .models import fmt
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from .relations import Relation, Relations
+from .utils import extremum_with_short_circuit
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
@@ -524,32 +525,6 @@ def all_nonconflicting_distinction_sets(distinctions):
             map(mechanism_to_distinction.get, mechanisms),
             subsystem=distinctions.subsystem,
         )
-
-
-# TODO put in utils
-def extremum_with_short_circuit(
-    seq,
-    value_func=lambda item: item.phi,
-    cmp=operator.lt,
-    initial=float("inf"),
-    shortcircuit_value=0,
-    shortcircuit_callback=None,
-):
-    """Return the extreme value, optionally shortcircuiting."""
-    extreme_item = None
-    extreme_value = initial
-    for item in seq:
-        value = value_func(item)
-        if value == shortcircuit_value:
-            try:
-                shortcircuit_callback()
-            except TypeError:
-                pass
-            return item
-        if cmp(value, extreme_value):
-            extreme_value = value
-            extreme_item = item
-    return extreme_item
 
 
 def evaluate_cuts(subsystem, phi_structure, cuts):
