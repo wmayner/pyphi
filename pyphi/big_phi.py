@@ -223,6 +223,10 @@ class PhiStructure(cmp.Orderable):
         # work. Also very Zen.
         return self
 
+    def partition(self, cut):
+        """Return a PartitionedPhiStructure with the given cut."""
+        return PartitionedPhiStructure(self, cut, requires_filter=self.requires_filter)
+
     def system_intrinsic_information(self):
         """Return the system intrinsic information.
 
@@ -415,7 +419,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
 
 # TODO(4.0) rename Cut -> Partition
 def evaluate_cut(subsystem, phi_structure, cut):
-    partitioned_phi_structure = PartitionedPhiStructure(cut, phi_structure)
+    partitioned_phi_structure = phi_structure.partition(cut)
     return SystemIrreducibilityAnalysis(
         subsystem=subsystem,
         phi_structure=phi_structure,
@@ -560,7 +564,7 @@ def _evaluate_cuts(subsystem, phi_structure, cuts):
 def _null_sia(subsystem, phi_structure):
     if not subsystem.cut.is_null:
         raise ValueError("subsystem must have no cut")
-    partitioned_phi_structure = PartitionedPhiStructure(subsystem.cut, phi_structure)
+    partitioned_phi_structure = phi_structure.partition(subsystem.cut)
     return SystemIrreducibilityAnalysis(
         subsystem=subsystem,
         phi_structure=phi_structure,
