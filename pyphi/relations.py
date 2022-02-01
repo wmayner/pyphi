@@ -435,7 +435,6 @@ class Relata(HashableOrderedSet):
         self._subsystem = subsystem
         self._overlap = None
         self._congruent_overlap = None
-        # TODO(4.0) implement set semantics on relata
         super().__init__(relata)
 
     @property
@@ -649,6 +648,21 @@ class Relata(HashableOrderedSet):
 
 class Relations(HashableOrderedSet):
     """A set of relations."""
+
+    @property
+    def mechanisms(self):
+        for relation in self:
+            yield relation.mechanisms
+
+    @property
+    def purviews(self):
+        for relation in self:
+            yield relation.purviews
+
+    @property
+    def phis(self):
+        for relation in self:
+            yield relation.phi
 
 
 def relation(relata):
