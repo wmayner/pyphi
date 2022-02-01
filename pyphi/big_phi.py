@@ -633,12 +633,14 @@ def _evaluate_phi_structures(
     )
 
 
-@ray.remote
 def _max_system_intrinsic_information(phi_structures):
     return max(
-        (system_intrinsic_information(phi_structure), phi_structure)
-        for phi_structure in phi_structures
+        phi_structures,
+        key=lambda phi_structure: phi_structure.system_intrinsic_information(),
     )
+
+
+_remote_max_system_intrinsic_information = ray.remote(_max_system_intrinsic_information)
 
 
 # TODO refactor into a pattern
@@ -649,7 +651,7 @@ def find_maximal_compositional_state(
 ):
     print("Finding maximal compositional state")
     tasks = [
-        _max_system_intrinsic_information.remote(chunk)
+        _remote_max_system_intrinsic_information.remote(chunk)
         for chunk in tqdm(
             partition_all(chunksize, phi_structures), desc="Submitting tasks"
         )
@@ -658,7 +660,7 @@ def find_maximal_compositional_state(
     results = as_completed(tasks)
     if progress:
         results = tqdm(results, total=len(tasks))
-    return max(results)
+    return _max_system_intrinsic_information(results)
 
 
 # TODO allow choosing whether you provide precomputed distinctions
@@ -702,7 +704,7 @@ def sia(
         )
 
     if config.IIT_VERSION == "maximal-state-first":
-        _, maximal_compositional_state = find_maximal_compositional_state(
+        maximal_compositional_state = find_maximal_compositional_state(
             phi_structures,
             chunksize=chunksize,
             progress=progress,
