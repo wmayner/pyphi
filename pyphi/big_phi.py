@@ -6,9 +6,11 @@ import pickle
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import product
+from typing import Generator
 
 import ray
 import scipy
+from importlib_metadata import functools
 from toolz.itertoolz import partition_all, unique
 from tqdm.auto import tqdm
 
@@ -128,12 +130,31 @@ def optimum_sum_small_phi(n):
     return distinction_term + relation_term
 
 
-class PhiStructure:
-    def __init__(self, distinctions, relations):
+def _requires_relations(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        # Get relations from Ray if they're remote
+        if isinstance(self.relations, ray.ObjectRef):
+            self.relations = ray.get(self.relations)
+        # Filter relations if flag is set
+        if self.requires_filter:
+            print(self)
+            self.filter_relations()
+        # Realize relations if they're a generator
+        if isinstance(self.relations, Generator):
+            self.relations = Relations(self.relations)
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
+class PhiStructure(cmp.Orderable):
+    def __init__(self, distinctions, relations, requires_filter=False):
         if not isinstance(distinctions, CauseEffectStructure):
             raise ValueError("distinctions must be a CauseEffectStructure")
         if isinstance(distinctions, FlatCauseEffectStructure):
             distinctions = distinctions.unflatten()
+        self.requires_filter = requires_filter
         self.distinctions = distinctions
         self.relations = relations
         self._sum_phi_distinctions = None
@@ -143,11 +164,20 @@ class PhiStructure:
             # TODO improve this
             self._substrate_size = len(distinctions.subsystem)
 
+    def filter_relations(self):
+        """Update relations so that only those supported by distinctions remain.
+
+        Modifies the relations on this object in-place.
+        """
+        self.relations = unaffected_relations(self.distinctions, self.relations)
+        self.requires_filter = False
+
     def sum_phi_distinctions(self):
         if self._sum_phi_distinctions is None:
             self._sum_phi_distinctions = sum(self.distinctions.phis)
         return self._sum_phi_distinctions
 
+    @_requires_relations
     def sum_phi_relations(self):
         if self._sum_phi_relations is None:
             # TODO make `Relations` object with .phis attr
@@ -161,6 +191,12 @@ class PhiStructure:
             ) / optimum_sum_small_phi(self._substrate_size)
         return self._selectivity
 
+    @_requires_relations
+    def realize(self):
+        """Instantiate lazy properties."""
+        # Currently this is just a hook to force _requires_relations to do its
+        # work. Also very Zen.
+        return self
     def to_pickle(self, path):
         with open(path, mode="wb") as f:
             pickle.dump(self.to_json(), f)
@@ -194,11 +230,14 @@ class PhiStructure:
 
 
 class PartitionedPhiStructure(PhiStructure):
-    def __init__(self, cut, phi_structure):
-        self.unpartitioned_phi_structure = phi_structure
+    def __init__(self, phi_structure, cut, requires_filter=False):
+        # We need to realize the underlying PhiStructure in case
+        # distinctions/relations are generators which may later become exhausted
+        self.unpartitioned_phi_structure = phi_structure.realize()
         super().__init__(
             self.unpartitioned_phi_structure.distinctions,
             self.unpartitioned_phi_structure.relations,
+            requires_filter=False,
         )
         self.cut = cut
         # Lift values from unpartitioned PhiStructure
@@ -247,6 +286,7 @@ class PartitionedPhiStructure(PhiStructure):
             )
         return self._partitioned_distinctions
 
+    @_requires_relations
     def partitioned_relations(self):
         if self._partitioned_relations is None:
             self._partitioned_relations = unaffected_relations(
@@ -505,6 +545,7 @@ def _null_sia(subsystem, phi_structure):
 
 
 def is_trivially_reducible(subsystem, phi_structure):
+    # TODO(4.0) realize phi structure here if anything requires relations?
     return any(
         check(subsystem, phi_structure.distinctions) for check in REDUCIBILITY_CHECKS
     )
@@ -515,28 +556,16 @@ DEFAULT_CUT_CHUNKSIZE = 500
 DEFAULT_PHI_STRUCTURE_CHUNKSIZE = 50
 
 
-def _filter_relations(distinctions, relations):
-    """Filters relations according to the distinctions in the phi structure."""
-    return PhiStructure(
-        distinctions=distinctions,
-        relations=list(unaffected_relations(distinctions, relations)),
-    )
-
-
 # TODO document args
 def evaluate_phi_structure(
     subsystem,
     phi_structure,
     check_trivial_reducibility=True,
     chunksize=DEFAULT_CUT_CHUNKSIZE,
-    filter_relations=False,
 ):
     """Analyze the irreducibility of a PhiStructure."""
-    if filter_relations:
-        # Assumes `relations` is an ObjectRef from a prior `ray.put` call
-        phi_structure = _filter_relations(
-            phi_structure.distinctions, ray.get(phi_structure.relations)
-        )
+    # Realize the PhiStructure before distributing tasks
+    phi_structure.realize()
 
     if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
         return _null_sia(subsystem, phi_structure)
@@ -564,13 +593,10 @@ def evaluate_phi_structure(
 def _evaluate_phi_structures(
     subsystem,
     phi_structures,
-    filter_relations=False,
     **kwargs,
 ):
     return max(
-        evaluate_phi_structure(
-            subsystem, phi_structure, filter_relations=filter_relations, **kwargs
-        )
+        evaluate_phi_structure(subsystem, phi_structure, **kwargs)
         for phi_structure in phi_structures
     )
 
@@ -587,16 +613,7 @@ def system_intrinsic_information(phi_structure):
 
 
 @ray.remote
-def _max_system_intrinsic_information(phi_structures, filter_relations=False):
-    # TODO order by tuples
-    if filter_relations:
-        # Assumes `relations` is an ObjectRef from a prior `ray.put` call
-        phi_structures = [
-            _filter_relations(
-                phi_structure.distinctions, ray.get(phi_structure.relations)
-            )
-            for phi_structure in phi_structures
-        ]
+def _max_system_intrinsic_information(phi_structures):
     return max(
         (system_intrinsic_information(phi_structure), phi_structure)
         for phi_structure in phi_structures
@@ -606,15 +623,12 @@ def _max_system_intrinsic_information(phi_structures, filter_relations=False):
 # TODO refactor into a pattern
 def find_maximal_compositional_state(
     phi_structures,
-    filter_relations=False,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     progress=True,
 ):
     print("Finding maximal compositional state")
     tasks = [
-        _max_system_intrinsic_information.remote(
-            chunk, filter_relations=filter_relations
-        )
+        _max_system_intrinsic_information.remote(chunk)
         for chunk in tqdm(
             partition_all(chunksize, phi_structures), desc="Submitting tasks"
         )
@@ -643,10 +657,12 @@ def sia(
     """Analyze the irreducibility of a system."""
     # First check that the entire set of distinctions/relations is not trivially reducible
     # (since then all subsets must be)
-    phi_structure = PhiStructure(all_distinctions, all_relations)
-    if check_trivial_reducibility and is_trivially_reducible(subsystem, phi_structure):
+    full_phi_structure = PhiStructure(all_distinctions, all_relations)
+    if check_trivial_reducibility and is_trivially_reducible(
+        subsystem, full_phi_structure
+    ):
         print("Returning trivially-reducible SIA")
-        return _null_sia(subsystem, phi_structure)
+        return _null_sia(subsystem, full_phi_structure)
 
     # Assume that phi structures passed by the user don't need to have their
     # relations filtered
@@ -656,14 +672,17 @@ def sia(
         all_relations = ray.put(all_relations)
         print("Done putting relations")
         phi_structures = (
-            PhiStructure(distinctions, all_relations)
+            PhiStructure(
+                distinctions,
+                all_relations,
+                requires_filter=filter_relations,
+            )
             for distinctions in all_nonconflicting_distinction_sets(all_distinctions)
         )
 
     if config.IIT_VERSION == "maximal-state-first":
         _, maximal_compositional_state = find_maximal_compositional_state(
             phi_structures,
-            filter_relations=filter_relations,
             chunksize=chunksize,
             progress=progress,
         )
@@ -671,7 +690,6 @@ def sia(
         return evaluate_phi_structure(
             subsystem,
             maximal_compositional_state,
-            filter_relations=False,
             check_trivial_reducibility=check_trivial_reducibility,
             chunksize=cut_chunksize,
         )
@@ -685,7 +703,6 @@ def sia(
             _evaluate_phi_structures.remote(
                 subsystem,
                 chunk,
-                filter_relations=filter_relations,
                 check_trivial_reducibility=check_trivial_reducibility,
                 chunksize=cut_chunksize,
             )
