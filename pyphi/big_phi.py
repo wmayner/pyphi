@@ -517,7 +517,8 @@ def all_nonconflicting_distinction_sets(distinctions):
             nonconflicting_causes, nonconflicting_effects
         )
     )
-    for mechanisms in nonconflicting_mechanisms:
+    # Filter out empty CESs
+    for mechanisms in filter(None, nonconflicting_mechanisms):
         # Convert to actual MICE objects
         yield CauseEffectStructure(
             map(mechanism_to_distinction.get, mechanisms),
