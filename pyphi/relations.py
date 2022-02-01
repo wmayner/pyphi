@@ -468,11 +468,18 @@ class Relata(HashableOrderedSet):
     def __repr__(self):
         return f"Relata(mechanisms={list(self.mechanisms)}, purviews={list(self.purviews)})"
 
-    def to_json(self):
+    # TODO(4.0) pickle relations indirectly
+    def __getstate__(self):
         return {
             "relata": list(self),
             "subsystem": self.subsystem,
         }
+
+    # TODO(4.0) pickle relations indirectly
+    def __setstate__(self, state):
+        self.__init__(state["subsystem"], state["relata"])
+
+    to_json = __getstate__
 
     @classmethod
     def from_json(cls, dct):
