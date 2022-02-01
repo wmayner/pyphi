@@ -73,6 +73,9 @@ def is_affected_by_cut(distinction, cut):
 
 def unaffected_distinctions(ces, cut):
     """Return the CES composed of distinctions that are not affected by the given cut."""
+    # Special case for empty CES
+    if isinstance(cut, CompleteCut):
+        return CauseEffectStructure([])
     return CauseEffectStructure(
         [distinction for distinction in ces if not is_affected_by_cut(distinction, cut)]
     )
@@ -80,6 +83,9 @@ def unaffected_distinctions(ces, cut):
 
 def unaffected_relations(ces, relations):
     """Yield relations that not supported by the given CES."""
+    # Special case for empty relations
+    if not ces:
+        return Relations([])
     # TODO use lattice data structure for efficiently finding the union of the
     # lower sets of lost distinctions
     ces = FlatCauseEffectStructure(ces)
@@ -163,12 +169,26 @@ class PhiStructure(cmp.Orderable):
         self.requires_filter = requires_filter
         self.distinctions = distinctions
         self.relations = relations
+        self._system_intrinsic_information = None
         self._sum_phi_distinctions = None
         self._sum_phi_relations = None
         self._selectivity = None
         if distinctions:
             # TODO improve this
             self._substrate_size = len(distinctions.subsystem)
+
+    def order_by(self):
+        return self.system_intrinsic_information()
+
+    def __eq__(self, other):
+        return cmp.general_eq(
+            self,
+            other,
+            [
+                "distinctions",
+                "relations",
+            ],
+        )
 
     def filter_relations(self):
         """Update relations so that only those supported by distinctions remain.
@@ -202,6 +222,15 @@ class PhiStructure(cmp.Orderable):
         # Currently this is just a hook to force _requires_relations to do its
         # work. Also very Zen.
         return self
+
+    def system_intrinsic_information(self):
+        """Return the system intrinsic information.
+
+        This is the phi of the system with respect to the complete partition.
+        """
+        if self._system_intrinsic_information is None:
+            self._system_intrinsic_information = self.partition(CompleteCut()).phi()
+        return self._system_intrinsic_information
 
     def to_pickle(self, path):
         with open(path, mode="wb") as f:
@@ -249,6 +278,7 @@ class PartitionedPhiStructure(PhiStructure):
         self.cut = cut
         # Lift values from unpartitioned PhiStructure
         for attr in [
+            "_system_intrinsic_information",
             "_substrate_size",
             "_sum_phi_distinctions",
             "_sum_phi_relations",
@@ -266,18 +296,16 @@ class PartitionedPhiStructure(PhiStructure):
         self._informativeness = None
 
     def order_by(self):
-        return [self.phi(), len(self.distinctions), len(self.relations)]
+        return self.phi()
 
     def __eq__(self, other):
-        return cmp.general_eq(
+        return super().__eq__(other) and cmp.general_eq(
             self,
             other,
             [
                 "phi",
                 "cut",
-                "distinctions",
                 "partitioned_distinctions",
-                "relations",
                 "partitioned_relations",
             ],
         )
@@ -599,17 +627,6 @@ def _evaluate_phi_structures(
         evaluate_phi_structure(subsystem, phi_structure, **kwargs)
         for phi_structure in phi_structures
     )
-
-
-# TODO(4.0) make a method on phi structure?
-def system_intrinsic_information(phi_structure):
-    """Return the system intrinsic information.
-
-    This is the phi of the system with respect to the complete partition.
-    """
-    # TODO(4.0) Reuse this object since compositional richness has already been
-    # computed and can be used in the selectivity term?
-    return PartitionedPhiStructure(CompleteCut(), phi_structure).phi()
 
 
 @ray.remote
