@@ -58,10 +58,11 @@ class BigPhiCut(models.cuts.Cut):
 
 
 class CompleteCut:
-    """Represents the cut that destroys all distinctions/relations."""
+    """Represents the cut that destroys all distinctions & relations."""
 
 
 def is_affected_by_cut(distinction, cut):
+    """Return whether the distinctions is affected by the cut."""
     # TODO(4.0) standardize logic for complete cut vs other cuts
     if isinstance(cut, CompleteCut):
         return True
@@ -71,13 +72,14 @@ def is_affected_by_cut(distinction, cut):
 
 
 def unaffected_distinctions(ces, cut):
+    """Return the CES composed of distinctions that are not affected by the given cut."""
     return CauseEffectStructure(
         [distinction for distinction in ces if not is_affected_by_cut(distinction, cut)]
     )
 
 
 def unaffected_relations(ces, relations):
-    """Return the relations that are not supported by the given CES."""
+    """Yield relations that not supported by the given CES."""
     # TODO use lattice data structure for efficiently finding the union of the
     # lower sets of lost distinctions
     ces = FlatCauseEffectStructure(ces)
@@ -91,6 +93,7 @@ def unaffected_relations(ces, relations):
 
 
 def sia_partitions(node_indices, node_labels):
+    """Yield all system partitions."""
     # TODO(4.0) configure
     for cut in directionless_sia_bipartitions(node_indices, node_labels):
         for direction in Direction.both():
