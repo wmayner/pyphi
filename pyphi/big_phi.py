@@ -75,7 +75,7 @@ def unaffected_distinctions(ces, cut):
     """Return the CES composed of distinctions that are not affected by the given cut."""
     # Special case for empty CES
     if isinstance(cut, CompleteCut):
-        return CauseEffectStructure([])
+        return CauseEffectStructure([], subsystem=ces.subsystem)
     return CauseEffectStructure(
         [distinction for distinction in ces if not is_affected_by_cut(distinction, cut)]
     )
