@@ -165,6 +165,8 @@ class PhiStructure(cmp.Orderable):
     def __init__(self, distinctions, relations, requires_filter=False):
         if not isinstance(distinctions, CauseEffectStructure):
             raise ValueError("distinctions must be a CauseEffectStructure")
+        if not distinctions.subsystem:
+            raise ValueError("CauseEffectStructure must have the `subsystem` attribute")
         if isinstance(distinctions, FlatCauseEffectStructure):
             distinctions = distinctions.unflatten()
         self.requires_filter = requires_filter
@@ -174,9 +176,8 @@ class PhiStructure(cmp.Orderable):
         self._sum_phi_distinctions = None
         self._sum_phi_relations = None
         self._selectivity = None
-        if distinctions:
-            # TODO improve this
-            self._substrate_size = len(distinctions.subsystem)
+        # TODO improve this
+        self._substrate_size = len(distinctions.subsystem)
 
     def order_by(self):
         return self.system_intrinsic_information()
