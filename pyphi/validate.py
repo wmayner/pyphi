@@ -127,7 +127,7 @@ def network(n):
 
     Checks the TPM and connectivity matrix.
     """
-    tpm(n.tpm)
+    # tpm(n.tpm) TODO: Generating a valid TPM implies the tpm was valid, so occurs @ diff loc now
     connectivity_matrix(n.cm)
     if n.cm.shape[0] != n.size:
         raise ValueError(
@@ -171,12 +171,21 @@ def state_reachable(subsystem):
     # reached from some state.
     # First we take the submatrix of the conditioned TPM that corresponds to
     # the nodes that are actually in the subsystem...
-    tpm = subsystem.tpm[..., subsystem.node_indices]
+    #tpm = subsystem.tpm[..., subsystem.node_indices]
     # Then we do the subtraction and test.
-    test = tpm - np.array(subsystem.proper_state)
-    if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
-        raise exceptions.StateUnreachableError(subsystem.state)
+    #test = tpm - np.array(subsystem.proper_state)
+    #if not np.any(np.logical_and(-1 < test, test < 1).all(-1)):
+    #    raise exceptions.StateUnreachableError(subsystem.state)
 
+    # If there exists a row in which every node in the subsystem
+    # Has a positive probability of being in that state, there is
+    # a non-zero chance of reaching that state.
+    # Since nodes external to the system will be conditioned onto the given state
+    # Need only consider those internal to the system.
+    check_nodes = tuple([node for node in subsystem.node_indices if node not in subsystem.external_indices])
+    test = np.array([subsystem.tpm[i].tpm.loc[{subsystem.tpm[i].n_nodes[0]:subsystem.state[i]}].data for i in check_nodes])
+    if not np.any(np.logical_and(0 < test, test <= 1).all(0)):
+        raise exceptions.StateUnreachableError(subsystem.state)
 
 def cut(cut, node_indices):
     """Check that the cut is for only the given nodes."""

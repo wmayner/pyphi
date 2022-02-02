@@ -24,6 +24,7 @@ from .network import irreducible_purviews
 from .node import generate_nodes
 from .partition import mip_partitions
 from .tpm import condition_tpm, marginalize_out
+from .__tpm import TPM, SbN
 from .utils import time_annotated
 
 log = logging.getLogger(__name__)
@@ -68,8 +69,9 @@ class Subsystem:
         # The network this subsystem belongs to.
         validate.is_network(network)
         self.network = network
+        
 
-        self.node_labels = network.node_labels
+        self.node_labels = network._node_labels
         # Remove duplicates, sort, and ensure native Python `int`s
         # (for JSON serialization).
         self.node_indices = self.node_labels.coerce_to_indices(nodes)
@@ -87,9 +89,9 @@ class Subsystem:
             )
         else:
             self.external_indices = _external_indices
-
-        # The TPM conditioned on the state of the external nodes.
-        self.tpm = condition_tpm(self.network.tpm, self.external_indices, self.state)
+            # Remove external nodes from subsystem
+            self.node_indices = tuple([node for node in self.node_indices if node not in self.external_indices])
+            self.node_labels = tuple([self.node_labels[i] for i in self.node_indices])
 
         # The unidirectional cut applied for phi evaluation
         self.cut = (
@@ -99,9 +101,21 @@ class Subsystem:
         # The network's connectivity matrix with cut applied
         self.cm = self.cut.apply_cut(network.cm)
 
+            
+        # Condition TPM by conditioning every tpm in the list
+        # Thought: Could generalize this by having Network always use a list, just a list with one object if 
+        # Full tpm is described... except atm condition_list assumes node TPMs because condition doesn't work for asym
+        # Here we need to make a copy of the TPM objects from the network, or else only one Subsystem can be generated
+        # Could also be done further downstream, but both function the same.
+        # TODO Can we make copies unnecessary?
+        self.tpm = [tpm.copy() for tpm in network.tpm]
+        self.tpm = TPM.condition_list(self.tpm, self.external_indices, self.state) # Returns a list of conditioned Node TPMs
+
+        self.states = tuple([tpm.tpm.shape[-1] for tpm in self.tpm]) # Tuple of number of states each node can transition to
+
         # Reusable cache for maximally-irreducible causes and effects
         self._mice_cache = cache.MICECache(self, mice_cache)
-
+        
         # Cause & effect repertoire caches
         # TODO: if repertoire caches are never reused, there's no reason to
         # have an accesible object-level cache. Just use a simple memoizer
@@ -110,11 +124,12 @@ class Subsystem:
         )
         self._repertoire_cache = repertoire_cache or cache.DictCache()
 
+        # Node objects
         self.nodes = generate_nodes(
             self.tpm, self.cm, self.state, self.node_indices, self.node_labels
         )
 
-        validate.subsystem(self)
+        # validate.subsystem(self)
 
     @property
     def nodes(self):
@@ -182,7 +197,7 @@ class Subsystem:
     @property
     def tpm_size(self):
         """int: The number of nodes in the TPM."""
-        return self.tpm.shape[-1]
+        return len(self.tpm)
 
     def cache_info(self):
         """Report repertoire cache statistics."""
@@ -297,12 +312,24 @@ class Subsystem:
     def _single_node_cause_repertoire(self, mechanism_node_index, purview):
         # pylint: disable=missing-docstring
         mechanism_node = self._index2node[mechanism_node_index]
-        # We're conditioning on this node's state, so take the TPM for the node
-        # being in that state.
-        tpm = mechanism_node.tpm[..., mechanism_node.state]
-        # Marginalize-out all parents of this mechanism node that aren't in the
-        # purview.
-        return marginalize_out((mechanism_node.inputs - purview), tpm)
+        # Set up some different paths while transitioning
+        if isinstance(mechanism_node.tpm, TPM):
+            # Valid to use n_nodes[0] as these are guaranteed node_tpms, therefore only have 1 n_node, itself
+            indexer = dict({mechanism_node.tpm.n_nodes[0]: mechanism_node.state})
+            #TODO DEBUGGING
+            print(indexer)
+            print("purview:", purview)
+            print('inputs:', mechanism_node.inputs)
+            print("to_marginalize:", mechanism_node.inputs - purview)
+            tpm = mechanism_node.tpm.marginalize_out((mechanism_node.inputs - purview), rows=True).tpm.loc[indexer]
+            return tpm.data
+        else:
+            # We're conditioning on this node's state, so take the TPM for the node
+            # being in that state.
+            tpm = mechanism_node.tpm[..., mechanism_node.state]
+            # Marginalize-out all parents of this mechanism node that aren't in the
+            # purview.
+            return marginalize_out((mechanism_node.inputs - purview), tpm)
 
     # TODO extend to nonbinary nodes
     @cache.method("_repertoire_cache", Direction.CAUSE)
@@ -330,15 +357,21 @@ class Subsystem:
         # state of the purview; return the purview's maximum entropy
         # distribution.
         if not mechanism:
-            return max_entropy_distribution(purview, self.tpm_size)
+            return max_entropy_distribution(purview, self.tpm_size, self.states)
         # Use a frozenset so the arguments to `_single_node_cause_repertoire`
         # can be hashed and cached.
         purview = frozenset(purview)
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
-        joint = np.ones(repertoire_shape(purview, self.tpm_size))
+        joint = np.ones(repertoire_shape(purview, self.tpm_size, self.states))
         # The cause repertoire is the product of the cause repertoires of the
         # individual nodes.
+        #TODO DEBUGGING
+        print("joint shape before:", joint.shape)
+        print("mechanism:", mechanism)
+        print("product shape:", functools.reduce(np.multiply, [self._single_node_cause_repertoire(m, purview) for m in mechanism]).shape)
+        print([self._single_node_cause_repertoire(m, purview) for m in mechanism])
+        print("purview:", purview)
         joint *= functools.reduce(
             np.multiply,
             [self._single_node_cause_repertoire(m, purview) for m in mechanism],
@@ -355,12 +388,23 @@ class Subsystem:
         purview_node = self._index2node[purview_node_index]
         # Condition on the state of the inputs that are in the mechanism.
         mechanism_inputs = purview_node.inputs & mechanism
-        tpm = condition_tpm(purview_node.tpm, mechanism_inputs, self.state)
         # Marginalize-out the inputs that aren't in the mechanism.
         nonmechanism_inputs = purview_node.inputs - mechanism
-        tpm = marginalize_out(nonmechanism_inputs, tpm)
-        # Reshape so that the distribution is over next states.
-        return tpm.reshape(repertoire_shape([purview_node.index], self.tpm_size))
+
+        # Set up different path for TPM objects while transitioning
+        if isinstance(purview_node.tpm, TPM):
+            tpm = purview_node.tpm.condition_node_tpm(mechanism_inputs, self.state)
+            # Doesn't do cols so gotta do that manually again
+            tpm = purview_node.tpm.marginalize_out(nonmechanism_inputs, rows=True)
+            indexer = dict({purview_node.tpm.n_nodes[0]: purview_node.state})
+            #tpm.reshape(repertoire_shape([purview_node.index], self.tpm_size, self.states))
+            return tpm.tpm.loc[indexer].data
+
+        else:
+            tpm = condition_tpm(purview_node.tpm, mechanism_inputs, self.state)    
+            tpm = marginalize_out(nonmechanism_inputs, tpm)
+            # Reshape so that the distribution is over next states.
+            return tpm.reshape(repertoire_shape([purview_node.index], self.tpm_size))
 
     @cache.method("_repertoire_cache", Direction.EFFECT)
     def effect_repertoire(self, mechanism, purview):
@@ -389,7 +433,7 @@ class Subsystem:
         mechanism = frozenset(mechanism)
         # Preallocate the repertoire with the proper shape, so that
         # probabilities are broadcasted appropriately.
-        joint = np.ones(repertoire_shape(purview, self.tpm_size))
+        joint = np.ones(repertoire_shape(purview, self.tpm_size, self.states))
         # The effect repertoire is the product of the effect repertoires of the
         # individual nodes.
         return joint * functools.reduce(

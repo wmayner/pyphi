@@ -231,7 +231,7 @@ def _ces(subsystem):
     return ces(subsystem, parallel=config.PARALLEL_CUT_EVALUATION)
 
 
-@memory.cache(ignore=["subsystem"])
+#@memory.cache(ignore=["subsystem"])
 @time_annotated
 def _sia(cache_key, subsystem):
     """Return the minimal information partition of a subsystem.

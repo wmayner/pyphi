@@ -9,7 +9,7 @@ context of all |small_phi| and |big_phi| computation.
 
 import numpy as np
 
-from . import cache, config, connectivity, convert, jsonify, utils, validate
+from . import cache, config, connectivity, convert, jsonify, utils, validate, node
 from .labels import NodeLabels
 from .tpm import is_state_by_state
 from .__tpm import TPM, SbN
@@ -60,17 +60,40 @@ class Network:
     """
 
     # TODO make tpm also optional when implementing logical network definition
-    def __init__(self, tpm, cm=None, p_nodes=None, p_states=None, n_nodes=None, n_states=None, purview_cache=None):
-        if p_states or n_states: # Requires NB state-by-state, could just do only TPM and convert to SbN later?
-            self._tpm = TPM(tpm, p_nodes, p_states, n_nodes, n_states)
+    # TODO node_labels attribute deprecated, but many tests use it so currently keeping it an option
+    def __init__(self, tpm, cm=None, p_nodes=None, p_states=None, n_nodes=None, n_states=None, purview_cache=None, node_labels=None):
+        if isinstance(tpm, list): 
+            self._is_list = True
+            if node_labels:
+                p_nodes = node_labels
+            self._tpm = tpm
+            self._cm = self._build_cm_from_list(cm)
+            self._node_indices = tuple(range(len(tpm)))
+            # User can specify names of each node to be lined up with the list of node TPMs, else default labels are generated
+            self._node_labels = NodeLabels(p_nodes, self._node_indices)
+            
         else:
-            self._tpm = SbN(tpm, p_nodes, p_states, n_nodes, n_states)
-        self._cm, self._cm_hash = self._build_cm(cm)
-        # self._node_indices = tuple(range(self.size)) TODO unnecessary cuz TPM obj has a method for this?
-        # self._node_labels = NodeLabels(node_labels, self._node_indices) TODO probably same?
-        self.purview_cache = purview_cache or cache.PurviewCache()
+            self._is_list = False
+            if node_labels:
+                p_nodes = node_labels
+            if p_states or n_states: # Requires NB state-by-state, could just do only TPM and convert to SbN later?
+                self._tpm = TPM(tpm, p_nodes, p_states, n_nodes, n_states)
+            else:
+                self._tpm = SbN(tpm, p_nodes, p_states, n_nodes, n_states)
 
-        # validate.network(self) Changing validation reqs
+            self._cm = self._tpm.infer_cm()
+            # Convert to list
+            tpm_list = [self._tpm.create_node_tpm(index, self._cm) for index in range(len(self._tpm.n_nodes))]
+
+            self._node_indices = tuple(range(self.size))
+            self._node_labels = NodeLabels(self._tpm._p_nodes, self.node_indices) # TODO consider using self._tpm._p_nodes instead for more readability?
+
+            self._tpm = tpm_list
+            self._is_list = True
+        
+        self.purview_cache = purview_cache or cache.PurviewCache()
+         
+        validate.network(self)
 
     @property
     def tpm(self):
@@ -98,6 +121,20 @@ class Network:
         utils.np_immutable(tpm)
 
         return (tpm, utils.np_hash(tpm))
+
+    def _build_cm_from_list(self, cm):
+        """Generate the connectivity matrix for a network whose tpm is defined as a 
+        list of Node TPMs, by concatenating the individual Node TPM cms.
+
+        Args:
+            tpm_list (list[TPM]): List of Node TPMs that define how the network transitions.
+        """
+        if cm is None:
+            cm_list = [TPM.infer_node_cm(node_tpm) for node_tpm in self._tpm] 
+            return np.concatenate(cm_list, axis=1)
+        else:
+            return np.array(cm)
+        # return np.ones((self.size, self.size))
 
     @property
     def cm(self):
@@ -141,7 +178,15 @@ class Network:
     @property
     def num_states(self):
         """int: The number of possible states of the network."""
-        return 2 ** self.size
+        # If list, states can be counted as product of possible transitions of each node
+        # If not, use TPM.num_states?
+        # if self._is_list:
+        num = 1
+        for tpm in self._tpm:
+            num *= tpm.shape[-1]
+        return num
+        # else:
+        #    return self._tpm.num_states
 
     @property
     def node_indices(self):
@@ -176,10 +221,19 @@ class Network:
 
     def __len__(self):
         """int: The number of nodes in the network."""
-        return self.tpm.shape[-1]
+        if self._is_list:
+            return len(self._tpm)
+        elif isinstance(self.tpm, TPM):
+            # TODO Assumes symmetry for now
+            return len(self.tpm.p_nodes)
+        else:
+            return self.tpm.shape[-1]
 
     def __repr__(self):
-        return "Network({}, cm={})".format(self.tpm, self.cm)
+        if self._is_list:
+            return str([tpm for tpm in self._tpm]) #TODO Consider representations
+        else:
+            return "Network({}, cm={})".format(self.tpm, self.cm)
 
     def __str__(self):
         return self.__repr__()
@@ -189,6 +243,8 @@ class Network:
 
         Networks are equal if they have the same TPM and CM.
         """
+        if self._is_list:
+            return np.all([node_tpm == node_tpm for node_tpm in self._tpm])
         return (
             isinstance(other, Network)
             and np.array_equal(self.tpm, other.tpm)

@@ -104,7 +104,7 @@ def purview_size(repertoire):
     return len(purview(repertoire))
 
 
-def repertoire_shape(purview, N):  # pylint: disable=redefined-outer-name
+def repertoire_shape(purview, N, states=None):  # pylint: disable=redefined-outer-name
     """Return the shape a repertoire.
 
     Args:
@@ -122,8 +122,12 @@ def repertoire_shape(purview, N):  # pylint: disable=redefined-outer-name
         >>> repertoire_shape(purview, N)
         [2, 1, 2]
     """
-    # TODO: extend to non-binary nodes
-    return [2 if i in purview else 1 for i in range(N)]
+    #TODO Remove once fully transitioned, as then states should never be None
+    if states is not None:
+        return [states[i] if i in purview else 1 for i in range(N)]
+    
+    else:
+        return [2 if i in purview else 1 for i in range(N)]
 
 
 def flatten(repertoire, big_endian=False):
@@ -173,7 +177,7 @@ def unflatten(repertoire, purview, N, big_endian=False):
 
 
 @cache(cache={}, maxmem=None)
-def max_entropy_distribution(node_indices, number_of_nodes):
+def max_entropy_distribution(node_indices, number_of_nodes, states=None):
     """Return the maximum entropy distribution over a set of nodes.
 
     This is different from the network's uniform distribution because nodes
@@ -184,10 +188,12 @@ def max_entropy_distribution(node_indices, number_of_nodes):
         node_indices (tuple[int]): The set of node indices over which to take
             the distribution.
         number_of_nodes (int): The total number of nodes in the network.
+        states (tuple): The states of each node in the network
 
     Returns:
         np.ndarray: The maximum entropy distribution over the set of nodes.
     """
-    distribution = np.ones(repertoire_shape(node_indices, number_of_nodes))
+    # TODO Remove once fully transitioned
+    distribution = np.ones(repertoire_shape(node_indices, number_of_nodes, states))
 
     return distribution / distribution.size
