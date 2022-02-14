@@ -83,7 +83,7 @@ def unaffected_distinctions(ces, cut):
 
 
 def unaffected_relations(ces, relations):
-    """Yield relations that not supported by the given CES."""
+    """Yield relations that are supported by the given CES."""
     # Special case for empty relations
     if not ces:
         return Relations([])
