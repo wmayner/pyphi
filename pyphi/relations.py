@@ -19,7 +19,8 @@ from . import config, validate
 from .combinatorics import combinations_with_nonempty_intersection
 from .data_structures import HashableOrderedSet
 from .metrics.distribution import absolute_information_density
-from .models import cmp
+from .models import cmp, fmt
+from .models.cuts import RelationPartition
 from .models.subsystem import FlatCauseEffectStructure
 from .utils import eq, powerset
 
@@ -222,7 +223,7 @@ class Relation(cmp.Orderable):
         return [relatum.mechanism for relatum in self.relata]
 
     def __repr__(self):
-        return f"Relation(relata=({','.join(map(fmt_relatum, self.relata))}), purview={self.purview}, phi={self.phi})"
+        return f"Relation(relata=({','.join(map(fmt.fmt_relatum, self.relata))}), purview={self.purview}, phi={self.phi})"
 
     def __str__(self):
         return repr(self)
