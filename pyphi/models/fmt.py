@@ -463,6 +463,11 @@ def fmt_repertoire(r, mark_states=None):
     return box("\n".join(lines))
 
 
+def fmt_relatum(relatum, node_labels=None):
+    direction = "Cause" if relatum.direction == Direction.CAUSE else "Effect"
+    return direction + fmt_mechanism(relatum.mechanism, node_labels=node_labels)
+
+
 def fmt_extended_purview(extended_purview, node_labels=None):
     """Format an extended purview."""
     if len(extended_purview) == 1:

@@ -812,6 +812,16 @@ class PyphiConfig(Config):
     See :mod:`~pyphi.partition` for more examples.""",
     )
 
+    RELATION_PARTITION_TYPE = Option(
+        "TRI",
+        doc="""
+    Controls the type of partition used for |small_phi| computations.
+
+    You can configure custom partitioning schemes using the
+    ``pyphi.partition.relation_partition_types.register`` decorator.
+    """,
+    )
+
     PICK_SMALLEST_PURVIEW = Option(
         False,
         type=bool,

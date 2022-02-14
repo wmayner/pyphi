@@ -10,7 +10,14 @@ from itertools import chain, permutations, product
 
 from . import config
 from .cache import cache
-from .models import Bipartition, KPartition, Part, Tripartition
+from .models.cuts import (
+    Bipartition,
+    KPartition,
+    Part,
+    Tripartition,
+    RelationPart,
+    RelationPartition,
+)
 from .registry import Registry
 
 # TODO move purely combinatorial functions to `combinatorics`
@@ -351,6 +358,8 @@ def k_partitions(collection, k):
         return []
     if k == 1:
         return [[collection]]
+    if k == n:
+        return [[[item] for item in collection]]
 
     a = [0] * (n + 1)
     for j in range(1, k + 1):
@@ -379,6 +388,10 @@ class PartitionRegistry(Registry):
 
 
 partition_types = PartitionRegistry()
+
+
+# Distinction partitions
+# ~~~~~~~~~~~~~~~~~~~~~~
 
 
 def mip_partitions(mechanism, purview, node_labels=None):
@@ -494,7 +507,7 @@ def wedge_partitions(mechanism, purview, node_labels=None):
             Part(n[1], d[1], node_labels=node_labels),
             Part((), d[2], node_labels=node_labels),
             node_labels=node_labels,
-        ).normalize()  # pylint: disable=bad-whitespace
+        ).normalize()
 
         def nonempty(part):
             """Check that the part is not empty."""
@@ -569,3 +582,32 @@ def complete_partition(mechanism, purview):
     n_parts = len(next(mip_partitions(mechanism, purview)))
     parts = [Part((), ())] * (n_parts - 2) + [Part((), purview), Part(mechanism, ())]
     return KPartition(*parts)
+
+
+# Relation partitions
+# ~~~~~~~~~~~~~~~~~~~
+
+relation_partition_types = PartitionRegistry()
+
+
+@relation_partition_types.register("TRI")
+def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
+    overlap_partitions = wedge_partitions(
+        tuple(range(len(relata))), candidate_joint_purview
+    )
+    return (
+        RelationPartition(
+            relata,
+            *(
+                RelationPart(
+                    mechanism=part.mechanism,
+                    purview=part.purview,
+                    relata=relata,
+                    node_labels=node_labels,
+                )
+                for part in partition
+            ),
+            node_labels=node_labels,
+        )
+        for partition in overlap_partitions
+    )

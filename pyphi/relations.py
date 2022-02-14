@@ -13,14 +13,13 @@ from toolz import concat, curry
 from tqdm.auto import tqdm
 
 from pyphi.compute.parallel import get_num_processes
-from pyphi.partition import Part, Tripartition, partition_types
+from pyphi.partition import relation_partition_types
 
 from . import config, validate
 from .combinatorics import combinations_with_nonempty_intersection
 from .data_structures import HashableOrderedSet
-from .direction import Direction
 from .metrics.distribution import absolute_information_density
-from .models import cmp, fmt
+from .models import cmp
 from .models.subsystem import FlatCauseEffectStructure
 from .utils import eq, powerset
 
@@ -164,137 +163,13 @@ def congruent_overlap(specified_states, overlap):
     return [overlap[list(subset)] for subset in congruent_subsets]
 
 
-def fmt_relatum(relatum, node_labels=None):
-    direction = "Cause" if relatum.direction == Direction.CAUSE else "Effect"
-    return direction + fmt.fmt_mechanism(relatum.mechanism, node_labels=node_labels)
-
-
-class RelationPart(Part):
-    """A part of a relation-style partition."""
-
-    def __init__(self, mechanism, purview, relata, node_labels=None):
-        self.relata = relata
-        super().__init__(mechanism, purview, node_labels=node_labels)
-
-    def to_json(self):
-        """Return a JSON-serializable representation."""
-        return {
-            "mechanism": self.mechanism,
-            "purview": self.purview,
-            "relata": self.relata,
-        }
-
-    def to_indirect_json(self):
-        """Return an indirect representation of the Part.
-
-        This uses the integer indices of distinctions in the given CES rather
-        than the objects themselves, which is more efficient for storage on
-        disk.
-        """
-        return [self.mechanism, self.purview]
-
-    @classmethod
-    def from_indirect_json(cls, relata, data, node_labels=None):
-        mechanism, purview = data
-        return cls(mechanism, purview, relata, node_labels=node_labels)
-
-    def __repr__(self):
-        numer = (
-            ", ".join(
-                fmt_relatum(relatum, node_labels=self.node_labels)
-                for relatum in [self.relata[i] for i in self.mechanism]
-            )
-            if self.mechanism
-            else fmt.EMPTY_SET
-        )
-        denom = fmt.fmt_nodes(self.purview, node_labels=self.node_labels)
-        return fmt.fmt_fraction(numer=numer, denom=denom)
-
-
-class RelationPartition(Tripartition):
-    def __init__(self, relata, *parts, node_labels=None):
-        self.relata = relata
-        super().__init__(*parts, node_labels=node_labels)
-        self._purview = None
-
-    @property
-    def purview(self):
-        if self._purview is None:
-            self._purview = set(super().purview)
-        return self._purview
-
-    def for_relatum(self, i):
-        """Return the implied `Tripartition` with respect to just a single mechanism.
-
-        Arguments:
-            i (int): The index of the relatum in the relata object.
-        """
-        relatum = self.relata[i]
-        nonoverlap_purview_elements = tuple(set(relatum.purview) - set(self.purview))
-        return Tripartition(
-            *[
-                Part(
-                    mechanism=(relatum.mechanism if i in part.mechanism else ()),
-                    purview=tuple(
-                        part.purview
-                        # Non-overlapping purview elements are included only
-                        # once, in the part corresponding to this mechanism
-                        + (nonoverlap_purview_elements if i in part.mechanism else ())
-                    ),
-                    node_labels=part.node_labels,
-                )
-                for part in self.parts
-            ]
-        )
-
-    def to_indirect_json(self):
-        """Return an indirect representation of the Partition.
-
-        This uses the integer indices of distinctions in the given CES rather
-        than the objects themselves, which is more efficient for storage on
-        disk.
-        """
-        return [part.to_indirect_json() for part in self]
-
-    @classmethod
-    def from_indirect_json(cls, relata, data, node_labels=None):
-        return cls(
-            relata,
-            *[
-                RelationPart.from_indirect_json(relata, part, node_labels=node_labels)
-                for part in data
-            ],
-            node_labels=node_labels,
-        )
-
-
 def partitions(relata, candidate_joint_purview, node_labels=None):
-    if config.PARTITION_TYPE != "TRI":
-        raise NotImplementedError(
-            "Relations are not implemented for any other partition types "
-            f"except TRI'; got {config.PARTITION_TYPE}"
-        )
-    partition_function = partition_types[config.PARTITION_TYPE]
-    # Generate wedge partitions, treating mechanisms in the relation as atomic
-    # elements.
-    overlap_partitions = partition_function(
-        tuple(range(len(relata))), candidate_joint_purview
-    )
-    return (
-        RelationPartition(
-            relata,
-            *(
-                RelationPart(
-                    mechanism=part.mechanism,
-                    purview=part.purview,
-                    relata=relata,
-                    node_labels=node_labels,
-                )
-                for part in partition
-            ),
-            node_labels=node_labels,
-        )
-        for partition in overlap_partitions
+    """Return the set of relation partitions.
+
+    Controlled by the RELATION_PARTITION_TYPE configuration option.
+    """
+    return relation_partition_types[config.RELATION_PARTITION_TYPE](
+        relata, candidate_joint_purview, node_labels=node_labels
     )
 
 

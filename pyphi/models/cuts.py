@@ -374,3 +374,102 @@ class Tripartition(KPartition):
     """A partition with three parts."""
 
     __slots__ = KPartition.__slots__
+
+
+class RelationPart(Part):
+    """A part of a relation-style partition."""
+
+    def __init__(self, mechanism, purview, relata, node_labels=None):
+        self.relata = relata
+        super().__init__(mechanism, purview, node_labels=node_labels)
+
+    def to_json(self):
+        """Return a JSON-serializable representation."""
+        return {
+            "mechanism": self.mechanism,
+            "purview": self.purview,
+            "relata": self.relata,
+        }
+
+    def to_indirect_json(self):
+        """Return an indirect representation of the Part.
+
+        This uses the integer indices of distinctions in the given CES rather
+        than the objects themselves, which is more efficient for storage on
+        disk.
+        """
+        return [self.mechanism, self.purview]
+
+    @classmethod
+    def from_indirect_json(cls, relata, data, node_labels=None):
+        mechanism, purview = data
+        return cls(mechanism, purview, relata, node_labels=node_labels)
+
+    def __repr__(self):
+        numer = (
+            ", ".join(
+                fmt.fmt_relatum(relatum, node_labels=self.node_labels)
+                for relatum in [self.relata[i] for i in self.mechanism]
+            )
+            if self.mechanism
+            else fmt.EMPTY_SET
+        )
+        denom = fmt.fmt_nodes(self.purview, node_labels=self.node_labels)
+        return fmt.fmt_fraction(numer=numer, denom=denom)
+
+
+class RelationPartition(Tripartition):
+    def __init__(self, relata, *parts, node_labels=None):
+        self.relata = relata
+        super().__init__(*parts, node_labels=node_labels)
+        self._purview = None
+
+    @property
+    def purview(self):
+        if self._purview is None:
+            self._purview = set(super().purview)
+        return self._purview
+
+    def for_relatum(self, i):
+        """Return the implied `Tripartition` with respect to just a single mechanism.
+
+        Arguments:
+            i (int): The index of the relatum in the relata object.
+        """
+        relatum = self.relata[i]
+        nonoverlap_purview_elements = tuple(set(relatum.purview) - set(self.purview))
+        return Tripartition(
+            *[
+                Part(
+                    mechanism=(relatum.mechanism if i in part.mechanism else ()),
+                    purview=tuple(
+                        part.purview
+                        # Non-overlapping purview elements are included only
+                        # once, in the part corresponding to this mechanism
+                        + (nonoverlap_purview_elements if i in part.mechanism else ())
+                    ),
+                    node_labels=part.node_labels,
+                )
+                for part in self.parts
+            ]
+        )
+
+    def to_indirect_json(self):
+        """Return an indirect representation of the Partition.
+
+        This uses the integer indices of distinctions in the given CES rather
+        than the objects themselves, which is more efficient for storage on
+        disk.
+        """
+        return [part.to_indirect_json() for part in self]
+
+    @classmethod
+    def from_indirect_json(cls, relata, data, node_labels=None):
+        return cls(
+            relata,
+            *[
+                RelationPart.from_indirect_json(relata, part, node_labels=node_labels)
+                for part in data
+            ],
+            node_labels=node_labels,
+        )
