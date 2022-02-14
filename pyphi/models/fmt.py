@@ -465,7 +465,12 @@ def fmt_repertoire(r, mark_states=None):
 
 def fmt_relatum(relatum, node_labels=None):
     direction = "Cause" if relatum.direction == Direction.CAUSE else "Effect"
-    return direction + fmt_mechanism(relatum.mechanism, node_labels=node_labels)
+    return (
+        direction
+        + fmt_mechanism(relatum.mechanism, node_labels=node_labels)
+        + "/"
+        + fmt_mechanism(relatum.purview)
+    )
 
 
 def fmt_extended_purview(extended_purview, node_labels=None):

@@ -223,10 +223,7 @@ class Relation(cmp.Orderable):
         return [relatum.mechanism for relatum in self.relata]
 
     def __repr__(self):
-        return (
-            f"Relation(relata=({','.join(map(fmt.fmt_relatum, self.relata))}), "
-            f"purview={self.purview}, phi={self.phi})"
-        )
+        return f"Relation(relata={self.relata}, purview={self.purview}, phi={self.phi})"
 
     def __str__(self):
         return repr(self)
