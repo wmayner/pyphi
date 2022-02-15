@@ -20,7 +20,7 @@ from pyphi.models import cmp
 from pyphi.models.cuts import Cut
 from pyphi.subsystem import Subsystem
 
-from . import config, models
+from . import config
 from .compute.parallel import as_completed, init
 from .compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
 from .direction import Direction
@@ -33,10 +33,10 @@ from .utils import extremum_with_short_circuit
 # - cache relations, compute as needed for each nonconflicting CES
 
 
-class BigPhiCut(models.cuts.Cut):
-    """A system cut.
+class SystemPartition(Cut):
+    """A system partition.
 
-    Same as a IIT 3.0 unidirectional cut, but with a Direction.
+    Same as a IIT 3.0 unidirectional partition, but with a Direction.
     """
 
     def __init__(self, direction, *args, **kwargs):
@@ -54,31 +54,35 @@ class BigPhiCut(models.cuts.Cut):
 
     @classmethod
     def from_json(cls, data):
-        """Return a Cut object from a JSON-serializable representation."""
+        """Return a SystemPartition object from a JSON-serializable representation."""
         return cls(data["direction"], data["from_nodes"], data["to_nodes"])
 
 
-class CompleteCut:
-    """Represents the cut that destroys all distinctions & relations."""
+class CompleteSystemPartition:
+    """Represents the SystemPartition that destroys all distinctions & relations."""
 
 
-def is_affected_by_cut(distinction, cut):
-    """Return whether the distinctions is affected by the cut."""
-    # TODO(4.0) standardize logic for complete cut vs other cuts
-    if isinstance(cut, CompleteCut):
+def is_affected_by_partition(distinction, partition):
+    """Return whether the distinctions is affected by the partition."""
+    # TODO(4.0) standardize logic for complete partition vs other partition
+    if isinstance(partition, CompleteSystemPartition):
         return True
-    coming_from = set(cut.from_nodes) & set(distinction.mechanism)
-    going_to = set(cut.to_nodes) & set(distinction.purview(cut.direction))
+    coming_from = set(partition.from_nodes) & set(distinction.mechanism)
+    going_to = set(partition.to_nodes) & set(distinction.purview(partition.direction))
     return coming_from and going_to
 
 
-def unaffected_distinctions(ces, cut):
-    """Return the CES composed of distinctions that are not affected by the given cut."""
+def unaffected_distinctions(ces, partition):
+    """Return the CES composed of distinctions that are not affected by the given partition."""
     # Special case for empty CES
-    if isinstance(cut, CompleteCut):
+    if isinstance(partition, CompleteSystemPartition):
         return CauseEffectStructure([], subsystem=ces.subsystem)
     return CauseEffectStructure(
-        [distinction for distinction in ces if not is_affected_by_cut(distinction, cut)]
+        [
+            distinction
+            for distinction in ces
+            if not is_affected_by_partition(distinction, partition)
+        ]
     )
 
 
@@ -102,10 +106,13 @@ def unaffected_relations(ces, relations):
 def sia_partitions(node_indices, node_labels):
     """Yield all system partitions."""
     # TODO(4.0) configure
-    for cut in directionless_sia_bipartitions(node_indices, node_labels):
+    for partition in directionless_sia_bipartitions(node_indices, node_labels):
         for direction in Direction.both():
-            yield BigPhiCut(
-                direction, cut.from_nodes, cut.to_nodes, node_labels=cut.node_labels
+            yield SystemPartition(
+                direction,
+                partition.from_nodes,
+                partition.to_nodes,
+                node_labels=partition.node_labels,
             )
 
 
@@ -225,9 +232,11 @@ class PhiStructure(cmp.Orderable):
         # work. Also very Zen.
         return self
 
-    def partition(self, cut):
-        """Return a PartitionedPhiStructure with the given cut."""
-        return PartitionedPhiStructure(self, cut, requires_filter=self.requires_filter)
+    def partition(self, partition):
+        """Return a PartitionedPhiStructure with the given partition."""
+        return PartitionedPhiStructure(
+            self, partition, requires_filter=self.requires_filter
+        )
 
     def system_intrinsic_information(self):
         """Return the system intrinsic information.
@@ -235,7 +244,9 @@ class PhiStructure(cmp.Orderable):
         This is the phi of the system with respect to the complete partition.
         """
         if self._system_intrinsic_information is None:
-            self._system_intrinsic_information = self.partition(CompleteCut()).phi()
+            self._system_intrinsic_information = self.partition(
+                CompleteSystemPartition()
+            ).phi()
         return self._system_intrinsic_information
 
     def to_pickle(self, path):
@@ -271,7 +282,7 @@ class PhiStructure(cmp.Orderable):
 
 
 class PartitionedPhiStructure(PhiStructure):
-    def __init__(self, phi_structure, cut, requires_filter=False):
+    def __init__(self, phi_structure, partition, requires_filter=False):
         # We need to realize the underlying PhiStructure in case
         # distinctions/relations are generators which may later become exhausted
         self.unpartitioned_phi_structure = phi_structure.realize()
@@ -281,7 +292,7 @@ class PartitionedPhiStructure(PhiStructure):
             # Relations should have been filtered when `.realize()` was called
             requires_filter=False,
         )
-        self.cut = cut
+        self.partition = partition
         # Lift values from unpartitioned PhiStructure
         for attr in [
             "_system_intrinsic_information",
@@ -310,7 +321,7 @@ class PartitionedPhiStructure(PhiStructure):
             other,
             [
                 "phi",
-                "cut",
+                "partition",
                 "partitioned_distinctions",
                 "partitioned_relations",
             ],
@@ -323,7 +334,7 @@ class PartitionedPhiStructure(PhiStructure):
     def partitioned_distinctions(self):
         if self._partitioned_distinctions is None:
             self._partitioned_distinctions = unaffected_distinctions(
-                self.distinctions, self.cut
+                self.distinctions, self.partition
             )
         return self._partitioned_distinctions
 
@@ -390,7 +401,7 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
     subsystem: Subsystem
     phi_structure: PhiStructure
     partitioned_phi_structure: PartitionedPhiStructure
-    cut: Cut
+    partition: SystemPartition
     selectivity: float
     informativeness: float
     phi: float
@@ -414,19 +425,18 @@ class SystemIrreducibilityAnalysis(cmp.Orderable):
                 self.ces,
                 self.partitioned_ces,
                 self.subsystem,
-                self.cut_subsystem,
+                self.partitioned_subsystem,
             )
         )
 
 
-# TODO(4.0) rename Cut -> Partition
-def evaluate_cut(subsystem, phi_structure, cut):
-    partitioned_phi_structure = phi_structure.partition(cut)
+def evaluate_partition(subsystem, phi_structure, partition):
+    partitioned_phi_structure = phi_structure.partition(partition)
     return SystemIrreducibilityAnalysis(
         subsystem=subsystem,
         phi_structure=phi_structure,
         partitioned_phi_structure=partitioned_phi_structure,
-        cut=partitioned_phi_structure.cut,
+        partition=partitioned_phi_structure.partition,
         selectivity=partitioned_phi_structure.selectivity(),
         informativeness=partitioned_phi_structure.informativeness(),
         phi=partitioned_phi_structure.phi(),
@@ -528,27 +538,30 @@ def all_nonconflicting_distinction_sets(distinctions):
         )
 
 
-def evaluate_cuts(subsystem, phi_structure, cuts):
+def evaluate_partitions(subsystem, phi_structure, partitions):
     return extremum_with_short_circuit(
-        (evaluate_cut(subsystem, phi_structure, cut) for cut in cuts),
+        (
+            evaluate_partition(subsystem, phi_structure, partition)
+            for partition in partitions
+        ),
         cmp=operator.lt,
         initial=float("inf"),
         shortcircuit_value=0,
     )
 
 
-_evaluate_cuts = ray.remote(evaluate_cuts)
+_evaluate_partitions = ray.remote(evaluate_partitions)
 
 
 def _null_sia(subsystem, phi_structure):
     if not subsystem.cut.is_null:
-        raise ValueError("subsystem must have no cut")
+        raise ValueError("subsystem must have no partition")
     partitioned_phi_structure = phi_structure.partition(subsystem.cut)
     return SystemIrreducibilityAnalysis(
         subsystem=subsystem,
         phi_structure=phi_structure,
         partitioned_phi_structure=partitioned_phi_structure,
-        cut=partitioned_phi_structure.cut,
+        partition=partitioned_phi_structure.partition,
         selectivity=None,
         informativeness=None,
         phi=0.0,
@@ -563,7 +576,7 @@ def is_trivially_reducible(subsystem, phi_structure):
 
 
 # TODO configure
-DEFAULT_CUT_CHUNKSIZE = 500
+DEFAULT_PARTITION_CHUNKSIZE = 500
 DEFAULT_PHI_STRUCTURE_CHUNKSIZE = 50
 
 
@@ -572,7 +585,7 @@ def evaluate_phi_structure(
     subsystem,
     phi_structure,
     check_trivial_reducibility=True,
-    chunksize=DEFAULT_CUT_CHUNKSIZE,
+    chunksize=DEFAULT_PARTITION_CHUNKSIZE,
 ):
     """Analyze the irreducibility of a PhiStructure."""
     # Realize the PhiStructure before distributing tasks
@@ -582,13 +595,14 @@ def evaluate_phi_structure(
         return _null_sia(subsystem, phi_structure)
 
     tasks = [
-        _evaluate_cuts.remote(
+        _evaluate_partitions.remote(
             subsystem,
             phi_structure,
-            cuts,
+            partitions,
         )
-        for cuts in partition_all(
-            chunksize, sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
+        for partitions in partition_all(
+            chunksize,
+            sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels),
         )
     ]
     return extremum_with_short_circuit(
@@ -654,7 +668,7 @@ def sia(
     phi_structures=None,
     check_trivial_reducibility=True,
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
-    cut_chunksize=DEFAULT_CUT_CHUNKSIZE,
+    partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     filter_relations=False,
     progress=True,
 ):
@@ -695,7 +709,7 @@ def sia(
             subsystem,
             maximal_compositional_state,
             check_trivial_reducibility=check_trivial_reducibility,
-            chunksize=cut_chunksize,
+            chunksize=partition_chunksize,
         )
     else:
         # Broadcast subsystem object to workers
@@ -708,7 +722,7 @@ def sia(
                 subsystem,
                 chunk,
                 check_trivial_reducibility=check_trivial_reducibility,
-                chunksize=cut_chunksize,
+                chunksize=partition_chunksize,
             )
             for chunk in tqdm(
                 partition_all(chunksize, phi_structures), desc="Submitting tasks"
