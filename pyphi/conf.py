@@ -51,11 +51,15 @@ Approximations and theoretical options
 
 These settings control the algorithms PyPhi uses.
 
+- :attr:`~pyphi.conf.PyphiConfig.IIT_VERSION`
 - :attr:`~pyphi.conf.PyphiConfig.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS`
-- :attr:`~pyphi.conf.PyphiConfig.CUT_ONE_APPROXIMATION`
-- :attr:`~pyphi.conf.Pyphiconfig.REPERTOIRE_DISTANCE`
+- :attr:`~pyphi.conf.PyphiConfig.REPERTOIRE_DISTANCE`
+- :attr:`~pyphi.conf.PyphiConfig.CES_DISTANCE`
 - :attr:`~pyphi.conf.PyphiConfig.ACTUAL_CAUSATION_MEASURE`
 - :attr:`~pyphi.conf.PyphiConfig.PARTITION_TYPE`
+- :attr:`~pyphi.conf.PyphiConfig.RELATION_PARTITION_TYPE`
+- :attr:`~pyphi.conf.PyphiConfig.RELATION_PARTITION_AGGREGATION`
+- :attr:`~pyphi.conf.PyphiConfig.SYSTEM_PARTITION_TYPE`
 - :attr:`~pyphi.conf.PyphiConfig.PICK_SMALLEST_PURVIEW`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
 - :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
@@ -394,19 +398,6 @@ class PyphiConfig(Config):
     concept to become a proper, irreducible concept. Assuming this can never
     happen can increase performance significantly, however the obtained results
     are not strictly accurate.""",
-    )
-
-    CUT_ONE_APPROXIMATION = Option(
-        False,
-        type=bool,
-        doc="""
-    When determining the MIP for |big_phi|, this restricts the set of system
-    cuts that are considered to only those that cut the inputs or outputs of a
-    single node. This restricted set of cuts scales linearly with the size of
-    the system; the full set of all possible bipartitions scales
-    exponentially. This approximation is more likely to give theoretically
-    accurate results with modular, sparsely-connected, or homogeneous
-    networks.""",
     )
 
     REPERTOIRE_DISTANCE = Option(
@@ -830,6 +821,14 @@ class PyphiConfig(Config):
 
     You can configure custom partitioning schemes using the
     ``pyphi.partition.relation_partition_aggregations.register`` decorator.
+    """,
+    )
+
+    # TODO(4.0) finish documenting
+    SYSTEM_PARTITION_TYPE = Option(
+        "TEMPORAL_DIRECTED_BI",
+        doc="""
+    Controls the system partitioning scheme.
     """,
     )
 

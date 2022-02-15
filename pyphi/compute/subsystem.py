@@ -11,6 +11,7 @@ import logging
 
 from .. import config, connectivity, memory, utils
 from ..direction import Direction
+from ..metrics.ces import ces_distance
 from ..models import (
     CauseEffectStructure,
     Concept,
@@ -21,13 +22,8 @@ from ..models import (
     cmp,
     fmt,
 )
-from ..partition import (
-    directed_bipartition,
-    directed_bipartition_of_one,
-    mip_partitions,
-)
+from ..partition import mip_partitions, system_partition_types
 from ..utils import time_annotated
-from ..metrics.ces import ces_distance
 from .parallel import MapReduce
 
 # Create a logger for this module.
@@ -203,25 +199,32 @@ class ComputeSystemIrreducibility(MapReduce):
         return min_sia
 
 
-def sia_bipartitions(nodes, node_labels=None):
+def sia_partitions(nodes, node_labels=None):
     """Return all |big_phi| cuts for the given nodes.
 
-    This value changes based on :const:`config.CUT_ONE_APPROXIMATION`.
+    Controlled by the :const:`config.SYSTEM_PARTITION_TYPE` option.
 
-    Args:
+    Arguments:
         nodes (tuple[int]): The node indices to partition.
+
+    Keyword Arguments:
+        node_labels (NodeLabels): Enables printing the partition with labels.
+
     Returns:
         list[Cut]: All unidirectional partitions.
-    """
-    if config.CUT_ONE_APPROXIMATION:
-        bipartitions = directed_bipartition_of_one(nodes)
-    else:
-        # Don't consider trivial partitions where one part is empty
-        bipartitions = directed_bipartition(nodes, nontrivial=True)
 
-    return [
-        Cut(bipartition[0], bipartition[1], node_labels) for bipartition in bipartitions
-    ]
+    """
+    # TODO(4.0 consolidate 3.0 and 4.0 cuts)
+    scheme = config.SYSTEM_PARTITION_TYPE
+    valid = ["DIRECTED_BI", "DIRECTED_BI_CUT_ONE"]
+    if scheme not in valid:
+        raise ValueError(
+            "IIT 3.0 calculations must use one of the following system "
+            f"partition schemes: {valid}; got {scheme}"
+        )
+    return system_partition_types[config.SYSTEM_PARTITION_TYPE](
+        nodes, node_labels=node_labels
+    )
 
 
 def _ces(subsystem):
@@ -309,7 +312,7 @@ def _sia(cache_key, subsystem):
             Cut(subsystem.cut_indices, subsystem.cut_indices, subsystem.cut_node_labels)
         ]
     else:
-        cuts = sia_bipartitions(subsystem.cut_indices, subsystem.cut_node_labels)
+        cuts = sia_partitions(subsystem.cut_indices, subsystem.cut_node_labels)
 
     engine = ComputeSystemIrreducibility(cuts, subsystem, unpartitioned_ces)
     result = engine.run(config.PARALLEL_CUT_EVALUATION)
@@ -334,7 +337,7 @@ def _sia_cache_key(subsystem):
     return (
         hash(subsystem),
         config.ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS,
-        config.CUT_ONE_APPROXIMATION,
+        config.SYSTEM_PARTITION_TYPE,
         config.REPERTOIRE_DISTANCE,
         config.PRECISION,
         config.VALIDATE_SUBSYSTEM_STATES,

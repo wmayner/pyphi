@@ -11,9 +11,12 @@ from itertools import chain, permutations, product
 import numpy as np
 
 from . import config
+from .direction import Direction
 from .cache import cache
 from .models.cuts import (
     Bipartition,
+    Cut,
+    SystemPartition,
     KPartition,
     Part,
     RelationPart,
@@ -373,6 +376,10 @@ def k_partitions(collection, k):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+# Distinction partitions
+# ~~~~~~~~~~~~~~~~~~~~~~
+
+
 class PartitionRegistry(Registry):
     """Storage for partition schemes registered with PyPhi.
 
@@ -386,14 +393,10 @@ class PartitionRegistry(Registry):
     And use them by setting ``config.PARTITION_TYPE = 'NONE'``
     """
 
-    desc = "partitions"
+    desc = "distinction partitions"
 
 
 partition_types = PartitionRegistry()
-
-
-# Distinction partitions
-# ~~~~~~~~~~~~~~~~~~~~~~
 
 
 def mip_partitions(mechanism, purview, node_labels=None):
@@ -591,6 +594,7 @@ def complete_partition(mechanism, purview):
 
 relation_partition_types = PartitionRegistry()
 
+
 @relation_partition_types.register("TRI")
 def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
     overlap_partitions = wedge_partitions(
@@ -620,7 +624,7 @@ class AggregationRegistry(Registry):
     Users can define custom aggregations:
 
     Examples:
-        >>> @relation_partition_types.register('ZEROS')  # doctest: +SKIP
+        >>> @relation_partition_aggregations.register('ZEROS')  # doctest: +SKIP
         ... def all_zeros(specified):
         ...    return np.zeros(specified.shape[1:])
 
@@ -635,3 +639,84 @@ relation_partition_aggregations = AggregationRegistry()
 
 summation = relation_partition_aggregations.register("SUM")(np.sum)
 minimum = relation_partition_aggregations.register("MIN")(np.min)
+
+
+# System partitions
+# ~~~~~~~~~~~~~~~~~
+
+
+class SystemPartitionRegistry(Registry):
+    """Storage for system partition schemes registered with PyPhi.
+
+    Users can define custom partitions:
+
+    Examples:
+        >>> @system_partition_types.register('NONE')  # doctest: +SKIP
+        ... def no_partitions(mechanism, purview):
+        ...    return []
+
+    And use them by setting ``config.SYSTEM_PARTITION_TYPE = 'NONE'``
+    """
+
+    desc = "system partitions"
+
+
+system_partition_types = SystemPartitionRegistry()
+
+
+# TODO(4.0) consolidate Cut and SystemPartition logic
+
+
+def _bipartitions_to_cuts(func):
+    """Decorator to return equivalent Cut objects from a set of bipartitions."""
+
+    def wrapper(*args, node_labels=None, **kwargs):
+        bipartitions = func(*args, **kwargs)
+        return [
+            Cut(bipartition[0], bipartition[1], node_labels=node_labels)
+            for bipartition in bipartitions
+        ]
+
+    return wrapper
+
+
+@system_partition_types.register("DIRECTED_BI")
+@_bipartitions_to_cuts
+def system_directed_bipartitions(nodes):
+    # Don't consider trivial partitions where one part is empty
+    return directed_bipartition(nodes, nontrivial=True)
+
+
+@system_partition_types.register("DIRECTED_BI_CUT_ONE")
+@_bipartitions_to_cuts
+def system_directed_bipartitions_cut_one(nodes):
+    return directed_bipartition_of_one(nodes)
+
+
+def _bipartitions_to_temporal_system_partitions(func):
+    """Decorator to return temporally-directed SystemPartition objects from a set of bipartitions."""
+
+    def wrapper(*args, node_labels=None, **kwargs):
+        for bipartition in func(*args, **kwargs):
+            for direction in Direction.both():
+                yield SystemPartition(
+                    direction,
+                    bipartition[0],
+                    bipartition[1],
+                    node_labels=node_labels,
+                )
+
+    return wrapper
+
+
+@system_partition_types.register("TEMPORAL_DIRECTED_BI")
+@_bipartitions_to_temporal_system_partitions
+def system_temporal_directed_bipartitions(nodes):
+    # Don't consider trivial partitions where one part is empty
+    return directed_bipartition(nodes, nontrivial=True)
+
+
+@system_partition_types.register("TEMPORAL_DIRECTED_BI_CUT_ONE")
+@_bipartitions_to_temporal_system_partitions
+def system_temporal_directed_bipartitions_cut_one(nodes):
+    return directed_bipartition_of_one(nodes)

@@ -11,26 +11,21 @@ IIT_VERSION: "maximal-state-first"
 # happen can increase performance significantly, however the obtained results
 # are not strictly accurate.
 ASSUME_CUTS_CANNOT_CREATE_NEW_CONCEPTS: false
-# When determining the MIP for Φ, this restricts the set of system cuts that
-# are considered to only those that cut the inputs or outputs of a single node.
-# This restricted set of cuts scales linearly with the size of the system; the
-# full set of all possible bipartitions scales exponentially. This
-# approximation is more likely to give theoretically accurate results with
-# modular, sparsely-connected, or homogeneous networks.
-CUT_ONE_APPROXIMATION: false
 # The measure to use when computing phi ("EMD", "KLD", "L1", ...)
 REPERTOIRE_DISTANCE: "IIT_4.0_SMALL_PHI"
 # The measure to use when computing big-phi.
 CES_DISTANCE: "SUM_SMALL_PHI"
 # The measure to use when computing actual causation alpha values.
 ACTUAL_CAUSATION_MEASURE: "PMI"
-# Controls the number of parts in a partition.
+# Controls the partitioning scheme for distinctions.
 PARTITION_TYPE: "TRI"
-# Controls the partition scheme used for relations.
+# Controls the partitioning scheme for relations.
 RELATION_PARTITION_TYPE: "TRI"
 # Controls the way in which distinction-relative differences are combined to
 # obtain a relation phi value.
 RELATION_PARTITION_AGGREGATION: "SUM"
+# Controls the partitioning scheme for the system.
+SYSTEM_PARTITION_TYPE: "TEMPORAL_DIRECTED_BI_CUT_ONE"
 # Controls how to resolve phi-ties when computing MICE.
 PICK_SMALLEST_PURVIEW: false
 # The type of system cuts to use

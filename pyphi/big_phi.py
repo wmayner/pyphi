@@ -18,11 +18,11 @@ from pyphi import utils
 from pyphi.cache import cache
 from pyphi.models import cmp
 from pyphi.models.cuts import SystemPartition, CompleteSystemPartition
+from pyphi.partition import system_partition_types
 from pyphi.subsystem import Subsystem
 
 from . import config
 from .compute.parallel import as_completed, init
-from .compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
 from .direction import Direction
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from .relations import Relation, Relations
@@ -73,17 +73,19 @@ def unaffected_relations(ces, relations):
     )
 
 
-def sia_partitions(node_indices, node_labels):
+def sia_partitions(node_indices, node_labels=None):
     """Yield all system partitions."""
-    # TODO(4.0) configure
-    for partition in directionless_sia_bipartitions(node_indices, node_labels):
-        for direction in Direction.both():
-            yield SystemPartition(
-                direction,
-                partition.from_nodes,
-                partition.to_nodes,
-                node_labels=partition.node_labels,
-            )
+    # TODO(4.0) consolidate 3.0 and 4.0 cuts
+    scheme = config.SYSTEM_PARTITION_TYPE
+    valid = ["TEMPORAL_DIRECTED_BI", "TEMPORAL_DIRECTED_BI_CUT_ONE"]
+    if scheme not in valid:
+        raise ValueError(
+            "IIT 4.0 calculations must use one of the following system"
+            f"partition schemes: {valid}; got {scheme}"
+        )
+    return system_partition_types[config.SYSTEM_PARTITION_TYPE](
+        node_indices, node_labels=node_labels
+    )
 
 
 @cache(cache={}, maxmem=None)
