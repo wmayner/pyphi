@@ -13,7 +13,7 @@ from toolz import concat, curry
 from tqdm.auto import tqdm
 
 from pyphi.compute.parallel import get_num_processes
-from pyphi.partition import relation_partition_types
+from pyphi.partition import relation_partition_types, relation_partition_aggregations
 
 from . import config, validate
 from .combinatorics import combinations_with_nonempty_intersection
@@ -307,11 +307,11 @@ class Relata(HashableOrderedSet):
     """A set of potentially-related causes/effects."""
 
     def __init__(self, subsystem, relata):
-        validate.relata(relata)
         self._subsystem = subsystem
         self._overlap = None
         self._congruent_overlap = None
         super().__init__(relata)
+        validate.relata(self)
 
     @property
     def subsystem(self):
@@ -341,7 +341,7 @@ class Relata(HashableOrderedSet):
         return (relatum.specified_state for relatum in self)
 
     def __repr__(self):
-        return f"Relata(mechanisms={list(self.mechanisms)}, purviews={list(self.purviews)})"
+        return "Relata({" + ", ".join(map(fmt.fmt_relatum, self)) + "})"
 
     # TODO(4.0) pickle relations indirectly
     def __getstate__(self):
@@ -458,6 +458,20 @@ class Relata(HashableOrderedSet):
         specified = np.max(specified, axis=non_joint_purview_elements, keepdims=True)
         return specified
 
+    def combine_distinction_relative_differences(self, specified):
+        """Return the aggregate phi value over a set of specifications.
+
+        A RelationPartition implies a distinction-relative partition for each
+        distinction in the relata; this function combines the
+        partitioned-unpartitioned differences across all distinctions into a phi
+        value for the relation.
+
+        Controlled by the RELATION_PARTITION_AGGREGATION configuration option.
+        """
+        return relation_partition_aggregations[config.RELATION_PARTITION_AGGREGATION](
+            specified, axis=0
+        )
+
     def evaluate_partition(self, partition):
         specified = np.stack(
             [
@@ -465,10 +479,10 @@ class Relata(HashableOrderedSet):
                 for i in range(len(self))
             ]
         )
-        # Sum across relata; any non-specified states will propagate -np.inf
-        # through the sum, leaving only tied congruent states
+        # Aggregate across relata; any non-specified states will propagate
+        # -np.inf through the aggregation, leaving only tied congruent states
         # Then we take the max across tied congruent states
-        return np.max(specified.sum(axis=0))
+        return np.max(self.combine_distinction_relative_differences(specified))
 
     # TODO: do we care about ties here?
     # 2019-05-30: no, according to andrew

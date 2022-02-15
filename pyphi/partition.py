@@ -8,15 +8,17 @@ Functions for generating partitions.
 
 from itertools import chain, permutations, product
 
+import numpy as np
+
 from . import config
 from .cache import cache
 from .models.cuts import (
     Bipartition,
     KPartition,
     Part,
-    Tripartition,
     RelationPart,
     RelationPartition,
+    Tripartition,
 )
 from .registry import Registry
 
@@ -589,7 +591,6 @@ def complete_partition(mechanism, purview):
 
 relation_partition_types = PartitionRegistry()
 
-
 @relation_partition_types.register("TRI")
 def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
     overlap_partitions = wedge_partitions(
@@ -611,3 +612,26 @@ def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
         )
         for partition in overlap_partitions
     )
+
+
+class AggregationRegistry(Registry):
+    """Storage for relation partition aggregation schemes registered with PyPhi.
+
+    Users can define custom aggregations:
+
+    Examples:
+        >>> @relation_partition_types.register('ZEROS')  # doctest: +SKIP
+        ... def all_zeros(specified):
+        ...    return np.zeros(specified.shape[1:])
+
+    And use them by setting ``config.RELATION_PARTITION_AGGREGATION = 'NONE'``
+    """
+
+    desc = "partition aggregations"
+
+
+relation_partition_aggregations = AggregationRegistry()
+
+
+summation = relation_partition_aggregations.register("SUM")(np.sum)
+minimum = relation_partition_aggregations.register("MIN")(np.min)

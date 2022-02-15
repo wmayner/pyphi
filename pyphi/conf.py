@@ -822,6 +822,17 @@ class PyphiConfig(Config):
     """,
     )
 
+    RELATION_PARTITION_AGGREGATION = Option(
+        "SUM",
+        doc="""
+    Controls the how distinction-relative partitions are aggregated to determine
+    the |small_phi| of a relation.
+
+    You can configure custom partitioning schemes using the
+    ``pyphi.partition.relation_partition_aggregations.register`` decorator.
+    """,
+    )
+
     PICK_SMALLEST_PURVIEW = Option(
         False,
         type=bool,

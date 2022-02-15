@@ -11,6 +11,7 @@ import numpy as np
 from . import config, convert, exceptions
 from .direction import Direction
 from .tpm import is_state_by_state
+from .models.mechanism import MaximallyIrreducibleCauseOrEffect
 
 # pylint: disable=redefined-outer-name
 
@@ -279,4 +280,8 @@ def blackbox_and_coarse_grain(blackbox, coarse_grain):
 def relata(relata):
     """Validate a set of relata."""
     if not relata:
-        raise ValueError("Relata cannot be empty.")
+        raise ValueError("relata cannot be empty")
+    if not all(
+        isinstance(relatum, MaximallyIrreducibleCauseOrEffect) for relatum in relata
+    ):
+        raise ValueError("relata must be an iterable of MICEs")
