@@ -201,6 +201,34 @@ class Cut(_CutBase):
         """Return a Cut object from a JSON-serializable representation."""
         return cls(data["from_nodes"], data["to_nodes"])
 
+class SystemPartition(Cut):
+    """A system partition.
+
+    Same as a IIT 3.0 unidirectional partition, but with a Direction.
+    """
+
+    def __init__(self, direction, *args, **kwargs):
+        self.direction = direction
+        super().__init__(*args, **kwargs)
+
+    def __repr__(self):
+        return fmt.fmt_cut(self) + f" ({str(self.direction)[0]})"
+
+    def to_json(self):
+        return {
+            "direction": self.direction,
+            **super().to_json(),
+        }
+
+    @classmethod
+    def from_json(cls, data):
+        """Return a SystemPartition object from a JSON-serializable representation."""
+        return cls(data["direction"], data["from_nodes"], data["to_nodes"])
+
+
+class CompleteSystemPartition:
+    """Represents the SystemPartition that destroys all distinctions & relations."""
+
 
 class KCut(_CutBase):
     """A cut that severs all connections between parts of a K-partition."""

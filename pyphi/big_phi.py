@@ -17,49 +17,19 @@ from tqdm.auto import tqdm
 from pyphi import utils
 from pyphi.cache import cache
 from pyphi.models import cmp
-from pyphi.models.cuts import Cut
+from pyphi.models.cuts import SystemPartition, CompleteSystemPartition
 from pyphi.subsystem import Subsystem
 
 from . import config
 from .compute.parallel import as_completed, init
 from .compute.subsystem import sia_bipartitions as directionless_sia_bipartitions
 from .direction import Direction
-from .models import fmt
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
 from .relations import Relation, Relations
 from .utils import extremum_with_short_circuit
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
-
-
-class SystemPartition(Cut):
-    """A system partition.
-
-    Same as a IIT 3.0 unidirectional partition, but with a Direction.
-    """
-
-    def __init__(self, direction, *args, **kwargs):
-        self.direction = direction
-        super().__init__(*args, **kwargs)
-
-    def __repr__(self):
-        return fmt.fmt_cut(self) + f" ({str(self.direction)[0]})"
-
-    def to_json(self):
-        return {
-            "direction": self.direction,
-            **super().to_json(),
-        }
-
-    @classmethod
-    def from_json(cls, data):
-        """Return a SystemPartition object from a JSON-serializable representation."""
-        return cls(data["direction"], data["from_nodes"], data["to_nodes"])
-
-
-class CompleteSystemPartition:
-    """Represents the SystemPartition that destroys all distinctions & relations."""
 
 
 def is_affected_by_partition(distinction, partition):
