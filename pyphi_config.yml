@@ -26,7 +26,10 @@ CES_DISTANCE: "SUM_SMALL_PHI"
 ACTUAL_CAUSATION_MEASURE: "PMI"
 # Controls the number of parts in a partition.
 PARTITION_TYPE: "TRI"
+# Controls the partition scheme used for relations.
 RELATION_PARTITION_TYPE: "TRI"
+# Controls the way in which distinction-relative differences are combined to
+# obtain a relation phi value.
 RELATION_PARTITION_AGGREGATION: "SUM"
 # Controls how to resolve phi-ties when computing MICE.
 PICK_SMALLEST_PURVIEW: false
