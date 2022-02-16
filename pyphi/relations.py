@@ -23,6 +23,50 @@ from .models import cmp, fmt
 from .models.cuts import RelationPartition
 from .models.subsystem import FlatCauseEffectStructure
 from .utils import eq, powerset
+from .registry import Registry
+
+
+class PotentialPurviewRegistry(Registry):
+    """Storage for potential purview schemes registered with PyPhi.
+
+    Users can define custom functions to determine the set of potential purviews
+    for a relation:
+
+    Examples:
+        >>> @relation_potential_purviews.register('NONE')  # doctest: +SKIP
+        ... def no_purviews(congruent_overlap):
+        ...    return []
+
+    And use them by setting ``config.RELATION_POTENTIAL_PURVIEWS = 'NONE'``
+    """
+
+    desc = "potential relation purviews"
+
+
+relation_potential_purviews = PotentialPurviewRegistry()
+
+
+@relation_potential_purviews.register("ALL")
+def all_subsets(congruent_overlap):
+    """Return all subsets of the congruent overlap.
+
+    If there are multiple congruent overlaps because of ties, it is the union of
+    the powerset of each.
+    """
+    return set(
+        concat(powerset(overlap, nonempty=True) for overlap in congruent_overlap)
+    )
+
+
+@relation_potential_purviews.register("WHOLE")
+def whole_overlap(congruent_overlap):
+    """Return only the congruent overlap.
+
+    If there are multiple congruent overlaps because of ties, it is the union of
+    all of them.
+    """
+    return set(map(tuple, congruent_overlap))
+
 
 # TODO there should be an option to resolve ties at different levels
 
@@ -415,15 +459,11 @@ class Relata(HashableOrderedSet):
     def possible_purviews(self):
         """Return all possible purviews.
 
-        This is the powerset of the congruent overlap. If there are multiple
-        congruent overlaps because of ties, it is the union of the powerset of
-        each.
+        Controlled by the RELATION_POTENTIAL_PURVIEWS configuration option.
         """
         # TODO note: ties are included here
-        return set(
-            concat(
-                powerset(overlap, nonempty=True) for overlap in self.congruent_overlap
-            )
+        return relation_potential_purviews[config.RELATION_POTENTIAL_PURVIEWS](
+            self.congruent_overlap
         )
 
     def evaluate_partition_for_relatum(self, i, partition):

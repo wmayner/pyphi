@@ -60,6 +60,7 @@ These settings control the algorithms PyPhi uses.
 - :attr:`~pyphi.conf.PyphiConfig.RELATION_PARTITION_TYPE`
 - :attr:`~pyphi.conf.PyphiConfig.RELATION_PARTITION_AGGREGATION`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_PARTITION_TYPE`
+- :attr:`~pyphi.conf.PyphiConfig.RELATION_POTENTIAL_PURVIEWS`
 - :attr:`~pyphi.conf.PyphiConfig.PICK_SMALLEST_PURVIEW`
 - :attr:`~pyphi.conf.PyphiConfig.SYSTEM_CUTS`
 - :attr:`~pyphi.conf.PyphiConfig.SINGLE_MICRO_NODES_WITH_SELFLOOPS_HAVE_PHI`
@@ -829,6 +830,14 @@ class PyphiConfig(Config):
         "TEMPORAL_DIRECTED_BI",
         doc="""
     Controls the system partitioning scheme.
+    """,
+    )
+
+    RELATION_POTENTIAL_PURVIEWS = Option(
+        "ALL",
+        doc="""
+    Controls the set of possible purviews for a relation as a function of the
+    congruent overlap.
     """,
     )
 
