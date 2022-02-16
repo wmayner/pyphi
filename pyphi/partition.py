@@ -621,7 +621,7 @@ def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
 @relation_partition_types.register("BI_CUT_ONE")
 def relation_bipartitions_of_one(relata, candidate_joint_purview, node_labels=None):
     mechanism_partitions = bipartition_of_one(range(len(relata)))
-    purview_partitions = cycle([[], candidate_joint_purview])
+    purview_partitions = cycle([((), candidate_joint_purview)])
     for mechanism_parts, purview_parts in zip(mechanism_partitions, purview_partitions):
         yield RelationPartition(
             relata,
