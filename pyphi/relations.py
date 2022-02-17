@@ -606,9 +606,9 @@ def relation(relata):
 def all_relata(subsystem, ces, min_degree=2, max_degree=None):
     """Return all relata in the CES, even if they have no ovelap."""
     if min_degree < 2:
-        # Relations are necessarily order 2 or higher
-        min_order = 2
-    for subset in powerset(ces, min_size=min_order, max_size=max_degree):
+        # Relations are necessarily degree 2 or higher
+        min_degree = 2
+    for subset in powerset(ces, min_size=min_degree, max_size=max_degree):
         yield Relata(subsystem, subset)
 
 
