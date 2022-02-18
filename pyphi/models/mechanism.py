@@ -6,7 +6,7 @@
 
 import numpy as np
 
-from .. import config, connectivity, utils
+from .. import config, connectivity, utils, validate
 from ..direction import Direction
 from ..exceptions import WrongDirectionError
 from ..metrics import distribution
@@ -477,6 +477,14 @@ class Concept(cmp.Orderable):
         and |MIE|.
         """
         return min(self.cause.phi, self.effect.phi)
+
+    # TODO(4.0) rename?
+    def mice(self, direction):
+        if direction is Direction.CAUSE:
+            return self.cause
+        if direction is Direction.EFFECT:
+            return self.effect
+        validate.direction(direction)
 
     @property
     def cause_purview(self):
