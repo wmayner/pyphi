@@ -132,9 +132,6 @@ def _requires_relations(func):
         # Filter relations if flag is set
         if self.requires_filter:
             self.filter_relations()
-        # Realize relations if they're a generator
-        if isinstance(self.relations, Generator):
-            self.relations = Relations(self.relations)
         return func(self, *args, **kwargs)
 
     return wrapper
