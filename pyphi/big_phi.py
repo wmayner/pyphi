@@ -143,11 +143,17 @@ def _requires_relations(func):
 class PhiStructure(cmp.Orderable):
     def __init__(self, distinctions, relations, requires_filter=False):
         if not isinstance(distinctions, CauseEffectStructure):
-            raise ValueError("distinctions must be a CauseEffectStructure")
+            raise ValueError(
+                f"distinctions must be a CauseEffectStructure, got {type(distinctions)}"
+            )
         if not distinctions.subsystem:
             raise ValueError("CauseEffectStructure must have the `subsystem` attribute")
         if isinstance(distinctions, FlatCauseEffectStructure):
             distinctions = distinctions.unflatten()
+        if not isinstance(relations, Relations):
+            raise ValueError(
+                f"relations must be a Relations object; got {type(relations)}"
+            )
         self.requires_filter = requires_filter
         self.distinctions = distinctions
         self.relations = relations
