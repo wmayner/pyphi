@@ -5,6 +5,7 @@
 """Functions for computing relations between concepts."""
 
 import operator
+import random
 from itertools import product
 
 import numpy as np
@@ -13,17 +14,18 @@ from toolz import concat, curry
 from tqdm.auto import tqdm
 
 from pyphi.compute.parallel import get_num_processes
-from pyphi.partition import relation_partition_types, relation_partition_aggregations
+from pyphi.partition import relation_partition_aggregations, relation_partition_types
 
 from . import config, validate
 from .combinatorics import combinations_with_nonempty_intersection
 from .data_structures import HashableOrderedSet
+from .direction import Direction
 from .metrics.distribution import absolute_information_density
 from .models import cmp, fmt
 from .models.cuts import RelationPartition
 from .models.subsystem import FlatCauseEffectStructure
-from .utils import eq, powerset
 from .registry import Registry
+from .utils import eq, powerset
 
 
 class PotentialPurviewRegistry(Registry):
@@ -79,9 +81,7 @@ def whole_overlap(congruent_overlap):
 # - object encapsulating interface to pickled concepts from CHTC for matteo and andrew
 
 # TODO overhaul:
-# - use andrew's method for finding congruent overlap?
 # - memoize purview
-# - set semantics on relations
 # - think about whether we can just do the specification calculation once?
 # - and then the for_relatum information calculation?
 # - speed up hash and eq for MICE
@@ -89,12 +89,9 @@ def whole_overlap(congruent_overlap):
 # - check TODOs
 # - move stuff to combinatorics
 # - jsonify cases
-# - improve implementation of congruent overlap using andrew's method?
 # - NodeLabels on RIA?
 # - make all cut.mechanism and .purviews sets, throughout
 # - fix __str__ of RelationPartition
-
-# TODO IMPORTANT: compositional state
 
 
 @curry
@@ -346,7 +343,6 @@ class Relation(cmp.Orderable):
         )
 
 
-# TODO subclass set?
 class Relata(HashableOrderedSet):
     """A set of potentially-related causes/effects."""
 
@@ -576,25 +572,6 @@ class Relata(HashableOrderedSet):
         return Relation.union(tied_relations)
 
 
-class Relations(HashableOrderedSet):
-    """A set of relations."""
-
-    @property
-    def mechanisms(self):
-        for relation in self:
-            yield relation.mechanisms
-
-    @property
-    def purviews(self):
-        for relation in self:
-            yield relation.purviews
-
-    @property
-    def phis(self):
-        for relation in self:
-            yield relation.phi
-
-
 def relation(relata):
     """Return the maximally irreducible relation among the given relata.
 
@@ -644,6 +621,226 @@ def all_relations(
     return map(relation, relata)
 
 
-def relations(subsystem, ces, **kwargs):
+class Relations:
+    """A collection of relations."""
+
+    def _sum_phi(self):
+        raise NotImplementedError
+
+    def sum_phi(self):
+        """The sum of small phi of these relations."""
+        if not getattr(self, "_sum_phi_cached", False):
+            self._sum_phi_cached = self._sum_phi()
+        return self._sum_phi_cached
+
+    def supported_by(self):
+        """Return only relations that are supported by the given CES."""
+        raise NotImplementedError
+
+
+class ConcreteRelations(HashableOrderedSet, Relations):
+    """A concrete set of relations."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @property
+    def mechanisms(self):
+        for relation in self:
+            yield relation.mechanisms
+
+    @property
+    def purviews(self):
+        for relation in self:
+            yield relation.purviews
+
+    @property
+    def phis(self):
+        for relation in self:
+            yield relation.phi
+
+    def _sum_phi(self):
+        return sum(self.phis)
+
+    def supported_by(self, distinctions):
+        # Special case for empty distinctions, for speed
+        if not distinctions:
+            relations = []
+        else:
+            # TODO use lattice data structure for efficiently finding the union of
+            # the lower sets of lost distinctions
+            relations = [
+                relation
+                for relation in self
+                if all(
+                    distinction in FlatCauseEffectStructure(distinctions)
+                    for distinction in relation.relata
+                )
+            ]
+        return type(self)(relations)
+
+
+class RelationApproximationRegistry(Registry):
+    """Storage for approximations of the sum of relation phis.
+
+    Users can define custom schemes:
+
+    Examples:
+        >>> @relation_approximations.register('NONE')  # doctest: +SKIP
+        ... class NoRelations(ApproximateRelations):
+        ...     def _sum_phi(self):
+        ...         return 0
+
+    And use them by setting ``config.RELATION_SUM_PHI_APPROXIMATION = 'NONE'``
+    """
+
+    desc = "approximations of relations"
+
+
+relation_approximations = RelationApproximationRegistry()
+
+
+class ApproximateRelations(Relations):
+    def __init__(self, distinctions):
+        self.distinctions = distinctions
+
+    def supported_by(self, distinctions):
+        return type(self)(distinctions)
+
+
+@relation_approximations.register("ANALYTICAL_DEGREE_ALL")
+class AnalyticalRelations(ApproximateRelations):
+    DEGREE = None
+
+    @property
+    def purview_inclusion(self):
+        return self.distinctions.purview_inclusion(degree=self.DEGREE)
+
+    def mean_phi(self):
+        """This approximation assumes all relation |small_phi| = 1."""
+        return 1.0
+
+    def _sum_phi(self):
+        # Keiko's approximate formula
+        # Assumes:
+        #   - small phi = 1 for all relations
+        #   - all overlaps are congruent
+        return self.mean_phi() * sum(
+            (-1) ** (len(subset) - 1) * (2 ** num_purviews)
+            for subset, num_purviews in self.purview_inclusion.items()
+        )
+
+
+@relation_approximations.register("ANALYTICAL_DEGREE_ONE")
+class AnalyticalRelationsDegreeOne(AnalyticalRelations):
+    DEGREE = 1
+
+
+@relation_approximations.register("SAMPLED_DEGREE_ALL")
+class SampledRelations(AnalyticalRelations):
+    """Use the analytical approximations, but weight by the average phi of a set
+    of sampled relations which are computed exactly.
+    """
+
+    DEGREE = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._sample = None
+        self._max_degree = None
+
+    @property
+    def max_degree(self):
+        if self._max_degree is None:
+            self._max_degree = max(self.purview_inclusion.values())
+        return self._max_degree
+
+    def draw_sample(self, potential_relata, target_degree):
+        relata = []
+        overlap = set(self.distinctions.subsystem.node_indices)
+        for _ in range(target_degree):
+            if not potential_relata:
+                return None
+            choice = random.choice(potential_relata)
+            potential_relata.remove(choice)
+            overlap &= set(choice.purview)
+            relata.append(choice)
+            # Restrict potential purviews to those with nonempty overlap
+            potential_relata = [
+                distinction
+                for distinction in potential_relata
+                if overlap & set(distinction.purview)
+            ]
+        return Relata(
+            self.distinctions.subsystem, relata
+        ).maximally_irreducible_relation()
+
+    def draw_samples(self, sample_size, target_degree):
+        if target_degree > self.max_degree:
+            raise ValueError(
+                f"target_degree = {target_degree} > max_degree = {self.max_degree}"
+            )
+        potential_relata = list(FlatCauseEffectStructure(self.distinctions))
+        samples = []
+        while len(samples) < sample_size:
+            draw = self.draw_sample(potential_relata, target_degree)
+            if draw:
+                samples.append(draw)
+        return samples
+
+    def sample(self):
+        if self._sample is None:
+            # Most numerous order is ([max_degree] choose [max_degree // 2])
+            target_degree = self.max_degree // 2
+            self._sample = self.draw_samples(
+                config.RELATION_APPROXIMATION_SAMPLE_SIZE, target_degree
+            )
+        return self._sample
+
+    def mean_phi(self):
+        return np.mean([relation.phi for relation in self.sample()])
+
+
+@relation_approximations.register("SAMPLED_DEGREE_ONE")
+class SampledRelationsDegreeOne(SampledRelations):
+    DEGREE = 1
+
+
+class RelationComputationsRegistry(Registry):
+    """Storage for functions for computing relations.
+
+    Users can define custom schemes:
+
+    Examples:
+        >>> @relation_computations.register('NONE')  # doctest: +SKIP
+        ... def no_relations(subsystem, ces):
+        ...    return Relations([])
+
+    And use them by setting ``config.RELATION_COMPUTATIONS = 'NONE'``
+    """
+
+    desc = "approximations of sum of relation phi"
+
+
+relation_computations = RelationComputationsRegistry()
+
+
+@relation_computations.register("APPROXIMATE")
+def approximate_relations(subsystem, distinctions, **kwargs):
+    return relation_approximations[config.RELATION_APPROXIMATION](
+        distinctions.unflatten()
+    )
+
+
+@relation_computations.register("EXACT")
+def concrete_relations(subsystem, distinctions, **kwargs):
+    return ConcreteRelations(
+        filter(None, all_relations(subsystem, distinctions, **kwargs))
+    )
+
+
+def relations(subsystem, distinctions, **kwargs):
     """Return the irreducible relations among the causes/effects in the CES."""
-    return Relations(filter(None, all_relations(subsystem, ces, **kwargs)))
+    return relation_computations[config.RELATION_COMPUTATION](
+        subsystem, distinctions, **kwargs
+    )

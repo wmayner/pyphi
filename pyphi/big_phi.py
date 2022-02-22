@@ -6,7 +6,6 @@ import pickle
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import product
-from typing import Generator
 
 import ray
 import scipy
@@ -52,24 +51,8 @@ def unaffected_distinctions(ces, partition):
             distinction
             for distinction in ces
             if not is_affected_by_partition(distinction, partition)
-        ]
-    )
-
-
-def unaffected_relations(ces, relations):
-    """Yield relations that are supported by the given CES."""
-    # Special case for empty relations
-    if not ces:
-        return Relations([])
-    # TODO use lattice data structure for efficiently finding the union of the
-    # lower sets of lost distinctions
-    ces = FlatCauseEffectStructure(ces)
-    return Relations(
-        [
-            relation
-            for relation in relations
-            if all(distinction in ces for distinction in relation.relata)
-        ]
+        ],
+        subsystem=ces.subsystem,
     )
 
 
@@ -147,7 +130,7 @@ class PhiStructure(cmp.Orderable):
             raise ValueError("CauseEffectStructure must have the `subsystem` attribute")
         if isinstance(distinctions, FlatCauseEffectStructure):
             distinctions = distinctions.unflatten()
-        if not isinstance(relations, Relations):
+        if not isinstance(relations, (Relations, ray.ObjectRef)):
             raise ValueError(
                 f"relations must be a Relations object; got {type(relations)}"
             )
@@ -156,7 +139,6 @@ class PhiStructure(cmp.Orderable):
         self.relations = relations
         self._system_intrinsic_information = None
         self._sum_phi_distinctions = None
-        self._sum_phi_relations = None
         self._selectivity = None
         # TODO improve this
         self._substrate_size = len(distinctions.subsystem)
@@ -179,7 +161,7 @@ class PhiStructure(cmp.Orderable):
 
         Modifies the relations on this object in-place.
         """
-        self.relations = unaffected_relations(self.distinctions, self.relations)
+        self.relations = self.relations.supported_by(self.distinctions)
         self.requires_filter = False
 
     def sum_phi_distinctions(self):
@@ -189,9 +171,7 @@ class PhiStructure(cmp.Orderable):
 
     @_requires_relations
     def sum_phi_relations(self):
-        if self._sum_phi_relations is None:
-            self._sum_phi_relations = sum(self.relations.phis)
-        return self._sum_phi_relations
+        return self.relations.sum_phi()
 
     def selectivity(self):
         if self._selectivity is None:
@@ -273,7 +253,6 @@ class PartitionedPhiStructure(PhiStructure):
             "_system_intrinsic_information",
             "_substrate_size",
             "_sum_phi_distinctions",
-            "_sum_phi_relations",
             "_selectivity",
         ]:
             setattr(
@@ -316,8 +295,8 @@ class PartitionedPhiStructure(PhiStructure):
     @_requires_relations
     def partitioned_relations(self):
         if self._partitioned_relations is None:
-            self._partitioned_relations = unaffected_relations(
-                self.partitioned_distinctions(), self.relations
+            self._partitioned_relations = self.relations.supported_by(
+                self.partitioned_distinctions()
             )
         return self._partitioned_relations
 
@@ -330,7 +309,7 @@ class PartitionedPhiStructure(PhiStructure):
 
     def sum_phi_partitioned_relations(self):
         if self._sum_phi_partitioned_relations is None:
-            self._sum_phi_partitioned_relations = sum(self.partitioned_relations().phis)
+            self._sum_phi_partitioned_relations = self.partitioned_relations().sum_phi()
             # Remove reference to the (heavy and rather redundant) lists of
             # partitioned distinctions & relations under the assumption we won't
             # need them again, since most PartitionedPhiStructures will be used

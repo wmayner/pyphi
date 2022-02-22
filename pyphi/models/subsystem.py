@@ -6,6 +6,7 @@
 
 from collections import defaultdict
 from collections.abc import Sequence
+from itertools import combinations
 
 from toolz import concat
 
@@ -14,7 +15,6 @@ from pyphi.direction import Direction
 from .. import utils
 from . import cmp, fmt
 from .mechanism import Concept
-from pyphi.models import mechanism
 
 _sia_attributes = ["phi", "ces", "partitioned_ces", "subsystem", "cut_subsystem"]
 
@@ -33,6 +33,8 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         self.subsystem = subsystem
         self.time = time
         self._specifiers = None
+        self._purview_inclusion = defaultdict(lambda: 0)
+        self._purview_inclusion_max_order = 0
 
     def __len__(self):
         return len(self.concepts)
@@ -79,12 +81,33 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         for concept in self:
             yield concept.mechanism
 
+    def purviews(self, direction):
+        """Return the purview of each concept in the given direction."""
+        for concept in self:
+            yield concept.purview(direction)
+
     @property
     def labeled_mechanisms(self):
         """The labeled mechanism of each concept."""
         # TODO(4.0) remove dependence on subsystem
         label = self.subsystem.node_labels.indices2labels
         return tuple(list(label(mechanism)) for mechanism in self.mechanisms)
+
+    def purview_inclusion(self, degree=None):
+        """Map subsets of elements to the number of purviews that include that subset."""
+        # TODO(4.0) use lattice datastructure here?
+        if degree is None:
+            degree = len(self.subsystem)
+        degree = min(len(self.subsystem), degree)
+        if degree > self._purview_inclusion_max_order:
+            for k in range(self._purview_inclusion_max_order + 1, degree + 1):
+                for subset in combinations(self.subsystem.node_indices, k):
+                    for direction in Direction.both():
+                        for purview in self.purviews(direction):
+                            if set(subset).issubset(set(purview)):
+                                self._purview_inclusion[subset] += 1
+            self._purview_inclusion_max_order = degree
+        return self._purview_inclusion
 
 
 class FlatCauseEffectStructure(CauseEffectStructure):
@@ -150,6 +173,9 @@ class FlatCauseEffectStructure(CauseEffectStructure):
             subsystem=self.subsystem,
             time=self.time,
         )
+
+    def purview_occurences(self):
+        raise NotImplementedError
 
 
 class SystemIrreducibilityAnalysis(cmp.Orderable):

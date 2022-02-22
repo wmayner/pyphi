@@ -29,6 +29,14 @@ SYSTEM_PARTITION_TYPE: "TEMPORAL_DIRECTED_BI_CUT_ONE"
 # Controls the set of possible purviews for a relation.
 RELATION_POTENTIAL_PURVIEWS: "ALL"
 # Controls how to resolve phi-ties when computing MICE.
+RELATION_COMPUTATION: "EXACT"
+# Controls whether to approximate relations or compute them exactly.
+RELATION_APPROXIMATION: "ANALYTICAL_DEGREE_ONE"
+# Controls the approximation scheme used for relations. Only applies if
+# RELATION_COMPUTATION is set to "APPROXIMATE".
+RELATION_APPROXIMATION_SAMPLE_SIZE: 10
+# Controls the sample size for approximated relations. Only applies if
+# RELATION_APPROXIMATION implies a sampling approach.
 PICK_SMALLEST_PURVIEW: false
 # The type of system cuts to use
 SYSTEM_CUTS: "3.0_STYLE"
@@ -60,7 +68,7 @@ NUMBER_OF_CORES: -1
 MAXIMUM_CACHE_MEMORY_PERCENTAGE: 100
 # Arguments to `ray.init()`
 RAY_CONFIG:
-    address: "auto"
+  address: "auto"
 
 # Memoization and caching
 # ~~~~~~~~~~~~~~~~~~~~~~~
@@ -88,18 +96,18 @@ FS_CACHE_DIRECTORY: "__pyphi_cache__"
 # These are the settings for the MongoDB database used in the 'db' caching
 # backend.
 MONGODB_CONFIG:
-    host: "localhost"
-    port: 27017
-    database_name: "pyphi"
-    collection_name: "test"
+  host: "localhost"
+  port: 27017
+  database_name: "pyphi"
+  collection_name: "test"
 # Use a Redis server as a MICE cache
 REDIS_CACHE: false
 # Redis connection configuration
 REDIS_CONFIG:
-    host: "localhost"
-    port: 6379
-    db: 0
-    test_db: 1
+  host: "localhost"
+  port: 6379
+  db: 0
+  test_db: 1
 
 # Logging
 # ~~~~~~~

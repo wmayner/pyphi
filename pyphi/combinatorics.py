@@ -112,4 +112,4 @@ def combinations_with_nonempty_intersection(sets, min_size=0, max_size=None):
     implicit = combinations_with_nonempty_intersection_by_order(
         sets, min_size=min_size, max_size=max_size
     )
-    return list(chain.from_iterable(implicit.values()))
+    return chain.from_iterable(implicit.values())

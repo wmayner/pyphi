@@ -201,6 +201,7 @@ class Cut(_CutBase):
         """Return a Cut object from a JSON-serializable representation."""
         return cls(data["from_nodes"], data["to_nodes"])
 
+
 class SystemPartition(Cut):
     """A system partition.
 
@@ -458,6 +459,9 @@ class RelationPartition(Tripartition):
             self._purview = set(super().purview)
         return self._purview
 
+    # TODO(4.0) refactor to use relatum objects themselves, rather than indices
+    # - avoids need for O(1) integer indexing of OrderedSet; can replace with
+    #   simpler implementation, maybe just a >3.7 dict
     def for_relatum(self, i):
         """Return the implied `Tripartition` with respect to just a single mechanism.
 

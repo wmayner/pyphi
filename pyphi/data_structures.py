@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 # data_structures.py
 
-from collections.abc import Hashable
 from ordered_set import OrderedSet
 
 
-class HashableOrderedSet(Hashable, OrderedSet):
+class HashableOrderedSet(OrderedSet):
     """An OrderedSet that implements the hash method.
 
     For efficiency the hash is computed only once, when first called.
