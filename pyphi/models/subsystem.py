@@ -23,6 +23,11 @@ def _concept_sort_key(concept):
     return (len(concept.mechanism), concept.mechanism)
 
 
+# Need top-level named function for pickling
+def _zero():
+    return 0
+
+
 class CauseEffectStructure(cmp.Orderable, Sequence):
     """A collection of concepts."""
 
@@ -33,7 +38,7 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         self.subsystem = subsystem
         self.time = time
         self._specifiers = None
-        self._purview_inclusion = defaultdict(lambda: 0)
+        self._purview_inclusion = defaultdict(_zero)
         self._purview_inclusion_max_order = 0
 
     def __len__(self):
