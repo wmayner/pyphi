@@ -845,9 +845,9 @@ class PyphiConfig(Config):
         "EXACT",
         values=["APPROXIMATE", "EXACT"],
         doc="""
-    Controls how relations are compputed.
+    Controls how relations are computed.
 
-    You can configure custom relation-computation functions using the
+    You can configure custom relation computation functions using the
     ``pyphi.relations.relation_computations.register`` decorator.
     """,
     )
