@@ -19,7 +19,6 @@ from pyphi.partition import relation_partition_aggregations, relation_partition_
 from . import config, validate
 from .combinatorics import combinations_with_nonempty_intersection
 from .data_structures import HashableOrderedSet
-from .direction import Direction
 from .metrics.distribution import absolute_information_density
 from .models import cmp, fmt
 from .models.cuts import RelationPartition
