@@ -72,22 +72,31 @@ def sia_partitions(node_indices, node_labels=None):
 
 
 @cache(cache={}, maxmem=None)
-def number_of_possible_relations_with_overlap(n, k):
+def _f(n, k):
+    return (2 ** (2 ** (n - k + 1))) - (1 + 2 ** (n - k + 1))
+
+
+@cache(cache={}, maxmem=None)
+def number_of_possible_relations_of_order(n, k):
     """Return the number of possible relations with overlap of size k."""
-    return (
-        (-1) ** (k - 1)
-        * scipy.special.comb(n, k)
-        * (2 ** (2 ** (n - k + 1)) - 1 - 2 ** (n - k + 1))
+    # Alireza's generalization of Will's theorem
+    return scipy.special.comb(n, k) * sum(
+        ((-1) ** i * scipy.special.comb(n - k, i) * _f(n, k + i))
+        for i in range(n - k + 1)
     )
+
+
+@cache(cache={}, maxmem=None)
+def number_of_possible_relations(n):
+    """Return the total of possible relations of all orders."""
+    return sum(number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
 
 
 @cache(cache={}, maxmem=None)
 def optimum_sum_small_phi_relations(n):
     """Return the 'best possible' sum of small phi for relations."""
     # \sum_{k=1}^{n} (size of purview) * (number of relations with that purview size)
-    return sum(
-        k * number_of_possible_relations_with_overlap(n, k) for k in range(1, n + 1)
-    )
+    return sum(k * number_of_possible_relations_of_order(n, k) for k in range(1, n + 1))
 
 
 @cache(cache={}, maxmem=None)
