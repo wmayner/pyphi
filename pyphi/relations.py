@@ -842,5 +842,5 @@ def concrete_relations(subsystem, distinctions, **kwargs):
 def relations(subsystem, distinctions, **kwargs):
     """Return the irreducible relations among the causes/effects in the CES."""
     return relation_computations[config.RELATION_COMPUTATION](
-        subsystem, distinctions, **kwargs
+        subsystem, FlatCauseEffectStructure(distinctions), **kwargs
     )
