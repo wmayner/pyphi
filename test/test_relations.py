@@ -121,6 +121,7 @@ NETWORKS = ["grid3", "basic", "pqr", "xor", "rule110", "fig4", "fig5a", "fig5b"]
     PARALLEL_CONCEPT_EVALUATION=False,
     PARALLEL_CUT_EVALUATION=False,
     PARALLEL_COMPLEX_EVALUATION=False,
+    RELATION_ALLOW_DUPLICATE_PURVIEWS=True,
 )
 def test_maximally_irreducible_relation(case_name):
     with open(f"test/data/relations/relations_{case_name}.json", mode="rt") as f:
@@ -137,6 +138,7 @@ def test_maximally_irreducible_relation(case_name):
     PARALLEL_CONCEPT_EVALUATION=False,
     PARALLEL_CUT_EVALUATION=False,
     PARALLEL_COMPLEX_EVALUATION=False,
+    RELATION_ALLOW_DUPLICATE_PURVIEWS=True,
 )
 def test_all_relations(case_name):
     with open(f"test/data/relations/ces_{case_name}.json", mode="rt") as f:

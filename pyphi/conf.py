@@ -878,6 +878,15 @@ class PyphiConfig(Config):
     """,
     )
 
+    RELATION_ALLOW_DUPLICATE_PURVIEWS = Option(
+        False,
+        type=bool,
+        doc="""
+    Controls whether to short-circuit when attempting to compute relation among
+    relata that contain duplicate purviews.
+    """,
+    )
+
     PICK_SMALLEST_PURVIEW = Option(
         False,
         type=bool,

@@ -25,6 +25,15 @@ from .models.cuts import RelationPartition
 from .models.subsystem import FlatCauseEffectStructure
 from .registry import Registry
 from .utils import eq, powerset
+from enum import unique, auto, Enum
+
+
+@unique
+class ShortCircuitConditions(Enum):
+    EMPTY_OVERLAP = auto()
+    RELATA_IS_SINGLETON = auto()
+    RELATA_CONTAINS_DUPLICATE_PURVIEWS = auto()
+    NO_POSSIBLE_PURVIEWS = auto()
 
 
 class PotentialPurviewRegistry(Registry):
@@ -263,7 +272,7 @@ class Relation(cmp.Orderable):
         return [relatum.mechanism for relatum in self.relata]
 
     def __repr__(self):
-        return f"Relation(relata={self.relata}, purview={self.purview}, phi={self.phi})"
+        return f"{type(self).__name__}(relata={self.relata}, purview={self.purview}, phi={self.phi})"
 
     def __str__(self):
         return repr(self)
@@ -342,6 +351,21 @@ class Relation(cmp.Orderable):
         )
 
 
+class NullRelation(Relation):
+    """A zero-phi relation that was returned early because of a short-circuit
+    condition.
+
+    The condition is listed in the ``reason`` attribute.
+    """
+
+    def __init__(self, reason, *args, **kwargs):
+        self.reason = reason
+        super().__init__(*args, **kwargs)
+
+    def __repr__(self):
+        return super().__repr__()[:-1] + f", reason={self.reason.name})"
+
+
 class Relata(HashableOrderedSet):
     """A set of potentially-related causes/effects."""
 
@@ -349,6 +373,7 @@ class Relata(HashableOrderedSet):
         self._subsystem = subsystem
         self._overlap = None
         self._congruent_overlap = None
+        self._contains_duplicate_purviews_cached = None
         super().__init__(relata)
         validate.relata(self)
 
@@ -421,11 +446,11 @@ class Relata(HashableOrderedSet):
             self._overlap = set.intersection(*map(set, self.purviews))
         return self._overlap
 
-    def null_relation(self, purview=None, phi=0.0, partition=None):
+    def null_relation(self, reason, purview=None, phi=0.0, partition=None):
         # TODO(4.0): set default for partition to be the null partition
         if purview is None:
             purview = frozenset()
-        return Relation(self, purview, phi, partition)
+        return NullRelation(reason, self, purview, phi, partition)
 
     # TODO(4.0) allow indexing directly into relation?
     # TODO(4.0) make a property for the maximal state of the purview only
@@ -529,7 +554,11 @@ class Relata(HashableOrderedSet):
                 the overlap).
         """
         if not self.overlap:
-            return self.null_relation(purview=candidate_joint_purview, phi=0)
+            return self.null_relation(
+                reason=ShortCircuitConditions.EMPTY_OVERLAP,
+                purview=candidate_joint_purview,
+                phi=0,
+            )
         _partitions = list(
             partitions(
                 self, candidate_joint_purview, node_labels=self.subsystem.node_labels
@@ -545,6 +574,24 @@ class Relata(HashableOrderedSet):
             for partition in _partitions
         )
 
+    def _contains_duplicate_purviews(self):
+        seen = set()
+        for relatum in self:
+            purview = (relatum.direction, relatum.purview)
+            if purview in seen:
+                return True
+            seen.add(purview)
+        return False
+
+    @property
+    def contains_duplicate_purviews(self):
+        """Return whether there are duplicate purviews (in the same direction)."""
+        if self._contains_duplicate_purviews_cached is None:
+            self._contains_duplicate_purviews_cached = (
+                self._contains_duplicate_purviews()
+            )
+        return self._contains_duplicate_purviews_cached
+
     def maximally_irreducible_relation(self):
         """Return the maximally-irreducible relation among these relata.
 
@@ -555,18 +602,38 @@ class Relata(HashableOrderedSet):
             Relation: the maximally irreducible relation among these relata,
             with any tied purviews recorded.
         """
+        # Short-circuit conditions
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Singletons cannot have relations
         if len(self) == 1:
-            # Singletons cannot have relations
-            return self.null_relation()
+            return self.null_relation(
+                reason=ShortCircuitConditions.RELATA_IS_SINGLETON,
+            )
+        # Because of the constraint that there are no duplicate purviews in a
+        # compositional state, relations among relata with duplicate purviews
+        # never occur. This is the default setting, but the user can change this
+        # to investigate relations in that case if desired.
+        if (
+            not config.RELATION_ALLOW_DUPLICATE_PURVIEWS
+            and self.contains_duplicate_purviews
+        ):
+            return self.null_relation(
+                reason=ShortCircuitConditions.RELATA_CONTAINS_DUPLICATE_PURVIEWS,
+            )
+        # There must be at least one possible purview
+        possible_purviews = self.possible_purviews()
+        if not possible_purviews:
+            return self.null_relation(
+                reason=ShortCircuitConditions.NO_POSSIBLE_PURVIEWS,
+            )
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Find maximal relations
         tied_relations = all_maxima(
             concat(
                 self.minimum_information_relation(purview)
-                for purview in self.possible_purviews()
+                for purview in possible_purviews
             )
         )
-        if not tied_relations:
-            return self.null_relation()
         # Keep track of ties
         return Relation.union(tied_relations)
 
