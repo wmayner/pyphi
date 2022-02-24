@@ -30,10 +30,10 @@ from enum import unique, auto, Enum
 
 @unique
 class ShortCircuitConditions(Enum):
-    EMPTY_OVERLAP = auto()
+    NO_OVERLAP = auto()
+    NO_POSSIBLE_PURVIEWS = auto()
     RELATA_IS_SINGLETON = auto()
     RELATA_CONTAINS_DUPLICATE_PURVIEWS = auto()
-    NO_POSSIBLE_PURVIEWS = auto()
 
 
 class PotentialPurviewRegistry(Registry):
@@ -555,7 +555,7 @@ class Relata(HashableOrderedSet):
         """
         if not self.overlap:
             return self.null_relation(
-                reason=ShortCircuitConditions.EMPTY_OVERLAP,
+                reason=ShortCircuitConditions.NO_OVERLAP,
                 purview=candidate_joint_purview,
                 phi=0,
             )
