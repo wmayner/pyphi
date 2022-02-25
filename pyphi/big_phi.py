@@ -636,6 +636,8 @@ def sia(
     progress=True,
 ):
     """Analyze the irreducibility of a system."""
+    if isinstance(all_distinctions, FlatCauseEffectStructure):
+        all_distinctions = all_distinctions.unflatten()
     # First check that the entire set of distinctions/relations is not trivially reducible
     # (since then all subsets must be)
     full_phi_structure = PhiStructure(all_distinctions, all_relations)
