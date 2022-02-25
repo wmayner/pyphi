@@ -462,6 +462,10 @@ class Concept(cmp.Orderable):
         self.time = time
         self.subsystem = subsystem
         self.node_labels = subsystem.node_labels
+        # Attach references to this object on the cause and effect
+        # TODO(4.0) document this
+        self.cause.parent = self
+        self.effect.parent = self
 
     def __repr__(self):
         return fmt.make_repr(self, _concept_attributes)
