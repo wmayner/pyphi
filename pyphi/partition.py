@@ -618,23 +618,32 @@ def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
     )
 
 
+def relation_partition_one_distinction(
+    relata, candidate_joint_purview, i, node_labels=None
+):
+    relata_indices = list(range(len(relata)))
+    mechanism_parts = [(i,), relata_indices[:i] + relata_indices[(i + 1) :]]
+    purview_parts = [(), candidate_joint_purview]
+    return RelationPartition(
+        relata,
+        *(
+            RelationPart(
+                mechanism=mechanism,
+                purview=purview,
+                relata=relata,
+                node_labels=node_labels,
+            )
+            for mechanism, purview in zip(mechanism_parts, purview_parts)
+        ),
+        node_labels=node_labels,
+    )
+
+
 @relation_partition_types.register("BI_CUT_ONE")
 def relation_bipartitions_of_one(relata, candidate_joint_purview, node_labels=None):
-    mechanism_partitions = bipartition_of_one(range(len(relata)))
-    purview_partitions = cycle([((), candidate_joint_purview)])
-    for mechanism_parts, purview_parts in zip(mechanism_partitions, purview_partitions):
-        yield RelationPartition(
-            relata,
-            *(
-                RelationPart(
-                    mechanism=mechanism,
-                    purview=purview,
-                    relata=relata,
-                    node_labels=node_labels,
-                )
-                for mechanism, purview in zip(mechanism_parts, purview_parts)
-            ),
-            node_labels=node_labels,
+    for i in range(len(relata)):
+        yield relation_partition_one_distinction(
+            relata, candidate_joint_purview, i, node_labels=node_labels
         )
 
 
