@@ -6,6 +6,7 @@
 
 import operator
 import random
+from enum import Enum, auto, unique
 from itertools import product
 
 import numpy as np
@@ -14,7 +15,11 @@ from toolz import concat, curry
 from tqdm.auto import tqdm
 
 from pyphi.compute.parallel import get_num_processes
-from pyphi.partition import relation_partition_aggregations, relation_partition_types
+from pyphi.partition import (
+    relation_partition_aggregations,
+    relation_partition_one_distinction,
+    relation_partition_types,
+)
 
 from . import config, validate
 from .combinatorics import combinations_with_nonempty_intersection
@@ -25,7 +30,6 @@ from .models.cuts import RelationPartition
 from .models.subsystem import FlatCauseEffectStructure
 from .registry import Registry
 from .utils import eq, powerset
-from enum import unique, auto, Enum
 
 
 @unique
@@ -76,6 +80,87 @@ def whole_overlap(congruent_overlap):
     all of them.
     """
     return set(map(tuple, congruent_overlap))
+
+
+class RelationPhiSchemeRegistry(Registry):
+    """Storage for functions for evaluating a relation.
+
+    Users can define custom functions to determine how relations are evaluated:
+
+    Examples:
+        >>> @relation_phi_schemes.register('ALWAYS_ZERO')  # doctest: +SKIP
+        ... def zero(relata):
+        ...    return 0
+
+    And use them by setting ``config.RELATION_PHI_SCHEME = 'ALWAYS_ZERO'``
+    """
+
+    desc = "relation phi schemes"
+
+
+relation_phi_schemes = RelationPhiSchemeRegistry()
+
+
+@relation_phi_schemes.register("OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS")
+def overlap_ratio_times_relation_informativeness(relata, candidate_joint_purview):
+    """Return the relation phi according to the following formula::
+
+        min_{partitions} [ (overlap ratio) * (relation informativeness)_{partition} ]
+
+    where:
+
+        - ``(overlap ratio)`` is the ratio of the overlap size to the size of the
+          smallest purview in the relation (i.e., the maximum-conceivable
+          overlap), and
+        - ``(relation informativeness)_{partition} == (sum of small phi of the
+          relata) - (sum of small phi of the relata under the partition)``
+
+    Note that this scheme implies that phi is a monotonic increasing function of
+    the size of the overlap, so in practice there is no need to search over
+    subsets of the congruent overlap. Thus, when this scheme is used, the most
+    efficient setting for RELATION_POSSIBLE_PURVIEWS is "WHOLE".
+    """
+    # This implementation relies on several assumptions:
+    # - Overlap ratio does not depend on the partition
+    # - The minimum of the informativeness term over the set of partitions is
+    #   just the minimal distinction phi, so there's no need to actually search
+    #   over partitions
+    overlap_ratio = len(candidate_joint_purview) / relata.minimal_purview_size
+    minimal_distinction_phi = min(relatum.parent.phi for relatum in relata)
+    phi = overlap_ratio * minimal_distinction_phi
+    tied_partitions = [
+        relation_partition_one_distinction(
+            relata, candidate_joint_purview, i, node_labels=relata.subsystem.node_labels
+        )
+        for i in range(len(relata))
+        if relata[i].parent.phi == minimal_distinction_phi
+    ]
+    return [
+        Relation(
+            relata=relata, purview=candidate_joint_purview, phi=phi, partition=partition
+        )
+        for partition in tied_partitions
+    ]
+
+
+@relation_phi_schemes.register("AGGREGATE_DISTINCTION_RELATIVE_DIFFERENCES")
+def aggregate_distinction_relative_repertoire_differences(
+    relata, candidate_joint_purview
+):
+    _partitions = list(
+        partitions(
+            relata, candidate_joint_purview, node_labels=relata.subsystem.node_labels
+        )
+    )
+    return all_minima(
+        Relation(
+            relata=relata,
+            purview=candidate_joint_purview,
+            phi=relata.evaluate_partition(partition),
+            partition=partition,
+        )
+        for partition in _partitions
+    )
 
 
 # TODO there should be an option to resolve ties at different levels
@@ -154,6 +239,7 @@ all_minima = _all_extrema(operator.lt)
 all_maxima = _all_extrema(operator.gt)
 
 
+# TODO(4.0) move to combinatorics
 def only_nonsubsets(sets):
     """Find sets that are not proper subsets of any other set."""
     sets = sorted(map(set, sets), key=len, reverse=True)
@@ -373,6 +459,7 @@ class Relata(HashableOrderedSet):
         self._subsystem = subsystem
         self._overlap = None
         self._congruent_overlap = None
+        self._minimal_purview_size = None
         self._contains_duplicate_purviews_cached = None
         super().__init__(relata)
         validate.relata(self)
@@ -441,10 +528,17 @@ class Relata(HashableOrderedSet):
 
     @property
     def overlap(self):
-        """Return the set of elements that are in the purview of every relatum."""
+        """The set of elements that are in the purview of every relatum."""
         if self._overlap is None:
             self._overlap = set.intersection(*map(set, self.purviews))
         return self._overlap
+
+    @property
+    def minimal_purview_size(self):
+        """The size of the smallest purview in the relation."""
+        if self._minimal_purview_size is None:
+            self._minimal_purview_size = min(map(len, self.purviews))
+        return self._minimal_purview_size
 
     def null_relation(self, reason, purview=None, phi=0.0, partition=None):
         # TODO(4.0): set default for partition to be the null partition
@@ -518,8 +612,8 @@ class Relata(HashableOrderedSet):
         specified = np.max(specified, axis=non_joint_purview_elements, keepdims=True)
         return specified
 
-    def combine_distinction_relative_differences(self, specified):
-        """Return the aggregate phi value over a set of specifications.
+    def combine_distinction_relative_differences(self, differences):
+        """Return the phi value given a difference for each distinction.
 
         A RelationPartition implies a distinction-relative partition for each
         distinction in the relata; this function combines the
@@ -529,7 +623,7 @@ class Relata(HashableOrderedSet):
         Controlled by the RELATION_PARTITION_AGGREGATION configuration option.
         """
         return relation_partition_aggregations[config.RELATION_PARTITION_AGGREGATION](
-            specified, axis=0
+            differences, axis=0
         )
 
     def evaluate_partition(self, partition):
@@ -549,6 +643,8 @@ class Relata(HashableOrderedSet):
     def minimum_information_relation(self, candidate_joint_purview):
         """Return the minimal information relation for this purview.
 
+        Behavior is controlled by the RELATION_PHI_SCHEME configuration option.
+
         Arguments:
             candidate_joint_purview (set): The purview to consider (subset of
                 the overlap).
@@ -559,19 +655,8 @@ class Relata(HashableOrderedSet):
                 purview=candidate_joint_purview,
                 phi=0,
             )
-        _partitions = list(
-            partitions(
-                self, candidate_joint_purview, node_labels=self.subsystem.node_labels
-            )
-        )
-        return all_minima(
-            Relation(
-                relata=self,
-                purview=candidate_joint_purview,
-                phi=self.evaluate_partition(partition),
-                partition=partition,
-            )
-            for partition in _partitions
+        return relation_phi_schemes[config.RELATION_PHI_SCHEME](
+            self, candidate_joint_purview
         )
 
     def _contains_duplicate_purviews(self):
@@ -630,8 +715,8 @@ class Relata(HashableOrderedSet):
         # Find maximal relations
         tied_relations = all_maxima(
             concat(
-                self.minimum_information_relation(purview)
-                for purview in possible_purviews
+                self.minimum_information_relation(candidate_joint_purview)
+                for candidate_joint_purview in possible_purviews
             )
         )
         # Keep track of ties

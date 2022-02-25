@@ -27,16 +27,18 @@ RELATION_PARTITION_AGGREGATION: "SUM"
 # Controls the partitioning scheme for the system.
 SYSTEM_PARTITION_TYPE: "TEMPORAL_DIRECTED_BI_CUT_ONE"
 # Controls the set of possible purviews for a relation.
-RELATION_POTENTIAL_PURVIEWS: "ALL"
-# Controls how to resolve phi-ties when computing MICE.
-RELATION_COMPUTATION: "EXACT"
+RELATION_POTENTIAL_PURVIEWS: "WHOLE"
 # Controls whether to approximate relations or compute them exactly.
-RELATION_APPROXIMATION: "ANALYTICAL_DEGREE_ONE"
+RELATION_COMPUTATION: "EXACT"
+# Controls how relation phi values are computed.
+RELATION_PHI_SCHEME: "OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS"
 # Controls the approximation scheme used for relations. Only applies if
 # RELATION_COMPUTATION is set to "APPROXIMATE".
-RELATION_APPROXIMATION_SAMPLE_SIZE: 10
+RELATION_APPROXIMATION: "ANALYTICAL_DEGREE_ONE"
 # Controls the sample size for approximated relations. Only applies if
 # RELATION_APPROXIMATION implies a sampling approach.
+RELATION_APPROXIMATION_SAMPLE_SIZE: 10
+# Controls how to resolve phi-ties when computing MICE.
 PICK_SMALLEST_PURVIEW: false
 # The type of system cuts to use
 SYSTEM_CUTS: "3.0_STYLE"

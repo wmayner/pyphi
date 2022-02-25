@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # conf.py
 
+# TODO(4.0) update this docstring
 """
 Loading a configuration
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -838,6 +839,16 @@ class PyphiConfig(Config):
         doc="""
     Controls the set of possible purviews for a relation as a function of the
     congruent overlap.
+    """,
+    )
+
+    RELATION_PHI_SCHEME = Option(
+        "OVERLAP_RATIO_TIMES_RELATION_INFORMATIVENESS",
+        doc="""
+    Controls how relation phi is evaluated.
+
+    You can configure custom relation phi schemes using the
+    ``pyphi.relations.relation_phi_schemes.register`` decorator.
     """,
     )
 
