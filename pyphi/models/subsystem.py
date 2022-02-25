@@ -120,10 +120,11 @@ class FlatCauseEffectStructure(CauseEffectStructure):
     direction."""
 
     def __init__(self, concepts=(), subsystem=None, time=None):
+        if isinstance(concepts, CauseEffectStructure):
+            subsystem = concepts.subsystem
         if isinstance(concepts, CauseEffectStructure) and not isinstance(
             concepts, FlatCauseEffectStructure
         ):
-            subsystem = concepts.subsystem
             time = concepts.time
             concepts = concat((concept.cause, concept.effect) for concept in concepts)
         super().__init__(concepts=concepts, subsystem=subsystem, time=time)
