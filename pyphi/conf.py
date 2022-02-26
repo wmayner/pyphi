@@ -865,12 +865,6 @@ class PyphiConfig(Config):
 
     RELATION_APPROXIMATION = Option(
         "ANALYTICAL_DEGREE_ONE",
-        values=[
-            "ANALYTICAL_DEGREE_ONE",
-            "ANALYTICAL_DEGREE_ALL",
-            "SAMPLED_DEGREE_ONE",
-            "SAMPLED_DEGREE_ALL",
-        ],
         doc="""
     Controls the approximation scheme for relations. This option only applies if
     ``RELATION_COMPUATION = 'APPROXIMATE'``.
