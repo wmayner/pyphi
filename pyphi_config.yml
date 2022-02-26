@@ -38,6 +38,8 @@ RELATION_APPROXIMATION: "ANALYTICAL_DEGREE_ONE"
 # Controls the sample size for approximated relations. Only applies if
 # RELATION_APPROXIMATION implies a sampling approach.
 RELATION_APPROXIMATION_SAMPLE_SIZE: 10
+# Controls the number of seconds to wait while sampling.
+RELATION_APPROXIMATION_SAMPLE_TIMEOUT: 0.1
 # Controls how to resolve phi-ties when computing MICE.
 PICK_SMALLEST_PURVIEW: false
 # The type of system cuts to use

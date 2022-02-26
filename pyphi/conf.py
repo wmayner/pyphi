@@ -883,6 +883,14 @@ class PyphiConfig(Config):
     """,
     )
 
+    RELATION_APPROXIMATION_SAMPLE_TIMEOUT = Option(
+        5.0,
+        type=float,
+        doc="""
+    Controls the number of seconds to wait while sampling.
+    """,
+    )
+
     RELATION_ALLOW_DUPLICATE_PURVIEWS = Option(
         False,
         type=bool,

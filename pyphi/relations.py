@@ -8,6 +8,7 @@ import operator
 import random
 from enum import Enum, auto, unique
 from itertools import product
+from time import time
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -933,7 +934,10 @@ class SampledRelations(AnalyticalRelations):
             )
         potential_relata = list(FlatCauseEffectStructure(self.distinctions))
         samples = []
-        while len(samples) < sample_size:
+        start = time()
+        while (len(samples) < sample_size) and (
+            time() < start + config.RELATION_APPROXIMATION_SAMPLE_TIMEOUT
+        ):
             draw = self.draw_sample(potential_relata, target_degree)
             if draw:
                 samples.append(draw)
