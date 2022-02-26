@@ -904,7 +904,7 @@ class SampledRelations(AnalyticalRelations):
     @property
     def max_degree(self):
         if self._max_degree is None:
-            self._max_degree = max(self.purview_inclusion.values())
+            self._max_degree = max(self.purview_inclusion.values(), default=0)
         return self._max_degree
 
     def draw_sample(self, potential_relata, target_degree):
@@ -923,6 +923,8 @@ class SampledRelations(AnalyticalRelations):
                 for distinction in potential_relata
                 if overlap & set(distinction.purview)
             ]
+        if not relata:
+            return None
         return Relata(
             self.distinctions.subsystem, relata
         ).maximally_irreducible_relation()
@@ -953,6 +955,9 @@ class SampledRelations(AnalyticalRelations):
         return self._sample
 
     def mean_phi(self):
+        # Special case for empty distinctions to avoid sampling issues
+        if not self.sample():
+            return 0.0
         return np.mean([relation.phi for relation in self.sample()])
 
 
