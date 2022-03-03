@@ -387,7 +387,7 @@ class PyphiConfig(Config):
     """``pyphi.config`` is an instance of this class."""
 
     IIT_VERSION = Option(
-        3,
+        "maximal-state-first",
         doc="""
     The version of the theory to use.""",
     )
@@ -403,7 +403,7 @@ class PyphiConfig(Config):
     )
 
     REPERTOIRE_DISTANCE = Option(
-        "AID",
+        "IIT_4.0_SMALL_PHI",
         doc="""
     The measure to use when computing distances between repertoires and
     concepts. A full list of currently installed measures is available by
@@ -428,7 +428,7 @@ class PyphiConfig(Config):
     )
 
     CES_DISTANCE = Option(
-        "EMD",
+        "SUM_SMALL_PHI",
         doc="""
     The measure to use when computing distances between cause-effect structures.
 
