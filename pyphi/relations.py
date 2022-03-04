@@ -958,8 +958,8 @@ class SampledRelations(AnalyticalRelations):
                 raise ValueError(
                     f"all degrees must be < max degree = {self.max_degree}; got {target_degrees}"
                 )
-            if any(degree < 2 for degree in target_degrees):
-                raise ValueError(f"all degrees must be > 2; got {target_degrees}")
+            # if any(degree < 2 for degree in target_degrees):
+            #     raise ValueError(f"all degrees must be > 2; got {target_degrees}")
             # TODO(4.0) generalize to list of target degrees; need another class var?
             potential_relata = FlatCauseEffectStructure(self.distinctions)
             self._sample = self.draw_samples(
