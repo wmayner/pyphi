@@ -16,6 +16,7 @@ with open("./pyphi/__about__.py", encoding="utf-8") as f:
 
 install_requires = [
     "decorator >=4.0.0",
+    "Graphillion >=1.5",
     "joblib >=0.8.0",
     "numpy >=1.11.0",
     "ordered-set >= 4.0.2",
