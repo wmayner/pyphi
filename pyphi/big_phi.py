@@ -466,6 +466,24 @@ def all_nonconflicting_distinction_sets(distinctions):
     """Return all possible conflict-free distinction sets."""
     if isinstance(distinctions, FlatCauseEffectStructure):
         raise ValueError("Expected CauseEffectStructure; got FlatCauseEffectStructure")
+    # Find distinctions that cannot have conflicts
+    already_nonconflicting_distinctions = []
+    for i, distinction in enumerate(distinctions):
+        if all(
+            (
+                distinction.purview(direction)
+                not in set(
+                    d.purview(direction) for d in distinctions[:i] + distinctions[i:]
+                )
+            )
+            for direction in Direction.both()
+        ):
+            already_nonconflicting_distinctions.append(distinction)
+    distinctions = CauseEffectStructure(
+        distinction
+        for distinction in distinctions
+        if distinction not in already_nonconflicting_distinctions
+    )
     # Map mechanisms to their distinctions for later fast retrieval
     mechanism_to_distinction = {
         frozenset(distinction.mechanism): distinction for distinction in distinctions
@@ -496,7 +514,8 @@ def all_nonconflicting_distinction_sets(distinctions):
     for mechanisms in filter(None, nonconflicting_mechanisms):
         # Convert to actual MICE objects
         yield CauseEffectStructure(
-            map(mechanism_to_distinction.get, mechanisms),
+            already_nonconflicting_distinctions
+            + list(map(mechanism_to_distinction.get, mechanisms)),
             subsystem=distinctions.subsystem,
         )
 
