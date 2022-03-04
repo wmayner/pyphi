@@ -922,7 +922,7 @@ class SampledRelations(AnalyticalRelations):
                     self.distinctions.subsystem, relata
                 ).maximally_irreducible_relation()
 
-    def draw_samples(self, potential_relata, n, target_degrees):
+    def draw_samples(self, potential_relata, sample_size, target_degrees):
         setset.set_universe(potential_relata)
 
         # Power set of potential relata
@@ -939,11 +939,14 @@ class SampledRelations(AnalyticalRelations):
 
         R_iter = R_target.rand_iter()
         sample = []
-        for _ in range(n):
-            r = self.draw_sample(R_iter)
-            if r is None:
+        start = time()
+        while (len(sample) < sample_size) and (
+            time() < start + config.RELATION_APPROXIMATION_SAMPLE_TIMEOUT
+        ):
+            draw = self.draw_sample(R_iter)
+            if draw is None:
                 break
-            sample.append(r)
+            sample.append(draw)
         return sample
 
     def sample(self, target_degrees=None):
