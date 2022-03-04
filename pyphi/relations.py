@@ -9,6 +9,7 @@ import random
 from enum import Enum, auto, unique
 from itertools import product
 from time import time
+from graphillion import setset
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -907,56 +908,67 @@ class SampledRelations(AnalyticalRelations):
             self._max_degree = max(self.purview_inclusion.values(), default=0)
         return self._max_degree
 
-    def draw_sample(self, potential_relata, target_degree):
-        relata = []
-        overlap = set(self.distinctions.subsystem.node_indices)
-        for _ in range(target_degree):
-            if not potential_relata:
-                return None
-            choice = random.choice(potential_relata)
-            potential_relata.remove(choice)
-            overlap &= set(choice.purview)
-            relata.append(choice)
-            # Restrict potential purviews to those with nonempty overlap
-            potential_relata = [
-                distinction
-                for distinction in potential_relata
-                if overlap & set(distinction.purview)
-            ]
-        if not relata:
-            return None
-        return Relata(
-            self.distinctions.subsystem, relata
-        ).maximally_irreducible_relation()
+    @staticmethod
+    def nonempty_intersection(relata):
+        return set.intersection(*(set(distinction.purview) for distinction in relata))
 
-    def draw_samples(self, sample_size, target_degree):
-        if target_degree > self.max_degree:
-            raise ValueError(
-                f"target_degree = {target_degree} > max_degree = {self.max_degree}"
-            )
-        potential_relata = list(FlatCauseEffectStructure(self.distinctions))
-        samples = []
-        start = time()
-        while (len(samples) < sample_size) and (
-            time() < start + config.RELATION_APPROXIMATION_SAMPLE_TIMEOUT
-        ):
-            draw = self.draw_sample(potential_relata, target_degree)
-            if draw:
-                samples.append(draw)
-        return samples
+    def draw_sample(self, R_iter):
+        while True:
+            relata = next(R_iter, None)
+            if relata is None:
+                return
+            if self.nonempty_intersection(relata):
+                return Relata(
+                    self.distinctions.subsystem, relata
+                ).maximally_irreducible_relation()
 
-    def sample(self):
+    def draw_samples(self, potential_relata, n, target_degrees):
+        setset.set_universe(potential_relata)
+
+        # Power set of potential relata
+        R = ~setset([[]])
+        # Cannot have singleton relata
+        R -= R.set_size(1)
+
+        if target_degrees is None:
+            R_target = R
+        else:
+            R_target = setset([])
+            for degree in target_degrees:
+                R_target |= R.set_size(degree)
+
+        R_iter = R_target.rand_iter()
+        sample = []
+        for _ in range(n):
+            r = self.draw_sample(R_iter)
+            if r is None:
+                break
+            sample.append(r)
+        return sample
+
+    def sample(self, target_degrees=None):
         if self._sample is None:
-            # Most numerous order is ([max_degree] choose [max_degree // 2])
-            target_degree = self.max_degree // 2
+            if target_degrees is None:
+                # Most numerous order is ([max_degree] choose [max_degree // 2])
+                target_degrees = [self.max_degree // 2]
+            if any(degree > self.max_degree for degree in target_degrees):
+                raise ValueError(
+                    f"all degrees must be < max degree = {self.max_degree}; got {target_degrees}"
+                )
+            if any(degree < 2 for degree in target_degrees):
+                raise ValueError(f"all degrees must be > 2; got {target_degrees}")
+            # TODO(4.0) generalize to list of target degrees; need another class var?
+            potential_relata = FlatCauseEffectStructure(self.distinctions)
             self._sample = self.draw_samples(
-                config.RELATION_APPROXIMATION_SAMPLE_SIZE, target_degree
+                potential_relata,
+                config.RELATION_APPROXIMATION_SAMPLE_SIZE,
+                target_degrees,
             )
         return self._sample
 
     def mean_phi(self):
-        # Special case for empty distinctions to avoid sampling issues
         if not self.sample():
+            # Either empty distinctions, or sampling failed
             return 0.0
         return np.mean([relation.phi for relation in self.sample()])
 
