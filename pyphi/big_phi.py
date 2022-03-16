@@ -165,6 +165,9 @@ class PhiStructure(cmp.Orderable):
             ],
         )
 
+    def __hash__(self):
+        return hash((self.distinctions, self.relations))
+
     def __getstate__(self):
         dct = self.__dict__
         if isinstance(self.relations, ConcreteRelations):
@@ -291,6 +294,9 @@ class PartitionedPhiStructure(PhiStructure):
                 "partitioned_relations",
             ],
         )
+
+    def __hash__(self):
+        return hash((super().__hash__(), self.partition))
 
     def __bool__(self):
         """A |SystemIrreducibilityAnalysis| is ``True`` if it has |big_phi > 0|."""
