@@ -621,7 +621,7 @@ def relation_tripartitions(relata, candidate_joint_purview, node_labels=None):
 def relation_partition_one_distinction(
     relata, candidate_joint_purview, i, node_labels=None
 ):
-    relata_indices = list(range(len(relata)))
+    relata_indices = tuple(range(len(relata)))
     mechanism_parts = [(i,), relata_indices[:i] + relata_indices[(i + 1) :]]
     purview_parts = [(), candidate_joint_purview]
     return RelationPartition(
