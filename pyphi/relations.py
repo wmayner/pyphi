@@ -425,15 +425,15 @@ class Relation(cmp.Orderable):
         ]
 
     @classmethod
-    def from_indirect_json(cls, subsystem, ces, data):
+    def from_indirect_json(cls, ces, data):
         relata, purview, partition, phi, ties = data
-        relata = Relata.from_indirect_json(subsystem, ces, relata)
+        relata = Relata.from_indirect_json(ces, relata)
         return cls(
             relata,
             purview,
             phi,
             RelationPartition.from_indirect_json(
-                relata, partition, node_labels=subsystem.node_labels
+                relata, partition, node_labels=ces.subsystem.node_labels
             ),
             ties=set(map(frozenset, ties)),
         )
@@ -525,8 +525,8 @@ class Relata(HashableOrderedSet):
         return [flat_ces.index(relatum) for relatum in self]
 
     @classmethod
-    def from_indirect_json(cls, subsystem, flat_ces, data):
-        return cls(subsystem, [flat_ces[i] for i in data])
+    def from_indirect_json(cls, flat_ces, data):
+        return cls(flat_ces.subsystem, [flat_ces[i] for i in data])
 
     @property
     def overlap(self):
@@ -836,12 +836,9 @@ class ConcreteRelations(HashableOrderedSet, Relations):
         return [relation.to_indirect_json(ces) for relation in self]
 
     @classmethod
-    def from_indirect_json(cls, subsystem, ces, data):
+    def from_indirect_json(cls, ces, data):
         return cls(
-            [
-                Relation.from_indirect_json(subsystem, ces, relation_data)
-                for relation_data in data
-            ]
+            [Relation.from_indirect_json(ces, relation_data) for relation_data in data]
         )
 
 
@@ -865,6 +862,7 @@ class RelationApproximationRegistry(Registry):
 relation_approximations = RelationApproximationRegistry()
 
 
+# TODO(4.0) to_json method
 class ApproximateRelations(Relations):
     def __init__(self, distinctions):
         self.distinctions = distinctions
