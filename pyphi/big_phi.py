@@ -24,7 +24,7 @@ from . import config
 from .compute.parallel import as_completed, init
 from .direction import Direction
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
-from .relations import Relation, Relations
+from .relations import ConcreteRelations, Relation, Relations
 from .utils import extremum_with_short_circuit
 
 # TODO
@@ -165,6 +165,39 @@ class PhiStructure(cmp.Orderable):
             ],
         )
 
+    def __getstate__(self):
+        dct = self.__dict__
+        if isinstance(self.relations, ConcreteRelations):
+            distinctions = FlatCauseEffectStructure(self.distinctions)
+            dct["relations"] = self.relations.to_indirect_json(distinctions)
+        return dct
+
+    def __setstate__(self, state):
+        try:
+            distinctions = state["distinctions"]
+            distinctions = FlatCauseEffectStructure(distinctions)
+            state["relations"] = ConcreteRelations.from_indirect_json(
+                distinctions, state["relations"]
+            )
+        except:
+            # Assume relations can be unpickled by default
+            pass
+        finally:
+            self.__dict__ = state
+
+    def to_json(self):
+        return self.__getstate__()
+
+    def to_pickle(self, path):
+        with open(path, mode="wb") as f:
+            pickle.dump(self, f)
+        return path
+
+    @classmethod
+    def read_pickle(cls, path):
+        with open(path, mode="rb") as f:
+            return pickle.load(f)
+
     def filter_relations(self):
         """Update relations so that only those supported by distinctions remain.
 
@@ -212,37 +245,6 @@ class PhiStructure(cmp.Orderable):
                 CompleteSystemPartition()
             ).phi()
         return self._system_intrinsic_information
-
-    def to_pickle(self, path):
-        with open(path, mode="wb") as f:
-            pickle.dump(self.to_json(), f)
-        return path
-
-    @classmethod
-    def read_pickle(cls, path):
-        with open(path, mode="rb") as f:
-            data = pickle.load(f)
-        # TODO(4.0) change to Relations class when available
-        distinctions = data["distinctions"]
-        distinctions.subsystem = data["subsystem"]
-        relations = [
-            Relation.from_indirect_json(data["subsystem"], distinctions, relation)
-            for relation in data["relations"]
-        ]
-        return cls(distinctions.unflatten(), relations)
-
-    def to_json(self):
-        distinctions = FlatCauseEffectStructure(self.distinctions)
-        indirect_relations = [
-            relation.to_indirect_json(distinctions) for relation in self.relations
-        ]
-        # TODO(4.0) remove this hack
-        subsystem = self.distinctions.subsystem
-        return {
-            "subsystem": subsystem,
-            "distinctions": distinctions,
-            "relations": indirect_relations,
-        }
 
 
 class PartitionedPhiStructure(PhiStructure):
