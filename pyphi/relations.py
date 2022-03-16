@@ -832,6 +832,9 @@ class ConcreteRelations(HashableOrderedSet, Relations):
             ]
         return type(self)(relations)
 
+    def to_json(self):
+        return list(self)
+
     def to_indirect_json(self, ces):
         return [relation.to_indirect_json(ces) for relation in self]
 
@@ -869,6 +872,9 @@ class ApproximateRelations(Relations):
 
     def supported_by(self, distinctions):
         return type(self)(distinctions)
+
+    def to_json(self):
+        return self.__dict__
 
 
 @relation_approximations.register("ANALYTICAL_DEGREE_ALL")
@@ -911,6 +917,12 @@ class SampledRelations(AnalyticalRelations):
         super().__init__(*args, **kwargs)
         self._sample = None
         self._max_degree = None
+
+    @classmethod
+    def from_json(cls, data):
+        instance = cls(data["distinctions"])
+        instance.__dict__.update(data)
+        return instance
 
     @property
     def max_degree(self):

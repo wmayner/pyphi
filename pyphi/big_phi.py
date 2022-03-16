@@ -188,8 +188,7 @@ class PhiStructure(cmp.Orderable):
         finally:
             self.__dict__ = state
 
-    def to_json(self):
-        return self.__getstate__()
+    to_json = __getstate__
 
     def to_pickle(self, path):
         with open(path, mode="wb") as f:
@@ -200,6 +199,12 @@ class PhiStructure(cmp.Orderable):
     def read_pickle(cls, path):
         with open(path, mode="rb") as f:
             return pickle.load(f)
+
+    @classmethod
+    def from_json(cls, data):
+        instance = cls(data["distinctions"], data["relations"])
+        instance.__dict__.update(data)
+        return instance
 
     def filter_relations(self):
         """Update relations so that only those supported by distinctions remain.
@@ -251,10 +256,10 @@ class PhiStructure(cmp.Orderable):
 
 
 class PartitionedPhiStructure(PhiStructure):
-    def __init__(self, phi_structure, partition, requires_filter=False):
+    def __init__(self, unpartitioned_phi_structure, partition, requires_filter=False):
         # We need to realize the underlying PhiStructure in case
         # distinctions/relations are generators which may later become exhausted
-        self.unpartitioned_phi_structure = phi_structure.realize()
+        self.unpartitioned_phi_structure = unpartitioned_phi_structure.realize()
         super().__init__(
             self.unpartitioned_phi_structure.distinctions,
             self.unpartitioned_phi_structure.relations,
@@ -349,6 +354,12 @@ class PartitionedPhiStructure(PhiStructure):
 
     def phi(self):
         return self.selectivity() * self.informativeness()
+
+    def to_json(self):
+        return {
+            "unpartitioned_phi_structure": self.unpartitioned_phi_structure,
+            "partition": self.partition,
+        }
 
 
 def selectivity(phi_structure):
