@@ -832,6 +832,18 @@ class ConcreteRelations(HashableOrderedSet, Relations):
             ]
         return type(self)(relations)
 
+    def to_indirect_json(self, ces):
+        return [relation.to_indirect_json(ces) for relation in self]
+
+    @classmethod
+    def from_indirect_json(cls, subsystem, ces, data):
+        return cls(
+            [
+                Relation.from_indirect_json(subsystem, ces, relation_data)
+                for relation_data in data
+            ]
+        )
+
 
 class RelationApproximationRegistry(Registry):
     """Storage for approximations of the sum of relation phis.
