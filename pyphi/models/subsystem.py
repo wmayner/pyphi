@@ -74,6 +74,10 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
             "time": self.time,
         }
 
+    def flatten(self):
+        """Return this as a FlatCauseEffectStructure."""
+        return FlatCauseEffectStructure(self)
+
     @property
     def phis(self):
         """The |small_phi| values of each concept."""
@@ -122,11 +126,14 @@ class FlatCauseEffectStructure(CauseEffectStructure):
     def __init__(self, concepts=(), subsystem=None, time=None):
         if isinstance(concepts, CauseEffectStructure):
             subsystem = concepts.subsystem
-        if isinstance(concepts, CauseEffectStructure) and not isinstance(
-            concepts, FlatCauseEffectStructure
-        ):
             time = concepts.time
-            concepts = concat((concept.cause, concept.effect) for concept in concepts)
+        if not isinstance(concepts, FlatCauseEffectStructure):
+            concepts = concat(
+                (concept.cause, concept.effect)
+                if isinstance(concept, Concept)
+                else concept
+                for concept in concepts
+            )
         super().__init__(concepts=concepts, subsystem=subsystem, time=time)
 
     def __str__(self):
