@@ -7,6 +7,7 @@ from collections import UserDict, defaultdict
 from dataclasses import dataclass
 from itertools import product
 
+import networkx as nx
 import ray
 import scipy
 from importlib_metadata import functools
@@ -16,15 +17,16 @@ from tqdm.auto import tqdm
 from pyphi import utils
 from pyphi.cache import cache
 from pyphi.models import cmp
-from pyphi.models.cuts import SystemPartition, CompleteSystemPartition
+from pyphi.models.cuts import CompleteSystemPartition, SystemPartition
 from pyphi.partition import system_partition_types
 from pyphi.subsystem import Subsystem
 
 from . import config
+from .combinatorics import maximal_independent_sets
 from .compute.parallel import as_completed, init
 from .direction import Direction
 from .models.subsystem import CauseEffectStructure, FlatCauseEffectStructure
-from .relations import ConcreteRelations, Relation, Relations
+from .relations import ConcreteRelations, Relations
 from .utils import extremum_with_short_circuit
 
 # TODO
@@ -475,66 +477,44 @@ def filter_ces(ces, direction, compositional_state):
             pass
 
 
-def _nonconflicting_mice_set(purview_to_mice):
-    """Return all combinations where each purview is mapped to a single mechanism."""
-    return map(frozenset, product(*purview_to_mice.values()))
-
-
-# TODO(4.0) parallelize somehow?
-def all_nonconflicting_distinction_sets(distinctions):
-    """Return all possible conflict-free distinction sets."""
-    if isinstance(distinctions, FlatCauseEffectStructure):
-        raise ValueError("Expected CauseEffectStructure; got FlatCauseEffectStructure")
-    # Find distinctions that cannot have conflicts
-    already_nonconflicting_distinctions = []
-    for i, distinction in enumerate(distinctions):
-        if all(
-            (
-                distinction.purview(direction)
-                not in set(
-                    d.purview(direction) for d in distinctions[:i] + distinctions[i:]
-                )
-            )
-            for direction in Direction.both()
-        ):
-            already_nonconflicting_distinctions.append(distinction)
-    distinctions = CauseEffectStructure(
-        distinction
-        for distinction in distinctions
-        if distinction not in already_nonconflicting_distinctions
-    )
-    # Map mechanisms to their distinctions for later fast retrieval
-    mechanism_to_distinction = {
-        frozenset(distinction.mechanism): distinction for distinction in distinctions
-    }
+def conflict_graph(distinctions):
+    """Return a graph where nodes are distinctions and edges are conflicts."""
+    # Map mechanisms to distinctions for fast retreival
+    mechanism_to_distinction = dict()
     # Map purviews to mechanisms that specify them, on both cause and effect sides
-    purview_to_mechanism = {
+    purview_to_mechanisms = {
         direction: defaultdict(list) for direction in Direction.both()
     }
-    for mechanism, distinction in mechanism_to_distinction.items():
-        for direction, mapping in purview_to_mechanism.items():
-            # Cast mechanism to set so we can take intersections later
-            mapping[distinction.purview(direction)].append(mechanism)
-    # Generate nonconflicting sets of mechanisms on both cause and effect sides
-    nonconflicting_causes, nonconflicting_effects = tuple(
-        _nonconflicting_mice_set(purview_to_mechanism[direction])
-        for direction in Direction.both()
-    )
-    # Ensure nonconflicting sets are unique
-    nonconflicting_mechanisms = unique(
-        # Take only distinctions that are nonconflicting on both sides
-        cause_mechanisms & effect_mechanisms
-        # Pair up nonconflicting sets from either side
-        for cause_mechanisms, effect_mechanisms in product(
-            nonconflicting_causes, nonconflicting_effects
-        )
-    )
-    # Filter out empty CESs
-    for mechanisms in filter(None, nonconflicting_mechanisms):
-        # Convert to actual MICE objects
+    # Populate mappings
+    for distinction in distinctions:
+        mechanism_to_distinction[distinction.mechanism] = distinction
+        for direction in Direction.both():
+            purview_to_mechanisms[direction][distinction.purview(direction)].append(
+                distinction.mechanism
+            )
+    # Construct graph where nodes are distinctions and edges are conflicts
+    G = nx.Graph()
+    for direction, mapping in purview_to_mechanisms.items():
+        for mechanisms in mapping.values():
+            # Conflicting distinctions on one side form a clique
+            G.update(nx.complete_graph(mechanisms))
+    return G, mechanism_to_distinction
+
+
+def all_nonconflicting_distinction_sets(distinctions):
+    """Return all maximal non-conflicting sets of distinctions."""
+    # Nonconflicting sets are maximal independent sets of the conflict graph.
+    # NOTE: The maximality criterion here depends on the property of big phi
+    # that it is monotonic increasing with the number of distinctions. If this
+    # changes, this function should be changed to yield all independent sets,
+    # not just the maximal ones.
+    graph, mechanism_to_distinction = conflict_graph(distinctions)
+    for maximal_independent_set in maximal_independent_sets(graph):
         yield CauseEffectStructure(
-            already_nonconflicting_distinctions
-            + list(map(mechanism_to_distinction.get, mechanisms)),
+            # Though distinctions are hashable, the hash function is relatively
+            # expensive (since repertoires are hashed), so we work with
+            # mechanisms instead
+            map(mechanism_to_distinction.get, maximal_independent_set),
             subsystem=distinctions.subsystem,
         )
 
