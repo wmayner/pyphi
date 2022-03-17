@@ -8,6 +8,8 @@
 
 from collections import defaultdict
 from itertools import chain
+from graphillion import setset
+import networkx as nx
 
 
 # TODO(docs) finish documenting
@@ -113,3 +115,12 @@ def combinations_with_nonempty_intersection(sets, min_size=0, max_size=None):
         sets, min_size=min_size, max_size=max_size
     )
     return chain.from_iterable(implicit.values())
+
+
+def maximal_independent_sets(graph):
+    """Yield the maximal independent sets of the graph.
+
+    Time complexity is exponential in the worst case.
+    """
+    # Maximal independent sets are cliques in the graph's complement
+    return nx.find_cliques(nx.complement(graph))
