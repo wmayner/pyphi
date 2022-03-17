@@ -5,7 +5,6 @@
 """Functions for computing relations between concepts."""
 
 import operator
-import random
 from enum import Enum, auto, unique
 from itertools import product
 from time import time
