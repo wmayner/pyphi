@@ -5,13 +5,12 @@ import operator
 import pickle
 from collections import UserDict, defaultdict
 from dataclasses import dataclass
-from itertools import product
 
 import networkx as nx
 import ray
 import scipy
 from importlib_metadata import functools
-from toolz.itertoolz import partition_all, unique
+from toolz.itertoolz import partition_all
 from tqdm.auto import tqdm
 
 from pyphi import utils
