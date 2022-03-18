@@ -9,8 +9,6 @@ Helper functions for formatting pretty representations of PyPhi models.
 from fractions import Fraction
 from itertools import chain
 
-from pyphi.distribution import purview
-
 from .. import config, constants, utils
 from ..direction import Direction
 
@@ -36,11 +34,17 @@ HEADER_BAR_2 = "\u2501"
 HEADER_BAR_3 = "\u254D"
 DOTTED_HEADER = "\u2574"
 LINE = "\u2501"
-CUT_SYMBOL = LINE * 2 + "/ /" + LINE * 2 + "\u27A4"
-EMPTY_SET = "\u2205"
-MULTIPLY = "\u2715"
 ARROW_LEFT = "\u25C0" + LINE * 2
 ARROW_RIGHT = LINE * 2 + "\u25B6"
+BACKWARD_CUT_SYMBOL = ARROW_LEFT + "/ /" + LINE * 2
+FORWARD_CUT_SYMBOL = LINE * 2 + "/ /" + ARROW_RIGHT
+EMPTY_SET = "\u2205"
+MULTIPLY = "\u2715"
+
+CUT_SYMBOLS_BY_DIRECTION = {
+    Direction.CAUSE: BACKWARD_CUT_SYMBOL,
+    Direction.EFFECT: FORWARD_CUT_SYMBOL,
+}
 
 NICE_DENOMINATORS = list(range(16)) + [16, 32, 64, 128]
 
@@ -395,12 +399,16 @@ def fmt_ria(ria, verbose=True, mip=False):
     )
 
 
-def fmt_cut(cut):
+def fmt_cut(cut, direction=None):
     """Format a |Cut|."""
     return "{name} {from_nodes} {symbol} {to_nodes}".format(
         name=cut.__class__.__name__,
         from_nodes=fmt_mechanism(cut.from_nodes, cut.node_labels),
-        symbol=CUT_SYMBOL,
+        symbol=(
+            FORWARD_CUT_SYMBOL
+            if direction is None
+            else CUT_SYMBOLS_BY_DIRECTION[direction]
+        ),
         to_nodes=fmt_mechanism(cut.to_nodes, cut.node_labels),
     )
 

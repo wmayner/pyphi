@@ -213,7 +213,7 @@ class SystemPartition(Cut):
         super().__init__(*args, **kwargs)
 
     def __repr__(self):
-        return fmt.fmt_cut(self) + f" ({str(self.direction)[0]})"
+        return fmt.fmt_cut(self, direction=self.direction)
 
     def to_json(self):
         return {
