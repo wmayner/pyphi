@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # big_phi.py
 
+import logging
 import operator
 import pickle
 from collections import UserDict, defaultdict
@@ -30,6 +31,9 @@ from .utils import extremum_with_short_circuit
 
 # TODO
 # - cache relations, compute as needed for each nonconflicting CES
+
+# Create a logger for this module.
+log = logging.getLogger(__name__)
 
 
 def is_affected_by_partition(distinction, partition):
@@ -624,14 +628,15 @@ def find_maximal_compositional_state(
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     progress=True,
 ):
-    print("Finding maximal compositional state")
+    log.debug("Finding maximal compositional state...")
     tasks = [
         _max_system_intrinsic_information.remote(chunk)
         for chunk in tqdm(
-            partition_all(chunksize, phi_structures), desc="Submitting tasks"
+            partition_all(chunksize, phi_structures),
+            desc="Submitting compositional states for evaluation",
         )
     ]
-    print("Done submitting tasks")
+    log.debug("Done submitting tasks.")
     results = as_completed(tasks)
     if progress:
         results = tqdm(results, total=len(tasks))
@@ -650,7 +655,7 @@ def sia(
     chunksize=DEFAULT_PHI_STRUCTURE_CHUNKSIZE,
     partition_chunksize=DEFAULT_PARTITION_CHUNKSIZE,
     filter_relations=False,
-    progress=True,
+    progress=None,
 ):
     """Analyze the irreducibility of a system."""
     if isinstance(all_distinctions, FlatCauseEffectStructure):
@@ -661,7 +666,7 @@ def sia(
     if check_trivial_reducibility and is_trivially_reducible(
         subsystem, full_phi_structure
     ):
-        print("Returning trivially-reducible SIA")
+        log.debug("SIA is trivially-reducible; returning early.")
         return _null_sia(subsystem, full_phi_structure)
 
     # Assume that phi structures passed by the user don't need to have their
@@ -669,8 +674,9 @@ def sia(
     if phi_structures is None:
         filter_relations = True
         # Broadcast relations to workers
+        log.debug("Putting relations into all workers...")
         all_relations = ray.put(all_relations)
-        print("Done putting relations")
+        log.debug("Done putting relations into all workers.")
         phi_structures = (
             PhiStructure(
                 distinctions,
@@ -686,19 +692,22 @@ def sia(
             chunksize=chunksize,
             progress=progress,
         )
-        print("Evaluating maximal compositional state")
-        return evaluate_phi_structure(
+        log.debug("Evaluating maximal compositional state...")
+        analysis = evaluate_phi_structure(
             subsystem,
             maximal_compositional_state,
             check_trivial_reducibility=check_trivial_reducibility,
             chunksize=partition_chunksize,
         )
+        log.debug("Done evaluating maximal compositional state; returning SIA.")
+        return analysis
     else:
         # Broadcast subsystem object to workers
+        log.debug("Putting subsystem into all workers...")
         subsystem = ray.put(subsystem)
-        print("Done putting subsystem")
+        log.debug("Done putting subsystem into all workers.")
 
-        print("Evaluating all compositional states")
+        log.debug("Evaluating all compositional states...")
         tasks = [
             _evaluate_phi_structures.remote(
                 subsystem,
@@ -707,11 +716,16 @@ def sia(
                 chunksize=partition_chunksize,
             )
             for chunk in tqdm(
-                partition_all(chunksize, phi_structures), desc="Submitting tasks"
+                partition_all(chunksize, phi_structures),
+                desc="Submitting compositional states for evaluation",
             )
         ]
-        print("Done submitting tasks")
+        log.debug("Done submitting tasks.")
         results = as_completed(tasks)
+        if progress is None:
+            progress = config.PROGRESS_BARS
         if progress:
             results = tqdm(results, total=len(tasks))
-        return max(results)
+        maximum = max(results)
+        log.debug("Done evaluating all compositional states; returning SIA.")
+        return maximum
