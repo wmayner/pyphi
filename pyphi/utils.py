@@ -232,10 +232,6 @@ def time_annotated(func, *args, **kwargs):
     return result
 
 
-def substate(state, nodes):
-    return tuple(state[i] for i in nodes)
-
-
 def extremum_with_short_circuit(
     seq,
     value_func=lambda item: item.phi,
