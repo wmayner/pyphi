@@ -111,10 +111,14 @@ class CauseEffectStructure(cmp.Orderable, Sequence):
         if degree > self._purview_inclusion_max_order:
             for k in range(self._purview_inclusion_max_order + 1, degree + 1):
                 for subset in combinations(self.subsystem.node_indices, k):
-                    for direction in Direction.both():
-                        for purview in self.purviews(direction):
-                            if set(subset).issubset(set(purview)):
-                                self._purview_inclusion[subset] += 1
+                    for state in utils.all_states(len(subset)):
+                        for distinction in self:
+                            for direction in Direction.both():
+                                mice = distinction.mice(direction)
+                                if set(subset).issubset(set(mice.purview)):
+                                    substate = utils.purview_substate(mice.purview, tuple(mice.specified_state[0]), subset)
+                                    if substate == state:
+                                        self._purview_inclusion[subset, state] += 1
             self._purview_inclusion_max_order = degree
         return self._purview_inclusion
 
