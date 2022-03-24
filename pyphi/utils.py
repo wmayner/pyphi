@@ -235,6 +235,7 @@ def time_annotated(func, *args, **kwargs):
 def substate(state, nodes):
     return tuple(state[i] for i in nodes)
 
+
 def purview_substate(purview, purview_state, subset):
     assert set(subset).issubset(set(purview))
     assert len(purview) == len(purview_state)

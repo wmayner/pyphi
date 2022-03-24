@@ -882,7 +882,7 @@ class AnalyticalRelations(ApproximateRelations):
 
     @property
     def purview_inclusion(self):
-        return self.distinctions.purview_inclusion(degree=self.DEGREE)
+        return self.distinctions.purview_inclusion()
 
     def mean_phi(self):
         """This approximation assumes all relation |small_phi| = 1."""
@@ -890,13 +890,13 @@ class AnalyticalRelations(ApproximateRelations):
 
     def _sum_phi(self):
         return self.mean_phi() * self._num_relations()
-    
+
     def _num_relations(self):
         return sum(
-                    (-1) ** (len(subset[0]) - 1) * (2 ** num_purviews - num_purviews - 1)
-                    for subset, num_purviews in self.purview_inclusion.items()
-                )
-        
+            (-1) ** (len(subset[0]) - 1) * (2 ** num_purviews - num_purviews - 1)
+            for subset, num_purviews in self.purview_inclusion.items()
+        )
+
     def __len__(self):
         return self._num_relations()
 
