@@ -876,15 +876,20 @@ class PyphiConfig(Config):
         False,
         doc="""
     Controls the sampled degrees for approximated relations. Only applies if
-    ``RELATION_APPROXIMATION`` implies a sampling approach. Can be either falsy
-    (sample uniformly from all possible relations) or a list of degrees (sample
-    uniformly from possible relations with those degrees).
+    ``RELATION_APPROXIMATION`` implies a sampling approach.
+
+    Can be either falsy (sample uniformly from all possible relations) or a list
+    of degrees (sample uniformly from possible relations with those degrees).
+
+    If the list contains only nonnegative integers, then they are interpreted as
+    absolute degrees; otherwise they are interpreted as relative to the middle
+    degree (the most numerous), signified by 0.
     """,
     )
 
     RELATION_APPROXIMATION_SAMPLE_TIMEOUT = Option(
         5.0,
-        type=float,
+        type=(int, float),
         doc="""
     Controls the number of seconds to wait while sampling.
     """,

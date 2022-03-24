@@ -8,9 +8,10 @@ import operator
 from enum import Enum, auto, unique
 from itertools import product
 from time import time
-from graphillion import setset
 
 import numpy as np
+import scipy.special
+from graphillion import setset
 from joblib import Parallel, delayed
 from toolz import concat, curry
 from tqdm.auto import tqdm
@@ -897,8 +898,8 @@ class SampledRelations(AnalyticalRelations):
     def nonempty_intersection(relata):
         return set.intersection(*(set(distinction.purview) for distinction in relata))
 
-    def draw_sample(self, R_iter):
-        while True:
+    def draw_sample(self, R_iter, start, timeout):
+        while time() < start + timeout:
             relata = next(R_iter, None)
             if relata is None:
                 return
@@ -907,7 +908,7 @@ class SampledRelations(AnalyticalRelations):
                     self.distinctions.subsystem, relata
                 ).maximally_irreducible_relation()
 
-    def draw_samples(self, potential_relata, sample_size, degrees):
+    def draw_samples(self, potential_relata, sample_size, degrees, timeout):
         setset.set_universe(potential_relata)
 
         # Power set of potential relata
@@ -916,34 +917,41 @@ class SampledRelations(AnalyticalRelations):
         R -= R.set_size(1)
 
         if degrees:
-            # Validate
-            if any(degree < 2 for degree in degrees):
-                raise ValueError(f"all degrees must be >= 2; got {degrees}")
+            if any(degree <= 0 for degree in degrees):
+                # Negative or zeros: interpret degrees as relative to most numerous degree
+                # Most numerous degree is the middle-sized degree, n/2
+                middle_degree = len(potential_relata) // 2
+                degrees = [middle_degree + degree for degree in degrees]
             R_target = setset([])
             for degree in degrees:
                 R_target |= R.set_size(degree)
         else:
             R_target = R
 
+        # Uniform sampling
         R_iter = R_target.rand_iter()
+
         sample = []
         start = time()
-        while (len(sample) < sample_size) and (
-            time() < start + config.RELATION_APPROXIMATION_SAMPLE_TIMEOUT
-        ):
-            draw = self.draw_sample(R_iter)
+        while (len(sample) < sample_size) and (time() < start + timeout):
+            draw = self.draw_sample(R_iter, start, timeout)
             if draw is None:
                 break
             sample.append(draw)
         return sample
 
-    def sample(self, degrees=None):
+    def sample(self, degrees=None, timeout=None):
         if self._sample is None:
+            if degrees is None:
+                degrees = config.RELATION_APPROXIMATION_SAMPLE_DEGREES
+            if timeout is None:
+                timeout = config.RELATION_APPROXIMATION_SAMPLE_TIMEOUT
             potential_relata = FlatCauseEffectStructure(self.distinctions)
             self._sample = self.draw_samples(
                 potential_relata,
                 config.RELATION_APPROXIMATION_SAMPLE_SIZE,
-                config.RELATION_APPROXIMATION_SAMPLE_DEGREES,
+                degrees,
+                timeout,
             )
         return self._sample
 

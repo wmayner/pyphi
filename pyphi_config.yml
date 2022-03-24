@@ -36,9 +36,12 @@ RELATION_COMPUTATION: "EXACT"
 # Controls the sample size for approximated relations. Only applies if
 # RELATION_COMPUTATION implies a sampling approach.
 RELATION_APPROXIMATION_SAMPLE_SIZE: 10
-# Controls the degrees of sampled relations for the sampled approximation.
-# Can be either falsy (sample uniformly from all possible relations) or a list of
-# degrees (sample uniformly from possible relations with those degrees).
+# Controls the degrees of sampled relations for the sampled approximation. Can
+# be either falsy (sample uniformly from all possible relations) or a list of
+# degrees (sample uniformly from possible relations with those degrees). If the
+# list contains only nonnegative integers, then they are interpreted as absolute
+# degrees; otherwise they are interpreted as relative to the middle degree (the
+# most numerous), signified by 0.
 RELATION_APPROXIMATION_SAMPLE_DEGREES: false
 # Controls the number of seconds to wait while sampling.
 RELATION_APPROXIMATION_SAMPLE_TIMEOUT: 10.0
